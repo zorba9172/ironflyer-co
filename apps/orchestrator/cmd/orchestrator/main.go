@@ -91,6 +91,24 @@ func main() {
 	}
 	billing := budget.NewBilling(ledger, vault)
 
+	// ---------------- Stripe (optional) -------------------------------------
+	stripeSvc := budget.NewStripeService(budget.StripeOpts{
+		SecretKey:     cfg.StripeSecretKey,
+		WebhookSecret: cfg.StripeWebhookSecret,
+		Prices: map[budget.PlanTier]string{
+			budget.TierPro:        cfg.StripePricePro,
+			budget.TierTeam:       cfg.StripePriceTeam,
+			budget.TierEnterprise: cfg.StripePriceEnterprise,
+		},
+		SuccessURL: cfg.StripeSuccessURL,
+		CancelURL:  cfg.StripeCancelURL,
+	})
+	if stripeSvc.Enabled() {
+		logger.Info().Msg("Stripe checkout + webhook enabled")
+	} else {
+		logger.Warn().Msg("Stripe disabled (set STRIPE_SECRET_KEY + STRIPE_WEBHOOK_SECRET)")
+	}
+
 	// ---------------- Auth store + service ----------------------------------
 	var userStore auth.UserStore
 	if pgPool != nil {
@@ -157,7 +175,7 @@ func main() {
 	api := httpapi.New(httpapi.Deps{
 		Projects: projects, Engine: engine, Agents: registry, Patches: patches,
 		Billing: billing, Strategist: strategist, BSRunner: bsRunner, Guard: guard,
-		Auth: authSvc, AuthOptional: cfg.AuthOptional,
+		Auth: authSvc, AuthOptional: cfg.AuthOptional, Stripe: stripeSvc,
 		GitHub: githubSvc, GitHubTokens: tokenStore, GitHubPostLoginURL: cfg.GitHubPostLoginURL,
 		RuntimeURL: cfg.RuntimeURL,
 		Logger: logger,

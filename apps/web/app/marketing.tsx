@@ -9,6 +9,7 @@ import {
 } from '@mui/material';
 import { tokens } from '../../../packages/design-tokens';
 import { PromptBox } from './prompt-box';
+import { UpgradeButton } from './upgrade-button';
 
 const imageBase = '/marketplace/output-ref';
 
@@ -536,16 +537,25 @@ function PricingSection() {
   return (
     <Section>
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(4, 1fr)' }, gap: 1.5 }}>
-        {plans.map((plan) => (
-          <Box key={plan.name} sx={{ ...panelSx, p: 3, minHeight: 330, display: 'flex', flexDirection: 'column', bgcolor: plan.name === 'Pro' ? '#111' : '#e8dfce', color: plan.name === 'Pro' ? tokens.color.bg.alabaster : '#111' }}>
-            <Typography variant="overline" sx={{ color: plan.name === 'Pro' ? tokens.color.accent.lime : '#5b554b' }}>{plan.name}</Typography>
-            <Typography variant="h2" sx={{ mt: 2, letterSpacing: 0 }}>{plan.price}</Typography>
-            <Typography variant="body2" sx={{ mt: 2, flex: 1, color: plan.name === 'Pro' ? '#cfc7b8' : '#4f4b43', fontWeight: 600 }}>{plan.text}</Typography>
-            <Button component={Link} href={plan.name === 'Enterprise' ? '/enterprise' : '/app'} variant="contained" sx={{ mt: 3 }}>
-              {plan.cta}
-            </Button>
-          </Box>
-        ))}
+        {plans.map((plan) => {
+          const tier = plan.name.toLowerCase() as 'free' | 'pro' | 'team' | 'enterprise';
+          return (
+            <Box key={plan.name} sx={{ ...panelSx, p: 3, minHeight: 330, display: 'flex', flexDirection: 'column', bgcolor: plan.name === 'Pro' ? '#111' : '#e8dfce', color: plan.name === 'Pro' ? tokens.color.bg.alabaster : '#111' }}>
+              <Typography variant="overline" sx={{ color: plan.name === 'Pro' ? tokens.color.accent.lime : '#5b554b' }}>{plan.name}</Typography>
+              <Typography variant="h2" sx={{ mt: 2, letterSpacing: 0 }}>{plan.price}</Typography>
+              <Typography variant="body2" sx={{ mt: 2, flex: 1, color: plan.name === 'Pro' ? '#cfc7b8' : '#4f4b43', fontWeight: 600 }}>{plan.text}</Typography>
+              {tier === 'free' ? (
+                <Button component={Link} href="/app" variant="contained" sx={{ mt: 3 }}>
+                  {plan.cta}
+                </Button>
+              ) : (
+                <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column' }}>
+                  <UpgradeButton tier={tier} label={plan.cta} />
+                </Box>
+              )}
+            </Box>
+          );
+        })}
       </Box>
     </Section>
   );

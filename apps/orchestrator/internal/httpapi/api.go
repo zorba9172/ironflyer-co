@@ -40,6 +40,7 @@ type Deps struct {
 	BSRunner     *brainstorm.Runner
 	Guard        *providers.BillingGuard
 	Auth         *auth.Service
+	Stripe       *budget.StripeService
 	AuthOptional bool // dev convenience: skip auth when true
 	GitHub       *github.Service
 	GitHubTokens integrations.TokenStore // for FindByExternal during OAuth login
@@ -120,6 +121,9 @@ func New(d Deps) http.Handler {
 
 		// Budget — per-user data is auth-scoped.
 		r.Get("/budget/users/me", a.myBudget)
+		// Stripe checkout requires an authenticated user (we forward their
+		// id + email to Stripe so the webhook can map back).
+		r.Post("/budget/checkout", a.startCheckout)
 	})
 
 	// Public catalogue endpoints (plans/rates/vault snapshot).
@@ -128,6 +132,10 @@ func New(d Deps) http.Handler {
 		r.Get("/rates", a.listRates)
 		r.Get("/vault", a.vaultSnapshot)
 	})
+
+	// Stripe webhook is PUBLIC (Stripe calls it server-to-server). Auth is
+	// the Stripe-Signature header — verified inside the handler.
+	r.Post("/budget/webhook", a.stripeWebhook)
 
 	return r
 }

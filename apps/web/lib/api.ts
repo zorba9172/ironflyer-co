@@ -167,6 +167,11 @@ export const api = {
   vault: () => jsonFetch<VaultSnapshot>('/budget/vault'),
   // Per-user budget is the authenticated user's; orchestrator infers from JWT.
   myBudget: () => jsonFetch<UserBudget>(`/budget/users/me`),
+  // Stripe checkout — returns the URL to redirect the browser to.
+  startCheckout: (tier: string) =>
+    jsonFetch<{ url: string }>(`/budget/checkout`, {
+      method: 'POST', body: JSON.stringify({ tier }),
+    }),
 };
 
 // streamChat opens a POST SSE stream against /chat. Browsers do not allow

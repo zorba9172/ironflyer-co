@@ -52,6 +52,11 @@ cd apps/web && npm install && npm run dev
 | `OPENAI_API_KEY` | _(empty)_ | reserved |
 | `IRONFLYER_RUNTIME_ADDR` | `:8090` | Workspace runtime listen addr |
 | `IRONFLYER_RUNTIME_DRIVER` | `mock` | `mock` or `docker` |
+| `STRIPE_SECRET_KEY` | _(empty)_ | enable `/budget/checkout` + webhook |
+| `STRIPE_WEBHOOK_SECRET` | _(empty)_ | required to verify Stripe webhooks |
+| `STRIPE_PRICE_PRO` / `_TEAM` / `_ENTERPRISE` | _(empty)_ | Stripe price IDs per tier |
+| `STRIPE_SUCCESS_URL` | `http://localhost:3000/app/settings?stripe=success` | post-checkout redirect |
+| `STRIPE_CANCEL_URL` | `http://localhost:3000/pricing?stripe=cancel` | abandoned-checkout redirect |
 
 ## Monorepo
 
@@ -80,7 +85,9 @@ cd apps/web && npm install && npm run dev
 - `POST /projects/{id}/chat` — streaming chat SSE (POST)
 - `POST /projects/{id}/brainstorm` — Strategist + Runner
 - `GET  /projects/{id}/files` · `POST /projects/{id}/patches` · `POST /patches/{id}/apply`
-- `GET  /budget/plans` · `/budget/rates` · `/budget/vault` · `/budget/users/{userId}`
+- `GET  /budget/plans` · `/budget/rates` · `/budget/vault` · `/budget/users/me`
+- `POST /budget/checkout` (auth) — body `{tier}`, returns `{url}` to Stripe
+- `POST /budget/webhook` (Stripe-signed) — checkout/invoice/refund events
 
 ### Runtime (workspace)
 - `POST   /workspaces` — create per-user workspace
@@ -98,5 +105,4 @@ Phase 1 — runnable foundation with streaming chat, multi-agent brainstorm,
 self-managing budget, Temporal workflow, and cloud workspace runtime.
 Mock providers/drivers make everything work without external credentials.
 
-Next: real Postgres-backed store, Stripe webhooks, ONNX inference service,
-Figma slicer.
+Next: ONNX inference service, Figma slicer, finisher gates against real files.

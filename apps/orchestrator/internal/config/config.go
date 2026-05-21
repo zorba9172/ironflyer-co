@@ -45,6 +45,17 @@ type Config struct {
 	// Runtime service the orchestrator proxies clone calls to.
 	RuntimeURL string `env:"IRONFLYER_RUNTIME_URL" envDefault:"http://localhost:8090"`
 
+	// Stripe — leave SecretKey empty to disable /budget/checkout + webhook
+	// (the routes return 503). The Pro/Team/Enterprise price IDs map to our
+	// PlanTier values; users buy a tier, not a specific price.
+	StripeSecretKey       string `env:"STRIPE_SECRET_KEY"`
+	StripeWebhookSecret   string `env:"STRIPE_WEBHOOK_SECRET"`
+	StripePricePro        string `env:"STRIPE_PRICE_PRO"`
+	StripePriceTeam       string `env:"STRIPE_PRICE_TEAM"`
+	StripePriceEnterprise string `env:"STRIPE_PRICE_ENTERPRISE"`
+	StripeSuccessURL      string `env:"STRIPE_SUCCESS_URL" envDefault:"http://localhost:3000/app/settings?stripe=success"`
+	StripeCancelURL       string `env:"STRIPE_CANCEL_URL" envDefault:"http://localhost:3000/pricing?stripe=cancel"`
+
 	// Storage driver:
 	//   memory   — both budget and projects in-process (default, no infra)
 	//   postgres — Postgres for budget, memory for projects
