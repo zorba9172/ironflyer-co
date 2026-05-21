@@ -5,6 +5,9 @@ out/
 *.tsbuildinfo
 next-env.d.ts
 
+# Compiled SDK / package build outputs
+packages/*/dist/
+
 # Test artifacts
 apps/web/test-results/
 apps/web/screenshots/
