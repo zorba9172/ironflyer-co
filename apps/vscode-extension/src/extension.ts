@@ -16,6 +16,8 @@ import { PatchDiffProvider } from './diffProvider';
 import { PatchesTree } from './patchesTree';
 import { buildPatchUri, patchTabTitle } from './patchUri';
 import { GatesTree } from './gatesTree';
+import { ProjectStream } from './projectStream';
+import { throttleTrailing } from './throttle';
 
 export function activate(context: vscode.ExtensionContext): void {
   const auth = new Auth(context.secrets);
@@ -24,7 +26,21 @@ export function activate(context: vscode.ExtensionContext): void {
   const diffProvider = new PatchDiffProvider(api);
   const patchesTree = new PatchesTree(api, auth, diffProvider);
   const gatesTree = new GatesTree(api, auth);
+  const projectStream = new ProjectStream(api, (msg, err) => {
+    // Surface to the developer console without spamming the user — we
+    // already retry with backoff, so warnings are noise during normal
+    // disconnects (orchestrator restart, network blip).
+    console.warn('[ironflyer]', msg, err);
+  });
   const status = new StatusBar(api, auth);
+
+  // Coalesce bursts of lifecycle events into a single refresh per project.
+  // Without this the trees thrash when the orchestrator emits a stream
+  // of "running" events at 50ms intervals during a Finisher pass.
+  const refreshProject = throttleTrailing((projectId: string) => {
+    patchesTree.refreshProject(projectId);
+    gatesTree.refreshProject(projectId);
+  }, 300);
 
   // Push initial signedIn context so viewsWelcome resolves correctly.
   void auth.getToken().then((t) =>
@@ -37,6 +53,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.window.registerTreeDataProvider('ironflyer.patches', patchesTree),
     vscode.window.registerTreeDataProvider('ironflyer.gates', gatesTree),
     vscode.workspace.registerTextDocumentContentProvider('ironflyer', diffProvider),
+    { dispose: () => { projectStream.disposeAll(); refreshProject.cancel(); } },
     status,
 
     vscode.commands.registerCommand('ironflyer.signIn', () => auth.beginSignIn()),
@@ -93,7 +110,10 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('ironflyer.openChat', async (arg: unknown) => {
       const project = await resolveProject(api, arg);
       if (!project) return;
-      ChatPanel.reveal(api, context, project);
+      ChatPanel.reveal(api, context, project, {
+        stream: projectStream,
+        onProjectEvent: (projectId) => refreshProject(projectId),
+      });
     }),
 
     vscode.commands.registerCommand('ironflyer.newProject', async () => {
@@ -120,7 +140,10 @@ export function activate(context: vscode.ExtensionContext): void {
           api.createProject({ name: name.trim(), idea: idea?.trim() }),
         );
         tree.refresh();
-        ChatPanel.reveal(api, context, project);
+        ChatPanel.reveal(api, context, project, {
+          stream: projectStream,
+          onProjectEvent: (projectId) => refreshProject(projectId),
+        });
       } catch (err) {
         await handleError(err, auth);
       }

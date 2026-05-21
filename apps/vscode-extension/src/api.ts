@@ -158,6 +158,15 @@ export class Api {
     yield* this.stream(`/projects/${encodeURIComponent(projectId)}/chat`, body, signal);
   }
 
+  /**
+   * GETs the project's lifecycle event stream — finisher progress, gate
+   * status changes, patch proposals. Long-lived; close by aborting the
+   * AbortController.
+   */
+  async *streamEvents(projectId: string, signal: AbortSignal): AsyncGenerator<SSEEvent> {
+    yield* this.streamGet(`/projects/${encodeURIComponent(projectId)}/stream`, signal);
+  }
+
   // ---------- Internals ----------
 
   private async request<T>(
@@ -188,17 +197,28 @@ export class Api {
     body: unknown,
     signal: AbortSignal,
   ): AsyncGenerator<SSEEvent> {
+    yield* this.openStream('POST', path, body, signal);
+  }
+
+  private async *streamGet(path: string, signal: AbortSignal): AsyncGenerator<SSEEvent> {
+    yield* this.openStream('GET', path, undefined, signal);
+  }
+
+  private async *openStream(
+    method: 'GET' | 'POST',
+    path: string,
+    body: unknown,
+    signal: AbortSignal,
+  ): AsyncGenerator<SSEEvent> {
     const { orchestratorUrl } = readConfig();
     const token = await this.auth.getToken();
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      Accept: 'text/event-stream',
-    };
+    const headers: Record<string, string> = { Accept: 'text/event-stream' };
+    if (method === 'POST') headers['Content-Type'] = 'application/json';
     if (token) headers.Authorization = `Bearer ${token}`;
     const res = await fetch(orchestratorUrl + path, {
-      method: 'POST',
+      method,
       headers,
-      body: JSON.stringify(body),
+      body: method === 'POST' ? JSON.stringify(body ?? {}) : undefined,
       signal,
     });
     if (!res.ok || !res.body) {

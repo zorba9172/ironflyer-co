@@ -36,6 +36,11 @@ export class PatchesTree implements vscode.TreeDataProvider<Node> {
     this._onDidChange.fire(node);
   }
 
+  refreshProject(projectId: string): void {
+    this.diff.invalidate(projectId);
+    this._onDidChange.fire(undefined);
+  }
+
   getTreeItem(node: Node): vscode.TreeItem {
     if (node.kind === 'project') {
       const item = new vscode.TreeItem(node.project.name, vscode.TreeItemCollapsibleState.Collapsed);

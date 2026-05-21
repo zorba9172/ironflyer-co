@@ -15,6 +15,10 @@ Finish products end-to-end with [Ironflyer](https://ironflyer.dev) — without l
 - **Finisher Gates view** — Spec / UX / Arch / Code / Lint / Test / Security
   / Deploy for every project, with status colors, an issues drill-down, and
   an inline ▶ to run the Finisher pass.
+- **Live updates** — while a chat panel is open, the extension subscribes
+  to the project's `/stream` and refreshes the Patches and Gates trees
+  automatically when an agent updates state. Lifecycle events also surface
+  in the chat log so progress is visible without watching the trees.
 - **Run Finisher** — kick a full Spec → UX → Arch → Code → Test → Security → Deploy
   pass from the command palette.
 - **Budget status** — current plan and month-to-date spend in the status bar;
@@ -51,7 +55,7 @@ npm run package        # produces ironflyer-0.1.0.vsix
 To debug, open this folder in VSCode and press `F5` — a new Extension
 Development Host window launches with the extension loaded.
 
-## Roadmap (not in 0.1)
+## Roadmap
 
 - Quick-fix code actions wired to repair agents.
 - LSP-proxy fan-out so the workspace runtime's LSPs surface in VSCode.

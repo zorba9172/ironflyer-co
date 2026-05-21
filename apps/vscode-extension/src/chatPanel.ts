@@ -3,7 +3,8 @@
 // Messages flow over `postMessage` in both directions.
 
 import * as vscode from 'vscode';
-import { Api, Project } from './api';
+import { Api, Project, SSEEvent } from './api';
+import { ProjectStream } from './projectStream';
 
 interface InboundMessage {
   type: 'prompt';
@@ -17,10 +18,20 @@ interface OutboundMessage {
   [k: string]: any;
 }
 
+export interface ChatPanelDeps {
+  stream: ProjectStream;
+  onProjectEvent(projectId: string, event: SSEEvent): void;
+}
+
 export class ChatPanel {
   private static readonly panels = new Map<string, ChatPanel>();
 
-  static reveal(api: Api, ctx: vscode.ExtensionContext, project: Project): void {
+  static reveal(
+    api: Api,
+    ctx: vscode.ExtensionContext,
+    project: Project,
+    deps: ChatPanelDeps,
+  ): void {
     const existing = ChatPanel.panels.get(project.id);
     if (existing) {
       existing.panel.reveal();
@@ -36,17 +47,19 @@ export class ChatPanel {
         localResourceRoots: [vscode.Uri.joinPath(ctx.extensionUri, 'media')],
       },
     );
-    new ChatPanel(panel, api, ctx, project);
+    new ChatPanel(panel, api, ctx, project, deps);
   }
 
   private readonly disposables: vscode.Disposable[] = [];
   private abort: AbortController | undefined;
+  private streamSub: { dispose(): void } | undefined;
 
   private constructor(
     private readonly panel: vscode.WebviewPanel,
     private readonly api: Api,
     ctx: vscode.ExtensionContext,
     private readonly project: Project,
+    private readonly deps: ChatPanelDeps,
   ) {
     ChatPanel.panels.set(project.id, this);
     panel.webview.html = renderHtml(panel.webview, ctx.extensionUri, project);
@@ -56,6 +69,12 @@ export class ChatPanel {
       null,
       this.disposables,
     );
+    this.streamSub = this.deps.stream.subscribe(project.id, (evt) => {
+      this.deps.onProjectEvent(project.id, evt);
+      // Surface execution-stream events to the chat log so the user sees
+      // gate progress without staring at the trees.
+      this.post({ type: 'lifecycle', data: evt.data });
+    });
   }
 
   private async handle(msg: InboundMessage): Promise<void> {
@@ -89,6 +108,8 @@ export class ChatPanel {
   private dispose(): void {
     ChatPanel.panels.delete(this.project.id);
     this.abort?.abort();
+    this.streamSub?.dispose();
+    this.streamSub = undefined;
     while (this.disposables.length) this.disposables.pop()?.dispose();
     this.panel.dispose();
   }

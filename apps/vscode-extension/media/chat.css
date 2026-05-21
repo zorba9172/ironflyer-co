@@ -43,6 +43,8 @@ main {
 .turn .role { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 4px; }
 .turn .body { white-space: pre-wrap; font-size: 13px; line-height: 1.5; }
 .turn.thinking .body { color: var(--muted); font-style: italic; }
+.turn.lifecycle { border-color: var(--vscode-descriptionForeground); }
+.turn.lifecycle .body { color: var(--muted); font-family: var(--vscode-editor-font-family); font-size: 12px; }
 .turn .footer { font-size: 11px; color: var(--muted); margin-top: 6px; font-family: var(--vscode-editor-font-family); }
 
 form {

@@ -50,8 +50,30 @@
         appendTurn('error', msg.message);
         setBusy(false);
         break;
+      case 'lifecycle':
+        appendLifecycle(msg.data);
+        break;
     }
   });
+
+  function appendLifecycle(data) {
+    if (!data) return;
+    const line = data.gate
+      ? `${data.gate}: ${data.status || ''} ${data.message ? '— ' + data.message : ''}`
+      : `${data.step || ''}: ${data.status || ''} ${data.message ? '— ' + data.message : ''}`;
+    const turn = document.createElement('div');
+    turn.className = 'turn lifecycle';
+    const role = document.createElement('div');
+    role.className = 'role';
+    role.textContent = 'lifecycle';
+    const body = document.createElement('div');
+    body.className = 'body';
+    body.textContent = line.trim();
+    turn.appendChild(role);
+    turn.appendChild(body);
+    log.appendChild(turn);
+    log.scrollTop = log.scrollHeight;
+  }
 
   function applySse(eventName, data) {
     if (!current) current = appendTurn('assistant', '');
