@@ -19,6 +19,7 @@ import { tokens } from '../../../lib/theme';
 import { Terminal } from './Terminal';
 import { WorkspaceFiles } from './Workspace';
 import { GitHubPanel } from './GitHubPanel';
+import { ChatComposer, type ComposerMode } from './ChatComposer';
 import { RequireAuth, useAuth } from '../../auth-context';
 
 const GATE_ORDER: { key: string; label: string }[] = [
@@ -177,28 +178,16 @@ function ProjectPageInner({ params }: { params: Promise<{ id: string }> }) {
             <ChatTimeline turns={turns} />
           </Box>
           <Divider />
-          <Box sx={{ p: 1.5 }}>
-            <TextField
-              fullWidth multiline minRows={3} placeholder="Ask for a change, paste a screenshot note, or reference a file..."
-              value={prompt} onChange={(e) => setPrompt(e.target.value)} disabled={streaming}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-                  e.preventDefault();
-                  if (e.shiftKey) void runBrainstorm(); else void sendPrompt();
-                }
-              }}
-            />
-            <Stack direction="row" justifyContent="space-between" sx={{ mt: 1 }} spacing={1}>
-              <Button variant="outlined" size="small" startIcon={<AutoAwesome />} onClick={runBrainstorm}
-                      disabled={!prompt.trim() || streaming}>
-                Plan
-              </Button>
-              <Button variant="contained" size="small" onClick={sendPrompt}
-                      disabled={streaming || !prompt.trim()}>
-                {streaming ? 'Working...' : 'Send'}
-              </Button>
-            </Stack>
-          </Box>
+          <ChatComposer
+            value={prompt}
+            onChange={setPrompt}
+            streaming={streaming}
+            onAbort={() => abortRef.current?.abort()}
+            onSend={(m: ComposerMode) => {
+              if (m === 'plan') void runBrainstorm();
+              else void sendPrompt();
+            }}
+          />
         </Card>
 
         {/* CENTER: workspace tabs */}
