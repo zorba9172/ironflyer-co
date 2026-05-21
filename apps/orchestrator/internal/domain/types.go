@@ -10,13 +10,14 @@ const (
 	GateUX       GateName = "ux"
 	GateArch     GateName = "arch"
 	GateCode     GateName = "code"
+	GateLint     GateName = "lint"
 	GateTest     GateName = "test"
 	GateSecurity GateName = "security"
 	GateDeploy   GateName = "deploy"
 )
 
 func AllGates() []GateName {
-	return []GateName{GateSpec, GateUX, GateArch, GateCode, GateTest, GateSecurity, GateDeploy}
+	return []GateName{GateSpec, GateUX, GateArch, GateCode, GateLint, GateTest, GateSecurity, GateDeploy}
 }
 
 type GateStatus string

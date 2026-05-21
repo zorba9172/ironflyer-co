@@ -3,7 +3,7 @@
 // the upstream URL.
 
 export type GateName =
-  | 'spec' | 'ux' | 'arch' | 'code' | 'test' | 'security' | 'deploy';
+  | 'spec' | 'ux' | 'arch' | 'code' | 'lint' | 'test' | 'security' | 'deploy';
 
 export type GateStatus =
   | 'pending' | 'running' | 'passed' | 'failed' | 'blocked' | 'repaired';
