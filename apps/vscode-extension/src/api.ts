@@ -20,8 +20,42 @@ export interface Project {
   description?: string;
   ownerId?: string;
   isPublic?: boolean;
-  files?: unknown[];
+  files?: ProjectFile[];
   spec?: { idea?: string };
+}
+
+export interface ProjectFile {
+  path: string;
+  type?: string;
+  size?: number;
+  content?: string;
+}
+
+export type PatchOp = 'create' | 'update' | 'delete';
+
+export interface PatchChange {
+  op: PatchOp;
+  path: string;
+  content?: string;
+}
+
+export type PatchStatus =
+  | 'proposed'
+  | 'validated'
+  | 'applied'
+  | 'rejected'
+  | 'rolled-back';
+
+export interface Patch {
+  id: string;
+  projectId: string;
+  author?: string;
+  title?: string;
+  summary?: string;
+  changes: PatchChange[];
+  status: PatchStatus;
+  createdAt: string;
+  appliedAt?: string;
 }
 
 export interface BudgetSnapshot {
@@ -57,6 +91,18 @@ export class Api {
       idea: body.idea ?? '',
       description: body.description ?? '',
     });
+  }
+
+  listFiles(projectId: string): Promise<ProjectFile[]> {
+    return this.request<ProjectFile[]>('GET', `/projects/${encodeURIComponent(projectId)}/files`);
+  }
+
+  listPatches(projectId: string): Promise<Patch[]> {
+    return this.request<Patch[]>('GET', `/projects/${encodeURIComponent(projectId)}/patches`);
+  }
+
+  applyPatch(patchId: string): Promise<Patch> {
+    return this.request<Patch>('POST', `/patches/${encodeURIComponent(patchId)}/apply`, {});
   }
 
   runFinisher(id: string): Promise<unknown> {

@@ -80,6 +80,15 @@
       {
         "command": "ironflyer.showBudget",
         "title": "Ironflyer: Show Budget"
+      },
+      {
+        "command": "ironflyer.showPatchDiff",
+        "title": "Ironflyer: Show Patch Diff"
+      },
+      {
+        "command": "ironflyer.applyPatch",
+        "title": "Ironflyer: Apply Patch",
+        "icon": "$(check)"
       }
     ],
     "viewsContainers": {
@@ -98,6 +107,12 @@
           "name": "Projects",
           "icon": "$(rocket)",
           "contextualTitle": "Ironflyer"
+        },
+        {
+          "id": "ironflyer.patches",
+          "name": "Patches",
+          "icon": "$(git-pull-request)",
+          "contextualTitle": "Ironflyer"
         }
       ]
     },
@@ -110,6 +125,16 @@
       {
         "view": "ironflyer.projects",
         "contents": "No projects yet — start your first one.\n[New Project](command:ironflyer.newProject)",
+        "when": "ironflyer.signedIn"
+      },
+      {
+        "view": "ironflyer.patches",
+        "contents": "Sign in to Ironflyer to review patches.\n[Sign In](command:ironflyer.signIn)",
+        "when": "!ironflyer.signedIn"
+      },
+      {
+        "view": "ironflyer.patches",
+        "contents": "No proposed patches yet. Patches show up here once an agent proposes a change.",
         "when": "ironflyer.signedIn"
       }
     ],
@@ -124,6 +149,11 @@
           "command": "ironflyer.refresh",
           "when": "view == ironflyer.projects",
           "group": "navigation@2"
+        },
+        {
+          "command": "ironflyer.refresh",
+          "when": "view == ironflyer.patches",
+          "group": "navigation"
         }
       ],
       "view/item/context": [
@@ -139,6 +169,11 @@
         {
           "command": "ironflyer.runFinisher",
           "when": "view == ironflyer.projects && viewItem == ironflyer.project"
+        },
+        {
+          "command": "ironflyer.applyPatch",
+          "when": "view == ironflyer.patches && (viewItem == ironflyer.patch.validated || viewItem == ironflyer.patch.proposed)",
+          "group": "inline"
         }
       ]
     }

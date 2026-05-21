@@ -12,11 +12,16 @@ import { IronflyerUriHandler } from './uriHandler';
 import { ProjectsTree } from './projectsTree';
 import { StatusBar } from './statusBar';
 import { ChatPanel } from './chatPanel';
+import { PatchDiffProvider } from './diffProvider';
+import { PatchesTree } from './patchesTree';
+import { buildPatchUri, patchTabTitle } from './patchUri';
 
 export function activate(context: vscode.ExtensionContext): void {
   const auth = new Auth(context.secrets);
   const api = new Api(auth);
   const tree = new ProjectsTree(api, auth);
+  const diffProvider = new PatchDiffProvider(api);
+  const patchesTree = new PatchesTree(api, auth, diffProvider);
   const status = new StatusBar(api, auth);
 
   // Push initial signedIn context so viewsWelcome resolves correctly.
@@ -27,6 +32,8 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     vscode.window.registerUriHandler(new IronflyerUriHandler(auth)),
     vscode.window.registerTreeDataProvider('ironflyer.projects', tree),
+    vscode.window.registerTreeDataProvider('ironflyer.patches', patchesTree),
+    vscode.workspace.registerTextDocumentContentProvider('ironflyer', diffProvider),
     status,
 
     vscode.commands.registerCommand('ironflyer.signIn', () => auth.beginSignIn()),
@@ -36,7 +43,48 @@ export function activate(context: vscode.ExtensionContext): void {
       void vscode.window.showInformationMessage('Ironflyer: signed out.');
     }),
 
-    vscode.commands.registerCommand('ironflyer.refresh', () => tree.refresh()),
+    vscode.commands.registerCommand('ironflyer.refresh', () => {
+      tree.refresh();
+      patchesTree.refresh();
+    }),
+
+    vscode.commands.registerCommand(
+      'ironflyer.showPatchDiff',
+      async (arg: { projectId: string; patchId: string; path: string; op: string }) => {
+        if (!arg?.patchId || !arg?.path || !arg?.projectId) return;
+        // Make sure the diff provider has fetched the patch list for this
+        // project; otherwise the "proposed" side would return empty.
+        await diffProvider.primePatchesFor(arg.projectId);
+        const left = vscode.Uri.parse(buildPatchUri('current', arg.projectId, arg.path));
+        const right = vscode.Uri.parse(buildPatchUri('proposed', arg.patchId, arg.path));
+        await vscode.commands.executeCommand(
+          'vscode.diff',
+          left,
+          right,
+          patchTabTitle(arg.patchId, arg.path),
+          { preview: true },
+        );
+      },
+    ),
+
+    vscode.commands.registerCommand('ironflyer.applyPatch', async (arg: unknown) => {
+      const patchId = await resolvePatchId(api, arg);
+      if (!patchId) return;
+      const choice = await vscode.window.showWarningMessage(
+        `Apply patch ${patchId}?`,
+        { modal: true },
+        'Apply',
+      );
+      if (choice !== 'Apply') return;
+      try {
+        await withProgress(`Applying ${patchId}`, () => api.applyPatch(patchId));
+        patchesTree.refresh();
+        tree.refresh();
+        void vscode.window.showInformationMessage(`Patch ${patchId} applied.`);
+      } catch (err) {
+        await handleError(err, auth);
+      }
+    }),
 
     vscode.commands.registerCommand('ironflyer.openChat', async (arg: unknown) => {
       const project = await resolveProject(api, arg);
@@ -105,6 +153,51 @@ export function activate(context: vscode.ExtensionContext): void {
 }
 
 export function deactivate(): void {}
+
+async function resolvePatchId(api: Api, arg: unknown): Promise<string | undefined> {
+  if (typeof arg === 'string') return arg;
+  if (arg && typeof arg === 'object') {
+    const a = arg as any;
+    if (a.patchId) return String(a.patchId);
+    // PatchesTree node of kind "patch".
+    if (a.kind === 'patch' && a.patch?.id) return String(a.patch.id);
+  }
+  // Command-palette path: pick a project, then a patch.
+  let projects;
+  try {
+    projects = await api.listProjects();
+  } catch (err) {
+    void vscode.window.showErrorMessage(`Ironflyer: ${(err as Error).message}`);
+    return undefined;
+  }
+  if (projects.length === 0) return undefined;
+  const projectPick = await vscode.window.showQuickPick(
+    projects.map((p) => ({ label: p.name, description: p.id, id: p.id })),
+    { placeHolder: 'Select a project' },
+  );
+  if (!projectPick) return undefined;
+  let patches;
+  try {
+    patches = await api.listPatches(projectPick.id);
+  } catch (err) {
+    void vscode.window.showErrorMessage(`Ironflyer: ${(err as Error).message}`);
+    return undefined;
+  }
+  if (patches.length === 0) {
+    void vscode.window.showInformationMessage('No patches for that project.');
+    return undefined;
+  }
+  const pick = await vscode.window.showQuickPick(
+    patches.map((p) => ({
+      label: p.title || p.id,
+      description: p.status,
+      detail: `${p.changes.length} file change${p.changes.length === 1 ? '' : 's'}`,
+      id: p.id,
+    })),
+    { placeHolder: 'Select a patch' },
+  );
+  return pick?.id;
+}
 
 async function resolveProject(api: Api, arg: unknown) {
   if (typeof arg === 'string') {

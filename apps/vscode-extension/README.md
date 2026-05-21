@@ -8,6 +8,10 @@ Finish products end-to-end with [Ironflyer](https://ironflyer.dev) — without l
 - **Chat panel** — streams from the orchestrator's `chatStream` endpoint with
   the same Lite/Economy/Power dial as the web app, and the same agent roles
   (planner / architect / coder / reviewer / tester / security).
+- **Patches view** — every patch the orchestrator has proposed, grouped by
+  project. Click any file change to open a VSCode side-by-side diff between
+  the current file and the proposed content. Inline ✔ applies the patch
+  (with a confirm prompt) through the orchestrator's lifecycle.
 - **Run Finisher** — kick a full Spec → UX → Arch → Code → Test → Security → Deploy
   pass from the command palette.
 - **Budget status** — current plan and month-to-date spend in the status bar;
@@ -46,8 +50,8 @@ Development Host window launches with the extension loaded.
 
 ## Roadmap (not in 0.1)
 
-- Inline patch review (diff explorer rendering orchestrator patch lifecycle).
 - Quick-fix code actions wired to repair agents.
 - LSP-proxy fan-out so the workspace runtime's LSPs surface in VSCode.
+- Marketplace publish.
 
 See `apps/vscode-extension/src/extension.ts` for the entrypoint.
