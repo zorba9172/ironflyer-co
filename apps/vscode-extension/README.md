@@ -12,6 +12,9 @@ Finish products end-to-end with [Ironflyer](https://ironflyer.dev) — without l
   project. Click any file change to open a VSCode side-by-side diff between
   the current file and the proposed content. Inline ✔ applies the patch
   (with a confirm prompt) through the orchestrator's lifecycle.
+- **Finisher Gates view** — Spec / UX / Arch / Code / Lint / Test / Security
+  / Deploy for every project, with status colors, an issues drill-down, and
+  an inline ▶ to run the Finisher pass.
 - **Run Finisher** — kick a full Spec → UX → Arch → Code → Test → Security → Deploy
   pass from the command palette.
 - **Budget status** — current plan and month-to-date spend in the status bar;

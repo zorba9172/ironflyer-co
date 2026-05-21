@@ -113,6 +113,12 @@
           "name": "Patches",
           "icon": "$(git-pull-request)",
           "contextualTitle": "Ironflyer"
+        },
+        {
+          "id": "ironflyer.gates",
+          "name": "Finisher Gates",
+          "icon": "$(checklist)",
+          "contextualTitle": "Ironflyer"
         }
       ]
     },
@@ -136,6 +142,11 @@
         "view": "ironflyer.patches",
         "contents": "No proposed patches yet. Patches show up here once an agent proposes a change.",
         "when": "ironflyer.signedIn"
+      },
+      {
+        "view": "ironflyer.gates",
+        "contents": "Sign in to Ironflyer to see Finisher gates.\n[Sign In](command:ironflyer.signIn)",
+        "when": "!ironflyer.signedIn"
       }
     ],
     "menus": {
@@ -153,6 +164,11 @@
         {
           "command": "ironflyer.refresh",
           "when": "view == ironflyer.patches",
+          "group": "navigation"
+        },
+        {
+          "command": "ironflyer.refresh",
+          "when": "view == ironflyer.gates",
           "group": "navigation"
         }
       ],
@@ -173,6 +189,11 @@
         {
           "command": "ironflyer.applyPatch",
           "when": "view == ironflyer.patches && (viewItem == ironflyer.patch.validated || viewItem == ironflyer.patch.proposed)",
+          "group": "inline"
+        },
+        {
+          "command": "ironflyer.runFinisher",
+          "when": "view == ironflyer.gates && viewItem == ironflyer.gateProject",
           "group": "inline"
         }
       ]

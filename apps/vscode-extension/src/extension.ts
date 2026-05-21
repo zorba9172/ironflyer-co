@@ -15,6 +15,7 @@ import { ChatPanel } from './chatPanel';
 import { PatchDiffProvider } from './diffProvider';
 import { PatchesTree } from './patchesTree';
 import { buildPatchUri, patchTabTitle } from './patchUri';
+import { GatesTree } from './gatesTree';
 
 export function activate(context: vscode.ExtensionContext): void {
   const auth = new Auth(context.secrets);
@@ -22,6 +23,7 @@ export function activate(context: vscode.ExtensionContext): void {
   const tree = new ProjectsTree(api, auth);
   const diffProvider = new PatchDiffProvider(api);
   const patchesTree = new PatchesTree(api, auth, diffProvider);
+  const gatesTree = new GatesTree(api, auth);
   const status = new StatusBar(api, auth);
 
   // Push initial signedIn context so viewsWelcome resolves correctly.
@@ -33,6 +35,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.window.registerUriHandler(new IronflyerUriHandler(auth)),
     vscode.window.registerTreeDataProvider('ironflyer.projects', tree),
     vscode.window.registerTreeDataProvider('ironflyer.patches', patchesTree),
+    vscode.window.registerTreeDataProvider('ironflyer.gates', gatesTree),
     vscode.workspace.registerTextDocumentContentProvider('ironflyer', diffProvider),
     status,
 
@@ -46,6 +49,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('ironflyer.refresh', () => {
       tree.refresh();
       patchesTree.refresh();
+      gatesTree.refresh();
     }),
 
     vscode.commands.registerCommand(
@@ -129,6 +133,8 @@ export function activate(context: vscode.ExtensionContext): void {
         await api.runFinisher(project.id);
       });
       tree.refresh();
+      patchesTree.refresh();
+      gatesTree.refresh();
     }),
 
     vscode.commands.registerCommand('ironflyer.openProjectInBrowser', async (arg: unknown) => {
@@ -200,12 +206,26 @@ async function resolvePatchId(api: Api, arg: unknown): Promise<string | undefine
 }
 
 async function resolveProject(api: Api, arg: unknown) {
+  // String id (command.arguments on TreeItem.command).
   if (typeof arg === 'string') {
     try {
       return await api.getProject(arg);
     } catch (err) {
       void vscode.window.showErrorMessage(`Ironflyer: ${(err as Error).message}`);
       return undefined;
+    }
+  }
+  // Tree element passed by `view/item/context` menus — any of our nodes
+  // that own a project will set `.project`.
+  if (arg && typeof arg === 'object') {
+    const a = arg as any;
+    if (a.project?.id) {
+      try {
+        return await api.getProject(String(a.project.id));
+      } catch (err) {
+        void vscode.window.showErrorMessage(`Ironflyer: ${(err as Error).message}`);
+        return undefined;
+      }
     }
   }
   // Quick-pick when invoked from the command palette.

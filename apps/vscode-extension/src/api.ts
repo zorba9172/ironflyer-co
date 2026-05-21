@@ -31,6 +31,29 @@ export interface ProjectFile {
   content?: string;
 }
 
+export type GateName =
+  | 'spec' | 'ux' | 'arch' | 'code' | 'lint' | 'test' | 'security' | 'deploy';
+
+export type GateStatus =
+  | 'pending' | 'running' | 'passed' | 'failed' | 'blocked' | 'repaired';
+
+export type IssueSeverity = 'info' | 'warning' | 'error' | 'critical';
+
+export interface Issue {
+  gate: GateName;
+  severity: IssueSeverity;
+  message: string;
+  hint?: string;
+  path?: string;
+}
+
+export interface GateState {
+  name: GateName;
+  status: GateStatus;
+  issues?: Issue[];
+  updatedAt: string;
+}
+
 export type PatchOp = 'create' | 'update' | 'delete';
 
 export interface PatchChange {
@@ -95,6 +118,10 @@ export class Api {
 
   listFiles(projectId: string): Promise<ProjectFile[]> {
     return this.request<ProjectFile[]>('GET', `/projects/${encodeURIComponent(projectId)}/files`);
+  }
+
+  listGates(projectId: string): Promise<GateState[]> {
+    return this.request<GateState[]>('GET', `/projects/${encodeURIComponent(projectId)}/gates`);
   }
 
   listPatches(projectId: string): Promise<Patch[]> {
