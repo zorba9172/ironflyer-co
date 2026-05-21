@@ -19,7 +19,7 @@ import { tokens } from '../../../lib/theme';
 import { Terminal } from './Terminal';
 import { WorkspaceFiles } from './Workspace';
 import { GitHubPanel } from './GitHubPanel';
-import { ChatComposer, type ComposerMode } from './ChatComposer';
+import { ChatComposer, type ComposerEffort, type ComposerMode } from './ChatComposer';
 import { RequireAuth, useAuth } from '../../auth-context';
 
 const GATE_ORDER: { key: string; label: string }[] = [
@@ -110,7 +110,7 @@ function ProjectPageInner({ params }: { params: Promise<{ id: string }> }) {
     finally { setRunning(false); }
   }
 
-  async function sendPrompt() {
+  async function sendPrompt(effort: ComposerEffort = 'economy') {
     if (!prompt.trim() || streaming) return;
     const goal = prompt;
     setPrompt('');
@@ -120,7 +120,7 @@ function ProjectPageInner({ params }: { params: Promise<{ id: string }> }) {
     setTurns((t) => [...t, { ...turnDraft, role: 'user', text: goal, status: 'done' }, turnDraft]);
 
     abortRef.current = new AbortController();
-    await streamChat(id, { prompt: goal, role }, (d) => {
+    await streamChat(id, { prompt: goal, role, effort }, (d) => {
       setTurns((curr) => {
         const next = [...curr];
         const last = next[next.length - 1];
@@ -183,9 +183,9 @@ function ProjectPageInner({ params }: { params: Promise<{ id: string }> }) {
             onChange={setPrompt}
             streaming={streaming}
             onAbort={() => abortRef.current?.abort()}
-            onSend={(m: ComposerMode) => {
+            onSend={(m: ComposerMode, eff: ComposerEffort) => {
               if (m === 'plan') void runBrainstorm();
-              else void sendPrompt();
+              else void sendPrompt(eff);
             }}
           />
         </Card>

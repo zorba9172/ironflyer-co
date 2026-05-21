@@ -114,7 +114,7 @@ export class OrchestratorClient {
    */
   async streamChat(
     projectId: string,
-    body: { prompt: string; role?: string },
+    body: { prompt: string; role?: string; effort?: 'lite' | 'economy' | 'power' },
     onDelta: (d: ChatDelta) => void,
     signal?: AbortSignal,
   ): Promise<void> {

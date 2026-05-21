@@ -302,6 +302,10 @@ func (a *API) chatStream(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Prompt string `json:"prompt"`
 		Role   string `json:"role"`
+		// Effort is a coarse UX dial — Lite biases the router toward cheap+fast
+		// models, Power biases toward reasoning+thinking. Empty/"economy" keeps
+		// the agent's declared capabilities untouched.
+		Effort string `json:"effort"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		http.Error(w, "invalid JSON", http.StatusBadRequest)
@@ -341,11 +345,12 @@ func (a *API) chatStream(w http.ResponseWriter, r *http.Request) {
 		send("error", errJSON("unknown role"))
 		return
 	}
+	caps, enableThinking := applyEffort(body.Effort, agent.Capabilities, agent.EnableThinking)
 	req := providers.Request{
 		System:         agent.System,
 		Prompt:         "# Goal\n" + body.Prompt,
-		Capabilities:   agent.Capabilities,
-		EnableThinking: agent.EnableThinking,
+		Capabilities:   caps,
+		EnableThinking: enableThinking,
 		ProjectContext: projectContextFor(&p),
 		TenantID:       userID,
 	}

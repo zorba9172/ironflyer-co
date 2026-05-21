@@ -10,6 +10,7 @@ import {
 import { tokens } from '../../../lib/theme';
 
 export type ComposerMode = 'build' | 'chat' | 'plan';
+export type ComposerEffort = 'lite' | 'economy' | 'power';
 
 const MODE_LABEL: Record<ComposerMode, string> = {
   build: 'Build',
@@ -23,10 +24,22 @@ const MODE_DESCRIPTION: Record<ComposerMode, string> = {
   plan: 'Multi-model bake-off; agent debates the goal before acting.',
 };
 
+const EFFORT_LABEL: Record<ComposerEffort, string> = {
+  lite: 'Lite',
+  economy: 'Economy',
+  power: 'Power',
+};
+
+const EFFORT_DESCRIPTION: Record<ComposerEffort, string> = {
+  lite: 'Cheap + fast models. No extended thinking. For quick edits and chat.',
+  economy: 'Default. Agent picks the model balanced for its task.',
+  power: 'Reasoning + extended thinking + cache. For hard architectural calls.',
+};
+
 interface Props {
   value: string;
   onChange: (v: string) => void;
-  onSend: (mode: ComposerMode) => void;
+  onSend: (mode: ComposerMode, effort: ComposerEffort) => void;
   onAbort?: () => void;
   streaming: boolean;
   attachments?: string[];
@@ -45,7 +58,9 @@ export function ChatComposer({
   disabled, placeholder,
 }: Props) {
   const [mode, setMode] = useState<ComposerMode>('build');
+  const [effort, setEffort] = useState<ComposerEffort>('economy');
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
+  const [effortAnchor, setEffortAnchor] = useState<HTMLElement | null>(null);
   const [listening, setListening] = useState(false);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
 
@@ -53,7 +68,7 @@ export function ChatComposer({
 
   function submit() {
     if (!canSubmit) return;
-    onSend(mode);
+    onSend(mode, effort);
   }
 
   function toggleListening() {
@@ -154,6 +169,34 @@ export function ChatComposer({
           </Tooltip>
 
           <Box sx={{ flex: 1 }} />
+
+          {/* Effort pill — Lite / Economy / Power */}
+          <Box
+            onClick={(e) => setEffortAnchor(e.currentTarget)}
+            sx={{
+              cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 0.5,
+              px: 1, py: 0.5, mr: 0.6, borderRadius: 1.2,
+              bgcolor: tokens.color.bg.surface, color: tokens.color.text.muted,
+              fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em',
+              border: `1px solid ${tokens.color.border.subtle}`,
+              '&:hover': { borderColor: tokens.color.accent.lime, color: tokens.color.text.primary },
+            }}>
+            <Typography variant="caption" sx={{ fontWeight: 700, letterSpacing: '0.06em', fontSize: 11 }}>
+              {EFFORT_LABEL[effort]}
+            </Typography>
+            <Typography variant="caption" sx={{ color: tokens.color.text.muted }}>▾</Typography>
+          </Box>
+          <Menu open={!!effortAnchor} anchorEl={effortAnchor} onClose={() => setEffortAnchor(null)}>
+            {(['lite', 'economy', 'power'] as ComposerEffort[]).map((e) => (
+              <MenuItem key={e} selected={effort === e} onClick={() => { setEffort(e); setEffortAnchor(null); }}
+                        sx={{ maxWidth: 320 }}>
+                <Stack spacing={0.2}>
+                  <Typography variant="body2" fontWeight={700}>{EFFORT_LABEL[e]}</Typography>
+                  <Typography variant="caption" color="text.secondary">{EFFORT_DESCRIPTION[e]}</Typography>
+                </Stack>
+              </MenuItem>
+            ))}
+          </Menu>
 
           {/* Mode pill — Build / Chat / Plan */}
           <Box

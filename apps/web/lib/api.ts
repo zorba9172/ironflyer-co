@@ -185,9 +185,11 @@ export type ChatDelta =
   | { kind: 'done'; turn: string; provider: string; model: string; usage?: any }
   | { kind: 'error'; error: string };
 
+export type Effort = 'lite' | 'economy' | 'power';
+
 export async function streamChat(
   projectId: string,
-  body: { prompt: string; role?: string },
+  body: { prompt: string; role?: string; effort?: Effort },
   onDelta: (d: ChatDelta) => void,
   signal?: AbortSignal,
 ): Promise<void> {
