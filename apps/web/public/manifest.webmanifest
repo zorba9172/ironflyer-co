@@ -1,0 +1,23 @@
+{
+  "name": "Ironflyer — AI Product Finisher",
+  "short_name": "Ironflyer",
+  "description": "Lovable + Base44 + Copilot on steroids. Finish real products end-to-end. Continue your work on mobile.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d0e0f",
+  "theme_color": "#0d0e0f",
+  "categories": ["productivity", "developer", "business"],
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    { "name": "Projects", "url": "/app/projects", "icons": [{ "src": "/icons/icon.svg", "sizes": "any" }] }
+  ]
+}
