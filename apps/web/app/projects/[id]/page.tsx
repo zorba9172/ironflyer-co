@@ -229,6 +229,8 @@ function ProjectPageInner({ params }: { params: Promise<{ id: string }> }) {
 
           <BudgetCard vault={vault} budget={budget} />
 
+          <ActivityCard events={events} />
+
           <Card sx={panelSx}>
             <CardContent sx={{ p: 1.6 }}>
               <Typography variant="overline" color="text.secondary">Build context</Typography>
@@ -449,6 +451,71 @@ function BudgetCard({ vault, budget }: { vault: VaultSnapshot | null; budget: Us
       </CardContent>
     </Card>
   );
+}
+
+// ActivityCard surfaces the SSE execution stream as a compact timeline.
+// Each event is a one-liner: timestamp · gate/step · short message. Lives in
+// the right column so the user can watch the finisher loop run without
+// switching tabs.
+function ActivityCard({ events }: { events: ExecutionEvent[] }) {
+  if (events.length === 0) return null;
+  const recent = events.slice(-12).reverse();
+  return (
+    <Card sx={panelSx}>
+      <CardContent sx={{ p: 1.6 }}>
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Typography variant="overline" color="text.secondary">Activity</Typography>
+          <Typography variant="caption" sx={{ color: tokens.color.text.muted, fontFamily: tokens.font.mono }}>
+            {events.length} events
+          </Typography>
+        </Stack>
+        <Stack spacing={0.6} sx={{ mt: 1 }}>
+          {recent.map((e) => (
+            <Stack key={e.id} direction="row" spacing={1} alignItems="flex-start">
+              <Box sx={{
+                mt: 0.7, width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
+                bgcolor: activityColor(e.status),
+              }} />
+              <Box sx={{ minWidth: 0, flex: 1 }}>
+                <Stack direction="row" spacing={0.8} alignItems="baseline">
+                  <Typography variant="caption" sx={{ color: tokens.color.text.primary, fontWeight: 700 }}>
+                    {e.gate ?? e.step}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: tokens.color.text.muted, fontFamily: tokens.font.mono }}>
+                    {formatTime(e.createdAt)}
+                  </Typography>
+                </Stack>
+                <Typography variant="caption" sx={{
+                  color: tokens.color.text.muted, display: 'block',
+                  whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden',
+                }} title={e.message}>
+                  {e.message}
+                </Typography>
+              </Box>
+            </Stack>
+          ))}
+        </Stack>
+      </CardContent>
+    </Card>
+  );
+}
+
+function activityColor(status: string): string {
+  switch (status) {
+    case 'done':    return tokens.color.accent.success;
+    case 'running': return tokens.color.accent.lime;
+    case 'error':   return tokens.color.accent.danger;
+    default:        return tokens.color.text.muted;
+  }
+}
+
+function formatTime(iso: string): string {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  } catch {
+    return '';
+  }
 }
 
 function BrainstormPane({ out }: { out: BrainstormOutcome | null }) {
