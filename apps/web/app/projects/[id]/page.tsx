@@ -205,7 +205,8 @@ function ProjectPageInner({ params }: { params: Promise<{ id: string }> }) {
         <Card sx={panelSx}>
           <Tabs value={mode} onChange={(_, v) => setMode(v)} variant="scrollable" sx={{ px: 1, minHeight: 48, borderBottom: `1px solid ${tokens.color.border.subtle}` }}>
             <Tab icon={<Visibility fontSize="small" />} iconPosition="start" label="Preview" />
-            <Tab icon={<Code fontSize="small" />} iconPosition="start" label="Code" />
+            <Tab icon={<Code fontSize="small" />} iconPosition="start" label="Files" />
+            <Tab icon={<DesktopWindows fontSize="small" />} iconPosition="start" label="IDE" />
             <Tab label="Terminal" />
             <Tab icon={<Palette fontSize="small" />} iconPosition="start" label="Visual edit" />
             <Tab icon={<RocketLaunch fontSize="small" />} iconPosition="start" label="Deploy" />
@@ -215,11 +216,12 @@ function ProjectPageInner({ params }: { params: Promise<{ id: string }> }) {
           <Box sx={{ flex: 1, minHeight: { xs: 520, lg: 0 }, overflow: 'auto', p: 1.4 }}>
             {mode === 0 && <PreviewPane p={project} />}
             {mode === 1 && <WorkspaceFiles workspace={workspace} onWorkspaceChange={setWorkspace} projectId={id} />}
-            {mode === 2 && <Terminal workspaceId={workspace?.id ?? null} />}
-            {mode === 3 && <DesignPane />}
-            {mode === 4 && <DeployPane p={project} workspaceId={workspace?.id ?? null} onGitHubLinked={load} />}
-            {mode === 5 && <BrainstormPane out={brainstormOut} />}
-            {mode === 6 && <ProjectSettingsPane p={project} />}
+            {mode === 2 && <IDEPane workspace={workspace} />}
+            {mode === 3 && <Terminal workspaceId={workspace?.id ?? null} />}
+            {mode === 4 && <DesignPane />}
+            {mode === 5 && <DeployPane p={project} workspaceId={workspace?.id ?? null} onGitHubLinked={load} />}
+            {mode === 6 && <BrainstormPane out={brainstormOut} />}
+            {mode === 7 && <ProjectSettingsPane p={project} />}
           </Box>
         </Card>
 
@@ -561,6 +563,66 @@ function PreviewPane({ p }: { p: Project }) {
           </Box>
         </Box>
       </Box>
+    </Box>
+  );
+}
+
+// IDEPane embeds the per-user Ironflyer-branded code-server instance. The
+// runtime sets `ideUrl` only when the Docker driver provisions a container
+// (one IDE port per workspace); the Mock driver runs on the host and has no
+// browser-accessible IDE, so we surface a hint instead of a broken iframe.
+function IDEPane({ workspace }: { workspace: WS | null }) {
+  if (!workspace) {
+    return (
+      <Stack spacing={1.5} sx={{ alignItems: 'flex-start' }}>
+        <Typography variant="overline" color="text.secondary">Ironflyer IDE</Typography>
+        <Typography variant="body2" color="text.secondary">
+          Provision a workspace from the <b>Files</b> tab to launch a private cloud IDE.
+          We boot a per-project container running our branded VS Code build.
+        </Typography>
+      </Stack>
+    );
+  }
+  if (!workspace.ideUrl) {
+    return (
+      <Stack spacing={1.5} sx={{ alignItems: 'flex-start' }}>
+        <Typography variant="overline" color="text.secondary">Ironflyer IDE</Typography>
+        <Typography variant="body2" color="text.secondary">
+          This workspace runs on the <Chip size="small" label={workspace.driver} sx={{ mx: 0.5 }} />
+          driver, which doesn’t expose a browser IDE. Switch the runtime to
+          <code style={{ marginInline: 6 }}>docker</code> to get an embedded VS Code window here.
+        </Typography>
+      </Stack>
+    );
+  }
+  return (
+    <Box sx={{ position: 'relative', height: '100%', minHeight: 540,
+               border: `1px solid ${tokens.color.border.subtle}`, borderRadius: 1.4,
+               overflow: 'hidden', bgcolor: '#0d0e0f' }}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between"
+             sx={{ px: 1.4, py: 0.8, borderBottom: `1px solid ${tokens.color.border.subtle}` }}>
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: tokens.color.accent.lime }} />
+          <Typography variant="caption" sx={{ color: tokens.color.text.muted, fontFamily: tokens.font.mono }}>
+            ironflyer-code @ {workspace.id}
+          </Typography>
+        </Stack>
+        <Tooltip title="Open in new tab">
+          <IconButton size="small" component="a" href={workspace.ideUrl} target="_blank" rel="noopener noreferrer"
+                      sx={{ color: tokens.color.text.muted }}>
+            <Share fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      </Stack>
+      <Box
+        component="iframe"
+        src={workspace.ideUrl}
+        title="Ironflyer cloud IDE"
+        // The runtime owns its own auth + sandbox; allow same-origin so VS Code
+        // can hold cookies for itself, and forms so submission works.
+        sandbox="allow-scripts allow-same-origin allow-forms allow-downloads allow-popups allow-modals"
+        sx={{ width: '100%', height: 'calc(100% - 36px)', border: 0, display: 'block', background: '#0d0e0f' }}
+      />
     </Box>
   );
 }

@@ -100,17 +100,23 @@ services:
     depends_on:
       - temporal
 
-  # code-server is the per-user workspace IDE. In dev, one shared instance.
-  # Production: spawned per-tenant by the runtime service.
+  # code-server is the per-user workspace IDE — Ironflyer-branded build.
+  # In dev one shared instance; production has the runtime spawn one per user.
+  # Build first with:
+  #   docker build -f infra/docker/ironflyer-code.Dockerfile \
+  #     -t ironflyer/ironflyer-code:dev .
   codeserver:
-    image: codercom/code-server:latest
+    image: ironflyer/ironflyer-code:dev
+    build:
+      context: ../..
+      dockerfile: infra/docker/ironflyer-code.Dockerfile
     environment:
       PASSWORD: ironflyer-dev
     ports:
       - "8443:8080"
     volumes:
-      - codeserver-data:/home/coder
-    command: ["--auth", "password", "--bind-addr", "0.0.0.0:8080"]
+      - codeserver-data:/home/coder/project
+    command: ["--auth", "password", "--bind-addr", "0.0.0.0:8080", "/home/coder/project"]
 
 volumes:
   postgres-data:

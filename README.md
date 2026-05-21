@@ -100,6 +100,28 @@ cd apps/web && npm install && npm run dev
 - `GET    /workspaces/{id}/terminal` — WebSocket → PTY
 - `POST   /workspaces/{id}/exec` — one-shot command, returns `{stdout, stderr, exitCode, durationMs, timedOut?, truncatedAt?}`
 
+## Branded cloud IDE
+
+The Docker driver provisions a per-user code-server container. By default it
+uses our Ironflyer-branded build:
+
+```bash
+docker build -f infra/docker/ironflyer-code.Dockerfile \
+  -t ghcr.io/zorba9172/ironflyer-code:latest .
+```
+
+The image bakes in:
+
+- A dark + lime VS Code theme via `workbench.colorCustomizations` (no
+  separate extension required).
+- Pre-installed extensions: Go, Prettier, ESLint, EditorConfig, GitLens.
+- Telemetry off, updates disabled, format-on-save on.
+- A branded welcome page at `~/.config/welcome.html`.
+
+The `web` app renders the per-project IDE inside an iframe in the
+**Project → IDE** tab; clicking the share icon opens it in a new tab.
+Override the image at runtime by setting `IRONFLYER_RUNTIME_DOCKER_IMAGE`.
+
 ## Status
 
 Phase 1 — runnable foundation with streaming chat, multi-agent brainstorm,

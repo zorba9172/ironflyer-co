@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Ironflyer Workspace</title>
+  <style>
+    :root {
+      --bg: #0d0e0f;
+      --fg: #f4f1ec;
+      --muted: #8a8377;
+      --accent: #e5ff00;
+    }
+    html, body { margin: 0; background: var(--bg); color: var(--fg);
+                 font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+                 height: 100%; }
+    .hero { display: grid; place-items: center; height: 100%; padding: 24px; box-sizing: border-box; }
+    .card { max-width: 560px; text-align: left; }
+    .eyebrow { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+               color: var(--accent); }
+    h1 { font-size: 40px; line-height: 1.05; margin: 12px 0 16px;
+         font-family: "Inter Display", "SF Pro Display", Inter, sans-serif; }
+    p { color: var(--muted); font-size: 15px; line-height: 1.55; }
+    code { color: var(--accent); background: #151513; padding: 2px 6px; border-radius: 4px; }
+    .grid { margin-top: 28px; display: grid; gap: 8px; }
+    .grid div { padding: 8px 12px; border-left: 2px solid var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="hero">
+    <div class="card">
+      <div class="eyebrow">Ironflyer Workspace</div>
+      <h1>Your sandbox is ready.</h1>
+      <p>This is a private cloud IDE wired to the Ironflyer orchestrator. File edits, terminal sessions, and finisher gate runs all happen here.</p>
+      <div class="grid">
+        <div><strong>Open a file</strong> from the Explorer to start editing.</div>
+        <div><strong>Pop a terminal</strong> with <code>Ctrl/Cmd+`</code>.</div>
+        <div><strong>Push patches</strong> back through the orchestrator — the AI never writes here directly.</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
