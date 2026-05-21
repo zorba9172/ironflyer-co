@@ -75,6 +75,59 @@ type Driver interface {
 
 	// GitClone shallow-clones a repository into the workspace.
 	GitClone(ctx context.Context, ws Workspace, opts CloneOpts) error
+
+	// Exec runs a one-shot command inside the workspace. Stdout/stderr are
+	// captured separately and truncated to ExecMaxOutput bytes. Context
+	// cancellation kills the process group.
+	Exec(ctx context.Context, ws Workspace, opts ExecOpts) (ExecResult, error)
+}
+
+// ExecOpts describes a one-shot command run inside a workspace.
+type ExecOpts struct {
+	// Shell is the preferred way to run commands. When non-empty the driver
+	// invokes `sh -c <Shell>` inside the workspace. Use this for pipelines,
+	// chained commands, or anything where you'd reach for shell syntax.
+	Shell string `json:"shell,omitempty"`
+	// Cmd is an argv when you don't want a shell. Ignored when Shell is set.
+	Cmd []string `json:"cmd,omitempty"`
+	// Cwd is workspace-relative. Empty = workspace root.
+	Cwd string `json:"cwd,omitempty"`
+	// Env is extra `KEY=VAL` pairs appended to the driver's base env.
+	Env []string `json:"env,omitempty"`
+	// TimeoutSeconds caps the wall clock for the run. 0 → ExecDefaultTimeout.
+	TimeoutSeconds int `json:"timeoutSeconds,omitempty"`
+}
+
+// ExecResult is the (truncated) outcome of an Exec call.
+type ExecResult struct {
+	Stdout      string  `json:"stdout"`
+	Stderr      string  `json:"stderr"`
+	ExitCode    int     `json:"exitCode"`
+	DurationMS  int64   `json:"durationMs"`
+	TimedOut    bool    `json:"timedOut,omitempty"`
+	TruncatedAt int     `json:"truncatedAt,omitempty"` // bytes; 0 = not truncated
+}
+
+const (
+	// ExecDefaultTimeout is what we use when ExecOpts.TimeoutSeconds is zero.
+	ExecDefaultTimeout = 60 * time.Second
+	// ExecMaxTimeout is the hard cap; longer requests are clamped silently.
+	ExecMaxTimeout = 5 * time.Minute
+	// ExecMaxOutput caps each of stdout/stderr individually.
+	ExecMaxOutput = 1 << 20 // 1 MiB
+)
+
+// ResolveExecTimeout normalises ExecOpts.TimeoutSeconds against the defaults
+// and the hard cap. Shared by drivers.
+func ResolveExecTimeout(seconds int) time.Duration {
+	if seconds <= 0 {
+		return ExecDefaultTimeout
+	}
+	d := time.Duration(seconds) * time.Second
+	if d > ExecMaxTimeout {
+		return ExecMaxTimeout
+	}
+	return d
 }
 
 type FileEntry struct {

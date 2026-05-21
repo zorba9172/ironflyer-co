@@ -98,6 +98,7 @@ cd apps/web && npm install && npm run dev
 - `PUT    /workspaces/{id}/files/*path` — write file
 - `DELETE /workspaces/{id}/files/*path` — delete file
 - `GET    /workspaces/{id}/terminal` — WebSocket → PTY
+- `POST   /workspaces/{id}/exec` — one-shot command, returns `{stdout, stderr, exitCode, durationMs, timedOut?, truncatedAt?}`
 
 ## Status
 

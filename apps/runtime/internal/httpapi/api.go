@@ -51,6 +51,7 @@ func New(mgr *sandbox.Manager, corsOrigin string, verifier *auth.Verifier, logge
 				r.Delete("/files/*", a.deleteFile)
 				r.Get("/terminal", a.terminal)
 				r.Post("/git-clone", a.gitClone)
+				r.Post("/exec", a.exec)
 			})
 		})
 	})
@@ -234,6 +235,31 @@ func (a *API) gitClone(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]string{"status": "cloned"})
+}
+
+// exec runs a one-shot command inside the workspace and returns the captured
+// stdout/stderr/exit code. The orchestrator's finisher uses this to drive
+// real build/test/lint gates instead of in-memory file inspection.
+func (a *API) exec(w http.ResponseWriter, r *http.Request) {
+	ws, ok := a.requireWorkspace(w, r, chi.URLParam(r, "id"))
+	if !ok {
+		return
+	}
+	var body sandbox.ExecOpts
+	if err := json.NewDecoder(io.LimitReader(r.Body, 64<<10)).Decode(&body); err != nil {
+		writeJSON(w, http.StatusBadRequest, errJSON("invalid JSON"))
+		return
+	}
+	if strings.TrimSpace(body.Shell) == "" && len(body.Cmd) == 0 {
+		writeJSON(w, http.StatusBadRequest, errJSON("shell or cmd required"))
+		return
+	}
+	res, err := a.mgr.Driver().Exec(r.Context(), ws, body)
+	if err != nil {
+		writeJSON(w, http.StatusBadGateway, errJSON(err.Error()))
+		return
+	}
+	writeJSON(w, http.StatusOK, res)
 }
 
 // terminal is the PTY WebSocket bridge. Binary frames are passthrough I/O;

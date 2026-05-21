@@ -230,6 +230,103 @@ func scrubToken(s, token string) string {
 	return strings.ReplaceAll(s, token, "***")
 }
 
+// Exec runs a command inside the workspace dir. Output is captured with a
+// hard size cap so a runaway process can't OOM the runtime. Timeout uses
+// context.WithTimeout — exit code -1 indicates "killed by deadline".
+func (m *MockDriver) Exec(ctx context.Context, ws Workspace, opts ExecOpts) (ExecResult, error) {
+	if ws.Root == "" || !strings.HasPrefix(ws.Root, m.BaseDir) {
+		return ExecResult{}, errors.New("workspace root invalid")
+	}
+	cwd := ws.Root
+	if opts.Cwd != "" {
+		abs, err := m.safePath(ws, opts.Cwd)
+		if err != nil {
+			return ExecResult{}, err
+		}
+		cwd = abs
+	}
+	timeout := ResolveExecTimeout(opts.TimeoutSeconds)
+	cctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	var cmd *exec.Cmd
+	switch {
+	case strings.TrimSpace(opts.Shell) != "":
+		cmd = exec.CommandContext(cctx, "/bin/sh", "-c", opts.Shell)
+	case len(opts.Cmd) > 0:
+		cmd = exec.CommandContext(cctx, opts.Cmd[0], opts.Cmd[1:]...)
+	default:
+		return ExecResult{}, errors.New("either shell or cmd is required")
+	}
+	cmd.Dir = cwd
+	cmd.Env = append(os.Environ(), opts.Env...)
+
+	var stdout, stderr capBuffer
+	stdout.cap = ExecMaxOutput
+	stderr.cap = ExecMaxOutput
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	start := time.Now()
+	runErr := cmd.Run()
+	dur := time.Since(start)
+
+	res := ExecResult{
+		Stdout:     stdout.String(),
+		Stderr:     stderr.String(),
+		ExitCode:   exitCodeOf(cmd, runErr),
+		DurationMS: dur.Milliseconds(),
+	}
+	if errors.Is(cctx.Err(), context.DeadlineExceeded) {
+		res.TimedOut = true
+	}
+	if stdout.truncated || stderr.truncated {
+		res.TruncatedAt = ExecMaxOutput
+	}
+	return res, nil
+}
+
+// exitCodeOf returns the OS exit code, mapping signal/deadline kills to -1.
+func exitCodeOf(cmd *exec.Cmd, err error) int {
+	if err == nil {
+		return 0
+	}
+	var ee *exec.ExitError
+	if errors.As(err, &ee) {
+		return ee.ExitCode()
+	}
+	return -1
+}
+
+// capBuffer is a write-only byte sink with a hard size cap. Writes beyond
+// the cap are dropped and the truncated flag is raised.
+type capBuffer struct {
+	buf       []byte
+	cap       int
+	truncated bool
+}
+
+func (c *capBuffer) Write(p []byte) (int, error) {
+	if c.cap == 0 {
+		c.buf = append(c.buf, p...)
+		return len(p), nil
+	}
+	if len(c.buf) >= c.cap {
+		c.truncated = true
+		return len(p), nil // pretend success so the process doesn't get EPIPE
+	}
+	room := c.cap - len(c.buf)
+	if room >= len(p) {
+		c.buf = append(c.buf, p...)
+	} else {
+		c.buf = append(c.buf, p[:room]...)
+		c.truncated = true
+	}
+	return len(p), nil
+}
+
+func (c *capBuffer) String() string { return string(c.buf) }
+
 // Ensure interfaces are satisfied at compile time.
 var (
 	_ Driver  = (*MockDriver)(nil)

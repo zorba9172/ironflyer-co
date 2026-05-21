@@ -22,6 +22,23 @@ export interface FileEntry {
   isDir: boolean;
 }
 
+export interface ExecRequest {
+  shell?: string;
+  cmd?: string[];
+  cwd?: string;
+  env?: string[];
+  timeoutSeconds?: number;
+}
+
+export interface ExecResult {
+  stdout: string;
+  stderr: string;
+  exitCode: number;
+  durationMs: number;
+  timedOut?: boolean;
+  truncatedAt?: number;
+}
+
 const base = '/api/runtime';
 
 async function jsonFetch<T>(path: string, init?: RequestInit): Promise<T> {
@@ -50,6 +67,10 @@ export const runtime = {
   writeFile: (id: string, path: string, data: string) =>
     fetch(`${base}/workspaces/${id}/files/${encodeURI(path)}`, {
       method: 'PUT', body: data,
+    }),
+  exec: (id: string, body: ExecRequest) =>
+    jsonFetch<ExecResult>(`/workspaces/${id}/exec`, {
+      method: 'POST', body: JSON.stringify(body),
     }),
   // The terminal WS goes directly to the runtime, not via /api/runtime
   // (Next.js dev server doesn't proxy WebSockets).

@@ -222,4 +222,80 @@ func (d *DockerDriver) GitClone(ctx context.Context, ws Workspace, opts CloneOpt
 	return nil
 }
 
+// Exec runs a command inside the container via `docker exec`. We always go
+// through `sh -c` so the orchestrator can pass either a shell string or an
+// argv (joined with whitespace). Output is captured with a size cap.
+func (d *DockerDriver) Exec(ctx context.Context, ws Workspace, opts ExecOpts) (ExecResult, error) {
+	cctx, cancel := context.WithTimeout(ctx, ResolveExecTimeout(opts.TimeoutSeconds))
+	defer cancel()
+
+	shellCmd := strings.TrimSpace(opts.Shell)
+	if shellCmd == "" {
+		if len(opts.Cmd) == 0 {
+			return ExecResult{}, errors.New("either shell or cmd is required")
+		}
+		// argv → shell string. Each arg gets single-quoted to preserve spaces.
+		parts := make([]string, 0, len(opts.Cmd))
+		for _, a := range opts.Cmd {
+			parts = append(parts, "'"+shellEscape(a)+"'")
+		}
+		shellCmd = strings.Join(parts, " ")
+	}
+
+	args := []string{"exec"}
+	for _, e := range opts.Env {
+		args = append(args, "-e", e)
+	}
+	if cwd := strings.TrimSpace(opts.Cwd); cwd != "" {
+		if err := validatePath(cwd); err != nil {
+			return ExecResult{}, err
+		}
+		args = append(args, "-w", "/home/coder/"+strings.TrimPrefix(cwd, "/"))
+	} else {
+		args = append(args, "-w", "/home/coder")
+	}
+	args = append(args, ws.Root, "sh", "-c", shellCmd)
+
+	cmd := exec.CommandContext(cctx, "docker", args...)
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	start := time.Now()
+	runErr := cmd.Run()
+	dur := time.Since(start)
+
+	res := ExecResult{
+		Stdout:     capString(stdout.String(), ExecMaxOutput),
+		Stderr:     capString(stderr.String(), ExecMaxOutput),
+		ExitCode:   exitCodeOfRun(cmd, runErr),
+		DurationMS: dur.Milliseconds(),
+	}
+	if errors.Is(cctx.Err(), context.DeadlineExceeded) {
+		res.TimedOut = true
+	}
+	if len(stdout.String()) > ExecMaxOutput || len(stderr.String()) > ExecMaxOutput {
+		res.TruncatedAt = ExecMaxOutput
+	}
+	return res, nil
+}
+
+func exitCodeOfRun(_ *exec.Cmd, err error) int {
+	if err == nil {
+		return 0
+	}
+	var ee *exec.ExitError
+	if errors.As(err, &ee) {
+		return ee.ExitCode()
+	}
+	return -1
+}
+
+func capString(s string, n int) string {
+	if len(s) <= n {
+		return s
+	}
+	return s[:n]
+}
+
 var _ Driver = (*DockerDriver)(nil)
