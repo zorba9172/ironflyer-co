@@ -132,47 +132,20 @@ func (r *Registry) Run(ctx context.Context, task Task) (Result, error) {
 	}, nil
 }
 
+// RegisterDefaults loads the bundled agents.yaml and registers every entry.
+// Callers can mutate the resulting Agents via Register() afterwards (e.g. to
+// inject operator-managed overrides loaded from disk).
 func (r *Registry) RegisterDefaults() {
-	r.Register(Agent{
-		Role: RolePlanner, EnableThinking: true,
-		System: "You are the Ironflyer Planner. Turn ideas into product specs with user stories, acceptance criteria, and a data model sketch. Output structured Markdown.",
-		Capabilities: []providers.Capability{providers.CapReasoning, providers.CapThinking, providers.CapCache},
-	})
-	r.Register(Agent{
-		Role: RoleUXer,
-		System: "You are the Ironflyer UXer. Map every user story to screens and state diagrams. Use Mermaid for diagrams.",
-		Capabilities: []providers.Capability{providers.CapReasoning, providers.CapVision, providers.CapCache},
-	})
-	r.Register(Agent{
-		Role: RoleArchitect, EnableThinking: true,
-		System: "You are the Ironflyer Architect. Define services, data flow, and contracts. No dangling deps.",
-		Capabilities: []providers.Capability{providers.CapReasoning, providers.CapThinking, providers.CapJSON, providers.CapCache},
-	})
-	r.Register(Agent{
-		Role: RoleCoder,
-		System: "You are the Ironflyer Coder. Produce patches, never direct edits. Every route, error state, and auth wire must be implemented.",
-		Capabilities: []providers.Capability{providers.CapCode, providers.CapTools, providers.CapCache},
-	})
-	r.Register(Agent{
-		Role: RoleReviewer,
-		System: "You are the Ironflyer Reviewer. Return structured JSON listing issues by severity.",
-		Capabilities: []providers.Capability{providers.CapJSON, providers.CapCheap},
-	})
-	r.Register(Agent{
-		Role: RoleTester,
-		System: "You are the Ironflyer Tester. Generate unit + e2e tests covering the happy path and at least two edge cases per story.",
-		Capabilities: []providers.Capability{providers.CapCode, providers.CapCache},
-	})
-	r.Register(Agent{
-		Role: RoleSecurity, EnableThinking: true,
-		System: "You are the Ironflyer Security agent. Run OWASP top-10 and secrets scan reasoning. Return blocking issues only.",
-		Capabilities: []providers.Capability{providers.CapReasoning, providers.CapThinking, providers.CapJSON},
-	})
-	r.Register(Agent{
-		Role: RoleDeployer,
-		System: "You are the Ironflyer Deployer. Produce Dockerfile, env doc, healthcheck, and a runbook.",
-		Capabilities: []providers.Capability{providers.CapCode, providers.CapCache},
-	})
+	defaults, err := LoadDefaults()
+	if err != nil {
+		// Embedded file is shipped with the binary, so a parse failure is a
+		// programmer error — fail loud rather than serve a half-empty
+		// registry that would silently degrade chat.
+		panic("agents: load defaults: " + err.Error())
+	}
+	for _, a := range defaults {
+		r.Register(a)
+	}
 }
 
 func buildPrompt(t Task) string {
