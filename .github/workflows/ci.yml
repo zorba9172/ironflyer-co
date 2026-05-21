@@ -84,6 +84,12 @@ jobs:
       - name: typecheck
         working-directory: apps/vscode-extension
         run: npm run typecheck
+      - name: test
+        working-directory: apps/vscode-extension
+        run: npm test
+      - name: lint
+        working-directory: apps/vscode-extension
+        run: npm run lint
       - name: build
         working-directory: apps/vscode-extension
         run: npm run build

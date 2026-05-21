@@ -10,6 +10,9 @@
 
 import { Auth } from './auth';
 import { readConfig } from './config';
+import { drainFrames, SSEEvent } from './sse';
+
+export { SSEEvent };
 
 export interface Project {
   id: string;
@@ -26,11 +29,6 @@ export interface BudgetSnapshot {
   monthSpend: string;
   monthCap: string;
   hardStop: boolean;
-}
-
-export interface SSEEvent {
-  event: string;
-  data: any;
 }
 
 export class ApiError extends Error {
@@ -51,6 +49,14 @@ export class Api {
 
   getProject(id: string): Promise<Project> {
     return this.request<Project>('GET', `/projects/${encodeURIComponent(id)}`);
+  }
+
+  createProject(body: { name: string; idea?: string; description?: string }): Promise<Project> {
+    return this.request<Project>('POST', '/projects/', {
+      name: body.name,
+      idea: body.idea ?? '',
+      description: body.description ?? '',
+    });
   }
 
   runFinisher(id: string): Promise<unknown> {
@@ -133,32 +139,9 @@ export class Api {
       const { value, done } = await reader.read();
       if (done) break;
       buf += decoder.decode(value, { stream: true });
-      // SSE frames are separated by a blank line. Lines starting with ":" are
-      // comments (heartbeats); we drop them.
-      let idx;
-      while ((idx = buf.indexOf('\n\n')) >= 0) {
-        const frame = buf.slice(0, idx);
-        buf = buf.slice(idx + 2);
-        const evt = parseFrame(frame);
-        if (evt) yield evt;
-      }
+      const { events, rest } = drainFrames(buf);
+      buf = rest;
+      for (const evt of events) yield evt;
     }
-  }
-}
-
-function parseFrame(frame: string): SSEEvent | undefined {
-  let eventName = 'message';
-  const dataLines: string[] = [];
-  for (const line of frame.split('\n')) {
-    if (!line || line.startsWith(':')) continue;
-    if (line.startsWith('event:')) eventName = line.slice(6).trim();
-    else if (line.startsWith('data:')) dataLines.push(line.slice(5).trim());
-  }
-  if (dataLines.length === 0) return undefined;
-  const raw = dataLines.join('\n');
-  try {
-    return { event: eventName, data: JSON.parse(raw) };
-  } catch {
-    return { event: eventName, data: raw };
   }
 }

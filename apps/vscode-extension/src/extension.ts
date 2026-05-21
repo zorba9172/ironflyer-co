@@ -44,6 +44,36 @@ export function activate(context: vscode.ExtensionContext): void {
       ChatPanel.reveal(api, context, project);
     }),
 
+    vscode.commands.registerCommand('ironflyer.newProject', async () => {
+      if (!(await auth.getToken())) {
+        const sign = await vscode.window.showWarningMessage(
+          'Sign in to Ironflyer first.',
+          'Sign In',
+        );
+        if (sign) await auth.beginSignIn();
+        return;
+      }
+      const name = await vscode.window.showInputBox({
+        prompt: 'Project name',
+        placeHolder: 'e.g. "ledger-rewrite" or "mobile-onboarding"',
+        validateInput: (v) => (v.trim() ? undefined : 'Name is required'),
+      });
+      if (!name) return;
+      const idea = await vscode.window.showInputBox({
+        prompt: 'One-line idea — what does it do?',
+        placeHolder: 'A self-serve audit report for SOC-2 evidence.',
+      });
+      try {
+        const project = await withProgress(`Creating ${name}`, () =>
+          api.createProject({ name: name.trim(), idea: idea?.trim() }),
+        );
+        tree.refresh();
+        ChatPanel.reveal(api, context, project);
+      } catch (err) {
+        await handleError(err, auth);
+      }
+    }),
+
     vscode.commands.registerCommand('ironflyer.runFinisher', async (arg: unknown) => {
       const project = await resolveProject(api, arg);
       if (!project) return;

@@ -13,13 +13,20 @@
     "vscode": "^1.85.0",
     "node": ">=18"
   },
-  "categories": ["AI", "Other"],
-  "keywords": ["ironflyer", "ai", "agents", "lovable", "copilot"],
+  "categories": [
+    "AI",
+    "Other"
+  ],
+  "keywords": [
+    "ironflyer",
+    "ai",
+    "agents",
+    "lovable",
+    "copilot"
+  ],
   "main": "./dist/extension.js",
   "activationEvents": [
     "onUri",
-    "onCommand:ironflyer.signIn",
-    "onView:ironflyer.projects",
     "onStartupFinished"
   ],
   "contributes": {
@@ -39,13 +46,41 @@
       }
     },
     "commands": [
-      { "command": "ironflyer.signIn", "title": "Ironflyer: Sign In" },
-      { "command": "ironflyer.signOut", "title": "Ironflyer: Sign Out" },
-      { "command": "ironflyer.refresh", "title": "Ironflyer: Refresh", "icon": "$(refresh)" },
-      { "command": "ironflyer.openChat", "title": "Ironflyer: Open Chat", "icon": "$(comment-discussion)" },
-      { "command": "ironflyer.runFinisher", "title": "Ironflyer: Run Finisher" },
-      { "command": "ironflyer.openProjectInBrowser", "title": "Ironflyer: Open Project in Browser" },
-      { "command": "ironflyer.showBudget", "title": "Ironflyer: Show Budget" }
+      {
+        "command": "ironflyer.signIn",
+        "title": "Ironflyer: Sign In"
+      },
+      {
+        "command": "ironflyer.signOut",
+        "title": "Ironflyer: Sign Out"
+      },
+      {
+        "command": "ironflyer.refresh",
+        "title": "Ironflyer: Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "ironflyer.openChat",
+        "title": "Ironflyer: Open Chat",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "ironflyer.newProject",
+        "title": "Ironflyer: New Project",
+        "icon": "$(add)"
+      },
+      {
+        "command": "ironflyer.runFinisher",
+        "title": "Ironflyer: Run Finisher"
+      },
+      {
+        "command": "ironflyer.openProjectInBrowser",
+        "title": "Ironflyer: Open Project in Browser"
+      },
+      {
+        "command": "ironflyer.showBudget",
+        "title": "Ironflyer: Show Budget"
+      }
     ],
     "viewsContainers": {
       "activitybar": [
@@ -58,23 +93,53 @@
     },
     "views": {
       "ironflyer": [
-        { "id": "ironflyer.projects", "name": "Projects", "icon": "$(rocket)", "contextualTitle": "Ironflyer" }
+        {
+          "id": "ironflyer.projects",
+          "name": "Projects",
+          "icon": "$(rocket)",
+          "contextualTitle": "Ironflyer"
+        }
       ]
     },
     "viewsWelcome": [
       {
         "view": "ironflyer.projects",
-        "contents": "Sign in to Ironflyer to see your projects.\n[Sign In](command:ironflyer.signIn)"
+        "contents": "Sign in to Ironflyer to see your projects.\n[Sign In](command:ironflyer.signIn)",
+        "when": "!ironflyer.signedIn"
+      },
+      {
+        "view": "ironflyer.projects",
+        "contents": "No projects yet — start your first one.\n[New Project](command:ironflyer.newProject)",
+        "when": "ironflyer.signedIn"
       }
     ],
     "menus": {
       "view/title": [
-        { "command": "ironflyer.refresh", "when": "view == ironflyer.projects", "group": "navigation" }
+        {
+          "command": "ironflyer.newProject",
+          "when": "view == ironflyer.projects",
+          "group": "navigation@1"
+        },
+        {
+          "command": "ironflyer.refresh",
+          "when": "view == ironflyer.projects",
+          "group": "navigation@2"
+        }
       ],
       "view/item/context": [
-        { "command": "ironflyer.openChat", "when": "view == ironflyer.projects && viewItem == ironflyer.project", "group": "inline" },
-        { "command": "ironflyer.openProjectInBrowser", "when": "view == ironflyer.projects && viewItem == ironflyer.project" },
-        { "command": "ironflyer.runFinisher", "when": "view == ironflyer.projects && viewItem == ironflyer.project" }
+        {
+          "command": "ironflyer.openChat",
+          "when": "view == ironflyer.projects && viewItem == ironflyer.project",
+          "group": "inline"
+        },
+        {
+          "command": "ironflyer.openProjectInBrowser",
+          "when": "view == ironflyer.projects && viewItem == ironflyer.project"
+        },
+        {
+          "command": "ironflyer.runFinisher",
+          "when": "view == ironflyer.projects && viewItem == ironflyer.project"
+        }
       ]
     }
   },
@@ -84,6 +149,7 @@
     "watch": "node esbuild.js --watch",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint src --ext ts",
+    "test": "vitest run",
     "package": "vsce package --no-dependencies"
   },
   "devDependencies": {
@@ -94,6 +160,7 @@
     "@vscode/vsce": "^2.24.0",
     "esbuild": "^0.20.0",
     "eslint": "^8.57.0",
-    "typescript": "^5.4.0"
+    "typescript": "^5.4.0",
+    "vitest": "^1.6.1"
   }
 }
