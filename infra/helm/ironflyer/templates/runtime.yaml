@@ -1,0 +1,98 @@
+{{- if .Values.runtime.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: runtime-config
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+data:
+  IRONFLYER_RUNTIME_ADDR: ":8090"
+  IRONFLYER_RUNTIME_DRIVER: {{ .Values.runtime.driver | quote }}
+  IRONFLYER_RUNTIME_WORKSPACE_DIR: "/workspaces"
+  IRONFLYER_RUNTIME_CORS_ORIGIN: {{ printf "https://%s" .Values.host | quote }}
+  IRONFLYER_LOG_FORMAT: "json"
+  IRONFLYER_LOG_LEVEL: "info"
+  IRONFLYER_JWT_ISSUER: "ironflyer"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: runtime-workspaces
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: {{ .Values.runtime.workspacesPVC.size }}
+  {{- with .Values.runtime.workspacesPVC.storageClass }}
+  storageClassName: {{ . }}
+  {{- end }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: runtime
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: runtime
+spec:
+  replicas: 1
+  strategy: { type: {{ .Values.runtime.strategy }} }
+  selector:
+    matchLabels:
+      {{- include "ironflyer.selectorLabels" (dict "name" "runtime" "release" .Release.Name) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "ironflyer.selectorLabels" (dict "name" "runtime" "release" .Release.Name) | nindent 8 }}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001
+      containers:
+        - name: runtime
+          image: {{ include "ironflyer.image" (dict "name" "runtime" "Values" .Values) }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          ports:
+            - { name: http, containerPort: 8090 }
+          envFrom:
+            - configMapRef: { name: runtime-config }
+          env:
+            - name: IRONFLYER_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.orchestrator.secrets.name }}
+                  key: IRONFLYER_JWT_SECRET
+          readinessProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 15
+            periodSeconds: 15
+          resources:
+            {{- toYaml .Values.runtime.resources | nindent 12 }}
+          volumeMounts:
+            - { name: workspaces, mountPath: /workspaces }
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: { drop: ["ALL"] }
+      volumes:
+        - name: workspaces
+          persistentVolumeClaim: { claimName: runtime-workspaces }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: runtime
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "ironflyer.selectorLabels" (dict "name" "runtime" "release" .Release.Name) | nindent 4 }}
+  ports:
+    - { name: http, port: 8090, targetPort: http }
+{{- end }}

@@ -1,0 +1,89 @@
+{{- if .Values.orchestrator.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orchestrator-config
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+data:
+  IRONFLYER_ADDR: ":8080"
+  IRONFLYER_RUNTIME_URL: "http://runtime:8090"
+  POSTGRES_URL: {{ printf "postgres://%s:%s@postgres:5432/%s?sslmode=disable" .Values.postgres.user .Values.postgres.password .Values.postgres.database | quote }}
+  GITHUB_REDIRECT_URL: {{ printf "https://%s/auth/github/callback" .Values.host | quote }}
+  GITHUB_POST_LOGIN_URL: {{ printf "https://%s/app" .Values.host | quote }}
+  STRIPE_SUCCESS_URL: {{ printf "https://%s/app/settings?stripe=success" .Values.host | quote }}
+  STRIPE_CANCEL_URL: {{ printf "https://%s/pricing?stripe=cancel" .Values.host | quote }}
+  {{- range $k, $v := .Values.orchestrator.config }}
+  {{ $k }}: {{ $v | quote }}
+  {{- end }}
+---
+{{- if .Values.orchestrator.secrets.create }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Values.orchestrator.secrets.name }}
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  {{- range $k, $v := .Values.orchestrator.secrets.data }}
+  {{ $k }}: {{ $v | quote }}
+  {{- end }}
+---
+{{- end }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orchestrator
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: orchestrator
+spec:
+  replicas: {{ .Values.orchestrator.replicas }}
+  selector:
+    matchLabels:
+      {{- include "ironflyer.selectorLabels" (dict "name" "orchestrator" "release" .Release.Name) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "ironflyer.selectorLabels" (dict "name" "orchestrator" "release" .Release.Name) | nindent 8 }}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+      containers:
+        - name: orchestrator
+          image: {{ include "ironflyer.image" (dict "name" "orchestrator" "Values" .Values) }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          ports:
+            - { name: http, containerPort: 8080 }
+          envFrom:
+            - configMapRef: { name: orchestrator-config }
+            - secretRef:    { name: {{ .Values.orchestrator.secrets.name }} }
+          readinessProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 15
+            periodSeconds: 15
+          resources:
+            {{- toYaml .Values.orchestrator.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orchestrator
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "ironflyer.selectorLabels" (dict "name" "orchestrator" "release" .Release.Name) | nindent 4 }}
+  ports:
+    - { name: http, port: 8080, targetPort: http }
+{{- end }}

@@ -1,0 +1,116 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NS: ${{ github.repository_owner }}
+
+jobs:
+  go:
+    name: Go test + build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        module: [orchestrator, runtime]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache-dependency-path: apps/${{ matrix.module }}/go.sum
+      - name: go mod download
+        working-directory: apps/${{ matrix.module }}
+        run: go mod download
+      - name: go vet
+        working-directory: apps/${{ matrix.module }}
+        run: go vet ./...
+      - name: go test
+        working-directory: apps/${{ matrix.module }}
+        run: go test -race -count=1 ./...
+      - name: go build
+        working-directory: apps/${{ matrix.module }}
+        run: go build ./...
+
+  web:
+    name: Web typecheck + build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: apps/web/package-lock.json
+      - name: npm install
+        working-directory: apps/web
+        run: npm install --no-audit --no-fund
+      - name: typecheck
+        working-directory: apps/web
+        run: npm run typecheck
+      - name: build
+        working-directory: apps/web
+        # NEXT_TELEMETRY_DISABLED keeps CI logs clean.
+        env: { NEXT_TELEMETRY_DISABLED: "1" }
+        run: npm run build
+
+  sdk:
+    name: SDK typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - name: install typescript
+        run: npm i -g typescript@5.6
+      - name: typecheck
+        working-directory: packages/sdk
+        run: tsc -p tsconfig.json --noEmit
+
+  images:
+    name: Build + push images
+    runs-on: ubuntu-latest
+    needs: [go, web, sdk]
+    # Only push images from the canonical main branch — PRs build but never push.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        include:
+          - { image: orchestrator,    dockerfile: infra/docker/orchestrator.Dockerfile }
+          - { image: runtime,         dockerfile: infra/docker/runtime.Dockerfile }
+          - { image: web,             dockerfile: infra/docker/web.Dockerfile }
+          - { image: code,            dockerfile: infra/docker/ironflyer-code.Dockerfile }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NS }}/ironflyer-${{ matrix.image }}
+          tags: |
+            type=sha,format=short
+            type=ref,event=branch
+            type=raw,value=latest,enable={{is_default_branch}}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # GitHub Actions cache backend is free for public repos and dramatically
+          # shrinks the rebuild time for orchestrator + runtime layers.
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to:   type=gha,scope=${{ matrix.image }},mode=max

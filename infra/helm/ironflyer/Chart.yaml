@@ -1,0 +1,17 @@
+apiVersion: v2
+name: ironflyer
+description: Ironflyer — AI Product Finisher. Orchestrator + workspace runtime + Next.js web, packaged.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+home: https://github.com/zorba9172/ironflyer-co
+sources:
+  - https://github.com/zorba9172/ironflyer-co
+keywords:
+  - ai
+  - agents
+  - workspace
+  - finisher
+maintainers:
+  - name: Ironflyer
+    email: hi@ironflyer.example.com

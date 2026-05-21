@@ -1,0 +1,87 @@
+# Ironflyer Helm values. Override per environment via -f values-prod.yaml.
+
+# Container image registry + tag applied to every service. Override per
+# service inside `images.*` when you want them out of step.
+imageRegistry: ghcr.io/zorba9172
+imageTag: latest
+imagePullPolicy: IfNotPresent
+
+# Public hostname the ingress publishes everything under.
+host: ironflyer.example.com
+ingress:
+  enabled: true
+  className: nginx
+  tlsSecret: ironflyer-tls
+
+orchestrator:
+  enabled: true
+  replicas: 2
+  resources:
+    requests: { cpu: "100m", memory: "128Mi" }
+    limits:   { cpu: "1",    memory: "512Mi" }
+  config:
+    IRONFLYER_ENV: "prod"
+    IRONFLYER_LOG_FORMAT: "json"
+    IRONFLYER_LOG_LEVEL: "info"
+    IRONFLYER_EXECUTOR: "embedded"
+    IRONFLYER_AUTH_OPTIONAL: "false"
+    IRONFLYER_DB_DRIVER: "postgres"
+    ANTHROPIC_MODEL: "claude-opus-4-7"
+  # Secrets — populate via --set-string or an external-secrets-mapped Secret
+  # named `orchestrator-secrets`. Leave blank in values to disable the
+  # corresponding feature (the orchestrator gracefully turns it off).
+  secrets:
+    create: true
+    name: orchestrator-secrets
+    data:
+      IRONFLYER_JWT_SECRET: ""
+      ANTHROPIC_API_KEY: ""
+      OPENAI_API_KEY: ""
+      GITHUB_CLIENT_ID: ""
+      GITHUB_CLIENT_SECRET: ""
+      STRIPE_SECRET_KEY: ""
+      STRIPE_WEBHOOK_SECRET: ""
+      STRIPE_PRICE_PRO: ""
+      STRIPE_PRICE_TEAM: ""
+      STRIPE_PRICE_ENTERPRISE: ""
+
+runtime:
+  enabled: true
+  # Per-pod local workspace state ⇒ Recreate avoids orphaning live sessions.
+  strategy: Recreate
+  driver: "mock"            # mock | docker
+  workspacesPVC:
+    size: 20Gi
+    storageClass: ""        # use cluster default when empty
+  resources:
+    requests: { cpu: "100m", memory: "256Mi" }
+    limits:   { cpu: "2",    memory: "1Gi" }
+
+web:
+  enabled: true
+  replicas: 2
+  resources:
+    requests: { cpu: "100m", memory: "256Mi" }
+    limits:   { cpu: "1",    memory: "1Gi" }
+
+postgres:
+  # Set to false when pointing the orchestrator at managed Postgres
+  # (Cloud SQL, RDS, Neon, Supabase).
+  enabled: true
+  storage: 10Gi
+  storageClass: ""
+  user: ironflyer
+  password: ironflyer        # CHANGE IN PROD
+  database: ironflyer
+
+# Image overrides — only set the keys you want to deviate from the global
+# imageTag / imageRegistry.
+images:
+  orchestrator:
+    repository: ironflyer-orchestrator
+  runtime:
+    repository: ironflyer-runtime
+  web:
+    repository: ironflyer-web
+  code:
+    repository: ironflyer-code

@@ -1,0 +1,60 @@
+{{- if .Values.web.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: web-config
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+data:
+  NODE_ENV: "production"
+  ORCHESTRATOR_INTERNAL_URL: "http://orchestrator:8080"
+  RUNTIME_INTERNAL_URL: "http://runtime:8090"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: web
+spec:
+  replicas: {{ .Values.web.replicas }}
+  selector:
+    matchLabels:
+      {{- include "ironflyer.selectorLabels" (dict "name" "web" "release" .Release.Name) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "ironflyer.selectorLabels" (dict "name" "web" "release" .Release.Name) | nindent 8 }}
+    spec:
+      containers:
+        - name: web
+          image: {{ include "ironflyer.image" (dict "name" "web" "Values" .Values) }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          ports:
+            - { name: http, containerPort: 3000 }
+          envFrom:
+            - configMapRef: { name: web-config }
+          readinessProbe:
+            httpGet: { path: /, port: http }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /, port: http }
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            {{- toYaml .Values.web.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "ironflyer.selectorLabels" (dict "name" "web" "release" .Release.Name) | nindent 4 }}
+  ports:
+    - { name: http, port: 3000, targetPort: http }
+{{- end }}
