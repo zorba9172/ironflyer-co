@@ -1,0 +1,72 @@
+# A small Postgres StatefulSet for dev / single-tenant. For production use a
+# managed Postgres (RDS, Cloud SQL, Neon, Supabase) and skip this file — point
+# orchestrator-config.POSTGRES_URL at the managed endpoint instead.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+  namespace: ironflyer
+type: Opaque
+stringData:
+  POSTGRES_USER: ironflyer
+  POSTGRES_PASSWORD: ironflyer
+  POSTGRES_DB: ironflyer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: ironflyer
+spec:
+  clusterIP: None # headless — StatefulSet manages stable pod DNS
+  selector:
+    app.kubernetes.io/name: postgres
+  ports:
+    - name: pg
+      port: 5432
+      targetPort: 5432
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: ironflyer
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgres
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+              name: pg
+          envFrom:
+            - secretRef:
+                name: postgres-secret
+          readinessProbe:
+            exec: { command: ["pg_isready", "-U", "ironflyer"] }
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+              subPath: pgdata
+          resources:
+            requests: { cpu: "100m", memory: "256Mi" }
+            limits:   { cpu: "1",    memory: "1Gi" }
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi

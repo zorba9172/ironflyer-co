@@ -1,0 +1,43 @@
+# Single ingress that routes:
+#   /                  → web (Next.js)
+#   /api/orchestrator  → orchestrator (HTTP + SSE — proxy timeouts bumped)
+#   /api/runtime       → runtime (HTTP + WebSocket for /terminal)
+# Requires an ingress controller (nginx, traefik, etc.) installed in-cluster.
+# nginx-ingress annotations are used; translate to the equivalent for traefik.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ironflyer
+  namespace: ironflyer
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-buffering: "off" # streaming SSE
+    nginx.ingress.kubernetes.io/proxy-body-size: "20m"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: ironflyer.example.com
+      http:
+        paths:
+          - path: /api/orchestrator(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: orchestrator
+                port: { number: 8080 }
+          - path: /api/runtime(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: runtime
+                port: { number: 8090 }
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web
+                port: { number: 3000 }
+  tls:
+    - hosts: ["ironflyer.example.com"]
+      secretName: ironflyer-tls

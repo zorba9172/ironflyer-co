@@ -1,0 +1,103 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: runtime-config
+  namespace: ironflyer
+data:
+  IRONFLYER_RUNTIME_ADDR: ":8090"
+  # "mock" is host-filesystem only; switch to "docker" once Docker-in-Docker
+  # / sysbox / Firecracker is provisioned on the node pool.
+  IRONFLYER_RUNTIME_DRIVER: "mock"
+  IRONFLYER_RUNTIME_WORKSPACE_DIR: "/workspaces"
+  IRONFLYER_RUNTIME_CORS_ORIGIN: "https://ironflyer.example.com"
+  IRONFLYER_LOG_FORMAT: "json"
+  IRONFLYER_LOG_LEVEL: "info"
+  # JWT verification: orchestrator and runtime share the same signing key so
+  # the runtime can validate Bearer tokens minted by the orchestrator.
+  IRONFLYER_JWT_ISSUER: "ironflyer"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: runtime
+  namespace: ironflyer
+  labels:
+    app.kubernetes.io/name: runtime
+    app.kubernetes.io/part-of: ironflyer
+spec:
+  replicas: 1
+  strategy: { type: Recreate } # workspaces are per-pod state; avoid rolling
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: runtime
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: runtime
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001
+      containers:
+        - name: runtime
+          image: ghcr.io/zorba9172/ironflyer-runtime:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8090
+          envFrom:
+            - configMapRef:
+                name: runtime-config
+          env:
+            # Re-use the orchestrator's JWT secret so signatures verify.
+            - name: IRONFLYER_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: orchestrator-secrets
+                  key: IRONFLYER_JWT_SECRET
+          readinessProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 15
+            periodSeconds: 15
+          resources:
+            requests: { cpu: "100m", memory: "256Mi" }
+            limits:   { cpu: "2",    memory: "1Gi" }
+          volumeMounts:
+            - name: workspaces
+              mountPath: /workspaces
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: { drop: ["ALL"] }
+      volumes:
+        - name: workspaces
+          persistentVolumeClaim:
+            claimName: runtime-workspaces
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: runtime-workspaces
+  namespace: ironflyer
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: runtime
+  namespace: ironflyer
+spec:
+  selector:
+    app.kubernetes.io/name: runtime
+  ports:
+    - name: http
+      port: 8090
+      targetPort: http

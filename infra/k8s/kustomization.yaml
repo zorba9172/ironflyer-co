@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: ironflyer
+resources:
+  - namespace.yaml
+  - postgres/statefulset.yaml
+  - orchestrator/configmap.yaml
+  # IMPORTANT: copy orchestrator/secret.example.yaml → orchestrator/secret.yaml
+  # (gitignored), fill it in, and uncomment the line below before applying.
+  # - orchestrator/secret.yaml
+  - orchestrator/deployment.yaml
+  - runtime/deployment.yaml
+  - web/deployment.yaml
+  - ingress.yaml
+
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: ironflyer

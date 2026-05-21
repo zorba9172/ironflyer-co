@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orchestrator-config
+  namespace: ironflyer
+data:
+  IRONFLYER_ADDR: ":8080"
+  IRONFLYER_ENV: "prod"
+  IRONFLYER_LOG_FORMAT: "json"
+  IRONFLYER_LOG_LEVEL: "info"
+  IRONFLYER_EXECUTOR: "embedded"
+  IRONFLYER_AUTH_OPTIONAL: "false"
+  # Storage driver. "memory" is fine for evals; switch to "postgres" or
+  # "hybrid" once the Postgres StatefulSet has a stable password.
+  IRONFLYER_DB_DRIVER: "postgres"
+  POSTGRES_URL: "postgres://ironflyer:ironflyer@postgres:5432/ironflyer?sslmode=disable"
+  IRONFLYER_RUNTIME_URL: "http://runtime:8090"
+  ANTHROPIC_MODEL: "claude-opus-4-7"
+  GITHUB_REDIRECT_URL: "https://ironflyer.example.com/auth/github/callback"
+  GITHUB_POST_LOGIN_URL: "https://ironflyer.example.com/app"
+  STRIPE_SUCCESS_URL: "https://ironflyer.example.com/app/settings?stripe=success"
+  STRIPE_CANCEL_URL: "https://ironflyer.example.com/pricing?stripe=cancel"
