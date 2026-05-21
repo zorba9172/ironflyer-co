@@ -228,7 +228,10 @@ func (a *API) runFinisher(w http.ResponseWriter, r *http.Request) {
 	if _, ok := a.requireProjectAccess(w, r, id); !ok {
 		return
 	}
-	report, err := a.d.Engine.Run(r.Context(), id)
+	// Forward the caller's bearer so build/test gates can authenticate to
+	// the workspace runtime under the same identity.
+	ctx := finisher.WithBearer(r.Context(), bearerFrom(r))
+	report, err := a.d.Engine.Run(ctx, id)
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, errJSON(err.Error()))
 		return
@@ -908,6 +911,17 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 }
 
 func errJSON(msg string) map[string]string { return map[string]string{"error": msg} }
+
+// bearerFrom extracts the raw JWT from the Authorization header, if any. We
+// re-forward it to the workspace runtime for owner-scoped exec calls.
+func bearerFrom(r *http.Request) string {
+	h := r.Header.Get("Authorization")
+	const prefix = "Bearer "
+	if len(h) > len(prefix) && strings.EqualFold(h[:len(prefix)], prefix) {
+		return strings.TrimSpace(h[len(prefix):])
+	}
+	return ""
+}
 
 // userIDFromCtx returns the authenticated user's ID. Falls back to "demo"
 // when AuthOptional is on and no user is present (dev convenience only).

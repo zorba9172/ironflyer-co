@@ -37,7 +37,10 @@ func (a *Activities) CheckGate(ctx context.Context, in CheckGateInput) (CheckGat
 	if err != nil {
 		return CheckGateResult{}, err
 	}
-	issues := gate.Check(&p)
+	// Temporal-driven gate checks run without a workspace handle today; the
+	// gate degrades to its static fallback when Runtime is nil. Wiring a
+	// runtime client through the Workflow path is a follow-up.
+	issues := gate.Check(ctx, &finisher.GateEnv{Project: &p})
 	status := domain.GateStatusPassed
 	if len(issues) > 0 {
 		status = domain.GateStatusFailed

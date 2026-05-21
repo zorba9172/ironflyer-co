@@ -12,8 +12,30 @@ import (
 	"ironflyer/apps/orchestrator/internal/agents"
 	"ironflyer/apps/orchestrator/internal/domain"
 	"ironflyer/apps/orchestrator/internal/patch"
+	"ironflyer/apps/orchestrator/internal/runtime"
 	"ironflyer/apps/orchestrator/internal/store"
 )
+
+// ctxKey is unexported so callers must use WithBearer / bearerFromCtx.
+type ctxKey struct{ name string }
+
+var bearerKey = ctxKey{"bearer"}
+
+// WithBearer stamps the user's JWT onto the context so gates that hit the
+// workspace runtime can re-present it for the ownership check.
+func WithBearer(ctx context.Context, token string) context.Context {
+	if token == "" {
+		return ctx
+	}
+	return context.WithValue(ctx, bearerKey, token)
+}
+
+func bearerFromCtx(ctx context.Context) string {
+	if v, ok := ctx.Value(bearerKey).(string); ok {
+		return v
+	}
+	return ""
+}
 
 const defaultMaxIterations = 4
 
@@ -32,6 +54,7 @@ type Engine struct {
 	projects      store.Store
 	registry      *agents.Registry
 	patches       *patch.Engine
+	runtime       *runtime.Client
 	gates         []Gate
 	maxIterations int
 	subscribers   map[string][]chan domain.Event
@@ -48,9 +71,28 @@ func NewEngine(projects store.Store, registry *agents.Registry, patches *patch.E
 	}
 }
 
+// WithRuntime attaches a workspace-runtime client so build/test gates can
+// execute commands inside the user's sandbox. Returns the engine for chained
+// configuration during startup.
+func (e *Engine) WithRuntime(c *runtime.Client) *Engine {
+	e.runtime = c
+	return e
+}
+
 // Run executes the finisher loop for a project.
 func (e *Engine) Run(ctx context.Context, projectID string) (RunReport, error) {
 	report := RunReport{ProjectID: projectID, StartedAt: time.Now().UTC()}
+
+	bearer := bearerFromCtx(ctx)
+	// Resolve a workspace for this project once per Run — if the runtime is
+	// configured and the user has a running workspace bound to projectID we'll
+	// surface it through GateEnv so build/test gates can execute commands.
+	var workspaceID string
+	if e.runtime.Enabled() && bearer != "" {
+		if ws, err := e.runtime.FindWorkspaceForProject(ctx, bearer, projectID); err == nil {
+			workspaceID = ws.ID
+		}
+	}
 
 	for i := 0; i < e.maxIterations; i++ {
 		report.Iterations = i + 1
@@ -67,7 +109,13 @@ func (e *Engine) Run(ctx context.Context, projectID string) (RunReport, error) {
 				Message: "checking gate", Status: "running", CreatedAt: time.Now().UTC(),
 			})
 
-			issues := gate.Check(&p)
+			env := &GateEnv{
+				Project:     &p,
+				Runtime:     e.runtime,
+				WorkspaceID: workspaceID,
+				UserBearer:  bearer,
+			}
+			issues := gate.Check(ctx, env)
 			status := domain.GateStatusPassed
 			if len(issues) > 0 {
 				status = domain.GateStatusFailed

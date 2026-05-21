@@ -23,6 +23,7 @@ import (
 	"ironflyer/apps/orchestrator/internal/integrations/github"
 	"ironflyer/apps/orchestrator/internal/patch"
 	"ironflyer/apps/orchestrator/internal/providers"
+	"ironflyer/apps/orchestrator/internal/runtime"
 	"ironflyer/apps/orchestrator/internal/store"
 )
 
@@ -170,7 +171,11 @@ func main() {
 	bsRunner := brainstorm.NewRunner(registry, router)
 
 	patches := patch.NewEngine(projects)
-	engine := finisher.NewEngine(projects, registry, patches)
+	runtimeClient := runtime.New(cfg.RuntimeURL)
+	engine := finisher.NewEngine(projects, registry, patches).WithRuntime(runtimeClient)
+	if runtimeClient.Enabled() {
+		logger.Info().Str("runtime", cfg.RuntimeURL).Msg("finisher build/test gates can exec inside workspaces")
+	}
 
 	api := httpapi.New(httpapi.Deps{
 		Projects: projects, Engine: engine, Agents: registry, Patches: patches,
