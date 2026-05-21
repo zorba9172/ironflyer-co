@@ -11,7 +11,7 @@ import {
   Share, Smartphone, Visibility,
 } from '@mui/icons-material';
 import {
-  api, BrainstormOutcome, ChatDelta, ExecutionEvent, GateState, Project,
+  api, BrainstormOutcome, ChatDelta, ExecutionEvent, GateState, LedgerEntry, Project,
   streamChat, UserBudget, VaultSnapshot,
 } from '../../../lib/api';
 import { runtime, Workspace as WS } from '../../../lib/runtime';
@@ -448,9 +448,47 @@ function BudgetCard({ vault, budget }: { vault: VaultSnapshot | null; budget: Us
             <Typography variant="caption" sx={{ fontFamily: tokens.font.mono }}>${Number(vault.providerCost).toFixed(4)}</Typography>
           </Stack>
         </Stack>
+        {topModelSpend(budget.entries).length > 0 && (
+          <>
+            <Divider sx={{ my: 1.5, borderColor: tokens.color.border.subtle }} />
+            <Typography variant="caption" sx={{ color: tokens.color.text.muted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              Top models
+            </Typography>
+            <Stack spacing={0.3} sx={{ mt: 0.6 }}>
+              {topModelSpend(budget.entries).map((row) => (
+                <Stack key={row.key} direction="row" justifyContent="space-between" alignItems="center">
+                  <Typography variant="caption" sx={{ fontFamily: tokens.font.mono, color: tokens.color.text.primary,
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 180 }} title={row.key}>
+                    {row.key}
+                  </Typography>
+                  <Typography variant="caption" sx={{ fontFamily: tokens.font.mono, color: tokens.color.text.muted }}>
+                    ${row.usd.toFixed(4)}
+                  </Typography>
+                </Stack>
+              ))}
+            </Stack>
+          </>
+        )}
       </CardContent>
     </Card>
   );
+}
+
+// topModelSpend aggregates ledger entries by `provider/model` and returns
+// the three most expensive — making the v0-style per-model price exposure
+// visible without forcing users to read a separate ledger. Empty when the
+// user hasn't spent anything yet (free tier or fresh signup).
+function topModelSpend(entries: LedgerEntry[]): { key: string; usd: number }[] {
+  if (!entries || entries.length === 0) return [];
+  const byKey: Record<string, number> = {};
+  for (const e of entries) {
+    const k = `${e.provider}/${e.model}`;
+    byKey[k] = (byKey[k] ?? 0) + Number(e.costUSD || 0);
+  }
+  return Object.entries(byKey)
+    .map(([key, usd]) => ({ key, usd }))
+    .sort((a, b) => b.usd - a.usd)
+    .slice(0, 3);
 }
 
 // ActivityCard surfaces the SSE execution stream as a compact timeline.
