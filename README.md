@@ -68,6 +68,7 @@ cd apps/web && npm install && npm run dev
 | `apps/runtime` | Workspace runtime — sandboxes, File API, PTY WS |
 | `apps/web` | Next.js + MUI dashboard |
 | `apps/mobile` | PWA mobile shell (web is PWA-installable) |
+| `apps/vscode-extension` | VSCode extension — thin client (sidebar, chat, finisher, budget) |
 | `packages/agents` | Agent prompts + JSON schemas (reserved) |
 | `packages/design-tokens` | output.com-inspired tokens |
 | `packages/ui`, `packages/sdk` | Reserved |
@@ -121,6 +122,26 @@ The image bakes in:
 The `web` app renders the per-project IDE inside an iframe in the
 **Project → IDE** tab; clicking the share icon opens it in a new tab.
 Override the image at runtime by setting `IRONFLYER_RUNTIME_DOCKER_IMAGE`.
+
+## VSCode extension
+
+For users who already live in VSCode, the `apps/vscode-extension` package
+ships a thin client that talks to the same orchestrator. It does **not**
+fork or replace VSCode — it adds a Projects sidebar, a streaming chat
+panel, a Run Finisher command, and a budget status bar item, then gets out
+of the way for editing, terminal, and git (VSCode already does those well).
+
+```bash
+cd apps/vscode-extension
+npm install && npm run build
+# F5 in VSCode to launch an Extension Development Host, or:
+npm run package    # produces ironflyer-0.1.0.vsix
+```
+
+Sign-in: `Ironflyer: Sign In` opens the web app's `/login` page with a
+`vscode://ironflyer.ironflyer/auth` callback; after login the web app
+hands the JWT back over the URI handler and stores it in VSCode
+`SecretStorage`. No API keys to paste.
 
 ## Status
 

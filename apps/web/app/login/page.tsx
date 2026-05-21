@@ -7,9 +7,53 @@ import {
 } from '@mui/material';
 import { GitHub, Google, Lock } from '@mui/icons-material';
 import { useAuth } from '../auth-context';
+import { auth as authStore } from '../../lib/auth';
 import { tokens } from '../../lib/theme';
 import { PromptBox } from '../prompt-box';
 import { githubLoginStartURL } from '../../lib/github';
+
+// Allow VSCode and (later) Cursor / Windsurf URI schemes to round-trip the
+// JWT back into a desktop client. Anything else is silently ignored — we
+// don't want this page to be a token-exfiltration redirect.
+const ALLOWED_CALLBACK_SCHEMES = ['vscode', 'vscode-insiders', 'cursor', 'windsurf'];
+const CALLBACK_STORAGE_KEY = 'ironflyer.desktopCallback';
+
+function readVscodeCallback(): string | null {
+  if (typeof window === 'undefined') return null;
+  const params = new URLSearchParams(window.location.search);
+  let cb: string | null = null;
+  if (params.get('source') === 'vscode') {
+    cb = params.get('callback');
+  }
+  // GitHub OAuth round-trips through a fixed redirect that drops query
+  // params — so we persist the callback before kicking GitHub off and
+  // rehydrate it here. We never trust the stored value if its scheme is
+  // not on the allowlist.
+  if (!cb) cb = window.sessionStorage.getItem(CALLBACK_STORAGE_KEY);
+  if (!cb) return null;
+  try {
+    const u = new URL(cb);
+    const scheme = u.protocol.replace(/:$/, '');
+    if (!ALLOWED_CALLBACK_SCHEMES.includes(scheme)) return null;
+    return cb;
+  } catch {
+    return null;
+  }
+}
+
+function persistDesktopCallback(): void {
+  if (typeof window === 'undefined') return;
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('source') === 'vscode') {
+    const cb = params.get('callback');
+    if (cb) window.sessionStorage.setItem(CALLBACK_STORAGE_KEY, cb);
+  }
+}
+
+function redirectToCallback(callback: string, token: string): void {
+  const sep = callback.includes('?') ? '&' : '?';
+  window.location.href = `${callback}${sep}token=${encodeURIComponent(token)}`;
+}
 
 export default function LoginPage() {
   const { user, loading, login, signup } = useAuth();
@@ -24,12 +68,18 @@ export default function LoginPage() {
   useEffect(() => {
     const pending = window.localStorage.getItem('ironflyer.pendingIdea');
     if (pending) setPendingIdea(pending);
+    persistDesktopCallback();
   }, []);
 
   useEffect(() => {
-    if (!loading && user && typeof window !== 'undefined') {
-      window.location.href = '/app';
+    if (loading || !user || typeof window === 'undefined') return;
+    const callback = readVscodeCallback();
+    const token = authStore.token();
+    if (callback && token) {
+      redirectToCallback(callback, token);
+      return;
     }
+    window.location.href = '/app';
   }, [user, loading]);
 
   async function submit(e: React.FormEvent) {
@@ -38,7 +88,13 @@ export default function LoginPage() {
     try {
       if (mode === 'login') await login(email, password);
       else await signup(email, password, name);
-      window.location.href = '/app';
+      const callback = readVscodeCallback();
+      const token = authStore.token();
+      if (callback && token) {
+        redirectToCallback(callback, token);
+      } else {
+        window.location.href = '/app';
+      }
     } catch (err) {
       setError((err as Error).message);
     } finally {
