@@ -24,6 +24,7 @@ import (
 	"ironflyer/apps/orchestrator/internal/finisher"
 	"ironflyer/apps/orchestrator/internal/integrations"
 	"ironflyer/apps/orchestrator/internal/integrations/github"
+	"ironflyer/apps/orchestrator/internal/leads"
 	"ironflyer/apps/orchestrator/internal/patch"
 	"ironflyer/apps/orchestrator/internal/providers"
 	"ironflyer/apps/orchestrator/internal/store"
@@ -31,22 +32,23 @@ import (
 
 // Deps groups everything the HTTP layer needs.
 type Deps struct {
-	Projects     store.Store
-	Engine       *finisher.Engine
-	Agents       *agents.Registry
-	Patches      *patch.Engine
-	Billing      *budget.Billing
-	Strategist   *brainstorm.Strategist
-	BSRunner     *brainstorm.Runner
-	Guard        *providers.BillingGuard
-	Auth         *auth.Service
-	Stripe       *budget.StripeService
-	AuthOptional bool // dev convenience: skip auth when true
-	GitHub       *github.Service
-	GitHubTokens integrations.TokenStore // for FindByExternal during OAuth login
-	GitHubPostLoginURL string // browser destination after link/login
-	RuntimeURL string       // base URL of the workspace runtime, e.g. http://localhost:8090
-	Logger       zerolog.Logger
+	Projects           store.Store
+	Engine             *finisher.Engine
+	Agents             *agents.Registry
+	Patches            *patch.Engine
+	Billing            *budget.Billing
+	Strategist         *brainstorm.Strategist
+	BSRunner           *brainstorm.Runner
+	Guard              *providers.BillingGuard
+	Auth               *auth.Service
+	Stripe             *budget.StripeService
+	Leads              leads.Store
+	AuthOptional       bool // dev convenience: skip auth when true
+	GitHub             *github.Service
+	GitHubTokens       integrations.TokenStore // for FindByExternal during OAuth login
+	GitHubPostLoginURL string                  // browser destination after link/login
+	RuntimeURL         string                  // base URL of the workspace runtime, e.g. http://localhost:8090
+	Logger             zerolog.Logger
 }
 
 type API struct{ d Deps }
@@ -61,6 +63,7 @@ func New(d Deps) http.Handler {
 	r.Use(middleware.Recoverer)
 
 	r.Get("/health", a.health)
+	r.Post("/leads/enterprise", a.enterpriseLead)
 
 	// Public auth endpoints.
 	r.Route("/auth", func(r chi.Router) {
@@ -273,7 +276,9 @@ func (a *API) streamEvents(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) promptPlan(w http.ResponseWriter, r *http.Request) {
-	var body struct{ Prompt string `json:"prompt"` }
+	var body struct {
+		Prompt string `json:"prompt"`
+	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		writeJSON(w, http.StatusBadRequest, errJSON("invalid JSON"))
 		return

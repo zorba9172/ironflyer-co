@@ -21,6 +21,7 @@ import (
 	"ironflyer/apps/orchestrator/internal/httpapi"
 	"ironflyer/apps/orchestrator/internal/integrations"
 	"ironflyer/apps/orchestrator/internal/integrations/github"
+	"ironflyer/apps/orchestrator/internal/leads"
 	"ironflyer/apps/orchestrator/internal/patch"
 	"ironflyer/apps/orchestrator/internal/providers"
 	"ironflyer/apps/orchestrator/internal/runtime"
@@ -128,6 +129,19 @@ func main() {
 		billing.AssignPlan(ctx, u.ID, budget.TierPro)
 	}
 
+	// ---------------- Leads (memory or postgres) ----------------------------
+	var leadStore leads.Store
+	if pgPool != nil {
+		if err := leads.BootstrapPostgres(ctx, pgPool); err != nil {
+			logger.Fatal().Err(err).Msg("bootstrap postgres schema (leads)")
+		}
+		leadStore = leads.NewPostgresStore(pgPool)
+		logger.Info().Msg("Postgres lead store enabled")
+	} else {
+		leadStore = leads.NewMemoryStore()
+		logger.Info().Msg("memory lead store enabled")
+	}
+
 	// ---------------- Integrations: GitHub ----------------------------------
 	var tokenStore integrations.TokenStore
 	if pgPool != nil {
@@ -180,7 +194,7 @@ func main() {
 	api := httpapi.New(httpapi.Deps{
 		Projects: projects, Engine: engine, Agents: registry, Patches: patches,
 		Billing: billing, Strategist: strategist, BSRunner: bsRunner, Guard: guard,
-		Auth: authSvc, AuthOptional: cfg.AuthOptional, Stripe: stripeSvc,
+		Auth: authSvc, AuthOptional: cfg.AuthOptional, Stripe: stripeSvc, Leads: leadStore,
 		GitHub: githubSvc, GitHubTokens: tokenStore, GitHubPostLoginURL: cfg.GitHubPostLoginURL,
 		RuntimeURL: cfg.RuntimeURL,
 		Logger: logger,
