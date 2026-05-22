@@ -8,6 +8,7 @@ import {
   Box, Button, Chip, Container, Divider, Stack, Typography,
 } from '@mui/material';
 import { tokens } from '../../../packages/design-tokens';
+import { EnterpriseLeadForm } from './enterprise-lead-form';
 import { PromptBox } from './prompt-box';
 import { UpgradeButton } from './upgrade-button';
 
@@ -80,10 +81,54 @@ const templateLibrary = [
 ];
 
 const plans = [
-  { name: 'Free', price: '$0', text: 'Try the loop, create a workspace, and validate the product shape.', cta: 'Start free' },
-  { name: 'Pro', price: '$25', text: 'For solo builders shipping real MVPs with AI and finisher gates.', cta: 'Go Pro' },
-  { name: 'Team', price: '$50', text: 'Shared workspaces, approvals, role limits, and reusable blueprints.', cta: 'Create team' },
-  { name: 'Enterprise', price: 'Custom', text: 'SSO, audit logs, custom connectors, private deployments, and onboarding.', cta: 'Book demo' },
+  {
+    name: 'Free',
+    price: '$0',
+    period: '/month',
+    text: 'Explore the loop, create a workspace, and validate whether the idea has a real product shape.',
+    cta: 'Start free',
+    badge: 'Trial motion',
+    features: ['Starter build credits', 'Public templates', 'Basic gates', 'Ironflyer badge'],
+  },
+  {
+    name: 'Pro',
+    price: '$25',
+    period: '/month',
+    text: 'For founders and builders shipping real MVPs with budget controls and production checks.',
+    cta: 'Go Pro',
+    badge: 'Best solo plan',
+    features: ['100 monthly build credits', 'Private projects', 'Custom domains', 'Remove branding'],
+  },
+  {
+    name: 'Team',
+    price: '$100',
+    period: '/month',
+    text: 'For teams and agencies that need shared workspaces, reusable templates, and approval gates.',
+    cta: 'Create team',
+    badge: 'Expansion plan',
+    features: ['500 shared credits', '5 seats included', 'Roles and approvals', 'Template library'],
+  },
+  {
+    name: 'Enterprise',
+    price: 'Custom',
+    period: '',
+    text: 'For organizations that need SSO, audit logs, private deployment paths, and procurement support.',
+    cta: 'Book demo',
+    badge: 'Procurement ready',
+    features: ['SSO and audit logs', 'Private connectors', 'Dedicated onboarding', 'Custom limits and SLA'],
+  },
+];
+
+const revenuePillars = [
+  { title: 'Transparent usage', text: 'Buyers understand credits, caps, and what happens before spend grows.' },
+  { title: 'Team expansion', text: 'Solo builders can become teams with seats, shared workspaces, and reusable templates.' },
+  { title: 'Enterprise trust', text: 'SSO, audit trails, private connectors, and support create a path to larger contracts.' },
+];
+
+const pricingAssumptions = [
+  { label: 'Free to paid', text: 'A useful free tier creates habit, then Pro removes limits and branding.' },
+  { label: 'Credits with caps', text: 'Credits work when usage is visible and the product prevents surprise bills.' },
+  { label: 'Annual commitment', text: 'Annual plans should be positioned as predictable capacity, not just a discount.' },
 ];
 
 const solutionCards = [
@@ -131,6 +176,7 @@ export function MarketingHome() {
       <HeroSection />
       <LogoBand />
       <MeetSection />
+      <RevenueEngineSection />
       <ProductShowcase />
       <BlueprintSection />
       <NumbersSection />
@@ -148,6 +194,7 @@ export function ProductPage() {
         text="Ironflyer keeps planning, UX, code, tests, security, budget and deployment in one orchestrated workspace."
         image={`${imageBase}/arcade.jpg`}
       />
+      <RevenueEngineSection />
       <ProductShowcase />
       <GateBand />
       <FinalCta />
@@ -189,6 +236,7 @@ export function PricingPage() {
         text="Simple tiers for solo builders, teams, and organizations that need controls before software reaches production."
         image={`${imageBase}/gear.png`}
       />
+      <RevenueEngineSection />
       <PricingSection />
       <FinalCta />
     </MarketingShell>
@@ -235,6 +283,7 @@ export function EnterprisePage() {
         image={`${imageBase}/fx.png`}
       />
       <CardGrid items={items} icon={<VerifiedUser />} />
+      <EnterpriseLeadSection />
       <FinalCta primary="Book a product demo" secondary="Talk to engineering" />
     </MarketingShell>
   );
@@ -378,13 +427,13 @@ function HeroSection() {
 }
 
 function LogoBand() {
-  const labels = ['zendesk', 'Uber', 'Microsoft', 'ElevenLabs', 'HubSpot'];
+  const labels = ['Credit caps', 'Private projects', 'Team seats', 'SSO', 'Audit logs'];
   return (
     <Box sx={{ bgcolor: tokens.color.bg.alabaster, py: { xs: 5, md: 7 } }}>
       <Container maxWidth="lg">
         <Stack spacing={3} alignItems="center">
           <Typography variant="body2" sx={{ color: '#111', fontWeight: 700 }}>
-            Teams from top companies build with Ironflyer
+            Built around the buying signals serious teams expect
           </Typography>
           <Stack direction="row" spacing={{ xs: 3, md: 8 }} useFlexGap flexWrap="wrap" justifyContent="center" alignItems="center">
             {labels.map((label) => (
@@ -466,6 +515,37 @@ function ProductShowcase() {
   );
 }
 
+function RevenueEngineSection() {
+  return (
+    <Section>
+      <Box sx={{ ...panelSx, p: { xs: 2.5, md: 4 }, bgcolor: '#111', color: tokens.color.bg.alabaster }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '0.9fr 1.1fr' }, gap: { xs: 3, md: 5 }, alignItems: 'center' }}>
+          <Box>
+            <Typography variant="overline" sx={{ color: tokens.color.accent.lime, fontWeight: 900 }}>Revenue architecture</Typography>
+            <Typography variant="h2" sx={{ mt: 1, fontSize: { xs: '2.8rem', md: '5rem' }, lineHeight: 0.9, letterSpacing: 0 }}>
+              Not just generated code. A product people can buy.
+            </Typography>
+            <Typography variant="h6" sx={{ mt: 2, color: '#d6cfbf', fontWeight: 500, maxWidth: 640 }}>
+              The product needs a clean path from first prompt to paid workspace: visible usage, clear upgrade moments, reusable templates, and enterprise controls.
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 1.2 }}>
+            {revenuePillars.map((item, index) => (
+              <Box key={item.title} sx={{ minHeight: 230, p: 2, borderRadius: 2, bgcolor: index === 0 ? tokens.color.accent.lime : 'rgba(244,240,232,0.08)', color: index === 0 ? '#111' : tokens.color.bg.alabaster, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <Typography variant="h4" sx={{ fontSize: { xs: '2rem', md: '2.45rem' }, lineHeight: 0.95 }}>{index + 1}</Typography>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 900 }}>{item.title}</Typography>
+                  <Typography variant="body2" sx={{ mt: 1, color: index === 0 ? '#24210d' : '#cfc7b8', fontWeight: 600 }}>{item.text}</Typography>
+                </Box>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      </Box>
+    </Section>
+  );
+}
+
 function BlueprintSection({ standalone = false }: { standalone?: boolean }) {
   return (
     <Section>
@@ -536,14 +616,49 @@ function NumbersSection() {
 function PricingSection() {
   return (
     <Section>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '0.9fr 1.1fr' }, gap: 1.5, mb: 2 }}>
+        <Box sx={{ ...panelSx, p: 3, bgcolor: '#111', color: tokens.color.bg.alabaster }}>
+          <Typography variant="overline" sx={{ color: tokens.color.accent.lime }}>Pricing strategy</Typography>
+          <Typography variant="h3" sx={{ mt: 1, fontSize: { xs: '2.25rem', md: '3.2rem' }, lineHeight: 0.95 }}>
+            Price around outcomes, protect trust with visible spend.
+          </Typography>
+          <Typography variant="body1" sx={{ mt: 2, color: '#d6cfbf', fontWeight: 600 }}>
+            The market is already trained on credits, team seats, private projects, and enterprise controls. Ironflyer should make those controls obvious before asking for payment.
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 1.5 }}>
+          {pricingAssumptions.map((item) => (
+            <Box key={item.label} sx={{ ...panelSx, p: 2.2, minHeight: 190, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <CheckCircle sx={{ color: tokens.color.accent.lime }} />
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 900 }}>{item.label}</Typography>
+                <Typography variant="body2" sx={{ mt: 1, color: '#4f4b43', fontWeight: 600 }}>{item.text}</Typography>
+              </Box>
+            </Box>
+          ))}
+        </Box>
+      </Box>
+
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(4, 1fr)' }, gap: 1.5 }}>
         {plans.map((plan) => {
           const tier = plan.name.toLowerCase() as 'free' | 'pro' | 'team' | 'enterprise';
           return (
-            <Box key={plan.name} sx={{ ...panelSx, p: 3, minHeight: 330, display: 'flex', flexDirection: 'column', bgcolor: plan.name === 'Pro' ? '#111' : '#e8dfce', color: plan.name === 'Pro' ? tokens.color.bg.alabaster : '#111' }}>
-              <Typography variant="overline" sx={{ color: plan.name === 'Pro' ? tokens.color.accent.lime : '#5b554b' }}>{plan.name}</Typography>
-              <Typography variant="h2" sx={{ mt: 2, letterSpacing: 0 }}>{plan.price}</Typography>
-              <Typography variant="body2" sx={{ mt: 2, flex: 1, color: plan.name === 'Pro' ? '#cfc7b8' : '#4f4b43', fontWeight: 600 }}>{plan.text}</Typography>
+            <Box key={plan.name} sx={{ ...panelSx, p: 3, minHeight: 420, display: 'flex', flexDirection: 'column', bgcolor: plan.name === 'Team' ? '#111' : '#e8dfce', color: plan.name === 'Team' ? tokens.color.bg.alabaster : '#111' }}>
+              <Chip label={plan.badge} sx={{ width: 'fit-content', borderRadius: 1, bgcolor: plan.name === 'Team' ? 'rgba(229,255,0,0.18)' : '#d9cfbd', color: plan.name === 'Team' ? tokens.color.accent.lime : '#111', fontWeight: 900 }} />
+              <Typography variant="overline" sx={{ mt: 2, color: plan.name === 'Team' ? tokens.color.accent.lime : '#5b554b' }}>{plan.name}</Typography>
+              <Stack direction="row" alignItems="baseline" spacing={0.4} sx={{ mt: 1 }}>
+                <Typography variant="h2" sx={{ letterSpacing: 0 }}>{plan.price}</Typography>
+                {plan.period && <Typography variant="body2" sx={{ color: plan.name === 'Team' ? '#cfc7b8' : '#4f4b43', fontWeight: 800 }}>{plan.period}</Typography>}
+              </Stack>
+              <Typography variant="body2" sx={{ mt: 2, flex: 1, color: plan.name === 'Team' ? '#cfc7b8' : '#4f4b43', fontWeight: 600 }}>{plan.text}</Typography>
+              <Stack spacing={1} sx={{ my: 2 }}>
+                {plan.features.map((feature) => (
+                  <Stack key={feature} direction="row" spacing={1} alignItems="center">
+                    <CheckCircle sx={{ fontSize: 17, color: tokens.color.accent.lime }} />
+                    <Typography variant="caption" sx={{ color: plan.name === 'Team' ? '#eee7db' : '#28251f', fontWeight: 800 }}>{feature}</Typography>
+                  </Stack>
+                ))}
+              </Stack>
               {tier === 'free' ? (
                 <Button component={Link} href="/app" variant="contained" sx={{ mt: 3 }}>
                   {plan.cta}
@@ -678,6 +793,35 @@ function CardGrid({ items, icon }: { items: { title: string; text: string }[]; i
             <Typography variant="body2" sx={{ mt: 1.5, color: '#4f4b43', fontWeight: 600 }}>{item.text}</Typography>
           </Box>
         ))}
+      </Box>
+    </Section>
+  );
+}
+
+function EnterpriseLeadSection() {
+  return (
+    <Section>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '0.8fr 1.2fr' }, gap: { xs: 2, md: 3 }, alignItems: 'stretch' }}>
+        <Box sx={{ ...panelSx, p: { xs: 3, md: 4 }, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <Box>
+            <Typography variant="overline" sx={{ color: tokens.color.accent.lime, fontWeight: 900 }}>Qualified demand</Typography>
+            <Typography variant="h2" sx={{ mt: 1, fontSize: { xs: '2.8rem', md: '4.4rem' }, lineHeight: 0.9 }}>
+              Sell the controlled build system, not another chat box.
+            </Typography>
+            <Typography variant="body1" sx={{ mt: 2, color: '#4f4b43', fontWeight: 700 }}>
+              Enterprise buyers need identity, auditability, budget controls, private connectors, and a clear migration path from prototype to production.
+            </Typography>
+          </Box>
+          <Stack spacing={1} sx={{ mt: 3 }}>
+            {['SSO and SCIM readiness', 'Private repo and connector mapping', 'Budget guardrails by team', 'Onboarding and implementation plan'].map((item) => (
+              <Stack key={item} direction="row" spacing={1} alignItems="center">
+                <CheckCircle sx={{ fontSize: 18, color: tokens.color.accent.lime }} />
+                <Typography variant="body2" sx={{ fontWeight: 900 }}>{item}</Typography>
+              </Stack>
+            ))}
+          </Stack>
+        </Box>
+        <EnterpriseLeadForm />
       </Box>
     </Section>
   );

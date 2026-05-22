@@ -11,8 +11,14 @@ packages/*/dist/
 # Test artifacts
 apps/web/test-results/
 apps/web/screenshots/
+apps/web/tmp-screenshots/
 playwright-report/
 coverage/
+
+# Local template scratchpad — third-party template packages staged for
+# inspection. NEVER commit; the repo curates a small subset under
+# apps/web/public/templates/ instead.
+/templates/
 
 # Go
 bin/

@@ -55,24 +55,33 @@ function SearchInner() {
             <Typography variant="overline" color="text.secondary">Type in the top search field</Typography>
             <Typography variant="body2">Results update live and stay grouped by project or navigation target.</Typography>
           </Box>
-          <Chip label="Cmd K" sx={{ borderRadius: 1, bgcolor: '#fffaf1', border: '1px solid rgba(17,17,17,0.12)' }} />
+          <Chip label="Cmd K" sx={{ borderRadius: '6px', bgcolor: '#fffaf1', border: '1px solid rgba(17,17,17,0.12)' }} />
         </Stack>
       </Surface>
 
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 360px' }, gap: 1.5 }}>
         <Surface sx={{ p: 1.2 }}>
           <Typography variant="overline" color="text.secondary" sx={{ px: 1 }}>Projects</Typography>
-          <Stack spacing={0.5} sx={{ mt: 0.8 }}>
-            {results.map((project) => (
-              <Button key={project.id} component={Link} href={`/projects/${project.id}`} sx={resultButtonSx}>
-                <Box sx={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-                  <Typography variant="subtitle2" noWrap>{project.name}</Typography>
-                  <Typography variant="caption" color="text.secondary" noWrap>{project.description || project.spec.idea}</Typography>
-                </Box>
-                <Chip label={project.status} size="small" sx={{ borderRadius: 1 }} />
-              </Button>
-            ))}
-          </Stack>
+          {results.length === 0 ? (
+            <Box sx={{ px: 1, py: 3 }}>
+              <Typography variant="subtitle2">No project results</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.4 }}>
+                Try a different project name, prompt, or status.
+              </Typography>
+            </Box>
+          ) : (
+            <Stack spacing={0.5} sx={{ mt: 0.8 }}>
+              {results.map((project) => (
+                <Button key={project.id} component={Link} href={`/projects/${project.id}`} sx={resultButtonSx}>
+                  <Box sx={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+                    <Typography variant="subtitle2" noWrap>{project.name}</Typography>
+                    <Typography variant="caption" color="text.secondary" noWrap>{project.description || project.spec.idea}</Typography>
+                  </Box>
+                  <Chip label={project.status} size="small" sx={{ borderRadius: '6px' }} />
+                </Button>
+              ))}
+            </Stack>
+          )}
         </Surface>
 
         <Surface sx={{ p: 1.2 }}>
@@ -95,7 +104,7 @@ const resultButtonSx = {
   justifyContent: 'flex-start',
   color: tokens.color.text.primary,
   bgcolor: 'transparent',
-  borderRadius: 1,
+  borderRadius: '8px',
   px: 1,
   py: 1,
   '&:hover': { bgcolor: 'rgba(17,17,17,0.06)' },

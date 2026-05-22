@@ -87,6 +87,17 @@ export interface UserBudget {
   entries: LedgerEntry[];
 }
 
+export interface EnterpriseLead {
+  name?: string;
+  email: string;
+  company: string;
+  teamSize?: string;
+  useCase?: string;
+  budget?: string;
+  timeline?: string;
+  source?: string;
+}
+
 export interface LedgerEntry {
   id: string;
   userId: string;
@@ -172,6 +183,11 @@ export const api = {
     jsonFetch<{ url: string }>(`/budget/checkout`, {
       method: 'POST', body: JSON.stringify({ tier }),
     }),
+  submitEnterpriseLead: (body: EnterpriseLead) =>
+    jsonFetch<{ id: string; status: string; createdAt: string }>(
+      '/leads/enterprise',
+      { method: 'POST', body: JSON.stringify(body) },
+    ),
 };
 
 // streamChat opens a POST SSE stream against /chat. Browsers do not allow

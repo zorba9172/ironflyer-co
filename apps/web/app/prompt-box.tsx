@@ -89,7 +89,8 @@ export function PromptBox({
   const setPrompt = onChange ?? setLocalValue;
   const isHero = size === 'hero';
   const isPreview = size === 'preview';
-  const isLightSurface = isHero || isPreview;
+  const isDashboard = size === 'dashboard';
+  const isLightSurface = isHero || isPreview || isDashboard;
   const showFullTools = !isHero && !isPreview;
   const draftKey = `ironflyer.promptDraft.${size}`;
   const historyKey = 'ironflyer.promptHistory';
@@ -249,20 +250,23 @@ export function PromptBox({
 
   return (
     <Box sx={{
-      width: '100%',
-      border: `1px solid ${isLightSurface ? 'rgba(17,17,17,0.12)' : tokens.color.border.strong}`,
-      borderRadius: isHero ? 2 : 1.5,
-      backgroundColor: isLightSurface ? 'rgba(244,240,232,0.96)' : 'rgba(13,14,15,0.92)',
-      boxShadow: isHero ? tokens.shadow.lg : tokens.shadow.md,
-      color: isLightSurface ? tokens.color.text.inverse : tokens.color.text.primary,
-      overflow: 'hidden',
-      transition: `box-shadow ${tokens.motion.base} ${tokens.motion.curve}, transform ${tokens.motion.base} ${tokens.motion.curve}`,
-    }}>
+	      width: '100%',
+	      border: `1px solid ${isLightSurface ? 'rgba(17,17,17,0.12)' : tokens.color.border.strong}`,
+	      borderRadius: '8px',
+	      backgroundColor: isLightSurface ? 'rgba(244,240,232,0.96)' : 'rgba(13,14,15,0.92)',
+	      boxShadow: isHero ? tokens.shadow.lg : isDashboard ? '0 18px 60px rgba(17,17,17,0.12)' : tokens.shadow.md,
+	      color: isLightSurface ? tokens.color.text.inverse : tokens.color.text.primary,
+	      overflow: 'hidden',
+	      transition: `box-shadow ${tokens.motion.base} ${tokens.motion.curve}, transform ${tokens.motion.base} ${tokens.motion.curve}`,
+	      '&:focus-within': {
+	        boxShadow: isLightSurface ? '0 0 0 3px rgba(229,255,0,0.18)' : '0 0 0 3px rgba(229,255,0,0.24)',
+	      },
+	    }}>
       <Box sx={{ px: { xs: 1.5, sm: 2 }, pt: { xs: 1.5, sm: 2 } }}>
         <TextField
           fullWidth
           multiline
-          minRows={isHero ? 3 : isPreview ? 1 : 3}
+          minRows={isHero ? 3 : isPreview ? 1 : isDashboard ? 2 : 3}
           maxRows={8}
           value={prompt}
           onChange={(event) => setPrompt(event.target.value)}
@@ -282,7 +286,7 @@ export function PromptBox({
               bgcolor: 'transparent',
               borderRadius: 0,
               color: isLightSurface ? tokens.color.text.inverse : tokens.color.text.primary,
-              fontSize: isHero ? { xs: 17, md: 22 } : 17,
+              fontSize: isHero ? { xs: 17, md: 22 } : { xs: 15, md: 16 },
               fontWeight: 700,
               lineHeight: 1.35,
               '& fieldset': { border: 'none' },
@@ -303,9 +307,9 @@ export function PromptBox({
         alignItems={{ xs: 'stretch', sm: 'center' }}
         justifyContent="space-between"
         spacing={1.5}
-        sx={{ px: { xs: 1.25, sm: 1.5 }, py: 1.25 }}
+        sx={{ px: { xs: 1.25, sm: 1.5 }, py: 1.1 }}
       >
-        <Stack direction="row" spacing={0.75} alignItems="center" useFlexGap flexWrap="wrap">
+        <Stack direction="row" spacing={0.55} alignItems="center" useFlexGap flexWrap="wrap">
           <input
             ref={fileInputRef}
             type="file"
@@ -341,22 +345,22 @@ export function PromptBox({
         <Stack direction="row" spacing={0.75} alignItems="center" justifyContent={{ xs: 'space-between', sm: 'flex-end' }}>
           {!isPreview && (
             <Stack direction="row" sx={{
-              p: 0.35,
-              border: `1px solid ${isLightSurface ? 'rgba(17,17,17,0.14)' : tokens.color.border.strong}`,
-              borderRadius: 2,
-              bgcolor: isLightSurface ? 'rgba(17,17,17,0.05)' : tokens.color.bg.inset,
-            }}>
+	              p: 0.35,
+	              border: `1px solid ${isLightSurface ? 'rgba(17,17,17,0.14)' : tokens.color.border.strong}`,
+	              borderRadius: '8px',
+	              bgcolor: isLightSurface ? 'rgba(17,17,17,0.05)' : tokens.color.bg.inset,
+	            }}>
               {(['build', 'plan'] as const).map((item) => (
                 <Button
                   key={item}
                   size="small"
                   onClick={() => setMode(item)}
                   sx={{
-                    minWidth: 56,
-                    px: 1.3,
-                    py: 0.5,
-                    borderRadius: 1.5,
-                    color: mode === item ? tokens.color.text.inverse : isLightSurface ? 'rgba(17,17,17,0.64)' : tokens.color.text.secondary,
+	                    minWidth: 56,
+	                    px: 1.3,
+	                    py: 0.5,
+	                    borderRadius: '6px',
+	                    color: mode === item ? tokens.color.text.inverse : isLightSurface ? 'rgba(17,17,17,0.64)' : tokens.color.text.secondary,
                     bgcolor: mode === item ? tokens.color.accent.lime : 'transparent',
                     '&:hover': { bgcolor: mode === item ? tokens.color.accent.lime : isLightSurface ? 'rgba(17,17,17,0.09)' : tokens.color.bg.surfaceHover },
                   }}
@@ -371,10 +375,10 @@ export function PromptBox({
             disabled={!prompt.trim() || busy}
             onClick={() => { if (!isPreview) submit(); }}
             endIcon={<ArrowUpward />}
-            sx={{
-              minWidth: isHero ? 112 : 92,
-              borderRadius: 2,
-              py: 1,
+	            sx={{
+	              minWidth: isHero ? 112 : 92,
+	              borderRadius: '8px',
+	              py: 1,
               '&.Mui-disabled': {
                 bgcolor: isLightSurface ? 'rgba(17,17,17,0.08)' : 'rgba(244,240,232,0.1)',
                 color: isLightSurface ? 'rgba(17,17,17,0.32)' : 'rgba(244,240,232,0.32)',
@@ -397,7 +401,7 @@ export function PromptBox({
             <Typography variant="caption" sx={{ minWidth: 118, fontWeight: 800, color: isLightSurface ? 'rgba(17,17,17,0.66)' : tokens.color.text.secondary }}>
               Prompt strength {promptStrength}%
             </Typography>
-            <Box sx={{ flex: 1, height: 7, borderRadius: 1, bgcolor: isLightSurface ? 'rgba(17,17,17,0.1)' : tokens.color.bg.inset, overflow: 'hidden' }}>
+	            <Box sx={{ flex: 1, height: 6, borderRadius: '999px', bgcolor: isLightSurface ? 'rgba(17,17,17,0.1)' : tokens.color.bg.inset, overflow: 'hidden' }}>
               <Box sx={{
                 width: `${promptStrength}%`,
                 height: '100%',
@@ -415,10 +419,10 @@ export function PromptBox({
       {!isPreview && slashMatches.length > 0 && (
         <Box sx={{ px: 1.5, pb: 1.25 }}>
           <Stack spacing={0.75} sx={{
-            p: 1,
-            border: `1px solid ${tokens.color.border.subtle}`,
-            borderRadius: 1.5,
-            bgcolor: tokens.color.bg.surfaceRaised,
+	            p: 1,
+	            border: `1px solid ${tokens.color.border.subtle}`,
+	            borderRadius: '8px',
+	            bgcolor: tokens.color.bg.surfaceRaised,
           }}>
             {slashMatches.map((recipe) => (
               <Button
@@ -479,12 +483,12 @@ export function PromptBox({
         onClose={() => setMenuAnchor(null)}
         PaperProps={{
           sx: {
-            mt: 1,
-            bgcolor: tokens.color.bg.surfaceRaised,
-            color: tokens.color.text.primary,
-            border: `1px solid ${tokens.color.border.subtle}`,
-            borderRadius: 1.5,
-          },
+	            mt: 1,
+	            bgcolor: tokens.color.bg.surfaceRaised,
+	            color: tokens.color.text.primary,
+	            border: `1px solid ${tokens.color.border.subtle}`,
+	            borderRadius: '8px',
+	          },
         }}
       >
         <MenuItem onClick={() => { fileInputRef.current?.click(); setMenuAnchor(null); }}>
@@ -538,8 +542,8 @@ export function PromptBox({
               icon={<Hub />}
               onClick={() => toggleConnector(connector)}
               sx={{
-                borderRadius: 1.5,
-                bgcolor: connectors.includes(connector) ? tokens.color.accent.lime : tokens.color.bg.inset,
+	                borderRadius: '8px',
+	                bgcolor: connectors.includes(connector) ? tokens.color.accent.lime : tokens.color.bg.inset,
                 color: connectors.includes(connector) ? tokens.color.text.inverse : tokens.color.text.primary,
                 border: `1px solid ${connectors.includes(connector) ? tokens.color.accent.lime : tokens.color.border.strong}`,
               }}
@@ -580,8 +584,8 @@ export function PromptBox({
                       [group]: current[group] === option ? '' : option,
                     }))}
                     sx={{
-                      borderRadius: 1.5,
-                      bgcolor: advanced[group] === option ? tokens.color.accent.lime : tokens.color.bg.inset,
+	                      borderRadius: '8px',
+	                      bgcolor: advanced[group] === option ? tokens.color.accent.lime : tokens.color.bg.inset,
                       color: advanced[group] === option ? tokens.color.text.inverse : tokens.color.text.primary,
                       border: `1px solid ${advanced[group] === option ? tokens.color.accent.lime : tokens.color.border.strong}`,
                     }}
@@ -599,8 +603,8 @@ export function PromptBox({
                   label={gate}
                   onClick={() => toggleGate(gate)}
                   sx={{
-                    borderRadius: 1.5,
-                    bgcolor: selectedGates.includes(gate) ? tokens.color.accent.lime : tokens.color.bg.inset,
+	                    borderRadius: '8px',
+	                    bgcolor: selectedGates.includes(gate) ? tokens.color.accent.lime : tokens.color.bg.inset,
                     color: selectedGates.includes(gate) ? tokens.color.text.inverse : tokens.color.text.primary,
                     border: `1px solid ${selectedGates.includes(gate) ? tokens.color.accent.lime : tokens.color.border.strong}`,
                   }}
@@ -683,8 +687,8 @@ function ToolChip({
       size="small"
       onClick={onClick}
       sx={{
-        borderRadius: 1.5,
-        bgcolor: active ? 'rgba(229,255,0,0.34)' : light ? 'rgba(17,17,17,0.05)' : 'rgba(244,240,232,0.06)',
+	        borderRadius: '8px',
+	        bgcolor: active ? 'rgba(229,255,0,0.34)' : light ? 'rgba(17,17,17,0.05)' : 'rgba(244,240,232,0.06)',
         color: active ? tokens.color.text.inverse : light ? 'rgba(17,17,17,0.66)' : tokens.color.text.secondary,
         border: `1px solid ${active ? 'rgba(229,255,0,0.58)' : light ? 'rgba(17,17,17,0.1)' : tokens.color.border.subtle}`,
         fontWeight: 800,
@@ -725,7 +729,7 @@ function PromptDialog({
 }
 
 const metaChipSx = {
-  borderRadius: 1.5,
+	  borderRadius: '8px',
   bgcolor: 'rgba(229,255,0,0.16)',
   color: tokens.color.text.primary,
   border: `1px solid rgba(229,255,0,0.34)`,
@@ -734,9 +738,10 @@ const metaChipSx = {
 
 function toolButtonSx(inverse: boolean) {
   return {
-    width: 34,
-    height: 34,
-    border: `1px solid ${inverse ? 'rgba(10,10,10,0.16)' : tokens.color.border.strong}`,
+	    width: 34,
+	    height: 34,
+	    borderRadius: '8px',
+	    border: `1px solid ${inverse ? 'rgba(10,10,10,0.16)' : tokens.color.border.strong}`,
     color: inverse ? tokens.color.text.inverse : tokens.color.text.primary,
     bgcolor: inverse ? 'rgba(10,10,10,0.04)' : tokens.color.bg.inset,
     '&:hover': {

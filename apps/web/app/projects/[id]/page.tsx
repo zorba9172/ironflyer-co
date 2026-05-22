@@ -146,7 +146,7 @@ function ProjectPageInner({ params }: { params: Promise<{ id: string }> }) {
     try {
       const out = await api.brainstorm(id, { goal: prompt, role });
       setBrainstormOut(out);
-      setMode(5);
+      setMode(6);
     } catch {}
   }
 
@@ -160,7 +160,7 @@ function ProjectPageInner({ params }: { params: Promise<{ id: string }> }) {
 
       <Box sx={{
         display: 'grid',
-        gridTemplateColumns: { xs: '1fr', lg: '372px minmax(0, 1fr) 292px' },
+        gridTemplateColumns: { xs: '1fr', lg: '340px minmax(0, 1fr) 280px' },
         gap: 1,
         p: { xs: 1, lg: 1.4 },
         height: { xs: 'auto', lg: 'calc(100vh - 58px)' },
@@ -174,7 +174,7 @@ function ProjectPageInner({ params }: { params: Promise<{ id: string }> }) {
               <RoleSelector value={role} onChange={setRole} />
             </Stack>
           </CardContent>
-          <Box ref={scrollRef} sx={{ flex: 1, minHeight: { xs: 220, lg: 0 }, overflowY: 'auto', px: 1.5 }}>
+          <Box ref={scrollRef} sx={{ flex: 1, minHeight: { xs: 190, lg: 0 }, overflowY: 'auto', px: 1.5 }}>
             <ChatTimeline turns={turns} />
           </Box>
           <Divider />
@@ -192,17 +192,35 @@ function ProjectPageInner({ params }: { params: Promise<{ id: string }> }) {
 
         {/* CENTER: workspace tabs */}
         <Card sx={panelSx}>
-          <Tabs value={mode} onChange={(_, v) => setMode(v)} variant="scrollable" sx={{ px: 1, minHeight: 48, borderBottom: `1px solid ${tokens.color.border.subtle}` }}>
+          <Tabs
+            value={mode}
+            onChange={(_, v) => setMode(v)}
+            variant="scrollable"
+            scrollButtons="auto"
+            allowScrollButtonsMobile
+            sx={{
+              px: 1,
+              minHeight: 46,
+              borderBottom: `1px solid ${tokens.color.border.subtle}`,
+              '& .MuiTab-root': {
+                minHeight: 46,
+                minWidth: { xs: 78, md: 86 },
+                px: 1,
+                fontSize: 13,
+              },
+            }}
+          >
             <Tab icon={<Visibility fontSize="small" />} iconPosition="start" label="Preview" />
             <Tab icon={<Code fontSize="small" />} iconPosition="start" label="Files" />
             <Tab icon={<DesktopWindows fontSize="small" />} iconPosition="start" label="IDE" />
-            <Tab label="Terminal" />
-            <Tab icon={<Palette fontSize="small" />} iconPosition="start" label="Visual edit" />
+            <Tab label="Term" />
+            <Tab icon={<Palette fontSize="small" />} iconPosition="start" label="Design" />
             <Tab icon={<RocketLaunch fontSize="small" />} iconPosition="start" label="Deploy" />
+            <Tab icon={<AutoAwesome fontSize="small" />} iconPosition="start" label="Plan" />
             <Tab icon={<History fontSize="small" />} iconPosition="start" label="Versions" />
-            <Tab icon={<Settings fontSize="small" />} iconPosition="start" label="Settings" />
+            <Tab icon={<Settings fontSize="small" />} iconPosition="start" label="Config" />
           </Tabs>
-          <Box sx={{ flex: 1, minHeight: { xs: 520, lg: 0 }, overflow: 'auto', p: 1.4 }}>
+          <Box sx={{ flex: 1, minHeight: { xs: 460, lg: 0 }, overflow: 'auto', p: 1.2 }}>
             {mode === 0 && <PreviewPane p={project} />}
             {mode === 1 && <WorkspaceFiles workspace={workspace} onWorkspaceChange={setWorkspace} projectId={id} />}
             {mode === 2 && <IDEPane workspace={workspace} />}
@@ -210,7 +228,8 @@ function ProjectPageInner({ params }: { params: Promise<{ id: string }> }) {
             {mode === 4 && <DesignPane />}
             {mode === 5 && <DeployPane p={project} workspaceId={workspace?.id ?? null} onGitHubLinked={load} />}
             {mode === 6 && <BrainstormPane out={brainstormOut} />}
-            {mode === 7 && <ProjectSettingsPane p={project} />}
+            {mode === 7 && <VersionsPane p={project} events={events} />}
+            {mode === 8 && <ProjectSettingsPane p={project} />}
           </Box>
         </Card>
 
@@ -274,7 +293,7 @@ function ProjectHeader({ p, running, onRun }: { p: Project; running: boolean; on
       alignItems: { xs: 'stretch', sm: 'center' },
       justifyContent: 'space-between',
       gap: { xs: 0.8, sm: 2 },
-      bgcolor: 'rgba(244,240,232,0.92)',
+      bgcolor: 'rgba(248,244,236,0.94)',
       color: tokens.color.text.inverse,
     }}>
       <Stack direction="row" alignItems="center" spacing={2} sx={{ minWidth: 0 }}>
@@ -386,7 +405,7 @@ function GateRow({ state, label }: { state?: GateState; label: string }) {
   return (
     <Box sx={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      px: 1.2, py: 0.85, bgcolor: tokens.color.bg.inset, borderRadius: 1.3,
+      px: 1.2, py: 0.75, bgcolor: tokens.color.bg.inset, borderRadius: '8px',
     }}>
       <Stack direction="row" alignItems="center" spacing={1.5}>
         <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: color }} />
@@ -620,7 +639,7 @@ function PreviewPane({ p }: { p: Project }) {
         minHeight: 420,
         display: 'grid',
         placeItems: 'center',
-        borderRadius: 1.5,
+        borderRadius: '8px',
         bgcolor: '#1b1b19',
         border: `1px solid ${tokens.color.border.subtle}`,
         overflow: 'hidden',
@@ -629,7 +648,7 @@ function PreviewPane({ p }: { p: Project }) {
           width: device === 'desktop' ? '92%' : 310,
           maxWidth: 900,
           aspectRatio: device === 'desktop' ? '16 / 10' : '9 / 16',
-          borderRadius: device === 'desktop' ? 1.3 : 3,
+          borderRadius: device === 'desktop' ? '8px' : '18px',
           bgcolor: tokens.color.bg.alabaster,
           color: tokens.color.text.inverse,
           overflow: 'hidden',
@@ -640,7 +659,7 @@ function PreviewPane({ p }: { p: Project }) {
             <Typography variant="caption" sx={{ ml: 1, color: '#aaa' }}>preview.ironflyer.local</Typography>
           </Box>
           <Box sx={{ p: { xs: 2, md: 3 } }}>
-            <Typography sx={{ fontFamily: tokens.font.display, fontSize: device === 'desktop' ? 38 : 26, lineHeight: 0.95, textTransform: 'uppercase' }}>
+            <Typography sx={{ fontFamily: tokens.font.display, fontSize: device === 'desktop' ? 34 : 22, lineHeight: 1, textTransform: 'uppercase' }}>
               {p.name}
             </Typography>
             <Typography variant="body2" sx={{ mt: 1, maxWidth: 460, color: '#555' }}>
@@ -648,7 +667,7 @@ function PreviewPane({ p }: { p: Project }) {
             </Typography>
             <Box sx={{ mt: 2, display: 'grid', gridTemplateColumns: device === 'desktop' ? 'repeat(3, 1fr)' : '1fr', gap: 1 }}>
               {['Spec', 'Build', 'Deploy'].map((item) => (
-                <Box key={item} sx={{ p: 1.4, borderRadius: 1, bgcolor: '#fffdf7', border: '1px solid rgba(17,17,17,0.08)' }}>
+                <Box key={item} sx={{ p: 1.3, borderRadius: '8px', bgcolor: '#fffdf7', border: '1px solid rgba(17,17,17,0.08)' }}>
                   <Typography variant="subtitle2">{item}</Typography>
                   <Typography variant="caption" sx={{ color: '#666' }}>Ready for review</Typography>
                 </Box>
@@ -722,19 +741,75 @@ function IDEPane({ workspace }: { workspace: WS | null }) {
 }
 
 function DesignPane() {
+  const controls = [
+    ['Selection', 'No element selected', 'Pick from preview'],
+    ['Spacing', '8px grid', 'Apply to section'],
+    ['Typography', 'Display + body', 'Sync tokens'],
+    ['Theme', 'Alabaster / lime', 'Preview variant'],
+  ];
   return (
     <Stack spacing={1.3}>
       <Typography variant="overline" color="text.secondary">Visual edit</Typography>
-      <Typography variant="body2" color="text.secondary">Select UI elements in preview, tune layout, spacing, text, images, and ask the agent to apply targeted edits.</Typography>
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 1 }}>
-        {['Inspect', 'Style', 'Apply'].map((item) => (
-          <Box key={item} sx={{ p: 1.4, border: `1px solid ${tokens.color.border.subtle}`, borderRadius: 1.4, bgcolor: tokens.color.bg.inset }}>
-            <Typography variant="subtitle2">{item}</Typography>
-            <Typography variant="caption" color="text.secondary">No-code design control</Typography>
+      <Typography variant="body2" color="text.secondary">
+        Select UI elements in preview, tune layout, spacing, text, images, and ask the agent to apply targeted edits.
+      </Typography>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 1 }}>
+        {controls.map(([title, value, action]) => (
+          <Box key={title} sx={{ p: 1.4, border: `1px solid ${tokens.color.border.subtle}`, borderRadius: '8px', bgcolor: tokens.color.bg.inset }}>
+            <Typography variant="caption" color="text.secondary">{title}</Typography>
+            <Typography variant="subtitle2" sx={{ mt: 0.2 }}>{value}</Typography>
+            <Button variant="outlined" size="small" sx={{ mt: 1 }}>{action}</Button>
           </Box>
         ))}
       </Box>
+      <Box sx={{ p: 1.4, border: `1px solid ${tokens.color.border.subtle}`, borderRadius: '8px', bgcolor: tokens.color.bg.inset }}>
+        <Typography variant="subtitle2">Design handoff prompt</Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.4 }}>
+          Ask for specific layout changes, responsive states, accessibility fixes, or component token updates. The agent should apply only the selected target.
+        </Typography>
+      </Box>
       <Button variant="outlined" size="small" sx={{ alignSelf: 'flex-start' }}>Connect Figma</Button>
+    </Stack>
+  );
+}
+
+function VersionsPane({ p, events }: { p: Project; events: ExecutionEvent[] }) {
+  const checkpoints = [
+    ['Project created', p.createdAt, 'Initial prompt and project record'],
+    ['Last saved state', p.updatedAt, 'Latest project metadata and gate updates'],
+    ...events.slice(-4).reverse().map((event) => [
+      event.gate ? `${event.gate} gate` : event.step,
+      event.createdAt,
+      event.message,
+    ]),
+  ];
+
+  return (
+    <Stack spacing={1.4}>
+      <Typography variant="overline" color="text.secondary">Versions</Typography>
+      <Typography variant="body2" color="text.secondary">
+        Checkpoints make the agent workflow reviewable before deploy. Runtime snapshots can attach here when the workspace driver supports them.
+      </Typography>
+      <Stack spacing={1}>
+        {checkpoints.map(([label, date, detail], index) => (
+          <Box key={`${label}-${date}-${index}`} sx={{
+            p: 1.3,
+            border: `1px solid ${tokens.color.border.subtle}`,
+            borderRadius: '8px',
+            bgcolor: tokens.color.bg.inset,
+          }}>
+            <Stack direction="row" justifyContent="space-between" spacing={1}>
+              <Typography variant="subtitle2">{label}</Typography>
+              <Typography variant="caption" color="text.secondary">{formatTime(date)}</Typography>
+            </Stack>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.4 }}>{detail}</Typography>
+            <Stack direction="row" spacing={0.8} sx={{ mt: 1 }}>
+              <Button variant="outlined" size="small">Compare</Button>
+              <Button variant="outlined" size="small">Restore</Button>
+            </Stack>
+          </Box>
+        ))}
+      </Stack>
     </Stack>
   );
 }
@@ -742,13 +817,60 @@ function DesignPane() {
 function DeployPane({ p, workspaceId, onGitHubLinked }: {
   p: Project; workspaceId: string | null; onGitHubLinked: () => void;
 }) {
+  const passed = Object.values(p.gates).filter((gate) => gate.status === 'passed').length;
+  const total = Object.keys(p.gates).length || 7;
+  const checks = [
+    ['Finisher gates', `${passed}/${total} passed`, passed === total],
+    ['Runtime workspace', workspaceId ? 'Attached' : 'Create from Files', Boolean(workspaceId)],
+    ['GitHub repository', p.github ? p.github.fullName : 'Bind a repo', Boolean(p.github)],
+    ['Deploy target', 'Vercel / Fly / Railway ready', p.gates.deploy?.status === 'passed'],
+  ] as const;
+  const readyCount = checks.filter(([, , ready]) => ready).length;
+  const readiness = Math.round((readyCount / checks.length) * 100);
+
   return (
     <Stack spacing={2}>
+      <Box sx={{ p: 1.6, border: `1px solid ${tokens.color.border.subtle}`, borderRadius: '8px', bgcolor: tokens.color.bg.inset }}>
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Box>
+            <Typography variant="overline" color="text.secondary">Ship readiness</Typography>
+            <Typography variant="body2" sx={{ mt: 0.4 }}>
+              {readyCount} of {checks.length} production checks are complete.
+            </Typography>
+          </Box>
+          <Typography variant="h4" sx={{ color: readiness === 100 ? tokens.color.accent.lime : tokens.color.accent.sky }}>
+            {readiness}%
+          </Typography>
+        </Stack>
+        <LinearProgress variant="determinate" value={readiness} sx={{
+          mt: 1.4,
+          height: 7,
+          borderRadius: '999px',
+          bgcolor: tokens.color.bg.surfaceHover,
+          '& .MuiLinearProgress-bar': { bgcolor: readiness === 100 ? tokens.color.accent.lime : tokens.color.accent.sky },
+        }} />
+        <Stack spacing={0.7} sx={{ mt: 1.4 }}>
+          {checks.map(([label, value, ready]) => (
+            <Stack key={label} direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Box sx={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  bgcolor: ready ? tokens.color.accent.lime : tokens.color.text.muted,
+                }} />
+                <Typography variant="body2">{label}</Typography>
+              </Stack>
+              <Typography variant="caption" color="text.secondary">{value}</Typography>
+            </Stack>
+          ))}
+        </Stack>
+      </Box>
       <Box>
         <Typography variant="overline" color="text.secondary">Deploy targets</Typography>
         <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 1 }}>
           {['Vercel', 'Fly.io', 'Railway', 'Cloudflare', 'GitHub'].map((t) =>
-            <Chip key={t} label={t} size="small" />)}
+            <Chip key={t} label={t} size="small" sx={{ borderRadius: '6px' }} />)}
         </Stack>
         <Typography variant="caption" color="text.secondary">
           Activates once Deploy gate passes for project {p.id}.
@@ -790,7 +912,7 @@ const panelSx = {
   display: 'flex',
   flexDirection: 'column',
   overflow: 'hidden',
-  borderRadius: { xs: 2.2, md: 3.2 },
+  borderRadius: '12px',
   border: '1px solid rgba(17,17,17,0.12)',
   bgcolor: tokens.color.bg.surface,
   backgroundImage: 'none',
