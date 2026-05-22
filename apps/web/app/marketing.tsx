@@ -53,6 +53,45 @@ const gates = ['Spec', 'UX', 'Architecture', 'Code', 'Tests', 'Security', 'Deplo
 // their identity and clicks through to /solutions filtered by tag. We
 // keep the labels short — the page is for self-identification, not
 // reading.
+// Comparison table — names the three competitors visitors are likely
+// shopping against (Base44, Lovable, Bolt.new) and rows the differences
+// the finisher gates create. Honest where the competitor edges us (e.g.
+// Lovable's Visual Edits sidebar) so the table reads credibly.
+const comparisonRows: { label: string; values: [string, string, string, string] }[] = [
+  {
+    label: 'Spec / UX / Code gates enforced',
+    values: ['✓ All 8', '—', '—', '—'],
+  },
+  {
+    label: 'Self-managing budget (sub − cost = margin)',
+    values: ['✓ Live $ + cap', 'Credit packs', 'Credit packs', 'Token bucket'],
+  },
+  {
+    label: 'Real per-user Linux sandbox + PTY',
+    values: ['✓ Docker driver', 'Hosted runtime', 'Hosted runtime', 'WebContainer'],
+  },
+  {
+    label: 'Multi-provider routing (Anthropic + OpenAI + on-device)',
+    values: ['✓ By capability', '—', 'Internal models', 'Frontier coder'],
+  },
+  {
+    label: 'Effort dial (Lite / Economy / Power)',
+    values: ['✓', '—', '—', '—'],
+  },
+  {
+    label: 'Bring-your-own cloud via Helm',
+    values: ['✓ Chart shipped', '—', '—', '—'],
+  },
+  {
+    label: 'GitHub bi-directional push',
+    values: ['✓', '✓', '✓', '✓'],
+  },
+  {
+    label: 'Visual click-to-edit sidebar',
+    values: ['Coming Q3', '—', '✓', '—'],
+  },
+];
+
 const useCasesByIndustry = [
   { tag: 'productivity', label: 'Productivity' },
   { tag: 'education',    label: 'Education' },
@@ -294,6 +333,7 @@ export function MarketingHome() {
       <ProductShowcase />
       <BlueprintSection />
       <UseCaseGrid />
+      <ComparisonTable />
       <NumbersSection />
       <FAQSection />
       <FinalCta />
@@ -578,6 +618,103 @@ function LogoBand() {
 // Each chip is a Link to /solutions?filter=<tag> so future page work
 // can surface tag-specific gallery views without changing the marketing
 // home. Pattern lifted from Base44's "By industry" / "By role" panels.
+// ComparisonTable is the head-to-head matrix. We name Base44, Lovable,
+// Bolt by name because evasion looks weak to the comparison shopper.
+// Ironflyer's column gets the lime accent + a sticky header on scroll
+// (sticky CSS only — no JS) so the eye snaps to our line. The honest
+// 'Coming Q3' entry for Visual Edits keeps the table credible.
+function ComparisonTable() {
+  const competitors = ['Ironflyer', 'Base44', 'Lovable', 'Bolt.new'] as const;
+  return (
+    <Section>
+      <SectionHeader
+        eyebrow="Side by side"
+        title="What the finisher loop does that the others don’t."
+      />
+      <Box sx={{
+        ...panelSx,
+        overflow: 'auto',
+        bgcolor: '#fffaf1',
+      }}>
+        <Box component="table" sx={{
+          width: '100%',
+          minWidth: 720,
+          borderCollapse: 'collapse',
+          fontSize: { xs: 14, md: 15 },
+        }}>
+          <Box component="thead" sx={{
+            position: 'sticky', top: 0, zIndex: 1,
+            bgcolor: '#fffaf1',
+          }}>
+            <Box component="tr">
+              <Box component="th" sx={{
+                textAlign: 'left', p: 2,
+                borderBottom: '1px solid rgba(17,17,17,0.10)',
+                color: '#5b554b', fontWeight: 800, letterSpacing: '0.06em',
+                textTransform: 'uppercase', fontSize: 12,
+              }}>
+                Capability
+              </Box>
+              {competitors.map((name, i) => (
+                <Box
+                  key={name}
+                  component="th"
+                  sx={{
+                    textAlign: 'center', p: 2,
+                    borderBottom: '1px solid rgba(17,17,17,0.10)',
+                    fontWeight: 900, fontSize: 14,
+                    color: i === 0 ? '#0d0e0f' : '#3a352d',
+                    bgcolor: i === 0 ? tokens.color.accent.lime : 'transparent',
+                  }}
+                >
+                  {name}
+                </Box>
+              ))}
+            </Box>
+          </Box>
+          <Box component="tbody">
+            {comparisonRows.map((row, idx) => (
+              <Box component="tr" key={row.label} sx={{
+                bgcolor: idx % 2 === 0 ? 'transparent' : 'rgba(17,17,17,0.025)',
+              }}>
+                <Box component="td" sx={{
+                  p: 2, borderBottom: '1px solid rgba(17,17,17,0.08)',
+                  fontWeight: 700, color: '#111',
+                }}>
+                  {row.label}
+                </Box>
+                {row.values.map((v, i) => (
+                  <Box
+                    key={i}
+                    component="td"
+                    sx={{
+                      p: 2, textAlign: 'center',
+                      borderBottom: '1px solid rgba(17,17,17,0.08)',
+                      fontWeight: i === 0 ? 800 : 600,
+                      color: i === 0 ? '#0d0e0f' : '#3a352d',
+                      bgcolor: i === 0 ? 'rgba(229,255,0,0.18)' : 'transparent',
+                      fontFamily: v === '—' ? tokens.font.mono : tokens.font.family,
+                    }}
+                  >
+                    {v}
+                  </Box>
+                ))}
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      </Box>
+      <Typography variant="caption" sx={{
+        display: 'block', mt: 1.5, color: '#5b554b',
+        textAlign: 'center', maxWidth: 720, mx: 'auto',
+      }}>
+        Snapshot as of {new Date().toISOString().slice(0, 7)}. We update this
+        table when competitors ship — open an issue if something shifted.
+      </Typography>
+    </Section>
+  );
+}
+
 function UseCaseGrid() {
   const row = (title: string, items: { tag: string; label: string }[]) => (
     <Box>
