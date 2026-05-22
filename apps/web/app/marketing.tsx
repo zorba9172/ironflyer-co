@@ -37,6 +37,46 @@ const gates = ['Spec', 'UX', 'Architecture', 'Code', 'Tests', 'Security', 'Deplo
 // model freedom. The structure mirrors Base44's landing layout but every
 // promise is sharpened with Ironflyer's finisher angle so the comparison
 // shopper sees what we do that they don't.
+// FAQs mirror Base44's landing-page Q&A but lead each answer with what
+// makes Ironflyer's behaviour different — finisher gates, real Linux
+// sandbox, multi-provider routing, transparent margin model. Order is
+// chosen so the comparison shopper hits "what makes you different" first
+// and "how do credits work" before security / ownership.
+const faqs = [
+  {
+    q: 'How is Ironflyer different from Base44, Lovable, or Bolt?',
+    a: 'Generators ship code straight to preview; Ironflyer ships through gates — Spec, UX, Architecture, Code, Lint, Tests, Security, Deploy — and the loop refuses to publish until every one passes. You get a finished product, not a demo.',
+  },
+  {
+    q: 'Do I need to know how to code?',
+    a: 'No. Describe what you want and the agents do the work. Coders and product folks get extra leverage: every project is a real repo with a real Linux sandbox, so you can drop into the IDE, run a terminal, and edit anything by hand whenever you want.',
+  },
+  {
+    q: 'What do I get on the Free plan?',
+    a: 'All core features — auth, database, build credits, the cloud IDE, public templates. The Ironflyer badge stays on, projects are public, and credits are capped so you can never overspend. Upgrade for private projects, custom domains, and bigger credit pools.',
+  },
+  {
+    q: 'How does the credit / budget system work?',
+    a: 'Every plan has a monthly subscription and a measured cost cap — what Ironflyer is willing to absorb in provider spend. The Budget card shows live $ burn against the cap and the top three models you’re paying for. No credit traps, no surprise bills: when the cap is reached the enforcer downgrades or pauses cleanly.',
+  },
+  {
+    q: 'Which AI models does Ironflyer use?',
+    a: 'A multi-provider router picks the cheapest model that satisfies the capability tags on each agent call — Anthropic, OpenAI, or on-device ONNX. The Lite / Economy / Power dial in chat lets you override the bias yourself when you care about cost or depth.',
+  },
+  {
+    q: 'Can I bring this to my own cloud?',
+    a: 'Yes. The whole stack ships as a Helm chart you install in any Kubernetes cluster — orchestrator, runtime sandboxes, web, Postgres, optional ingress + TLS. The DEPLOY.md runbook walks you through it.',
+  },
+  {
+    q: 'How do you handle security?',
+    a: 'A Security gate scans for credentials, dependency drift, and OWASP-class issues on every iteration; the cloud IDE runs in a per-user Docker sandbox, never shared; secrets land in a Kubernetes Secret you control; and every gate write goes through a patch lifecycle — the AI never mutates files directly.',
+  },
+  {
+    q: 'Who owns the code?',
+    a: 'You. Connect a GitHub repo and the loop pushes there; export the project from the workspace and you walk away with a full repo plus the Dockerfile and Helm chart. No platform lock-in on the artefact.',
+  },
+];
+
 const capabilityTourCards = [
   {
     eyebrow: '01 · Idea to app',
@@ -217,6 +257,7 @@ export function MarketingHome() {
       <ProductShowcase />
       <BlueprintSection />
       <NumbersSection />
+      <FAQSection />
       <FinalCta />
     </MarketingShell>
   );
@@ -489,6 +530,75 @@ function LogoBand() {
 // card carries one buy-in line (speed / backend / production / model
 // freedom) and ends in a chip that recalls the Ironflyer noun for that
 // pillar. The grid degrades to one column on mobile and a 2x2 on desktop.
+// FAQSection renders the Q&A list. Each item is a row in a single-column
+// stack so the cadence feels like a reading lane rather than a card grid —
+// readers scan top-to-bottom looking for their objection. Native <details>
+// gives accordion behaviour without pulling in a heavy accordion lib.
+function FAQSection() {
+  return (
+    <Section>
+      <SectionHeader
+        eyebrow="FAQ"
+        title="Common questions before you start the loop."
+      />
+      <Box sx={{ maxWidth: 920, mx: 'auto' }}>
+        {faqs.map((item) => (
+          <Box
+            key={item.q}
+            component="details"
+            sx={{
+              borderBottom: '1px solid rgba(17,17,17,0.12)',
+              py: 2.2,
+              cursor: 'pointer',
+              '& > summary': { listStyle: 'none', outline: 'none' },
+              '& > summary::-webkit-details-marker': { display: 'none' },
+              '&[open] .faq-marker': { transform: 'rotate(45deg)' },
+            }}>
+            <Box component="summary" sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 2,
+            }}>
+              <Typography variant="h5" sx={{
+                fontSize: { xs: '1.15rem', md: '1.4rem' },
+                fontWeight: 800,
+                letterSpacing: 0,
+                color: '#111',
+              }}>
+                {item.q}
+              </Typography>
+              <Box className="faq-marker" sx={{
+                width: 22, height: 22, flexShrink: 0,
+                position: 'relative',
+                transition: `transform ${tokens.motion.base} ${tokens.motion.curve}`,
+                '&::before, &::after': {
+                  content: '""',
+                  position: 'absolute',
+                  background: '#111',
+                  left: '50%', top: '50%',
+                  transform: 'translate(-50%, -50%)',
+                },
+                '&::before': { width: 14, height: 2 },
+                '&::after':  { width: 2, height: 14 },
+              }} />
+            </Box>
+            <Typography sx={{
+              mt: 1.5,
+              color: '#3a352d',
+              fontSize: { xs: '0.95rem', md: '1.02rem' },
+              lineHeight: 1.6,
+              maxWidth: 780,
+            }}>
+              {item.a}
+            </Typography>
+          </Box>
+        ))}
+      </Box>
+    </Section>
+  );
+}
+
 function CapabilityTour() {
   return (
     <Section>
