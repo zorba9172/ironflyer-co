@@ -57,6 +57,19 @@ const gates = ['Spec', 'UX', 'Architecture', 'Code', 'Tests', 'Security', 'Deplo
 // shopping against (Base44, Lovable, Bolt.new) and rows the differences
 // the finisher gates create. Honest where the competitor edges us (e.g.
 // Lovable's Visual Edits sidebar) so the table reads credibly.
+// App gallery shown right after the capability tour. Each card pairs one
+// of our curated thumbnails with a one-liner about what shipped — pattern
+// mirrors Base44's 'Inventory Management App / Learning hub / Financial
+// dashboard' carousel. Thumbnails live under /public/templates/.
+const appGallery = [
+  { title: 'AI Forge dashboard',  desc: 'Model usage, latency, and cost across every Ironflyer agent.', image: '/templates/aiforge-hero.jpg', tag: 'SaaS' },
+  { title: 'Allstore commerce',   desc: 'Storefront + Stripe checkout + admin generated from a single prompt.', image: '/templates/allstore-slide.jpg', tag: 'E-commerce' },
+  { title: 'Davies analytics',    desc: 'Operator analytics with role-aware access and audit trail.', image: '/templates/davies-demo.jpg', tag: 'Operations' },
+  { title: 'Blix mobile companion', desc: 'PWA-installable mobile shell that resumes the cloud workspace on phone.', image: '/templates/blix-mobile.png', tag: 'Mobile' },
+  { title: 'Codec workspace',     desc: 'Internal coding tools — code review, snippets, and patch lifecycle.', image: '/templates/codec-mobile.png', tag: 'Internal' },
+  { title: 'Varius portal',       desc: 'Client portal with documents, messages, and project state.', image: '/templates/varius-mobile.jpg', tag: 'Portal' },
+];
+
 const comparisonRows: { label: string; values: [string, string, string, string] }[] = [
   {
     label: 'Spec / UX / Code gates enforced',
@@ -328,6 +341,7 @@ export function MarketingHome() {
       <HeroSection />
       <LogoBand />
       <CapabilityTour />
+      <AppGallery />
       <MeetSection />
       <RevenueEngineSection />
       <ProductShowcase />
@@ -623,6 +637,82 @@ function LogoBand() {
 // Ironflyer's column gets the lime accent + a sticky header on scroll
 // (sticky CSS only — no JS) so the eye snaps to our line. The honest
 // 'Coming Q3' entry for Visual Edits keeps the table credible.
+// AppGallery is the "see what already shipped" grid. Hover lifts the card
+// + zooms the image slightly — same affordance as Base44's app showcase
+// row. Each card links to /templates which holds the longer gallery.
+function AppGallery() {
+  return (
+    <Section>
+      <SectionHeader
+        eyebrow="Apps shipped with the loop"
+        title="What a finished Ironflyer build looks like."
+      />
+      <Box sx={{
+        display: 'grid',
+        gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+        gap: { xs: 2, md: 2.5 },
+      }}>
+        {appGallery.map((item) => (
+          <Box
+            key={item.title}
+            component={Link}
+            href="/templates"
+            sx={{
+              display: 'block',
+              textDecoration: 'none',
+              color: 'inherit',
+              borderRadius: { xs: 2.5, md: 4 },
+              overflow: 'hidden',
+              bgcolor: '#e8dfce',
+              transition: `transform ${tokens.motion.base} ${tokens.motion.curve}`,
+              '&:hover': { transform: 'translateY(-3px)' },
+              '&:hover img': { transform: 'scale(1.03)' },
+            }}>
+            <Box sx={{
+              height: { xs: 200, md: 240 },
+              overflow: 'hidden',
+              bgcolor: '#d8cfbd',
+            }}>
+              <Box
+                component="img"
+                src={item.image}
+                alt={item.title}
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: 'block',
+                  transition: `transform ${tokens.motion.slow} ${tokens.motion.curve}`,
+                }}
+              />
+            </Box>
+            <Stack direction="row" alignItems="flex-start" justifyContent="space-between" sx={{ p: 2 }}>
+              <Box sx={{ minWidth: 0, flex: 1 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 900, lineHeight: 1.1 }} noWrap>
+                  {item.title}
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#4f4b43', mt: 0.6 }}>
+                  {item.desc}
+                </Typography>
+              </Box>
+              <Chip
+                label={item.tag}
+                size="small"
+                sx={{
+                  flexShrink: 0,
+                  bgcolor: '#fffaf1', color: '#111',
+                  borderRadius: 1, fontWeight: 800,
+                  '& .MuiChip-label': { px: 1 },
+                }}
+              />
+            </Stack>
+          </Box>
+        ))}
+      </Box>
+    </Section>
+  );
+}
+
 function ComparisonTable() {
   const competitors = ['Ironflyer', 'Base44', 'Lovable', 'Bolt.new'] as const;
   return (
