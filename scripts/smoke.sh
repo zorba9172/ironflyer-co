@@ -64,6 +64,11 @@ orch_agents() {
   curl -fsS -H "Authorization: Bearer $TOKEN" "$ORCHESTRATOR/agents" | grep -q '"planner"' || \
     curl -fsS -H "Authorization: Bearer $TOKEN" "$ORCHESTRATOR/agents" | grep -q 'planner'
 }
+orch_metrics() {
+  # /metrics must serve the Prometheus text exposition format with at least
+  # one of our custom metrics present.
+  curl -fsS "$ORCHESTRATOR/metrics" | grep -q '^ironflyer_'
+}
 orch_stripe_disabled_when_unset() {
   # If STRIPE_SECRET_KEY isn't set, /budget/webhook must 503. We can't easily
   # know which mode the server is in from outside, so we treat both 200-style
@@ -80,6 +85,7 @@ check "health"            orch_health
 check "budget/plans"      orch_plans
 check "budget/rates"      orch_rates
 check "agents (auth)"     orch_agents
+check "/metrics"          orch_metrics
 check "webhook rejects unsigned" orch_stripe_disabled_when_unset
 
 # ------------- Runtime -----------------------------------------------------

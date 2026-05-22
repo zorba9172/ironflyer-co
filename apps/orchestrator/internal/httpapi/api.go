@@ -25,6 +25,7 @@ import (
 	"ironflyer/apps/orchestrator/internal/integrations"
 	"ironflyer/apps/orchestrator/internal/integrations/github"
 	"ironflyer/apps/orchestrator/internal/leads"
+	"ironflyer/apps/orchestrator/internal/metrics"
 	"ironflyer/apps/orchestrator/internal/patch"
 	"ironflyer/apps/orchestrator/internal/providers"
 	"ironflyer/apps/orchestrator/internal/store"
@@ -62,7 +63,10 @@ func New(d Deps) http.Handler {
 	r.Use(logMiddleware(d.Logger))
 	r.Use(middleware.Recoverer)
 
+	r.Use(metrics.HTTP)
+
 	r.Get("/health", a.health)
+	r.Method("GET", "/metrics", metrics.Handler())
 	r.Post("/leads/enterprise", a.enterpriseLead)
 
 	// Public auth endpoints.
