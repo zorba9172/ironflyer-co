@@ -67,12 +67,12 @@ func New(d Deps) http.Handler {
 
 	r.Get("/health", a.health)
 	r.Method("GET", "/metrics", metrics.Handler())
-	r.Post("/leads/enterprise", a.enterpriseLead)
+	r.Post("/leads/enterprise", a.withSignupRateLimit(a.enterpriseLead))
 
 	// Public auth endpoints.
 	r.Route("/auth", func(r chi.Router) {
-		r.Post("/signup", a.signup)
-		r.Post("/login", a.login)
+		r.Post("/signup", a.withSignupRateLimit(a.signup))
+		r.Post("/login", a.withSignupRateLimit(a.login))
 		// /me uses the protected stack so it returns 401 when unauthenticated.
 		r.Group(func(r chi.Router) {
 			r.Use(a.authMiddleware())
@@ -114,7 +114,7 @@ func New(d Deps) http.Handler {
 				r.Post("/run", a.runFinisher)
 				r.Get("/stream", a.streamEvents)
 				r.Post("/prompt", a.promptPlan)
-				r.Post("/chat", a.chatStream)
+				r.Post("/chat", a.withChatRateLimit(a.chatStream))
 				r.Post("/brainstorm", a.brainstormRun)
 				r.Get("/patches", a.listPatches)
 				r.Post("/patches", a.proposePatch)
