@@ -22,11 +22,16 @@ import { GitHubPanel } from './GitHubPanel';
 import { ChatComposer, type ComposerEffort, type ComposerMode } from './ChatComposer';
 import { RequireAuth, useAuth } from '../../auth-context';
 
+// GATE_ORDER mirrors finisher.DefaultGates() on the orchestrator. Keep in
+// sync when the gate list changes — the backend treats the gate keys as
+// authoritative, the UI just renders them in this order with friendlier
+// labels.
 const GATE_ORDER: { key: string; label: string }[] = [
   { key: 'spec', label: 'Spec' },
   { key: 'ux', label: 'UX' },
   { key: 'arch', label: 'Architecture' },
   { key: 'code', label: 'Code' },
+  { key: 'lint', label: 'Lint' },
   { key: 'test', label: 'Tests' },
   { key: 'security', label: 'Security' },
   { key: 'deploy', label: 'Deploy' },
