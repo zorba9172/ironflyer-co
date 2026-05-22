@@ -3,7 +3,7 @@
   "displayName": "Ironflyer",
   "description": "Finish products end-to-end with Ironflyer — chat, Finisher gates, budget, and project actions, right inside VSCode.",
   "publisher": "ironflyer",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -97,7 +97,15 @@
       {
         "command": "ironflyer.fixDiagnostic",
         "title": "Ironflyer: Ask Ironflyer to Fix"
+      },
+      {
+        "command": "ironflyer.showLogs",
+        "title": "Ironflyer: Show Logs"
       }
+    ],
+    "keybindings": [
+      { "command": "ironflyer.openChat", "key": "ctrl+alt+i", "mac": "cmd+alt+i", "when": "ironflyer.signedIn" },
+      { "command": "ironflyer.newProject", "key": "ctrl+alt+n", "mac": "cmd+alt+n", "when": "ironflyer.signedIn" }
     ],
     "viewsContainers": {
       "activitybar": [
@@ -130,6 +138,48 @@
         }
       ]
     },
+    "walkthroughs": [
+      {
+        "id": "ironflyer.gettingStarted",
+        "title": "Get started with Ironflyer",
+        "description": "Sign in, pin a project, and finish products without leaving your editor.",
+        "steps": [
+          {
+            "id": "signIn",
+            "title": "Sign in",
+            "description": "Open the Ironflyer web app in your browser and bounce the JWT back to VSCode. No API keys to paste.\n[Sign In](command:ironflyer.signIn)",
+            "media": { "markdown": "media/walkthrough/sign-in.md" },
+            "completionEvents": ["onContext:ironflyer.signedIn"]
+          },
+          {
+            "id": "pinProject",
+            "title": "Pin a project",
+            "description": "Tell Ironflyer which project this window belongs to. The pin powers the Ask Ironflyer to Fix quick action and is persisted per workspace.\n[Set Active Project](command:ironflyer.setActiveProject)",
+            "media": { "markdown": "media/walkthrough/pin-project.md" },
+            "completionEvents": ["onContext:ironflyer.hasActiveProject"]
+          },
+          {
+            "id": "openChat",
+            "title": "Open chat for a project",
+            "description": "Open the streaming chat panel and try a prompt. The agent role + effort dial mirror the web app.\n[Open Chat](command:ironflyer.openChat)",
+            "media": { "markdown": "media/walkthrough/open-chat.md" },
+            "completionEvents": ["onCommand:ironflyer.openChat"]
+          },
+          {
+            "id": "askToFix",
+            "title": "Ask Ironflyer to fix a diagnostic",
+            "description": "Hover any TypeScript / ESLint / Go diagnostic, press the lightbulb, and pick \"Ask Ironflyer to fix\". The extension bundles the snippet + message + range and routes it to the coder agent.",
+            "media": { "markdown": "media/walkthrough/ask-to-fix.md" }
+          },
+          {
+            "id": "reviewPatches",
+            "title": "Review and apply patches",
+            "description": "Every patch the orchestrator proposes shows up in the Patches view. Click a file to open a native side-by-side diff; tap ✔ to apply.\n[Open Patches](command:workbench.view.extension.ironflyer)",
+            "media": { "markdown": "media/walkthrough/patches.md" }
+          }
+        ]
+      }
+    ],
     "viewsWelcome": [
       {
         "view": "ironflyer.projects",

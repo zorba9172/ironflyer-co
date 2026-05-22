@@ -21,6 +21,7 @@ import { throttleTrailing } from './throttle';
 import { ActiveProject } from './activeProject';
 import { IronflyerCodeActions } from './codeActions';
 import { buildFixPrompt, DiagnosticSeverity } from './fixPrompt';
+import { log } from './logger';
 
 export function activate(context: vscode.ExtensionContext): void {
   const auth = new Auth(context.secrets);
@@ -29,12 +30,7 @@ export function activate(context: vscode.ExtensionContext): void {
   const diffProvider = new PatchDiffProvider(api);
   const patchesTree = new PatchesTree(api, auth, diffProvider);
   const gatesTree = new GatesTree(api, auth);
-  const projectStream = new ProjectStream(api, (msg, err) => {
-    // Surface to the developer console without spamming the user — we
-    // already retry with backoff, so warnings are noise during normal
-    // disconnects (orchestrator restart, network blip).
-    console.warn('[ironflyer]', msg, err);
-  });
+  const projectStream = new ProjectStream(api, (msg, err) => log.warn(msg, err));
   const status = new StatusBar(api, auth);
   const activeProject = new ActiveProject(context.workspaceState, api, auth);
 
@@ -62,7 +58,7 @@ export function activate(context: vscode.ExtensionContext): void {
       new IronflyerCodeActions(),
       IronflyerCodeActions.metadata,
     ),
-    { dispose: () => { projectStream.disposeAll(); refreshProject.cancel(); } },
+    { dispose: () => { projectStream.disposeAll(); refreshProject.cancel(); log.dispose(); } },
     status,
 
     vscode.commands.registerCommand('ironflyer.signIn', () => auth.beginSignIn()),
@@ -226,6 +222,8 @@ export function activate(context: vscode.ExtensionContext): void {
       },
     ),
 
+    vscode.commands.registerCommand('ironflyer.showLogs', () => log.show()),
+
     vscode.commands.registerCommand('ironflyer.showBudget', async () => {
       try {
         const b = await api.myBudget();
@@ -341,6 +339,7 @@ async function withProgress<T>(title: string, fn: () => Promise<T>): Promise<T> 
 }
 
 async function handleError(err: unknown, auth: Auth): Promise<void> {
+  log.error('command failed', err);
   if (err instanceof ApiError && err.status === 401) {
     void vscode.window.showWarningMessage('Ironflyer session expired — sign in again.');
     await auth.setToken(undefined);

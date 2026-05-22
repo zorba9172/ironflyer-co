@@ -54,7 +54,7 @@ token. There is no API key to paste anywhere.
 cd apps/vscode-extension
 npm install
 npm run build          # produces dist/extension.js
-npm run package        # produces ironflyer-0.1.0.vsix
+npm run package        # produces ironflyer-0.2.0.vsix
 ```
 
 To debug, open this folder in VSCode and press `F5` — a new Extension
