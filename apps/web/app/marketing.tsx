@@ -48,6 +48,29 @@ const gates = ['Spec', 'UX', 'Architecture', 'Code', 'Tests', 'Security', 'Deplo
 // the user to the workspace — Base44's template-chip pattern with our
 // finisher-shaped seeds. Keep the list short; longer lists belong on
 // /templates.
+// Use-case grids mirror Base44's "By Industry" + "By Role" landing
+// surface. Each row lists ~6 slots; the visitor scans the row matching
+// their identity and clicks through to /solutions filtered by tag. We
+// keep the labels short — the page is for self-identification, not
+// reading.
+const useCasesByIndustry = [
+  { tag: 'productivity', label: 'Productivity' },
+  { tag: 'education',    label: 'Education' },
+  { tag: 'entertainment', label: 'Entertainment' },
+  { tag: 'health',       label: 'Health & wellness' },
+  { tag: 'commerce',     label: 'E-commerce' },
+  { tag: 'finance',      label: 'Finance' },
+];
+
+const useCasesByRole = [
+  { tag: 'product',     label: 'Product Management' },
+  { tag: 'operations',  label: 'Operations' },
+  { tag: 'marketing',   label: 'Marketing & Sales' },
+  { tag: 'hr',          label: 'HR & Recruitment' },
+  { tag: 'engineering', label: 'Dev Productivity' },
+  { tag: 'analytics',   label: 'Business Intelligence' },
+];
+
 const heroQuickStarts = [
   { label: 'Internal tool', prompt: 'Build an internal operations tool with approvals, role-based access, audit history, reports, and a dense dashboard UI.' },
   { label: 'SaaS dashboard', prompt: 'Build a production-ready SaaS app with auth, teams, billing, analytics, admin settings, onboarding, and deploy.' },
@@ -270,6 +293,7 @@ export function MarketingHome() {
       <RevenueEngineSection />
       <ProductShowcase />
       <BlueprintSection />
+      <UseCaseGrid />
       <NumbersSection />
       <FAQSection />
       <FinalCta />
@@ -549,6 +573,55 @@ function LogoBand() {
 // stack so the cadence feels like a reading lane rather than a card grid —
 // readers scan top-to-bottom looking for their objection. Native <details>
 // gives accordion behaviour without pulling in a heavy accordion lib.
+// UseCaseGrid is the self-identification surface — two rows that let
+// visitors filter what Ironflyer can build for their industry or role.
+// Each chip is a Link to /solutions?filter=<tag> so future page work
+// can surface tag-specific gallery views without changing the marketing
+// home. Pattern lifted from Base44's "By industry" / "By role" panels.
+function UseCaseGrid() {
+  const row = (title: string, items: { tag: string; label: string }[]) => (
+    <Box>
+      <Typography variant="overline" sx={{
+        color: '#5b554b', fontWeight: 900, letterSpacing: '0.12em',
+      }}>{title}</Typography>
+      <Stack
+        direction="row" spacing={1} flexWrap="wrap"
+        sx={{ mt: 1.2, rowGap: 1 }}
+      >
+        {items.map((it) => (
+          <Chip
+            key={it.tag}
+            label={it.label}
+            component={Link}
+            href={`/solutions?filter=${encodeURIComponent(it.tag)}`}
+            clickable
+            sx={{
+              bgcolor: '#fffaf1', color: '#111',
+              border: '1px solid rgba(17,17,17,0.10)',
+              fontWeight: 800, px: 0.3,
+              '& .MuiChip-label': { px: 1.4 },
+              '&:hover': { bgcolor: tokens.color.accent.lime, color: '#0d0e0f' },
+              transition: `background-color ${tokens.motion.base} ${tokens.motion.curve}`,
+            }}
+          />
+        ))}
+      </Stack>
+    </Box>
+  );
+  return (
+    <Section>
+      <SectionHeader
+        eyebrow="Use cases"
+        title="Pick the row that looks like you."
+      />
+      <Stack spacing={{ xs: 3, md: 4 }}>
+        {row('By industry', useCasesByIndustry)}
+        {row('By role',     useCasesByRole)}
+      </Stack>
+    </Section>
+  );
+}
+
 function FAQSection() {
   return (
     <Section>
