@@ -3,6 +3,7 @@ package config
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/caarlos0/env/v10"
 )
@@ -26,6 +27,30 @@ type Config struct {
 	// receives via Bearer or ?token=. Empty => no auth (dev only).
 	JWTSecret string `env:"IRONFLYER_JWT_SECRET"`
 	JWTIssuer string `env:"IRONFLYER_JWT_ISSUER" envDefault:"ironflyer"`
+
+	// Live preview reverse-proxy. PreviewPrefix is the URL prefix that
+	// routes preview traffic — typically "/preview". The proxy strips the
+	// `{prefix}/{workspaceID}/{port}` portion before forwarding.
+	PreviewPrefix string `env:"IRONFLYER_RUNTIME_PREVIEW_PREFIX" envDefault:"/preview"`
+
+	// AllowedPreviewPorts is the comma-separated list of internal ports
+	// the proxy will dial. Wildcard "*" disables the allowlist (dev only).
+	// Default covers Vite (5173), Next.js (3000/4000), Astro (4321),
+	// generic http (8080), and the common 8000/8888/3001/5174 fallbacks.
+	AllowedPreviewPorts string `env:"IRONFLYER_RUNTIME_PREVIEW_ALLOWED_PORTS" envDefault:"3000,3001,4000,4321,5173,5174,8000,8080,8888"`
+
+	// MaxWorkspaces caps the number of concurrently registered workspaces
+	// the runtime will accept. Zero means unlimited.
+	MaxWorkspaces int `env:"IRONFLYER_RUNTIME_MAX_WORKSPACES" envDefault:"64"`
+
+	// PreviewTokenSecret signs short-lived `?t=...` tokens for iframe
+	// preview URLs. Empty means "reuse JWTSecret"; if both are empty the
+	// runtime auto-generates an in-memory secret (dev only — tokens won't
+	// survive restart).
+	PreviewTokenSecret string `env:"IRONFLYER_RUNTIME_PREVIEW_TOKEN_SECRET"`
+
+	// PreviewTokenTTL is the lifetime of a freshly minted preview token.
+	PreviewTokenTTL time.Duration `env:"IRONFLYER_RUNTIME_PREVIEW_TOKEN_TTL" envDefault:"30m"`
 }
 
 func Load() (Config, error) {

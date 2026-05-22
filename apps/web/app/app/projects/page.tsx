@@ -3,15 +3,31 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Box, Button, Chip, Stack, Typography } from '@mui/material';
-import { Apps, FilterList, Lock, Public, Sort } from '@mui/icons-material';
+import { Add, Apps, FilterList, Sort } from '@mui/icons-material';
+import { Box, Button, Chip, InputAdornment, Stack, TextField, Typography } from '@mui/material';
 import { api, Project } from '../../../lib/api';
 import { tokens } from '../../../lib/theme';
 import { RequireAuth, useAuth } from '../../auth-context';
 import { AppShell, PageTitle, Surface } from '../workspace-shell';
+import {
+  EmptyState, ErrorBox, ProjectGridCard, SkeletonGrid, StatusPill, statusKindFromGate,
+} from '../../../components/dashboard';
 
-const filters = ['All', 'Ready', 'Running', 'Pending', 'Failed'];
-const sorts = ['Last edited', 'Last viewed', 'Created', 'Name'];
+const filters = [
+  { value: 'all', label: 'הכל' },
+  { value: 'ready', label: 'מוכן' },
+  { value: 'running', label: 'בהרצה' },
+  { value: 'pending', label: 'ממתין' },
+  { value: 'failed', label: 'נכשל' },
+];
+
+const sorts = [
+  { value: 'updated', label: 'עודכן לאחרונה' },
+  { value: 'created', label: 'נוצר לאחרונה' },
+  { value: 'name', label: 'שם' },
+];
+
+const PAGE_SIZE = 24;
 
 export default function ProjectsPage() {
   return (
@@ -26,144 +42,209 @@ function ProjectsInner() {
   const searchParams = useSearchParams();
   const urlFilter = searchParams.get('filter');
   const [projects, setProjects] = useState<Project[]>([]);
-  const [query, setQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [pageQuery, setPageQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [view, setView] = useState<'grid' | 'list'>('grid');
-  const [filter, setFilter] = useState('All');
-  const [sort, setSort] = useState('Last edited');
+  const [filter, setFilter] = useState('all');
+  const [sort, setSort] = useState('updated');
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   useEffect(() => {
-    void api.listProjects().then(setProjects).catch(() => setProjects([]));
+    void refresh();
   }, []);
 
+  async function refresh() {
+    setLoading(true);
+    setError(null);
+    try {
+      const list = await api.listProjects();
+      setProjects(list);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setLoading(false);
+    }
+  }
+
   useEffect(() => {
-    const nextFilter = normalizeFilter(urlFilter);
-    setFilter(nextFilter);
+    const next = (urlFilter ?? 'all').toLowerCase();
+    setFilter(filters.some((f) => f.value === next) ? next : 'all');
   }, [urlFilter]);
 
-  const visible = useMemo(() => {
-    const q = query.trim().toLowerCase();
+  // Debounce search input.
+  useEffect(() => {
+    const handle = setTimeout(() => setDebouncedQuery(pageQuery.trim().toLowerCase()), 220);
+    return () => clearTimeout(handle);
+  }, [pageQuery]);
+
+  // Reset pagination when filters/search change.
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [debouncedQuery, filter, sort]);
+
+  const filtered = useMemo(() => {
     const list = projects.filter((project) => {
-      if (filter !== 'All' && project.status.toLowerCase() !== filter.toLowerCase()) {
-        return false;
-      }
-      if (!q) return true;
-      return `${project.name} ${project.description} ${project.status} ${project.spec.idea}`.toLowerCase().includes(q);
+      const status = (project.status ?? '').toLowerCase();
+      if (filter !== 'all' && status !== filter) return false;
+      if (!debouncedQuery) return true;
+      return `${project.name} ${project.description} ${project.status} ${project.spec?.idea ?? ''}`
+        .toLowerCase()
+        .includes(debouncedQuery);
     });
-    if (sort === 'Name') return [...list].sort((a, b) => a.name.localeCompare(b.name));
-    if (sort === 'Created') return [...list].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+    if (sort === 'name') return [...list].sort((a, b) => a.name.localeCompare(b.name, 'he'));
+    if (sort === 'created') return [...list].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
     return [...list].sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
-  }, [filter, projects, query, sort]);
+  }, [filter, projects, debouncedQuery, sort]);
+
+  const visible = filtered.slice(0, visibleCount);
+  const hasMore = visible.length < filtered.length;
+  const statusCounts = useMemo(() => countByStatus(projects), [projects]);
 
   return (
-    <AppShell userEmail={user?.email ?? 'workspace'} recents={projects.slice(0, 5)} onLogout={logout} query={query} setQuery={setQuery} view={view} setView={setView}>
+    <AppShell
+      userEmail={user?.email ?? 'workspace'}
+      recents={projects.slice(0, 5)}
+      onLogout={logout}
+      query={pageQuery}
+      setQuery={setPageQuery}
+      view={view}
+      setView={setView}
+    >
       <PageTitle
-        eyebrow="Projects"
-        title="Everything in this workspace"
-        subtitle="Search, filter, sort, and jump back into any build without losing context."
-        action={<Button component={Link} href="/app" variant="contained">New project</Button>}
+        eyebrow="פרויקטים"
+        title="הפרויקטים שלך"
+        subtitle="כל האפליקציות שבנית במקום אחד. סנן לפי סטטוס, חפש, ופתח את הפרויקט הבא לפעולה."
+        action={
+          <Stack direction="row" spacing={1}>
+            <Button component={Link} href="/app/resources" variant="outlined">תבניות</Button>
+            <Button component={Link} href="/app" variant="contained" startIcon={<Add />}>פרויקט חדש</Button>
+          </Stack>
+        }
       />
 
-      <Stack spacing={2.2}>
-        <Surface sx={{ p: 1.2 }}>
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={1} justifyContent="space-between">
-            <Stack direction="row" spacing={0.8} useFlexGap flexWrap="wrap">
-              <Chip icon={<FilterList />} label="Status" sx={labelChipSx} />
-              {filters.map((item) => (
-                <Chip key={item} label={item} onClick={() => setFilter(item)} sx={filterChipSx(filter === item)} />
-              ))}
-            </Stack>
-            <Stack direction="row" spacing={0.8} useFlexGap flexWrap="wrap">
-              <Chip icon={<Sort />} label="Sort" sx={labelChipSx} />
-              {sorts.map((item) => (
-                <Chip key={item} label={item} onClick={() => setSort(item)} sx={filterChipSx(sort === item)} />
-              ))}
-            </Stack>
-          </Stack>
-        </Surface>
-
-        {visible.length === 0 ? (
-          <Surface sx={{ p: 4, textAlign: 'center' }}>
-            <Typography variant="h6">No projects match this view</Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.6 }}>
-              Clear the search or switch status filters to see more projects.
-            </Typography>
-          </Surface>
-        ) : view === 'grid' ? (
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 1.4 }}>
-            {visible.map((project) => <ProjectCard key={project.id} project={project} />)}
-          </Box>
-        ) : (
-          <Stack spacing={1}>
-            {visible.map((project) => <ProjectRow key={project.id} project={project} />)}
-          </Stack>
-        )}
-      </Stack>
-    </AppShell>
-  );
-}
-
-function ProjectCard({ project }: { project: Project }) {
-  const passed = Object.values(project.gates).filter((gate) => gate.status === 'passed').length;
-  const total = Object.keys(project.gates).length || 7;
-  return (
-    <Link href={`/projects/${project.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>
-      <Surface sx={{ overflow: 'hidden', minHeight: 238, '&:hover': { borderColor: tokens.color.border.strong } }}>
-        <Box sx={{
-          height: 118,
-          backgroundImage: `linear-gradient(135deg, rgba(229,255,0,0.2), rgba(112,214,255,0.08)), url('/marketplace/output-ref/hero.jpg')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          borderBottom: '1px solid rgba(17,17,17,0.1)',
-        }} />
-        <Box sx={{ p: 1.8 }}>
-          <Stack direction="row" justifyContent="space-between" spacing={1}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 900 }} noWrap>{project.name}</Typography>
-            <Chip label={project.status} size="small" sx={{ borderRadius: '6px' }} />
-          </Stack>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.8, minHeight: 42 }}>
-            {project.description || project.spec.idea || 'Prompt-to-product workspace'}
-          </Typography>
-          <Box sx={{ mt: 2, height: 6, bgcolor: 'rgba(17,17,17,0.1)', borderRadius: '999px', overflow: 'hidden' }}>
-            <Box sx={{ width: `${(passed / total) * 100}%`, height: '100%', bgcolor: tokens.color.accent.lime }} />
-          </Box>
-          <Stack direction="row" justifyContent="space-between" sx={{ mt: 1 }}>
-            <Typography variant="caption" color="text.secondary">Gates {passed}/{total}</Typography>
-            <Typography variant="caption" color="text.secondary">{new Date(project.updatedAt).toLocaleDateString()}</Typography>
-          </Stack>
+      {error && (
+        <Box sx={{ mb: 1.6 }}>
+          <ErrorBox
+            title="לא הצלחנו לטעון את הפרויקטים"
+            description={error}
+            onRetry={() => void refresh()}
+          />
         </Box>
+      )}
+
+      <Surface sx={{ p: 1.2, mb: 1.8 }}>
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.2} alignItems={{ xs: 'stretch', md: 'center' }}>
+          <TextField
+            placeholder="חיפוש לפי שם, תיאור, סטטוס..."
+            value={pageQuery}
+            onChange={(e) => setPageQuery(e.target.value)}
+            size="small"
+            sx={{ flex: 1, minWidth: 240 }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <FilterList fontSize="small" />
+                </InputAdornment>
+              ),
+            }}
+          />
+          <Stack direction="row" spacing={0.7} useFlexGap flexWrap="wrap" alignItems="center">
+            {filters.map((item) => (
+              <Chip
+                key={item.value}
+                label={item.value === 'all' ? `${item.label} (${projects.length})` : `${item.label} (${statusCounts[item.value] ?? 0})`}
+                onClick={() => setFilter(item.value)}
+                sx={filterChipSx(filter === item.value)}
+              />
+            ))}
+          </Stack>
+          <Stack direction="row" spacing={0.7} useFlexGap flexWrap="wrap" alignItems="center">
+            <Chip icon={<Sort fontSize="small" />} label="מיון" sx={{ borderRadius: '6px', bgcolor: 'transparent', color: '#686158' }} />
+            {sorts.map((item) => (
+              <Chip key={item.value} label={item.label} onClick={() => setSort(item.value)} sx={filterChipSx(sort === item.value)} />
+            ))}
+          </Stack>
+        </Stack>
       </Surface>
-    </Link>
+
+      {loading ? (
+        <SkeletonGrid columns={view === 'grid' ? 3 : 1} count={6} minHeight={180} />
+      ) : projects.length === 0 ? (
+        <EmptyState
+          illustration="grid"
+          title="אין עדיין פרויקטים — תאר את האפליקציה הראשונה שלך"
+          description="התחל מתבנית מוכנה או מתאר חופשי בעברית. Ironflyer מקים את המרחב המלא בתוך דקה."
+          primaryLabel="פתח תיבת רעיון"
+          onPrimary={() => { window.location.href = '/app'; }}
+          secondary={
+            <Button component={Link} href="/app/resources" variant="outlined">גלה תבניות</Button>
+          }
+        />
+      ) : filtered.length === 0 ? (
+        <EmptyState
+          illustration="empty"
+          title="אין פרויקטים תואמים לסינון"
+          description="נסה לנקות את החיפוש או לבחור סטטוס אחר."
+          primaryLabel="ניקוי סינון"
+          onPrimary={() => { setPageQuery(''); setFilter('all'); }}
+        />
+      ) : view === 'grid' ? (
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 1.5 }}>
+          {visible.map((project) => <ProjectGridCard key={project.id} project={project} />)}
+        </Box>
+      ) : (
+        <Stack spacing={1}>
+          {visible.map((project) => <ProjectRow key={project.id} project={project} />)}
+        </Stack>
+      )}
+
+      {hasMore && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2.4 }}>
+          <Button variant="outlined" onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}>
+            הצג עוד ({filtered.length - visible.length})
+          </Button>
+        </Box>
+      )}
+    </AppShell>
   );
 }
 
 function ProjectRow({ project }: { project: Project }) {
   return (
     <Link href={`/projects/${project.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>
-      <Surface sx={{ p: 1.4, '&:hover': { borderColor: tokens.color.border.strong } }}>
+      <Surface sx={{ p: 1.4, transition: 'border-color 180ms, background-color 180ms', '&:hover': { borderColor: 'rgba(17,17,17,0.28)', bgcolor: '#fffaf1' } }}>
         <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'stretch', sm: 'center' }} spacing={1.2}>
           <Stack direction="row" alignItems="center" spacing={1.4} sx={{ minWidth: 0, flex: 1 }}>
             <Box sx={{ width: 42, height: 42, flex: '0 0 auto', borderRadius: '8px', bgcolor: 'rgba(17,17,17,0.08)', display: 'grid', placeItems: 'center' }}>
               <Apps fontSize="small" />
             </Box>
             <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography variant="subtitle2" noWrap>{project.name}</Typography>
-              <Typography variant="caption" color="text.secondary" noWrap>{project.description || project.spec.idea}</Typography>
+              <Typography variant="subtitle2" noWrap sx={{ fontWeight: 900 }}>{project.name}</Typography>
+              <Typography variant="caption" color="text.secondary" noWrap>{project.description || project.spec?.idea}</Typography>
             </Box>
           </Stack>
-          <Box sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}>
-            <Chip icon={project.status === 'ready' ? <Lock /> : <Public />} label={project.status} size="small" sx={{ borderRadius: '6px' }} />
-          </Box>
+          <Stack direction="row" spacing={1} alignItems="center" justifyContent={{ xs: 'space-between', sm: 'flex-end' }}>
+            <StatusPill kind={statusKindFromGate(project.status)} label={project.status || 'idle'} />
+            <Typography variant="caption" sx={{ color: '#86807a', fontFamily: tokens.font.mono }}>
+              {new Date(project.updatedAt).toLocaleDateString('he-IL', { day: '2-digit', month: 'short' })}
+            </Typography>
+          </Stack>
         </Stack>
       </Surface>
     </Link>
   );
 }
 
-const labelChipSx = {
-  bgcolor: 'transparent',
-  color: '#686158',
-  borderRadius: '6px',
-};
+function countByStatus(projects: Project[]) {
+  const map: Record<string, number> = {};
+  for (const project of projects) {
+    const key = (project.status ?? 'idle').toLowerCase();
+    map[key] = (map[key] ?? 0) + 1;
+  }
+  return map;
+}
 
 function filterChipSx(active: boolean) {
   return {
@@ -172,10 +253,6 @@ function filterChipSx(active: boolean) {
     color: tokens.color.text.inverse,
     border: `1px solid ${active ? tokens.color.accent.lime : 'rgba(17,17,17,0.14)'}`,
     fontWeight: 800,
+    cursor: 'pointer',
   };
-}
-
-function normalizeFilter(value: string | null) {
-  const match = filters.find((item) => item.toLowerCase() === value?.toLowerCase());
-  return match ?? 'All';
 }

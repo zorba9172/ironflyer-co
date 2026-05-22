@@ -17,6 +17,7 @@ type Store interface {
 	Get(id string) (domain.Project, error)
 	Create(p domain.Project) (domain.Project, error)
 	Update(id string, fn func(*domain.Project)) (domain.Project, error)
+	Delete(id string) error
 }
 
 type MemoryStore struct {
@@ -113,4 +114,22 @@ func (m *MemoryStore) Update(id string, fn func(*domain.Project)) (domain.Projec
 	p.UpdatedAt = time.Now().UTC()
 	m.byID[id] = p
 	return p, nil
+}
+
+// Delete removes a project from the in-memory store. Idempotent: missing IDs
+// return ErrNotFound so callers can decide whether to treat that as fatal.
+func (m *MemoryStore) Delete(id string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if _, ok := m.byID[id]; !ok {
+		return ErrNotFound
+	}
+	delete(m.byID, id)
+	for i, oid := range m.order {
+		if oid == id {
+			m.order = append(m.order[:i], m.order[i+1:]...)
+			break
+		}
+	}
+	return nil
 }

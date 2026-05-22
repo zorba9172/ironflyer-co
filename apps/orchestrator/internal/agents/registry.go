@@ -6,6 +6,7 @@ package agents
 import (
 	"context"
 	"errors"
+	"strings"
 	"sync"
 
 	"ironflyer/apps/orchestrator/internal/domain"
@@ -23,6 +24,11 @@ const (
 	RoleTester    Role = "tester"
 	RoleSecurity  Role = "security"
 	RoleDeployer  Role = "deployer"
+	// RoleCritic is the post-Coder judge: it reads the proposed patch
+	// against the story + spec and returns structured "missing X, weak Y"
+	// findings the Coder can fix in a single retry without paying for a
+	// full Reviewer re-run. Cheap model by design.
+	RoleCritic Role = "critic"
 )
 
 type Task struct {
@@ -31,6 +37,15 @@ type Task struct {
 	Goal    string
 	Issues  []domain.Issue
 	Hint    string
+	// Context is an optional pre-rendered block of retrieved code (RAG) the
+	// caller wants the agent to ground its reply in. Injected into the user
+	// message between the goal and the issue list. Empty string disables it.
+	Context string
+	// ThinkingBudget, when > 0, overrides the provider-level extended-thinking
+	// budget for this specific call. Used by the orchestrator to allocate
+	// more reasoning tokens to harder steps (architecture, security) and
+	// less to mechanical ones (lint repair, dockerfile generation).
+	ThinkingBudget int
 }
 
 type Result struct {
@@ -107,6 +122,7 @@ func (r *Registry) RunStream(ctx context.Context, task Task) (<-chan providers.D
 		Capabilities:   a.Capabilities,
 		EnableThinking: a.EnableThinking,
 		ProjectContext: projectContext(task.Project),
+		ThinkingBudget: task.ThinkingBudget,
 	})
 }
 
@@ -165,6 +181,9 @@ func buildPrompt(t Task) string {
 	out := "# Goal\n" + t.Goal
 	if t.Hint != "" {
 		out += "\n\n# Hint\n" + t.Hint
+	}
+	if strings.TrimSpace(t.Context) != "" {
+		out += "\n\n" + t.Context
 	}
 	if len(t.Issues) > 0 {
 		out += "\n\n# Issues to repair\n"

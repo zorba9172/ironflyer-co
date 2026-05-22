@@ -1,7 +1,10 @@
 // Package domain holds the core Ironflyer types shared across packages.
 package domain
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 type GateName string
 
@@ -65,6 +68,12 @@ type Project struct {
 	OwnerID string                 `json:"ownerId,omitempty"`
 	Spec    ProductSpec            `json:"spec"`
 	Files   []FileNode             `json:"files"`
+	// Artifacts holds typed, structured documents produced by the finisher
+	// pipeline (plan, stack, screen_map, design_tokens, …). Stored as raw
+	// JSON so callers can evolve the inner shape without a schema lock.
+	// Prefer GetArtifact / SetArtifact over direct map access so nil-safe
+	// behaviour is preserved.
+	Artifacts map[string]json.RawMessage `json:"artifacts,omitempty"`
 	Gates   map[GateName]GateState `json:"gates"`
 	Events  []Event                `json:"events"`
 	GitHub  *GitHubLink            `json:"github,omitempty"`

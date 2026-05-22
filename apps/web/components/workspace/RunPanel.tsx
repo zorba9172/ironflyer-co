@@ -1,0 +1,298 @@
+'use client';
+
+// RunPanel — the right rail. Shows a big "Run Finisher" CTA, the live event
+// timeline coming off the orchestrator's SSE stream, and surfaces gate
+// failures with an inline "Repair" action that triggers a repair run.
+//
+// All copy here matches the rest of the workspace shell language: Hebrew
+// where the surrounding page is Hebrew, English where English. The page
+// itself decides language via the `dir` prop on the parent; we keep our
+// strings short and explicit so they translate well in context.
+
+import { useMemo, useState } from 'react';
+import {
+  Box, Button, Chip, CircularProgress, Collapse, IconButton, LinearProgress, Stack,
+  Tooltip, Typography,
+} from '@mui/material';
+import {
+  AutoAwesome, CheckCircle, Cancel, RestartAlt, RocketLaunch, Bolt, Build,
+  HourglassBottom, Schedule, ExpandLess, ExpandMore,
+} from '@mui/icons-material';
+import { tokens } from '../../lib/theme';
+import { RunEvent, eventSeverity } from '../../lib/api/orchestrator-stream';
+
+interface Props {
+  events: RunEvent[];
+  running: boolean;
+  streamHealthy: boolean;
+  onRun: () => void;
+  onRepair?: (gateKey?: string) => void;
+  emptyHint?: string;
+}
+
+export function RunPanel({ events, running, streamHealthy, onRun, onRepair, emptyHint }: Props) {
+  const lastFailure = useMemo(
+    () => events.slice().reverse().find((e) => eventSeverity(e) === 'danger'),
+    [events],
+  );
+  const progress = useMemo(() => computeProgress(events), [events]);
+
+  return (
+    <Stack spacing={1.2} sx={{ overflowY: 'auto', height: '100%', minHeight: 0 }}>
+      <Box sx={panelSx}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 1.8, pt: 1.6 }}>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <RocketLaunch fontSize="small" sx={{ color: tokens.color.accent.lime }} />
+            <Typography variant="overline" color="text.secondary">Finisher</Typography>
+          </Stack>
+          <Stream pulse={running} healthy={streamHealthy} />
+        </Stack>
+
+        <Box sx={{ px: 1.8, pt: 0.8 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 800, lineHeight: 1.2 }}>
+            {running ? 'מריצים את הגֵייטים…' : 'מוכן להריץ את הסבב'}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.4 }}>
+            {running
+              ? 'הסוכן מתכנן, כותב, בודק ומתקן עד שכל הגֵייטים עוברים.'
+              : 'נריץ ספֵק → UX → קוד → בדיקות → אבטחה → דיפלוי. אם משהו נופל, נתקן ונחזור.'}
+          </Typography>
+        </Box>
+
+        <Box sx={{ px: 1.8, pt: 1.4, pb: 1.6 }}>
+          <Button
+            fullWidth
+            variant="contained"
+            size="large"
+            disabled={running}
+            startIcon={running ? <CircularProgress size={16} sx={{ color: 'currentColor' }} /> : <Bolt />}
+            onClick={onRun}
+            sx={{
+              minHeight: 48,
+              borderRadius: '12px',
+              fontWeight: 900,
+              fontSize: 15,
+            }}
+          >
+            {running ? 'Run in progress' : 'Run Finisher'}
+          </Button>
+          <LinearProgress
+            variant={running ? 'indeterminate' : 'determinate'}
+            value={progress.percent}
+            sx={{
+              mt: 1.2,
+              height: 6,
+              borderRadius: '999px',
+              bgcolor: tokens.color.bg.inset,
+              '& .MuiLinearProgress-bar': {
+                bgcolor: progress.failed ? tokens.color.accent.danger : tokens.color.accent.lime,
+              },
+            }}
+          />
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.6 }}>
+            {progress.label}
+          </Typography>
+        </Box>
+      </Box>
+
+      {lastFailure && (
+        <FailureCard event={lastFailure} onRepair={() => onRepair?.(lastFailure.gate as string | undefined)} />
+      )}
+
+      <Box sx={{ ...panelSx, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 1.8, pt: 1.4, pb: 0.6 }}>
+          <Typography variant="overline" color="text.secondary">Live activity</Typography>
+          <Typography variant="caption" sx={{ color: tokens.color.text.muted, fontFamily: tokens.font.mono }}>
+            {events.length} events
+          </Typography>
+        </Stack>
+
+        <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', px: 1.2, pb: 1.4 }}>
+          {events.length === 0 ? (
+            <EmptyState hint={emptyHint} />
+          ) : (
+            <Stack spacing={0.6} sx={{ pt: 0.6 }}>
+              {events.slice().reverse().map((e) => <TimelineRow key={e.id} event={e} />)}
+            </Stack>
+          )}
+        </Box>
+      </Box>
+    </Stack>
+  );
+}
+
+function FailureCard({ event, onRepair }: { event: RunEvent; onRepair: () => void }) {
+  const [open, setOpen] = useState(true);
+  return (
+    <Box sx={{
+      ...panelSx,
+      borderColor: 'rgba(229, 79, 79, 0.45)',
+      bgcolor: 'rgba(229, 79, 79, 0.06)',
+    }}>
+      <Stack direction="row" alignItems="center" spacing={1} sx={{ px: 1.6, py: 1.2 }}>
+        <Cancel fontSize="small" sx={{ color: tokens.color.accent.danger }} />
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Typography variant="subtitle2" noWrap>
+            {event.gate ? `${event.gate} gate failed` : 'Run failed'}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" noWrap title={event.message}>
+            {event.message}
+          </Typography>
+        </Box>
+        <IconButton size="small" onClick={() => setOpen((v) => !v)}>
+          {open ? <ExpandLess fontSize="small" /> : <ExpandMore fontSize="small" />}
+        </IconButton>
+      </Stack>
+      <Collapse in={open}>
+        <Box sx={{ px: 1.6, pb: 1.4 }}>
+          {event.detail && (
+            <Box sx={{
+              px: 1.2, py: 1, borderRadius: 1.2,
+              bgcolor: tokens.color.bg.inset,
+              fontFamily: tokens.font.mono, fontSize: 12,
+              whiteSpace: 'pre-wrap', color: tokens.color.text.primary,
+              maxHeight: 140, overflow: 'auto',
+            }}>
+              {event.detail}
+            </Box>
+          )}
+          <Button
+            startIcon={<Build fontSize="small" />}
+            variant="contained"
+            size="small"
+            onClick={onRepair}
+            sx={{ mt: 1.2, borderRadius: '10px' }}
+          >
+            Repair this gate
+          </Button>
+        </Box>
+      </Collapse>
+    </Box>
+  );
+}
+
+function TimelineRow({ event }: { event: RunEvent }) {
+  const sev = eventSeverity(event);
+  const colour = SEV_COLOUR[sev];
+  const Icon = SEV_ICON[sev];
+  return (
+    <Stack direction="row" spacing={1} sx={{ px: 0.6, py: 0.5, borderRadius: 1.1 }}>
+      <Box sx={{
+        mt: 0.3, width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+        display: 'grid', placeItems: 'center',
+        bgcolor: `${colour}1f`,
+        color: colour,
+      }}>
+        <Icon sx={{ fontSize: 14 }} />
+      </Box>
+      <Box sx={{ minWidth: 0, flex: 1 }}>
+        <Stack direction="row" spacing={0.8} alignItems="baseline" sx={{ minWidth: 0 }}>
+          <Typography variant="caption" sx={{ fontWeight: 800, color: tokens.color.text.primary }}>
+            {event.gate ?? event.step ?? event.kind.replace(/_/g, ' ')}
+          </Typography>
+          <Typography variant="caption" sx={{ color: tokens.color.text.muted, fontFamily: tokens.font.mono, fontSize: 10 }}>
+            {formatTime(event.createdAt)}
+          </Typography>
+        </Stack>
+        <Typography
+          variant="caption"
+          sx={{ display: 'block', color: tokens.color.text.secondary, mt: 0.1 }}
+          title={event.message}
+        >
+          {event.message}
+        </Typography>
+      </Box>
+    </Stack>
+  );
+}
+
+function EmptyState({ hint }: { hint?: string }) {
+  return (
+    <Stack alignItems="center" spacing={1} sx={{ py: 3, textAlign: 'center', px: 1.5 }}>
+      <Box sx={{
+        width: 44, height: 44, borderRadius: '50%',
+        display: 'grid', placeItems: 'center',
+        bgcolor: tokens.color.bg.inset,
+        color: tokens.color.text.muted,
+      }}>
+        <AutoAwesome fontSize="small" />
+      </Box>
+      <Typography variant="body2" sx={{ fontWeight: 700 }}>
+        עדיין אין פעילות
+      </Typography>
+      <Typography variant="caption" color="text.secondary" sx={{ maxWidth: 220 }}>
+        {hint ?? 'הריצו את ה־Finisher כדי לראות את הסוכן עובד בזמן אמת.'}
+      </Typography>
+    </Stack>
+  );
+}
+
+function Stream({ pulse, healthy }: { pulse: boolean; healthy: boolean }) {
+  const colour = healthy ? tokens.color.accent.lime : tokens.color.accent.warning;
+  return (
+    <Tooltip title={healthy ? 'Live stream connected' : 'Reconnecting…'}>
+      <Stack direction="row" alignItems="center" spacing={0.6}>
+        <Box sx={{
+          width: 8, height: 8, borderRadius: '50%', bgcolor: colour,
+          boxShadow: pulse ? `0 0 0 0 ${colour}` : 'none',
+          animation: pulse ? 'rp-pulse 1.4s ease-out infinite' : 'none',
+          '@keyframes rp-pulse': {
+            '0%':   { boxShadow: `0 0 0 0 ${colour}66` },
+            '70%':  { boxShadow: `0 0 0 8px ${colour}00` },
+            '100%': { boxShadow: `0 0 0 0 ${colour}00` },
+          },
+        }} />
+        <Typography variant="caption" sx={{ fontFamily: tokens.font.mono, color: tokens.color.text.muted, fontSize: 10 }}>
+          live
+        </Typography>
+      </Stack>
+    </Tooltip>
+  );
+}
+
+const SEV_COLOUR: Record<'info' | 'success' | 'danger' | 'progress', string> = {
+  info: tokens.color.text.muted,
+  success: tokens.color.accent.success,
+  danger: tokens.color.accent.danger,
+  progress: tokens.color.accent.lime,
+};
+
+const SEV_ICON: Record<'info' | 'success' | 'danger' | 'progress', typeof CheckCircle> = {
+  info: Schedule,
+  success: CheckCircle,
+  danger: Cancel,
+  progress: HourglassBottom,
+};
+
+function computeProgress(events: RunEvent[]): { percent: number; failed: boolean; label: string } {
+  const passed = events.filter((e) => e.kind === 'gate_passed').length;
+  const failed = events.some((e) => e.kind === 'gate_failed' || e.kind === 'run_failed');
+  const complete = events.some((e) => e.kind === 'run_complete');
+  // 8 gates total — match GATE_ORDER in the workspace shell.
+  const total = 8;
+  const percent = complete ? 100 : Math.min(100, Math.round((passed / total) * 100));
+  const label = complete
+    ? 'הריצה הסתיימה — כל הגֵייטים עברו.'
+    : failed
+      ? `${passed}/${total} עברו — נדרש תיקון.`
+      : passed === 0
+        ? 'הסוכן ממתין לקלט.'
+        : `${passed}/${total} עברו.`;
+  return { percent, failed, label };
+}
+
+function formatTime(iso: string): string {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  } catch {
+    return '';
+  }
+}
+
+const panelSx = {
+  borderRadius: '14px',
+  border: '1px solid rgba(17,17,17,0.12)',
+  bgcolor: tokens.color.bg.surface,
+  overflow: 'hidden',
+};

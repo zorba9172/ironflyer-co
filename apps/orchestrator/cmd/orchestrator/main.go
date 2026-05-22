@@ -22,10 +22,13 @@ import (
 	"ironflyer/apps/orchestrator/internal/integrations"
 	"ironflyer/apps/orchestrator/internal/integrations/github"
 	"ironflyer/apps/orchestrator/internal/leads"
+	"ironflyer/apps/orchestrator/internal/notify"
 	"ironflyer/apps/orchestrator/internal/patch"
 	"ironflyer/apps/orchestrator/internal/providers"
 	"ironflyer/apps/orchestrator/internal/runtime"
 	"ironflyer/apps/orchestrator/internal/store"
+	"ironflyer/apps/orchestrator/internal/webhooks"
+	"ironflyer/apps/orchestrator/internal/workflow"
 )
 
 func main() {
@@ -186,10 +189,30 @@ func main() {
 
 	patches := patch.NewEngine(projects)
 	runtimeClient := runtime.New(cfg.RuntimeURL)
-	engine := finisher.NewEngine(projects, registry, patches).WithRuntime(runtimeClient)
+	engine := finisher.NewEngine(projects, registry, patches).
+		WithRuntime(runtimeClient).
+		WithApplier(runtime.NewApplier(runtimeClient))
 	if runtimeClient.Enabled() {
-		logger.Info().Str("runtime", cfg.RuntimeURL).Msg("finisher build/test gates can exec inside workspaces")
+		logger.Info().Str("runtime", cfg.RuntimeURL).
+			Msg("finisher wired to runtime: build/test gates exec inside workspaces; approved patches materialise via the File API")
+	} else {
+		logger.Warn().Msg("runtime not configured — finisher patches will validate but not materialise (set IRONFLYER_RUNTIME_URL)")
 	}
+
+	// ---------------- Webhooks + Notifications (optional, nil-safe) ---------
+	// Each piece may be nil; the HTTP handlers return 503 on missing deps so a
+	// partial config (no email provider, no postgres) still boots cleanly.
+	webhookStore := webhooks.NewMemoryStore()
+	webhookDispatcher := webhooks.NewDispatcher(webhookStore, logger)
+	prefsStore := notify.NewMemoryPrefsStore()
+	emailSender := notify.SenderFromEnv(cfg.EmailProvider, cfg.EmailAPIKey, cfg.EmailFromAddress, logger)
+	notifyEngine := notify.NewEngine(projects, prefsStore, emailSender, webhookDispatcher, logger).
+		WithDashboardURL(cfg.DashboardURL)
+	webhookDispatcher.WithNotifier(notifyEngine) // auto-disabled webhooks email the user
+	notifyEngine.SubscribeAll(ctx, engine)
+	logger.Info().Str("email_provider", cfg.EmailProvider).
+		Bool("webhooks", webhookStore != nil).
+		Msg("notification pipeline online")
 
 	api := httpapi.New(httpapi.Deps{
 		Projects: projects, Engine: engine, Agents: registry, Patches: patches,
@@ -197,6 +220,8 @@ func main() {
 		Auth: authSvc, AuthOptional: cfg.AuthOptional, Stripe: stripeSvc, Leads: leadStore,
 		GitHub: githubSvc, GitHubTokens: tokenStore, GitHubPostLoginURL: cfg.GitHubPostLoginURL,
 		RuntimeURL: cfg.RuntimeURL,
+		Webhooks:   webhookStore, WebhookDispatcher: webhookDispatcher,
+		NotifyPrefs: prefsStore, Notify: notifyEngine,
 		Logger: logger,
 	})
 
@@ -213,6 +238,32 @@ func main() {
 			logger.Fatal().Err(err).Msg("server")
 		}
 	}()
+
+	// ---------------- Temporal worker (optional) ---------------------------
+	// Only start a worker when IRONFLYER_TEMPORAL_HOST is explicitly set.
+	// Embedded executor remains the default and stays untouched. Worker
+	// failures degrade gracefully — a warn log, no fatal — so a misconfigured
+	// Temporal host never blocks the rest of the orchestrator from serving.
+	if cfg.TemporalHost != "" {
+		acts := workflow.NewActivities(projects, registry).WithRuntime(runtimeClient)
+		_, tStop, tErr := workflow.StartWorker(workflow.WorkerOptions{
+			TemporalAddr: cfg.TemporalHost,
+			Namespace:    cfg.TemporalNamespace,
+			TaskQueue:    cfg.TemporalTaskQueue,
+		}, acts, logger)
+		if tErr != nil {
+			logger.Warn().Err(tErr).Str("host", cfg.TemporalHost).
+				Msg("temporal worker disabled")
+		} else {
+			logger.Info().Str("host", cfg.TemporalHost).
+				Str("ns", cfg.TemporalNamespace).
+				Str("queue", cfg.TemporalTaskQueue).
+				Msg("temporal worker online")
+			defer tStop()
+		}
+	} else {
+		logger.Info().Msg("temporal worker skipped (IRONFLYER_TEMPORAL_HOST not set)")
+	}
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)

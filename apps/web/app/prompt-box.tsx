@@ -91,7 +91,7 @@ export function PromptBox({
   const isPreview = size === 'preview';
   const isDashboard = size === 'dashboard';
   const isLightSurface = isHero || isPreview || isDashboard;
-  const showFullTools = !isHero && !isPreview;
+  const showFullTools = !isHero && !isPreview && !isDashboard;
   const draftKey = `ironflyer.promptDraft.${size}`;
   const historyKey = 'ironflyer.promptHistory';
 
@@ -252,9 +252,9 @@ export function PromptBox({
     <Box sx={{
 	      width: '100%',
 	      border: `1px solid ${isLightSurface ? 'rgba(17,17,17,0.12)' : tokens.color.border.strong}`,
-	      borderRadius: '8px',
-	      backgroundColor: isLightSurface ? 'rgba(244,240,232,0.96)' : 'rgba(13,14,15,0.92)',
-	      boxShadow: isHero ? tokens.shadow.lg : isDashboard ? '0 18px 60px rgba(17,17,17,0.12)' : tokens.shadow.md,
+	      borderRadius: isHero ? '20px' : '8px',
+	      backgroundColor: isLightSurface ? 'rgba(255,253,247,0.98)' : 'rgba(13,14,15,0.92)',
+	      boxShadow: isHero ? '0 30px 80px rgba(13,14,15,0.18), 0 0 0 1px rgba(13,14,15,0.04)' : isDashboard ? '0 18px 60px rgba(17,17,17,0.12)' : tokens.shadow.md,
 	      color: isLightSurface ? tokens.color.text.inverse : tokens.color.text.primary,
 	      overflow: 'hidden',
 	      transition: `box-shadow ${tokens.motion.base} ${tokens.motion.curve}, transform ${tokens.motion.base} ${tokens.motion.curve}`,
@@ -262,11 +262,11 @@ export function PromptBox({
 	        boxShadow: isLightSurface ? '0 0 0 3px rgba(229,255,0,0.18)' : '0 0 0 3px rgba(229,255,0,0.24)',
 	      },
 	    }}>
-      <Box sx={{ px: { xs: 1.5, sm: 2 }, pt: { xs: 1.5, sm: 2 } }}>
+      <Box sx={{ px: { xs: 2, sm: isHero ? 3 : 2 }, pt: { xs: 2, sm: isHero ? 2.8 : 2 } }}>
         <TextField
           fullWidth
           multiline
-          minRows={isHero ? 3 : isPreview ? 1 : isDashboard ? 2 : 3}
+          minRows={isHero ? 4 : isPreview ? 1 : isDashboard ? 2 : 3}
           maxRows={8}
           value={prompt}
           onChange={(event) => setPrompt(event.target.value)}
@@ -286,7 +286,7 @@ export function PromptBox({
               bgcolor: 'transparent',
               borderRadius: 0,
               color: isLightSurface ? tokens.color.text.inverse : tokens.color.text.primary,
-              fontSize: isHero ? { xs: 17, md: 22 } : { xs: 15, md: 16 },
+              fontSize: isHero ? { xs: 18, md: 24 } : { xs: 15, md: 16 },
               fontWeight: 700,
               lineHeight: 1.35,
               '& fieldset': { border: 'none' },
@@ -303,13 +303,13 @@ export function PromptBox({
       </Box>
 
       <Stack
-        direction={{ xs: 'column', sm: 'row' }}
-        alignItems={{ xs: 'stretch', sm: 'center' }}
+        direction={isDashboard ? 'row' : { xs: 'column', sm: 'row' }}
+        alignItems={isDashboard ? 'center' : { xs: 'stretch', sm: 'center' }}
         justifyContent="space-between"
-        spacing={1.5}
-        sx={{ px: { xs: 1.25, sm: 1.5 }, py: 1.1 }}
+        spacing={isDashboard ? 1 : 1.5}
+        sx={{ px: { xs: 1.5, sm: isHero ? 2.4 : 1.5 }, py: isHero ? 1.6 : 1.1 }}
       >
-        <Stack direction="row" spacing={0.55} alignItems="center" useFlexGap flexWrap="wrap">
+        <Stack direction="row" spacing={0.55} alignItems="center" useFlexGap flexWrap="wrap" sx={{ minWidth: 0 }}>
           <input
             ref={fileInputRef}
             type="file"
@@ -317,12 +317,17 @@ export function PromptBox({
             hidden
             onChange={(event) => addFiles(event.target.files)}
           />
-          <Tooltip title="Attach screenshots or docs">
+          <Tooltip title={isDashboard ? 'Attach file' : 'Attach screenshots or docs'}>
             <IconButton
               size="small"
               sx={toolButtonSx(isLightSurface)}
               onClick={(event) => {
-                if (!isPreview) setMenuAnchor(event.currentTarget);
+                if (isPreview) return;
+                if (isDashboard) {
+                  fileInputRef.current?.click();
+                  return;
+                }
+                setMenuAnchor(event.currentTarget);
               }}
             >
               <Add fontSize="small" />
@@ -342,8 +347,8 @@ export function PromptBox({
           )}
         </Stack>
 
-        <Stack direction="row" spacing={0.75} alignItems="center" justifyContent={{ xs: 'space-between', sm: 'flex-end' }}>
-          {!isPreview && (
+        <Stack direction="row" spacing={0.75} alignItems="center" justifyContent={{ xs: 'flex-end', sm: 'flex-end' }} sx={{ ml: 'auto' }}>
+          {!isPreview && !isDashboard && (
             <Stack direction="row" sx={{
 	              p: 0.35,
 	              border: `1px solid ${isLightSurface ? 'rgba(17,17,17,0.14)' : tokens.color.border.strong}`,
@@ -376,9 +381,11 @@ export function PromptBox({
             onClick={() => { if (!isPreview) submit(); }}
             endIcon={<ArrowUpward />}
 	            sx={{
-	              minWidth: isHero ? 112 : 92,
-	              borderRadius: '8px',
-	              py: 1,
+	              minWidth: isHero ? 124 : 92,
+	              borderRadius: isHero ? '12px' : '8px',
+	              py: isHero ? 1.3 : 1,
+	              px: isHero ? 2.6 : 2,
+	              fontWeight: 800,
               '&.Mui-disabled': {
                 bgcolor: isLightSurface ? 'rgba(17,17,17,0.08)' : 'rgba(244,240,232,0.1)',
                 color: isLightSurface ? 'rgba(17,17,17,0.32)' : 'rgba(244,240,232,0.32)',

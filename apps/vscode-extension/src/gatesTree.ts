@@ -57,19 +57,29 @@ export class GatesTree implements vscode.TreeDataProvider<Node> {
     }
     if (node.kind === 'gate') {
       const issueCount = node.gate.issues?.length ?? 0;
+      // Failed gates auto-expand so the user sees the reason without an
+      // extra click — pending gates with no issues stay collapsed.
       const collapsible = issueCount > 0
-        ? vscode.TreeItemCollapsibleState.Collapsed
+        ? (node.gate.status === 'failed'
+            ? vscode.TreeItemCollapsibleState.Expanded
+            : vscode.TreeItemCollapsibleState.Collapsed)
         : vscode.TreeItemCollapsibleState.None;
       const item = new vscode.TreeItem(node.gate.name, collapsible);
       const parts: string[] = [node.gate.status];
       if (issueCount > 0) parts.push(`${issueCount} issue${issueCount === 1 ? '' : 's'}`);
+      const ago = humanAgo(node.gate.updatedAt);
+      if (ago) parts.push(ago);
       item.description = parts.join(' · ');
       const color = gateColorId(node.gate.status);
       item.iconPath = new vscode.ThemeIcon(
         gateIcon(node.gate.status),
         color ? new vscode.ThemeColor(color) : undefined,
       );
-      item.tooltip = `${node.gate.name} — last updated ${node.gate.updatedAt}`;
+      item.tooltip = new vscode.MarkdownString(
+        `**${node.gate.name}** · ${node.gate.status}\n\n` +
+        (node.gate.updatedAt ? `_Last update: ${node.gate.updatedAt}_\n\n` : '') +
+        (issueCount > 0 ? `${issueCount} issue${issueCount === 1 ? '' : 's'} — right-click to re-run.` : 'Right-click to re-run this gate.'),
+      );
       item.contextValue = `ironflyer.gate.${node.gate.status}`;
       return item;
     }
@@ -122,4 +132,24 @@ export class GatesTree implements vscode.TreeDataProvider<Node> {
     }
     return p;
   }
+}
+
+/**
+ * "5m ago" / "3h ago" / "" for unknown. Kept tiny so the gates tree
+ * description doesn't end up dominated by ISO timestamps.
+ */
+function humanAgo(iso: string | undefined): string {
+  if (!iso) return '';
+  const t = Date.parse(iso);
+  if (Number.isNaN(t)) return '';
+  const diff = Date.now() - t;
+  if (diff < 0) return '';
+  const s = Math.floor(diff / 1000);
+  if (s < 60) return `${s}s ago`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  return `${d}d ago`;
 }

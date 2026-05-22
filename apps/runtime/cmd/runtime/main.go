@@ -43,9 +43,25 @@ func main() {
 		logger.Warn().Msg("runtime auth disabled (IRONFLYER_JWT_SECRET empty)")
 	}
 
+	previewSecret := []byte(cfg.PreviewTokenSecret)
+	if len(previewSecret) == 0 && cfg.JWTSecret != "" {
+		// Reuse the JWT secret so preview tokens survive restarts in any
+		// deployment that has JWT configured. Still distinct domain via
+		// the token payload, but the key material can safely be shared
+		// because the signing protocols don't overlap.
+		previewSecret = []byte(cfg.JWTSecret)
+	}
 	server := &http.Server{
-		Addr:              cfg.Addr,
-		Handler:           httpapi.New(mgr, cfg.CORSOrigin, verifier, logger),
+		Addr: cfg.Addr,
+		Handler: httpapi.New(mgr, httpapi.Options{
+			CORSOrigin:      cfg.CORSOrigin,
+			Verifier:        verifier,
+			PreviewPrefix:   cfg.PreviewPrefix,
+			AllowedPorts:    cfg.AllowedPreviewPorts,
+			PreviewSecret:   previewSecret,
+			PreviewTokenTTL: cfg.PreviewTokenTTL,
+			MaxWorkspaces:   cfg.MaxWorkspaces,
+		}, logger),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 	go func() {

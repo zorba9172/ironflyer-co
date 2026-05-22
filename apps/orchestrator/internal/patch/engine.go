@@ -50,16 +50,18 @@ type Patch struct {
 }
 
 type Engine struct {
-	mu       sync.RWMutex
-	projects store.Store
-	patches  map[string]Patch
-	order    []string
+	mu        sync.RWMutex
+	projects  store.Store
+	patches   map[string]Patch
+	order     []string
+	snapshots *snapshotStore
 }
 
 func NewEngine(projects store.Store) *Engine {
 	return &Engine{
-		projects: projects,
-		patches:  make(map[string]Patch),
+		projects:  projects,
+		patches:   make(map[string]Patch),
+		snapshots: newSnapshotStore(),
 	}
 }
 
@@ -110,6 +112,11 @@ func (e *Engine) Validate(p Patch) []domain.Issue {
 			issues = append(issues, domain.Issue{Severity: domain.SeverityError, Message: "unknown op: " + string(c.Op), Path: c.Path})
 		}
 	}
+	// Deterministic syntax pre-check on the proposed file bodies. Runs in
+	// milliseconds and rejects obvious LLM hallucinations (broken Go,
+	// malformed JSON / YAML, unbalanced delimiters in TS/JS/Python/etc.)
+	// before they ever land on disk or trigger a Reviewer round-trip.
+	issues = append(issues, syntaxIssues(p.Changes)...)
 	return issues
 }
 
@@ -122,6 +129,15 @@ func (e *Engine) Apply(id string) (Patch, error) {
 	}
 	if p.Status != StatusValidated {
 		return Patch{}, errors.New("patch not validated")
+	}
+
+	// Take a pre-apply snapshot so a downstream gate verification failure
+	// (or an explicit Engine.Rollback call) can restore the tree to its
+	// previous state without depending on the AI to re-author the inverse
+	// patch. We snapshot regardless of whether the caller will use it — the
+	// per-project ring is bounded so the memory cost is fixed.
+	if _, snapErr := e.Snapshot(p.ProjectID, p.ID, "pre-apply: "+p.Title); snapErr != nil {
+		return Patch{}, snapErr
 	}
 
 	_, err := e.projects.Update(p.ProjectID, func(proj *domain.Project) {

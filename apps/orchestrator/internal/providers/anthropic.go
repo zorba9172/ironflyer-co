@@ -65,7 +65,11 @@ func (a *AnthropicProvider) CompleteStream(ctx context.Context, req Request) (<-
 		Messages:  messages,
 	}
 	if req.EnableThinking {
-		params.Thinking = anthropic.ThinkingConfigParamOfEnabled(a.thinkingBudget)
+		budget := a.thinkingBudget
+		if req.ThinkingBudget > 0 {
+			budget = int64(req.ThinkingBudget)
+		}
+		params.Thinking = anthropic.ThinkingConfigParamOfEnabled(budget)
 	}
 	// Tools passthrough (lightweight subset — custom tools only).
 	if len(req.Tools) > 0 {

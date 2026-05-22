@@ -2,18 +2,36 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Box, Button, Chip, Stack, Typography } from '@mui/material';
-import { Folder, Home, Hub, Search, Settings } from '@mui/icons-material';
-import { api, Project } from '../../../lib/api';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Box, Button, InputAdornment, Stack, TextField, Typography } from '@mui/material';
+import {
+  AutoAwesome, BoltOutlined, Folder, GavelOutlined, Hub, Search,
+} from '@mui/icons-material';
+import { api, ExecutionEvent, Project } from '../../../lib/api';
 import { tokens } from '../../../lib/theme';
 import { RequireAuth, useAuth } from '../../auth-context';
 import { AppShell, PageTitle, Surface } from '../workspace-shell';
+import { EmptyState, ErrorBox, SkeletonGrid, StatusPill, statusKindFromGate } from '../../../components/dashboard';
 
-const quickLinks = [
-  { label: 'Dashboard', href: '/app', icon: <Home fontSize="small" /> },
-  { label: 'Workspace settings', href: '/app/settings', icon: <Settings fontSize="small" /> },
-  { label: 'Connectors', href: '/app/connectors', icon: <Hub fontSize="small" /> },
-  { label: 'All projects', href: '/app/projects', icon: <Folder fontSize="small" /> },
+type ResultKind = 'project' | 'patch' | 'gate' | 'nav';
+
+interface SearchHit {
+  id: string;
+  kind: ResultKind;
+  title: string;
+  subtitle?: string;
+  href: string;
+  status?: string;
+}
+
+const quickLinks: SearchHit[] = [
+  { id: 'nav-home',       kind: 'nav', title: 'לוח הבקרה',     href: '/app',                    subtitle: 'מסך פתיחה' },
+  { id: 'nav-projects',   kind: 'nav', title: 'הפרויקטים שלי', href: '/app/projects',           subtitle: 'כל הפרויקטים' },
+  { id: 'nav-resources',  kind: 'nav', title: 'תבניות וקישורים', href: '/app/resources',         subtitle: 'מסכי משאבים' },
+  { id: 'nav-connectors', kind: 'nav', title: 'מחברים',          href: '/app/connectors',        subtitle: 'אינטגרציות' },
+  { id: 'nav-settings',   kind: 'nav', title: 'הגדרות חשבון',    href: '/app/settings?tab=account', subtitle: 'פרופיל' },
+  { id: 'nav-billing',    kind: 'nav', title: 'חיוב ותקציב',     href: '/app/settings?tab=billing', subtitle: 'חבילות' },
+  { id: 'nav-vault',      kind: 'nav', title: 'כספת',            href: '/app/settings?tab=vault',   subtitle: 'מרווח' },
 ];
 
 export default function SearchPage() {
@@ -26,86 +44,223 @@ export default function SearchPage() {
 
 function SearchInner() {
   const { user, logout } = useAuth();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const initialQ = searchParams.get('q') ?? '';
+
   const [projects, setProjects] = useState<Project[]>([]);
-  const [query, setQuery] = useState('');
-  const [view, setView] = useState<'grid' | 'list'>('grid');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState(initialQ);
+  const [debouncedQuery, setDebouncedQuery] = useState(initialQ.trim().toLowerCase());
 
   useEffect(() => {
-    void api.listProjects().then(setProjects).catch(() => setProjects([]));
+    let alive = true;
+    setLoading(true);
+    api.listProjects()
+      .then((next) => { if (alive) setProjects(next); })
+      .catch((e) => { if (alive) setError(e instanceof Error ? e.message : String(e)); })
+      .finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
   }, []);
 
-  const results = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return projects.slice(0, 6);
-    return projects.filter((project) => `${project.name} ${project.description} ${project.spec.idea}`.toLowerCase().includes(q));
-  }, [projects, query]);
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      setDebouncedQuery(query.trim().toLowerCase());
+      const params = new URLSearchParams(searchParams.toString());
+      if (query.trim()) params.set('q', query.trim()); else params.delete('q');
+      router.replace(`/app/search${params.toString() ? `?${params.toString()}` : ''}`);
+    }, 220);
+    return () => clearTimeout(handle);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
+
+  const results = useMemo(() => searchAll(projects, debouncedQuery), [projects, debouncedQuery]);
+
+  const grouped = useMemo(() => ({
+    projects: results.filter((r) => r.kind === 'project'),
+    patches:  results.filter((r) => r.kind === 'patch'),
+    gates:    results.filter((r) => r.kind === 'gate'),
+    nav:      results.filter((r) => r.kind === 'nav'),
+  }), [results]);
+
+  const hasAny = results.length > 0;
 
   return (
-    <AppShell userEmail={user?.email ?? 'workspace'} recents={projects.slice(0, 5)} onLogout={logout} query={query} setQuery={setQuery} view={view} setView={setView}>
+    <AppShell userEmail={user?.email ?? 'workspace'} recents={projects.slice(0, 5)} onLogout={logout}>
       <PageTitle
-        eyebrow="Command palette"
-        title="Search anything"
-        subtitle="A focused command surface for projects, folders, settings, connectors, and workspace actions."
+        eyebrow="חיפוש"
+        title="חיפוש בכל הסביבה"
+        subtitle="חיפוש פרויקטים, פאצ׳ים, גייטים וניווט. הנתונים נשמרים מקומית עד שתשתמשי במנוע חיפוש מלא."
       />
 
-      <Surface sx={{ p: { xs: 1.6, md: 2.2 }, mb: 2 }}>
-        <Stack direction="row" spacing={1.3} alignItems="center">
-          <Search sx={{ color: tokens.color.accent.lime }} />
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="overline" color="text.secondary">Type in the top search field</Typography>
-            <Typography variant="body2">Results update live and stay grouped by project or navigation target.</Typography>
-          </Box>
-          <Chip label="Cmd K" sx={{ borderRadius: '6px', bgcolor: '#fffaf1', border: '1px solid rgba(17,17,17,0.12)' }} />
-        </Stack>
+      <Surface sx={{ p: 1.4, mb: 1.8 }}>
+        <TextField
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="הקלד שם פרויקט, פאצ׳, גייט או יעד ניווט..."
+          fullWidth
+          autoFocus
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search />
+              </InputAdornment>
+            ),
+          }}
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              bgcolor: '#fffaf1',
+              borderRadius: '10px',
+              fontSize: '1.05rem',
+              py: 0.3,
+            },
+          }}
+        />
+        <Typography variant="caption" sx={{ color: '#86807a', display: 'block', mt: 1, px: 0.4 }}>
+          חיפוש מתבצע מקומית על הפרויקטים שלך, ההיסטוריה והניווט. תוצאות מסומנות לפי סוג.
+        </Typography>
       </Surface>
 
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 360px' }, gap: 1.5 }}>
-        <Surface sx={{ p: 1.2 }}>
-          <Typography variant="overline" color="text.secondary" sx={{ px: 1 }}>Projects</Typography>
-          {results.length === 0 ? (
-            <Box sx={{ px: 1, py: 3 }}>
-              <Typography variant="subtitle2">No project results</Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.4 }}>
-                Try a different project name, prompt, or status.
-              </Typography>
-            </Box>
-          ) : (
-            <Stack spacing={0.5} sx={{ mt: 0.8 }}>
-              {results.map((project) => (
-                <Button key={project.id} component={Link} href={`/projects/${project.id}`} sx={resultButtonSx}>
-                  <Box sx={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-                    <Typography variant="subtitle2" noWrap>{project.name}</Typography>
-                    <Typography variant="caption" color="text.secondary" noWrap>{project.description || project.spec.idea}</Typography>
-                  </Box>
-                  <Chip label={project.status} size="small" sx={{ borderRadius: '6px' }} />
-                </Button>
-              ))}
-            </Stack>
-          )}
-        </Surface>
+      {error && (
+        <Box sx={{ mb: 1.4 }}>
+          <ErrorBox title="שגיאה בטעינת תוצאות" description={error} onRetry={() => window.location.reload()} />
+        </Box>
+      )}
 
-        <Surface sx={{ p: 1.2 }}>
-          <Typography variant="overline" color="text.secondary" sx={{ px: 1 }}>Quick navigation</Typography>
-          <Stack spacing={0.5} sx={{ mt: 0.8 }}>
-            {quickLinks.map((item) => (
-              <Button key={item.label} component={Link} href={item.href} startIcon={item.icon} sx={resultButtonSx}>
-                {item.label}
-              </Button>
-            ))}
-          </Stack>
-        </Surface>
-      </Box>
+      {loading ? (
+        <SkeletonGrid columns={1} count={4} minHeight={70} />
+      ) : !debouncedQuery ? (
+        <ResultGroup
+          title="ניווט מהיר"
+          icon={<Hub fontSize="small" />}
+          hits={quickLinks}
+        />
+      ) : !hasAny ? (
+        <EmptyState
+          illustration="empty"
+          title="אין תוצאות"
+          description={`לא מצאנו התאמות עבור "${query}". נסי חיפוש אחר, או פתחי את רשימת הפרויקטים.`}
+          primaryLabel="כל הפרויקטים"
+          onPrimary={() => router.push('/app/projects')}
+        />
+      ) : (
+        <Stack spacing={1.4}>
+          <ResultGroup title="פרויקטים" icon={<Folder fontSize="small" />} hits={grouped.projects} />
+          <ResultGroup title="פאצ׳ים" icon={<BoltOutlined fontSize="small" />} hits={grouped.patches} />
+          <ResultGroup title="גייטים" icon={<GavelOutlined fontSize="small" />} hits={grouped.gates} />
+          <ResultGroup title="ניווט" icon={<Hub fontSize="small" />} hits={grouped.nav} />
+        </Stack>
+      )}
     </AppShell>
   );
 }
 
-const resultButtonSx = {
-  width: '100%',
-  justifyContent: 'flex-start',
-  color: tokens.color.text.primary,
-  bgcolor: 'transparent',
-  borderRadius: '8px',
-  px: 1,
-  py: 1,
-  '&:hover': { bgcolor: 'rgba(17,17,17,0.06)' },
-};
+function ResultGroup({ title, icon, hits }: { title: string; icon: React.ReactNode; hits: SearchHit[] }) {
+  if (hits.length === 0) return null;
+  return (
+    <Surface sx={{ p: 0, overflow: 'hidden' }}>
+      <Stack direction="row" spacing={1} alignItems="center" sx={{ px: 1.8, py: 1.1, borderBottom: '1px solid rgba(17,17,17,0.08)' }}>
+        {icon}
+        <Typography variant="subtitle2" sx={{ fontWeight: 900 }}>{title}</Typography>
+        <Typography variant="caption" sx={{ color: '#86807a' }}>· {hits.length}</Typography>
+      </Stack>
+      <Stack divider={<Box sx={{ borderTop: '1px solid rgba(17,17,17,0.06)' }} />}>
+        {hits.map((hit) => <ResultRow key={hit.id} hit={hit} />)}
+      </Stack>
+    </Surface>
+  );
+}
+
+function ResultRow({ hit }: { hit: SearchHit }) {
+  return (
+    <Stack
+      component={Link}
+      href={hit.href}
+      direction="row"
+      spacing={1.4}
+      alignItems="center"
+      sx={{
+        px: 1.8, py: 1.2,
+        color: 'inherit',
+        textDecoration: 'none',
+        transition: 'background-color 160ms',
+        '&:hover': { bgcolor: 'rgba(229,255,0,0.12)' },
+      }}
+    >
+      <Box sx={{ width: 30, height: 30, borderRadius: '8px', bgcolor: '#fffaf1', border: '1px solid rgba(17,17,17,0.12)', display: 'grid', placeItems: 'center' }}>
+        {iconFor(hit.kind)}
+      </Box>
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Typography variant="subtitle2" noWrap sx={{ fontWeight: 800 }}>{hit.title}</Typography>
+        {hit.subtitle && <Typography variant="caption" sx={{ color: '#86807a' }} noWrap>{hit.subtitle}</Typography>}
+      </Box>
+      {hit.status && (
+        <StatusPill kind={statusKindFromGate(hit.status)} label={hit.status} />
+      )}
+    </Stack>
+  );
+}
+
+function iconFor(kind: ResultKind) {
+  if (kind === 'project') return <Folder fontSize="small" />;
+  if (kind === 'patch')   return <BoltOutlined fontSize="small" />;
+  if (kind === 'gate')    return <GavelOutlined fontSize="small" />;
+  return <AutoAwesome fontSize="small" />;
+}
+
+function searchAll(projects: Project[], q: string): SearchHit[] {
+  if (!q) return [];
+  const hits: SearchHit[] = [];
+
+  for (const project of projects) {
+    const hay = `${project.name} ${project.description} ${project.spec?.idea ?? ''} ${project.status}`.toLowerCase();
+    if (hay.includes(q)) {
+      hits.push({
+        id: `p:${project.id}`,
+        kind: 'project',
+        title: project.name,
+        subtitle: project.description || project.spec?.idea || 'פרויקט',
+        href: `/projects/${project.id}`,
+        status: project.status,
+      });
+    }
+    const events: ExecutionEvent[] = Array.isArray(project.events) ? project.events : [];
+    for (const ev of events) {
+      const evHay = `${ev.message} ${ev.step} ${ev.agent ?? ''} ${ev.status}`.toLowerCase();
+      if (!evHay.includes(q)) continue;
+      const isGate = ev.gate || (ev.step ?? '').toLowerCase().includes('gate');
+      hits.push({
+        id: `e:${project.id}:${ev.id}`,
+        kind: isGate ? 'gate' : 'patch',
+        title: ev.message.slice(0, 90),
+        subtitle: `${project.name} · ${ev.agent || ev.step}`,
+        href: `/projects/${project.id}`,
+        status: ev.status,
+      });
+    }
+    const gates = project.gates ?? ({} as Project['gates']);
+    for (const gateName of Object.keys(gates) as Array<keyof typeof gates>) {
+      const gate = gates[gateName];
+      if (!gate) continue;
+      const gateHay = `${gateName} ${gate.status}`.toLowerCase();
+      if (!gateHay.includes(q)) continue;
+      hits.push({
+        id: `g:${project.id}:${gateName}`,
+        kind: 'gate',
+        title: `Gate ${gateName} — ${gate.status}`,
+        subtitle: `${project.name}`,
+        href: `/projects/${project.id}`,
+        status: gate.status,
+      });
+    }
+  }
+
+  for (const link of quickLinks) {
+    if (`${link.title} ${link.subtitle ?? ''}`.toLowerCase().includes(q)) {
+      hits.push(link);
+    }
+  }
+
+  return hits.slice(0, 80);
+}

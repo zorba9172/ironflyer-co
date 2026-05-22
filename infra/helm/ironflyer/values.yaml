@@ -17,8 +17,26 @@ orchestrator:
   enabled: true
   replicas: 2
   resources:
-    requests: { cpu: "100m", memory: "128Mi" }
-    limits:   { cpu: "1",    memory: "512Mi" }
+    requests: { cpu: "200m", memory: "256Mi" }
+    limits:   { cpu: "1",    memory: "1Gi" }
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 70
+  # Temporal worker — leave host empty to keep the orchestrator on the
+  # embedded executor. Set host (e.g. "temporal:7233") to flip on the
+  # production workflow path; namespace+taskQueue feed into both the worker
+  # and any external clients.
+  temporal:
+    host: ""
+    namespace: "default"
+    taskQueue: "ironflyer-finisher"
+  # Transactional email driver. "none" = sends are no-ops (dev/eval safe);
+  # "resend" / "sendgrid" pull the API key from orchestrator-secrets.
+  email:
+    provider: "none"
+    from: "noreply@ironflyer.dev"
   config:
     IRONFLYER_ENV: "prod"
     IRONFLYER_LOG_FORMAT: "json"
@@ -44,6 +62,7 @@ orchestrator:
       STRIPE_PRICE_PRO: ""
       STRIPE_PRICE_TEAM: ""
       STRIPE_PRICE_ENTERPRISE: ""
+      IRONFLYER_EMAIL_API_KEY: ""
 
 runtime:
   enabled: true
@@ -54,15 +73,22 @@ runtime:
     size: 20Gi
     storageClass: ""        # use cluster default when empty
   resources:
-    requests: { cpu: "100m", memory: "256Mi" }
+    requests: { cpu: "200m", memory: "256Mi" }
     limits:   { cpu: "2",    memory: "1Gi" }
+  # No HPA: runtime is per-pod stateful (workspaces live on disk). Scale
+  # vertically or shard by tenant routing at the orchestrator layer.
 
 web:
   enabled: true
   replicas: 2
   resources:
-    requests: { cpu: "100m", memory: "256Mi" }
+    requests: { cpu: "200m", memory: "256Mi" }
     limits:   { cpu: "1",    memory: "1Gi" }
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 70
 
 postgres:
   # Set to false when pointing the orchestrator at managed Postgres

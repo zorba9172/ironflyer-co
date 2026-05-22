@@ -298,4 +298,38 @@ func capString(s string, n int) string {
 	return s[:n]
 }
 
+// PreviewTarget resolves the container's bridge-network IP and returns
+// "<ip>:<port>" so the runtime reverse-proxy can dial straight into the
+// dev server. We `docker inspect --format` once per call; the result is
+// stable for the container lifetime but containers may restart with a
+// new IP, so we don't cache.
+func (d *DockerDriver) PreviewTarget(ctx context.Context, ws Workspace, port int) (string, error) {
+	if port <= 0 || port > 65535 {
+		return "", errors.New("invalid internal port")
+	}
+	if strings.TrimSpace(ws.Root) == "" {
+		return "", errors.New("workspace has no container")
+	}
+	// Try the default bridge network first; fall back to the first
+	// non-empty IPAddress across all attached networks.
+	out, err := d.runRaw(ctx, "inspect",
+		"--format", "{{range .NetworkSettings.Networks}}{{.IPAddress}}\n{{end}}",
+		ws.Root)
+	if err != nil {
+		return "", fmt.Errorf("docker inspect: %w", err)
+	}
+	var ip string
+	for _, line := range strings.Split(string(out), "\n") {
+		line = strings.TrimSpace(line)
+		if line != "" {
+			ip = line
+			break
+		}
+	}
+	if ip == "" {
+		return "", errors.New("container has no IP address")
+	}
+	return fmt.Sprintf("%s:%d", ip, port), nil
+}
+
 var _ Driver = (*DockerDriver)(nil)

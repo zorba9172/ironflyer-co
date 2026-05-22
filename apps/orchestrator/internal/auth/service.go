@@ -99,6 +99,14 @@ func (s *Service) SetPlan(ctx context.Context, id, plan string) error {
 	return s.store.SetPlan(ctx, id, plan)
 }
 
+// Delete removes a user record. Tokens issued before deletion remain
+// signature-valid until they expire; verification still succeeds because
+// our middleware doesn't re-query the user store, but every subsequent
+// request that resolves the user identity will fail to load the row.
+func (s *Service) Delete(ctx context.Context, id string) error {
+	return s.store.Delete(ctx, id)
+}
+
 // IssueToken signs a JWT for an already-validated user. Used by OAuth login
 // flows where the user identity was established externally.
 func (s *Service) IssueToken(u User) (string, error) {

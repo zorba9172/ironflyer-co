@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -326,6 +328,73 @@ func (c *capBuffer) Write(p []byte) (int, error) {
 }
 
 func (c *capBuffer) String() string { return string(c.buf) }
+
+// PreviewTarget for the Mock driver returns the loopback address of an
+// in-process HTTP server that serves a placeholder page. This makes the
+// preview iframe usable even when Docker is unavailable: it gives the web
+// app something concrete to load and proves the reverse-proxy plumbing.
+//
+// The mock target is started lazily on first call and reused across all
+// workspaces — different workspace IDs simply see the same canned page
+// with their ID interpolated into the response.
+func (m *MockDriver) PreviewTarget(_ context.Context, ws Workspace, port int) (string, error) {
+	host, err := startMockPreviewServer()
+	if err != nil {
+		return "", err
+	}
+	// The mock server ignores the requested port — it has a single bind —
+	// but we echo it back in the response body so the user sees that the
+	// path-based routing arrived intact.
+	_ = port
+	_ = ws
+	return host, nil
+}
+
+var (
+	mockPreviewOnce sync.Once
+	mockPreviewAddr string
+	mockPreviewErr  error
+)
+
+func startMockPreviewServer() (string, error) {
+	mockPreviewOnce.Do(func() {
+		l, err := net.Listen("tcp", "127.0.0.1:0")
+		if err != nil {
+			mockPreviewErr = fmt.Errorf("mock preview listen: %w", err)
+			return
+		}
+		mux := http.NewServeMux()
+		mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			w.Header().Set("Cache-Control", "no-store")
+			fmt.Fprintf(w, mockPreviewHTML, r.Header.Get("X-Ironflyer-Workspace"),
+				r.Header.Get("X-Ironflyer-Port"), r.URL.Path)
+		})
+		srv := &http.Server{
+			Handler:           mux,
+			ReadHeaderTimeout: 5 * time.Second,
+		}
+		go func() { _ = srv.Serve(l) }()
+		mockPreviewAddr = l.Addr().String()
+	})
+	return mockPreviewAddr, mockPreviewErr
+}
+
+const mockPreviewHTML = `<!doctype html><html><head>
+<meta charset="utf-8"><title>Ironflyer mock preview</title>
+<style>body{font-family:-apple-system,system-ui,sans-serif;background:#0a0a0a;color:#e8e8e8;
+margin:0;padding:48px;line-height:1.5}.k{color:#c8ff5e}code{background:#1a1a1a;padding:2px 6px;
+border-radius:4px}</style></head><body>
+<h1>Hello from <span class="k">Ironflyer mock workspace</span></h1>
+<p>The runtime reverse-proxy is working. No Docker required.</p>
+<ul>
+<li>Workspace: <code>%s</code></li>
+<li>Internal port (echoed): <code>%s</code></li>
+<li>Path after prefix strip: <code>%s</code></li>
+</ul>
+<p>Start a real dev server with <code>npm run dev</code> inside a Docker workspace
+to see your own UI here.</p>
+</body></html>`
 
 // Ensure interfaces are satisfied at compile time.
 var (

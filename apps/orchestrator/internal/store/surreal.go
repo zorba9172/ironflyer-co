@@ -104,6 +104,12 @@ func buildContent(p domain.Project) map[string]any {
 	if p.OwnerID != "" {
 		doc["owner_id"] = p.OwnerID
 	}
+	// Surface artifacts at the top level too so they can be queried/indexed
+	// without unpacking the nested `data` blob. The nested copy under `data`
+	// remains authoritative on read — we never read this field back.
+	if len(p.Artifacts) > 0 {
+		doc["artifacts"] = p.Artifacts
+	}
 	return doc
 }
 
@@ -183,6 +189,26 @@ func (s *SurrealStore) Update(id string, fn func(*domain.Project)) (domain.Proje
 		}
 	}
 	return p, nil
+}
+
+// Delete removes a project document from SurrealDB.
+func (s *SurrealStore) Delete(id string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	res, err := surrealdb.Query[any](s.ctx, s.db,
+		"DELETE type::record('project', $id)",
+		map[string]any{"id": id})
+	if err != nil {
+		return fmt.Errorf("surreal delete: %w", err)
+	}
+	if res != nil {
+		for _, r := range *res {
+			if r.Status != "OK" {
+				return fmt.Errorf("surreal delete status: %s", r.Status)
+			}
+		}
+	}
+	return nil
 }
 
 // Seed inserts the demo project if it doesn't exist. Returns the error

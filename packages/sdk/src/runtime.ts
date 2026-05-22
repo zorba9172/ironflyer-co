@@ -1,6 +1,7 @@
 import { Transport, type TransportConfig } from './http.js';
 import type {
-  ExecRequest, ExecResult, RuntimeFileEntry, Workspace,
+  ApplyPatchResponse, DetectedPort, ExecRequest, ExecResult,
+  PreviewTokenResponse, RuntimeFileEntry, Workspace,
 } from './types.js';
 
 // RuntimeClient wraps the Ironflyer workspace runtime HTTP API: workspace
@@ -85,5 +86,62 @@ export class RuntimeClient {
   terminalURL(id: string): string {
     const u = `${this.t.baseUrl}/workspaces/${id}/terminal`;
     return u.replace(/^http/, 'ws');
+  }
+
+  // ---------- Live preview ---------------------------------------------------
+
+  /**
+   * listPorts returns every dev-server port the runtime auto-detected
+   * inside the workspace (Vite/Next.js/etc.) plus the path you'd use to
+   * proxy into each one. Pair with previewToken() to build an iframe src.
+   */
+  listPorts(id: string) {
+    return this.t.json<DetectedPort[]>(`/workspaces/${id}/ports`);
+  }
+
+  /**
+   * recordPort manually registers a port the auto-detector missed (e.g.
+   * when the user's dev server was started inside a terminal session
+   * rather than the /exec endpoint).
+   */
+  recordPort(id: string, port: number, source: string = 'manual') {
+    return this.t.json<{ port: number; previewPath: string }>(
+      `/workspaces/${id}/ports`,
+      { method: 'POST', body: JSON.stringify({ port, source }) },
+    );
+  }
+
+  /**
+   * previewToken mints a signed `?t=...` token plus the full preview URL
+   * the web app can drop into an iframe `src` attribute. Tokens expire
+   * (default 30 minutes); call again to refresh.
+   */
+  previewToken(id: string, port: number) {
+    return this.t.json<PreviewTokenResponse>(`/workspaces/${id}/preview-token`, {
+      method: 'POST', body: JSON.stringify({ port }),
+    });
+  }
+
+  /**
+   * previewURL composes the absolute preview URL from a mintPreviewToken
+   * response, which is handy when the runtime is on a different host
+   * from the orchestrator/web. `path` from the response is server-relative.
+   */
+  previewURL(tok: PreviewTokenResponse): string {
+    return `${this.t.baseUrl}${tok.url}`;
+  }
+
+  // ---------- Patch applier (RuntimeApplier for the orchestrator) ----------
+
+  /**
+   * applyPatch applies a unified diff to the workspace's files. The
+   * orchestrator's finisher calls this after a patch has cleared the
+   * lifecycle gates so the user's workspace stays in lock-step with the
+   * approved state. Returns the list of files actually changed.
+   */
+  applyPatch(id: string, diff: string) {
+    return this.t.json<ApplyPatchResponse>(`/workspaces/${id}/apply-patch`, {
+      method: 'POST', body: JSON.stringify({ diff }),
+    });
   }
 }

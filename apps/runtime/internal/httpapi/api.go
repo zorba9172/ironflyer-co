@@ -2,9 +2,14 @@
 package httpapi
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"net/http"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -14,27 +19,72 @@ import (
 	"github.com/rs/zerolog"
 
 	"ironflyer/apps/runtime/internal/auth"
+	"ironflyer/apps/runtime/internal/patcher"
+	"ironflyer/apps/runtime/internal/preview"
 	"ironflyer/apps/runtime/internal/sandbox"
 )
+
+// Options bundles the non-trivial knobs httpapi.New needs. Keeping them in
+// a struct lets us add more (preview tuning, max workspaces) without
+// breaking the constructor signature every time.
+type Options struct {
+	CORSOrigin      string
+	Verifier        *auth.Verifier // nil = no-auth dev mode
+	PreviewPrefix   string
+	AllowedPorts    string
+	PreviewSecret   []byte
+	PreviewTokenTTL time.Duration
+	MaxWorkspaces   int
+}
 
 type API struct {
 	mgr      *sandbox.Manager
 	logger   zerolog.Logger
 	cors     string
-	verifier *auth.Verifier // nil = no-auth dev mode
+	verifier *auth.Verifier
+	preview  *preview.Proxy
+	signer   *preview.TokenSigner
+	maxWS    int
 }
 
-// New builds the runtime API. Pass a non-nil verifier to require JWT auth.
-func New(mgr *sandbox.Manager, corsOrigin string, verifier *auth.Verifier, logger zerolog.Logger) http.Handler {
-	a := &API{mgr: mgr, logger: logger, cors: corsOrigin, verifier: verifier}
+// New builds the runtime API.
+func New(mgr *sandbox.Manager, opts Options, logger zerolog.Logger) http.Handler {
+	signer := preview.NewSigner(opts.PreviewSecret, opts.PreviewTokenTTL)
+	a := &API{
+		mgr:      mgr,
+		logger:   logger,
+		cors:     opts.CORSOrigin,
+		verifier: opts.Verifier,
+		signer:   signer,
+		maxWS:    opts.MaxWorkspaces,
+	}
+	a.preview = preview.New(
+		preview.Config{
+			Prefix:       opts.PreviewPrefix,
+			AllowedPorts: opts.AllowedPorts,
+		},
+		&driverTargetResolver{mgr: mgr},
+		&apiAuthorizer{a: a},
+		signer,
+		zlogAdapter{l: logger},
+	)
+
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(a.corsMW)
 	r.Use(a.logMW)
 	r.Use(middleware.Recoverer)
+	r.Use(requestIDMiddleware)
+	r.Use(accessLogMiddleware(logger, opts.PreviewPrefix))
 
 	r.Get("/health", a.health)
+	a.RegisterHealth(r)
+
+	// Preview proxy lives OUTSIDE the chi auth group: it uses signed
+	// `?t=...` tokens because iframes can't send Authorization headers.
+	// The proxy itself enforces auth via preview.Authorizer.
+	r.HandleFunc(a.preview.Prefix+"/*", a.preview.ServeHTTP)
 
 	// Everything else requires a verified user (or no-auth if verifier nil).
 	r.Group(func(r chi.Router) {
@@ -52,6 +102,10 @@ func New(mgr *sandbox.Manager, corsOrigin string, verifier *auth.Verifier, logge
 				r.Get("/terminal", a.terminal)
 				r.Post("/git-clone", a.gitClone)
 				r.Post("/exec", a.exec)
+				r.Get("/ports", a.listPorts)
+				r.Post("/ports", a.recordPort)
+				r.Post("/preview-token", a.previewToken)
+				r.Post("/apply-patch", a.applyPatch)
 			})
 		})
 	})
@@ -60,10 +114,11 @@ func New(mgr *sandbox.Manager, corsOrigin string, verifier *auth.Verifier, logge
 
 func (a *API) health(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{
-		"ok":         true,
-		"service":    "ironflyer-runtime",
-		"driver":     a.mgr.Driver().Name(),
-		"authMode":   a.authMode(),
+		"ok":            true,
+		"service":       "ironflyer-runtime",
+		"driver":        a.mgr.Driver().Name(),
+		"authMode":      a.authMode(),
+		"previewPrefix": a.preview.Prefix,
 	})
 }
 
@@ -109,8 +164,12 @@ func (a *API) list(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) create(w http.ResponseWriter, r *http.Request) {
+	if a.maxWS > 0 && len(a.mgr.List()) >= a.maxWS {
+		writeJSON(w, http.StatusServiceUnavailable, errJSON("max workspaces reached"))
+		return
+	}
 	var body struct {
-		UserID    string `json:"userId"` // ignored when JWT auth is on
+		UserID    string `json:"userId"`
 		ProjectID string `json:"projectId"`
 	}
 	_ = json.NewDecoder(r.Body).Decode(&body)
@@ -205,8 +264,7 @@ func (a *API) deleteFile(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// gitClone shallow-clones a repository into an owned workspace. The token,
-// if any, is consumed once and never logged.
+// gitClone shallow-clones a repository into an owned workspace.
 func (a *API) gitClone(w http.ResponseWriter, r *http.Request) {
 	ws, ok := a.requireWorkspace(w, r, chi.URLParam(r, "id"))
 	if !ok {
@@ -237,9 +295,10 @@ func (a *API) gitClone(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"status": "cloned"})
 }
 
-// exec runs a one-shot command inside the workspace and returns the captured
-// stdout/stderr/exit code. The orchestrator's finisher uses this to drive
-// real build/test/lint gates instead of in-memory file inspection.
+// exec runs a one-shot command inside the workspace. We also scan the
+// captured stdout/stderr for "Listening on :3000" / "Local: http://...:5173"
+// style breadcrumbs and register any ports we spot. That makes a developer's
+// `npm run dev` immediately discoverable via /workspaces/{id}/ports.
 func (a *API) exec(w http.ResponseWriter, r *http.Request) {
 	ws, ok := a.requireWorkspace(w, r, chi.URLParam(r, "id"))
 	if !ok {
@@ -259,12 +318,16 @@ func (a *API) exec(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadGateway, errJSON(err.Error()))
 		return
 	}
+	for _, port := range scanPorts(res.Stdout) {
+		a.mgr.RecordPort(ws.ID, port, "exec-stdout")
+	}
+	for _, port := range scanPorts(res.Stderr) {
+		a.mgr.RecordPort(ws.ID, port, "exec-stderr")
+	}
 	writeJSON(w, http.StatusOK, res)
 }
 
-// terminal is the PTY WebSocket bridge. Binary frames are passthrough I/O;
-// text frames are control messages (resize, etc.) as JSON. The owner check
-// runs before the WS upgrade so we don't 404 a connected socket.
+// terminal is the PTY WebSocket bridge.
 func (a *API) terminal(w http.ResponseWriter, r *http.Request) {
 	ws, ok := a.requireWorkspace(w, r, chi.URLParam(r, "id"))
 	if !ok {
@@ -326,6 +389,271 @@ func (a *API) terminal(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// listPorts returns the ports we've auto-detected for a workspace plus a
+// suggested public preview URL for each.
+func (a *API) listPorts(w http.ResponseWriter, r *http.Request) {
+	ws, ok := a.requireWorkspace(w, r, chi.URLParam(r, "id"))
+	if !ok {
+		return
+	}
+	ports := a.mgr.Ports(ws.ID)
+	type item struct {
+		sandbox.DetectedPort
+		PreviewPath string `json:"previewPath"`
+		Allowed     bool   `json:"allowed"`
+	}
+	out := make([]item, 0, len(ports))
+	for _, p := range ports {
+		out = append(out, item{
+			DetectedPort: p,
+			PreviewPath:  a.preview.BuildPreviewPath(ws.ID, p.Port, ""),
+			Allowed:      a.preview.PortAllowed(p.Port),
+		})
+	}
+	writeJSON(w, http.StatusOK, out)
+}
+
+// recordPort lets the orchestrator or VSCode extension explicitly
+// register a port the runtime didn't auto-detect (e.g. when a long-lived
+// process was started via a terminal session rather than /exec).
+func (a *API) recordPort(w http.ResponseWriter, r *http.Request) {
+	ws, ok := a.requireWorkspace(w, r, chi.URLParam(r, "id"))
+	if !ok {
+		return
+	}
+	var body struct {
+		Port   int    `json:"port"`
+		Source string `json:"source"`
+	}
+	if err := json.NewDecoder(io.LimitReader(r.Body, 4<<10)).Decode(&body); err != nil {
+		writeJSON(w, http.StatusBadRequest, errJSON("invalid JSON"))
+		return
+	}
+	if body.Port <= 0 || body.Port > 65535 {
+		writeJSON(w, http.StatusBadRequest, errJSON("port must be 1..65535"))
+		return
+	}
+	if body.Source == "" {
+		body.Source = "manual"
+	}
+	a.mgr.RecordPort(ws.ID, body.Port, body.Source)
+	writeJSON(w, http.StatusOK, map[string]any{
+		"port": body.Port, "previewPath": a.preview.BuildPreviewPath(ws.ID, body.Port, ""),
+	})
+}
+
+// previewToken mints a signed `?t=...` for a workspace+port pair. The web
+// app uses this to drop into an iframe `src` without setting headers.
+func (a *API) previewToken(w http.ResponseWriter, r *http.Request) {
+	ws, ok := a.requireWorkspace(w, r, chi.URLParam(r, "id"))
+	if !ok {
+		return
+	}
+	var body struct {
+		Port int `json:"port"`
+	}
+	if err := json.NewDecoder(io.LimitReader(r.Body, 4<<10)).Decode(&body); err != nil {
+		writeJSON(w, http.StatusBadRequest, errJSON("invalid JSON"))
+		return
+	}
+	if body.Port <= 0 || body.Port > 65535 {
+		writeJSON(w, http.StatusBadRequest, errJSON("port must be 1..65535"))
+		return
+	}
+	if !a.preview.PortAllowed(body.Port) {
+		writeJSON(w, http.StatusForbidden, errJSON("port not allowed"))
+		return
+	}
+	tok, exp, err := a.signer.Mint(ws.ID, body.Port)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, errJSON(err.Error()))
+		return
+	}
+	path := a.preview.BuildPreviewPath(ws.ID, body.Port, "")
+	writeJSON(w, http.StatusOK, map[string]any{
+		"url":       path + "?t=" + tok,
+		"path":      path,
+		"token":     tok,
+		"expiresAt": exp.Format(time.RFC3339),
+	})
+}
+
+// applyPatch applies a unified diff to the workspace's files. Returns the
+// per-file outcome list. This is the RuntimeApplier contract Agent A's
+// orchestrator calls after a patch passes the lifecycle gates.
+func (a *API) applyPatch(w http.ResponseWriter, r *http.Request) {
+	ws, ok := a.requireWorkspace(w, r, chi.URLParam(r, "id"))
+	if !ok {
+		return
+	}
+	var body struct {
+		Diff string `json:"diff"`
+	}
+	if err := json.NewDecoder(io.LimitReader(r.Body, 16<<20)).Decode(&body); err != nil {
+		writeJSON(w, http.StatusBadRequest, errJSON("invalid JSON"))
+		return
+	}
+	if strings.TrimSpace(body.Diff) == "" {
+		writeJSON(w, http.StatusBadRequest, errJSON("diff required"))
+		return
+	}
+	fs := &driverFS{ctx: r.Context(), drv: a.mgr.Driver(), ws: ws}
+	changes, err := patcher.Apply(r.Context(), fs, body.Diff)
+	if err != nil {
+		// Partial success: return what we managed plus the error.
+		writeJSON(w, http.StatusUnprocessableEntity, map[string]any{
+			"error":   err.Error(),
+			"applied": changes,
+		})
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"applied": changes,
+		"count":   len(changes),
+	})
+}
+
+// --------------------------------------------------------------------------
+// Adapters: sandbox.Driver ↔ preview / patcher contracts.
+// --------------------------------------------------------------------------
+
+type driverTargetResolver struct{ mgr *sandbox.Manager }
+
+func (d *driverTargetResolver) PreviewTarget(ctx context.Context, workspaceID string, port int) (string, error) {
+	ws, err := d.mgr.Get(workspaceID)
+	if err != nil {
+		return "", err
+	}
+	return d.mgr.Driver().PreviewTarget(ctx, ws, port)
+}
+
+// apiAuthorizer enforces preview auth. Either:
+//   - a valid signed `?t=...` token whose workspace+port match the URL, OR
+//   - a valid JWT (Authorization or `?token=...`) whose user owns the workspace.
+type apiAuthorizer struct{ a *API }
+
+func (z *apiAuthorizer) AllowPreview(r *http.Request, workspaceID string) error {
+	port := extractPathPort(r.URL.Path, z.a.preview.Prefix, workspaceID)
+
+	if tok := r.URL.Query().Get("t"); tok != "" {
+		if err := z.a.signer.Verify(tok, workspaceID, port); err == nil {
+			return nil
+		} else if z.a.verifier == nil {
+			// In dev mode with auth disabled, accept the token even when
+			// the signer was bootstrapped with a random secret restart.
+			return err
+		} else {
+			return fmt.Errorf("token: %w", err)
+		}
+	}
+
+	// JWT fallback — useful for curl / non-iframe API access.
+	if z.a.verifier != nil {
+		tok := bearerOrQueryToken(r)
+		if tok == "" {
+			return errors.New("preview token required (?t=...)")
+		}
+		user, err := z.a.verifier.Verify(tok)
+		if err != nil {
+			return fmt.Errorf("jwt: %w", err)
+		}
+		ws, err := z.a.mgr.Get(workspaceID)
+		if err != nil {
+			return errors.New("workspace not found")
+		}
+		if !ws.IsAccessibleBy(user.ID) {
+			return errors.New("workspace not owned by caller")
+		}
+		return nil
+	}
+
+	// No-auth dev mode and no token: still require workspace to exist so
+	// random URLs don't silently 200.
+	if _, err := z.a.mgr.Get(workspaceID); err != nil {
+		return errors.New("workspace not found")
+	}
+	return nil
+}
+
+func bearerOrQueryToken(r *http.Request) string {
+	if h := r.Header.Get("Authorization"); strings.HasPrefix(strings.ToLower(h), "bearer ") {
+		return strings.TrimSpace(h[7:])
+	}
+	if q := r.URL.Query().Get("token"); q != "" {
+		return q
+	}
+	return ""
+}
+
+func extractPathPort(path, prefix, workspaceID string) int {
+	rest := strings.TrimPrefix(path, prefix+"/"+workspaceID+"/")
+	cut := strings.IndexByte(rest, '/')
+	var portStr string
+	if cut < 0 {
+		portStr = rest
+	} else {
+		portStr = rest[:cut]
+	}
+	p, _ := strconv.Atoi(portStr)
+	return p
+}
+
+// driverFS adapts the sandbox driver to the patcher's Filesystem.
+type driverFS struct {
+	ctx context.Context
+	drv sandbox.Driver
+	ws  sandbox.Workspace
+}
+
+func (d *driverFS) ReadFile(_ context.Context, path string) ([]byte, error) {
+	return d.drv.ReadFile(d.ctx, d.ws, path)
+}
+func (d *driverFS) WriteFile(_ context.Context, path string, data []byte) error {
+	return d.drv.WriteFile(d.ctx, d.ws, path, data)
+}
+func (d *driverFS) DeleteFile(_ context.Context, path string) error {
+	return d.drv.DeleteFile(d.ctx, d.ws, path)
+}
+
+// zlogAdapter bridges zerolog into the preview package's tiny Logger
+// interface so we don't import zerolog there.
+type zlogAdapter struct{ l zerolog.Logger }
+
+func (z zlogAdapter) Warnf(format string, args ...any) { z.l.Warn().Msgf(format, args...) }
+func (z zlogAdapter) Infof(format string, args ...any) { z.l.Info().Msgf(format, args...) }
+
+// --------------------------------------------------------------------------
+// Misc helpers.
+// --------------------------------------------------------------------------
+
+var portRegex = regexp.MustCompile(`(?:Local:\s+https?://[^:\s]+:|[Ll]istening on (?:https?://[^:\s]+)?:|port\s+|http://localhost:|http://127\.0\.0\.1:)(\d{2,5})\b`)
+
+// scanPorts finds candidate dev-server ports in a captured-output blob.
+// We err on the side of recall: every numeric capture between 1024 and
+// 65535 is reported (callers gate by allowlist anyway).
+func scanPorts(s string) []int {
+	if s == "" {
+		return nil
+	}
+	seen := make(map[int]bool)
+	var out []int
+	for _, m := range portRegex.FindAllStringSubmatch(s, -1) {
+		if len(m) < 2 {
+			continue
+		}
+		p, err := strconv.Atoi(m[1])
+		if err != nil || p < 1024 || p > 65535 {
+			continue
+		}
+		if seen[p] {
+			continue
+		}
+		seen[p] = true
+		out = append(out, p)
+	}
+	return out
+}
+
 func (a *API) corsMW(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", a.cors)
@@ -344,7 +672,8 @@ func (a *API) logMW(next http.Handler) http.Handler {
 		start := time.Now()
 		ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
 		next.ServeHTTP(ww, r)
-		if !strings.HasSuffix(r.URL.Path, "/terminal") {
+		if !strings.HasSuffix(r.URL.Path, "/terminal") &&
+			!strings.HasPrefix(r.URL.Path, a.preview.Prefix+"/") {
 			a.logger.Info().
 				Str("method", r.Method).Str("path", r.URL.Path).
 				Int("status", ww.Status()).Dur("dur", time.Since(start)).Msg("http")

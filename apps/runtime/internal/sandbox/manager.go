@@ -80,6 +80,16 @@ type Driver interface {
 	// captured separately and truncated to ExecMaxOutput bytes. Context
 	// cancellation kills the process group.
 	Exec(ctx context.Context, ws Workspace, opts ExecOpts) (ExecResult, error)
+
+	// PreviewTarget returns a host:port (or a full base URL) the runtime
+	// reverse-proxy can dial to reach the workspace's internal dev server.
+	//
+	// For the Docker driver this is the container's bridge-network IP plus
+	// the requested internal port. For the Mock driver it can be a built-in
+	// loopback server that serves a placeholder page. The returned value is
+	// either of the form "host:port" or a fully-qualified base URL with the
+	// scheme (e.g. "http://172.17.0.2:3000").
+	PreviewTarget(ctx context.Context, ws Workspace, port int) (string, error)
 }
 
 // ExecOpts describes a one-shot command run inside a workspace.
@@ -146,15 +156,82 @@ type Session interface {
 
 var ErrNotFound = errors.New("workspace not found")
 
+// DetectedPort is a port the runtime believes the workspace bound when a
+// dev server was started. The first time we see a particular port for a
+// workspace we capture FirstSeen; LastSeen is bumped on every observation.
+type DetectedPort struct {
+	Port      int       `json:"port"`
+	Source    string    `json:"source,omitempty"` // "exec-stdout" | "exec-stderr" | "manual"
+	FirstSeen time.Time `json:"firstSeen"`
+	LastSeen  time.Time `json:"lastSeen"`
+}
+
 // Manager keeps the workspace registry plus the chosen driver.
 type Manager struct {
 	mu     sync.RWMutex
 	driver Driver
 	byID   map[string]Workspace
+	// ports tracks dev-server ports we've auto-detected per workspace, keyed
+	// by workspace ID then by port number.
+	ports map[string]map[int]DetectedPort
 }
 
 func NewManager(d Driver) *Manager {
-	return &Manager{driver: d, byID: make(map[string]Workspace)}
+	return &Manager{
+		driver: d,
+		byID:   make(map[string]Workspace),
+		ports:  make(map[string]map[int]DetectedPort),
+	}
+}
+
+// RecordPort registers (or refreshes) a detected dev-server port for a
+// workspace. Source describes how we learned about it ("exec-stdout", etc).
+func (m *Manager) RecordPort(workspaceID string, port int, source string) {
+	if workspaceID == "" || port <= 0 || port > 65535 {
+		return
+	}
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if _, ok := m.byID[workspaceID]; !ok {
+		return
+	}
+	bucket := m.ports[workspaceID]
+	if bucket == nil {
+		bucket = make(map[int]DetectedPort)
+		m.ports[workspaceID] = bucket
+	}
+	now := time.Now().UTC()
+	if existing, ok := bucket[port]; ok {
+		existing.LastSeen = now
+		bucket[port] = existing
+		return
+	}
+	bucket[port] = DetectedPort{
+		Port: port, Source: source,
+		FirstSeen: now, LastSeen: now,
+	}
+}
+
+// Ports returns the detected dev-server ports for a workspace, sorted by
+// first-seen time ascending.
+func (m *Manager) Ports(workspaceID string) []DetectedPort {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	bucket := m.ports[workspaceID]
+	if len(bucket) == 0 {
+		return nil
+	}
+	out := make([]DetectedPort, 0, len(bucket))
+	for _, p := range bucket {
+		out = append(out, p)
+	}
+	// Simple insertion sort by FirstSeen — stable, no extra allocs.
+	for i := 1; i < len(out); i++ {
+		for j := i; j > 0 && out[j-1].FirstSeen.After(out[j].FirstSeen); j-- {
+			out[j-1], out[j] = out[j], out[j-1]
+		}
+	}
+	return out
 }
 
 func (m *Manager) Driver() Driver { return m.driver }
@@ -198,6 +275,7 @@ func (m *Manager) Destroy(ctx context.Context, id string) error {
 		return ErrNotFound
 	}
 	delete(m.byID, id)
+	delete(m.ports, id)
 	m.mu.Unlock()
 	return m.driver.Destroy(ctx, ws)
 }

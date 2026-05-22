@@ -111,6 +111,12 @@ func (s *PostgresUserStore) SetPlan(ctx context.Context, id, plan string) error 
 	return nil
 }
 
+// Delete removes a user row. Idempotent: missing rows return nil.
+func (s *PostgresUserStore) Delete(ctx context.Context, id string) error {
+	_, err := s.pool.Exec(ctx, `DELETE FROM users WHERE id = $1`, id)
+	return err
+}
+
 func isUniqueViolation(err error) bool {
 	// pgx wraps the SQLSTATE; checking the string is the simplest portable
 	// check that doesn't drag in pgconn explicitly here.

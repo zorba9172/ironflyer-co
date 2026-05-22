@@ -106,7 +106,7 @@ export default function LoginPage() {
     <Box sx={{
       minHeight: '100vh',
       display: 'grid',
-      gridTemplateColumns: { xs: '1fr', md: '0.72fr 1.28fr' },
+      gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
       bgcolor: tokens.color.bg.alabaster,
       color: tokens.color.text.inverse,
     }}>
@@ -118,7 +118,15 @@ export default function LoginPage() {
         pt: { xs: 8, md: 6 },
         pb: { xs: 6, md: 6 },
       }}>
-        <Box sx={{ width: '100%', maxWidth: 390 }}>
+        <Box sx={{
+          width: '100%',
+          maxWidth: 420,
+          bgcolor: '#fffcf3',
+          border: '1px solid rgba(13,14,15,0.06)',
+          borderRadius: 4,
+          p: { xs: 3.6, md: 4.8 },
+          boxShadow: '0 24px 64px rgba(13,14,15,0.08)',
+        }}>
           <Link href="/" style={{ color: 'inherit', textDecoration: 'none' }}>
             <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 5 }}>
               <Box sx={{ width: 34, height: 34, borderRadius: 1, bgcolor: tokens.color.accent.lime }} />
@@ -187,14 +195,44 @@ export default function LoginPage() {
 
       <Box sx={{
         display: { xs: 'none', md: 'flex' },
-        alignItems: 'center',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
         justifyContent: 'center',
-        p: 6,
-        backgroundImage: `linear-gradient(180deg, rgba(229,255,0,0.10), rgba(13,14,15,0.58)), url('/marketplace/output-ref/hero.jpg')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        p: 8,
+        gap: 4,
+        position: 'relative',
+        background: 'linear-gradient(140deg, #0d0e0f 0%, #15161a 60%, #1d1d1a 100%)',
+        color: tokens.color.bg.alabaster,
+        overflow: 'hidden',
       }}>
-        <Box sx={{ width: '100%', maxWidth: 620 }}>
+        <Box sx={{
+          position: 'absolute',
+          inset: 'auto -160px -200px auto',
+          width: 520, height: 520,
+          background: 'radial-gradient(circle, rgba(229,255,0,0.22), transparent 60%)',
+          filter: 'blur(20px)',
+          pointerEvents: 'none',
+        }} />
+        <Box sx={{ position: 'relative', maxWidth: 480 }}>
+          <Typography variant="overline" sx={{ color: tokens.color.accent.lime, fontWeight: 900, letterSpacing: '0.14em' }}>
+            Welcome back to Ironflyer
+          </Typography>
+          <Typography sx={{
+            mt: 1.2,
+            fontFamily: tokens.font.display,
+            fontWeight: 400,
+            fontSize: 42,
+            lineHeight: 0.95,
+            letterSpacing: '-0.01em',
+            color: tokens.color.bg.alabaster,
+          }}>
+            Pick up where the finisher loop left off.
+          </Typography>
+          <Typography sx={{ mt: 2, color: '#cfc7b8', fontWeight: 500, fontSize: 16, lineHeight: 1.5 }}>
+            Sign in to open your workspaces, gate runs, and budget ledger. Your draft prompt is preserved below — submit it after you log in.
+          </Typography>
+        </Box>
+        <Box sx={{ width: '100%', maxWidth: 520, position: 'relative' }}>
           <PromptBox
             value={pendingIdea}
             onChange={setPendingIdea}

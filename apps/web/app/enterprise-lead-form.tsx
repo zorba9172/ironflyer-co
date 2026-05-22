@@ -82,15 +82,21 @@ export function EnterpriseLeadForm() {
           <TextField label="Name" value={form.name} onChange={(event) => setField('name', event.target.value)} />
           <TextField label="Work email" value={form.email} onChange={(event) => setField('email', event.target.value)} required />
           <TextField label="Company" value={form.company} onChange={(event) => setField('company', event.target.value)} required />
-          <TextField select label="Team size" value={form.teamSize} onChange={(event) => setField('teamSize', event.target.value)} InputLabelProps={{ shrink: true }}>
-            {teamSizes.map((item) => <MenuItem key={item} value={item}>{item}</MenuItem>)}
-          </TextField>
-          <TextField select label="Budget range" value={form.budget} onChange={(event) => setField('budget', event.target.value)} InputLabelProps={{ shrink: true }}>
-            {budgets.map((item) => <MenuItem key={item} value={item}>{item}</MenuItem>)}
-          </TextField>
-          <TextField select label="Timeline" value={form.timeline} onChange={(event) => setField('timeline', event.target.value)} InputLabelProps={{ shrink: true }}>
-            {timelines.map((item) => <MenuItem key={item} value={item}>{item}</MenuItem>)}
-          </TextField>
+          <SelectField label="Team size">
+            <TextField select aria-label="Team size" value={form.teamSize} onChange={(event) => setField('teamSize', event.target.value)}>
+              {teamSizes.map((item) => <MenuItem key={item} value={item}>{item}</MenuItem>)}
+            </TextField>
+          </SelectField>
+          <SelectField label="Budget range">
+            <TextField select aria-label="Budget range" value={form.budget} onChange={(event) => setField('budget', event.target.value)}>
+              {budgets.map((item) => <MenuItem key={item} value={item}>{item}</MenuItem>)}
+            </TextField>
+          </SelectField>
+          <SelectField label="Timeline">
+            <TextField select aria-label="Timeline" value={form.timeline} onChange={(event) => setField('timeline', event.target.value)}>
+              {timelines.map((item) => <MenuItem key={item} value={item}>{item}</MenuItem>)}
+            </TextField>
+          </SelectField>
           <TextField
             label="What do you want to build or govern?"
             value={form.useCase}
@@ -116,5 +122,16 @@ export function EnterpriseLeadForm() {
         </Stack>
       </Stack>
     </Box>
+  );
+}
+
+function SelectField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <Stack spacing={0.45}>
+      <Typography variant="caption" sx={{ color: '#cfc7b8', fontWeight: 800 }}>
+        {label}
+      </Typography>
+      {children}
+    </Stack>
   );
 }

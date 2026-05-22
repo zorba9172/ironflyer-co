@@ -45,6 +45,9 @@ spec:
             periodSeconds: 30
           resources:
             {{- toYaml .Values.web.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: { drop: ["ALL"] }
 ---
 apiVersion: v1
 kind: Service
@@ -57,4 +60,27 @@ spec:
     {{- include "ironflyer.selectorLabels" (dict "name" "web" "release" .Release.Name) | nindent 4 }}
   ports:
     - { name: http, port: 3000, targetPort: http }
+{{- if .Values.web.autoscaling.enabled }}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: web
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: web
+  minReplicas: {{ .Values.web.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.web.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.web.autoscaling.targetCPUUtilizationPercentage }}
+{{- end }}
 {{- end }}

@@ -57,15 +57,19 @@ spec:
                   name: orchestrator-secrets
                   key: IRONFLYER_JWT_SECRET
           readinessProbe:
-            httpGet: { path: /health, port: http }
+            httpGet: { path: /readyz, port: http }
             initialDelaySeconds: 3
             periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
           livenessProbe:
-            httpGet: { path: /health, port: http }
+            httpGet: { path: /healthz, port: http }
             initialDelaySeconds: 15
             periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 3
           resources:
-            requests: { cpu: "100m", memory: "256Mi" }
+            requests: { cpu: "200m", memory: "256Mi" }
             limits:   { cpu: "2",    memory: "1Gi" }
           volumeMounts:
             - name: workspaces
@@ -101,3 +105,7 @@ spec:
     - name: http
       port: 8090
       targetPort: http
+---
+# Runtime is stateful (per-pod workspace data) — we don't autoscale; the
+# scaling model is per-user sandboxing inside one pod. Keeping an HPA here
+# would conflict with strategy: Recreate. Documented intentionally.

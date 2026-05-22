@@ -1,38 +1,41 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
-  Add, Apps, Close, CloudQueue, Folder, Home, Hub, Search, Settings, Star, Tune,
-  ViewList, Window,
+  Add, Apps, Close, CloudQueue, Folder, Home, Hub, Logout, MenuBook,
+  Notifications, Person, Search, Settings, Star, Tune, ViewList, Window,
 } from '@mui/icons-material';
 import {
-  Avatar, Box, Button, Divider, IconButton, InputAdornment, LinearProgress, Stack,
-  TextField, Tooltip, Typography,
+  Avatar, Badge, Box, Button, Divider, IconButton, InputAdornment, LinearProgress,
+  ListItemIcon, ListItemText, Menu, MenuItem, Stack, TextField, Tooltip, Typography,
 } from '@mui/material';
 import { api, Plan, Project, UserBudget } from '../../lib/api';
 import { tokens } from '../../lib/theme';
 
 const primaryNav = [
-  { label: 'Home', href: '/app', icon: <Home fontSize="small" /> },
-  { label: 'Search', href: '/app/search', icon: <Search fontSize="small" /> },
-  { label: 'Resources', href: '/app/resources', icon: <Apps fontSize="small" /> },
-  { label: 'Connectors', href: '/app/connectors', icon: <Hub fontSize="small" /> },
+  { label: 'בית', href: '/app', icon: <Home fontSize="small" /> },
+  { label: 'פרויקטים', href: '/app/projects', icon: <Folder fontSize="small" /> },
+  { label: 'תבניות', href: '/app/resources', icon: <MenuBook fontSize="small" /> },
+  { label: 'מחברים', href: '/app/connectors', icon: <Hub fontSize="small" /> },
+  { label: 'חיפוש', href: '/app/search', icon: <Search fontSize="small" /> },
+  { label: 'הגדרות', href: '/app/settings', icon: <Settings fontSize="small" /> },
 ];
 
 const mobileNav = [
-  { label: 'Home', href: '/app', icon: <Home fontSize="small" /> },
-  { label: 'Projects', href: '/app/projects', icon: <Folder fontSize="small" /> },
-  { label: 'Search', href: '/app/search', icon: <Search fontSize="small" /> },
-  { label: 'Connectors', href: '/app/connectors', icon: <Hub fontSize="small" /> },
+  { label: 'בית', href: '/app', icon: <Home fontSize="small" /> },
+  { label: 'פרויקטים', href: '/app/projects', icon: <Folder fontSize="small" /> },
+  { label: 'חיפוש', href: '/app/search', icon: <Search fontSize="small" /> },
+  { label: 'מחברים', href: '/app/connectors', icon: <Hub fontSize="small" /> },
+  { label: 'הגדרות', href: '/app/settings', icon: <Settings fontSize="small" /> },
 ];
 
 const projectNav = [
-  { label: 'All projects', href: '/app/projects', icon: <Folder fontSize="small" /> },
-  { label: 'Ready', href: '/app/projects?filter=ready', icon: <Star fontSize="small" /> },
-  { label: 'Running', href: '/app/projects?filter=running', icon: <CloudQueue fontSize="small" /> },
-  { label: 'Failed', href: '/app/projects?filter=failed', icon: <Folder fontSize="small" /> },
+  { label: 'כל הפרויקטים', href: '/app/projects', icon: <Folder fontSize="small" /> },
+  { label: 'מוכנים', href: '/app/projects?filter=ready', icon: <Star fontSize="small" /> },
+  { label: 'בהרצה', href: '/app/projects?filter=running', icon: <CloudQueue fontSize="small" /> },
+  { label: 'נכשלו', href: '/app/projects?filter=failed', icon: <Folder fontSize="small" /> },
 ];
 
 export function AppShell({
@@ -67,7 +70,14 @@ export function AppShell({
     }}>
       <Sidebar userEmail={userEmail} recents={recents} onLogout={onLogout} />
       <Box sx={{ minWidth: 0, minHeight: 0, height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <TopBar query={query} setQuery={setQuery} view={view} setView={setView} />
+        <TopBar
+          query={query}
+          setQuery={setQuery}
+          view={view}
+          setView={setView}
+          userEmail={userEmail}
+          onLogout={onLogout}
+        />
         <Box component="main" sx={{
           flex: 1,
           minHeight: 0,
@@ -236,17 +246,17 @@ function Sidebar({ userEmail, recents, onLogout }: { userEmail: string; recents:
         color: tokens.color.text.primary,
         borderRadius: '8px',
       }}>
-        New project
+        פרויקט חדש
       </Button>
 
       <NavList items={primaryNav} />
 
       <Divider sx={{ my: 2 }} />
-      <Typography variant="overline" color="text.secondary" sx={{ px: 1 }}>Projects</Typography>
+      <Typography variant="overline" color="text.secondary" sx={{ px: 1 }}>סטטוס</Typography>
       <NavList items={projectNav} compact />
 
       <Divider sx={{ my: 2 }} />
-      <Typography variant="overline" color="text.secondary" sx={{ px: 1 }}>Recents</Typography>
+      <Typography variant="overline" color="text.secondary" sx={{ px: 1 }}>אחרונים</Typography>
       <Stack spacing={0.4} sx={{
         mt: 0.75,
         minHeight: 0,
@@ -255,7 +265,7 @@ function Sidebar({ userEmail, recents, onLogout }: { userEmail: string; recents:
         pr: 0.2,
         scrollbarWidth: 'thin',
       }}>
-        {recents.length === 0 && <Typography variant="caption" color="text.secondary" sx={{ px: 1 }}>No recent projects yet</Typography>}
+        {recents.length === 0 && <Typography variant="caption" color="text.secondary" sx={{ px: 1 }}>אין עדיין פרויקטים פעילים</Typography>}
         {recents.map((project) => (
           <Button
             key={project.id}
@@ -268,21 +278,31 @@ function Sidebar({ userEmail, recents, onLogout }: { userEmail: string; recents:
         ))}
       </Stack>
 
-      <Box sx={{
-        mt: 'auto',
-        p: 1.6,
-        border: '1px solid rgba(244,240,232,0.14)',
-        borderRadius: '8px',
-        bgcolor: tokens.color.bg.surface,
-      }}>
-        <Stack direction="row" spacing={1} alignItems="center">
+      <Button
+        component={Link}
+        href="/app/settings?tab=billing"
+        fullWidth
+        sx={{
+          mt: 'auto',
+          p: 1.6,
+          border: '1px solid rgba(244,240,232,0.14)',
+          borderRadius: '8px',
+          bgcolor: tokens.color.bg.surface,
+          textAlign: 'left',
+          justifyContent: 'stretch',
+          flexDirection: 'column',
+          alignItems: 'stretch',
+          '&:hover': { bgcolor: tokens.color.bg.surfaceHover, transform: 'none' },
+        }}
+      >
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ width: '100%' }}>
           <CloudQueue fontSize="small" sx={{ color: tokens.color.accent.lime }} />
-          <Typography variant="subtitle2">{usage.planName}</Typography>
+          <Typography variant="subtitle2" sx={{ color: tokens.color.text.primary }}>{usage.planName}</Typography>
         </Stack>
-        <Typography variant="caption" color="text.secondary">{usage.label}</Typography>
-        <Box sx={{ mt: 1.2 }}>
+        <Typography variant="caption" color="text.secondary" sx={{ alignSelf: 'flex-start', mt: 0.2 }}>{usage.label}</Typography>
+        <Box sx={{ mt: 1.2, width: '100%' }}>
           <Stack direction="row" justifyContent="space-between">
-            <Typography variant="caption" color="text.secondary">Cost cap</Typography>
+            <Typography variant="caption" color="text.secondary">תקציב חודשי</Typography>
             <Typography variant="caption" sx={{ fontFamily: tokens.font.mono, color: tokens.color.text.primary }}>
               ${usage.spent.toFixed(2)} / ${usage.cap.toFixed(2)}
             </Typography>
@@ -295,10 +315,19 @@ function Sidebar({ userEmail, recents, onLogout }: { userEmail: string; recents:
             '& .MuiLinearProgress-bar': { bgcolor: usage.percent > 82 ? tokens.color.accent.coral : tokens.color.accent.lime },
           }} />
         </Box>
-        <Button component={Link} href="/pricing" fullWidth variant="contained" size="small" sx={{ mt: 1.2 }}>
-          {usage.tier === 'free' ? 'Upgrade' : 'Manage plan'}
-        </Button>
-      </Box>
+        <Typography
+          variant="caption"
+          sx={{
+            mt: 1.1,
+            alignSelf: 'flex-start',
+            color: tokens.color.accent.lime,
+            fontWeight: 800,
+            letterSpacing: 0.3,
+          }}
+        >
+          {usage.tier === 'free' ? 'שדרוג חבילה →' : 'ניהול חבילה →'}
+        </Typography>
+      </Button>
 
       <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1.5, color: tokens.color.text.primary }}>
         <Avatar sx={{ width: 30, height: 30, bgcolor: tokens.color.accent.lime, color: tokens.color.text.inverse, fontWeight: 900 }}>
@@ -306,13 +335,13 @@ function Sidebar({ userEmail, recents, onLogout }: { userEmail: string; recents:
         </Avatar>
         <Box sx={{ minWidth: 0, flex: 1 }}>
           <Typography variant="body2" noWrap>{userEmail}</Typography>
-          <Typography variant="caption" color="text.secondary">Free workspace</Typography>
+          <Typography variant="caption" color="text.secondary">{usage.tier === 'free' ? 'חשבון חינמי' : `חבילת ${usage.planName}`}</Typography>
         </Box>
-        <Tooltip title="Workspace settings">
+        <Tooltip title="הגדרות">
           <IconButton component={Link} href="/app/settings" size="small" sx={{ color: 'text.secondary' }}><Settings fontSize="small" /></IconButton>
         </Tooltip>
       </Stack>
-      {onLogout && <Button onClick={onLogout} sx={{ mt: 0.6, color: tokens.color.text.secondary }}>Sign out</Button>}
+      {onLogout && <Button onClick={onLogout} sx={{ mt: 0.6, color: tokens.color.text.secondary }} startIcon={<Logout fontSize="small" />}>התנתק</Button>}
     </Box>
   );
 }
@@ -323,10 +352,10 @@ function usageSnapshot(budget: UserBudget | null, plans: Plan[]) {
   const cap = Number(plan?.costCapUSD ?? (tier === 'team' ? 32 : tier === 'pro' ? 8 : tier === 'enterprise' ? 180 : 0.5));
   const spent = Number(budget?.spent ?? 0);
   const percent = cap > 0 ? Math.min(100, Math.max(0, (spent / cap) * 100)) : 0;
-  const planName = plan?.name ? `${plan.name} credits` : `${tier[0]?.toUpperCase() ?? 'F'}${tier.slice(1)} credits`;
+  const planName = plan?.name ? `${plan.name}` : tier === 'free' ? 'חינמי' : `${tier[0]?.toUpperCase() ?? 'F'}${tier.slice(1)}`;
   const label = tier === 'free'
-    ? 'Starter usage with hard cap.'
-    : 'Visible AI spend and rollout gates.';
+    ? 'שימוש בסיסי עם תקרה קשיחה'
+    : 'השימוש נשמר מתחת לתקרת חודש';
   return { tier, planName, label, spent, cap: Math.max(cap, 0.5), percent };
 }
 
@@ -430,15 +459,41 @@ function TopBar({
   setQuery,
   view,
   setView,
+  userEmail,
+  onLogout,
 }: {
   query: string;
   setQuery?: (value: string) => void;
   view: 'grid' | 'list';
   setView?: (value: 'grid' | 'list') => void;
+  userEmail: string;
+  onLogout?: () => void;
 }) {
+  const router = useRouter();
+  const [internalQuery, setInternalQuery] = useState(query);
+  const [menuEl, setMenuEl] = useState<HTMLElement | null>(null);
+  const [notifEl, setNotifEl] = useState<HTMLElement | null>(null);
+
+  useEffect(() => setInternalQuery(query), [query]);
+
+  function commitGlobal(value: string) {
+    setInternalQuery(value);
+    if (setQuery) {
+      setQuery(value);
+      return;
+    }
+    if (!value) return;
+  }
+
+  function submitToSearch(value: string) {
+    if (setQuery) return; // page handles search locally
+    if (!value.trim()) return;
+    router.push(`/app/search?q=${encodeURIComponent(value)}`);
+  }
+
   return (
     <Box sx={{
-      minHeight: { xs: 104, sm: 58 },
+      minHeight: { xs: 94, sm: 58 },
       flex: '0 0 auto',
       display: 'flex',
       alignItems: 'center',
@@ -458,9 +513,12 @@ function TopBar({
         <Typography variant="subtitle2" sx={{ fontFamily: tokens.font.display, fontWeight: 400, textTransform: 'uppercase', color: tokens.color.text.inverse }}>Ironflyer</Typography>
       </Stack>
       <TextField
-        value={query}
-        onChange={(event) => setQuery?.(event.target.value)}
-        placeholder="Search projects, prompts, folders..."
+        value={internalQuery}
+        onChange={(event) => commitGlobal(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') submitToSearch(internalQuery);
+        }}
+        placeholder={setQuery ? 'חיפוש בעמוד...' : 'חיפוש בכל הפרויקטים...'}
         size="small"
         sx={{
           display: 'block',
@@ -477,6 +535,10 @@ function TopBar({
             '&:hover fieldset': { borderColor: 'rgba(17,17,17,0.34)' },
             '&.Mui-focused fieldset': { borderColor: tokens.color.accent.lime },
           },
+          '& .MuiInputBase-input': {
+            fontSize: { xs: '0.95rem', sm: '0.92rem' },
+            py: { xs: 1.1, sm: 0.9 },
+          },
           '& .MuiInputBase-input::placeholder': { color: '#5f5a52', opacity: 1 },
           '& .MuiSvgIcon-root': { color: '#5f5a52' },
         }}
@@ -486,10 +548,10 @@ function TopBar({
               <Search fontSize="small" />
             </InputAdornment>
           ),
-          endAdornment: query ? (
+          endAdornment: internalQuery ? (
             <InputAdornment position="end">
-              <Tooltip title="Clear search">
-                <IconButton aria-label="Clear search" edge="end" size="small" onClick={() => setQuery?.('')}>
+              <Tooltip title="ניקוי חיפוש">
+                <IconButton aria-label="ניקוי חיפוש" edge="end" size="small" onClick={() => commitGlobal('')}>
                   <Close fontSize="small" />
                 </IconButton>
               </Tooltip>
@@ -498,22 +560,94 @@ function TopBar({
         }}
       />
       <Stack direction="row" spacing={0.35} sx={{ ml: 'auto' }}>
-        <Tooltip title="Grid view">
-          <IconButton aria-label="Grid view" onClick={() => setView?.('grid')} sx={topIconButtonSx(view === 'grid')}>
-            <Window fontSize="small" />
+        {setView && (
+          <>
+            <Tooltip title="תצוגת רשת">
+              <IconButton aria-label="תצוגת רשת" onClick={() => setView('grid')} sx={topIconButtonSx(view === 'grid')}>
+                <Window fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="תצוגת רשימה">
+              <IconButton aria-label="תצוגת רשימה" onClick={() => setView('list')} sx={topIconButtonSx(view === 'list')}>
+                <ViewList fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </>
+        )}
+        <Tooltip title="התראות">
+          <IconButton aria-label="התראות" onClick={(e) => setNotifEl(e.currentTarget)} sx={topIconButtonSx(false)}>
+            <Badge color="primary" variant="dot" overlap="circular" invisible>
+              <Notifications fontSize="small" />
+            </Badge>
           </IconButton>
         </Tooltip>
-        <Tooltip title="List view">
-          <IconButton aria-label="List view" onClick={() => setView?.('list')} sx={topIconButtonSx(view === 'list')}>
-            <ViewList fontSize="small" />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Workspace settings">
-          <IconButton aria-label="Workspace settings" component={Link} href="/app/settings" sx={topIconButtonSx(false)}>
+        <Tooltip title="הגדרות סביבה">
+          <IconButton aria-label="הגדרות סביבה" component={Link} href="/app/settings" sx={topIconButtonSx(false)}>
             <Tune fontSize="small" />
           </IconButton>
         </Tooltip>
+        <Tooltip title="חשבון">
+          <IconButton aria-label="חשבון" onClick={(e) => setMenuEl(e.currentTarget)} sx={{ p: 0.4 }}>
+            <Avatar sx={{ width: 30, height: 30, bgcolor: tokens.color.accent.lime, color: tokens.color.text.inverse, fontWeight: 900, fontSize: '0.85rem' }}>
+              {userEmail[0]?.toUpperCase()}
+            </Avatar>
+          </IconButton>
+        </Tooltip>
       </Stack>
+
+      <Menu
+        anchorEl={notifEl}
+        open={Boolean(notifEl)}
+        onClose={() => setNotifEl(null)}
+        slotProps={{
+          paper: {
+            sx: { mt: 1, minWidth: 280, borderRadius: '10px', border: '1px solid rgba(17,17,17,0.1)' },
+          },
+        }}
+      >
+        <Box sx={{ px: 2, py: 1.4 }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 900 }}>אין התראות חדשות</Typography>
+          <Typography variant="caption" sx={{ color: '#686158' }}>
+            התראות על הרצות, גייטים ופריסה יופיעו כאן.
+          </Typography>
+        </Box>
+      </Menu>
+
+      <Menu
+        anchorEl={menuEl}
+        open={Boolean(menuEl)}
+        onClose={() => setMenuEl(null)}
+        slotProps={{
+          paper: {
+            sx: { mt: 1, minWidth: 220, borderRadius: '10px', border: '1px solid rgba(17,17,17,0.1)' },
+          },
+        }}
+      >
+        <Box sx={{ px: 2, py: 1.2 }}>
+          <Typography variant="caption" sx={{ color: '#86807a' }}>מחובר כ</Typography>
+          <Typography variant="body2" sx={{ fontWeight: 900 }} noWrap>{userEmail}</Typography>
+        </Box>
+        <Divider />
+        <MenuItem component={Link} href="/app/settings?tab=account" onClick={() => setMenuEl(null)}>
+          <ListItemIcon><Person fontSize="small" /></ListItemIcon>
+          <ListItemText>חשבון</ListItemText>
+        </MenuItem>
+        <MenuItem component={Link} href="/app/settings?tab=billing" onClick={() => setMenuEl(null)}>
+          <ListItemIcon><CloudQueue fontSize="small" /></ListItemIcon>
+          <ListItemText>חבילה ותשלומים</ListItemText>
+        </MenuItem>
+        <MenuItem component={Link} href="/app/connectors" onClick={() => setMenuEl(null)}>
+          <ListItemIcon><Hub fontSize="small" /></ListItemIcon>
+          <ListItemText>מחברים</ListItemText>
+        </MenuItem>
+        <Divider />
+        {onLogout && (
+          <MenuItem onClick={() => { setMenuEl(null); onLogout(); }}>
+            <ListItemIcon><Logout fontSize="small" /></ListItemIcon>
+            <ListItemText>התנתק</ListItemText>
+          </MenuItem>
+        )}
+      </Menu>
     </Box>
   );
 }

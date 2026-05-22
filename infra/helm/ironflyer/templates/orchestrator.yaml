@@ -13,6 +13,14 @@ data:
   GITHUB_POST_LOGIN_URL: {{ printf "https://%s/app" .Values.host | quote }}
   STRIPE_SUCCESS_URL: {{ printf "https://%s/app/settings?stripe=success" .Values.host | quote }}
   STRIPE_CANCEL_URL: {{ printf "https://%s/pricing?stripe=cancel" .Values.host | quote }}
+  IRONFLYER_SCAFFOLD_ROOT: "/app/templates"
+  IRONFLYER_TEMPORAL_NAMESPACE: {{ .Values.orchestrator.temporal.namespace | quote }}
+  IRONFLYER_TEMPORAL_TASK_QUEUE: {{ .Values.orchestrator.temporal.taskQueue | quote }}
+  {{- if .Values.orchestrator.temporal.host }}
+  IRONFLYER_TEMPORAL_HOST: {{ .Values.orchestrator.temporal.host | quote }}
+  {{- end }}
+  IRONFLYER_EMAIL_PROVIDER: {{ .Values.orchestrator.email.provider | quote }}
+  IRONFLYER_EMAIL_FROM: {{ .Values.orchestrator.email.from | quote }}
   {{- range $k, $v := .Values.orchestrator.config }}
   {{ $k }}: {{ $v | quote }}
   {{- end }}
@@ -61,13 +69,17 @@ spec:
             - configMapRef: { name: orchestrator-config }
             - secretRef:    { name: {{ .Values.orchestrator.secrets.name }} }
           readinessProbe:
-            httpGet: { path: /health, port: http }
+            httpGet: { path: /readyz, port: http }
             initialDelaySeconds: 3
             periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
           livenessProbe:
-            httpGet: { path: /health, port: http }
+            httpGet: { path: /healthz, port: http }
             initialDelaySeconds: 15
             periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 3
           resources:
             {{- toYaml .Values.orchestrator.resources | nindent 12 }}
           securityContext:
@@ -86,4 +98,27 @@ spec:
     {{- include "ironflyer.selectorLabels" (dict "name" "orchestrator" "release" .Release.Name) | nindent 4 }}
   ports:
     - { name: http, port: 8080, targetPort: http }
+{{- if .Values.orchestrator.autoscaling.enabled }}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: orchestrator
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: orchestrator
+  minReplicas: {{ .Values.orchestrator.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.orchestrator.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.orchestrator.autoscaling.targetCPUUtilizationPercentage }}
+{{- end }}
 {{- end }}

@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Box, Button, Chip, Stack, Typography } from '@mui/material';
+import Link from 'next/link';
 import {
-  AutoAwesome, Dashboard, FactCheck, Hub, Language, PhoneIphone, RocketLaunch,
-  Storefront,
+  AutoAwesome, ChatBubbleOutline, Code, Dashboard, Description, Language, MenuBook,
+  PhoneIphone, Storefront, Timeline,
 } from '@mui/icons-material';
+import { Box, Button, Chip, Stack, Typography } from '@mui/material';
 import { A11y, Keyboard, Navigation, Pagination } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { api, Project } from '../../../lib/api';
@@ -13,24 +14,78 @@ import { tokens } from '../../../lib/theme';
 import { RequireAuth, useAuth } from '../../auth-context';
 import { AppShell, PageTitle, Surface } from '../workspace-shell';
 
-type TemplateResource = {
+interface ResourceLink {
+  title: string;
+  desc: string;
+  href: string;
+  external?: boolean;
+  icon: React.ReactNode;
+  cta: string;
+}
+
+interface TemplateResource {
   title: string;
   type: string;
   img: string;
   source: string;
   desc: string;
   stack: string;
-  connectors: string[];
-  gates: string[];
   prompt: string;
-};
+}
 
 const categories = [
-  { label: 'All', icon: <Dashboard fontSize="small" /> },
-  { label: 'Websites', icon: <Language fontSize="small" /> },
-  { label: 'Apps', icon: <AutoAwesome fontSize="small" /> },
-  { label: 'Commerce', icon: <Storefront fontSize="small" /> },
+  { label: 'הכל',       icon: <Dashboard fontSize="small" /> },
+  { label: 'Websites',  icon: <Language fontSize="small" /> },
+  { label: 'Apps',      icon: <AutoAwesome fontSize="small" /> },
+  { label: 'Commerce',  icon: <Storefront fontSize="small" /> },
   { label: 'Mobile/PWA', icon: <PhoneIphone fontSize="small" /> },
+];
+
+const linkCards: ResourceLink[] = [
+  {
+    title: 'תיעוד',
+    desc: 'מדריכי התחלה, ארכיטקטורת הגייטים, ומפת חדרי הספקים.',
+    href: '/docs',
+    icon: <MenuBook />,
+    cta: 'פתח תיעוד',
+  },
+  {
+    title: 'API Reference',
+    desc: 'נקודות קצה של ה־orchestrator וה־runtime, כולל ה־@ironflyer/sdk.',
+    href: '/docs/api',
+    icon: <Code />,
+    cta: 'פתח API',
+  },
+  {
+    title: 'גלריית תבניות',
+    desc: 'אוסף תבניות מוכנות שניתן להוריד לסביבת הריצה ישירות מהפרומפט.',
+    href: '/app/resources#templates',
+    icon: <AutoAwesome />,
+    cta: 'גלה תבניות',
+  },
+  {
+    title: 'דף סטטוס',
+    desc: 'זמינות שירותים, אירועים פתוחים, וזמני תגובה ל־30 הימים האחרונים.',
+    href: 'https://status.ironflyer.dev',
+    external: true,
+    icon: <Timeline />,
+    cta: 'דף סטטוס',
+  },
+  {
+    title: 'קהילה ו־Discord',
+    desc: 'דיון עם בונים אחרים, שיתוף פאצ׳ים, וקבלת עזרה מהירה.',
+    href: 'https://discord.gg/ironflyer',
+    external: true,
+    icon: <ChatBubbleOutline />,
+    cta: 'הצטרף',
+  },
+  {
+    title: 'יומן שינויים',
+    desc: 'גרסאות חדשות, גייטים שנוספו, ושיפורי ביצועים בזמן אמת.',
+    href: '/changelog',
+    icon: <Description />,
+    cta: 'קרא יומן',
+  },
 ];
 
 const resources: TemplateResource[] = [
@@ -39,10 +94,8 @@ const resources: TemplateResource[] = [
     type: 'Apps',
     img: '/templates/aiforge-hero.jpg',
     source: 'templates/aiforge',
-    desc: 'AI product landing, integrations, service pages, blog, pricing-ready sections.',
+    desc: 'נחיתת AI, אינטגרציות, עמודי שירות, בלוג ותמחור מוכן לייצור.',
     stack: 'HTML + SCSS + JS',
-    connectors: ['OpenAI', 'Slack', 'Drive'],
-    gates: ['UX', 'SEO', 'Launch'],
     prompt: 'Use the local Aiforge template as the visual foundation for an AI SaaS app with landing pages, integrations, pricing, blog, onboarding, and production launch checks.',
   },
   {
@@ -50,10 +103,8 @@ const resources: TemplateResource[] = [
     type: 'Commerce',
     img: '/templates/allstore-slide.jpg',
     source: 'templates/allstore-html-template/html',
-    desc: 'Catalog, sale hero, category navigation, product grids, cart-ready storefront.',
+    desc: 'קטלוג, באנר מבצעים, ניווט קטגוריות, ועמודי מוצר עם רשת מעוצבת.',
     stack: 'HTML commerce',
-    connectors: ['Stripe', 'Shopify', 'CMS'],
-    gates: ['Checkout', 'Catalog', 'SEO'],
     prompt: 'Use the local Allstore HTML template as the foundation for a commerce storefront with catalog pages, product detail, cart, checkout, order states, and CMS-ready content.',
   },
   {
@@ -61,10 +112,8 @@ const resources: TemplateResource[] = [
     type: 'Websites',
     img: '/templates/davies-demo.jpg',
     source: 'templates/davies-mainfiles/davies',
-    desc: 'Dark agency website with portfolio demos, services, process, pricing, and contact flow.',
+    desc: 'אתר סוכנות כהה עם תיק עבודות, שירותים, תהליך, תמחור וקונטקט.',
     stack: 'HTML portfolio',
-    connectors: ['CRM', 'Analytics', 'Email'],
-    gates: ['Copy', 'Portfolio', 'Performance'],
     prompt: 'Use the local Davies template as the base for a premium agency website with portfolio demos, service sections, process, pricing, contact flows, analytics, and SEO checks.',
   },
   {
@@ -72,10 +121,8 @@ const resources: TemplateResource[] = [
     type: 'Mobile/PWA',
     img: '/templates/codec-mobile.png',
     source: 'templates/codec-mobile/codec',
-    desc: 'Mobile-first UI kit with color variants, app screens, onboarding, and PWA affordances.',
+    desc: 'ערכת UI מובייל עם וריאציות צבע, מסכי אפליקציה, אונבורדינג ו־PWA.',
     stack: 'Mobile HTML kit',
-    connectors: ['Push', 'Auth', 'Storage'],
-    gates: ['Responsive', 'PWA', 'Touch'],
     prompt: 'Use the local Codec mobile template as the foundation for a mobile-first PWA with onboarding, app navigation, profile screens, push-ready flows, and touch ergonomics.',
   },
   {
@@ -83,10 +130,8 @@ const resources: TemplateResource[] = [
     type: 'Mobile/PWA',
     img: '/templates/blix-mobile.png',
     source: 'templates/blix/blix',
-    desc: 'Compact portfolio mobile shell with multiple color themes and swipe-first pages.',
+    desc: 'תיק עבודות מובייל קומפקטי עם מספר ערכות צבע ועמודים swipe-first.',
     stack: 'Mobile portfolio',
-    connectors: ['CMS', 'Email', 'Analytics'],
-    gates: ['Navigation', 'Content', 'Mobile UX'],
     prompt: 'Use the local Blix mobile template as the foundation for a mobile portfolio PWA with themed variants, project pages, contact flows, and CMS-ready portfolio content.',
   },
   {
@@ -94,10 +139,8 @@ const resources: TemplateResource[] = [
     type: 'Websites',
     img: '/templates/varius-mobile.jpg',
     source: 'templates/varius-mobile/varius',
-    desc: 'Multi-vertical mobile web templates for music, restaurant, wedding, beauty, and more.',
+    desc: 'אוסף תבניות web למובייל למוזיקה, מסעדה, חתונה ויופי.',
     stack: 'Mobile web suite',
-    connectors: ['Booking', 'Maps', 'Email'],
-    gates: ['Content model', 'Forms', 'Mobile polish'],
     prompt: 'Use the local Varius template suite as the foundation for a polished mobile web experience with vertical-specific pages, booking/contact flows, maps, and content sections.',
   },
 ];
@@ -115,7 +158,7 @@ function ResourcesInner() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [query, setQuery] = useState('');
   const [view, setView] = useState<'grid' | 'list'>('grid');
-  const [category, setCategory] = useState('All');
+  const [category, setCategory] = useState('הכל');
 
   useEffect(() => {
     void api.listProjects().then(setProjects).catch(() => setProjects([]));
@@ -124,16 +167,9 @@ function ResourcesInner() {
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     return resources.filter((item) => {
-      if (category !== 'All' && item.type !== category) return false;
+      if (category !== 'הכל' && item.type !== category) return false;
       if (!q) return true;
-      return [
-        item.title,
-        item.type,
-        item.desc,
-        item.stack,
-        item.source,
-        item.connectors.join(' '),
-      ].join(' ').toLowerCase().includes(q);
+      return [item.title, item.type, item.desc, item.stack, item.source].join(' ').toLowerCase().includes(q);
     });
   }, [category, query]);
 
@@ -142,10 +178,7 @@ function ResourcesInner() {
       item.prompt,
       '',
       `Template: ${item.title}`,
-      `Local source: ${item.source}.`,
-      `Stack direction: ${item.stack}.`,
-      `Suggested connectors: ${item.connectors.join(', ')}.`,
-      `Required checks: ${item.gates.join(', ')}.`,
+      `Use the local source package at ${item.source} as the visual and interaction reference.`,
     ].join('\n'));
     window.location.href = '/app';
   }
@@ -153,36 +186,42 @@ function ResourcesInner() {
   return (
     <AppShell userEmail={user?.email ?? 'workspace'} recents={projects.slice(0, 5)} onLogout={logout} query={query} setQuery={setQuery} view={view} setView={setView}>
       <PageTitle
-        eyebrow="Resources"
-        title="Real templates, ready to remix"
-        subtitle="A curated carousel backed by the local template library. Pick a source package, seed the project prompt, and continue in the builder."
+        eyebrow="משאבים"
+        title="כל מה שצריך לבנות"
+        subtitle="תבניות אמיתיות, תיעוד, יומן שינויים, וקהילה — מרוכזים במקום אחד."
       />
 
-      <Stack direction="row" spacing={0.8} useFlexGap flexWrap="wrap" sx={{ mb: 2.2 }}>
-        {categories.map((item) => (
-          <Chip
-            key={item.label}
-            icon={item.icon}
-            label={item.label}
-            onClick={() => setCategory(item.label)}
-            sx={{
-              borderRadius: '8px',
-              bgcolor: category === item.label ? tokens.color.accent.lime : '#fffaf1',
-              color: tokens.color.text.inverse,
-              border: `1px solid ${category === item.label ? tokens.color.accent.lime : 'rgba(17,17,17,0.14)'}`,
-              '& .MuiChip-icon': { color: 'inherit' },
-            }}
-          />
-        ))}
-      </Stack>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 1.4, mb: 2.4 }}>
+        {linkCards.map((card) => <LinkCard key={card.title} card={card} />)}
+      </Box>
 
-      <Surface sx={{ p: { xs: 1.4, md: 1.8 }, mb: 1.7 }}>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 1.2 }}>
-          <Insight icon={<RocketLaunch />} title="Local source packages" text="Each card points the agent at a real template folder, not a generic marketplace placeholder." />
-          <Insight icon={<Hub />} title="Connector-aware prompts" text="The selected template carries likely services and integrations into the project brief." />
-          <Insight icon={<FactCheck />} title="Reviewable gates" text="Projects start with explicit UX, content, SEO, responsive, or commerce checks." />
-        </Box>
-      </Surface>
+      <Box id="templates">
+        <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={1.2} sx={{ mb: 1.6 }}>
+          <Box>
+            <Typography variant="h5" sx={{ fontWeight: 900 }}>גלריית תבניות</Typography>
+            <Typography variant="body2" sx={{ color: '#686158' }}>
+              בחר תבנית מקומית, השתמש בה כעוגן ויזואלי, והמשך לבנייה ישירות מהפרומפט.
+            </Typography>
+          </Box>
+          <Stack direction="row" spacing={0.7} useFlexGap flexWrap="wrap">
+            {categories.map((item) => (
+              <Chip
+                key={item.label}
+                icon={item.icon}
+                label={item.label}
+                onClick={() => setCategory(item.label)}
+                sx={{
+                  borderRadius: '8px',
+                  bgcolor: category === item.label ? tokens.color.accent.lime : '#fffaf1',
+                  color: tokens.color.text.inverse,
+                  border: `1px solid ${category === item.label ? tokens.color.accent.lime : 'rgba(17,17,17,0.14)'}`,
+                  '& .MuiChip-icon': { color: 'inherit' },
+                }}
+              />
+            ))}
+          </Stack>
+        </Stack>
+      </Box>
 
       {visible.length > 0 ? (
         <Box sx={swiperWrapSx}>
@@ -207,9 +246,9 @@ function ResourcesInner() {
         </Box>
       ) : (
         <Surface sx={{ p: 4, mt: 1.5, textAlign: 'center' }}>
-          <Typography variant="h6">No templates match this search</Typography>
+          <Typography variant="h6" sx={{ fontWeight: 900 }}>אין תבניות תואמות</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            Try another category or clear the workspace search field.
+            נסה קטגוריה אחרת או נקה את שדה החיפוש.
           </Typography>
         </Surface>
       )}
@@ -217,9 +256,9 @@ function ResourcesInner() {
       <Surface sx={{ p: { xs: 1.4, md: 1.7 }, mt: 1.8 }}>
         <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={1.2}>
           <Box>
-            <Typography variant="subtitle2">Template inventory</Typography>
+            <Typography variant="subtitle2">תבניות זמינות</Typography>
             <Typography variant="body2" color="text.secondary">
-              Showing {visible.length} source package{visible.length === 1 ? '' : 's'} from /templates.
+              מציג {visible.length} חבילת קוד אמיתית מהתיקייה המקומית /templates.
             </Typography>
           </Box>
           <Stack direction="row" spacing={0.6} useFlexGap flexWrap="wrap">
@@ -231,6 +270,41 @@ function ResourcesInner() {
       </Surface>
     </AppShell>
   );
+}
+
+function LinkCard({ card }: { card: ResourceLink }) {
+  const inner = (
+    <Surface sx={{
+      p: 2.2,
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      transition: `transform ${tokens.motion.base} ${tokens.motion.curve}, border-color ${tokens.motion.base} ${tokens.motion.curve}`,
+      '&:hover': { transform: 'translateY(-2px)', borderColor: 'rgba(17,17,17,0.28)' },
+    }}>
+      <Box sx={{
+        width: 42, height: 42, borderRadius: '8px',
+        bgcolor: '#fffaf1', border: '1px solid rgba(17,17,17,0.12)',
+        display: 'grid', placeItems: 'center',
+        color: tokens.color.text.inverse,
+      }}>{card.icon}</Box>
+      <Typography variant="h6" sx={{ mt: 1.4, fontWeight: 900 }}>{card.title}</Typography>
+      <Typography variant="body2" sx={{ color: '#686158', mt: 0.4, flex: 1 }}>{card.desc}</Typography>
+      <Button
+        component="a"
+        href={card.href}
+        target={card.external ? '_blank' : undefined}
+        rel={card.external ? 'noopener noreferrer' : undefined}
+        size="small"
+        variant="outlined"
+        sx={{ alignSelf: 'flex-start', mt: 1.6 }}
+      >
+        {card.cta} {card.external ? '↗' : '→'}
+      </Button>
+    </Surface>
+  );
+  if (card.external) return inner;
+  return <Link href={card.href} style={{ textDecoration: 'none', color: 'inherit' }}>{inner}</Link>;
 }
 
 function TemplateCard({ item, onUse }: { item: TemplateResource; onUse: () => void }) {
@@ -261,44 +335,23 @@ function TemplateCard({ item, onUse }: { item: TemplateResource; onUse: () => vo
       </Box>
 
       <Box sx={{ p: 1.8, display: 'flex', flexDirection: 'column', flex: 1 }}>
-        <Typography variant="h6" sx={{ lineHeight: 1.08 }}>{item.title}</Typography>
+        <Typography variant="h6" sx={{ lineHeight: 1.08, fontWeight: 900 }}>{item.title}</Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.7 }}>{item.desc}</Typography>
 
         <Stack direction="row" spacing={0.6} useFlexGap flexWrap="wrap" sx={{ mt: 1.2 }}>
-          {item.connectors.map((connector) => (
-            <Chip key={connector} label={connector} size="small" sx={metaChipSx} />
-          ))}
-        </Stack>
-
-        <Stack direction="row" spacing={0.6} useFlexGap flexWrap="wrap" sx={{ mt: 1 }}>
-          {item.gates.map((gate) => (
-            <Chip key={gate} label={gate} size="small" sx={gateChipSx} />
-          ))}
+          <Chip label={item.type} size="small" sx={metaChipSx} />
+          <Chip label={item.stack} size="small" sx={metaChipSx} />
         </Stack>
 
         <Typography variant="caption" color="text.secondary" sx={{ mt: 1.3, display: 'block', wordBreak: 'break-word' }}>
-          Source: {item.source}
+          {item.source}
         </Typography>
 
         <Button variant="contained" size="small" sx={{ mt: 'auto', alignSelf: 'flex-start', pt: 0.72 }} onClick={onUse}>
-          Use template
+          השתמש בתבנית
         </Button>
       </Box>
     </Surface>
-  );
-}
-
-function Insight({ icon, title, text }: { icon: React.ReactNode; title: string; text: string }) {
-  return (
-    <Stack direction="row" spacing={1.1} alignItems="flex-start">
-      <Box sx={{ width: 34, height: 34, borderRadius: '8px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(17,17,17,0.08)' }}>
-        {icon}
-      </Box>
-      <Box>
-        <Typography variant="subtitle2">{title}</Typography>
-        <Typography variant="caption" color="text.secondary">{text}</Typography>
-      </Box>
-    </Stack>
   );
 }
 
@@ -351,12 +404,4 @@ const metaChipSx = {
   bgcolor: '#fffaf1',
   border: '1px solid rgba(17,17,17,0.12)',
   color: '#514a41',
-};
-
-const gateChipSx = {
-  borderRadius: '6px',
-  bgcolor: 'rgba(229,255,0,0.18)',
-  border: '1px solid rgba(17,17,17,0.1)',
-  color: tokens.color.text.inverse,
-  fontWeight: 800,
 };

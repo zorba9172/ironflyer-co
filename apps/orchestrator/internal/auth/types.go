@@ -24,6 +24,7 @@ type UserStore interface {
 	GetByEmail(ctx context.Context, email string) (User, string /*hash*/, error)
 	GetByID(ctx context.Context, id string) (User, error)
 	SetPlan(ctx context.Context, id, plan string) error
+	Delete(ctx context.Context, id string) error
 }
 
 // PasswordlessHash is a marker stored in the password_hash column for users

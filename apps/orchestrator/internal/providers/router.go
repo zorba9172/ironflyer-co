@@ -42,6 +42,12 @@ type Request struct {
 	// EnableThinking turns on extended thinking for reasoning-heavy tasks.
 	EnableThinking bool
 
+	// ThinkingBudget, when > 0, overrides the provider's default extended-
+	// thinking budget for this single call. Lets the orchestrator scale
+	// reasoning tokens up for hard tasks (architecture) and down for easy
+	// ones (formatting fixes), trading latency / cost for output quality.
+	ThinkingBudget int
+
 	// Tools the agent may invoke during this completion.
 	Tools []ToolSpec
 }
@@ -121,37 +127,104 @@ func (r *Router) Register(p Provider) {
 // Pick returns the provider with the most capability-tag overlap. Providers
 // supporting "private" are preferred when CapPrivate is requested.
 func (r *Router) Pick(caps []Capability) (Provider, error) {
+	chain := r.PickChain(caps)
+	if len(chain) == 0 {
+		return nil, errors.New("no providers registered")
+	}
+	return chain[0], nil
+}
+
+// PickChain returns providers ranked by capability-tag overlap (best
+// first). When CapPrivate is requested, non-private providers are dropped
+// from the chain. The slice is safe to iterate as a fallback chain.
+func (r *Router) PickChain(caps []Capability) []Provider {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	if len(r.providers) == 0 {
-		return nil, errors.New("no providers registered")
+		return nil
 	}
 	wantPrivate := containsCap(caps, CapPrivate)
 
-	bestScore := -1
-	var best Provider
+	type scored struct {
+		p Provider
+		s int
+	}
+	candidates := make([]scored, 0, len(r.providers))
 	for _, p := range r.providers {
-		score := score(p.Capabilities(), caps)
 		if wantPrivate && !containsCap(p.Capabilities(), CapPrivate) {
 			continue
 		}
-		if score > bestScore {
-			bestScore = score
-			best = p
+		candidates = append(candidates, scored{p: p, s: score(p.Capabilities(), caps)})
+	}
+	if len(candidates) == 0 {
+		// Want-private was requested but no private provider is registered.
+		// Fall back to every provider in registration order so the caller
+		// still gets a stream (privacy can't be enforced at this layer).
+		out := make([]Provider, len(r.providers))
+		copy(out, r.providers)
+		return out
+	}
+	// Stable sort by score desc, registration order as tiebreaker.
+	for i := 1; i < len(candidates); i++ {
+		for j := i; j > 0 && candidates[j].s > candidates[j-1].s; j-- {
+			candidates[j], candidates[j-1] = candidates[j-1], candidates[j]
 		}
 	}
-	if best == nil {
-		best = r.providers[0]
+	out := make([]Provider, len(candidates))
+	for i, c := range candidates {
+		out[i] = c.p
 	}
-	return best, nil
+	return out
 }
 
 func (r *Router) CompleteStream(ctx context.Context, req Request) (<-chan Delta, error) {
-	p, err := r.Pick(req.Capabilities)
-	if err != nil {
-		return nil, err
+	chain := r.PickChain(req.Capabilities)
+	if len(chain) == 0 {
+		return nil, errors.New("no providers registered")
 	}
-	return p.CompleteStream(ctx, req)
+	// Try the best provider first. If its first delta arrives intact we
+	// return that channel as-is. Only "couldn't even start the stream"
+	// errors trigger fallback — once a stream is producing tokens we let
+	// it run; mid-stream errors propagate so callers don't pay 2× for the
+	// same partial output.
+	// Try chain[0] first, then on a failed start or immediate DeltaError,
+	// walk down the chain. Once any non-error delta has been emitted we
+	// commit to that provider and propagate errors as-is.
+	wrapped := make(chan Delta, 32)
+	go runFallbackChain(ctx, wrapped, chain, req)
+	return wrapped, nil
+}
+
+// runFallbackChain drives the entire fallback policy on a goroutine.
+// Output channel is owned here and closed exactly once on exit.
+func runFallbackChain(ctx context.Context, out chan<- Delta, chain []Provider, req Request) {
+	defer close(out)
+	var lastErr error
+	for idx, p := range chain {
+		ch, err := p.CompleteStream(ctx, req)
+		if err != nil {
+			lastErr = err
+			continue
+		}
+		committed := false
+		for d := range ch {
+			if !committed && d.Type == DeltaError {
+				// Don't commit, don't forward — try the next provider.
+				lastErr = d.Err
+				break
+			}
+			committed = true
+			out <- d
+		}
+		if committed {
+			return
+		}
+		_ = idx
+	}
+	if lastErr == nil {
+		lastErr = errors.New("router: every provider in chain refused to start")
+	}
+	out <- Delta{Type: DeltaError, Err: lastErr}
 }
 
 // Complete drains the stream and returns the aggregate.

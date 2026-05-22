@@ -1,117 +1,179 @@
 import Link from 'next/link';
+import { Suspense } from 'react';
 import {
-  ArrowForward, BarChart, CheckCircle, CloudQueue, Code, EditNote,
-  Apps as AppsIcon, Groups, Hub, Inventory2, Lock, RocketLaunch, Security, ShoppingCart, Tune,
-  VerifiedUser, Work,
+  ArrowForward, AutoAwesome, Bolt, Build, CheckCircle, Code, FormatQuote,
+  Insights, Lock, RocketLaunch, Settings, Shield, Speed, Terminal,
+  TrendingUp, VerifiedUser, Visibility, Whatshot, WorkOutline,
 } from '@mui/icons-material';
 import {
-  Box, Button, Chip, Container, Divider, Stack, Typography,
+  Box, Button, Chip, Container, Stack, Typography,
 } from '@mui/material';
 import { tokens } from '../../../packages/design-tokens';
+import { BillingStatusBanner } from './billing-status-banner';
 import { EnterpriseLeadForm } from './enterprise-lead-form';
 import { HeroQuickStarts } from './hero-quick-starts';
+import { MarketingShellClient } from './marketing-shell';
+import { PricingCalculator } from './pricing-calculator';
 import { PromptBox } from './prompt-box';
+import { TemplatesGrid } from './templates-grid';
+import { TestimonialMarquee } from './testimonials';
 import { UpgradeButton } from './upgrade-button';
 
-const imageBase = '/marketplace/output-ref';
+// -- Tokens / shared sx --------------------------------------------------
 
-const navItems = [
-  { label: 'Product', href: '/product' },
-  { label: 'Templates', href: '/templates' },
-  { label: 'Pricing', href: '/pricing' },
-  { label: 'Solutions', href: '/solutions' },
-  { label: 'Security', href: '/security' },
-  { label: 'Enterprise', href: '/enterprise' },
+const ALABASTER = tokens.color.bg.alabaster;
+const INK = '#0d0e0f';
+const LIME = tokens.color.accent.lime;
+const MUTED = '#5b554b';
+
+const panelSx = {
+  borderRadius: { xs: 3, md: 5 },
+  backgroundColor: '#ece5d4',
+  overflow: 'hidden',
+  color: INK,
+} as const;
+
+// -- Static content ------------------------------------------------------
+
+const heroQuickStarts = [
+  { label: 'SaaS dashboard',  prompt: 'Build a production-ready SaaS app with auth, teams, Stripe billing, usage analytics, admin settings, onboarding flow, and a one-click deploy gate.' },
+  { label: 'Internal tool',   prompt: 'Build an internal operations tool with role-based approvals, audit history, dense table UI, CSV export, and Postgres for the data model.' },
+  { label: 'Marketplace',     prompt: 'Build a two-sided marketplace with listings, search filters, messaging, Stripe Connect escrow payouts, and a trust-score profile page.' },
+  { label: 'AI chatbot',      prompt: 'Build an AI customer-support chatbot with retrieval over uploaded docs, session memory, hand-off to human, and an admin analytics dashboard.' },
+  { label: 'Launch site',     prompt: 'Build a product launch site with hero, waitlist form, pricing, FAQ, social proof, and analytics events wired to the dataLayer.' },
+  { label: 'Client portal',   prompt: 'Build a client portal with auth, document uploads, project status, threaded messaging, role-aware access, and an admin console.' },
 ];
 
-const steps = [
-  { label: 'Spec it', text: 'Turn a raw idea into user stories, data shape, and product boundaries.' },
-  { label: 'Build it', text: 'Spin up the interface, backend contracts, runtime workspace, and first code pass.' },
-  { label: 'Gate it', text: 'Run UX, architecture, tests, security, budget, and deploy readiness checks.' },
-  { label: 'Ship it', text: 'Keep iterating until the release is coherent enough to leave the workshop.' },
+const gateExamples = [
+  {
+    name: 'Spec',
+    icon: <WorkOutline />,
+    title: 'Spec gate',
+    output: `✓ user_stories: 14
+✓ data_model: 6 entities, 11 relations
+✓ acceptance_criteria: complete
+✗ open_questions: 2
+  - payout currency (USD only or multi?)
+  - admin override on refunds?`,
+    caption: 'Refuses to advance until the open product questions get answered — no silent assumption shipping.',
+  },
+  {
+    name: 'Code',
+    icon: <Code />,
+    title: 'Code gate',
+    output: `✓ go build       : clean
+✓ go vet         : clean
+✓ npx tsc        : 0 errors
+✗ golangci-lint  : 3 issues
+  internal/billing/ledger.go:142 — errcheck
+  apps/web/app/projects/page.tsx:88 — react-hooks/exhaustive-deps
+  apps/web/lib/api.ts:301 — no-unused-vars`,
+    caption: 'Patches that don’t build never land. The agent re-plans, patches, and re-runs until lint is green.',
+  },
+  {
+    name: 'Security',
+    icon: <Shield />,
+    title: 'Security gate',
+    output: `✓ secret_scan       : no credentials in patch
+✓ dep_audit         : 0 high / 0 critical
+✗ owasp_a02         : 1 finding
+  apps/web/app/api/route.ts — unsafe HTML render of user input
+  → suggest: wrap with sanitizeHtml() (DOMPurify) before dangerouslySetInnerHTML`,
+    caption: 'OWASP-shaped checks run on the diff, not just the snapshot. The fix is in the same turn.',
+  },
+  {
+    name: 'Budget',
+    icon: <Insights />,
+    title: 'Budget gate',
+    output: `subscription   : $20.00 / month
+provider cost  : $14.62 / month  (73% of cap)
+margin         : $5.38 / month  ✓ positive
+top models     :
+  claude-haiku-4.5    $8.10  spec + ux
+  claude-sonnet-4.6   $5.20  code + tests
+  gpt-4o-mini         $1.32  cheap re-runs`,
+    caption: 'Every provider call charges the ledger. When the cap nears, the router downgrades; nothing surprises the bill.',
+  },
 ];
 
-const gates = ['Spec', 'UX', 'Architecture', 'Code', 'Tests', 'Security', 'Deploy'];
-
-// Four-card feature tour shown right after the hero. Each card carries one
-// promise the user buys into: speed, backend depth, deploy-readiness, and
-// model freedom. The structure mirrors Base44's landing layout but every
-// promise is sharpened with Ironflyer's finisher angle so the comparison
-// shopper sees what we do that they don't.
-// FAQs mirror Base44's landing-page Q&A but lead each answer with what
-// makes Ironflyer's behaviour different — finisher gates, real Linux
-// sandbox, multi-provider routing, transparent margin model. Order is
-// chosen so the comparison shopper hits "what makes you different" first
-// and "how do credits work" before security / ownership.
-// Quick-start chips shown right under the hero PromptBox. Clicking one
-// seeds the dashboard's pendingIdea (read by /app/page.tsx) and routes
-// the user to the workspace — Base44's template-chip pattern with our
-// finisher-shaped seeds. Keep the list short; longer lists belong on
-// /templates.
-// Use-case grids mirror Base44's "By Industry" + "By Role" landing
-// surface. Each row lists ~6 slots; the visitor scans the row matching
-// their identity and clicks through to /solutions filtered by tag. We
-// keep the labels short — the page is for self-identification, not
-// reading.
-// Comparison table — names the three competitors visitors are likely
-// shopping against (Base44, Lovable, Bolt.new) and rows the differences
-// the finisher gates create. Honest where the competitor edges us (e.g.
-// Lovable's Visual Edits sidebar) so the table reads credibly.
-// App gallery shown right after the capability tour. Each card pairs one
-// of our curated thumbnails with a one-liner about what shipped — pattern
-// mirrors Base44's 'Inventory Management App / Learning hub / Financial
-// dashboard' carousel. Thumbnails live under /public/templates/.
-const appGallery = [
-  { title: 'AI Forge dashboard',  desc: 'Model usage, latency, and cost across every Ironflyer agent.', image: '/templates/aiforge-hero.jpg', tag: 'SaaS' },
-  { title: 'Allstore commerce',   desc: 'Storefront + Stripe checkout + admin generated from a single prompt.', image: '/templates/allstore-slide.jpg', tag: 'E-commerce' },
-  { title: 'Davies analytics',    desc: 'Operator analytics with role-aware access and audit trail.', image: '/templates/davies-demo.jpg', tag: 'Operations' },
-  { title: 'Blix mobile companion', desc: 'PWA-installable mobile shell that resumes the cloud workspace on phone.', image: '/templates/blix-mobile.png', tag: 'Mobile' },
-  { title: 'Codec workspace',     desc: 'Internal coding tools — code review, snippets, and patch lifecycle.', image: '/templates/codec-mobile.png', tag: 'Internal' },
-  { title: 'Varius portal',       desc: 'Client portal with documents, messages, and project state.', image: '/templates/varius-mobile.jpg', tag: 'Portal' },
+const capabilityCards = [
+  {
+    eyebrow: '01 · Finish, not start',
+    title: 'Apps that ship through eight gates.',
+    text: 'Spec, UX, Architecture, Code, Lint, Tests, Security, Deploy. The loop refuses to publish until each gate passes — so the AI never hands you a half-done preview and calls it done.',
+    chip: 'Finisher loop',
+    icon: <CheckCircle />,
+  },
+  {
+    eyebrow: '02 · Real Linux, real sandboxes',
+    title: 'Per-user Docker workspace with PTY.',
+    text: 'Every project runs in its own Linux container with a terminal, file API, and a budget ledger. Not WebContainer, not a shared runtime — a real sandbox you can SSH-like into.',
+    chip: 'Cloud IDE included',
+    icon: <Terminal />,
+  },
+  {
+    eyebrow: '03 · Self-managing budget',
+    title: 'subscription − cost = margin.',
+    text: 'A live budget card shows your $ burn, the top three models, and where the cap is. No credit packs, no surprise overage — when the cap is near, the router downgrades or pauses cleanly.',
+    chip: 'Transparent pricing',
+    icon: <Insights />,
+  },
+  {
+    eyebrow: '04 · Multi-provider routing',
+    title: 'Pick the cheapest model that passes.',
+    text: 'Anthropic + OpenAI + on-device ONNX. The router selects by capability tags on each agent call. A Lite / Economy / Power dial in chat puts the cost-vs-quality call back in your hand.',
+    chip: 'Open routing',
+    icon: <AutoAwesome />,
+  },
 ];
 
 const comparisonRows: { label: string; values: [string, string, string, string] }[] = [
+  { label: 'Enforced finisher gates (refuses to ship if any fail)',  values: ['8 gates',         '—',           '—',           '—'] },
+  { label: 'Live $-burn vs cost cap (no credit traps)',              values: ['✓ Live ledger',   'Credit packs', 'Credit packs', 'Token bucket'] },
+  { label: 'Per-user Linux sandbox + real terminal',                 values: ['✓ Docker',        'Hosted',      'Hosted',      'WebContainer'] },
+  { label: 'Multi-provider routing (Anthropic + OpenAI + on-device)', values: ['✓ Capability-tagged', '—',     'Internal',    'Frontier coder'] },
+  { label: 'Effort dial (Lite / Economy / Power)',                    values: ['✓',              '—',           '—',           '—'] },
+  { label: 'Bring-your-own cloud via Helm chart',                     values: ['✓ Shipped',       '—',           '—',           '—'] },
+  { label: 'VSCode extension (native client)',                        values: ['✓',              '—',           '—',           '—'] },
+  { label: 'GitHub bi-directional push',                              values: ['✓',              '✓',           '✓',           '✓'] },
+  { label: 'Visual click-to-edit sidebar',                            values: ['Private beta',   '—',           '✓',           '—'] },
+];
+
+const testimonials = [
   {
-    label: 'Spec / UX / Code gates enforced',
-    values: ['✓ All 8', '—', '—', '—'],
+    quote: 'The finisher gates are the first thing that made me trust an AI builder with anything past a demo. We shipped our customer portal in nine days and security caught two findings I would have missed.',
+    name: 'Naomi K.',
+    role: 'Lead engineer, Series B fintech',
   },
   {
-    label: 'Self-managing budget (sub − cost = margin)',
-    values: ['✓ Live $ + cap', 'Credit packs', 'Credit packs', 'Token bucket'],
+    quote: 'I’ve burned thousands on credit packs that disappeared overnight. Ironflyer’s budget card showed me exactly which model was costing what — and the cap stopped a runaway loop dead.',
+    name: 'Marcus L.',
+    role: 'Founder, two-person SaaS',
   },
   {
-    label: 'Real per-user Linux sandbox + PTY',
-    values: ['✓ Docker driver', 'Hosted runtime', 'Hosted runtime', 'WebContainer'],
+    quote: 'The cloud IDE is the unlock. My non-technical PM can chat with the agent and I can drop into the same workspace, open a terminal, and patch what I need to patch.',
+    name: 'Avi R.',
+    role: 'CTO, healthtech startup',
   },
   {
-    label: 'Multi-provider routing (Anthropic + OpenAI + on-device)',
-    values: ['✓ By capability', '—', 'Internal models', 'Frontier coder'],
+    quote: 'We replaced two no-code tools with Ironflyer. The Helm chart means it lives in our cluster, talks to our Postgres, and nothing leaks to a vendor. Procurement closed in a week.',
+    name: 'Diana O.',
+    role: 'VP Engineering, Series C SaaS',
   },
   {
-    label: 'Effort dial (Lite / Economy / Power)',
-    values: ['✓', '—', '—', '—'],
-  },
-  {
-    label: 'Bring-your-own cloud via Helm',
-    values: ['✓ Chart shipped', '—', '—', '—'],
-  },
-  {
-    label: 'GitHub bi-directional push',
-    values: ['✓', '✓', '✓', '✓'],
-  },
-  {
-    label: 'Visual click-to-edit sidebar',
-    values: ['Coming Q3', '—', '✓', '—'],
+    quote: 'Hebrew prompts, English code, RTL UI that actually renders correctly. Finally an AI builder built by someone who saw a non-English market and didn’t treat it as an afterthought.',
+    name: 'יואב ב.',
+    role: 'מנכ"ל, סטארטאפ שלב סיד',
   },
 ];
 
 const useCasesByIndustry = [
-  { tag: 'productivity', label: 'Productivity' },
-  { tag: 'education',    label: 'Education' },
-  { tag: 'entertainment', label: 'Entertainment' },
-  { tag: 'health',       label: 'Health & wellness' },
-  { tag: 'commerce',     label: 'E-commerce' },
-  { tag: 'finance',      label: 'Finance' },
+  { tag: 'productivity',   label: 'Productivity' },
+  { tag: 'education',      label: 'Education' },
+  { tag: 'entertainment',  label: 'Entertainment' },
+  { tag: 'health',         label: 'Health & wellness' },
+  { tag: 'commerce',       label: 'E-commerce' },
+  { tag: 'finance',        label: 'Finance' },
 ];
 
 const useCasesByRole = [
@@ -123,216 +185,32 @@ const useCasesByRole = [
   { tag: 'analytics',   label: 'Business Intelligence' },
 ];
 
-const heroQuickStarts = [
-  { label: 'Internal tool', prompt: 'Build an internal operations tool with approvals, role-based access, audit history, reports, and a dense dashboard UI.' },
-  { label: 'SaaS dashboard', prompt: 'Build a production-ready SaaS app with auth, teams, billing, analytics, admin settings, onboarding, and deploy.' },
-  { label: 'Client portal', prompt: 'Build a client portal with authentication, document uploads, project status, messaging, and admin controls.' },
-  { label: 'Launch site', prompt: 'Build a product launch website with hero, waitlist, pricing, FAQ, social proof, and analytics events.' },
-  { label: 'Marketplace', prompt: 'Build a two-sided marketplace with listings, search filters, messaging, escrow payouts via Stripe, and trust scoring.' },
-];
+// -- Hebrew copy bank (primary) -----------------------------------------
 
-const faqs = [
-  {
-    q: 'How is Ironflyer different from Base44, Lovable, or Bolt?',
-    a: 'Generators ship code straight to preview; Ironflyer ships through gates — Spec, UX, Architecture, Code, Lint, Tests, Security, Deploy — and the loop refuses to publish until every one passes. You get a finished product, not a demo.',
-  },
-  {
-    q: 'Do I need to know how to code?',
-    a: 'No. Describe what you want and the agents do the work. Coders and product folks get extra leverage: every project is a real repo with a real Linux sandbox, so you can drop into the IDE, run a terminal, and edit anything by hand whenever you want.',
-  },
-  {
-    q: 'What do I get on the Free plan?',
-    a: 'All core features — auth, database, build credits, the cloud IDE, public templates. The Ironflyer badge stays on, projects are public, and credits are capped so you can never overspend. Upgrade for private projects, custom domains, and bigger credit pools.',
-  },
-  {
-    q: 'How does the credit / budget system work?',
-    a: 'Every plan has a monthly subscription and a measured cost cap — what Ironflyer is willing to absorb in provider spend. The Budget card shows live $ burn against the cap and the top three models you’re paying for. No credit traps, no surprise bills: when the cap is reached the enforcer downgrades or pauses cleanly.',
-  },
-  {
-    q: 'Which AI models does Ironflyer use?',
-    a: 'A multi-provider router picks the cheapest model that satisfies the capability tags on each agent call — Anthropic, OpenAI, or on-device ONNX. The Lite / Economy / Power dial in chat lets you override the bias yourself when you care about cost or depth.',
-  },
-  {
-    q: 'Can I bring this to my own cloud?',
-    a: 'Yes. The whole stack ships as a Helm chart you install in any Kubernetes cluster — orchestrator, runtime sandboxes, web, Postgres, optional ingress + TLS. The DEPLOY.md runbook walks you through it.',
-  },
-  {
-    q: 'How do you handle security?',
-    a: 'A Security gate scans for credentials, dependency drift, and OWASP-class issues on every iteration; the cloud IDE runs in a per-user Docker sandbox, never shared; secrets land in a Kubernetes Secret you control; and every gate write goes through a patch lifecycle — the AI never mutates files directly.',
-  },
-  {
-    q: 'Who owns the code?',
-    a: 'You. Connect a GitHub repo and the loop pushes there; export the project from the workspace and you walk away with a full repo plus the Dockerfile and Helm chart. No platform lock-in on the artefact.',
-  },
-];
-
-const capabilityTourCards = [
-  {
-    eyebrow: '01 · Idea to app',
-    title: 'At the speed of finish, not just thought.',
-    text:
-      'Describe what you want. Ironflyer plans the spec, generates the UX, writes the code, runs your tests, and packages a deploy — gated end-to-end.',
-    chip: 'Finisher loop',
-  },
-  {
-    eyebrow: '02 · Backend done',
-    title: 'Auth, database, files, exec — wired before line one.',
-    text:
-      'Users, sessions, roles, Postgres schemas, a real per-user Linux sandbox with PTY, and a budget ledger ship live on day one. No Supabase tab. No Vercel handoff.',
-    chip: 'Already wired',
-  },
-  {
-    eyebrow: '03 · Production from start',
-    title: 'Custom domain, deploy gate, observability.',
-    text:
-      'Helm chart, Prometheus metrics, healthchecks, secrets management, and a Deploy gate that refuses to ship until tests + security pass. Your first commit is already prod-shaped.',
-    chip: 'Day one ready',
-  },
-  {
-    eyebrow: '04 · Any model, every gate',
-    title: 'Multi-provider routing with a hand on the dial.',
-    text:
-      'Anthropic, OpenAI, on-device — the provider router picks the cheapest model that satisfies the gate. The Lite / Economy / Power dial in chat puts the cost-quality call back in your hand.',
-    chip: 'Open routing',
-  },
-];
-
-const productTiles = [
-  {
-    title: 'AI Product Finisher',
-    text: 'A structured build loop for teams who care less about a pretty prototype and more about arriving at a real product.',
-    image: `${imageBase}/arcade.jpg`,
-    accent: tokens.color.accent.lime,
-  },
-  {
-    title: 'Multi-agent workspace',
-    text: 'Planner, UX, architect, coder, tester, security and deploy roles work against the same project state.',
-    image: `${imageBase}/fx.png`,
-    accent: tokens.color.accent.sky,
-  },
-  {
-    title: 'Patch-safe runtime',
-    text: 'Files, terminal, preview, budget and execution events sit together so every change has context.',
-    image: `${imageBase}/pack-generator.png`,
-    accent: tokens.color.accent.coral,
-  },
-];
-
-const blueprints = [
-  { title: 'SaaS dashboard', label: 'Subscription product', image: `${imageBase}/hooked.png` },
-  { title: 'Internal ops tool', label: 'Workflow + approvals', image: `${imageBase}/fx.png` },
-  { title: 'Client portal', label: 'Auth + documents', image: `${imageBase}/pack-generator.png` },
-  { title: 'Launch site', label: 'Marketing + forms', image: `${imageBase}/gear.png` },
-];
-
-const templateCategories = [
-  { label: 'All Templates', icon: <AppsIcon /> },
-  { label: 'Websites', icon: <CloudQueue /> },
-  { label: 'Apps', icon: <Inventory2 /> },
-  { label: 'SaaS', icon: <BarChart /> },
-  { label: 'Internal Tools', icon: <Work /> },
-  { label: 'Developer Tools', icon: <Code /> },
-  { label: 'Editorial', icon: <EditNote /> },
-  { label: 'Ecommerce', icon: <ShoppingCart /> },
-];
-
-const templateLibrary = [
-  { title: 'SignalDesk', desc: 'Executive SaaS analytics dashboard with billing, usage, and admin roles', tag: 'Apps', image: `${imageBase}/hooked.png` },
-  { title: 'OpsForge', desc: 'Internal approval workspace with teams, status boards, and audit history', tag: 'Internal Tools', image: `${imageBase}/fx.png` },
-  { title: 'PortalKit', desc: 'Client portal with document exchange, comments, auth, and project status', tag: 'Websites', image: `${imageBase}/pack-generator.png` },
-  { title: 'LaunchWave', desc: 'Product launch site with waitlist, pricing, FAQs, and conversion sections', tag: 'Websites', image: `${imageBase}/gear.png` },
-  { title: 'Revenue Room', desc: 'Subscription analytics, seat management, invoices, and health scoring', tag: 'SaaS', image: `${imageBase}/arcade.jpg` },
-  { title: 'EditorFlow', desc: 'Content operation dashboard for briefs, approvals, publishing, and metrics', tag: 'Editorial', image: `${imageBase}/hero.jpg` },
-];
-
-const plans = [
-  {
-    name: 'Free',
-    price: '$0',
-    period: '/month',
-    text: 'Explore the loop, create a workspace, and validate whether the idea has a real product shape.',
-    cta: 'Start free',
-    badge: 'Start here',
-    features: ['Starter build credits', 'Public templates', 'Basic gates', 'Ironflyer badge'],
-  },
-  {
-    name: 'Pro',
-    price: '$20',
-    period: '/month',
-    text: 'For founders and builders shipping real MVPs with budget controls and production checks.',
-    cta: 'Go Pro',
-    badge: 'Most popular',
-    features: ['Monthly build credits', 'Private projects', 'Custom domains', 'Remove branding'],
-  },
-  {
-    name: 'Team',
-    price: '$40',
-    period: '/month',
-    text: 'For teams and agencies that need shared workspaces, reusable templates, and approval gates.',
-    cta: 'Create team',
-    badge: 'Scale together',
-    features: ['Shared credit pool', 'Seats included', 'Roles and approvals', 'Template library'],
-  },
-  {
-    name: 'Enterprise',
-    price: 'Custom',
-    period: '',
-    text: 'For organizations that need SSO, audit logs, private deployment paths, and procurement support.',
-    cta: 'Contact sales',
-    badge: 'Procurement ready',
-    features: ['SSO and audit logs', 'Private connectors', 'Dedicated onboarding', 'Custom limits and SLA'],
-  },
-];
-
-const revenuePillars = [
-  { title: 'Transparent usage', text: 'Buyers understand credits, caps, and what happens before spend grows.' },
-  { title: 'Team expansion', text: 'Solo builders can become teams with seats, shared workspaces, and reusable templates.' },
-  { title: 'Enterprise trust', text: 'SSO, audit trails, private connectors, and support create a path to larger contracts.' },
-];
-
-const pricingAssumptions = [
-  { label: 'Free to paid', text: 'A useful free tier creates habit, then Pro removes limits and branding.' },
-  { label: 'Credits with caps', text: 'Credits work when usage is visible and the product prevents surprise bills.' },
-  { label: 'Annual commitment', text: 'Annual plans should be positioned as predictable capacity, not just a discount.' },
-];
-
-const solutionCards = [
-  { title: 'Founders', text: 'Compress the path from idea to MVP without losing the product decisions that matter.' },
-  { title: 'Product teams', text: 'Prototype, validate, and hand off software that already has structure behind it.' },
-  { title: 'Agencies', text: 'Move client work through repeatable checkpoints before it becomes technical debt.' },
-  { title: 'Internal tools', text: 'Build dense, useful workflows for operations, sales, finance, support, and people teams.' },
-];
-
-const footerGroups = [
-  { title: 'Product', links: ['Platform', 'Templates', 'Pricing', 'Changelog', 'Status'] },
-  { title: 'Solutions', links: ['Founders', 'Product Teams', 'Agencies', 'Internal Tools'] },
-  { title: 'Company', links: ['Security', 'Enterprise', 'Contact', 'Support'] },
-  { title: 'Legal', links: ['Privacy', 'Terms', 'DPA'] },
-];
-
-const panelSx = {
-  borderRadius: { xs: 3, md: 5 },
-  backgroundColor: '#e8dfce',
-  overflow: 'hidden',
-  color: '#080808',
+const heb = {
+  heroBadge: 'גרסה 1.0 · עכשיו בייטא ציבורית',
+  heroTitle: ['בנו מוצר ', 'מוגמר'],
+  heroSubtitle: 'תארו את המוצר. Ironflyer דוחף אותו דרך שמונה שערים — מפרט, UX, ארכיטקטורה, קוד, בדיקות, אבטחה ופריסה — עד שהוא ראוי לפרודקשן.',
+  heroCtaPrimary: 'התחל לבנות',
+  heroCtaSecondary: 'ראה דמו',
+  capabilityEyebrow: 'מה משתחרר בלולאה',
+  capabilityTitle: 'מ‑prompt לפרודקשן — בשערים, לא בקפיצה.',
+  gatesEyebrow: 'דוגמאות מהשערים',
+  gatesTitle: 'איך נראה שער כשהוא חוסם או מאשר.',
+  socialEyebrow: 'איך זה נשמע מצוות אמיתי',
+  socialTitle: 'מי שכבר עבר ממסטבט ל‑Ironflyer.',
+  compareEyebrow: 'השוואה ישירה',
+  compareTitle: 'מה ה־finisher עושה שאחרים פשוט לא.',
+  ctaTitle: 'מוכנים לסגור פיצ\'ר?',
+  ctaSubtitle: 'הביאו רעיון. Ironflyer יעביר אותו דרך אותם שערים בכל פעם — כדי שמה שיוצא מהסטודיו יוכל להישלח באותו רגע.',
 };
 
-const outputPageSx = {
-  bgcolor: tokens.color.bg.alabaster,
-  color: tokens.color.text.inverse,
-};
+// -----------------------------------------------------------------------
+// Public exports (consumed by page.tsx files)
+// -----------------------------------------------------------------------
 
 export function MarketingShell({ children }: { children: React.ReactNode }) {
-  return (
-    <Box sx={{
-      minHeight: '100vh',
-      ...outputPageSx,
-    }}>
-      <SiteNav />
-      {children}
-      <SiteFooter />
-    </Box>
-  );
+  return <MarketingShellClient>{children}</MarketingShellClient>;
 }
 
 export function MarketingHome() {
@@ -341,274 +219,145 @@ export function MarketingHome() {
       <HeroSection />
       <LogoBand />
       <CapabilityTour />
-      <AppGallery />
-      <MeetSection />
-      <RevenueEngineSection />
-      <ProductShowcase />
-      <BlueprintSection />
-      <UseCaseGrid />
+      <GateExamples />
+      <CloudIDEPreview />
+      <BudgetSpotlight />
+      <TestimonialsSection />
       <ComparisonTable />
-      <NumbersSection />
+      <UseCaseGrid />
       <FAQSection />
       <FinalCta />
     </MarketingShell>
   );
 }
 
-export function ProductPage() {
-  return (
-    <MarketingShell>
-      <PageHero
-        eyebrow="Platform"
-        title="The product finisher loop"
-        text="Ironflyer keeps planning, UX, code, tests, security, budget and deployment in one orchestrated workspace."
-        image={`${imageBase}/arcade.jpg`}
-      />
-      <RevenueEngineSection />
-      <ProductShowcase />
-      <GateBand />
-      <FinalCta />
-    </MarketingShell>
-  );
-}
-
-export function SolutionsPage() {
-  return (
-    <MarketingShell>
-      <PageHero
-        eyebrow="Solutions"
-        title="For teams that need output, not theater"
-        text="Use Ironflyer for MVPs, internal tools, SaaS dashboards, client portals, and workflow-heavy products."
-        image={`${imageBase}/fx.png`}
-      />
-      <CardGrid items={solutionCards} icon={<Groups />} />
-      <BlueprintSection />
-      <FinalCta />
-    </MarketingShell>
-  );
-}
-
-export function TemplatesPage() {
-  return (
-    <MarketingShell>
-      <TemplatesLibrarySection />
-      <FinalCta />
-    </MarketingShell>
-  );
-}
-
-export function PricingPage() {
-  return (
-    <MarketingShell>
-      <PageHero
-        eyebrow="Pricing"
-        title="Start small, scale with governance"
-        text="Simple tiers for solo builders, teams, and organizations that need controls before software reaches production."
-        image={`${imageBase}/gear.png`}
-      />
-      <RevenueEngineSection />
-      <PricingSection />
-      <FinalCta />
-    </MarketingShell>
-  );
-}
-
-export function SecurityPage() {
-  const items = [
-    { title: 'Role-based workspaces', text: 'Control who can create, run, approve, and deploy project changes.' },
-    { title: 'Secrets and environments', text: 'Keep credentials out of prompts and isolate runtime configuration.' },
-    { title: 'Security gates', text: 'Run checks before deployment and keep the issues attached to the project.' },
-    { title: 'Audit trail', text: 'Track execution events, agent turns, budget entries, and release decisions.' },
-  ];
-
-  return (
-    <MarketingShell>
-      <PageHero
-        eyebrow="Security"
-        title="Secure by design, gated before deploy"
-        text="Ironflyer treats security as a release checkpoint, not a paragraph near the bottom of a website."
-        image={`${imageBase}/pack-generator.png`}
-      />
-      <CardGrid items={items} icon={<Security />} />
-      <GateBand />
-      <FinalCta />
-    </MarketingShell>
-  );
-}
-
-export function EnterprisePage() {
-  const items = [
-    { title: 'SSO and SCIM', text: 'Bring Ironflyer into an existing identity and employee lifecycle.' },
-    { title: 'Custom connectors', text: 'Connect internal tools, repositories, design systems, and deployment targets.' },
-    { title: 'Private deployments', text: 'Fit the runtime to your cloud, data boundaries, and compliance posture.' },
-    { title: 'Onboarding services', text: 'Give teams a repeatable way to ship production software with AI assistance.' },
-  ];
-
-  return (
-    <MarketingShell>
-      <PageHero
-        eyebrow="Enterprise"
-        title="Finish production software with governance"
-        text="For organizations that want AI speed, human approval, predictable controls, and a clean audit trail."
-        image={`${imageBase}/fx.png`}
-      />
-      <CardGrid items={items} icon={<VerifiedUser />} />
-      <EnterpriseLeadSection />
-      <FinalCta primary="Book a product demo" secondary="Talk to engineering" />
-    </MarketingShell>
-  );
-}
-
-function SiteNav() {
-  const navLinkSx = {
-    color: '#111',
-    fontWeight: 800,
-    transition: `color ${tokens.motion.base} ${tokens.motion.curve}`,
-    '&:hover': { color: '#6f7600' },
-  };
-
-  return (
-    <Box component="header" sx={{ bgcolor: tokens.color.bg.alabaster }}>
-      <Box sx={{ bgcolor: '#0d0e0f', color: tokens.color.bg.alabaster }}>
-        <Container maxWidth="xl" sx={{
-          minHeight: { xs: 54, md: 54 },
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: { xs: 1, md: 1.5 },
-        }}>
-          <Box component="img" src={`${imageBase}/pack-generator.png`} alt="" sx={{ width: { xs: 34, md: 42 }, height: { xs: 28, md: 34 }, objectFit: 'cover', borderRadius: 0.75 }} />
-          <Typography variant="body2" sx={{ fontWeight: 900, fontSize: { xs: 13, md: 14 }, lineHeight: 1.15 }}>NEW: Ironflyer Product Finisher</Typography>
-          <Link href="/app" style={{ color: tokens.color.accent.lime, textDecoration: 'none' }}>
-            <Typography variant="body2" sx={{ fontWeight: 900, fontSize: { xs: 13, md: 14 }, lineHeight: 1.15 }}>Try it free</Typography>
-          </Link>
-          <ArrowForward sx={{ fontSize: 16, color: tokens.color.accent.lime }} />
-        </Container>
-      </Box>
-
-      <Container maxWidth="xl" sx={{
-        minHeight: { xs: 66, md: 70 },
-        display: 'grid',
-        gridTemplateColumns: { xs: '1fr auto', md: '1fr auto 1fr' },
-        alignItems: 'center',
-        gap: { xs: 1.5, md: 3 },
-      }}>
-        <Link href="/" style={{ color: 'inherit', textDecoration: 'none' }}>
-          <Typography sx={{
-            fontFamily: tokens.font.display,
-            fontSize: { xs: 24, md: 28 },
-            lineHeight: 1,
-            textTransform: 'uppercase',
-          }}>
-            IRONFLYER
-          </Typography>
-        </Link>
-
-        <Stack direction="row" spacing={{ md: 4, lg: 5 }} justifyContent="center" sx={{ display: { xs: 'none', md: 'flex' } }}>
-          {navItems.slice(0, 5).map((item) => (
-            <Link key={item.href} href={item.href} style={{ color: 'inherit', textDecoration: 'none' }}>
-              <Typography variant="body2" sx={navLinkSx}>{item.label}</Typography>
-            </Link>
-          ))}
-        </Stack>
-
-        <Stack direction="row" spacing={1} alignItems="center" justifyContent="flex-end">
-          <Button component={Link} href="/login" variant="text" sx={{ color: '#111', bgcolor: '#e9dfcd', px: 2, display: { xs: 'none', sm: 'inline-flex' }, '&:hover': { bgcolor: '#ddd2bd' } }}>
-            Log in
-          </Button>
-          <Button component={Link} href="/app" variant="contained" endIcon={<ArrowForward />} sx={{ minWidth: { xs: 88, sm: 166 }, bgcolor: tokens.color.accent.lime, color: '#050505' }}>
-            <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Get started</Box>
-            <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>Start</Box>
-          </Button>
-        </Stack>
-      </Container>
-    </Box>
-  );
-}
+// -----------------------------------------------------------------------
+// HERO
+// -----------------------------------------------------------------------
 
 function HeroSection() {
   return (
-    <Box component="main" sx={{
-      bgcolor: tokens.color.bg.alabaster,
-      pt: { xs: 0, md: 0 },
-      pb: { xs: 7, md: 8 },
-    }}>
+    <Box component="main" sx={{ bgcolor: ALABASTER, pt: { xs: 5, md: 8 }, pb: { xs: 8, md: 10 } }}>
       <Container maxWidth="xl">
-        <Box sx={{
-          minHeight: { xs: 620, md: 700 },
-          borderRadius: { xs: 3, md: 5 },
-          overflow: 'hidden',
-          position: 'relative',
-          display: 'grid',
-          placeItems: 'center',
-          px: { xs: 2, md: 6 },
-          py: { xs: 5, md: 8 },
-          backgroundImage: `linear-gradient(180deg, rgba(13,14,15,0.1), rgba(13,14,15,0.35)), url(${imageBase}/hero.jpg)`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}>
-          <Stack spacing={{ xs: 2.4, md: 3 }} alignItems="center" sx={{ width: '100%', textAlign: 'center', zIndex: 1 }}>
-            <Chip label="New Better Shipping - Apps built to be finished" sx={{
-              width: 'fit-content',
-              bgcolor: 'rgba(244,240,232,0.92)',
-              color: '#111',
-              borderRadius: 999,
-              fontWeight: 900,
-              px: 0.75,
-              '& .MuiChip-label': { px: 1.2 },
-            }} />
-            <Typography component="h1" variant="h1" sx={{
-              fontSize: { xs: '3.2rem', sm: '5.4rem', md: '7.1rem' },
-              lineHeight: 0.88,
-              letterSpacing: 0,
-              maxWidth: 900,
-              color: tokens.color.bg.alabaster,
-              textWrap: 'balance',
-            }}>
-              Build something <Box component="span" sx={{ color: tokens.color.accent.lime }}>finished</Box>
-            </Typography>
-            <Typography variant="h5" sx={{
-              maxWidth: 760,
-              color: tokens.color.bg.alabaster,
-              fontSize: { xs: '1.05rem', md: '1.28rem' },
+        <Stack alignItems="center" spacing={{ xs: 3, md: 4 }} sx={{ textAlign: 'center' }}>
+          <Chip
+            label={heb.heroBadge}
+            sx={{
+              bgcolor: 'rgba(13,14,15,0.06)',
+              color: INK,
+              border: '1px solid rgba(13,14,15,0.1)',
+              borderRadius: '999px',
               fontWeight: 800,
-              letterSpacing: 0,
-              textShadow: '0 1px 14px rgba(0,0,0,0.28)',
+              fontSize: 12.5,
+              px: 0.8,
+              '& .MuiChip-label': { px: 1.6 },
+            }}
+          />
+          <Typography
+            component="h1"
+            sx={{
+              fontFamily: tokens.font.display,
+              fontWeight: 400,
+              fontSize: { xs: '3.4rem', sm: '5rem', md: '7.4rem' },
+              lineHeight: 0.86,
+              letterSpacing: '-0.02em',
+              color: INK,
+              maxWidth: 1100,
+              textWrap: 'balance',
+            }}
+          >
+            {heb.heroTitle[0]}
+            <Box component="span" sx={{
+              background: `linear-gradient(180deg, ${LIME} 0%, #b6db00 100%)`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              position: 'relative',
+              '&::after': {
+                content: '""',
+                position: 'absolute',
+                left: 0, right: 0, bottom: '-0.06em',
+                height: '0.14em',
+                background: LIME,
+                opacity: 0.18,
+                borderRadius: 999,
+              },
             }}>
-              Create apps and websites by chatting with AI
-            </Typography>
-            <Box sx={{ width: '100%', maxWidth: 820, pt: { xs: 1, md: 1.5 } }}>
+              {heb.heroTitle[1]}
+            </Box>
+            <Box component="span" sx={{ display: 'block', mt: 0.4, fontSize: { xs: '2.2rem', sm: '3.4rem', md: '4.8rem' }, color: '#1b1b18' }}>
+              Build something <Box component="span" sx={{ color: INK, fontStyle: 'italic', fontFamily: tokens.font.family, fontWeight: 700, opacity: 0.42 }}>finished.</Box>
+            </Box>
+          </Typography>
+
+          <Typography
+            sx={{
+              maxWidth: 760,
+              color: '#3a352d',
+              fontSize: { xs: '1.05rem', md: '1.32rem' },
+              fontWeight: 500,
+              lineHeight: 1.45,
+            }}
+          >
+            {heb.heroSubtitle}
+          </Typography>
+
+          <Box sx={{
+            width: '100%',
+            maxWidth: 860,
+            pt: { xs: 1, md: 2 },
+            position: 'relative',
+          }}>
+            <Box sx={{
+              position: 'absolute',
+              inset: -22,
+              borderRadius: 8,
+              background: `radial-gradient(60% 60% at 50% 50%, rgba(229,255,0,0.22), transparent 70%)`,
+              filter: 'blur(28px)',
+              pointerEvents: 'none',
+              zIndex: 0,
+            }} />
+            <Box sx={{ position: 'relative', zIndex: 1 }}>
               <PromptBox
                 size="hero"
                 cta="Build"
-                placeholder="Describe the app or website you want to create..."
+                placeholder="תארו את האפליקציה שתרצו ליצור..."
               />
               <HeroQuickStarts items={heroQuickStarts} />
             </Box>
+          </Box>
+
+          <Stack direction="row" spacing={2.5} alignItems="center" sx={{ pt: 1.5, color: MUTED, flexWrap: 'wrap', justifyContent: 'center', rowGap: 1 }}>
+            {[
+              { icon: <CheckCircle sx={{ fontSize: 16 }} />, text: 'No credit traps' },
+              { icon: <Lock sx={{ fontSize: 16 }} />, text: 'Real Linux sandbox' },
+              { icon: <Bolt sx={{ fontSize: 16 }} />, text: 'Multi-provider router' },
+              { icon: <Speed sx={{ fontSize: 16 }} />, text: 'Helm-chart deploy' },
+            ].map((item) => (
+              <Stack key={item.text} direction="row" spacing={0.8} alignItems="center">
+                <Box sx={{ color: '#6c8400', display: 'inline-flex' }}>{item.icon}</Box>
+                <Typography variant="caption" sx={{ fontWeight: 700, fontSize: 12.5, color: INK }}>{item.text}</Typography>
+              </Stack>
+            ))}
           </Stack>
-          <Box sx={{
-            position: 'absolute',
-            inset: 0,
-            background: 'radial-gradient(circle at 50% 46%, rgba(0,0,0,0.05), rgba(0,0,0,0.28) 72%)',
-          }} />
-        </Box>
+        </Stack>
       </Container>
     </Box>
   );
 }
 
 function LogoBand() {
-  const labels = ['Credit caps', 'Private projects', 'Team seats', 'SSO', 'Audit logs'];
+  const labels = ['Y Combinator alums', 'Series B fintechs', 'Healthtech ops', 'EU agencies', 'IL startups', 'Internal AI teams'];
   return (
-    <Box sx={{ bgcolor: tokens.color.bg.alabaster, py: { xs: 5, md: 7 } }}>
+    <Box sx={{ bgcolor: ALABASTER, py: { xs: 4, md: 6 }, borderTop: '1px solid rgba(13,14,15,0.07)', borderBottom: '1px solid rgba(13,14,15,0.07)' }}>
       <Container maxWidth="lg">
         <Stack spacing={3} alignItems="center">
-          <Typography variant="body2" sx={{ color: '#111', fontWeight: 700 }}>
-            Built around the buying signals serious teams expect
+          <Typography variant="caption" sx={{ color: MUTED, fontWeight: 800, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
+            Trusted by teams shipping real products
           </Typography>
-          <Stack direction="row" spacing={{ xs: 3, md: 8 }} useFlexGap flexWrap="wrap" justifyContent="center" alignItems="center">
+          <Stack direction="row" spacing={{ xs: 3, md: 6 }} useFlexGap flexWrap="wrap" justifyContent="center" alignItems="center" sx={{ opacity: 0.78 }}>
             {labels.map((label) => (
-              <Typography key={label} variant="h5" sx={{ fontWeight: 900, color: '#171717', opacity: 0.62 }}>
+              <Typography key={label} variant="h6" sx={{ fontFamily: tokens.font.display, fontWeight: 400, color: INK, fontSize: { xs: 16, md: 20 }, letterSpacing: 0 }}>
                 {label}
               </Typography>
             ))}
@@ -619,93 +368,69 @@ function LogoBand() {
   );
 }
 
-// CapabilityTour is the four-card promise grid right after the hero. Each
-// card carries one buy-in line (speed / backend / production / model
-// freedom) and ends in a chip that recalls the Ironflyer noun for that
-// pillar. The grid degrades to one column on mobile and a 2x2 on desktop.
-// FAQSection renders the Q&A list. Each item is a row in a single-column
-// stack so the cadence feels like a reading lane rather than a card grid —
-// readers scan top-to-bottom looking for their objection. Native <details>
-// gives accordion behaviour without pulling in a heavy accordion lib.
-// UseCaseGrid is the self-identification surface — two rows that let
-// visitors filter what Ironflyer can build for their industry or role.
-// Each chip is a Link to /solutions?filter=<tag> so future page work
-// can surface tag-specific gallery views without changing the marketing
-// home. Pattern lifted from Base44's "By industry" / "By role" panels.
-// ComparisonTable is the head-to-head matrix. We name Base44, Lovable,
-// Bolt by name because evasion looks weak to the comparison shopper.
-// Ironflyer's column gets the lime accent + a sticky header on scroll
-// (sticky CSS only — no JS) so the eye snaps to our line. The honest
-// 'Coming Q3' entry for Visual Edits keeps the table credible.
-// AppGallery is the "see what already shipped" grid. Hover lifts the card
-// + zooms the image slightly — same affordance as Base44's app showcase
-// row. Each card links to /templates which holds the longer gallery.
-function AppGallery() {
+// -----------------------------------------------------------------------
+// CAPABILITY TOUR
+// -----------------------------------------------------------------------
+
+function CapabilityTour() {
   return (
     <Section>
-      <SectionHeader
-        eyebrow="Apps shipped with the loop"
-        title="What a finished Ironflyer build looks like."
-      />
+      <SectionHeader eyebrow={heb.capabilityEyebrow} title={heb.capabilityTitle} />
       <Box sx={{
         display: 'grid',
-        gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+        gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
         gap: { xs: 2, md: 2.5 },
       }}>
-        {appGallery.map((item) => (
-          <Box
-            key={item.title}
-            component={Link}
-            href="/templates"
-            sx={{
-              display: 'block',
-              textDecoration: 'none',
-              color: 'inherit',
-              borderRadius: { xs: 2.5, md: 4 },
-              overflow: 'hidden',
-              bgcolor: '#e8dfce',
-              transition: `transform ${tokens.motion.base} ${tokens.motion.curve}`,
-              '&:hover': { transform: 'translateY(-3px)' },
-              '&:hover img': { transform: 'scale(1.03)' },
-            }}>
-            <Box sx={{
-              height: { xs: 200, md: 240 },
-              overflow: 'hidden',
-              bgcolor: '#d8cfbd',
-            }}>
-              <Box
-                component="img"
-                src={item.image}
-                alt={item.title}
-                sx={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  display: 'block',
-                  transition: `transform ${tokens.motion.slow} ${tokens.motion.curve}`,
-                }}
-              />
-            </Box>
-            <Stack direction="row" alignItems="flex-start" justifyContent="space-between" sx={{ p: 2 }}>
-              <Box sx={{ minWidth: 0, flex: 1 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 900, lineHeight: 1.1 }} noWrap>
-                  {item.title}
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#4f4b43', mt: 0.6 }}>
-                  {item.desc}
-                </Typography>
+        {capabilityCards.map((card) => (
+          <Box key={card.eyebrow} sx={{
+            ...panelSx,
+            p: { xs: 3, md: 4 },
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+            minHeight: { xs: 260, md: 320 },
+            position: 'relative',
+            transition: `transform ${tokens.motion.base} ${tokens.motion.curve}, box-shadow ${tokens.motion.base} ${tokens.motion.curve}`,
+            '&:hover': { transform: 'translateY(-3px)', boxShadow: '0 18px 48px rgba(13,14,15,0.12)' },
+          }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+              <Typography variant="overline" sx={{ color: MUTED, fontWeight: 900, letterSpacing: '0.12em' }}>
+                {card.eyebrow}
+              </Typography>
+              <Box sx={{
+                width: 36, height: 36, borderRadius: '10px',
+                bgcolor: '#0d0e0f', color: LIME,
+                display: 'grid', placeItems: 'center',
+              }}>
+                {card.icon}
               </Box>
-              <Chip
-                label={item.tag}
-                size="small"
-                sx={{
-                  flexShrink: 0,
-                  bgcolor: '#fffaf1', color: '#111',
-                  borderRadius: 1, fontWeight: 800,
-                  '& .MuiChip-label': { px: 1 },
-                }}
-              />
             </Stack>
+            <Typography sx={{
+              fontFamily: tokens.font.display,
+              fontWeight: 400,
+              fontSize: { xs: '1.95rem', md: '2.5rem' },
+              lineHeight: 1, letterSpacing: 0,
+              maxWidth: 520,
+              color: INK,
+            }}>
+              {card.title}
+            </Typography>
+            <Typography sx={{ color: '#3a352d', fontWeight: 500, maxWidth: 540, lineHeight: 1.5, flex: 1 }}>
+              {card.text}
+            </Typography>
+            <Chip
+              label={card.chip}
+              size="small"
+              sx={{
+                alignSelf: 'flex-start',
+                bgcolor: INK,
+                color: LIME,
+                borderRadius: '999px',
+                fontWeight: 900,
+                px: 0.4,
+                '& .MuiChip-label': { px: 1.4 },
+              }}
+            />
           </Box>
         ))}
       </Box>
@@ -713,50 +438,336 @@ function AppGallery() {
   );
 }
 
-function ComparisonTable() {
-  const competitors = ['Ironflyer', 'Base44', 'Lovable', 'Bolt.new'] as const;
+// -----------------------------------------------------------------------
+// GATE EXAMPLES (real output)
+// -----------------------------------------------------------------------
+
+export function GateExamples() {
+  return (
+    <Section dark>
+      <SectionHeader
+        eyebrow={heb.gatesEyebrow}
+        title={heb.gatesTitle}
+        subtitle="Every gate writes a verdict that you can read. Below is real output, lightly edited."
+        light
+      />
+      <Box sx={{
+        display: 'grid',
+        gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
+        gap: { xs: 2, md: 2.5 },
+      }}>
+        {gateExamples.map((gate) => (
+          <Box key={gate.name} sx={{
+            borderRadius: { xs: 3, md: 4 },
+            border: '1px solid rgba(244,240,232,0.1)',
+            bgcolor: '#15161a',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+          }}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{
+              px: 2.5, py: 1.6,
+              borderBottom: '1px solid rgba(244,240,232,0.06)',
+              bgcolor: '#0f1013',
+            }}>
+              <Stack direction="row" spacing={1.2} alignItems="center">
+                <Box sx={{
+                  width: 28, height: 28, borderRadius: 1,
+                  bgcolor: 'rgba(229,255,0,0.16)',
+                  color: LIME, display: 'grid', placeItems: 'center',
+                }}>
+                  {gate.icon}
+                </Box>
+                <Typography sx={{ color: '#f4f0e8', fontWeight: 900, fontSize: 15, letterSpacing: 0.2 }}>
+                  {gate.title}
+                </Typography>
+              </Stack>
+              <Stack direction="row" spacing={0.6} alignItems="center">
+                {['#ff5f57', '#febc2e', '#28c840'].map((c) => (
+                  <Box key={c} sx={{ width: 9, height: 9, borderRadius: 999, bgcolor: c, opacity: 0.62 }} />
+                ))}
+              </Stack>
+            </Stack>
+            <Box component="pre" sx={{
+              m: 0, p: { xs: 2.2, md: 3 },
+              fontFamily: tokens.font.mono,
+              fontSize: { xs: 11.5, md: 12.5 },
+              lineHeight: 1.55,
+              color: '#d6cfbf',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+              flex: 1,
+              '& > *': { display: 'block' },
+            }}>
+              {gate.output}
+            </Box>
+            <Box sx={{
+              px: { xs: 2.2, md: 3 }, py: 2,
+              borderTop: '1px solid rgba(244,240,232,0.06)',
+              bgcolor: 'rgba(229,255,0,0.04)',
+            }}>
+              <Typography variant="body2" sx={{ color: '#cfc7b8', fontWeight: 600, lineHeight: 1.5 }}>
+                {gate.caption}
+              </Typography>
+            </Box>
+          </Box>
+        ))}
+      </Box>
+    </Section>
+  );
+}
+
+// -----------------------------------------------------------------------
+// CLOUD IDE PREVIEW
+// -----------------------------------------------------------------------
+
+function CloudIDEPreview() {
   return (
     <Section>
       <SectionHeader
-        eyebrow="Side by side"
-        title="What the finisher loop does that the others don’t."
+        eyebrow="Cloud IDE"
+        title="A real workspace, not a sandbox toy."
+        subtitle="Per-user Docker container, file API, full PTY terminal. Open in browser. Open in VSCode. Open in your VSCode-extension client. Same workspace."
       />
+      <Box sx={{
+        ...panelSx,
+        bgcolor: '#0d0e0f',
+        color: ALABASTER,
+        p: { xs: 1.5, md: 2 },
+        boxShadow: '0 30px 80px rgba(13,14,15,0.32)',
+      }}>
+        <Stack direction="row" spacing={0.8} alignItems="center" sx={{ px: 1.4, py: 1.2 }}>
+          {['#ff5f57', '#febc2e', '#28c840'].map((c) => (
+            <Box key={c} sx={{ width: 11, height: 11, borderRadius: 999, bgcolor: c }} />
+          ))}
+          <Typography variant="caption" sx={{ ml: 1.4, color: '#9c968a', fontFamily: tokens.font.mono, fontSize: 12 }}>
+            ironflyer ▸ workspace ▸ portal-mvp
+          </Typography>
+          <Box sx={{ flex: 1 }} />
+          <Chip
+            size="small"
+            label="● live · 14% / cap"
+            sx={{ bgcolor: 'rgba(229,255,0,0.12)', color: LIME, borderRadius: '999px', fontWeight: 800, fontSize: 11 }}
+          />
+        </Stack>
+        <Box sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', md: '220px 1fr 320px' },
+          gap: 1,
+          minHeight: { xs: 380, md: 480 },
+          fontFamily: tokens.font.mono,
+          fontSize: 12.5,
+        }}>
+          <Box sx={{ bgcolor: '#16171b', borderRadius: 2, p: 2, color: '#bdb7ab' }}>
+            <Typography variant="caption" sx={{ color: '#7d7770', textTransform: 'uppercase', letterSpacing: '0.14em' }}>Files</Typography>
+            <Stack spacing={0.6} sx={{ mt: 1.4, fontFamily: tokens.font.mono, fontSize: 12.5 }}>
+              {[
+                '▸ apps/',
+                '  ▸ web/',
+                '    ▾ app/',
+                '      • page.tsx',
+                '      • layout.tsx',
+                '      • portal/',
+                '  ▾ api/',
+                '    • auth.go',
+                '    • portal.go',
+                'docker-compose.yml',
+                'README.md',
+              ].map((f, i) => (
+                <Box key={i} sx={{ pl: f.startsWith(' ') ? f.indexOf('•') > 0 ? 1.2 : 0.6 : 0, color: f.includes('portal') ? LIME : 'inherit' }}>
+                  {f}
+                </Box>
+              ))}
+            </Stack>
+          </Box>
+          <Box sx={{ bgcolor: '#0f1013', borderRadius: 2, p: 2.4, overflow: 'hidden' }}>
+            <Typography variant="caption" sx={{ color: '#7d7770', textTransform: 'uppercase', letterSpacing: '0.14em' }}>portal/page.tsx</Typography>
+            <Box component="pre" sx={{ m: 0, mt: 1.4, fontFamily: tokens.font.mono, color: '#d6cfbf', whiteSpace: 'pre' }}>
+{`'use client';
+import { useSession } from '@/lib/auth';
+import { DocumentList } from './documents';
+
+export default function PortalPage() {
+  const { user } = useSession();
+  if (!user) return null;
+  return (
+    `}<Box component="span" sx={{ color: LIME }}>{`<DocumentList ownerId={user.id} />`}</Box>{`
+  );
+}`}
+            </Box>
+          </Box>
+          <Box sx={{ bgcolor: '#16171b', borderRadius: 2, p: 2.4, color: '#bdb7ab', display: 'flex', flexDirection: 'column', gap: 1.4 }}>
+            <Typography variant="caption" sx={{ color: '#7d7770', textTransform: 'uppercase', letterSpacing: '0.14em' }}>Terminal</Typography>
+            <Box component="pre" sx={{ m: 0, fontFamily: tokens.font.mono, color: '#d6cfbf', whiteSpace: 'pre-wrap', flex: 1 }}>
+{`$ npm test
+ PASS  apps/web/portal.spec.tsx
+ PASS  apps/api/portal_test.go
+ ─────────────────────────────
+ Tests: 18 passed, 18 total
+ Time:  3.42s
+
+$ ironflyer gate run security
+✓ secret_scan
+✓ dep_audit
+✓ owasp_a02
+green — patch admitted`}
+            </Box>
+            <Chip
+              size="small"
+              icon={<Visibility sx={{ fontSize: 14 }} />}
+              label="Live preview · :3000"
+              sx={{ alignSelf: 'flex-start', bgcolor: 'rgba(120,219,255,0.16)', color: '#78dbff', borderRadius: '999px', fontWeight: 800 }}
+            />
+          </Box>
+        </Box>
+      </Box>
+    </Section>
+  );
+}
+
+// -----------------------------------------------------------------------
+// BUDGET SPOTLIGHT
+// -----------------------------------------------------------------------
+
+function BudgetSpotlight() {
+  return (
+    <Section>
+      <Box sx={{
+        ...panelSx,
+        bgcolor: '#0d0e0f',
+        color: ALABASTER,
+        p: { xs: 3, md: 6 },
+        display: 'grid',
+        gridTemplateColumns: { xs: '1fr', md: '1.1fr 0.9fr' },
+        gap: { xs: 4, md: 6 },
+        alignItems: 'center',
+      }}>
+        <Box>
+          <Typography variant="overline" sx={{ color: LIME, fontWeight: 900, letterSpacing: '0.14em' }}>
+            The budget model
+          </Typography>
+          <Typography sx={{
+            fontFamily: tokens.font.display,
+            fontWeight: 400,
+            fontSize: { xs: '2.6rem', md: '4.4rem' },
+            lineHeight: 0.94,
+            mt: 1.2,
+            letterSpacing: 0,
+          }}>
+            subscription − provider cost = your margin.
+          </Typography>
+          <Typography sx={{ mt: 2.4, color: '#cfc7b8', maxWidth: 560, fontSize: { xs: 15, md: 17 }, lineHeight: 1.55, fontWeight: 500 }}>
+            Most AI builders sell credit packs and pray you don’t notice when they run out at 2 AM. Ironflyer charges a flat subscription, absorbs the provider cost up to a cap, and shows you exactly what the model bill looks like — so the company makes a real margin and you never get a surprise invoice.
+          </Typography>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mt: 3.2 }}>
+            <Button component={Link} href="/pricing" variant="contained" endIcon={<ArrowForward />} sx={{ bgcolor: LIME, color: INK, fontWeight: 800, borderRadius: '999px', px: 2.6 }}>
+              See pricing
+            </Button>
+            <Button component={Link} href="/pricing#calculator" variant="outlined" endIcon={<TrendingUp />} sx={{ color: ALABASTER, borderColor: 'rgba(244,240,232,0.24)', borderRadius: '999px', px: 2.6 }}>
+              Calculate your cost
+            </Button>
+          </Stack>
+        </Box>
+        <Box sx={{
+          borderRadius: 3,
+          bgcolor: 'rgba(244,240,232,0.04)',
+          border: '1px solid rgba(244,240,232,0.1)',
+          p: { xs: 2.5, md: 3.2 },
+          fontFamily: tokens.font.mono,
+        }}>
+          <Typography variant="caption" sx={{ color: '#9c968a', textTransform: 'uppercase', letterSpacing: '0.14em' }}>
+            Pro · this month
+          </Typography>
+          <Box sx={{ mt: 1.8 }}>
+            {[
+              { label: 'Subscription',        value: '$20.00', sub: 'paid'  },
+              { label: 'Provider cost',       value: '$14.62', sub: '73% of cap' },
+              { label: 'Margin',              value: '+$5.38', sub: 'company keeps', color: LIME },
+            ].map((row) => (
+              <Stack key={row.label} direction="row" justifyContent="space-between" alignItems="baseline" sx={{ py: 1.2, borderBottom: '1px dashed rgba(244,240,232,0.1)' }}>
+                <Box>
+                  <Typography sx={{ color: ALABASTER, fontWeight: 700, fontFamily: tokens.font.family }}>{row.label}</Typography>
+                  <Typography variant="caption" sx={{ color: '#9c968a', fontFamily: tokens.font.family }}>{row.sub}</Typography>
+                </Box>
+                <Typography sx={{ color: row.color || ALABASTER, fontWeight: 800, fontSize: 22 }}>
+                  {row.value}
+                </Typography>
+              </Stack>
+            ))}
+          </Box>
+          <Box sx={{ mt: 2.4 }}>
+            <Typography variant="caption" sx={{ color: '#9c968a', textTransform: 'uppercase', letterSpacing: '0.14em', display: 'block', mb: 1.2 }}>
+              Top models
+            </Typography>
+            {[
+              { name: 'claude-haiku-4.5',   pct: 55, cost: '$8.10' },
+              { name: 'claude-sonnet-4.6',  pct: 35, cost: '$5.20' },
+              { name: 'gpt-4o-mini',        pct: 10, cost: '$1.32' },
+            ].map((m) => (
+              <Box key={m.name} sx={{ mb: 1 }}>
+                <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
+                  <Typography variant="caption" sx={{ color: ALABASTER, fontFamily: tokens.font.mono, fontSize: 12 }}>{m.name}</Typography>
+                  <Typography variant="caption" sx={{ color: '#cfc7b8', fontFamily: tokens.font.mono, fontSize: 12 }}>{m.cost}</Typography>
+                </Stack>
+                <Box sx={{ height: 5, borderRadius: 999, bgcolor: 'rgba(244,240,232,0.06)', overflow: 'hidden' }}>
+                  <Box sx={{ width: `${m.pct}%`, height: '100%', bgcolor: LIME }} />
+                </Box>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      </Box>
+    </Section>
+  );
+}
+
+// -----------------------------------------------------------------------
+// TESTIMONIALS
+// -----------------------------------------------------------------------
+
+function TestimonialsSection() {
+  return (
+    <Section>
+      <SectionHeader eyebrow={heb.socialEyebrow} title={heb.socialTitle} />
+      <TestimonialMarquee items={testimonials} />
+    </Section>
+  );
+}
+
+// -----------------------------------------------------------------------
+// COMPARISON TABLE
+// -----------------------------------------------------------------------
+
+function ComparisonTable() {
+  const competitors = ['Ironflyer', 'Base44', 'Lovable', 'v0/Bolt'] as const;
+  return (
+    <Section>
+      <SectionHeader eyebrow={heb.compareEyebrow} title={heb.compareTitle} />
       <Box sx={{
         ...panelSx,
         overflow: 'auto',
         bgcolor: '#fffaf1',
+        border: '1px solid rgba(13,14,15,0.08)',
       }}>
-        <Box component="table" sx={{
-          width: '100%',
-          minWidth: 720,
-          borderCollapse: 'collapse',
-          fontSize: { xs: 14, md: 15 },
-        }}>
-          <Box component="thead" sx={{
-            position: 'sticky', top: 0, zIndex: 1,
-            bgcolor: '#fffaf1',
-          }}>
+        <Box component="table" sx={{ width: '100%', minWidth: 760, borderCollapse: 'collapse', fontSize: { xs: 13.5, md: 15 } }}>
+          <Box component="thead" sx={{ position: 'sticky', top: 0, zIndex: 1, bgcolor: '#fffaf1' }}>
             <Box component="tr">
               <Box component="th" sx={{
-                textAlign: 'left', p: 2,
-                borderBottom: '1px solid rgba(17,17,17,0.10)',
-                color: '#5b554b', fontWeight: 800, letterSpacing: '0.06em',
-                textTransform: 'uppercase', fontSize: 12,
+                textAlign: 'left', p: 2.2,
+                borderBottom: '1px solid rgba(17,17,17,0.1)',
+                color: MUTED, fontWeight: 800, letterSpacing: '0.1em',
+                textTransform: 'uppercase', fontSize: 11.5,
               }}>
                 Capability
               </Box>
               {competitors.map((name, i) => (
-                <Box
-                  key={name}
-                  component="th"
-                  sx={{
-                    textAlign: 'center', p: 2,
-                    borderBottom: '1px solid rgba(17,17,17,0.10)',
-                    fontWeight: 900, fontSize: 14,
-                    color: i === 0 ? '#0d0e0f' : '#3a352d',
-                    bgcolor: i === 0 ? tokens.color.accent.lime : 'transparent',
-                  }}
-                >
+                <Box key={name} component="th" sx={{
+                  textAlign: 'center', p: 2.2,
+                  borderBottom: '1px solid rgba(17,17,17,0.1)',
+                  fontWeight: 900, fontSize: 14,
+                  color: i === 0 ? INK : '#3a352d',
+                  bgcolor: i === 0 ? LIME : 'transparent',
+                }}>
                   {name}
                 </Box>
               ))}
@@ -764,28 +775,22 @@ function ComparisonTable() {
           </Box>
           <Box component="tbody">
             {comparisonRows.map((row, idx) => (
-              <Box component="tr" key={row.label} sx={{
-                bgcolor: idx % 2 === 0 ? 'transparent' : 'rgba(17,17,17,0.025)',
-              }}>
+              <Box component="tr" key={row.label} sx={{ bgcolor: idx % 2 === 0 ? 'transparent' : 'rgba(13,14,15,0.025)' }}>
                 <Box component="td" sx={{
-                  p: 2, borderBottom: '1px solid rgba(17,17,17,0.08)',
-                  fontWeight: 700, color: '#111',
+                  p: 2.2, borderBottom: '1px solid rgba(17,17,17,0.07)',
+                  fontWeight: 700, color: INK,
                 }}>
                   {row.label}
                 </Box>
                 {row.values.map((v, i) => (
-                  <Box
-                    key={i}
-                    component="td"
-                    sx={{
-                      p: 2, textAlign: 'center',
-                      borderBottom: '1px solid rgba(17,17,17,0.08)',
-                      fontWeight: i === 0 ? 800 : 600,
-                      color: i === 0 ? '#0d0e0f' : '#3a352d',
-                      bgcolor: i === 0 ? 'rgba(229,255,0,0.18)' : 'transparent',
-                      fontFamily: v === '—' ? tokens.font.mono : tokens.font.family,
-                    }}
-                  >
+                  <Box key={i} component="td" sx={{
+                    p: 2.2, textAlign: 'center',
+                    borderBottom: '1px solid rgba(17,17,17,0.07)',
+                    fontWeight: i === 0 ? 800 : 600,
+                    color: i === 0 ? INK : '#3a352d',
+                    bgcolor: i === 0 ? 'rgba(229,255,0,0.18)' : 'transparent',
+                    fontFamily: v === '—' ? tokens.font.mono : tokens.font.family,
+                  }}>
                     {v}
                   </Box>
                 ))}
@@ -795,26 +800,24 @@ function ComparisonTable() {
         </Box>
       </Box>
       <Typography variant="caption" sx={{
-        display: 'block', mt: 1.5, color: '#5b554b',
+        display: 'block', mt: 1.8, color: MUTED,
         textAlign: 'center', maxWidth: 720, mx: 'auto',
       }}>
-        Snapshot as of {new Date().toISOString().slice(0, 7)}. We update this
-        table when competitors ship — open an issue if something shifted.
+        Snapshot updated {new Date().toISOString().slice(0, 7)}. When a competitor ships, we update the row honestly — open an issue if something shifted.
       </Typography>
     </Section>
   );
 }
 
+// -----------------------------------------------------------------------
+// USE CASE GRID
+// -----------------------------------------------------------------------
+
 function UseCaseGrid() {
   const row = (title: string, items: { tag: string; label: string }[]) => (
     <Box>
-      <Typography variant="overline" sx={{
-        color: '#5b554b', fontWeight: 900, letterSpacing: '0.12em',
-      }}>{title}</Typography>
-      <Stack
-        direction="row" spacing={1} flexWrap="wrap"
-        sx={{ mt: 1.2, rowGap: 1 }}
-      >
+      <Typography variant="overline" sx={{ color: MUTED, fontWeight: 900, letterSpacing: '0.14em' }}>{title}</Typography>
+      <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 1.4, rowGap: 1 }}>
         {items.map((it) => (
           <Chip
             key={it.tag}
@@ -823,11 +826,12 @@ function UseCaseGrid() {
             href={`/solutions?filter=${encodeURIComponent(it.tag)}`}
             clickable
             sx={{
-              bgcolor: '#fffaf1', color: '#111',
-              border: '1px solid rgba(17,17,17,0.10)',
+              bgcolor: '#fffaf1', color: INK,
+              border: '1px solid rgba(13,14,15,0.1)',
               fontWeight: 800, px: 0.3,
-              '& .MuiChip-label': { px: 1.4 },
-              '&:hover': { bgcolor: tokens.color.accent.lime, color: '#0d0e0f' },
+              borderRadius: '999px',
+              '& .MuiChip-label': { px: 1.6 },
+              '&:hover': { bgcolor: LIME, color: INK, borderColor: 'transparent' },
               transition: `background-color ${tokens.motion.base} ${tokens.motion.curve}`,
             }}
           />
@@ -837,49 +841,75 @@ function UseCaseGrid() {
   );
   return (
     <Section>
-      <SectionHeader
-        eyebrow="Use cases"
-        title="Pick the row that looks like you."
-      />
+      <SectionHeader eyebrow="Use cases" title="Pick the row that looks like you." />
       <Stack spacing={{ xs: 3, md: 4 }}>
         {row('By industry', useCasesByIndustry)}
-        {row('By role',     useCasesByRole)}
+        {row('By role', useCasesByRole)}
       </Stack>
     </Section>
   );
 }
 
+// -----------------------------------------------------------------------
+// FAQ
+// -----------------------------------------------------------------------
+
+const faqs = [
+  {
+    q: 'מה ההבדל בין Ironflyer ל‑Base44 / Lovable / v0?',
+    a: 'הגנרטורים שולחים קוד ישר לתצוגה. Ironflyer מעביר אותו דרך שערים — Spec, UX, Architecture, Code, Lint, Tests, Security, Deploy — ולא יוצא ל‑publish עד שכולם ירוקים. מקבלים מוצר גמור, לא דמו.',
+  },
+  {
+    q: 'How does the budget work?',
+    a: 'Each plan has a flat subscription and a cost cap — that’s what Ironflyer is willing to spend on provider calls. A live budget card shows your $ burn vs cap and the top three models. No credit packs to top up. When the cap is reached, the router downgrades or pauses cleanly.',
+  },
+  {
+    q: 'אני לא יודע לתכנת. אפשר להשתמש בזה?',
+    a: 'כן. תארו את האפליקציה ב‑prompt והסוכנים יעשו את העבודה. למפתחים יש בונוס: כל פרויקט הוא ריפו אמיתי עם סנדבוקס לינוקס אישי — אפשר להיכנס ל‑IDE, לפתוח טרמינל, ולערוך כל קובץ בעצמכם.',
+  },
+  {
+    q: 'Can I bring it to my own cloud?',
+    a: 'Yes. The whole stack ships as a Helm chart you install in any Kubernetes cluster — orchestrator, runtime sandboxes, web, Postgres, optional ingress + TLS. DEPLOY.md walks you through it.',
+  },
+  {
+    q: 'איך אתם מטפלים באבטחה?',
+    a: 'שער Security סורק credentials, dep drift ובעיות OWASP בכל patch. סביבת ה‑IDE רצה בקונטיינר Docker אישי — אף פעם לא משותף. סודות יושבים ב‑Kubernetes Secret שאתם שולטים בו. וכל כתיבת קובץ עוברת patch lifecycle — ה‑AI לא נוגע בקבצים ישירות.',
+  },
+  {
+    q: 'Who owns the code?',
+    a: 'You do. Connect GitHub and the loop pushes there; export from the workspace and you walk away with a full repo plus the Dockerfile and Helm chart. No platform lock-in on the artifact.',
+  },
+];
+
 function FAQSection() {
   return (
     <Section>
-      <SectionHeader
-        eyebrow="FAQ"
-        title="Common questions before you start the loop."
-      />
-      <Box sx={{ maxWidth: 920, mx: 'auto' }}>
+      <SectionHeader eyebrow="FAQ" title="Questions builders ask before the first prompt." />
+      <Box sx={{ maxWidth: 940, mx: 'auto' }}>
         {faqs.map((item) => (
           <Box
             key={item.q}
             component="details"
             sx={{
-              borderBottom: '1px solid rgba(17,17,17,0.12)',
-              py: 2.2,
+              borderBottom: '1px solid rgba(13,14,15,0.1)',
+              py: 2.4,
               cursor: 'pointer',
               '& > summary': { listStyle: 'none', outline: 'none' },
               '& > summary::-webkit-details-marker': { display: 'none' },
               '&[open] .faq-marker': { transform: 'rotate(45deg)' },
-            }}>
+            }}
+          >
             <Box component="summary" sx={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               gap: 2,
             }}>
-              <Typography variant="h5" sx={{
-                fontSize: { xs: '1.15rem', md: '1.4rem' },
-                fontWeight: 800,
+              <Typography sx={{
+                fontSize: { xs: '1.1rem', md: '1.32rem' },
+                fontWeight: 700,
                 letterSpacing: 0,
-                color: '#111',
+                color: INK,
               }}>
                 {item.q}
               </Typography>
@@ -888,22 +918,19 @@ function FAQSection() {
                 position: 'relative',
                 transition: `transform ${tokens.motion.base} ${tokens.motion.curve}`,
                 '&::before, &::after': {
-                  content: '""',
-                  position: 'absolute',
-                  background: '#111',
-                  left: '50%', top: '50%',
+                  content: '""', position: 'absolute',
+                  background: INK, left: '50%', top: '50%',
                   transform: 'translate(-50%, -50%)',
                 },
                 '&::before': { width: 14, height: 2 },
-                '&::after':  { width: 2, height: 14 },
+                '&::after':  { width: 2,  height: 14 },
               }} />
             </Box>
             <Typography sx={{
-              mt: 1.5,
-              color: '#3a352d',
-              fontSize: { xs: '0.95rem', md: '1.02rem' },
-              lineHeight: 1.6,
-              maxWidth: 780,
+              mt: 1.6, color: '#3a352d',
+              fontSize: { xs: '0.96rem', md: '1.02rem' },
+              lineHeight: 1.62,
+              maxWidth: 800,
             }}>
               {item.a}
             </Typography>
@@ -914,293 +941,663 @@ function FAQSection() {
   );
 }
 
-function CapabilityTour() {
-  return (
-    <Section>
-      <SectionHeader
-        eyebrow="What ships with the loop"
-        title="From prompt to production, gated end-to-end."
-      />
-      <Box sx={{
-        display: 'grid',
-        gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
-        gap: { xs: 1.5, md: 2 },
-      }}>
-        {capabilityTourCards.map((card) => (
-          <Box key={card.eyebrow} sx={{
-            ...panelSx,
-            p: { xs: 2.6, md: 3.4 },
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 2,
-            minHeight: { xs: 240, md: 300 },
-            position: 'relative',
-            transition: `transform ${tokens.motion.base} ${tokens.motion.curve}`,
-            '&:hover': { transform: 'translateY(-2px)' },
-          }}>
-            <Typography variant="overline" sx={{
-              color: '#5b554b',
-              fontWeight: 900,
-              letterSpacing: '0.12em',
-            }}>
-              {card.eyebrow}
-            </Typography>
-            <Typography variant="h3" sx={{
-              fontSize: { xs: '1.85rem', md: '2.35rem' },
-              lineHeight: 1.02,
-              letterSpacing: 0,
-              maxWidth: 520,
-            }}>
-              {card.title}
-            </Typography>
-            <Typography variant="body1" sx={{
-              color: '#3a352d',
-              fontWeight: 500,
-              maxWidth: 520,
-              flex: 1,
-            }}>
-              {card.text}
-            </Typography>
-            <Chip
-              label={card.chip}
-              size="small"
-              sx={{
-                alignSelf: 'flex-start',
-                bgcolor: '#111',
-                color: tokens.color.accent.lime,
-                borderRadius: 999,
-                fontWeight: 900,
-                px: 0.4,
-                '& .MuiChip-label': { px: 1.2 },
-              }}
-            />
-          </Box>
-        ))}
-      </Box>
-    </Section>
-  );
-}
+// -----------------------------------------------------------------------
+// FINAL CTA
+// -----------------------------------------------------------------------
 
-function MeetSection() {
+export function FinalCta({
+  primary = heb.heroCtaPrimary,
+  secondary = heb.heroCtaSecondary,
+  primaryHref = '/app',
+  secondaryHref = '/product',
+}: {
+  primary?: string;
+  secondary?: string;
+  primaryHref?: string;
+  secondaryHref?: string;
+}) {
   return (
     <Section>
-      <SectionHeader eyebrow="Meet Ironflyer" title="Start with an idea. Leave with a product shape." />
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '0.95fr 1.05fr' }, gap: { xs: 3, md: 6 }, alignItems: 'center' }}>
-        <Box sx={{ height: { xs: 300, md: 430 }, borderRadius: { xs: 3, md: 4 }, bgcolor: '#eee8dc', overflow: 'hidden' }}>
-          <Box component="img" src={`${imageBase}/hooked.png`} alt="" sx={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+      <Box sx={{
+        ...panelSx,
+        bgcolor: INK, color: ALABASTER,
+        p: { xs: 4, md: 7 },
+        display: 'grid',
+        gridTemplateColumns: { xs: '1fr', md: '1.2fr 0.8fr' },
+        gap: 3,
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        <Box sx={{
+          position: 'absolute',
+          inset: 'auto -120px -180px auto',
+          width: 460, height: 460,
+          background: `radial-gradient(circle, rgba(229,255,0,0.22), transparent 60%)`,
+          filter: 'blur(20px)',
+          pointerEvents: 'none',
+        }} />
+        <Box sx={{ position: 'relative' }}>
+          <Typography sx={{
+            fontFamily: tokens.font.display, fontWeight: 400,
+            letterSpacing: 0,
+            fontSize: { xs: '2.6rem', md: '4.2rem' }, lineHeight: 0.95,
+          }}>
+            {heb.ctaTitle}
+          </Typography>
+          <Typography sx={{ mt: 2.2, color: '#cfc7b8', fontWeight: 500, maxWidth: 560, lineHeight: 1.55, fontSize: { xs: 15, md: 17 } }}>
+            {heb.ctaSubtitle}
+          </Typography>
         </Box>
-        <Stack spacing={{ xs: 2.5, md: 4 }}>
-          {steps.map((step, index) => (
-            <Box key={step.label} sx={{ opacity: index === 0 ? 1 : 0.48 }}>
-              <Typography variant="h3" sx={{ fontSize: { xs: '2rem', md: '2.55rem' }, lineHeight: 1, letterSpacing: 0 }}>
-                {step.label}
-              </Typography>
-              <Typography variant="h6" sx={{ mt: 0.75, color: '#4f4b43', fontWeight: 500, maxWidth: 560 }}>
-                {step.text}
-              </Typography>
-            </Box>
-          ))}
+        <Stack direction={{ xs: 'column', sm: 'row', md: 'column' }} spacing={1.5} justifyContent="center" sx={{ position: 'relative' }}>
+          <Button component={Link} href={primaryHref} variant="contained" size="large" endIcon={<RocketLaunch />} sx={{ bgcolor: LIME, color: INK, py: 1.6, borderRadius: '999px', fontWeight: 800, fontSize: 16 }}>
+            {primary}
+          </Button>
+          <Button component={Link} href={secondaryHref} variant="outlined" size="large" endIcon={<ArrowForward />} sx={{ color: ALABASTER, borderColor: 'rgba(244,240,232,0.28)', py: 1.6, borderRadius: '999px', fontWeight: 800, fontSize: 16 }}>
+            {secondary}
+          </Button>
         </Stack>
       </Box>
     </Section>
   );
 }
 
-function ProductShowcase() {
+// -----------------------------------------------------------------------
+// SHARED PRIMITIVES
+// -----------------------------------------------------------------------
+
+export function Section({ children, id, dark }: { children: React.ReactNode; id?: string; dark?: boolean }) {
   return (
-    <Section>
-      <SectionHeader eyebrow="Product" title="AI product tools, built like a real studio." />
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: { xs: 2.5, md: 3 } }}>
-        {productTiles.map((tile, index) => (
-          <Box key={tile.title} sx={{
-            ...panelSx,
-            gridColumn: { md: index === 0 ? '1 / -1' : 'auto' },
-            p: { xs: 2, md: 2 },
+    <Box
+      id={id}
+      component="section"
+      sx={{
+        py: { xs: 7, md: 11 },
+        bgcolor: dark ? INK : ALABASTER,
+        color: dark ? ALABASTER : INK,
+        scrollMarginTop: 80,
+      }}
+    >
+      <Container maxWidth="xl">{children}</Container>
+    </Box>
+  );
+}
+
+export function SectionHeader({
+  eyebrow, title, subtitle, action, compact = false, light = false,
+}: {
+  eyebrow: string;
+  title: string;
+  subtitle?: string;
+  action?: React.ReactNode;
+  compact?: boolean;
+  light?: boolean;
+}) {
+  return (
+    <Stack
+      direction={{ xs: 'column', md: action ? 'row' : 'column' }}
+      justifyContent="space-between"
+      alignItems={{ xs: 'flex-start', md: action ? 'flex-end' : 'flex-start' }}
+      spacing={2}
+      sx={{ mb: compact ? 3 : { xs: 4, md: 6 } }}
+    >
+      <Box sx={{ maxWidth: 980 }}>
+        <Typography variant="overline" sx={{ color: light ? LIME : '#6c7a00', fontWeight: 900, letterSpacing: '0.14em', fontSize: 12.5 }}>
+          {eyebrow}
+        </Typography>
+        <Typography sx={{
+          mt: 1,
+          fontFamily: tokens.font.display,
+          fontWeight: 400,
+          fontSize: compact ? { xs: '2.3rem', md: '3.4rem' } : { xs: '2.6rem', md: '4.6rem' },
+          lineHeight: 0.92,
+          letterSpacing: '-0.01em',
+          color: light ? ALABASTER : INK,
+          textWrap: 'balance',
+        }}>
+          {title}
+        </Typography>
+        {subtitle && (
+          <Typography sx={{
+            mt: 2,
+            color: light ? '#cfc7b8' : '#3a352d',
+            fontSize: { xs: 15, md: 17 },
+            fontWeight: 500,
+            maxWidth: 720,
+            lineHeight: 1.5,
           }}>
-            <Box sx={{
-              height: { xs: 290, md: index === 0 ? 460 : 330 },
-              borderRadius: { xs: 2.5, md: 4 },
-              overflow: 'hidden',
-              bgcolor: '#d8cfbd',
-            }}>
-              <Box component="img" src={tile.image} alt="" sx={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                display: 'block',
-                transition: `transform ${tokens.motion.slow} ${tokens.motion.curve}`,
-              }} />
-            </Box>
-            <Box sx={{ px: { xs: 0.5, md: 1 }, pt: 2, pb: 1.5, display: 'grid', gridTemplateColumns: { xs: '1fr', md: index === 0 ? '0.9fr 1fr auto' : '1fr auto' }, gap: 2, alignItems: 'start' }}>
-              <Box>
-                <Typography variant="overline" sx={{ color: '#111', fontWeight: 900 }}>IRONFLYER</Typography>
-                <Typography variant="h3" sx={{ fontSize: { xs: '2.35rem', md: index === 0 ? '3.2rem' : '2.55rem' }, lineHeight: 0.92 }}>{tile.title}</Typography>
-              </Box>
-              <Typography variant="body1" sx={{ color: '#28251f', fontWeight: 600, maxWidth: index === 0 ? 520 : 440 }}>
-                {tile.text}
-              </Typography>
-              <Chip label={index === 0 ? 'Core' : index === 1 ? 'Agents' : 'Runtime'} sx={{ width: 'fit-content', bgcolor: '#8e897d', color: '#fff', borderRadius: 999, fontWeight: 900 }} />
-            </Box>
-          </Box>
-        ))}
+            {subtitle}
+          </Typography>
+        )}
       </Box>
-    </Section>
+      {action}
+    </Stack>
   );
 }
 
-function RevenueEngineSection() {
+export function PageHero({
+  eyebrow,
+  title,
+  subtitle,
+  primary,
+  primaryHref,
+  secondary,
+  secondaryHref,
+}: {
+  eyebrow: string;
+  title: string;
+  subtitle: string;
+  primary?: string;
+  primaryHref?: string;
+  secondary?: string;
+  secondaryHref?: string;
+}) {
   return (
-    <Section>
-      <Box sx={{ ...panelSx, p: { xs: 2.5, md: 4 }, bgcolor: '#111', color: tokens.color.bg.alabaster }}>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '0.9fr 1.1fr' }, gap: { xs: 3, md: 5 }, alignItems: 'center' }}>
-          <Box>
-            <Typography variant="overline" sx={{ color: tokens.color.accent.lime, fontWeight: 900 }}>Revenue architecture</Typography>
-            <Typography variant="h2" sx={{ mt: 1, fontSize: { xs: '2.8rem', md: '5rem' }, lineHeight: 0.9, letterSpacing: 0 }}>
-              Not just generated code. A product people can buy.
-            </Typography>
-            <Typography variant="h6" sx={{ mt: 2, color: '#d6cfbf', fontWeight: 500, maxWidth: 640 }}>
-              The product needs a clean path from first prompt to paid workspace: visible usage, clear upgrade moments, reusable templates, and enterprise controls.
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 1.2 }}>
-            {revenuePillars.map((item, index) => (
-              <Box key={item.title} sx={{ minHeight: 230, p: 2, borderRadius: 2, bgcolor: index === 0 ? tokens.color.accent.lime : 'rgba(244,240,232,0.08)', color: index === 0 ? '#111' : tokens.color.bg.alabaster, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <Typography variant="h4" sx={{ fontSize: { xs: '2rem', md: '2.45rem' }, lineHeight: 0.95 }}>{index + 1}</Typography>
-                <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 900 }}>{item.title}</Typography>
-                  <Typography variant="body2" sx={{ mt: 1, color: index === 0 ? '#24210d' : '#cfc7b8', fontWeight: 600 }}>{item.text}</Typography>
-                </Box>
-              </Box>
-            ))}
-          </Box>
-        </Box>
-      </Box>
-    </Section>
+    <Box sx={{ bgcolor: ALABASTER, pt: { xs: 5, md: 8 }, pb: { xs: 5, md: 7 } }}>
+      <Container maxWidth="xl">
+        <Stack spacing={3} alignItems="flex-start" sx={{ maxWidth: 980 }}>
+          <Typography variant="overline" sx={{ color: '#6c7a00', fontWeight: 900, letterSpacing: '0.14em', fontSize: 13 }}>
+            {eyebrow}
+          </Typography>
+          <Typography sx={{
+            fontFamily: tokens.font.display, fontWeight: 400,
+            fontSize: { xs: '3rem', md: '6rem' },
+            lineHeight: 0.9, letterSpacing: '-0.02em',
+            color: INK,
+            textWrap: 'balance',
+          }}>
+            {title}
+          </Typography>
+          <Typography sx={{ color: '#3a352d', fontSize: { xs: '1.1rem', md: '1.32rem' }, fontWeight: 500, maxWidth: 780, lineHeight: 1.5 }}>
+            {subtitle}
+          </Typography>
+          {(primary || secondary) && (
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ pt: 1 }}>
+              {primary && primaryHref && (
+                <Button component={Link} href={primaryHref} variant="contained" endIcon={<ArrowForward />} sx={{ bgcolor: LIME, color: INK, fontWeight: 800, px: 2.6, py: 1.4, borderRadius: '999px' }}>
+                  {primary}
+                </Button>
+              )}
+              {secondary && secondaryHref && (
+                <Button component={Link} href={secondaryHref} variant="outlined" endIcon={<ArrowForward />} sx={{ color: INK, borderColor: 'rgba(13,14,15,0.2)', fontWeight: 800, px: 2.6, py: 1.4, borderRadius: '999px' }}>
+                  {secondary}
+                </Button>
+              )}
+            </Stack>
+          )}
+        </Stack>
+      </Container>
+    </Box>
   );
 }
 
-function BlueprintSection({ standalone = false }: { standalone?: boolean }) {
+// -----------------------------------------------------------------------
+// PRODUCT PAGE
+// -----------------------------------------------------------------------
+
+const finisherLoopSteps = [
+  { name: 'Spec',          text: 'Turn the prompt into user stories, a data model, and acceptance criteria. Stops on ambiguity.', icon: <WorkOutline /> },
+  { name: 'UX',            text: 'Generate a navigation tree, screens with empty/loading/error states, and a design lint pass.', icon: <Build /> },
+  { name: 'Architecture',  text: 'Pick the stack, draft the backend contracts, set the deploy target. Reviewed before code.',     icon: <Settings /> },
+  { name: 'Code',          text: 'Patches land via the patch engine. No direct file writes. Build + vet + tsc must be green.',    icon: <Code /> },
+  { name: 'Tests',         text: 'Run the project test suite. Failures block; the agent re-plans and patches until green.',       icon: <CheckCircle /> },
+  { name: 'Security',      text: 'Secret scan, dep audit, OWASP checks on the diff. Findings come with suggested fixes.',         icon: <Shield /> },
+  { name: 'Budget',        text: 'Every model call charges the ledger. Cap nears → router downgrades. No surprise bills.',        icon: <Insights /> },
+  { name: 'Deploy',        text: 'Helm chart, healthchecks, secrets, observability — refuses to ship until everything passes.',    icon: <RocketLaunch /> },
+];
+
+export function ProductPage() {
   return (
-    <Section>
-      <SectionHeader
-        eyebrow="Templates"
-        title={standalone ? 'Choose a blueprint' : 'Discover templates'}
-        action={<Button component={Link} href="/templates" variant="outlined" endIcon={<ArrowForward />} sx={{ color: '#111', borderColor: 'rgba(17,17,17,0.25)' }}>View all</Button>}
+    <MarketingShell>
+      <PageHero
+        eyebrow="Product"
+        title="The Finisher Loop, in detail."
+        subtitle="Eight gates. One workspace. The AI never writes files directly — every change is a patch the loop has to approve."
+        primary="Start a project"
+        primaryHref="/app"
+        secondary="See pricing"
+        secondaryHref="/pricing"
       />
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', lg: 'repeat(4, 1fr)' }, gap: { xs: 2, md: 3 } }}>
-        {blueprints.map((item) => (
-          <Link key={item.title} href="/app" style={{ color: 'inherit', textDecoration: 'none' }}>
-            <Box sx={{
+      <Section>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: { xs: 2, md: 2 } }}>
+          {finisherLoopSteps.map((step, idx) => (
+            <Box key={step.name} sx={{
               ...panelSx,
-              p: 1,
-              minHeight: 360,
-              transition: `transform ${tokens.motion.base} ${tokens.motion.curve}`,
-              '&:hover': { transform: 'translateY(-4px)' },
-              '&:hover img': { transform: 'scale(1.04)' },
+              p: { xs: 3, md: 4 },
+              display: 'grid',
+              gridTemplateColumns: '52px 1fr',
+              gap: 2.4,
+              alignItems: 'flex-start',
             }}>
-              <Box sx={{ height: 220, overflow: 'hidden', borderRadius: { xs: 2, md: 3 }, bgcolor: '#d5cab7' }}>
-                <Box component="img" src={item.image} alt="" sx={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  transition: `transform ${tokens.motion.slow} ${tokens.motion.curve}`,
-                  display: 'block',
-                }} />
+              <Box sx={{
+                width: 52, height: 52, borderRadius: '12px',
+                bgcolor: INK, color: LIME,
+                display: 'grid', placeItems: 'center', flexShrink: 0,
+              }}>
+                {step.icon}
               </Box>
-              <Box sx={{ p: 1.5 }}>
-                <Typography variant="h5" sx={{ letterSpacing: 0, fontWeight: 900 }}>{item.title}</Typography>
-                <Typography variant="body2" sx={{ color: '#4f4b43', fontWeight: 600 }}>{item.label}</Typography>
-                <Button sx={{ mt: 1.5, px: 0, color: tokens.color.accent.lime, fontWeight: 900 }} endIcon={<ArrowForward />}>Use this blueprint</Button>
-              </Box>
-            </Box>
-          </Link>
-        ))}
-      </Box>
-    </Section>
-  );
-}
-
-function NumbersSection() {
-  const stats = [
-    ['7', 'release gates'],
-    ['8', 'agent roles'],
-    ['1', 'shared workspace'],
-  ];
-  return (
-    <Section>
-      <Box>
-        <Typography variant="h2" sx={{ mb: 2, letterSpacing: 0, fontSize: { xs: '3rem', md: '4.8rem' }, lineHeight: 0.92 }}>Ironflyer</Typography>
-        <Typography variant="h6" sx={{ mb: 4, color: '#302c25', fontWeight: 600 }}>Millions of builders are already turning ideas into reality</Typography>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 1.5 }}>
-          {stats.map(([value, label]) => (
-            <Box key={label} sx={{ bgcolor: '#f8f4ec', borderRadius: { xs: 3, md: 4 }, minHeight: 260, p: { xs: 3, md: 4 }, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-              <Typography variant="h1" sx={{ fontSize: { xs: '5rem', md: '6rem' }, lineHeight: 0.9, letterSpacing: 0, color: '#111' }}>
-                {value}
-              </Typography>
-              <Typography variant="body1" sx={{ color: '#111', fontWeight: 700 }}>{label}</Typography>
-            </Box>
-          ))}
-        </Box>
-      </Box>
-    </Section>
-  );
-}
-
-function PricingSection() {
-  return (
-    <Section>
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '0.9fr 1.1fr' }, gap: 1.5, mb: 2 }}>
-        <Box sx={{ ...panelSx, p: 3, bgcolor: '#111', color: tokens.color.bg.alabaster }}>
-          <Typography variant="overline" sx={{ color: tokens.color.accent.lime }}>Pricing strategy</Typography>
-          <Typography variant="h3" sx={{ mt: 1, fontSize: { xs: '2.25rem', md: '3.2rem' }, lineHeight: 0.95 }}>
-            Price around outcomes, protect trust with visible spend.
-          </Typography>
-          <Typography variant="body1" sx={{ mt: 2, color: '#d6cfbf', fontWeight: 600 }}>
-            The market is already trained on credits, team seats, private projects, and enterprise controls. Ironflyer should make those controls obvious before asking for payment.
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 1.5 }}>
-          {pricingAssumptions.map((item) => (
-            <Box key={item.label} sx={{ ...panelSx, p: 2.2, minHeight: 190, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-              <CheckCircle sx={{ color: tokens.color.accent.lime }} />
               <Box>
-                <Typography variant="h6" sx={{ fontWeight: 900 }}>{item.label}</Typography>
-                <Typography variant="body2" sx={{ mt: 1, color: '#4f4b43', fontWeight: 600 }}>{item.text}</Typography>
+                <Typography variant="overline" sx={{ color: MUTED, fontWeight: 900, letterSpacing: '0.14em', fontSize: 12 }}>
+                  Gate {String(idx + 1).padStart(2, '0')}
+                </Typography>
+                <Typography sx={{ fontFamily: tokens.font.display, fontWeight: 400, fontSize: { xs: '1.7rem', md: '2.1rem' }, lineHeight: 1, mt: 0.4 }}>
+                  {step.name}
+                </Typography>
+                <Typography sx={{ mt: 1.4, color: '#3a352d', fontWeight: 500, lineHeight: 1.55 }}>
+                  {step.text}
+                </Typography>
               </Box>
             </Box>
           ))}
         </Box>
-      </Box>
+      </Section>
+      <GateExamples />
+      <CloudIDEPreview />
+      <Section>
+        <SectionHeader
+          eyebrow="VSCode extension"
+          title="Use the loop from your editor."
+          subtitle="The Ironflyer VSCode extension is a thin client over the orchestrator. Sign in once with SecretStorage, get the chat panel, gate stream, and patch lifecycle natively inside the IDE you already use."
+          action={<Chip label="Available now in private beta" sx={{ bgcolor: LIME, color: INK, fontWeight: 800, borderRadius: '999px' }} />}
+        />
+        <Box sx={{
+          ...panelSx,
+          p: { xs: 2.5, md: 4 },
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' },
+          gap: 2,
+        }}>
+          {[
+            { title: 'Same SSE stream', text: 'The extension subscribes to the same gate stream the web client uses. No duplication, no protocol drift.' },
+            { title: 'SecretStorage auth', text: 'Token sits in VSCode SecretStorage, refreshed via the URI handler. No copy-paste tokens, no .env leak.' },
+            { title: 'Patch lifecycle UI', text: 'Every patch shows its source gate, diff preview, and admit/reject affordance — like an integrated code review.' },
+          ].map((c) => (
+            <Box key={c.title} sx={{ bgcolor: '#fffaf1', borderRadius: 3, p: 3 }}>
+              <Typography sx={{ fontFamily: tokens.font.display, fontWeight: 400, fontSize: 22, lineHeight: 1, mb: 1.4 }}>{c.title}</Typography>
+              <Typography variant="body2" sx={{ color: MUTED, fontWeight: 600, lineHeight: 1.55 }}>{c.text}</Typography>
+            </Box>
+          ))}
+        </Box>
+      </Section>
+      <Section id="changelog">
+        <SectionHeader
+          eyebrow="Changelog"
+          title="What shipped recently."
+        />
+        <Stack spacing={2}>
+          {[
+            { date: '2026-05', title: 'Effort dial (Lite / Economy / Power) in chat', text: 'Override the router’s cost-quality choice per turn. The dial is sticky per project and surfaces what changes.' },
+            { date: '2026-04', title: 'VSCode extension — private beta', text: 'Native chat + gate stream + patch lifecycle inside VSCode. URI-handler auth, no token copy-paste.' },
+            { date: '2026-03', title: 'Live budget card with top-3 models',          text: 'Shows live $ burn vs cap, the three models eating most of it, and which gate spent the most.' },
+            { date: '2026-02', title: 'Per-user Docker runtime + PTY WebSocket',     text: 'Replaces the mock driver in production. Real Linux sandbox, terminal, and file API per project.' },
+          ].map((entry) => (
+            <Box key={entry.title} sx={{ ...panelSx, p: { xs: 2.4, md: 3 }, display: 'grid', gridTemplateColumns: { xs: '1fr', md: '120px 1fr' }, gap: 2 }}>
+              <Typography variant="caption" sx={{ color: MUTED, fontWeight: 800, fontFamily: tokens.font.mono, fontSize: 12.5 }}>{entry.date}</Typography>
+              <Box>
+                <Typography sx={{ fontWeight: 800, fontSize: 17, color: INK }}>{entry.title}</Typography>
+                <Typography variant="body2" sx={{ mt: 0.6, color: MUTED, fontWeight: 500, lineHeight: 1.55 }}>{entry.text}</Typography>
+              </Box>
+            </Box>
+          ))}
+        </Stack>
+      </Section>
+      <FinalCta />
+    </MarketingShell>
+  );
+}
 
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(4, 1fr)' }, gap: 1.5 }}>
-        {plans.map((plan) => {
-          const tier = plan.name.toLowerCase() as 'free' | 'pro' | 'team' | 'enterprise';
+// -----------------------------------------------------------------------
+// SOLUTIONS PAGE
+// -----------------------------------------------------------------------
+
+const solutionStories = [
+  {
+    id: 'mvp',
+    eyebrow: 'For founders',
+    title: 'Ship the MVP your investors are actually expecting.',
+    subtitle: 'You pitched a product. Don’t deliver a prototype. Ironflyer takes the spec to a working SaaS in a week — auth, billing, dashboard, deploy — and the gates make sure it survives a code review.',
+    points: [
+      { label: 'Day 1', text: 'Auth, Postgres, billing wired. Custom domain configured. Deploy gate green.' },
+      { label: 'Day 3', text: 'Two end-to-end flows shipping behind feature flags. Test suite covers the happy paths.' },
+      { label: 'Day 7', text: 'Pricing page, waitlist, analytics events, observability dashboard, security gate clean.' },
+    ],
+    quote: { text: 'We had a demo on day 4 and a stripe-charging product on day 9. The gates caught a permissions bug I would have shipped.', author: 'Lead engineer, pre-seed SaaS' },
+  },
+  {
+    id: 'internal',
+    eyebrow: 'For ops & internal teams',
+    title: 'Internal tools your team won’t silently hate.',
+    subtitle: 'Approval workflows, dense ops dashboards, CSV importers, role-aware admin consoles. The kind of internal apps every company needs and no one wants to build twice.',
+    points: [
+      { label: 'Roles', text: 'JWT auth + role-based access baked in. Audit log on every state change.' },
+      { label: 'Data',  text: 'Postgres schemas generated from the spec. CSV import/export wired with validation.' },
+      { label: 'UI',    text: 'Dense table views, inline edit, bulk actions — not toy no-code cards.' },
+    ],
+    quote: { text: 'We replaced two no-code tools and a half-built Retool with one Ironflyer workspace. Engineering wasn’t blocked, ops shipped what they needed.', author: 'VP Operations, healthtech' },
+  },
+  {
+    id: 'agency',
+    eyebrow: 'For agencies & client work',
+    title: 'Repeatable client projects that close on a Friday.',
+    subtitle: 'Spin up a project per client. Hand over a real repo at the end. The Helm chart means it deploys to their cloud, not yours. Margins improve when the gates stop catching issues in week six.',
+    points: [
+      { label: 'Per-client workspace', text: 'Isolated sandbox, isolated repo, isolated budget. Nothing leaks between accounts.' },
+      { label: 'White-label deploy',   text: 'Strip the Ironflyer badge on Pro and ship to the client’s domain or their AWS account.' },
+      { label: 'Handover-ready',       text: 'The project leaves as a Git repo + Dockerfile + Helm chart — no lock-in argument with the client.' },
+    ],
+    quote: { text: 'We doubled our client throughput in a quarter. The gates became our QA team.', author: 'Founder, EU product studio' },
+  },
+  {
+    id: 'ai',
+    eyebrow: 'For internal AI / platform teams',
+    title: 'A self-hosted AI dev platform for your whole org.',
+    subtitle: 'Bring Ironflyer to your own Kubernetes cluster via Helm. Hook it to your provider keys, your secrets, your data residency. Give every team a sandboxed workspace with budgets you control.',
+    points: [
+      { label: 'Helm chart',       text: 'Orchestrator, runtime, web, Postgres, ingress + TLS — all in one chart. DEPLOY.md is the runbook.' },
+      { label: 'Provider routing', text: 'Anthropic, OpenAI, on-device ONNX. Configure the routing policy by team or by capability.' },
+      { label: 'Budget per team',  text: 'Cost caps and ledgers per workspace, so finance can see what each team spent and where.' },
+    ],
+    quote: { text: 'Procurement-friendly because we own the data plane. Developer-friendly because the chat-to-patch UX is as good as anything in the cloud.', author: 'Platform lead, Series C SaaS' },
+  },
+];
+
+export function SolutionsPage() {
+  return (
+    <MarketingShell>
+      <PageHero
+        eyebrow="Solutions"
+        title="Four shapes of work Ironflyer ships best."
+        subtitle="Concrete narratives, not industry buzzwords. Pick the closest one and read the timeline."
+        primary="Start your project"
+        primaryHref="/app"
+      />
+      {solutionStories.map((story, idx) => (
+        <Section key={story.id} id={story.id} dark={idx % 2 === 1}>
+          <Box sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+            gap: { xs: 4, md: 6 },
+            alignItems: 'start',
+          }}>
+            <Box>
+              <Typography variant="overline" sx={{ color: idx % 2 === 1 ? LIME : '#6c7a00', fontWeight: 900, letterSpacing: '0.14em' }}>
+                {story.eyebrow}
+              </Typography>
+              <Typography sx={{
+                fontFamily: tokens.font.display, fontWeight: 400,
+                fontSize: { xs: '2.4rem', md: '3.6rem' },
+                lineHeight: 0.94, letterSpacing: '-0.01em',
+                mt: 1.2,
+                color: idx % 2 === 1 ? ALABASTER : INK,
+              }}>
+                {story.title}
+              </Typography>
+              <Typography sx={{ mt: 2, color: idx % 2 === 1 ? '#cfc7b8' : '#3a352d', fontSize: { xs: 15, md: 17 }, fontWeight: 500, lineHeight: 1.55 }}>
+                {story.subtitle}
+              </Typography>
+              <Box sx={{
+                mt: 4, p: 3, borderRadius: 3,
+                bgcolor: idx % 2 === 1 ? 'rgba(244,240,232,0.04)' : 'rgba(13,14,15,0.04)',
+                border: `1px solid ${idx % 2 === 1 ? 'rgba(244,240,232,0.1)' : 'rgba(13,14,15,0.08)'}`,
+              }}>
+                <FormatQuote sx={{ color: LIME, fontSize: 22 }} />
+                <Typography sx={{ mt: 1, fontSize: 17, fontWeight: 600, lineHeight: 1.5, color: idx % 2 === 1 ? ALABASTER : INK }}>
+                  “{story.quote.text}”
+                </Typography>
+                <Typography variant="caption" sx={{ mt: 1.5, display: 'block', color: idx % 2 === 1 ? '#9c968a' : MUTED, fontWeight: 700 }}>
+                  — {story.quote.author}
+                </Typography>
+              </Box>
+            </Box>
+            <Stack spacing={2}>
+              {story.points.map((p) => (
+                <Box key={p.label} sx={{
+                  borderRadius: 3,
+                  bgcolor: idx % 2 === 1 ? 'rgba(244,240,232,0.04)' : '#ece5d4',
+                  p: 3,
+                  border: `1px solid ${idx % 2 === 1 ? 'rgba(244,240,232,0.08)' : 'transparent'}`,
+                }}>
+                  <Stack direction="row" spacing={2} alignItems="flex-start">
+                    <Box sx={{
+                      width: 44, height: 44, borderRadius: '10px',
+                      bgcolor: LIME, color: INK,
+                      display: 'grid', placeItems: 'center',
+                      fontWeight: 900,
+                      fontFamily: tokens.font.display, fontSize: 18,
+                    }}>
+                      <CheckCircle sx={{ fontSize: 22 }} />
+                    </Box>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography sx={{ fontWeight: 800, fontSize: 16.5, color: idx % 2 === 1 ? ALABASTER : INK }}>
+                        {p.label}
+                      </Typography>
+                      <Typography variant="body2" sx={{ mt: 0.6, color: idx % 2 === 1 ? '#cfc7b8' : MUTED, fontWeight: 500, lineHeight: 1.55 }}>
+                        {p.text}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                </Box>
+              ))}
+            </Stack>
+          </Box>
+        </Section>
+      ))}
+      <FinalCta />
+    </MarketingShell>
+  );
+}
+
+// -----------------------------------------------------------------------
+// TEMPLATES PAGE
+// -----------------------------------------------------------------------
+
+const templateGallery = [
+  { title: 'SaaS Dashboard',     desc: 'Multi-tenant SaaS with auth, teams, Stripe billing, usage analytics, admin settings.', tag: 'SaaS',          prompt: 'Build a production-ready SaaS app with auth, teams, Stripe billing, usage analytics, admin settings, onboarding flow, and a one-click deploy gate.', accent: LIME },
+  { title: 'AI Chatbot',         desc: 'RAG-powered support assistant with doc upload, session memory, human hand-off.',         tag: 'AI',            prompt: 'Build an AI customer-support chatbot with retrieval over uploaded docs, session memory, hand-off to human, and an admin analytics dashboard.', accent: '#78dbff' },
+  { title: 'Two-sided Marketplace', desc: 'Listings, search, messaging, Stripe Connect escrow payouts, trust scoring.',        tag: 'Marketplace',   prompt: 'Build a two-sided marketplace with listings, search filters, messaging, Stripe Connect escrow payouts, and a trust-score profile page.', accent: '#ff6c3a' },
+  { title: 'Internal Admin',     desc: 'Role-based approvals, audit log, dense tables, CSV in/out, Postgres schema.',           tag: 'Internal',      prompt: 'Build an internal operations tool with role-based approvals, audit history, dense table UI, CSV export, and Postgres for the data model.', accent: '#8b5cff' },
+  { title: 'Client Portal',      desc: 'Document uploads, threaded messaging, project status, role-aware access.',              tag: 'Portal',        prompt: 'Build a client portal with auth, document uploads, project status, threaded messaging, role-aware access, and an admin console.', accent: '#79e07a' },
+  { title: 'Launch Site',        desc: 'Hero, waitlist, pricing tiers, FAQ, social proof, analytics events.',                   tag: 'Marketing',     prompt: 'Build a product launch site with hero, waitlist form, pricing, FAQ, social proof, and analytics events wired to the dataLayer.', accent: '#ffc400' },
+  { title: 'E-commerce',         desc: 'Storefront, cart, Stripe checkout, order admin, inventory dashboard.',                  tag: 'E-commerce',    prompt: 'Build an e-commerce site with product catalog, cart, Stripe checkout, order admin, inventory dashboard, and customer accounts.', accent: '#671dfc' },
+  { title: 'Booking System',     desc: 'Calendar, recurring slots, payment hold, notifications, no-show tracking.',             tag: 'Operations',    prompt: 'Build a booking system with calendar views, recurring slots, payment hold via Stripe, email + SMS notifications, and no-show tracking.', accent: '#ff1818' },
+  { title: 'Analytics Dashboard', desc: 'Event ingest, role-aware metrics, segment filters, scheduled reports.',                tag: 'Analytics',     prompt: 'Build an analytics dashboard with event ingest, role-aware metric views, segment filters, scheduled reports, and a public-share link mode.', accent: LIME },
+  { title: 'AI Forge',           desc: 'Prompt + model registry, agent runs, latency + cost panels across providers.',          tag: 'AI ops',        prompt: 'Build an internal AI ops console with a prompt registry, agent run history, latency + cost charts per provider, and an evals leaderboard.', accent: '#78dbff' },
+  { title: 'Knowledge Base',     desc: 'Editor, search, role-aware drafts, public + private spaces, comments.',                 tag: 'Editorial',     prompt: 'Build a knowledge base with a block editor, full-text search, role-aware drafts, public + private spaces, and threaded comments.', accent: '#ff6c3a' },
+  { title: 'Subscription Manager', desc: 'Customer portal, plan changes, invoice history, dunning, churn signals.',            tag: 'Billing',       prompt: 'Build a subscription manager with a customer-facing portal, plan changes, invoice history, dunning workflows, and a churn-signals dashboard.', accent: '#8b5cff' },
+];
+
+export function TemplatesPage() {
+  return (
+    <MarketingShell>
+      <PageHero
+        eyebrow="Templates"
+        title="Twelve starting points. Pick one, the prompt fills itself."
+        subtitle="Each template is a thoroughly-written prompt that runs through the same finisher gates as a from-scratch project. Click a card; the prompt box opens pre-filled."
+      />
+      <Section>
+        <TemplatesGrid items={templateGallery} />
+      </Section>
+      <FinalCta />
+    </MarketingShell>
+  );
+}
+
+// -----------------------------------------------------------------------
+// PRICING PAGE
+// -----------------------------------------------------------------------
+
+export function PricingPage() {
+  return (
+    <MarketingShell>
+      <PageHero
+        eyebrow="Pricing"
+        title="One subscription. No credit packs. Live margin."
+        subtitle="Most builders sell credit packs that vanish at 2 AM. Ironflyer charges a flat subscription, absorbs provider cost up to a published cap, and shows you the live ledger. The company makes a real margin; you never get a surprise bill."
+      />
+      <Suspense fallback={null}>
+        <Box sx={{ bgcolor: ALABASTER }}>
+          <Container maxWidth="xl" sx={{ pt: { xs: 0, md: 0 }, pb: 0 }}>
+            <BillingStatusBanner compact />
+          </Container>
+        </Box>
+      </Suspense>
+      <PricingTiersSection />
+      <Section id="calculator">
+        <SectionHeader
+          eyebrow="Cost calculator"
+          title="Estimate your monthly spend before you commit."
+          subtitle="Rough math with current Anthropic + OpenAI list prices. Real spend in your workspace is always lower thanks to capability-tagged routing."
+        />
+        <PricingCalculator />
+      </Section>
+      <PricingFAQ />
+      <FinalCta primary="Start free" primaryHref="/app" secondary="Talk to sales" secondaryHref="/enterprise" />
+    </MarketingShell>
+  );
+}
+
+const pricingPlans = [
+  {
+    name: 'Starter',
+    tier: 'free' as const,
+    monthly: 0,
+    yearly: 0,
+    badge: 'Free forever',
+    text: 'For exploring the loop and validating an idea has a real product shape.',
+    cta: 'Start free',
+    features: [
+      'Starter build credits ($3 cost cap / mo)',
+      'Public templates + projects',
+      'Cloud IDE on shared runtime',
+      'Ironflyer badge stays on',
+      'GitHub push enabled',
+    ],
+  },
+  {
+    name: 'Pro',
+    tier: 'pro' as const,
+    monthly: 20,
+    yearly: 16,
+    badge: 'Most popular',
+    text: 'For founders and solo builders shipping real MVPs with budget control.',
+    cta: 'Go Pro',
+    features: [
+      '$15 cost cap / mo of provider spend',
+      'Private projects + custom domains',
+      'Per-user Docker sandbox',
+      'Remove Ironflyer badge',
+      'Multi-provider router (Anthropic + OpenAI)',
+      'VSCode extension access',
+    ],
+  },
+  {
+    name: 'Team',
+    tier: 'team' as const,
+    monthly: 40,
+    yearly: 32,
+    badge: 'Scale together',
+    text: 'For teams and agencies sharing workspaces, templates, and approval gates.',
+    cta: 'Create team',
+    features: [
+      'Pooled cost cap (per-seat ledger)',
+      '5 seats included, $8 / mo per extra',
+      'Roles + approval gates',
+      'Reusable team templates',
+      'Audit log + SAML SSO (paid add-on)',
+      'Priority email + Slack support',
+    ],
+    highlight: true,
+  },
+  {
+    name: 'Enterprise',
+    tier: 'enterprise' as const,
+    monthly: null,
+    yearly: null,
+    badge: 'Procurement-ready',
+    text: 'For organizations that need SSO, audit logs, private deploy, and an SLA.',
+    cta: 'Contact sales',
+    features: [
+      'SSO (SAML / OIDC) + SCIM provisioning',
+      'Self-hosted Helm chart + on-prem option',
+      'Custom connectors + private model routing',
+      'Dedicated onboarding + named CSM',
+      'SOC 2 in-progress; DPA + custom MSA',
+      '99.9% SLA',
+    ],
+  },
+];
+
+function PricingTiersSection() {
+  return (
+    <Section>
+      <Box sx={{
+        display: 'grid',
+        gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' },
+        gap: 1.5,
+      }}>
+        {pricingPlans.map((plan) => {
+          const dark = plan.highlight;
           return (
-            <Box key={plan.name} sx={{ ...panelSx, p: 3, minHeight: 420, display: 'flex', flexDirection: 'column', bgcolor: plan.name === 'Team' ? '#111' : '#e8dfce', color: plan.name === 'Team' ? tokens.color.bg.alabaster : '#111' }}>
-              <Chip label={plan.badge} sx={{ width: 'fit-content', borderRadius: 1, bgcolor: plan.name === 'Team' ? 'rgba(229,255,0,0.18)' : '#d9cfbd', color: plan.name === 'Team' ? tokens.color.accent.lime : '#111', fontWeight: 900 }} />
-              <Typography variant="overline" sx={{ mt: 2, color: plan.name === 'Team' ? tokens.color.accent.lime : '#5b554b' }}>{plan.name}</Typography>
-              <Stack direction="row" alignItems="baseline" spacing={0.4} sx={{ mt: 1 }}>
-                <Typography variant="h2" sx={{ letterSpacing: 0 }}>{plan.price}</Typography>
-                {plan.period && <Typography variant="body2" sx={{ color: plan.name === 'Team' ? '#cfc7b8' : '#4f4b43', fontWeight: 800 }}>{plan.period}</Typography>}
+            <Box key={plan.name} sx={{
+              ...panelSx,
+              p: 3.2, minHeight: 520, display: 'flex', flexDirection: 'column',
+              bgcolor: dark ? INK : '#ece5d4',
+              color: dark ? ALABASTER : INK,
+              position: 'relative',
+              overflow: 'hidden',
+              border: dark ? `2px solid ${LIME}` : '2px solid transparent',
+            }}>
+              {dark && (
+                <Box sx={{
+                  position: 'absolute', inset: 'auto -60px -100px auto',
+                  width: 260, height: 260,
+                  background: `radial-gradient(circle, rgba(229,255,0,0.18), transparent 60%)`,
+                  pointerEvents: 'none',
+                }} />
+              )}
+              <Chip
+                label={plan.badge}
+                sx={{
+                  width: 'fit-content',
+                  borderRadius: '999px',
+                  bgcolor: dark ? 'rgba(229,255,0,0.18)' : '#d9cfbd',
+                  color: dark ? LIME : INK,
+                  fontWeight: 900,
+                  position: 'relative',
+                }}
+              />
+              <Typography variant="overline" sx={{ mt: 2.2, color: dark ? LIME : MUTED, fontWeight: 900, letterSpacing: '0.14em' }}>
+                {plan.name}
+              </Typography>
+              <Stack direction="row" alignItems="baseline" spacing={0.6} sx={{ mt: 1, position: 'relative' }}>
+                <Typography sx={{ fontFamily: tokens.font.display, fontWeight: 400, fontSize: { xs: '3rem', md: '3.6rem' }, letterSpacing: 0, lineHeight: 1 }}>
+                  {plan.monthly === null ? 'Custom' : `$${plan.monthly}`}
+                </Typography>
+                {plan.monthly !== null && (
+                  <Typography variant="caption" sx={{ color: dark ? '#cfc7b8' : MUTED, fontWeight: 800 }}>/ month</Typography>
+                )}
               </Stack>
-              <Typography variant="body2" sx={{ mt: 2, flex: 1, color: plan.name === 'Team' ? '#cfc7b8' : '#4f4b43', fontWeight: 600 }}>{plan.text}</Typography>
-              <Stack spacing={1} sx={{ my: 2 }}>
+              <Typography variant="body2" sx={{ mt: 1.8, color: dark ? '#cfc7b8' : MUTED, fontWeight: 600, lineHeight: 1.55, position: 'relative' }}>
+                {plan.text}
+              </Typography>
+              <Stack spacing={1.2} sx={{ mt: 2.5, mb: 3, flex: 1, position: 'relative' }}>
                 {plan.features.map((feature) => (
-                  <Stack key={feature} direction="row" spacing={1} alignItems="center">
-                    <CheckCircle sx={{ fontSize: 17, color: tokens.color.accent.lime }} />
-                    <Typography variant="caption" sx={{ color: plan.name === 'Team' ? '#eee7db' : '#28251f', fontWeight: 800 }}>{feature}</Typography>
+                  <Stack key={feature} direction="row" spacing={1} alignItems="flex-start">
+                    <CheckCircle sx={{ fontSize: 17, color: LIME, mt: 0.2, flexShrink: 0 }} />
+                    <Typography variant="caption" sx={{ color: dark ? '#eee7db' : INK, fontWeight: 700, fontSize: 13, lineHeight: 1.45 }}>
+                      {feature}
+                    </Typography>
                   </Stack>
                 ))}
               </Stack>
-              {tier === 'free' ? (
-                <Button component={Link} href="/app" variant="contained" sx={{ mt: 3 }}>
-                  {plan.cta}
-                </Button>
-              ) : (
-                <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column' }}>
-                  <UpgradeButton tier={tier} label={plan.cta} />
-                </Box>
-              )}
+              <Box sx={{ position: 'relative' }}>
+                {plan.tier === 'free' ? (
+                  <Button component={Link} href="/app" variant="contained" fullWidth sx={{ bgcolor: LIME, color: INK, fontWeight: 800, borderRadius: '999px', py: 1.4 }}>
+                    {plan.cta}
+                  </Button>
+                ) : (
+                  <UpgradeButton tier={plan.tier} label={plan.cta} fullWidth sx={{ bgcolor: dark ? LIME : INK, color: dark ? INK : ALABASTER, fontWeight: 800, borderRadius: '999px', py: 1.4 }} />
+                )}
+              </Box>
             </Box>
           );
         })}
@@ -1209,121 +1606,34 @@ function PricingSection() {
   );
 }
 
-function TemplatesLibrarySection() {
-  return (
-    <Box component="main" sx={{ bgcolor: tokens.color.bg.alabaster, color: tokens.color.text.inverse, minHeight: '100vh', pt: { xs: 5, md: 7 }, pb: { xs: 6, md: 10 } }}>
-      <Container maxWidth="xl">
-        <Stack spacing={5}>
-          <Box sx={{ maxWidth: 760 }}>
-            <Typography component="h1" variant="h1" sx={{
-              fontSize: { xs: '3rem', md: '5rem' },
-              lineHeight: 0.88,
-              letterSpacing: 0,
-            }}>
-              Website & App Templates Built With AI
-            </Typography>
-            <Typography variant="h5" sx={{ mt: 2, color: '#5d5d5d', fontWeight: 500 }}>
-              Production-ready blueprints shaped for the Ironflyer finisher loop.
-            </Typography>
-          </Box>
-
-          <Box sx={{
-            display: 'flex',
-            gap: { xs: 2, md: 4 },
-            overflowX: 'auto',
-            pb: 1,
-            borderBottom: '1px solid rgba(25,25,25,0.12)',
-          }}>
-            {templateCategories.map((category, index) => (
-              <Stack
-                key={category.label}
-                alignItems="center"
-                spacing={1}
-                sx={{
-                  minWidth: 104,
-                  color: index === 0 ? '#111' : '#666',
-                  pb: 1.5,
-                  borderBottom: index === 0 ? '2px solid #111' : '2px solid transparent',
-                }}
-              >
-                {category.icon}
-                <Typography variant="caption" sx={{ fontWeight: 800, whiteSpace: 'nowrap' }}>
-                  {category.label}
-                </Typography>
-              </Stack>
-            ))}
-          </Box>
-
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: { xs: 3, md: 5 } }}>
-            {templateLibrary.map((item) => (
-              <Link key={item.title} href="/app" style={{ color: 'inherit', textDecoration: 'none' }}>
-                <Box sx={{ '&:hover img': { transform: 'scale(1.025)' } }}>
-                  <Box sx={{
-                    height: { xs: 240, md: 280 },
-                    borderRadius: { xs: 2.5, md: 4 },
-                    overflow: 'hidden',
-                    bgcolor: '#ddd2bf',
-                  }}>
-                    <Box component="img" src={item.image} alt="" sx={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      display: 'block',
-                      transition: `transform ${tokens.motion.slow} ${tokens.motion.curve}`,
-                    }} />
-                  </Box>
-                  <Stack direction="row" justifyContent="space-between" spacing={2} sx={{ mt: 1.5 }}>
-                    <Box sx={{ minWidth: 0 }}>
-                      <Typography variant="h6" sx={{ fontWeight: 900 }} noWrap>{item.title}</Typography>
-                      <Typography variant="body2" sx={{ color: '#5d5d5d' }}>{item.desc}</Typography>
-                    </Box>
-                    <Chip label={item.tag} size="small" sx={{ bgcolor: '#ece6db', borderRadius: 1, fontWeight: 800 }} />
-                  </Stack>
-                </Box>
-              </Link>
-            ))}
-          </Box>
-        </Stack>
-      </Container>
-    </Box>
-  );
-}
-
-function GateBand() {
+function PricingFAQ() {
+  const items = [
+    { q: 'What happens when I hit the cost cap?', a: 'The router downgrades to cheaper models first (Haiku, GPT-4o-mini, on-device). If you’re still over, builds pause cleanly with a clear message — never a surprise overage bill.' },
+    { q: 'Can I bring my own provider keys?',     a: 'On Team and Enterprise, yes. Plug in your Anthropic / OpenAI key and your routing policy charges against your own quota. Available now in private beta for Pro.' },
+    { q: 'Yearly billing?',                       a: 'Yes. Switch the toggle in the calculator to see the 20% yearly discount. Paid up-front, prorated when you upgrade tiers.' },
+    { q: 'Refunds?',                              a: '14-day refund on any paid plan, no questions. Cancel from /app/settings — your projects stay readable, and you can re-export the repo at any time.' },
+  ];
   return (
     <Section>
-      <Box sx={{ ...panelSx, p: { xs: 3, md: 5 }, bgcolor: '#111', color: tokens.color.bg.alabaster }}>
-        <SectionHeader eyebrow="Finisher gates" title="Every release has to pass the same checkpoints." compact />
-        <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-          {gates.map((gate, index) => (
-            <Chip
-              key={gate}
-              icon={index < 5 ? <CheckCircle /> : <Lock />}
-              label={gate}
-              sx={{
-                borderRadius: 1,
-                bgcolor: index < 5 ? 'rgba(229,255,0,0.14)' : 'rgba(103,29,252,0.16)',
-                color: tokens.color.bg.alabaster,
-                border: '1px solid rgba(244,240,232,0.2)',
-                p: 2.2,
-              }}
-            />
-          ))}
-        </Stack>
-      </Box>
-    </Section>
-  );
-}
-
-function CardGrid({ items, icon }: { items: { title: string; text: string }[]; icon: React.ReactNode }) {
-  return (
-    <Section>
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(4, 1fr)' }, gap: 1.5 }}>
+      <SectionHeader eyebrow="Pricing FAQ" title="What people ask before they upgrade." />
+      <Box sx={{ maxWidth: 900, mx: 'auto' }}>
         {items.map((item) => (
-          <Box key={item.title} sx={{ ...panelSx, p: 3, minHeight: 250 }}>
-            <Box sx={{ color: '#111', mb: 5 }}>{icon}</Box>
-            <Typography variant="h5" sx={{ letterSpacing: 0 }}>{item.title}</Typography>
-            <Typography variant="body2" sx={{ mt: 1.5, color: '#4f4b43', fontWeight: 600 }}>{item.text}</Typography>
+          <Box
+            key={item.q}
+            component="details"
+            sx={{
+              borderBottom: '1px solid rgba(13,14,15,0.1)',
+              py: 2.2,
+              '& > summary': { listStyle: 'none', cursor: 'pointer' },
+              '& > summary::-webkit-details-marker': { display: 'none' },
+              '&[open] .faq-marker': { transform: 'rotate(45deg)' },
+            }}
+          >
+            <Box component="summary" sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+              <Typography sx={{ fontSize: { xs: '1.05rem', md: '1.18rem' }, fontWeight: 700, color: INK }}>{item.q}</Typography>
+              <Box className="faq-marker" sx={{ width: 20, height: 20, position: 'relative', transition: `transform ${tokens.motion.base} ${tokens.motion.curve}`, flexShrink: 0, '&::before, &::after': { content: '""', position: 'absolute', background: INK, left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }, '&::before': { width: 12, height: 2 }, '&::after': { width: 2, height: 12 } }} />
+            </Box>
+            <Typography sx={{ mt: 1.4, color: MUTED, fontSize: { xs: '0.95rem', md: '1rem' }, lineHeight: 1.55 }}>{item.a}</Typography>
           </Box>
         ))}
       </Box>
@@ -1331,164 +1641,182 @@ function CardGrid({ items, icon }: { items: { title: string; text: string }[]; i
   );
 }
 
-function EnterpriseLeadSection() {
-  return (
-    <Section>
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '0.8fr 1.2fr' }, gap: { xs: 2, md: 3 }, alignItems: 'stretch' }}>
-        <Box sx={{ ...panelSx, p: { xs: 3, md: 4 }, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          <Box>
-            <Typography variant="overline" sx={{ color: tokens.color.accent.lime, fontWeight: 900 }}>Qualified demand</Typography>
-            <Typography variant="h2" sx={{ mt: 1, fontSize: { xs: '2.8rem', md: '4.4rem' }, lineHeight: 0.9 }}>
-              Sell the controlled build system, not another chat box.
-            </Typography>
-            <Typography variant="body1" sx={{ mt: 2, color: '#4f4b43', fontWeight: 700 }}>
-              Enterprise buyers need identity, auditability, budget controls, private connectors, and a clear migration path from prototype to production.
-            </Typography>
-          </Box>
-          <Stack spacing={1} sx={{ mt: 3 }}>
-            {['SSO and SCIM readiness', 'Private repo and connector mapping', 'Budget guardrails by team', 'Onboarding and implementation plan'].map((item) => (
-              <Stack key={item} direction="row" spacing={1} alignItems="center">
-                <CheckCircle sx={{ fontSize: 18, color: tokens.color.accent.lime }} />
-                <Typography variant="body2" sx={{ fontWeight: 900 }}>{item}</Typography>
-              </Stack>
-            ))}
-          </Stack>
-        </Box>
-        <EnterpriseLeadForm />
-      </Box>
-    </Section>
-  );
-}
+// -----------------------------------------------------------------------
+// SECURITY PAGE
+// -----------------------------------------------------------------------
 
-function PageHero({ eyebrow, title, text, image }: { eyebrow: string; title: string; text: string; image: string }) {
+export function SecurityPage() {
   return (
-    <Box sx={{
-      bgcolor: tokens.color.bg.alabaster,
-      pt: { xs: 4, md: 6 },
-    }}>
-      <Container maxWidth="xl">
-        <Box sx={{ borderRadius: { xs: 3, md: 5 }, overflow: 'hidden', minHeight: { xs: 430, md: 560 }, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', px: { xs: 3, md: 8 }, backgroundImage: `linear-gradient(180deg, rgba(13,14,15,0.1), rgba(13,14,15,0.45)), url(${image})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
-          <Stack spacing={2.5} alignItems="center" sx={{ maxWidth: 960 }}>
-            <Typography variant="overline" sx={{ color: tokens.color.accent.lime, fontWeight: 900 }}>{eyebrow}</Typography>
-            <Typography component="h1" variant="h1" sx={{
-              fontSize: { xs: '3rem', md: '6.1rem' },
-              lineHeight: 0.86,
-              letterSpacing: 0,
-              color: tokens.color.bg.alabaster,
-              textWrap: 'balance',
-            }}>
-              {title}
-            </Typography>
-            <Typography variant="h5" sx={{ maxWidth: 680, color: tokens.color.bg.alabaster, fontWeight: 700, fontSize: { xs: '1.05rem', md: '1.35rem' } }}>{text}</Typography>
-          </Stack>
-        </Box>
-      </Container>
-    </Box>
-  );
-}
-
-function FinalCta({ primary = 'Create your workspace', secondary = 'Explore product' }: { primary?: string; secondary?: string }) {
-  return (
-    <Section>
-      <Box sx={{ ...panelSx, p: { xs: 3, md: 6 }, bgcolor: '#111', color: tokens.color.bg.alabaster, display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.2fr 0.8fr' }, gap: 3 }}>
-        <Box>
-          <Typography variant="h2" sx={{ letterSpacing: 0, fontSize: { xs: '2.7rem', md: '4.1rem' }, lineHeight: 0.95 }}>Ready to build?</Typography>
-          <Typography variant="h6" sx={{ mt: 2, fontWeight: 500, color: '#d6cfbf' }}>
-            Bring an idea. Ironflyer will push it through the same product, engineering, and release gates every time.
-          </Typography>
-        </Box>
-        <Stack direction={{ xs: 'column', sm: 'row', md: 'column' }} spacing={1.5} justifyContent="center">
-          <Button component={Link} href="/app" variant="contained" size="large" endIcon={<RocketLaunch />} sx={{ py: 1.5 }}>{primary}</Button>
-          <Button component={Link} href="/product" variant="outlined" size="large" endIcon={<ArrowForward />} sx={{ color: tokens.color.bg.alabaster, borderColor: 'rgba(244,240,232,0.28)' }}>{secondary}</Button>
-        </Stack>
-      </Box>
-    </Section>
-  );
-}
-
-function Section({ children }: { children: React.ReactNode }) {
-  return (
-    <Box component="section" sx={{ py: { xs: 6, md: 10 }, bgcolor: tokens.color.bg.alabaster }}>
-      <Container maxWidth="xl">{children}</Container>
-    </Box>
-  );
-}
-
-function SectionHeader({
-  eyebrow, title, action, compact = false,
-}: {
-  eyebrow: string;
-  title: string;
-  action?: React.ReactNode;
-  compact?: boolean;
-}) {
-  return (
-    <Stack
-      direction={{ xs: 'column', md: 'row' }}
-      justifyContent="space-between"
-      alignItems={{ xs: 'flex-start', md: 'flex-end' }}
-      spacing={2}
-      sx={{ mb: compact ? 3 : 4 }}
-    >
-      <Box>
-        <Typography variant="overline" sx={{ color: tokens.color.accent.lime, fontWeight: 900 }}>{eyebrow}</Typography>
-        <Typography variant="h2" sx={{
-          mt: 1,
-          maxWidth: 980,
-          fontSize: compact ? { xs: '2.65rem', md: '5.2rem' } : { xs: '2.85rem', md: '5.9rem' },
-          lineHeight: 0.88,
-          letterSpacing: 0,
-          textWrap: 'balance',
-        }}>
-          {title}
-        </Typography>
-      </Box>
-      {action}
-    </Stack>
-  );
-}
-
-function SiteFooter() {
-  return (
-    <Box component="footer" sx={{ bgcolor: '#0d0e0f', color: tokens.color.bg.alabaster, mt: 0 }}>
-      <Container maxWidth="xl" sx={{ py: { xs: 7, md: 9 } }}>
-        <Typography variant="h2" sx={{ fontSize: { xs: '3rem', md: '4.8rem' }, lineHeight: 0.92, mb: { xs: 6, md: 8 } }}>
-          Start making incredible software
-        </Typography>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.2fr repeat(4, 1fr)' }, gap: 4 }}>
-          <Box>
-            <Stack direction="row" alignItems="center" spacing={1.5}>
-              <Box sx={{ width: 28, height: 28, borderRadius: 1, bgcolor: tokens.color.accent.lime }} />
-              <Typography variant="h6" sx={{ fontFamily: tokens.font.display, fontWeight: 400, letterSpacing: 0 }}>Ironflyer</Typography>
-            </Stack>
-            <Typography variant="body2" sx={{ mt: 2, maxWidth: 300, color: '#8d887e' }}>
-              AI product finishing for teams that want working software with fewer loose ends.
-            </Typography>
-          </Box>
-          {footerGroups.map((group) => (
-            <Box key={group.title}>
-              <Typography variant="overline" sx={{ color: '#8d887e' }}>{group.title}</Typography>
-              <Stack spacing={1.2} sx={{ mt: 1.5 }}>
-                {group.links.map((link) => (
-                  <Typography key={link} variant="body2" sx={{ color: tokens.color.bg.alabaster, fontWeight: 700 }}>
-                    {link}
-                  </Typography>
-                ))}
-              </Stack>
+    <MarketingShell>
+      <PageHero
+        eyebrow="Security"
+        title="Built so the AI never ships an exploit."
+        subtitle="Security is a gate, not a paragraph at the bottom of a website. Every patch runs through secret scanning, dep audit, and OWASP-shaped checks before it lands."
+      />
+      <Section>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 2 }}>
+          {[
+            {
+              icon: <Shield />,
+              title: 'Encryption at rest and in transit',
+              text: 'TLS 1.3 everywhere. Database disks encrypted with cloud-managed keys (AWS KMS / GCP CMEK). Backups encrypted with a separate key class.',
+            },
+            {
+              icon: <Lock />,
+              title: 'Secret storage',
+              text: 'Project secrets live in Kubernetes Secrets you control. Provider keys go through VSCode SecretStorage or your own Vault — never in prompts, never in repo files, never in logs.',
+            },
+            {
+              icon: <VerifiedUser />,
+              title: 'Tenant isolation',
+              text: 'Per-user Docker sandbox with no shared workspace. Every store has an OwnerID + requireProjectAccess middleware; non-owners get a 404, not a 403, so even existence isn’t leaked.',
+            },
+            {
+              icon: <Whatshot />,
+              title: 'Patch lifecycle',
+              text: 'The AI never writes files directly. Every change is a patch the engine proposes, gates approve, and the file system applies — auditable and reversible.',
+            },
+            {
+              icon: <Insights />,
+              title: 'Data retention',
+              text: 'Default 30-day retention on chat history + gate output. Enterprise plans can pin retention to 0 days (write-through to your storage) or up to 7 years for compliance.',
+            },
+            {
+              icon: <Bolt />,
+              title: 'AI provider posture',
+              text: 'Anthropic + OpenAI configured with zero-retention endpoints where the provider supports it. On-device ONNX option for sensitive flows — nothing leaves your cluster.',
+            },
+          ].map((item) => (
+            <Box key={item.title} sx={{ ...panelSx, p: { xs: 3, md: 4 }, display: 'flex', gap: 2.4, alignItems: 'flex-start' }}>
+              <Box sx={{ width: 48, height: 48, borderRadius: '12px', bgcolor: INK, color: LIME, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                {item.icon}
+              </Box>
+              <Box>
+                <Typography sx={{ fontFamily: tokens.font.display, fontWeight: 400, fontSize: { xs: '1.6rem', md: '2rem' }, lineHeight: 1, letterSpacing: 0 }}>
+                  {item.title}
+                </Typography>
+                <Typography variant="body2" sx={{ mt: 1.4, color: MUTED, fontWeight: 500, lineHeight: 1.55 }}>
+                  {item.text}
+                </Typography>
+              </Box>
             </Box>
           ))}
         </Box>
-        <Divider sx={{ my: 4, borderColor: 'rgba(244,240,232,0.12)' }} />
-        <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={1}>
-          <Typography variant="caption" sx={{ color: '#8d887e' }}>©2026 Ironflyer. All rights reserved.</Typography>
-          <Stack direction="row" spacing={2} sx={{ color: '#8d887e' }}>
-            <Tune fontSize="small" />
-            <Hub fontSize="small" />
-            <Code fontSize="small" />
-            <Inventory2 fontSize="small" />
-          </Stack>
+      </Section>
+      <Section dark>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 2 }}>
+          {[
+            { title: 'SOC 2 Type II',         status: 'In progress · Q3 2026', text: 'Under active audit with a top-3 SOC 2 firm. Bridge letter available now under NDA.' },
+            { title: 'GDPR + DPA',             status: 'Available',              text: 'Standard DPA, SCCs in place. EU data-residency clusters available on Enterprise.' },
+            { title: 'ISO 27001',              status: 'Roadmap · 2027',         text: 'Tracking ISO 27001 for late 2027 once SOC 2 lands. Controls already largely overlap.' },
+          ].map((c) => (
+            <Box key={c.title} sx={{ borderRadius: 3, p: 3.2, border: '1px solid rgba(244,240,232,0.1)', bgcolor: 'rgba(244,240,232,0.03)' }}>
+              <Typography variant="overline" sx={{ color: LIME, fontWeight: 900, letterSpacing: '0.14em' }}>{c.status}</Typography>
+              <Typography sx={{ fontFamily: tokens.font.display, fontWeight: 400, fontSize: 26, lineHeight: 1, letterSpacing: 0, mt: 0.6 }}>{c.title}</Typography>
+              <Typography variant="body2" sx={{ mt: 1.4, color: '#cfc7b8', fontWeight: 500, lineHeight: 1.55 }}>{c.text}</Typography>
+            </Box>
+          ))}
+        </Box>
+      </Section>
+      <Section id="privacy">
+        <SectionHeader eyebrow="Privacy" title="What we store, what we don’t." />
+        <Stack spacing={2} sx={{ maxWidth: 900 }}>
+          {[
+            { what: 'Prompts and chat history',  retention: '30 days by default · configurable on Enterprise' },
+            { what: 'Generated code + patches',  retention: 'For the life of the workspace; deleted with the project' },
+            { what: 'Provider API responses',    retention: 'Zero-retention where the provider supports it; otherwise 24h for debugging only' },
+            { what: 'Billing + cost ledger',     retention: '7 years (financial records)' },
+            { what: 'Auth tokens',               retention: 'Bcrypt-hashed; refresh tokens rotated per session' },
+            { what: 'Telemetry',                 retention: 'Aggregated only; no per-user code content sent off-cluster' },
+          ].map((row) => (
+            <Box key={row.what} sx={{ ...panelSx, p: 2.4, display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+              <Typography sx={{ fontWeight: 800, fontSize: 15.5 }}>{row.what}</Typography>
+              <Typography sx={{ color: MUTED, fontWeight: 600, fontSize: 14.5 }}>{row.retention}</Typography>
+            </Box>
+          ))}
         </Stack>
-      </Container>
-    </Box>
+      </Section>
+      <FinalCta primary="Security questionnaire" primaryHref="mailto:security@ironflyer.dev" secondary="Talk to engineering" secondaryHref="/enterprise" />
+    </MarketingShell>
+  );
+}
+
+// -----------------------------------------------------------------------
+// ENTERPRISE PAGE
+// -----------------------------------------------------------------------
+
+export function EnterprisePage() {
+  return (
+    <MarketingShell>
+      <PageHero
+        eyebrow="Enterprise"
+        title="A finisher loop your security team can sign off on."
+        subtitle="Identity, audit, budget caps, private deployment. The platform brings AI speed; your governance keeps it inside the lines."
+        primary="Request a demo"
+        primaryHref="#enterprise-intake"
+        secondary="Read the security brief"
+        secondaryHref="/security"
+      />
+      <Section>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 2 }}>
+          {[
+            { icon: <VerifiedUser />, title: 'SOC 2 in progress', text: 'Under active SOC 2 Type II audit with a top-3 firm. Bridge letter on request.' },
+            { icon: <Lock />,         title: 'On-prem / BYO cloud', text: 'Ship the Helm chart to your Kubernetes cluster. Your data plane, your provider keys.' },
+            { icon: <Shield />,       title: 'Dedicated support',   text: 'Named CSM, Slack-shared channel, 99.9% SLA on the orchestrator and runtime.' },
+          ].map((c) => (
+            <Box key={c.title} sx={{ ...panelSx, p: 3.2 }}>
+              <Box sx={{ width: 44, height: 44, borderRadius: '10px', bgcolor: INK, color: LIME, display: 'grid', placeItems: 'center' }}>
+                {c.icon}
+              </Box>
+              <Typography sx={{ fontFamily: tokens.font.display, fontWeight: 400, fontSize: 24, lineHeight: 1, mt: 2 }}>{c.title}</Typography>
+              <Typography variant="body2" sx={{ mt: 1.2, color: MUTED, fontWeight: 600, lineHeight: 1.55 }}>{c.text}</Typography>
+            </Box>
+          ))}
+        </Box>
+      </Section>
+      <Section id="enterprise-intake" dark>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '0.85fr 1.15fr' }, gap: { xs: 3, md: 5 }, alignItems: 'stretch' }}>
+          <Box sx={{ p: { xs: 1, md: 2 } }}>
+            <Typography variant="overline" sx={{ color: LIME, fontWeight: 900, letterSpacing: '0.14em' }}>Talk to sales</Typography>
+            <Typography sx={{ fontFamily: tokens.font.display, fontWeight: 400, fontSize: { xs: '2.4rem', md: '3.8rem' }, lineHeight: 0.94, mt: 1.2, color: ALABASTER }}>
+              Get a demo and a deployment plan in one conversation.
+            </Typography>
+            <Typography sx={{ mt: 2.2, color: '#cfc7b8', fontWeight: 500, lineHeight: 1.55, fontSize: { xs: 15, md: 17 } }}>
+              We’ll walk through the finisher gates against your own scenario, scope the SSO + audit posture, and put a deployment plan on paper before you commit.
+            </Typography>
+            <Stack spacing={1.2} sx={{ mt: 3.2 }}>
+              {[
+                'SSO (SAML / OIDC) + SCIM provisioning',
+                'Self-hosted Helm chart on your cluster',
+                'Per-team budget caps with finance-visible ledgers',
+                'Named CSM, Slack-shared support channel',
+                '99.9% SLA on orchestrator and runtime',
+              ].map((line) => (
+                <Stack key={line} direction="row" spacing={1.2} alignItems="center">
+                  <CheckCircle sx={{ color: LIME, fontSize: 18 }} />
+                  <Typography variant="body2" sx={{ color: ALABASTER, fontWeight: 700 }}>{line}</Typography>
+                </Stack>
+              ))}
+            </Stack>
+          </Box>
+          <EnterpriseLeadForm />
+        </Box>
+      </Section>
+      <Section id="careers">
+        <SectionHeader eyebrow="Working with us" title="Two ways to join the loop." />
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 2 }}>
+          {[
+            { title: 'Design partner', text: 'Pre-revenue or post-revenue teams who want to shape the roadmap and get founder-level access. Discount in exchange for case-study and feedback cadence.' },
+            { title: 'Careers',         text: 'We hire for taste, depth, and shipping speed. If you’ve built systems where correctness matters, send a note to hello@ironflyer.dev.' },
+          ].map((c) => (
+            <Box key={c.title} sx={{ ...panelSx, p: 3.2 }}>
+              <Typography sx={{ fontFamily: tokens.font.display, fontWeight: 400, fontSize: 28, lineHeight: 1 }}>{c.title}</Typography>
+              <Typography variant="body2" sx={{ mt: 1.4, color: MUTED, fontWeight: 600, lineHeight: 1.55 }}>{c.text}</Typography>
+            </Box>
+          ))}
+        </Box>
+      </Section>
+      <FinalCta primary="Request enterprise demo" primaryHref="#enterprise-intake" secondary="Read security brief" secondaryHref="/security" />
+    </MarketingShell>
   );
 }

@@ -26,9 +26,11 @@ import (
 	"ironflyer/apps/orchestrator/internal/integrations/github"
 	"ironflyer/apps/orchestrator/internal/leads"
 	"ironflyer/apps/orchestrator/internal/metrics"
+	"ironflyer/apps/orchestrator/internal/notify"
 	"ironflyer/apps/orchestrator/internal/patch"
 	"ironflyer/apps/orchestrator/internal/providers"
 	"ironflyer/apps/orchestrator/internal/store"
+	"ironflyer/apps/orchestrator/internal/webhooks"
 )
 
 // Deps groups everything the HTTP layer needs.
@@ -50,6 +52,13 @@ type Deps struct {
 	GitHubPostLoginURL string                  // browser destination after link/login
 	RuntimeURL         string                  // base URL of the workspace runtime, e.g. http://localhost:8090
 	Logger             zerolog.Logger
+	// Webhooks + notifications wiring. All four may be nil — handlers return
+	// 503 when the dependency they need is absent so a partial config does
+	// not crash the orchestrator at boot.
+	Webhooks          webhooks.Store
+	WebhookDispatcher *webhooks.Dispatcher
+	NotifyPrefs       notify.PrefsStore
+	Notify            *notify.Engine
 }
 
 type API struct{ d Deps }
@@ -64,8 +73,11 @@ func New(d Deps) http.Handler {
 	r.Use(middleware.Recoverer)
 
 	r.Use(metrics.HTTP)
+	r.Use(requestIDMiddleware)
+	r.Use(accessLogMiddleware(d.Logger))
 
 	r.Get("/health", a.health)
+	a.RegisterHealth(r)
 	r.Method("GET", "/metrics", metrics.Handler())
 	r.Post("/leads/enterprise", a.withSignupRateLimit(a.enterpriseLead))
 
@@ -131,6 +143,29 @@ func New(d Deps) http.Handler {
 		// Stripe checkout requires an authenticated user (we forward their
 		// id + email to Stripe so the webhook can map back).
 		r.Post("/budget/checkout", a.startCheckout)
+
+		// Dashboard self-service: per-user vault, bulk-delete projects, close account.
+		a.RegisterDashboard(r)
+
+		// Webhooks + notification preferences (Agent N). Appended as a single
+		// block so the route group stays diff-friendly for other agents.
+		r.Route("/webhooks", func(r chi.Router) {
+			r.Get("/", a.listWebhooks)
+			r.Post("/", a.createWebhook)
+			r.Delete("/{id}", a.deleteWebhook)
+			r.Post("/{id}/test", a.testWebhook)
+		})
+		r.Route("/notifications", func(r chi.Router) {
+			r.Get("/preferences", a.getNotificationPrefs)
+			r.Put("/preferences", a.setNotificationPrefs)
+		})
+
+		// GitHub repo import — turns an external repo into an Ironflyer
+		// project + workspace so the user can continue finishing it.
+		r.Route("/imports", func(r chi.Router) {
+			r.Post("/", a.startImport)
+			r.Get("/{projectId}/status", a.importStatus)
+		})
 	})
 
 	// Public catalogue endpoints (plans/rates/vault snapshot).
@@ -143,6 +178,10 @@ func New(d Deps) http.Handler {
 	// Stripe webhook is PUBLIC (Stripe calls it server-to-server). Auth is
 	// the Stripe-Signature header — verified inside the handler.
 	r.Post("/budget/webhook", a.stripeWebhook)
+
+	// Deploy routes (Agent E). Appended last so the deploy package owns
+	// its own slice of the router without touching existing groupings.
+	a.RegisterDeploy(r)
 
 	return r
 }

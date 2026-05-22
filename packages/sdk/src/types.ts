@@ -266,6 +266,37 @@ export interface ExecResult {
   truncatedAt?: number;
 }
 
+// ---------- Workspace preview (live dev server reverse-proxy) ---------------
+
+export interface DetectedPort {
+  port: number;
+  source?: string;        // "exec-stdout" | "exec-stderr" | "manual"
+  firstSeen: string;
+  lastSeen: string;
+  previewPath: string;    // e.g. "/preview/ws-abcd1234/3000/"
+  allowed: boolean;       // false → port not on the runtime allowlist
+}
+
+export interface PreviewTokenResponse {
+  /** Public path including the signed `?t=...` token. */
+  url: string;
+  /** Path without the token, in case the caller wants to compose its own. */
+  path: string;
+  token: string;
+  expiresAt: string;
+}
+
+export interface PatchChange {
+  path: string;
+  kind: 'created' | 'modified' | 'deleted';
+  bytes: number;
+}
+
+export interface ApplyPatchResponse {
+  applied: PatchChange[];
+  count: number;
+}
+
 // ---------- Streaming chat ---------------------------------------------------
 
 export type ChatDelta =

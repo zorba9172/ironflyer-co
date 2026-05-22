@@ -1,0 +1,405 @@
+'use client';
+
+// ChatPane — center "Chat" tab. Streams assistant turns via the orchestrator
+// /chat SSE endpoint and renders them with a deliberately light markdown +
+// code-block renderer (no new heavy deps). Each turn carries an agent name
+// and a capability badge so the user can see who is actually replying.
+
+import { useEffect, useRef, useState } from 'react';
+import {
+  Box, Chip, IconButton, Stack, TextField, Tooltip, Typography,
+} from '@mui/material';
+import { Send, Stop } from '@mui/icons-material';
+import { streamChat, ChatDelta } from '../../lib/api';
+import { tokens } from '../../lib/theme';
+
+interface Turn {
+  id: string;
+  role: 'user' | 'assistant';
+  agent?: string;
+  capability?: string;
+  text: string;
+  thinking: string;
+  provider?: string;
+  model?: string;
+  status: 'streaming' | 'done' | 'error';
+  error?: string;
+}
+
+interface Props {
+  projectId: string;
+  defaultRole?: string;
+}
+
+const ROLES: { key: string; label: string; cap: string }[] = [
+  { key: 'planner', label: 'Planner', cap: 'plan' },
+  { key: 'uxer', label: 'UX', cap: 'design' },
+  { key: 'architect', label: 'Architect', cap: 'arch' },
+  { key: 'coder', label: 'Coder', cap: 'code' },
+  { key: 'reviewer', label: 'Reviewer', cap: 'review' },
+  { key: 'tester', label: 'Tester', cap: 'tests' },
+  { key: 'security', label: 'Security', cap: 'sec' },
+  { key: 'deployer', label: 'Deployer', cap: 'deploy' },
+];
+
+export function ChatPane({ projectId, defaultRole = 'planner' }: Props) {
+  const [turns, setTurns] = useState<Turn[]>([]);
+  const [draft, setDraft] = useState('');
+  const [role, setRole] = useState(defaultRole);
+  const [streaming, setStreaming] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+  }, [turns]);
+
+  async function send() {
+    const goal = draft.trim();
+    if (!goal || streaming) return;
+    setDraft('');
+    setStreaming(true);
+
+    const userTurn: Turn = {
+      id: crypto.randomUUID(), role: 'user',
+      text: goal, thinking: '', status: 'done',
+    };
+    const draftTurn: Turn = {
+      id: crypto.randomUUID(), role: 'assistant',
+      agent: role, capability: ROLES.find((r) => r.key === role)?.cap,
+      text: '', thinking: '', status: 'streaming',
+    };
+    setTurns((t) => [...t, userTurn, draftTurn]);
+
+    abortRef.current = new AbortController();
+    try {
+      await streamChat(
+        projectId,
+        { prompt: goal, role },
+        (d: ChatDelta) => setTurns((curr) => applyDelta(curr, d)),
+        abortRef.current.signal,
+      );
+    } finally {
+      setStreaming(false);
+    }
+  }
+
+  function abort() {
+    abortRef.current?.abort();
+    setStreaming(false);
+  }
+
+  return (
+    <Stack spacing={1} sx={{ height: '100%', minHeight: 0 }}>
+      <Box ref={scrollRef} sx={{ flex: 1, minHeight: 0, overflowY: 'auto', pr: 0.4 }}>
+        {turns.length === 0 ? (
+          <EmptyChat />
+        ) : (
+          <Stack spacing={1} sx={{ pb: 1.2 }}>
+            {turns.map((t) => <TurnBubble key={t.id} turn={t} />)}
+          </Stack>
+        )}
+      </Box>
+
+      <Box sx={{
+        borderRadius: '14px',
+        border: '1px solid rgba(17,17,17,0.12)',
+        bgcolor: tokens.color.bg.surface,
+        p: 1,
+      }}>
+        <Stack direction="row" spacing={0.6} sx={{ overflowX: 'auto', pb: 0.6 }}>
+          {ROLES.map((r) => {
+            const active = r.key === role;
+            return (
+              <Chip
+                key={r.key}
+                label={r.label}
+                size="small"
+                onClick={() => setRole(r.key)}
+                sx={{
+                  borderRadius: '8px', fontWeight: 700,
+                  bgcolor: active ? tokens.color.accent.lime : tokens.color.bg.inset,
+                  color: active ? tokens.color.text.inverse : tokens.color.text.primary,
+                  border: `1px solid ${active ? tokens.color.accent.lime : 'rgba(17,17,17,0.12)'}`,
+                  '&:hover': { bgcolor: active ? tokens.color.accent.lime : tokens.color.bg.surfaceHover },
+                }}
+              />
+            );
+          })}
+        </Stack>
+        <Stack direction="row" spacing={1} alignItems="flex-end">
+          <TextField
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder="כתבו לסוכן בעברית או באנגלית…"
+            multiline minRows={1} maxRows={6}
+            fullWidth
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                void send();
+              }
+            }}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                bgcolor: tokens.color.bg.inset,
+                borderRadius: '12px',
+                fontSize: 14,
+              },
+            }}
+          />
+          {streaming ? (
+            <Tooltip title="עצירה">
+              <IconButton onClick={abort} sx={{
+                bgcolor: tokens.color.accent.danger, color: '#fff',
+                '&:hover': { bgcolor: tokens.color.accent.danger },
+              }}>
+                <Stop fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          ) : (
+            <Tooltip title="שליחה">
+              <span>
+                <IconButton
+                  onClick={() => void send()}
+                  disabled={!draft.trim()}
+                  sx={{
+                    bgcolor: tokens.color.accent.lime, color: tokens.color.text.inverse,
+                    '&:hover': { bgcolor: tokens.color.accent.lime },
+                    '&.Mui-disabled': { bgcolor: tokens.color.bg.inset, color: tokens.color.text.muted },
+                  }}
+                >
+                  <Send fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
+        </Stack>
+      </Box>
+    </Stack>
+  );
+}
+
+function applyDelta(turns: Turn[], d: ChatDelta): Turn[] {
+  if (turns.length === 0) return turns;
+  const idx = turns.length - 1;
+  const last = turns[idx];
+  if (last.role !== 'assistant') return turns;
+  const next = { ...last };
+  switch (d.kind) {
+    case 'start':    next.provider = d.provider; next.model = d.model; break;
+    case 'text':     next.text = last.text + d.text; break;
+    case 'thinking': next.thinking = last.thinking + d.text; break;
+    case 'done':
+      next.status = 'done';
+      next.provider = d.provider; next.model = d.model;
+      break;
+    case 'error':
+      next.status = 'error'; next.error = d.error;
+      break;
+  }
+  const out = turns.slice();
+  out[idx] = next;
+  return out;
+}
+
+function EmptyChat() {
+  return (
+    <Stack spacing={1.4} alignItems="center" sx={{ py: 6, textAlign: 'center' }}>
+      <Typography variant="h6" sx={{ fontWeight: 800 }}>
+        מה נבנה היום?
+      </Typography>
+      <Typography variant="body2" sx={{ color: tokens.color.text.muted, maxWidth: 420 }}>
+        תארו את הפיצ׳ר או את התקלה, בחרו תפקיד (Planner / Coder / Tester…) והסוכן יתחיל לעבוד מול עץ הקבצים.
+      </Typography>
+      <Stack direction="row" spacing={0.7} useFlexGap flexWrap="wrap" justifyContent="center" sx={{ maxWidth: 520, mt: 1 }}>
+        {[
+          'תכננו דשבורד עם 3 כרטיסים',
+          'הוסיפו endpoint GET /api/health',
+          'תקנו את הבדיקות שנפלו',
+        ].map((s) => (
+          <Chip key={s} label={s} size="small" sx={{
+            borderRadius: '8px', bgcolor: tokens.color.bg.inset, color: tokens.color.text.primary,
+            border: '1px solid rgba(17,17,17,0.10)',
+          }} />
+        ))}
+      </Stack>
+    </Stack>
+  );
+}
+
+function TurnBubble({ turn }: { turn: Turn }) {
+  const isUser = turn.role === 'user';
+  return (
+    <Box sx={{
+      px: 1.4, py: 1.2, borderRadius: '14px',
+      bgcolor: isUser ? tokens.color.bg.surfaceHover : tokens.color.bg.surface,
+      border: turn.status === 'streaming'
+        ? `1px solid ${tokens.color.accent.lime}`
+        : '1px solid rgba(17,17,17,0.10)',
+    }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+        <Stack direction="row" spacing={0.8} alignItems="center">
+          <Typography
+            variant="caption"
+            sx={{
+              fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em',
+              color: isUser ? tokens.color.accent.sky : tokens.color.accent.lime,
+            }}
+          >
+            {isUser ? 'You' : (turn.agent ?? 'Agent')}
+          </Typography>
+          {!isUser && turn.capability && (
+            <Chip
+              label={turn.capability} size="small"
+              sx={{
+                height: 16, fontSize: 9, fontWeight: 800, textTransform: 'uppercase',
+                bgcolor: tokens.color.bg.inset, color: tokens.color.text.muted,
+                '& .MuiChip-label': { px: 0.6 },
+              }}
+            />
+          )}
+          {!isUser && turn.provider && (
+            <Typography variant="caption" sx={{ color: tokens.color.text.muted, fontFamily: tokens.font.mono, fontSize: 10 }}>
+              {turn.provider}/{turn.model}
+            </Typography>
+          )}
+        </Stack>
+      </Stack>
+
+      {turn.thinking && (
+        <Box sx={{
+          mb: 0.7, px: 1, py: 0.7, borderRadius: 1,
+          bgcolor: tokens.color.bg.inset, color: tokens.color.text.muted,
+          fontStyle: 'italic', fontSize: 12, whiteSpace: 'pre-wrap',
+        }}>
+          {turn.thinking}
+        </Box>
+      )}
+
+      <MarkdownLite source={turn.text} />
+
+      {turn.status === 'streaming' && (
+        <Box component="span" sx={{
+          color: tokens.color.accent.lime,
+          animation: 'cb-blink 1s steps(2) infinite',
+          fontWeight: 900,
+          '@keyframes cb-blink': { '50%': { opacity: 0 } },
+        }}>
+          ▍
+        </Box>
+      )}
+      {turn.error && (
+        <Typography variant="caption" sx={{ color: tokens.color.accent.danger, display: 'block', mt: 0.5 }}>
+          {turn.error}
+        </Typography>
+      )}
+    </Box>
+  );
+}
+
+// MarkdownLite — minimal renderer. Supports fenced code blocks (```lang),
+// inline `code`, bold **text**, and paragraphs. We deliberately avoid heavy
+// markdown libraries here; the assistants don't lean on exotic syntax.
+function MarkdownLite({ source }: { source: string }) {
+  const blocks = splitCodeBlocks(source);
+  return (
+    <Box sx={{ fontSize: 13, lineHeight: 1.55, color: tokens.color.text.primary }}>
+      {blocks.map((b, i) => b.code ? (
+        <CodeBlock key={i} lang={b.lang} text={b.text} />
+      ) : (
+        <Paragraphs key={i} text={b.text} />
+      ))}
+    </Box>
+  );
+}
+
+function CodeBlock({ lang, text }: { lang?: string; text: string }) {
+  return (
+    <Box sx={{
+      mt: 0.8, mb: 0.8, borderRadius: '8px',
+      bgcolor: '#0d0e0f', color: '#e7e4dc',
+      border: '1px solid rgba(17,17,17,0.20)',
+      overflow: 'hidden',
+    }}>
+      {lang && (
+        <Box sx={{
+          px: 1.2, py: 0.4,
+          fontFamily: tokens.font.mono, fontSize: 11,
+          color: tokens.color.accent.lime,
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          textTransform: 'lowercase',
+        }}>
+          {lang}
+        </Box>
+      )}
+      <Box component="pre" sx={{
+        m: 0, p: 1.2, fontFamily: tokens.font.mono, fontSize: 12,
+        overflowX: 'auto', whiteSpace: 'pre',
+      }}>
+        {text}
+      </Box>
+    </Box>
+  );
+}
+
+function Paragraphs({ text }: { text: string }) {
+  // Split on blank lines; render inline markup per paragraph.
+  const paras = text.split(/\n{2,}/);
+  return (
+    <>
+      {paras.map((p, i) => (
+        <Box key={i} sx={{ mt: i === 0 ? 0 : 0.7, whiteSpace: 'pre-wrap' }}>
+          {renderInline(p)}
+        </Box>
+      ))}
+    </>
+  );
+}
+
+function renderInline(text: string): React.ReactNode[] {
+  // bold **x**, code `x`. We process code first so backticks inside bold
+  // text still pass through.
+  const out: React.ReactNode[] = [];
+  const re = /(`[^`]+`|\*\*[^*]+\*\*)/g;
+  let last = 0; let m: RegExpExecArray | null; let key = 0;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) out.push(text.slice(last, m.index));
+    const tok = m[0];
+    if (tok.startsWith('`')) {
+      out.push(
+        <Box key={key++} component="code" sx={{
+          px: 0.6, py: 0.1, mx: 0.1, borderRadius: 0.6,
+          fontFamily: tokens.font.mono, fontSize: 12,
+          bgcolor: tokens.color.bg.inset,
+          color: tokens.color.accent.lime,
+        }}>
+          {tok.slice(1, -1)}
+        </Box>,
+      );
+    } else {
+      out.push(
+        <Box key={key++} component="strong" sx={{ fontWeight: 800 }}>
+          {tok.slice(2, -2)}
+        </Box>,
+      );
+    }
+    last = m.index + tok.length;
+  }
+  if (last < text.length) out.push(text.slice(last));
+  return out;
+}
+
+function splitCodeBlocks(source: string): { text: string; code: boolean; lang?: string }[] {
+  const out: { text: string; code: boolean; lang?: string }[] = [];
+  const re = /```([a-zA-Z0-9_-]+)?\n([\s\S]*?)```/g;
+  let last = 0; let m: RegExpExecArray | null;
+  while ((m = re.exec(source)) !== null) {
+    if (m.index > last) out.push({ text: source.slice(last, m.index), code: false });
+    out.push({ text: m[2], code: true, lang: m[1] });
+    last = m.index + m[0].length;
+  }
+  if (last < source.length) out.push({ text: source.slice(last), code: false });
+  if (out.length === 0) out.push({ text: source, code: false });
+  return out;
+}

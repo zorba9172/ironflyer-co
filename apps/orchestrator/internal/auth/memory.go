@@ -90,4 +90,20 @@ func (s *MemoryUserStore) SetPlan(_ context.Context, id, plan string) error {
 	return nil
 }
 
+// Delete removes a user record and any auxiliary lookups. Idempotent on
+// missing IDs: returns ErrUserNotFound so the caller can choose its
+// behaviour.
+func (s *MemoryUserStore) Delete(_ context.Context, id string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	u, ok := s.byID[id]
+	if !ok {
+		return ErrUserNotFound
+	}
+	delete(s.byID, id)
+	delete(s.byEmail, u.Email)
+	delete(s.hashes, id)
+	return nil
+}
+
 var _ UserStore = (*MemoryUserStore)(nil)

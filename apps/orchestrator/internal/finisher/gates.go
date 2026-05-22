@@ -2,6 +2,7 @@ package finisher
 
 import (
 	"context"
+	"encoding/json"
 	"regexp"
 	"strings"
 
@@ -65,12 +66,196 @@ type UXGate struct{}
 
 func (UXGate) Name() domain.GateName    { return domain.GateUX }
 func (UXGate) RepairAgent() agents.Role { return agents.RoleUXer }
+
+// knownUXComponents is the canonical set of MUI-aligned components a
+// generated screen map may reference. Anything outside this set fails the
+// gate so the UXer agent must use the design system instead of inventing
+// bespoke widgets. Lower-cased on lookup.
+var knownUXComponents = map[string]struct{}{
+	"appshell": {}, "topbar": {}, "sidebar": {}, "navrail": {}, "drawer": {},
+	"page": {}, "section": {}, "card": {}, "list": {}, "listitem": {},
+	"table": {}, "datatable": {}, "form": {}, "field": {}, "input": {},
+	"textfield": {}, "select": {}, "switch": {}, "checkbox": {}, "radio": {},
+	"button": {}, "iconbutton": {}, "link": {}, "menu": {}, "modal": {},
+	"dialog": {}, "drawerpanel": {}, "tabs": {}, "tab": {}, "stepper": {},
+	"breadcrumbs": {}, "snackbar": {}, "alert": {}, "toast": {}, "tooltip": {},
+	"avatar": {}, "badge": {}, "chip": {}, "tag": {}, "divider": {},
+	"empty": {}, "loader": {}, "skeleton": {}, "spinner": {}, "progress": {},
+	"chart": {}, "map": {}, "metric": {}, "kpi": {}, "stat": {},
+	"hero": {}, "feature": {}, "footer": {}, "header": {}, "search": {},
+	"filter": {}, "pagination": {}, "uploader": {}, "datepicker": {}, "timepicker": {},
+}
+
+// screenMapDoc is the on-disk schema for .ironflyer/screen_map.json. It is
+// produced by the UXer agent and consumed by the Coder + Reviewer.
+type screenMapDoc struct {
+	Screens []struct {
+		ID         string   `json:"id"`
+		Name       string   `json:"name"`
+		Route      string   `json:"route"`
+		Components []string `json:"components"`
+		StoryIDs   []string `json:"storyIds,omitempty"`
+	} `json:"screens"`
+}
+
+// designTokensDoc is the minimum shape every project's tokens file must
+// expose. We do not enforce specific palette values — only that the
+// declared categories exist and are non-empty.
+type designTokensDoc struct {
+	Color   map[string]any `json:"color"`
+	Spacing map[string]any `json:"spacing"`
+	Type    map[string]any `json:"type,omitempty"`
+}
+
+const (
+	screenMapPath    = ".ironflyer/screen_map.json"
+	designTokensPath = ".ironflyer/design_tokens.json"
+)
+
 func (UXGate) Check(_ context.Context, env *GateEnv) []domain.Issue {
-	if len(env.Project.Spec.UserStories) == 0 {
-		return []domain.Issue{{Gate: domain.GateUX, Severity: domain.SeverityWarning, Message: "blocked: spec has no stories"}}
+	p := env.Project
+	if len(p.Spec.UserStories) == 0 {
+		return []domain.Issue{{
+			Gate: domain.GateUX, Severity: domain.SeverityWarning,
+			Message: "blocked: spec has no stories",
+			Hint:    "fix the Spec gate first — UX is downstream of stories",
+		}}
 	}
-	// Stub: real check inspects design tokens + screen map.
-	return nil
+
+	var issues []domain.Issue
+
+	mapRaw, mapOK := fileBody(p, screenMapPath)
+	if !mapOK {
+		issues = append(issues, domain.Issue{
+			Gate: domain.GateUX, Severity: domain.SeverityError,
+			Message: "missing screen map", Path: screenMapPath,
+			Hint: "UXer must publish " + screenMapPath + " with at least one screen",
+		})
+	} else {
+		var doc screenMapDoc
+		if err := json.Unmarshal([]byte(mapRaw), &doc); err != nil {
+			issues = append(issues, domain.Issue{
+				Gate: domain.GateUX, Severity: domain.SeverityError,
+				Message: "screen map is not valid JSON: " + err.Error(),
+				Path:    screenMapPath,
+			})
+		} else if len(doc.Screens) == 0 {
+			issues = append(issues, domain.Issue{
+				Gate: domain.GateUX, Severity: domain.SeverityError,
+				Message: "screen map has zero screens", Path: screenMapPath,
+			})
+		} else {
+			storyIDs := map[string]struct{}{}
+			for _, s := range p.Spec.UserStories {
+				storyIDs[s.ID] = struct{}{}
+			}
+			for _, sc := range doc.Screens {
+				if strings.TrimSpace(sc.ID) == "" || strings.TrimSpace(sc.Name) == "" {
+					issues = append(issues, domain.Issue{
+						Gate: domain.GateUX, Severity: domain.SeverityError,
+						Message: "screen missing id or name", Path: screenMapPath,
+					})
+					continue
+				}
+				if len(sc.Components) == 0 {
+					issues = append(issues, domain.Issue{
+						Gate: domain.GateUX, Severity: domain.SeverityError,
+						Message: "screen " + sc.ID + " has no components", Path: screenMapPath,
+					})
+				}
+				for _, c := range sc.Components {
+					if _, ok := knownUXComponents[strings.ToLower(strings.TrimSpace(c))]; !ok {
+						issues = append(issues, domain.Issue{
+							Gate: domain.GateUX, Severity: domain.SeverityWarning,
+							Message: "unknown component on " + sc.ID + ": " + c,
+							Path:    screenMapPath,
+							Hint:    "use a component from the Ironflyer/MUI design system",
+						})
+					}
+				}
+				for _, sid := range sc.StoryIDs {
+					if _, ok := storyIDs[sid]; !ok {
+						issues = append(issues, domain.Issue{
+							Gate: domain.GateUX, Severity: domain.SeverityWarning,
+							Message: "screen " + sc.ID + " references unknown storyId: " + sid,
+							Path:    screenMapPath,
+						})
+					}
+				}
+			}
+		}
+	}
+
+	tokRaw, tokOK := fileBody(p, designTokensPath)
+	if !tokOK {
+		issues = append(issues, domain.Issue{
+			Gate: domain.GateUX, Severity: domain.SeverityError,
+			Message: "missing design tokens", Path: designTokensPath,
+			Hint: "publish a tokens file with color + spacing (typography optional)",
+		})
+	} else {
+		var tok designTokensDoc
+		if err := json.Unmarshal([]byte(tokRaw), &tok); err != nil {
+			issues = append(issues, domain.Issue{
+				Gate: domain.GateUX, Severity: domain.SeverityError,
+				Message: "design tokens not valid JSON: " + err.Error(),
+				Path:    designTokensPath,
+			})
+		} else {
+			if len(tok.Color) == 0 {
+				issues = append(issues, domain.Issue{
+					Gate: domain.GateUX, Severity: domain.SeverityError,
+					Message: "design tokens has no color palette", Path: designTokensPath,
+				})
+			}
+			if len(tok.Spacing) == 0 {
+				issues = append(issues, domain.Issue{
+					Gate: domain.GateUX, Severity: domain.SeverityError,
+					Message: "design tokens has no spacing scale", Path: designTokensPath,
+				})
+			}
+		}
+	}
+
+	return issues
+}
+
+// artifactForPath maps the legacy .ironflyer/<name>.json convention to the
+// typed Project.Artifacts name we now dual-write. Returning ("", false)
+// means the path has no artifact mirror and we should fall straight to the
+// FileNode lookup.
+func artifactForPath(path string) (string, bool) {
+	switch strings.ToLower(strings.TrimPrefix(path, "/")) {
+	case ".ironflyer/plan.json":
+		return domain.ArtifactPlan, true
+	case ".ironflyer/stack.json":
+		return domain.ArtifactStack, true
+	case ".ironflyer/screen_map.json":
+		return domain.ArtifactScreenMap, true
+	case ".ironflyer/design_tokens.json":
+		return domain.ArtifactDesignTokens, true
+	}
+	return "", false
+}
+
+// fileBody returns the artifact (preferred) or file contents for a given
+// path on a project. We check Project.Artifacts first so the typed mirror
+// is the source of truth; the .ironflyer/<name>.json file is the IDE
+// transparency layer and backstop for older projects that predate the
+// typed field. Match is case-insensitive on the full path.
+func fileBody(p *domain.Project, path string) (string, bool) {
+	if name, ok := artifactForPath(path); ok {
+		if raw, present := p.GetArtifact(name); present {
+			return string(raw), true
+		}
+	}
+	want := strings.ToLower(strings.TrimPrefix(path, "/"))
+	for _, f := range p.Files {
+		if strings.ToLower(strings.TrimPrefix(f.Path, "/")) == want {
+			return f.Content, true
+		}
+	}
+	return "", false
 }
 
 type ArchGate struct{}
@@ -306,6 +491,10 @@ func (SecurityGate) Check(ctx context.Context, env *GateEnv) []domain.Issue {
 
 	if env.HasRuntime() {
 		issues = append(issues, scanWorkspaceForSecrets(ctx, env)...)
+		// SAST + dependency CVE scanners. Each is a best-effort, gracefully
+		// skipped when the corresponding binary isn't installed on the
+		// workspace image.
+		issues = append(issues, runSecurityScanners(ctx, env)...)
 	}
 	return issues
 }
@@ -398,12 +587,14 @@ type DeployGate struct{}
 
 func (DeployGate) Name() domain.GateName    { return domain.GateDeploy }
 func (DeployGate) RepairAgent() agents.Role { return agents.RoleDeployer }
-func (DeployGate) Check(_ context.Context, env *GateEnv) []domain.Issue {
+func (DeployGate) Check(ctx context.Context, env *GateEnv) []domain.Issue {
 	hasDockerfile := false
 	hasReadme := false
+	var dockerfilePath string
 	for _, f := range env.Project.Files {
 		if strings.HasSuffix(f.Path, "Dockerfile") {
 			hasDockerfile = true
+			dockerfilePath = f.Path
 		}
 		if strings.EqualFold(f.Path, "README.md") {
 			hasReadme = true
@@ -416,7 +607,70 @@ func (DeployGate) Check(_ context.Context, env *GateEnv) []domain.Issue {
 	if !hasReadme {
 		issues = append(issues, domain.Issue{Gate: domain.GateDeploy, Severity: domain.SeverityWarning, Message: "no README"})
 	}
+	if hasDockerfile && env.HasRuntime() {
+		issues = append(issues, dockerfileBuildCheck(ctx, env, dockerfilePath)...)
+	}
 	return issues
+}
+
+// dockerfileBuildCheck runs `docker build --check` (BuildKit linter) and,
+// when that is unavailable, falls back to a `hadolint` static analysis
+// pass. Either tool gives us a real, enforceable signal that the file
+// declares a buildable image rather than a placeholder. We deliberately do
+// NOT run a full `docker build` here — that requires Docker-in-Docker and
+// can take minutes; the Code gate already exercises the actual build for
+// language-specific compilation. This step is purely "is the Dockerfile a
+// valid recipe". Both checks degrade silently when the binary is missing.
+func dockerfileBuildCheck(ctx context.Context, env *GateEnv, dockerfilePath string) []domain.Issue {
+	// Prefer `docker buildx build --check` (BuildKit's first-party linter).
+	cmd := "command -v docker >/dev/null 2>&1 && docker buildx build --check -f " + shellQuote(dockerfilePath) + " . 2>&1 || true"
+	res, err := env.Runtime.Exec(ctx, env.UserBearer, env.WorkspaceID, runtime.ExecOpts{
+		Shell: cmd, TimeoutSeconds: 60,
+	})
+	if err == nil && !res.TimedOut && res.ExitCode == 0 && strings.TrimSpace(res.Stdout+res.Stderr) != "" {
+		body := res.Stdout + res.Stderr
+		// `docker build --check` prints warnings/errors on its stderr; an
+		// exit 0 with "warning" lines is still suspect on a deploy gate.
+		if strings.Contains(strings.ToLower(body), "warning") || strings.Contains(strings.ToLower(body), "error") {
+			return []domain.Issue{{
+				Gate: domain.GateDeploy, Severity: domain.SeverityWarning,
+				Message: "docker buildx --check flagged issues",
+				Path:    dockerfilePath,
+				Hint:    tail(body, 600),
+			}}
+		}
+		return nil
+	}
+	// Fallback to hadolint.
+	hadolint := "command -v hadolint >/dev/null 2>&1 && hadolint --no-fail " + shellQuote(dockerfilePath) + " 2>&1 || true"
+	res, err = env.Runtime.Exec(ctx, env.UserBearer, env.WorkspaceID, runtime.ExecOpts{
+		Shell: hadolint, TimeoutSeconds: 30,
+	})
+	if err != nil || strings.TrimSpace(res.Stdout+res.Stderr) == "" {
+		return nil
+	}
+	// One issue per finding line. Hadolint format: "<path>:<line> <code> <severity>: <message>"
+	var out []domain.Issue
+	for _, line := range strings.Split(res.Stdout+res.Stderr, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		sev := domain.SeverityWarning
+		low := strings.ToLower(line)
+		if strings.Contains(low, " error:") {
+			sev = domain.SeverityError
+		}
+		out = append(out, domain.Issue{
+			Gate: domain.GateDeploy, Severity: sev,
+			Message: line, Path: dockerfilePath,
+			Hint: "hadolint rule — see hadolint docs for remediation",
+		})
+		if len(out) >= 10 {
+			break
+		}
+	}
+	return out
 }
 
 func hasFile(p *domain.Project, name string) bool {

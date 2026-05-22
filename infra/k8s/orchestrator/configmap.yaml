@@ -20,3 +20,14 @@ data:
   GITHUB_POST_LOGIN_URL: "https://ironflyer.example.com/app"
   STRIPE_SUCCESS_URL: "https://ironflyer.example.com/app/settings?stripe=success"
   STRIPE_CANCEL_URL: "https://ironflyer.example.com/pricing?stripe=cancel"
+  # Scaffold templates baked into the Docker image (see orchestrator.Dockerfile).
+  IRONFLYER_SCAFFOLD_ROOT: "/app/templates"
+  # Set IRONFLYER_TEMPORAL_HOST to enable the workflow worker. Empty = embedded.
+  IRONFLYER_TEMPORAL_HOST: ""
+  IRONFLYER_TEMPORAL_NAMESPACE: "default"
+  IRONFLYER_TEMPORAL_TASK_QUEUE: "ironflyer-finisher"
+  # Transactional email: provider=none disables sends so missing keys don't
+  # break deploys; set to "resend" or "sendgrid" + populate the secret to
+  # enable.
+  IRONFLYER_EMAIL_PROVIDER: "none"
+  IRONFLYER_EMAIL_FROM: "noreply@ironflyer.dev"

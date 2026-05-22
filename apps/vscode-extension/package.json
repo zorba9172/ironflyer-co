@@ -1,13 +1,22 @@
 {
   "name": "ironflyer",
-  "displayName": "Ironflyer",
-  "description": "Finish products end-to-end with Ironflyer — chat, Finisher gates, budget, and project actions, right inside VSCode.",
+  "displayName": "Ironflyer — AI Product Finisher",
+  "description": "Finish products end-to-end inside VSCode. Chat with the agent, watch Finisher gates pass or fail, review patches in a native diff, run a live preview of your project, and track budget — all without leaving your editor.",
   "publisher": "ironflyer",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "license": "Apache-2.0",
+  "homepage": "https://ironflyer.dev",
+  "bugs": {
+    "url": "https://github.com/zorba9172/ironflyer/issues"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/zorba9172/ironflyer"
+  },
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#0E0F12",
+    "theme": "dark"
   },
   "engines": {
     "vscode": "^1.85.0",
@@ -15,6 +24,7 @@
   },
   "categories": [
     "AI",
+    "Programming Languages",
     "Other"
   ],
   "keywords": [
@@ -22,7 +32,12 @@
     "ai",
     "agents",
     "lovable",
-    "copilot"
+    "copilot",
+    "finisher",
+    "gates",
+    "preview",
+    "lovable.dev",
+    "base44"
   ],
   "main": "./dist/extension.js",
   "activationEvents": [
@@ -38,10 +53,36 @@
           "default": "http://localhost:8080",
           "description": "Base URL of the Ironflyer orchestrator. Set to https://api.ironflyer.dev for production."
         },
+        "ironflyer.apiUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Alias for orchestratorUrl. When set, overrides ironflyer.orchestratorUrl."
+        },
+        "ironflyer.runtimeUrl": {
+          "type": "string",
+          "default": "http://localhost:8090",
+          "description": "Base URL of the Ironflyer workspace runtime. Used by the Live Preview to fetch the per-project preview iframe URL."
+        },
         "ironflyer.webUrl": {
           "type": "string",
           "default": "http://localhost:3000",
           "description": "Base URL of the Ironflyer web app — used for the sign-in handshake."
+        },
+        "ironflyer.defaultProject": {
+          "type": "string",
+          "default": "",
+          "description": "Project ID to pin automatically on first activation in a new window. Leave empty to be prompted."
+        },
+        "ironflyer.preview.defaultViewport": {
+          "type": "string",
+          "enum": [
+            "responsive",
+            "mobile",
+            "tablet",
+            "desktop"
+          ],
+          "default": "responsive",
+          "description": "Initial viewport size for the Live Preview pane."
         }
       }
     },
@@ -71,7 +112,28 @@
       },
       {
         "command": "ironflyer.runFinisher",
-        "title": "Ironflyer: Run Finisher"
+        "title": "Ironflyer: Run Finisher",
+        "icon": "$(play)"
+      },
+      {
+        "command": "ironflyer.rerunGate",
+        "title": "Ironflyer: Re-run this Gate",
+        "icon": "$(debug-restart)"
+      },
+      {
+        "command": "ironflyer.openPreview",
+        "title": "Ironflyer: Open Live Preview",
+        "icon": "$(preview)"
+      },
+      {
+        "command": "ironflyer.refreshPreview",
+        "title": "Ironflyer: Refresh Preview",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "ironflyer.openPreviewInBrowser",
+        "title": "Ironflyer: Open Preview in Browser",
+        "icon": "$(link-external)"
       },
       {
         "command": "ironflyer.openProjectInBrowser",
@@ -91,6 +153,11 @@
         "icon": "$(check)"
       },
       {
+        "command": "ironflyer.rejectPatch",
+        "title": "Ironflyer: Reject Patch",
+        "icon": "$(close)"
+      },
+      {
         "command": "ironflyer.setActiveProject",
         "title": "Ironflyer: Set Active Project"
       },
@@ -101,11 +168,22 @@
       {
         "command": "ironflyer.showLogs",
         "title": "Ironflyer: Show Logs"
+      },
+      {
+        "command": "ironflyer.showRunOutput",
+        "title": "Ironflyer: Show Run Output"
+      },
+      {
+        "command": "ironflyer.quickActions",
+        "title": "Ironflyer: Quick Actions",
+        "icon": "$(zap)"
       }
     ],
     "keybindings": [
       { "command": "ironflyer.openChat", "key": "ctrl+alt+i", "mac": "cmd+alt+i", "when": "ironflyer.signedIn" },
-      { "command": "ironflyer.newProject", "key": "ctrl+alt+n", "mac": "cmd+alt+n", "when": "ironflyer.signedIn" }
+      { "command": "ironflyer.newProject", "key": "ctrl+alt+n", "mac": "cmd+alt+n", "when": "ironflyer.signedIn" },
+      { "command": "ironflyer.openPreview", "key": "ctrl+alt+p", "mac": "cmd+alt+p", "when": "ironflyer.signedIn" },
+      { "command": "ironflyer.runFinisher", "key": "ctrl+alt+r", "mac": "cmd+alt+r", "when": "ironflyer.signedIn && ironflyer.hasActiveProject" }
     ],
     "viewsContainers": {
       "activitybar": [
@@ -134,6 +212,13 @@
           "id": "ironflyer.gates",
           "name": "Finisher Gates",
           "icon": "$(checklist)",
+          "contextualTitle": "Ironflyer"
+        },
+        {
+          "type": "webview",
+          "id": "ironflyer.preview",
+          "name": "Live Preview",
+          "icon": "$(preview)",
           "contextualTitle": "Ironflyer"
         }
       ]
@@ -166,6 +251,11 @@
             "completionEvents": ["onCommand:ironflyer.openChat"]
           },
           {
+            "id": "openPreview",
+            "title": "See your project live",
+            "description": "Open the Live Preview pane to see your sandboxed workspace render in real time.\n[Open Live Preview](command:ironflyer.openPreview)"
+          },
+          {
             "id": "askToFix",
             "title": "Ask Ironflyer to fix a diagnostic",
             "description": "Hover any TypeScript / ESLint / Go diagnostic, press the lightbulb, and pick \"Ask Ironflyer to fix\". The extension bundles the snippet + message + range and routes it to the coder agent.",
@@ -174,7 +264,7 @@
           {
             "id": "reviewPatches",
             "title": "Review and apply patches",
-            "description": "Every patch the orchestrator proposes shows up in the Patches view. Click a file to open a native side-by-side diff; tap ✔ to apply.\n[Open Patches](command:workbench.view.extension.ironflyer)",
+            "description": "Every patch the orchestrator proposes shows up in the Patches view. Click a file to open a native side-by-side diff; tap the checkmark to apply.\n[Open Patches](command:workbench.view.extension.ironflyer)",
             "media": { "markdown": "media/walkthrough/patches.md" }
           }
         ]
@@ -228,17 +318,40 @@
           "command": "ironflyer.refresh",
           "when": "view == ironflyer.gates",
           "group": "navigation"
+        },
+        {
+          "command": "ironflyer.refreshPreview",
+          "when": "view == ironflyer.preview",
+          "group": "navigation@1"
+        },
+        {
+          "command": "ironflyer.openPreviewInBrowser",
+          "when": "view == ironflyer.preview",
+          "group": "navigation@2"
         }
       ],
       "commandPalette": [
         {
           "command": "ironflyer.fixDiagnostic",
           "when": "false"
+        },
+        {
+          "command": "ironflyer.rerunGate",
+          "when": "false"
+        },
+        {
+          "command": "ironflyer.showPatchDiff",
+          "when": "false"
         }
       ],
       "view/item/context": [
         {
           "command": "ironflyer.openChat",
+          "when": "view == ironflyer.projects && viewItem == ironflyer.project",
+          "group": "inline"
+        },
+        {
+          "command": "ironflyer.openPreview",
           "when": "view == ironflyer.projects && viewItem == ironflyer.project",
           "group": "inline"
         },
@@ -256,8 +369,18 @@
           "group": "inline"
         },
         {
+          "command": "ironflyer.rejectPatch",
+          "when": "view == ironflyer.patches && (viewItem == ironflyer.patch.validated || viewItem == ironflyer.patch.proposed)",
+          "group": "1_modify"
+        },
+        {
           "command": "ironflyer.runFinisher",
           "when": "view == ironflyer.gates && viewItem == ironflyer.gateProject",
+          "group": "inline"
+        },
+        {
+          "command": "ironflyer.rerunGate",
+          "when": "view == ironflyer.gates && viewItem =~ /^ironflyer\\.gate\\./",
           "group": "inline"
         }
       ]

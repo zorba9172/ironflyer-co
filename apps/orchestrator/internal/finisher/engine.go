@@ -37,37 +37,51 @@ func bearerFromCtx(ctx context.Context) string {
 	return ""
 }
 
-const defaultMaxIterations = 4
+const (
+	defaultMaxIterations    = 4
+	defaultMaxCoderRetries  = 3
+	defaultMaxPatchBytes    = 256 * 1024 // 256 KiB across all changes in one patch
+	defaultMaxFilesPerPatch = 40
+)
 
 type RunReport struct {
-	ProjectID   string             `json:"projectId"`
-	Iterations  int                `json:"iterations"`
-	Gates       []domain.GateState `json:"gates"`
-	Completed   bool               `json:"completed"`
-	StartedAt   time.Time          `json:"startedAt"`
-	FinishedAt  time.Time          `json:"finishedAt"`
-	AgentRuns   []agents.Result    `json:"agentRuns,omitempty"`
+	ProjectID  string             `json:"projectId"`
+	Iterations int                `json:"iterations"`
+	Gates      []domain.GateState `json:"gates"`
+	Completed  bool               `json:"completed"`
+	StartedAt  time.Time          `json:"startedAt"`
+	FinishedAt time.Time          `json:"finishedAt"`
+	AgentRuns  []agents.Result    `json:"agentRuns,omitempty"`
+	PatchIDs   []string           `json:"patchIds,omitempty"`
 }
 
 type Engine struct {
-	mu            sync.RWMutex
-	projects      store.Store
-	registry      *agents.Registry
-	patches       *patch.Engine
-	runtime       *runtime.Client
-	gates         []Gate
-	maxIterations int
-	subscribers   map[string][]chan domain.Event
+	mu               sync.RWMutex
+	projects         store.Store
+	registry         *agents.Registry
+	patches          *patch.Engine
+	runtime          *runtime.Client
+	applier          RuntimeApplier
+	gates            []Gate
+	maxIterations    int
+	maxCoderRetries  int
+	maxPatchBytes    int
+	maxFilesPerPatch int
+	subscribers      map[string][]chan domain.Event
 }
 
 func NewEngine(projects store.Store, registry *agents.Registry, patches *patch.Engine) *Engine {
 	return &Engine{
-		projects:      projects,
-		registry:      registry,
-		patches:       patches,
-		gates:         DefaultGates(),
-		maxIterations: defaultMaxIterations,
-		subscribers:   make(map[string][]chan domain.Event),
+		projects:         projects,
+		registry:         registry,
+		patches:          patches,
+		applier:          NoopRuntimeApplier{},
+		gates:            DefaultGates(),
+		maxIterations:    defaultMaxIterations,
+		maxCoderRetries:  defaultMaxCoderRetries,
+		maxPatchBytes:    defaultMaxPatchBytes,
+		maxFilesPerPatch: defaultMaxFilesPerPatch,
+		subscribers:      make(map[string][]chan domain.Event),
 	}
 }
 
@@ -79,9 +93,52 @@ func (e *Engine) WithRuntime(c *runtime.Client) *Engine {
 	return e
 }
 
-// Run executes the finisher loop for a project.
+// WithApplier registers a RuntimeApplier the loop will call to materialise
+// validated patches into the user's workspace. Passing nil keeps the
+// default no-op applier (project state remains in-memory only).
+func (e *Engine) WithApplier(a RuntimeApplier) *Engine {
+	if a == nil {
+		e.applier = NoopRuntimeApplier{}
+	} else {
+		e.applier = a
+	}
+	return e
+}
+
+// WithMaxCoderRetries overrides the number of revise-and-retry rounds the
+// loop grants the Coder when the Reviewer rejects a patch. Default 3.
+func (e *Engine) WithMaxCoderRetries(n int) *Engine {
+	if n > 0 {
+		e.maxCoderRetries = n
+	}
+	return e
+}
+
+// Run executes the finisher loop for a project. It first drives the
+// generative pipeline (Planner → Architect → UXer → Coder, with Reviewer
+// retries) and then runs the gate-based verification + repair loop. Any
+// LLM or runtime error is surfaced as a structured SSE event with a
+// stable ErrorCode; the function still returns normally so the HTTP
+// handler closes the response cleanly.
 func (e *Engine) Run(ctx context.Context, projectID string) (RunReport, error) {
 	report := RunReport{ProjectID: projectID, StartedAt: time.Now().UTC()}
+
+	defer func() {
+		// Defence-in-depth: a panic anywhere in the loop becomes a structured
+		// failure event rather than a 500 with no breadcrumbs in the SSE log.
+		if r := recover(); r != nil {
+			e.emit(projectID, domain.Event{
+				ID: newEventID(), Step: StepRun, Status: StatusFailed,
+				Message: fmtErr(ErrCodeGateUnrecoverable, "panic in finisher loop"),
+				CreatedAt: time.Now().UTC(),
+			})
+		}
+	}()
+
+	e.emit(projectID, domain.Event{
+		ID: newEventID(), Step: StepRun, Status: StatusRunning,
+		Message: "run_started", CreatedAt: time.Now().UTC(),
+	})
 
 	bearer := bearerFromCtx(ctx)
 	// Resolve a workspace for this project once per Run — if the runtime is
@@ -94,19 +151,49 @@ func (e *Engine) Run(ctx context.Context, projectID string) (RunReport, error) {
 		}
 	}
 
+	// Phase A: generative pipeline. The pipeline mutates the project Spec +
+	// Files in-place so the gate phase that follows sees the freshly drafted
+	// plan / screen map / source. A pipeline error is logged via SSE but does
+	// not abort the run — we still want partial gate reports.
+	if err := e.runPipeline(ctx, projectID, workspaceID, bearer, &report); err != nil {
+		if ctx.Err() != nil {
+			e.emit(projectID, domain.Event{
+				ID: newEventID(), Step: StepRun, Status: StatusFailed,
+				Message: fmtErr(ErrCodeContextCancelled, err.Error()),
+				CreatedAt: time.Now().UTC(),
+			})
+			report.FinishedAt = time.Now().UTC()
+			return report, nil
+		}
+		// Already emitted a structured event from inside runPipeline.
+	}
+
 	for i := 0; i < e.maxIterations; i++ {
 		report.Iterations = i + 1
+		e.emit(projectID, domain.Event{
+			ID: newEventID(), Step: StepLoopIteration, Status: StatusRunning,
+			Message: "iteration " + itoaPositive(i+1), CreatedAt: time.Now().UTC(),
+		})
 		allPassed := true
 
 		for _, gate := range e.gates {
+			if err := ctx.Err(); err != nil {
+				e.emit(projectID, domain.Event{
+					ID: newEventID(), Step: StepRun, Status: StatusFailed,
+					Message: fmtErr(ErrCodeContextCancelled, err.Error()),
+					CreatedAt: time.Now().UTC(),
+				})
+				report.FinishedAt = time.Now().UTC()
+				return report, nil
+			}
 			p, err := e.projects.Get(projectID)
 			if err != nil {
 				return report, err
 			}
 
 			e.emit(projectID, domain.Event{
-				ID: newEventID(), Step: "gate", Gate: gate.Name(),
-				Message: "checking gate", Status: "running", CreatedAt: time.Now().UTC(),
+				ID: newEventID(), Step: StepGate, Gate: gate.Name(),
+				Message: "gate_started", Status: StatusRunning, CreatedAt: time.Now().UTC(),
 			})
 
 			env := &GateEnv{
@@ -127,9 +214,24 @@ func (e *Engine) Run(ctx context.Context, projectID string) (RunReport, error) {
 
 			if len(issues) == 0 {
 				e.emit(projectID, domain.Event{
-					ID: newEventID(), Step: "gate", Gate: gate.Name(),
-					Message: "passed", Status: "done", CreatedAt: time.Now().UTC(),
+					ID: newEventID(), Step: StepGate, Gate: gate.Name(),
+					Message: "gate_passed", Status: StatusDone, CreatedAt: time.Now().UTC(),
 				})
+				continue
+			}
+
+			e.emit(projectID, domain.Event{
+				ID: newEventID(), Step: StepGate, Gate: gate.Name(),
+				Message: "gate_failed issues=" + itoaPositive(len(issues)),
+				Status: StatusFailed, CreatedAt: time.Now().UTC(),
+			})
+
+			// Auto-recovery: re-prompt the Coder with the failure context and
+			// re-run this gate only. On success we mark the gate repaired and
+			// move on; on failure we fall through to the existing repair-agent
+			// path so behaviour without recovery still applies.
+			if e.tryRecoverGate(ctx, projectID, workspaceID, bearer, gate.Name(), issues, &report) {
+				allPassed = false // gate was failing this iteration; require another full sweep
 				continue
 			}
 
@@ -137,7 +239,7 @@ func (e *Engine) Run(ctx context.Context, projectID string) (RunReport, error) {
 			role := gate.RepairAgent()
 			e.emit(projectID, domain.Event{
 				ID: newEventID(), Step: "repair", Gate: gate.Name(), Agent: string(role),
-				Message: "dispatching repair agent", Status: "running", CreatedAt: time.Now().UTC(),
+				Message: "repair_started", Status: StatusRunning, CreatedAt: time.Now().UTC(),
 			})
 
 			task := agents.Task{
@@ -148,6 +250,7 @@ func (e *Engine) Run(ctx context.Context, projectID string) (RunReport, error) {
 			}
 			res, err := e.registry.Run(ctx, task)
 			if err != nil {
+				e.emitProviderErr(projectID, "repair", role, err)
 				e.setGate(projectID, gate.Name(), domain.GateState{
 					Name: gate.Name(), Status: domain.GateStatusBlocked,
 					Issues: append(issues, domain.Issue{
@@ -160,7 +263,8 @@ func (e *Engine) Run(ctx context.Context, projectID string) (RunReport, error) {
 			report.AgentRuns = append(report.AgentRuns, res)
 			e.emit(projectID, domain.Event{
 				ID: newEventID(), Step: "repair", Gate: gate.Name(), Agent: string(role),
-				Message: "agent returned output (mock)", Status: "done", CreatedAt: time.Now().UTC(),
+				Message: "repair_done provider=" + res.Provider, Status: StatusDone,
+				CreatedAt: time.Now().UTC(),
 			})
 			e.setGate(projectID, gate.Name(), domain.GateState{
 				Name: gate.Name(), Status: domain.GateStatusRepaired, Issues: issues,
@@ -182,6 +286,19 @@ func (e *Engine) Run(ctx context.Context, projectID string) (RunReport, error) {
 		}
 	}
 	report.FinishedAt = time.Now().UTC()
+
+	if report.Completed {
+		e.emit(projectID, domain.Event{
+			ID: newEventID(), Step: StepRun, Status: StatusDone,
+			Message: "run_complete", CreatedAt: time.Now().UTC(),
+		})
+	} else {
+		e.emit(projectID, domain.Event{
+			ID: newEventID(), Step: StepRun, Status: StatusFailed,
+			Message: fmtErr(ErrCodeGateUnrecoverable, "gates remained unrepaired after max iterations"),
+			CreatedAt: time.Now().UTC(),
+		})
+	}
 	return report, nil
 }
 

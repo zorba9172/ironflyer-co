@@ -68,6 +68,34 @@ type Config struct {
 	SurrealDB   string `env:"SURREAL_DB" envDefault:"main"`
 	SurrealUser string `env:"SURREAL_USER" envDefault:"root"`
 	SurrealPass string `env:"SURREAL_PASS" envDefault:"root"`
+
+	// -------------------- Temporal worker (production) --------------------
+	// When TemporalHost is set, main.go boots a Temporal worker on startup so
+	// the FinisherWorkflow can run out-of-process. Leaving TemporalHost empty
+	// keeps the orchestrator on the embedded executor — no Temporal needed.
+	//
+	// TemporalAddr above is the legacy key used by the explicit "temporal"
+	// executor; TemporalHost is the new opt-in switch wired in main.go. They
+	// share TemporalNamespace + TemporalTaskQueue (defined earlier).
+	TemporalHost string `env:"IRONFLYER_TEMPORAL_HOST"`
+
+	// Scaffold templates root. Baked into the orchestrator Docker image at
+	// /app/templates; dev compose bind-mounts the repo's templates/ over the
+	// top so contributors can iterate without rebuilding.
+	ScaffoldRoot string `env:"IRONFLYER_SCAFFOLD_ROOT" envDefault:"./templates"`
+
+	// -------------------- Transactional email (optional) ------------------
+	// EmailProvider selects the driver: "resend", "sendgrid", or "none".
+	// The integration falls back to "none" when API key is missing so the
+	// orchestrator stays bootable in dev without secrets configured.
+	EmailProvider    string `env:"IRONFLYER_EMAIL_PROVIDER" envDefault:"none" validate:"oneof=resend sendgrid none"`
+	EmailAPIKey      string `env:"IRONFLYER_EMAIL_API_KEY"`
+	EmailFromAddress string `env:"IRONFLYER_EMAIL_FROM" envDefault:"noreply@ironflyer.dev"`
+
+	// DashboardURL is the public base URL of the Next.js web app. Used to
+	// build deep-link CTAs in transactional emails ("Open project →").
+	// Defaults to the dev web origin.
+	DashboardURL string `env:"IRONFLYER_DASHBOARD_URL" envDefault:"http://localhost:3000"`
 }
 
 func (c Config) UsePostgres() bool {

@@ -2,67 +2,45 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Apps, Bolt, CheckCircle, PriceCheck, TrendingUp } from '@mui/icons-material';
+import { ArrowForward, AutoAwesome, OpenInNew, PlayArrow } from '@mui/icons-material';
 import { Box, Button, Chip, Stack, Typography } from '@mui/material';
-import { A11y, Keyboard, Navigation, Pagination } from 'swiper/modules';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { api, Project } from '../../lib/api';
+import { api, LedgerEntry, Plan, Project, UserBudget } from '../../lib/api';
 import { tokens } from '../../lib/theme';
 import { RequireAuth, useAuth } from '../auth-context';
 import { PromptBox } from '../prompt-box';
-import { AppShell } from './workspace-shell';
+import { AppShell, Surface } from './workspace-shell';
+import {
+  ActivityTimeline, EmptyState, ErrorBox, ProjectGridCard, SkeletonCard, SkeletonGrid,
+  StatusPill, UsageSpark, bucketByDay, flattenActivity, statusKindFromGate,
+} from '../../components/dashboard';
 
-const templateCards = [
+const quickPrompts = [
+  'בנה SaaS עם התחברות, חיוב, צוותים ולוח ניהול',
+  'הקם כלי תפעול פנימי עם אישורים ודוחות',
+  'השק אתר מוצר AI עם רשימת המתנה ותמחור',
+  'הפוך רעיון גולמי למוצר מלוטש שמשתמשים יכולים להשתמש בו',
+];
+
+const featuredTemplates = [
   {
     title: 'Aiforge AI SaaS',
-    desc: 'AI landing, integrations, pricing, blog, onboarding',
+    desc: 'נחיתה, אינטגרציות, תמחור, בלוג, אונבורדינג',
     tag: 'Apps',
-    img: '/templates/aiforge-hero.jpg',
-    source: 'templates/aiforge',
     prompt: 'Use the local Aiforge template as the visual foundation for an AI SaaS app with landing pages, integrations, pricing, blog, onboarding, and production launch checks.',
   },
   {
     title: 'Allstore Commerce',
-    desc: 'Catalog, sale hero, product grids, checkout-ready flows',
+    desc: 'קטלוג, באנר מבצעים, צ׳קאאוט מוכן',
     tag: 'Commerce',
-    img: '/templates/allstore-slide.jpg',
-    source: 'templates/allstore-html-template/html',
     prompt: 'Use the local Allstore HTML template as the foundation for a commerce storefront with catalog pages, product detail, cart, checkout, order states, and CMS-ready content.',
   },
   {
-    title: 'Davies Agency System',
-    desc: 'Portfolio demos, services, process, pricing, contact flow',
+    title: 'Davies Agency',
+    desc: 'תיק עבודות, שירותים, תהליך, תמחור, קונטקט',
     tag: 'Websites',
-    img: '/templates/davies-demo.jpg',
-    source: 'templates/davies-mainfiles/davies',
     prompt: 'Use the local Davies template as the base for a premium agency website with portfolio demos, service sections, process, pricing, contact flows, analytics, and SEO checks.',
   },
-  {
-    title: 'Codec Mobile Kit',
-    desc: 'Mobile-first screens, app navigation, onboarding, PWA',
-    tag: 'Mobile/PWA',
-    img: '/templates/codec-mobile.png',
-    source: 'templates/codec-mobile/codec',
-    prompt: 'Use the local Codec mobile template as the foundation for a mobile-first PWA with onboarding, app navigation, profile screens, push-ready flows, and touch ergonomics.',
-  },
-  {
-    title: 'Blix Portfolio Mobile',
-    desc: 'Swipe-first portfolio shell with themed variants',
-    tag: 'Mobile/PWA',
-    img: '/templates/blix-mobile.png',
-    source: 'templates/blix/blix',
-    prompt: 'Use the local Blix mobile template as the foundation for a mobile portfolio PWA with themed variants, project pages, contact flows, and CMS-ready portfolio content.',
-  },
 ];
-
-const quickPrompts = [
-  'Build a full-stack SaaS with auth, billing, teams, and admin settings.',
-  'Plan an internal tool for operations with approvals, roles, and reports.',
-  'Create a landing page and waitlist for a new AI product.',
-  'Turn a rough product idea into a spec, UX plan, and implementation roadmap.',
-];
-
-const statusFilters = ['All', 'Ready', 'Running', 'Pending', 'Failed'];
 
 export default function AppHome() {
   return (
@@ -75,12 +53,14 @@ export default function AppHome() {
 function AppHomeInner() {
   const { user, logout } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
+  const [budget, setBudget] = useState<UserBudget | null>(null);
+  const [plans, setPlans] = useState<Plan[]>([]);
   const [idea, setIdea] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
   const [view, setView] = useState<'grid' | 'list'>('grid');
-  const [statusFilter, setStatusFilter] = useState('All');
 
   useEffect(() => {
     void refresh();
@@ -92,10 +72,21 @@ function AppHomeInner() {
   }, []);
 
   async function refresh() {
+    setLoading(true);
+    setError(null);
     try {
-      setProjects(await api.listProjects());
+      const [nextProjects, nextBudget, nextPlans] = await Promise.all([
+        api.listProjects(),
+        api.myBudget().catch(() => null),
+        api.listPlans().catch(() => [] as Plan[]),
+      ]);
+      setProjects(nextProjects);
+      setBudget(nextBudget);
+      setPlans(nextPlans);
     } catch (e) {
-      setError(String(e));
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -104,31 +95,23 @@ function AppHomeInner() {
     setBusy(true); setError(null);
     try {
       const name = nextIdea.split('\n')[0].slice(0, 60);
-      const p = await api.createProject({ name, description: 'Created from prompt', idea: nextIdea });
+      const p = await api.createProject({ name, description: 'נוצר מ-prompt', idea: nextIdea });
       setIdea('');
-      await refresh();
       window.location.href = `/projects/${p.id}`;
     } catch (e) {
-      setError(String(e));
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setBusy(false);
     }
   }
 
-  const filteredProjects = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return projects.filter((project) => {
-      if (statusFilter !== 'All' && project.status.toLowerCase() !== statusFilter.toLowerCase()) {
-        return false;
-      }
-      if (!q) return true;
-      const haystack = `${project.name} ${project.description} ${project.spec.idea} ${project.status}`.toLowerCase();
-      return haystack.includes(q);
-    });
-  }, [projects, query, statusFilter]);
-
+  const activity = useMemo(() => flattenActivity(projects, 10), [projects]);
+  const continueProject = useMemo(() => {
+    if (projects.length === 0) return undefined;
+    return [...projects].sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))[0];
+  }, [projects]);
   const recents = projects.slice(0, 5);
-  const runningProjects = projects.filter((project) => project.status.toLowerCase() === 'running').length;
+  const usage = useMemo(() => summarizeUsage(budget, plans, projects, activity.length), [budget, plans, projects, activity.length]);
 
   return (
     <AppShell
@@ -140,356 +123,300 @@ function AppHomeInner() {
       view={view}
       setView={setView}
     >
-      <Stack spacing={{ xs: 2.6, md: 3 }}>
-            <Stack alignItems="center" spacing={2} sx={{
-              textAlign: 'center',
-              pt: { xs: 0.4, md: 1.2 },
-              pb: { xs: 0.2, md: 0.4 },
-            }}>
-              <Chip label="Ironflyer workspace" sx={{
-                bgcolor: 'rgba(229,255,0,0.14)',
-                color: '#6f7e00',
-                border: '1px solid rgba(17,17,17,0.12)',
-                borderRadius: '8px',
-                fontWeight: 900,
-              }} />
-              <Typography variant="h2" sx={{
-                maxWidth: 760,
-                fontSize: { xs: '1.75rem', sm: '2.25rem', md: '2.7rem' },
-                lineHeight: 0.98,
-                textTransform: 'uppercase',
-                textWrap: 'balance',
-              }}>
-                What do you want to build?
-              </Typography>
-              <Typography variant="body1" sx={{ maxWidth: 620, fontWeight: 500, color: '#686158' }}>
-                Start from a prompt, attach context, choose Build or Plan, and Ironflyer will create the project workspace.
-              </Typography>
-              <Box sx={{ width: '100%', maxWidth: 860 }}>
-                <PromptBox
-                  value={idea}
-                  onChange={setIdea}
-                  onSubmit={(value) => void createFromIdea(value)}
-                  busy={busy}
-                  error={error}
-                  size="dashboard"
-                  cta="Build"
-                  placeholder="Ask Ironflyer to build a SaaS app, internal tool, dashboard, portal, or website..."
-                />
-              </Box>
-              <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" justifyContent="center" sx={{ width: '100%', maxWidth: 940, overflow: 'hidden' }}>
-                {quickPrompts.map((prompt) => (
-                  <Chip
-                    key={prompt}
-                    label={prompt}
-                    onClick={() => setIdea(prompt)}
-                    sx={{
-                      width: { xs: '100%', sm: 'auto' },
-                      maxWidth: { xs: '100%', sm: 420 },
-                      borderRadius: '8px',
-                      bgcolor: '#fffaf1',
-                      color: '#4a453e',
-                      border: '1px solid rgba(17,17,17,0.12)',
-                      '& .MuiChip-label': {
-                        display: 'block',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      },
-                      '&:hover': {
-                        bgcolor: 'rgba(229,255,0,0.36)',
-                        color: tokens.color.text.inverse,
-                      },
-                    }}
-                  />
-                ))}
+      <Stack spacing={{ xs: 2.6, md: 3.2 }}>
+        <HeroPrompt
+          idea={idea}
+          setIdea={setIdea}
+          busy={busy}
+          error={error}
+          onSubmit={createFromIdea}
+        />
+
+        {error && !busy && (
+          <ErrorBox
+            title="טעינת לוח הבקרה נכשלה"
+            description={error}
+            onRetry={() => void refresh()}
+          />
+        )}
+
+        {loading ? (
+          <SkeletonGrid columns={3} count={3} minHeight={180} />
+        ) : projects.length === 0 ? (
+          <WelcomeCard onPick={(prompt) => setIdea(prompt)} templates={featuredTemplates} />
+        ) : (
+          <ContinueRow project={continueProject!} />
+        )}
+
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.4fr 1fr' }, gap: 1.8 }}>
+          <Surface sx={{ p: 0, overflow: 'hidden' }}>
+            <SectionHeading title="פעילות אחרונה" subtitle="עדכוני גייטים, פאצ׳ים ופריסות מכל הפרויקטים" href="/app/projects" hrefLabel="כל הפרויקטים" />
+            {loading ? (
+              <Stack spacing={1} sx={{ p: 1.6 }}>
+                <SkeletonCard lines={2} minHeight={56} />
+                <SkeletonCard lines={2} minHeight={56} />
+                <SkeletonCard lines={2} minHeight={56} />
               </Stack>
-            </Stack>
-
-            <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.2}>
-              <MetricCard label="Projects" value={projects.length.toString()} accent={tokens.color.accent.lime} />
-              <MetricCard label="Running now" value={runningProjects.toString()} accent={tokens.color.accent.sky} />
-              <MetricCard label="Agent roles" value="8" accent={tokens.color.accent.coral} />
-            </Stack>
-
-            <RevenueReadinessPanel />
-
-            <SectionHeader title="Start with a template" action={<Button component={Link} href="/app/resources" variant="outlined">Browse all</Button>} />
-            <Box sx={homeSwiperSx}>
-              <Swiper
-                modules={[Navigation, Pagination, Keyboard, A11y]}
-                navigation
-                pagination={{ clickable: true }}
-                keyboard={{ enabled: true }}
-                spaceBetween={12}
-                slidesPerView={1.05}
-                breakpoints={{
-                  720: { slidesPerView: 2.15, spaceBetween: 14 },
-                  1120: { slidesPerView: 3.15, spaceBetween: 14 },
-                }}
-              >
-                {templateCards.map((item) => (
-                  <SwiperSlide key={item.title}>
-                    <TemplateCard item={item} onUse={() => setIdea(item.prompt)} />
-                  </SwiperSlide>
-                ))}
-              </Swiper>
-            </Box>
-
-            <SectionHeader
-              title="Your projects"
-              action={<Typography variant="body2" color="text.secondary">{filteredProjects.length} visible</Typography>}
-            />
-            <Stack direction="row" spacing={0.8} useFlexGap flexWrap="wrap">
-              {statusFilters.map((status) => (
-                <Chip
-                  key={status}
-                  label={status}
-                  onClick={() => setStatusFilter(status)}
-                  sx={{
-                    borderRadius: '8px',
-                    bgcolor: statusFilter === status ? tokens.color.accent.lime : tokens.color.bg.surface,
-                    color: statusFilter === status ? tokens.color.text.inverse : tokens.color.text.secondary,
-                    border: `1px solid ${statusFilter === status ? tokens.color.accent.lime : tokens.color.border.subtle}`,
-                    fontWeight: 900,
-                  }}
-                />
-              ))}
-            </Stack>
-            {filteredProjects.length === 0 ? (
-              <EmptyProjects query={query} />
-            ) : view === 'grid' ? (
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 1.3 }}>
-                {filteredProjects.map((project) => <ProjectGridCard key={project.id} project={project} />)}
-              </Box>
             ) : (
-              <Stack spacing={1}>
-                {filteredProjects.map((project) => <ProjectListRow key={project.id} project={project} />)}
-              </Stack>
+              <ActivityTimeline rows={activity} emptyHint="עוד אין פעילות. הרץ פרויקט כדי להתחיל." />
             )}
-          </Stack>
+          </Surface>
+
+          <Surface sx={{ p: 0, overflow: 'hidden' }}>
+            <SectionHeading title="השימוש שלך" subtitle="חודש נוכחי" href="/app/settings?tab=billing" hrefLabel="חבילה ותשלומים" />
+            <Box sx={{ p: 2 }}>
+              <Stack direction="row" spacing={1} sx={{ mb: 1.4 }}>
+                <UsageStat label="הרצות" value={usage.runs.toString()} />
+                <UsageStat label="פאצ׳ים" value={usage.patches.toString()} />
+                <UsageStat label="הוצאה" value={`$${usage.spent.toFixed(2)}`} accent />
+              </Stack>
+              <UsageSpark
+                points={usage.points}
+                emptyHint="עוד אין הוצאות החודש"
+                caption={`תקרה $${usage.cap.toFixed(2)}`}
+              />
+              <Stack direction="row" spacing={1} sx={{ mt: 1.8 }}>
+                <Button component={Link} href="/app/settings?tab=billing" variant="contained" size="small" endIcon={<ArrowForward fontSize="small" />}>
+                  פתח חיוב
+                </Button>
+                <Button component={Link} href="/pricing" variant="outlined" size="small">
+                  השווה חבילות
+                </Button>
+              </Stack>
+            </Box>
+          </Surface>
+        </Box>
+
+        {!loading && projects.length > 0 && (
+          <Box>
+            <SectionHeading title="הפרויקטים שלך" subtitle={`${projects.length} פעילים`} href="/app/projects" hrefLabel="כל הפרויקטים" inline />
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 1.5, mt: 1.5 }}>
+              {projects.slice(0, 6).map((project) => (
+                <ProjectGridCard key={project.id} project={project} />
+              ))}
+            </Box>
+          </Box>
+        )}
+      </Stack>
     </AppShell>
   );
 }
 
-function MetricCard({ label, value, accent }: { label: string; value: string; accent: string }) {
+function HeroPrompt({
+  idea, setIdea, busy, error, onSubmit,
+}: {
+  idea: string;
+  setIdea: (v: string) => void;
+  busy: boolean;
+  error: string | null;
+  onSubmit: (v: string) => void;
+}) {
   return (
-    <Box sx={{
-      flex: 1,
-      p: { xs: 1.7, md: 2.2 },
-      border: '1px solid rgba(17,17,17,0.12)',
-      borderRadius: '8px',
-      bgcolor: '#f8f4ec',
-      color: tokens.color.text.inverse,
-      transition: `transform ${tokens.motion.base} ${tokens.motion.curve}, border-color ${tokens.motion.base} ${tokens.motion.curve}`,
-      '&:hover': { transform: 'translateY(-2px)', borderColor: 'rgba(17,17,17,0.28)' },
-    }}>
-      <Typography variant="overline" sx={{ color: '#716a60' }}>{label}</Typography>
-      <Typography variant="h2" sx={{ color: accent, lineHeight: 0.95, fontSize: { xs: '2.35rem', md: '2.8rem' } }}>{value}</Typography>
-    </Box>
-  );
-}
-
-function SectionHeader({ title, action }: { title: string; action?: React.ReactNode }) {
-  return (
-    <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={1}>
-      <Typography variant="h4" sx={{ color: tokens.color.text.inverse, fontSize: { xs: '1.65rem', md: '2.2rem' } }}>{title}</Typography>
-      {action}
+    <Stack alignItems="center" spacing={1.7} sx={{ textAlign: 'center', pt: { xs: 0.3, md: 1 }, pb: { xs: 0.2, md: 0.6 } }}>
+      <Chip
+        icon={<AutoAwesome sx={{ fontSize: 14 }} />}
+        label="בנה עם Ironflyer"
+        sx={{
+          bgcolor: 'rgba(229,255,0,0.18)',
+          color: '#586500',
+          border: '1px solid rgba(17,17,17,0.12)',
+          borderRadius: '8px',
+          fontWeight: 900,
+          '& .MuiChip-icon': { color: '#586500' },
+        }}
+      />
+      <Typography variant="h2" sx={{
+        maxWidth: 760,
+        fontSize: { xs: '1.68rem', sm: '2.35rem', md: '3rem' },
+        lineHeight: 0.96,
+        textTransform: 'uppercase',
+        textWrap: 'balance',
+      }}>
+        מה הולכים לבנות היום?
+      </Typography>
+      <Typography variant="body1" sx={{ maxWidth: 640, fontSize: { xs: '0.98rem', sm: '1rem' }, fontWeight: 600, color: '#686158' }}>
+        תאר את האפליקציה בעברית רגילה. Ironflyer ידאג לתכנון, עיצוב, קוד, בדיקות והעלאה — שלב אחר שלב.
+      </Typography>
+      <Box sx={{ width: '100%', maxWidth: 820 }}>
+        <PromptBox
+          value={idea}
+          onChange={setIdea}
+          onSubmit={onSubmit}
+          busy={busy}
+          error={error}
+          size="dashboard"
+          cta="בנה אפליקציה"
+          placeholder="בקש מ-Ironflyer לבנות SaaS, כלי פנימי, פורטל, או אתר..."
+        />
+      </Box>
+      <Stack direction="row" spacing={0.9} useFlexGap flexWrap="wrap" justifyContent="center" sx={{ width: '100%', maxWidth: 900 }}>
+        {quickPrompts.map((prompt) => (
+          <Button
+            key={prompt}
+            variant="outlined"
+            onClick={() => setIdea(prompt)}
+            sx={{
+              maxWidth: { xs: '100%', sm: 430 },
+              minHeight: 38,
+              px: 1.4,
+              borderRadius: '8px',
+              bgcolor: '#fffaf1',
+              color: '#4a453e',
+              borderColor: 'rgba(17,17,17,0.12)',
+              justifyContent: 'flex-start',
+              textAlign: 'right',
+              fontWeight: 800,
+              fontSize: { xs: '0.88rem', sm: '0.92rem' },
+              lineHeight: 1.28,
+              '&:hover': {
+                borderColor: 'rgba(17,17,17,0.28)',
+                bgcolor: 'rgba(229,255,0,0.24)',
+              },
+            }}
+          >
+            {prompt}
+          </Button>
+        ))}
+      </Stack>
     </Stack>
   );
 }
 
-function TemplateCard({ item, onUse }: { item: typeof templateCards[number]; onUse: () => void }) {
+function WelcomeCard({ onPick, templates }: { onPick: (prompt: string) => void; templates: typeof featuredTemplates }) {
   return (
-    <Box sx={{
-      height: '100%',
-      border: '1px solid rgba(17,17,17,0.12)',
-      borderRadius: '8px',
-      bgcolor: '#f8f4ec',
-      color: tokens.color.text.inverse,
-      overflow: 'hidden',
-      display: 'flex',
-      flexDirection: 'column',
-      transition: `transform ${tokens.motion.base} ${tokens.motion.curve}, border-color ${tokens.motion.base} ${tokens.motion.curve}`,
-      '&:hover': { transform: 'translateY(-3px)', borderColor: 'rgba(17,17,17,0.28)' },
-    }}>
-      <Box component="img" src={item.img} alt="" sx={{ width: '100%', height: { xs: 170, md: 154 }, objectFit: 'cover', display: 'block', bgcolor: '#111' }} />
-      <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', flex: 1 }}>
-        <Stack direction="row" justifyContent="space-between" spacing={1}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 900 }}>{item.title}</Typography>
-          <Chip label={item.tag} size="small" sx={{ borderRadius: '6px', bgcolor: 'rgba(17,17,17,0.12)', color: tokens.color.text.inverse, fontWeight: 800 }} />
-        </Stack>
-        <Typography variant="body2" sx={{ mt: 0.75, minHeight: 42, color: '#686158' }}>{item.desc}</Typography>
-        <Typography variant="caption" sx={{ mt: 0.9, color: '#686158', wordBreak: 'break-word' }}>Source: {item.source}</Typography>
-        <Button onClick={onUse} startIcon={<Bolt />} sx={{ mt: 'auto', px: 0, color: tokens.color.text.inverse, alignSelf: 'flex-start' }}>Use blueprint</Button>
+    <Surface sx={{ p: { xs: 2.2, md: 3 } }}>
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }}>
+        <Box sx={{ maxWidth: 520 }}>
+          <Typography variant="overline" sx={{ color: '#9fb500' }}>ברוכים הבאים ל-Ironflyer</Typography>
+          <Typography variant="h5" sx={{ mt: 0.4, fontWeight: 900 }}>בוא נבנה את המוצר הראשון שלך</Typography>
+          <Typography variant="body2" sx={{ mt: 0.6, color: '#686158' }}>
+            בחר תבנית מוכנה או הקלד רעיון בתיבת הפרומפט למעלה. כל הגייטים — ספק, ארכיטקטורה, קוד, בדיקות, אבטחה ופריסה —
+            עוברים אוטומטית עד שהמוצר מוכן לשליחה.
+          </Typography>
+        </Box>
+        <Button component={Link} href="/app/resources" variant="outlined" endIcon={<ArrowForward fontSize="small" />}>
+          גלה תבניות
+        </Button>
+      </Stack>
+
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 1.4, mt: 2.4 }}>
+        {templates.map((item) => (
+          <Box
+            key={item.title}
+            sx={{
+              p: 2,
+              borderRadius: '8px',
+              border: '1px solid rgba(17,17,17,0.12)',
+              bgcolor: '#fffaf1',
+              display: 'flex',
+              flexDirection: 'column',
+              transition: 'transform 200ms',
+              '&:hover': { transform: 'translateY(-2px)', borderColor: 'rgba(17,17,17,0.28)' },
+            }}
+          >
+            <Chip label={item.tag} size="small" sx={{ alignSelf: 'flex-start', borderRadius: '6px', bgcolor: 'rgba(229,255,0,0.32)', color: '#3f4900', fontWeight: 800 }} />
+            <Typography variant="subtitle1" sx={{ mt: 1.1, fontWeight: 900 }}>{item.title}</Typography>
+            <Typography variant="body2" sx={{ mt: 0.4, color: '#686158', flex: 1 }}>{item.desc}</Typography>
+            <Button onClick={() => onPick(item.prompt)} variant="contained" size="small" sx={{ mt: 1.4, alignSelf: 'flex-start' }}>
+              השתמש בתבנית
+            </Button>
+          </Box>
+        ))}
       </Box>
-    </Box>
+    </Surface>
   );
 }
 
-function RevenueReadinessPanel() {
-  const items = [
-    { icon: <TrendingUp fontSize="small" />, title: 'Revenue path', text: 'Free builders convert into Pro, teams expand seats, Enterprise adds SSO and procurement.' },
-    { icon: <PriceCheck fontSize="small" />, title: 'Cost control', text: 'Credits, gates, and budget visibility make paid AI usage easier to trust.' },
-    { icon: <CheckCircle fontSize="small" />, title: 'Launch proof', text: 'Templates start with production checks so projects feel closer to paid outcomes.' },
-  ];
+function ContinueRow({ project }: { project: Project }) {
+  const lastEvent = useMemo(() => {
+    const events = Array.isArray(project.events) ? project.events : [];
+    if (events.length === 0) return undefined;
+    return events.reduce((latest, ev) => (Date.parse(ev.createdAt) > Date.parse(latest.createdAt) ? ev : latest));
+  }, [project]);
 
   return (
-    <Box sx={{
-      p: { xs: 1.5, md: 1.8 },
-      border: '1px solid rgba(17,17,17,0.12)',
-      borderRadius: '8px',
-      bgcolor: '#111',
-      color: tokens.color.bg.alabaster,
-    }}>
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.6} alignItems={{ xs: 'stretch', md: 'center' }}>
-        <Box sx={{ minWidth: { md: 250 } }}>
-          <Typography variant="overline" sx={{ color: tokens.color.accent.lime }}>Revenue engine</Typography>
-          <Typography variant="h5" sx={{ mt: 0.3, lineHeight: 1.05 }}>Build the app around paid outcomes.</Typography>
+    <Surface sx={{ p: { xs: 2, md: 2.4 } }}>
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }}>
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Typography variant="overline" sx={{ color: '#9fb500' }}>המשך מהמקום שעצרת</Typography>
+          <Stack direction="row" spacing={1.2} alignItems="center" sx={{ mt: 0.4, flexWrap: 'wrap' }}>
+            <Typography variant="h5" sx={{ fontWeight: 900, minWidth: 0 }} noWrap>{project.name}</Typography>
+            <StatusPill kind={statusKindFromGate(project.status)} label={project.status || 'idle'} />
+          </Stack>
+          <Typography variant="body2" sx={{ mt: 0.6, color: '#686158', maxWidth: 560 }}>
+            {lastEvent ? lastEvent.message : project.description || project.spec?.idea || 'הפרויקט ממתין להרצה ראשונה.'}
+          </Typography>
         </Box>
-        <Box sx={{ flex: 1, display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 1 }}>
-          {items.map((item) => (
-            <Stack key={item.title} direction="row" spacing={1} sx={{ p: 1, borderRadius: '8px', bgcolor: 'rgba(244,240,232,0.07)' }}>
-              <Box sx={{ width: 30, height: 30, flex: '0 0 auto', borderRadius: '8px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(229,255,0,0.14)', color: tokens.color.accent.lime }}>
-                {item.icon}
-              </Box>
-              <Box>
-                <Typography variant="subtitle2" sx={{ color: tokens.color.bg.alabaster }}>{item.title}</Typography>
-                <Typography variant="caption" sx={{ color: '#c9c0b0' }}>{item.text}</Typography>
-              </Box>
-            </Stack>
-          ))}
-        </Box>
-        <Stack spacing={0.8} sx={{ minWidth: { md: 136 } }}>
-          <Button component={Link} href="/pricing" variant="contained" size="small">View plans</Button>
-          <Button component={Link} href="/app/resources" variant="outlined" size="small" sx={{ color: tokens.color.bg.alabaster, borderColor: 'rgba(244,240,232,0.28)' }}>Templates</Button>
+        <Stack direction="row" spacing={1}>
+          <Button component={Link} href={`/projects/${project.id}`} variant="contained" startIcon={<OpenInNew />}>
+            פתח פרויקט
+          </Button>
+          <Button component={Link} href={`/projects/${project.id}?action=run`} variant="outlined" startIcon={<PlayArrow />}>
+            הרץ שוב
+          </Button>
         </Stack>
       </Stack>
+    </Surface>
+  );
+}
+
+function SectionHeading({
+  title, subtitle, href, hrefLabel, inline = false,
+}: {
+  title: string;
+  subtitle?: string;
+  href?: string;
+  hrefLabel?: string;
+  inline?: boolean;
+}) {
+  const inner = (
+    <Stack direction="row" justifyContent="space-between" alignItems="center">
+      <Box>
+        <Typography variant="subtitle1" sx={{ fontWeight: 900 }}>{title}</Typography>
+        {subtitle && <Typography variant="caption" sx={{ color: '#86807a' }}>{subtitle}</Typography>}
+      </Box>
+      {href && hrefLabel && (
+        <Button component={Link} href={href} size="small" endIcon={<ArrowForward fontSize="small" />}>
+          {hrefLabel}
+        </Button>
+      )}
+    </Stack>
+  );
+  if (inline) return inner;
+  return (
+    <Box sx={{ px: 1.8, py: 1.2, borderBottom: '1px solid rgba(17,17,17,0.08)' }}>
+      {inner}
     </Box>
   );
 }
 
-function EmptyProjects({ query }: { query: string }) {
+function UsageStat({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
   return (
     <Box sx={{
-      p: 5,
-      textAlign: 'center',
-      border: '1px solid rgba(17,17,17,0.12)',
+      flex: 1,
+      p: 1.2,
       borderRadius: '8px',
-      bgcolor: '#f8f4ec',
-      color: tokens.color.text.inverse,
+      bgcolor: accent ? 'rgba(229,255,0,0.22)' : '#fffaf1',
+      border: '1px solid rgba(17,17,17,0.1)',
     }}>
-      <Typography variant="h5">{query ? 'No projects match that search' : 'No projects yet'}</Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-        {query ? 'Clear the search or create a new project from the prompt above.' : 'Describe what you want to build and Ironflyer will create the workspace.'}
-      </Typography>
+      <Typography variant="caption" sx={{ color: '#86807a' }}>{label}</Typography>
+      <Typography variant="h6" sx={{ fontWeight: 900, fontFamily: tokens.font.mono }}>{value}</Typography>
     </Box>
   );
 }
 
-function ProjectGridCard({ project }: { project: Project }) {
-  const passed = Object.values(project.gates).filter((gate) => gate.status === 'passed').length;
-  const total = Object.keys(project.gates).length;
-  return (
-    <Link href={`/projects/${project.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>
-      <Box sx={{
-        p: 2.5,
-        minHeight: 190,
-        border: '1px solid rgba(17,17,17,0.12)',
-        borderRadius: '8px',
-        bgcolor: '#f8f4ec',
-        color: tokens.color.text.inverse,
-        transition: `background-color ${tokens.motion.base} ${tokens.motion.curve}, border-color ${tokens.motion.base} ${tokens.motion.curve}, transform ${tokens.motion.base} ${tokens.motion.curve}`,
-        '&:hover': { borderColor: 'rgba(17,17,17,0.28)', bgcolor: '#fffaf1' },
-      }}>
-        <Stack direction="row" justifyContent="space-between" spacing={1}>
-          <Typography variant="h6" noWrap>{project.name}</Typography>
-          <Chip label={project.status} size="small" sx={{ borderRadius: '6px', bgcolor: 'rgba(17,17,17,0.12)', color: tokens.color.text.inverse, fontWeight: 800 }} />
-        </Stack>
-        <Typography variant="body2" sx={{
-          mt: 1,
-          color: '#686158',
-          display: '-webkit-box',
-          WebkitLineClamp: 3,
-          WebkitBoxOrient: 'vertical',
-          overflow: 'hidden',
-        }}>
-          {project.description || project.spec.idea || 'No description'}
-        </Typography>
-        <Box sx={{ mt: 3, height: 7, borderRadius: '999px', bgcolor: tokens.color.bg.inset }}>
-          <Box sx={{ width: `${(passed / Math.max(total, 1)) * 100}%`, height: '100%', borderRadius: '999px', bgcolor: tokens.color.accent.lime }} />
-        </Box>
-        <Stack direction="row" justifyContent="space-between" sx={{ mt: 1 }}>
-          <Typography variant="caption" sx={{ color: '#686158' }}>Gates {passed}/{total}</Typography>
-          <Typography variant="caption" sx={{ color: '#686158' }}>{new Date(project.updatedAt).toLocaleDateString()}</Typography>
-        </Stack>
-      </Box>
-    </Link>
-  );
-}
+function summarizeUsage(budget: UserBudget | null, plans: Plan[], projects: Project[], activityCount: number) {
+  const tier = budget?.tier ?? 'free';
+  const plan = plans.find((p) => p.tier === tier);
+  const cap = Number(plan?.costCapUSD ?? (tier === 'team' ? 32 : tier === 'pro' ? 8 : tier === 'enterprise' ? 180 : 0.5));
+  const spent = Number(budget?.spent ?? 0);
+  const entries: LedgerEntry[] = Array.isArray(budget?.entries) ? budget!.entries : [];
+  const points = bucketByDay(entries.map((e) => ({ createdAt: e.createdAt, costUSD: e.costUSD })), 30);
 
-function ProjectListRow({ project }: { project: Project }) {
-  const passed = Object.values(project.gates).filter((gate) => gate.status === 'passed').length;
-  const total = Object.keys(project.gates).length;
-  return (
-    <Link href={`/projects/${project.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>
-      <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'stretch', sm: 'center' }} spacing={1.2} sx={{
-        p: 1.5,
-        border: '1px solid rgba(17,17,17,0.12)',
-        borderRadius: '8px',
-        bgcolor: '#f8f4ec',
-        color: tokens.color.text.inverse,
-        transition: `background-color ${tokens.motion.base} ${tokens.motion.curve}, border-color ${tokens.motion.base} ${tokens.motion.curve}`,
-        '&:hover': { borderColor: 'rgba(17,17,17,0.28)', bgcolor: '#fffaf1' },
-      }}>
-        <Stack direction="row" spacing={1.2} alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
-          <Box sx={{ width: 42, height: 42, flex: '0 0 auto', borderRadius: '8px', bgcolor: tokens.color.bg.surfaceHover, display: 'grid', placeItems: 'center' }}>
-            <Apps fontSize="small" />
-          </Box>
-          <Box sx={{ minWidth: 0, flex: 1 }}>
-            <Typography variant="subtitle1" noWrap>{project.name}</Typography>
-            <Typography variant="caption" color="text.secondary" noWrap>{project.description || project.spec.idea}</Typography>
-          </Box>
-        </Stack>
-        <Stack direction="row" spacing={1} alignItems="center" justifyContent={{ xs: 'space-between', sm: 'flex-end' }}>
-          <Chip label={`${passed}/${total} gates`} size="small" sx={{ borderRadius: '6px' }} />
-          <Typography variant="caption" color="text.secondary">{new Date(project.updatedAt).toLocaleDateString()}</Typography>
-        </Stack>
-      </Stack>
-    </Link>
-  );
-}
+  // best-effort counts from local data
+  const events = projects.flatMap((p) => (Array.isArray(p.events) ? p.events : []));
+  const runs = events.filter((e) => (e.step ?? '').toLowerCase().includes('run')).length || projects.length;
+  const patches = events.filter((e) => (e.step ?? '').toLowerCase().includes('patch')).length || Math.max(0, activityCount - runs);
 
-const homeSwiperSx = {
-  mx: { xs: -0.2, md: 0 },
-  '& .swiper': {
-    pb: 4.4,
-    px: { xs: 0.2, md: 0.1 },
-  },
-  '& .swiper-slide': {
-    height: 'auto',
-    display: 'flex',
-  },
-  '& .swiper-button-prev, & .swiper-button-next': {
-    width: 32,
-    height: 32,
-    top: { xs: 100, md: 92 },
-    display: { xs: 'none', md: 'flex' },
-    borderRadius: '8px',
-    bgcolor: '#111',
-    color: tokens.color.accent.lime,
-    boxShadow: '0 10px 28px rgba(17,17,17,0.22)',
-    '&:after': { fontSize: 13, fontWeight: 900 },
-    '&.swiper-button-disabled': { opacity: 0, pointerEvents: 'none' },
-  },
-  '& .swiper-pagination-bullet': {
-    width: 8,
-    height: 8,
-    bgcolor: 'rgba(17,17,17,0.35)',
-    opacity: 1,
-  },
-  '& .swiper-pagination-bullet-active': {
-    width: 24,
-    borderRadius: '999px',
-    bgcolor: tokens.color.accent.lime,
-  },
-};
+  return { spent, cap: Math.max(cap, 0.5), points, runs, patches };
+}

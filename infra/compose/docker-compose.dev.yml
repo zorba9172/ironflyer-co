@@ -2,6 +2,11 @@
 # Brings up the storage/queue/objects layer so the Go orchestrator and Next
 # web can run locally against real backends. Run with:
 #   docker compose -f infra/compose/docker-compose.dev.yml up -d
+#
+# App services (orchestrator/runtime/web) are wired but disabled by default —
+# `docker compose --profile apps up` to also bring them online inside Docker.
+# Without the profile, run the apps on the host (faster iteration) and let
+# them dial the storage containers exposed on localhost.
 
 services:
   postgres:
@@ -118,9 +123,80 @@ services:
       - codeserver-data:/home/coder/project
     command: ["--auth", "password", "--bind-addr", "0.0.0.0:8080", "/home/coder/project"]
 
+  # ---------------------------------------------------------------------
+  # App services — opt in with `--profile apps`. Templates bind-mounted so
+  # `templates/` edits land in the orchestrator container without rebuild.
+  # ---------------------------------------------------------------------
+  orchestrator:
+    profiles: ["apps"]
+    image: ironflyer/orchestrator:dev
+    build:
+      context: ../..
+      dockerfile: infra/docker/orchestrator.Dockerfile
+    environment:
+      IRONFLYER_ADDR: ":8080"
+      IRONFLYER_ENV: dev
+      IRONFLYER_LOG_FORMAT: console
+      IRONFLYER_LOG_LEVEL: info
+      IRONFLYER_DB_DRIVER: hybrid
+      POSTGRES_URL: postgres://ironflyer:ironflyer@postgres:5432/ironflyer?sslmode=disable
+      SURREAL_URL: ws://surrealdb:8000/rpc
+      IRONFLYER_RUNTIME_URL: http://runtime:8090
+      IRONFLYER_SCAFFOLD_ROOT: /app/templates
+      # Temporal worker auto-starts when IRONFLYER_TEMPORAL_HOST is set.
+      IRONFLYER_TEMPORAL_HOST: temporal:7233
+      IRONFLYER_TEMPORAL_NAMESPACE: default
+      IRONFLYER_TEMPORAL_TASK_QUEUE: ironflyer-finisher
+    ports:
+      - "8080:8080"
+    volumes:
+      # Bind-mount the repo templates/ so dev edits show up without rebuilding.
+      - ../../templates:/app/templates:ro
+    depends_on:
+      postgres: { condition: service_healthy }
+      surrealdb: { condition: service_started }
+      temporal:  { condition: service_started }
+
+  runtime:
+    profiles: ["apps"]
+    image: ironflyer/runtime:dev
+    build:
+      context: ../..
+      dockerfile: infra/docker/runtime.Dockerfile
+    environment:
+      IRONFLYER_RUNTIME_ADDR: ":8090"
+      # Switch to "docker" to use the host's docker.sock (mounted below).
+      IRONFLYER_RUNTIME_DRIVER: mock
+      IRONFLYER_RUNTIME_WORKSPACE_DIR: /workspaces
+      IRONFLYER_LOG_FORMAT: console
+    ports:
+      - "8090:8090"
+    volumes:
+      - runtime-workspaces:/workspaces
+      # Uncomment to enable the Docker driver (sibling-container model).
+      # Mounts host docker.sock — coarse-grained; lock this down in prod.
+      # - /var/run/docker.sock:/var/run/docker.sock
+
+  web:
+    profiles: ["apps"]
+    image: ironflyer/web:dev
+    build:
+      context: ../..
+      dockerfile: infra/docker/web.Dockerfile
+    environment:
+      NODE_ENV: production
+      ORCHESTRATOR_URL: http://orchestrator:8080
+      RUNTIME_URL: http://runtime:8090
+    ports:
+      - "3000:3000"
+    depends_on:
+      - orchestrator
+      - runtime
+
 volumes:
   postgres-data:
   redis-data:
   minio-data:
   codeserver-data:
   surreal-data:
+  runtime-workspaces:

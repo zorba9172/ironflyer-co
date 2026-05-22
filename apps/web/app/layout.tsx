@@ -4,8 +4,10 @@ import Script from 'next/script';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import './globals.css';
 import { Providers } from './providers';
 import { PWARegister } from './pwa-register';
+import { PWAInstaller } from '../components/PWAInstaller';
 
 const displayFont = Archivo_Black({
   subsets: ['latin'],
@@ -59,7 +61,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#0d0e0f',
+  themeColor: '#f4f0e8',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
@@ -77,7 +79,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 })(window,document,'script','dataLayer','GTM-M9PQ2TT6');`}
         </Script>
       </head>
-      <body style={{ margin: 0, background: '#0d0e0f', fontFamily: 'var(--font-body)' }}>
+      <body style={{ margin: 0, background: '#f4f0e8', fontFamily: 'var(--font-body)', color: '#0d0e0f' }}>
         <noscript>
           <iframe
             src="https://www.googletagmanager.com/ns.html?id=GTM-M9PQ2TT6"
@@ -88,6 +90,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         </noscript>
         <Providers>{children}</Providers>
         <PWARegister />
+        <PWAInstaller />
       </body>
     </html>
   );

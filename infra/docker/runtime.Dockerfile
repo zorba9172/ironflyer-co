@@ -1,16 +1,30 @@
+# syntax=docker/dockerfile:1.7
+#
+# Runtime (workspace sandbox) image.
+#
+# IMPORTANT: when running with IRONFLYER_RUNTIME_DRIVER=docker the container
+# must have access to a Docker socket so it can spawn sibling workspace
+# containers. In compose/k8s mount /var/run/docker.sock and add the iron
+# user to the docker group, OR use sysbox / Firecracker. Running as root
+# is intentionally avoided — DinD via socket-passthrough is the supported
+# pattern.
 FROM golang:1.25-alpine AS build
 WORKDIR /src
 RUN apk add --no-cache git
 COPY apps/runtime/go.mod apps/runtime/go.sum ./
 RUN go mod download
 COPY apps/runtime/ ./
-RUN CGO_ENABLED=0 go build -o /out/runtime ./cmd/runtime
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags='-s -w' \
+    -o /out/runtime ./cmd/runtime
 
-# Final image includes a `git` binary so workspace git-clone works inside
-# the container without requiring a fatter image like ubuntu.
+# Final image keeps `git` (for workspace clones) and `curl` (for HEALTHCHECK).
 FROM alpine:3.20
-RUN apk add --no-cache git ca-certificates && adduser -D -u 10001 iron
+RUN apk add --no-cache git ca-certificates curl tzdata \
+    && adduser -D -u 10001 iron
 USER iron
+WORKDIR /home/iron
 COPY --from=build /out/runtime /usr/local/bin/runtime
 EXPOSE 8090
+HEALTHCHECK --interval=15s --timeout=3s --start-period=10s --retries=3 \
+    CMD curl -fsS http://127.0.0.1:8090/healthz || exit 1
 ENTRYPOINT ["/usr/local/bin/runtime"]

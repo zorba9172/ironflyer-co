@@ -88,6 +88,21 @@ export interface BudgetSnapshot {
   hardStop: boolean;
 }
 
+export type WorkspaceStatus = 'creating' | 'running' | 'stopped' | 'error';
+
+export interface Workspace {
+  id: string;
+  userId: string;
+  projectId?: string;
+  status: WorkspaceStatus;
+  driver: string;
+  root?: string;
+  previewUrl?: string;
+  ideUrl?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export class ApiError extends Error {
   constructor(public readonly status: number, message: string) {
     super(message);
@@ -132,8 +147,29 @@ export class Api {
     return this.request<Patch>('POST', `/patches/${encodeURIComponent(patchId)}/apply`, {});
   }
 
-  runFinisher(id: string): Promise<unknown> {
-    return this.request<unknown>('POST', `/projects/${encodeURIComponent(id)}/run`, {});
+  rejectPatch(patchId: string): Promise<Patch> {
+    return this.request<Patch>('POST', `/patches/${encodeURIComponent(patchId)}/reject`, {});
+  }
+
+  runFinisher(id: string, gate?: GateName): Promise<unknown> {
+    const body = gate ? { gate } : {};
+    return this.request<unknown>('POST', `/projects/${encodeURIComponent(id)}/run`, body);
+  }
+
+  /** List the caller's workspaces from the runtime API. */
+  async listWorkspaces(): Promise<Workspace[]> {
+    return this.runtimeRequest<Workspace[]>('GET', '/workspaces/');
+  }
+
+  /** Look up the workspace tied to a project (first match wins). */
+  async findWorkspaceForProject(projectId: string): Promise<Workspace | undefined> {
+    const all = await this.listWorkspaces();
+    return all.find((w) => w.projectId === projectId);
+  }
+
+  /** Spin up a fresh workspace for a project. */
+  async createWorkspace(projectId: string): Promise<Workspace> {
+    return this.runtimeRequest<Workspace>('POST', '/workspaces/', { projectId });
   }
 
   myBudget(): Promise<BudgetSnapshot> {
@@ -169,17 +205,27 @@ export class Api {
 
   // ---------- Internals ----------
 
-  private async request<T>(
+  private request<T>(method: string, path: string, body?: unknown): Promise<T> {
+    const { orchestratorUrl } = readConfig();
+    return this.doRequest<T>(orchestratorUrl, method, path, body);
+  }
+
+  private runtimeRequest<T>(method: string, path: string, body?: unknown): Promise<T> {
+    const { runtimeUrl } = readConfig();
+    return this.doRequest<T>(runtimeUrl, method, path, body);
+  }
+
+  private async doRequest<T>(
+    base: string,
     method: string,
     path: string,
     body?: unknown,
   ): Promise<T> {
-    const { orchestratorUrl } = readConfig();
     const token = await this.auth.getToken();
     const headers: Record<string, string> = { Accept: 'application/json' };
     if (body !== undefined) headers['Content-Type'] = 'application/json';
     if (token) headers.Authorization = `Bearer ${token}`;
-    const res = await fetch(orchestratorUrl + path, {
+    const res = await fetch(base + path, {
       method,
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),
