@@ -32,6 +32,42 @@ const steps = [
 
 const gates = ['Spec', 'UX', 'Architecture', 'Code', 'Tests', 'Security', 'Deploy'];
 
+// Four-card feature tour shown right after the hero. Each card carries one
+// promise the user buys into: speed, backend depth, deploy-readiness, and
+// model freedom. The structure mirrors Base44's landing layout but every
+// promise is sharpened with Ironflyer's finisher angle so the comparison
+// shopper sees what we do that they don't.
+const capabilityTourCards = [
+  {
+    eyebrow: '01 · Idea to app',
+    title: 'At the speed of finish, not just thought.',
+    text:
+      'Describe what you want. Ironflyer plans the spec, generates the UX, writes the code, runs your tests, and packages a deploy — gated end-to-end.',
+    chip: 'Finisher loop',
+  },
+  {
+    eyebrow: '02 · Backend done',
+    title: 'Auth, database, files, exec — wired before line one.',
+    text:
+      'Users, sessions, roles, Postgres schemas, a real per-user Linux sandbox with PTY, and a budget ledger ship live on day one. No Supabase tab. No Vercel handoff.',
+    chip: 'Already wired',
+  },
+  {
+    eyebrow: '03 · Production from start',
+    title: 'Custom domain, deploy gate, observability.',
+    text:
+      'Helm chart, Prometheus metrics, healthchecks, secrets management, and a Deploy gate that refuses to ship until tests + security pass. Your first commit is already prod-shaped.',
+    chip: 'Day one ready',
+  },
+  {
+    eyebrow: '04 · Any model, every gate',
+    title: 'Multi-provider routing with a hand on the dial.',
+    text:
+      'Anthropic, OpenAI, on-device — the provider router picks the cheapest model that satisfies the gate. The Lite / Economy / Power dial in chat puts the cost-quality call back in your hand.',
+    chip: 'Open routing',
+  },
+];
+
 const productTiles = [
   {
     title: 'AI Product Finisher',
@@ -175,6 +211,7 @@ export function MarketingHome() {
     <MarketingShell>
       <HeroSection />
       <LogoBand />
+      <CapabilityTour />
       <MeetSection />
       <RevenueEngineSection />
       <ProductShowcase />
@@ -445,6 +482,77 @@ function LogoBand() {
         </Stack>
       </Container>
     </Box>
+  );
+}
+
+// CapabilityTour is the four-card promise grid right after the hero. Each
+// card carries one buy-in line (speed / backend / production / model
+// freedom) and ends in a chip that recalls the Ironflyer noun for that
+// pillar. The grid degrades to one column on mobile and a 2x2 on desktop.
+function CapabilityTour() {
+  return (
+    <Section>
+      <SectionHeader
+        eyebrow="What ships with the loop"
+        title="From prompt to production, gated end-to-end."
+      />
+      <Box sx={{
+        display: 'grid',
+        gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
+        gap: { xs: 1.5, md: 2 },
+      }}>
+        {capabilityTourCards.map((card) => (
+          <Box key={card.eyebrow} sx={{
+            ...panelSx,
+            p: { xs: 2.6, md: 3.4 },
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+            minHeight: { xs: 240, md: 300 },
+            position: 'relative',
+            transition: `transform ${tokens.motion.base} ${tokens.motion.curve}`,
+            '&:hover': { transform: 'translateY(-2px)' },
+          }}>
+            <Typography variant="overline" sx={{
+              color: '#5b554b',
+              fontWeight: 900,
+              letterSpacing: '0.12em',
+            }}>
+              {card.eyebrow}
+            </Typography>
+            <Typography variant="h3" sx={{
+              fontSize: { xs: '1.85rem', md: '2.35rem' },
+              lineHeight: 1.02,
+              letterSpacing: 0,
+              maxWidth: 520,
+            }}>
+              {card.title}
+            </Typography>
+            <Typography variant="body1" sx={{
+              color: '#3a352d',
+              fontWeight: 500,
+              maxWidth: 520,
+              flex: 1,
+            }}>
+              {card.text}
+            </Typography>
+            <Chip
+              label={card.chip}
+              size="small"
+              sx={{
+                alignSelf: 'flex-start',
+                bgcolor: '#111',
+                color: tokens.color.accent.lime,
+                borderRadius: 999,
+                fontWeight: 900,
+                px: 0.4,
+                '& .MuiChip-label': { px: 1.2 },
+              }}
+            />
+          </Box>
+        ))}
+      </Box>
+    </Section>
   );
 }
 
