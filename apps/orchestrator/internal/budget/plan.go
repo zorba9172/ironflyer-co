@@ -44,17 +44,23 @@ func (p Plan) MarginEstimate() decimal.Decimal {
 }
 
 // DefaultPlans is the seed catalogue. Real billing config will load from DB.
+//
+// Pricing is aligned with the broader vibe-coding market — Base44 enters at
+// $20/mo and ladders to $40+ for teams; we match so positioning sits next to
+// theirs without arbitrage. Per-tier CostCapUSD is the provider spend we
+// absorb before the enforcer downgrades or blocks; subscription − cap is
+// the gross margin floor.
 func DefaultPlans() []Plan {
 	d := decimal.NewFromFloat
 	return []Plan{
 		{Tier: TierFree, Name: "Free",
-			MonthlyPrice: d(0),  CostCapUSD: d(0.50), HardStop: true,
+			MonthlyPrice: d(0), CostCapUSD: d(0.50), HardStop: true,
 			AllowList: []string{"mock", "anthropic"}},
 		{Tier: TierPro, Name: "Pro",
-			MonthlyPrice: d(29), CostCapUSD: d(8.00), HardStop: false},
+			MonthlyPrice: d(20), CostCapUSD: d(5.50), HardStop: false},
 		{Tier: TierTeam, Name: "Team",
-			MonthlyPrice: d(99), CostCapUSD: d(32.00), HardStop: false},
+			MonthlyPrice: d(40), CostCapUSD: d(12.00), HardStop: false},
 		{Tier: TierEnterprise, Name: "Enterprise",
-			MonthlyPrice: d(499), CostCapUSD: d(180.00), HardStop: false},
+			MonthlyPrice: d(0), CostCapUSD: d(80.00), HardStop: false},
 	}
 }
