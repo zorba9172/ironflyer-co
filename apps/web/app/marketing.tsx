@@ -9,6 +9,7 @@ import {
 } from '@mui/material';
 import { tokens } from '../../../packages/design-tokens';
 import { EnterpriseLeadForm } from './enterprise-lead-form';
+import { HeroQuickStarts } from './hero-quick-starts';
 import { PromptBox } from './prompt-box';
 import { UpgradeButton } from './upgrade-button';
 
@@ -42,6 +43,19 @@ const gates = ['Spec', 'UX', 'Architecture', 'Code', 'Tests', 'Security', 'Deplo
 // sandbox, multi-provider routing, transparent margin model. Order is
 // chosen so the comparison shopper hits "what makes you different" first
 // and "how do credits work" before security / ownership.
+// Quick-start chips shown right under the hero PromptBox. Clicking one
+// seeds the dashboard's pendingIdea (read by /app/page.tsx) and routes
+// the user to the workspace — Base44's template-chip pattern with our
+// finisher-shaped seeds. Keep the list short; longer lists belong on
+// /templates.
+const heroQuickStarts = [
+  { label: 'Internal tool', prompt: 'Build an internal operations tool with approvals, role-based access, audit history, reports, and a dense dashboard UI.' },
+  { label: 'SaaS dashboard', prompt: 'Build a production-ready SaaS app with auth, teams, billing, analytics, admin settings, onboarding, and deploy.' },
+  { label: 'Client portal', prompt: 'Build a client portal with authentication, document uploads, project status, messaging, and admin controls.' },
+  { label: 'Launch site', prompt: 'Build a product launch website with hero, waitlist, pricing, FAQ, social proof, and analytics events.' },
+  { label: 'Marketplace', prompt: 'Build a two-sided marketplace with listings, search filters, messaging, escrow payouts via Stripe, and trust scoring.' },
+];
+
 const faqs = [
   {
     q: 'How is Ironflyer different from Base44, Lovable, or Bolt?',
@@ -491,6 +505,7 @@ function HeroSection() {
                 cta="Build"
                 placeholder="Describe the app or website you want to create..."
               />
+              <HeroQuickStarts items={heroQuickStarts} />
             </Box>
           </Stack>
           <Box sx={{
