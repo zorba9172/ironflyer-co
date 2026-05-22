@@ -18,6 +18,9 @@ import { buildPatchUri, patchTabTitle } from './patchUri';
 import { GatesTree } from './gatesTree';
 import { ProjectStream } from './projectStream';
 import { throttleTrailing } from './throttle';
+import { ActiveProject } from './activeProject';
+import { IronflyerCodeActions } from './codeActions';
+import { buildFixPrompt, DiagnosticSeverity } from './fixPrompt';
 
 export function activate(context: vscode.ExtensionContext): void {
   const auth = new Auth(context.secrets);
@@ -33,6 +36,7 @@ export function activate(context: vscode.ExtensionContext): void {
     console.warn('[ironflyer]', msg, err);
   });
   const status = new StatusBar(api, auth);
+  const activeProject = new ActiveProject(context.workspaceState, api, auth);
 
   // Coalesce bursts of lifecycle events into a single refresh per project.
   // Without this the trees thrash when the orchestrator emits a stream
@@ -53,6 +57,11 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.window.registerTreeDataProvider('ironflyer.patches', patchesTree),
     vscode.window.registerTreeDataProvider('ironflyer.gates', gatesTree),
     vscode.workspace.registerTextDocumentContentProvider('ironflyer', diffProvider),
+    vscode.languages.registerCodeActionsProvider(
+      { scheme: 'file' },
+      new IronflyerCodeActions(),
+      IronflyerCodeActions.metadata,
+    ),
     { dispose: () => { projectStream.disposeAll(); refreshProject.cancel(); } },
     status,
 
@@ -167,6 +176,55 @@ export function activate(context: vscode.ExtensionContext): void {
       const webUrl = (cfg.get<string>('webUrl', 'http://localhost:3000') ?? '').replace(/\/+$/, '');
       void vscode.env.openExternal(vscode.Uri.parse(`${webUrl}/projects/${project.id}`));
     }),
+
+    vscode.commands.registerCommand('ironflyer.setActiveProject', async () => {
+      const ref = await activeProject.pick();
+      if (ref) void vscode.window.showInformationMessage(`Ironflyer: pinned to ${ref.name}`);
+    }),
+
+    vscode.commands.registerCommand(
+      'ironflyer.fixDiagnostic',
+      async (payload: {
+        uri: string;
+        languageId: string;
+        range: { startLine: number; endLine: number };
+        diagnostic: { message: string; severity: DiagnosticSeverity; source?: string; code?: string };
+      }) => {
+        if (!payload?.uri) return;
+        const ref = await activeProject.resolve();
+        if (!ref) return;
+        let project;
+        try {
+          project = await api.getProject(ref.id);
+        } catch (err) {
+          await handleError(err, auth);
+          return;
+        }
+        const doc = await vscode.workspace.openTextDocument(vscode.Uri.parse(payload.uri));
+        const startLineIdx = Math.max(0, payload.range.startLine - 1);
+        const endLineIdx = Math.min(doc.lineCount - 1, payload.range.endLine - 1);
+        const snippet = doc.getText(
+          new vscode.Range(startLineIdx, 0, endLineIdx, doc.lineAt(endLineIdx).range.end.character),
+        );
+        const filePath = vscode.workspace.asRelativePath(doc.uri, false);
+        const prompt = buildFixPrompt({
+          filePath,
+          language: payload.languageId,
+          startLine: payload.range.startLine,
+          endLine: payload.range.endLine,
+          message: payload.diagnostic.message,
+          severity: payload.diagnostic.severity,
+          source: payload.diagnostic.source,
+          code: payload.diagnostic.code,
+          snippet,
+        });
+        const panel = ChatPanel.reveal(api, context, project, {
+          stream: projectStream,
+          onProjectEvent: (projectId) => refreshProject(projectId),
+        });
+        panel.submitFromHost(prompt, 'coder', 'economy');
+      },
+    ),
 
     vscode.commands.registerCommand('ironflyer.showBudget', async () => {
       try {

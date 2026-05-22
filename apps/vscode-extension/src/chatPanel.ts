@@ -31,11 +31,11 @@ export class ChatPanel {
     ctx: vscode.ExtensionContext,
     project: Project,
     deps: ChatPanelDeps,
-  ): void {
+  ): ChatPanel {
     const existing = ChatPanel.panels.get(project.id);
     if (existing) {
       existing.panel.reveal();
-      return;
+      return existing;
     }
     const panel = vscode.window.createWebviewPanel(
       'ironflyer.chat',
@@ -47,7 +47,18 @@ export class ChatPanel {
         localResourceRoots: [vscode.Uri.joinPath(ctx.extensionUri, 'media')],
       },
     );
-    new ChatPanel(panel, api, ctx, project, deps);
+    return new ChatPanel(panel, api, ctx, project, deps);
+  }
+
+  /**
+   * Host-driven submission — used by the "Ask Ironflyer to fix" code
+   * action. Renders the user turn in the webview for transparency, then
+   * fires the same chat pipeline as if the user had typed it.
+   */
+  submitFromHost(text: string, role?: string, effort?: string): void {
+    if (!text.trim()) return;
+    this.post({ type: 'user-message', text });
+    void this.handle({ type: 'prompt', text, role, effort });
   }
 
   private readonly disposables: vscode.Disposable[] = [];

@@ -53,6 +53,9 @@
       case 'lifecycle':
         appendLifecycle(msg.data);
         break;
+      case 'user-message':
+        appendTurn('user', msg.text);
+        break;
     }
   });
 
