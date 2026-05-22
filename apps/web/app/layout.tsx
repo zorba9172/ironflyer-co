@@ -20,11 +20,42 @@ const bodyFont = Inter({
   display: 'swap',
 });
 
+// SEO + social card. The Hebrew alternate targets the Israeli market —
+// Base44 (acquired by Wix in 2025) is the closest analogue there and
+// doesn't optimise for Hebrew/RTL, leaving the slot open.
 export const metadata: Metadata = {
-  title: 'Ironflyer - AI Product Finisher',
-  description: 'Build apps and websites with AI, then ship them through spec, UX, code, tests, security, and deploy gates.',
+  title: 'Ironflyer — Build, gate, and ship AI apps end-to-end',
+  description:
+    'Describe the app you want. Ironflyer ships it through Spec, UX, Code, Lint, Tests, Security, and Deploy gates — no credit traps, real Linux sandboxes, multi-provider routing.',
   manifest: '/manifest.webmanifest',
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Ironflyer' },
+  openGraph: {
+    title: 'Ironflyer — AI Product Finisher',
+    description:
+      'Vibe-code apps the finisher way: gated end-to-end with real sandboxes, transparent budget, and multi-provider routing.',
+    siteName: 'Ironflyer',
+    locale: 'en_US',
+    alternateLocale: ['he_IL'],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Ironflyer — AI Product Finisher',
+    description:
+      'Ship done, not demo. AI app builder with finisher gates, transparent margin pricing, and real cloud workspaces.',
+  },
+  alternates: {
+    languages: {
+      'en-US': '/',
+      'he-IL': '/?lang=he',
+    },
+  },
+  other: {
+    // Hebrew description for crawlers that key on lang-specific meta —
+    // Israeli Google occasionally pulls these for SERP descriptions.
+    'description:he':
+      'בנו אפליקציות עם בינה מלאכותית. Ironflyer לוקח את הרעיון שלכם דרך שערי איכות — מפרט, UX, קוד, בדיקות, אבטחה ופריסה — בלי לפלוט קוד שבור לפרודקשן.',
+  },
 };
 
 export const viewport: Viewport = {
