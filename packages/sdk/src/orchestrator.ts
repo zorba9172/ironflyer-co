@@ -1,7 +1,7 @@
 import { Transport, type TransportConfig } from './http.js';
 import type {
-  AuthResponse, AuthUser, BrainstormOutcome, ChatDelta, GateState, LedgerEntry,
-  Plan, Project, Rate, RunReport, UserBudget, VaultSnapshot,
+  Agent, AuthResponse, AuthUser, BrainstormOutcome, ChatDelta, GateState,
+  LedgerEntry, Plan, Project, Rate, RunReport, UserBudget, VaultSnapshot,
 } from './types.js';
 
 // OrchestratorClient wraps every public endpoint of the Ironflyer orchestrator
@@ -56,6 +56,11 @@ export class OrchestratorClient {
   }
 
   // ---------- Budget ---------------------------------------------------------
+
+  // ---------- Agents ---------------------------------------------------------
+
+  /** Full agent catalogue — role, system prompt, capability tags. */
+  listAgents() { return this.t.json<Agent[]>('/agents'); }
 
   listPlans() { return this.t.json<Plan[]>('/budget/plans'); }
   listRates() { return this.t.json<Rate[]>('/budget/rates'); }

@@ -469,8 +469,11 @@ func (a *API) applyPatch(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, out)
 }
 
+// listAgents returns the full agent catalogue — role, system prompt,
+// capability tags, enable-thinking — so SDK / VSCode / MCP clients can
+// render an agent picker without baking the prompts into their bundle.
 func (a *API) listAgents(w http.ResponseWriter, _ *http.Request) {
-	writeJSON(w, http.StatusOK, a.d.Agents.Roles())
+	writeJSON(w, http.StatusOK, a.d.Agents.All())
 }
 
 func (a *API) listPlans(w http.ResponseWriter, _ *http.Request) {

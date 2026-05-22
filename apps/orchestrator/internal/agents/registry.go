@@ -82,6 +82,19 @@ func (r *Registry) Roles() []Role {
 	return out
 }
 
+// All returns the registered agents with their full configuration. Used by
+// the public /agents endpoint so SDK / VSCode / MCP clients can introspect
+// the system prompt + capability tags for each role.
+func (r *Registry) All() []Agent {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	out := make([]Agent, 0, len(r.agents))
+	for _, a := range r.agents {
+		out = append(out, a)
+	}
+	return out
+}
+
 // RunStream invokes the agent and returns a streaming Delta channel.
 func (r *Registry) RunStream(ctx context.Context, task Task) (<-chan providers.Delta, error) {
 	a, ok := r.Get(task.Role)

@@ -151,6 +151,23 @@ export interface UserBudget {
   entries: LedgerEntry[];
 }
 
+// ---------- Agents -----------------------------------------------------------
+
+export type AgentRole =
+  | 'planner' | 'uxer' | 'architect' | 'coder'
+  | 'reviewer' | 'tester' | 'security' | 'deployer';
+
+export type AgentCapability =
+  | 'reasoning' | 'code' | 'json' | 'vision' | 'cheap' | 'fast'
+  | 'private' | 'thinking' | 'tools' | 'cache';
+
+export interface Agent {
+  role: AgentRole;
+  system: string;
+  capabilities: AgentCapability[];
+  enableThinking?: boolean;
+}
+
 // ---------- Auth -------------------------------------------------------------
 
 export interface AuthUser {
