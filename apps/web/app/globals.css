@@ -57,9 +57,8 @@ body {
   padding-left: var(--safe-left);
 }
 
-/* Direction helpers. We default to LTR in the HTML tag but the manifest
- * declares Hebrew + RTL — these classes let us flip a subtree on demand
- * without owning a context. */
+/* Direction helpers. We default to LTR in the HTML tag; these classes let
+ * future localized surfaces flip a subtree without owning a context. */
 .rtl { direction: rtl; text-align: right; }
 .ltr { direction: ltr; text-align: left; }
 

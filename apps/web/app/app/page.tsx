@@ -15,28 +15,28 @@ import {
 } from '../../components/dashboard';
 
 const quickPrompts = [
-  'בנה SaaS עם התחברות, חיוב, צוותים ולוח ניהול',
-  'הקם כלי תפעול פנימי עם אישורים ודוחות',
-  'השק אתר מוצר AI עם רשימת המתנה ותמחור',
-  'הפוך רעיון גולמי למוצר מלוטש שמשתמשים יכולים להשתמש בו',
+  'Build a SaaS product with auth, billing, teams, and an admin dashboard',
+  'Create an internal operations tool with approvals, audit history, and reports',
+  'Launch an AI product website with waitlist, pricing, and analytics',
+  'Turn a raw product idea into a polished app users can actually use',
 ];
 
 const featuredTemplates = [
   {
     title: 'Aiforge AI SaaS',
-    desc: 'נחיתה, אינטגרציות, תמחור, בלוג, אונבורדינג',
+    desc: 'Landing pages, integrations, pricing, blog, onboarding',
     tag: 'Apps',
     prompt: 'Use the local Aiforge template as the visual foundation for an AI SaaS app with landing pages, integrations, pricing, blog, onboarding, and production launch checks.',
   },
   {
     title: 'Allstore Commerce',
-    desc: 'קטלוג, באנר מבצעים, צ׳קאאוט מוכן',
+    desc: 'Catalog, promo banner, cart, checkout, order states',
     tag: 'Commerce',
     prompt: 'Use the local Allstore HTML template as the foundation for a commerce storefront with catalog pages, product detail, cart, checkout, order states, and CMS-ready content.',
   },
   {
     title: 'Davies Agency',
-    desc: 'תיק עבודות, שירותים, תהליך, תמחור, קונטקט',
+    desc: 'Portfolio, services, process, pricing, contact flows',
     tag: 'Websites',
     prompt: 'Use the local Davies template as the base for a premium agency website with portfolio demos, service sections, process, pricing, contact flows, analytics, and SEO checks.',
   },
@@ -95,7 +95,7 @@ function AppHomeInner() {
     setBusy(true); setError(null);
     try {
       const name = nextIdea.split('\n')[0].slice(0, 60);
-      const p = await api.createProject({ name, description: 'נוצר מ-prompt', idea: nextIdea });
+      const p = await api.createProject({ name, description: 'Created from prompt', idea: nextIdea });
       setIdea('');
       window.location.href = `/projects/${p.id}`;
     } catch (e) {
@@ -134,7 +134,7 @@ function AppHomeInner() {
 
         {error && !busy && (
           <ErrorBox
-            title="טעינת לוח הבקרה נכשלה"
+            title="Could not load the dashboard"
             description={error}
             onRetry={() => void refresh()}
           />
@@ -150,7 +150,7 @@ function AppHomeInner() {
 
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.4fr 1fr' }, gap: 1.8 }}>
           <Surface sx={{ p: 0, overflow: 'hidden' }}>
-            <SectionHeading title="פעילות אחרונה" subtitle="עדכוני גייטים, פאצ׳ים ופריסות מכל הפרויקטים" href="/app/projects" hrefLabel="כל הפרויקטים" />
+            <SectionHeading title="Recent activity" subtitle="Gate, patch, and deploy updates across every project" href="/app/projects" hrefLabel="All projects" />
             {loading ? (
               <Stack spacing={1} sx={{ p: 1.6 }}>
                 <SkeletonCard lines={2} minHeight={56} />
@@ -158,29 +158,29 @@ function AppHomeInner() {
                 <SkeletonCard lines={2} minHeight={56} />
               </Stack>
             ) : (
-              <ActivityTimeline rows={activity} emptyHint="עוד אין פעילות. הרץ פרויקט כדי להתחיל." />
+              <ActivityTimeline rows={activity} emptyHint="No activity yet. Run a project to start the loop." />
             )}
           </Surface>
 
           <Surface sx={{ p: 0, overflow: 'hidden' }}>
-            <SectionHeading title="השימוש שלך" subtitle="חודש נוכחי" href="/app/settings?tab=billing" hrefLabel="חבילה ותשלומים" />
+            <SectionHeading title="Your usage" subtitle="Current month" href="/app/settings?tab=billing" hrefLabel="Plan and billing" />
             <Box sx={{ p: 2 }}>
               <Stack direction="row" spacing={1} sx={{ mb: 1.4 }}>
-                <UsageStat label="הרצות" value={usage.runs.toString()} />
-                <UsageStat label="פאצ׳ים" value={usage.patches.toString()} />
-                <UsageStat label="הוצאה" value={`$${usage.spent.toFixed(2)}`} accent />
+                <UsageStat label="Runs" value={usage.runs.toString()} />
+                <UsageStat label="Patches" value={usage.patches.toString()} />
+                <UsageStat label="Spend" value={`$${usage.spent.toFixed(2)}`} accent />
               </Stack>
               <UsageSpark
                 points={usage.points}
-                emptyHint="עוד אין הוצאות החודש"
-                caption={`תקרה $${usage.cap.toFixed(2)}`}
+                emptyHint="No spend yet this month"
+                caption={`Cap $${usage.cap.toFixed(2)}`}
               />
               <Stack direction="row" spacing={1} sx={{ mt: 1.8 }}>
                 <Button component={Link} href="/app/settings?tab=billing" variant="contained" size="small" endIcon={<ArrowForward fontSize="small" />}>
-                  פתח חיוב
+                  Open billing
                 </Button>
                 <Button component={Link} href="/pricing" variant="outlined" size="small">
-                  השווה חבילות
+                  Compare plans
                 </Button>
               </Stack>
             </Box>
@@ -189,7 +189,7 @@ function AppHomeInner() {
 
         {!loading && projects.length > 0 && (
           <Box>
-            <SectionHeading title="הפרויקטים שלך" subtitle={`${projects.length} פעילים`} href="/app/projects" hrefLabel="כל הפרויקטים" inline />
+            <SectionHeading title="Your projects" subtitle={`${projects.length} active`} href="/app/projects" hrefLabel="All projects" inline />
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 1.5, mt: 1.5 }}>
               {projects.slice(0, 6).map((project) => (
                 <ProjectGridCard key={project.id} project={project} />
@@ -215,7 +215,7 @@ function HeroPrompt({
     <Stack alignItems="center" spacing={1.7} sx={{ textAlign: 'center', pt: { xs: 0.3, md: 1 }, pb: { xs: 0.2, md: 0.6 } }}>
       <Chip
         icon={<AutoAwesome sx={{ fontSize: 14 }} />}
-        label="בנה עם Ironflyer"
+        label="Build with Ironflyer"
         sx={{
           bgcolor: 'rgba(229,255,0,0.18)',
           color: '#586500',
@@ -232,10 +232,10 @@ function HeroPrompt({
         textTransform: 'uppercase',
         textWrap: 'balance',
       }}>
-        מה הולכים לבנות היום?
+        What are we shipping today?
       </Typography>
       <Typography variant="body1" sx={{ maxWidth: 640, fontSize: { xs: '0.98rem', sm: '1rem' }, fontWeight: 600, color: '#686158' }}>
-        תאר את האפליקציה בעברית רגילה. Ironflyer ידאג לתכנון, עיצוב, קוד, בדיקות והעלאה — שלב אחר שלב.
+        Describe the product in plain English. Ironflyer will plan it, build it, test it, secure it, and prepare it for deployment one gate at a time.
       </Typography>
       <Box sx={{ width: '100%', maxWidth: 820 }}>
         <PromptBox
@@ -245,8 +245,8 @@ function HeroPrompt({
           busy={busy}
           error={error}
           size="dashboard"
-          cta="בנה אפליקציה"
-          placeholder="בקש מ-Ironflyer לבנות SaaS, כלי פנימי, פורטל, או אתר..."
+          cta="Build app"
+          placeholder="Ask Ironflyer to build a SaaS app, internal tool, client portal, or launch site..."
         />
       </Box>
       <Stack direction="row" spacing={0.9} useFlexGap flexWrap="wrap" justifyContent="center" sx={{ width: '100%', maxWidth: 900 }}>
@@ -264,7 +264,7 @@ function HeroPrompt({
               color: '#4a453e',
               borderColor: 'rgba(17,17,17,0.12)',
               justifyContent: 'flex-start',
-              textAlign: 'right',
+              textAlign: 'left',
               fontWeight: 800,
               fontSize: { xs: '0.88rem', sm: '0.92rem' },
               lineHeight: 1.28,
@@ -287,15 +287,15 @@ function WelcomeCard({ onPick, templates }: { onPick: (prompt: string) => void; 
     <Surface sx={{ p: { xs: 2.2, md: 3 } }}>
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }}>
         <Box sx={{ maxWidth: 520 }}>
-          <Typography variant="overline" sx={{ color: '#9fb500' }}>ברוכים הבאים ל-Ironflyer</Typography>
-          <Typography variant="h5" sx={{ mt: 0.4, fontWeight: 900 }}>בוא נבנה את המוצר הראשון שלך</Typography>
+          <Typography variant="overline" sx={{ color: '#9fb500' }}>Welcome to Ironflyer</Typography>
+          <Typography variant="h5" sx={{ mt: 0.4, fontWeight: 900 }}>Let’s build your first finished product</Typography>
           <Typography variant="body2" sx={{ mt: 0.6, color: '#686158' }}>
-            בחר תבנית מוכנה או הקלד רעיון בתיבת הפרומפט למעלה. כל הגייטים — ספק, ארכיטקטורה, קוד, בדיקות, אבטחה ופריסה —
-            עוברים אוטומטית עד שהמוצר מוכן לשליחה.
+            Pick a starter template or write your idea in the prompt box above. Ironflyer will move it through spec,
+            architecture, code, tests, security, and deploy gates until the product is ready to ship.
           </Typography>
         </Box>
         <Button component={Link} href="/app/resources" variant="outlined" endIcon={<ArrowForward fontSize="small" />}>
-          גלה תבניות
+          Explore templates
         </Button>
       </Stack>
 
@@ -318,7 +318,7 @@ function WelcomeCard({ onPick, templates }: { onPick: (prompt: string) => void; 
             <Typography variant="subtitle1" sx={{ mt: 1.1, fontWeight: 900 }}>{item.title}</Typography>
             <Typography variant="body2" sx={{ mt: 0.4, color: '#686158', flex: 1 }}>{item.desc}</Typography>
             <Button onClick={() => onPick(item.prompt)} variant="contained" size="small" sx={{ mt: 1.4, alignSelf: 'flex-start' }}>
-              השתמש בתבנית
+              Use template
             </Button>
           </Box>
         ))}
@@ -338,21 +338,21 @@ function ContinueRow({ project }: { project: Project }) {
     <Surface sx={{ p: { xs: 2, md: 2.4 } }}>
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }}>
         <Box sx={{ minWidth: 0, flex: 1 }}>
-          <Typography variant="overline" sx={{ color: '#9fb500' }}>המשך מהמקום שעצרת</Typography>
+          <Typography variant="overline" sx={{ color: '#9fb500' }}>Continue where you left off</Typography>
           <Stack direction="row" spacing={1.2} alignItems="center" sx={{ mt: 0.4, flexWrap: 'wrap' }}>
             <Typography variant="h5" sx={{ fontWeight: 900, minWidth: 0 }} noWrap>{project.name}</Typography>
             <StatusPill kind={statusKindFromGate(project.status)} label={project.status || 'idle'} />
           </Stack>
           <Typography variant="body2" sx={{ mt: 0.6, color: '#686158', maxWidth: 560 }}>
-            {lastEvent ? lastEvent.message : project.description || project.spec?.idea || 'הפרויקט ממתין להרצה ראשונה.'}
+            {lastEvent ? lastEvent.message : project.description || project.spec?.idea || 'This project is waiting for its first run.'}
           </Typography>
         </Box>
         <Stack direction="row" spacing={1}>
           <Button component={Link} href={`/projects/${project.id}`} variant="contained" startIcon={<OpenInNew />}>
-            פתח פרויקט
+            Open project
           </Button>
           <Button component={Link} href={`/projects/${project.id}?action=run`} variant="outlined" startIcon={<PlayArrow />}>
-            הרץ שוב
+            Run again
           </Button>
         </Stack>
       </Stack>

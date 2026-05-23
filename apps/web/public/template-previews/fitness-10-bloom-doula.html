@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bloom Doula — Pregnancy, birth, and postpartum support in Minneapolis</title>
+  <meta name="description" content="A small doula collective offering birth, postpartum, and bereavement support in the Twin Cities. Four certified doulas, sliding scale, no judgment." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f5e0dc;
+      --paper: #fdf4f1;
+      --ink: #3a2424;
+      --ink-2: #6c4e4b;
+      --ink-3: #8e7773;
+      --line: rgba(58,36,36,0.14);
+      --line-strong: rgba(58,36,36,0.28);
+      --accent: #75876b;
+      --accent-soft: #e5ecdf;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--ink); font-family: 'Inter', system-ui, sans-serif; line-height: 1.65; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+    .serif { font-family: 'Cormorant', serif; font-weight: 500; }
+
+    .nav { padding: 22px 0; }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: flex; align-items: center; gap: 10px; font-family: 'Cormorant', serif; font-size: 28px; font-weight: 600; letter-spacing: -0.01em; }
+    .brand-mark { width: 30px; height: 30px; background: var(--accent); border-radius: 50%; display: grid; place-items: center; color: var(--paper); font-weight: 700; font-family: 'Inter'; font-size: 14px; }
+    .nav-links { display: flex; gap: 28px; font-size: 14px; color: var(--ink-2); }
+    .nav-links a:hover { color: var(--ink); }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 46px; padding: 0 24px; border-radius: 999px; font-weight: 500; font-size: 14px; border: 1px solid transparent; cursor: pointer; transition: transform 200ms; }
+    .btn-primary { background: var(--accent); color: var(--paper); }
+    .btn-primary:hover { background: var(--ink); }
+    .btn-ghost { background: transparent; color: var(--ink); border-color: var(--line-strong); }
+    .btn-ghost:hover { border-color: var(--ink); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    .hero { padding: 56px 0 96px; }
+    .hero-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 64px; align-items: center; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; background: var(--accent-soft); color: var(--accent); border-radius: 999px; font-size: 13px; font-weight: 500; }
+    .eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+    h1 { font-family: 'Cormorant', serif; font-weight: 500; font-size: clamp(48px, 7vw, 92px); line-height: 1.0; letter-spacing: -0.01em; margin: 20px 0 22px; }
+    h1 em { font-style: italic; color: var(--accent); }
+    .lede { font-size: 19px; color: var(--ink-2); max-width: 500px; }
+    .hero-cta { display: flex; gap: 12px; margin-top: 26px; flex-wrap: wrap; }
+    .hero-art { position: relative; }
+    .hero-art img { width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 280px 280px 16px 16px; }
+    .hero-tags { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+    .hero-tags span { background: var(--paper); border: 1px solid var(--line); padding: 6px 14px; border-radius: 999px; font-size: 13px; }
+    .hero-tags span::before { content: '✦ '; color: var(--accent); }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; } }
+
+    .section { padding: 96px 0; }
+    .section.alt { background: var(--paper); }
+    .section h2 { font-family: 'Cormorant', serif; font-weight: 500; font-size: clamp(36px, 5vw, 56px); letter-spacing: -0.01em; line-height: 1.08; margin: 12px 0 16px; }
+    .section h2 em { font-style: italic; color: var(--accent); }
+    .section-head { max-width: 700px; margin-bottom: 56px; }
+
+    .services { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .service { background: var(--paper); border: 1px solid var(--line); padding: 32px; border-radius: 18px; }
+    .service .ic { width: 44px; height: 44px; background: var(--accent-soft); border-radius: 50%; display: grid; place-items: center; color: var(--accent); margin-bottom: 18px; font-size: 18px; }
+    .service h3 { font-family: 'Cormorant', serif; font-weight: 500; font-size: 26px; margin: 0 0 8px; }
+    .service p { color: var(--ink-2); font-size: 15px; margin: 0 0 18px; }
+    .service ul { list-style: none; padding: 0; margin: 0; }
+    .service li { padding: 5px 0; font-size: 14px; color: var(--ink-2); display: flex; gap: 10px; }
+    .service li::before { content: '✿'; color: var(--accent); }
+    @media (max-width: 1080px) { .services { grid-template-columns: 1fr; max-width: 460px; margin: 0 auto; } }
+
+    .approach { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+    .approach img { width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 16px; }
+    .approach h2 { margin-top: 14px; }
+    .principles { display: grid; gap: 18px; margin-top: 24px; }
+    .principle { background: var(--paper); border: 1px solid var(--line); padding: 22px 24px; border-radius: 14px; }
+    .principle h3 { font-family: 'Cormorant', serif; font-weight: 500; font-size: 22px; margin: 0 0 4px; }
+    .principle p { color: var(--ink-2); font-size: 14px; margin: 0; }
+    @media (max-width: 1080px) { .approach { grid-template-columns: 1fr; } }
+
+    .team { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+    .doula { }
+    .doula img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 16px; }
+    .doula h3 { font-family: 'Cormorant', serif; font-weight: 500; font-size: 22px; margin: 14px 0 2px; }
+    .doula .creds { font-size: 12px; color: var(--accent); font-weight: 600; }
+    .doula p { color: var(--ink-2); font-size: 14px; margin: 8px 0 0; }
+    @media (max-width: 1080px) { .team { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .team { grid-template-columns: 1fr; } }
+
+    .classes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .class { background: var(--paper); border: 1px solid var(--line); padding: 28px; border-radius: 16px; }
+    .class .meta { font-size: 12px; color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; }
+    .class h3 { font-family: 'Cormorant', serif; font-weight: 500; font-size: 24px; margin: 8px 0 8px; }
+    .class p { color: var(--ink-2); font-size: 14px; margin: 0 0 16px; }
+    .class .row { display: flex; justify-content: space-between; padding-top: 14px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-3); }
+    .class .row strong { color: var(--ink); }
+    @media (max-width: 1080px) { .classes { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; } }
+
+    .testimonials { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .quote { background: var(--paper); border: 1px solid var(--line); padding: 36px; border-radius: 18px; }
+    .quote p { font-family: 'Cormorant', serif; font-style: italic; font-size: 24px; line-height: 1.4; margin: 0 0 18px; }
+    .quote .who { display: flex; align-items: center; gap: 12px; }
+    .quote .who img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; }
+    .quote .who div { font-size: 13px; }
+    .quote .who strong { display: block; }
+    .quote .who span { color: var(--ink-3); }
+    @media (max-width: 1080px) { .testimonials { grid-template-columns: 1fr; } }
+
+    .pricing { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .plan { background: var(--paper); border: 1px solid var(--line); padding: 36px; border-radius: 18px; display: flex; flex-direction: column; }
+    .plan.feat { background: var(--accent); color: var(--paper); border-color: var(--accent); }
+    .plan h3 { font-family: 'Cormorant', serif; font-weight: 500; font-size: 26px; margin: 0; }
+    .plan .price { font-family: 'Cormorant', serif; font-size: 48px; margin: 12px 0 4px; }
+    .plan .per { font-size: 13px; color: var(--ink-3); }
+    .plan.feat .per { color: rgba(253,244,241,0.75); }
+    .plan ul { list-style: none; padding: 0; margin: 22px 0; flex: 1; }
+    .plan li { padding: 6px 0; color: var(--ink-2); font-size: 14px; display: flex; gap: 10px; }
+    .plan.feat li { color: rgba(253,244,241,0.85); }
+    .plan li::before { content: '✿'; color: var(--accent); }
+    .plan.feat li::before { color: var(--paper); }
+    @media (max-width: 1080px) { .pricing { grid-template-columns: 1fr; max-width: 460px; margin: 0 auto; } }
+
+    details { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 20px 24px; margin-bottom: 10px; }
+    details summary { cursor: pointer; font-family: 'Cormorant', serif; font-weight: 500; font-size: 21px; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+    details summary::after { content: '+'; color: var(--accent); font-size: 24px; }
+    details[open] summary::after { content: '−'; }
+    details p { color: var(--ink-2); font-size: 15px; margin: 12px 0 0; }
+
+    footer { padding: 48px 0 28px; }
+    .foot { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap; }
+    .foot .links { display: flex; gap: 24px; font-size: 14px; color: var(--ink-2); }
+    .foot .copy { font-family: 'Cormorant', serif; font-style: italic; color: var(--ink-3); }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#"><span class="brand-mark">B</span> Bloom Doula</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#services">Services</a>
+        <a href="#approach">Approach</a>
+        <a href="#team">Doulas</a>
+        <a href="#classes">Classes</a>
+        <a href="#pricing">Pricing</a>
+      </nav>
+      <a class="btn btn-primary" href="#pricing">Free consult</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>Twin Cities, MN · Hospital + home births welcome</span>
+            <h1>Held through pregnancy, <em>birth</em>, and the year after.</h1>
+            <p class="lede">Bloom is a small collective of four certified doulas. We support every kind of birth — hospital, birth center, home, planned cesarean, induction, VBAC — and we never tell you what to choose.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#pricing">Book a free consult</a>
+              <a class="btn btn-ghost" href="#services">See our services</a>
+            </div>
+            <div class="hero-tags">
+              <span>DONA certified</span>
+              <span>Sliding scale</span>
+              <span>LGBTQ+ welcome</span>
+              <span>Bereavement trained</span>
+            </div>
+          </div>
+          <div class="hero-art">
+            <img src="https://picsum.photos/seed/bloom-doula-1/900/1100" width="900" height="1100" alt="A doula holding a pregnant person's hand during a quiet prenatal visit." loading="eager" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="services">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Services</span>
+          <h2>Care for <em>every part</em> of the arc.</h2>
+          <p class="lede">You can hire us for any phase. Most families combine birth and a short postpartum block. Bereavement support is offered free of charge, always.</p>
+        </div>
+        <div class="services">
+          <div class="service">
+            <div class="ic">✦</div>
+            <h3>Birth doula</h3>
+            <p>Continuous in-person support from active labor through the first two hours after birth, wherever you give birth.</p>
+            <ul>
+              <li>Two prenatal visits</li>
+              <li>24/7 on-call from 37 weeks</li>
+              <li>Continuous labor support</li>
+              <li>Postpartum visit at 1–2 weeks</li>
+            </ul>
+          </div>
+          <div class="service">
+            <div class="ic">✿</div>
+            <h3>Postpartum doula</h3>
+            <p>Day or overnight support in your home. Newborn care, lactation support, meals, and quiet hands while you sleep.</p>
+            <ul>
+              <li>Day shifts (4–6 hrs)</li>
+              <li>Overnight shifts (8–10 hrs)</li>
+              <li>Sibling support if needed</li>
+              <li>Lactation troubleshooting</li>
+            </ul>
+          </div>
+          <div class="service">
+            <div class="ic">❀</div>
+            <h3>Bereavement support</h3>
+            <p>For pregnancy loss, stillbirth, and infant loss. Offered freely. We hold what we can and we don't go anywhere.</p>
+            <ul>
+              <li>Hospital or home presence</li>
+              <li>Memory-keeping support</li>
+              <li>Ongoing follow-up calls</li>
+              <li>Referral to grief therapists</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="approach">
+      <div class="wrap">
+        <div class="approach">
+          <img src="https://picsum.photos/seed/bloom-doula-app/900/1100" width="900" height="1100" alt="A doula and parent during a warm prenatal home visit, with tea on the table." loading="lazy" />
+          <div>
+            <span class="eyebrow"><span class="dot"></span>Approach</span>
+            <h2>Quietly informed. <em>Never directive.</em></h2>
+            <p class="lede">A doula isn't a medical provider. We're the person who knows your birth plan, your preferences, and the small comforts that make a long night easier — and who stays in the room.</p>
+            <div class="principles">
+              <div class="principle"><h3>Your choices, our preparation</h3><p>We help you understand options and ask better questions. Decisions are always yours.</p></div>
+              <div class="principle"><h3>One doula, in person</h3><p>You have a primary doula and one backup. The primary attends your birth in 95% of cases.</p></div>
+              <div class="principle"><h3>Affordable, honestly</h3><p>Half of our spots each quarter are sliding scale. We never publicize who pays what.</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="team">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Doulas</span>
+          <h2>The four <em>doulas</em>.</h2>
+        </div>
+        <div class="team">
+          <div class="doula">
+            <img src="https://picsum.photos/seed/bloom-doula-d1/500/500" width="500" height="500" alt="Doula Camille Rivers smiling in a softly lit room." loading="lazy" />
+            <h3>Camille Rivers</h3>
+            <span class="creds">DONA · CD · Founder</span>
+            <p>Attended 220 births since 2015. Bereavement trained. Two kids of her own.</p>
+          </div>
+          <div class="doula">
+            <img src="https://picsum.photos/seed/bloom-doula-d2/500/500" width="500" height="500" alt="Doula Sade Bell holding a swaddle." loading="lazy" />
+            <h3>Sade Bell</h3>
+            <span class="creds">DONA · CD · CLE</span>
+            <p>Specializes in postpartum and lactation. Certified lactation educator since 2019.</p>
+          </div>
+          <div class="doula">
+            <img src="https://picsum.photos/seed/bloom-doula-d3/500/500" width="500" height="500" alt="Doula Eli Hartwell mid-laugh at a hospital window." loading="lazy" />
+            <h3>Eli Hartwell</h3>
+            <span class="creds">DONA · CD · Bereavement</span>
+            <p>Spanish-speaking. Has supported VBACs, breech vaginal births, and planned cesareans.</p>
+          </div>
+          <div class="doula">
+            <img src="https://picsum.photos/seed/bloom-doula-d4/500/500" width="500" height="500" alt="Doula Mira Singh on a home visit with a kettle on the table." loading="lazy" />
+            <h3>Mira Singh</h3>
+            <span class="creds">DONA · CD · ICF coach</span>
+            <p>Background in social work. Carries the practice's slow-introduction prenatal series.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="classes">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Classes</span>
+          <h2>Three quiet <em>classes</em> we teach.</h2>
+        </div>
+        <div class="classes">
+          <div class="class">
+            <span class="meta">4-week series</span>
+            <h3>Childbirth, plain</h3>
+            <p>The honest, non-method-specific version. Stages of labor, what hospitals actually do, what you can ask for.</p>
+            <div class="row"><span>Tuesdays · 7p</span><strong>$280 / couple</strong></div>
+          </div>
+          <div class="class">
+            <span class="meta">2-week series</span>
+            <h3>First two weeks at home</h3>
+            <p>Newborn care, infant feeding, postpartum healing. Co-taught with a postpartum nurse.</p>
+            <div class="row"><span>Saturdays · 10a</span><strong>$160 / couple</strong></div>
+          </div>
+          <div class="class">
+            <span class="meta">Drop-in</span>
+            <h3>Comfort measures</h3>
+            <p>One Saturday morning. Hands-on practice for partners. Counter-pressure, positioning, the rebozo.</p>
+            <div class="row"><span>Monthly · 9a</span><strong>$60 / couple</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>What <em>families</em> say afterwards.</h2>
+        </div>
+        <div class="testimonials">
+          <div class="quote">
+            <p>"Camille knew where the ice chips were before the nurse did. My labor was 26 hours. She was there for 24."</p>
+            <div class="who"><img src="https://picsum.photos/seed/bloom-doula-t1/100/100" width="100" height="100" alt="Portrait of Bloom client Hannah K." loading="lazy" /><div><strong>Hannah K.</strong><span>Birthed at Abbott · 2024</span></div></div>
+          </div>
+          <div class="quote">
+            <p>"Sade came overnight for two weeks. I slept for the first time in a month. Our marriage didn't fall apart. I credit her, honestly."</p>
+            <div class="who"><img src="https://picsum.photos/seed/bloom-doula-t2/100/100" width="100" height="100" alt="Portrait of Bloom client Marcus &amp; Theo" loading="lazy" /><div><strong>Marcus &amp; Theo</strong><span>Postpartum block · 2025</span></div></div>
+          </div>
+          <div class="quote">
+            <p>"We had a loss at 22 weeks. Eli came to the hospital, stayed, and called us every Wednesday for two months. No bill."</p>
+            <div class="who"><img src="https://picsum.photos/seed/bloom-doula-t3/100/100" width="100" height="100" alt="Portrait of Bloom client Anya R." loading="lazy" /><div><strong>Anya R.</strong><span>Bereavement support · 2023</span></div></div>
+          </div>
+          <div class="quote">
+            <p>"Mira taught the class we'd been looking for: no method, no pressure, just clear information about hospitals and choices."</p>
+            <div class="who"><img src="https://picsum.photos/seed/bloom-doula-t4/100/100" width="100" height="100" alt="Portrait of Bloom client Priya &amp; Sam" loading="lazy" /><div><strong>Priya &amp; Sam</strong><span>Childbirth, plain · 2024</span></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="pricing">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Pricing</span>
+          <h2>Plainly listed. <em>Sliding scale available.</em></h2>
+          <p class="lede">If our standard pricing is a stretch, ask. We always have spots reserved at lower rates and we'll never make you justify the need.</p>
+        </div>
+        <div class="pricing">
+          <div class="plan">
+            <h3>Birth package</h3>
+            <div class="price">$1,650</div>
+            <div class="per">flat fee</div>
+            <ul>
+              <li>Two prenatals + birth plan</li>
+              <li>24/7 on-call from 37 weeks</li>
+              <li>Continuous labor support</li>
+              <li>Postpartum visit at 1-2 weeks</li>
+              <li>Sliding scale from $850</li>
+            </ul>
+            <a class="btn btn-ghost" href="#">Book a consult</a>
+          </div>
+          <div class="plan feat">
+            <h3>Bloom bundle</h3>
+            <div class="price">$2,950</div>
+            <div class="per">birth + 20 postpartum hrs</div>
+            <ul>
+              <li>Everything in Birth package</li>
+              <li>20 hours of postpartum support</li>
+              <li>Lactation consult included</li>
+              <li>Childbirth class enrolled</li>
+              <li>Most popular package</li>
+            </ul>
+            <a class="btn" href="#" style="background:var(--paper);color:var(--accent);">Book a consult</a>
+          </div>
+          <div class="plan">
+            <h3>Postpartum only</h3>
+            <div class="price">$45 / hr</div>
+            <div class="per">day or overnight</div>
+            <ul>
+              <li>Minimum 4-hour shifts</li>
+              <li>Day or overnight</li>
+              <li>Sibling support included</li>
+              <li>Block discount available</li>
+            </ul>
+            <a class="btn btn-ghost" href="#">Book a consult</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="faq">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>What people <em>ask first</em>.</h2>
+        </div>
+        <details><summary>Do doulas replace partners or nurses?</summary><p>No. A doula adds continuity. Your partner is the most important person in the room. The nurses change every shift. We're the one person who stays the whole time.</p></details>
+        <details><summary>Does insurance cover this?</summary><p>Some plans reimburse part of doula fees. We provide the documentation. HSA and FSA accounts accept doula services in most states, including Minnesota.</p></details>
+        <details><summary>What if my labor starts before 37 weeks?</summary><p>We're available, period. We start formal on-call at 37 weeks, but we don't disappear before that. Call anytime.</p></details>
+        <details><summary>What does a backup doula mean?</summary><p>If your primary doula is at another birth or out of town, the backup steps in. They've met you at one prenatal and know your plan. Backup attendance is rare (about 5% of our births).</p></details>
+        <details><summary>Are you welcoming to LGBTQ+ families?</summary><p>Yes — every doula on our team has supported queer and trans families. We use the language you use about yourself, your partner, and your body.</p></details>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot">
+        <a class="brand" href="#"><span class="brand-mark">B</span> Bloom Doula</a>
+        <div class="links">
+          <a href="#services">Services</a>
+          <a href="#team">Doulas</a>
+          <a href="#classes">Classes</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#">Contact</a>
+        </div>
+        <div class="copy">© 2026 · Twin Cities, MN</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

@@ -19,7 +19,7 @@ const toc = [
 export default function CLIPage() {
   return (
     <DocPage
-      eyebrow="Clients · לקוחות"
+      eyebrow="Clients"
       title="Ironflyer CLI"
       description="Run the finisher, watch gates, and ship deploys without leaving the terminal."
       toc={toc}

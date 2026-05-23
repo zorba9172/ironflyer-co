@@ -9,8 +9,8 @@ import { useEffect, useRef, useState } from 'react';
 import {
   Box, Chip, IconButton, Stack, TextField, Tooltip, Typography,
 } from '@mui/material';
-import { Send, Stop } from '@mui/icons-material';
-import { streamChat, ChatDelta } from '../../lib/api';
+import { AttachFile, Close, Send, Stop } from '@mui/icons-material';
+import { streamChat, ChatAttachment, ChatDelta } from '../../lib/api';
 import { tokens } from '../../lib/theme';
 
 interface Turn {
@@ -24,7 +24,24 @@ interface Turn {
   model?: string;
   status: 'streaming' | 'done' | 'error';
   error?: string;
+  // attachments echo the user's image refs on their turn bubble so the
+  // history shows what was sent, not just the prompt text.
+  attachments?: PendingAttachment[];
 }
+
+interface PendingAttachment {
+  id: string;
+  name: string;
+  mediaType: 'image/png' | 'image/jpeg' | 'image/webp' | 'image/gif';
+  dataUrl: string;   // for the thumbnail preview
+  base64: string;    // raw bytes (no data: prefix) — what we send on the wire
+  bytes: number;
+}
+
+// Total decoded-image payload the orchestrator accepts in one request.
+// Mirrors the 8 MiB ceiling on the server; we check the limit client-side
+// so the user gets immediate feedback instead of a 4xx after upload.
+const MAX_ATTACHMENT_PAYLOAD = 8 * 1024 * 1024;
 
 interface Props {
   projectId: string;
@@ -47,8 +64,11 @@ export function ChatPane({ projectId, defaultRole = 'planner' }: Props) {
   const [draft, setDraft] = useState('');
   const [role, setRole] = useState(defaultRole);
   const [streaming, setStreaming] = useState(false);
+  const [pending, setPending] = useState<PendingAttachment[]>([]);
+  const [attachError, setAttachError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
@@ -56,13 +76,17 @@ export function ChatPane({ projectId, defaultRole = 'planner' }: Props) {
 
   async function send() {
     const goal = draft.trim();
-    if (!goal || streaming) return;
+    if ((!goal && pending.length === 0) || streaming) return;
+    const attachments = pending;
     setDraft('');
+    setPending([]);
     setStreaming(true);
+    setAttachError(null);
 
     const userTurn: Turn = {
       id: crypto.randomUUID(), role: 'user',
       text: goal, thinking: '', status: 'done',
+      attachments,
     };
     const draftTurn: Turn = {
       id: crypto.randomUUID(), role: 'assistant',
@@ -71,11 +95,15 @@ export function ChatPane({ projectId, defaultRole = 'planner' }: Props) {
     };
     setTurns((t) => [...t, userTurn, draftTurn]);
 
+    const wireAttachments: ChatAttachment[] = attachments.map((a) => ({
+      mediaType: a.mediaType, base64: a.base64,
+    }));
+
     abortRef.current = new AbortController();
     try {
       await streamChat(
         projectId,
-        { prompt: goal, role },
+        { prompt: goal, role, attachments: wireAttachments.length ? wireAttachments : undefined },
         (d: ChatDelta) => setTurns((curr) => applyDelta(curr, d)),
         abortRef.current.signal,
       );
@@ -87,6 +115,44 @@ export function ChatPane({ projectId, defaultRole = 'planner' }: Props) {
   function abort() {
     abortRef.current?.abort();
     setStreaming(false);
+  }
+
+  async function onPickFiles(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    setAttachError(null);
+    const next: PendingAttachment[] = [...pending];
+    let runningTotal = next.reduce((sum, a) => sum + a.bytes, 0);
+    for (const f of Array.from(files)) {
+      const mt = f.type.toLowerCase();
+      if (mt !== 'image/png' && mt !== 'image/jpeg'
+          && mt !== 'image/webp' && mt !== 'image/gif') {
+        setAttachError(`Unsupported type: ${f.type || 'unknown'}`);
+        continue;
+      }
+      if (runningTotal + f.size > MAX_ATTACHMENT_PAYLOAD) {
+        setAttachError('Attachments exceed 8 MB total — drop one before adding more.');
+        break;
+      }
+      try {
+        const { dataUrl, base64 } = await readImageAsBase64(f);
+        next.push({
+          id: crypto.randomUUID(),
+          name: f.name || 'image',
+          mediaType: mt as PendingAttachment['mediaType'],
+          dataUrl, base64, bytes: f.size,
+        });
+        runningTotal += f.size;
+      } catch (e) {
+        setAttachError(`Could not read ${f.name}: ${String((e as Error)?.message ?? e)}`);
+      }
+    }
+    setPending(next);
+    // Reset the input so picking the same file twice re-fires onChange.
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }
+
+  function removeAttachment(id: string) {
+    setPending((curr) => curr.filter((a) => a.id !== id));
   }
 
   return (
@@ -127,11 +193,61 @@ export function ChatPane({ projectId, defaultRole = 'planner' }: Props) {
             );
           })}
         </Stack>
+        {pending.length > 0 && (
+          <Stack direction="row" spacing={0.6} sx={{ overflowX: 'auto', pb: 0.6 }}>
+            {pending.map((a) => (
+              <Box key={a.id} sx={{
+                position: 'relative', flexShrink: 0,
+                width: 56, height: 56, borderRadius: '8px', overflow: 'hidden',
+                border: '1px solid rgba(17,17,17,0.12)',
+                bgcolor: tokens.color.bg.inset,
+              }} title={`${a.name} · ${Math.ceil(a.bytes / 1024)} KB`}>
+                <Box component="img" src={a.dataUrl} alt={a.name}
+                  sx={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                <IconButton size="small" onClick={() => removeAttachment(a.id)}
+                  sx={{
+                    position: 'absolute', top: 2, right: 2, p: 0.2,
+                    bgcolor: 'rgba(0,0,0,0.65)', color: '#fff',
+                    '&:hover': { bgcolor: 'rgba(0,0,0,0.85)' },
+                  }}>
+                  <Close sx={{ fontSize: 12 }} />
+                </IconButton>
+              </Box>
+            ))}
+          </Stack>
+        )}
+        {attachError && (
+          <Typography variant="caption" sx={{ color: tokens.color.accent.danger, display: 'block', mb: 0.4 }}>
+            {attachError}
+          </Typography>
+        )}
         <Stack direction="row" spacing={1} alignItems="flex-end">
+          <Tooltip title="Attach image (screenshot, mockup, design ref)">
+            <span>
+              <IconButton
+                disabled={streaming}
+                onClick={() => fileInputRef.current?.click()}
+                sx={{
+                  bgcolor: tokens.color.bg.inset, color: tokens.color.text.primary,
+                  '&:hover': { bgcolor: tokens.color.bg.surfaceHover },
+                }}
+              >
+                <AttachFile fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/gif"
+            multiple
+            hidden
+            onChange={(e) => void onPickFiles(e.target.files)}
+          />
           <TextField
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder="כתבו לסוכן בעברית או באנגלית…"
+            placeholder="Tell the agent what to build or fix..."
             multiline minRows={1} maxRows={6}
             fullWidth
             onKeyDown={(e) => {
@@ -149,7 +265,7 @@ export function ChatPane({ projectId, defaultRole = 'planner' }: Props) {
             }}
           />
           {streaming ? (
-            <Tooltip title="עצירה">
+            <Tooltip title="Stop">
               <IconButton onClick={abort} sx={{
                 bgcolor: tokens.color.accent.danger, color: '#fff',
                 '&:hover': { bgcolor: tokens.color.accent.danger },
@@ -158,11 +274,11 @@ export function ChatPane({ projectId, defaultRole = 'planner' }: Props) {
               </IconButton>
             </Tooltip>
           ) : (
-            <Tooltip title="שליחה">
+            <Tooltip title="Send">
               <span>
                 <IconButton
                   onClick={() => void send()}
-                  disabled={!draft.trim()}
+                  disabled={!draft.trim() && pending.length === 0}
                   sx={{
                     bgcolor: tokens.color.accent.lime, color: tokens.color.text.inverse,
                     '&:hover': { bgcolor: tokens.color.accent.lime },
@@ -178,6 +294,23 @@ export function ChatPane({ projectId, defaultRole = 'planner' }: Props) {
       </Box>
     </Stack>
   );
+}
+
+// readImageAsBase64 turns a File into (dataUrl, base64) — the dataUrl is
+// used for the thumbnail in the chat history, the bare base64 string is
+// what we send to the orchestrator (the server rejects "data:" prefixes).
+function readImageAsBase64(file: File): Promise<{ dataUrl: string; base64: string }> {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onerror = () => reject(r.error ?? new Error('FileReader error'));
+    r.onload = () => {
+      const dataUrl = String(r.result || '');
+      const idx = dataUrl.indexOf(',');
+      const base64 = idx >= 0 ? dataUrl.slice(idx + 1) : dataUrl;
+      resolve({ dataUrl, base64 });
+    };
+    r.readAsDataURL(file);
+  });
 }
 
 function applyDelta(turns: Turn[], d: ChatDelta): Turn[] {
@@ -207,16 +340,16 @@ function EmptyChat() {
   return (
     <Stack spacing={1.4} alignItems="center" sx={{ py: 6, textAlign: 'center' }}>
       <Typography variant="h6" sx={{ fontWeight: 800 }}>
-        מה נבנה היום?
+        What should we build today?
       </Typography>
       <Typography variant="body2" sx={{ color: tokens.color.text.muted, maxWidth: 420 }}>
-        תארו את הפיצ׳ר או את התקלה, בחרו תפקיד (Planner / Coder / Tester…) והסוכן יתחיל לעבוד מול עץ הקבצים.
+        Describe the feature or failure, choose a role, and the agent will work against the project files.
       </Typography>
       <Stack direction="row" spacing={0.7} useFlexGap flexWrap="wrap" justifyContent="center" sx={{ maxWidth: 520, mt: 1 }}>
         {[
-          'תכננו דשבורד עם 3 כרטיסים',
-          'הוסיפו endpoint GET /api/health',
-          'תקנו את הבדיקות שנפלו',
+          'Plan a dashboard with 3 KPI cards',
+          'Add GET /api/health',
+          'Fix the failing tests',
         ].map((s) => (
           <Chip key={s} label={s} size="small" sx={{
             borderRadius: '8px', bgcolor: tokens.color.bg.inset, color: tokens.color.text.primary,
@@ -277,6 +410,17 @@ function TurnBubble({ turn }: { turn: Turn }) {
         </Box>
       )}
 
+      {turn.attachments && turn.attachments.length > 0 && (
+        <Stack direction="row" spacing={0.6} sx={{ mb: 0.7, flexWrap: 'wrap' }} useFlexGap>
+          {turn.attachments.map((a) => (
+            <Box key={a.id} component="img" src={a.dataUrl} alt={a.name}
+              sx={{
+                width: 96, height: 96, borderRadius: '8px', objectFit: 'cover',
+                border: '1px solid rgba(17,17,17,0.12)',
+              }} />
+          ))}
+        </Stack>
+      )}
       <MarkdownLite source={turn.text} />
 
       {turn.status === 'streaming' && (

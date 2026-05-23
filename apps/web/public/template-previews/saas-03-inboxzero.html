@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>InboxZero — The team inbox that learns who answers what</title>
+  <meta name="description" content="InboxZero routes every customer thread to the teammate most likely to close it, learns from every reply, and shows the queue your support lead actually wants." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Instrument+Serif&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #ffffff;
+      --paper: #ffffff;
+      --paper-2: #fbf9fd;
+      --ink: #1a1330;
+      --ink-2: #564a72;
+      --ink-3: #8a82a3;
+      --rule: #ece6f4;
+      --rule-strong: #d9d0e8;
+      --accent: #d946ef;
+      --accent-deep: #a21caf;
+      --accent-soft: #fdf4ff;
+      --warm: #fef3c7;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 22px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 28px; }
+    .serif { font-family: 'Instrument Serif', Georgia, serif; }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+    /* Nav */
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--rule);
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 68px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 17px; letter-spacing: -0.015em; }
+    .brand-mark {
+      width: 30px; height: 30px; border-radius: 9px;
+      background: linear-gradient(135deg, var(--accent) 0%, #f0abfc 100%);
+      display: grid; place-items: center;
+      color: white; font-weight: 800;
+    }
+    .nav-links { display: flex; gap: 30px; font-size: 14px; color: var(--ink-2); font-weight: 500; }
+    .nav-links a:hover { color: var(--ink); }
+    .nav-cta { display: flex; gap: 10px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      height: 40px; padding: 0 18px;
+      border-radius: 999px;
+      font-weight: 600; font-size: 14px;
+      border: 1px solid transparent;
+      cursor: pointer; transition: transform 160ms ease, background 160ms ease;
+    }
+    .btn-primary { background: var(--ink); color: white; }
+    .btn-primary:hover { background: #2d2349; transform: translateY(-1px); }
+    .btn-accent { background: var(--accent); color: white; }
+    .btn-accent:hover { background: var(--accent-deep); transform: translateY(-1px); }
+    .btn-ghost { background: transparent; color: var(--ink); border-color: var(--rule-strong); }
+    .btn-ghost:hover { border-color: var(--ink); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero {
+      padding: 96px 0 72px;
+      background:
+        radial-gradient(ellipse 60% 50% at 80% 0%, rgba(217, 70, 239, 0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 70% 60% at 0% 30%, rgba(165, 180, 252, 0.16) 0%, transparent 60%),
+        var(--bg);
+    }
+    .hero-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 64px; align-items: center; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 14px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      border-radius: 999px;
+      font-size: 12px; font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    h1 {
+      font-size: clamp(44px, 6.4vw, 80px);
+      line-height: 1.0;
+      letter-spacing: -0.03em;
+      font-weight: 700;
+      margin: 22px 0 22px;
+    }
+    h1 em { font-style: italic; font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; color: var(--accent); }
+    .lede { font-size: 20px; color: var(--ink-2); max-width: 540px; }
+    .hero-cta { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; align-items: center; }
+    .hero-cta .btn { height: 50px; padding: 0 24px; font-size: 15px; }
+    .hero-trust { margin-top: 22px; font-size: 13px; color: var(--ink-3); }
+
+    /* Inbox mockup */
+    .inbox {
+      background: var(--paper);
+      border: 1px solid var(--rule-strong);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: 0 40px 80px -40px rgba(26, 19, 48, 0.25);
+    }
+    .inbox-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 22px; border-bottom: 1px solid var(--rule);
+      background: var(--paper-2);
+    }
+    .inbox-tabs { display: flex; gap: 16px; font-size: 13px; color: var(--ink-2); font-weight: 600; }
+    .inbox-tabs .active { color: var(--ink); position: relative; padding-bottom: 4px; }
+    .inbox-tabs .active::after { content: ''; position: absolute; left: 0; right: 0; bottom: -16px; height: 2px; background: var(--accent); }
+    .inbox-counter { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--ink-3); }
+    .thread {
+      display: grid; grid-template-columns: 32px 1fr auto; gap: 14px;
+      padding: 18px 22px; border-bottom: 1px solid var(--rule);
+      align-items: center;
+    }
+    .thread:last-child { border-bottom: none; }
+    .thread .av { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #c084fc, #f472b6); color: white; font-weight: 700; font-size: 12px; display: grid; place-items: center; }
+    .thread .av.b2 { background: linear-gradient(135deg, #60a5fa, #a78bfa); }
+    .thread .av.b3 { background: linear-gradient(135deg, #fbbf24, #f97316); }
+    .thread .av.b4 { background: linear-gradient(135deg, #34d399, #22d3ee); }
+    .thread .sub { font-size: 14px; font-weight: 600; }
+    .thread .pre { font-size: 13px; color: var(--ink-3); margin-top: 2px; }
+    .thread .meta { text-align: right; font-size: 11px; color: var(--ink-3); font-family: 'JetBrains Mono', monospace; }
+    .tag {
+      display: inline-block; padding: 2px 8px; border-radius: 999px;
+      font-size: 11px; font-weight: 600; margin-right: 6px;
+      background: var(--accent-soft); color: var(--accent-deep);
+    }
+    .tag.t2 { background: #e0e7ff; color: #4338ca; }
+    .tag.t3 { background: #ecfeff; color: #0e7490; }
+    .tag.t4 { background: #fef3c7; color: #a16207; }
+
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 48px; } }
+    @media (max-width: 720px) { .hero { padding: 64px 0 48px; } .hero-cta .btn { width: 100%; justify-content: center; } .thread { grid-template-columns: 28px 1fr; } .thread .meta { display: none; } }
+
+    /* Logos */
+    .logos { padding: 40px 0 56px; }
+    .logos-label { font-size: 12px; color: var(--ink-3); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; text-align: center; margin-bottom: 22px; }
+    .logos-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 28px; align-items: center; justify-items: center; color: var(--ink-2); font-weight: 700; font-size: 17px; }
+    .logos-row span { opacity: 0.55; }
+    @media (max-width: 720px) { .logos-row { grid-template-columns: repeat(3, 1fr); } }
+
+    /* Sections */
+    .section { padding: 96px 0; }
+    .section h2 {
+      font-size: clamp(34px, 4.6vw, 56px);
+      letter-spacing: -0.028em;
+      line-height: 1.05;
+      font-weight: 700;
+      margin: 16px 0 16px;
+    }
+    .section h2 em { font-style: italic; font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; color: var(--accent); }
+    .section-head { max-width: 720px; margin-bottom: 56px; }
+
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .feature {
+      background: var(--paper-2);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius-md);
+      padding: 30px;
+      transition: transform 220ms ease, border-color 220ms ease;
+    }
+    .feature:hover { transform: translateY(-3px); border-color: var(--rule-strong); }
+    .feature-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: white; border: 1px solid var(--rule);
+      display: grid; place-items: center; color: var(--accent);
+      font-size: 18px; margin-bottom: 18px;
+    }
+    .feature h3 { font-size: 19px; font-weight: 700; margin: 0 0 8px; letter-spacing: -0.012em; }
+    .feature p { color: var(--ink-2); font-size: 15px; margin: 0; }
+    @media (max-width: 1080px) { .features { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .features { grid-template-columns: 1fr; } }
+
+    /* Workflow steps */
+    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+    .step { padding: 28px; border-radius: var(--radius-md); border: 1px solid var(--rule); background: var(--paper); position: relative; }
+    .step-num {
+      position: absolute; top: -14px; left: 24px;
+      background: var(--accent); color: white;
+      font-family: 'JetBrains Mono', monospace; font-size: 11px;
+      padding: 4px 10px; border-radius: 999px; font-weight: 700;
+    }
+    .step h4 { font-size: 17px; font-weight: 700; margin: 8px 0 8px; letter-spacing: -0.01em; }
+    .step p { color: var(--ink-2); font-size: 14px; margin: 0; }
+    @media (max-width: 1080px) { .steps { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .steps { grid-template-columns: 1fr; } }
+
+    /* Quotes */
+    .quotes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .qcard {
+      background: var(--paper); border: 1px solid var(--rule);
+      border-radius: var(--radius-md); padding: 30px;
+      display: flex; flex-direction: column; gap: 18px;
+    }
+    .qcard p { font-family: 'Instrument Serif', Georgia, serif; font-size: 22px; line-height: 1.25; letter-spacing: -0.01em; margin: 0; }
+    .qcard footer { font-size: 12px; color: var(--ink-3); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; border: none; padding: 0; margin-top: auto; }
+    @media (max-width: 1080px) { .quotes { grid-template-columns: 1fr; } }
+
+    /* Metrics band */
+    .metrics-band { background: var(--ink); color: white; padding: 88px 0; }
+    .metrics-band .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; }
+    .metrics-band .val { font-size: clamp(40px, 5vw, 60px); font-weight: 800; letter-spacing: -0.025em; line-height: 1; }
+    .metrics-band .val em { font-style: italic; font-family: 'Instrument Serif', Georgia, serif; color: #f0abfc; font-weight: 400; }
+    .metrics-band .label { color: #cdc4e0; font-size: 14px; margin-top: 10px; }
+    @media (max-width: 1080px) { .metrics-band .metrics { grid-template-columns: repeat(2, 1fr); } }
+
+    /* CTA */
+    .cta-band {
+      padding: 120px 0; text-align: center;
+      background:
+        radial-gradient(ellipse 50% 50% at 50% 0%, rgba(217, 70, 239, 0.18) 0%, transparent 60%),
+        var(--bg);
+      border-top: 1px solid var(--rule);
+    }
+    .cta-band h2 { font-size: clamp(36px, 5.5vw, 64px); letter-spacing: -0.03em; line-height: 1.05; margin: 0 0 20px; font-weight: 700; }
+    .cta-band h2 em { font-style: italic; font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; color: var(--accent); }
+    .cta-band p { color: var(--ink-2); max-width: 520px; margin: 0 auto 32px; font-size: 18px; }
+
+    /* Footer */
+    footer { padding: 56px 0 36px; border-top: 1px solid var(--rule); }
+    .foot-grid { display: grid; grid-template-columns: 1.6fr repeat(3, 1fr); gap: 44px; }
+    .foot-col h4 { font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-3); margin: 0 0 16px; }
+    .foot-col a { display: block; color: var(--ink-2); font-size: 14px; padding: 6px 0; }
+    .foot-col a:hover { color: var(--ink); }
+    .foot-bot { margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; color: var(--ink-3); font-size: 13px; }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 12px; text-align: center; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">
+        <span class="brand-mark">◐</span>
+        InboxZero
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#features">Product</a>
+        <a href="#workflow">How it works</a>
+        <a href="#customers">Customers</a>
+        <a href="#pricing">Pricing</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-ghost" href="#">Sign in</a>
+        <a class="btn btn-accent" href="#">Start free</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>New · Auto-routing v3 with reply-quality scoring</span>
+            <h1>The team inbox that <em>learns</em> who answers what.</h1>
+            <p class="lede">InboxZero reads every thread, scores who on your team has resolved that flavor of question, and routes it there. Your support lead finally sees a queue, not a swamp.</p>
+            <div class="hero-cta">
+              <a class="btn btn-accent" href="#">Start free for 14 days</a>
+              <a class="btn btn-ghost" href="#workflow">Watch a 90-second tour</a>
+            </div>
+            <p class="hero-trust">No credit card. Connect Gmail, Outlook, Front, or your own IMAP in two clicks.</p>
+          </div>
+          <div class="inbox" role="img" aria-label="Inbox mockup showing routed customer threads with topic tags and assigned teammates.">
+            <div class="inbox-head">
+              <div class="inbox-tabs">
+                <span class="active">Inbox</span>
+                <span>Unassigned</span>
+                <span>SLA risk</span>
+                <span>Snoozed</span>
+              </div>
+              <span class="inbox-counter">12 open · 0 unrouted</span>
+            </div>
+            <div class="thread">
+              <div class="av">RS</div>
+              <div>
+                <div class="sub"><span class="tag">Billing</span>Refund for the duplicate March invoice</div>
+                <div class="pre">Rachel — &ldquo;Hey, I think the March charge went through twice. Can someone…&rdquo;</div>
+              </div>
+              <div class="meta">2m · → Priya</div>
+            </div>
+            <div class="thread">
+              <div class="av b2">TM</div>
+              <div>
+                <div class="sub"><span class="tag t2">API</span>429 errors on the metrics endpoint</div>
+                <div class="pre">Theo — &ldquo;We're getting throttled on a custom dashboard sync running every…&rdquo;</div>
+              </div>
+              <div class="meta">9m · → Marc</div>
+            </div>
+            <div class="thread">
+              <div class="av b3">LK</div>
+              <div>
+                <div class="sub"><span class="tag t4">Onboarding</span>SSO setup for our new workspace</div>
+                <div class="pre">Lina — &ldquo;We're moving the engineering org over and need SAML wired up to…&rdquo;</div>
+              </div>
+              <div class="meta">14m · → Avery</div>
+            </div>
+            <div class="thread">
+              <div class="av b4">JD</div>
+              <div>
+                <div class="sub"><span class="tag t3">Account</span>Add second domain to the same tenant</div>
+                <div class="pre">Jordan — &ldquo;We just acquired a small studio and need to fold their domain…&rdquo;</div>
+              </div>
+              <div class="meta">22m · → Priya</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="logos">
+      <div class="wrap">
+        <p class="logos-label">Support teams who switched and stayed</p>
+        <div class="logos-row">
+          <span>Bureau Verso</span>
+          <span>Pivot House</span>
+          <span>Northbeam</span>
+          <span>Acme Labs</span>
+          <span>Studio Marlow</span>
+          <span>Brigantine</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="features">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Why InboxZero</span>
+          <h2>Routing that <em>actually</em> gets smarter.</h2>
+          <p class="lede">Most "AI inboxes" sort by keyword. InboxZero scores by who has actually resolved similar threads — and downweights teammates who are at SLA risk.</p>
+        </div>
+        <div class="features">
+          <div class="feature">
+            <div class="feature-icon">⇆</div>
+            <h3>Reply-quality routing</h3>
+            <p>Threads land with the teammate whose past replies on this topic have the highest CSAT and the shortest follow-up chain.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">★</div>
+            <h3>SLA-aware load balancing</h3>
+            <p>If Priya already has three tickets one hour from breach, the next one slides to Avery. The dial tilts back when Priya clears them.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">✎</div>
+            <h3>Drafts grounded in your docs</h3>
+            <p>Replies are drafted from your help center, past answers, and your style guide. Every claim links to the doc it came from.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">⌗</div>
+            <h3>Macros that retire themselves</h3>
+            <p>When a macro stops landing well, InboxZero proposes the replacement — drafted from the threads that did. Stale templates die quietly.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">⏱</div>
+            <h3>One-tap escalation chains</h3>
+            <p>Escalation paths are visual and auditable. Your lead can see why a thread bounced and unstick it in a single click.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">⊕</div>
+            <h3>Reporting your lead actually wants</h3>
+            <p>Topic share, time-to-first-touch, and reopen rate by teammate. Plus a weekly digest you can paste straight into a one-on-one.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="workflow" style="padding-top: 0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>How it works</span>
+          <h2>From inbox chaos to a <em>readable</em> queue in a week.</h2>
+          <p class="lede">No project. No consultant. Connect a mailbox and the inbox starts learning on the next reply.</p>
+        </div>
+        <div class="steps">
+          <div class="step">
+            <span class="step-num">01</span>
+            <h4>Connect</h4>
+            <p>OAuth into Gmail, Outlook, Front, or any IMAP. We never store the body — we summarize on read.</p>
+          </div>
+          <div class="step">
+            <span class="step-num">02</span>
+            <h4>Train</h4>
+            <p>InboxZero reads the last 90 days and ranks teammates by topic. You can override any score from a single screen.</p>
+          </div>
+          <div class="step">
+            <span class="step-num">03</span>
+            <h4>Route</h4>
+            <p>New threads start landing in the right inbox immediately. The rules engine is visible and reversible.</p>
+          </div>
+          <div class="step">
+            <span class="step-num">04</span>
+            <h4>Improve</h4>
+            <p>Every reply scores against CSAT and reopen rate. The model retrains nightly. The drift report goes to your lead each Monday.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="customers" style="padding-top: 0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Customers</span>
+          <h2>What support leads say after the switch.</h2>
+        </div>
+        <div class="quotes">
+          <div class="qcard">
+            <p>"Our queue used to be a wall of red. Now it's twelve threads, sorted by who actually answers them. My team gets to think again."</p>
+            <footer>Head of Support · Pivot House</footer>
+          </div>
+          <div class="qcard">
+            <p>"The reply-quality score is the only metric I now bring to one-on-ones. It's the closest thing to a real coaching signal we've ever had."</p>
+            <footer>Support Lead · Studio Marlow</footer>
+          </div>
+          <div class="qcard">
+            <p>"We shut off three other 'AI helpdesk' add-ons the week we turned this on. The drafts cite our docs. Nothing else did."</p>
+            <footer>Director of CX · Bureau Verso</footer>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="metrics-band">
+      <div class="wrap">
+        <div class="metrics">
+          <div><div class="val">38<em>%</em></div><div class="label">faster median first reply</div></div>
+          <div><div class="val">2.1×</div><div class="label">lift in CSAT after week three</div></div>
+          <div><div class="val">17<em>%</em></div><div class="label">drop in reopen rate</div></div>
+          <div><div class="val">90<em>s</em></div><div class="label">setup time, mailbox to first route</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="pricing">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Pricing</span>
+          <h2>Per <em>resolved</em> thread, not per seat.</h2>
+          <p class="lede">Bring your whole team. Pay for what closes. Free for support orgs under three teammates.</p>
+        </div>
+        <div class="features">
+          <div class="feature">
+            <div class="feature-icon">○</div>
+            <h3>Solo · Free</h3>
+            <p>For tiny teams getting started. One shared mailbox, two teammates, all the routing.</p>
+          </div>
+          <div class="feature" style="border-color: var(--accent); background: var(--paper);">
+            <div class="feature-icon" style="background: var(--accent-soft); color: var(--accent-deep);">●</div>
+            <h3>Team · $0.18 / resolved</h3>
+            <p>Up to twenty teammates, unlimited mailboxes, full reporting, and the drift digest every Monday.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">◎</div>
+            <h3>Enterprise · Custom</h3>
+            <p>SAML, audit log, regional routing, dedicated success engineer, and a published response-time SLA.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="cta-band">
+    <div class="wrap">
+      <h2>Close more threads with <em>fewer</em> people.</h2>
+      <p>Connect your inbox. We'll show you the routing map in under five minutes — and you'll see who, on your team, has been quietly carrying it.</p>
+      <a class="btn btn-accent" href="#" style="height: 54px; padding: 0 28px; font-size: 15px;">Start free →</a>
+    </div>
+  </section>
+
+  <footer id="footer">
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a class="brand" href="#" style="margin-bottom: 16px;">
+            <span class="brand-mark">◐</span>
+            InboxZero
+          </a>
+          <p style="color: var(--ink-2); font-size: 14px; max-width: 280px;">The team inbox that learns who answers what. Routing, drafts, and reporting your support lead actually wants.</p>
+        </div>
+        <div class="foot-col">
+          <h4>Product</h4>
+          <a href="#">Routing</a>
+          <a href="#">Drafts</a>
+          <a href="#">Reports</a>
+          <a href="#">Integrations</a>
+        </div>
+        <div class="foot-col">
+          <h4>Resources</h4>
+          <a href="#">Docs</a>
+          <a href="#">API</a>
+          <a href="#">Help center</a>
+          <a href="#">Status</a>
+        </div>
+        <div class="foot-col">
+          <h4>Company</h4>
+          <a href="#">About</a>
+          <a href="#">Customers</a>
+          <a href="#">Careers</a>
+          <a href="#">Privacy</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 InboxZero Software</span>
+        <span>Made for support teams who hate dashboards</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

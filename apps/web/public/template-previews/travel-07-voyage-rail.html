@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Voyage Rail — Luxury sleeper-train journeys across Europe and Asia</title>
+  <meta name="description" content="Voyage Rail operates four luxury sleeper-train journeys: Paris to Istanbul, Lisbon to Vienna, Kyoto to Kobe, and Hanoi to Saigon. Brass fittings, a violin in the dining car, and a porter who remembers your name." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #efe1c8;
+      --paper: #f7eed6;
+      --warm: #e6d2a8;
+      --fg: #2a1418;
+      --fg-2: #5b3a3e;
+      --fg-3: #8c7174;
+      --accent: #6e1f2a;
+      --accent-2: #8b2a37;
+      --gold: #b08948;
+      --line: rgba(42, 20, 24, 0.16);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--fg); font-family: 'Inter', sans-serif; font-size: 16px; line-height: 1.65; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .serif { font-family: 'Cormorant Garamond', serif; }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 0 32px; }
+
+    /* Nav */
+    .nav { padding: 28px 0; border-bottom: 1px solid var(--line); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { font-family: 'Cormorant Garamond', serif; font-size: 32px; font-style: italic; font-weight: 500; letter-spacing: 0.02em; display: flex; align-items: center; gap: 14px; }
+    .brand-mark { width: 36px; height: 36px; border: 1.5px solid var(--accent); border-radius: 50%; display: grid; place-items: center; font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--accent); font-size: 18px; }
+    .nav-links { display: flex; gap: 32px; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--fg-2); font-weight: 600; }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta { display: flex; gap: 12px; align-items: center; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 13px 28px; font-weight: 600; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; border: 1px solid transparent; }
+    .btn-solid { background: var(--accent); color: var(--paper); }
+    .btn-solid:hover { background: var(--accent-2); }
+    .btn-line { color: var(--fg); border-color: var(--fg); }
+    .btn-line:hover { background: var(--fg); color: var(--paper); }
+    @media (max-width: 1080px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 56px 0 80px; }
+    .hero-text { text-align: center; max-width: 1000px; margin: 0 auto 56px; }
+    .eyebrow { font-size: 11px; letter-spacing: 0.32em; text-transform: uppercase; color: var(--accent); font-weight: 700; margin-bottom: 20px; }
+    .ornament { display: flex; align-items: center; justify-content: center; gap: 16px; margin: 0 auto 24px; }
+    .ornament hr { width: 80px; height: 1px; background: var(--accent); border: none; }
+    .ornament span { font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--accent); font-size: 20px; }
+    h1 { font-family: 'Cormorant Garamond', serif; font-weight: 400; font-size: clamp(56px, 8.4vw, 132px); line-height: 0.96; letter-spacing: -0.01em; margin: 0; }
+    h1 em { font-style: italic; color: var(--accent); }
+    .hero-lede { font-size: 18px; color: var(--fg-2); max-width: 660px; margin: 28px auto 0; }
+    .hero-img { position: relative; }
+    .hero-img img { width: 100%; aspect-ratio: 21/9; object-fit: cover; }
+    .hero-caption { display: flex; justify-content: space-between; margin-top: 16px; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--fg-3); }
+
+    /* Booking */
+    .book-section { padding: 64px 0 0; }
+    .book { background: var(--paper); border: 1px solid var(--line); padding: 24px; display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr auto; gap: 0; align-items: stretch; }
+    .book-field { padding: 8px 28px; border-right: 1px solid var(--line); }
+    .book-field:last-of-type { border-right: none; }
+    .book-field label { display: block; font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--fg-3); margin-bottom: 6px; }
+    .book-field input, .book-field select { width: 100%; border: none; background: transparent; color: var(--fg); font-family: 'Cormorant Garamond', serif; font-size: 20px; font-style: italic; padding: 0; outline: none; }
+    .book button { background: var(--accent); color: var(--paper); border: none; padding: 0 36px; font-family: 'Inter', sans-serif; font-weight: 700; cursor: pointer; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; }
+    .book button:hover { background: var(--accent-2); }
+    @media (max-width: 1080px) {
+      .book { grid-template-columns: 1fr 1fr; padding: 12px; }
+      .book-field { border-right: none; border-bottom: 1px solid var(--line); padding: 16px 24px; }
+      .book button { grid-column: 1 / -1; padding: 18px; }
+    }
+    @media (max-width: 720px) { .book { grid-template-columns: 1fr; } }
+
+    /* Sections */
+    .section { padding: 112px 0; border-top: 1px solid var(--line); }
+    h2 { font-family: 'Cormorant Garamond', serif; font-weight: 400; font-size: clamp(40px, 6vw, 84px); line-height: 1.02; letter-spacing: -0.005em; margin: 0; }
+    h2 em { font-style: italic; color: var(--accent); }
+    h3 { font-family: 'Cormorant Garamond', serif; font-weight: 500; }
+    .section-head { text-align: center; max-width: 720px; margin: 0 auto 64px; }
+    .section-head p { font-size: 17px; color: var(--fg-2); margin: 18px 0 0; }
+
+    /* Journeys */
+    .journeys { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
+    .journey { background: var(--paper); border: 1px solid var(--line); display: flex; flex-direction: column; }
+    .journey img { width: 100%; aspect-ratio: 16/10; object-fit: cover; }
+    .journey-body { padding: 36px; flex: 1; display: flex; flex-direction: column; }
+    .journey-route { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 14px; letter-spacing: 0.06em; color: var(--gold); margin-bottom: 6px; }
+    .journey h3 { margin: 0 0 16px; font-size: 38px; font-weight: 400; font-style: italic; line-height: 1; }
+    .journey-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 16px 0 22px; padding: 16px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .journey-stats .n { font-family: 'Cormorant Garamond', serif; font-size: 24px; color: var(--accent); }
+    .journey-stats .l { font-size: 11px; color: var(--fg-3); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 2px; }
+    .journey p { color: var(--fg-2); font-size: 15px; margin: 0 0 18px; }
+    .journey-foot { margin-top: auto; display: flex; justify-content: space-between; align-items: baseline; }
+    .journey-price { font-family: 'Cormorant Garamond', serif; font-size: 28px; color: var(--accent); }
+    .journey-price span { font-family: 'Inter', sans-serif; font-size: 12px; color: var(--fg-3); }
+    .journey-foot a { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 700; }
+    .journey-foot a:hover { color: var(--accent); }
+    @media (max-width: 1080px) { .journeys { grid-template-columns: 1fr; } }
+
+    /* Schedule / Itinerary */
+    .schedule { background: var(--accent); color: var(--paper); padding: 80px 64px; }
+    .schedule h2 { color: var(--paper); }
+    .schedule h2 em { color: var(--warm); }
+    .schedule .section-head p { color: rgba(247, 238, 214, 0.78); }
+    .schedule-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
+    .schedule-img img { width: 100%; aspect-ratio: 4/5; object-fit: cover; }
+    .stop { padding: 24px 0; border-bottom: 1px solid rgba(247, 238, 214, 0.16); display: grid; grid-template-columns: 110px 1fr auto; gap: 24px; align-items: center; }
+    .stop .city { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 26px; }
+    .stop .what { font-size: 14px; color: rgba(247, 238, 214, 0.78); }
+    .stop .time { font-family: 'Cormorant Garamond', serif; font-size: 20px; color: var(--warm); }
+    @media (max-width: 1080px) { .schedule { padding: 56px 32px; } .schedule-grid { grid-template-columns: 1fr; } }
+
+    /* Cabins */
+    .cabins { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 28px; }
+    .cab { background: var(--paper); border: 1px solid var(--line); padding: 32px; }
+    .cab .icon { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 56px; color: var(--accent); line-height: 1; margin-bottom: 16px; }
+    .cab h3 { margin: 0 0 8px; font-size: 28px; font-weight: 400; font-style: italic; }
+    .cab .size { font-size: 12px; color: var(--fg-3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 14px; }
+    .cab p { color: var(--fg-2); font-size: 14px; margin: 0 0 18px; }
+    .cab .price { font-family: 'Cormorant Garamond', serif; font-size: 26px; color: var(--accent); }
+    .cab .price span { font-family: 'Inter', sans-serif; font-size: 12px; color: var(--fg-3); }
+    @media (max-width: 1080px) { .cabins { grid-template-columns: 1fr; } }
+
+    /* Dining */
+    .dining { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+    .dining img { width: 100%; aspect-ratio: 4/5; object-fit: cover; }
+    .menu-list { list-style: none; padding: 0; margin: 24px 0 0; }
+    .menu-list li { padding: 18px 0; border-bottom: 1px dotted var(--line); display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: baseline; }
+    .menu-list h4 { margin: 0 0 4px; font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 22px; font-weight: 500; }
+    .menu-list p { margin: 0; font-size: 13px; color: var(--fg-3); }
+    .menu-list .where { font-size: 11px; color: var(--gold); letter-spacing: 0.14em; text-transform: uppercase; font-weight: 600; align-self: start; padding-top: 4px; }
+    @media (max-width: 1080px) { .dining { grid-template-columns: 1fr; } }
+
+    /* Testimonials */
+    .testi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px; }
+    .testi { padding: 40px; background: var(--paper); border: 1px solid var(--line); }
+    .testi blockquote { margin: 0 0 18px; font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 24px; line-height: 1.3; }
+    .testi .who { font-size: 12px; color: var(--fg-3); letter-spacing: 0.14em; text-transform: uppercase; }
+    .testi .who b { color: var(--fg); font-weight: 700; }
+    @media (max-width: 1080px) { .testi-grid { grid-template-columns: 1fr; } }
+
+    /* Footer */
+    footer { background: var(--accent); color: var(--paper); padding: 96px 0 28px; }
+    .foot-top { text-align: center; margin-bottom: 56px; padding-bottom: 56px; border-bottom: 1px solid rgba(247, 238, 214, 0.16); }
+    .foot-top h2 { color: var(--paper); }
+    .foot-top h2 em { color: var(--warm); }
+    .foot-grid { display: grid; grid-template-columns: 1.4fr repeat(3, 1fr); gap: 32px; }
+    .foot-col h4 { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--warm); margin: 0 0 14px; font-weight: 700; }
+    .foot-col a, .foot-col p { display: block; color: rgba(247, 238, 214, 0.78); font-size: 13px; padding: 4px 0; margin: 0; }
+    .foot-col a:hover { color: var(--paper); }
+    .foot-bot { margin-top: 56px; padding-top: 20px; border-top: 1px solid rgba(247, 238, 214, 0.16); display: flex; justify-content: space-between; font-size: 12px; color: rgba(247, 238, 214, 0.5); }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 8px; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a href="#" class="brand"><span class="brand-mark">v</span>Voyage Rail</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#journeys">Journeys</a>
+        <a href="#schedule">A sample schedule</a>
+        <a href="#cabins">Cabins</a>
+        <a href="#dining">Dining car</a>
+        <a href="#guests">Guests</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-line" href="tel:+33178540032">Concierge</a>
+        <a class="btn btn-solid" href="#book">Reserve a cabin</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-text">
+          <div class="eyebrow">Est. 1894 · 4 routes · 12 sleeper cars</div>
+          <div class="ornament"><hr /><span>~</span><hr /></div>
+          <h1>A bed that crosses<br/><em>a continent.</em></h1>
+          <p class="hero-lede">Four sleeper-train journeys: Paris to Istanbul, Lisbon to Vienna, Kyoto to Kobe by the Sea of Japan, and Hanoi to Saigon. Brass fittings, a violin in the dining car, and a porter who remembers your name from the platform.</p>
+        </div>
+        <div class="hero-img">
+          <img src="https://picsum.photos/seed/voyagerail-1/2400/1100" width="2400" height="1100" alt="A vintage sleeper train wound through an alpine pass with snow-dusted peaks behind." loading="eager" />
+          <div class="hero-caption"><span>Paris Gare de l'Est · 18:54</span><span>Sirkeci Istanbul · arrival 18:23</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="book-section">
+      <div class="wrap">
+        <form class="book" id="book" onsubmit="event.preventDefault();" aria-label="Reservation">
+          <div class="book-field"><label for="b-journey">Journey</label><select id="b-journey"><option>Paris → Istanbul · 6 nights</option><option>Lisbon → Vienna · 4 nights</option><option>Kyoto → Kobe coast · 3 nights</option><option>Hanoi → Saigon · 5 nights</option></select></div>
+          <div class="book-field"><label for="b-depart">Departure</label><input id="b-depart" type="date" /></div>
+          <div class="book-field"><label for="b-cabin">Cabin</label><select id="b-cabin"><option>Any cabin</option><option>Wagon-Lits Single</option><option>Pullman Double</option><option>Grand Suite</option></select></div>
+          <div class="book-field"><label for="b-guests">Guests</label><select id="b-guests"><option>2 guests</option><option>1 guest</option><option>3 guests</option><option>4 guests</option></select></div>
+          <button type="submit">Check schedule</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="section" id="journeys">
+      <div class="wrap">
+        <div class="section-head">
+          <div class="eyebrow">The four routes</div>
+          <h2>Four journeys, <em>one bed each night.</em></h2>
+          <p>Every route runs eight to twelve times between April and October. The train is your hotel, your dining room, and your viewing platform for the better part of a week.</p>
+        </div>
+        <div class="journeys">
+          <article class="journey">
+            <img src="https://picsum.photos/seed/voyagerail-2/1400/900" width="1400" height="900" alt="A train winding through Bulgarian countryside at dawn." loading="lazy" />
+            <div class="journey-body">
+              <div class="journey-route">Paris · Munich · Budapest · Bucharest · Istanbul</div>
+              <h3>The Eastern Express</h3>
+              <p>Six nights from Paris to Istanbul, with two-night stays in Budapest and Bucharest. The original 1894 route, restored, in twelve cars.</p>
+              <div class="journey-stats"><div><div class="n">6</div><div class="l">Nights</div></div><div><div class="n">2,892 km</div><div class="l">Track</div></div><div><div class="n">5</div><div class="l">Countries</div></div></div>
+              <div class="journey-foot"><div class="journey-price">€12,400 <span>/ guest · twin</span></div><a href="#">View →</a></div>
+            </div>
+          </article>
+          <article class="journey">
+            <img src="https://picsum.photos/seed/voyagerail-3/1400/900" width="1400" height="900" alt="A train alongside Portuguese vineyards in the Douro valley." loading="lazy" />
+            <div class="journey-body">
+              <div class="journey-route">Lisbon · Salamanca · Bordeaux · Munich · Vienna</div>
+              <h3>The Iberia & Danube</h3>
+              <p>Four nights from Lisbon along the Douro and over the Pyrenees to the Danube. Built on the old TER carriages, fully restored in 2022.</p>
+              <div class="journey-stats"><div><div class="n">4</div><div class="l">Nights</div></div><div><div class="n">2,140 km</div><div class="l">Track</div></div><div><div class="n">4</div><div class="l">Countries</div></div></div>
+              <div class="journey-foot"><div class="journey-price">€8,640 <span>/ guest · twin</span></div><a href="#">View →</a></div>
+            </div>
+          </article>
+          <article class="journey">
+            <img src="https://picsum.photos/seed/voyagerail-4/1400/900" width="1400" height="900" alt="A train winding along the Japanese coast under cherry trees." loading="lazy" />
+            <div class="journey-body">
+              <div class="journey-route">Kyoto · Tottori · Matsue · Hagi · Kobe</div>
+              <h3>The Sea of Japan</h3>
+              <p>Three nights along the wild west coast of Honshū. Onsen-led day stops, sushi dinners on board, and a final morning at the port of Kobe.</p>
+              <div class="journey-stats"><div><div class="n">3</div><div class="l">Nights</div></div><div><div class="n">1,180 km</div><div class="l">Track</div></div><div><div class="n">4</div><div class="l">Onsen stops</div></div></div>
+              <div class="journey-foot"><div class="journey-price">€6,920 <span>/ guest · twin</span></div><a href="#">View →</a></div>
+            </div>
+          </article>
+          <article class="journey">
+            <img src="https://picsum.photos/seed/voyagerail-5/1400/900" width="1400" height="900" alt="A vintage Vietnamese train crossing a rice paddy at golden hour." loading="lazy" />
+            <div class="journey-body">
+              <div class="journey-route">Hanoi · Huế · Da Nang · Nha Trang · Saigon</div>
+              <h3>The Reunification</h3>
+              <p>Five nights down the spine of Vietnam in restored 1960s sleeper cars. Includes a two-night stop in Huế and a day on the Hai Van pass.</p>
+              <div class="journey-stats"><div><div class="n">5</div><div class="l">Nights</div></div><div><div class="n">1,726 km</div><div class="l">Track</div></div><div><div class="n">3</div><div class="l">Day stops</div></div></div>
+              <div class="journey-foot"><div class="journey-price">€9,840 <span>/ guest · twin</span></div><a href="#">View →</a></div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="schedule" id="schedule">
+      <div class="wrap">
+        <div class="section-head">
+          <div class="eyebrow" style="color: var(--warm);">A sample schedule · The Eastern Express</div>
+          <h2>From <em>Paris</em> to <em>Istanbul</em>, in six nights.</h2>
+          <p>An indicative timetable from our June 2026 departure. Day stops are walking tours, dinners ashore, or simply a long lunch in a station-front café.</p>
+        </div>
+        <div class="schedule-grid">
+          <div class="schedule-img">
+            <img src="https://picsum.photos/seed/voyagerail-6/1100/1400" width="1100" height="1400" alt="A train conductor checking a pocket watch on a station platform at dusk." loading="lazy" />
+          </div>
+          <div>
+            <div class="stop"><div class="city">Paris</div><div class="what">Aperitif in the bar car, departure under the great arch of Gare de l'Est.</div><div class="time">Day 1 · 18:54</div></div>
+            <div class="stop"><div class="city">Munich</div><div class="what">Breakfast on the train, late-morning walking tour of the Hofbräuhaus.</div><div class="time">Day 2 · 10:22</div></div>
+            <div class="stop"><div class="city">Budapest</div><div class="what">Two nights ashore at the Gresham Palace. Thermal baths, dinner at Onyx.</div><div class="time">Day 3 → 5</div></div>
+            <div class="stop"><div class="city">Sinaia</div><div class="what">Lunch stop, vintage cars to the Peleș Castle, back on board by 6 p.m.</div><div class="time">Day 5 · 13:40</div></div>
+            <div class="stop"><div class="city">Bucharest</div><div class="what">A long evening ashore: dinner at Caru' cu Bere, opera optional.</div><div class="time">Day 5 · 18:14</div></div>
+            <div class="stop"><div class="city">Sofia</div><div class="what">Morning at the Boyana Church, lunch on board across the Maritsa river.</div><div class="time">Day 6 · 09:30</div></div>
+            <div class="stop"><div class="city">Istanbul</div><div class="what">Arrival at Sirkeci, transfer to the Pera Palace. Dinner overlooks the Bosphorus.</div><div class="time">Day 7 · 18:23</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="cabins">
+      <div class="wrap">
+        <div class="section-head">
+          <div class="eyebrow">The cabins</div>
+          <h2>Three classes <em>of sleep.</em></h2>
+          <p>Every cabin has a private window, a writing desk, an en suite shower, and a porter who is in the next compartment. There are no shared facilities on any of our trains.</p>
+        </div>
+        <div class="cabins">
+          <article class="cab">
+            <div class="icon">i</div>
+            <h3>Wagon-Lits Single</h3>
+            <div class="size">5.4 m² · single bed · for solo travellers</div>
+            <p>A restored 1929 Compagnie Wagon-Lits cabin, a single bed by day, a desk and a window seat by morning.</p>
+            <div class="price">from €6,840 <span>/ guest</span></div>
+          </article>
+          <article class="cab">
+            <div class="icon">ii</div>
+            <h3>Pullman Double</h3>
+            <div class="size">8.2 m² · queen bed · ensuite shower</div>
+            <p>The most-asked-for cabin on the train. A queen bed, a private shower, brass and marquetry detail by Lalique.</p>
+            <div class="price">from €12,400 <span>/ guest</span></div>
+          </article>
+          <article class="cab">
+            <div class="icon">iii</div>
+            <h3>Grand Suite</h3>
+            <div class="size">14.6 m² · separate sitting room · butler</div>
+            <p>Two suites per train, side-by-side. A separate sitting room, a dedicated butler, and a private dining option.</p>
+            <div class="price">from €24,800 <span>/ guest</span></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="dining">
+      <div class="wrap">
+        <div class="dining">
+          <img src="https://picsum.photos/seed/voyagerail-7/1100/1400" width="1100" height="1400" alt="A vintage dining car set with white tablecloths, brass lamps, and crystal glassware." loading="lazy" />
+          <div>
+            <div class="eyebrow">The dining car</div>
+            <h2>A small kitchen, <em>a long table.</em></h2>
+            <p style="font-size: 17px; color: var(--fg-2); margin: 22px 0 0;">Our chef Aurélie Joly trains every season in a different kitchen along the route. This is the indicative menu for the June 2026 Paris → Istanbul departure.</p>
+            <ul class="menu-list">
+              <li><div><h4>Day 1 · A French dinner</h4><p>Asparagus velouté, sole meunière, tarte au citron.</p></div><div class="where">Paris</div></li>
+              <li><div><h4>Day 2 · A Bavarian lunch</h4><p>Bratwurst with sauerkraut, kartoffelsalat, apfelstrudel.</p></div><div class="where">Munich</div></li>
+              <li><div><h4>Day 3 · A Hungarian supper</h4><p>Goulash, langos, csíki cabbage.</p></div><div class="where">Budapest</div></li>
+              <li><div><h4>Day 6 · A Bulgarian evening</h4><p>Tarator soup, lamb on the bone, baklava with rosewater.</p></div><div class="where">Sofia</div></li>
+              <li><div><h4>Day 7 · A farewell on the Bosphorus</h4><p>Mezze, fish from the strait, Turkish coffee at the window.</p></div><div class="where">Istanbul</div></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="guests">
+      <div class="wrap">
+        <div class="section-head">
+          <div class="eyebrow">Guests</div>
+          <h2>From the <em>guest book.</em></h2>
+          <p>Voyage Rail keeps a leather guest book in each dining car. These entries are reproduced with permission, lightly edited for length.</p>
+        </div>
+        <div class="testi-grid">
+          <div class="testi"><blockquote>"I have travelled by train for sixty years and I had given up. This is the first time in twenty I have not flown to a wedding. We arrived rested. We arrived elsewhere."</blockquote><div class="who"><b>Lord Henry M.</b> · Paris → Istanbul · June 2025</div></div>
+          <div class="testi"><blockquote>"The violinist who plays the dining car is a Vienna Phil retiree. He played for our table at midnight on our anniversary. I will never forget it."</blockquote><div class="who"><b>Annabelle & Arnaud V.</b> · Lisbon → Vienna · May 2025</div></div>
+          <div class="testi"><blockquote>"Watching the Sea of Japan from a bed, with a bowl of nigiri on the lap-tray. Train travel as it should be — not nostalgic, alive."</blockquote><div class="who"><b>Sara T.</b> · Kyoto → Kobe · October 2025</div></div>
+          <div class="testi"><blockquote>"Mr Tran, our porter on the Reunification, remembered our cabin number, our breakfast, and the colour of my wife's robe by the morning of day two."</blockquote><div class="who"><b>Peter & Maeve O.</b> · Hanoi → Saigon · March 2025</div></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-top">
+        <h2 style="font-size: clamp(40px, 5.4vw, 72px);">Step aboard <em>any night between April and October.</em></h2>
+        <a class="btn" style="margin-top: 24px; background: var(--paper); color: var(--accent);" href="#book">View 2026 departures</a>
+      </div>
+      <div class="foot-grid">
+        <div class="foot-col">
+          <div class="brand" style="color: var(--paper);"><span class="brand-mark" style="color: var(--warm); border-color: var(--warm);">v</span>Voyage Rail</div>
+          <p style="margin-top: 14px; max-width: 280px;">Luxury sleeper-train journeys across Europe and Asia. Operating since 1894 · 4 routes · 12 sleeper cars.</p>
+        </div>
+        <div class="foot-col"><h4>Journeys</h4><a href="#journeys">All four routes</a><a href="#">Private charters</a><a href="#">2026 departures</a><a href="#">Group bookings</a></div>
+        <div class="foot-col"><h4>The trains</h4><a href="#cabins">Cabins</a><a href="#dining">Dining car</a><a href="#">Our porters</a><a href="#">Heritage</a></div>
+        <div class="foot-col"><h4>Concierge</h4><a href="tel:+33178540032">+33 1 78 54 00 32</a><a href="mailto:concierge@voyagerail.com">concierge@voyagerail.com</a><a href="#">Paris office</a></div>
+      </div>
+      <div class="foot-bot"><span>© 2026 Voyage Rail S.A. · Boulevard Haussmann · Paris</span><span>4 routes · 12 cars · since 1894</span></div>
+    </div>
+  </footer>
+</body>
+</html>

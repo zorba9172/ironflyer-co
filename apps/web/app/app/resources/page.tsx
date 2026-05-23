@@ -13,6 +13,7 @@ import { api, Project } from '../../../lib/api';
 import { tokens } from '../../../lib/theme';
 import { RequireAuth, useAuth } from '../../auth-context';
 import { AppShell, PageTitle, Surface } from '../workspace-shell';
+import { TEMPLATES, TEMPLATE_COUNT, type TemplateMeta } from './templates.generated';
 
 interface ResourceLink {
   title: string;
@@ -23,18 +24,8 @@ interface ResourceLink {
   cta: string;
 }
 
-interface TemplateResource {
-  title: string;
-  type: string;
-  img: string;
-  source: string;
-  desc: string;
-  stack: string;
-  prompt: string;
-}
-
 const categories = [
-  { label: 'הכל',       icon: <Dashboard fontSize="small" /> },
+  { label: 'All',       icon: <Dashboard fontSize="small" /> },
   { label: 'Websites',  icon: <Language fontSize="small" /> },
   { label: 'Apps',      icon: <AutoAwesome fontSize="small" /> },
   { label: 'Commerce',  icon: <Storefront fontSize="small" /> },
@@ -43,107 +34,57 @@ const categories = [
 
 const linkCards: ResourceLink[] = [
   {
-    title: 'תיעוד',
-    desc: 'מדריכי התחלה, ארכיטקטורת הגייטים, ומפת חדרי הספקים.',
+    title: 'Docs',
+    desc: 'Getting started guides, gate architecture, and provider routing details.',
     href: '/docs',
     icon: <MenuBook />,
-    cta: 'פתח תיעוד',
+    cta: 'Open docs',
   },
   {
     title: 'API Reference',
-    desc: 'נקודות קצה של ה־orchestrator וה־runtime, כולל ה־@ironflyer/sdk.',
+    desc: 'Orchestrator and runtime endpoints, including the @ironflyer/sdk client.',
     href: '/docs/api',
     icon: <Code />,
-    cta: 'פתח API',
+    cta: 'Open API',
   },
   {
-    title: 'גלריית תבניות',
-    desc: 'אוסף תבניות מוכנות שניתן להוריד לסביבת הריצה ישירות מהפרומפט.',
+    title: 'Template gallery',
+    desc: 'Curated starter templates that can be pulled into the runtime directly from a prompt.',
     href: '/app/resources#templates',
     icon: <AutoAwesome />,
-    cta: 'גלה תבניות',
+    cta: 'Explore templates',
   },
   {
-    title: 'דף סטטוס',
-    desc: 'זמינות שירותים, אירועים פתוחים, וזמני תגובה ל־30 הימים האחרונים.',
+    title: 'Status page',
+    desc: 'Service availability, open incidents, and response times over the last 30 days.',
     href: 'https://status.ironflyer.dev',
     external: true,
     icon: <Timeline />,
-    cta: 'דף סטטוס',
+    cta: 'Open status',
   },
   {
-    title: 'קהילה ו־Discord',
-    desc: 'דיון עם בונים אחרים, שיתוף פאצ׳ים, וקבלת עזרה מהירה.',
+    title: 'Community and Discord',
+    desc: 'Talk with other builders, share patches, and get fast help from the team.',
     href: 'https://discord.gg/ironflyer',
     external: true,
     icon: <ChatBubbleOutline />,
-    cta: 'הצטרף',
+    cta: 'Join',
   },
   {
-    title: 'יומן שינויים',
-    desc: 'גרסאות חדשות, גייטים שנוספו, ושיפורי ביצועים בזמן אמת.',
+    title: 'Changelog',
+    desc: 'New releases, newly added gates, and runtime performance improvements.',
     href: '/changelog',
     icon: <Description />,
-    cta: 'קרא יומן',
+    cta: 'Read changelog',
   },
 ];
 
-const resources: TemplateResource[] = [
-  {
-    title: 'Aiforge AI SaaS',
-    type: 'Apps',
-    img: '/templates/aiforge-hero.jpg',
-    source: 'templates/aiforge',
-    desc: 'נחיתת AI, אינטגרציות, עמודי שירות, בלוג ותמחור מוכן לייצור.',
-    stack: 'HTML + SCSS + JS',
-    prompt: 'Use the local Aiforge template as the visual foundation for an AI SaaS app with landing pages, integrations, pricing, blog, onboarding, and production launch checks.',
-  },
-  {
-    title: 'Allstore Commerce',
-    type: 'Commerce',
-    img: '/templates/allstore-slide.jpg',
-    source: 'templates/allstore-html-template/html',
-    desc: 'קטלוג, באנר מבצעים, ניווט קטגוריות, ועמודי מוצר עם רשת מעוצבת.',
-    stack: 'HTML commerce',
-    prompt: 'Use the local Allstore HTML template as the foundation for a commerce storefront with catalog pages, product detail, cart, checkout, order states, and CMS-ready content.',
-  },
-  {
-    title: 'Davies Agency System',
-    type: 'Websites',
-    img: '/templates/davies-demo.jpg',
-    source: 'templates/davies-mainfiles/davies',
-    desc: 'אתר סוכנות כהה עם תיק עבודות, שירותים, תהליך, תמחור וקונטקט.',
-    stack: 'HTML portfolio',
-    prompt: 'Use the local Davies template as the base for a premium agency website with portfolio demos, service sections, process, pricing, contact flows, analytics, and SEO checks.',
-  },
-  {
-    title: 'Codec Mobile Kit',
-    type: 'Mobile/PWA',
-    img: '/templates/codec-mobile.png',
-    source: 'templates/codec-mobile/codec',
-    desc: 'ערכת UI מובייל עם וריאציות צבע, מסכי אפליקציה, אונבורדינג ו־PWA.',
-    stack: 'Mobile HTML kit',
-    prompt: 'Use the local Codec mobile template as the foundation for a mobile-first PWA with onboarding, app navigation, profile screens, push-ready flows, and touch ergonomics.',
-  },
-  {
-    title: 'Blix Portfolio Mobile',
-    type: 'Mobile/PWA',
-    img: '/templates/blix-mobile.png',
-    source: 'templates/blix/blix',
-    desc: 'תיק עבודות מובייל קומפקטי עם מספר ערכות צבע ועמודים swipe-first.',
-    stack: 'Mobile portfolio',
-    prompt: 'Use the local Blix mobile template as the foundation for a mobile portfolio PWA with themed variants, project pages, contact flows, and CMS-ready portfolio content.',
-  },
-  {
-    title: 'Varius Experience Site',
-    type: 'Websites',
-    img: '/templates/varius-mobile.jpg',
-    source: 'templates/varius-mobile/varius',
-    desc: 'אוסף תבניות web למובייל למוזיקה, מסעדה, חתונה ויופי.',
-    stack: 'Mobile web suite',
-    prompt: 'Use the local Varius template suite as the foundation for a polished mobile web experience with vertical-specific pages, booking/contact flows, maps, and content sections.',
-  },
-];
+// Detailed categories surfaced as a secondary filter (10 total — one per
+// directory under templates/sites/). The top-level `type` chips above
+// stay; this row lets users drill into Restaurant / Real Estate / etc.
+const detailedCategories = Array.from(new Set(TEMPLATES.map((t) => t.category))).sort();
+
+const resources: TemplateMeta[] = TEMPLATES;
 
 export default function ResourcesPage() {
   return (
@@ -158,7 +99,8 @@ function ResourcesInner() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [query, setQuery] = useState('');
   const [view, setView] = useState<'grid' | 'list'>('grid');
-  const [category, setCategory] = useState('הכל');
+  const [category, setCategory] = useState('All');
+  const [detailedCategory, setDetailedCategory] = useState('All');
 
   useEffect(() => {
     void api.listProjects().then(setProjects).catch(() => setProjects([]));
@@ -167,17 +109,18 @@ function ResourcesInner() {
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     return resources.filter((item) => {
-      if (category !== 'הכל' && item.type !== category) return false;
+      if (category !== 'All' && item.type !== category) return false;
+      if (detailedCategory !== 'All' && item.category !== detailedCategory) return false;
       if (!q) return true;
-      return [item.title, item.type, item.desc, item.stack, item.source].join(' ').toLowerCase().includes(q);
+      return [item.title, item.type, item.category, item.subtitle, item.stack, item.source, item.tags.join(' ')].join(' ').toLowerCase().includes(q);
     });
-  }, [category, query]);
+  }, [category, detailedCategory, query]);
 
-  function useTemplate(item: TemplateResource) {
+  function useTemplate(item: TemplateMeta) {
     window.localStorage.setItem('ironflyer.pendingIdea', [
       item.prompt,
       '',
-      `Template: ${item.title}`,
+      `Template: ${item.title} (${item.category})`,
       `Use the local source package at ${item.source} as the visual and interaction reference.`,
     ].join('\n'));
     window.location.href = '/app';
@@ -186,9 +129,9 @@ function ResourcesInner() {
   return (
     <AppShell userEmail={user?.email ?? 'workspace'} recents={projects.slice(0, 5)} onLogout={logout} query={query} setQuery={setQuery} view={view} setView={setView}>
       <PageTitle
-        eyebrow="משאבים"
-        title="כל מה שצריך לבנות"
-        subtitle="תבניות אמיתיות, תיעוד, יומן שינויים, וקהילה — מרוכזים במקום אחד."
+        eyebrow="Resources"
+        title="Everything you need to build"
+        subtitle="Real templates, documentation, changelog, and community links in one place."
       />
 
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 1.4, mb: 2.4 }}>
@@ -198,9 +141,9 @@ function ResourcesInner() {
       <Box id="templates">
         <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={1.2} sx={{ mb: 1.6 }}>
           <Box>
-            <Typography variant="h5" sx={{ fontWeight: 900 }}>גלריית תבניות</Typography>
+            <Typography variant="h5" sx={{ fontWeight: 900 }}>Template gallery</Typography>
             <Typography variant="body2" sx={{ color: '#686158' }}>
-              בחר תבנית מקומית, השתמש בה כעוגן ויזואלי, והמשך לבנייה ישירות מהפרומפט.
+              {TEMPLATE_COUNT} original templates across {detailedCategories.length} categories. Pick one, seed the prompt, and ship through the gates.
             </Typography>
           </Box>
           <Stack direction="row" spacing={0.7} useFlexGap flexWrap="wrap">
@@ -220,6 +163,36 @@ function ResourcesInner() {
               />
             ))}
           </Stack>
+        </Stack>
+
+        <Stack direction="row" spacing={0.6} useFlexGap flexWrap="wrap" sx={{ mb: 1.4 }}>
+          <Chip
+            label="All categories"
+            onClick={() => setDetailedCategory('All')}
+            size="small"
+            sx={{
+              borderRadius: '6px',
+              bgcolor: detailedCategory === 'All' ? '#111' : 'transparent',
+              color: detailedCategory === 'All' ? tokens.color.accent.lime : '#514a41',
+              border: `1px solid ${detailedCategory === 'All' ? '#111' : 'rgba(17,17,17,0.14)'}`,
+              fontWeight: 700,
+            }}
+          />
+          {detailedCategories.map((label) => (
+            <Chip
+              key={label}
+              label={label}
+              size="small"
+              onClick={() => setDetailedCategory(label)}
+              sx={{
+                borderRadius: '6px',
+                bgcolor: detailedCategory === label ? '#111' : 'transparent',
+                color: detailedCategory === label ? tokens.color.accent.lime : '#514a41',
+                border: `1px solid ${detailedCategory === label ? '#111' : 'rgba(17,17,17,0.14)'}`,
+                fontWeight: 600,
+              }}
+            />
+          ))}
         </Stack>
       </Box>
 
@@ -246,9 +219,9 @@ function ResourcesInner() {
         </Box>
       ) : (
         <Surface sx={{ p: 4, mt: 1.5, textAlign: 'center' }}>
-          <Typography variant="h6" sx={{ fontWeight: 900 }}>אין תבניות תואמות</Typography>
+          <Typography variant="h6" sx={{ fontWeight: 900 }}>No matching templates</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            נסה קטגוריה אחרת או נקה את שדה החיפוש.
+            Try another category or clear the search field.
           </Typography>
         </Surface>
       )}
@@ -256,14 +229,14 @@ function ResourcesInner() {
       <Surface sx={{ p: { xs: 1.4, md: 1.7 }, mt: 1.8 }}>
         <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={1.2}>
           <Box>
-            <Typography variant="subtitle2">תבניות זמינות</Typography>
+            <Typography variant="subtitle2">Available templates</Typography>
             <Typography variant="body2" color="text.secondary">
-              מציג {visible.length} חבילת קוד אמיתית מהתיקייה המקומית /templates.
+              Showing {visible.length} of {TEMPLATE_COUNT} original templates in templates/sites/.
             </Typography>
           </Box>
           <Stack direction="row" spacing={0.6} useFlexGap flexWrap="wrap">
             {visible.slice(0, 4).map((item) => (
-              <Chip key={item.source} label={item.source.replace('templates/', '')} size="small" sx={metaChipSx} />
+              <Chip key={item.source} label={item.source.replace('templates/sites/', '')} size="small" sx={metaChipSx} />
             ))}
           </Stack>
         </Stack>
@@ -307,7 +280,8 @@ function LinkCard({ card }: { card: ResourceLink }) {
   return <Link href={card.href} style={{ textDecoration: 'none', color: 'inherit' }}>{inner}</Link>;
 }
 
-function TemplateCard({ item, onUse }: { item: TemplateResource; onUse: () => void }) {
+function TemplateCard({ item, onUse }: { item: TemplateMeta; onUse: () => void }) {
+  const swatch = item.palette;
   return (
     <Surface sx={{
       height: '100%',
@@ -319,37 +293,56 @@ function TemplateCard({ item, onUse }: { item: TemplateResource; onUse: () => vo
       <Box sx={{
         position: 'relative',
         height: { xs: 198, md: 220 },
-        bgcolor: '#111',
+        bgcolor: swatch.bg,
         overflow: 'hidden',
       }}>
-        <Box component="img" src={item.img} alt="" sx={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        <Box component="img" src={item.previewImage} alt={`${item.title} preview`} loading="lazy" sx={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         <Box sx={{
           position: 'absolute',
           inset: 0,
           background: 'linear-gradient(180deg, rgba(17,17,17,0.02), rgba(17,17,17,0.68))',
         }} />
         <Stack direction="row" spacing={0.6} sx={{ position: 'absolute', left: 12, right: 12, bottom: 12 }} useFlexGap flexWrap="wrap">
+          <Chip label={item.category} size="small" sx={floatingChipSx} />
           <Chip label={item.type} size="small" sx={floatingChipSx} />
-          <Chip label={item.stack} size="small" sx={floatingChipSx} />
         </Stack>
       </Box>
 
       <Box sx={{ p: 1.8, display: 'flex', flexDirection: 'column', flex: 1 }}>
         <Typography variant="h6" sx={{ lineHeight: 1.08, fontWeight: 900 }}>{item.title}</Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.7 }}>{item.desc}</Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.7 }}>{item.subtitle}</Typography>
 
         <Stack direction="row" spacing={0.6} useFlexGap flexWrap="wrap" sx={{ mt: 1.2 }}>
-          <Chip label={item.type} size="small" sx={metaChipSx} />
-          <Chip label={item.stack} size="small" sx={metaChipSx} />
+          {item.tags.slice(0, 3).map((tag) => (
+            <Chip key={tag} label={tag} size="small" sx={metaChipSx} />
+          ))}
         </Stack>
 
-        <Typography variant="caption" color="text.secondary" sx={{ mt: 1.3, display: 'block', wordBreak: 'break-word' }}>
-          {item.source}
-        </Typography>
+        <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 1.2 }}>
+          <Box sx={{ width: 14, height: 14, borderRadius: '4px', bgcolor: swatch.bg, border: '1px solid rgba(17,17,17,0.16)' }} />
+          <Box sx={{ width: 14, height: 14, borderRadius: '4px', bgcolor: swatch.fg, border: '1px solid rgba(17,17,17,0.16)' }} />
+          <Box sx={{ width: 14, height: 14, borderRadius: '4px', bgcolor: swatch.accent, border: '1px solid rgba(17,17,17,0.16)' }} />
+          <Typography variant="caption" color="text.secondary" sx={{ ml: 0.5, fontFamily: 'monospace' }}>{item.slug}</Typography>
+        </Stack>
 
-        <Button variant="contained" size="small" sx={{ mt: 'auto', alignSelf: 'flex-start', pt: 0.72 }} onClick={onUse}>
-          השתמש בתבנית
-        </Button>
+        <Stack direction="row" spacing={0.8} sx={{ mt: 'auto' }} useFlexGap flexWrap="wrap">
+          <Button variant="contained" size="small" sx={{ pt: 0.72 }} onClick={onUse}>
+            Use template
+          </Button>
+          {item.livePreview ? (
+            <Button
+              component="a"
+              href={item.livePreview}
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="outlined"
+              size="small"
+              sx={{ pt: 0.72 }}
+            >
+              Live preview ↗
+            </Button>
+          ) : null}
+        </Stack>
       </Box>
     </Surface>
   );

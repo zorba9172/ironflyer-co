@@ -9,18 +9,19 @@ import {
   Box, Button, Container, Divider, IconButton, Stack, Typography,
 } from '@mui/material';
 import { tokens } from '../../../packages/design-tokens';
+import { IronflyerLogo } from '../components/brand/IronflyerLogo';
 
 // Shared marketing chrome — sticky blur nav, generous footer with real links,
 // announcement bar. Lives in a client component so we can drive the scroll-
 // based blur effect; child marketing surfaces stay server components.
 
 export const navItems = [
-  { label: 'מוצר',    en: 'Product',    href: '/product' },
-  { label: 'תבניות',  en: 'Templates',  href: '/templates' },
-  { label: 'מחיר',    en: 'Pricing',    href: '/pricing' },
-  { label: 'פתרונות', en: 'Solutions',  href: '/solutions' },
-  { label: 'אבטחה',   en: 'Security',   href: '/security' },
-  { label: 'ארגונים', en: 'Enterprise', href: '/enterprise' },
+  { label: 'Product',    href: '/product' },
+  { label: 'Templates',  href: '/templates' },
+  { label: 'Pricing',    href: '/pricing' },
+  { label: 'Solutions',  href: '/solutions' },
+  { label: 'Security',   href: '/security' },
+  { label: 'Enterprise', href: '/enterprise' },
 ];
 
 const footerGroups = [
@@ -132,35 +133,13 @@ export function SiteNav() {
         gap: { xs: 1.5, md: 3 },
       }}>
         <Link href="/" style={{ color: 'inherit', textDecoration: 'none' }}>
-          <Stack direction="row" spacing={1.2} alignItems="center">
-            <Box sx={{
-              width: 26, height: 26, borderRadius: '8px',
-              bgcolor: '#0d0e0f',
-              display: 'grid', placeItems: 'center',
-              position: 'relative',
-              overflow: 'hidden',
-              '&::after': {
-                content: '""',
-                position: 'absolute', inset: 0,
-                background: `radial-gradient(circle at 30% 30%, ${tokens.color.accent.lime}, transparent 65%)`,
-              },
-            }} />
-            <Typography sx={{
-              fontFamily: tokens.font.display,
-              fontSize: { xs: 20, md: 22 },
-              lineHeight: 1,
-              textTransform: 'uppercase',
-              color: '#111',
-            }}>
-              Ironflyer
-            </Typography>
-          </Stack>
+          <IronflyerLogo size={30} tone="light" />
         </Link>
 
         <Stack direction="row" spacing={{ md: 3.2, lg: 4 }} justifyContent="center" sx={{ display: { xs: 'none', md: 'flex' } }}>
           {navItems.map((item) => (
             <Link key={item.href} href={item.href} style={{ color: 'inherit', textDecoration: 'none' }}>
-              <Typography variant="body2" sx={navLinkSx}>{item.en}</Typography>
+              <Typography variant="body2" sx={navLinkSx}>{item.label}</Typography>
             </Link>
           ))}
         </Stack>
@@ -196,8 +175,8 @@ export function SiteNav() {
               '&:hover': { bgcolor: '#f0ff36' },
             }}
           >
-            <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>התחל לבנות</Box>
-            <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>בנה</Box>
+            <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Start building</Box>
+            <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>Build</Box>
           </Button>
         </Stack>
       </Container>
@@ -211,16 +190,7 @@ export function SiteFooter() {
       <Container maxWidth="xl" sx={{ py: { xs: 7, md: 10 } }}>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.2fr 0.9fr 0.9fr 0.9fr 0.9fr' }, gap: { xs: 5, md: 4 } }}>
           <Box>
-            <Stack direction="row" alignItems="center" spacing={1.4}>
-              <Box sx={{
-                width: 32, height: 32, borderRadius: '8px',
-                bgcolor: tokens.color.accent.lime,
-                boxShadow: '0 0 24px rgba(229,255,0,0.32)',
-              }} />
-              <Typography variant="h6" sx={{ fontFamily: tokens.font.display, fontWeight: 400, letterSpacing: 0, fontSize: 22 }}>
-                IRONFLYER
-              </Typography>
-            </Stack>
+            <IronflyerLogo size={36} tone="dark" tagline />
             <Typography variant="body2" sx={{ mt: 2.2, maxWidth: 320, color: '#9c968a', lineHeight: 1.55 }}>
               The AI Product Finisher. Spec to deploy, gated end-to-end — built so the AI never ships work that wouldn’t survive a code review.
             </Typography>

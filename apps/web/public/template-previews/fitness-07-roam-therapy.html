@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Roam Therapy — Therapy that meets you where you are</title>
+  <meta name="description" content="A small group therapy practice offering CBT, IFS, EMDR, and couples work. In-person in Oakland, secure telehealth across California, sliding scale available." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #faf5ec;
+      --paper: #fff;
+      --ink: #1d1a30;
+      --ink-2: #4d495f;
+      --ink-3: #837e98;
+      --line: rgba(29,26,48,0.10);
+      --line-strong: rgba(29,26,48,0.22);
+      --accent: #6b5cff;
+      --accent-soft: #ece9ff;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--ink); font-family: 'Inter', system-ui, sans-serif; line-height: 1.65; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+    .serif { font-family: 'Instrument Serif', serif; font-weight: 400; }
+
+    .nav { padding: 22px 0; }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { font-family: 'Instrument Serif', serif; font-size: 26px; letter-spacing: 0; }
+    .brand .dot { color: var(--accent); }
+    .nav-links { display: flex; gap: 28px; font-size: 14px; color: var(--ink-2); }
+    .nav-links a:hover { color: var(--ink); }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 22px; border-radius: 999px; font-weight: 500; font-size: 14px; border: 1px solid transparent; cursor: pointer; transition: transform 200ms; }
+    .btn-primary { background: var(--ink); color: var(--bg); }
+    .btn-primary:hover { background: var(--accent); }
+    .btn-ghost { background: transparent; color: var(--ink); border-color: var(--line-strong); }
+    .btn-ghost:hover { border-color: var(--ink); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    .hero { padding: 64px 0 96px; }
+    .hero-grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 56px; align-items: center; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; background: var(--accent-soft); color: var(--accent); border-radius: 999px; font-size: 13px; font-weight: 500; }
+    .eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+    h1 { font-family: 'Instrument Serif', serif; font-weight: 400; font-size: clamp(48px, 7vw, 88px); line-height: 1.0; letter-spacing: -0.01em; margin: 22px 0 24px; }
+    h1 em { font-style: italic; color: var(--accent); }
+    .lede { font-size: 19px; color: var(--ink-2); max-width: 500px; line-height: 1.6; }
+    .hero-cta { display: flex; gap: 12px; margin-top: 30px; flex-wrap: wrap; }
+    .hero-art { position: relative; }
+    .hero-art img { width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 220px 220px 16px 16px; }
+    .hero-tags { position: absolute; top: 24px; left: -20px; display: flex; flex-direction: column; gap: 10px; }
+    .hero-tags span { background: var(--paper); border: 1px solid var(--line); padding: 8px 14px; border-radius: 999px; font-size: 13px; box-shadow: 0 6px 24px rgba(29,26,48,0.06); }
+    .hero-tags span::before { content: '✦ '; color: var(--accent); }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; } }
+
+    .section { padding: 96px 0; }
+    .section.alt { background: var(--paper); }
+    .section h2 { font-family: 'Instrument Serif', serif; font-weight: 400; font-size: clamp(36px, 5vw, 56px); letter-spacing: -0.01em; line-height: 1.08; margin: 12px 0 16px; }
+    .section h2 em { font-style: italic; color: var(--accent); }
+    .section-head { max-width: 700px; margin-bottom: 56px; }
+    .section-head .lede { font-size: 18px; }
+
+    .modalities { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .mod { background: var(--paper); border: 1px solid var(--line); padding: 32px; border-radius: 18px; }
+    .mod .acronym { font-family: 'Instrument Serif', serif; font-size: 36px; color: var(--accent); line-height: 1; font-style: italic; }
+    .mod h3 { font-family: 'Instrument Serif', serif; font-weight: 400; font-size: 22px; margin: 12px 0 8px; }
+    .mod p { color: var(--ink-2); font-size: 15px; margin: 0; }
+    @media (max-width: 1080px) { .modalities { grid-template-columns: 1fr; max-width: 560px; margin: 0 auto; } }
+
+    .process { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; counter-reset: step; }
+    .step { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 28px; counter-increment: step; }
+    .step::before { content: counter(step, decimal-leading-zero); font-family: 'Instrument Serif', serif; font-style: italic; font-size: 32px; color: var(--accent); display: block; margin-bottom: 10px; }
+    .step h3 { font-family: 'Instrument Serif', serif; font-weight: 400; font-size: 20px; margin: 0 0 6px; }
+    .step p { color: var(--ink-2); font-size: 14px; margin: 0; }
+    @media (max-width: 1080px) { .process { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .process { grid-template-columns: 1fr; } }
+
+    .therapists { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+    .therapist { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; }
+    .therapist img { width: 100%; aspect-ratio: 4/5; object-fit: cover; }
+    .therapist .body { padding: 22px 24px 26px; }
+    .therapist h3 { font-family: 'Instrument Serif', serif; font-weight: 400; font-size: 26px; margin: 0 0 4px; }
+    .therapist .creds { color: var(--accent); font-size: 13px; font-weight: 500; }
+    .therapist p { color: var(--ink-2); font-size: 14px; margin: 10px 0 14px; }
+    .therapist .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .therapist .tags span { font-size: 12px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink-2); }
+    @media (max-width: 1080px) { .therapists { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .therapists { grid-template-columns: 1fr; } }
+
+    .specialties { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .spec { background: var(--paper); border: 1px solid var(--line); padding: 20px 22px; border-radius: 12px; }
+    .spec h3 { font-family: 'Instrument Serif', serif; font-weight: 400; font-size: 20px; margin: 0 0 4px; }
+    .spec p { font-size: 13px; color: var(--ink-2); margin: 0; }
+    @media (max-width: 1080px) { .specialties { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .specialties { grid-template-columns: 1fr; } }
+
+    .testimonials { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+    .quote { background: var(--paper); border: 1px solid var(--line); padding: 32px; border-radius: 18px; }
+    .quote p { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 22px; line-height: 1.45; margin: 0 0 18px; color: var(--ink); }
+    .quote .who { font-size: 13px; color: var(--ink-3); }
+    .quote .who strong { color: var(--ink); }
+    @media (max-width: 1080px) { .testimonials { grid-template-columns: 1fr; } }
+
+    .fees { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+    .fees-card { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 36px; }
+    .fee-row { display: flex; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--line); }
+    .fee-row:last-child { border-bottom: 0; }
+    .fee-row .what { font-family: 'Instrument Serif', serif; font-size: 19px; }
+    .fee-row .how { color: var(--ink-3); font-size: 13px; margin-top: 2px; }
+    .fee-row .price { font-family: 'Instrument Serif', serif; font-size: 28px; color: var(--accent); font-style: italic; }
+    @media (max-width: 1080px) { .fees { grid-template-columns: 1fr; } }
+
+    details { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 20px 24px; margin-bottom: 10px; }
+    details summary { cursor: pointer; font-family: 'Instrument Serif', serif; font-size: 20px; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+    details summary::after { content: '+'; color: var(--accent); font-size: 24px; }
+    details[open] summary::after { content: '−'; }
+    details p { color: var(--ink-2); font-size: 15px; margin: 12px 0 0; }
+
+    footer { padding: 48px 0 28px; }
+    .foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 24px; align-items: flex-end; }
+    .foot .links { display: flex; gap: 24px; font-size: 14px; color: var(--ink-2); }
+    .foot .copy { font-family: 'Instrument Serif', serif; font-style: italic; color: var(--ink-3); }
+    .foot .legal { font-size: 12px; color: var(--ink-3); margin-top: 16px; max-width: 720px; }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">Roam<span class="dot">.</span></a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#modalities">How we work</a>
+        <a href="#therapists">Therapists</a>
+        <a href="#specialties">Specialties</a>
+        <a href="#fees">Fees</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <a class="btn btn-primary" href="#process">Request a consult</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>Oakland, CA · In-person + telehealth statewide</span>
+            <h1>Therapy that <em>meets you</em> where you are.</h1>
+            <p class="lede">Roam is a small group practice of eight therapists. We offer evidence-based individual and couples work. In person on Piedmont Avenue, secure telehealth across California, and a 20-minute free intake to find the right fit.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#process">Free 20-min intake</a>
+              <a class="btn btn-ghost" href="#therapists">Meet the therapists</a>
+            </div>
+          </div>
+          <div class="hero-art">
+            <img src="https://picsum.photos/seed/roam-therapy-1/900/1100" width="900" height="1100" alt="A soft warmly lit therapy office with two armchairs, a plant, and natural light through linen curtains." loading="eager" />
+            <div class="hero-tags">
+              <span>Sliding scale</span>
+              <span>LGBTQ+ affirming</span>
+              <span>Couples welcome</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="modalities">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>How we work</span>
+          <h2>Four <em>evidence-based</em> approaches.</h2>
+          <p class="lede">We don't believe in one method for everything. Your therapist will explain which approach fits and why, and adjust as you go.</p>
+        </div>
+        <div class="modalities">
+          <div class="mod"><div class="acronym">CBT</div><h3>Cognitive behavioral therapy</h3><p>Structured, skills-based work for anxiety, OCD, and depression. Homework if it helps.</p></div>
+          <div class="mod"><div class="acronym">IFS</div><h3>Internal family systems</h3><p>A parts-based approach for trauma, perfectionism, and complicated inner critics.</p></div>
+          <div class="mod"><div class="acronym">EMDR</div><h3>Eye-movement reprocessing</h3><p>Targeted work for single-event trauma and persistent intrusive memories.</p></div>
+          <div class="mod"><div class="acronym">EFT</div><h3>Emotionally focused therapy</h3><p>For couples. Structured around attachment patterns and repairing the connection underneath the argument.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="process">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Getting started</span>
+          <h2>Four steps, <em>no waitlist</em>.</h2>
+        </div>
+        <div class="process">
+          <div class="step"><h3>Reach out</h3><p>Send a short note. We reply within one business day.</p></div>
+          <div class="step"><h3>Free consult</h3><p>A 20-minute call with the therapist who looks like the best fit.</p></div>
+          <div class="step"><h3>First session</h3><p>Usually within ten days. In person on Piedmont or over secure video.</p></div>
+          <div class="step"><h3>Decide as you go</h3><p>Weekly, every other week, or shorter blocks. Stop any time, no exit interview.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="therapists">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Therapists</span>
+          <h2>The eight <em>people</em> at the practice.</h2>
+          <p class="lede">Each therapist has their own page with full bio, fees, and a short video so you can see how they sound before you call.</p>
+        </div>
+        <div class="therapists">
+          <div class="therapist">
+            <img src="https://picsum.photos/seed/roam-therapy-t1/600/750" width="600" height="750" alt="Therapist Dr. Mara Ortiz seated in a soft armchair." loading="lazy" />
+            <div class="body">
+              <h3>Dr. Mara Ortiz</h3>
+              <span class="creds">Psy.D., Licensed Clinical Psychologist</span>
+              <p>Anxiety, OCD, perfectionism. CBT and ACT. Teaches at UC Berkeley.</p>
+              <div class="tags"><span>CBT</span><span>OCD</span><span>Anxiety</span></div>
+            </div>
+          </div>
+          <div class="therapist">
+            <img src="https://picsum.photos/seed/roam-therapy-t2/600/750" width="600" height="750" alt="Therapist Jordan Avery in a soft window-lit office." loading="lazy" />
+            <div class="body">
+              <h3>Jordan Avery, LMFT</h3>
+              <span class="creds">Licensed Marriage &amp; Family Therapist</span>
+              <p>Couples, queer relationships, blended families. EFT-trained.</p>
+              <div class="tags"><span>EFT</span><span>Couples</span><span>LGBTQ+</span></div>
+            </div>
+          </div>
+          <div class="therapist">
+            <img src="https://picsum.photos/seed/roam-therapy-t3/600/750" width="600" height="750" alt="Therapist Dr. Nia Reed reading notes in a calm office." loading="lazy" />
+            <div class="body">
+              <h3>Dr. Nia Reed</h3>
+              <span class="creds">Ph.D., Licensed Clinical Psychologist</span>
+              <p>Trauma, racial identity, postpartum. EMDR + IFS.</p>
+              <div class="tags"><span>EMDR</span><span>IFS</span><span>Trauma</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="specialties">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Specialties</span>
+          <h2>What we <em>actually help with</em>.</h2>
+        </div>
+        <div class="specialties">
+          <div class="spec"><h3>Anxiety</h3><p>Generalized, panic, social, and health anxiety.</p></div>
+          <div class="spec"><h3>Depression</h3><p>Persistent low mood, burnout, and post-loss adjustment.</p></div>
+          <div class="spec"><h3>Trauma &amp; PTSD</h3><p>Single-event and complex trauma. EMDR and IFS.</p></div>
+          <div class="spec"><h3>Couples</h3><p>Repair, communication, and attachment work.</p></div>
+          <div class="spec"><h3>LGBTQ+ identity</h3><p>Coming out, relationships, transitions, family of origin.</p></div>
+          <div class="spec"><h3>Perinatal</h3><p>Fertility, pregnancy loss, postpartum mood.</p></div>
+          <div class="spec"><h3>Grief</h3><p>Death, separation, identity loss, and major transitions.</p></div>
+          <div class="spec"><h3>Career &amp; meaning</h3><p>Burnout, work-identity, and decisions you've been postponing.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Clients</span>
+          <h2>Some of what <em>past clients</em> have said.</h2>
+          <p class="lede">Anonymized and shared with permission, with names and details changed.</p>
+        </div>
+        <div class="testimonials">
+          <div class="quote">
+            <p>"I was hesitant about therapy. The free consult made the room I'd been dreading feel like a meeting I could just take."</p>
+            <div class="who"><strong>F., 34</strong> · two years with Mara</div>
+          </div>
+          <div class="quote">
+            <p>"My husband and I came in mid-argument. We left with a vocabulary for the same fight we'd been having for years."</p>
+            <div class="who"><strong>N. &amp; J., 41</strong> · couples work with Jordan</div>
+          </div>
+          <div class="quote">
+            <p>"EMDR sounded like a gimmick to me. Then it actually worked on a memory I'd been carrying for fifteen years."</p>
+            <div class="who"><strong>R., 38</strong> · six months with Nia</div>
+          </div>
+          <div class="quote">
+            <p>"Roam was the first place that talked about money first, without making it feel like a tax. We could plan."</p>
+            <div class="who"><strong>S., 29</strong> · weekly sessions</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="fees">
+      <div class="wrap">
+        <div class="fees">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>Fees</span>
+            <h2>Plain pricing, <em>real sliding scale</em>.</h2>
+            <p class="lede">We're an out-of-network practice but provide superbills for PPO reimbursement. Every therapist holds two sliding-scale spots.</p>
+          </div>
+          <div class="fees-card">
+            <div class="fee-row"><div><div class="what">Individual session</div><div class="how">50 minutes · in-person or video</div></div><div class="price">$220</div></div>
+            <div class="fee-row"><div><div class="what">Couples session</div><div class="how">75 minutes · weekly or biweekly</div></div><div class="price">$280</div></div>
+            <div class="fee-row"><div><div class="what">EMDR intensive</div><div class="how">3-hour session, by referral</div></div><div class="price">$680</div></div>
+            <div class="fee-row"><div><div class="what">Sliding scale</div><div class="how">Need-based · two spots per therapist</div></div><div class="price">$95–180</div></div>
+            <div class="fee-row"><div><div class="what">Consult call</div><div class="how">20 minutes · free</div></div><div class="price">$0</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="faq">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>FAQ</span>
+          <h2>The things people <em>ask first</em>.</h2>
+        </div>
+        <details><summary>Do you take insurance?</summary><p>We're out-of-network but issue superbills. Many California PPO plans reimburse 50-80% of out-of-network mental health visits. We can help you call ahead and verify benefits.</p></details>
+        <details><summary>How long does therapy usually last?</summary><p>Many clients work with us for 4-12 months. Some stay longer for ongoing support. We check in at the 8-week mark and ask if we're moving in a useful direction.</p></details>
+        <details><summary>Is online therapy as effective?</summary><p>Research shows telehealth is as effective as in-person for most conditions. Most of our clients pick a hybrid mix. EMDR is the one modality we recommend in person when possible.</p></details>
+        <details><summary>What if I don't click with my therapist?</summary><p>That happens, and we'd rather know. Tell them or tell us. We'll set up a free 20-minute consult with another therapist on the team and waive the first session fee.</p></details>
+        <details><summary>Can I bring my partner sometimes?</summary><p>Yes. Many individual clients add 2-3 couples sessions during their work with us. It's billed at the couples rate.</p></details>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot">
+        <div class="brand">Roam<span style="color:var(--accent);">.</span></div>
+        <div class="links">
+          <a href="#therapists">Therapists</a>
+          <a href="#fees">Fees</a>
+          <a href="#faq">FAQ</a>
+          <a href="#">Privacy</a>
+          <a href="#">Crisis resources</a>
+        </div>
+        <div class="copy">© 2026 · Oakland, California</div>
+      </div>
+      <p class="legal">If you are in crisis, please call or text 988 (Suicide &amp; Crisis Lifeline) or go to your nearest emergency room. Roam is not an emergency service.</p>
+    </div>
+  </footer>
+</body>
+</html>

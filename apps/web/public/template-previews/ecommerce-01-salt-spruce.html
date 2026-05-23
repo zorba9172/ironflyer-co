@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Salt & Spruce — Heritage menswear, made in small batches</title>
+  <meta name="description" content="Salt & Spruce is a small-batch menswear label. Natural fibers, slow construction, garments built to outlast a season." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f4ede0;
+      --surface: #efe7d6;
+      --fg: #181613;
+      --fg-2: #4a4640;
+      --fg-3: #8a8278;
+      --border: rgba(24, 22, 19, 0.14);
+      --border-strong: rgba(24, 22, 19, 0.28);
+      --accent: #181613;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 0 28px; }
+    .serif { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; }
+    .eyebrow { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--fg-3); }
+
+    /* Top promo */
+    .promo { background: var(--fg); color: var(--bg); text-align: center; padding: 10px 16px; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
+
+    /* Nav */
+    .nav { position: sticky; top: 0; z-index: 50; background: var(--bg); border-bottom: 1px solid var(--border); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+    .brand { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 600; letter-spacing: -0.01em; }
+    .nav-links { display: flex; gap: 32px; font-size: 14px; color: var(--fg-2); }
+    .nav-links a:hover { color: var(--fg); }
+    .nav-tools { display: flex; gap: 18px; align-items: center; font-size: 14px; }
+    .nav-tools .pill { display: inline-flex; align-items: center; gap: 8px; }
+    .cart { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border-strong); padding: 8px 14px; border-radius: 999px; }
+    @media (max-width: 720px) {
+      .nav-links { display: none; }
+      .nav-inner { height: 60px; }
+    }
+
+    /* Hero */
+    .hero { padding: 64px 0 96px; }
+    .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: end; }
+    .hero h1 { font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: clamp(48px, 7vw, 96px); line-height: 0.98; letter-spacing: -0.02em; margin: 24px 0 24px; }
+    .hero h1 em { font-style: italic; }
+    .hero p.lede { color: var(--fg-2); font-size: 17px; max-width: 440px; }
+    .hero-cta { display: flex; gap: 12px; margin-top: 28px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 46px; padding: 0 22px; border-radius: 2px; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500; cursor: pointer; transition: background 200ms, color 200ms; border: 1px solid var(--fg); }
+    .btn-primary { background: var(--fg); color: var(--bg); }
+    .btn-primary:hover { background: transparent; color: var(--fg); }
+    .btn-ghost { background: transparent; color: var(--fg); }
+    .btn-ghost:hover { background: var(--fg); color: var(--bg); }
+    .hero-img { aspect-ratio: 4/5; overflow: hidden; }
+    .hero-img img { width: 100%; height: 100%; object-fit: cover; }
+    .hero-meta { display: flex; gap: 32px; margin-top: 36px; font-size: 13px; color: var(--fg-2); }
+    .hero-meta strong { display: block; color: var(--fg); font-weight: 600; font-size: 14px; }
+    @media (max-width: 1080px) {
+      .hero-grid { grid-template-columns: 1fr; gap: 40px; }
+      .hero { padding: 32px 0 64px; }
+    }
+
+    /* Featured / Section */
+    .section { padding: 96px 0; border-top: 1px solid var(--border); }
+    .section-head { display: flex; justify-content: space-between; align-items: end; margin-bottom: 48px; gap: 24px; flex-wrap: wrap; }
+    .section h2 { font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: clamp(34px, 4.4vw, 56px); letter-spacing: -0.02em; line-height: 1; margin: 8px 0 0; }
+    .section h2 em { font-style: italic; }
+    .link-arrow { font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; border-bottom: 1px solid var(--fg); padding-bottom: 4px; }
+
+    /* Product grid */
+    .products { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px 24px; }
+    .product { display: block; }
+    .product .ph { aspect-ratio: 4/5; overflow: hidden; background: var(--surface); margin-bottom: 16px; position: relative; }
+    .product .ph img { width: 100%; height: 100%; object-fit: cover; transition: transform 800ms cubic-bezier(0.16, 1, 0.3, 1); }
+    .product:hover .ph img { transform: scale(1.04); }
+    .product .tag { position: absolute; top: 12px; left: 12px; background: var(--bg); padding: 4px 10px; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; }
+    .product h3 { font-size: 15px; font-weight: 500; margin: 0 0 4px; }
+    .product .price { color: var(--fg-2); font-size: 14px; }
+    .product .swatches { display: flex; gap: 6px; margin-top: 8px; }
+    .product .swatches span { width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--border-strong); }
+    @media (max-width: 1080px) { .products { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .products { grid-template-columns: 1fr; } }
+
+    /* Story */
+    .story { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+    .story-img { aspect-ratio: 5/6; overflow: hidden; }
+    .story-img img { width: 100%; height: 100%; object-fit: cover; }
+    .story h2 { font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: clamp(36px, 4.6vw, 58px); letter-spacing: -0.02em; line-height: 1.02; margin: 12px 0 24px; }
+    .story p { font-size: 17px; color: var(--fg-2); margin: 0 0 18px; max-width: 480px; }
+    .story-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 32px; }
+    .story-cols h4 { font-size: 13px; margin: 0 0 6px; letter-spacing: 0.05em; }
+    .story-cols p { font-size: 14px; }
+    @media (max-width: 1080px) { .story { grid-template-columns: 1fr; gap: 40px; } }
+
+    /* Editorial */
+    .editorial { display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; }
+    .ed-card { aspect-ratio: 4/3; overflow: hidden; position: relative; }
+    .ed-card img { width: 100%; height: 100%; object-fit: cover; }
+    .ed-card .ed-cap { position: absolute; bottom: 24px; left: 24px; right: 24px; color: var(--bg); }
+    .ed-card .ed-cap h3 { font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 28px; margin: 6px 0 0; }
+    @media (max-width: 1080px) { .editorial { grid-template-columns: 1fr; } }
+
+    /* Testimonials */
+    .quotes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+    .quote { border-top: 1px solid var(--fg); padding-top: 24px; }
+    .quote p { font-family: 'Cormorant Garamond', serif; font-size: 22px; line-height: 1.4; margin: 0 0 18px; }
+    .quote .who { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg-3); }
+    @media (max-width: 1080px) { .quotes { grid-template-columns: 1fr; } }
+
+    /* Newsletter */
+    .news { background: var(--fg); color: var(--bg); padding: 96px 0; text-align: center; }
+    .news h2 { font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: clamp(36px, 5vw, 60px); letter-spacing: -0.02em; line-height: 1; margin: 0 0 16px; }
+    .news p { color: rgba(244, 237, 224, 0.7); max-width: 480px; margin: 0 auto 32px; }
+    .news form { display: flex; gap: 8px; max-width: 480px; margin: 0 auto; }
+    .news input { flex: 1; height: 50px; padding: 0 18px; background: transparent; border: 1px solid rgba(244, 237, 224, 0.3); color: var(--bg); font-size: 14px; font-family: inherit; border-radius: 2px; }
+    .news input::placeholder { color: rgba(244, 237, 224, 0.5); }
+    .news button { height: 50px; padding: 0 22px; background: var(--bg); color: var(--fg); border: none; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; border-radius: 2px; }
+    @media (max-width: 720px) { .news form { flex-direction: column; } }
+
+    /* Footer */
+    footer { padding: 64px 0 32px; }
+    .foot-grid { display: grid; grid-template-columns: 1.4fr repeat(3, 1fr); gap: 40px; }
+    .foot-col h4 { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg); margin: 0 0 16px; }
+    .foot-col a { display: block; padding: 5px 0; font-size: 14px; color: var(--fg-2); }
+    .foot-col a:hover { color: var(--fg); }
+    .foot-brand { font-family: 'Cormorant Garamond', serif; font-size: 30px; }
+    .foot-brand + p { color: var(--fg-2); font-size: 14px; max-width: 280px; margin-top: 8px; }
+    .foot-bot { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; font-size: 12px; color: var(--fg-3); letter-spacing: 0.08em; text-transform: uppercase; }
+    @media (max-width: 720px) {
+      .foot-grid { grid-template-columns: 1fr 1fr; }
+      .foot-bot { flex-direction: column; gap: 10px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="promo">Complimentary shipping on orders over $180 — through Sunday</div>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#shop">Shop</a>
+        <a href="#story">Journal</a>
+        <a href="#story">About</a>
+      </nav>
+      <a class="brand" href="#">Salt & Spruce</a>
+      <div class="nav-tools">
+        <a href="#" aria-label="Search">Search</a>
+        <a href="#" aria-label="Account">Account</a>
+        <a class="cart" href="#" aria-label="Cart, 2 items">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 7h12l-1.2 11a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8L6 7z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg>
+          Cart · 2
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow">Autumn / Winter 2026 · Drop No. 14</span>
+            <h1>Cloth that <em>outlasts</em> the season.</h1>
+            <p class="lede">A small-batch menswear label working in natural fibers, slow construction, and quiet color. Cut for a wardrobe you keep, not a season you replace.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#shop">Shop the drop</a>
+              <a class="btn btn-ghost" href="#story">Our makers</a>
+            </div>
+            <div class="hero-meta">
+              <div><strong>14 pieces</strong>Hand-finished in Porto</div>
+              <div><strong>3 fabrics</strong>Linen, brushed wool, raw denim</div>
+            </div>
+          </div>
+          <div class="hero-img">
+            <img src="https://picsum.photos/seed/salt-spruce-1/1100/1400" width="1100" height="1400" alt="A man in a fawn linen overshirt and dark wool trousers, photographed in soft window light." loading="eager" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="shop">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">Featured</span>
+            <h2>The <em>workwear</em> capsule.</h2>
+          </div>
+          <a class="link-arrow" href="#">View all 14 pieces →</a>
+        </div>
+        <div class="products">
+          <a class="product" href="#">
+            <div class="ph"><span class="tag">New</span><img src="https://picsum.photos/seed/salt-spruce-2/800/1000" width="800" height="1000" alt="Fawn linen overshirt laid flat on a stone surface." loading="lazy" /></div>
+            <h3>The Halsbury Overshirt</h3>
+            <div class="price">$245 USD</div>
+            <div class="swatches"><span style="background:#c8b89c"></span><span style="background:#3a3a36"></span><span style="background:#7c7263"></span></div>
+          </a>
+          <a class="product" href="#">
+            <div class="ph"><img src="https://picsum.photos/seed/salt-spruce-3/800/1000" width="800" height="1000" alt="Brushed wool trousers in graphite, hung on a wooden peg." loading="lazy" /></div>
+            <h3>Briar Wool Trouser</h3>
+            <div class="price">$220 USD</div>
+            <div class="swatches"><span style="background:#2c2c2c"></span><span style="background:#5d5345"></span></div>
+          </a>
+          <a class="product" href="#">
+            <div class="ph"><span class="tag">Limited</span><img src="https://picsum.photos/seed/salt-spruce-4/800/1000" width="800" height="1000" alt="Raw indigo selvedge denim folded twice, showing chain-stitch hem." loading="lazy" /></div>
+            <h3>Tannery Denim · Raw</h3>
+            <div class="price">$195 USD</div>
+            <div class="swatches"><span style="background:#22324a"></span></div>
+          </a>
+          <a class="product" href="#">
+            <div class="ph"><img src="https://picsum.photos/seed/salt-spruce-5/800/1000" width="800" height="1000" alt="A cream waffle henley shirt, folded with care, soft natural light." loading="lazy" /></div>
+            <h3>Heath Waffle Henley</h3>
+            <div class="price">$98 USD</div>
+            <div class="swatches"><span style="background:#efe7d6"></span><span style="background:#262625"></span><span style="background:#7e6651"></span></div>
+          </a>
+          <a class="product" href="#">
+            <div class="ph"><img src="https://picsum.photos/seed/salt-spruce-6/800/1000" width="800" height="1000" alt="Pair of brown leather derby shoes, soft polish." loading="lazy" /></div>
+            <h3>Marlow Derby · Walnut</h3>
+            <div class="price">$385 USD</div>
+            <div class="swatches"><span style="background:#5b3a22"></span><span style="background:#2a1a10"></span></div>
+          </a>
+          <a class="product" href="#">
+            <div class="ph"><img src="https://picsum.photos/seed/salt-spruce-7/800/1000" width="800" height="1000" alt="Heavyweight oatmeal sweater on a wooden hanger." loading="lazy" /></div>
+            <h3>Loftus Crew · Heavy</h3>
+            <div class="price">$210 USD</div>
+            <div class="swatches"><span style="background:#d4c7a8"></span><span style="background:#4a3e2c"></span></div>
+          </a>
+          <a class="product" href="#">
+            <div class="ph"><img src="https://picsum.photos/seed/salt-spruce-8/800/1000" width="800" height="1000" alt="A waxed canvas chore coat, military green, on a stand." loading="lazy" /></div>
+            <h3>Yarder Chore Coat</h3>
+            <div class="price">$275 USD</div>
+            <div class="swatches"><span style="background:#3d4632"></span><span style="background:#2a2a26"></span></div>
+          </a>
+          <a class="product" href="#">
+            <div class="ph"><span class="tag">Last few</span><img src="https://picsum.photos/seed/salt-spruce-9/800/1000" width="800" height="1000" alt="Leather and brass belt coiled on cloth." loading="lazy" /></div>
+            <h3>Saddler Belt · Bridle</h3>
+            <div class="price">$120 USD</div>
+            <div class="swatches"><span style="background:#5b3a22"></span><span style="background:#1f1411"></span></div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="story">
+      <div class="wrap">
+        <div class="story">
+          <div class="story-img">
+            <img src="https://picsum.photos/seed/salt-spruce-10/900/1100" width="900" height="1100" alt="A tailor's hands cutting raw linen on a wooden bench." loading="lazy" />
+          </div>
+          <div>
+            <span class="eyebrow">Made by</span>
+            <h2>One workshop. Fourteen pairs of hands.</h2>
+            <p>We work with a single family-run atelier in Porto. Every overshirt is cut, joined and finished by a person who signs the inside seam.</p>
+            <p>No seasonal churn. No overproduction. When a piece sells out, we take six weeks and make it again.</p>
+            <div class="story-cols">
+              <div><h4>Natural fibers</h4><p>Linen, brushed wool, undyed cotton — no synthetics in the main cloth.</p></div>
+              <div><h4>Six-week reorder</h4><p>We hold no warehouse. Pieces are cut to the wave of demand.</p></div>
+              <div><h4>Repair, not replace</h4><p>Free mending on every garment for the first three years.</p></div>
+              <div><h4>Transparent pricing</h4><p>Every product page lists fabric cost, labour cost, and our margin.</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">Field notes</span>
+            <h2>Journal.</h2>
+          </div>
+          <a class="link-arrow" href="#">Read everything →</a>
+        </div>
+        <div class="editorial">
+          <a class="ed-card" href="#">
+            <img src="https://picsum.photos/seed/salt-spruce-11/1200/900" width="1200" height="900" alt="A workshop bench with brass tools and folded linen, low afternoon light." loading="lazy" />
+            <div class="ed-cap">
+              <span class="eyebrow" style="color:rgba(244,237,224,0.7)">Issue 09 · Cloth</span>
+              <h3>Why we stopped using viscose.</h3>
+            </div>
+          </a>
+          <a class="ed-card" href="#">
+            <img src="https://picsum.photos/seed/salt-spruce-12/900/900" width="900" height="900" alt="Hands tying a fisherman's knot in waxed cord." loading="lazy" />
+            <div class="ed-cap">
+              <span class="eyebrow" style="color:rgba(244,237,224,0.7)">Issue 08 · Care</span>
+              <h3>A short guide to mending denim.</h3>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">From customers</span>
+            <h2>What it wears like.</h2>
+          </div>
+        </div>
+        <div class="quotes">
+          <figure class="quote">
+            <p>"The chore coat has been on me five days a week for two winters. It has earned every fold mark."</p>
+            <figcaption class="who">Owen R. · Portland, OR</figcaption>
+          </figure>
+          <figure class="quote">
+            <p>"I bought one overshirt to test. Returned six weeks later for a second. The fit on the sleeve is the only one I've worn that sits right over a watch."</p>
+            <figcaption class="who">David K. · Edinburgh</figcaption>
+          </figure>
+          <figure class="quote">
+            <p>"The repair service is real. Sent in a torn pocket, came back like nothing happened. I do not say that about clothing."</p>
+            <figcaption class="who">Marcus B. · Brooklyn, NY</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="news" id="news">
+    <div class="wrap">
+      <span class="eyebrow" style="color: rgba(244,237,224,0.7);">The Almanac</span>
+      <h2>A letter, every other Sunday.</h2>
+      <p>Drop dates, restock alerts, and the occasional field note from the workshop. No discounts, no urgency, no plastic words.</p>
+      <form onsubmit="event.preventDefault(); this.querySelector('button').textContent='Subscribed';">
+        <input type="email" required placeholder="your@email" aria-label="Email address" />
+        <button type="submit">Subscribe</button>
+      </form>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <div class="foot-brand">Salt & Spruce</div>
+          <p>Heritage menswear, made slowly, in one workshop in Porto. Est. 2018.</p>
+        </div>
+        <div class="foot-col">
+          <h4>Shop</h4>
+          <a href="#">New arrivals</a>
+          <a href="#">Shirting</a>
+          <a href="#">Trousers</a>
+          <a href="#">Outerwear</a>
+          <a href="#">Footwear</a>
+          <a href="#">Last few</a>
+        </div>
+        <div class="foot-col">
+          <h4>House</h4>
+          <a href="#">Our makers</a>
+          <a href="#">Journal</a>
+          <a href="#">Repair service</a>
+          <a href="#">Fit guide</a>
+        </div>
+        <div class="foot-col">
+          <h4>Help</h4>
+          <a href="#">Shipping</a>
+          <a href="#">Returns</a>
+          <a href="#">Contact</a>
+          <a href="#">FAQ</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Salt & Spruce Ltd.</span>
+        <span>Porto · Made by hand</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

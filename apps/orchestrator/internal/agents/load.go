@@ -80,6 +80,9 @@ func mapCapabilities(tags []string) ([]providers.Capability, error) {
 		"thinking":  providers.CapThinking,
 		"tools":     providers.CapTools,
 		"cache":     providers.CapCache,
+		// speculative: race the top-two matching providers; first to
+		// emit a token wins, loser is cancelled. See providers.CapSpeculative.
+		"speculative": providers.CapSpeculative,
 	}
 	out := make([]providers.Capability, 0, len(tags))
 	for _, t := range tags {

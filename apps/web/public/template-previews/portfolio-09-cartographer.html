@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cartographer — Mei Tanaka, UX research practice</title>
+  <meta name="description" content="Cartographer is Mei Tanaka. A UX research practice mapping people's actual jobs to be done. Studies, methods, and field notes for product teams who want evidence." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f8f4ec;
+      --paper: #efe9d8;
+      --paper-deep: #e3dcc4;
+      --ink: #0b1736;
+      --ink-2: #2a345a;
+      --ink-3: #6a7191;
+      --rule: rgba(11, 23, 54, 0.16);
+      --rule-strong: rgba(11, 23, 54, 0.34);
+      --accent: #0b1736;
+      --highlight: #f1d973;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      font-size: 16px; line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 32px; }
+    .serif { font-family: 'Source Serif 4', 'Source Serif Pro', 'Georgia', serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* Decorative ruled paper background */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: linear-gradient(to bottom, transparent 31px, rgba(11, 23, 54, 0.04) 32px);
+      background-size: 100% 32px;
+      pointer-events: none; z-index: 0;
+    }
+    main, .nav, footer { position: relative; z-index: 1; }
+
+    /* Nav */
+    .nav {
+      padding: 20px 0;
+      border-bottom: 1px solid var(--rule);
+      background: var(--bg);
+    }
+    .nav-inner {
+      display: grid; grid-template-columns: auto 1fr auto; gap: 24px;
+      align-items: center;
+    }
+    .brand {
+      font-family: 'Source Serif 4', serif; font-weight: 500;
+      font-size: 22px; letter-spacing: -0.005em;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .brand-mark {
+      width: 32px; height: 32px;
+      border: 1.5px solid var(--ink);
+      display: grid; place-items: center;
+      font-family: 'JetBrains Mono', monospace; font-size: 14px;
+      transform: rotate(-3deg);
+    }
+    .nav-links { display: flex; gap: 24px; font-size: 14px; color: var(--ink-2); justify-content: center; }
+    .nav-links a:hover { color: var(--ink); }
+    .nav-status { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.12em; }
+    .nav-status::before { content: ''; display: inline-block; width: 7px; height: 7px; background: var(--accent); border-radius: 50%; margin-right: 8px; vertical-align: 1px; }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 80px 0 64px; border-bottom: 1px solid var(--rule); }
+    .hero-head {
+      font-family: 'JetBrains Mono', monospace; font-size: 12px;
+      color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.18em;
+      margin-bottom: 28px;
+      display: flex; gap: 16px; flex-wrap: wrap;
+    }
+    .hero-head span::before { content: '['; color: var(--accent); }
+    .hero-head span::after { content: ']'; color: var(--accent); }
+    h1 {
+      font-family: 'Source Serif 4', serif;
+      font-size: clamp(40px, 6vw, 72px);
+      line-height: 1.04; letter-spacing: -0.015em;
+      font-weight: 500; margin: 0 0 28px;
+      max-width: 22ch;
+    }
+    h1 em { font-style: italic; }
+    h1 .underline { border-bottom: 3px solid var(--accent); padding-bottom: 2px; }
+    .hero-lede {
+      font-family: 'Source Serif 4', serif; font-size: 22px;
+      line-height: 1.5; max-width: 60ch; color: var(--ink-2);
+    }
+    .hero-lede sup { color: var(--accent); font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700; }
+    .hero-meta {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;
+      margin-top: 56px; padding-top: 24px; border-top: 1.5px solid var(--accent);
+    }
+    .hero-meta .k {
+      font-family: 'JetBrains Mono', monospace; font-size: 11px;
+      color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.16em;
+    }
+    .hero-meta .v {
+      font-family: 'Source Serif 4', serif; font-size: 20px;
+      margin-top: 4px; font-weight: 500;
+    }
+    @media (max-width: 720px) { .hero-meta { grid-template-columns: 1fr 1fr; } }
+
+    /* Section */
+    .section { padding: 88px 0; border-bottom: 1px solid var(--rule); }
+    .section-head {
+      display: grid; grid-template-columns: 200px 1fr; gap: 32px;
+      align-items: baseline; margin-bottom: 48px;
+    }
+    .section-head .num {
+      font-family: 'JetBrains Mono', monospace; font-size: 12px;
+      color: var(--accent); text-transform: uppercase; letter-spacing: 0.18em;
+    }
+    .section-head h2 {
+      font-family: 'Source Serif 4', serif;
+      font-size: clamp(32px, 4.4vw, 48px);
+      letter-spacing: -0.01em; line-height: 1.1; margin: 0 0 12px;
+      font-weight: 500;
+    }
+    .section-head h2 em { font-style: italic; }
+    .section-head p { color: var(--ink-2); margin: 0; font-size: 17px; max-width: 60ch; }
+    @media (max-width: 720px) { .section-head { grid-template-columns: 1fr; gap: 8px; } }
+
+    /* Studies */
+    .study {
+      display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px;
+      align-items: center; padding: 32px 0;
+      border-top: 1px dashed var(--rule);
+    }
+    .study:first-child { border-top: none; padding-top: 0; }
+    .study-body { padding-right: 24px; }
+    .study .tag {
+      display: inline-flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
+    }
+    .study .tag span {
+      font-family: 'JetBrains Mono', monospace; font-size: 11px;
+      padding: 3px 9px; border: 1px solid var(--rule-strong);
+      text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-2);
+      border-radius: 3px;
+    }
+    .study .tag span.k { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+    .study h3 {
+      font-family: 'Source Serif 4', serif; font-weight: 500;
+      font-size: clamp(24px, 3vw, 34px);
+      letter-spacing: -0.01em; line-height: 1.15;
+      margin: 0 0 12px;
+    }
+    .study h3 em { font-style: italic; }
+    .study p { color: var(--ink-2); font-size: 16px; margin: 0; }
+    .study .finding {
+      margin-top: 18px; padding: 14px 18px;
+      background: var(--paper);
+      border-left: 3px solid var(--accent);
+      font-family: 'Source Serif 4', serif; font-size: 17px;
+      font-style: italic;
+    }
+    .study .finding::before { content: 'Finding —'; font-style: normal; font-weight: 600; color: var(--accent); margin-right: 8px; }
+    .study .meta {
+      margin-top: 16px;
+      font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--ink-3);
+    }
+    .study .meta span + span::before { content: ' · '; }
+    .study-art {
+      background: var(--paper);
+      border: 1.5px solid var(--rule-strong);
+      padding: 16px;
+      box-shadow: 4px 4px 0 var(--paper-deep);
+    }
+    .study-art img { width: 100%; aspect-ratio: 4/3; object-fit: cover; filter: contrast(1.05); }
+    .study-art figcaption {
+      font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-3);
+      margin-top: 10px; text-transform: uppercase; letter-spacing: 0.12em;
+    }
+    .study:nth-child(even) { direction: rtl; }
+    .study:nth-child(even) > * { direction: ltr; }
+    @media (max-width: 1080px) {
+      .study, .study:nth-child(even) { grid-template-columns: 1fr; direction: ltr; gap: 16px; }
+    }
+
+    /* Methods */
+    .methods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .method {
+      border: 1.5px solid var(--rule-strong);
+      padding: 24px;
+      background: var(--bg);
+      position: relative;
+    }
+    .method-n {
+      position: absolute; top: -10px; left: 16px;
+      background: var(--bg); padding: 0 8px;
+      font-family: 'JetBrains Mono', monospace; font-size: 12px;
+      color: var(--accent);
+    }
+    .method h3 {
+      font-family: 'Source Serif 4', serif; font-weight: 500;
+      font-size: 22px; margin: 0 0 8px; letter-spacing: -0.005em;
+    }
+    .method p { color: var(--ink-2); font-size: 14px; margin: 0 0 12px; }
+    .method ul { list-style: none; padding: 0; margin: 0; font-size: 13px; color: var(--ink-2); }
+    .method li { padding: 4px 0; border-top: 1px dashed var(--rule); }
+    .method li:first-child { border-top: none; }
+    .method li::before { content: '› '; color: var(--accent); }
+    @media (max-width: 1080px) { .methods { grid-template-columns: 1fr; } }
+
+    /* Diagram band */
+    .diagram-band {
+      padding: 88px 0; border-bottom: 1px solid var(--rule);
+    }
+    .diagram {
+      background: var(--paper);
+      padding: 40px;
+      border: 1.5px solid var(--accent);
+      box-shadow: 6px 6px 0 var(--paper-deep);
+    }
+    .diagram h3 {
+      font-family: 'JetBrains Mono', monospace; font-size: 12px;
+      color: var(--accent); text-transform: uppercase; letter-spacing: 0.16em;
+      margin: 0 0 24px;
+    }
+    .journey {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;
+      position: relative;
+    }
+    .journey::after {
+      content: ''; position: absolute; left: 8%; right: 8%; top: 30px;
+      height: 2px; background: var(--accent);
+      z-index: 0;
+    }
+    .stage {
+      background: var(--bg);
+      border: 1.5px solid var(--accent);
+      padding: 12px;
+      position: relative; z-index: 1;
+      text-align: center;
+    }
+    .stage .dot {
+      width: 14px; height: 14px; background: var(--accent); border-radius: 50%;
+      margin: 0 auto 12px;
+    }
+    .stage .h {
+      font-family: 'Source Serif 4', serif; font-weight: 500;
+      font-size: 16px; margin: 0 0 4px;
+    }
+    .stage .s {
+      font-family: 'JetBrains Mono', monospace; font-size: 10px;
+      color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.12em;
+    }
+    .stage .q {
+      margin-top: 12px; font-size: 13px; color: var(--ink-2); font-style: italic;
+    }
+    @media (max-width: 1080px) {
+      .journey { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .journey::after { display: none; }
+    }
+    @media (max-width: 720px) { .journey { grid-template-columns: 1fr; } }
+
+    /* Publications */
+    .pubs {
+      display: grid; grid-template-columns: 1fr; gap: 0;
+    }
+    .pub {
+      display: grid; grid-template-columns: 60px 1fr 1fr 100px; gap: 24px;
+      padding: 22px 0; border-top: 1px solid var(--rule);
+      align-items: baseline; font-size: 14px;
+    }
+    .pub:last-child { border-bottom: 1px solid var(--rule); }
+    .pub .yr { font-family: 'JetBrains Mono', monospace; color: var(--ink-3); }
+    .pub .ti { font-family: 'Source Serif 4', serif; font-size: 18px; color: var(--ink); }
+    .pub .ti em { font-style: italic; }
+    .pub .where { color: var(--ink-2); }
+    .pub .kind { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.12em; text-align: right; }
+    @media (max-width: 1080px) {
+      .pub { grid-template-columns: 50px 1fr; }
+      .pub .where, .pub .kind { display: none; }
+    }
+
+    /* Field notes */
+    .notes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .note {
+      background: var(--paper);
+      border: 1.5px solid var(--rule-strong);
+      padding: 24px;
+      position: relative;
+    }
+    .note .date { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.12em; }
+    .note h4 {
+      font-family: 'Source Serif 4', serif; font-weight: 500;
+      font-size: 22px; margin: 8px 0 8px; letter-spacing: -0.005em;
+    }
+    .note h4 em { font-style: italic; }
+    .note p { color: var(--ink-2); font-size: 15px; margin: 0; }
+    .note .stamp {
+      position: absolute; top: 14px; right: 14px;
+      font-family: 'JetBrains Mono', monospace; font-size: 10px;
+      border: 1.5px solid var(--accent); color: var(--accent);
+      padding: 3px 8px; text-transform: uppercase; letter-spacing: 0.12em;
+      transform: rotate(2deg);
+    }
+    @media (max-width: 1080px) { .notes { grid-template-columns: 1fr; } }
+
+    /* Clients */
+    .clients-row {
+      padding: 48px 0; border-bottom: 1px solid var(--rule);
+      display: grid; grid-template-columns: repeat(6, 1fr); gap: 24px;
+      align-items: center; justify-items: center;
+      color: var(--ink-3); font-family: 'Source Serif 4', serif; font-size: 20px;
+    }
+    @media (max-width: 720px) { .clients-row { grid-template-columns: repeat(3, 1fr); } }
+
+    /* Contact */
+    .contact { padding: 120px 0; }
+    .contact-inner {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: end;
+    }
+    .contact h2 {
+      font-family: 'Source Serif 4', serif; font-weight: 500;
+      font-size: clamp(40px, 6vw, 64px); letter-spacing: -0.015em;
+      line-height: 1.05; margin: 0 0 16px;
+    }
+    .contact h2 em { font-style: italic; }
+    .contact p { color: var(--ink-2); margin: 0; font-size: 17px; max-width: 50ch; }
+    .contact-card {
+      background: var(--paper);
+      border: 1.5px solid var(--accent);
+      padding: 28px;
+    }
+    .contact-card .row {
+      display: grid; grid-template-columns: 100px 1fr; gap: 12px;
+      padding: 10px 0; border-top: 1px dashed var(--rule);
+      font-size: 14px;
+    }
+    .contact-card .row:first-child { border-top: none; }
+    .contact-card .k { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.12em; }
+    .contact-card .v { color: var(--ink); }
+    .contact-card .v.email { font-family: 'Source Serif 4', serif; font-size: 18px; border-bottom: 1px solid var(--accent); color: var(--accent); }
+    @media (max-width: 1080px) { .contact-inner { grid-template-columns: 1fr; } }
+
+    /* Footer */
+    footer { padding: 32px 0; border-top: 1px solid var(--rule); }
+    .foot {
+      display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+      font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-3);
+      text-transform: uppercase; letter-spacing: 0.14em;
+    }
+    .foot a:hover { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#"><span class="brand-mark">C</span> Cartographer · A research practice</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#studies">Studies</a>
+        <a href="#methods">Methods</a>
+        <a href="#publications">Publications</a>
+        <a href="#notes">Field notes</a>
+      </nav>
+      <span class="nav-status">Booking: Aug 2026</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-head">
+          <span>UX Research</span>
+          <span>Mei Tanaka</span>
+          <span>Practice est. 2017</span>
+          <span>Kyoto · Berlin</span>
+        </div>
+        <h1>Maps of what <em>people are actually trying to do</em><span class="underline"> when they use your software</span>.</h1>
+        <p class="hero-lede">I'm Mei. I run a small research practice that helps product teams ask sharper questions, plan studies that survive a budget meeting, and put the findings somewhere the team will read them.<sup>1</sup> I work mostly with engineering-led companies that haven't had a researcher embedded before.</p>
+
+        <div class="hero-meta">
+          <div><div class="k">Methods</div><div class="v">Mixed · Qual + Quant</div></div>
+          <div><div class="k">Engagements</div><div class="v">6 — 16 weeks</div></div>
+          <div><div class="k">Published</div><div class="v">CHI · Interactions · JoUS</div></div>
+          <div><div class="k">PhD</div><div class="v">HCI · ETH Zürich · 2017</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="studies">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="num">§01 — Selected studies</span>
+          <div>
+            <h2>Six studies, all of them <em>shipped findings</em>.</h2>
+            <p>Each study is summarised as a one-line finding, the question it answered, and the decision it informed. Full reports are available under NDA.</p>
+          </div>
+        </div>
+
+        <article class="study">
+          <div class="study-body">
+            <div class="tag"><span class="k">Diary study</span><span>3 weeks</span><span>n=24</span></div>
+            <h3>Why <em>finance teams</em> read the ledger out loud.</h3>
+            <p>Northbeam's bookkeepers said the close week was painful; we recorded twenty-four of them doing it. The thing nobody had documented: they read journals out loud, one column at a time, to a partner.</p>
+            <div class="finding">The ledger needed to be readable like a sentence, not scannable like a sheet. Three quarters later, support tickets in close week dropped 38%.</div>
+            <div class="meta"><span>Northbeam</span><span>2026</span><span>Lead researcher</span></div>
+          </div>
+          <figure class="study-art">
+            <img src="https://picsum.photos/seed/cartographer-1/1200/900" width="1200" height="900" alt="A wall of printed transcripts highlighted with three coloured tabs and a hand-drawn coding scheme." loading="lazy" />
+            <figcaption>Fig. 1 — Coding wall, day 14. Three colours, two axes, one finding.</figcaption>
+          </figure>
+        </article>
+
+        <article class="study">
+          <div class="study-body">
+            <div class="tag"><span class="k">Field interviews</span><span>2 weeks</span><span>n=18</span></div>
+            <h3>What an <em>onboarding flow</em> is competing with.</h3>
+            <p>Field &amp; Format wanted to know why activation was flat. Eighteen first-run sessions, all in the user's own context, showed activation wasn't the problem — it was the seventy-two hours afterwards.</p>
+            <div class="finding">Activation looked fine in metrics; second-session intent had collapsed. We redesigned day-three, not day-zero.</div>
+            <div class="meta"><span>Field &amp; Format</span><span>2025</span><span>Solo</span></div>
+          </div>
+          <figure class="study-art">
+            <img src="https://picsum.photos/seed/cartographer-2/1200/900" width="1200" height="900" alt="A timeline diagram of a user's first seventy-two hours, with three drop-off points marked." loading="lazy" />
+            <figcaption>Fig. 2 — First 72 hours map. Drop-offs cluster at hour 24, not hour 0.</figcaption>
+          </figure>
+        </article>
+
+        <article class="study">
+          <div class="study-body">
+            <div class="tag"><span class="k">Usability + ledger</span><span>5 weeks</span><span>n=12</span></div>
+            <h3>Twelve sessions on a <em>data table</em>.</h3>
+            <p>Atlas Group's admin table had three rounds of redesign and no data on which one worked. We ran twelve moderated sessions, recorded keystrokes, and mapped the rotation of attention.</p>
+            <div class="finding">The new column was being looked at twice as often and acted on half as much. The problem was trust, not visibility.</div>
+            <div class="meta"><span>Atlas Group</span><span>2025</span><span>w/ Pixel Diary</span></div>
+          </div>
+          <figure class="study-art">
+            <img src="https://picsum.photos/seed/cartographer-3/1200/900" width="1200" height="900" alt="A heat-map style diagram of a table interface with eye-tracking ovals." loading="lazy" />
+            <figcaption>Fig. 3 — Aggregate gaze plot, n=12, full task duration.</figcaption>
+          </figure>
+        </article>
+
+        <article class="study">
+          <div class="study-body">
+            <div class="tag"><span class="k">Surveys + interviews</span><span>4 weeks</span><span>n=212 / 22</span></div>
+            <h3>Mapping the actual <em>jobs to be done</em> for a writing app.</h3>
+            <p>Bureau Verso's writers self-described very differently from how they wrote. We ran a 212-person survey and a 22-person follow-up, then plotted the surveyed roles against the actual time-on-task.</p>
+            <div class="finding">Three jobs accounted for 84% of paid usage. The product had spent two years building for a fourth.</div>
+            <div class="meta"><span>Bureau Verso</span><span>2024</span><span>Lead researcher</span></div>
+          </div>
+          <figure class="study-art">
+            <img src="https://picsum.photos/seed/cartographer-4/1200/900" width="1200" height="900" alt="A diagram showing four jobs to be done, with three highlighted and one struck through." loading="lazy" />
+            <figcaption>Fig. 4 — JTBD plot. Three retain 84% of session-time.</figcaption>
+          </figure>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="methods">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="num">§02 — Methods</span>
+          <div>
+            <h2><em>How</em> a study is built.</h2>
+            <p>I don't pick a method until the question is sharp. These are the three I run most often, and the conditions I run them under.</p>
+          </div>
+        </div>
+
+        <div class="methods">
+          <div class="method">
+            <span class="method-n">M-01</span>
+            <h3>Generative interviews</h3>
+            <p>When the team doesn't yet know what to build, or has built it and isn't sure why.</p>
+            <ul>
+              <li>n = 12 — 24 participants</li>
+              <li>Mostly in the user's context</li>
+              <li>Recorded, transcribed, coded</li>
+              <li>Findings as one-pagers, not decks</li>
+            </ul>
+          </div>
+          <div class="method">
+            <span class="method-n">M-02</span>
+            <h3>Diary studies</h3>
+            <p>When you need to see something across days — close week, weekend usage, three-week rituals.</p>
+            <ul>
+              <li>14 — 28 day duration</li>
+              <li>Daily prompts, light burden</li>
+              <li>Mid-study debrief at day 7</li>
+              <li>Mixed quant + qual end-state survey</li>
+            </ul>
+          </div>
+          <div class="method">
+            <span class="method-n">M-03</span>
+            <h3>Evaluative sessions</h3>
+            <p>When a feature is built or near-built and the team wants to know what it gets right and where it strains.</p>
+            <ul>
+              <li>n = 8 — 14 participants</li>
+              <li>Moderated, task-based</li>
+              <li>Live notes with the build team</li>
+              <li>Severity-scored findings</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="diagram-band">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="num">§03 — Diagram</span>
+          <div>
+            <h2>An <em>engagement</em>, drawn.</h2>
+            <p>What a sixteen-week engagement looks like end to end. Stages move when the team is ready, not when the calendar runs out.</p>
+          </div>
+        </div>
+
+        <div class="diagram">
+          <h3>Engagement map — sixteen weeks</h3>
+          <div class="journey">
+            <div class="stage"><div class="dot"></div><div class="h">Frame</div><div class="s">Weeks 1–2</div><div class="q">What's the actual question?</div></div>
+            <div class="stage"><div class="dot"></div><div class="h">Design</div><div class="s">Weeks 3–4</div><div class="q">Method, sample, plan, ethics.</div></div>
+            <div class="stage"><div class="dot"></div><div class="h">Field</div><div class="s">Weeks 5–10</div><div class="q">Interviews, diaries, sessions.</div></div>
+            <div class="stage"><div class="dot"></div><div class="h">Synthesise</div><div class="s">Weeks 11–13</div><div class="q">Coding, mapping, plotting.</div></div>
+            <div class="stage"><div class="dot"></div><div class="h">Hand off</div><div class="s">Weeks 14–16</div><div class="q">Report, briefing, JTBD library.</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="publications">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="num">§04 — Publications</span>
+          <div>
+            <h2>Selected <em>publications</em>.</h2>
+            <p>Peer-reviewed and otherwise. Full bibliography available on request.</p>
+          </div>
+        </div>
+
+        <div class="pubs">
+          <a class="pub" href="#"><span class="yr">2025</span><span class="ti">On reading a ledger out loud: a small ethnography of close week.</span><span class="where">Interactions Magazine, Vol. 32(4)</span><span class="kind">Essay</span></a>
+          <a class="pub" href="#"><span class="yr">2024</span><span class="ti"><em>Beyond activation:</em> the 72-hour window in B2B onboarding.</span><span class="where">CHI 2024 — Late breaking</span><span class="kind">Conf. paper</span></a>
+          <a class="pub" href="#"><span class="yr">2023</span><span class="ti">When the user is a team: studying coordination in design tools.</span><span class="where">Journal of Usability Studies, 18(2)</span><span class="kind">Peer-reviewed</span></a>
+          <a class="pub" href="#"><span class="yr">2022</span><span class="ti">Notes on running diary studies in distributed teams.</span><span class="where">UX Research Conf., Tokyo</span><span class="kind">Talk</span></a>
+          <a class="pub" href="#"><span class="yr">2020</span><span class="ti">The JTBD library is the deliverable.</span><span class="where">A book chapter, Field &amp; Format Press</span><span class="kind">Chapter</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="notes">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="num">§05 — Field notes</span>
+          <div>
+            <h2>Notes from the <em>field</em>.</h2>
+            <p>Short pieces, written while studies are running. Subscribers receive one a fortnight.</p>
+          </div>
+        </div>
+
+        <div class="notes">
+          <article class="note">
+            <span class="stamp">Field</span>
+            <span class="date">2026 · 05 · 12 — Kyoto</span>
+            <h4>What people do <em>before</em> the screen.</h4>
+            <p>Three of yesterday's interviews started with the participant clearing physical paper off the desk. I never coded for that before. I might start.</p>
+          </article>
+          <article class="note">
+            <span class="stamp">Field</span>
+            <span class="date">2026 · 04 · 03 — Berlin</span>
+            <h4>On <em>not</em> running a survey first.</h4>
+            <p>Two clients in a row asked for a survey to "calibrate" the qualitative work. Both surveys would have asked the wrong questions. Sequence matters more than mix.</p>
+          </article>
+          <article class="note">
+            <span class="stamp">Note</span>
+            <span class="date">2026 · 02 · 22 — Kyoto</span>
+            <h4>A short defence of <em>fewer participants</em>.</h4>
+            <p>If your study makes you change your mind by participant six, run six more, not sixty. The next finding is usually a refinement, not a new direction.</p>
+          </article>
+          <article class="note">
+            <span class="stamp">Note</span>
+            <span class="date">2025 · 11 · 30 — Berlin</span>
+            <h4>The deliverable nobody reads.</h4>
+            <p>The 80-slide report is for the researcher, not the team. Replace it with three one-pagers and a 20-minute briefing — the findings will travel further by Friday.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div class="clients-row">
+          <span>Northbeam</span>
+          <span>Field &amp; Format</span>
+          <span>Atlas Group</span>
+          <span>Bureau Verso</span>
+          <span>Pivot House</span>
+          <span>Hangar 12</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="contact" id="contact">
+      <div class="wrap">
+        <div class="contact-inner">
+          <div>
+            <h2>If you have a <em>question</em> a survey won't answer.</h2>
+            <p>Tell me what you're trying to decide, who the users are, and when you need the findings. I'll come back with a research plan and a fixed-price proposal within five working days.</p>
+          </div>
+          <div class="contact-card">
+            <div class="row"><span class="k">Email</span><a class="v email" href="mailto:mei@cartographer.studio">mei@cartographer.studio</a></div>
+            <div class="row"><span class="k">Calendar</span><span class="v">Kyoto (JST) · Berlin (CET)</span></div>
+            <div class="row"><span class="k">NDA</span><span class="v">Mutual, on request</span></div>
+            <div class="row"><span class="k">Rates</span><span class="v">By project; sliding for academic work</span></div>
+            <div class="row"><span class="k">Mailing</span><span class="v">Field notes · fortnightly · no tracking</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap foot">
+      <span>© 2017–2026 Mei Tanaka · Cartographer · Research practice</span>
+      <span>1 — A study that ends in a PDF nobody reads is not a study, it's a receipt.</span>
+    </div>
+  </footer>
+</body>
+</html>

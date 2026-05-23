@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tideline — Beachfront and waterfront vacation rentals</title>
+  <meta name="description" content="Hand-picked waterfront homes from Cape Cod to Carmel. Every house is walked by us, every key handed over in person, and every owner answers the phone." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Serif+Display:wght@400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #d9e7e0;
+      --bg-2: #c5d9d0;
+      --paper: #ecf3ee;
+      --fg: #16312a;
+      --fg-2: #3f5650;
+      --fg-3: #7a8c87;
+      --accent: #ff6c3a;
+      --accent-2: #e7572a;
+      --line: rgba(22, 49, 42, 0.14);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--fg); font-family: 'Inter', sans-serif; font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .serif { font-family: 'DM Serif Display', serif; font-weight: 400; }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 0 28px; }
+
+    .nav { padding: 28px 0; }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: flex; align-items: center; gap: 12px; font-family: 'DM Serif Display', serif; font-size: 26px; }
+    .brand-mark { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); display: grid; place-items: center; color: var(--paper); font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700; }
+    .nav-links { display: flex; gap: 30px; font-size: 14px; color: var(--fg-2); font-weight: 500; }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta { display: flex; align-items: center; gap: 12px; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 12px 22px; border-radius: 999px; font-weight: 600; font-size: 14px; cursor: pointer; border: 1.5px solid transparent; }
+    .btn-orange { background: var(--accent); color: #fff; }
+    .btn-orange:hover { background: var(--accent-2); }
+    .btn-line { background: transparent; color: var(--fg); border-color: var(--fg); }
+    .btn-line:hover { background: var(--fg); color: var(--paper); }
+    @media (max-width: 1080px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { position: relative; padding: 24px 0 96px; }
+    .hero-content { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: 48px; align-items: end; margin-bottom: 32px; }
+    h1 { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(48px, 7vw, 96px); line-height: 0.98; letter-spacing: -0.02em; margin: 0; }
+    h1 em { font-style: italic; color: var(--accent); }
+    .hero-lede { font-size: 18px; color: var(--fg-2); max-width: 460px; margin: 0; }
+    .hero-image { position: relative; border-radius: 24px; overflow: hidden; }
+    .hero-image img { width: 100%; height: 64vh; min-height: 480px; object-fit: cover; }
+    .hero-image .ribbon { position: absolute; left: 24px; bottom: 24px; background: var(--paper); padding: 18px 22px; border-radius: 14px; max-width: 320px; box-shadow: 0 20px 40px -20px rgba(22,49,42,0.3); }
+    .hero-image .ribbon h3 { margin: 0 0 4px; font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 22px; }
+    .hero-image .ribbon p { margin: 0; color: var(--fg-2); font-size: 13px; }
+    .hero-image .ribbon .price { display: block; margin-top: 8px; color: var(--accent); font-weight: 700; font-size: 16px; }
+
+    /* Search */
+    .search { background: var(--paper); border-radius: 24px; padding: 14px; display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr auto; gap: 8px; align-items: stretch; box-shadow: 0 20px 40px -30px rgba(22,49,42,0.3); }
+    .search-field { padding: 10px 18px; border-right: 1px solid var(--line); }
+    .search-field:last-of-type { border-right: none; }
+    .search-field label { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-3); margin-bottom: 2px; }
+    .search-field input, .search-field select { width: 100%; border: none; background: transparent; font: inherit; color: var(--fg); padding: 0; outline: none; font-size: 15px; }
+    .search button { background: var(--accent); color: #fff; border: none; padding: 0 28px; border-radius: 16px; font: inherit; font-weight: 600; cursor: pointer; font-size: 14px; }
+    .search button:hover { background: var(--accent-2); }
+    @media (max-width: 1080px) {
+      .hero-content { grid-template-columns: 1fr; gap: 24px; }
+      .search { grid-template-columns: 1fr 1fr; }
+      .search-field { border-right: none; border-bottom: 1px solid var(--line); }
+      .search button { grid-column: 1 / -1; padding: 14px; }
+    }
+    @media (max-width: 720px) { .search { grid-template-columns: 1fr; } }
+
+    .section { padding: 96px 0; }
+    .section-head { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 48px; align-items: end; margin-bottom: 48px; }
+    .section-head h2 { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(36px, 5vw, 64px); line-height: 1.05; letter-spacing: -0.01em; margin: 0; }
+    .section-head h2 em { font-style: italic; color: var(--accent); }
+    .section-head p { font-size: 17px; color: var(--fg-2); margin: 0; }
+    @media (max-width: 1080px) { .section-head { grid-template-columns: 1fr; gap: 16px; } }
+
+    /* Destinations strip */
+    .dests { display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px; padding: 32px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .dest { text-align: center; }
+    .dest img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 50%; margin-bottom: 12px; }
+    .dest h4 { margin: 0; font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 17px; }
+    .dest p { margin: 2px 0 0; color: var(--fg-3); font-size: 12px; }
+    @media (max-width: 1080px) { .dests { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 720px) { .dests { grid-template-columns: repeat(2, 1fr); } }
+
+    /* Listings */
+    .stays { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+    .stay { background: var(--paper); border-radius: 18px; overflow: hidden; transition: transform 280ms ease, box-shadow 280ms ease; }
+    .stay:hover { transform: translateY(-4px); box-shadow: 0 30px 60px -30px rgba(22,49,42,0.3); }
+    .stay-img { position: relative; aspect-ratio: 4/3; overflow: hidden; }
+    .stay-img img { width: 100%; height: 100%; object-fit: cover; }
+    .stay-tag { position: absolute; top: 16px; left: 16px; background: var(--accent); color: #fff; padding: 5px 12px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+    .stay-heart { position: absolute; top: 14px; right: 14px; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.94); display: grid; place-items: center; color: var(--accent); font-size: 16px; cursor: pointer; }
+    .stay-body { padding: 22px; }
+    .stay-loc { font-size: 12px; color: var(--fg-3); letter-spacing: 0.06em; }
+    .stay h3 { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 24px; margin: 4px 0 10px; line-height: 1.15; }
+    .stay-specs { display: flex; gap: 14px; font-size: 13px; color: var(--fg-2); margin-bottom: 14px; }
+    .stay-foot { display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid var(--line); padding-top: 14px; }
+    .stay-price .num { font-family: 'DM Serif Display', serif; font-size: 24px; color: var(--accent); }
+    .stay-price .lab { font-size: 12px; color: var(--fg-3); }
+    .stay-foot a { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg); }
+    .stay-foot a:hover { color: var(--accent); }
+    @media (max-width: 1080px) { .stays { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .stays { grid-template-columns: 1fr; } }
+
+    /* How it works */
+    .how { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 64px; align-items: center; padding: 56px; background: var(--paper); border-radius: 28px; }
+    .how img { width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 20px; }
+    .how-steps { padding: 8px 0; }
+    .how-steps h2 { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(36px, 4.4vw, 56px); margin: 0 0 32px; line-height: 1.05; }
+    .how-step { display: grid; grid-template-columns: 56px 1fr; gap: 18px; padding: 22px 0; border-top: 1px solid var(--line); }
+    .how-step:last-child { border-bottom: 1px solid var(--line); }
+    .how-step .n { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-weight: 700; }
+    .how-step h4 { margin: 0 0 4px; font-family: 'DM Serif Display', serif; font-size: 20px; font-weight: 400; }
+    .how-step p { margin: 0; color: var(--fg-2); font-size: 14px; }
+    @media (max-width: 1080px) { .how { grid-template-columns: 1fr; padding: 36px; } }
+
+    /* Testimonials */
+    .testi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .testi { background: var(--paper); padding: 32px; border-radius: 18px; }
+    .testi-stars { color: var(--accent); letter-spacing: 0.2em; margin-bottom: 14px; font-size: 14px; }
+    .testi blockquote { margin: 0 0 18px; font-size: 16px; line-height: 1.55; }
+    .testi-by { display: flex; align-items: center; gap: 12px; }
+    .testi-by img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+    .testi-by .name { font-weight: 700; font-size: 14px; }
+    .testi-by .meta { font-size: 12px; color: var(--fg-3); }
+    @media (max-width: 1080px) { .testi-grid { grid-template-columns: 1fr; } }
+
+    /* CTA */
+    .cta { padding: 96px 0; background: var(--fg); color: var(--paper); border-radius: 28px 28px 0 0; }
+    .cta-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 48px; align-items: end; }
+    .cta h2 { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(42px, 5.4vw, 72px); line-height: 1.02; margin: 0; color: var(--paper); }
+    .cta h2 em { font-style: italic; color: var(--accent); }
+    .cta p { color: rgba(236, 243, 238, 0.7); margin: 0 0 28px; font-size: 16px; }
+    @media (max-width: 1080px) { .cta-grid { grid-template-columns: 1fr; gap: 24px; } }
+
+    footer { background: var(--fg); color: var(--paper); padding: 0 0 28px; }
+    .foot-grid { display: grid; grid-template-columns: 1.4fr repeat(4, 1fr); gap: 32px; padding-top: 56px; border-top: 1px solid rgba(236, 243, 238, 0.12); }
+    .foot-col h4 { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin: 0 0 14px; font-weight: 700; }
+    .foot-col a, .foot-col p { display: block; color: rgba(236, 243, 238, 0.72); font-size: 13px; padding: 4px 0; margin: 0; }
+    .foot-col a:hover { color: var(--paper); }
+    .foot-bot { margin-top: 48px; padding-top: 20px; border-top: 1px solid rgba(236,243,238,0.12); display: flex; justify-content: space-between; font-size: 12px; color: rgba(236, 243, 238, 0.5); }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 8px; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a href="#" class="brand"><span class="brand-mark">≈</span>Tideline</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#stays">Stays</a>
+        <a href="#destinations">Destinations</a>
+        <a href="#how">How it works</a>
+        <a href="#owners">Owners</a>
+        <a href="#guests">Guests</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-line" href="#">List your home</a>
+        <a class="btn btn-orange" href="#stays">Find a stay</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-content">
+          <h1>The shore, with the <em>keys in hand.</em></h1>
+          <p class="hero-lede">Tideline curates beachfront and waterfront vacation homes from Cape Cod to Carmel. We walk every house, hand over every key in person, and answer every phone call.</p>
+        </div>
+        <div class="hero-image">
+          <img src="https://picsum.photos/seed/tideline-1/2000/1300" width="2000" height="1300" alt="A shingled beach house with a wide porch and dune grass leading down to the Atlantic." loading="eager" />
+          <div class="ribbon">
+            <h3>The Salt House</h3>
+            <p>Nauset Heights · Cape Cod · 4 br · sleeps 8</p>
+            <span class="price">From $895 / night</span>
+          </div>
+        </div>
+
+        <form class="search" onsubmit="event.preventDefault();">
+          <div class="search-field"><label for="where">Where</label><input id="where" type="text" placeholder="Cape Cod, Outer Banks, Big Sur…" /></div>
+          <div class="search-field"><label for="check-in">Check in</label><input id="check-in" type="date" /></div>
+          <div class="search-field"><label for="check-out">Check out</label><input id="check-out" type="date" /></div>
+          <div class="search-field"><label for="guests">Guests</label><select id="guests"><option>2 guests</option><option>4 guests</option><option>6 guests</option><option>8 guests</option><option>10 +</option></select></div>
+          <button type="submit">Search</button>
+        </form>
+      </div>
+    </section>
+
+    <section id="destinations">
+      <div class="wrap">
+        <div class="dests">
+          <div class="dest"><img src="https://picsum.photos/seed/tideline-2/300/300" width="300" height="300" alt="Aerial view of Cape Cod dunes." loading="lazy" /><h4>Cape Cod</h4><p>42 homes</p></div>
+          <div class="dest"><img src="https://picsum.photos/seed/tideline-3/300/300" width="300" height="300" alt="Outer Banks lighthouse and dunes." loading="lazy" /><h4>Outer Banks</h4><p>28 homes</p></div>
+          <div class="dest"><img src="https://picsum.photos/seed/tideline-4/300/300" width="300" height="300" alt="30A Florida emerald water." loading="lazy" /><h4>30A · Florida</h4><p>34 homes</p></div>
+          <div class="dest"><img src="https://picsum.photos/seed/tideline-5/300/300" width="300" height="300" alt="Big Sur cliffs at sunset." loading="lazy" /><h4>Big Sur</h4><p>14 homes</p></div>
+          <div class="dest"><img src="https://picsum.photos/seed/tideline-6/300/300" width="300" height="300" alt="Block Island shoreline." loading="lazy" /><h4>Block Island</h4><p>18 homes</p></div>
+          <div class="dest"><img src="https://picsum.photos/seed/tideline-7/300/300" width="300" height="300" alt="Carmel beach at golden hour." loading="lazy" /><h4>Carmel</h4><p>22 homes</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="stays">
+      <div class="wrap">
+        <div class="section-head">
+          <div><h2>Six houses we'd happily <em>spend a week in</em>.</h2></div>
+          <p>Our editorial picks for the season. Each home is owner-managed and Tideline-verified — meaning we have stayed in it ourselves and we know the owner by first name.</p>
+        </div>
+        <div class="stays">
+          <article class="stay">
+            <div class="stay-img"><img src="https://picsum.photos/seed/tideline-8/900/700" width="900" height="700" alt="A shingled cottage with hydrangeas and a path to the dunes." loading="lazy" /><span class="stay-tag">Editor's pick</span><span class="stay-heart">♡</span></div>
+            <div class="stay-body">
+              <div class="stay-loc">Nauset Heights · Cape Cod</div>
+              <h3>The Salt House</h3>
+              <div class="stay-specs"><span>4 bedrooms</span><span>·</span><span>3 baths</span><span>·</span><span>sleeps 8</span></div>
+              <div class="stay-foot"><div class="stay-price"><span class="num">$895</span><span class="lab"> / night</span></div><a href="#">View →</a></div>
+            </div>
+          </article>
+          <article class="stay">
+            <div class="stay-img"><img src="https://picsum.photos/seed/tideline-9/900/700" width="900" height="700" alt="A white cliffside Big Sur home with floor-to-ceiling windows over the Pacific." loading="lazy" /><span class="stay-tag">New</span><span class="stay-heart">♡</span></div>
+            <div class="stay-body">
+              <div class="stay-loc">Pfeiffer Point · Big Sur</div>
+              <h3>Atelier on the Cliff</h3>
+              <div class="stay-specs"><span>3 bedrooms</span><span>·</span><span>2 baths</span><span>·</span><span>sleeps 6</span></div>
+              <div class="stay-foot"><div class="stay-price"><span class="num">$1,420</span><span class="lab"> / night</span></div><a href="#">View →</a></div>
+            </div>
+          </article>
+          <article class="stay">
+            <div class="stay-img"><img src="https://picsum.photos/seed/tideline-10/900/700" width="900" height="700" alt="A pastel Florida beach cottage with a wraparound porch on 30A." loading="lazy" /><span class="stay-heart">♡</span></div>
+            <div class="stay-body">
+              <div class="stay-loc">Rosemary Beach · 30A</div>
+              <h3>The Pearl Cottage</h3>
+              <div class="stay-specs"><span>5 bedrooms</span><span>·</span><span>4 baths</span><span>·</span><span>sleeps 10</span></div>
+              <div class="stay-foot"><div class="stay-price"><span class="num">$1,180</span><span class="lab"> / night</span></div><a href="#">View →</a></div>
+            </div>
+          </article>
+          <article class="stay">
+            <div class="stay-img"><img src="https://picsum.photos/seed/tideline-11/900/700" width="900" height="700" alt="A modern cedar-clad house with a long deck over the dunes of the Outer Banks." loading="lazy" /><span class="stay-heart">♡</span></div>
+            <div class="stay-body">
+              <div class="stay-loc">Corolla · Outer Banks</div>
+              <h3>Skiff House</h3>
+              <div class="stay-specs"><span>6 bedrooms</span><span>·</span><span>5 baths</span><span>·</span><span>sleeps 12</span></div>
+              <div class="stay-foot"><div class="stay-price"><span class="num">$1,640</span><span class="lab"> / night</span></div><a href="#">View →</a></div>
+            </div>
+          </article>
+          <article class="stay">
+            <div class="stay-img"><img src="https://picsum.photos/seed/tideline-12/900/700" width="900" height="700" alt="A classic shingle-style cottage with a porch overlooking Block Island sound." loading="lazy" /><span class="stay-tag">Family</span><span class="stay-heart">♡</span></div>
+            <div class="stay-body">
+              <div class="stay-loc">Mohegan Bluffs · Block Island</div>
+              <h3>The Spinnaker</h3>
+              <div class="stay-specs"><span>4 bedrooms</span><span>·</span><span>3 baths</span><span>·</span><span>sleeps 8</span></div>
+              <div class="stay-foot"><div class="stay-price"><span class="num">$740</span><span class="lab"> / night</span></div><a href="#">View →</a></div>
+            </div>
+          </article>
+          <article class="stay">
+            <div class="stay-img"><img src="https://picsum.photos/seed/tideline-13/900/700" width="900" height="700" alt="A stone and timber Carmel cottage tucked behind cypress trees with ocean glimpses." loading="lazy" /><span class="stay-heart">♡</span></div>
+            <div class="stay-body">
+              <div class="stay-loc">Carmel-by-the-Sea</div>
+              <h3>The Cypress Cottage</h3>
+              <div class="stay-specs"><span>2 bedrooms</span><span>·</span><span>2 baths</span><span>·</span><span>sleeps 4</span></div>
+              <div class="stay-foot"><div class="stay-price"><span class="num">$680</span><span class="lab"> / night</span></div><a href="#">View →</a></div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="how">
+      <div class="wrap">
+        <div class="how">
+          <img src="https://picsum.photos/seed/tideline-14/900/1100" width="900" height="1100" alt="A Tideline host handing keys to a guest at the front door of a beach cottage." loading="lazy" />
+          <div class="how-steps">
+            <h2>How a Tideline stay actually works.</h2>
+            <div class="how-step"><span class="n">1</span><div><h4>Find your house</h4><p>Every listing is hand-picked and walked by our editors before it goes live.</p></div></div>
+            <div class="how-step"><span class="n">2</span><div><h4>Book direct, instantly</h4><p>No middleman fees. Owners receive your booking the moment you confirm.</p></div></div>
+            <div class="how-step"><span class="n">3</span><div><h4>Meet the host</h4><p>Keys are handed over in person. Your host's number is in your phone before you arrive.</p></div></div>
+            <div class="how-step"><span class="n">4</span><div><h4>Stay the week</h4><p>If anything goes sideways, Tideline picks up — twenty-four hours a day, every day.</p></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="guests">
+      <div class="wrap">
+        <div class="section-head">
+          <div><h2>What guests said after <em>checking out</em>.</h2></div>
+          <p>Verified guest reviews from the last twelve months, lightly edited for length. Average Tideline rating: 4.92 out of 5 across 1,840 reviews.</p>
+        </div>
+        <div class="testi-grid">
+          <div class="testi">
+            <div class="testi-stars">★★★★★</div>
+            <blockquote>"The owner of the Salt House met us at the porch with iced tea and a map of the best clam shacks. We have rented for fifteen years and this was the first."</blockquote>
+            <div class="testi-by"><img src="https://picsum.photos/seed/tideline-15/100/100" width="100" height="100" alt="Portrait of guest Carolyn." loading="lazy" /><div><div class="name">Carolyn H.</div><div class="meta">Nauset Heights · July 2025</div></div></div>
+          </div>
+          <div class="testi">
+            <div class="testi-stars">★★★★★</div>
+            <blockquote>"Booked Friday, in the house by Sunday. The host walked us through the propane heater, the outdoor shower, and the trail to the beach. Real human service."</blockquote>
+            <div class="testi-by"><img src="https://picsum.photos/seed/tideline-16/100/100" width="100" height="100" alt="Portrait of guest Devon." loading="lazy" /><div><div class="name">Devon R.</div><div class="meta">Outer Banks · Aug 2025</div></div></div>
+          </div>
+          <div class="testi">
+            <div class="testi-stars">★★★★★</div>
+            <blockquote>"The dishwasher died on day three. Tideline had a repair tech in the house by 10 a.m. the next morning. Stayed comp'd a night."</blockquote>
+            <div class="testi-by"><img src="https://picsum.photos/seed/tideline-17/100/100" width="100" height="100" alt="Portrait of guest Marisol." loading="lazy" /><div><div class="name">Marisol P.</div><div class="meta">30A · June 2025</div></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="cta" id="owners">
+    <div class="wrap cta-grid">
+      <h2>Own a place by the water? <em>List with Tideline.</em></h2>
+      <div>
+        <p>We list 200 homes a year. Owner-managed only. We do not list properties bought as investments — we list homes that someone you'd want to meet has lived in.</p>
+        <a href="#" class="btn btn-orange">Apply to list →</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <div class="brand" style="color:var(--paper)"><span class="brand-mark">≈</span>Tideline</div>
+          <p style="margin-top:14px; max-width: 280px;">Hand-picked beachfront and waterfront vacation homes, owner-managed and Tideline-verified.</p>
+        </div>
+        <div class="foot-col"><h4>Destinations</h4><a href="#">Cape Cod</a><a href="#">Outer Banks</a><a href="#">30A</a><a href="#">Big Sur</a></div>
+        <div class="foot-col"><h4>Guests</h4><a href="#">Trip support</a><a href="#">Pet-friendly</a><a href="#">Family stays</a><a href="#">Gift cards</a></div>
+        <div class="foot-col"><h4>Owners</h4><a href="#">List your home</a><a href="#">Calendar tools</a><a href="#">Owner support</a><a href="#">Earnings</a></div>
+        <div class="foot-col"><h4>Company</h4><a href="#">About</a><a href="#">Editorial</a><a href="#">Press</a><a href="#">Contact</a></div>
+      </div>
+      <div class="foot-bot"><span>© 2026 Tideline Holdings, Inc.</span><span>Owner-managed homes · 4.92 ★ guest rating</span></div>
+    </div>
+  </footer>
+</body>
+</html>

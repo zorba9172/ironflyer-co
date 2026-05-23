@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 
-// Top-level client error boundary. Hebrew-first copy, lime "Reset" CTA
+// Top-level client error boundary. English copy, lime "Reset" CTA
 // that re-mounts the failing tree via reset(), and a secondary link to
 // our public status page where users can confirm whether the issue is
 // on our side.
@@ -23,7 +23,6 @@ export default function Error({
 
   return (
     <main
-      dir="rtl"
       style={{
         minHeight: '100vh',
         display: 'flex',
@@ -46,37 +45,26 @@ export default function Error({
           gap: 20,
         }}
       >
-        <div
-          aria-hidden
-          style={{
-            width: 72,
-            height: 72,
-            background: '#e5ff00',
-            borderRadius: 16,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontFamily: 'var(--font-display), Arial Black, sans-serif',
-            fontSize: 48,
-            color: '#0d0e0f',
-            lineHeight: 1,
-          }}
-        >
-          !
-        </div>
+        <svg width="76" height="76" viewBox="0 0 64 64" aria-hidden>
+          <rect x="4" y="4" width="56" height="56" rx="8" fill="#0d0e0f" />
+          <path d="M19 14h13c9 0 15 5 15 13 0 6-3 10-9 12l10 11H35L26 40h-3v10H12V14h7Z" fill="#e5ff00" />
+          <path d="M23 23h12c3 0 5 2 5 5s-2 5-5 5H23V23Z" fill="#0d0e0f" />
+          <path d="M15 14h10v36H15V14Z" fill="#e5ff00" />
+          <path d="M28 18h16v4H28V18Zm0 12h16v4H28v-4Zm0 12h16v4H28v-4Z" fill="#f4f0e8" />
+          <path d="M46 24l8 8-8 8v-6h-6v-4h6v-6Z" fill="#f4f0e8" />
+        </svg>
         <h1
           style={{
             margin: 0,
             fontFamily: 'var(--font-display), Arial Black, sans-serif',
             fontSize: '1.875rem',
-            letterSpacing: -0.5,
+            letterSpacing: 0,
           }}
         >
-          משהו השתבש בצד שלנו. עברנו לבדוק את זה.
+          Something failed inside the loop.
         </h1>
         <p style={{ margin: 0, color: '#3a3a36', lineHeight: 1.5 }}>
-          השגיאה נרשמה אצלנו. אפשר לנסות לטעון את הדף מחדש, או לבדוק אם השירות
-          זמין.
+          The error was logged. Try again, or check service status if the problem keeps happening.
         </p>
         {error.digest && (
           <code
@@ -106,7 +94,7 @@ export default function Error({
               cursor: 'pointer',
             }}
           >
-            נסה שוב
+            Try again
           </button>
           <a
             href="https://github.com/ironflyer/ironflyer/issues/new"
@@ -124,7 +112,7 @@ export default function Error({
               textDecoration: 'none',
             }}
           >
-            דווח על תקלה
+            Report issue
           </a>
           <a
             href="/status"
@@ -139,7 +127,7 @@ export default function Error({
               textDecoration: 'none',
             }}
           >
-            סטטוס שירותים
+            Service status
           </a>
         </div>
       </div>

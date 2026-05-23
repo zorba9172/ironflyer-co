@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vault Finance — Premium yield aggregation, on-chain</title>
+  <meta name="description" content="Vault Finance is a curated yield aggregator. Risk-tiered strategies, transparent fees, audited contracts, and a hard withdrawal guarantee." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #131318;
+      --surface: #1c1c22;
+      --surface-2: #25252c;
+      --border: rgba(212, 175, 55, 0.12);
+      --border-strong: rgba(212, 175, 55, 0.28);
+      --fg: #f4f1e8;
+      --fg-2: #a8a194;
+      --fg-3: #6b6557;
+      --accent: #d4af37;
+      --accent-2: #f5d472;
+      --green: #6ed29a;
+      --red: #d96565;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'IBM Plex Sans', -apple-system, system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
+    .mono { font-family: 'IBM Plex Mono', monospace; }
+    .serif { font-family: 'Playfair Display', Georgia, serif; }
+
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: blur(14px);
+      background: rgba(19, 19, 24, 0.85);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 68px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 700; letter-spacing: -0.01em; font-size: 18px; }
+    .brand-mark {
+      width: 30px; height: 30px; border-radius: 6px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #131318; display: grid; place-items: center;
+      font-family: 'Playfair Display', serif; font-weight: 700; font-size: 17px;
+    }
+    .nav-links { display: flex; gap: 32px; color: var(--fg-2); font-size: 14px; }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta { display: flex; gap: 10px; align-items: center; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      height: 40px; padding: 0 18px;
+      border-radius: 6px; font-weight: 600; font-size: 14px;
+      border: 1px solid transparent; cursor: pointer;
+      transition: transform 160ms, background 160ms;
+      font-family: inherit;
+    }
+    .btn-primary { background: var(--accent); color: #131318; }
+    .btn-primary:hover { background: var(--accent-2); }
+    .btn-ghost { background: transparent; color: var(--fg); border-color: var(--border-strong); }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    .wallet-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      height: 40px; padding: 0 14px; border-radius: 6px;
+      border: 1px solid var(--border-strong);
+      font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+      color: var(--fg-2); cursor: pointer; background: transparent;
+    }
+    .wallet-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+    @media (max-width: 900px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 96px 0 72px; position: relative; }
+    .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 14px; border: 1px solid var(--border-strong);
+      border-radius: 999px; font-size: 12px; color: var(--accent);
+      font-family: 'IBM Plex Mono', monospace;
+      text-transform: uppercase; letter-spacing: 0.12em;
+    }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(44px, 6.2vw, 78px);
+      line-height: 1.02; letter-spacing: -0.02em;
+      font-weight: 700; margin: 22px 0 24px;
+    }
+    h1 em { font-style: italic; color: var(--accent); font-weight: 700; }
+    .lede { font-size: 19px; color: var(--fg-2); max-width: 540px; line-height: 1.6; }
+    .hero-cta { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; }
+    .hero-cta .btn { height: 48px; padding: 0 22px; }
+
+    /* Vault preview */
+    .vault-card {
+      background: linear-gradient(180deg, var(--surface), var(--bg));
+      border: 1px solid var(--border-strong);
+      border-radius: 8px; padding: 28px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+    }
+    .vault-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+    .vault-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; }
+    .vault-tier { font-family: 'IBM Plex Mono', monospace; font-size: 11px; padding: 4px 8px; background: var(--accent); color: #131318; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; }
+    .vault-sub { font-size: 13px; color: var(--fg-2); margin-bottom: 22px; font-family: 'IBM Plex Mono', monospace; }
+    .vault-apy { display: flex; align-items: baseline; gap: 12px; padding: 18px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .vault-apy-num { font-family: 'Playfair Display', serif; font-size: 56px; font-weight: 700; color: var(--accent); line-height: 1; }
+    .vault-apy-label { font-size: 13px; color: var(--fg-2); font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; }
+    .vault-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 18px 0; }
+    .vault-meta-cell { font-family: 'IBM Plex Mono', monospace; }
+    .vault-meta-cell .label { font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
+    .vault-meta-cell .val { font-size: 16px; font-weight: 500; }
+    .vault-actions { display: flex; gap: 8px; padding-top: 16px; border-top: 1px solid var(--border); }
+    .vault-actions .btn { flex: 1; justify-content: center; }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 48px; } }
+
+    /* Stats */
+    .stats {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 48px 0;
+    }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    .stat .val { font-family: 'Playfair Display', serif; font-size: clamp(32px, 4vw, 48px); font-weight: 700; letter-spacing: -0.01em; line-height: 1; }
+    .stat .val em { font-style: italic; color: var(--accent); }
+    .stat .label { color: var(--fg-2); font-size: 12px; margin-top: 10px; font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; }
+    @media (max-width: 720px) { .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 28px; } }
+
+    /* Section */
+    .section { padding: 100px 0; }
+    .section-head { max-width: 760px; margin-bottom: 56px; }
+    .section h2 { font-family: 'Playfair Display', serif; font-size: clamp(36px, 4.6vw, 56px); letter-spacing: -0.015em; line-height: 1.05; font-weight: 700; margin: 14px 0 16px; }
+    .section h2 em { font-style: italic; color: var(--accent); }
+    .section .lede { font-size: 17px; }
+
+    /* Vault table */
+    .vault-table {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; overflow: hidden;
+    }
+    .vault-table-head {
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 100px;
+      padding: 14px 20px; background: var(--surface-2);
+      font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--fg-3);
+      text-transform: uppercase; letter-spacing: 0.1em;
+      border-bottom: 1px solid var(--border);
+    }
+    .vault-row {
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 100px;
+      padding: 20px; border-bottom: 1px solid var(--border);
+      align-items: center; font-size: 14px;
+    }
+    .vault-row:last-child { border-bottom: 0; }
+    .vault-row:hover { background: rgba(212, 175, 55, 0.04); }
+    .vault-asset { display: flex; align-items: center; gap: 12px; }
+    .vault-asset-ico { width: 32px; height: 32px; border-radius: 50%; }
+    .vault-asset-name { font-weight: 600; font-size: 15px; }
+    .vault-asset-sub { font-size: 12px; color: var(--fg-2); font-family: 'IBM Plex Mono', monospace; }
+    .vault-apy-cell { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--accent); font-weight: 700; }
+    .vault-num { font-family: 'IBM Plex Mono', monospace; font-size: 14px; }
+    .risk-pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+    .risk-low { background: rgba(110, 210, 154, 0.16); color: var(--green); }
+    .risk-mid { background: rgba(212, 175, 55, 0.16); color: var(--accent); }
+    .risk-high { background: rgba(217, 101, 101, 0.16); color: var(--red); }
+    .vault-cta { padding: 8px 14px; border: 1px solid var(--border-strong); border-radius: 4px; font-size: 12px; font-family: 'IBM Plex Mono', monospace; text-align: center; cursor: pointer; color: var(--fg); background: transparent; font-family: inherit; }
+    .vault-cta:hover { border-color: var(--accent); color: var(--accent); }
+    @media (max-width: 1080px) {
+      .vault-table-head { display: none; }
+      .vault-row { grid-template-columns: 1fr; gap: 10px; padding: 18px; }
+    }
+
+    /* How it works */
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .step { padding: 36px; position: relative; }
+    .step + .step { border-left: 1px solid var(--border); }
+    .step-num { font-family: 'Playfair Display', serif; font-size: 60px; color: var(--accent); line-height: 1; opacity: 0.6; margin-bottom: 16px; font-weight: 700; font-style: italic; }
+    .step h3 { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; margin: 0 0 10px; }
+    .step p { color: var(--fg-2); margin: 0; font-size: 14.5px; line-height: 1.65; }
+    @media (max-width: 1080px) {
+      .steps { grid-template-columns: 1fr; }
+      .step + .step { border-left: 0; border-top: 1px solid var(--border); }
+    }
+
+    /* Features */
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .feature { padding: 28px; border-top: 1px solid var(--accent); background: var(--surface); }
+    .feature h3 { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; margin: 0 0 10px; }
+    .feature p { color: var(--fg-2); margin: 0; font-size: 14.5px; line-height: 1.65; }
+    @media (max-width: 1080px) { .features { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .features { grid-template-columns: 1fr; } }
+
+    /* Security */
+    .security { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 100px 0; }
+    .sec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: start; }
+    .auditors { display: grid; gap: 12px; }
+    .auditor {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 6px; padding: 22px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .auditor-name { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 19px; }
+    .auditor-meta { font-size: 12px; color: var(--fg-2); font-family: 'IBM Plex Mono', monospace; margin-top: 4px; }
+    .auditor a { color: var(--accent); font-size: 12px; font-family: 'IBM Plex Mono', monospace; }
+    @media (max-width: 1080px) { .sec-grid { grid-template-columns: 1fr; gap: 40px; } }
+
+    /* Footer */
+    footer { border-top: 1px solid var(--border); padding: 64px 0 32px; background: #0e0e12; }
+    .foot-grid { display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 48px; }
+    .foot-col h4 { font-size: 12px; font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); margin: 0 0 18px; }
+    .foot-col a { display: block; color: var(--fg-2); font-size: 14px; padding: 6px 0; }
+    .foot-col a:hover { color: var(--accent); }
+    .foot-bot { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; color: var(--fg-3); font-size: 13px; font-family: 'IBM Plex Mono', monospace; }
+    @media (max-width: 720px) {
+      .foot-grid { grid-template-columns: 1fr 1fr; }
+      .foot-bot { flex-direction: column; gap: 12px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">
+        <span class="brand-mark">V</span>
+        Vault
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#vaults">Vaults</a>
+        <a href="#how">How it works</a>
+        <a href="#features">Strategy</a>
+        <a href="#security">Security</a>
+        <a href="#">Docs</a>
+      </nav>
+      <div class="nav-cta">
+        <button class="wallet-pill"><span class="dot"></span>Connect wallet</button>
+        <a class="btn btn-primary" href="#">Open app →</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>est. 2023 · curator-led</span>
+            <h1>Yield, <em>curated</em>. Risk, <em>priced</em>.</h1>
+            <p class="lede">Vault Finance is a curator-led yield aggregator. Risk-tiered strategies, transparent fees, audited contracts, and a hard withdrawal guarantee — even when the market is panicking.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#">Deposit now →</a>
+              <a class="btn btn-ghost" href="#vaults">Browse vaults</a>
+            </div>
+          </div>
+          <div class="vault-card" role="region" aria-label="Featured vault preview">
+            <div class="vault-head">
+              <div>
+                <div class="vault-title">USDC Conservative</div>
+                <div class="vault-sub">curator: field-quant · v3 · audited</div>
+              </div>
+              <span class="vault-tier">Tier A</span>
+            </div>
+            <div class="vault-apy">
+              <div>
+                <div class="vault-apy-num">8.42%</div>
+                <div class="vault-apy-label">7-day net APY</div>
+              </div>
+            </div>
+            <div class="vault-meta">
+              <div class="vault-meta-cell">
+                <div class="label">TVL</div>
+                <div class="val">$184,302,490</div>
+              </div>
+              <div class="vault-meta-cell">
+                <div class="label">Performance fee</div>
+                <div class="val">10.00%</div>
+              </div>
+              <div class="vault-meta-cell">
+                <div class="label">Withdrawal</div>
+                <div class="val">Instant · no lockup</div>
+              </div>
+              <div class="vault-meta-cell">
+                <div class="label">Audited by</div>
+                <div class="val">Trail of Bits</div>
+              </div>
+            </div>
+            <div class="vault-actions">
+              <button class="btn btn-primary">Deposit USDC</button>
+              <button class="btn btn-ghost">Strategy report</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats">
+      <div class="wrap">
+        <div class="stats-grid">
+          <div class="stat"><div class="val"><em>$1.42B</em></div><div class="label">TVL across vaults</div></div>
+          <div class="stat"><div class="val">42</div><div class="label">Audited strategies</div></div>
+          <div class="stat"><div class="val">9.6%</div><div class="label">Median 12-mo APY</div></div>
+          <div class="stat"><div class="val">8</div><div class="label">Supported chains</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="vaults">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Live vaults</span>
+          <h2>Pick a vault. <em>Pick its risk</em>.</h2>
+          <p class="lede">Every vault carries a published risk tier, a curator signature, and a strategy report. Read it before you deposit — we expect you to.</p>
+        </div>
+        <div class="vault-table">
+          <div class="vault-table-head">
+            <div>Asset / strategy</div>
+            <div>APY</div>
+            <div>TVL</div>
+            <div>Risk</div>
+            <div>Chain</div>
+            <div></div>
+          </div>
+          <div class="vault-row">
+            <div class="vault-asset">
+              <div class="vault-asset-ico" style="background: linear-gradient(135deg, #2775ca, #5ca0f3);"></div>
+              <div><div class="vault-asset-name">USDC Conservative</div><div class="vault-asset-sub">aave + compound</div></div>
+            </div>
+            <div class="vault-apy-cell">8.42%</div>
+            <div class="vault-num">$184M</div>
+            <div><span class="risk-pill risk-low">Low</span></div>
+            <div class="vault-num">Ethereum</div>
+            <button class="vault-cta">Deposit</button>
+          </div>
+          <div class="vault-row">
+            <div class="vault-asset">
+              <div class="vault-asset-ico" style="background: linear-gradient(135deg, #627eea, #8198ff);"></div>
+              <div><div class="vault-asset-name">ETH Leveraged Staking</div><div class="vault-asset-sub">lido + morpho loop</div></div>
+            </div>
+            <div class="vault-apy-cell">12.18%</div>
+            <div class="vault-num">$312M</div>
+            <div><span class="risk-pill risk-mid">Medium</span></div>
+            <div class="vault-num">Ethereum</div>
+            <button class="vault-cta">Deposit</button>
+          </div>
+          <div class="vault-row">
+            <div class="vault-asset">
+              <div class="vault-asset-ico" style="background: linear-gradient(135deg, #f59e0b, #fbbf24);"></div>
+              <div><div class="vault-asset-name">PT-USDC Pendle</div><div class="vault-asset-sub">fixed-rate notes</div></div>
+            </div>
+            <div class="vault-apy-cell">14.30%</div>
+            <div class="vault-num">$96M</div>
+            <div><span class="risk-pill risk-mid">Medium</span></div>
+            <div class="vault-num">Arbitrum</div>
+            <button class="vault-cta">Deposit</button>
+          </div>
+          <div class="vault-row">
+            <div class="vault-asset">
+              <div class="vault-asset-ico" style="background: linear-gradient(135deg, #ec4899, #f472b6);"></div>
+              <div><div class="vault-asset-name">USDC/ETH LP</div><div class="vault-asset-sub">uniswap v4 concentrated</div></div>
+            </div>
+            <div class="vault-apy-cell">22.40%</div>
+            <div class="vault-num">$48M</div>
+            <div><span class="risk-pill risk-high">High</span></div>
+            <div class="vault-num">Base</div>
+            <button class="vault-cta">Deposit</button>
+          </div>
+          <div class="vault-row">
+            <div class="vault-asset">
+              <div class="vault-asset-ico" style="background: linear-gradient(135deg, #5cf0a1, #a0ffc4);"></div>
+              <div><div class="vault-asset-name">stETH Treasury</div><div class="vault-asset-sub">delta-neutral basis</div></div>
+            </div>
+            <div class="vault-apy-cell">10.06%</div>
+            <div class="vault-num">$220M</div>
+            <div><span class="risk-pill risk-low">Low</span></div>
+            <div class="vault-num">Ethereum</div>
+            <button class="vault-cta">Deposit</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="how" style="padding-top: 0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>How it works</span>
+          <h2>Three signed steps. <em>No surprises</em>.</h2>
+          <p class="lede">Vault Finance does not move funds. Vaults move funds, on-chain, within bounded strategies you can read in advance.</p>
+        </div>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">I</div>
+            <h3>Deposit into a vault</h3>
+            <p>Pick a vault. Read its strategy report and audit. Deposit your asset. You receive vault shares (ERC-4626) that track your portion of the position.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">II</div>
+            <h3>Strategy compounds</h3>
+            <p>The curator's strategy executes on-chain within the vault's defined bounds. Every action emits an event. Every fee is published. There is no off-chain accounting.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">III</div>
+            <h3>Withdraw, on demand</h3>
+            <p>Burn your shares and receive the underlying asset plus accrued yield. Withdrawals are instant on liquid vaults; deferred vaults publish a redemption queue.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="features" style="padding-top: 0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Strategy</span>
+          <h2>Built for <em>serious</em> capital.</h2>
+          <p class="lede">If you've ever lost money to a "rebasing" token, an opaque LP, or a vault that wrapped your funds in something you didn't sign up for — this is the antidote.</p>
+        </div>
+        <div class="features">
+          <div class="feature"><h3>ERC-4626 shares</h3><p>Every vault is a standard tokenized vault. Your position is a transferable, queryable ERC-20.</p></div>
+          <div class="feature"><h3>Bounded strategies</h3><p>Each vault publishes its allowed contracts, asset list, and leverage cap. Off-bound actions revert on-chain.</p></div>
+          <div class="feature"><h3>Curator skin in the game</h3><p>Curators co-deposit and earn a performance fee. Bad performance moves their share down with yours.</p></div>
+          <div class="feature"><h3>No emergency mint</h3><p>The protocol cannot mint shares to bail itself out. The supply curve is a function of deposits only.</p></div>
+          <div class="feature"><h3>Reentrancy-locked</h3><p>OpenZeppelin's ReentrancyGuard on every external call. State invariants are checked on every transition.</p></div>
+          <div class="feature"><h3>Transparent fees</h3><p>10% performance, 0% management on Tier A. Higher tiers carry strategy fees, all listed in the vault contract.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="security" id="security">
+      <div class="wrap">
+        <div class="sec-grid">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>Security</span>
+            <h2>Audited. <em>Insured</em>. Bounty-backed.</h2>
+            <p class="lede">Every vault carries at least one major-firm audit and a $1M bug bounty. Optional Nexus Mutual cover is available through the deposit flow on Tier A vaults.</p>
+            <div style="margin-top: 28px;">
+              <a class="btn btn-ghost" href="#" style="margin-right: 10px;">Audits</a>
+              <a class="btn btn-ghost" href="#">Bug bounty</a>
+              <a class="btn btn-ghost" href="#">Coverage</a>
+            </div>
+          </div>
+          <div class="auditors">
+            <div class="auditor">
+              <div><div class="auditor-name">Trail of Bits</div><div class="auditor-meta">Core vault contracts · Feb 2026</div></div>
+              <a href="#">View →</a>
+            </div>
+            <div class="auditor">
+              <div><div class="auditor-name">OpenZeppelin</div><div class="auditor-meta">Strategy router · Dec 2025</div></div>
+              <a href="#">View →</a>
+            </div>
+            <div class="auditor">
+              <div><div class="auditor-name">Halborn</div><div class="auditor-meta">Pendle integration · Oct 2025</div></div>
+              <a href="#">View →</a>
+            </div>
+            <div class="auditor">
+              <div><div class="auditor-name">Spearbit</div><div class="auditor-meta">Curator role layer · Aug 2025</div></div>
+              <a href="#">View →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a class="brand" href="#" style="margin-bottom:18px;">
+            <span class="brand-mark">V</span>
+            Vault
+          </a>
+          <p style="color:var(--fg-2); font-size:14px; max-width:320px;">Curator-led yield aggregation. Risk-tiered strategies, transparent fees, audited contracts, hard withdrawal guarantee.</p>
+        </div>
+        <div class="foot-col">
+          <h4>Protocol</h4>
+          <a href="#">Vaults</a>
+          <a href="#">Curators</a>
+          <a href="#">Tokenomics</a>
+          <a href="#">Treasury</a>
+        </div>
+        <div class="foot-col">
+          <h4>Developers</h4>
+          <a href="#">Docs</a>
+          <a href="#">SDK</a>
+          <a href="#">GitHub</a>
+          <a href="#">Bug bounty</a>
+        </div>
+        <div class="foot-col">
+          <h4>Company</h4>
+          <a href="#">About</a>
+          <a href="#">Careers</a>
+          <a href="#">Privacy</a>
+          <a href="#">Terms</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Vault Finance · Audited by Trail of Bits</span>
+        <span>This is not investment advice. Read each vault's strategy report.</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

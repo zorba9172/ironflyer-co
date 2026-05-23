@@ -163,13 +163,13 @@ export function DocPage({ title, eyebrow, description, toc, children }: DocPageP
         <Box sx={{ mt: 8, pt: 4, borderTop: '1px solid rgba(17,17,17,0.10)' }}>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems="center" justifyContent="space-between">
             <Typography sx={{ color: '#77736b', fontSize: 13 }}>
-              שאלות? כתבו לנו ב־
+              Questions? Write to us at{' '}
               <a href="mailto:docs@ironflyer.dev" style={{ color: '#5c6300', textDecoration: 'underline', fontWeight: 600 }}>
                 docs@ironflyer.dev
               </a>
             </Typography>
             <Typography sx={{ color: '#77736b', fontSize: 13 }}>
-              עודכן לאחרונה · {new Date().toISOString().slice(0, 10)}
+              Last updated · {new Date().toISOString().slice(0, 10)}
             </Typography>
           </Stack>
         </Box>

@@ -28,7 +28,7 @@ const toc = [
 export default function PatchesConceptPage() {
   return (
     <DocPage
-      eyebrow="Concepts · מושגים"
+      eyebrow="Concepts"
       title="Patches"
       description="Every byte the AI writes goes through one engine, one set of gates, and one human-readable log."
       toc={toc}
@@ -79,8 +79,8 @@ interface FileChange {
   -H "Authorization: Bearer $TOKEN" \\
   -H "Content-Type: application/json" \\
   -d '{
-    "title": "Add Hebrew RTL switch",
-    "summary": "Wires a dir=rtl toggle into the root layout.",
+    "title": "Add compact settings panel",
+    "summary": "Adds account controls to the application shell.",
     "changes": [
       {"op":"update","path":"app/layout.tsx","content":"…"}
     ]

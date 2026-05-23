@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mentor School — Become a shipping engineer in 16 weeks</title>
+  <meta name="description" content="A cohort-based code bootcamp run by working engineers. Twelve students per cohort, sixteen weeks, one production-grade portfolio." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0e0e10;
+      --surface: #16161a;
+      --surface-2: #1d1d22;
+      --border: rgba(245, 245, 244, 0.10);
+      --border-strong: rgba(245, 245, 244, 0.22);
+      --fg: #f5f5f4;
+      --fg-2: #b6b5b1;
+      --fg-3: #74726c;
+      --accent: #c5ff3a;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--fg); font-family: 'Inter', system-ui, sans-serif; font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    .nav { position: sticky; top: 0; z-index: 50; backdrop-filter: blur(14px); background: rgba(14,14,16,0.78); border-bottom: 1px solid var(--border); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 900; letter-spacing: -0.01em; }
+    .brand-mark { width: 28px; height: 28px; border-radius: 7px; background: var(--accent); color: #111; display: grid; place-items: center; font-family: 'JetBrains Mono', monospace; font-weight: 900; }
+    .nav-links { display: flex; gap: 28px; color: var(--fg-2); font-size: 14px; }
+    .nav-links a:hover { color: var(--fg); }
+    .nav-cta { display: flex; gap: 10px; align-items: center; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 16px; border-radius: 8px; font-weight: 600; font-size: 14px; border: 1px solid transparent; cursor: pointer; transition: transform 160ms; }
+    .btn-primary { background: var(--accent); color: #111; }
+    .btn-primary:hover { transform: translateY(-1px); }
+    .btn-ghost { background: transparent; color: var(--fg); border-color: var(--border-strong); }
+    .btn-ghost:hover { border-color: var(--fg); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    .hero { padding: 96px 0 72px; position: relative; }
+    .hero-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 64px; align-items: center; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border: 1px solid var(--border-strong); border-radius: 999px; font-size: 12px; color: var(--fg-2); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    h1 { font-size: clamp(40px, 6vw, 72px); line-height: 1.02; letter-spacing: -0.025em; font-weight: 900; margin: 20px 0 24px; }
+    h1 em { font-style: normal; color: var(--accent); }
+    .lede { font-size: 19px; color: var(--fg-2); max-width: 540px; }
+    .hero-cta { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; }
+    .hero-cta .btn { height: 46px; padding: 0 22px; }
+    .hero-art { position: relative; border-radius: 18px; overflow: hidden; border: 1px solid var(--border-strong); background: var(--surface); box-shadow: 0 40px 80px rgba(0,0,0,0.5); }
+    .hero-art img { width: 100%; aspect-ratio: 4/3; object-fit: cover; }
+    .hero-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 56px; padding-top: 40px; border-top: 1px solid var(--border); }
+    .stat .v { font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 900; letter-spacing: -0.02em; }
+    .stat .l { color: var(--fg-3); font-size: 13px; margin-top: 6px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 48px; } }
+    @media (max-width: 720px) { .hero { padding: 64px 0 48px; } .hero-cta .btn { width: 100%; justify-content: center; } }
+
+    .section { padding: 96px 0; }
+    .section-head { max-width: 720px; margin-bottom: 56px; }
+    .section h2 { font-size: clamp(32px, 4.4vw, 48px); letter-spacing: -0.02em; line-height: 1.05; font-weight: 900; margin: 14px 0 16px; }
+    .section h2 em { font-style: normal; color: var(--accent); }
+    .section .lede { font-size: 17px; }
+
+    .curriculum { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .course { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px; display: flex; flex-direction: column; gap: 14px; transition: border-color 220ms; }
+    .course:hover { border-color: var(--border-strong); }
+    .course .week { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; }
+    .course h3 { font-size: 20px; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+    .course p { color: var(--fg-2); margin: 0; font-size: 15px; }
+    .course .meta { display: flex; gap: 12px; color: var(--fg-3); font-size: 12px; font-family: 'JetBrains Mono', monospace; margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border); }
+    @media (max-width: 1080px) { .curriculum { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .curriculum { grid-template-columns: 1fr; } }
+
+    .how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .step { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 28px; }
+    .step .num { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); }
+    .step h3 { font-size: 20px; margin: 12px 0 8px; }
+    .step p { color: var(--fg-2); margin: 0; font-size: 15px; }
+    @media (max-width: 720px) { .how { grid-template-columns: 1fr; } }
+
+    .instructors { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    .person { display: flex; flex-direction: column; gap: 10px; }
+    .person img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 12px; border: 1px solid var(--border); }
+    .person h4 { margin: 0; font-size: 16px; font-weight: 700; }
+    .person .role { color: var(--fg-3); font-size: 13px; font-family: 'JetBrains Mono', monospace; }
+    @media (max-width: 1080px) { .instructors { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .instructors { grid-template-columns: repeat(2, 1fr); } }
+
+    .outcomes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .quote { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 32px; }
+    .quote p { color: var(--fg); font-size: 18px; line-height: 1.5; margin: 0 0 20px; }
+    .quote footer { display: flex; gap: 12px; align-items: center; border: 0; padding: 0; }
+    .quote footer img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+    .quote .who { font-size: 14px; }
+    .quote .who span { display: block; color: var(--fg-3); font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+    @media (max-width: 720px) { .outcomes { grid-template-columns: 1fr; } }
+
+    .pricing { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .plan { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 32px; display: flex; flex-direction: column; }
+    .plan.featured { border-color: var(--accent); position: relative; }
+    .plan.featured::after { content: 'NEXT COHORT'; position: absolute; top: -10px; right: 20px; background: var(--accent); color: #111; font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 4px 8px; border-radius: 4px; letter-spacing: 0.08em; font-weight: 700; }
+    .plan h3 { margin: 0; font-size: 14px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; color: var(--fg-2); letter-spacing: 0.1em; }
+    .plan .price { font-size: 44px; font-weight: 900; letter-spacing: -0.025em; margin: 16px 0 4px; }
+    .plan .price small { font-size: 14px; color: var(--fg-3); font-weight: 500; }
+    .plan .desc { color: var(--fg-2); font-size: 15px; min-height: 44px; }
+    .plan ul { list-style: none; padding: 0; margin: 24px 0; flex: 1; }
+    .plan li { padding: 8px 0; color: var(--fg-2); font-size: 14px; display: flex; gap: 10px; }
+    .plan li::before { content: '→'; color: var(--accent); flex-shrink: 0; }
+    @media (max-width: 1080px) { .pricing { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; } }
+
+    .faq { max-width: 820px; margin: 0 auto; }
+    .faq details { border: 1px solid var(--border); border-radius: 10px; padding: 18px 22px; margin-bottom: 10px; background: var(--surface); }
+    .faq summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+    .faq summary::after { content: '+'; color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 22px; }
+    .faq details[open] summary::after { content: '−'; }
+    .faq p { color: var(--fg-2); margin: 14px 0 0; font-size: 15px; }
+
+    footer.site { border-top: 1px solid var(--border); padding: 48px 0 32px; }
+    .foot-grid { display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 40px; }
+    .foot-col h4 { font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-3); margin: 0 0 16px; }
+    .foot-col a { display: block; color: var(--fg-2); font-size: 14px; padding: 6px 0; }
+    .foot-col a:hover { color: var(--fg); }
+    .foot-bot { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; color: var(--fg-3); font-size: 13px; font-family: 'JetBrains Mono', monospace; }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 12px; text-align: center; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#"><span class="brand-mark">M</span> Mentor School</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#curriculum">Curriculum</a>
+        <a href="#how">How it works</a>
+        <a href="#instructors">Instructors</a>
+        <a href="#pricing">Tuition</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-ghost" href="#">Sign in</a>
+        <a class="btn btn-primary" href="#pricing">Apply now →</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>Cohort 14 · starts Sep 9</span>
+            <h1>Become a <em>shipping</em> engineer in 16 weeks.</h1>
+            <p class="lede">Mentor School is a cohort-based bootcamp for self-taught developers who want to write production code. Twelve students per cohort. Working engineers as instructors. One real portfolio at the end.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#pricing">Apply for cohort 14</a>
+              <a class="btn btn-ghost" href="#curriculum">View curriculum</a>
+            </div>
+            <div class="hero-stats">
+              <div class="stat"><div class="v">94%</div><div class="l">Placement rate</div></div>
+              <div class="stat"><div class="v">$118k</div><div class="l">Median first salary</div></div>
+              <div class="stat"><div class="v">16wk</div><div class="l">Full-time program</div></div>
+            </div>
+          </div>
+          <div class="hero-art">
+            <img src="https://picsum.photos/seed/mentor-school-hero/1200/900" width="1200" height="900" alt="A small group of bootcamp students pair-programming around a shared screen." loading="eager" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="curriculum">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Curriculum</span>
+          <h2>Sixteen weeks, six <em>modules</em>, one shipped product.</h2>
+          <p class="lede">Every module ends with a checkpoint review by a senior engineer. You don't move on until your work passes.</p>
+        </div>
+        <div class="curriculum">
+          <div class="course">
+            <span class="week">Weeks 1–2</span>
+            <h3>Programming foundations in TypeScript</h3>
+            <p>Closures, async, types, and the runtime model. Daily code reviews so habits land before complexity does.</p>
+            <div class="meta"><span>Beginner</span><span>·</span><span>40 hrs</span></div>
+          </div>
+          <div class="course">
+            <span class="week">Weeks 3–5</span>
+            <h3>Web platform engineering</h3>
+            <p>HTTP, browsers, accessibility, and a real Next.js app. You ship a public site with a deploy pipeline before week six.</p>
+            <div class="meta"><span>Beginner</span><span>·</span><span>60 hrs</span></div>
+          </div>
+          <div class="course">
+            <span class="week">Weeks 6–8</span>
+            <h3>Data, APIs, and Postgres</h3>
+            <p>Schema design, migrations, REST and GraphQL, and the Postgres internals that actually matter at scale.</p>
+            <div class="meta"><span>Intermediate</span><span>·</span><span>60 hrs</span></div>
+          </div>
+          <div class="course">
+            <span class="week">Weeks 9–10</span>
+            <h3>Testing, CI, and code review</h3>
+            <p>You learn to write tests that are worth running, run them in CI, and review code without being a jerk about it.</p>
+            <div class="meta"><span>Intermediate</span><span>·</span><span>40 hrs</span></div>
+          </div>
+          <div class="course">
+            <span class="week">Weeks 11–13</span>
+            <h3>Algorithms for engineers</h3>
+            <p>Data structures and complexity, taught against real interview questions and real production bottlenecks.</p>
+            <div class="meta"><span>Intermediate</span><span>·</span><span>60 hrs</span></div>
+          </div>
+          <div class="course">
+            <span class="week">Weeks 14–16</span>
+            <h3>Capstone: ship a SaaS</h3>
+            <p>You build, deploy, and present a working product to a panel of hiring engineers. Pass review, get the certificate.</p>
+            <div class="meta"><span>Advanced</span><span>·</span><span>80 hrs</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="how" style="background: var(--surface);">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>How it works</span>
+          <h2>A day at <em>Mentor</em>.</h2>
+        </div>
+        <div class="how">
+          <div class="step">
+            <span class="num">01</span>
+            <h3>Morning standup</h3>
+            <p>Twelve students, one mentor, one shared screen. You commit to what you're shipping by lunch, and we hold you to it.</p>
+          </div>
+          <div class="step">
+            <span class="num">02</span>
+            <h3>Deep work + pair programming</h3>
+            <p>Six hours of focused building with a partner. Every pull request gets reviewed before it merges to main.</p>
+          </div>
+          <div class="step">
+            <span class="num">03</span>
+            <h3>End-of-day demo</h3>
+            <p>Each student demos in front of the cohort. If it doesn't run on a fresh laptop, it didn't ship.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="instructors">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Instructors</span>
+          <h2>Working engineers, <em>not</em> career educators.</h2>
+          <p class="lede">Every Mentor School instructor still ships production code at their day job. They teach two cohorts a year.</p>
+        </div>
+        <div class="instructors">
+          <div class="person">
+            <img src="https://picsum.photos/seed/mentor-i1/400/400" width="400" height="400" alt="Portrait of Eitan Hadar." loading="lazy" />
+            <h4>Eitan Hadar</h4>
+            <span class="role">Lead instructor · ex-Stripe</span>
+          </div>
+          <div class="person">
+            <img src="https://picsum.photos/seed/mentor-i2/400/400" width="400" height="400" alt="Portrait of Priya Menon." loading="lazy" />
+            <h4>Priya Menon</h4>
+            <span class="role">Backend track · Cloudflare</span>
+          </div>
+          <div class="person">
+            <img src="https://picsum.photos/seed/mentor-i3/400/400" width="400" height="400" alt="Portrait of Marcus Lin." loading="lazy" />
+            <h4>Marcus Lin</h4>
+            <span class="role">Frontend track · Vercel</span>
+          </div>
+          <div class="person">
+            <img src="https://picsum.photos/seed/mentor-i4/400/400" width="400" height="400" alt="Portrait of Sophie Bauer." loading="lazy" />
+            <h4>Sophie Bauer</h4>
+            <span class="role">Career coach · Headway</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="outcomes" style="background: var(--surface);">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Outcomes</span>
+          <h2>The graduates speak <em>for themselves</em>.</h2>
+        </div>
+        <div class="outcomes">
+          <figure class="quote">
+            <p>I came in writing tutorial code. I left as the third engineer at a Series A startup, and my onboarding ticket on day one was a real one.</p>
+            <footer>
+              <img src="https://picsum.photos/seed/mentor-q1/120/120" width="120" height="120" alt="Portrait of Anya Kovacs." />
+              <div class="who">Anya Kovacs<span>Cohort 11 · now @ Northbeam</span></div>
+            </footer>
+          </figure>
+          <figure class="quote">
+            <p>The end-of-day demo killed me for a week. Then it became the thing I missed most after graduation. Nothing else made me ship like that.</p>
+            <footer>
+              <img src="https://picsum.photos/seed/mentor-q2/120/120" width="120" height="120" alt="Portrait of Daniel Ross." />
+              <div class="who">Daniel Ross<span>Cohort 9 · now @ Field & Format</span></div>
+            </footer>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="pricing">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Tuition</span>
+          <h2>Three ways to <em>pay</em>.</h2>
+          <p class="lede">Pick the path that fits your situation. The ISA only pays us back once you're hired and earning over $80k.</p>
+        </div>
+        <div class="pricing">
+          <div class="plan">
+            <h3>Upfront</h3>
+            <div class="price">$11,500<small> total</small></div>
+            <p class="desc">Pay in full before week one. Save $2,000.</p>
+            <ul>
+              <li>16 weeks, full-time</li>
+              <li>All curriculum + capstone review</li>
+              <li>Lifetime alumni Slack</li>
+              <li>Career coaching for 6 months</li>
+            </ul>
+            <a class="btn btn-ghost" href="#">Apply upfront</a>
+          </div>
+          <div class="plan featured">
+            <h3>Monthly</h3>
+            <div class="price">$1,995<small> / month × 7</small></div>
+            <p class="desc">Spread tuition across the program plus three months after.</p>
+            <ul>
+              <li>16 weeks, full-time</li>
+              <li>All curriculum + capstone review</li>
+              <li>Lifetime alumni Slack</li>
+              <li>Career coaching for 12 months</li>
+              <li>Hiring panel introduction</li>
+            </ul>
+            <a class="btn btn-primary" href="#">Apply monthly</a>
+          </div>
+          <div class="plan">
+            <h3>ISA</h3>
+            <div class="price">15%<small> of salary × 24mo</small></div>
+            <p class="desc">Pay nothing until you land a job earning $80k+.</p>
+            <ul>
+              <li>$0 upfront, $0 during program</li>
+              <li>Capped at $22,000 total</li>
+              <li>No payments below $80k income</li>
+              <li>Career coaching for 12 months</li>
+            </ul>
+            <a class="btn btn-ghost" href="#">Apply ISA</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="faq">
+      <div class="wrap">
+        <div class="section-head" style="margin: 0 auto 40px; text-align: center;">
+          <span class="eyebrow"><span class="dot"></span>FAQ</span>
+          <h2>Questions <em>before</em> you apply.</h2>
+        </div>
+        <div class="faq">
+          <details>
+            <summary>Do I need to know how to code already?</summary>
+            <p>Yes, at a basic level. You should be comfortable building a small web page from scratch and writing a function that takes input and returns output. We run a short pre-course assessment after your interview.</p>
+          </details>
+          <details>
+            <summary>How many hours per week is the program?</summary>
+            <p>40–55 hours. It is full-time. About a third of our students hold part-time jobs in the evening, but we discourage anything more demanding during the cohort.</p>
+          </details>
+          <details>
+            <summary>Is the cohort remote or in person?</summary>
+            <p>Remote-first with two optional in-person weeks: kickoff in Austin and capstone demos in San Francisco. Travel is not required and not subsidized.</p>
+          </details>
+          <details>
+            <summary>What happens if I fail a checkpoint?</summary>
+            <p>You get one re-attempt per checkpoint. Two failed checkpoints means we pause your cohort and roll you into the next one at no extra charge.</p>
+          </details>
+          <details>
+            <summary>Is there a refund policy?</summary>
+            <p>Yes. Withdraw before the end of week two and you get a full refund. After that, refunds are pro-rated for the modules you have not started.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site">
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a class="brand" href="#" style="margin-bottom: 16px;"><span class="brand-mark">M</span> Mentor School</a>
+          <p style="color: var(--fg-2); font-size: 14px; max-width: 280px;">A cohort-based code bootcamp run by working engineers. Twelve students per cohort, sixteen weeks, one production-grade portfolio.</p>
+        </div>
+        <div class="foot-col">
+          <h4>Program</h4>
+          <a href="#curriculum">Curriculum</a>
+          <a href="#instructors">Instructors</a>
+          <a href="#pricing">Tuition</a>
+          <a href="#">Calendar</a>
+        </div>
+        <div class="foot-col">
+          <h4>For students</h4>
+          <a href="#">Apply</a>
+          <a href="#">Alumni</a>
+          <a href="#">Career outcomes</a>
+          <a href="#">FAQ</a>
+        </div>
+        <div class="foot-col">
+          <h4>Company</h4>
+          <a href="#">About</a>
+          <a href="#">Hiring partners</a>
+          <a href="#">Privacy</a>
+          <a href="#">Contact</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Mentor School</span>
+        <span>Cohort 14 applications close Aug 22</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

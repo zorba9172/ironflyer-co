@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vita Trattoria — Northern Italian, North Vine Street</title>
+  <meta name="description" content="A small Northern Italian kitchen on North Vine Street. Hand-cut pasta, slow ragù, and the bottles we drink ourselves." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #ede2cc;
+      --bg-2: #e3d5b8;
+      --paper: #f6ecd6;
+      --ink: #2a3a1f;
+      --ink-2: #4a5a3a;
+      --ink-3: #7a836e;
+      --accent: #b8451f;
+      --rule: rgba(42, 58, 31, 0.18);
+      --rule-strong: rgba(42, 58, 31, 0.4);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
+    .serif { font-family: 'Cormorant Garamond', 'Times New Roman', serif; }
+    .eyebrow {
+      font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase;
+      color: var(--ink-2); font-weight: 600;
+    }
+
+    /* Nav */
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(237, 226, 204, 0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--rule);
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+    .brand {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 24px; font-weight: 600; letter-spacing: 0.04em;
+      font-style: italic;
+    }
+    .brand small { font-style: normal; font-family: 'Inter', sans-serif; font-size: 10px; letter-spacing: 0.3em; color: var(--ink-3); margin-left: 8px; }
+    .nav-links { display: flex; gap: 32px; font-size: 14px; color: var(--ink-2); }
+    .nav-links a:hover { color: var(--ink); }
+    .nav-cta {
+      border: 1px solid var(--ink); padding: 10px 20px; font-size: 13px;
+      font-weight: 600; letter-spacing: 0.04em; transition: background 200ms;
+    }
+    .nav-cta:hover { background: var(--ink); color: var(--bg); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 64px 0 96px; }
+    .hero-grid {
+      display: grid; grid-template-columns: 1fr 1.1fr; gap: 64px; align-items: center;
+    }
+    h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(48px, 7vw, 96px);
+      line-height: 1.02; letter-spacing: -0.01em;
+      font-weight: 500; margin: 18px 0 28px;
+    }
+    h1 em { font-style: italic; color: var(--accent); }
+    .lede { font-family: 'Cormorant Garamond', serif; font-size: 22px; line-height: 1.5; color: var(--ink-2); font-style: italic; max-width: 460px; }
+    .hero-meta { margin-top: 36px; display: flex; gap: 32px; font-size: 13px; color: var(--ink-2); flex-wrap: wrap; }
+    .hero-meta strong { display: block; font-family: 'Cormorant Garamond', serif; font-size: 20px; color: var(--ink); font-style: italic; font-weight: 500; margin-bottom: 2px; }
+    .hero-art {
+      position: relative;
+      aspect-ratio: 4 / 5;
+      overflow: hidden;
+    }
+    .hero-art img { width: 100%; height: 100%; object-fit: cover; filter: saturate(0.92); }
+    .hero-art::after {
+      content: ''; position: absolute; inset: 0;
+      border: 1px solid var(--ink); transform: translate(14px, 14px);
+      pointer-events: none;
+    }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 48px; } }
+
+    /* Section header */
+    .section { padding: 96px 0; border-top: 1px solid var(--rule); }
+    .section-head { text-align: center; max-width: 720px; margin: 0 auto 56px; }
+    .section h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(40px, 5vw, 64px);
+      letter-spacing: -0.01em; line-height: 1.05;
+      font-weight: 500; margin: 14px 0 12px;
+    }
+    .section h2 em { font-style: italic; color: var(--accent); }
+    .section-head p { color: var(--ink-2); font-size: 17px; }
+
+    /* Menu */
+    .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px 64px; }
+    .dish { border-bottom: 1px dotted var(--rule-strong); padding-bottom: 24px; }
+    .dish-top { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-bottom: 8px; }
+    .dish h3 { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 500; margin: 0; letter-spacing: -0.005em; }
+    .dish .price { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-style: italic; color: var(--accent); }
+    .dish .ital { font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--ink-3); font-size: 16px; margin-bottom: 8px; }
+    .dish p { color: var(--ink-2); font-size: 15px; margin: 0; }
+    @media (max-width: 720px) { .menu-grid { grid-template-columns: 1fr; } }
+
+    /* Chef */
+    .chef-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 64px; align-items: center; }
+    .chef-art { aspect-ratio: 4/5; overflow: hidden; }
+    .chef-art img { width: 100%; height: 100%; object-fit: cover; filter: saturate(0.9); }
+    .chef-body p { font-family: 'Cormorant Garamond', serif; font-size: 20px; line-height: 1.55; color: var(--ink-2); margin: 0 0 20px; }
+    .chef-body p:first-of-type::first-letter {
+      font-size: 64px; font-weight: 600; float: left; line-height: 0.85;
+      padding: 8px 12px 0 0; color: var(--accent);
+    }
+    .chef-sig { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 22px; margin-top: 32px; }
+    .chef-sig small { display: block; font-family: 'Inter', sans-serif; font-style: normal; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-3); margin-top: 4px; }
+    @media (max-width: 1080px) { .chef-grid { grid-template-columns: 1fr; } }
+
+    /* Press */
+    .press { padding: 56px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+    .press-row {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; align-items: center;
+    }
+    .press-card { text-align: center; }
+    .press-card .pub { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 22px; color: var(--ink); margin-bottom: 6px; }
+    .press-card p { font-size: 13px; color: var(--ink-2); margin: 0; line-height: 1.5; }
+    @media (max-width: 1080px) { .press-row { grid-template-columns: repeat(2, 1fr); gap: 40px; } }
+
+    /* Hours + location */
+    .visit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; }
+    .hours-list { list-style: none; padding: 0; margin: 24px 0 0; }
+    .hours-list li {
+      display: flex; justify-content: space-between;
+      padding: 14px 0; border-bottom: 1px dotted var(--rule-strong);
+      font-size: 16px;
+    }
+    .hours-list li .day { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-style: italic; }
+    .hours-list li.today { color: var(--accent); font-weight: 600; }
+    .hours-list li.today .day { font-style: italic; font-weight: 600; }
+    .closed { color: var(--ink-3); }
+    .address { font-family: 'Cormorant Garamond', serif; font-size: 22px; line-height: 1.4; margin: 24px 0; font-style: italic; }
+    .phone { font-size: 15px; color: var(--ink-2); }
+    .map {
+      aspect-ratio: 1/1;
+      background:
+        repeating-linear-gradient(45deg, var(--bg-2) 0 12px, var(--paper) 12px 24px),
+        var(--paper);
+      position: relative;
+      border: 1px solid var(--ink);
+    }
+    .map::before {
+      content: ''; position: absolute; inset: 30% 35%;
+      background: var(--accent); border-radius: 50%;
+      box-shadow: 0 0 0 8px rgba(184, 69, 31, 0.18);
+    }
+    .map-label {
+      position: absolute; left: 24px; bottom: 24px;
+      background: var(--paper); padding: 12px 18px;
+      font-family: 'Cormorant Garamond', serif; font-style: italic;
+      border: 1px solid var(--ink); font-size: 14px;
+    }
+    @media (max-width: 1080px) { .visit-grid { grid-template-columns: 1fr; } }
+
+    /* CTA */
+    .cta { padding: 120px 0; text-align: center; background: var(--ink); color: var(--paper); }
+    .cta h2 { font-family: 'Cormorant Garamond', serif; font-size: clamp(40px, 6vw, 72px); font-weight: 500; margin: 0 0 16px; letter-spacing: -0.01em; }
+    .cta h2 em { font-style: italic; color: #d4a76a; }
+    .cta p { color: rgba(246, 236, 214, 0.78); max-width: 540px; margin: 0 auto 32px; font-size: 17px; }
+    .cta-btn {
+      display: inline-block;
+      background: var(--paper); color: var(--ink);
+      padding: 16px 36px; font-size: 14px; font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      transition: transform 200ms;
+    }
+    .cta-btn:hover { transform: translateY(-2px); }
+
+    /* Footer */
+    footer { padding: 56px 0 32px; }
+    .foot-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 40px; }
+    .foot-col h4 { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 14px; font-weight: 600; }
+    .foot-col p, .foot-col a { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-style: italic; color: var(--ink-2); line-height: 1.6; }
+    .foot-col a { display: block; }
+    .foot-col a:hover { color: var(--accent); }
+    .foot-bot {
+      margin-top: 40px; padding-top: 20px;
+      border-top: 1px solid var(--rule);
+      display: flex; justify-content: space-between;
+      color: var(--ink-3); font-size: 12px; letter-spacing: 0.08em;
+    }
+    @media (max-width: 720px) {
+      .foot-grid { grid-template-columns: 1fr 1fr; }
+      .foot-bot { flex-direction: column; gap: 12px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a href="#" class="brand">Vita Trattoria<small>est. 2014</small></a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#menu">Menu</a>
+        <a href="#chef">The Kitchen</a>
+        <a href="#visit">Visit</a>
+        <a href="#press">Press</a>
+      </nav>
+      <a href="#reserve" class="nav-cta">Reserve a table</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow">Northern Italian · North Vine Street</span>
+            <h1>A small <em>trattoria</em>, run the long way.</h1>
+            <p class="lede">Hand-cut pasta in the morning, slow ragù through the afternoon, and the bottles we drink ourselves on the wine list.</p>
+            <div class="hero-meta">
+              <div><strong>Dinner</strong>Wed – Sun · 5:30 to 10</div>
+              <div><strong>Lunch</strong>Sat & Sun · 12 to 2:30</div>
+              <div><strong>Booking</strong>Six weeks out</div>
+            </div>
+          </div>
+          <div class="hero-art">
+            <img src="https://picsum.photos/seed/vita-trattoria-1/1200/1500" width="1200" height="1500" alt="Hand-cut tagliatelle being dressed in a copper pan at Vita Trattoria's kitchen." loading="eager" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="menu">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">The Menu — Spring 2026</span>
+          <h2>What's on the <em>pass</em> tonight.</h2>
+          <p>The menu changes when the market changes. These are the dishes the kitchen is proud of this week.</p>
+        </div>
+        <div class="menu-grid">
+          <article class="dish">
+            <div class="dish-top"><h3>Burrata, blistered tomato, oregano oil</h3><span class="price">$16</span></div>
+            <p class="ital">Antipasto</p>
+            <p>Pulled mozzarella cream over heirlooms we charred for thirty seconds. Sicilian oregano in cold-pressed Tuscan oil.</p>
+          </article>
+          <article class="dish">
+            <div class="dish-top"><h3>Vitello tonnato, brown caper</h3><span class="price">$19</span></div>
+            <p class="ital">Antipasto</p>
+            <p>Slow-poached veal sirloin, tonnato whipped with anchovy and lemon, fried capers, parsley stem oil.</p>
+          </article>
+          <article class="dish">
+            <div class="dish-top"><h3>Tagliatelle al ragù bolognese</h3><span class="price">$26</span></div>
+            <p class="ital">Pasta · the house</p>
+            <p>Twelve-hour ragù of chuck, pork shoulder, soffritto, and a splash of milk. Fresh tagliatelle cut twenty minutes before you sit down.</p>
+          </article>
+          <article class="dish">
+            <div class="dish-top"><h3>Cacio e pepe, Tellicherry pepper</h3><span class="price">$22</span></div>
+            <p class="ital">Pasta</p>
+            <p>Tonnarelli, aged pecorino, butter emulsion, coarse-cracked Tellicherry. We will not add cream.</p>
+          </article>
+          <article class="dish">
+            <div class="dish-top"><h3>Branzino al forno, salsa verde</h3><span class="price">$36</span></div>
+            <p class="ital">Secondo</p>
+            <p>Whole Mediterranean sea bass, roasted on Castelvetrano olive branch. Caper-anchovy salsa verde, lemon, charred fennel.</p>
+          </article>
+          <article class="dish">
+            <div class="dish-top"><h3>Bistecca alla fiorentina, for two</h3><span class="price">$98</span></div>
+            <p class="ital">Secondo</p>
+            <p>Forty-day dry-aged porterhouse, hardwood fire, finished with Frantoio oil and rosemary salt. Carved at the table.</p>
+          </article>
+          <article class="dish">
+            <div class="dish-top"><h3>Tiramisu, soft espresso</h3><span class="price">$12</span></div>
+            <p class="ital">Dolce</p>
+            <p>The original Treviso recipe — mascarpone, egg yolk, Marsala, ladyfingers soaked in a single shot of Mokaflor pulled an hour ago.</p>
+          </article>
+          <article class="dish">
+            <div class="dish-top"><h3>Affogato, hazelnut gelato</h3><span class="price">$11</span></div>
+            <p class="ital">Dolce</p>
+            <p>House Piedmont hazelnut gelato drowned in espresso and a finger of Frangelico, if you ask for it.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="chef">
+      <div class="wrap">
+        <div class="chef-grid">
+          <div class="chef-art">
+            <img src="https://picsum.photos/seed/vita-trattoria-2/900/1100" width="900" height="1100" alt="Chef Elena Foschini rolling pasta dough on a marble bench at Vita Trattoria." loading="lazy" />
+          </div>
+          <div class="chef-body">
+            <span class="eyebrow">In the Kitchen</span>
+            <h2 style="margin-top: 14px;">Elena <em>Foschini</em></h2>
+            <p>Elena grew up in Reggio Emilia, in a kitchen where Sunday started at four in the morning. She trained at Hosteria Giusti in Modena, ran the pasta bench at Locanda Locatelli in London, and opened Vita in 2014 with her brother Marco on a single hand-shake and a copy of her grandmother's recipe book.</p>
+            <p>The kitchen is small. We make everything we put in front of you — bread, pasta, salumi, gelato, the limoncello. The menu is short because every dish has to earn its place. If we can't do it right, we don't put it on the page.</p>
+            <p>We are not chasing stars. We are running a neighborhood trattoria the way our grandparents ran theirs.</p>
+            <div class="chef-sig">Elena & Marco Foschini<small>Chef · Owner</small></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="press" id="press">
+      <div class="wrap">
+        <div class="section-head" style="margin-bottom: 32px;">
+          <span class="eyebrow">A few kind words</span>
+        </div>
+        <div class="press-row">
+          <div class="press-card">
+            <div class="pub">Eater · 2025</div>
+            <p>"Twelve essential pasta dishes in America."</p>
+          </div>
+          <div class="press-card">
+            <div class="pub">The Infatuation · 2025</div>
+            <p>"The ragù alone justifies the six-week wait."</p>
+          </div>
+          <div class="press-card">
+            <div class="pub">Resy 50 · 2024</div>
+            <p>"Best Italian restaurant in the city."</p>
+          </div>
+          <div class="press-card">
+            <div class="pub">James Beard · 2024</div>
+            <p>Semifinalist, Best Chef Northeast — Elena Foschini.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="visit">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Visit</span>
+          <h2>Find <em>us</em>.</h2>
+        </div>
+        <div class="visit-grid">
+          <div>
+            <span class="eyebrow">Hours</span>
+            <ul class="hours-list">
+              <li class="closed"><span class="day">Monday</span><span>Closed</span></li>
+              <li class="closed"><span class="day">Tuesday</span><span>Closed</span></li>
+              <li id="day-wed"><span class="day">Wednesday</span><span>5:30 – 10:00 pm</span></li>
+              <li id="day-thu"><span class="day">Thursday</span><span>5:30 – 10:00 pm</span></li>
+              <li id="day-fri"><span class="day">Friday</span><span>5:30 – 11:00 pm</span></li>
+              <li id="day-sat"><span class="day">Saturday</span><span>12 – 2:30, 5:30 – 11:00 pm</span></li>
+              <li id="day-sun"><span class="day">Sunday</span><span>12 – 2:30, 5:30 – 9:30 pm</span></li>
+            </ul>
+            <p class="address" style="margin-top: 40px;">214 North Vine Street<br/>Brookline, MA 02446</p>
+            <p class="phone">+1 (617) 555 0142 · ciao@vitatrattoria.com</p>
+          </div>
+          <div class="map" aria-label="Map showing Vita Trattoria on North Vine Street.">
+            <span class="map-label">214 N. Vine Street</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="cta" id="reserve">
+    <div class="wrap">
+      <span class="eyebrow" style="color: rgba(246, 236, 214, 0.6);">Reservations</span>
+      <h2>Book a table at <em>Vita</em>.</h2>
+      <p>The book opens at noon, six weeks out. Parties of two to six, four nights a week. We hold a few seats at the bar for walk-ins.</p>
+      <a href="#" class="cta-btn">Reserve through Resy →</a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <h4>Vita Trattoria</h4>
+          <p>A small Northern Italian kitchen, family run, six nights a week.</p>
+        </div>
+        <div class="foot-col">
+          <h4>Visit</h4>
+          <p>214 N. Vine St.<br/>Brookline, MA 02446</p>
+        </div>
+        <div class="foot-col">
+          <h4>Hours</h4>
+          <p>Wed – Sun<br/>5:30 to 10</p>
+        </div>
+        <div class="foot-col">
+          <h4>Follow</h4>
+          <a href="#">Instagram</a>
+          <a href="#">Resy</a>
+          <a href="#">Newsletter</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Vita Trattoria</span>
+        <span>Made by hand</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var days = ['day-sun','day-mon','day-tue','day-wed','day-thu','day-fri','day-sat'];
+      var idx = new Date().getDay();
+      var el = document.getElementById(days[idx]);
+      if (el) el.classList.add('today');
+    })();
+  </script>
+</body>
+</html>

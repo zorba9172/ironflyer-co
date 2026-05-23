@@ -34,22 +34,22 @@ export default function ImportPage() {
 }
 
 // Validates a GitHub repo URL or `owner/repo` shorthand. Returns a
-// human-readable Hebrew error when invalid.
+// human-readable English error when invalid.
 function validateRepoURL(input: string): string | null {
   const s = input.trim();
-  if (!s) return 'הכנס כתובת GitHub חוקית';
+  if (!s) return 'Enter a valid GitHub repository URL';
   // owner/repo shorthand.
   if (/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(s)) return null;
   try {
     const u = new URL(s);
-    if (u.protocol !== 'https:') return 'הכתובת חייבת להיות מסוג https://';
-    if (u.host.toLowerCase() !== 'github.com') return 'נתמכות רק כתובות מ-github.com';
+    if (u.protocol !== 'https:') return 'The URL must use https://';
+    if (u.host.toLowerCase() !== 'github.com') return 'Only github.com repositories are supported';
     const path = u.pathname.replace(/^\/+|\/+$/g, '').replace(/\.git$/, '');
     const parts = path.split('/');
-    if (parts.length < 2 || !parts[0] || !parts[1]) return 'הכתובת חייבת לכלול owner/repo';
+    if (parts.length < 2 || !parts[0] || !parts[1]) return 'The URL must include owner/repo';
     return null;
   } catch {
-    return 'הכנס כתובת GitHub חוקית';
+    return 'Enter a valid GitHub repository URL';
   }
 }
 
@@ -97,21 +97,21 @@ function ImportInner() {
         id: logIdRef.current,
         level,
         text,
-        ts: new Date().toLocaleTimeString('he-IL'),
+        ts: new Date().toLocaleTimeString('en-US'),
       },
     ]);
   }, []);
 
   const stageLabel = useMemo<Record<string, string>>(() => ({
-    import_started: 'מתחיל יבוא...',
-    project_created: 'נוצרה רשומת פרויקט',
-    cloning: 'משכפל את הריפו לסביבת הריצה...',
-    cloned: 'הריפו שוכפל בהצלחה',
-    detecting_stack: 'מזהה את ה-stack...',
-    stack_detected: 'ה-stack זוהה',
-    warning: 'אזהרה',
-    ready: 'הייבוא הסתיים',
-    failed: 'הייבוא נכשל',
+    import_started: 'Starting import...',
+    project_created: 'Project record created',
+    cloning: 'Cloning repository into the runtime...',
+    cloned: 'Repository cloned successfully',
+    detecting_stack: 'Detecting stack...',
+    stack_detected: 'Stack detected',
+    warning: 'Warning',
+    ready: 'Import complete',
+    failed: 'Import failed',
   }), []);
 
   function startPipeline() {
@@ -123,7 +123,7 @@ function ImportInner() {
     setFailure(null);
     setCurrentStage('import_started');
     setRunning(true);
-    pushLog('info', `שולח בקשת יבוא עבור ${repoUrl.trim()}`);
+    pushLog('info', `Sending import request for ${repoUrl.trim()}`);
 
     const ctrl = startImport(
       {
@@ -151,7 +151,7 @@ function ImportInner() {
         },
         onResult: (res: ImportResult) => {
           setResult(res);
-          pushLog('success', `פרויקט מוכן: ${res.projectId}`);
+          pushLog('success', `Project ready: ${res.projectId}`);
         },
         onError: (msg: string) => {
           setFailure(msg);
@@ -170,13 +170,13 @@ function ImportInner() {
     ctrlRef.current?.abort();
     ctrlRef.current = null;
     setRunning(false);
-    pushLog('warn', 'המשתמש ביטל את הייבוא');
+    pushLog('warn', 'Import canceled by user');
   }
 
   function openProject() {
     if (!result) return;
     const initialPrompt = encodeURIComponent(
-      `יובא הריפו ${repoUrl.trim()}. בוא נמשיך לעבוד עליו — הצע את הצעדים הבאים.`,
+      `Imported repository ${repoUrl.trim()}. Continue the work and propose the next steps.`,
     );
     router.push(`/app/projects/${result.projectId}?initialPrompt=${initialPrompt}`);
   }
@@ -194,9 +194,9 @@ function ImportInner() {
   return (
     <AppShell userEmail={user?.email ?? 'workspace'} onLogout={logout}>
       <PageTitle
-        eyebrow="ייבוא"
-        title="ייבא ריפוזיטורי מ-GitHub"
-        subtitle="הבא את הקוד שלך כפי שהוא, ו-Ironflyer ימשיך לסיים אותו דרך השערים: עיצוב, ארכיטקטורה, איכות, פריסה."
+        eyebrow="Import"
+        title="Import a GitHub repository"
+        subtitle="Bring in your code as-is. Ironflyer will continue finishing it through design, architecture, quality, and deploy gates."
       />
 
       {githubLoaded && !github?.connected && (
@@ -205,10 +205,10 @@ function ImportInner() {
             <GitHub />
             <Box sx={{ flex: 1 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-                התחבר ל-GitHub כדי לייבא ריפוזיטוריות פרטיות
+                Connect GitHub to import private repositories
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                ריפוזיטוריות ציבוריות עובדות גם בלי חיבור — אבל לפרטיות נחוצה הסכמת OAuth.
+                Public repositories work without a connection, but private repositories require OAuth consent.
               </Typography>
             </Box>
             <Button
@@ -218,7 +218,7 @@ function ImportInner() {
               href="/app/connectors"
               endIcon={<OpenInNew fontSize="small" />}
             >
-              עבור לחיבורים
+              Go to connectors
             </Button>
           </Stack>
         </Surface>
@@ -234,16 +234,16 @@ function ImportInner() {
               <CloudDownload />
             </Box>
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 900 }}>פרטי הריפו</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 900 }}>Repository details</Typography>
               <Typography variant="body2" color="text.secondary">
-                אפשר להדביק כתובת מלאה או קיצור בסגנון <code>owner/repo</code>.
+                Paste a full URL or use the <code>owner/repo</code> shorthand.
               </Typography>
             </Box>
           </Stack>
 
           <TextField
-            label="כתובת GitHub"
-            placeholder="https://github.com/owner/repo או owner/repo"
+            label="GitHub URL"
+            placeholder="https://github.com/owner/repo or owner/repo"
             fullWidth
             value={repoUrl}
             onChange={(e) => {
@@ -264,14 +264,14 @@ function ImportInner() {
               startIcon={<Tune fontSize="small" />}
               onClick={() => setAdvanced((v) => !v)}
             >
-              {advanced ? 'הסתר אפשרויות מתקדמות' : 'אפשרויות מתקדמות'}
+              {advanced ? 'Hide advanced options' : 'Advanced options'}
             </Button>
           </Stack>
 
           {advanced && (
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.2} sx={{ mb: 1.2 }}>
               <TextField
-                label="ענף (ברירת מחדל: main)"
+                label="Branch (default: main)"
                 placeholder="main"
                 value={branch}
                 onChange={(e) => setBranch(e.target.value)}
@@ -279,7 +279,7 @@ function ImportInner() {
                 fullWidth
               />
               <TextField
-                label="תת-תיקייה (אופציונלי)"
+                label="Subdirectory (optional)"
                 placeholder="apps/web"
                 value={subdir}
                 onChange={(e) => setSubdir(e.target.value)}
@@ -298,7 +298,7 @@ function ImportInner() {
                 disabled={running}
               />
             }
-            label="הפוך לציבורי"
+            label="Make public"
           />
 
           <Stack direction="row" spacing={1}>
@@ -308,11 +308,11 @@ function ImportInner() {
               onClick={startPipeline}
               disabled={running || !repoUrl.trim()}
             >
-              {running ? 'מייבא...' : 'התחל ייבוא'}
+              {running ? 'Importing...' : 'Start import'}
             </Button>
             {running && (
               <Button variant="outlined" onClick={cancelPipeline}>
-                בטל
+                Cancel
               </Button>
             )}
           </Stack>
@@ -320,10 +320,10 @@ function ImportInner() {
 
         <Surface sx={{ p: 2.2, display: 'flex', flexDirection: 'column', minHeight: 320 }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-            <Typography variant="h6" sx={{ fontWeight: 900 }}>לוג ייבוא</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 900 }}>Import log</Typography>
             <Chip
               size="small"
-              label={running ? 'בהרצה' : result ? 'מוכן' : failure ? 'נכשל' : 'מוכן להתחלה'}
+              label={running ? 'Running' : result ? 'Ready' : failure ? 'Failed' : 'Ready to start'}
               sx={{
                 bgcolor: running
                   ? tokens.color.accent.lime
@@ -356,7 +356,7 @@ function ImportInner() {
           >
             {logs.length === 0 ? (
               <Typography variant="body2" sx={{ color: '#86807a', fontFamily: tokens.font.mono }}>
-                הלוג יופיע כאן כשהייבוא יתחיל.
+                The log will appear here once the import starts.
               </Typography>
             ) : (
               logs.map((line) => (
@@ -375,7 +375,7 @@ function ImportInner() {
           {result && (
             <Stack direction="row" spacing={1} sx={{ mt: 1.6 }}>
               <Button variant="contained" onClick={openProject} endIcon={<OpenInNew fontSize="small" />}>
-                פתח את הפרויקט
+                Open project
               </Button>
               <Chip
                 label={`stack: ${result.stack.frontend} · ${result.stack.backend}`}

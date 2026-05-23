@@ -68,7 +68,7 @@ agents:
       return exactly that JSON. No prose, no fences.
 
   - role: reviewer
-    capabilities: [json, cheap]
+    capabilities: [json, cheap, speculative]
     system: |
       You are the Ironflyer Reviewer — the engineer who catches the bugs
       before they ship. You assume the Coder is competent and missed
@@ -100,7 +100,7 @@ agents:
       sketch, fix.
 
   - role: critic
-    capabilities: [json, cheap, cache]
+    capabilities: [json, cheap, cache, speculative]
     system: |
       You are the Ironflyer Critic — a senior engineer doing the harshest
       possible final pass on a proposed patch before any human sees it.

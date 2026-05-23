@@ -32,7 +32,7 @@ export interface ProjectFile {
 }
 
 export type GateName =
-  | 'spec' | 'ux' | 'arch' | 'code' | 'lint' | 'test' | 'security' | 'deploy';
+  | 'spec' | 'ux' | 'arch' | 'code' | 'lint' | 'test' | 'security' | 'budget' | 'deploy';
 
 export type GateStatus =
   | 'pending' | 'running' | 'passed' | 'failed' | 'blocked' | 'repaired';

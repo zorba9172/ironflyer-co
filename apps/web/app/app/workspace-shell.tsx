@@ -11,31 +11,32 @@ import {
   Avatar, Badge, Box, Button, Divider, IconButton, InputAdornment, LinearProgress,
   ListItemIcon, ListItemText, Menu, MenuItem, Stack, TextField, Tooltip, Typography,
 } from '@mui/material';
+import { IronflyerLogo } from '../../components/brand/IronflyerLogo';
 import { api, Plan, Project, UserBudget } from '../../lib/api';
 import { tokens } from '../../lib/theme';
 
 const primaryNav = [
-  { label: 'בית', href: '/app', icon: <Home fontSize="small" /> },
-  { label: 'פרויקטים', href: '/app/projects', icon: <Folder fontSize="small" /> },
-  { label: 'תבניות', href: '/app/resources', icon: <MenuBook fontSize="small" /> },
-  { label: 'מחברים', href: '/app/connectors', icon: <Hub fontSize="small" /> },
-  { label: 'חיפוש', href: '/app/search', icon: <Search fontSize="small" /> },
-  { label: 'הגדרות', href: '/app/settings', icon: <Settings fontSize="small" /> },
+  { label: 'Home', href: '/app', icon: <Home fontSize="small" /> },
+  { label: 'Projects', href: '/app/projects', icon: <Folder fontSize="small" /> },
+  { label: 'Templates', href: '/app/resources', icon: <MenuBook fontSize="small" /> },
+  { label: 'Connectors', href: '/app/connectors', icon: <Hub fontSize="small" /> },
+  { label: 'Search', href: '/app/search', icon: <Search fontSize="small" /> },
+  { label: 'Settings', href: '/app/settings', icon: <Settings fontSize="small" /> },
 ];
 
 const mobileNav = [
-  { label: 'בית', href: '/app', icon: <Home fontSize="small" /> },
-  { label: 'פרויקטים', href: '/app/projects', icon: <Folder fontSize="small" /> },
-  { label: 'חיפוש', href: '/app/search', icon: <Search fontSize="small" /> },
-  { label: 'מחברים', href: '/app/connectors', icon: <Hub fontSize="small" /> },
-  { label: 'הגדרות', href: '/app/settings', icon: <Settings fontSize="small" /> },
+  { label: 'Home', href: '/app', icon: <Home fontSize="small" /> },
+  { label: 'Projects', href: '/app/projects', icon: <Folder fontSize="small" /> },
+  { label: 'Search', href: '/app/search', icon: <Search fontSize="small" /> },
+  { label: 'Connectors', href: '/app/connectors', icon: <Hub fontSize="small" /> },
+  { label: 'Settings', href: '/app/settings', icon: <Settings fontSize="small" /> },
 ];
 
 const projectNav = [
-  { label: 'כל הפרויקטים', href: '/app/projects', icon: <Folder fontSize="small" /> },
-  { label: 'מוכנים', href: '/app/projects?filter=ready', icon: <Star fontSize="small" /> },
-  { label: 'בהרצה', href: '/app/projects?filter=running', icon: <CloudQueue fontSize="small" /> },
-  { label: 'נכשלו', href: '/app/projects?filter=failed', icon: <Folder fontSize="small" /> },
+  { label: 'All projects', href: '/app/projects', icon: <Folder fontSize="small" /> },
+  { label: 'Ready', href: '/app/projects?filter=ready', icon: <Star fontSize="small" /> },
+  { label: 'Running', href: '/app/projects?filter=running', icon: <CloudQueue fontSize="small" /> },
+  { label: 'Failed', href: '/app/projects?filter=failed', icon: <Folder fontSize="small" /> },
 ];
 
 export function AppShell({
@@ -233,10 +234,9 @@ function Sidebar({ userEmail, recents, onLogout }: { userEmail: string; recents:
       overflow: 'hidden',
     }}>
       <Link href="/" style={{ color: 'inherit', textDecoration: 'none' }}>
-        <Stack direction="row" spacing={1.2} alignItems="center" sx={{ px: 1, py: 0.75 }}>
-          <Box sx={{ width: 24, height: 24, borderRadius: '6px', bgcolor: tokens.color.accent.lime, boxShadow: `0 0 20px ${tokens.color.accent.lime}` }} />
-          <Typography variant="subtitle1" sx={{ fontFamily: tokens.font.display, fontWeight: 400, textTransform: 'uppercase' }}>Ironflyer</Typography>
-        </Stack>
+        <Box sx={{ px: 1, py: 0.75 }}>
+          <IronflyerLogo size={28} tone="dark" />
+        </Box>
       </Link>
 
       <Button component={Link} href="/app" fullWidth startIcon={<Add />} sx={{
@@ -246,17 +246,17 @@ function Sidebar({ userEmail, recents, onLogout }: { userEmail: string; recents:
         color: tokens.color.text.primary,
         borderRadius: '8px',
       }}>
-        פרויקט חדש
+        New project
       </Button>
 
       <NavList items={primaryNav} />
 
       <Divider sx={{ my: 2 }} />
-      <Typography variant="overline" color="text.secondary" sx={{ px: 1 }}>סטטוס</Typography>
+      <Typography variant="overline" color="text.secondary" sx={{ px: 1 }}>Status</Typography>
       <NavList items={projectNav} compact />
 
       <Divider sx={{ my: 2 }} />
-      <Typography variant="overline" color="text.secondary" sx={{ px: 1 }}>אחרונים</Typography>
+      <Typography variant="overline" color="text.secondary" sx={{ px: 1 }}>Recent</Typography>
       <Stack spacing={0.4} sx={{
         mt: 0.75,
         minHeight: 0,
@@ -265,7 +265,7 @@ function Sidebar({ userEmail, recents, onLogout }: { userEmail: string; recents:
         pr: 0.2,
         scrollbarWidth: 'thin',
       }}>
-        {recents.length === 0 && <Typography variant="caption" color="text.secondary" sx={{ px: 1 }}>אין עדיין פרויקטים פעילים</Typography>}
+        {recents.length === 0 && <Typography variant="caption" color="text.secondary" sx={{ px: 1 }}>No active projects yet</Typography>}
         {recents.map((project) => (
           <Button
             key={project.id}
@@ -302,7 +302,7 @@ function Sidebar({ userEmail, recents, onLogout }: { userEmail: string; recents:
         <Typography variant="caption" color="text.secondary" sx={{ alignSelf: 'flex-start', mt: 0.2 }}>{usage.label}</Typography>
         <Box sx={{ mt: 1.2, width: '100%' }}>
           <Stack direction="row" justifyContent="space-between">
-            <Typography variant="caption" color="text.secondary">תקציב חודשי</Typography>
+            <Typography variant="caption" color="text.secondary">Monthly budget</Typography>
             <Typography variant="caption" sx={{ fontFamily: tokens.font.mono, color: tokens.color.text.primary }}>
               ${usage.spent.toFixed(2)} / ${usage.cap.toFixed(2)}
             </Typography>
@@ -325,7 +325,7 @@ function Sidebar({ userEmail, recents, onLogout }: { userEmail: string; recents:
             letterSpacing: 0.3,
           }}
         >
-          {usage.tier === 'free' ? 'שדרוג חבילה →' : 'ניהול חבילה →'}
+          {usage.tier === 'free' ? 'Upgrade plan ->' : 'Manage plan ->'}
         </Typography>
       </Button>
 
@@ -335,13 +335,13 @@ function Sidebar({ userEmail, recents, onLogout }: { userEmail: string; recents:
         </Avatar>
         <Box sx={{ minWidth: 0, flex: 1 }}>
           <Typography variant="body2" noWrap>{userEmail}</Typography>
-          <Typography variant="caption" color="text.secondary">{usage.tier === 'free' ? 'חשבון חינמי' : `חבילת ${usage.planName}`}</Typography>
+          <Typography variant="caption" color="text.secondary">{usage.tier === 'free' ? 'Free account' : `${usage.planName} plan`}</Typography>
         </Box>
-        <Tooltip title="הגדרות">
+        <Tooltip title="Settings">
           <IconButton component={Link} href="/app/settings" size="small" sx={{ color: 'text.secondary' }}><Settings fontSize="small" /></IconButton>
         </Tooltip>
       </Stack>
-      {onLogout && <Button onClick={onLogout} sx={{ mt: 0.6, color: tokens.color.text.secondary }} startIcon={<Logout fontSize="small" />}>התנתק</Button>}
+      {onLogout && <Button onClick={onLogout} sx={{ mt: 0.6, color: tokens.color.text.secondary }} startIcon={<Logout fontSize="small" />}>Log out</Button>}
     </Box>
   );
 }
@@ -352,10 +352,10 @@ function usageSnapshot(budget: UserBudget | null, plans: Plan[]) {
   const cap = Number(plan?.costCapUSD ?? (tier === 'team' ? 32 : tier === 'pro' ? 8 : tier === 'enterprise' ? 180 : 0.5));
   const spent = Number(budget?.spent ?? 0);
   const percent = cap > 0 ? Math.min(100, Math.max(0, (spent / cap) * 100)) : 0;
-  const planName = plan?.name ? `${plan.name}` : tier === 'free' ? 'חינמי' : `${tier[0]?.toUpperCase() ?? 'F'}${tier.slice(1)}`;
+  const planName = plan?.name ? `${plan.name}` : tier === 'free' ? 'Free' : `${tier[0]?.toUpperCase() ?? 'F'}${tier.slice(1)}`;
   const label = tier === 'free'
-    ? 'שימוש בסיסי עם תקרה קשיחה'
-    : 'השימוש נשמר מתחת לתקרת חודש';
+    ? 'Basic usage with a hard cap'
+    : 'Usage stays under the monthly cap';
   return { tier, planName, label, spent, cap: Math.max(cap, 0.5), percent };
 }
 
@@ -509,8 +509,7 @@ function TopBar({
       zIndex: 9,
     }}>
       <Stack direction="row" spacing={1} alignItems="center" sx={{ display: { xs: 'flex', lg: 'none' }, minWidth: 0 }}>
-        <Box sx={{ width: 21, height: 21, borderRadius: '6px', bgcolor: tokens.color.accent.lime }} />
-        <Typography variant="subtitle2" sx={{ fontFamily: tokens.font.display, fontWeight: 400, textTransform: 'uppercase', color: tokens.color.text.inverse }}>Ironflyer</Typography>
+        <IronflyerLogo size={24} tone="light" />
       </Stack>
       <TextField
         value={internalQuery}
@@ -518,7 +517,7 @@ function TopBar({
         onKeyDown={(event) => {
           if (event.key === 'Enter') submitToSearch(internalQuery);
         }}
-        placeholder={setQuery ? 'חיפוש בעמוד...' : 'חיפוש בכל הפרויקטים...'}
+        placeholder={setQuery ? 'Search this page...' : 'Search all projects...'}
         size="small"
         sx={{
           display: 'block',
@@ -550,8 +549,8 @@ function TopBar({
           ),
           endAdornment: internalQuery ? (
             <InputAdornment position="end">
-              <Tooltip title="ניקוי חיפוש">
-                <IconButton aria-label="ניקוי חיפוש" edge="end" size="small" onClick={() => commitGlobal('')}>
+              <Tooltip title="Clear search">
+                <IconButton aria-label="Clear search" edge="end" size="small" onClick={() => commitGlobal('')}>
                   <Close fontSize="small" />
                 </IconButton>
               </Tooltip>
@@ -562,32 +561,32 @@ function TopBar({
       <Stack direction="row" spacing={0.35} sx={{ ml: 'auto' }}>
         {setView && (
           <>
-            <Tooltip title="תצוגת רשת">
-              <IconButton aria-label="תצוגת רשת" onClick={() => setView('grid')} sx={topIconButtonSx(view === 'grid')}>
+            <Tooltip title="Grid view">
+              <IconButton aria-label="Grid view" onClick={() => setView('grid')} sx={topIconButtonSx(view === 'grid')}>
                 <Window fontSize="small" />
               </IconButton>
             </Tooltip>
-            <Tooltip title="תצוגת רשימה">
-              <IconButton aria-label="תצוגת רשימה" onClick={() => setView('list')} sx={topIconButtonSx(view === 'list')}>
+            <Tooltip title="List view">
+              <IconButton aria-label="List view" onClick={() => setView('list')} sx={topIconButtonSx(view === 'list')}>
                 <ViewList fontSize="small" />
               </IconButton>
             </Tooltip>
           </>
         )}
-        <Tooltip title="התראות">
-          <IconButton aria-label="התראות" onClick={(e) => setNotifEl(e.currentTarget)} sx={topIconButtonSx(false)}>
+        <Tooltip title="Notifications">
+          <IconButton aria-label="Notifications" onClick={(e) => setNotifEl(e.currentTarget)} sx={topIconButtonSx(false)}>
             <Badge color="primary" variant="dot" overlap="circular" invisible>
               <Notifications fontSize="small" />
             </Badge>
           </IconButton>
         </Tooltip>
-        <Tooltip title="הגדרות סביבה">
-          <IconButton aria-label="הגדרות סביבה" component={Link} href="/app/settings" sx={topIconButtonSx(false)}>
+        <Tooltip title="Workspace settings">
+          <IconButton aria-label="Workspace settings" component={Link} href="/app/settings" sx={topIconButtonSx(false)}>
             <Tune fontSize="small" />
           </IconButton>
         </Tooltip>
-        <Tooltip title="חשבון">
-          <IconButton aria-label="חשבון" onClick={(e) => setMenuEl(e.currentTarget)} sx={{ p: 0.4 }}>
+        <Tooltip title="Account">
+          <IconButton aria-label="Account" onClick={(e) => setMenuEl(e.currentTarget)} sx={{ p: 0.4 }}>
             <Avatar sx={{ width: 30, height: 30, bgcolor: tokens.color.accent.lime, color: tokens.color.text.inverse, fontWeight: 900, fontSize: '0.85rem' }}>
               {userEmail[0]?.toUpperCase()}
             </Avatar>
@@ -606,9 +605,9 @@ function TopBar({
         }}
       >
         <Box sx={{ px: 2, py: 1.4 }}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 900 }}>אין התראות חדשות</Typography>
+          <Typography variant="subtitle2" sx={{ fontWeight: 900 }}>No new notifications</Typography>
           <Typography variant="caption" sx={{ color: '#686158' }}>
-            התראות על הרצות, גייטים ופריסה יופיעו כאן.
+            Run, gate, patch, and deployment alerts will appear here.
           </Typography>
         </Box>
       </Menu>
@@ -624,27 +623,27 @@ function TopBar({
         }}
       >
         <Box sx={{ px: 2, py: 1.2 }}>
-          <Typography variant="caption" sx={{ color: '#86807a' }}>מחובר כ</Typography>
+          <Typography variant="caption" sx={{ color: '#86807a' }}>Signed in as</Typography>
           <Typography variant="body2" sx={{ fontWeight: 900 }} noWrap>{userEmail}</Typography>
         </Box>
         <Divider />
         <MenuItem component={Link} href="/app/settings?tab=account" onClick={() => setMenuEl(null)}>
           <ListItemIcon><Person fontSize="small" /></ListItemIcon>
-          <ListItemText>חשבון</ListItemText>
+          <ListItemText>Account</ListItemText>
         </MenuItem>
         <MenuItem component={Link} href="/app/settings?tab=billing" onClick={() => setMenuEl(null)}>
           <ListItemIcon><CloudQueue fontSize="small" /></ListItemIcon>
-          <ListItemText>חבילה ותשלומים</ListItemText>
+          <ListItemText>Plan and billing</ListItemText>
         </MenuItem>
         <MenuItem component={Link} href="/app/connectors" onClick={() => setMenuEl(null)}>
           <ListItemIcon><Hub fontSize="small" /></ListItemIcon>
-          <ListItemText>מחברים</ListItemText>
+          <ListItemText>Connectors</ListItemText>
         </MenuItem>
         <Divider />
         {onLogout && (
           <MenuItem onClick={() => { setMenuEl(null); onLogout(); }}>
             <ListItemIcon><Logout fontSize="small" /></ListItemIcon>
-            <ListItemText>התנתק</ListItemText>
+            <ListItemText>Log out</ListItemText>
           </MenuItem>
         )}
       </Menu>

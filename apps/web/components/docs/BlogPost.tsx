@@ -54,7 +54,7 @@ export function BlogPost({ title, subtitle, tag, date, gradient, children }: Blo
                 {tag}
               </Box>
               <Typography sx={{ color: '#262320', fontSize: 13, fontWeight: 600 }}>{date}</Typography>
-              <Typography sx={{ color: '#262320', fontSize: 13 }}>· צוות Ironflyer</Typography>
+              <Typography sx={{ color: '#262320', fontSize: 13 }}>· Ironflyer Team</Typography>
             </Stack>
             <Typography
               component="h1"
@@ -173,7 +173,7 @@ export function BlogPost({ title, subtitle, tag, date, gradient, children }: Blo
                   mb: 1.5,
                 }}
               >
-                Ship the next idea through eight gates.
+                Ship the next idea through nine gates.
               </Typography>
               <Typography sx={{ color: '#b9b3a8', fontSize: 15.5, lineHeight: 1.6, mb: 3, maxWidth: 480 }}>
                 Free tier ships with four projects, ~50 runs / month, a real Linux sandbox, and the same

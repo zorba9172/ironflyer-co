@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Roost — A friendlier way to buy your first home</title>
+  <meta name="description" content="A buyer's brokerage built for first-time home buyers. Plain-English explanations, fixed-fee buyer support, and a calculator that tells the truth." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Caveat:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #faf5ec;
+      --bg-2: #f4eddf;
+      --paper: #ffffff;
+      --fg: #14211b;
+      --fg-2: #4d5e57;
+      --fg-3: #8a9a93;
+      --accent: #6ad9b3;
+      --accent-2: #4ac39c;
+      --accent-deep: #1a8a66;
+      --soft: #d8f4e8;
+      --line: #e7e0d0;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--fg); font-family: 'DM Sans', sans-serif; font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .hand { font-family: 'Caveat', cursive; font-weight: 600; }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 0 28px; }
+
+    .nav { padding: 20px 0; }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 22px; letter-spacing: -0.02em; }
+    .brand-mark { width: 32px; height: 32px; border-radius: 12px; background: var(--accent); display: grid; place-items: center; font-size: 18px; font-weight: 800; }
+    .nav-links { display: flex; gap: 28px; font-size: 15px; color: var(--fg-2); font-weight: 500; }
+    .nav-links a:hover { color: var(--accent-deep); }
+    .nav-cta { display: flex; gap: 10px; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 11px 20px; border-radius: 999px; font-weight: 600; font-size: 14px; cursor: pointer; border: 1.5px solid transparent; }
+    .btn-mint { background: var(--accent); color: var(--fg); }
+    .btn-mint:hover { background: var(--accent-2); }
+    .btn-ghost { background: transparent; color: var(--fg); border-color: var(--fg); }
+    .btn-ghost:hover { background: var(--fg); color: var(--bg); }
+    @media (max-width: 1080px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 56px 0 80px; position: relative; }
+    .hero-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 56px; align-items: center; }
+    .hero h1 { font-size: clamp(44px, 6vw, 76px); font-weight: 800; line-height: 1.02; letter-spacing: -0.028em; margin: 18px 0 22px; }
+    .hero h1 em { font-style: normal; color: var(--accent-deep); position: relative; }
+    .hero h1 em::after { content: ''; position: absolute; left: 0; right: 0; bottom: 4px; height: 10px; background: var(--soft); z-index: -1; border-radius: 999px; }
+    .pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; background: var(--soft); color: var(--accent-deep); font-size: 13px; font-weight: 700; }
+    .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-deep); }
+    .hero-lede { font-size: 18px; color: var(--fg-2); max-width: 540px; margin: 0 0 28px; }
+    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    .hero-meta { display: flex; gap: 32px; margin-top: 36px; padding-top: 28px; border-top: 1px solid var(--line); }
+    .hero-meta .v { font-size: 26px; font-weight: 800; letter-spacing: -0.015em; }
+    .hero-meta .l { font-size: 13px; color: var(--fg-2); }
+    .hero-art { position: relative; }
+    .hero-art .photo { width: 100%; aspect-ratio: 5/6; object-fit: cover; border-radius: 28px; }
+    .hero-art .sticker { position: absolute; top: -14px; right: -14px; width: 130px; height: 130px; border-radius: 50%; background: var(--accent); display: grid; place-items: center; transform: rotate(-8deg); color: var(--fg); text-align: center; line-height: 1.1; }
+    .hero-art .sticker .a { font-family: 'Caveat', cursive; font-size: 28px; }
+    .hero-art .sticker .b { font-size: 12px; font-weight: 700; }
+    .hero-art .callout { position: absolute; bottom: 24px; left: -24px; background: var(--paper); border-radius: 18px; padding: 16px 18px; box-shadow: 0 16px 30px -16px rgba(20, 33, 27, 0.25); max-width: 220px; }
+    .hero-art .callout .row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; color: var(--fg-2); }
+    .hero-art .callout .row strong { color: var(--fg); font-weight: 700; }
+    .hero-art .callout .title { font-size: 14px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+    .hero-art .callout .title::before { content: '🏡'; }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 40px; } }
+
+    .section { padding: 96px 0; }
+    .section-head { max-width: 720px; margin-bottom: 56px; }
+    .section h2 { font-size: clamp(36px, 4.8vw, 56px); font-weight: 800; letter-spacing: -0.025em; line-height: 1.05; margin: 14px 0 14px; }
+    .section h2 em { font-style: normal; color: var(--accent-deep); }
+    .section-head p { font-size: 17px; color: var(--fg-2); margin: 0; }
+
+    /* How it works — 4 steps */
+    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+    .step { background: var(--paper); padding: 28px; border-radius: 20px; border: 1px solid var(--line); position: relative; }
+    .step .n { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: var(--fg); display: grid; place-items: center; font-weight: 800; margin-bottom: 14px; }
+    .step h3 { margin: 0 0 8px; font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
+    .step p { margin: 0 0 14px; color: var(--fg-2); font-size: 14px; }
+    .step .time { font-size: 12px; color: var(--accent-deep); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+    @media (max-width: 1080px) { .steps { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .steps { grid-template-columns: 1fr; } }
+
+    /* Listings */
+    .listings { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+    .lst { background: var(--paper); border-radius: 22px; overflow: hidden; transition: transform 240ms ease, box-shadow 240ms ease; border: 1px solid var(--line); }
+    .lst:hover { transform: translateY(-4px); box-shadow: 0 24px 40px -22px rgba(20, 33, 27, 0.18); }
+    .lst-img { position: relative; aspect-ratio: 4/3; overflow: hidden; }
+    .lst-img img { width: 100%; height: 100%; object-fit: cover; }
+    .lst-img .pill-bdg { position: absolute; top: 14px; left: 14px; background: var(--accent); color: var(--fg); padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .lst-body { padding: 22px; }
+    .lst-price { font-size: 22px; font-weight: 800; letter-spacing: -0.015em; }
+    .lst-addr { font-size: 14px; color: var(--fg-2); margin: 2px 0 14px; }
+    .lst-meta { display: flex; gap: 12px; font-size: 13px; color: var(--fg-2); padding-top: 12px; border-top: 1px solid var(--line); }
+    .lst-meta strong { color: var(--fg); font-weight: 700; }
+    .lst-mortgage { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line); display: flex; justify-content: space-between; font-size: 13px; }
+    .lst-mortgage .mlbl { color: var(--fg-3); }
+    .lst-mortgage .mval { color: var(--accent-deep); font-weight: 700; }
+    @media (max-width: 1080px) { .listings { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .listings { grid-template-columns: 1fr; } }
+
+    /* Calculator */
+    .calc { background: var(--paper); border-radius: 28px; border: 1px solid var(--line); padding: 0; overflow: hidden; display: grid; grid-template-columns: 1.1fr 0.9fr; }
+    .calc-left { padding: 48px; }
+    .calc-left h2 { font-size: clamp(32px, 4vw, 44px); font-weight: 800; letter-spacing: -0.025em; line-height: 1.04; margin: 14px 0 18px; }
+    .calc-left p { color: var(--fg-2); margin: 0 0 24px; font-size: 16px; }
+    .calc-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .calc-field label { display: block; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--fg-2); margin-bottom: 6px; }
+    .calc-field input { width: 100%; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 12px; font: inherit; color: var(--fg); background: var(--bg); }
+    .calc-field input:focus { outline: none; border-color: var(--accent-deep); }
+    .calc-right { background: var(--soft); padding: 48px; display: flex; flex-direction: column; justify-content: center; }
+    .calc-right .lbl { font-size: 13px; color: var(--accent-deep); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+    .calc-right .big { font-size: clamp(48px, 6vw, 76px); font-weight: 800; letter-spacing: -0.03em; line-height: 1; margin: 8px 0 4px; color: var(--fg); }
+    .calc-right .big small { font-size: 18px; font-weight: 600; color: var(--fg-2); }
+    .calc-rows { margin-top: 28px; display: grid; grid-template-columns: 1fr; gap: 6px; font-size: 14px; }
+    .calc-rows .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed rgba(20,33,27,0.12); }
+    .calc-rows .row strong { color: var(--fg); font-weight: 700; }
+    .calc-note { font-family: 'Caveat', cursive; font-size: 22px; color: var(--accent-deep); margin-top: 22px; }
+    @media (max-width: 1080px) { .calc { grid-template-columns: 1fr; } }
+
+    /* Guides */
+    .guides { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+    .guide { background: var(--paper); border-radius: 22px; overflow: hidden; border: 1px solid var(--line); }
+    .guide img { width: 100%; aspect-ratio: 5/3; object-fit: cover; }
+    .guide-body { padding: 24px; }
+    .guide-tag { display: inline-block; font-size: 12px; font-weight: 700; color: var(--accent-deep); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px; }
+    .guide h3 { font-size: 19px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 8px; }
+    .guide p { margin: 0 0 14px; color: var(--fg-2); font-size: 14px; }
+    .guide a { font-size: 14px; font-weight: 700; color: var(--accent-deep); }
+    .guide a:hover { text-decoration: underline; }
+    @media (max-width: 1080px) { .guides { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .guides { grid-template-columns: 1fr; } }
+
+    /* Pricing */
+    .fee { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: center; padding: 48px; background: var(--paper); border-radius: 28px; border: 1px solid var(--line); }
+    .fee h2 { font-size: clamp(32px, 4vw, 48px); font-weight: 800; letter-spacing: -0.025em; margin: 14px 0 18px; line-height: 1.04; }
+    .fee p { color: var(--fg-2); margin: 0 0 18px; font-size: 16px; }
+    .fee-card { background: var(--soft); padding: 36px; border-radius: 20px; }
+    .fee-card .label { font-size: 13px; color: var(--accent-deep); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+    .fee-card .price { font-size: 56px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; margin: 8px 0 12px; }
+    .fee-card .price small { font-size: 16px; font-weight: 600; color: var(--fg-2); }
+    .fee-card ul { list-style: none; padding: 0; margin: 18px 0 0; }
+    .fee-card li { padding: 6px 0; font-size: 14px; color: var(--fg); display: flex; gap: 10px; }
+    .fee-card li::before { content: '✓'; color: var(--accent-deep); font-weight: 800; }
+    @media (max-width: 1080px) { .fee { grid-template-columns: 1fr; padding: 32px; } }
+
+    /* Testimonials */
+    .stories { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+    .story { background: var(--paper); padding: 28px; border-radius: 22px; border: 1px solid var(--line); }
+    .story blockquote { margin: 0 0 16px; font-size: 15px; line-height: 1.55; color: var(--fg); }
+    .story-by { display: flex; align-items: center; gap: 12px; }
+    .story-by img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; }
+    .story-by .n { font-weight: 700; font-size: 14px; }
+    .story-by .c { color: var(--fg-3); font-size: 13px; }
+    .story-by .city { font-family: 'Caveat', cursive; color: var(--accent-deep); font-size: 18px; }
+    @media (max-width: 1080px) { .stories { grid-template-columns: 1fr; } }
+
+    /* CTA */
+    .cta { padding: 96px 0; }
+    .cta-card { background: var(--accent); border-radius: 32px; padding: 64px; display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 48px; align-items: center; }
+    .cta-card h2 { font-size: clamp(34px, 4.4vw, 52px); font-weight: 800; letter-spacing: -0.025em; line-height: 1.05; margin: 0; color: var(--fg); }
+    .cta-card p { color: rgba(20, 33, 27, 0.78); margin: 14px 0 0; font-size: 16px; max-width: 460px; }
+    .cta-card form { background: var(--paper); padding: 20px; border-radius: 18px; display: flex; gap: 8px; }
+    .cta-card input { flex: 1; padding: 14px 16px; border: none; border-radius: 12px; background: var(--bg); font: inherit; color: var(--fg); outline: none; }
+    .cta-card button { background: var(--fg); color: var(--bg); border: none; padding: 0 22px; border-radius: 12px; font: inherit; font-weight: 700; cursor: pointer; }
+    @media (max-width: 1080px) { .cta-card { grid-template-columns: 1fr; padding: 40px; } }
+
+    footer { padding: 64px 0 32px; }
+    .foot-grid { display: grid; grid-template-columns: 1.5fr repeat(4, 1fr); gap: 32px; }
+    .foot-col h4 { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent-deep); margin: 0 0 14px; font-weight: 700; }
+    .foot-col a, .foot-col p { display: block; color: var(--fg-2); font-size: 14px; padding: 4px 0; margin: 0; }
+    .foot-col a:hover { color: var(--accent-deep); }
+    .foot-bot { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; font-size: 13px; color: var(--fg-3); }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 8px; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a href="#" class="brand"><span class="brand-mark">R</span>Roost</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#how">How it works</a>
+        <a href="#homes">Homes for you</a>
+        <a href="#calculator">Calculator</a>
+        <a href="#learn">Learn</a>
+        <a href="#pricing">Our fee</a>
+      </nav>
+      <div class="nav-cta">
+        <a href="#" class="btn btn-ghost">Sign in</a>
+        <a href="#cta" class="btn btn-mint">Start free</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="pill"><span class="dot"></span>Built for first-time buyers</span>
+            <h1>Buying your first home, <em>without the panic</em>.</h1>
+            <p class="hero-lede">Roost is a buyer's brokerage for people doing this for the first time. Plain-English explanations, a calculator that tells the truth, and a real agent on your side at a fixed fee.</p>
+            <div class="hero-actions">
+              <a class="btn btn-mint" href="#cta">Get started, free →</a>
+              <a class="btn btn-ghost" href="#how">See how it works</a>
+            </div>
+            <div class="hero-meta">
+              <div><div class="v">2,840</div><div class="l">First-time buyers helped</div></div>
+              <div><div class="v">$2,950</div><div class="l">Fixed fee, not 3%</div></div>
+              <div><div class="v">4.92 ★</div><div class="l">Buyer review average</div></div>
+            </div>
+          </div>
+          <div class="hero-art">
+            <img class="photo" src="https://picsum.photos/seed/roost-1/1200/1440" width="1200" height="1440" alt="A young couple smiling outside their first house with a green door and a sold sign." loading="eager" />
+            <div class="sticker"><div><div class="a">first home</div><div class="b">made simple</div></div></div>
+            <div class="callout">
+              <div class="title">Greenpoint walk-up</div>
+              <div class="row"><span>List</span><strong>$485,000</strong></div>
+              <div class="row"><span>Mo. payment</span><strong>$2,840</strong></div>
+              <div class="row"><span>Down (5%)</span><strong>$24,250</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="how">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="pill"><span class="dot"></span>How it works</span>
+          <h2>Four steps. <em>No mystery, no jargon.</em></h2>
+          <p>The home-buying process is not complicated — it just gets explained badly. Here is the whole thing in four steps.</p>
+        </div>
+        <div class="steps">
+          <div class="step"><div class="n">1</div><h3>Figure out your number</h3><p>Use our calculator to find a real monthly payment range. Income, debts, and down payment in, plain answer out.</p><div class="time">10 minutes</div></div>
+          <div class="step"><div class="n">2</div><h3>Get pre-approved</h3><p>We connect you to one of three vetted lenders. No spam, no twenty calls, no points-shopping circus.</p><div class="time">2 — 4 days</div></div>
+          <div class="step"><div class="n">3</div><h3>Tour and offer</h3><p>Tour homes with a real Roost agent. We write the offer, explain the contingencies, and negotiate the response.</p><div class="time">4 — 8 weeks</div></div>
+          <div class="step"><div class="n">4</div><h3>Close + move in</h3><p>We sit next to you at closing. We translate the title binder, the HUD-1, and what every fee is for.</p><div class="time">Closing day</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="homes" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="pill"><span class="dot"></span>Homes for first-time buyers</span>
+          <h2>Listings priced for <em>real first-time buyers</em>.</h2>
+          <p>Every home below is realistically buyable on a $80k – $160k household income with 5 – 10% down. Monthly payment is included so you don't have to guess.</p>
+        </div>
+        <div class="listings">
+          <article class="lst">
+            <div class="lst-img"><img src="https://picsum.photos/seed/roost-2/900/700" width="900" height="700" alt="A 1-bedroom condo in Bushwick with brick walls and a bay window." loading="lazy" /><span class="pill-bdg">Starter friendly</span></div>
+            <div class="lst-body">
+              <div class="lst-price">$385,000</div>
+              <div class="lst-addr">812 Hancock Street, Apt 2A · Bedford-Stuyvesant, Brooklyn</div>
+              <div class="lst-meta"><span><strong>1</strong> bd</span><span><strong>1</strong> ba</span><span><strong>640</strong> sqft</span><span>Condo</span></div>
+              <div class="lst-mortgage"><span class="mlbl">Est. payment</span><span class="mval">$2,140 / mo</span></div>
+            </div>
+          </article>
+          <article class="lst">
+            <div class="lst-img"><img src="https://picsum.photos/seed/roost-3/900/700" width="900" height="700" alt="A craftsman bungalow in East Austin with a small front porch." loading="lazy" /></div>
+            <div class="lst-body">
+              <div class="lst-price">$435,000</div>
+              <div class="lst-addr">2218 Garden Street · East Austin, TX</div>
+              <div class="lst-meta"><span><strong>2</strong> bd</span><span><strong>1</strong> ba</span><span><strong>880</strong> sqft</span><span>House</span></div>
+              <div class="lst-mortgage"><span class="mlbl">Est. payment</span><span class="mval">$2,360 / mo</span></div>
+            </div>
+          </article>
+          <article class="lst">
+            <div class="lst-img"><img src="https://picsum.photos/seed/roost-4/900/700" width="900" height="700" alt="A small Cape Cod-style house with white siding in Worcester, MA." loading="lazy" /><span class="pill-bdg">FHA eligible</span></div>
+            <div class="lst-body">
+              <div class="lst-price">$292,000</div>
+              <div class="lst-addr">38 Hawthorn Street · Worcester, MA</div>
+              <div class="lst-meta"><span><strong>3</strong> bd</span><span><strong>1.5</strong> ba</span><span><strong>1,240</strong> sqft</span><span>House</span></div>
+              <div class="lst-mortgage"><span class="mlbl">Est. payment</span><span class="mval">$1,820 / mo</span></div>
+            </div>
+          </article>
+          <article class="lst">
+            <div class="lst-img"><img src="https://picsum.photos/seed/roost-5/900/700" width="900" height="700" alt="A modern townhouse in Denver with a small balcony." loading="lazy" /></div>
+            <div class="lst-body">
+              <div class="lst-price">$478,000</div>
+              <div class="lst-addr">3401 W 30th Ave · Sloan's Lake, Denver</div>
+              <div class="lst-meta"><span><strong>2</strong> bd</span><span><strong>2.5</strong> ba</span><span><strong>1,180</strong> sqft</span><span>Townhouse</span></div>
+              <div class="lst-mortgage"><span class="mlbl">Est. payment</span><span class="mval">$2,640 / mo</span></div>
+            </div>
+          </article>
+          <article class="lst">
+            <div class="lst-img"><img src="https://picsum.photos/seed/roost-6/900/700" width="900" height="700" alt="A row house in Philadelphia with a stoop and red door." loading="lazy" /></div>
+            <div class="lst-body">
+              <div class="lst-price">$268,000</div>
+              <div class="lst-addr">1942 Wallace Street · Fairmount, Philadelphia</div>
+              <div class="lst-meta"><span><strong>2</strong> bd</span><span><strong>1</strong> ba</span><span><strong>1,080</strong> sqft</span><span>Row house</span></div>
+              <div class="lst-mortgage"><span class="mlbl">Est. payment</span><span class="mval">$1,680 / mo</span></div>
+            </div>
+          </article>
+          <article class="lst">
+            <div class="lst-img"><img src="https://picsum.photos/seed/roost-7/900/700" width="900" height="700" alt="A small single-family house with a yard in Portland, Maine." loading="lazy" /><span class="pill-bdg">No PMI eligible</span></div>
+            <div class="lst-body">
+              <div class="lst-price">$354,000</div>
+              <div class="lst-addr">14 Cedar Lane · West End, Portland, ME</div>
+              <div class="lst-meta"><span><strong>2</strong> bd</span><span><strong>1.5</strong> ba</span><span><strong>1,140</strong> sqft</span><span>House</span></div>
+              <div class="lst-mortgage"><span class="mlbl">Est. payment</span><span class="mval">$2,020 / mo</span></div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="calculator">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="pill"><span class="dot"></span>The honest calculator</span>
+          <h2>Plug in real numbers. <em>Get a real answer.</em></h2>
+          <p>Most home calculators forget about PMI, taxes, insurance, and HOA. Ours does not. Here is what a $385,000 condo actually costs each month.</p>
+        </div>
+        <div class="calc">
+          <div class="calc-left">
+            <h2 style="font-size: 28px; margin: 0 0 18px;">Your inputs</h2>
+            <div class="calc-inputs">
+              <div class="calc-field"><label>Home price</label><input type="text" value="$385,000" /></div>
+              <div class="calc-field"><label>Down payment</label><input type="text" value="$19,250 (5%)" /></div>
+              <div class="calc-field"><label>Interest rate</label><input type="text" value="6.85%" /></div>
+              <div class="calc-field"><label>Property tax</label><input type="text" value="$3,800 / yr" /></div>
+              <div class="calc-field"><label>Insurance</label><input type="text" value="$1,440 / yr" /></div>
+              <div class="calc-field"><label>HOA</label><input type="text" value="$320 / mo" /></div>
+            </div>
+            <p class="calc-note">— Every number above shows up on your actual monthly bill.</p>
+          </div>
+          <div class="calc-right">
+            <div class="lbl">Your real monthly payment</div>
+            <div class="big">$2,840<small> / mo</small></div>
+            <div class="calc-rows">
+              <div class="row"><span>Principal + interest</span><strong>$2,400</strong></div>
+              <div class="row"><span>Property tax</span><strong>$317</strong></div>
+              <div class="row"><span>Homeowners insurance</span><strong>$120</strong></div>
+              <div class="row"><span>HOA</span><strong>$320</strong></div>
+              <div class="row"><span>PMI (under 20% down)</span><strong>$98</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="learn">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="pill"><span class="dot"></span>Learn</span>
+          <h2>Plain-English guides for <em>every step</em>.</h2>
+          <p>No jargon. No "consult your professional". Each guide takes about ten minutes and answers one specific question.</p>
+        </div>
+        <div class="guides">
+          <article class="guide">
+            <img src="https://picsum.photos/seed/roost-g1/600/360" width="600" height="360" alt="Notebook with handwritten home-buying notes and a calculator." loading="lazy" />
+            <div class="guide-body"><span class="guide-tag">10 min · Money</span><h3>What can I actually afford?</h3><p>The 28/36 rule, debt-to-income, and why your pre-approval letter is not the answer.</p><a href="#">Read the guide →</a></div>
+          </article>
+          <article class="guide">
+            <img src="https://picsum.photos/seed/roost-g2/600/360" width="600" height="360" alt="A clipboard with mortgage paperwork on a kitchen counter." loading="lazy" />
+            <div class="guide-body"><span class="guide-tag">9 min · Mortgages</span><h3>FHA, VA, conventional — which one?</h3><p>The four big loan programs, who they're for, and the trade-offs nobody tells first-time buyers about.</p><a href="#">Read the guide →</a></div>
+          </article>
+          <article class="guide">
+            <img src="https://picsum.photos/seed/roost-g3/600/360" width="600" height="360" alt="A home inspector with a flashlight checking a basement." loading="lazy" />
+            <div class="guide-body"><span class="guide-tag">8 min · Inspections</span><h3>The inspection report, decoded</h3><p>Which of the 86 "issues" actually matter, which to ask the seller to fix, and which to walk away from.</p><a href="#">Read the guide →</a></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="pricing">
+      <div class="wrap">
+        <div class="fee">
+          <div>
+            <span class="pill"><span class="dot"></span>Our fee</span>
+            <h2>One flat fee. <em>$2,950.</em> Not 3%.</h2>
+            <p>Most buyer agents take 2.5 — 3% of the price. On a $400,000 home that's $12,000. Roost is a flat fee, paid only at closing, refunded if you don't buy.</p>
+            <p>That's the whole pricing model. We're done.</p>
+          </div>
+          <div class="fee-card">
+            <div class="label">Roost buyer support</div>
+            <div class="price">$2,950<small> flat fee</small></div>
+            <ul>
+              <li>A dedicated buyer agent</li>
+              <li>Unlimited tours in your city</li>
+              <li>Offer writing & negotiation</li>
+              <li>Inspection report walkthrough</li>
+              <li>Closing day support, in person</li>
+              <li>Refunded if you don't close</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="people">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="pill"><span class="dot"></span>First-time buyers</span>
+          <h2>2,840 first homes <em>closed and counting</em>.</h2>
+          <p>Stories from buyers who closed with Roost in the past year.</p>
+        </div>
+        <div class="stories">
+          <div class="story">
+            <blockquote>"I'd been quoted $14,000 in commission elsewhere. Roost did it for $2,950 and my agent took my call at 8 p.m. the night before closing."</blockquote>
+            <div class="story-by"><img src="https://picsum.photos/seed/roost-s1/100/100" width="100" height="100" alt="Portrait of buyer Carla." /><div><div class="n">Carla M.</div><div class="c">Bushwick, Brooklyn</div></div><span class="city">first home!</span></div>
+          </div>
+          <div class="story">
+            <blockquote>"The calculator told me I could afford $325k — not the $475k the lender wanted to qualify me for. They were right."</blockquote>
+            <div class="story-by"><img src="https://picsum.photos/seed/roost-s2/100/100" width="100" height="100" alt="Portrait of buyer Dylan." /><div><div class="n">Dylan P.</div><div class="c">Worcester, MA</div></div><span class="city">finally bought!</span></div>
+          </div>
+          <div class="story">
+            <blockquote>"My agent read the inspection report with me, line by line. We walked from a house with a $30,000 foundation issue we'd never have caught."</blockquote>
+            <div class="story-by"><img src="https://picsum.photos/seed/roost-s3/100/100" width="100" height="100" alt="Portrait of buyer Esme." /><div><div class="n">Esmé W.</div><div class="c">Sloan's Lake, Denver</div></div><span class="city">saved big!</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="cta" id="cta">
+    <div class="wrap">
+      <div class="cta-card">
+        <div>
+          <h2>Start with the number. We'll do the rest.</h2>
+          <p>Drop your email and we'll send you the calculator, a short pre-approval checklist, and our weekly first-time buyer newsletter. No spam, ever.</p>
+        </div>
+        <form onsubmit="event.preventDefault();">
+          <input type="email" placeholder="you@email.com" />
+          <button type="submit">Send it →</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a href="#" class="brand"><span class="brand-mark">R</span>Roost</a>
+          <p style="margin-top:14px; max-width: 260px;">A friendlier buyer's brokerage for first-time home buyers. Flat fee, plain English, real humans.</p>
+        </div>
+        <div class="foot-col"><h4>Roost</h4><a href="#">How it works</a><a href="#">Our fee</a><a href="#">For first-time buyers</a><a href="#">Calculator</a></div>
+        <div class="foot-col"><h4>Learn</h4><a href="#">Affordability</a><a href="#">Mortgages</a><a href="#">Inspections</a><a href="#">Closing day</a></div>
+        <div class="foot-col"><h4>Cities</h4><a href="#">Brooklyn</a><a href="#">Austin</a><a href="#">Denver</a><a href="#">See all 14 →</a></div>
+        <div class="foot-col"><h4>Company</h4><a href="#">About</a><a href="#">Careers</a><a href="#">Press</a><a href="#">Contact</a></div>
+      </div>
+      <div class="foot-bot"><span>© 2026 Roost Realty, Inc. · Equal opportunity housing</span><span>Licensed in 14 states · See licensing</span></div>
+    </div>
+  </footer>
+</body>
+</html>

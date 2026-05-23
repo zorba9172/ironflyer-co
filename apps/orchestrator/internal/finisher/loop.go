@@ -19,6 +19,27 @@ import (
 // inspect them deterministically. Every transition emits a structured SSE
 // event; failure paths use ErrorCode-prefixed messages.
 func (e *Engine) runPipeline(ctx context.Context, projectID, workspaceID, bearer string, report *RunReport) error {
+	// Plan cache fast-path: if this project's spec hash matches a prior
+	// successful pipeline run, restore the previously generated plan /
+	// stack / screen map / tokens directly from cache. Skips Planner +
+	// Architect + UXer entirely — three of the most expensive agent calls
+	// in the loop. Only triggers when ALL four artifacts are cached so
+	// gate state stays internally consistent.
+	if e.tryRestorePlanFromCache(projectID) {
+		e.emit(projectID, domain.Event{
+			ID: newEventID(), Step: StepRun, Status: StatusDone,
+			Message: "plan_cache_hit", CreatedAt: time.Now().UTC(),
+		})
+		if p, err := e.projects.Get(projectID); err == nil {
+			_ = e.runScaffold(ctx, projectID, workspaceID, bearer, p.Spec.Stack)
+		}
+		e.ensureDatabase(ctx, projectID)
+		e.ensureAuth(ctx, projectID)
+		e.ensureStripe(ctx, projectID)
+		e.ensureDomains(ctx, projectID)
+		return e.runCoderReviewLoop(ctx, projectID, workspaceID, bearer, report)
+	}
+
 	if err := e.runPlanner(ctx, projectID, report); err != nil {
 		return err
 	}
@@ -31,10 +52,66 @@ func (e *Engine) runPipeline(ctx context.Context, projectID, workspaceID, bearer
 	if err := e.runUXer(ctx, projectID, report); err != nil {
 		return err
 	}
+	// Save the freshly generated plan so the next Run on the same spec
+	// hits the cache. Captures only when all four artifacts landed.
+	if p, err := e.projects.Get(projectID); err == nil {
+		if entry, ok := captureFromProject(&p); ok {
+			e.plans.put(projectID, entry)
+		}
+	}
+	// Provision the database before the Coder writes a line of code that
+	// touches it. ensureDatabase is idempotent and a no-op when there's no
+	// data model or no provisioner wired, so this is safe to call every
+	// pipeline run.
+	e.ensureDatabase(ctx, projectID)
+	// Auth scaffold drops deterministic auth files (Supabase + Next.js by
+	// default) so the Coder builds product code on top of a known contract
+	// instead of reinventing signup/login each run.
+	e.ensureAuth(ctx, projectID)
+	// Payments scaffold (Stripe Checkout + webhook) — only triggers when
+	// the spec asks for billing/subscription/checkout.
+	e.ensureStripe(ctx, projectID)
+	// Domain packs (games, e-commerce, social, learning, ...) — each
+	// pack inspects the spec and self-decides whether to apply. Lets the
+	// platform genuinely cover "everything" without bloating Auth/Stripe.
+	e.ensureDomains(ctx, projectID)
 	if err := e.runCoderReviewLoop(ctx, projectID, workspaceID, bearer, report); err != nil {
 		return err
 	}
 	return nil
+}
+
+// tryRestorePlanFromCache returns true when the cache held a matching
+// entry and the project state was updated from it. Hash mismatch, missing
+// entry, or update error all return false so the caller falls through to
+// the full generative pipeline.
+func (e *Engine) tryRestorePlanFromCache(projectID string) bool {
+	proj, err := e.projects.Get(projectID)
+	if err != nil {
+		return false
+	}
+	specHash := hashSpec(&proj)
+	entry, ok := e.plans.get(projectID, specHash)
+	if !ok {
+		return false
+	}
+	_, err = e.projects.Update(projectID, func(p *domain.Project) {
+		// Restore typed fields the pipeline mutates.
+		p.Spec.UserStories = append(p.Spec.UserStories[:0], entry.UserStories...)
+		p.Spec.DataModel = append(p.Spec.DataModel[:0], entry.DataModel...)
+		p.Spec.Stack = entry.Stack
+		// Restore raw artifacts and their FileNode mirrors so downstream
+		// gates that hunt for .ironflyer/*.json find them.
+		_ = p.SetArtifact(domain.ArtifactPlan, entry.PlanJSON)
+		_ = p.SetArtifact(domain.ArtifactStack, entry.StackJSON)
+		_ = p.SetArtifact(domain.ArtifactScreenMap, entry.ScreenMapJSON)
+		_ = p.SetArtifact(domain.ArtifactDesignTokens, entry.DesignTokens)
+		writeProjectFile(p, ".ironflyer/plan.json", string(entry.PlanJSON))
+		writeProjectFile(p, ".ironflyer/stack.json", string(entry.StackJSON))
+		writeProjectFile(p, screenMapPath, string(entry.ScreenMapJSON))
+		writeProjectFile(p, designTokensPath, string(entry.DesignTokens))
+	})
+	return err == nil
 }
 
 // ---------------- Planner ----------------
@@ -93,10 +170,18 @@ func (e *Engine) runPlanner(ctx context.Context, projectID string, report *RunRe
 		goal = "Build a working MVP for: " + p.Name
 	}
 
+	// Memory grounding — feed prior project decisions, specs, and
+	// business notes to the Planner so it doesn't re-derive stories
+	// from a blank slate every run.
+	memCtx := e.contextBundleForPlanner(ctx, projectID)
+
 	task := agents.Task{
-		Role:    agents.RolePlanner,
-		Project: &p,
-		Goal:    goal + "\n\n" + plannerInstruction,
+		Role:        agents.RolePlanner,
+		Project:     &p,
+		Goal:        goal + "\n\n" + plannerInstruction,
+		Context:     memCtx,
+		UserBearer:  bearerFromCtx(ctx),
+		WorkspaceID: workspaceIDFromCtx(ctx),
 	}
 	res, err := e.registry.Run(ctx, task)
 	if err != nil {
@@ -154,6 +239,24 @@ func (e *Engine) runPlanner(ctx context.Context, projectID string, report *RunRe
 		return err
 	}
 
+	// Persist the chosen plan as a project spec memory so subsequent
+	// runs of Planner (and downstream agents) see the story shape as
+	// prior context rather than rediscovering it from scratch.
+	{
+		var b strings.Builder
+		for i, s := range plan.UserStories {
+			if i >= 8 {
+				b.WriteString("- … and " + itoaPositive(len(plan.UserStories)-8) + " more\n")
+				break
+			}
+			b.WriteString("- " + s.ID + ": " + s.IWant + "\n")
+		}
+		e.rememberDecision(ctx, projectID,
+			"spec: "+itoaPositive(len(plan.UserStories))+" stories",
+			b.String(),
+			"spec")
+	}
+
 	e.emit(projectID, domain.Event{
 		ID: newEventID(), Step: StepPlanner, Agent: string(agents.RolePlanner),
 		Status: StatusDone, Message: "planner_done", CreatedAt: time.Now().UTC(),
@@ -202,10 +305,19 @@ func (e *Engine) runArchitect(ctx context.Context, projectID string, report *Run
 		Status: StatusRunning, Message: "architect_started", CreatedAt: time.Now().UTC(),
 	})
 
+	// Memory grounding — feed prior architectural decisions to the
+	// Architect so it doesn't re-derive the stack on every run. The
+	// recorded decisions carry the tag "decision", which is exactly
+	// what contextBundleForArchitect filters on.
+	memCtx := e.contextBundleForArchitect(ctx, projectID)
+
 	task := agents.Task{
-		Role:    agents.RoleArchitect,
-		Project: &p,
-		Goal:    "Choose the stack and service layout.\n\n" + architectInstruction,
+		Role:        agents.RoleArchitect,
+		Project:     &p,
+		Goal:        "Choose the stack and service layout.\n\n" + architectInstruction,
+		Context:     memCtx,
+		UserBearer:  bearerFromCtx(ctx),
+		WorkspaceID: workspaceIDFromCtx(ctx),
 	}
 	res, err := e.registry.Run(ctx, task)
 	if err != nil {
@@ -252,6 +364,16 @@ func (e *Engine) runArchitect(ctx context.Context, projectID string, report *Run
 		ID: newEventID(), Step: StepArchitect, Agent: string(agents.RoleArchitect),
 		Status: StatusDone, Message: "architect_done", CreatedAt: time.Now().UTC(),
 	})
+	// Persist the chosen stack as a project decision so subsequent runs
+	// of Architect (and the Coder grounding bundle) see it as evidence
+	// rather than rediscovering it from scratch.
+	e.rememberDecision(ctx, projectID,
+		"stack: "+arch.Stack.Frontend+" + "+arch.Stack.Backend,
+		"frontend="+arch.Stack.Frontend+
+			" backend="+arch.Stack.Backend+
+			" storage="+arch.Stack.Storage+
+			" auth="+arch.Stack.Auth,
+		"stack")
 	return nil
 }
 
@@ -294,10 +416,18 @@ func (e *Engine) runUXer(ctx context.Context, projectID string, report *RunRepor
 		Status: StatusRunning, Message: "uxer_started", CreatedAt: time.Now().UTC(),
 	})
 
+	// Memory grounding — surface prior design / ux notes recorded
+	// against this project so the screen map stays coherent across
+	// runs instead of drifting on each pass.
+	memCtx := e.contextBundleForUXer(ctx, projectID)
+
 	task := agents.Task{
-		Role:    agents.RoleUXer,
-		Project: &p,
-		Goal:    "Map every user story to a screen.\n\n" + uxerInstruction,
+		Role:        agents.RoleUXer,
+		Project:     &p,
+		Goal:        "Map every user story to a screen.\n\n" + uxerInstruction,
+		Context:     memCtx,
+		UserBearer:  bearerFromCtx(ctx),
+		WorkspaceID: workspaceIDFromCtx(ctx),
 	}
 	res, err := e.registry.Run(ctx, task)
 	if err != nil {
@@ -337,6 +467,24 @@ func (e *Engine) runUXer(ctx context.Context, projectID string, report *RunRepor
 		return err
 	}
 
+	// Persist the screen map as a project design memory so subsequent
+	// runs of the UXer (and downstream Coder grounding) see what was
+	// already chosen rather than redesigning the surface on every pass.
+	{
+		var b strings.Builder
+		for i, s := range ux.ScreenMap.Screens {
+			if i >= 8 {
+				b.WriteString("- … and " + itoaPositive(len(ux.ScreenMap.Screens)-8) + " more\n")
+				break
+			}
+			b.WriteString("- " + s.ID + " " + s.Name + " (" + s.Route + ")\n")
+		}
+		e.rememberDecision(ctx, projectID,
+			"ux: "+itoaPositive(len(ux.ScreenMap.Screens))+" screens",
+			b.String(),
+			"design", "ux")
+	}
+
 	e.emit(projectID, domain.Event{
 		ID: newEventID(), Step: StepUXer, Agent: string(agents.RoleUXer),
 		Status: StatusDone, Message: "uxer_done", CreatedAt: time.Now().UTC(),
@@ -356,9 +504,11 @@ type coderPatch struct {
 }
 
 type coderPatchFileChange struct {
-	Op      string `json:"op"`
-	Path    string `json:"path"`
-	Content string `json:"content,omitempty"`
+	Op          string `json:"op"`
+	Path        string `json:"path"`
+	Content     string `json:"content,omitempty"`
+	Anchor      string `json:"anchor,omitempty"`
+	Replacement string `json:"replacement,omitempty"`
 }
 
 const coderInstruction = `Implement the requested user story by producing a code patch. Reply with a SINGLE JSON object — no prose, no markdown fence — matching exactly:
@@ -367,13 +517,22 @@ const coderInstruction = `Implement the requested user story by producing a code
   "title":   "<short imperative summary>",
   "summary": "<one paragraph explaining the change>",
   "changes": [
-    { "op": "create" | "update" | "delete", "path": "<relative path>", "content": "<full file contents>" }
+    { "op": "create" | "update" | "delete" | "replace" | "insert_after",
+      "path": "<relative path>",
+      "content": "<full file contents (create/update only)>",
+      "anchor": "<verbatim substring of current file (replace/insert_after only)>",
+      "replacement": "<new text (replace/insert_after only)>"
+    }
   ]
 }
 
 Rules:
-- Use create for new files, update for full-file rewrites, delete to remove a file.
-- "content" must be the COMPLETE final file body, not a diff.
+- Use "create" for new files, "update" for full-file rewrites, "delete" to remove a file.
+- Prefer "replace" or "insert_after" for SMALL edits to existing files: provide a
+  unique anchor substring + the new text. Anchor MUST appear exactly once in the
+  current file body — pick enough surrounding context to make it unique. This
+  saves output tokens and avoids reformatting whole files.
+- "content" is for create/update only and must be the COMPLETE final file body.
 - Paths are relative, never absolute. No "..", no "/etc/", no ".ssh/".
 - Keep total patch under 200 KiB and 40 files.
 - Implement the story end-to-end: routes, handlers, types, error states.
@@ -404,6 +563,37 @@ func (e *Engine) runCoderReviewLoop(ctx context.Context, projectID, workspaceID,
 }
 
 func (e *Engine) codeOneStory(ctx context.Context, projectID, workspaceID, bearer string, story domain.UserStory, report *RunReport) error {
+	// Patch cache fast-path: if we have a previously accepted patch for
+	// (projectID, storyID, specHash), try to push it through the live
+	// Propose+Apply path. The patch engine's anchor validator will reject
+	// it if the tree has drifted, in which case we fall through to a
+	// fresh Coder call. Cache hits skip a Coder + Critic + Reviewer chain.
+	if proj, err := e.projects.Get(projectID); err == nil {
+		specHash := hashSpec(&proj)
+		if cached, ok := e.patchesCache.get(projectID, story.ID, specHash); ok {
+			cached.ProjectID = projectID
+			cached.ID = "" // let patch.Engine mint a fresh one
+			proposed, err := e.patches.Propose(cached)
+			if err == nil && proposed.Status == patch.StatusProposed {
+				applied, err := e.patches.Apply(proposed.ID)
+				if err == nil {
+					if workspaceID != "" {
+						_ = e.applier.Apply(ctx, bearer, workspaceID, applied)
+					}
+					e.emit(projectID, domain.Event{
+						ID: newEventID(), Step: StepPatch, Agent: string(agents.RoleCoder),
+						Status: StatusDone,
+						Message: "patch_cache_hit story=" + story.ID + " id=" + applied.ID,
+						CreatedAt: time.Now().UTC(),
+					})
+					report.PatchIDs = append(report.PatchIDs, applied.ID)
+					return nil
+				}
+			}
+			// Cached patch no longer fits — fall through and re-prompt.
+		}
+	}
+
 	var (
 		failureContext string
 		lastErrIssues  []domain.Issue
@@ -431,6 +621,16 @@ func (e *Engine) codeOneStory(ctx context.Context, projectID, workspaceID, beare
 		idx := retriever.Build(&p, retriever.Options{TopK: 8})
 		hits := idx.Query(coderQueryForStory(story), 8)
 		rag := retriever.FormatContext(hits)
+		// Memory grounding — prior failure/fix lineage + project decisions
+		// for the same story. Cheap append; the Coder reads them as part
+		// of the same context block as the RAG snippets.
+		if mem := e.contextBundleForCoder(ctx, projectID, story); mem != "" {
+			if rag == "" {
+				rag = mem
+			} else {
+				rag = mem + "\n\n" + rag
+			}
+		}
 		res, runErr := e.registry.Run(ctx, agents.Task{
 			Role:           agents.RoleCoder,
 			Project:        &p,
@@ -438,6 +638,8 @@ func (e *Engine) codeOneStory(ctx context.Context, projectID, workspaceID, beare
 			Issues:         lastErrIssues,
 			Context:        rag,
 			ThinkingBudget: coderThinkingBudget(story, p),
+			UserBearer:     bearerFromCtx(ctx),
+			WorkspaceID:    workspaceIDFromCtx(ctx),
 		})
 		if runErr != nil {
 			e.emitProviderErr(projectID, StepCoder, agents.RoleCoder, runErr)
@@ -467,9 +669,11 @@ func (e *Engine) codeOneStory(ctx context.Context, projectID, workspaceID, beare
 		}
 		for _, c := range cp.Changes {
 			built.Changes = append(built.Changes, patch.FileChange{
-				Op:      patch.Op(strings.ToLower(strings.TrimSpace(c.Op))),
-				Path:    strings.TrimPrefix(c.Path, "/"),
-				Content: c.Content,
+				Op:          patch.Op(strings.ToLower(strings.TrimSpace(c.Op))),
+				Path:        strings.TrimPrefix(c.Path, "/"),
+				Content:     c.Content,
+				Anchor:      c.Anchor,
+				Replacement: c.Replacement,
 			})
 		}
 		if violations := e.enforcePatchBounds(built); len(violations) > 0 {
@@ -479,6 +683,21 @@ func (e *Engine) codeOneStory(ctx context.Context, projectID, workspaceID, beare
 				ID: newEventID(), Step: StepCoder, Agent: string(agents.RoleCoder),
 				Status: StatusFailed,
 				Message: fmtErr(ErrCodePatchTooLarge, "patch out of bounds on attempt "+itoaPositive(attempt+1)),
+				CreatedAt: time.Now().UTC(),
+			})
+			continue
+		}
+
+		// Syntax precheck — reject patches that would yield un-parseable
+		// files before they enter the lifecycle. Saves a Critic + Reviewer
+		// round-trip on broken JSON / JS / TS / Go / Python output.
+		if syntaxIssues := e.syntaxPrecheck(ctx, &p, workspaceID, bearer, built.Changes); len(syntaxIssues) > 0 {
+			failureContext = "Your patch produced un-parseable files: " + joinIssues(syntaxIssues) + ". Fix the syntax and retry."
+			lastErrIssues = syntaxIssues
+			e.emit(projectID, domain.Event{
+				ID: newEventID(), Step: StepCoder, Agent: string(agents.RoleCoder),
+				Status: StatusFailed,
+				Message: fmtErr(ErrCodePatchInvalid, "syntax precheck rejected the patch"),
 				CreatedAt: time.Now().UTC(),
 			})
 			continue
@@ -521,9 +740,9 @@ func (e *Engine) codeOneStory(ctx context.Context, projectID, workspaceID, beare
 					failureContext = "Critic flagged blockers: " + joinIssues(findings) + ". Address them in the next patch."
 					lastErrIssues = findings
 					e.emit(projectID, domain.Event{
-						ID: newEventID(), Step: StepReviewer, Agent: string(agents.RoleCritic),
-						Status: StatusFailed,
-						Message: fmt.Sprintf("critic_rejected story=%s findings=%d", story.ID, len(findings)),
+						ID: newEventID(), Step: StepCritic, Agent: string(agents.RoleCritic),
+						Status:    StatusFailed,
+						Message:   fmt.Sprintf("critic_rejected story=%s findings=%d top=%s", story.ID, len(findings), tail(findings[0].Message, 120)),
 						CreatedAt: time.Now().UTC(),
 					})
 					continue
@@ -586,6 +805,28 @@ func (e *Engine) codeOneStory(ctx context.Context, projectID, workspaceID, beare
 			Message: "patch_applied id=" + applied.ID + " story=" + story.ID,
 			CreatedAt: time.Now().UTC(),
 		})
+		// Cache the successful patch keyed by spec hash so future
+		// repair iterations on the same story short-circuit.
+		if proj, getErr := e.projects.Get(projectID); getErr == nil {
+			e.patchesCache.put(projectID, story.ID, hashSpec(&proj), applied)
+		}
+		// Memory capture — record the winning patch pattern, plus a
+		// failure-fix lineage entry when this attempt followed a
+		// rejection on the same story.
+		e.rememberCoderPatch(ctx, projectID, applied)
+		if len(lastErrIssues) > 0 {
+			gateForLog := domain.GateCode
+			if lastErrIssues[0].Gate != "" {
+				gateForLog = lastErrIssues[0].Gate
+			}
+			e.rememberFailureFix(ctx, projectID, story.ID, gateForLog,
+				lastErrIssues, applied.ID, applied.Title)
+		}
+		// Reflection pass — cheap judge reviews (story, patch, post-apply
+		// state) and persists any "partial" / "drift" verdict as memory
+		// so future runs avoid the same gap. Best-effort; intentionally
+		// ignored on error so reflection never blocks the loop.
+		_, _ = e.reflectOnPatch(ctx, projectID, story, applied)
 		return nil
 	}
 
@@ -679,6 +920,22 @@ func simulateApply(p domain.Project, changes []patch.FileChange) domain.Project 
 					Path: c.Path, Type: "file", Content: c.Content, Size: len(c.Content),
 				})
 			}
+		case patch.OpReplace, patch.OpInsertAfter:
+			for i := range p.Files {
+				if p.Files[i].Path != c.Path {
+					continue
+				}
+				old := p.Files[i].Content
+				var updated string
+				if c.Op == patch.OpReplace {
+					updated = strings.Replace(old, c.Anchor, c.Replacement, 1)
+				} else {
+					updated = strings.Replace(old, c.Anchor, c.Anchor+c.Replacement, 1)
+				}
+				p.Files[i].Content = updated
+				p.Files[i].Size = len(updated)
+				break
+			}
 		}
 	}
 	return p
@@ -723,7 +980,7 @@ func (e *Engine) enforcePatchBounds(p patch.Patch) []domain.Issue {
 				Message: "patch path escapes project", Path: c.Path,
 			})
 		}
-		total += len(c.Content)
+		total += len(c.Content) + len(c.Anchor) + len(c.Replacement)
 	}
 	if total > e.maxPatchBytes {
 		issues = append(issues, domain.Issue{

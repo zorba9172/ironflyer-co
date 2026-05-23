@@ -8,15 +8,15 @@
  *    registrar already claimed it; we tolerate both `pwa-register.tsx`
  *    and this file running side by side).
  *  - Listen for `beforeinstallprompt`, stash the event, and after 15
- *    seconds on a first-time visit, surface a Hebrew CTA banner.
+ *    seconds on a first-time visit, surface an install CTA banner.
  *  - Persist dismissal in `localStorage` so the banner does not nag.
  *
- * Visual: alabaster sheet, lime CTA, slides up from bottom. RTL-friendly
- * because the copy is Hebrew.
+ * Visual: alabaster sheet, lime CTA, slides up from bottom.
  */
 import { useEffect, useRef, useState } from 'react';
 import { Box, Button, IconButton, Slide, Typography } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import { IronflyerMark } from './brand/IronflyerLogo';
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -120,8 +120,8 @@ export function PWAInstaller() {
     <Slide direction="up" in={visible} mountOnEnter unmountOnExit>
       <Box
         role="dialog"
-        aria-label="התקנת אפליקציה"
-        className="safe-area-bottom rtl"
+        aria-label="Install app"
+        className="safe-area-bottom"
         sx={{
           position: 'fixed',
           left: 16,
@@ -130,8 +130,8 @@ export function PWAInstaller() {
           zIndex: 1500,
           background: '#f4f0e8',
           color: '#0d0e0f',
-          borderRadius: 3,
-          boxShadow: '0 18px 40px rgba(13,14,15,0.18)',
+          borderRadius: 1,
+          boxShadow: '0 14px 32px rgba(13,14,15,0.16)',
           border: '1px solid rgba(13,14,15,0.08)',
           p: 2,
           display: 'flex',
@@ -140,15 +140,16 @@ export function PWAInstaller() {
           flexDirection: { xs: 'column', sm: 'row' },
         }}
       >
-        <Box sx={{ flex: 1, minWidth: 0, textAlign: 'right' }}>
+        <IronflyerMark size={34} tone="light" />
+        <Box sx={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
           <Typography
             variant="subtitle1"
             sx={{ fontFamily: 'var(--font-display)', fontWeight: 700, lineHeight: 1.2 }}
           >
-            התקן את Ironflyer
+            Install Ironflyer
           </Typography>
           <Typography variant="body2" sx={{ opacity: 0.75, mt: 0.5 }}>
-            גישה מהירה מהבית של הטלפון, גם ללא רשת.
+            Faster access from your home screen, with offline support when the network drops.
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -166,10 +167,10 @@ export function PWAInstaller() {
               '&:hover': { background: '#d4ee00' },
             }}
           >
-            התקן את Ironflyer
+            Install Ironflyer
           </Button>
           <IconButton
-            aria-label="סגור"
+            aria-label="Close"
             onClick={dismiss}
             className="tap-target"
             sx={{ color: '#0d0e0f' }}

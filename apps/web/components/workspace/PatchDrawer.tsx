@@ -5,19 +5,30 @@
 // non-terminal state. Pure presentation; the parent owns the action call.
 
 import { Box, Button, Chip, Drawer, IconButton, Stack, Typography } from '@mui/material';
-import { Close, PlayArrow } from '@mui/icons-material';
+import { Close, PlayArrow, Undo } from '@mui/icons-material';
 import { Patch } from '../../lib/api/patches';
 import { tokens } from '../../lib/theme';
+import { DiffViewer } from './DiffViewer';
 
 interface Props {
   open: boolean;
   patch: Patch | null;
   applying: boolean;
+  rollingBack?: boolean;
   onClose: () => void;
   onApply: () => void;
+  // onRollback is invoked when the user requests an undo of an applied
+  // patch. Parent owns the actual fetch + state refresh. Pass undefined
+  // to hide the rollback button entirely (e.g. in read-only contexts).
+  onRollback?: () => void;
+  // previousFiles is the current project file tree keyed by path; used to
+  // render a real before/after diff for "update" ops. Anchor-based ops
+  // (replace / insert_after) don't need it — the anchor IS the previous
+  // text — but we still accept this map so callers don't need a branch.
+  previousFiles?: Record<string, string>;
 }
 
-export function PatchDrawer({ open, patch, applying, onClose, onApply }: Props) {
+export function PatchDrawer({ open, patch, applying, rollingBack, onClose, onApply, onRollback, previousFiles }: Props) {
   return (
     <Drawer
       anchor="right"
@@ -64,7 +75,7 @@ export function PatchDrawer({ open, patch, applying, onClose, onApply }: Props) 
               </Typography>
             )}
 
-            <Typography variant="overline" sx={{ mt: 2, color: 'text.secondary' }}>שינויים</Typography>
+            <Typography variant="overline" sx={{ mt: 2, color: 'text.secondary' }}>Changes</Typography>
             <Stack spacing={0.6} sx={{ mt: 0.8, flex: 1, minHeight: 0, overflowY: 'auto', pr: 0.4 }}>
               {(patch.changes ?? []).map((c, i) => (
                 <Box key={`${c.path}-${i}`} sx={{
@@ -92,24 +103,25 @@ export function PatchDrawer({ open, patch, applying, onClose, onApply }: Props) 
                       {c.path}
                     </Typography>
                   </Stack>
-                  {c.content && c.op !== 'delete' && (
-                    <Box component="pre" sx={{
-                      mt: 0.8, mb: 0, p: 1, borderRadius: 0.8,
-                      bgcolor: '#0d0e0f', color: '#d7d4cc',
-                      fontFamily: tokens.font.mono, fontSize: 11.5,
-                      maxHeight: 220, overflow: 'auto',
-                      whiteSpace: 'pre',
-                    }}>
-                      {(c.content.length > 4000 ? c.content.slice(0, 4000) + '\n…truncated' : c.content)}
-                    </Box>
-                  )}
+                  <DiffViewer
+                    change={c}
+                    previousContent={previousFiles?.[c.path]}
+                  />
+                  {c.op === 'replace' || c.op === 'insert_after' ? (
+                    <Typography
+                      variant="caption"
+                      sx={{ display: 'block', mt: 0.6, color: 'text.secondary' }}
+                    >
+                      {c.op === 'replace' ? 'Anchored replace — substitutes a unique block' : 'Insert after anchor — leaves surrounding code untouched'}
+                    </Typography>
+                  ) : null}
                 </Box>
               ))}
             </Stack>
 
             {patch.issues && patch.issues.length > 0 && (
               <Box sx={{ mt: 1.4 }}>
-                <Typography variant="overline" color="text.secondary">בעיות תיקוף</Typography>
+                <Typography variant="overline" color="text.secondary">Validation issues</Typography>
                 <Stack spacing={0.5} sx={{ mt: 0.6 }}>
                   {patch.issues.map((iss, i) => (
                     <Typography key={i} variant="caption" sx={{
@@ -125,16 +137,31 @@ export function PatchDrawer({ open, patch, applying, onClose, onApply }: Props) 
               </Box>
             )}
 
-            <Button
-              fullWidth
-              variant="contained"
-              startIcon={<PlayArrow />}
-              disabled={applying || patch.status === 'applied' || patch.status === 'rejected'}
-              onClick={onApply}
-              sx={{ mt: 2, borderRadius: '10px', minHeight: 44 }}
-            >
-              {patch.status === 'applied' ? 'Already applied' : applying ? 'מַחיל…' : 'Apply patch'}
-            </Button>
+            <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+              <Button
+                fullWidth
+                variant="contained"
+                startIcon={<PlayArrow />}
+                disabled={applying || patch.status === 'applied' || patch.status === 'rejected'}
+                onClick={onApply}
+                sx={{ borderRadius: '10px', minHeight: 44 }}
+              >
+                {patch.status === 'applied' ? 'Already applied' : applying ? 'Applying...' : 'Apply patch'}
+              </Button>
+              {onRollback && patch.status === 'applied' && (
+                <Button
+                  variant="outlined"
+                  color="warning"
+                  startIcon={<Undo />}
+                  disabled={Boolean(rollingBack)}
+                  onClick={onRollback}
+                  sx={{ borderRadius: '10px', minHeight: 44, minWidth: 140 }}
+                  title="Restore the project to the state before this patch was applied"
+                >
+                  {rollingBack ? 'Rolling back...' : 'Rollback'}
+                </Button>
+              )}
+            </Stack>
           </>
         )}
       </Box>

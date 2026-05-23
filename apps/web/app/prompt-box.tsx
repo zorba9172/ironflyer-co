@@ -252,9 +252,9 @@ export function PromptBox({
     <Box sx={{
 	      width: '100%',
 	      border: `1px solid ${isLightSurface ? 'rgba(17,17,17,0.12)' : tokens.color.border.strong}`,
-	      borderRadius: isHero ? '20px' : '8px',
+	      borderRadius: '8px',
 	      backgroundColor: isLightSurface ? 'rgba(255,253,247,0.98)' : 'rgba(13,14,15,0.92)',
-	      boxShadow: isHero ? '0 30px 80px rgba(13,14,15,0.18), 0 0 0 1px rgba(13,14,15,0.04)' : isDashboard ? '0 18px 60px rgba(17,17,17,0.12)' : tokens.shadow.md,
+	      boxShadow: isHero ? '0 20px 48px rgba(13,14,15,0.14), 0 0 0 1px rgba(13,14,15,0.04)' : isDashboard ? '0 14px 42px rgba(17,17,17,0.10)' : tokens.shadow.md,
 	      color: isLightSurface ? tokens.color.text.inverse : tokens.color.text.primary,
 	      overflow: 'hidden',
 	      transition: `box-shadow ${tokens.motion.base} ${tokens.motion.curve}, transform ${tokens.motion.base} ${tokens.motion.curve}`,

@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mane Color Bar — Hair color specialists in the Mission</title>
+  <meta name="description" content="A color-only salon: balayage, dimensional brunettes, copper, vivid fashion color, and gloss refreshes. We only do color." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #efe5d4;
+      --paper: #f7eedc;
+      --paper-2: #faf3e3;
+      --ink: #16140e;
+      --ink-2: #4a4738;
+      --ink-3: #8a8472;
+      --line: rgba(22, 20, 14, 0.16);
+      --accent: #00b3ff;
+      --accent-deep: #0089c4;
+      --accent-soft: #b9eaff;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--ink); font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 16px; line-height: 1.6; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 28px; }
+    .serif { font-family: 'Instrument Serif', serif; }
+    .eyebrow { font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent-deep); font-weight: 500; }
+
+    .nav { padding: 22px 0; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--bg); z-index: 10; }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { font-family: 'Instrument Serif', serif; font-size: 30px; letter-spacing: -0.01em; }
+    .brand em { font-style: italic; color: var(--accent); }
+    .nav-links { display: flex; gap: 28px; font-size: 14px; color: var(--ink-2); font-weight: 500; }
+    .nav-links a:hover { color: var(--ink); }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border-radius: 999px; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; border: 1px solid transparent; cursor: pointer; transition: background 200ms, color 200ms; }
+    .btn-primary { background: var(--ink); color: var(--bg); }
+    .btn-primary:hover { background: var(--accent); color: var(--ink); }
+    .btn-accent { background: var(--accent); color: var(--ink); }
+    .btn-accent:hover { background: var(--accent-deep); color: #fff; }
+    .btn-ghost { background: transparent; color: var(--ink); border-color: var(--ink); }
+    .btn-ghost:hover { background: var(--ink); color: var(--bg); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    .hero { padding: 60px 0 80px; position: relative; overflow: hidden; }
+    h1 { font-family: 'Instrument Serif', serif; font-weight: 400; font-size: clamp(64px, 13vw, 200px); line-height: 0.86; letter-spacing: -0.03em; margin: 22px 0 0; }
+    h1 em { font-style: italic; color: var(--accent); }
+    h1 .stroke { -webkit-text-stroke: 2px var(--ink); color: transparent; }
+    .hero-row { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; margin-top: 56px; align-items: end; }
+    .hero-row p { font-size: 19px; color: var(--ink-2); max-width: 460px; margin: 0; }
+    .hero-meta { display: flex; gap: 28px; flex-wrap: wrap; font-size: 14px; color: var(--ink-2); }
+    .hero-meta strong { display: block; font-family: 'Instrument Serif', serif; font-size: 26px; color: var(--ink); font-weight: 400; }
+    .hero-cta { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
+    .hero-img { margin-top: 64px; }
+    .hero-img img { width: 100%; aspect-ratio: 21/9; object-fit: cover; border-radius: 14px; }
+
+    .tape { background: var(--accent); color: var(--ink); padding: 18px 0; transform: rotate(-1.5deg); margin: 32px -20px; }
+    .tape-inner { display: flex; gap: 36px; justify-content: center; flex-wrap: wrap; font-family: 'Space Grotesk', sans-serif; font-weight: 700; text-transform: uppercase; font-size: 16px; letter-spacing: 0.18em; }
+
+    section { padding: 110px 0; }
+    h2 { font-family: 'Instrument Serif', serif; font-weight: 400; font-size: clamp(40px, 6.5vw, 84px); line-height: 1.0; letter-spacing: -0.02em; margin: 14px 0 22px; max-width: 18ch; }
+    h2 em { font-style: italic; color: var(--accent-deep); }
+    .section-head { max-width: 740px; margin-bottom: 56px; }
+    .section-head p { font-size: 18px; color: var(--ink-2); }
+
+    .menu-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .menu-card { background: var(--paper); border: 2px solid var(--ink); border-radius: 18px; padding: 28px; position: relative; transition: transform 200ms; }
+    .menu-card:hover { transform: translateY(-4px); }
+    .menu-card.accent { background: var(--accent); }
+    .menu-card .tag { display: inline-block; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 600; padding: 6px 12px; border-radius: 999px; background: var(--ink); color: var(--bg); }
+    .menu-card.accent .tag { background: var(--ink); color: var(--accent); }
+    .menu-card h3 { font-family: 'Instrument Serif', serif; font-weight: 400; font-size: 36px; line-height: 1.05; margin: 18px 0 6px; }
+    .menu-card p { font-size: 14px; color: var(--ink-2); margin: 0 0 22px; }
+    .menu-card.accent p { color: var(--ink); }
+    .menu-card .meta { display: flex; justify-content: space-between; align-items: baseline; border-top: 2px solid var(--ink); padding-top: 16px; }
+    .menu-card .price { font-family: 'Instrument Serif', serif; font-size: 28px; font-weight: 400; }
+    .menu-card .time { font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 600; }
+    @media (max-width: 1080px) { .menu-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .menu-grid { grid-template-columns: 1fr; } }
+
+    .work { background: var(--paper); }
+    .work-grid { display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(2, 1fr); gap: 14px; }
+    .work-grid img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; aspect-ratio: 1/1; }
+    .work-grid .a { grid-column: span 2; grid-row: span 2; aspect-ratio: 1/1; }
+    .work-grid .b { grid-column: span 2; aspect-ratio: 2/1; }
+    @media (max-width: 1080px) { .work-grid { grid-template-columns: 1fr 1fr; } .work-grid .a, .work-grid .b { grid-column: auto; grid-row: auto; aspect-ratio: 1/1; } }
+
+    .colorists-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    .colorist { background: var(--paper); border: 2px solid var(--ink); border-radius: 18px; overflow: hidden; }
+    .colorist img { width: 100%; aspect-ratio: 1/1; object-fit: cover; }
+    .colorist-body { padding: 20px 24px 26px; }
+    .colorist h3 { font-family: 'Instrument Serif', serif; font-size: 26px; margin: 0 0 4px; font-weight: 400; }
+    .colorist .role { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-deep); font-weight: 600; }
+    .colorist p { font-size: 14px; color: var(--ink-2); margin: 10px 0 0; }
+    @media (max-width: 1080px) { .colorists-grid { grid-template-columns: 1fr 1fr; } }
+
+    .process { background: var(--ink); color: var(--bg); }
+    .process h2, .process .eyebrow { color: var(--bg); }
+    .process .eyebrow { color: var(--accent); }
+    .process p { color: rgba(247,238,220,0.7); }
+    .process-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; margin-top: 56px; }
+    .process-step { border-top: 2px solid var(--accent); padding-top: 22px; }
+    .process-step .n { font-family: 'Instrument Serif', serif; font-size: 36px; color: var(--accent); font-style: italic; }
+    .process-step h4 { font-family: 'Instrument Serif', serif; font-weight: 400; font-size: 24px; margin: 4px 0 10px; color: var(--bg); }
+    .process-step p { font-size: 14px; color: rgba(247,238,220,0.75); margin: 0; }
+    @media (max-width: 1080px) { .process-grid { grid-template-columns: 1fr 1fr; } }
+
+    .quotes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+    .quote { background: var(--paper); border: 2px solid var(--ink); border-radius: 18px; padding: 30px; }
+    .quote .stars { color: var(--accent-deep); font-weight: 700; letter-spacing: 0.1em; }
+    .quote p { font-family: 'Instrument Serif', serif; font-size: 22px; line-height: 1.4; margin: 14px 0; }
+    .quote .who { font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
+    @media (max-width: 1080px) { .quotes-grid { grid-template-columns: 1fr; } }
+
+    .visit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+    .visit-grid img { width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 18px; border: 2px solid var(--ink); }
+    .visit dl { display: grid; grid-template-columns: 130px 1fr; gap: 12px 24px; font-size: 16px; margin-top: 28px; }
+    .visit dt { color: var(--ink-3); }
+    .visit dd { margin: 0; font-weight: 500; }
+    @media (max-width: 1080px) { .visit-grid { grid-template-columns: 1fr; } }
+
+    footer { border-top: 2px solid var(--ink); padding: 48px 0 32px; }
+    .foot { display: flex; justify-content: space-between; align-items: flex-end; gap: 28px; flex-wrap: wrap; }
+    .foot .links { display: flex; gap: 22px; font-size: 14px; color: var(--ink-2); font-weight: 500; }
+    .foot .copy { font-size: 13px; color: var(--ink-3); }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">Mane<em>·</em>Color Bar</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#menu">Color menu</a>
+        <a href="#work">Work</a>
+        <a href="#colorists">Colorists</a>
+        <a href="#process">Process</a>
+        <a href="#visit">Visit</a>
+      </nav>
+      <a class="btn btn-accent" href="#visit">Book a color</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <span class="eyebrow">The Mission · San Francisco · we only do color</span>
+        <h1>Just <em>color</em>.<br/><span class="stroke">No haircuts.</span></h1>
+        <div class="hero-row">
+          <p>We're a color-only bar. Balayage, dimensional brunettes, copper, vivid fashion shades, gloss refreshes. Six chairs, three sinks, one bowl of cold seltzer at the door.</p>
+          <div>
+            <div class="hero-meta">
+              <div><strong>$185+</strong>single-process</div>
+              <div><strong>$385+</strong>balayage</div>
+              <div><strong>$520+</strong>vivid color</div>
+            </div>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#visit">Book a color</a>
+              <a class="btn btn-ghost" href="#menu">See the menu</a>
+            </div>
+          </div>
+        </div>
+        <div class="hero-img">
+          <img src="https://picsum.photos/seed/mane-color-hero/1800/780" width="1800" height="780" alt="A wide shot of a bright color bar with six chairs, foiled hair, and a row of color bowls on a marble counter." loading="eager" />
+        </div>
+      </div>
+    </section>
+
+    <div class="tape">
+      <div class="wrap tape-inner">
+        <span>Walk-in glosses · Sundays</span><span>·</span><span>Color correction · by consult</span><span>·</span><span>Bond-building included</span><span>·</span><span>No haircuts. Truly.</span>
+      </div>
+    </div>
+
+    <section id="menu">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">// The color menu</span>
+          <h2>Every shade we do, <em>priced honestly</em>.</h2>
+          <p>Pricing starts where it starts. If your hair is long, thick, or color-corrected, we'll quote it before the first foil. Bond-building treatment is included in every service.</p>
+        </div>
+        <div class="menu-grid">
+          <div class="menu-card">
+            <span class="tag">Gloss</span>
+            <h3>15-min gloss</h3>
+            <p>Shine bomb. Tone refresh between appointments. Walk-ins welcome on Sundays.</p>
+            <div class="meta"><span class="price">$65</span><span class="time">15 min</span></div>
+          </div>
+          <div class="menu-card">
+            <span class="tag">Root</span>
+            <h3>Root touch-up</h3>
+            <p>Single-process at the root, gloss at the basin to finish. Maintenance, monthly.</p>
+            <div class="meta"><span class="price">$185</span><span class="time">90 min</span></div>
+          </div>
+          <div class="menu-card">
+            <span class="tag">All-over</span>
+            <h3>Single-process</h3>
+            <p>Tone everything one shade richer or warmer. Great for going darker, harder for going lighter.</p>
+            <div class="meta"><span class="price">$220</span><span class="time">2 hrs</span></div>
+          </div>
+          <div class="menu-card accent">
+            <span class="tag">Most loved</span>
+            <h3>Balayage</h3>
+            <p>Hand-painted highlights, lived-in grow-out, soft money piece around the face.</p>
+            <div class="meta"><span class="price">$385</span><span class="time">3 hrs</span></div>
+          </div>
+          <div class="menu-card">
+            <span class="tag">Brunette</span>
+            <h3>Dimensional brunette</h3>
+            <p>Low-lights, ribbons, and a custom gloss. The brunette version of balayage.</p>
+            <div class="meta"><span class="price">$395</span><span class="time">3 hrs</span></div>
+          </div>
+          <div class="menu-card">
+            <span class="tag">Trending</span>
+            <h3>Copper</h3>
+            <p>From soft warm copper to full-on penny. Includes a tailored at-home routine.</p>
+            <div class="meta"><span class="price">$420</span><span class="time">3 hrs</span></div>
+          </div>
+          <div class="menu-card">
+            <span class="tag">Fashion</span>
+            <h3>Vivid color</h3>
+            <p>Electric blue, magenta, pastel, mermaid. Includes pre-lighten and tone.</p>
+            <div class="meta"><span class="price">$520</span><span class="time">4 hrs</span></div>
+          </div>
+          <div class="menu-card">
+            <span class="tag">Reset</span>
+            <h3>Color correction</h3>
+            <p>Box-dye reversal, brassy blonde rescue, ombre repair. By consult only.</p>
+            <div class="meta"><span class="price">from $650</span><span class="time">4–6 hrs</span></div>
+          </div>
+          <div class="menu-card">
+            <span class="tag">Bridal</span>
+            <h3>Wedding color</h3>
+            <p>A full color plan timed to your event. Three appointments, one consult.</p>
+            <div class="meta"><span class="price">$880</span><span class="time">3 visits</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="work" id="work">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">// The work</span>
+          <h2>Looks from <em>last week</em>.</h2>
+        </div>
+        <div class="work-grid">
+          <img class="a" src="https://picsum.photos/seed/mane-color-w1/900/900" width="900" height="900" alt="A copper balayage on long hair, photographed in afternoon light." loading="lazy" />
+          <img src="https://picsum.photos/seed/mane-color-w2/600/600" width="600" height="600" alt="A glossy chocolate brunette with subtle ribbons." loading="lazy" />
+          <img src="https://picsum.photos/seed/mane-color-w3/600/600" width="600" height="600" alt="A vivid electric blue underlayer flipped up." loading="lazy" />
+          <img class="b" src="https://picsum.photos/seed/mane-color-w4/1200/600" width="1200" height="600" alt="Soft butter blonde balayage from the back of the head." loading="lazy" />
+          <img src="https://picsum.photos/seed/mane-color-w5/600/600" width="600" height="600" alt="A glossy honey single-process color." loading="lazy" />
+          <img src="https://picsum.photos/seed/mane-color-w6/600/600" width="600" height="600" alt="A magenta money piece around the face." loading="lazy" />
+          <img src="https://picsum.photos/seed/mane-color-w7/600/600" width="600" height="600" alt="A bright penny copper with hand-painted lowlights." loading="lazy" />
+          <img src="https://picsum.photos/seed/mane-color-w8/600/600" width="600" height="600" alt="A platinum pixie with shadow root." loading="lazy" />
+        </div>
+      </div>
+    </section>
+
+    <section id="colorists">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">// The chairs</span>
+          <h2>Six colorists. One <em>quiet obsession</em>.</h2>
+        </div>
+        <div class="colorists-grid">
+          <div class="colorist">
+            <img src="https://picsum.photos/seed/mane-color-c1/600/600" width="600" height="600" alt="Colorist Marisol Reyes mixing a bowl of color." loading="lazy" />
+            <div class="colorist-body">
+              <span class="role">Founder · brunette</span>
+              <h3>Marisol Reyes</h3>
+              <p>Twelve years. Best in the room for shiny, lived-in brunettes and color correction.</p>
+            </div>
+          </div>
+          <div class="colorist">
+            <img src="https://picsum.photos/seed/mane-color-c2/600/600" width="600" height="600" alt="Colorist June Park painting balayage." loading="lazy" />
+            <div class="colorist-body">
+              <span class="role">Balayage · blonde</span>
+              <h3>June Park</h3>
+              <p>Nine years. Specialist in low-maintenance hand-painted highlights and soft money pieces.</p>
+            </div>
+          </div>
+          <div class="colorist">
+            <img src="https://picsum.photos/seed/mane-color-c3/600/600" width="600" height="600" alt="Colorist Theo Marsh checking copper tone in the mirror." loading="lazy" />
+            <div class="colorist-body">
+              <span class="role">Copper · red</span>
+              <h3>Theo Marsh</h3>
+              <p>Seven years. Patient, precise, the only one we send copper consults to.</p>
+            </div>
+          </div>
+          <div class="colorist">
+            <img src="https://picsum.photos/seed/mane-color-c4/600/600" width="600" height="600" alt="Colorist Wes Okafor adjusting a vivid blue color." loading="lazy" />
+            <div class="colorist-body">
+              <span class="role">Vivid · fashion</span>
+              <h3>Wes Okafor</h3>
+              <p>Six years. Vivid fashion color specialist, books out four weeks ahead, bring a Pinterest board.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="process" id="process">
+      <div class="wrap">
+        <span class="eyebrow">// Process</span>
+        <h2>How a color appointment <em>actually goes</em>.</h2>
+        <p style="font-size:18px; max-width:680px;">Every appointment starts with a fifteen-minute consult in the chair before any product goes on. We'll show you the formula and quote final price before we mix.</p>
+        <div class="process-grid">
+          <div class="process-step">
+            <div class="n">01</div>
+            <h4>Consult, in the chair</h4>
+            <p>Show us your reference photos. We'll talk through what your hair can do today and what it'll take over time.</p>
+          </div>
+          <div class="process-step">
+            <div class="n">02</div>
+            <h4>Formula on paper</h4>
+            <p>You see the formula on a card. Final price quoted before we mix anything.</p>
+          </div>
+          <div class="process-step">
+            <div class="n">03</div>
+            <h4>Color, slow</h4>
+            <p>We don't rush. Most color appointments are two to four hours. Cold seltzer, slow music, no upsell.</p>
+          </div>
+          <div class="process-step">
+            <div class="n">04</div>
+            <h4>Bond + send-off</h4>
+            <p>Bond-building treatment, a gloss, and a one-page home-routine card so it lasts to your next visit.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="quotes">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">// Clients</span>
+          <h2>Reviews <em>worth reading</em>.</h2>
+        </div>
+        <div class="quotes-grid">
+          <div class="quote">
+            <div class="stars">★★★★★</div>
+            <p>"Marisol fixed a four-year box-dye situation in a single appointment. Quoted me the price, hit it exactly, didn't lecture me."</p>
+            <div class="who">— Hannah K., color correction</div>
+          </div>
+          <div class="quote">
+            <div class="stars">★★★★★</div>
+            <p>"June's balayage grew out for five months and I never once needed a touch-up. Soft, lived-in, looked like sun."</p>
+            <div class="who">— Sofia M., balayage</div>
+          </div>
+          <div class="quote">
+            <div class="stars">★★★★★</div>
+            <p>"They actually do not cut hair. I love that. I get my color here and my cut down the block. Both salons are better for it."</p>
+            <div class="who">— Daniel R., monthly client</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="visit">
+      <div class="wrap">
+        <div class="visit-grid visit">
+          <img src="https://picsum.photos/seed/mane-color-visit/900/1100" width="900" height="1100" alt="The bright blue storefront of Mane Color Bar with a hand-painted sign." loading="lazy" />
+          <div>
+            <span class="eyebrow">// Visit</span>
+            <h2>The bright blue door on <em>Valencia</em>.</h2>
+            <p style="font-size:17px; color:var(--ink-2);">We're a five-minute walk from 24th St BART. Park in the lot behind the building or take Lyft up. Appointments only — except for Sunday glosses.</p>
+            <dl>
+              <dt>Address</dt><dd>3142 Valencia St, San Francisco</dd>
+              <dt>Hours</dt><dd>Tue–Sun · 10am — 8pm</dd>
+              <dt>Phone</dt><dd>(415) 555-0167</dd>
+              <dt>Email</dt><dd>hello@manecolor.bar</dd>
+            </dl>
+            <div style="margin-top:28px;"><a class="btn btn-accent" href="#">Book a color</a></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot">
+        <div class="brand">Mane<em>·</em>Color Bar</div>
+        <div class="links">
+          <a href="#menu">Color menu</a>
+          <a href="#work">Work</a>
+          <a href="#colorists">Colorists</a>
+          <a href="#process">Process</a>
+          <a href="#visit">Visit</a>
+        </div>
+        <div class="copy">© 2026 · San Francisco · we only do color</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

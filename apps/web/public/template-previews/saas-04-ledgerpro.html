@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LedgerPro — Accounting for builders</title>
+  <meta name="description" content="LedgerPro is real-time, audit-ready double-entry accounting built for software companies. Books that close themselves. Ledgers your auditor can read." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0b1736;
+      --bg-2: #0f1d44;
+      --paper: #122355;
+      --panel: #1a2e6a;
+      --rule: rgba(212, 175, 55, 0.18);
+      --rule-strong: rgba(212, 175, 55, 0.36);
+      --fg: #f6f1de;
+      --fg-2: #c2c0b1;
+      --fg-3: #7b8aa8;
+      --accent: #d4af37;
+      --accent-soft: rgba(212, 175, 55, 0.12);
+      --accent-deep: #8a6f1a;
+      --good: #4ade80;
+      --warn: #fb923c;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 28px; }
+    .serif { font-family: 'Cormorant Garamond', Georgia, serif; }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+    /* Nav */
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(11, 23, 54, 0.86);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--rule);
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 70px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 17px; letter-spacing: -0.01em; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 22px; }
+    .brand-mark {
+      width: 32px; height: 32px; border-radius: 6px;
+      background: var(--accent);
+      display: grid; place-items: center;
+      color: var(--bg); font-weight: 800; font-family: 'JetBrains Mono', monospace;
+    }
+    .nav-links { display: flex; gap: 32px; font-size: 14px; color: var(--fg-2); font-weight: 500; }
+    .nav-links a:hover { color: var(--fg); }
+    .nav-cta { display: flex; gap: 10px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      height: 40px; padding: 0 18px;
+      border-radius: var(--radius-sm);
+      font-weight: 600; font-size: 14px;
+      border: 1px solid transparent;
+      cursor: pointer; transition: transform 160ms ease, background 160ms ease;
+    }
+    .btn-primary { background: var(--accent); color: var(--bg); }
+    .btn-primary:hover { background: #e8c34d; transform: translateY(-1px); }
+    .btn-ghost { background: transparent; color: var(--fg); border-color: var(--rule-strong); }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 96px 0 64px; position: relative; overflow: hidden; }
+    .hero::before {
+      content: ''; position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 50% 40% at 100% 10%, rgba(212, 175, 55, 0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 0% 80%, rgba(212, 175, 55, 0.08) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .hero > * { position: relative; }
+    .hero-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 64px; align-items: center; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 14px;
+      border: 1px solid var(--rule-strong);
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-radius: 999px;
+      font-size: 12px; font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    h1 {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: clamp(48px, 7vw, 88px);
+      line-height: 1.0;
+      letter-spacing: -0.02em;
+      font-weight: 600;
+      margin: 22px 0 22px;
+    }
+    h1 em { font-style: italic; color: var(--accent); }
+    .lede { font-size: 19px; color: var(--fg-2); max-width: 540px; }
+    .hero-cta { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; }
+    .hero-cta .btn { height: 48px; padding: 0 22px; }
+    .hero-trust {
+      margin-top: 28px;
+      display: flex; gap: 24px; flex-wrap: wrap;
+      font-size: 12px; color: var(--fg-3);
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+
+    /* Ledger mockup */
+    .ledger {
+      background: var(--paper);
+      border: 1px solid var(--rule-strong);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: 0 40px 80px -30px rgba(0,0,0,0.55);
+    }
+    .ledger-head {
+      padding: 18px 24px; border-bottom: 1px solid var(--rule);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .ledger-head .t { font-family: 'Cormorant Garamond', serif; font-size: 20px; }
+    .ledger-head .b { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; }
+    .ledger table { width: 100%; border-collapse: collapse; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; }
+    .ledger th, .ledger td { text-align: left; padding: 14px 22px; border-bottom: 1px solid var(--rule); }
+    .ledger th { color: var(--fg-3); font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; font-size: 11px; }
+    .ledger td.r { text-align: right; }
+    .ledger td.dr { color: var(--accent); }
+    .ledger td.cr { color: var(--good); }
+    .ledger tr:last-child td { border-bottom: none; }
+    .ledger-foot {
+      padding: 14px 24px;
+      display: flex; justify-content: space-between;
+      font-family: 'JetBrains Mono', monospace; font-size: 12px;
+      color: var(--fg-2);
+      background: rgba(212, 175, 55, 0.04);
+      border-top: 1px solid var(--rule);
+    }
+    .ledger-foot .balanced { color: var(--good); }
+
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 48px; } }
+    @media (max-width: 720px) {
+      .hero { padding: 64px 0 48px; }
+      .hero-cta .btn { width: 100%; justify-content: center; }
+      .ledger th, .ledger td { padding: 10px 14px; font-size: 11px; }
+    }
+
+    /* Logos */
+    .logos { padding: 36px 0 56px; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+    .logos-label { font-size: 12px; color: var(--fg-3); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; text-align: center; margin-bottom: 22px; }
+    .logos-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 28px; align-items: center; justify-items: center; color: var(--fg-2); font-weight: 700; font-size: 17px; font-family: 'Cormorant Garamond', serif; }
+    .logos-row span { opacity: 0.55; }
+    @media (max-width: 720px) { .logos-row { grid-template-columns: repeat(3, 1fr); } }
+
+    /* Sections */
+    .section { padding: 104px 0; }
+    .section-head { max-width: 760px; margin-bottom: 56px; }
+    .section h2 {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: clamp(40px, 5.2vw, 64px);
+      letter-spacing: -0.02em;
+      line-height: 1.04;
+      font-weight: 600;
+      margin: 16px 0 16px;
+    }
+    .section h2 em { font-style: italic; color: var(--accent); }
+
+    /* Features */
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .feature {
+      background: var(--bg-2);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius-md);
+      padding: 30px;
+      transition: border-color 220ms ease;
+    }
+    .feature:hover { border-color: var(--rule-strong); }
+    .feature-icon { width: 38px; height: 38px; border-radius: 8px; background: var(--accent-soft); border: 1px solid var(--rule-strong); color: var(--accent); display: grid; place-items: center; margin-bottom: 18px; font-family: 'JetBrains Mono', monospace; font-size: 16px; }
+    .feature h3 { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; margin: 0 0 8px; letter-spacing: -0.01em; }
+    .feature p { color: var(--fg-2); font-size: 15px; margin: 0; }
+    @media (max-width: 1080px) { .features { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .features { grid-template-columns: 1fr; } }
+
+    /* Compliance band */
+    .comp {
+      background: var(--bg-2);
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+    }
+    .comp-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 64px; padding: 96px 0; align-items: center; }
+    .badge-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 28px; }
+    .badge {
+      padding: 18px; border: 1px solid var(--rule-strong);
+      border-radius: var(--radius-md); background: var(--paper);
+      text-align: center;
+    }
+    .badge .icon { font-size: 22px; color: var(--accent); }
+    .badge .l { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 8px; }
+    .badge .n { font-size: 14px; font-weight: 700; margin-top: 2px; }
+    .comp-art { border: 1px solid var(--rule-strong); border-radius: var(--radius-lg); overflow: hidden; }
+    .comp-art img { width: 100%; aspect-ratio: 5/4; object-fit: cover; }
+    @media (max-width: 1080px) { .comp-grid { grid-template-columns: 1fr; } }
+
+    /* Quote */
+    .quote-band { padding: 104px 0; text-align: center; }
+    .quote {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(32px, 4.4vw, 56px);
+      font-weight: 500;
+      line-height: 1.12;
+      max-width: 880px; margin: 0 auto;
+      letter-spacing: -0.015em;
+    }
+    .quote em { font-style: italic; color: var(--accent); }
+    .quote-by { margin-top: 28px; font-size: 12px; color: var(--fg-3); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; }
+
+    /* Pricing */
+    .pricing { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .plan {
+      background: var(--bg-2); border: 1px solid var(--rule);
+      border-radius: var(--radius-md); padding: 36px;
+      display: flex; flex-direction: column;
+    }
+    .plan.featured { border-color: var(--accent); position: relative; }
+    .plan.featured::after {
+      content: 'RECOMMENDED'; position: absolute; top: -11px; right: 24px;
+      background: var(--accent); color: var(--bg);
+      font-family: 'JetBrains Mono', monospace; font-size: 10px;
+      padding: 4px 10px; border-radius: 4px; letter-spacing: 0.08em; font-weight: 700;
+    }
+    .plan h3 { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+    .plan .price { font-size: 48px; font-weight: 700; letter-spacing: -0.025em; margin: 14px 0 4px; font-family: 'Cormorant Garamond', serif; }
+    .plan .price small { font-size: 14px; color: var(--fg-3); font-weight: 500; font-family: 'Inter', sans-serif; }
+    .plan .desc { color: var(--fg-2); font-size: 15px; min-height: 44px; }
+    .plan ul { list-style: none; padding: 0; margin: 22px 0; flex: 1; }
+    .plan li { padding: 7px 0; color: var(--fg-2); font-size: 14px; display: flex; gap: 10px; }
+    .plan li::before { content: '·'; color: var(--accent); font-weight: 800; font-size: 20px; line-height: 1; flex-shrink: 0; }
+    @media (max-width: 1080px) { .pricing { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; } }
+
+    /* CTA */
+    .cta-band { padding: 120px 0; text-align: center; border-top: 1px solid var(--rule); }
+    .cta-band h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(40px, 6vw, 72px);
+      letter-spacing: -0.025em; line-height: 1.05;
+      margin: 0 0 20px;
+    }
+    .cta-band h2 em { font-style: italic; color: var(--accent); }
+    .cta-band p { color: var(--fg-2); max-width: 540px; margin: 0 auto 32px; font-size: 18px; }
+
+    /* Footer */
+    footer { padding: 56px 0 36px; border-top: 1px solid var(--rule); }
+    .foot-grid { display: grid; grid-template-columns: 1.6fr repeat(3, 1fr); gap: 44px; }
+    .foot-col h4 { font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-3); margin: 0 0 16px; }
+    .foot-col a { display: block; color: var(--fg-2); font-size: 14px; padding: 6px 0; }
+    .foot-col a:hover { color: var(--accent); }
+    .foot-bot { margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; color: var(--fg-3); font-size: 13px; font-family: 'JetBrains Mono', monospace; }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 12px; text-align: center; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">
+        <span class="brand-mark">L</span>
+        LedgerPro
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#product">Product</a>
+        <a href="#audit">Audit</a>
+        <a href="#integrations">Integrations</a>
+        <a href="#pricing">Pricing</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-ghost" href="#">Sign in</a>
+        <a class="btn btn-primary" href="#">Open the books</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>Trusted by 1,200+ software companies</span>
+            <h1>Accounting for <em>builders</em>.</h1>
+            <p class="lede">LedgerPro is real-time double-entry accounting for the people who ship product, not the people who file paperwork. Books that close themselves at month-end. Ledgers your auditor can actually read.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#">Open the books — free</a>
+              <a class="btn btn-ghost" href="#audit">See an audit packet →</a>
+            </div>
+            <div class="hero-trust">
+              <span>SOC 1 Type II</span>
+              <span>SOC 2 Type II</span>
+              <span>GAAP &amp; IFRS</span>
+              <span>SOX-ready</span>
+            </div>
+          </div>
+          <div class="ledger" role="img" aria-label="Live ledger showing Stripe invoice posted as a balanced journal entry.">
+            <div class="ledger-head">
+              <div class="t">Journal · INV-3104</div>
+              <div class="b">posted · 24 May 2026 · 09:14:22 UTC</div>
+            </div>
+            <table>
+              <thead><tr><th>Account</th><th class="r">Dr</th><th class="r">Cr</th></tr></thead>
+              <tbody>
+                <tr><td>1100 — Stripe receivable</td><td class="r dr">$24,000.00</td><td class="r"></td></tr>
+                <tr><td>4000 — SaaS revenue</td><td class="r"></td><td class="r cr">$24,000.00</td></tr>
+                <tr><td>2200 — Deferred revenue (Q3)</td><td class="r dr">$18,000.00</td><td class="r"></td></tr>
+                <tr><td>4000 — SaaS revenue</td><td class="r"></td><td class="r cr">$18,000.00</td></tr>
+                <tr><td>5100 — Stripe processing fee</td><td class="r dr">$696.00</td><td class="r"></td></tr>
+                <tr><td>1100 — Stripe receivable</td><td class="r"></td><td class="r cr">$696.00</td></tr>
+              </tbody>
+            </table>
+            <div class="ledger-foot">
+              <span>Source · Stripe webhook → policy.recognize_v3</span>
+              <span class="balanced">● balanced</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="logos">
+      <div class="wrap">
+        <p class="logos-label">Software CFOs running on LedgerPro</p>
+        <div class="logos-row">
+          <span>Northbeam</span>
+          <span>Bureau Verso</span>
+          <span>Atlas Group</span>
+          <span>Field &amp; Format</span>
+          <span>Pivot House</span>
+          <span>Brigantine</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="product">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Built for software</span>
+          <h2>Real-time books, <em>audit-ready</em> ledgers.</h2>
+          <p class="lede">LedgerPro posts journal entries the moment a webhook fires. Revenue recognition, deferred balances, FX, and accrual treatment are policy-as-code — not month-end hand-rolled spreadsheets.</p>
+        </div>
+        <div class="features">
+          <div class="feature">
+            <div class="feature-icon">§</div>
+            <h3>Policy-as-code</h3>
+            <p>Recognition rules live in a versioned policy file. Every booking quotes the rule and the commit it came from. Diff a policy, and the audit trail says why.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">∮</div>
+            <h3>Continuous close</h3>
+            <p>The trial balance is current to the last second. Month-end is a checkbox, not a sprint. Year-end is a PDF.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">$</div>
+            <h3>Multi-entity, multi-currency</h3>
+            <p>Subsidiaries roll up by jurisdiction, currency, and fiscal calendar. Inter-company eliminations are bookings, not formulas.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">⌗</div>
+            <h3>Revenue recognition that holds up</h3>
+            <p>ASC 606 / IFRS 15 obligations, ratable schedules, usage truing — modeled, not retrofit. Deferred balances clear themselves.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">⎈</div>
+            <h3>Bank-grade workflows</h3>
+            <p>Maker-checker, segregation of duties, approval thresholds, and a clean audit log of every reversal. No "fix it in the export."</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">⤓</div>
+            <h3>Exports your auditor expects</h3>
+            <p>One click for the audit packet: trial balance, journal export, supporting documents, and the policy file at year-end. PCAOB-ready.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="comp" id="audit">
+      <div class="wrap">
+        <div class="comp-grid">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>Audit</span>
+            <h2>The packet your <em>auditor</em> opens first.</h2>
+            <p class="lede">LedgerPro ships an audit bundle that includes the trial balance, the full journal, supporting documents, and the recognition policy at year-end. Every line traces back. Every change has a name on it.</p>
+            <div class="badge-row">
+              <div class="badge">
+                <div class="icon">✓</div>
+                <div class="l">Standards</div>
+                <div class="n">SOC 1 · SOC 2</div>
+              </div>
+              <div class="badge">
+                <div class="icon">⎒</div>
+                <div class="l">Reporting</div>
+                <div class="n">GAAP · IFRS</div>
+              </div>
+              <div class="badge">
+                <div class="icon">⊕</div>
+                <div class="l">Controls</div>
+                <div class="n">SOX 404</div>
+              </div>
+            </div>
+          </div>
+          <div class="comp-art">
+            <img src="https://picsum.photos/seed/ledgerpro-1/1200/960" width="1200" height="960" loading="lazy" alt="An auditor reviewing the LedgerPro audit packet — trial balance, journal export, and policy file." />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="quote-band">
+      <div class="wrap">
+        <p class="quote">"We closed our Series&nbsp;C audit in <em>eleven days</em>. Our auditor said the journal was the cleanest she'd seen all year. We didn't touch a spreadsheet."</p>
+        <p class="quote-by">CFO · Atlas Group · ARR $42M</p>
+      </div>
+    </section>
+
+    <section class="section" id="pricing">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Pricing</span>
+          <h2>Priced for the size of your <em>ledger</em>.</h2>
+          <p class="lede">Per-entity pricing with unlimited journal volume. No surprise per-user fees, no per-transaction shakedown.</p>
+        </div>
+        <div class="pricing">
+          <div class="plan">
+            <h3>Starter</h3>
+            <div class="price">$480<small> / mo</small></div>
+            <p class="desc">For one operating entity getting their books in order.</p>
+            <ul>
+              <li>One entity, one currency</li>
+              <li>Stripe + bank feeds</li>
+              <li>GAAP reporting pack</li>
+              <li>Email support</li>
+            </ul>
+            <a class="btn btn-ghost" href="#">Start trial</a>
+          </div>
+          <div class="plan featured">
+            <h3>Scale</h3>
+            <div class="price">$1,800<small> / mo</small></div>
+            <p class="desc">For software companies preparing for a real audit.</p>
+            <ul>
+              <li>Up to five entities, multi-currency</li>
+              <li>ASC 606 / IFRS 15 modules</li>
+              <li>Policy-as-code with reviewers</li>
+              <li>Audit packet on demand</li>
+              <li>Dedicated success engineer</li>
+            </ul>
+            <a class="btn btn-primary" href="#">Choose Scale</a>
+          </div>
+          <div class="plan">
+            <h3>Enterprise</h3>
+            <div class="price">Custom</div>
+            <p class="desc">For multi-jurisdiction groups with a controller team.</p>
+            <ul>
+              <li>Unlimited entities</li>
+              <li>Custom consolidation rules</li>
+              <li>Dedicated environment</li>
+              <li>24×7 support &amp; named CSM</li>
+              <li>Audit assistance &amp; SOX advisory</li>
+            </ul>
+            <a class="btn btn-ghost" href="#">Talk to finance</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="cta-band">
+    <div class="wrap">
+      <h2>Books that <em>close themselves</em>.</h2>
+      <p>Connect Stripe, a bank, and your payroll provider. We'll show you a real-time trial balance in under thirty minutes.</p>
+      <a class="btn btn-primary" href="#" style="height: 54px; padding: 0 28px; font-size: 15px;">Open the books →</a>
+    </div>
+  </section>
+
+  <footer id="footer">
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a class="brand" href="#" style="margin-bottom: 16px;">
+            <span class="brand-mark">L</span>
+            LedgerPro
+          </a>
+          <p style="color: var(--fg-2); font-size: 14px; max-width: 300px;">Real-time, audit-ready accounting for software companies. Books that close themselves. Ledgers your auditor can read.</p>
+        </div>
+        <div class="foot-col">
+          <h4>Product</h4>
+          <a href="#">Ledger</a>
+          <a href="#">Revenue</a>
+          <a href="#">Multi-entity</a>
+          <a href="#">Audit</a>
+        </div>
+        <div class="foot-col">
+          <h4>Resources</h4>
+          <a href="#">Docs</a>
+          <a href="#">Policy library</a>
+          <a href="#">Status</a>
+          <a href="#">Trust</a>
+        </div>
+        <div class="foot-col">
+          <h4>Company</h4>
+          <a href="#">About</a>
+          <a href="#">Customers</a>
+          <a href="#">Careers</a>
+          <a href="#">Contact</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 LedgerPro Inc.</span>
+        <span>Posted, balanced, audited</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

@@ -16,7 +16,7 @@ function lastActivity(project: Project) {
 function formatDate(iso: string) {
   const t = Date.parse(iso);
   if (Number.isNaN(t)) return iso;
-  return new Date(t).toLocaleDateString('he-IL', { day: '2-digit', month: 'short' });
+  return new Date(t).toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
 }
 
 export function ProjectGridCard({ project }: { project: Project }) {
@@ -53,11 +53,11 @@ export function ProjectGridCard({ project }: { project: Project }) {
             minHeight: 56,
           }}
         >
-          {project.description || project.spec?.idea || 'תיאור יתווסף לאחר הרצה ראשונה.'}
+          {project.description || project.spec?.idea || 'A description will appear after the first run.'}
         </Typography>
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 'auto', pt: 1.4 }}>
           <Typography variant="caption" sx={{ color: '#86807a' }} noWrap>
-            {last ? last.message : 'עדיין לא הורץ'}
+            {last ? last.message : 'Not run yet'}
           </Typography>
           <Typography variant="caption" sx={{ color: '#86807a', fontFamily: tokens.font.mono }}>
             {formatDate(project.updatedAt)}
@@ -67,11 +67,11 @@ export function ProjectGridCard({ project }: { project: Project }) {
       <Stack direction="row" sx={{ borderTop: '1px solid rgba(17,17,17,0.08)' }}>
         <Box component={Link} href={`/projects/${project.id}`} sx={cardActionSx}>
           <OpenInNew fontSize="small" />
-          <Typography variant="caption" sx={cardActionLabelSx}>פתח</Typography>
+          <Typography variant="caption" sx={cardActionLabelSx}>Open</Typography>
         </Box>
         <Box component={Link} href={`/projects/${project.id}?action=run`} sx={{ ...cardActionSx, borderLeft: '1px solid rgba(17,17,17,0.08)', color: tokens.color.text.inverse }}>
           <PlayArrow fontSize="small" />
-          <Typography variant="caption" sx={cardActionLabelSx}>הרץ</Typography>
+          <Typography variant="caption" sx={cardActionLabelSx}>Run</Typography>
         </Box>
       </Stack>
     </Box>

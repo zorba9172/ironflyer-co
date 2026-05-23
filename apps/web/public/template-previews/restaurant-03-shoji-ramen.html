@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shoji — Ramen counter, lunch and late night</title>
+  <meta name="description" content="A fourteen-seat ramen counter. Thirty-six hour tonkotsu, hand-pulled noodles, gyoza folded that morning. Lunch and late night." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;700&family=Inter:wght@400;500;600;700&family=Shippori+Mincho:wght@400;600;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f5eee2;
+      --bg-2: #ede4d4;
+      --paper: #fbf6ec;
+      --ink: #1c1d2a;
+      --ink-2: #4a4c5e;
+      --ink-3: #8a8c9c;
+      --accent: #1f2a5e;
+      --accent-2: #3b4a8a;
+      --red: #b8311c;
+      --rule: rgba(28, 29, 42, 0.12);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
+    .mincho { font-family: 'Shippori Mincho', 'Noto Serif JP', serif; }
+    .jp { font-family: 'Noto Serif JP', serif; }
+    .eyebrow {
+      font-size: 11px; letter-spacing: 0.32em; text-transform: uppercase;
+      color: var(--accent); font-weight: 600;
+    }
+
+    /* Vertical kanji decoration */
+    .kanji-vertical {
+      position: fixed; right: 28px; top: 50%; transform: translateY(-50%);
+      writing-mode: vertical-rl;
+      font-family: 'Noto Serif JP', serif;
+      font-size: 14px; letter-spacing: 0.5em;
+      color: var(--ink-3); opacity: 0.5;
+      pointer-events: none; z-index: 1;
+    }
+
+    /* Nav */
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(245, 238, 226, 0.94);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--rule);
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 76px; }
+    .brand {
+      display: flex; align-items: center; gap: 14px;
+      font-family: 'Shippori Mincho', serif;
+      font-size: 28px; font-weight: 800; letter-spacing: 0.02em;
+    }
+    .brand .jp-mark { font-family: 'Noto Serif JP', serif; font-size: 22px; color: var(--accent); }
+    .nav-links { display: flex; gap: 36px; font-size: 14px; color: var(--ink-2); }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta {
+      background: var(--accent); color: var(--paper);
+      padding: 12px 22px; font-size: 12px; font-weight: 600;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      transition: background 200ms;
+    }
+    .nav-cta:hover { background: var(--ink); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero {
+      padding: 64px 0 80px;
+      position: relative;
+    }
+    .hero-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center;
+    }
+    h1 {
+      font-family: 'Shippori Mincho', serif;
+      font-size: clamp(56px, 8vw, 104px);
+      line-height: 0.98; letter-spacing: -0.02em;
+      font-weight: 800; margin: 28px 0 28px;
+    }
+    h1 .stroke {
+      display: inline-block; color: var(--red);
+      font-family: 'Noto Serif JP', serif;
+      font-size: 0.7em; vertical-align: 6px;
+      margin-right: 14px;
+    }
+    .lede {
+      font-family: 'Shippori Mincho', serif;
+      font-size: 22px; color: var(--ink-2); line-height: 1.6; max-width: 500px;
+    }
+    .hero-meta {
+      margin-top: 40px; display: flex; gap: 40px; flex-wrap: wrap;
+      padding-top: 32px; border-top: 1px solid var(--rule);
+    }
+    .hero-meta div { font-size: 13px; color: var(--ink-3); }
+    .hero-meta strong { display: block; font-family: 'Shippori Mincho', serif; font-size: 22px; color: var(--ink); font-weight: 600; margin-bottom: 2px; }
+    .hero-art {
+      position: relative; aspect-ratio: 3/4; overflow: hidden;
+    }
+    .hero-art img { width: 100%; height: 100%; object-fit: cover; }
+    .hero-stamp {
+      position: absolute; bottom: 20px; left: 20px;
+      width: 92px; height: 92px;
+      background: var(--red); color: var(--paper);
+      border-radius: 50%;
+      display: grid; place-items: center;
+      font-family: 'Noto Serif JP', serif;
+      font-size: 18px; font-weight: 700;
+      line-height: 1.1; text-align: center;
+      transform: rotate(-8deg);
+      box-shadow: 0 8px 32px rgba(184, 49, 28, 0.3);
+    }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 48px; } }
+
+    /* Bowls / menu */
+    .section { padding: 100px 0; border-top: 1px solid var(--rule); }
+    .section-head { max-width: 720px; margin-bottom: 56px; }
+    h2 {
+      font-family: 'Shippori Mincho', serif;
+      font-size: clamp(40px, 5vw, 64px);
+      letter-spacing: -0.02em; line-height: 1.05;
+      font-weight: 800; margin: 14px 0 16px;
+    }
+
+    /* Menu tabs */
+    .menu-tabs {
+      display: flex; gap: 4px; margin-bottom: 40px;
+      border-bottom: 1px solid var(--rule);
+    }
+    .menu-tab {
+      padding: 16px 24px; font-size: 13px; font-weight: 600;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--ink-3); cursor: pointer; border: none; background: none;
+      position: relative; font-family: inherit;
+    }
+    .menu-tab .jp { display: block; font-size: 11px; margin-top: 2px; font-weight: 400; }
+    .menu-tab.active { color: var(--accent); }
+    .menu-tab.active::after {
+      content: ''; position: absolute; bottom: -1px; left: 0; right: 0;
+      height: 2px; background: var(--accent);
+    }
+    .menu-panel { display: none; }
+    .menu-panel.active { display: grid; grid-template-columns: 1fr 1fr; gap: 48px 64px; }
+    .bowl { display: grid; grid-template-columns: 120px 1fr; gap: 24px; align-items: start; }
+    .bowl-img {
+      width: 120px; height: 120px; border-radius: 50%;
+      overflow: hidden;
+    }
+    .bowl-img img { width: 100%; height: 100%; object-fit: cover; }
+    .bowl-body h3 { font-family: 'Shippori Mincho', serif; font-size: 24px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.01em; }
+    .bowl-body .jp-name { font-family: 'Noto Serif JP', serif; font-size: 14px; color: var(--ink-3); margin-bottom: 8px; display: block; }
+    .bowl-body p { color: var(--ink-2); font-size: 14px; margin: 0 0 12px; }
+    .bowl-body .price { font-family: 'Shippori Mincho', serif; font-size: 18px; color: var(--accent); font-weight: 700; }
+    @media (max-width: 1080px) { .menu-panel.active { grid-template-columns: 1fr; } }
+    @media (max-width: 720px) { .bowl { grid-template-columns: 80px 1fr; gap: 16px; } .bowl-img { width: 80px; height: 80px; } }
+
+    /* Broth story */
+    .broth { background: var(--ink); color: var(--paper); padding: 120px 0; }
+    .broth h2 { color: var(--paper); }
+    .broth h2 em { font-style: italic; color: var(--red); font-weight: 500; }
+    .broth-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+    .broth-img { aspect-ratio: 1/1; border-radius: 50%; overflow: hidden; max-width: 480px; }
+    .broth-img img { width: 100%; height: 100%; object-fit: cover; }
+    .broth p { font-family: 'Shippori Mincho', serif; font-size: 18px; line-height: 1.7; color: rgba(251, 246, 236, 0.75); margin: 0 0 20px; }
+    .broth-steps { margin-top: 40px; }
+    .broth-step {
+      display: grid; grid-template-columns: 80px 1fr;
+      padding: 20px 0; border-top: 1px solid rgba(251, 246, 236, 0.15);
+      align-items: baseline;
+    }
+    .broth-step:last-child { border-bottom: 1px solid rgba(251, 246, 236, 0.15); }
+    .broth-step .hr { font-family: 'Noto Serif JP', serif; font-size: 24px; color: var(--red); font-weight: 700; }
+    .broth-step .what { font-family: 'Shippori Mincho', serif; font-size: 18px; font-weight: 600; }
+    .broth-step .desc { font-size: 13px; color: rgba(251, 246, 236, 0.55); margin-top: 4px; }
+    @media (max-width: 1080px) { .broth-grid { grid-template-columns: 1fr; gap: 56px; } }
+
+    /* Counter */
+    .counter-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+    .counter-img { aspect-ratio: 1/1; overflow: hidden; }
+    .counter-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 600ms; }
+    .counter-img:hover img { transform: scale(1.05); }
+    @media (max-width: 720px) { .counter-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    /* Visit */
+    .visit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; }
+    .hours-list { list-style: none; padding: 0; margin: 24px 0 0; }
+    .hours-list li {
+      display: grid; grid-template-columns: 120px 1fr 1fr;
+      padding: 14px 0; border-top: 1px solid var(--rule);
+      align-items: baseline;
+    }
+    .hours-list li:last-child { border-bottom: 1px solid var(--rule); }
+    .hours-list .day { font-family: 'Shippori Mincho', serif; font-size: 18px; font-weight: 600; }
+    .hours-list .hours-period { font-size: 14px; color: var(--ink-2); }
+    .hours-list .closed-text { color: var(--ink-3); font-style: italic; }
+    .hours-list li.today { color: var(--red); }
+    .hours-list li.today .day { color: var(--red); }
+    .address-card { font-family: 'Shippori Mincho', serif; font-size: 22px; line-height: 1.5; margin: 24px 0; }
+    .map {
+      aspect-ratio: 4/5;
+      background: var(--paper);
+      border: 1px solid var(--ink);
+      position: relative;
+      overflow: hidden;
+    }
+    .map::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(28,29,42,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(28,29,42,0.06) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .map-pin {
+      position: absolute; left: 45%; top: 40%;
+      width: 24px; height: 24px;
+      background: var(--red); border-radius: 50%;
+      box-shadow: 0 0 0 8px rgba(184, 49, 28, 0.2), 0 8px 16px rgba(184, 49, 28, 0.4);
+    }
+    .map-stamp {
+      position: absolute; right: 24px; top: 24px;
+      width: 72px; height: 72px;
+      background: var(--accent); color: var(--paper);
+      border-radius: 50%;
+      display: grid; place-items: center;
+      font-family: 'Noto Serif JP', serif; font-size: 24px;
+    }
+    .map-label {
+      position: absolute; left: 24px; bottom: 24px;
+      background: var(--paper); color: var(--ink);
+      border: 1px solid var(--ink); padding: 12px 18px;
+      font-family: 'Shippori Mincho', serif; font-size: 15px;
+    }
+    @media (max-width: 1080px) { .visit-grid { grid-template-columns: 1fr; } }
+
+    /* CTA */
+    .cta { padding: 100px 0; text-align: center; background: var(--paper); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+    .cta h2 { margin-bottom: 16px; }
+    .cta p { color: var(--ink-2); max-width: 520px; margin: 0 auto 32px; font-size: 17px; }
+    .cta-btn {
+      display: inline-block;
+      background: var(--accent); color: var(--paper);
+      padding: 18px 36px; font-size: 13px; font-weight: 600;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      transition: background 200ms;
+    }
+    .cta-btn:hover { background: var(--ink); }
+
+    /* Footer */
+    footer { padding: 56px 0 32px; }
+    .foot-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 40px; }
+    .foot-col h4 { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent); margin: 0 0 14px; font-weight: 600; }
+    .foot-col p, .foot-col a { color: var(--ink-2); font-size: 14px; line-height: 1.7; }
+    .foot-col a { display: block; }
+    .foot-col a:hover { color: var(--accent); }
+    .foot-bot { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; color: var(--ink-3); font-size: 12px; }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 8px; text-align: center; } .kanji-vertical { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="kanji-vertical" aria-hidden="true">障 子 ラ ー メ ン</div>
+
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a href="#" class="brand">
+        <span class="jp-mark">障子</span>
+        Shoji
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#menu">Menu</a>
+        <a href="#broth">The Broth</a>
+        <a href="#counter">The Counter</a>
+        <a href="#visit">Visit</a>
+      </nav>
+      <a href="#visit" class="nav-cta">Join the line</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow">Ramen counter · Brush stroke kitchen</span>
+            <h1><span class="stroke">障</span>A bowl, a counter, no shortcuts.</h1>
+            <p class="lede">Fourteen seats at the counter. Thirty-six hour tonkotsu. Noodles pulled at five every morning. Lunch and late night, six days a week.</p>
+            <div class="hero-meta">
+              <div><strong>36hr</strong>Pork broth simmer</div>
+              <div><strong>14</strong>Seats at the counter</div>
+              <div><strong>2 am</strong>Last call, weekends</div>
+            </div>
+          </div>
+          <div class="hero-art">
+            <img src="https://picsum.photos/seed/shoji-ramen-1/900/1200" width="900" height="1200" alt="A bowl of Shoji tonkotsu ramen with chashu and a soft-boiled egg, photographed from above." loading="eager" />
+            <div class="hero-stamp" aria-hidden="true">障子<br/>2018</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="menu">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">The Menu · お品書き</span>
+          <h2>The bowls.</h2>
+        </div>
+        <div class="menu-tabs" role="tablist">
+          <button class="menu-tab active" data-tab="ramen" role="tab">Ramen <span class="jp">ラーメン</span></button>
+          <button class="menu-tab" data-tab="small" role="tab">Small plates <span class="jp">小皿</span></button>
+          <button class="menu-tab" data-tab="rice" role="tab">Rice & sides <span class="jp">ご飯</span></button>
+          <button class="menu-tab" data-tab="drinks" role="tab">Drinks <span class="jp">飲み物</span></button>
+        </div>
+
+        <div class="menu-panel active" data-panel="ramen">
+          <article class="bowl">
+            <div class="bowl-img"><img src="https://picsum.photos/seed/shoji-ramen-2/300/300" width="300" height="300" alt="Shoji tonkotsu ramen — pork bone broth bowl." loading="lazy" /></div>
+            <div class="bowl-body">
+              <h3>Tonkotsu Shoji</h3>
+              <span class="jp-name">豚骨ラーメン · the house</span>
+              <p>Thirty-six hour pork bone broth, hand-pulled thin noodles, char siu, ajitama, scallion, kikurage, black-garlic oil.</p>
+              <span class="price">$18</span>
+            </div>
+          </article>
+          <article class="bowl">
+            <div class="bowl-img"><img src="https://picsum.photos/seed/shoji-ramen-3/300/300" width="300" height="300" alt="Miso ramen with corn and butter." loading="lazy" /></div>
+            <div class="bowl-body">
+              <h3>Sapporo miso</h3>
+              <span class="jp-name">味噌ラーメン</span>
+              <p>Hokkaido red miso, pork-chicken broth, wavy noodles, ground pork, bean sprout, sweet corn, a cold pat of butter.</p>
+              <span class="price">$17</span>
+            </div>
+          </article>
+          <article class="bowl">
+            <div class="bowl-img"><img src="https://picsum.photos/seed/shoji-ramen-4/300/300" width="300" height="300" alt="Shoyu ramen with chicken and seaweed." loading="lazy" /></div>
+            <div class="bowl-body">
+              <h3>Tokyo shoyu</h3>
+              <span class="jp-name">醤油ラーメン</span>
+              <p>Clear chicken-dashi double soup, aged tamari tare, straight noodles, two slices of chicken, menma, nori, chive.</p>
+              <span class="price">$16</span>
+            </div>
+          </article>
+          <article class="bowl">
+            <div class="bowl-img"><img src="https://picsum.photos/seed/shoji-ramen-5/300/300" width="300" height="300" alt="Tsukemen — cold noodles with dipping sauce." loading="lazy" /></div>
+            <div class="bowl-body">
+              <h3>Tsukemen</h3>
+              <span class="jp-name">つけ麺 · dip</span>
+              <p>Thick noodles, cold, served alongside a small bowl of concentrated tonkotsu-shoyu. Chashu, half ajitama, citrus zest.</p>
+              <span class="price">$19</span>
+            </div>
+          </article>
+          <article class="bowl">
+            <div class="bowl-img"><img src="https://picsum.photos/seed/shoji-ramen-6/300/300" width="300" height="300" alt="Vegetable mazemen, no broth." loading="lazy" /></div>
+            <div class="bowl-body">
+              <h3>Mushroom mazemen</h3>
+              <span class="jp-name">混ぜ麺 · no broth</span>
+              <p>Brothless. Soy-cured shiitake, maitake, enoki, sesame paste, runny yolk, scallion oil. Stir before you eat.</p>
+              <span class="price">$16</span>
+            </div>
+          </article>
+          <article class="bowl">
+            <div class="bowl-img"><img src="https://picsum.photos/seed/shoji-ramen-7/300/300" width="300" height="300" alt="Spicy tantanmen." loading="lazy" /></div>
+            <div class="bowl-body">
+              <h3>Tantanmen</h3>
+              <span class="jp-name">担々麺 · spicy</span>
+              <p>Sesame-pork broth, ground pork with sichuan oil, baby bok choy, peanut crumble, scallion. Order it numbing if you want it numbing.</p>
+              <span class="price">$18</span>
+            </div>
+          </article>
+        </div>
+
+        <div class="menu-panel" data-panel="small">
+          <article class="bowl">
+            <div class="bowl-img"><img src="https://picsum.photos/seed/shoji-ramen-8/300/300" width="300" height="300" alt="Pan-fried pork gyoza." loading="lazy" /></div>
+            <div class="bowl-body">
+              <h3>Pork gyoza · 5 piece</h3>
+              <span class="jp-name">餃子</span>
+              <p>Folded that morning. Crispy bottom, soft top. Rice vinegar, chili oil, soy on the side.</p>
+              <span class="price">$9</span>
+            </div>
+          </article>
+          <article class="bowl">
+            <div class="bowl-img"><img src="https://picsum.photos/seed/shoji-ramen-9/300/300" width="300" height="300" alt="Karaage fried chicken." loading="lazy" /></div>
+            <div class="bowl-body">
+              <h3>Karaage</h3>
+              <span class="jp-name">唐揚げ</span>
+              <p>Boneless thigh, ginger-soy marinade, potato starch, fried twice. Kewpie, lemon.</p>
+              <span class="price">$11</span>
+            </div>
+          </article>
+          <article class="bowl">
+            <div class="bowl-img"><img src="https://picsum.photos/seed/shoji-ramen-10/300/300" width="300" height="300" alt="Chilled cucumber with sesame." loading="lazy" /></div>
+            <div class="bowl-body">
+              <h3>Smashed cucumber</h3>
+              <span class="jp-name">叩き胡瓜</span>
+              <p>Persian cucumbers, smashed and salted, dressed in black vinegar, garlic, white sesame, chili threads.</p>
+              <span class="price">$8</span>
+            </div>
+          </article>
+          <article class="bowl">
+            <div class="bowl-img"><img src="https://picsum.photos/seed/shoji-ramen-11/300/300" width="300" height="300" alt="Edamame with maldon salt." loading="lazy" /></div>
+            <div class="bowl-body">
+              <h3>Edamame</h3>
+              <span class="jp-name">枝豆</span>
+              <p>Steamed in the pod, finished with smoked salt. A small bowl.</p>
+              <span class="price">$6</span>
+            </div>
+          </article>
+        </div>
+
+        <div class="menu-panel" data-panel="rice">
+          <article class="bowl">
+            <div class="bowl-img"><img src="https://picsum.photos/seed/shoji-ramen-12/300/300" width="300" height="300" alt="Chashu rice bowl." loading="lazy" /></div>
+            <div class="bowl-body">
+              <h3>Chashu don</h3>
+              <span class="jp-name">チャーシュー丼</span>
+              <p>Two slices of slow-cooked pork belly, soft yolk, scallion, sesame, soy. A small bowl alongside your ramen.</p>
+              <span class="price">$8</span>
+            </div>
+          </article>
+          <article class="bowl">
+            <div class="bowl-img"><img src="https://picsum.photos/seed/shoji-ramen-13/300/300" width="300" height="300" alt="Onigiri rice ball." loading="lazy" /></div>
+            <div class="bowl-body">
+              <h3>Salmon onigiri</h3>
+              <span class="jp-name">鮭おにぎり</span>
+              <p>Grilled salmon, shio koji, white rice, toasted nori. Wrapped to order.</p>
+              <span class="price">$5</span>
+            </div>
+          </article>
+          <article class="bowl">
+            <div class="bowl-img"><img src="https://picsum.photos/seed/shoji-ramen-14/300/300" width="300" height="300" alt="Plain steamed rice." loading="lazy" /></div>
+            <div class="bowl-body">
+              <h3>Steamed rice</h3>
+              <span class="jp-name">ご飯</span>
+              <p>Koshihikari, washed three times, cooked in a small clay pot.</p>
+              <span class="price">$3</span>
+            </div>
+          </article>
+        </div>
+
+        <div class="menu-panel" data-panel="drinks">
+          <article class="bowl">
+            <div class="bowl-img"><img src="https://picsum.photos/seed/shoji-ramen-15/300/300" width="300" height="300" alt="A glass of cold sake." loading="lazy" /></div>
+            <div class="bowl-body">
+              <h3>Hakkaisan, junmai ginjo</h3>
+              <span class="jp-name">八海山 · Niigata</span>
+              <p>Crisp, dry, mineral. Six ounces, served chilled.</p>
+              <span class="price">$14</span>
+            </div>
+          </article>
+          <article class="bowl">
+            <div class="bowl-img"><img src="https://picsum.photos/seed/shoji-ramen-16/300/300" width="300" height="300" alt="Bottle of japanese beer." loading="lazy" /></div>
+            <div class="bowl-body">
+              <h3>Sapporo, black label</h3>
+              <span class="jp-name">サッポロ</span>
+              <p>Brewed in Hokkaido. The bottle, on ice.</p>
+              <span class="price">$7</span>
+            </div>
+          </article>
+          <article class="bowl">
+            <div class="bowl-img"><img src="https://picsum.photos/seed/shoji-ramen-17/300/300" width="300" height="300" alt="A cup of hot barley tea." loading="lazy" /></div>
+            <div class="bowl-body">
+              <h3>Mugicha</h3>
+              <span class="jp-name">麦茶 · barley tea</span>
+              <p>Roasted barley, brewed cold. Free refills.</p>
+              <span class="price">$3</span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="broth" id="broth">
+      <div class="wrap">
+        <div class="broth-grid">
+          <div class="broth-img">
+            <img src="https://picsum.photos/seed/shoji-ramen-18/800/800" width="800" height="800" alt="A stockpot of tonkotsu broth simmering on the stove at Shoji." loading="lazy" />
+          </div>
+          <div>
+            <span class="eyebrow" style="color: var(--red);">The Broth</span>
+            <h2>One <em>broth</em>. Thirty-six hours.</h2>
+            <p>The tonkotsu starts at six in the morning on Sunday and is poured into bowls at lunch on Tuesday. Pork femurs and trotters from a single farm in Iowa, water, scallion tops, ginger, garlic. Nothing else.</p>
+            <p>It boils, hard, for a day and a half. It is skimmed every hour. By the second night the bones are soft, the broth is white, and the cook is tired. That is the whole secret.</p>
+            <div class="broth-steps">
+              <div class="broth-step">
+                <div class="hr">00h</div>
+                <div>
+                  <div class="what">Bones blanch, ten minutes</div>
+                  <div class="desc">A hard rolling boil, drained, scrubbed.</div>
+                </div>
+              </div>
+              <div class="broth-step">
+                <div class="hr">04h</div>
+                <div>
+                  <div class="what">Aromatics in</div>
+                  <div class="desc">Scallion tops, ginger knob, a head of garlic.</div>
+                </div>
+              </div>
+              <div class="broth-step">
+                <div class="hr">18h</div>
+                <div>
+                  <div class="what">Cartilage breaks down</div>
+                  <div class="desc">The broth begins to turn white.</div>
+                </div>
+              </div>
+              <div class="broth-step">
+                <div class="hr">36h</div>
+                <div>
+                  <div class="what">Strained through silk</div>
+                  <div class="desc">Poured into bowls within four hours.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="counter">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">The Counter · カウンター</span>
+          <h2>Fourteen seats, no tables.</h2>
+          <p style="color: var(--ink-2); font-size: 17px;">Shoji is a counter. You sit, you order, the bowl arrives in under five minutes, you eat. The kitchen is in front of you. The cook is Junichi. Say hello.</p>
+        </div>
+        <div class="counter-grid">
+          <div class="counter-img"><img src="https://picsum.photos/seed/shoji-ramen-19/600/600" width="600" height="600" alt="The wooden counter at Shoji, set for service." loading="lazy" /></div>
+          <div class="counter-img"><img src="https://picsum.photos/seed/shoji-ramen-20/600/600" width="600" height="600" alt="A cook plating ramen behind the counter." loading="lazy" /></div>
+          <div class="counter-img"><img src="https://picsum.photos/seed/shoji-ramen-21/600/600" width="600" height="600" alt="Noodles being pulled by hand at five am." loading="lazy" /></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="visit">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Visit · お越しください</span>
+          <h2>The address.</h2>
+        </div>
+        <div class="visit-grid">
+          <div>
+            <ul class="hours-list">
+              <li class="closed-text" style="color: var(--ink-3);"><span class="day">Monday</span><span class="hours-period">Closed</span><span></span></li>
+              <li id="day-tue"><span class="day">Tuesday</span><span class="hours-period">Lunch 11:30 – 2:30</span><span class="hours-period">Dinner 5:30 – 11</span></li>
+              <li id="day-wed"><span class="day">Wednesday</span><span class="hours-period">Lunch 11:30 – 2:30</span><span class="hours-period">Dinner 5:30 – 11</span></li>
+              <li id="day-thu"><span class="day">Thursday</span><span class="hours-period">Lunch 11:30 – 2:30</span><span class="hours-period">Dinner 5:30 – 11</span></li>
+              <li id="day-fri"><span class="day">Friday</span><span class="hours-period">Lunch 11:30 – 2:30</span><span class="hours-period">Late 5:30 – 2 am</span></li>
+              <li id="day-sat"><span class="day">Saturday</span><span class="hours-period">Late lunch 12 – 3</span><span class="hours-period">Late 6 – 2 am</span></li>
+              <li id="day-sun"><span class="day">Sunday</span><span class="hours-period">Lunch only 12 – 4</span><span></span></li>
+            </ul>
+            <p class="address-card">214 Mott Street<br/>New York, NY 10012</p>
+            <p style="color: var(--ink-2); font-size: 14px;">Walk-ins only. No phone reservations. No deliveries. We do not split bills.</p>
+          </div>
+          <div class="map" aria-label="Map showing Shoji at 214 Mott Street.">
+            <span class="map-pin" aria-hidden="true"></span>
+            <span class="map-stamp" aria-hidden="true">障</span>
+            <span class="map-label">214 Mott St.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="cta">
+    <div class="wrap">
+      <span class="eyebrow">Late night · 深夜営業</span>
+      <h2>Open until two on weekends.</h2>
+      <p>The line forms outside on Houston. We put names down at the door starting at nine. Bring a friend. Don't bring more than four.</p>
+      <a href="#visit" class="cta-btn">See the hours →</a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a href="#" class="brand" style="margin-bottom: 16px;">
+            <span class="jp-mark">障子</span>
+            Shoji
+          </a>
+          <p>A fourteen-seat ramen counter on Mott Street. Tonkotsu, hand-pulled noodles, gyoza folded that morning.</p>
+        </div>
+        <div class="foot-col">
+          <h4>Visit</h4>
+          <p>214 Mott Street</p>
+          <p>New York, NY 10012</p>
+          <p>info@shojiramen.nyc</p>
+        </div>
+        <div class="foot-col">
+          <h4>Hours</h4>
+          <p>Tue – Thu · 11:30 to 11</p>
+          <p>Fri – Sat · until 2 am</p>
+          <p>Sun · lunch only</p>
+        </div>
+        <div class="foot-col">
+          <h4>Follow</h4>
+          <a href="#">Instagram</a>
+          <a href="#">Stories</a>
+          <a href="#">Press</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Shoji LLC</span>
+        <span>障子 · One bowl at a time.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      // Day-of-week highlight
+      var days = ['day-sun','day-mon','day-tue','day-wed','day-thu','day-fri','day-sat'];
+      var idx = new Date().getDay();
+      var el = document.getElementById(days[idx]);
+      if (el) el.classList.add('today');
+
+      // Tab switching
+      var tabs = document.querySelectorAll('.menu-tab');
+      var panels = document.querySelectorAll('.menu-panel');
+      tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+          tabs.forEach(function (t) { t.classList.remove('active'); });
+          panels.forEach(function (p) { p.classList.remove('active'); });
+          tab.classList.add('active');
+          var target = tab.getAttribute('data-tab');
+          var panel = document.querySelector('.menu-panel[data-panel="' + target + '"]');
+          if (panel) panel.classList.add('active');
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -6,13 +6,16 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import {
-  Box, Button, IconButton, MenuItem, Select, Skeleton, Stack, Tooltip, Typography,
+  Box, Button, Dialog, DialogActions, DialogContent, DialogTitle,
+  IconButton, MenuItem, Select, Skeleton, Stack, TextField, Tooltip, Typography,
 } from '@mui/material';
 import {
-  DesktopWindows, Laptop, OpenInNew, Refresh, Smartphone, TabletMac,
+  DesktopWindows, EditLocation, IosShare, Laptop, OpenInNew, Refresh, Smartphone, TabletMac,
 } from '@mui/icons-material';
 import { Workspace } from '../../lib/runtime';
-import { PortMapping, getWorkspacePorts, resolvePreviewURL } from '../../lib/api/runtime-preview';
+import { PortMapping, getWorkspacePorts, mintShareLink, resolvePreviewURL } from '../../lib/api/runtime-preview';
+import { api } from '../../lib/api';
+import type { Patch } from '../../lib/api/patches';
 import { tokens } from '../../lib/theme';
 
 type Device = 'mobile' | 'tablet' | 'desktop';
@@ -21,6 +24,12 @@ interface Props {
   workspace: Workspace | null;
   // when the run completes, the parent bumps this to force a soft refresh
   refreshKey?: number;
+  // projectId enables the click-to-edit flow. Without it the Edit button
+  // is hidden — the preview falls back to read-only iframe rendering.
+  projectId?: string;
+  // onPatchProposed lets the parent (the project workspace shell) bump
+  // its patches list / open the PatchDrawer once a visual-edit landed.
+  onPatchProposed?: (patch: Patch) => void;
 }
 
 const DEVICE_SIZES: Record<Device, { w: number; h: number; label: string }> = {
@@ -29,7 +38,7 @@ const DEVICE_SIZES: Record<Device, { w: number; h: number; label: string }> = {
   desktop: { w: 1280, h: 800,  label: 'Desktop · 1280' },
 };
 
-export function PreviewPane({ workspace, refreshKey = 0 }: Props) {
+export function PreviewPane({ workspace, refreshKey = 0, projectId, onPatchProposed }: Props) {
   const [device, setDevice] = useState<Device>('desktop');
   const [ports, setPorts] = useState<PortMapping[]>([]);
   const [token, setToken] = useState<string | undefined>(undefined);
@@ -37,6 +46,14 @@ export function PreviewPane({ workspace, refreshKey = 0 }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [bump, setBump] = useState(0);
+  const [shareBusy, setShareBusy] = useState(false);
+  const [shareMsg, setShareMsg] = useState<string | null>(null);
+  const [editMode, setEditMode] = useState(false);
+  const [editTarget, setEditTarget] = useState<{ xPct: number; yPct: number } | null>(null);
+  const [editSelector, setEditSelector] = useState('');
+  const [editInstruction, setEditInstruction] = useState('');
+  const [editBusy, setEditBusy] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!workspace) {
@@ -46,19 +63,28 @@ export function PreviewPane({ workspace, refreshKey = 0 }: Props) {
     let alive = true;
     setLoading(true);
     setError(null);
-    getWorkspacePorts(workspace.id)
-      .then((res) => {
-        if (!alive) return;
-        setPorts(res.ports);
-        setToken(res.previewToken);
-        if (!selectedPort && res.ports[0]) setSelectedPort(res.ports[0].port);
-      })
-      .catch((e) => {
-        if (!alive) return;
-        setError(String(e?.message ?? e));
-      })
-      .finally(() => alive && setLoading(false));
-    return () => { alive = false; };
+    const load = (showSpinner: boolean) => {
+      if (showSpinner) setLoading(true);
+      getWorkspacePorts(workspace.id)
+        .then((res) => {
+          if (!alive) return;
+          setPorts(res.ports);
+          setToken(res.previewToken);
+          if (!selectedPort && res.ports[0]) setSelectedPort(res.ports[0].port);
+          setError(null);
+        })
+        .catch((e) => {
+          if (!alive) return;
+          setError(String(e?.message ?? e));
+        })
+        .finally(() => alive && setLoading(false));
+    };
+    load(true);
+    // Background re-poll so the health dot reflects current server state
+    // without the user clicking Refresh. 6s matches the runtime's probe
+    // budget (concurrent probes complete in ~1.5s, so we never queue up).
+    const id = window.setInterval(() => load(false), 6000);
+    return () => { alive = false; window.clearInterval(id); };
   }, [workspace?.id, refreshKey]);
 
   const url = useMemo(
@@ -71,8 +97,8 @@ export function PreviewPane({ workspace, refreshKey = 0 }: Props) {
   if (!workspace) {
     return (
       <EmptyShell
-        title="עדיין אין סביבת ריצה"
-        body="הריצו את ה־Finisher או פתחו את Terminal כדי להפעיל סביבה — התצוגה תיטען כאן ברגע שתעלה השרת."
+        title="No runtime yet"
+        body="Run the Finisher or open Terminal to start a workspace. The preview will load here as soon as the server is up."
       />
     );
   }
@@ -99,7 +125,12 @@ export function PreviewPane({ workspace, refreshKey = 0 }: Props) {
             >
               {ports.map((p) => (
                 <MenuItem key={p.port} value={p.port}>
-                  :{p.port} {p.ready ? '· ready' : '· starting…'}
+                  <Box component="span" sx={{
+                    display: 'inline-block', width: 8, height: 8, mr: 1,
+                    borderRadius: '50%', verticalAlign: 'middle',
+                    bgcolor: portDotColor(p),
+                  }} />
+                  :{p.port} {portStatusLabel(p)}
                 </MenuItem>
               ))}
             </Select>
@@ -109,14 +140,61 @@ export function PreviewPane({ workspace, refreshKey = 0 }: Props) {
             </Typography>
           )}
         </Box>
-        <Tooltip title="רענון תצוגה">
+        {projectId && (
+          <Tooltip title={editMode ? 'Click an element to edit it' : 'Visual edit — click an element to instruct the agent'}>
+            <span>
+              <IconButton
+                size="small"
+                disabled={!url}
+                onClick={() => setEditMode((m) => !m)}
+                sx={{
+                  color: editMode ? tokens.color.text.inverse : tokens.color.text.primary,
+                  bgcolor: editMode ? tokens.color.accent.lime : 'transparent',
+                  '&:hover': { bgcolor: editMode ? tokens.color.accent.lime : tokens.color.bg.surfaceHover },
+                }}
+              >
+                <EditLocation fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+        )}
+        <Tooltip title="Refresh preview">
           <span>
             <IconButton size="small" disabled={!url} onClick={() => setBump((b) => b + 1)}>
               <Refresh fontSize="small" />
             </IconButton>
           </span>
         </Tooltip>
-        <Tooltip title="פתיחה בכרטיסייה חדשה">
+        <Tooltip title={shareMsg ?? 'Copy a 7-day public share link to this preview'}>
+          <span>
+            <IconButton
+              size="small"
+              disabled={!workspace || !selectedPort || shareBusy}
+              onClick={async () => {
+                if (!workspace || !selectedPort) return;
+                setShareBusy(true);
+                setShareMsg(null);
+                try {
+                  const link = await mintShareLink(workspace.id, selectedPort);
+                  if (!link) {
+                    setShareMsg('Could not mint a link');
+                    return;
+                  }
+                  if (typeof navigator !== 'undefined' && navigator.clipboard) {
+                    try { await navigator.clipboard.writeText(link.url); } catch { /* ignore */ }
+                  }
+                  setShareMsg(`Copied — expires ${new Date(link.expiresAt).toLocaleDateString()}`);
+                  window.setTimeout(() => setShareMsg(null), 6000);
+                } finally {
+                  setShareBusy(false);
+                }
+              }}
+            >
+              <IosShare fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
+        <Tooltip title="Open in new tab">
           <span>
             <IconButton
               size="small" disabled={!url}
@@ -144,12 +222,13 @@ export function PreviewPane({ workspace, refreshKey = 0 }: Props) {
           <ErrorState message={error} onRetry={() => setBump((b) => b + 1)} />
         ) : !url ? (
           <EmptyShell
-            title="התצוגה תופיע כאן"
-            body="ברגע שהסוכן מפעיל שרת תצוגה, הוא יוצג בלייב — כולל hot reload."
+            title="Preview will appear here"
+            body="As soon as the agent starts a preview server, it will appear live here with hot reload."
             inset
           />
         ) : (
           <Box sx={{
+            position: 'relative',
             width: device === 'desktop' ? '100%' : size.w,
             maxWidth: '100%',
             height: device === 'desktop' ? '100%' : Math.min(size.h, 900),
@@ -164,11 +243,101 @@ export function PreviewPane({ workspace, refreshKey = 0 }: Props) {
               src={url}
               title="Live preview"
               sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
-              style={{ width: '100%', height: '100%', border: 0, display: 'block', background: '#fff' }}
+              style={{
+                width: '100%', height: '100%', border: 0, display: 'block', background: '#fff',
+                pointerEvents: editMode ? 'none' : 'auto',
+              }}
             />
+            {editMode && (
+              <Box
+                onClick={(e) => {
+                  const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+                  const xPct = ((e.clientX - rect.left) / rect.width) * 100;
+                  const yPct = ((e.clientY - rect.top) / rect.height) * 100;
+                  setEditTarget({ xPct, yPct });
+                  setEditSelector('');
+                  setEditInstruction('');
+                  setEditError(null);
+                }}
+                sx={{
+                  position: 'absolute', inset: 0, cursor: 'crosshair',
+                  bgcolor: 'rgba(170, 230, 90, 0.08)',
+                  outline: `2px dashed ${tokens.color.accent.lime}`,
+                  outlineOffset: '-6px',
+                }}
+              />
+            )}
           </Box>
         )}
       </Box>
+      <Dialog
+        open={Boolean(editTarget)}
+        onClose={() => !editBusy && setEditTarget(null)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          Visual edit
+          {editTarget && (
+            <Typography variant="caption" sx={{ display: 'block', color: tokens.color.text.muted }}>
+              click at {editTarget.xPct.toFixed(1)}% / {editTarget.yPct.toFixed(1)}% of the viewport
+            </Typography>
+          )}
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={1.4} sx={{ pt: 0.5 }}>
+            <TextField
+              label="Selector or describe the element"
+              placeholder="e.g. .cta-primary, the lime button in the hero, Section #pricing → first card"
+              value={editSelector}
+              onChange={(e) => setEditSelector(e.target.value)}
+              autoFocus
+              fullWidth
+              helperText="Free-text is fine — the Coder reads it as a hint, not a literal query."
+            />
+            <TextField
+              label="What should change?"
+              placeholder="Tighten the padding, use the lime accent, change copy to 'Get started'"
+              value={editInstruction}
+              onChange={(e) => setEditInstruction(e.target.value)}
+              multiline minRows={2} maxRows={6}
+              fullWidth
+            />
+            {editError && (
+              <Typography variant="caption" sx={{ color: tokens.color.accent.danger }}>
+                {editError}
+              </Typography>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button disabled={editBusy} onClick={() => setEditTarget(null)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={editBusy || !editSelector.trim() || !editInstruction.trim() || !projectId}
+            onClick={async () => {
+              if (!projectId) return;
+              setEditBusy(true);
+              setEditError(null);
+              try {
+                const patch = await api.visualEdit(projectId, {
+                  selector: editSelector.trim(),
+                  instruction: editInstruction.trim(),
+                });
+                setEditTarget(null);
+                setEditMode(false);
+                if (onPatchProposed) onPatchProposed(patch);
+              } catch (e) {
+                setEditError(String((e as Error)?.message ?? e));
+              } finally {
+                setEditBusy(false);
+              }
+            }}
+          >
+            {editBusy ? 'Asking the Coder…' : 'Propose patch'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }
@@ -237,16 +406,32 @@ function EmptyShell({ title, body, inset }: { title: string; body: string; inset
   );
 }
 
+function portDotColor(p: PortMapping): string {
+  if (!p.ready) return tokens.color.text.muted;
+  if (p.healthy === true) return tokens.color.accent.success;
+  if (p.healthy === false) return tokens.color.accent.danger;
+  return tokens.color.accent.lime; // probe unknown — allowed but unprobed
+}
+
+function portStatusLabel(p: PortMapping): string {
+  if (!p.ready) return '· blocked';
+  if (p.healthy === true) {
+    return typeof p.latencyMs === 'number' ? `· live · ${p.latencyMs}ms` : '· live';
+  }
+  if (p.healthy === false) return '· starting…';
+  return '· ready';
+}
+
 function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
     <Stack spacing={1.2} alignItems="center" sx={{ textAlign: 'center', px: 3, maxWidth: 360 }}>
       <Typography variant="subtitle1" sx={{ fontWeight: 800, color: tokens.color.accent.danger }}>
-        לא הצלחנו לטעון את התצוגה
+        We could not load the preview
       </Typography>
       <Typography variant="caption" sx={{ color: tokens.color.text.muted, maxWidth: 320 }} title={message}>
         {message.slice(0, 220)}
       </Typography>
-      <Button variant="contained" size="small" onClick={onRetry}>נסו שוב</Button>
+      <Button variant="contained" size="small" onClick={onRetry}>Try again</Button>
     </Stack>
   );
 }

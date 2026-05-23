@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Island Haven — A tropical beach resort on Mahé Island</title>
+  <meta name="description" content="Island Haven is a thirty-eight villa beach resort tucked into a private cove on the south coast of Mahé. Coral reef at the doorstep, a barefoot kitchen, and a sand path back to your bungalow." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #d9e7e0;
+      --bg-2: #ecf3ee;
+      --paper: #ffffff;
+      --warm: #f7ecd3;
+      --fg: #163a30;
+      --fg-2: #3f5650;
+      --fg-3: #7a8c87;
+      --accent: #ff6c3a;
+      --accent-2: #e7572a;
+      --line: rgba(22, 58, 48, 0.14);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--fg); font-family: 'Manrope', sans-serif; font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .serif { font-family: 'DM Serif Display', serif; }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
+
+    /* Nav */
+    .nav { padding: 28px 0; }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { font-family: 'DM Serif Display', serif; font-size: 26px; display: flex; align-items: center; gap: 12px; }
+    .brand-mark { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); display: grid; place-items: center; color: var(--paper); font-family: 'Manrope', sans-serif; font-size: 14px; font-weight: 700; }
+    .nav-links { display: flex; gap: 30px; font-size: 14px; color: var(--fg-2); font-weight: 500; }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta { display: flex; align-items: center; gap: 12px; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 12px 24px; border-radius: 999px; font-weight: 600; font-size: 13px; cursor: pointer; border: 1.5px solid transparent; }
+    .btn-orange { background: var(--accent); color: var(--paper); }
+    .btn-orange:hover { background: var(--accent-2); }
+    .btn-line { color: var(--fg); border-color: var(--fg); }
+    .btn-line:hover { background: var(--fg); color: var(--paper); }
+    @media (max-width: 1080px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 16px 0 96px; }
+    .hero-img { position: relative; border-radius: 28px; overflow: hidden; margin-bottom: -48px; }
+    .hero-img img { width: 100%; height: 78vh; min-height: 580px; object-fit: cover; }
+    .hero-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 30%, rgba(22, 58, 48, 0.65) 100%); }
+    .hero-text { position: absolute; left: 56px; right: 56px; bottom: 80px; color: var(--paper); z-index: 2; }
+    .eyebrow { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--paper); font-weight: 600; margin-bottom: 18px; opacity: 0.86; }
+    h1 { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(52px, 8vw, 116px); line-height: 0.96; letter-spacing: -0.02em; margin: 0 0 16px; max-width: 880px; }
+    h1 em { font-style: italic; color: var(--accent); }
+    .hero-lede { font-size: 18px; opacity: 0.86; max-width: 520px; margin: 0; }
+
+    /* Booking */
+    .book { background: var(--paper); border-radius: 24px; padding: 18px; display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr auto; gap: 8px; align-items: stretch; box-shadow: 0 30px 60px -30px rgba(22, 58, 48, 0.3); position: relative; z-index: 3; }
+    .book-field { padding: 10px 22px; border-right: 1px solid var(--line); }
+    .book-field:last-of-type { border-right: none; }
+    .book-field label { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg-3); margin-bottom: 4px; }
+    .book-field input, .book-field select { width: 100%; border: none; background: transparent; font: inherit; color: var(--fg); padding: 0; outline: none; font-size: 15px; }
+    .book button { background: var(--accent); color: var(--paper); border: none; padding: 0 30px; border-radius: 14px; font: inherit; font-weight: 700; cursor: pointer; font-size: 13px; }
+    .book button:hover { background: var(--accent-2); }
+    @media (max-width: 1080px) {
+      .book { grid-template-columns: 1fr 1fr; }
+      .book-field { border-right: none; border-bottom: 1px solid var(--line); }
+      .book button { grid-column: 1 / -1; padding: 14px; }
+    }
+    @media (max-width: 720px) { .book { grid-template-columns: 1fr; } .hero-text { left: 28px; right: 28px; bottom: 32px; } }
+
+    /* Sections */
+    .section { padding: 112px 0; }
+    h2 { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(40px, 5.8vw, 80px); line-height: 1.02; letter-spacing: -0.01em; margin: 0; }
+    h2 em { font-style: italic; color: var(--accent); }
+    h3 { font-family: 'DM Serif Display', serif; font-weight: 400; }
+    .section-head { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: end; margin-bottom: 56px; }
+    .section-head p { font-size: 17px; color: var(--fg-2); margin: 0; max-width: 520px; }
+    @media (max-width: 1080px) { .section-head { grid-template-columns: 1fr; gap: 16px; } }
+
+    /* Villas */
+    .villas { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 24px; }
+    .villa { background: var(--paper); border-radius: 22px; overflow: hidden; display: flex; flex-direction: column; }
+    .villa.feature { grid-row: span 2; }
+    .villa.feature img { aspect-ratio: 4/5; }
+    .villa img { width: 100%; aspect-ratio: 16/10; object-fit: cover; }
+    .villa-body { padding: 24px; flex: 1; display: flex; flex-direction: column; }
+    .villa-meta { font-size: 12px; color: var(--fg-3); letter-spacing: 0.08em; margin-bottom: 6px; }
+    .villa h3 { margin: 0 0 8px; font-size: 28px; }
+    .villa.feature h3 { font-size: 36px; }
+    .villa p { color: var(--fg-2); font-size: 14px; margin: 0 0 16px; }
+    .villa-foot { margin-top: auto; display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid var(--line); padding-top: 14px; }
+    .villa-price { font-family: 'DM Serif Display', serif; font-size: 24px; color: var(--accent); }
+    .villa-price span { font-family: 'Manrope', sans-serif; font-size: 12px; color: var(--fg-3); }
+    .villa-foot a { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; }
+    .villa-foot a:hover { color: var(--accent); }
+    @media (max-width: 1080px) { .villas { grid-template-columns: 1fr 1fr; } .villa.feature { grid-row: span 1; } .villa.feature img { aspect-ratio: 16/10; } }
+    @media (max-width: 720px) { .villas { grid-template-columns: 1fr; } }
+
+    /* Experiences */
+    .experiences { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    .exp { background: var(--bg-2); border-radius: 18px; padding: 28px; text-align: center; }
+    .exp .icon { width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 50%; background: var(--accent); color: var(--paper); display: grid; place-items: center; font-family: 'DM Serif Display', serif; font-size: 22px; }
+    .exp h4 { margin: 0 0 8px; font-family: 'DM Serif Display', serif; font-size: 22px; font-weight: 400; }
+    .exp p { color: var(--fg-2); font-size: 13px; margin: 0 0 12px; line-height: 1.5; }
+    .exp .price { font-size: 12px; color: var(--accent); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+    @media (max-width: 1080px) { .experiences { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .experiences { grid-template-columns: 1fr; } }
+
+    /* Dining */
+    .dining-flex { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; padding: 64px; background: var(--paper); border-radius: 28px; }
+    .dining-flex img { width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 18px; }
+    .dining-list { list-style: none; padding: 0; margin: 24px 0 0; }
+    .dining-list li { padding: 22px 0; border-bottom: 1px solid var(--line); }
+    .dining-list h4 { margin: 0 0 4px; font-family: 'DM Serif Display', serif; font-size: 24px; font-weight: 400; }
+    .dining-list p { margin: 0; font-size: 14px; color: var(--fg-2); }
+    .dining-list .where { font-size: 12px; color: var(--fg-3); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 6px; }
+    @media (max-width: 1080px) { .dining-flex { grid-template-columns: 1fr; padding: 36px; } }
+
+    /* Testimonials */
+    .testi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .testi { background: var(--paper); padding: 32px; border-radius: 18px; }
+    .testi .stars { color: var(--accent); letter-spacing: 0.2em; margin-bottom: 14px; font-size: 14px; }
+    .testi blockquote { margin: 0 0 18px; font-size: 16px; line-height: 1.55; }
+    .testi-by { display: flex; align-items: center; gap: 12px; }
+    .testi-by img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+    .testi-by .name { font-weight: 700; font-size: 14px; }
+    .testi-by .meta { font-size: 12px; color: var(--fg-3); }
+    @media (max-width: 1080px) { .testi-grid { grid-template-columns: 1fr; } }
+
+    /* Location */
+    .loc-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; background: var(--fg); color: var(--paper); border-radius: 28px; padding: 56px 24px; }
+    .loc-strip > div { padding: 0 24px; border-right: 1px solid rgba(255,255,255,0.16); }
+    .loc-strip > div:last-child { border-right: none; }
+    .loc-strip h4 { font-family: 'DM Serif Display', serif; font-size: 32px; font-weight: 400; color: var(--paper); margin: 0 0 6px; }
+    .loc-strip span { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.6); }
+    .loc-strip p { font-size: 13px; color: rgba(255,255,255,0.7); margin: 8px 0 0; }
+    @media (max-width: 1080px) { .loc-strip { grid-template-columns: 1fr 1fr; row-gap: 32px; } .loc-strip > div { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.16); padding-bottom: 24px; } }
+    @media (max-width: 720px) { .loc-strip { grid-template-columns: 1fr; } }
+
+    /* Footer */
+    footer { background: var(--fg); color: var(--paper); padding: 80px 0 28px; margin-top: 80px; }
+    .foot-grid { display: grid; grid-template-columns: 1.4fr repeat(3, 1fr); gap: 32px; padding-top: 56px; border-top: 1px solid rgba(255,255,255,0.16); }
+    .foot-col h4 { font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); margin: 0 0 14px; font-weight: 700; }
+    .foot-col a, .foot-col p { display: block; color: rgba(255,255,255,0.72); font-size: 13px; padding: 4px 0; margin: 0; }
+    .foot-col a:hover { color: var(--paper); }
+    .foot-bot { margin-top: 48px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.16); display: flex; justify-content: space-between; font-size: 12px; color: rgba(255,255,255,0.5); }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 8px; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a href="#" class="brand"><span class="brand-mark">~</span>Island Haven</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#villas">Villas</a>
+        <a href="#experiences">Experiences</a>
+        <a href="#dining">Dining</a>
+        <a href="#guests">Guests</a>
+        <a href="#location">Getting here</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-line" href="tel:+24842100">Concierge</a>
+        <a class="btn btn-orange" href="#book">Reserve a villa</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-img">
+          <img src="https://picsum.photos/seed/islandhaven-1/2200/1500" width="2200" height="1500" alt="A tropical beach with thatched villas tucked into palm trees and turquoise water in the foreground." loading="eager" />
+          <div class="hero-overlay"></div>
+          <div class="hero-text">
+            <div class="eyebrow">Mahé · Seychelles · 4°36′ S · 38 villas</div>
+            <h1>Quiet water, <em>and a sand path home.</em></h1>
+            <p class="hero-lede">Thirty-eight villas tucked into a private cove on the south coast of Mahé. Coral reef at the doorstep, a barefoot kitchen, and a sand path from the dining pavilion to every bedroom on the island.</p>
+          </div>
+        </div>
+
+        <form class="book" id="book" onsubmit="event.preventDefault();" aria-label="Reservation">
+          <div class="book-field"><label for="b-villa">Villa</label><input id="b-villa" type="text" placeholder="Beach, garden, water…" value="Any villa" /></div>
+          <div class="book-field"><label for="b-checkin">Arrival</label><input id="b-checkin" type="date" /></div>
+          <div class="book-field"><label for="b-checkout">Departure</label><input id="b-checkout" type="date" /></div>
+          <div class="book-field"><label for="b-guests">Guests</label><select id="b-guests"><option>2 adults</option><option>2 adults, 1 child</option><option>2 adults, 2 children</option><option>4 adults</option></select></div>
+          <button type="submit">Check rates</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="section" id="villas">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow" style="color: var(--accent);">Villas</div>
+            <h2>Three kinds of <em>quiet, by the water.</em></h2>
+          </div>
+          <p>Designed by the studio of Eva Sopeoglou around the bend of the cove. Thatched roofs, polished concrete floors, outdoor showers, and a small private plunge pool in every villa.</p>
+        </div>
+        <div class="villas">
+          <article class="villa feature">
+            <img src="https://picsum.photos/seed/islandhaven-2/1200/1500" width="1200" height="1500" alt="An overwater villa with a private deck and ladder into a turquoise lagoon." loading="lazy" />
+            <div class="villa-body">
+              <div class="villa-meta">Overwater · 92 m² · sleeps 2</div>
+              <h3>The Lagoon Villa</h3>
+              <p>Six villas built on stilts above the reef. Glass floor in the bedroom, a ladder into the lagoon, and a private hammock between the palms.</p>
+              <div class="villa-foot"><div class="villa-price">$1,460 <span>/ night · all-inclusive</span></div><a href="#book">Reserve →</a></div>
+            </div>
+          </article>
+          <article class="villa">
+            <img src="https://picsum.photos/seed/islandhaven-3/1100/700" width="1100" height="700" alt="Beach villa with a private deck on the sand." loading="lazy" />
+            <div class="villa-body">
+              <div class="villa-meta">Beach · 76 m² · sleeps 2</div>
+              <h3>Beach Villa</h3>
+              <p>Right on the sand. Twenty paces to the water and a hammock in the palms.</p>
+              <div class="villa-foot"><div class="villa-price">$890 <span>/ night</span></div><a href="#book">Reserve →</a></div>
+            </div>
+          </article>
+          <article class="villa">
+            <img src="https://picsum.photos/seed/islandhaven-4/1100/700" width="1100" height="700" alt="A garden villa with a private plunge pool surrounded by jungle." loading="lazy" />
+            <div class="villa-body">
+              <div class="villa-meta">Garden · 84 m² · sleeps 2–3</div>
+              <h3>Garden Villa</h3>
+              <p>Set back into the jungle, fifty paces from the sand. The quiet ones, with a deep plunge pool.</p>
+              <div class="villa-foot"><div class="villa-price">$720 <span>/ night</span></div><a href="#book">Reserve →</a></div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="experiences">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow" style="color: var(--accent);">Experiences</div>
+            <h2>Things to do, <em>or not.</em></h2>
+          </div>
+          <p>Everything below is included in your stay. The boats run twice a day, the dive guide is on the beach by eight, and the spa will come to your villa if you do not want to leave it.</p>
+        </div>
+        <div class="experiences">
+          <div class="exp"><div class="icon">≈</div><h4>House reef snorkel</h4><p>A live reef thirty metres from the beach. Sea turtles, parrotfish, the occasional reef shark.</p><div class="price">Daily · included</div></div>
+          <div class="exp"><div class="icon">◊</div><h4>Drop-off dive</h4><p>A two-tank dive on the wall outside the cove with our dive master Yannick.</p><div class="price">Tues & Sat · included</div></div>
+          <div class="exp"><div class="icon">◯</div><h4>Spa under the palms</h4><p>Open-air massage pavilion above the lagoon. Booked at reception.</p><div class="price">10 a.m. → 7 p.m.</div></div>
+          <div class="exp"><div class="icon">△</div><h4>Sandbank picnic</h4><p>The boat drops you on a tiny sandbar at low tide with a basket and an umbrella.</p><div class="price">By request · included</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="dining">
+      <div class="wrap">
+        <div class="dining-flex">
+          <img src="https://picsum.photos/seed/islandhaven-5/1100/1400" width="1100" height="1400" alt="A barefoot dining pavilion with white tablecloths and a fire pit on the sand." loading="lazy" />
+          <div>
+            <div class="eyebrow" style="color: var(--accent);">Dining</div>
+            <h2>The kitchen <em>that came over from Bombay.</em></h2>
+            <p style="font-size: 17px; color: var(--fg-2); margin: 22px 0 0;">Our head chef Anjali Karnik runs three rooms on the island. All meals are included in the all-inclusive rates and all of them happen with sand under your feet.</p>
+            <ul class="dining-list">
+              <li><h4>The pavilion</h4><p>Breakfast and dinner under the thatched roof, lit by sixty lanterns after dark.</p><div class="where">Every day · 7 a.m. → 10 p.m.</div></li>
+              <li><h4>The reef bar</h4><p>Lunch on the deck above the snorkel beach. Ceviche, grilled jobfish, cold rosé.</p><div class="where">Every day · 12 → 3 p.m.</div></li>
+              <li><h4>Sandbar dinner</h4><p>Once a week, a long table on the sandbar offshore. Twenty seats, by request, no extra charge.</p><div class="where">Saturdays · 6 → 10 p.m.</div></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="guests">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow" style="color: var(--accent);">Guests</div>
+            <h2>What guests <em>brought back.</em></h2>
+          </div>
+          <p>Verified guest reviews from the last twelve months. Island Haven average rating: 4.96 out of 5 across 514 stays.</p>
+        </div>
+        <div class="testi-grid">
+          <div class="testi"><div class="stars">★★★★★</div><blockquote>"We left the city stressed and arrived to a glass of cold passion-fruit and a butler called Damien who knew our names. He still texts me on my birthday."</blockquote><div class="testi-by"><img src="https://picsum.photos/seed/islandhaven-6/100/100" width="100" height="100" alt="Portrait of guest Beatrice." loading="lazy" /><div><div class="name">Beatrice K.</div><div class="meta">Lagoon Villa · March 2026</div></div></div></div>
+          <div class="testi"><div class="stars">★★★★★</div><blockquote>"Yannick took us out on a private dive on our last morning. A spinner dolphin swam right under us for three minutes. I will pay anything to see that again."</blockquote><div class="testi-by"><img src="https://picsum.photos/seed/islandhaven-7/100/100" width="100" height="100" alt="Portrait of guest Henri." loading="lazy" /><div><div class="name">Henri & Léa P.</div><div class="meta">Beach Villa · February 2026</div></div></div></div>
+          <div class="testi"><div class="stars">★★★★★</div><blockquote>"The sandbar dinner is something I will tell my kids about. Anjali came over with a glass of champagne and explained how she sourced every fish."</blockquote><div class="testi-by"><img src="https://picsum.photos/seed/islandhaven-8/100/100" width="100" height="100" alt="Portrait of guest Manuela." loading="lazy" /><div><div class="name">Manuela R.</div><div class="meta">Garden Villa · January 2026</div></div></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="location">
+      <div class="wrap">
+        <div class="loc-strip">
+          <div><h4>04</h4><span>Hours from Europe</span><p>Direct flights from Frankfurt, Paris, and Doha.</p></div>
+          <div><h4>22</h4><span>Min boat from Mahé</span><p>We meet you at the airport. The boat is for you.</p></div>
+          <div><h4>38</h4><span>Villas, one cove</span><p>A private island that you share with thirty-seven other rooms.</p></div>
+          <div><h4>30°C</h4><span>Year-round water</span><p>It rains in January and we love it. The reef wakes up.</p></div>
+          <div><h4>24/7</h4><span>Butler</span><p>Damien, Reza, Yvana, and Solo. They never go on holiday.</p></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <div class="brand" style="color: var(--paper);"><span class="brand-mark">~</span>Island Haven</div>
+          <p style="margin-top: 14px; max-width: 280px;">A thirty-eight villa beach resort on the south coast of Mahé Island. Tribute Portfolio member since 2021.</p>
+        </div>
+        <div class="foot-col"><h4>Stay</h4><a href="#villas">Villas</a><a href="#book">Reserve</a><a href="#">Gift stays</a><a href="#">Honeymoons</a></div>
+        <div class="foot-col"><h4>The cove</h4><a href="#experiences">Experiences</a><a href="#dining">Dining</a><a href="#">Sustainability</a><a href="#">Press</a></div>
+        <div class="foot-col"><h4>Contact</h4><a href="mailto:reservations@islandhaven.sc">reservations@islandhaven.sc</a><a href="tel:+248421000">+248 4 21 00 00</a><a href="#location">Getting here</a></div>
+      </div>
+      <div class="foot-bot"><span>© 2026 Island Haven Resort Ltd · Anse Soleil · Mahé</span><span>38 villas · 1 cove · 4.96 ★</span></div>
+    </div>
+  </footer>
+</body>
+</html>

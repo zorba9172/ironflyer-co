@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ember Barbershop — Hot towels, sharp cuts, since 2014</title>
+  <meta name="description" content="A traditional men's barbershop in Brooklyn. Straight-razor shaves, hot-towel service, and a proper cut. Four chairs. Walk-ins welcome." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #1a1815;
+      --paper: #211e1a;
+      --paper-2: #2b2722;
+      --ink: #f3ede1;
+      --ink-2: #b9b0a0;
+      --ink-3: #7b7264;
+      --line: rgba(243, 237, 225, 0.10);
+      --accent: #d49858;
+      --accent-deep: #b87f3f;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--ink); font-family: 'Archivo', system-ui, sans-serif; font-size: 16px; line-height: 1.6; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 28px; }
+    .display { font-family: 'Archivo Black', sans-serif; text-transform: uppercase; }
+    .mono { font-family: 'DM Mono', monospace; }
+    .eyebrow { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent); }
+
+    .nav { padding: 22px 0; border-bottom: 1px solid var(--line); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { font-family: 'Archivo Black', sans-serif; font-size: 22px; letter-spacing: 0.06em; text-transform: uppercase; }
+    .brand .dot { color: var(--accent); }
+    .nav-links { display: flex; gap: 28px; font-size: 13px; color: var(--ink-2); font-weight: 500; text-transform: uppercase; letter-spacing: 0.12em; }
+    .nav-links a:hover { color: var(--ink); }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; font-size: 12px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; border: 1px solid transparent; cursor: pointer; transition: background 200ms, color 200ms; font-family: 'Archivo', sans-serif; }
+    .btn-primary { background: var(--accent); color: #1a1815; }
+    .btn-primary:hover { background: var(--accent-deep); color: #fff; }
+    .btn-ghost { background: transparent; color: var(--ink); border-color: var(--line); border: 1px solid var(--line); }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    .hero { position: relative; padding: 60px 0 80px; overflow: hidden; }
+    .hero::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 50%, var(--bg) 100%), url('https://picsum.photos/seed/ember-bar-hero/1800/1100'); background-size: cover; background-position: center; opacity: 0.35; z-index: -1; }
+    .hero-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 40px; align-items: end; }
+    h1 { font-family: 'Archivo Black', sans-serif; text-transform: uppercase; font-size: clamp(56px, 10vw, 148px); line-height: 0.88; letter-spacing: -0.02em; margin: 22px 0; }
+    h1 .a { color: var(--accent); }
+    .hero p { font-size: 18px; color: var(--ink-2); max-width: 360px; }
+    .hero-cta { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; } }
+
+    .ticker { background: var(--accent); color: var(--bg); padding: 14px 0; }
+    .ticker-inner { display: flex; gap: 36px; align-items: center; justify-content: center; flex-wrap: wrap; font-family: 'Archivo Black', sans-serif; text-transform: uppercase; font-size: 14px; letter-spacing: 0.2em; }
+
+    section { padding: 96px 0; }
+    h2 { font-family: 'Archivo Black', sans-serif; text-transform: uppercase; font-size: clamp(36px, 5vw, 64px); letter-spacing: -0.01em; line-height: 1.0; margin: 12px 0 18px; max-width: 18ch; }
+    h2 .a { color: var(--accent); }
+    .section-head { max-width: 720px; margin-bottom: 56px; }
+    .section-head p { font-size: 17px; color: var(--ink-2); }
+
+    .services-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .svc { background: var(--paper); border: 1px solid var(--line); padding: 28px; display: grid; grid-template-columns: 1fr auto; gap: 12px 22px; align-items: baseline; }
+    .svc h3 { font-family: 'Archivo Black', sans-serif; text-transform: uppercase; font-size: 22px; margin: 0; letter-spacing: 0.02em; }
+    .svc p { color: var(--ink-2); font-size: 14px; margin: 0; grid-column: 1 / -1; }
+    .svc .price { font-family: 'Archivo Black', sans-serif; font-size: 24px; color: var(--accent); white-space: nowrap; }
+    .svc .time { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--ink-3); letter-spacing: 0.1em; grid-column: 1 / -1; }
+    @media (max-width: 1080px) { .services-grid { grid-template-columns: 1fr; } }
+
+    .barbers { background: var(--paper); }
+    .barbers-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+    .barber { background: var(--paper-2); border: 1px solid var(--line); }
+    .barber img { width: 100%; aspect-ratio: 4/5; object-fit: cover; filter: grayscale(0.15) contrast(1.05); }
+    .barber-body { padding: 18px 22px 22px; }
+    .barber h3 { font-family: 'Archivo Black', sans-serif; text-transform: uppercase; font-size: 18px; margin: 0; letter-spacing: 0.04em; }
+    .barber .role { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 0.16em; text-transform: uppercase; margin-top: 4px; display: block; }
+    .barber p { font-size: 13px; color: var(--ink-2); margin: 10px 0 0; }
+    @media (max-width: 1080px) { .barbers-grid { grid-template-columns: 1fr 1fr; } }
+
+    .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .gallery-grid img { width: 100%; aspect-ratio: 1/1; object-fit: cover; filter: contrast(1.05) saturate(0.9); }
+    .gallery-grid .tall { aspect-ratio: 3/4; grid-row: span 2; height: 100%; }
+    @media (max-width: 1080px) { .gallery-grid { grid-template-columns: 1fr 1fr; } .gallery-grid .tall { grid-row: auto; aspect-ratio: 1/1; } }
+
+    .quotes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .quote { background: var(--paper); border-left: 3px solid var(--accent); padding: 30px; }
+    .quote p { font-size: 16px; line-height: 1.6; margin: 0 0 16px; color: var(--ink); }
+    .quote .who { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-3); }
+    @media (max-width: 1080px) { .quotes-grid { grid-template-columns: 1fr; } }
+
+    .visit { background: var(--paper); }
+    .visit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+    .visit-grid img { width: 100%; aspect-ratio: 4/5; object-fit: cover; }
+    .hours-table { width: 100%; border-collapse: collapse; margin-top: 28px; font-family: 'DM Mono', monospace; font-size: 14px; }
+    .hours-table td { padding: 12px 0; border-bottom: 1px solid var(--line); color: var(--ink-2); }
+    .hours-table td:last-child { text-align: right; color: var(--ink); }
+    .addr { font-family: 'DM Mono', monospace; font-size: 14px; line-height: 1.9; color: var(--ink-2); margin-top: 14px; }
+    @media (max-width: 1080px) { .visit-grid { grid-template-columns: 1fr; } }
+
+    footer { border-top: 1px solid var(--line); padding: 48px 0 32px; }
+    .foot { display: flex; justify-content: space-between; align-items: flex-end; gap: 28px; flex-wrap: wrap; }
+    .foot .links { display: flex; gap: 22px; font-size: 12px; color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.14em; }
+    .foot .copy { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--ink-3); }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">Ember<span class="dot">.</span> Barbershop</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#services">Services</a>
+        <a href="#barbers">Barbers</a>
+        <a href="#gallery">Gallery</a>
+        <a href="#quotes">Reviews</a>
+        <a href="#visit">Visit</a>
+      </nav>
+      <a class="btn btn-primary" href="#visit">Book a chair</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow">Est. 2014 · Bushwick, Brooklyn</span>
+            <h1>Hot towels.<br/>Sharp cuts.<br/><span class="a">No fuss.</span></h1>
+          </div>
+          <div>
+            <p>A four-chair barbershop. Straight-razor shaves, hot-towel service, and a proper cut. Walk in. Sit down. Leave with a haircut.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#visit">Book a chair</a>
+              <a class="btn btn-ghost" href="#services">See services</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="ticker">
+      <div class="wrap ticker-inner">
+        <span>Walk-ins welcome</span><span>·</span><span>Cash + card</span><span>·</span><span>Hot lather shave</span><span>·</span><span>Open six days</span>
+      </div>
+    </div>
+
+    <section id="services">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">// The menu</span>
+          <h2>What we <span class="a">do</span>.</h2>
+          <p>Every cut includes a wash, a hot-towel finish, and a beard line-up if you've got one. Tips are appreciated, never expected.</p>
+        </div>
+        <div class="services-grid">
+          <div class="svc">
+            <h3>The cut</h3>
+            <span class="price">$45</span>
+            <p>Scissor or clipper, your call. Wash, hot towel, neck-line, finish with pomade or matte clay.</p>
+            <span class="time">45 min</span>
+          </div>
+          <div class="svc">
+            <h3>The kid</h3>
+            <span class="price">$30</span>
+            <p>For under-twelves. Same cut, smaller chair, lollipop after.</p>
+            <span class="time">30 min</span>
+          </div>
+          <div class="svc">
+            <h3>Beard sculpt</h3>
+            <span class="price">$28</span>
+            <p>Hot-towel prep, straight-razor edges, beard oil to finish. Looks like you woke up with it.</p>
+            <span class="time">30 min</span>
+          </div>
+          <div class="svc">
+            <h3>Hot lather shave</h3>
+            <span class="price">$55</span>
+            <p>Full straight-razor shave with two hot-towel rounds. The original face nap.</p>
+            <span class="time">45 min</span>
+          </div>
+          <div class="svc">
+            <h3>Cut + shave</h3>
+            <span class="price">$92</span>
+            <p>The whole program. Forty-five minutes you'll think about all week.</p>
+            <span class="time">75 min</span>
+          </div>
+          <div class="svc">
+            <h3>Buzz cut</h3>
+            <span class="price">$25</span>
+            <p>One guard, head to neck, in and out. We're not going to oversell it.</p>
+            <span class="time">15 min</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="barbers" id="barbers">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">// The chairs</span>
+          <h2>Four barbers, <span class="a">forty years</span> of clippers between them.</h2>
+        </div>
+        <div class="barbers-grid">
+          <div class="barber">
+            <img src="https://picsum.photos/seed/ember-bar-b1/600/750" width="600" height="750" alt="Barber Marco Bell at his chair, holding clippers." loading="lazy" />
+            <div class="barber-body">
+              <h3>Marco Bell</h3>
+              <span class="role">Owner · Chair 01</span>
+              <p>Fifteen years. Best in the room for taper fades and stubborn cowlicks.</p>
+            </div>
+          </div>
+          <div class="barber">
+            <img src="https://picsum.photos/seed/ember-bar-b2/600/750" width="600" height="750" alt="Barber Jonas Reyes adjusting a cape on a client." loading="lazy" />
+            <div class="barber-body">
+              <h3>Jonas Reyes</h3>
+              <span class="role">Chair 02</span>
+              <p>Twelve years. Scissor cuts, classic side-parts, never rushes you out the chair.</p>
+            </div>
+          </div>
+          <div class="barber">
+            <img src="https://picsum.photos/seed/ember-bar-b3/600/750" width="600" height="750" alt="Barber Wes Okafor sharpening a straight razor on a strop." loading="lazy" />
+            <div class="barber-body">
+              <h3>Wes Okafor</h3>
+              <span class="role">Chair 03</span>
+              <p>Trained in London. Straight-razor master. Quiet, exact, expensive watch.</p>
+            </div>
+          </div>
+          <div class="barber">
+            <img src="https://picsum.photos/seed/ember-bar-b4/600/750" width="600" height="750" alt="Barber Theo Marsh combing a client's hair." loading="lazy" />
+            <div class="barber-body">
+              <h3>Theo Marsh</h3>
+              <span class="role">Chair 04</span>
+              <p>Five years. Beards, line-ups, the patient one when you bring your seven-year-old.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="gallery">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">// The work</span>
+          <h2>What it looks like <span class="a">on the way out</span>.</h2>
+        </div>
+        <div class="gallery-grid">
+          <img class="tall" src="https://picsum.photos/seed/ember-bar-g1/600/800" width="600" height="800" alt="A close low-fade with a sharp part on dark hair." loading="lazy" />
+          <img src="https://picsum.photos/seed/ember-bar-g2/600/600" width="600" height="600" alt="A man in the chair with a hot towel wrapped around his face." loading="lazy" />
+          <img src="https://picsum.photos/seed/ember-bar-g3/600/600" width="600" height="600" alt="A neat beard line cut along the jaw." loading="lazy" />
+          <img src="https://picsum.photos/seed/ember-bar-g4/600/600" width="600" height="600" alt="A clipper buzz cut taken from above." loading="lazy" />
+          <img src="https://picsum.photos/seed/ember-bar-g5/600/600" width="600" height="600" alt="A side view of a classic taper fade." loading="lazy" />
+          <img src="https://picsum.photos/seed/ember-bar-g6/600/600" width="600" height="600" alt="A textured crop with a faded back and sides." loading="lazy" />
+        </div>
+      </div>
+    </section>
+
+    <section id="quotes">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">// Reviews</span>
+          <h2>Customers, <span class="a">unprompted</span>.</h2>
+        </div>
+        <div class="quotes-grid">
+          <div class="quote">
+            <p>"Marco took twenty minutes on the back of my neck alone. I haven't had a cut this clean in ten years."</p>
+            <div class="who">— Dan R., regular three years</div>
+          </div>
+          <div class="quote">
+            <p>"The hot lather shave is the closest thing to a vacation I take in a single hour. Worth fifty-five dollars and a tip."</p>
+            <div class="who">— Sam L., monthly client</div>
+          </div>
+          <div class="quote">
+            <p>"Walked in on a Saturday with no appointment, sat down on the bench, was in a chair in fifteen minutes. Cut took thirty. Easy."</p>
+            <div class="who">— Mike T., walk-in</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="visit" id="visit">
+      <div class="wrap">
+        <div class="visit-grid">
+          <img src="https://picsum.photos/seed/ember-bar-visit/900/1100" width="900" height="1100" alt="The Ember Barbershop storefront, with a red-and-white pole and warm light spilling onto the sidewalk." loading="lazy" />
+          <div>
+            <span class="eyebrow">// Visit</span>
+            <h2>The shop on <span class="a">Knickerbocker</span>.</h2>
+            <p>Walk-ins welcome. If you want a specific chair, give us a call — the regulars usually book Wes a week out.</p>
+            <div class="addr">
+              236 Knickerbocker Ave<br/>
+              Brooklyn, NY 11237<br/>
+              (718) 555-0136
+            </div>
+            <table class="hours-table" aria-label="Hours of operation">
+              <tbody>
+                <tr><td>Monday</td><td>Closed</td></tr>
+                <tr><td>Tue — Fri</td><td>10:00 — 8:00</td></tr>
+                <tr><td>Saturday</td><td>9:00 — 7:00</td></tr>
+                <tr><td>Sunday</td><td>11:00 — 5:00</td></tr>
+              </tbody>
+            </table>
+            <div style="margin-top:28px;"><a class="btn btn-primary" href="#">Book online</a></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot">
+        <div class="brand">Ember<span class="dot">.</span></div>
+        <div class="links">
+          <a href="#services">Services</a>
+          <a href="#barbers">Barbers</a>
+          <a href="#gallery">Gallery</a>
+          <a href="#visit">Visit</a>
+          <a href="#">Gift card</a>
+        </div>
+        <div class="copy">© 2026 · Brooklyn, NY</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

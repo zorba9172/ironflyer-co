@@ -98,11 +98,11 @@ export const webhooksApi = {
  * "Add webhook" picker. The server treats an empty list as "everything"
  * so this catalogue is purely a UX hint. */
 export const WEBHOOK_EVENT_CATALOG: { name: string; label: string }[] = [
-  { name: 'run_complete',   label: 'הריצה הסתיימה' },
-  { name: 'run_failed',     label: 'הריצה נכשלה' },
-  { name: 'gate_passed',    label: 'שער עבר' },
-  { name: 'gate_failed',    label: 'שער נכשל' },
-  { name: 'patch_applied',  label: 'פאצ\' הוחל' },
-  { name: 'patch_rejected', label: 'פאצ\' נדחה' },
-  { name: 'webhook_test',   label: 'בדיקת Webhook' },
+  { name: 'run_complete',   label: 'Run completed' },
+  { name: 'run_failed',     label: 'Run failed' },
+  { name: 'gate_passed',    label: 'Gate passed' },
+  { name: 'gate_failed',    label: 'Gate failed' },
+  { name: 'patch_applied',  label: 'Patch applied' },
+  { name: 'patch_rejected', label: 'Patch rejected' },
+  { name: 'webhook_test',   label: 'Webhook test' },
 ];

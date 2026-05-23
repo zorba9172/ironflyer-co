@@ -4,10 +4,10 @@ import type { Metadata } from 'next';
 import { BlogPost } from '../../../components/docs/BlogPost';
 
 export const metadata: Metadata = {
-  title: 'The eight gates, explained — Ironflyer',
-  description: 'Spec, UX, Architecture, Code, Lint, Tests, Security, Deploy — and what each one really blocks on.',
+  title: 'The nine gates, explained — Ironflyer',
+  description: 'Spec, UX, Architecture, Code, Lint, Tests, Security, Budget, Deploy — and what each one really blocks on.',
   openGraph: {
-    title: 'The eight gates, explained',
+    title: 'The nine gates, explained',
     description: 'A deep dive on what each finisher gate actually does, and why the order matters.',
     images: ['/opengraph-image'],
   },
@@ -16,15 +16,15 @@ export const metadata: Metadata = {
 export default function TheEightGatesPost() {
   return (
     <BlogPost
-      title="The eight gates, explained."
+      title="The nine gates, explained."
       subtitle="What each finisher gate actually does — and why their order is the load-bearing part."
       tag="Engineering"
       date="2026-04-24"
       gradient="linear-gradient(135deg, #671dfc 0%, #8b5cff 60%, #e5ff00 100%)"
     >
       <p>
-        The marketing line is <em>“eight gates, every one blocks”</em>. The engineering line is
-        longer. Here is what each gate actually does, why we picked these eight, and what we deliberately
+        The marketing line is <em>“nine gates, every one blocks”</em>. The engineering line is
+        longer. Here is what each gate actually does, why we picked these nine, and what we deliberately
         left out.
       </p>
 
@@ -104,7 +104,15 @@ export default function TheEightGatesPost() {
         than warn about five hundred.
       </p>
 
-      <h2>8. Deploy</h2>
+      <h2>8. Budget</h2>
+      <p>
+        Budget is the only gate no LLM can repair. It compares the project&rsquo;s accumulated provider
+        cost against the user&rsquo;s plan cap; if spend has crossed the line, the gate blocks deploy
+        until the plan tier rises, the project is split, or remaining iterations are pruned. Soft-warns
+        at 80% so the dashboard surfaces a yellow chip before the wall hits.
+      </p>
+
+      <h2>9. Deploy</h2>
       <p>
         Deploy plans + materialises the deploy artifacts: <code>Dockerfile</code>, <code>fly.toml</code>,
         <code>railway.json</code>, a GitHub Actions workflow if you are exporting to a repo. The artifacts

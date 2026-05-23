@@ -8,10 +8,10 @@ import { CodeBlock } from '../../../../components/docs/CodeBlock';
 
 export const metadata: Metadata = {
   title: 'Finisher Gates',
-  description: 'Eight blocking gates take a prompt from idea to deployed app. Here is what each one does.',
+  description: 'Nine blocking gates take a prompt from idea to deployed app. Here is what each one does.',
   openGraph: {
     title: 'Finisher Gates · Ironflyer',
-    description: 'Spec, UX, Architecture, Code, Lint, Tests, Security, Deploy — every one blocks until it passes.',
+    description: 'Spec, UX, Architecture, Code, Lint, Tests, Security, Budget, Deploy — every one blocks until it passes.',
     images: ['/opengraph-image'],
   },
 };
@@ -19,15 +19,16 @@ export const metadata: Metadata = {
 const toc = [
   { id: 'why-gates', label: 'Why gates' },
   { id: 'order-and-blocking', label: 'Order & blocking' },
-  { id: 'the-eight', label: 'The eight gates' },
+  { id: 'the-nine', label: 'The nine gates' },
   { id: 'auto-recovery', label: 'Auto-recovery' },
   { id: 'runtime-applier', label: 'Runtime applier' },
+  { id: 'beyond-the-gates', label: 'Beyond the gates' },
 ];
 
 export default function FinisherGatesPage() {
   return (
     <DocPage
-      eyebrow="Concepts · מושגים"
+      eyebrow="Concepts"
       title="Finisher Gates"
       description="The gates are the contract. They block until the code is genuinely done — not vibes-done."
       toc={toc}
@@ -51,11 +52,11 @@ export default function FinisherGatesPage() {
         gate halts the loop and the orchestrator emits a <code>gate_failed</code> event with the issues
         the gate found. There is no “best-effort skip”; if Lint fails, Tests do not run.
       </p>
-      <CodeBlock language="text">{`Spec → UX → Architecture → Code → Lint → Tests → Security → Deploy
-         ▲                                                      │
-         └──────────────  Auto-recovery patch  ─────────────────┘`}</CodeBlock>
+      <CodeBlock language="text">{`Spec → UX → Architecture → Code → Lint → Tests → Security → Budget → Deploy
+         ▲                                                              │
+         └──────────────────  Auto-recovery patch  ─────────────────────┘`}</CodeBlock>
 
-      <h2 id="the-eight">The eight gates</h2>
+      <h2 id="the-nine">The nine gates</h2>
       <h3>1. Spec</h3>
       <p>
         Turns the raw prompt into a structured <code>ProductSpec</code> — what the product is, who it is
@@ -98,7 +99,14 @@ export default function FinisherGatesPage() {
         misuse — and refuses patches that contain them. The list is small and curated; we would rather
         block fewer false positives than play whack-a-mole.
       </p>
-      <h3>8. Deploy</h3>
+      <h3>8. Budget</h3>
+      <p>
+        The only gate that no LLM can repair. It compares the project&rsquo;s accumulated provider cost to
+        the user&rsquo;s plan cap; if the spend has crossed the line, the gate blocks deploy until the
+        plan tier rises, the project is split, or remaining iterations are pruned. Soft-warns from 80% so
+        the dashboard can surface a yellow chip before the wall hits.
+      </p>
+      <h3>9. Deploy</h3>
       <p>
         Plans + materialises the deploy artifacts. <code>fly.toml</code> for Fly, <code>railway.json</code>
         for Railway, a workflow file for the GitHub export. The artifacts go through the patch lifecycle
@@ -119,6 +127,23 @@ export default function FinisherGatesPage() {
         writes the changes through to the workspace sandbox where the preview is running, so the next
         page reload reflects reality. This is what lets the live preview be the source of truth instead
         of an aspirational mock.
+      </p>
+
+      <h2 id="beyond-the-gates">Beyond the gates</h2>
+      <p>
+        The gates decide what ships. Two complementary systems decide how the loop learns and how the
+        loop is trusted. The <strong>Memory Engine</strong> persists four stores — project, execution,
+        user, and business memory — and links every failure to the fix that resolved it. On every retry,
+        the relevant slice is auto-injected into the coder’s context, so the same mistake does not get
+        repeated across runs. The engine is queryable through <code>/api/memory</code>, which means humans
+        and downstream agents can read what the loop has actually learned.
+      </p>
+      <p>
+        The <strong>Audit Log</strong> is the compliance counterpart. Every gate verdict lands as an
+        immutable, SHA-256 hash-chained entry, so the sequence of decisions cannot be silently rewritten
+        after the fact. <code>GET /api/audit</code> returns the chain; <code>GET /api/audit/verify</code>
+        attests that the chain is intact. Together, memory turns the loop into something that improves,
+        and the audit log turns it into something a reviewer can defend.
       </p>
     </DocPage>
   );

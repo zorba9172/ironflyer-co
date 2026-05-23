@@ -49,6 +49,7 @@ const GATE_ORDER: { key: string; label: string }[] = [
   { key: 'lint', label: 'Lint' },
   { key: 'test', label: 'Tests' },
   { key: 'security', label: 'Security' },
+  { key: 'budget', label: 'Budget' },
   { key: 'deploy', label: 'Deploy' },
 ];
 
@@ -80,6 +81,7 @@ function ProjectWorkspace({ params }: { params: Promise<{ id: string }> }) {
   const [patchesError, setPatchesError] = useState<string | null>(null);
   const [activePatch, setActivePatch] = useState<Patch | null>(null);
   const [applyingPatch, setApplyingPatch] = useState(false);
+  const [rollingBack, setRollingBack] = useState(false);
 
   const [runEvents, setRunEvents] = useState<RunEvent[]>([]);
   const [streamHealthy, setStreamHealthy] = useState(true);
@@ -235,6 +237,24 @@ function ProjectWorkspace({ params }: { params: Promise<{ id: string }> }) {
     }
   }, [activePatch, id, loadFiles, loadPatches, loadProject, workspace]);
 
+  const onRollbackPatch = useCallback(async () => {
+    if (!activePatch) return;
+    setRollingBack(true);
+    try {
+      await patchApi.rollback(activePatch.id);
+      await loadPatches();
+      await loadProject();
+      if (workspace) void loadFiles(workspace);
+      // Closing the drawer mirrors the implicit "operation done" affordance —
+      // the patch is no longer applied, so its details panel is misleading.
+      setActivePatch(null);
+    } catch (e) {
+      setProjectError(String((e as Error)?.message ?? e));
+    } finally {
+      setRollingBack(false);
+    }
+  }, [activePatch, loadFiles, loadPatches, loadProject, workspace]);
+
   const onSelectFile = useCallback((path: string) => {
     setSelectedFile(path);
     setTab('editor');
@@ -253,14 +273,14 @@ function ProjectWorkspace({ params }: { params: Promise<{ id: string }> }) {
     return (
       <Box sx={{ p: 4, minHeight: '100vh', bgcolor: tokens.color.bg.alabaster }}>
         <Typography variant="body2" color="text.secondary">
-          {projectError ? `שגיאה בטעינה: ${projectError}` : 'טוען את סביבת העבודה…'}
+          {projectError ? `Loading error: ${projectError}` : 'Loading the workspace...'}
         </Typography>
       </Box>
     );
   }
 
   return (
-    <Box dir="rtl" sx={{
+    <Box dir="ltr" sx={{
       minHeight: '100vh',
       bgcolor: tokens.color.bg.alabaster,
       color: tokens.color.text.inverse,
@@ -328,7 +348,17 @@ function ProjectWorkspace({ params }: { params: Promise<{ id: string }> }) {
           <Box sx={{ flex: 1, minHeight: 0, p: 1.4 }}>
             {tab === 'chat'     && <ChatPane projectId={id} />}
             {tab === 'editor'   && <EditorPane workspace={workspace} selectedFile={selectedFile} />}
-            {tab === 'preview'  && <PreviewPane workspace={workspace} refreshKey={runEvents.length} />}
+            {tab === 'preview'  && (
+              <PreviewPane
+                workspace={workspace}
+                refreshKey={runEvents.length}
+                projectId={id}
+                onPatchProposed={(p) => {
+                  setPatches((curr) => [p, ...curr.filter((c) => c.id !== p.id)]);
+                  setActivePatch(p);
+                }}
+              />
+            )}
             {tab === 'terminal' && (
               <Box sx={{ height: '100%', minHeight: 320 }}>
                 <Terminal workspaceId={workspace?.id ?? null} />
@@ -352,8 +382,15 @@ function ProjectWorkspace({ params }: { params: Promise<{ id: string }> }) {
         open={Boolean(activePatch)}
         patch={activePatch}
         applying={applyingPatch}
+        rollingBack={rollingBack}
         onClose={() => setActivePatch(null)}
         onApply={onApplyPatch}
+        onRollback={onRollbackPatch}
+        previousFiles={Object.fromEntries(
+          (project?.files ?? [])
+            .filter((f) => typeof f.content === 'string')
+            .map((f) => [f.path, f.content as string]),
+        )}
       />
     </Box>
   );

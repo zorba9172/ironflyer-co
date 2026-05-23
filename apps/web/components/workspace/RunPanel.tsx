@@ -4,10 +4,7 @@
 // timeline coming off the orchestrator's SSE stream, and surfaces gate
 // failures with an inline "Repair" action that triggers a repair run.
 //
-// All copy here matches the rest of the workspace shell language: Hebrew
-// where the surrounding page is Hebrew, English where English. The page
-// itself decides language via the `dir` prop on the parent; we keep our
-// strings short and explicit so they translate well in context.
+// Keep strings short and explicit so this panel is easy to localize later.
 
 import { useMemo, useState } from 'react';
 import {
@@ -50,12 +47,12 @@ export function RunPanel({ events, running, streamHealthy, onRun, onRepair, empt
 
         <Box sx={{ px: 1.8, pt: 0.8 }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 800, lineHeight: 1.2 }}>
-            {running ? 'מריצים את הגֵייטים…' : 'מוכן להריץ את הסבב'}
+            {running ? 'Running the gates...' : 'Ready for the next run'}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.4 }}>
             {running
-              ? 'הסוכן מתכנן, כותב, בודק ומתקן עד שכל הגֵייטים עוברים.'
-              : 'נריץ ספֵק → UX → קוד → בדיקות → אבטחה → דיפלוי. אם משהו נופל, נתקן ונחזור.'}
+              ? 'The agent plans, writes, tests, and repairs until every gate passes.'
+              : 'We run spec, UX, code, tests, security, and deploy gates. If something fails, the agent repairs it and loops.'}
           </Typography>
         </Box>
 
@@ -218,10 +215,10 @@ function EmptyState({ hint }: { hint?: string }) {
         <AutoAwesome fontSize="small" />
       </Box>
       <Typography variant="body2" sx={{ fontWeight: 700 }}>
-        עדיין אין פעילות
+        No activity yet
       </Typography>
       <Typography variant="caption" color="text.secondary" sx={{ maxWidth: 220 }}>
-        {hint ?? 'הריצו את ה־Finisher כדי לראות את הסוכן עובד בזמן אמת.'}
+        {hint ?? 'Run the Finisher to watch the agent work in real time.'}
       </Typography>
     </Stack>
   );
@@ -268,16 +265,16 @@ function computeProgress(events: RunEvent[]): { percent: number; failed: boolean
   const passed = events.filter((e) => e.kind === 'gate_passed').length;
   const failed = events.some((e) => e.kind === 'gate_failed' || e.kind === 'run_failed');
   const complete = events.some((e) => e.kind === 'run_complete');
-  // 8 gates total — match GATE_ORDER in the workspace shell.
-  const total = 8;
+  // 9 gates total — match GATE_ORDER in the workspace shell.
+  const total = 9;
   const percent = complete ? 100 : Math.min(100, Math.round((passed / total) * 100));
   const label = complete
-    ? 'הריצה הסתיימה — כל הגֵייטים עברו.'
+    ? 'Run complete. Every gate passed.'
     : failed
-      ? `${passed}/${total} עברו — נדרש תיקון.`
+      ? `${passed}/${total} passed. Repair required.`
       : passed === 0
-        ? 'הסוכן ממתין לקלט.'
-        : `${passed}/${total} עברו.`;
+        ? 'The agent is waiting for input.'
+        : `${passed}/${total} passed.`;
   return { percent, failed, label };
 }
 

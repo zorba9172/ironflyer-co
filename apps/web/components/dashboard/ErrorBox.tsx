@@ -5,10 +5,10 @@ import { ErrorOutline, Refresh } from '@mui/icons-material';
 import { tokens } from '../../lib/theme';
 
 export function ErrorBox({
-  title = 'משהו השתבש',
+  title = 'Something went wrong',
   description,
   onRetry,
-  retryLabel = 'נסה שוב',
+  retryLabel = 'Try again',
 }: {
   title?: string;
   description?: string;

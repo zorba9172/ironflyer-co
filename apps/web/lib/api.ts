@@ -132,6 +132,7 @@ export interface BrainstormOutcome {
 }
 
 import { auth } from './auth';
+import type { Patch } from './api/patches';
 
 const base = '/api/orchestrator';
 
@@ -172,6 +173,19 @@ export const api = {
   // SSE: EventSource can't set headers so we append ?token=<jwt>.
   streamURL: (id: string) => auth.appendTokenParam(`${base}/projects/${id}/stream`),
   chatURL:  (id: string) => `${base}/projects/${id}/chat`,
+  // Visual-edit hands a selector + instruction (+ optional screenshot) to
+  // the Coder agent. The orchestrator parses the response into a Patch and
+  // returns it ready for the existing PatchDrawer Apply flow.
+  visualEdit: (id: string, body: {
+    selector: string;
+    instruction: string;
+    screenshot?: string;
+    screenshotMediaType?: 'image/png' | 'image/jpeg' | 'image/webp';
+    path?: string;
+  }) =>
+    jsonFetch<Patch>(`/projects/${id}/visual-edit`, {
+      method: 'POST', body: JSON.stringify(body),
+    }),
   // budget
   listPlans: () => jsonFetch<Plan[]>('/budget/plans'),
   listRates: () => jsonFetch<Rate[]>('/budget/rates'),
@@ -203,9 +217,17 @@ export type ChatDelta =
 
 export type Effort = 'lite' | 'economy' | 'power';
 
+// ChatAttachment is one user-supplied image carried inline with the prompt.
+// `base64` is the raw image bytes, base64-encoded with no `data:` prefix —
+// the orchestrator rejects values that look like data URLs.
+export interface ChatAttachment {
+  mediaType: 'image/png' | 'image/jpeg' | 'image/webp' | 'image/gif';
+  base64: string;
+}
+
 export async function streamChat(
   projectId: string,
-  body: { prompt: string; role?: string; effort?: Effort },
+  body: { prompt: string; role?: string; effort?: Effort; attachments?: ChatAttachment[] },
   onDelta: (d: ChatDelta) => void,
   signal?: AbortSignal,
 ): Promise<void> {

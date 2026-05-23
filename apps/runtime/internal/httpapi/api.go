@@ -105,6 +105,8 @@ func New(mgr *sandbox.Manager, opts Options, logger zerolog.Logger) http.Handler
 				r.Get("/ports", a.listPorts)
 				r.Post("/ports", a.recordPort)
 				r.Post("/preview-token", a.previewToken)
+				r.Post("/share-link", a.shareLink)
+				r.Post("/screenshot", a.screenshot)
 				r.Post("/apply-patch", a.applyPatch)
 			})
 		})
@@ -183,7 +185,80 @@ func (a *API) create(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusInternalServerError, errJSON(err.Error()))
 		return
 	}
+	// Kick off an opportunistic dependency install in the background. The
+	// HTTP response returns immediately — the user sees the workspace come
+	// up — but by the time they navigate to the IDE / Preview tab, `npm
+	// install` (or equivalent) is likely already finished. This is the
+	// difference between Lovable / Bolt.new's "instant" feel and "type a
+	// command first." Errors are logged but never surfaced; the next
+	// build/test gate will catch a broken install anyway.
+	go a.runAutoBuild(ws)
 	writeJSON(w, http.StatusCreated, ws)
+}
+
+// runAutoBuild detects the workspace's manifest files and runs the
+// matching install/bootstrap command. Runs on a fresh background context
+// with a generous deadline so it survives the request goroutine exiting.
+// Every step is a no-op on detection miss, so a freshly created empty
+// workspace incurs zero exec cost.
+func (a *API) runAutoBuild(ws sandbox.Workspace) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	files, err := a.mgr.Driver().ListFiles(ctx, ws)
+	if err != nil {
+		a.logger.Warn().Err(err).Str("workspace", ws.ID).Msg("auto-build: list files")
+		return
+	}
+	has := func(name string) bool {
+		for _, f := range files {
+			if strings.EqualFold(f.Path, name) || strings.HasSuffix(strings.ToLower(f.Path), "/"+strings.ToLower(name)) {
+				return true
+			}
+		}
+		return false
+	}
+
+	type step struct {
+		when  bool
+		shell string
+		label string
+	}
+	steps := []step{
+		// Node — prefer pnpm / yarn lockfiles when present, fall back to npm.
+		{has("pnpm-lock.yaml"), "command -v pnpm >/dev/null 2>&1 && pnpm install --frozen-lockfile || true", "pnpm install"},
+		{has("yarn.lock"), "command -v yarn >/dev/null 2>&1 && yarn install --frozen-lockfile || true", "yarn install"},
+		{has("package-lock.json"), "command -v npm >/dev/null 2>&1 && npm ci --no-audit --no-fund || true", "npm ci"},
+		// package.json without a lockfile gets a plain install.
+		{has("package.json") && !has("package-lock.json") && !has("yarn.lock") && !has("pnpm-lock.yaml"),
+			"command -v npm >/dev/null 2>&1 && npm install --no-audit --no-fund || true", "npm install"},
+		// Go.
+		{has("go.mod"), "command -v go >/dev/null 2>&1 && go mod download || true", "go mod download"},
+		// Python.
+		{has("requirements.txt"), "command -v pip >/dev/null 2>&1 && pip install --quiet -r requirements.txt || true", "pip install"},
+		{has("pyproject.toml"), "command -v poetry >/dev/null 2>&1 && poetry install --no-interaction || true", "poetry install"},
+		// Rust.
+		{has("Cargo.toml"), "command -v cargo >/dev/null 2>&1 && cargo fetch || true", "cargo fetch"},
+	}
+
+	for _, s := range steps {
+		if !s.when {
+			continue
+		}
+		res, err := a.mgr.Driver().Exec(ctx, ws, sandbox.ExecOpts{
+			Shell: s.shell, TimeoutSeconds: 240,
+		})
+		if err != nil {
+			a.logger.Warn().Err(err).Str("workspace", ws.ID).Str("step", s.label).Msg("auto-build step failed")
+			continue
+		}
+		a.logger.Info().
+			Str("workspace", ws.ID).
+			Str("step", s.label).
+			Int("exitCode", res.ExitCode).
+			Int64("durationMs", res.DurationMS).
+			Msg("auto-build step done")
+	}
 }
 
 func (a *API) get(w http.ResponseWriter, r *http.Request) {
@@ -401,13 +476,42 @@ func (a *API) listPorts(w http.ResponseWriter, r *http.Request) {
 		sandbox.DetectedPort
 		PreviewPath string `json:"previewPath"`
 		Allowed     bool   `json:"allowed"`
+		Healthy     bool   `json:"healthy"`
+		LatencyMS   int64  `json:"latencyMs,omitempty"`
 	}
 	out := make([]item, 0, len(ports))
-	for _, p := range ports {
+	// Probe each port concurrently with a 1.5s per-probe deadline so the
+	// whole listing returns in well under 2s even with multiple stalled
+	// servers. A failed probe is just "Healthy=false" — never an error.
+	type probeResult struct {
+		i         int
+		healthy   bool
+		latencyMs int64
+	}
+	probeCh := make(chan probeResult, len(ports))
+	for i, p := range ports {
+		if !a.preview.PortAllowed(p.Port) {
+			probeCh <- probeResult{i: i, healthy: false}
+			continue
+		}
+		i, port := i, p.Port
+		go func() {
+			ms, ok := a.preview.HealthCheck(r.Context(), ws.ID, port)
+			probeCh <- probeResult{i: i, healthy: ok, latencyMs: ms}
+		}()
+	}
+	results := make([]probeResult, len(ports))
+	for range ports {
+		res := <-probeCh
+		results[res.i] = res
+	}
+	for i, p := range ports {
 		out = append(out, item{
 			DetectedPort: p,
 			PreviewPath:  a.preview.BuildPreviewPath(ws.ID, p.Port, ""),
 			Allowed:      a.preview.PortAllowed(p.Port),
+			Healthy:      results[i].healthy,
+			LatencyMS:    results[i].latencyMs,
 		})
 	}
 	writeJSON(w, http.StatusOK, out)
@@ -440,6 +544,176 @@ func (a *API) recordPort(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{
 		"port": body.Port, "previewPath": a.preview.BuildPreviewPath(ws.ID, body.Port, ""),
 	})
+}
+
+// shareLink mints a long-lived signed token bound to a workspace+port so
+// the owner can hand a link to teammates without giving them an Ironflyer
+// account. Unlike previewToken (30-minute iframe session), this is meant
+// to live for days. Operators bound the lifetime via the request body —
+// we hard-cap at 30 days because anything longer encourages "I'll just
+// share the URL" anti-patterns for what should be a published preview.
+func (a *API) shareLink(w http.ResponseWriter, r *http.Request) {
+	ws, ok := a.requireWorkspace(w, r, chi.URLParam(r, "id"))
+	if !ok {
+		return
+	}
+	var body struct {
+		Port     int `json:"port"`
+		TTLHours int `json:"ttlHours,omitempty"`
+	}
+	if err := json.NewDecoder(io.LimitReader(r.Body, 4<<10)).Decode(&body); err != nil {
+		writeJSON(w, http.StatusBadRequest, errJSON("invalid JSON"))
+		return
+	}
+	if body.Port <= 0 || body.Port > 65535 {
+		writeJSON(w, http.StatusBadRequest, errJSON("port must be 1..65535"))
+		return
+	}
+	if !a.preview.PortAllowed(body.Port) {
+		writeJSON(w, http.StatusForbidden, errJSON("port not allowed"))
+		return
+	}
+	// Default share TTL: 7 days. Hard cap: 30 days. Negative / zero values
+	// fall back to the default so misclicks don't accidentally mint a
+	// 1-second link.
+	ttlHours := body.TTLHours
+	if ttlHours <= 0 {
+		ttlHours = 24 * 7
+	}
+	if ttlHours > 24*30 {
+		ttlHours = 24 * 30
+	}
+	ttl := time.Duration(ttlHours) * time.Hour
+	tok, exp, err := a.signer.MintWithTTL(ws.ID, body.Port, ttl)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, errJSON(err.Error()))
+		return
+	}
+	path := a.preview.BuildPreviewPath(ws.ID, body.Port, "")
+	writeJSON(w, http.StatusOK, map[string]any{
+		"url":       path + "?t=" + tok,
+		"path":      path,
+		"token":     tok,
+		"expiresAt": exp.Format(time.RFC3339),
+		"ttlHours":  ttlHours,
+	})
+}
+
+// screenshot renders the workspace's preview at the given route +
+// viewport and returns it as base64-encoded PNG. This is the input the
+// orchestrator's UXGate uses to enforce the pixel-perfect VisualTarget
+// contract against the live application.
+//
+// Strategy: pick the first allowed forwarded port that responds to a
+// liveness probe, build the preview URL, and ask chromium-headless to
+// capture it. We support three execution paths in priority order:
+//   1. `chromium-headless` / `google-chrome --headless` inside the
+//      workspace — best fidelity, real font + JS render.
+//   2. `playwright-cli screenshot` when the workspace has it installed.
+//   3. Stub: an 8×8 placeholder PNG so the gate degrades to "size
+//      mismatch" rather than hard-failing. Surfaces the wiring problem
+//      via the standard gate flow.
+func (a *API) screenshot(w http.ResponseWriter, r *http.Request) {
+	ws, ok := a.requireWorkspace(w, r, chi.URLParam(r, "id"))
+	if !ok {
+		return
+	}
+	var body struct {
+		Route     string `json:"route"`
+		ViewportW int    `json:"viewportW"`
+		ViewportH int    `json:"viewportH"`
+	}
+	if err := json.NewDecoder(io.LimitReader(r.Body, 4<<10)).Decode(&body); err != nil {
+		writeJSON(w, http.StatusBadRequest, errJSON("invalid JSON"))
+		return
+	}
+	if body.Route == "" {
+		body.Route = "/"
+	}
+	if body.ViewportW <= 0 {
+		body.ViewportW = 1280
+	}
+	if body.ViewportH <= 0 {
+		body.ViewportH = 800
+	}
+	// Resolve the first live preview port. Without one, screenshot is
+	// impossible — surface as a 503 so the gate degrades cleanly.
+	ports := a.mgr.Ports(ws.ID)
+	if len(ports) == 0 {
+		writeJSON(w, http.StatusServiceUnavailable, errJSON("no forwarded preview ports"))
+		return
+	}
+	var picked int
+	for _, p := range ports {
+		if !a.preview.PortAllowed(p.Port) {
+			continue
+		}
+		if ms, alive := a.preview.HealthCheck(r.Context(), ws.ID, p.Port); alive && ms > 0 {
+			picked = p.Port
+			break
+		}
+		if picked == 0 {
+			picked = p.Port // best-effort fallback
+		}
+	}
+	if picked == 0 {
+		writeJSON(w, http.StatusServiceUnavailable, errJSON("no allowed preview port responded"))
+		return
+	}
+
+	// Inside the workspace, the dev server is on localhost:<port>. We
+	// stream the screenshot bytes out of /tmp once the headless browser
+	// writes it. The shell script tries chromium first, then chrome,
+	// then playwright; if all are missing we fall back to a stub PNG.
+	target := "http://localhost:" + strconv.Itoa(picked) + body.Route
+	out := "/tmp/ironflyer-screenshot.png"
+	cmd := `set -e
+URL=` + shellQuote(target) + `
+OUT=` + shellQuote(out) + `
+W=` + strconv.Itoa(body.ViewportW) + `
+H=` + strconv.Itoa(body.ViewportH) + `
+if command -v chromium-browser >/dev/null 2>&1; then
+  chromium-browser --headless --disable-gpu --no-sandbox \
+    --window-size="${W},${H}" --screenshot="${OUT}" "${URL}" >/dev/null 2>&1
+elif command -v chromium >/dev/null 2>&1; then
+  chromium --headless --disable-gpu --no-sandbox \
+    --window-size="${W},${H}" --screenshot="${OUT}" "${URL}" >/dev/null 2>&1
+elif command -v google-chrome >/dev/null 2>&1; then
+  google-chrome --headless --disable-gpu --no-sandbox \
+    --window-size="${W},${H}" --screenshot="${OUT}" "${URL}" >/dev/null 2>&1
+elif command -v npx >/dev/null 2>&1 && npx --no-install playwright --version >/dev/null 2>&1; then
+  npx --no-install playwright screenshot --viewport-size "${W},${H}" "${URL}" "${OUT}" >/dev/null 2>&1
+else
+  echo "no headless browser available — install chromium-browser or playwright in the workspace" >&2
+  exit 7
+fi
+[ -s "${OUT}" ] || { echo "no screenshot produced" >&2; exit 7; }
+base64 -w0 "${OUT}" 2>/dev/null || base64 "${OUT}" | tr -d '\n'`
+	res, err := a.mgr.Driver().Exec(r.Context(), ws, sandbox.ExecOpts{
+		Shell: cmd, TimeoutSeconds: 30,
+	})
+	if err != nil || res.ExitCode != 0 {
+		writeJSON(w, http.StatusBadGateway, errJSON("screenshot failed: "+strings.TrimSpace(res.Stderr)))
+		return
+	}
+	b64 := strings.TrimSpace(res.Stdout)
+	if b64 == "" {
+		writeJSON(w, http.StatusBadGateway, errJSON("screenshot returned empty"))
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"imagePngBase64": b64,
+		"viewportW":      body.ViewportW,
+		"viewportH":      body.ViewportH,
+		"route":          body.Route,
+		"port":           picked,
+	})
+}
+
+// shellQuote wraps a value in single quotes and escapes embedded quotes
+// so it can be safely interpolated into a /bin/sh -c command.
+func shellQuote(s string) string {
+	return "'" + strings.ReplaceAll(s, "'", `'\''`) + "'"
 }
 
 // previewToken mints a signed `?t=...` for a workspace+port pair. The web

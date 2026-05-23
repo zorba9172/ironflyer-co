@@ -20,8 +20,8 @@ export default function manifest(): MetadataRoute.Manifest {
     orientation: 'portrait',
     background_color: '#f4f0e8',
     theme_color: '#e5ff00',
-    lang: 'he-IL',
-    dir: 'rtl',
+    lang: 'en-US',
+    dir: 'ltr',
     categories: ['productivity', 'developer', 'business'],
     icons: [
       {

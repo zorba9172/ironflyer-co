@@ -42,7 +42,7 @@ export default function ProjectsAPIPage() {
       <CodeBlock language="json">{`{
   "name": "Revenue dashboard",
   "description": "Optional",
-  "idea": "A revenue dashboard for indie SaaS founders. Stripe + Postgres. Hebrew RTL."
+  "idea": "A revenue dashboard for indie SaaS founders. Stripe + Postgres. CSV export."
 }`}</CodeBlock>
 
       <h2 id="get">GET /projects/&#123;id&#125;</h2>
@@ -84,7 +84,7 @@ export default function ProjectsAPIPage() {
         <code>done</code>, <code>error</code>.
       </p>
       <CodeBlock language="json">{`{
-  "prompt": "Add a Hebrew RTL switch to the header.",
+  "prompt": "Add a compact settings panel to the header.",
   "role":   "coder",
   "effort": "economy"
 }`}</CodeBlock>

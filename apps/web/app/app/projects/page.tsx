@@ -14,17 +14,17 @@ import {
 } from '../../../components/dashboard';
 
 const filters = [
-  { value: 'all', label: 'הכל' },
-  { value: 'ready', label: 'מוכן' },
-  { value: 'running', label: 'בהרצה' },
-  { value: 'pending', label: 'ממתין' },
-  { value: 'failed', label: 'נכשל' },
+  { value: 'all', label: 'All' },
+  { value: 'ready', label: 'Ready' },
+  { value: 'running', label: 'Running' },
+  { value: 'pending', label: 'Pending' },
+  { value: 'failed', label: 'Failed' },
 ];
 
 const sorts = [
-  { value: 'updated', label: 'עודכן לאחרונה' },
-  { value: 'created', label: 'נוצר לאחרונה' },
-  { value: 'name', label: 'שם' },
+  { value: 'updated', label: 'Recently updated' },
+  { value: 'created', label: 'Recently created' },
+  { value: 'name', label: 'Name' },
 ];
 
 const PAGE_SIZE = 24;
@@ -93,7 +93,7 @@ function ProjectsInner() {
         .toLowerCase()
         .includes(debouncedQuery);
     });
-    if (sort === 'name') return [...list].sort((a, b) => a.name.localeCompare(b.name, 'he'));
+    if (sort === 'name') return [...list].sort((a, b) => a.name.localeCompare(b.name, 'en'));
     if (sort === 'created') return [...list].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
     return [...list].sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
   }, [filter, projects, debouncedQuery, sort]);
@@ -113,13 +113,13 @@ function ProjectsInner() {
       setView={setView}
     >
       <PageTitle
-        eyebrow="פרויקטים"
-        title="הפרויקטים שלך"
-        subtitle="כל האפליקציות שבנית במקום אחד. סנן לפי סטטוס, חפש, ופתח את הפרויקט הבא לפעולה."
+        eyebrow="Projects"
+        title="Your projects"
+        subtitle="Every app you are finishing in one place. Filter by status, search the workspace, and open the next project that needs action."
         action={
           <Stack direction="row" spacing={1}>
-            <Button component={Link} href="/app/resources" variant="outlined">תבניות</Button>
-            <Button component={Link} href="/app" variant="contained" startIcon={<Add />}>פרויקט חדש</Button>
+            <Button component={Link} href="/app/resources" variant="outlined">Templates</Button>
+            <Button component={Link} href="/app" variant="contained" startIcon={<Add />}>New project</Button>
           </Stack>
         }
       />
@@ -127,7 +127,7 @@ function ProjectsInner() {
       {error && (
         <Box sx={{ mb: 1.6 }}>
           <ErrorBox
-            title="לא הצלחנו לטעון את הפרויקטים"
+            title="Could not load projects"
             description={error}
             onRetry={() => void refresh()}
           />
@@ -137,7 +137,7 @@ function ProjectsInner() {
       <Surface sx={{ p: 1.2, mb: 1.8 }}>
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.2} alignItems={{ xs: 'stretch', md: 'center' }}>
           <TextField
-            placeholder="חיפוש לפי שם, תיאור, סטטוס..."
+            placeholder="Search by name, description, or status..."
             value={pageQuery}
             onChange={(e) => setPageQuery(e.target.value)}
             size="small"
@@ -161,7 +161,7 @@ function ProjectsInner() {
             ))}
           </Stack>
           <Stack direction="row" spacing={0.7} useFlexGap flexWrap="wrap" alignItems="center">
-            <Chip icon={<Sort fontSize="small" />} label="מיון" sx={{ borderRadius: '6px', bgcolor: 'transparent', color: '#686158' }} />
+            <Chip icon={<Sort fontSize="small" />} label="Sort" sx={{ borderRadius: '6px', bgcolor: 'transparent', color: '#686158' }} />
             {sorts.map((item) => (
               <Chip key={item.value} label={item.label} onClick={() => setSort(item.value)} sx={filterChipSx(sort === item.value)} />
             ))}
@@ -174,20 +174,20 @@ function ProjectsInner() {
       ) : projects.length === 0 ? (
         <EmptyState
           illustration="grid"
-          title="אין עדיין פרויקטים — תאר את האפליקציה הראשונה שלך"
-          description="התחל מתבנית מוכנה או מתאר חופשי בעברית. Ironflyer מקים את המרחב המלא בתוך דקה."
-          primaryLabel="פתח תיבת רעיון"
+          title="No projects yet. Describe the first product you want to ship."
+          description="Start from a template or a plain-English idea. Ironflyer will create the workspace and move the project through the finisher gates."
+          primaryLabel="Open prompt box"
           onPrimary={() => { window.location.href = '/app'; }}
           secondary={
-            <Button component={Link} href="/app/resources" variant="outlined">גלה תבניות</Button>
+            <Button component={Link} href="/app/resources" variant="outlined">Explore templates</Button>
           }
         />
       ) : filtered.length === 0 ? (
         <EmptyState
           illustration="empty"
-          title="אין פרויקטים תואמים לסינון"
-          description="נסה לנקות את החיפוש או לבחור סטטוס אחר."
-          primaryLabel="ניקוי סינון"
+          title="No projects match this filter"
+          description="Clear the search or choose another status."
+          primaryLabel="Clear filters"
           onPrimary={() => { setPageQuery(''); setFilter('all'); }}
         />
       ) : view === 'grid' ? (
@@ -203,7 +203,7 @@ function ProjectsInner() {
       {hasMore && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2.4 }}>
           <Button variant="outlined" onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}>
-            הצג עוד ({filtered.length - visible.length})
+            Show more ({filtered.length - visible.length})
           </Button>
         </Box>
       )}
@@ -228,7 +228,7 @@ function ProjectRow({ project }: { project: Project }) {
           <Stack direction="row" spacing={1} alignItems="center" justifyContent={{ xs: 'space-between', sm: 'flex-end' }}>
             <StatusPill kind={statusKindFromGate(project.status)} label={project.status || 'idle'} />
             <Typography variant="caption" sx={{ color: '#86807a', fontFamily: tokens.font.mono }}>
-              {new Date(project.updatedAt).toLocaleDateString('he-IL', { day: '2-digit', month: 'short' })}
+              {new Date(project.updatedAt).toLocaleDateString('en-US', { day: '2-digit', month: 'short' })}
             </Typography>
           </Stack>
         </Stack>

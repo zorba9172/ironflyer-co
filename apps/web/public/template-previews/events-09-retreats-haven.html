@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Haven Retreats — Designed offsites for distributed teams</title>
+  <meta name="description" content="Haven plans corporate offsites for distributed teams of 10–80. Five destinations, two facilitators, one calm point of contact through it all." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #faf5ec;
+      --paper: #f3ecda;
+      --paper-2: #ebe1c8;
+      --ink: #2b2620;
+      --ink-2: #5a4f42;
+      --ink-3: #9a8e7c;
+      --accent: #b6724d;
+      --accent-2: #8e5634;
+      --rule: rgba(43, 38, 32, 0.14);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg); color: var(--ink);
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 16px; line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 0 28px; }
+    .serif { font-family: 'Fraunces', Georgia, serif; }
+    .eyebrow { font-family: 'Fraunces', serif; font-style: italic; font-size: 17px; color: var(--accent); }
+
+    /* Nav */
+    .nav { padding: 24px 0; border-bottom: 1px solid var(--rule); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: flex; align-items: center; gap: 10px; font-family: 'Fraunces', serif; font-size: 26px; font-weight: 500; }
+    .brand .mark { width: 24px; height: 24px; background: var(--accent); border-radius: 50%; }
+    .nav-links { display: flex; gap: 32px; font-size: 14px; color: var(--ink-2); }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta { background: var(--ink); color: var(--bg); padding: 11px 22px; font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; border-radius: 999px; }
+    .nav-cta:hover { background: var(--accent); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 96px 0; }
+    .hero-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 72px; align-items: center; }
+    h1 {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(52px, 7vw, 92px);
+      line-height: 1; letter-spacing: -0.02em;
+      font-weight: 500; margin: 18px 0 28px;
+    }
+    h1 em { font-style: italic; color: var(--accent); }
+    .hero p.lede { font-family: 'Fraunces', serif; font-size: 21px; line-height: 1.45; color: var(--ink-2); max-width: 480px; }
+    .hero-cta { display: flex; gap: 12px; margin-top: 36px; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 15px 26px; font-weight: 600; font-size: 14px; border-radius: 999px; cursor: pointer; border: 1px solid transparent; }
+    .btn-primary { background: var(--ink); color: var(--bg); }
+    .btn-primary:hover { background: var(--accent); }
+    .btn-ghost { background: transparent; color: var(--ink); border-color: var(--ink); }
+    .btn-ghost:hover { background: var(--ink); color: var(--bg); }
+    .hero-meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; margin-top: 48px; padding-top: 32px; border-top: 1px solid var(--rule); }
+    .hero-meta strong { display: block; font-family: 'Fraunces', serif; font-size: 22px; font-weight: 500; }
+    .hero-meta span { font-size: 12px; color: var(--ink-3); letter-spacing: 0.06em; }
+    .hero-art { position: relative; }
+    .hero-art img.main { aspect-ratio: 5/4; object-fit: cover; border-radius: 8px; }
+    .hero-art img.over { position: absolute; bottom: -28px; right: -28px; width: 40%; aspect-ratio: 1/1; object-fit: cover; border-radius: 8px; border: 8px solid var(--bg); box-shadow: 0 18px 40px rgba(43, 38, 32, 0.15); }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 48px; } .hero-art img.over { width: 35%; right: 0; bottom: -16px; } }
+
+    /* Sections */
+    .section { padding: 96px 0; }
+    .section-head { max-width: 720px; margin-bottom: 56px; }
+    .section h2 { font-family: 'Fraunces', serif; font-size: clamp(36px, 5vw, 60px); font-weight: 500; line-height: 1.05; letter-spacing: -0.01em; margin: 12px 0 16px; }
+    .section h2 em { font-style: italic; color: var(--accent); }
+    .section .lede { font-family: 'Fraunces', serif; font-size: 19px; color: var(--ink-2); }
+
+    /* Approach */
+    .approach { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+    .ap { padding: 36px 32px; border-top: 1px solid var(--ink); }
+    .ap .icon { font-family: 'Fraunces', serif; font-style: italic; font-size: 36px; color: var(--accent); margin-bottom: 12px; }
+    .ap h3 { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 500; margin: 0 0 10px; }
+    .ap p { color: var(--ink-2); font-size: 15px; margin: 0; }
+    @media (max-width: 1080px) { .approach { grid-template-columns: 1fr; } }
+
+    /* Destinations */
+    .destinations { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .dest { position: relative; overflow: hidden; border-radius: 12px; aspect-ratio: 4/3; }
+    .dest img { width: 100%; height: 100%; object-fit: cover; transition: transform 500ms; }
+    .dest:hover img { transform: scale(1.04); }
+    .dest .label { position: absolute; left: 24px; right: 24px; bottom: 24px; background: var(--bg); padding: 20px 22px; border-radius: 8px; }
+    .dest h4 { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 500; margin: 0 0 4px; }
+    .dest .where { font-family: 'Fraunces', serif; font-style: italic; color: var(--accent); font-size: 14px; margin: 0 0 10px; }
+    .dest p { color: var(--ink-2); font-size: 14px; margin: 0; }
+    @media (max-width: 720px) { .destinations { grid-template-columns: 1fr; } }
+
+    /* Agenda sample */
+    .agenda-card { background: var(--paper); padding: 64px; border-radius: 24px; }
+    .agenda-card .head { display: flex; justify-content: space-between; align-items: end; margin-bottom: 36px; flex-wrap: wrap; gap: 24px; }
+    .agenda-card .head h3 { font-family: 'Fraunces', serif; font-size: 36px; font-weight: 500; margin: 0; }
+    .agenda-card .head p { color: var(--ink-2); font-size: 14px; margin: 0; }
+    .agenda-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    .ag-day h4 { font-family: 'Fraunces', serif; font-style: italic; color: var(--accent); font-size: 20px; margin: 0 0 14px; padding-bottom: 14px; border-bottom: 1px solid var(--rule); }
+    .ag-day .slot { padding: 12px 0; border-bottom: 1px dashed var(--rule); }
+    .ag-day .slot:last-child { border-bottom: none; }
+    .ag-day .time { font-size: 12px; color: var(--ink-3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; }
+    .ag-day .what { font-size: 14px; color: var(--ink); }
+    @media (max-width: 1080px) { .agenda-card { padding: 36px; } .agenda-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .agenda-grid { grid-template-columns: 1fr; } }
+
+    /* Team */
+    .team { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+    .member img { aspect-ratio: 4/5; object-fit: cover; border-radius: 8px; margin-bottom: 16px; }
+    .member h4 { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 500; margin: 0 0 4px; }
+    .member .role { font-family: 'Fraunces', serif; font-style: italic; color: var(--accent); font-size: 15px; margin: 0 0 12px; }
+    .member p { font-size: 14px; color: var(--ink-2); margin: 0; }
+    @media (max-width: 1080px) { .team { grid-template-columns: 1fr; max-width: 460px; margin: 0 auto; } }
+
+    /* Investment */
+    .invest { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border: 1px solid var(--ink); border-radius: 16px; overflow: hidden; }
+    .tier { padding: 40px 32px; border-right: 1px solid var(--rule); background: var(--bg); }
+    .tier:last-child { border-right: none; }
+    .tier h3 { font-family: 'Fraunces', serif; font-style: italic; font-size: 26px; font-weight: 500; margin: 0 0 8px; color: var(--accent); }
+    .tier .price { font-family: 'Fraunces', serif; font-size: 40px; font-weight: 500; margin: 8px 0 14px; line-height: 1; }
+    .tier .price small { font-size: 13px; font-family: 'Inter', sans-serif; color: var(--ink-3); }
+    .tier p { color: var(--ink-2); font-size: 14px; margin: 0 0 14px; min-height: 56px; }
+    .tier ul { list-style: none; padding: 0; margin: 0; }
+    .tier li { padding: 8px 0; font-size: 14px; color: var(--ink-2); border-bottom: 1px dashed var(--rule); }
+    .tier li:last-child { border-bottom: none; }
+    .tier li::before { content: '·'; color: var(--accent); font-weight: 700; margin-right: 8px; }
+    @media (max-width: 1080px) { .invest { grid-template-columns: 1fr; } .tier { border-right: none; border-bottom: 1px solid var(--rule); } }
+
+    /* Stories */
+    .stories { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+    .story { background: var(--paper); padding: 36px; border-radius: 16px; }
+    .story-quote { font-family: 'Fraunces', serif; font-style: italic; font-size: 22px; line-height: 1.4; color: var(--ink); margin: 0 0 18px; }
+    .story .who { font-size: 13px; color: var(--accent); font-weight: 600; letter-spacing: 0.06em; }
+    .story .meta { font-size: 12px; color: var(--ink-3); margin-top: 4px; letter-spacing: 0.04em; }
+    @media (max-width: 1080px) { .stories { grid-template-columns: 1fr; } }
+
+    /* Inquire */
+    .inquire { background: var(--ink); color: var(--bg); padding: 96px 0; }
+    .inquire h2 { color: var(--bg); }
+    .inquire h2 em { color: var(--paper); }
+    .inquire .lede { color: rgba(250, 245, 236, 0.8); }
+    .form { max-width: 720px; margin: 48px auto 0; display: grid; gap: 18px; }
+    .form .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form label { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(250, 245, 236, 0.6); display: block; margin-bottom: 6px; font-weight: 600; }
+    .form input, .form textarea, .form select { width: 100%; background: rgba(250, 245, 236, 0.07); border: 1px solid rgba(250, 245, 236, 0.15); color: var(--bg); padding: 14px 16px; font-family: inherit; font-size: 15px; border-radius: 8px; }
+    .form input:focus, .form textarea:focus, .form select:focus { outline: none; border-color: var(--accent); }
+    .form .submit { background: var(--accent); color: var(--bg); border: none; padding: 16px 28px; font-weight: 700; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; border-radius: 999px; cursor: pointer; justify-self: center; margin-top: 12px; }
+    .form .submit:hover { background: var(--accent-2); }
+    @media (max-width: 720px) { .form .row2 { grid-template-columns: 1fr; } }
+
+    /* FAQ */
+    .faq { max-width: 880px; margin: 0 auto; }
+    .qa { border-bottom: 1px solid var(--rule); padding: 22px 0; }
+    .qa h4 { margin: 0 0 8px; font-family: 'Fraunces', serif; font-size: 22px; font-weight: 500; }
+    .qa p { margin: 0; color: var(--ink-2); font-size: 16px; }
+
+    /* Footer */
+    footer { background: var(--ink); color: rgba(250, 245, 236, 0.75); padding: 36px 0 28px; }
+    .foot { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+    .foot .brand { color: var(--bg); }
+    @media (max-width: 720px) { .foot { flex-direction: column; gap: 10px; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#"><span class="mark"></span> Haven</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#approach">Approach</a>
+        <a href="#destinations">Destinations</a>
+        <a href="#agenda">Sample week</a>
+        <a href="#team">Team</a>
+        <a href="#invest">Investment</a>
+      </nav>
+      <a class="nav-cta" href="#inquire">Inquire →</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow">Designed offsites for distributed teams</span>
+            <h1>The week your team will <em>still talk about</em> in two years.</h1>
+            <p class="lede">Haven plans corporate retreats for distributed teams of ten to eighty. Five destinations we know by heart, two facilitators per trip, and one calm point of contact from inquiry to send-off.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#inquire">Plan a retreat</a>
+              <a class="btn btn-ghost" href="#destinations">See destinations</a>
+            </div>
+            <div class="hero-meta">
+              <div><strong>42</strong><span>RETREATS · 2025</span></div>
+              <div><strong>10–80</strong><span>TEAM SIZE</span></div>
+              <div><strong>5 days</strong><span>TYPICAL LENGTH</span></div>
+            </div>
+          </div>
+          <div class="hero-art">
+            <img class="main" src="https://picsum.photos/seed/retreats-haven-2/1100/880" width="1100" height="880" alt="A long communal dining table on a stone terrace overlooking a vineyard at golden hour, set for a team dinner." loading="eager" />
+            <img class="over" src="https://picsum.photos/seed/retreats-haven-3/600/600" width="600" height="600" alt="A close-up of a printed retreat agenda, a clay coffee cup, and a sprig of rosemary on a linen napkin." loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="approach">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Approach</span>
+          <h2>What we believe a good <em>offsite</em> does.</h2>
+          <p class="lede">An offsite is the most expensive week the company will run all year. It deserves more than a booked Airbnb and a Notion doc.</p>
+        </div>
+        <div class="approach">
+          <div class="ap">
+            <div class="icon">i.</div>
+            <h3>Slow programming</h3>
+            <p>Two long sessions a day, with real breaks between them. No 9-to-9 workshop blocks. The hallway is where the offsite actually happens.</p>
+          </div>
+          <div class="ap">
+            <div class="icon">ii.</div>
+            <h3>Real food, real rooms</h3>
+            <p>We do not book event hotels. We rent five private estates we have visited four times each, with kitchens we trust and rooms we have slept in.</p>
+          </div>
+          <div class="ap">
+            <div class="icon">iii.</div>
+            <h3>Two facilitators on site</h3>
+            <p>A program lead and a logistics lead are with you the whole week. The CEO does not run the offsite; the CEO attends it.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="destinations">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Destinations</span>
+          <h2>Five places we <em>know well</em>.</h2>
+          <p class="lede">We do not have a destination database. We have five properties we visit each year and refuse to outgrow.</p>
+        </div>
+        <div class="destinations">
+          <div class="dest">
+            <img src="https://picsum.photos/seed/retreats-haven-4/1200/900" width="1200" height="900" alt="A stone Tuscan farmhouse on a hillside surrounded by olive trees." loading="lazy" />
+            <div class="label">
+              <h4>Casa di Pietra</h4>
+              <p class="where">Val d'Orcia, Tuscany · 12–24 guests</p>
+              <p>A restored 17th-century farmhouse with private dining, an outdoor kitchen, and a swimming pool. Two cooks on site.</p>
+            </div>
+          </div>
+          <div class="dest">
+            <img src="https://picsum.photos/seed/retreats-haven-5/1200/900" width="1200" height="900" alt="A modern Scandinavian retreat house with a glass facade, surrounded by pine forest and a small lake." loading="lazy" />
+            <div class="label">
+              <h4>Skogr House</h4>
+              <p class="where">Sør-Aurdal, Norway · 18–32 guests</p>
+              <p>A 2019 timber lodge with sauna, lake swim, and a chef who used to cook at Maaemo. Five minutes from a private dock.</p>
+            </div>
+          </div>
+          <div class="dest">
+            <img src="https://picsum.photos/seed/retreats-haven-6/1200/900" width="1200" height="900" alt="A whitewashed Portuguese estate with terracotta tile roof and ocean view." loading="lazy" />
+            <div class="label">
+              <h4>Quinta do Vento</h4>
+              <p class="where">Alentejo, Portugal · 30–60 guests</p>
+              <p>A 14-room cork-oak estate with a meeting barn, indoor pool, and a wine cellar with a sommelier who lives on site.</p>
+            </div>
+          </div>
+          <div class="dest">
+            <img src="https://picsum.photos/seed/retreats-haven-7/1200/900" width="1200" height="900" alt="A modernist house on a cliff overlooking the Pacific coast." loading="lazy" />
+            <div class="label">
+              <h4>Sea Ranch House</h4>
+              <p class="where">Sonoma Coast, California · 24–48 guests</p>
+              <p>A 1972 Sea Ranch property with two meeting rooms, a saltwater pool, and a Pacific view that does not stop arguing.</p>
+            </div>
+          </div>
+          <div class="dest">
+            <img src="https://picsum.photos/seed/retreats-haven-8/1200/900" width="1200" height="900" alt="A restored kibbutz in northern Israel with desert landscaping and stone paths." loading="lazy" />
+            <div class="label">
+              <h4>Beit Hagalil</h4>
+              <p class="where">Upper Galilee, Israel · 20–40 guests</p>
+              <p>A repurposed kibbutz with private cabins, an organic kitchen, and morning runs through olive terraces.</p>
+            </div>
+          </div>
+          <div class="dest">
+            <img src="https://picsum.photos/seed/retreats-haven-9/1200/900" width="1200" height="900" alt="A Japanese ryokan-style guest house surrounded by cedar trees and a koi pond." loading="lazy" />
+            <div class="label">
+              <h4>Kuroyama Lodge</h4>
+              <p class="where">Kanazawa, Japan · 16–28 guests</p>
+              <p>A modern ryokan with eight onsen-style baths, a tatami meeting room, and a kaiseki kitchen.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="agenda">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">A sample week</span>
+          <h2>Five days, <em>paced</em>.</h2>
+          <p class="lede">A representative offsite for a 30-person product team. Every retreat is built from your team's actual goals, not a template.</p>
+        </div>
+        <div class="agenda-card">
+          <div class="head">
+            <h3>30-person product team, five days at Quinta do Vento.</h3>
+            <p>Two facilitators on site · arrival Monday, departure Friday.</p>
+          </div>
+          <div class="agenda-grid">
+            <div class="ag-day">
+              <h4>Monday — arrive</h4>
+              <div class="slot"><div class="time">15:00</div><div class="what">Arrivals from Lisbon, welcome drink, room check-in.</div></div>
+              <div class="slot"><div class="time">18:30</div><div class="what">Opening dinner outside, single long table, no slides.</div></div>
+              <div class="slot"><div class="time">21:30</div><div class="what">Free evening, fire pit, no programming.</div></div>
+            </div>
+            <div class="ag-day">
+              <h4>Tuesday — start</h4>
+              <div class="slot"><div class="time">09:00</div><div class="what">"Where are we?" session — 90 min, full team.</div></div>
+              <div class="slot"><div class="time">11:00</div><div class="what">Cross-functional pairs, walking 1:1s in the vineyard.</div></div>
+              <div class="slot"><div class="time">15:30</div><div class="what">Roadmap working session in small groups.</div></div>
+              <div class="slot"><div class="time">20:00</div><div class="what">Family-style dinner from the estate's kitchen.</div></div>
+            </div>
+            <div class="ag-day">
+              <h4>Wednesday — break</h4>
+              <div class="slot"><div class="time">08:30</div><div class="what">Optional morning run through the olive groves.</div></div>
+              <div class="slot"><div class="time">11:00</div><div class="what">Half-day off-site: cork harvest tour.</div></div>
+              <div class="slot"><div class="time">19:00</div><div class="what">Dinner in town at Herdade do Esporão.</div></div>
+            </div>
+            <div class="ag-day">
+              <h4>Thursday — decide</h4>
+              <div class="slot"><div class="time">09:00</div><div class="what">Working session on commitments, in tracks.</div></div>
+              <div class="slot"><div class="time">14:00</div><div class="what">Team-wide debrief and decisions, 90 min.</div></div>
+              <div class="slot"><div class="time">17:30</div><div class="what">Pool, sauna, free time before dinner.</div></div>
+              <div class="slot"><div class="time">20:00</div><div class="what">Closing dinner, a single toast each.</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="team">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">The team</span>
+          <h2>The <em>two</em> on the ground.</h2>
+          <p class="lede">Every retreat has a program lead and a logistics lead with you for the whole week. They are full-time staff, not contractors.</p>
+        </div>
+        <div class="team">
+          <div class="member"><img src="https://picsum.photos/seed/retreats-haven-10/700/875" width="700" height="875" alt="A portrait of Iris Castellano, program lead, in a navy linen blazer." loading="lazy" /><h4>Iris Castellano</h4><p class="role">Program lead · Co-founder</p><p>Twelve years at IDEO before Haven. Will read your team's last all-hands transcript before you talk.</p></div>
+          <div class="member"><img src="https://picsum.photos/seed/retreats-haven-11/700/875" width="700" height="875" alt="A portrait of Jonas Park, logistics lead, in a workroom with maps on the wall." loading="lazy" /><h4>Jonas Park</h4><p class="role">Logistics lead · Co-founder</p><p>Six years running events at Patagonia, four years independent. The reason flights, transfers, and hotels do not collide.</p></div>
+          <div class="member"><img src="https://picsum.photos/seed/retreats-haven-12/700/875" width="700" height="875" alt="A portrait of Mei Aoyama, retreat designer, smiling in a sunlit kitchen." loading="lazy" /><h4>Mei Aoyama</h4><p class="role">Retreat designer</p><p>Joined from Stripe's experience team in 2023. Writes the food story and the run-of-show with your CEO.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="invest">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Investment</span>
+          <h2>What it <em>costs</em>.</h2>
+          <p class="lede">Posted because the procurement team will ask. All packages include the program design, two facilitators on site, and venue management. Per-person lodging and travel are billed at cost.</p>
+        </div>
+        <div class="invest">
+          <div class="tier">
+            <h3>One-time</h3>
+            <div class="price">$28,000<small> · planning fee</small></div>
+            <p>A single five-day retreat. We design the program, manage the venue, and bring two facilitators.</p>
+            <ul>
+              <li>4 planning conversations</li>
+              <li>One venue scout call</li>
+              <li>Custom program design</li>
+              <li>Two facilitators on site</li>
+              <li>Vendor coordination</li>
+            </ul>
+          </div>
+          <div class="tier">
+            <h3>Annual</h3>
+            <div class="price">$58,000<small> · two retreats / year</small></div>
+            <p>The recurring engagement. Two five-day retreats a year, with a thread of work between them.</p>
+            <ul>
+              <li>Everything in One-time, ×2</li>
+              <li>Mid-year team pulse work</li>
+              <li>Calendar + venue lock by Jan 15</li>
+              <li>Preferred venue rates</li>
+              <li>10% discount on third retreat</li>
+            </ul>
+          </div>
+          <div class="tier">
+            <h3>In-house</h3>
+            <div class="price">Custom<small> · 50+ employees</small></div>
+            <p>For larger organizations running multiple offsites a year across regions. We embed a planner with your people team.</p>
+            <ul>
+              <li>Embedded retreat designer</li>
+              <li>Quarterly retreat cadence</li>
+              <li>Multi-region planning</li>
+              <li>Regional venue network</li>
+              <li>Internal training included</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">From past clients</span>
+          <h2>What teams said <em>after</em>.</h2>
+        </div>
+        <div class="stories">
+          <div class="story">
+            <p class="story-quote">"Haven planned the first offsite where I did not spend the whole week thinking about logistics. I actually talked to my team. We made one decision that has held for fifteen months."</p>
+            <div class="who">VP Engineering · Series-B fintech</div>
+            <div class="meta">36 people · 5 days at Sea Ranch House · 2024</div>
+          </div>
+          <div class="story">
+            <p class="story-quote">"We were nervous about taking 60 people to Portugal. They had thought through everything we forgot to think through. The hardest part was getting home."</p>
+            <div class="who">CEO · Distributed design studio</div>
+            <div class="meta">60 people · 5 days at Quinta do Vento · 2025</div>
+          </div>
+          <div class="story">
+            <p class="story-quote">"They did not over-program. There were two hours every day where I had no idea where my team was. That is the kind of trust I had not had in a vendor before."</p>
+            <div class="who">Chief of Staff · Public SaaS company</div>
+            <div class="meta">22 people · 4 days at Casa di Pietra · 2024</div>
+          </div>
+          <div class="story">
+            <p class="story-quote">"We have done three retreats with Haven now. The third was the best, because we trusted them to push us harder on what we were avoiding."</p>
+            <div class="who">Co-founder · Climate startup</div>
+            <div class="meta">18 people · 5 days at Skogr House · 2023, 2024, 2025</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="inquire" id="inquire">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow" style="color:var(--paper);">Inquire</span>
+        <h2>Tell us about <em>your team</em>.</h2>
+        <p class="lede">We answer every inquiry by hand within three business days. The first conversation is free, and so is the second.</p>
+      </div>
+      <form class="form" onsubmit="event.preventDefault();">
+        <div class="row2">
+          <div><label for="h-name">Your name</label><input id="h-name" type="text" placeholder="Iris Castellano" /></div>
+          <div><label for="h-email">Work email</label><input id="h-email" type="email" placeholder="you@company.com" /></div>
+        </div>
+        <div class="row2">
+          <div><label for="h-co">Company</label><input id="h-co" type="text" placeholder="Where do you work?" /></div>
+          <div><label for="h-size">Team size</label><input id="h-size" type="text" placeholder="Approximate, e.g. 32" /></div>
+        </div>
+        <div class="row2">
+          <div><label for="h-when">When</label><input id="h-when" type="text" placeholder="Spring 2026 · or specific dates" /></div>
+          <div><label for="h-where">Region preference</label><select id="h-where"><option>Europe</option><option>North America</option><option>Mediterranean</option><option>Asia</option><option>Open to suggestions</option></select></div>
+        </div>
+        <div>
+          <label for="h-note">A little about the team</label>
+          <textarea id="h-note" rows="4" placeholder="What does the team need from this week? What is the most important thing it would do?"></textarea>
+        </div>
+        <button class="submit" type="submit">Send inquiry</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="section" id="faq">
+    <div class="wrap">
+      <div class="section-head" style="text-align:center; margin: 0 auto 48px;">
+        <span class="eyebrow">FAQ</span>
+        <h2>Practical <em>answers</em>.</h2>
+      </div>
+      <div class="faq">
+        <div class="qa"><h4>How early should we reach out?</h4><p>Eight to twelve months for a five-day retreat at one of our five destinations. We have done four-month turns, but the destination is less likely to be one of our best.</p></div>
+        <div class="qa"><h4>Do you work outside your destinations?</h4><p>Once or twice a year, for an existing client. We do not take new clients into destinations we have not visited four times.</p></div>
+        <div class="qa"><h4>Do you handle travel?</h4><p>We coordinate with your existing travel program. We do not resell flights; we will tell you if your travel agency is the wrong fit.</p></div>
+        <div class="qa"><h4>What about partners and kids?</h4><p>It depends on the team and the destination. We have planned both partners-included and team-only retreats. We will be honest about which works for your group.</p></div>
+        <div class="qa"><h4>Refund policy?</h4><p>Half of the planning fee is non-refundable once we lock the venue. The rest is contingent on the timeline we publish in the contract. Force majeure clauses are clear and short.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap foot">
+      <div class="brand serif"><span class="mark" style="background:var(--accent); border-radius:50%; display:inline-block; width:22px; height:22px; vertical-align:middle; margin-right:8px;"></span> Haven Retreats</div>
+      <span>© 2026 Haven Retreats · Lisbon · hello@haven-retreats.com</span>
+    </div>
+  </footer>
+</body>
+</html>

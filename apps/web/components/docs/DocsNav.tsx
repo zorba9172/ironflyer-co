@@ -14,37 +14,33 @@ import { tokens } from '../../../../packages/design-tokens';
 
 export interface NavLink {
   label: string;
-  he?: string;
   href: string;
 }
 
 export interface NavGroup {
   label: string;
-  he?: string;
   links: NavLink[];
 }
 
 export const DOCS_NAV: NavGroup[] = [
   {
     label: 'Getting Started',
-    he: 'התחלה מהירה',
     links: [
-      { label: 'Quickstart', he: 'מדריך התחלה', href: '/docs/getting-started' },
+      { label: 'Quickstart', href: '/docs/getting-started' },
     ],
   },
   {
     label: 'Concepts',
-    he: 'מושגים',
     links: [
-      { label: 'Finisher Gates', he: 'שערי הגימור', href: '/docs/concepts/finisher-gates' },
-      { label: 'Patches', he: 'טלאים', href: '/docs/concepts/patches' },
-      { label: 'Budget', he: 'תקציב', href: '/docs/concepts/budget' },
-      { label: 'Runtime Sandbox', he: 'ארגז חול', href: '/docs/concepts/runtime-sandbox' },
+      { label: 'Finisher Gates', href: '/docs/concepts/finisher-gates' },
+      { label: 'Patches', href: '/docs/concepts/patches' },
+      { label: 'Budget', href: '/docs/concepts/budget' },
+      { label: 'Runtime Sandbox', href: '/docs/concepts/runtime-sandbox' },
+      { label: 'Tech stack', href: '/docs/concepts/tech-stack' },
     ],
   },
   {
     label: 'API Reference',
-    he: 'תיעוד API',
     links: [
       { label: 'Auth', href: '/docs/api/auth' },
       { label: 'Projects', href: '/docs/api/projects' },
@@ -57,17 +53,15 @@ export const DOCS_NAV: NavGroup[] = [
   },
   {
     label: 'SDK',
-    he: 'SDK',
     links: [
       { label: '@ironflyer/sdk', href: '/docs/sdk' },
     ],
   },
   {
     label: 'Clients',
-    he: 'לקוחות',
     links: [
-      { label: 'VSCode Extension', he: 'תוסף VSCode', href: '/docs/vscode-extension' },
-      { label: 'CLI', he: 'שורת פקודה', href: '/docs/cli' },
+      { label: 'VSCode Extension', href: '/docs/vscode-extension' },
+      { label: 'CLI', href: '/docs/cli' },
     ],
   },
 ];
@@ -103,11 +97,6 @@ function NavGroupBlock({ group, pathname }: { group: NavGroup; pathname: string 
           }}
         >
           {group.label}
-          {group.he ? (
-            <Box component="span" sx={{ color: '#999', ml: 1, fontWeight: 500 }}>
-              {group.he}
-            </Box>
-          ) : null}
         </Typography>
         {open ? (
           <ExpandLessIcon sx={{ fontSize: 16, color: '#999' }} />
@@ -172,7 +161,7 @@ export function DocsNav() {
           </Typography>
         </Link>
         <Typography sx={{ color: '#77736b', fontSize: 12.5 }}>
-          תיעוד מלא · Ironflyer Platform
+          Full documentation · Ironflyer Platform
         </Typography>
       </Stack>
       {DOCS_NAV.map((g) => (

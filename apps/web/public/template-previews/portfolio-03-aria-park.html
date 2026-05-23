@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Aria Park — Documentary photography</title>
+  <meta name="description" content="Aria Park is a documentary photographer working in light, distance, and restraint. Long-form essays from the coastal Pacific, Iceland, and the American interior." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f3eee5;
+      --paper: #ebe4d4;
+      --ink: #000000;
+      --ink-2: #2c2a26;
+      --ink-3: #75726a;
+      --rule: rgba(0, 0, 0, 0.14);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      font-size: 14px; line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1340px; margin: 0 auto; padding: 0 40px; }
+    .serif { font-family: 'Cormorant Garamond', 'Times New Roman', serif; font-weight: 400; }
+
+    /* Nav */
+    .nav {
+      padding: 28px 0;
+      border-bottom: 1px solid var(--rule);
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(243, 238, 229, 0.94);
+      backdrop-filter: blur(8px);
+    }
+    .nav-inner {
+      display: grid; grid-template-columns: 1fr auto 1fr; align-items: baseline; gap: 24px;
+    }
+    .brand {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 400; font-size: 24px;
+      letter-spacing: 0.02em;
+    }
+    .nav-mid {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.24em;
+      color: var(--ink-3); text-align: center;
+    }
+    .nav-links {
+      display: flex; gap: 24px; justify-content: flex-end;
+      font-size: 12px; text-transform: uppercase; letter-spacing: 0.16em;
+      color: var(--ink-2);
+    }
+    .nav-links a:hover { color: var(--ink); }
+    @media (max-width: 720px) {
+      .nav-inner { grid-template-columns: 1fr 1fr; }
+      .nav-mid { display: none; }
+    }
+
+    /* Hero */
+    .hero { padding: 56px 0 96px; }
+    .hero-image {
+      width: 100%; aspect-ratio: 16/10; overflow: hidden;
+      background: var(--paper);
+    }
+    .hero-image img { width: 100%; height: 100%; object-fit: cover; }
+    .hero-caption {
+      display: grid; grid-template-columns: 1fr auto; gap: 24px;
+      padding: 18px 4px 0; align-items: baseline;
+    }
+    .hero-caption .title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px; font-weight: 400; letter-spacing: 0.01em;
+    }
+    .hero-caption .meta {
+      font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.14em;
+    }
+    .hero-statement {
+      max-width: 64ch; margin: 96px auto 0;
+      text-align: center;
+    }
+    .hero-statement h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: clamp(32px, 4.5vw, 48px);
+      line-height: 1.2; letter-spacing: -0.005em;
+      margin: 0 0 20px;
+    }
+    .hero-statement p {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 19px; line-height: 1.5; color: var(--ink-2);
+      margin: 0;
+    }
+
+    /* Section title */
+    .section { padding: 80px 0; border-top: 1px solid var(--rule); }
+    .section-head {
+      display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 24px;
+      padding-bottom: 56px; align-items: baseline;
+    }
+    .section-head .num { font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--ink-3); }
+    .section-head h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(28px, 3.6vw, 40px);
+      letter-spacing: 0.005em; font-weight: 400; margin: 0;
+      text-align: center;
+    }
+    .section-head .right { font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--ink-3); text-align: right; }
+    @media (max-width: 720px) {
+      .section-head { grid-template-columns: 1fr; text-align: center; }
+      .section-head .right { text-align: center; }
+    }
+
+    /* Series */
+    .series { display: grid; grid-template-columns: 1fr; gap: 96px; }
+    .series-item .images { display: grid; grid-template-columns: 5fr 4fr; gap: 16px; }
+    .series-item .images > div:first-child img { aspect-ratio: 5/7; }
+    .series-item .images > div:last-child img { aspect-ratio: 4/5; }
+    .series-item .images img { width: 100%; object-fit: cover; }
+    .series-item.alt .images { grid-template-columns: 4fr 5fr; }
+    .series-item.alt .images > div:first-child img { aspect-ratio: 4/5; }
+    .series-item.alt .images > div:last-child img { aspect-ratio: 5/7; }
+    .series-info { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-top: 20px; align-items: baseline; }
+    .series-info .meta { font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--ink-3); }
+    .series-info .title {
+      font-family: 'Cormorant Garamond', serif; font-size: 24px; letter-spacing: 0.005em;
+      text-align: center; font-weight: 400;
+    }
+    .series-info .desc {
+      font-size: 13px; color: var(--ink-2); text-align: right; max-width: 36ch; margin-left: auto;
+    }
+    @media (max-width: 1080px) {
+      .series-item .images, .series-item.alt .images { grid-template-columns: 1fr; }
+      .series-info { grid-template-columns: 1fr; gap: 8px; text-align: left; }
+      .series-info .title, .series-info .desc { text-align: left; margin-left: 0; }
+    }
+
+    /* Single image full bleed */
+    .single {
+      background: var(--paper);
+      padding: 64px 0;
+    }
+    .single-wrap { max-width: 1400px; margin: 0 auto; padding: 0 40px; }
+    .single img { width: 100%; aspect-ratio: 3/2; object-fit: cover; }
+    .single-caption {
+      max-width: 56ch; margin: 32px auto 0;
+      text-align: center;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px; color: var(--ink-2); line-height: 1.55;
+    }
+    .single-caption em { font-style: italic; }
+
+    /* Bio */
+    .bio-grid { display: grid; grid-template-columns: 1fr 1.4fr; gap: 80px; align-items: start; }
+    .bio-portrait img { width: 100%; aspect-ratio: 4/5; object-fit: cover; }
+    .bio-body { font-family: 'Cormorant Garamond', serif; font-size: 19px; color: var(--ink-2); line-height: 1.6; }
+    .bio-body p { margin: 0 0 18px; }
+    .bio-body p:first-child::first-letter {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 400; font-size: 52px;
+      float: left; line-height: 0.9; padding: 6px 8px 0 0;
+    }
+    @media (max-width: 1080px) {
+      .bio-grid { grid-template-columns: 1fr; gap: 32px; }
+    }
+
+    /* Exhibitions */
+    .listing { display: grid; grid-template-columns: 1fr; }
+    .listing-row {
+      display: grid; grid-template-columns: 80px 1fr 1fr 1fr;
+      gap: 24px; padding: 18px 0;
+      border-top: 1px solid var(--rule);
+      align-items: baseline;
+      font-size: 13px;
+    }
+    .listing-row:last-child { border-bottom: 1px solid var(--rule); }
+    .listing-row .year { color: var(--ink-3); }
+    .listing-row .title { font-family: 'Cormorant Garamond', serif; font-size: 19px; color: var(--ink); }
+    .listing-row .title em { font-style: italic; }
+    .listing-row .place { color: var(--ink-2); }
+    .listing-row .kind { font-size: 11px; text-transform: uppercase; letter-spacing: 0.16em; color: var(--ink-3); text-align: right; }
+    @media (max-width: 720px) {
+      .listing-row { grid-template-columns: 60px 1fr; }
+      .listing-row .place, .listing-row .kind { display: none; }
+    }
+
+    /* Press */
+    .press { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+    .press-item { padding-top: 24px; border-top: 1px solid var(--rule); }
+    .press-item .pub { font-size: 11px; text-transform: uppercase; letter-spacing: 0.16em; color: var(--ink-3); }
+    .press-item blockquote {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px; line-height: 1.4; color: var(--ink);
+      margin: 14px 0 12px; font-style: italic; font-weight: 300;
+    }
+    .press-item .by { font-size: 12px; color: var(--ink-2); }
+    @media (max-width: 1080px) { .press { grid-template-columns: 1fr; } }
+
+    /* Contact */
+    .contact { padding: 128px 0; text-align: center; }
+    .contact h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(32px, 4vw, 44px);
+      font-weight: 300; margin: 0 0 24px;
+    }
+    .contact .email {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 30px; font-weight: 400; font-style: italic;
+      border-bottom: 1px solid var(--ink); padding-bottom: 6px;
+    }
+    .contact .rep {
+      margin-top: 40px; font-size: 12px; color: var(--ink-3);
+      text-transform: uppercase; letter-spacing: 0.18em;
+    }
+
+    /* Footer */
+    footer { border-top: 1px solid var(--rule); padding: 32px 0; }
+    .foot {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; align-items: baseline;
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--ink-3);
+    }
+    .foot .mid { text-align: center; }
+    .foot .right { text-align: right; }
+    .foot a:hover { color: var(--ink); }
+    @media (max-width: 720px) {
+      .foot { grid-template-columns: 1fr; text-align: center; }
+      .foot .right, .foot .mid { text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">Aria Park</a>
+      <span class="nav-mid">Documentary photography · est. 2014</span>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#series">Series</a>
+        <a href="#bio">Bio</a>
+        <a href="#exhibitions">Exhibitions</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <figure class="hero-image">
+          <img src="https://picsum.photos/seed/aria-park-1/1800/1125" width="1800" height="1125" alt="A coastal fog settling over a dark headland at dawn, photographed from a distance." loading="eager" />
+        </figure>
+        <div class="hero-caption">
+          <span class="title">From <em>Distance, in Three Lights</em></span>
+          <span class="meta">Cape Reinga · 04:42 · 2024</span>
+        </div>
+
+        <div class="hero-statement">
+          <h1>Photographs of what is patient enough to be seen.</h1>
+          <p>I work with available light, long lenses, and a small amount of patience. Most of what's here was made between three and six in the morning, somewhere I had to walk to.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="series">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="num">01 · Series</span>
+          <h2>Selected long-form work</h2>
+          <span class="right">2019 — 2026</span>
+        </div>
+
+        <div class="series">
+          <article class="series-item">
+            <div class="images">
+              <div><img src="https://picsum.photos/seed/aria-park-s1a/900/1260" width="900" height="1260" alt="A grey ocean dissolving into mist, photographed from a beach." loading="lazy" /></div>
+              <div><img src="https://picsum.photos/seed/aria-park-s1b/900/1125" width="900" height="1125" alt="A line of small fishing huts on the Pacific coast." loading="lazy" /></div>
+            </div>
+            <div class="series-info">
+              <span class="meta">2024 · 32 plates</span>
+              <h3 class="title">Distance, in Three Lights</h3>
+              <p class="desc">Three coastlines, each photographed only at the hour the light flattens. Made on a 6×7 over eleven months.</p>
+            </div>
+          </article>
+
+          <article class="series-item alt">
+            <div class="images">
+              <div><img src="https://picsum.photos/seed/aria-park-s2a/900/1125" width="900" height="1125" alt="A volcanic plain in Iceland, low horizon, slate sky." loading="lazy" /></div>
+              <div><img src="https://picsum.photos/seed/aria-park-s2b/900/1260" width="900" height="1260" alt="A lone figure walking along a black sand road." loading="lazy" /></div>
+            </div>
+            <div class="series-info">
+              <span class="meta">2022 · 24 plates</span>
+              <h3 class="title">Slowmade</h3>
+              <p class="desc">Six weeks in southern Iceland with one lens and a notebook. The work is about waiting more than walking.</p>
+            </div>
+          </article>
+
+          <article class="series-item">
+            <div class="images">
+              <div><img src="https://picsum.photos/seed/aria-park-s3a/900/1260" width="900" height="1260" alt="A wheat field at midday, a single windbreak of cottonwoods on the horizon." loading="lazy" /></div>
+              <div><img src="https://picsum.photos/seed/aria-park-s3b/900/1125" width="900" height="1125" alt="A grain silo and an empty road, photographed from across a section line." loading="lazy" /></div>
+            </div>
+            <div class="series-info">
+              <span class="meta">2021 · 41 plates</span>
+              <h3 class="title">The Section Lines</h3>
+              <p class="desc">A long drive through the American interior, photographed only at the intersections. A book is in proofs with Studio Trail.</p>
+            </div>
+          </article>
+
+          <article class="series-item alt">
+            <div class="images">
+              <div><img src="https://picsum.photos/seed/aria-park-s4a/900/1125" width="900" height="1125" alt="An interior with a single window of pale daylight." loading="lazy" /></div>
+              <div><img src="https://picsum.photos/seed/aria-park-s4b/900/1260" width="900" height="1260" alt="A still life with two pears, photographed in raking light." loading="lazy" /></div>
+            </div>
+            <div class="series-info">
+              <span class="meta">2019 · 18 plates</span>
+              <h3 class="title">Two Pears, One Room</h3>
+              <p class="desc">A small set, made indoors during a winter I couldn't travel. The first work I sold to a museum.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="single" aria-label="Featured single image">
+      <div class="single-wrap">
+        <img src="https://picsum.photos/seed/aria-park-single/1800/1200" width="1800" height="1200" alt="A wide grey ocean with a single dark vessel near the horizon, photographed in low light." loading="lazy" />
+        <p class="single-caption"><em>"Untitled (vessel, leaving)"</em> · gelatin silver, 2023 · in the permanent collection at the Trail Foundation.</p>
+      </div>
+    </section>
+
+    <section class="section" id="bio">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="num">02 · Bio</span>
+          <h2>A short paragraph and a working address</h2>
+          <span class="right">b. 1989 · Auckland</span>
+        </div>
+
+        <div class="bio-grid">
+          <div class="bio-portrait">
+            <img src="https://picsum.photos/seed/aria-park-portrait/900/1125" width="900" height="1125" alt="A portrait of Aria Park standing in front of a contact sheet wall in her studio." loading="lazy" />
+          </div>
+          <div class="bio-body">
+            <p>I was born in Auckland and trained in photography at the Whitecliffe College of Arts. I've spent the last decade working in long-form documentary, mostly outside cities. The work has been shown at the Trail Foundation, the Northbeam Gallery in Brussels, and the Field & Format pavilion at the 2024 Biennale.</p>
+            <p>I work slowly on purpose. A series will usually take me eighteen months to call finished, and I print everything myself, in a small darkroom in Devonport. Books are made with Studio Trail and Hangar 12 Press; commissions are taken once a year and only for work I can shoot on film.</p>
+            <p>If you'd like to see a portfolio in person, I keep working prints in the studio and can usually arrange a visit by appointment.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="exhibitions">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="num">03 · Exhibitions</span>
+          <h2>Selected exhibitions and acquisitions</h2>
+          <span class="right">2019 — 2026</span>
+        </div>
+
+        <div class="listing">
+          <div class="listing-row"><span class="year">2026</span><span class="title"><em>Distance, in Three Lights</em></span><span class="place">Trail Foundation, Sydney</span><span class="kind">Solo</span></div>
+          <div class="listing-row"><span class="year">2025</span><span class="title"><em>Coastal Patience</em></span><span class="place">Bureau Verso, Antwerp</span><span class="kind">Group</span></div>
+          <div class="listing-row"><span class="year">2024</span><span class="title"><em>Slowmade</em></span><span class="place">Field & Format, Reykjavík</span><span class="kind">Solo</span></div>
+          <div class="listing-row"><span class="year">2024</span><span class="title"><em>The Biennale of Distance</em></span><span class="place">Pavilion 9, Venice</span><span class="kind">Group</span></div>
+          <div class="listing-row"><span class="year">2023</span><span class="title">Acquisition · "Untitled (vessel, leaving)"</span><span class="place">Trail Foundation</span><span class="kind">Permanent</span></div>
+          <div class="listing-row"><span class="year">2022</span><span class="title"><em>The Section Lines</em></span><span class="place">Hangar 12, Berlin</span><span class="kind">Solo</span></div>
+          <div class="listing-row"><span class="year">2021</span><span class="title"><em>Two Pears, One Room</em></span><span class="place">Northbeam Gallery, Brussels</span><span class="kind">Two-person</span></div>
+          <div class="listing-row"><span class="year">2019</span><span class="title">First Light Prize, shortlisted</span><span class="place">Pivot House, Melbourne</span><span class="kind">Award</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="press">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="num">04 · Press</span>
+          <h2>A few words from the catalogues</h2>
+          <span class="right">2021 — 2026</span>
+        </div>
+        <div class="press">
+          <div class="press-item">
+            <span class="pub">Field & Format · 2026</span>
+            <blockquote>"Park makes photographs the way a translator works on a difficult line: nothing is moved until the meaning survives."</blockquote>
+            <span class="by">— Pia Lorente, catalogue essay</span>
+          </div>
+          <div class="press-item">
+            <span class="pub">The Trail Review · 2024</span>
+            <blockquote>"A document of patience. The camera is not the subject. Neither is the place. The subject is the willingness to wait."</blockquote>
+            <span class="by">— Sarah Choi, reviews editor</span>
+          </div>
+          <div class="press-item">
+            <span class="pub">Atlas Quarterly · 2022</span>
+            <blockquote>"The contact sheets show twenty exposures for every print she keeps. The discipline is the point."</blockquote>
+            <span class="by">— Marko Lin, on visiting the darkroom</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="contact" id="contact">
+      <div class="wrap">
+        <h2>For prints, books, or studio visits</h2>
+        <a class="email" href="mailto:studio@ariapark.photo">studio@ariapark.photo</a>
+        <p class="rep">Represented by Studio Trail · Sydney, Berlin, Auckland</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap foot">
+      <span>© 2026 Aria Park</span>
+      <span class="mid">Devonport Studio · By appointment</span>
+      <span class="right"><a href="#">Mailing list</a> · <a href="#">Instagram</a></span>
+    </div>
+  </footer>
+</body>
+</html>

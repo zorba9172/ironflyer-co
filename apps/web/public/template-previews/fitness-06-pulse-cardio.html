@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pulse — HIIT &amp; cardio programmed by heart-rate zones</title>
+  <meta name="description" content="A 50-minute HIIT and cardio studio in Austin. Heart-rate zones on the wall, certified coaches on the floor, and a real strength rack in the back." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0b1736;
+      --surface: #131f43;
+      --surface-2: #1c2a55;
+      --border: rgba(238,244,255,0.10);
+      --border-strong: rgba(238,244,255,0.24);
+      --fg: #eef4ff;
+      --fg-2: #a3b1d1;
+      --fg-3: #6d7a9b;
+      --accent: #00b3ff;
+      --accent-2: #ffd84d;
+      --danger: #ff4d6d;
+      --green: #2eff9c;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--fg); font-family: 'Inter', system-ui, sans-serif; line-height: 1.55; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1220px; margin: 0 auto; padding: 0 24px; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .cnd { font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.005em; }
+
+    .nav { position: sticky; top: 0; z-index: 50; background: rgba(11,23,54,0.86); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 70px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 24px; text-transform: uppercase; letter-spacing: 0.02em; }
+    .brand-mark { width: 30px; height: 30px; background: var(--accent); border-radius: 6px; display: grid; place-items: center; color: var(--bg); font-weight: 900; font-family: 'JetBrains Mono', monospace; }
+    .nav-links { display: flex; gap: 28px; color: var(--fg-2); font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .nav-links a:hover { color: var(--fg); }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 22px; border-radius: 6px; font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer; border: 1px solid transparent; transition: transform 160ms; }
+    .btn-primary { background: var(--accent); color: var(--bg); }
+    .btn-primary:hover { transform: translateY(-1px); }
+    .btn-ghost { background: transparent; color: var(--fg); border-color: var(--border-strong); }
+    .btn-ghost:hover { border-color: var(--fg); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    .hero { position: relative; padding: 80px 0 56px; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; inset: 0; background:
+      radial-gradient(circle at 80% 20%, rgba(0,179,255,0.18), transparent 50%),
+      radial-gradient(circle at 10% 90%, rgba(255,77,109,0.10), transparent 60%);
+      pointer-events: none; }
+    .hero-grid { position: relative; display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 56px; align-items: center; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border: 1px solid var(--border-strong); border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--fg-2); }
+    .eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+    h1 { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: clamp(56px, 9vw, 128px); line-height: 0.92; letter-spacing: 0.005em; margin: 16px 0 22px; text-transform: uppercase; }
+    h1 em { font-style: normal; color: var(--accent); }
+    .lede { font-size: 18px; color: var(--fg-2); max-width: 520px; }
+    .hero-cta { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
+    .hero-art { position: relative; }
+    .hero-art img { width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 12px; }
+    .hr-card { position: absolute; bottom: -28px; right: -28px; background: var(--surface); border: 1px solid var(--border-strong); border-radius: 12px; padding: 18px 22px; min-width: 220px; box-shadow: 0 20px 60px rgba(0,179,255,0.25); }
+    .hr-card .label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.1em; }
+    .hr-card .v { font-family: 'Barlow Condensed', sans-serif; font-size: 56px; font-weight: 800; color: var(--accent); line-height: 1; }
+    .hr-card .v small { font-size: 16px; color: var(--fg-2); font-weight: 600; margin-left: 4px; }
+    .hr-card .bars { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 12px; }
+    .hr-card .bars span { height: 6px; border-radius: 2px; background: var(--surface-2); }
+    .hr-card .bars span.on { background: var(--accent); }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; } .hr-card { right: 16px; bottom: 16px; } }
+
+    .section { padding: 96px 0; }
+    .section h2 { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: clamp(40px, 6vw, 76px); line-height: 0.96; letter-spacing: 0.01em; margin: 12px 0 18px; text-transform: uppercase; }
+    .section h2 em { font-style: normal; color: var(--accent); }
+    .section-head { max-width: 700px; margin-bottom: 56px; }
+
+    .zones { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; background: var(--surface); border: 1px solid var(--border); padding: 18px; border-radius: 12px; }
+    .zone { padding: 22px; border-radius: 8px; color: var(--bg); }
+    .zone.z1 { background: #6cd4ff; }
+    .zone.z2 { background: #2eff9c; }
+    .zone.z3 { background: #ffd84d; color: var(--bg); }
+    .zone.z4 { background: #ff8a3a; color: var(--bg); }
+    .zone.z5 { background: var(--danger); color: var(--fg); }
+    .zone .n { font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.8; }
+    .zone .pct { font-family: 'Barlow Condensed', sans-serif; font-size: 44px; font-weight: 800; line-height: 1; margin: 6px 0 8px; }
+    .zone .name { font-weight: 700; font-size: 15px; }
+    .zone p { font-size: 13px; margin: 8px 0 0; opacity: 0.85; }
+    @media (max-width: 1080px) { .zones { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .zones { grid-template-columns: 1fr; } }
+
+    .classes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .class { background: var(--surface); border: 1px solid var(--border); padding: 32px; border-radius: 12px; }
+    .class .tag { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; }
+    .class h3 { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 36px; margin: 6px 0 10px; line-height: 1; text-transform: uppercase; letter-spacing: 0.01em; }
+    .class p { color: var(--fg-2); font-size: 14px; }
+    .class .row { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.08em; }
+    @media (max-width: 1080px) { .classes { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .classes { grid-template-columns: 1fr; } }
+
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .metric { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 32px 28px; }
+    .metric .v { font-family: 'Barlow Condensed', sans-serif; font-size: clamp(48px, 6vw, 72px); font-weight: 800; line-height: 1; color: var(--accent); letter-spacing: 0.01em; }
+    .metric .l { color: var(--fg-2); font-size: 13px; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.08em; font-family: 'JetBrains Mono', monospace; }
+    @media (max-width: 720px) { .metrics { grid-template-columns: 1fr 1fr; } }
+
+    .schedule { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .sch-head { display: grid; grid-template-columns: 80px repeat(6, 1fr); padding: 18px 22px; border-bottom: 1px solid var(--border); background: var(--surface-2); font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-3); }
+    .sch-row { display: grid; grid-template-columns: 80px repeat(6, 1fr); padding: 14px 22px; border-bottom: 1px solid var(--border); align-items: center; gap: 8px; }
+    .sch-row:last-child { border-bottom: 0; }
+    .sch-row .t { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--accent); font-size: 13px; }
+    .cls { font-size: 13px; padding: 6px 10px; border-radius: 6px; background: rgba(0,179,255,0.10); color: var(--fg); font-weight: 600; }
+    .cls.b { background: rgba(46,255,156,0.10); }
+    .cls.c { background: rgba(255,77,109,0.10); }
+    .cls.empty { color: var(--fg-3); background: transparent; }
+    @media (max-width: 1080px) { .sch-head { display: none; } .sch-row { grid-template-columns: 60px 1fr; row-gap: 6px; padding: 14px 16px; } .cls.empty { display: none; } .cls { grid-column: 2 / 3; } .sch-row .t { grid-column: 1 / 2; } }
+
+    .coaches { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .coach { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .coach img { width: 100%; aspect-ratio: 4/5; object-fit: cover; }
+    .coach .body { padding: 22px; }
+    .coach h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 800; margin: 0 0 4px; text-transform: uppercase; letter-spacing: 0.01em; }
+    .coach .role { color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; }
+    .coach p { color: var(--fg-2); font-size: 14px; margin: 10px 0 0; }
+    @media (max-width: 1080px) { .coaches { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; } }
+
+    .results { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .result { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px; }
+    .result .change { font-family: 'Barlow Condensed', sans-serif; font-size: 44px; font-weight: 800; color: var(--green); line-height: 1; }
+    .result h3 { margin: 12px 0 6px; font-size: 16px; }
+    .result p { color: var(--fg-2); font-size: 14px; margin: 0; }
+    .result .who { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 16px; }
+    @media (max-width: 1080px) { .results { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; } }
+
+    .pricing { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .plan { background: var(--surface); border: 1px solid var(--border); padding: 32px; border-radius: 12px; display: flex; flex-direction: column; }
+    .plan.feat { border-color: var(--accent); position: relative; }
+    .plan.feat::after { content: 'BEST VALUE'; position: absolute; top: -10px; left: 24px; background: var(--accent); color: var(--bg); padding: 4px 10px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; font-weight: 700; border-radius: 4px; }
+    .plan h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 800; margin: 0; text-transform: uppercase; }
+    .plan .price { font-family: 'Barlow Condensed', sans-serif; font-size: 64px; font-weight: 800; line-height: 1; margin: 14px 0 4px; color: var(--accent); }
+    .plan .per { font-size: 13px; color: var(--fg-3); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; }
+    .plan ul { list-style: none; padding: 0; margin: 22px 0; flex: 1; }
+    .plan li { padding: 6px 0; color: var(--fg-2); font-size: 14px; display: flex; gap: 10px; }
+    .plan li::before { content: '◤'; color: var(--accent); font-size: 10px; }
+    @media (max-width: 1080px) { .pricing { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; } }
+
+    footer { padding: 56px 0 28px; border-top: 1px solid var(--border); }
+    .foot-grid { display: grid; grid-template-columns: 2fr repeat(3, 1fr); gap: 36px; }
+    .foot-col h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-3); font-family: 'JetBrains Mono', monospace; margin: 0 0 16px; }
+    .foot-col a { display: block; color: var(--fg-2); font-size: 14px; padding: 5px 0; }
+    .foot-col a:hover { color: var(--fg); }
+    .foot-bot { margin-top: 36px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; color: var(--fg-3); font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 10px; text-align: center; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#"><span class="brand-mark">P</span> Pulse</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#zones">Zones</a>
+        <a href="#classes">Classes</a>
+        <a href="#schedule">Schedule</a>
+        <a href="#coaches">Coaches</a>
+        <a href="#pricing">Pricing</a>
+      </nav>
+      <a class="btn btn-primary" href="#pricing">Book a class</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>Austin TX · 50-minute classes · 24 coaches</span>
+            <h1>Train by <em>the number</em> on your chest.</h1>
+            <p class="lede">Pulse is a heart-rate-zone studio. Every member wears a chest strap. Every screen shows the room. The coach calls the zone, you give it what it needs. No guesswork. No going through the motions.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#pricing">First class · free</a>
+              <a class="btn btn-ghost" href="#zones">How the zones work</a>
+            </div>
+          </div>
+          <div class="hero-art">
+            <img src="https://picsum.photos/seed/pulse-cardio-1/900/1100" width="900" height="1100" alt="A bright HIIT studio with a heart-rate leaderboard on the back wall and athletes on rowers." loading="eager" />
+            <div class="hr-card">
+              <span class="label">Avg. heart rate · today</span>
+              <div class="v">163<small>bpm</small></div>
+              <div class="bars">
+                <span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="zones">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Zones</span>
+          <h2>Five zones. <em>One screen.</em></h2>
+          <p class="lede">Your zone is a band on the screen. The coach calls a target. You hit it, hold it, then recover. No guesswork about whether you're working hard enough.</p>
+        </div>
+        <div class="zones">
+          <div class="zone z1"><div class="n">/ Zone 1</div><div class="pct">50–60%</div><div class="name">Recovery</div><p>Easy spin between intervals.</p></div>
+          <div class="zone z2"><div class="n">/ Zone 2</div><div class="pct">60–70%</div><div class="name">Aerobic</div><p>Could hold a conversation.</p></div>
+          <div class="zone z3"><div class="n">/ Zone 3</div><div class="pct">70–80%</div><div class="name">Tempo</div><p>Where most of class lives.</p></div>
+          <div class="zone z4"><div class="n">/ Zone 4</div><div class="pct">80–90%</div><div class="name">Threshold</div><p>Pushing the line. 2-4 min intervals.</p></div>
+          <div class="zone z5"><div class="n">/ Zone 5</div><div class="pct">90–100%</div><div class="name">Max</div><p>Short, hard, twice a class.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="classes" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Classes</span>
+          <h2>Six <em>workouts</em>.</h2>
+        </div>
+        <div class="classes">
+          <div class="class"><span class="tag">/ Treadmill + rower</span><h3>Pulse 50</h3><p>The flagship class. 25 minutes on the treadmill, 25 on the rower. Five intervals in zone 4.</p><div class="row"><span>50 min</span><span>All levels</span></div></div>
+          <div class="class"><span class="tag">/ Strength + cardio</span><h3>Pulse Strength</h3><p>Heart-rate intervals mixed with kettlebell and dumbbell work. Programmed in 6-week blocks.</p><div class="row"><span>55 min</span><span>Intermediate</span></div></div>
+          <div class="class"><span class="tag">/ Treadmill only</span><h3>Pulse Run</h3><p>A pure running class. Hill repeats, threshold runs, race-pace work. Bring shoes you trust.</p><div class="row"><span>50 min</span><span>Runners</span></div></div>
+          <div class="class"><span class="tag">/ Rower only</span><h3>Pulse Row</h3><p>Twenty-eight rowers, one big screen. Watt-output displayed alongside heart rate.</p><div class="row"><span>45 min</span><span>All levels</span></div></div>
+          <div class="class"><span class="tag">/ Bootcamp</span><h3>Pulse Outside</h3><p>Saturday morning class in Zilker Park. Strap, towel, water. We bring the kit.</p><div class="row"><span>60 min</span><span>Outdoor</span></div></div>
+          <div class="class"><span class="tag">/ Onboarding</span><h3>Pulse 101</h3><p>Free first class for new members. Coach walks you through the strap, the screen, and the zones.</p><div class="row"><span>30 min</span><span>New members</span></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top:0;">
+      <div class="wrap">
+        <div class="metrics">
+          <div class="metric"><div class="v">163</div><div class="l">Avg. bpm in class</div></div>
+          <div class="metric"><div class="v">28</div><div class="l">Min in zones 3–5</div></div>
+          <div class="metric"><div class="v">540</div><div class="l">Avg. calories burned</div></div>
+          <div class="metric"><div class="v">+18%</div><div class="l">VO₂ max in 90 days</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="schedule">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>This week</span>
+          <h2>Pick your <em>workout</em>.</h2>
+        </div>
+        <div class="schedule">
+          <div class="sch-head"><span>Time</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
+          <div class="sch-row"><span class="t">06:00</span><span class="cls">Pulse 50</span><span class="cls c">Pulse Run</span><span class="cls">Pulse 50</span><span class="cls c">Pulse Run</span><span class="cls">Pulse 50</span><span class="cls b">Outside</span></div>
+          <div class="sch-row"><span class="t">07:15</span><span class="cls b">Strength</span><span class="cls">Pulse 50</span><span class="cls b">Strength</span><span class="cls">Pulse 50</span><span class="cls b">Strength</span><span class="cls">Pulse 50</span></div>
+          <div class="sch-row"><span class="t">12:15</span><span class="cls">Pulse 50</span><span class="cls">Pulse 50</span><span class="cls">Pulse 50</span><span class="cls">Pulse 50</span><span class="cls">Pulse 50</span><span class="cls empty">—</span></div>
+          <div class="sch-row"><span class="t">17:30</span><span class="cls c">Pulse Row</span><span class="cls b">Strength</span><span class="cls c">Pulse Row</span><span class="cls b">Strength</span><span class="cls">Pulse 50</span><span class="cls empty">—</span></div>
+          <div class="sch-row"><span class="t">18:45</span><span class="cls">Pulse 50</span><span class="cls">Pulse 50</span><span class="cls">Pulse 50</span><span class="cls">Pulse 50</span><span class="cls empty">—</span><span class="cls empty">—</span></div>
+          <div class="sch-row"><span class="t">20:00</span><span class="cls empty">—</span><span class="cls c">Pulse Run</span><span class="cls empty">—</span><span class="cls c">Pulse Run</span><span class="cls empty">—</span><span class="cls empty">—</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="coaches" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Coaches</span>
+          <h2>People who <em>call your zone</em>.</h2>
+        </div>
+        <div class="coaches">
+          <div class="coach">
+            <img src="https://picsum.photos/seed/pulse-cardio-c1/700/900" width="700" height="900" alt="Coach Reggie holding a kettlebell at the front of the studio." loading="lazy" />
+            <div class="body"><span class="role">Head coach</span><h3>Reggie Vance</h3><p>NASM-CPT, USATF Level 1. Marathon 2:38. Writes the Pulse Strength block.</p></div>
+          </div>
+          <div class="coach">
+            <img src="https://picsum.photos/seed/pulse-cardio-c2/700/900" width="700" height="900" alt="Coach Sofie demonstrating a row stroke." loading="lazy" />
+            <div class="body"><span class="role">Row + endurance</span><h3>Sofie Naranjo</h3><p>Concept2 master coach. Programs Pulse Row and Saturday Outside.</p></div>
+          </div>
+          <div class="coach">
+            <img src="https://picsum.photos/seed/pulse-cardio-c3/700/900" width="700" height="900" alt="Coach Theo at the side of the running treadmill." loading="lazy" />
+            <div class="body"><span class="role">Run lead</span><h3>Theo Imani</h3><p>USATF Level 2 endurance. Wrote our heart-rate calibration test.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Results</span>
+          <h2>What members <em>moved</em> in 12 weeks.</h2>
+          <p class="lede">Averaged across 84 members who completed the spring 12-week block.</p>
+        </div>
+        <div class="results">
+          <div class="result"><div class="change">+18%</div><h3>VO₂ max improvement</h3><p>Measured before and after the block on a Bruce protocol.</p><div class="who">Avg, 84 members</div></div>
+          <div class="result"><div class="change">−12 sec</div><h3>1-mile time</h3><p>From an 8:42 average to an 8:30. Faster recoveries did most of it.</p><div class="who">Avg, run cohort</div></div>
+          <div class="result"><div class="change">−4.5%</div><h3>Body fat</h3><p>Average. Not the headline number, but the most consistent one.</p><div class="who">DEXA, 38 members</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="pricing" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Pricing</span>
+          <h2>Class packs <em>or</em> unlimited.</h2>
+        </div>
+        <div class="pricing">
+          <div class="plan">
+            <h3>Drop-in pack</h3>
+            <div class="price">$140</div>
+            <div class="per">5 classes / 60 days</div>
+            <ul>
+              <li>Any class, any coach</li>
+              <li>Free chest strap rental</li>
+              <li>Locker + towel + shower</li>
+            </ul>
+            <a class="btn btn-ghost" href="#">Buy 5-pack</a>
+          </div>
+          <div class="plan feat">
+            <h3>Unlimited</h3>
+            <div class="price">$229</div>
+            <div class="per">per month</div>
+            <ul>
+              <li>Unlimited classes</li>
+              <li>Loaner chest strap included</li>
+              <li>Priority booking 14 days</li>
+              <li>Quarterly VO₂ test</li>
+              <li>Friend passes (2 / month)</li>
+            </ul>
+            <a class="btn btn-primary" href="#">Go unlimited</a>
+          </div>
+          <div class="plan">
+            <h3>Annual</h3>
+            <div class="price">$2,290</div>
+            <div class="per">paid yearly</div>
+            <ul>
+              <li>Everything in Unlimited</li>
+              <li>Two months free</li>
+              <li>Own strap to keep</li>
+              <li>1:1 with a coach quarterly</li>
+            </ul>
+            <a class="btn btn-ghost" href="#">Go annual</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a class="brand" href="#" style="margin-bottom:14px;"><span class="brand-mark">P</span> Pulse</a>
+          <p style="color:var(--fg-2);font-size:14px;max-width:280px;">Heart-rate-zone cardio in East Austin. 312 W 4th St · (512) 555-0168 · floor@pulse.fit</p>
+        </div>
+        <div class="foot-col"><h4>Train</h4><a href="#classes">Classes</a><a href="#schedule">Schedule</a><a href="#zones">Zones</a></div>
+        <div class="foot-col"><h4>Studio</h4><a href="#coaches">Coaches</a><a href="#pricing">Pricing</a><a href="#">Reviews</a></div>
+        <div class="foot-col"><h4>More</h4><a href="#">Corporate</a><a href="#">Outside event</a><a href="#">Contact</a></div>
+      </div>
+      <div class="foot-bot"><span>© 2026 Pulse Cardio</span><span>Strap up · Show up</span></div>
+    </div>
+  </footer>
+</body>
+</html>

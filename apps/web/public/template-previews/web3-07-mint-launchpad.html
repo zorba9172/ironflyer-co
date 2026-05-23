@@ -1,0 +1,553 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mint Launchpad — Fair token launches for serious projects</title>
+  <meta name="description" content="Mint Launchpad runs fair, audited token launches. Lockups, vesting, anti-bot, and a public allocation report — every launch is reviewed before it lists." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #ffffff;
+      --bg-2: #f5f7fb;
+      --surface: #ffffff;
+      --surface-2: #f0f3f9;
+      --border: rgba(15, 23, 42, 0.10);
+      --border-strong: rgba(15, 23, 42, 0.22);
+      --fg: #0f172a;
+      --fg-2: #475569;
+      --fg-3: #94a3b8;
+      --accent: #1a3cff;
+      --accent-2: #4a66ff;
+      --accent-bg: #eef1ff;
+      --green: #10b981;
+      --orange: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: blur(16px);
+      background: rgba(255, 255, 255, 0.88);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 68px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: -0.02em; font-size: 18px; }
+    .brand-mark {
+      width: 30px; height: 30px; border-radius: 8px;
+      background: var(--accent); color: #fff;
+      display: grid; place-items: center; font-weight: 800;
+      font-family: 'JetBrains Mono', monospace; font-size: 15px;
+    }
+    .nav-links { display: flex; gap: 30px; color: var(--fg-2); font-size: 14px; font-weight: 500; }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta { display: flex; gap: 10px; align-items: center; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      height: 40px; padding: 0 18px;
+      border-radius: 8px; font-weight: 600; font-size: 14px;
+      border: 1px solid transparent; cursor: pointer;
+      transition: transform 160ms, box-shadow 160ms;
+      font-family: inherit;
+    }
+    .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(26, 60, 255, 0.25); }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(26, 60, 255, 0.35); }
+    .btn-ghost { background: transparent; color: var(--fg); border-color: var(--border-strong); }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    @media (max-width: 900px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 96px 0 80px; position: relative; overflow: hidden; }
+    .hero::before {
+      content: ''; position: absolute; top: -200px; right: -200px; width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(26, 60, 255, 0.08), transparent 60%);
+      pointer-events: none;
+    }
+    .hero-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 56px; align-items: center; position: relative; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 14px; background: var(--accent-bg);
+      border-radius: 999px; font-size: 12px; color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      font-weight: 700;
+    }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    h1 {
+      font-size: clamp(44px, 6.8vw, 86px);
+      line-height: 0.98; letter-spacing: -0.035em;
+      font-weight: 800; margin: 22px 0 24px; color: var(--fg);
+    }
+    h1 em { font-style: normal; color: var(--accent); }
+    .lede { font-size: 19px; color: var(--fg-2); max-width: 540px; line-height: 1.6; }
+    .hero-cta { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; }
+    .hero-cta .btn { height: 50px; padding: 0 24px; }
+
+    /* Launch card */
+    .launch-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 28px;
+      box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
+    }
+    .lc-head { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+    .lc-logo {
+      width: 52px; height: 52px; border-radius: 14px;
+      background: linear-gradient(135deg, #f59e0b, #fbbf24);
+      display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 20px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .lc-info h3 { font-size: 19px; font-weight: 800; margin: 0; letter-spacing: -0.01em; }
+    .lc-info p { font-size: 13px; color: var(--fg-2); margin: 2px 0 0; font-family: 'JetBrains Mono', monospace; }
+    .lc-status {
+      margin-left: auto; padding: 5px 10px;
+      background: rgba(16, 185, 129, 0.12); color: var(--green);
+      border-radius: 999px; font-family: 'JetBrains Mono', monospace; font-size: 11px;
+      font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .lc-progress { margin-bottom: 18px; }
+    .lc-progress-bar { height: 8px; background: var(--surface-2); border-radius: 4px; overflow: hidden; margin-bottom: 8px; }
+    .lc-progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); border-radius: 4px; }
+    .lc-progress-meta { display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--fg-2); }
+    .lc-progress-meta b { color: var(--fg); font-weight: 700; }
+    .lc-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 18px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin-bottom: 18px; }
+    .lc-stat .label { font-size: 11px; color: var(--fg-3); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+    .lc-stat .val { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; color: var(--fg); }
+    .lc-cta { width: 100%; height: 48px; border-radius: 10px; background: var(--accent); color: #fff; border: 0; font-weight: 700; font-size: 15px; cursor: pointer; font-family: inherit; }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 48px; } }
+
+    /* Stats */
+    .stats {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 40px 0;
+      background: var(--bg-2);
+    }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    .stat .val { font-family: 'Inter', sans-serif; font-size: clamp(28px, 3.4vw, 42px); font-weight: 800; letter-spacing: -0.025em; line-height: 1; color: var(--fg); }
+    .stat .val em { font-style: normal; color: var(--accent); }
+    .stat .label { color: var(--fg-2); font-size: 13px; margin-top: 8px; font-weight: 500; }
+    @media (max-width: 720px) { .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 28px; } }
+
+    /* Section */
+    .section { padding: 96px 0; }
+    .section-head { max-width: 720px; margin-bottom: 56px; }
+    .section h2 { font-size: clamp(34px, 4.4vw, 56px); letter-spacing: -0.03em; line-height: 1.04; font-weight: 800; margin: 14px 0 16px; }
+    .section h2 em { font-style: normal; color: var(--accent); }
+    .section .lede { font-size: 17px; }
+
+    /* Launch grid */
+    .launches { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .launch {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 24px;
+      transition: border-color 240ms, transform 240ms;
+    }
+    .launch:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08); }
+    .launch-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .launch-logo { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; color: #fff; font-weight: 800; font-family: 'JetBrains Mono', monospace; font-size: 14px; flex-shrink: 0; }
+    .launch-meta { flex: 1; min-width: 0; }
+    .launch-name { font-weight: 700; font-size: 15px; margin: 0; }
+    .launch-ticker { font-size: 12px; color: var(--fg-2); font-family: 'JetBrains Mono', monospace; }
+    .launch-pill { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+    .pill-live { background: rgba(16, 185, 129, 0.12); color: var(--green); }
+    .pill-upcoming { background: rgba(245, 158, 11, 0.12); color: var(--orange); }
+    .pill-ended { background: rgba(15, 23, 42, 0.08); color: var(--fg-3); }
+    .launch-desc { font-size: 13px; color: var(--fg-2); margin: 0 0 14px; line-height: 1.55; }
+    .launch-progress { height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; margin-bottom: 10px; }
+    .launch-progress-fill { height: 100%; background: var(--accent); }
+    .launch-foot { display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--fg-2); }
+    .launch-foot b { color: var(--fg); font-weight: 700; }
+    @media (max-width: 1080px) { .launches { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .launches { grid-template-columns: 1fr; } }
+
+    /* How it works */
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .step {
+      background: var(--bg-2); border: 1px solid var(--border);
+      border-radius: 14px; padding: 32px;
+    }
+    .step-num {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: var(--accent); color: #fff;
+      display: grid; place-items: center; font-weight: 800;
+      font-family: 'JetBrains Mono', monospace; font-size: 14px;
+      margin-bottom: 18px;
+    }
+    .step h3 { font-size: 19px; font-weight: 700; margin: 0 0 10px; letter-spacing: -0.01em; }
+    .step p { color: var(--fg-2); margin: 0; font-size: 14.5px; line-height: 1.65; }
+    @media (max-width: 1080px) { .steps { grid-template-columns: 1fr; } }
+
+    /* Features */
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .feature {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 28px;
+    }
+    .feature-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--accent-bg); display: grid; place-items: center; margin-bottom: 18px; color: var(--accent); font-family: 'JetBrains Mono', monospace; font-weight: 800; }
+    .feature h3 { font-size: 17px; font-weight: 700; margin: 0 0 8px; letter-spacing: -0.01em; }
+    .feature p { color: var(--fg-2); margin: 0; font-size: 14px; line-height: 1.6; }
+    @media (max-width: 1080px) { .features { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .features { grid-template-columns: 1fr; } }
+
+    /* Process — vesting */
+    .vesting-card {
+      background: var(--bg-2); border: 1px solid var(--border);
+      border-radius: 16px; padding: 28px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: center;
+    }
+    .vesting-info h3 { font-size: 22px; font-weight: 800; margin: 0 0 12px; letter-spacing: -0.015em; }
+    .vesting-info p { color: var(--fg-2); font-size: 15px; }
+    .vesting-bars { display: grid; gap: 12px; }
+    .vesting-row { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+    .vesting-row-head { display: flex; justify-content: space-between; margin-bottom: 4px; }
+    .vesting-row-bar { height: 8px; background: var(--surface); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); }
+    .vesting-row-fill { height: 100%; }
+    @media (max-width: 1080px) { .vesting-card { grid-template-columns: 1fr; } }
+
+    /* Security */
+    .security { background: var(--bg-2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 96px 0; }
+    .sec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: start; }
+    .auditors { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .auditor { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+    .auditor-name { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+    .auditor-meta { font-size: 12px; color: var(--fg-2); font-family: 'JetBrains Mono', monospace; }
+    .auditor a { color: var(--accent); font-size: 12px; font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+    @media (max-width: 1080px) { .sec-grid { grid-template-columns: 1fr; gap: 40px; } }
+
+    /* Ecosystem */
+    .ecosystem { padding: 64px 0; border-top: 1px solid var(--border); }
+    .eco-label { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.1em; text-align: center; margin-bottom: 28px; }
+    .eco-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 28px; align-items: center; justify-items: center; color: var(--fg-2); font-weight: 700; font-size: 16px; }
+    @media (max-width: 720px) { .eco-row { grid-template-columns: repeat(3, 1fr); gap: 20px; } }
+
+    /* CTA */
+    .cta-band { padding: 96px 0; text-align: center; background: var(--accent); color: #fff; }
+    .cta-band h2 { font-size: clamp(36px, 5vw, 64px); letter-spacing: -0.03em; line-height: 1.04; margin: 0 0 20px; }
+    .cta-band p { color: rgba(255,255,255,0.85); max-width: 560px; margin: 0 auto 32px; font-size: 18px; }
+    .cta-band .btn { background: #fff; color: var(--accent); height: 54px; padding: 0 28px; font-size: 15px; }
+
+    /* Footer */
+    footer { padding: 56px 0 32px; }
+    .foot-grid { display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 40px; }
+    .foot-col h4 { font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-3); margin: 0 0 16px; font-weight: 700; }
+    .foot-col a { display: block; color: var(--fg-2); font-size: 14px; padding: 6px 0; }
+    .foot-col a:hover { color: var(--accent); }
+    .foot-bot { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; color: var(--fg-3); font-size: 13px; }
+    @media (max-width: 720px) {
+      .foot-grid { grid-template-columns: 1fr 1fr; }
+      .foot-bot { flex-direction: column; gap: 12px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">
+        <span class="brand-mark">M</span>
+        Mint Launchpad
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#launches">Live launches</a>
+        <a href="#how">How it works</a>
+        <a href="#features">For builders</a>
+        <a href="#security">Security</a>
+        <a href="#">Docs</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-ghost" href="#">Sign in</a>
+        <a class="btn btn-primary" href="#">Connect wallet</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>fair launches · reviewed before listed</span>
+            <h1>Token launches, <em>done right</em>.</h1>
+            <p class="lede">Mint Launchpad runs fair, audited token launches. Lockups, vesting, anti-bot, and a public allocation report. Every project is reviewed before it lists; every contract is open-source by default.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#launches">Browse launches →</a>
+              <a class="btn btn-ghost" href="#">Apply to launch</a>
+            </div>
+          </div>
+          <div class="launch-card" role="region" aria-label="Featured launch">
+            <div class="lc-head">
+              <div class="lc-logo">A</div>
+              <div class="lc-info">
+                <h3>Atlas Protocol</h3>
+                <p>ATLAS · Base · Decentralized storage</p>
+              </div>
+              <span class="lc-status">Live</span>
+            </div>
+            <div class="lc-progress">
+              <div class="lc-progress-bar"><div class="lc-progress-fill" style="width: 64%;"></div></div>
+              <div class="lc-progress-meta"><span>Raised <b>$1.28M</b> of $2M</span><span>64% filled</span></div>
+            </div>
+            <div class="lc-stats">
+              <div class="lc-stat"><div class="label">Token price</div><div class="val">$0.0125</div></div>
+              <div class="lc-stat"><div class="label">Allocation cap</div><div class="val">$2,500 / wallet</div></div>
+              <div class="lc-stat"><div class="label">Vesting</div><div class="val">10% TGE · 12mo linear</div></div>
+              <div class="lc-stat"><div class="label">Ends in</div><div class="val">02d 14h 22m</div></div>
+            </div>
+            <button class="lc-cta">Join launch →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats">
+      <div class="wrap">
+        <div class="stats-grid">
+          <div class="stat"><div class="val"><em>$142M</em></div><div class="label">Total raised</div></div>
+          <div class="stat"><div class="val">128</div><div class="label">Launches completed</div></div>
+          <div class="stat"><div class="val">96%</div><div class="label">Of launches above listing price 6mo later</div></div>
+          <div class="stat"><div class="val">7</div><div class="label">Supported chains</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="launches">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Live and upcoming</span>
+          <h2>Launches, <em>in flight</em>.</h2>
+          <p class="lede">Every project has a token sale agreement, a published vesting schedule, and a public review summary. Read before you commit.</p>
+        </div>
+        <div class="launches">
+          <div class="launch">
+            <div class="launch-row">
+              <div class="launch-logo" style="background: linear-gradient(135deg, #f59e0b, #fbbf24);">A</div>
+              <div class="launch-meta"><div class="launch-name">Atlas Protocol</div><div class="launch-ticker">ATLAS · Base</div></div>
+              <span class="launch-pill pill-live">Live</span>
+            </div>
+            <p class="launch-desc">Decentralized storage with onchain billing. Fair sale, KYC for wallets above $5k.</p>
+            <div class="launch-progress"><div class="launch-progress-fill" style="width: 64%;"></div></div>
+            <div class="launch-foot"><span>Raised</span><b>$1.28M / $2M</b></div>
+          </div>
+          <div class="launch">
+            <div class="launch-row">
+              <div class="launch-logo" style="background: linear-gradient(135deg, #10b981, #34d399);">F</div>
+              <div class="launch-meta"><div class="launch-name">Field Quant</div><div class="launch-ticker">FQ · Arbitrum</div></div>
+              <span class="launch-pill pill-live">Live</span>
+            </div>
+            <p class="launch-desc">On-chain quant fund tokenization. Capped sale, audited custodian.</p>
+            <div class="launch-progress"><div class="launch-progress-fill" style="width: 88%;"></div></div>
+            <div class="launch-foot"><span>Raised</span><b>$880k / $1M</b></div>
+          </div>
+          <div class="launch">
+            <div class="launch-row">
+              <div class="launch-logo" style="background: linear-gradient(135deg, #1a3cff, #4a66ff);">P</div>
+              <div class="launch-meta"><div class="launch-name">Pivot House</div><div class="launch-ticker">PIVOT · Optimism</div></div>
+              <span class="launch-pill pill-upcoming">Upcoming</span>
+            </div>
+            <p class="launch-desc">Modular L2 governance tooling. Sale opens Friday 14:00 UTC.</p>
+            <div class="launch-progress"><div class="launch-progress-fill" style="width: 0%;"></div></div>
+            <div class="launch-foot"><span>Target</span><b>$3.2M</b></div>
+          </div>
+          <div class="launch">
+            <div class="launch-row">
+              <div class="launch-logo" style="background: linear-gradient(135deg, #8b5cff, #d96bff);">N</div>
+              <div class="launch-meta"><div class="launch-name">Northbeam</div><div class="launch-ticker">NB · Polygon</div></div>
+              <span class="launch-pill pill-upcoming">Upcoming</span>
+            </div>
+            <p class="launch-desc">Attribution layer for crypto-native commerce. Sale opens Monday.</p>
+            <div class="launch-progress"><div class="launch-progress-fill" style="width: 0%;"></div></div>
+            <div class="launch-foot"><span>Target</span><b>$2.4M</b></div>
+          </div>
+          <div class="launch">
+            <div class="launch-row">
+              <div class="launch-logo" style="background: linear-gradient(135deg, #6dd5ff, #b0ecff);">B</div>
+              <div class="launch-meta"><div class="launch-name">Bureau Verso</div><div class="launch-ticker">VRSO · Ethereum</div></div>
+              <span class="launch-pill pill-ended">Ended</span>
+            </div>
+            <p class="launch-desc">RWA marketplace. Raised $4.2M at $0.18, listing in 14 days.</p>
+            <div class="launch-progress"><div class="launch-progress-fill" style="width: 100%;"></div></div>
+            <div class="launch-foot"><span>Final</span><b>$4.2M / $4M</b></div>
+          </div>
+          <div class="launch">
+            <div class="launch-row">
+              <div class="launch-logo" style="background: linear-gradient(135deg, #d63a2a, #f87171);">K</div>
+              <div class="launch-meta"><div class="launch-name">Kernel Labs</div><div class="launch-ticker">KRNL · zkSync</div></div>
+              <span class="launch-pill pill-ended">Ended</span>
+            </div>
+            <p class="launch-desc">ZK-native compute marketplace. Listed +42% above sale.</p>
+            <div class="launch-progress"><div class="launch-progress-fill" style="width: 100%;"></div></div>
+            <div class="launch-foot"><span>Final</span><b>$1.8M / $1.8M</b></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="how" style="padding-top: 0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>How it works</span>
+          <h2>Fair launches in <em>three signed steps</em>.</h2>
+          <p class="lede">Connect, commit, claim. No insider rounds, no allowlist for friends-of-friends. Every wallet gets the same terms.</p>
+        </div>
+        <div class="steps">
+          <div class="step"><div class="step-num">1</div><h3>Connect &amp; verify</h3><p>Connect your wallet, complete optional KYC for allocation tiers over $5,000. Anti-bot signature challenge takes 6 seconds.</p></div>
+          <div class="step"><div class="step-num">2</div><h3>Commit your allocation</h3><p>Deposit USDC into the sale contract. Allocation cap is enforced per wallet on-chain. Refunds are automatic if the sale undersubscribes.</p></div>
+          <div class="step"><div class="step-num">3</div><h3>Claim on TGE</h3><p>At Token Generation Event, claim your initial unlock. The rest vests linearly per the project's published schedule, claimable any time.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="vesting" style="padding-top: 0;">
+      <div class="wrap">
+        <div class="vesting-card">
+          <div class="vesting-info">
+            <h3>Vesting is public, on-chain, enforced.</h3>
+            <p>Every launch publishes its allocation breakdown and vesting schedule before the sale opens. Vesting contracts are deployed before TGE, and unlocks are visible on Etherscan. There are no off-chain pinky promises.</p>
+            <div style="margin-top: 20px;">
+              <a class="btn btn-primary" href="#">See a sample report</a>
+            </div>
+          </div>
+          <div class="vesting-bars">
+            <div class="vesting-row">
+              <div class="vesting-row-head"><span>Public sale · 12% · 10% TGE / 12mo linear</span><span>1,200,000</span></div>
+              <div class="vesting-row-bar"><div class="vesting-row-fill" style="width: 12%; background: var(--accent);"></div></div>
+            </div>
+            <div class="vesting-row">
+              <div class="vesting-row-head"><span>Team · 18% · 12mo cliff / 36mo linear</span><span>1,800,000</span></div>
+              <div class="vesting-row-bar"><div class="vesting-row-fill" style="width: 18%; background: #f59e0b;"></div></div>
+            </div>
+            <div class="vesting-row">
+              <div class="vesting-row-head"><span>Treasury · 32% · DAO-controlled</span><span>3,200,000</span></div>
+              <div class="vesting-row-bar"><div class="vesting-row-fill" style="width: 32%; background: var(--green);"></div></div>
+            </div>
+            <div class="vesting-row">
+              <div class="vesting-row-head"><span>Ecosystem · 24% · 48mo linear</span><span>2,400,000</span></div>
+              <div class="vesting-row-bar"><div class="vesting-row-fill" style="width: 24%; background: #8b5cff;"></div></div>
+            </div>
+            <div class="vesting-row">
+              <div class="vesting-row-head"><span>Liquidity · 14% · TGE locked 24mo</span><span>1,400,000</span></div>
+              <div class="vesting-row-bar"><div class="vesting-row-fill" style="width: 14%; background: #6dd5ff;"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="features" style="padding-top: 0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>For builders</span>
+          <h2>Run a launch <em>without the regret</em>.</h2>
+          <p class="lede">We turn launch checklists into contracts. You bring the project; we bring the lockups, anti-bot, allocation, and vesting infrastructure that's been audited a dozen times.</p>
+        </div>
+        <div class="features">
+          <div class="feature"><div class="feature-icon">⚐</div><h3>Anti-bot signatures</h3><p>EIP-712 challenge-response, IP heuristics, and on-chain rate limits. No private mempool advantage, no MEV sandwich during sale.</p></div>
+          <div class="feature"><div class="feature-icon">⛬</div><h3>Allocation tiers</h3><p>Capped per-wallet allocation with optional KYC tiers. Excess deposits are refunded automatically, no support tickets.</p></div>
+          <div class="feature"><div class="feature-icon">↻</div><h3>Vesting contracts</h3><p>OpenZeppelin VestingWallet with cliff, linear, and milestone schedules. Public timeline, queryable on Etherscan.</p></div>
+          <div class="feature"><div class="feature-icon">⌗</div><h3>Liquidity bootstrap</h3><p>Optional Balancer LBP or Uniswap V4 pool deployment with locked LP tokens. Listing happens via the launchpad contract, not a Discord post.</p></div>
+          <div class="feature"><div class="feature-icon">$</div><h3>Treasury delivery</h3><p>Raised funds are released to your treasury multisig only after KYC and vesting setup complete. We never custody your raise.</p></div>
+          <div class="feature"><div class="feature-icon">⛨</div><h3>Independent review</h3><p>Two internal reviewers and one external auditor must sign off before your launch lists. Review report is published with the sale page.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="security" id="security">
+      <div class="wrap">
+        <div class="sec-grid">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>Security</span>
+            <h2>Audited contracts. <em>Reviewed projects</em>.</h2>
+            <p class="lede">The launchpad core, sale contracts, and vesting wallets are audited annually. Every listed project undergoes an independent review that's published with the sale page.</p>
+            <div style="margin-top: 28px;">
+              <a class="btn btn-primary" href="#" style="margin-right: 10px;">Audits</a>
+              <a class="btn btn-ghost" href="#">Sample review</a>
+            </div>
+          </div>
+          <div class="auditors">
+            <div class="auditor"><div class="auditor-name">Trail of Bits</div><div class="auditor-meta">Sale contracts · Feb 2026</div><a href="#">View report →</a></div>
+            <div class="auditor"><div class="auditor-name">OpenZeppelin</div><div class="auditor-meta">Vesting wallet · Dec 2025</div><a href="#">View report →</a></div>
+            <div class="auditor"><div class="auditor-name">Halborn</div><div class="auditor-meta">Anti-bot module · Oct 2025</div><a href="#">View report →</a></div>
+            <div class="auditor"><div class="auditor-name">Spearbit</div><div class="auditor-meta">LBP integration · Aug 2025</div><a href="#">View report →</a></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ecosystem">
+      <div class="wrap">
+        <p class="eco-label">Supported chains</p>
+        <div class="eco-row">
+          <span>Ethereum</span>
+          <span>Optimism</span>
+          <span>Arbitrum</span>
+          <span>Base</span>
+          <span>Polygon</span>
+          <span>zkSync</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="cta-band">
+    <div class="wrap">
+      <h2>Ready to launch?</h2>
+      <p>Submit your project and a member of the review team will reach out within 48 hours. We accept 6 launches per month — no exceptions.</p>
+      <a class="btn" href="#">Apply to launch →</a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a class="brand" href="#" style="margin-bottom:16px;">
+            <span class="brand-mark">M</span>
+            Mint Launchpad
+          </a>
+          <p style="color:var(--fg-2); font-size:14px; max-width:300px;">Fair, audited token launches. Lockups, vesting, anti-bot, and an independent review before every sale.</p>
+        </div>
+        <div class="foot-col">
+          <h4>Platform</h4>
+          <a href="#">Live launches</a>
+          <a href="#">Past launches</a>
+          <a href="#">Apply</a>
+          <a href="#">Reviews</a>
+        </div>
+        <div class="foot-col">
+          <h4>Developers</h4>
+          <a href="#">Docs</a>
+          <a href="#">SDK</a>
+          <a href="#">GitHub</a>
+          <a href="#">Status</a>
+        </div>
+        <div class="foot-col">
+          <h4>Company</h4>
+          <a href="#">About</a>
+          <a href="#">Press</a>
+          <a href="#">Privacy</a>
+          <a href="#">Terms</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Mint Launchpad</span>
+        <span>Not investment advice · Read each project's review report</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

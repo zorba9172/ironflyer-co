@@ -25,7 +25,7 @@ const toc = [
 export default function BudgetConceptPage() {
   return (
     <DocPage
-      eyebrow="Concepts · מושגים"
+      eyebrow="Concepts"
       title="Budget"
       description="A vault, a ledger, an admit step, and a hard cap — together they let the platform be honest about cost."
       toc={toc}

@@ -25,13 +25,13 @@ interface SearchHit {
 }
 
 const quickLinks: SearchHit[] = [
-  { id: 'nav-home',       kind: 'nav', title: 'לוח הבקרה',     href: '/app',                    subtitle: 'מסך פתיחה' },
-  { id: 'nav-projects',   kind: 'nav', title: 'הפרויקטים שלי', href: '/app/projects',           subtitle: 'כל הפרויקטים' },
-  { id: 'nav-resources',  kind: 'nav', title: 'תבניות וקישורים', href: '/app/resources',         subtitle: 'מסכי משאבים' },
-  { id: 'nav-connectors', kind: 'nav', title: 'מחברים',          href: '/app/connectors',        subtitle: 'אינטגרציות' },
-  { id: 'nav-settings',   kind: 'nav', title: 'הגדרות חשבון',    href: '/app/settings?tab=account', subtitle: 'פרופיל' },
-  { id: 'nav-billing',    kind: 'nav', title: 'חיוב ותקציב',     href: '/app/settings?tab=billing', subtitle: 'חבילות' },
-  { id: 'nav-vault',      kind: 'nav', title: 'כספת',            href: '/app/settings?tab=vault',   subtitle: 'מרווח' },
+  { id: 'nav-home',       kind: 'nav', title: 'Dashboard',       href: '/app',                    subtitle: 'Home screen' },
+  { id: 'nav-projects',   kind: 'nav', title: 'My projects',     href: '/app/projects',           subtitle: 'All projects' },
+  { id: 'nav-resources',  kind: 'nav', title: 'Templates and links', href: '/app/resources',      subtitle: 'Resource center' },
+  { id: 'nav-connectors', kind: 'nav', title: 'Connectors',      href: '/app/connectors',         subtitle: 'Integrations' },
+  { id: 'nav-settings',   kind: 'nav', title: 'Account settings', href: '/app/settings?tab=account', subtitle: 'Profile' },
+  { id: 'nav-billing',    kind: 'nav', title: 'Billing and budget', href: '/app/settings?tab=billing', subtitle: 'Plans' },
+  { id: 'nav-vault',      kind: 'nav', title: 'Vault',           href: '/app/settings?tab=vault',   subtitle: 'Margin ledger' },
 ];
 
 export default function SearchPage() {
@@ -89,16 +89,16 @@ function SearchInner() {
   return (
     <AppShell userEmail={user?.email ?? 'workspace'} recents={projects.slice(0, 5)} onLogout={logout}>
       <PageTitle
-        eyebrow="חיפוש"
-        title="חיפוש בכל הסביבה"
-        subtitle="חיפוש פרויקטים, פאצ׳ים, גייטים וניווט. הנתונים נשמרים מקומית עד שתשתמשי במנוע חיפוש מלא."
+        eyebrow="Search"
+        title="Search the workspace"
+        subtitle="Search projects, patches, gates, and navigation. Results are local until a full search backend is connected."
       />
 
       <Surface sx={{ p: 1.4, mb: 1.8 }}>
         <TextField
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="הקלד שם פרויקט, פאצ׳, גייט או יעד ניווט..."
+          placeholder="Type a project, patch, gate, or navigation target..."
           fullWidth
           autoFocus
           InputProps={{
@@ -118,13 +118,13 @@ function SearchInner() {
           }}
         />
         <Typography variant="caption" sx={{ color: '#86807a', display: 'block', mt: 1, px: 0.4 }}>
-          חיפוש מתבצע מקומית על הפרויקטים שלך, ההיסטוריה והניווט. תוצאות מסומנות לפי סוג.
+          Search runs locally across your projects, activity history, and navigation. Results are grouped by type.
         </Typography>
       </Surface>
 
       {error && (
         <Box sx={{ mb: 1.4 }}>
-          <ErrorBox title="שגיאה בטעינת תוצאות" description={error} onRetry={() => window.location.reload()} />
+          <ErrorBox title="Could not load search results" description={error} onRetry={() => window.location.reload()} />
         </Box>
       )}
 
@@ -132,24 +132,24 @@ function SearchInner() {
         <SkeletonGrid columns={1} count={4} minHeight={70} />
       ) : !debouncedQuery ? (
         <ResultGroup
-          title="ניווט מהיר"
+          title="Quick navigation"
           icon={<Hub fontSize="small" />}
           hits={quickLinks}
         />
       ) : !hasAny ? (
         <EmptyState
           illustration="empty"
-          title="אין תוצאות"
-          description={`לא מצאנו התאמות עבור "${query}". נסי חיפוש אחר, או פתחי את רשימת הפרויקטים.`}
-          primaryLabel="כל הפרויקטים"
+          title="No results"
+          description={`No matches found for "${query}". Try another search or open the project list.`}
+          primaryLabel="All projects"
           onPrimary={() => router.push('/app/projects')}
         />
       ) : (
         <Stack spacing={1.4}>
-          <ResultGroup title="פרויקטים" icon={<Folder fontSize="small" />} hits={grouped.projects} />
-          <ResultGroup title="פאצ׳ים" icon={<BoltOutlined fontSize="small" />} hits={grouped.patches} />
-          <ResultGroup title="גייטים" icon={<GavelOutlined fontSize="small" />} hits={grouped.gates} />
-          <ResultGroup title="ניווט" icon={<Hub fontSize="small" />} hits={grouped.nav} />
+          <ResultGroup title="Projects" icon={<Folder fontSize="small" />} hits={grouped.projects} />
+          <ResultGroup title="Patches" icon={<BoltOutlined fontSize="small" />} hits={grouped.patches} />
+          <ResultGroup title="Gates" icon={<GavelOutlined fontSize="small" />} hits={grouped.gates} />
+          <ResultGroup title="Navigation" icon={<Hub fontSize="small" />} hits={grouped.nav} />
         </Stack>
       )}
     </AppShell>
@@ -220,7 +220,7 @@ function searchAll(projects: Project[], q: string): SearchHit[] {
         id: `p:${project.id}`,
         kind: 'project',
         title: project.name,
-        subtitle: project.description || project.spec?.idea || 'פרויקט',
+        subtitle: project.description || project.spec?.idea || 'Project',
         href: `/projects/${project.id}`,
         status: project.status,
       });

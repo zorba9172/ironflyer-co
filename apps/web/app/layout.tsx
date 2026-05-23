@@ -22,9 +22,8 @@ const bodyFont = Inter({
   display: 'swap',
 });
 
-// SEO + social card. The Hebrew alternate targets the Israeli market —
-// Base44 (acquired by Wix in 2025) is the closest analogue there and
-// doesn't optimise for Hebrew/RTL, leaving the slot open.
+// SEO + social card. English is the canonical product language until a
+// formal localization strategy exists.
 export const metadata: Metadata = {
   title: 'Ironflyer — Build, gate, and ship AI apps end-to-end',
   description:
@@ -37,7 +36,6 @@ export const metadata: Metadata = {
       'Vibe-code apps the finisher way: gated end-to-end with real sandboxes, transparent budget, and multi-provider routing.',
     siteName: 'Ironflyer',
     locale: 'en_US',
-    alternateLocale: ['he_IL'],
     type: 'website',
   },
   twitter: {
@@ -49,14 +47,7 @@ export const metadata: Metadata = {
   alternates: {
     languages: {
       'en-US': '/',
-      'he-IL': '/?lang=he',
     },
-  },
-  other: {
-    // Hebrew description for crawlers that key on lang-specific meta —
-    // Israeli Google occasionally pulls these for SERP descriptions.
-    'description:he':
-      'בנו אפליקציות עם בינה מלאכותית. Ironflyer לוקח את הרעיון שלכם דרך שערי איכות — מפרט, UX, קוד, בדיקות, אבטחה ופריסה — בלי לפלוט קוד שבור לפרודקשן.',
   },
 };
 

@@ -20,6 +20,11 @@ const (
 	StepUXer          = "uxer"
 	StepCoder         = "coder"
 	StepReviewer      = "reviewer"
+	// StepCritic is the cheap-judge stage that runs between a successful
+	// Coder patch and the more expensive Reviewer simulation. We give it
+	// its own Step name so the UI can lane it separately (and the human
+	// can see "the cheap pre-check caught it" instead of "the reviewer").
+	StepCritic = "critic"
 	StepGate          = "gate"
 	StepPatch         = "patch"
 	StepRun           = "run"

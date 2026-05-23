@@ -25,7 +25,23 @@ interface PostCard {
   tag: string;
 }
 
-export const POSTS: PostCard[] = [
+const POSTS: PostCard[] = [
+  {
+    slug: 'multi-provider-routing',
+    title: 'How we route across Anthropic, OpenAI, and Gemini.',
+    subtitle: 'A capability-tagged router, a billing guard, and a speculative-decoding race — the three pieces that make multi-provider routing real.',
+    date: '2026-05-24',
+    gradient: 'linear-gradient(135deg, #671dfc 0%, #ff6c3a 100%)',
+    tag: 'Engineering',
+  },
+  {
+    slug: 'completion-infrastructure',
+    title: 'Why we built the completion-infrastructure layer.',
+    subtitle: 'Memory, audit, and DAG orchestration — what real reliability looks like.',
+    date: '2026-05-23',
+    gradient: 'linear-gradient(135deg, #0d0e0f 0%, #3a3530 55%, #e5ff00 100%)',
+    tag: 'Engineering',
+  },
   {
     slug: 'why-finished-products',
     title: 'Why we built a finisher, not another generator.',
@@ -36,8 +52,8 @@ export const POSTS: PostCard[] = [
   },
   {
     slug: 'the-eight-gates',
-    title: 'The eight gates, explained.',
-    subtitle: 'Spec, UX, Architecture, Code, Lint, Tests, Security, Deploy — and what each one really blocks on.',
+    title: 'The nine gates, explained.',
+    subtitle: 'Spec, UX, Architecture, Code, Lint, Tests, Security, Budget, Deploy — and what each one really blocks on.',
     date: '2026-04-24',
     gradient: 'linear-gradient(135deg, #671dfc 0%, #8b5cff 60%, #e5ff00 100%)',
     tag: 'Engineering',
@@ -66,7 +82,7 @@ export default function BlogIndex() {
       <Box sx={{ bgcolor: tokens.color.bg.alabaster, minHeight: '100vh' }}>
         <Container maxWidth="lg" sx={{ py: { xs: 6, md: 10 } }}>
           <Typography variant="overline" sx={{ color: '#5c5750', letterSpacing: '0.16em', fontWeight: 800, fontSize: 12 }}>
-            Blog · בלוג
+            Blog
           </Typography>
           <Typography
             component="h1"
@@ -82,9 +98,8 @@ export default function BlogIndex() {
             Essays from the team.
           </Typography>
           <Typography sx={{ color: '#3a3530', fontSize: 18, lineHeight: 1.6, maxWidth: 640, mb: 6 }}>
-            Long-form notes on how we are building Ironflyer — what we picked, what we rejected, and
-            what we are still arguing about internally. בעיקר על המוצר, האסטרטגיה, והבחירות
-            הטכניות שמאחורי הגימור.
+            Long-form notes on how we are building Ironflyer: the gates we enforce, the tradeoffs we accept,
+            the competitors we study, and the production standards we refuse to dilute.
           </Typography>
 
           <Box

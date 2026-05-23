@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rent Atlas — The rental search built for people who hate rental search</title>
+  <meta name="description" content="Find a rental in 28 cities with verified listings, real photos, and prices that haven't changed since the post was written. No spam landlords. No bait listings." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f7f3ec;
+      --bg-2: #ffffff;
+      --paper: #ffffff;
+      --fg: #161311;
+      --fg-2: #5a534d;
+      --fg-3: #a09689;
+      --accent: #d63a3a;
+      --accent-2: #b62a2a;
+      --accent-soft: #fbe4e4;
+      --line: #e6dfd4;
+      --line-strong: #cfc6b8;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--fg); font-family: 'Inter', sans-serif; font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+
+    .nav { position: sticky; top: 0; z-index: 50; background: rgba(247,243,236,0.94); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    .brand { display: flex; align-items: center; gap: 8px; font-weight: 900; letter-spacing: -0.02em; font-size: 19px; }
+    .brand-mark { width: 26px; height: 26px; border-radius: 7px; background: var(--accent); display: grid; place-items: center; color: #fff; font-size: 14px; font-weight: 900; }
+    .nav-links { display: flex; gap: 26px; font-size: 14px; color: var(--fg-2); font-weight: 500; }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta { display: flex; gap: 10px; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; border: 1px solid transparent; }
+    .btn-red { background: var(--accent); color: #fff; }
+    .btn-red:hover { background: var(--accent-2); }
+    .btn-ghost { background: transparent; color: var(--fg); border-color: var(--line-strong); }
+    .btn-ghost:hover { border-color: var(--fg); }
+    @media (max-width: 1080px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 72px 0 24px; }
+    .hero-head { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: center; }
+    .pill { display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 13px; font-weight: 700; }
+    .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    h1 { font-size: clamp(40px, 6vw, 72px); font-weight: 900; line-height: 1.02; letter-spacing: -0.03em; margin: 16px 0 18px; }
+    h1 em { font-style: normal; color: var(--accent); }
+    h1 .strike { color: var(--fg-3); text-decoration: line-through; text-decoration-color: var(--accent); font-weight: 600; }
+    .hero-lede { font-size: 18px; color: var(--fg-2); max-width: 540px; margin: 0; }
+    .hero-art { position: relative; }
+    .hero-art img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 18px; }
+    .hero-art .badge { position: absolute; top: 18px; left: 18px; background: #fff; padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 700; box-shadow: 0 14px 24px -14px rgba(0,0,0,0.2); display: inline-flex; align-items: center; gap: 8px; }
+    .hero-art .badge::before { content: '✓'; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-size: 11px; }
+    @media (max-width: 1080px) { .hero-head { grid-template-columns: 1fr; gap: 32px; } }
+
+    /* Search bar */
+    .super-search { margin-top: 36px; background: var(--paper); border-radius: 16px; padding: 8px; display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr 1fr auto; gap: 4px; box-shadow: 0 24px 40px -28px rgba(22, 19, 17, 0.25); border: 1px solid var(--line); }
+    .ss-field { padding: 12px 18px; border-right: 1px solid var(--line); }
+    .ss-field:last-of-type { border-right: none; }
+    .ss-field label { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; color: var(--fg-3); margin-bottom: 2px; }
+    .ss-field input, .ss-field select { width: 100%; border: none; background: transparent; font: inherit; color: var(--fg); padding: 0; outline: none; font-size: 15px; }
+    .super-search button { background: var(--accent); color: #fff; border: none; border-radius: 12px; padding: 0 26px; font: inherit; font-weight: 700; cursor: pointer; font-size: 14px; }
+    .super-search button:hover { background: var(--accent-2); }
+    @media (max-width: 1080px) {
+      .super-search { grid-template-columns: 1fr 1fr; }
+      .ss-field { border-right: none; border-bottom: 1px solid var(--line); }
+      .super-search button { grid-column: 1 / -1; padding: 16px; }
+    }
+    @media (max-width: 720px) { .super-search { grid-template-columns: 1fr; } }
+
+    .badges-strip { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 22px; }
+    .b-pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 999px; background: #fff; border: 1px solid var(--line); font-size: 13px; color: var(--fg-2); font-weight: 500; }
+    .b-pill::before { content: '✓'; color: var(--accent); font-weight: 800; font-size: 11px; }
+
+    /* Cities */
+    .cities { padding: 56px 0; }
+    .cities-head { display: flex; justify-content: space-between; align-items: end; margin-bottom: 24px; }
+    .cities-head h2 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin: 0; }
+    .cities-head a { font-size: 14px; color: var(--accent); font-weight: 600; }
+    .cities-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; }
+    .city-tile { position: relative; aspect-ratio: 4/3; border-radius: 12px; overflow: hidden; cursor: pointer; }
+    .city-tile img { width: 100%; height: 100%; object-fit: cover; transition: transform 320ms ease; }
+    .city-tile:hover img { transform: scale(1.05); }
+    .city-tile::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(0,0,0,0.55) 100%); }
+    .city-tile .lbl { position: absolute; bottom: 10px; left: 12px; color: #fff; z-index: 2; }
+    .city-tile h3 { margin: 0; font-size: 15px; font-weight: 700; }
+    .city-tile p { margin: 0; font-size: 11px; opacity: 0.8; }
+    @media (max-width: 1080px) { .cities-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 720px) { .cities-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    /* Listings */
+    .listings-section { padding: 24px 0 96px; }
+    .filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
+    .filter { padding: 8px 14px; background: var(--paper); border: 1px solid var(--line); border-radius: 999px; font-size: 13px; cursor: pointer; font-weight: 500; }
+    .filter.active { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+    .listings-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+    .listing { background: var(--paper); border-radius: 14px; overflow: hidden; transition: transform 240ms ease, box-shadow 240ms ease; border: 1px solid var(--line); }
+    .listing:hover { transform: translateY(-3px); box-shadow: 0 24px 40px -20px rgba(22, 19, 17, 0.18); }
+    .l-img { position: relative; aspect-ratio: 4/3; overflow: hidden; }
+    .l-img img { width: 100%; height: 100%; object-fit: cover; }
+    .l-img .verified { position: absolute; top: 12px; left: 12px; background: rgba(255,255,255,0.96); padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+    .l-img .verified::before { content: '✓'; color: var(--accent); font-size: 11px; }
+    .l-img .save { position: absolute; top: 12px; right: 12px; width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.96); display: grid; place-items: center; cursor: pointer; }
+    .l-body { padding: 18px; }
+    .l-price { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+    .l-price .now { font-size: 22px; font-weight: 900; letter-spacing: -0.02em; }
+    .l-price small { color: var(--fg-3); font-size: 13px; font-weight: 500; }
+    .l-addr { font-size: 13px; color: var(--fg-2); margin-bottom: 10px; }
+    .l-meta { display: flex; gap: 12px; font-size: 13px; color: var(--fg-2); padding-top: 10px; border-top: 1px solid var(--line); }
+    .l-meta strong { color: var(--fg); font-weight: 700; }
+    .l-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 12px; color: var(--fg-3); }
+    .l-foot .listed { color: var(--accent); font-weight: 700; }
+    @media (max-width: 1080px) { .listings-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .listings-grid { grid-template-columns: 1fr; } }
+
+    /* Trust */
+    .trust { padding: 96px 0; background: var(--paper); }
+    .trust-head { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: end; margin-bottom: 48px; }
+    .trust-head h2 { font-size: clamp(34px, 4.4vw, 52px); font-weight: 900; letter-spacing: -0.025em; line-height: 1.05; margin: 0; }
+    .trust-head h2 em { font-style: normal; color: var(--accent); }
+    .trust-head p { color: var(--fg-2); font-size: 16px; max-width: 480px; margin: 0; }
+    .trust-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .trust-card { padding: 28px; border-radius: 14px; border: 1px solid var(--line); }
+    .trust-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-weight: 900; margin-bottom: 16px; }
+    .trust-card h3 { margin: 0 0 8px; font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+    .trust-card p { margin: 0; color: var(--fg-2); font-size: 14px; }
+    @media (max-width: 1080px) { .trust-head { grid-template-columns: 1fr; } .trust-grid { grid-template-columns: 1fr; } }
+
+    /* Stats */
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 56px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .stat .v { font-size: clamp(34px, 4vw, 48px); font-weight: 900; letter-spacing: -0.025em; }
+    .stat .l { color: var(--fg-2); font-size: 14px; margin-top: 4px; }
+    @media (max-width: 720px) { .stats { grid-template-columns: 1fr 1fr; } }
+
+    /* App callout */
+    .app { padding: 96px 0; display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 56px; align-items: center; }
+    .app img { width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 18px; }
+    .app-body h2 { font-size: clamp(36px, 5vw, 56px); font-weight: 900; letter-spacing: -0.025em; line-height: 1.05; margin: 14px 0 18px; }
+    .app-body h2 em { font-style: normal; color: var(--accent); }
+    .app-body p { color: var(--fg-2); font-size: 17px; max-width: 460px; margin: 0 0 24px; }
+    .app-cta { display: flex; gap: 12px; flex-wrap: wrap; }
+    @media (max-width: 1080px) { .app { grid-template-columns: 1fr; gap: 32px; } }
+
+    /* Testimonials */
+    .testi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .t-card { background: var(--paper); padding: 24px; border-radius: 14px; border: 1px solid var(--line); }
+    .t-card blockquote { margin: 0 0 16px; font-size: 15px; line-height: 1.55; color: var(--fg); }
+    .t-card .by { display: flex; align-items: center; gap: 12px; }
+    .t-card .by img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+    .t-card .by div { font-size: 13px; }
+    .t-card .by .n { font-weight: 700; }
+    .t-card .by .c { color: var(--fg-3); }
+    @media (max-width: 1080px) { .testi-row { grid-template-columns: 1fr; } }
+
+    .cta { padding: 96px 0; text-align: center; }
+    .cta h2 { font-size: clamp(40px, 5.6vw, 64px); font-weight: 900; letter-spacing: -0.03em; margin: 0 auto 18px; max-width: 720px; line-height: 1.04; }
+    .cta h2 em { font-style: normal; color: var(--accent); }
+    .cta p { color: var(--fg-2); max-width: 520px; margin: 0 auto 32px; font-size: 17px; }
+    .cta .btn-red { padding: 14px 26px; font-size: 15px; }
+
+    footer { padding: 64px 0 28px; border-top: 1px solid var(--line); }
+    .foot-grid { display: grid; grid-template-columns: 1.5fr repeat(4, 1fr); gap: 32px; }
+    .foot-col h4 { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg-3); margin: 0 0 14px; font-weight: 700; }
+    .foot-col a, .foot-col p { display: block; color: var(--fg-2); font-size: 14px; padding: 4px 0; margin: 0; }
+    .foot-col a:hover { color: var(--accent); }
+    .foot-bot { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; font-size: 13px; color: var(--fg-3); }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 8px; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a href="#" class="brand"><span class="brand-mark">A</span>Rent Atlas</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#listings">Rentals</a>
+        <a href="#cities">Cities</a>
+        <a href="#why">Why Atlas</a>
+        <a href="#app">App</a>
+        <a href="#landlords">For landlords</a>
+      </nav>
+      <div class="nav-cta">
+        <a href="#" class="btn btn-ghost">Sign in</a>
+        <a href="#listings" class="btn btn-red">Find a rental</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-head">
+          <div>
+            <span class="pill"><span class="dot"></span>3,140 verified rentals across 28 cities</span>
+            <h1>Rental search <span class="strike">that wastes your weekend</span> — <em>finally fixed</em>.</h1>
+            <p class="hero-lede">Every listing on Rent Atlas is verified by us, photographed by us, and priced honestly. No bait listings, no spam landlords, no "still available" replies on apartments rented last month.</p>
+            <div class="badges-strip">
+              <span class="b-pill">Photos taken last 30 days</span>
+              <span class="b-pill">Landlord ID checked</span>
+              <span class="b-pill">No application fees</span>
+              <span class="b-pill">Price-lock on tour</span>
+            </div>
+          </div>
+          <div class="hero-art">
+            <img src="https://picsum.photos/seed/atlas-1/1200/900" width="1200" height="900" alt="A sunlit Brooklyn walk-up apartment with hardwood floors, exposed brick, and a velvet couch." loading="eager" />
+            <span class="badge">Verified 2 days ago</span>
+          </div>
+        </div>
+
+        <form class="super-search" onsubmit="event.preventDefault();">
+          <div class="ss-field"><label for="city">City or neighborhood</label><input id="city" type="text" placeholder="Brooklyn, Mission, Capitol Hill…" /></div>
+          <div class="ss-field"><label for="move">Move-in by</label><input id="move" type="date" /></div>
+          <div class="ss-field"><label for="bed">Bedrooms</label><select id="bed"><option>Studio</option><option>1 bed</option><option>2 bed</option><option>3 bed</option><option>4 +</option></select></div>
+          <div class="ss-field"><label for="rent">Budget</label><select id="rent"><option>Up to $1,800</option><option>$1,800 – $2,800</option><option>$2,800 – $4,000</option><option>$4,000 +</option></select></div>
+          <div class="ss-field"><label for="pets">Pets</label><select id="pets"><option>Either</option><option>Cat OK</option><option>Dog OK</option><option>Both</option></select></div>
+          <button type="submit">Search rentals</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="cities" id="cities">
+      <div class="wrap">
+        <div class="cities-head">
+          <h2>Cities on Atlas</h2>
+          <a href="#">See all 28 cities →</a>
+        </div>
+        <div class="cities-grid">
+          <a class="city-tile"><img src="https://picsum.photos/seed/atlas-c1/400/300" width="400" height="300" alt="Brooklyn brownstones." loading="lazy" /><div class="lbl"><h3>Brooklyn</h3><p>684 rentals</p></div></a>
+          <a class="city-tile"><img src="https://picsum.photos/seed/atlas-c2/400/300" width="400" height="300" alt="San Francisco painted ladies." loading="lazy" /><div class="lbl"><h3>San Francisco</h3><p>412 rentals</p></div></a>
+          <a class="city-tile"><img src="https://picsum.photos/seed/atlas-c3/400/300" width="400" height="300" alt="Chicago lakefront." loading="lazy" /><div class="lbl"><h3>Chicago</h3><p>538 rentals</p></div></a>
+          <a class="city-tile"><img src="https://picsum.photos/seed/atlas-c4/400/300" width="400" height="300" alt="Austin skyline at dusk." loading="lazy" /><div class="lbl"><h3>Austin</h3><p>289 rentals</p></div></a>
+          <a class="city-tile"><img src="https://picsum.photos/seed/atlas-c5/400/300" width="400" height="300" alt="Seattle Capitol Hill street." loading="lazy" /><div class="lbl"><h3>Seattle</h3><p>318 rentals</p></div></a>
+          <a class="city-tile"><img src="https://picsum.photos/seed/atlas-c6/400/300" width="400" height="300" alt="Portland Hawthorne neighborhood." loading="lazy" /><div class="lbl"><h3>Portland</h3><p>211 rentals</p></div></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="listings-section" id="listings">
+      <div class="wrap">
+        <div class="filters">
+          <span class="filter active">All rentals</span>
+          <span class="filter">Pet-friendly</span>
+          <span class="filter">No fee</span>
+          <span class="filter">Furnished</span>
+          <span class="filter">Short term</span>
+          <span class="filter">Roommate</span>
+        </div>
+        <div class="listings-grid">
+          <article class="listing">
+            <div class="l-img"><img src="https://picsum.photos/seed/atlas-l1/900/700" width="900" height="700" alt="A sunlit one-bedroom in Greenpoint with white walls and a brass kitchen." loading="lazy" /><span class="verified">Verified</span><span class="save">♡</span></div>
+            <div class="l-body">
+              <div class="l-price"><span class="now">$2,800</span><small>/ month · 1 year lease</small></div>
+              <div class="l-addr">124 Java Street, Apt 3R · Greenpoint, Brooklyn</div>
+              <div class="l-meta"><span><strong>1</strong> bd</span><span><strong>1</strong> ba</span><span><strong>620</strong> sqft</span><span>Pet OK</span></div>
+              <div class="l-foot"><span class="listed">Listed 3 days ago</span><span>No broker fee</span></div>
+            </div>
+          </article>
+          <article class="listing">
+            <div class="l-img"><img src="https://picsum.photos/seed/atlas-l2/900/700" width="900" height="700" alt="A spacious two bedroom in the Mission with a tiled fireplace." loading="lazy" /><span class="verified">Verified</span><span class="save">♡</span></div>
+            <div class="l-body">
+              <div class="l-price"><span class="now">$4,150</span><small>/ month</small></div>
+              <div class="l-addr">3398 22nd Street, Apt 4 · Mission, SF</div>
+              <div class="l-meta"><span><strong>2</strong> bd</span><span><strong>1</strong> ba</span><span><strong>980</strong> sqft</span><span>Cat OK</span></div>
+              <div class="l-foot"><span class="listed">Listed today</span><span>No fee</span></div>
+            </div>
+          </article>
+          <article class="listing">
+            <div class="l-img"><img src="https://picsum.photos/seed/atlas-l3/900/700" width="900" height="700" alt="A studio in Capitol Hill with a Murphy bed and city view." loading="lazy" /><span class="verified">Verified</span><span class="save">♡</span></div>
+            <div class="l-body">
+              <div class="l-price"><span class="now">$1,650</span><small>/ month</small></div>
+              <div class="l-addr">1218 E Olive Way, #410 · Capitol Hill, Seattle</div>
+              <div class="l-meta"><span>Studio</span><span><strong>1</strong> ba</span><span><strong>420</strong> sqft</span><span>No pets</span></div>
+              <div class="l-foot"><span class="listed">Listed 5 days ago</span><span>No fee</span></div>
+            </div>
+          </article>
+          <article class="listing">
+            <div class="l-img"><img src="https://picsum.photos/seed/atlas-l4/900/700" width="900" height="700" alt="A modern three-bedroom in East Austin with a backyard deck." loading="lazy" /><span class="verified">Verified</span><span class="save">♡</span></div>
+            <div class="l-body">
+              <div class="l-price"><span class="now">$3,200</span><small>/ month</small></div>
+              <div class="l-addr">2018 E 14th St · East Austin, TX</div>
+              <div class="l-meta"><span><strong>3</strong> bd</span><span><strong>2</strong> ba</span><span><strong>1,340</strong> sqft</span><span>Dog OK</span></div>
+              <div class="l-foot"><span class="listed">Listed 2 days ago</span><span>No fee</span></div>
+            </div>
+          </article>
+          <article class="listing">
+            <div class="l-img"><img src="https://picsum.photos/seed/atlas-l5/900/700" width="900" height="700" alt="A chicago two-flat unit with bay windows and original woodwork." loading="lazy" /><span class="verified">Verified</span><span class="save">♡</span></div>
+            <div class="l-body">
+              <div class="l-price"><span class="now">$2,150</span><small>/ month</small></div>
+              <div class="l-addr">2241 W Schubert · Logan Square, Chicago</div>
+              <div class="l-meta"><span><strong>2</strong> bd</span><span><strong>1</strong> ba</span><span><strong>1,100</strong> sqft</span><span>Pet OK</span></div>
+              <div class="l-foot"><span class="listed">Listed 1 day ago</span><span>No fee</span></div>
+            </div>
+          </article>
+          <article class="listing">
+            <div class="l-img"><img src="https://picsum.photos/seed/atlas-l6/900/700" width="900" height="700" alt="A renovated portland craftsman ADU with a private entrance." loading="lazy" /><span class="verified">Verified</span><span class="save">♡</span></div>
+            <div class="l-body">
+              <div class="l-price"><span class="now">$1,950</span><small>/ month · furnished</small></div>
+              <div class="l-addr">3414 SE Hawthorne · Hawthorne, Portland</div>
+              <div class="l-meta"><span><strong>1</strong> bd</span><span><strong>1</strong> ba</span><span><strong>540</strong> sqft</span><span>Cat OK</span></div>
+              <div class="l-foot"><span class="listed">Listed 4 days ago</span><span>Furnished</span></div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="trust" id="why">
+      <div class="wrap">
+        <div class="trust-head">
+          <h2>The rental rules <em>Atlas enforces</em>.</h2>
+          <p>Most rental sites are spam pipelines. Atlas is a closed system: every landlord is verified, every listing is checked, every photo was taken this month.</p>
+        </div>
+        <div class="trust-grid">
+          <div class="trust-card"><div class="trust-icon">✓</div><h3>Verified landlords only</h3><p>Government ID, deed or lease authority, and a phone number that connects to a person. Or no listing.</p></div>
+          <div class="trust-card"><div class="trust-icon">⌖</div><h3>Photos from this month</h3><p>Every listing photo is timestamped. If a unit re-lists, it gets re-photographed. No stock images, ever.</p></div>
+          <div class="trust-card"><div class="trust-icon">$</div><h3>Price-lock on tour</h3><p>The advertised rent is the rent. If a landlord raises price between tour and lease, Atlas pays the delta for year one.</p></div>
+          <div class="trust-card"><div class="trust-icon">✕</div><h3>No application fees</h3><p>We banned them in 2023. Apply to as many Atlas listings as you want, free.</p></div>
+          <div class="trust-card"><div class="trust-icon">!</div><h3>Bait-listing penalty</h3><p>One bait listing = lifetime ban for the landlord across all 28 markets. We log them publicly.</p></div>
+          <div class="trust-card"><div class="trust-icon">⊞</div><h3>Tenant-side guarantee</h3><p>If your unit is unlivable on move-in day, Atlas pays your hotel and finds you a replacement within 48 hours.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap">
+      <div class="stats">
+        <div class="stat"><div class="v">3,140</div><div class="l">Verified rentals, live</div></div>
+        <div class="stat"><div class="v">28</div><div class="l">Cities covered</div></div>
+        <div class="stat"><div class="v">12 days</div><div class="l">Median time to lease</div></div>
+        <div class="stat"><div class="v">$0</div><div class="l">Application fees, ever</div></div>
+      </div>
+    </section>
+
+    <section class="app" id="app">
+      <div class="wrap" style="display:contents;">
+        <img src="https://picsum.photos/seed/atlas-app/1000/1250" width="1000" height="1250" alt="A phone screen showing the Rent Atlas app with saved rentals and tour bookings." loading="lazy" />
+        <div class="app-body">
+          <span class="pill"><span class="dot"></span>iOS and Android</span>
+          <h2>Tour, apply, sign — all from <em>the app</em>.</h2>
+          <p>Save rentals, book tours, apply once, and sign your lease — no print, no fax, no driving to a real-estate office. Average tour-to-lease time: nine days.</p>
+          <div class="app-cta"><a href="#" class="btn btn-red">Get the app →</a><a href="#" class="btn btn-ghost">Browse on the web</a></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="listings-section" id="renters">
+      <div class="wrap">
+        <h2 style="font-size:clamp(28px,3.4vw,40px); font-weight:900; letter-spacing:-0.025em; margin: 0 0 24px;">Renters who actually found a place.</h2>
+        <div class="testi-row">
+          <div class="t-card">
+            <blockquote>"Toured Saturday, signed Monday, moved in two weeks later. The first three listings I looked at on a competitor site were already rented when I called."</blockquote>
+            <div class="by"><img src="https://picsum.photos/seed/atlas-r1/100/100" width="100" height="100" alt="Portrait of Mara." /><div><div class="n">Mara K.</div><div class="c">Brooklyn · 1 bed</div></div></div>
+          </div>
+          <div class="t-card">
+            <blockquote>"The price-lock guarantee paid out for me — the landlord tried to bump rent by $120 a month at signing. Atlas reimbursed it. Will use again."</blockquote>
+            <div class="by"><img src="https://picsum.photos/seed/atlas-r2/100/100" width="100" height="100" alt="Portrait of Jose." /><div><div class="n">José A.</div><div class="c">Mission, SF · Studio</div></div></div>
+          </div>
+          <div class="t-card">
+            <blockquote>"I have moved four times in five years. Atlas was the only search that didn't waste my Saturday on a unit I couldn't even tour."</blockquote>
+            <div class="by"><img src="https://picsum.photos/seed/atlas-r3/100/100" width="100" height="100" alt="Portrait of Hadeel." /><div><div class="n">Hadeel S.</div><div class="c">Logan Square · 2 bed</div></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="cta" id="landlords">
+    <div class="wrap">
+      <h2>Find a rental that's actually <em>still on the market</em>.</h2>
+      <p>Search 3,140 verified rentals in 28 cities. No application fees. No bait listings. No wasted Saturdays.</p>
+      <a class="btn btn-red" href="#listings">Start searching →</a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a href="#" class="brand"><span class="brand-mark">A</span>Rent Atlas</a>
+          <p style="margin-top:14px; max-width: 260px;">The rental search built for people who hate rental search. 28 cities, verified listings, no application fees.</p>
+        </div>
+        <div class="foot-col"><h4>Renters</h4><a href="#">Find a rental</a><a href="#">Saved searches</a><a href="#">Apply once</a><a href="#">Renter guarantee</a></div>
+        <div class="foot-col"><h4>Landlords</h4><a href="#">List a unit</a><a href="#">Verification</a><a href="#">Pricing tools</a><a href="#">Landlord rules</a></div>
+        <div class="foot-col"><h4>Cities</h4><a href="#">Brooklyn</a><a href="#">San Francisco</a><a href="#">Chicago</a><a href="#">See all 28 →</a></div>
+        <div class="foot-col"><h4>Company</h4><a href="#">About</a><a href="#">Careers</a><a href="#">Trust report</a><a href="#">Contact</a></div>
+      </div>
+      <div class="foot-bot"><span>© 2026 Rent Atlas, Inc.</span><span>Equal opportunity housing platform.</span></div>
+    </div>
+  </footer>
+</body>
+</html>

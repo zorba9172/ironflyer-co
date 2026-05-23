@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Stargate Bridge — Move value across chains in one signature</title>
+  <meta name="description" content="Stargate Bridge is a cross-chain liquidity protocol with guaranteed finality. Native assets, deep pools, MEV-protected routes, and a single signature settlement." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --surface: #111114;
+      --surface-2: #1a1a20;
+      --border: rgba(180, 160, 255, 0.10);
+      --border-strong: rgba(180, 160, 255, 0.25);
+      --fg: #f3eeff;
+      --fg-2: #a097b8;
+      --fg-3: #5e5670;
+      --accent: #8b5cff;
+      --accent-2: #d96bff;
+      --green: #6dffb1;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Space Grotesk', -apple-system, system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    .mono { font-family: 'Space Mono', monospace; }
+
+    /* Background ambient */
+    .bg-orb {
+      position: fixed; pointer-events: none;
+      width: 800px; height: 800px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(139, 92, 255, 0.20), transparent 60%);
+      top: -200px; left: -200px;
+      z-index: 0;
+    }
+    .bg-orb-2 {
+      position: fixed; pointer-events: none;
+      width: 700px; height: 700px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(217, 107, 255, 0.14), transparent 60%);
+      top: 200px; right: -250px;
+      z-index: 0;
+    }
+    main, .nav, footer { position: relative; z-index: 1; }
+
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: blur(18px);
+      background: rgba(10, 10, 10, 0.78);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 68px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 700; letter-spacing: -0.015em; font-size: 17px; }
+    .brand-mark {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 0 24px rgba(139, 92, 255, 0.5);
+    }
+    .nav-links { display: flex; gap: 28px; color: var(--fg-2); font-size: 14px; }
+    .nav-links a:hover { color: var(--fg); }
+    .nav-cta { display: flex; gap: 10px; align-items: center; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      height: 40px; padding: 0 18px;
+      border-radius: 10px; font-weight: 600; font-size: 14px;
+      border: 1px solid transparent; cursor: pointer;
+      transition: transform 160ms cubic-bezier(.22,1,.36,1), box-shadow 160ms;
+      font-family: inherit;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #0a0a0a;
+      box-shadow: 0 0 24px rgba(139, 92, 255, 0.3);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 0 32px rgba(139, 92, 255, 0.5); }
+    .btn-ghost { background: transparent; color: var(--fg); border-color: var(--border-strong); }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    @media (max-width: 900px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 100px 0 80px; }
+    .hero-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 56px; align-items: center; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 14px; border: 1px solid var(--border-strong);
+      border-radius: 999px; font-size: 12px; color: var(--fg-2);
+      font-family: 'Space Mono', monospace;
+      text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+    h1 {
+      font-size: clamp(44px, 6.8vw, 86px);
+      line-height: 0.98; letter-spacing: -0.035em;
+      font-weight: 700; margin: 24px 0 22px;
+      background: linear-gradient(135deg, #ffffff 0%, var(--accent) 70%, var(--accent-2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .lede { font-size: 19px; color: var(--fg-2); max-width: 540px; line-height: 1.55; }
+    .hero-cta { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; }
+    .hero-cta .btn { height: 50px; padding: 0 24px; }
+
+    /* Bridge widget */
+    .bridge-widget {
+      background: linear-gradient(180deg, rgba(20, 20, 28, 0.9), rgba(10, 10, 14, 0.9));
+      border: 1px solid var(--border-strong);
+      border-radius: 20px; padding: 24px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+    .widget-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+    .widget-title { font-family: 'Space Mono', monospace; font-size: 14px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-2); }
+    .widget-cog { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--fg-2); cursor: pointer; display: grid; place-items: center; }
+    .chain-row {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 16px;
+      display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center;
+    }
+    .chain-row + .chain-row { margin-top: 12px; }
+    .chain-label { font-size: 12px; color: var(--fg-3); font-family: 'Space Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+    .chain-amount { font-family: 'Space Mono', monospace; font-size: 26px; font-weight: 700; letter-spacing: -0.01em; background: transparent; border: 0; color: var(--fg); width: 100%; outline: none; padding: 0; }
+    .chain-pick {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--surface-2); border: 1px solid var(--border-strong);
+      border-radius: 999px; padding: 8px 14px;
+      cursor: pointer; font-family: inherit; font-weight: 600; font-size: 14px; color: var(--fg);
+    }
+    .chain-pick .swatch { width: 16px; height: 16px; border-radius: 50%; }
+    .swatch-eth { background: linear-gradient(135deg, #627eea, #8198ff); }
+    .swatch-op { background: linear-gradient(135deg, #ff0420, #ff4060); }
+    .swatch-arb { background: linear-gradient(135deg, #28a0f0, #5cc4ff); }
+    .swatch-base { background: linear-gradient(135deg, #0052ff, #4080ff); }
+    .swap-arrow {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: var(--accent); display: grid; place-items: center;
+      color: #0a0a0a; font-family: 'Space Mono', monospace; font-weight: 700;
+      margin: -6px auto; position: relative; z-index: 2; border: 4px solid var(--bg);
+      box-shadow: 0 0 20px rgba(139, 92, 255, 0.5);
+    }
+    .widget-route { display: grid; gap: 10px; margin: 18px 0; padding: 14px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; font-family: 'Space Mono', monospace; font-size: 12.5px; }
+    .route-row { display: flex; justify-content: space-between; color: var(--fg-2); }
+    .route-row b { color: var(--fg); font-weight: 700; }
+    .route-row .ok { color: var(--green); }
+    .bridge-cta { width: 100%; height: 50px; border-radius: 12px; font-weight: 700; font-size: 15px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #0a0a0a; border: 0; cursor: pointer; font-family: inherit; }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 48px; } }
+
+    /* Stats */
+    .stats {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 40px 0;
+      background: rgba(0,0,0,0.3);
+    }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    .stat .val { font-family: 'Space Mono', monospace; font-size: clamp(28px, 3.4vw, 42px); font-weight: 700; letter-spacing: -0.02em; line-height: 1; color: var(--fg); }
+    .stat .val em { font-style: normal; background: linear-gradient(135deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .stat .label { color: var(--fg-2); font-size: 13px; margin-top: 8px; font-family: 'Space Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; }
+    @media (max-width: 720px) { .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 28px; } }
+
+    /* Section */
+    .section { padding: 100px 0; }
+    .section-head { max-width: 720px; margin-bottom: 56px; }
+    .section h2 { font-size: clamp(34px, 4.6vw, 56px); letter-spacing: -0.03em; line-height: 1.04; font-weight: 700; margin: 14px 0 16px; }
+    .section h2 em { font-style: normal; background: linear-gradient(135deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .section .lede { font-size: 17px; }
+
+    /* How it works */
+    .steps {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
+    }
+    .step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 28px;
+      position: relative; overflow: hidden;
+    }
+    .step::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      opacity: 0.6;
+    }
+    .step-num { font-family: 'Space Mono', monospace; font-size: 36px; font-weight: 700; color: var(--accent); margin-bottom: 16px; line-height: 1; opacity: 0.7; }
+    .step h3 { font-size: 19px; font-weight: 600; margin: 8px 0 10px; letter-spacing: -0.01em; }
+    .step p { color: var(--fg-2); margin: 0; font-size: 14.5px; line-height: 1.6; }
+    @media (max-width: 1080px) { .steps { grid-template-columns: 1fr; } }
+
+    /* Features */
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .feature {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px; padding: 28px;
+      transition: border-color 240ms, transform 240ms;
+    }
+    .feature:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .feature-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: linear-gradient(135deg, rgba(139, 92, 255, 0.18), rgba(217, 107, 255, 0.12));
+      border: 1px solid var(--border-strong);
+      display: grid; place-items: center; margin-bottom: 20px;
+      color: var(--accent); font-family: 'Space Mono', monospace; font-weight: 700;
+    }
+    .feature h3 { font-size: 18px; font-weight: 600; margin: 0 0 8px; letter-spacing: -0.01em; }
+    .feature p { color: var(--fg-2); margin: 0; font-size: 14px; line-height: 1.6; }
+    @media (max-width: 1080px) { .features { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .features { grid-template-columns: 1fr; } }
+
+    /* Security */
+    .security { padding: 100px 0; background: rgba(0,0,0,0.3); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .sec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: start; }
+    .auditors { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .auditor {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px;
+    }
+    .auditor-name { font-family: 'Space Mono', monospace; font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+    .auditor-meta { font-size: 12px; color: var(--fg-2); font-family: 'Space Mono', monospace; }
+    .auditor a { color: var(--accent); font-size: 12.5px; font-family: 'Space Mono', monospace; display: inline-block; margin-top: 8px; }
+    @media (max-width: 1080px) { .sec-grid { grid-template-columns: 1fr; gap: 40px; } }
+
+    /* Chains supported */
+    .chains-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .chain-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 18px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .chain-card:hover { border-color: var(--border-strong); }
+    .chain-card .swatch { width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; }
+    .chain-card-name { font-weight: 600; font-size: 15px; }
+    .chain-card-tvl { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--fg-2); }
+    @media (max-width: 1080px) { .chains-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .chains-grid { grid-template-columns: 1fr; } }
+
+    /* Dev */
+    .dev-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; overflow: hidden;
+    }
+    .dev-tabs { display: flex; gap: 4px; padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--surface-2); }
+    .dev-dot { width: 11px; height: 11px; border-radius: 50%; background: #2a2a30; }
+    .dev-dot + .dev-dot { margin-left: -4px; }
+    .dev-file { margin-left: 16px; font-family: 'Space Mono', monospace; font-size: 12px; color: var(--fg-2); padding: 4px 10px; border-radius: 6px; background: rgba(255,255,255,0.03); }
+    pre.code {
+      margin: 0; padding: 28px;
+      font-family: 'Space Mono', monospace;
+      font-size: 13.5px; line-height: 1.75; color: var(--fg); overflow-x: auto;
+    }
+    .tk-key { color: var(--accent-2); }
+    .tk-str { color: var(--green); }
+    .tk-com { color: var(--fg-3); font-style: italic; }
+    .tk-fn { color: var(--accent); }
+    .tk-num { color: #ffc266; }
+
+    /* CTA */
+    .cta-band { padding: 100px 0; text-align: center; border-top: 1px solid var(--border); }
+    .cta-band h2 { font-size: clamp(36px, 5vw, 64px); letter-spacing: -0.03em; line-height: 1.04; margin-bottom: 20px; }
+    .cta-band p { color: var(--fg-2); max-width: 560px; margin: 0 auto 32px; font-size: 18px; }
+
+    /* Footer */
+    footer { border-top: 1px solid var(--border); padding: 56px 0 32px; background: #060608; }
+    .foot-grid { display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 40px; }
+    .foot-col h4 { font-size: 12px; font-family: 'Space Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-3); margin: 0 0 16px; }
+    .foot-col a { display: block; color: var(--fg-2); font-size: 14px; padding: 6px 0; }
+    .foot-col a:hover { color: var(--accent); }
+    .foot-bot { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; color: var(--fg-3); font-size: 13px; font-family: 'Space Mono', monospace; }
+    @media (max-width: 720px) {
+      .foot-grid { grid-template-columns: 1fr 1fr; }
+      .foot-bot { flex-direction: column; gap: 12px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-orb" aria-hidden="true"></div>
+  <div class="bg-orb-2" aria-hidden="true"></div>
+
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">
+        <span class="brand-mark" aria-hidden="true"></span>
+        Stargate
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#how">How it works</a>
+        <a href="#features">Features</a>
+        <a href="#security">Security</a>
+        <a href="#chains">Chains</a>
+        <a href="#dev">Developers</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-ghost" href="#">Docs</a>
+        <a class="btn btn-primary" href="#">Launch app</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>14 chains · single signature</span>
+            <h1>Move value across chains, in one signature.</h1>
+            <p class="lede">Stargate Bridge is a cross-chain liquidity protocol with guaranteed finality. Native assets in, native assets out. Deep pools, MEV-protected routes, settled in seconds, not minutes.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#">Launch app →</a>
+              <a class="btn btn-ghost" href="#how">How the route works</a>
+            </div>
+          </div>
+          <div class="bridge-widget" role="region" aria-label="Bridge widget preview">
+            <div class="widget-head">
+              <span class="widget-title">Bridge</span>
+              <button class="widget-cog" aria-label="Settings">⚙</button>
+            </div>
+            <div class="chain-row">
+              <div>
+                <div class="chain-label">From</div>
+                <input class="chain-amount" type="text" value="1,250.00" aria-label="Amount to bridge" />
+              </div>
+              <button class="chain-pick" id="chainFrom">
+                <span class="swatch swatch-eth"></span> Ethereum
+              </button>
+            </div>
+            <div class="swap-arrow" aria-hidden="true">↓</div>
+            <div class="chain-row">
+              <div>
+                <div class="chain-label">To (estimated)</div>
+                <input class="chain-amount" type="text" value="1,249.42" aria-label="Estimated received" />
+              </div>
+              <button class="chain-pick" id="chainTo">
+                <span class="swatch swatch-base"></span> Base
+              </button>
+            </div>
+            <div class="widget-route">
+              <div class="route-row"><span>Route</span><b>USDC pool · direct</b></div>
+              <div class="route-row"><span>Fee</span><b>0.05% · $0.58</b></div>
+              <div class="route-row"><span>Slippage</span><b>0.10%</b></div>
+              <div class="route-row"><span>ETA</span><b class="ok">~ 24 seconds</b></div>
+            </div>
+            <button class="bridge-cta">Bridge 1,250 USDC</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats">
+      <div class="wrap">
+        <div class="stats-grid">
+          <div class="stat"><div class="val"><em>$12.4B</em></div><div class="label">Total volume bridged</div></div>
+          <div class="stat"><div class="val">3.8M</div><div class="label">Transactions settled</div></div>
+          <div class="stat"><div class="val">14</div><div class="label">Supported chains</div></div>
+          <div class="stat"><div class="val">24s</div><div class="label">Median settlement</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="how">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>How it works</span>
+          <h2>From <em>signature</em> to finality.</h2>
+          <p class="lede">Three on-chain steps. No wrapped tokens. No federated bridges. No "trust us" middleware.</p>
+        </div>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">01</div>
+            <h3>Lock on source</h3>
+            <p>You sign a transfer on the source chain. The router deposits into the unified liquidity pool and emits a verifiable event with the destination payload.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">02</div>
+            <h3>Verify the proof</h3>
+            <p>Decentralized verifiers attest to the source event using Merkle proofs. A k-of-n quorum is required before the message is admitted on the destination.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">03</div>
+            <h3>Settle on destination</h3>
+            <p>The router on the destination chain unlocks native liquidity to your wallet. No wrapped IOUs, no synthetic claims. The asset you receive is the canonical one.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="features" style="padding-top: 0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Features</span>
+          <h2>Built for <em>actual users</em>.</h2>
+          <p class="lede">Six things every bridge claims. We ship them with on-chain proof and audited code.</p>
+        </div>
+        <div class="features">
+          <div class="feature"><div class="feature-icon">∞</div><h3>Unified liquidity</h3><p>One pool per asset across every chain. No fragmented liquidity, no idle capital, no thin routes during high-volatility windows.</p></div>
+          <div class="feature"><div class="feature-icon">⚡</div><h3>Sub-minute finality</h3><p>Median settlement under 30 seconds. Optimistic finality on L2-to-L2 routes; canonical finality on mainnet, with an upper bound published per chain.</p></div>
+          <div class="feature"><div class="feature-icon">⛨</div><h3>MEV-protected routing</h3><p>Routes execute through a private mempool with commit-reveal pricing. Front-runners can't sandwich your bridge.</p></div>
+          <div class="feature"><div class="feature-icon">↻</div><h3>Refundable transfers</h3><p>If a transfer cannot settle within its timeout, the source contract refunds automatically. No support tickets, no manual recovery.</p></div>
+          <div class="feature"><div class="feature-icon">$</div><h3>Native asset out</h3><p>You receive the canonical token on the destination chain — not a wrapped derivative. ETH stays ETH, USDC stays USDC.</p></div>
+          <div class="feature"><div class="feature-icon">◐</div><h3>Composable messages</h3><p>Bridge plus call. Trigger a swap, deposit, or contract call on the destination atomically with the bridge transfer.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="security" id="security">
+      <div class="wrap">
+        <div class="sec-grid">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>Security</span>
+            <h2>Audited. <em>Bounty-backed</em>.</h2>
+            <p class="lede">Every contract in the routing path is open-source, audited, and covered by a $1M bug bounty. Verifier quorum, finality bounds, and pool reserves are queryable on-chain in real time.</p>
+            <div style="margin-top: 28px;">
+              <a class="btn btn-ghost" href="#" style="margin-right: 10px;">Read audits</a>
+              <a class="btn btn-ghost" href="#">Immunefi bounty</a>
+            </div>
+          </div>
+          <div class="auditors">
+            <div class="auditor">
+              <div class="auditor-name">Trail of Bits</div>
+              <div class="auditor-meta">Router + verifier · Mar 2026</div>
+              <a href="#">View report →</a>
+            </div>
+            <div class="auditor">
+              <div class="auditor-name">OpenZeppelin</div>
+              <div class="auditor-meta">Liquidity pool · Feb 2026</div>
+              <a href="#">View report →</a>
+            </div>
+            <div class="auditor">
+              <div class="auditor-name">Halborn</div>
+              <div class="auditor-meta">Message layer · Dec 2025</div>
+              <a href="#">View report →</a>
+            </div>
+            <div class="auditor">
+              <div class="auditor-name">ChainSecurity</div>
+              <div class="auditor-meta">Cross-chain pause · Sep 2025</div>
+              <a href="#">View report →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="chains">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Chains</span>
+          <h2>14 chains. <em>One pool</em>.</h2>
+          <p class="lede">Native USDC, ETH, USDT, and wstETH across Ethereum, L2s, and selected sidechains.</p>
+        </div>
+        <div class="chains-grid">
+          <div class="chain-card"><span class="swatch swatch-eth"></span><div><div class="chain-card-name">Ethereum</div><div class="chain-card-tvl">$4.8B TVL</div></div></div>
+          <div class="chain-card"><span class="swatch swatch-op"></span><div><div class="chain-card-name">Optimism</div><div class="chain-card-tvl">$1.6B TVL</div></div></div>
+          <div class="chain-card"><span class="swatch swatch-arb"></span><div><div class="chain-card-name">Arbitrum</div><div class="chain-card-tvl">$2.1B TVL</div></div></div>
+          <div class="chain-card"><span class="swatch swatch-base"></span><div><div class="chain-card-name">Base</div><div class="chain-card-tvl">$1.3B TVL</div></div></div>
+          <div class="chain-card"><span class="swatch" style="background:linear-gradient(135deg,#8247e5,#a878ff);"></span><div><div class="chain-card-name">Polygon</div><div class="chain-card-tvl">$680M TVL</div></div></div>
+          <div class="chain-card"><span class="swatch" style="background:linear-gradient(135deg,#8b8fb7,#c0c5e3);"></span><div><div class="chain-card-name">zkSync Era</div><div class="chain-card-tvl">$420M TVL</div></div></div>
+          <div class="chain-card"><span class="swatch" style="background:linear-gradient(135deg,#fcb900,#ff8a3d);"></span><div><div class="chain-card-name">Scroll</div><div class="chain-card-tvl">$310M TVL</div></div></div>
+          <div class="chain-card"><span class="swatch" style="background:linear-gradient(135deg,#e84142,#ff6f70);"></span><div><div class="chain-card-name">Avalanche</div><div class="chain-card-tvl">$540M TVL</div></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="dev" style="padding-top: 0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Developers</span>
+          <h2>Integrate in <em>10 minutes</em>.</h2>
+          <p class="lede">Drop the SDK into your app. Quote, route, and execute with one method. Webhooks for transfer state, queryable proofs for settlement.</p>
+        </div>
+        <div class="dev-card">
+          <div class="dev-tabs">
+            <span class="dev-dot"></span><span class="dev-dot"></span><span class="dev-dot"></span>
+            <span class="dev-file">bridge.ts</span>
+          </div>
+<pre class="code"><span class="tk-key">import</span> { <span class="tk-fn">Stargate</span> } <span class="tk-key">from</span> <span class="tk-str">"@stargate/sdk"</span>;
+
+<span class="tk-key">const</span> quote = <span class="tk-key">await</span> Stargate.<span class="tk-fn">quote</span>({
+  from: { chain: <span class="tk-str">"ethereum"</span>, token: <span class="tk-str">"USDC"</span> },
+  to:   { chain: <span class="tk-str">"base"</span>,     token: <span class="tk-str">"USDC"</span> },
+  amount: <span class="tk-num">1_250_000_000n</span>, <span class="tk-com">// 1,250 USDC (6 decimals)</span>
+});
+
+<span class="tk-com">// quote.fee = 580_000n (0.05%), quote.eta = 24s</span>
+
+<span class="tk-key">const</span> tx = <span class="tk-key">await</span> Stargate.<span class="tk-fn">execute</span>(quote, { signer });
+<span class="tk-key">await</span> tx.<span class="tk-fn">waitForSettlement</span>();
+<span class="tk-com">// ✓ settled at block 21,448,902 · native USDC on Base</span>
+</pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="cta-band">
+    <div class="wrap">
+      <h2>One pool. <em>Every chain</em>.</h2>
+      <p>Bridge your first transfer in under a minute. No registration, no KYC, just your wallet and a destination.</p>
+      <a class="btn btn-primary" href="#" style="height:54px;padding:0 28px;font-size:15px;">Launch app →</a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a class="brand" href="#" style="margin-bottom:16px;">
+            <span class="brand-mark" aria-hidden="true"></span>
+            Stargate
+          </a>
+          <p style="color:var(--fg-2); font-size:14px; max-width:300px;">A cross-chain liquidity protocol with guaranteed finality. Native assets in, native assets out.</p>
+        </div>
+        <div class="foot-col">
+          <h4>Protocol</h4>
+          <a href="#">How it works</a>
+          <a href="#">Security</a>
+          <a href="#">Chains</a>
+          <a href="#">Status</a>
+        </div>
+        <div class="foot-col">
+          <h4>Developers</h4>
+          <a href="#">Docs</a>
+          <a href="#">SDK</a>
+          <a href="#">GitHub</a>
+          <a href="#">Integrations</a>
+        </div>
+        <div class="foot-col">
+          <h4>Community</h4>
+          <a href="#">Discord</a>
+          <a href="#">Twitter / X</a>
+          <a href="#">Forum</a>
+          <a href="#">Mirror</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Stargate Labs</span>
+        <span>Built on LayerZero · Audited by Trail of Bits</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function() {
+      var chains = [
+        { name: 'Ethereum', cls: 'swatch-eth' },
+        { name: 'Optimism', cls: 'swatch-op' },
+        { name: 'Arbitrum', cls: 'swatch-arb' },
+        { name: 'Base',     cls: 'swatch-base' }
+      ];
+      function cycle(btn) {
+        var i = 0;
+        btn.addEventListener('click', function() {
+          i = (i + 1) % chains.length;
+          var c = chains[i];
+          btn.innerHTML = '<span class="swatch ' + c.cls + '"></span> ' + c.name;
+        });
+      }
+      var from = document.getElementById('chainFrom');
+      var to = document.getElementById('chainTo');
+      if (from) cycle(from);
+      if (to) cycle(to);
+    })();
+  </script>
+</body>
+</html>

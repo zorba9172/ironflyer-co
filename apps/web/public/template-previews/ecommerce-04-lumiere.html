@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lumière — Candles, ceramics, and quiet objects for the home</title>
+  <meta name="description" content="Lumière makes hand-poured candles, slow-fired ceramics, and small objects for a quiet home. Designed in Marseille, made in small batches." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #ece4d5;
+      --surface: #e3d9c4;
+      --surface-2: #f4ecda;
+      --fg: #2b1f17;
+      --fg-2: #6b5c4d;
+      --fg-3: #998a78;
+      --accent: #c45a3f;
+      --accent-deep: #a14328;
+      --border: rgba(43, 31, 23, 0.14);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--fg); font-family: 'Inter', system-ui, sans-serif; font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 0 28px; }
+    .serif { font-family: 'DM Serif Display', Georgia, serif; }
+    .eyebrow { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent-deep); font-weight: 500; }
+
+    /* Nav */
+    .nav { padding: 22px 0; border-bottom: 1px solid var(--border); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { font-family: 'DM Serif Display', serif; font-size: 32px; font-style: italic; letter-spacing: -0.01em; }
+    .nav-links { display: flex; gap: 30px; font-size: 14px; color: var(--fg-2); }
+    .nav-tools { display: flex; gap: 18px; align-items: center; font-size: 14px; }
+    .nav-tools a:hover { color: var(--accent); }
+    .cart { display: inline-flex; align-items: center; gap: 8px; font-weight: 500; }
+    .cart-pip { background: var(--accent); color: var(--surface-2); border-radius: 999px; padding: 2px 8px; font-size: 11px; }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 64px 0 96px; }
+    .hero h1 { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(64px, 11vw, 160px); line-height: 0.92; letter-spacing: -0.025em; margin: 0 0 28px; }
+    .hero h1 em { font-style: italic; color: var(--accent); }
+    .hero-grid { display: grid; grid-template-columns: 1fr 0.8fr; gap: 56px; align-items: end; }
+    .hero p.lede { font-size: 18px; color: var(--fg-2); max-width: 480px; }
+    .hero-cta { display: flex; gap: 14px; margin-top: 28px; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 48px; padding: 0 24px; border-radius: 999px; font-weight: 500; font-size: 14px; cursor: pointer; transition: background 200ms; border: 1px solid var(--fg); }
+    .btn-primary { background: var(--fg); color: var(--bg); }
+    .btn-primary:hover { background: var(--accent); border-color: var(--accent); }
+    .btn-ghost { background: transparent; color: var(--fg); }
+    .btn-ghost:hover { background: var(--fg); color: var(--bg); }
+    .hero-img { aspect-ratio: 3/4; overflow: hidden; border-radius: 8px; }
+    .hero-img img { width: 100%; height: 100%; object-fit: cover; }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; } }
+
+    /* Marquee notice */
+    .notice { background: var(--accent); color: var(--surface-2); padding: 18px 0; text-align: center; font-family: 'DM Serif Display', serif; font-style: italic; font-size: 22px; }
+    .notice::before { content: '— '; }
+    .notice::after { content: ' —'; }
+
+    /* Section */
+    .section { padding: 96px 0; }
+    .section.alt { background: var(--surface); }
+    .section-head { text-align: center; margin-bottom: 56px; }
+    .section h2 { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(40px, 6vw, 84px); letter-spacing: -0.02em; line-height: 1; margin: 12px 0 0; }
+    .section h2 em { font-style: italic; color: var(--accent); }
+
+    /* Product grid */
+    .products { display: grid; grid-template-columns: repeat(4, 1fr); gap: 36px 28px; }
+    .product { display: block; text-align: center; }
+    .product .ph { aspect-ratio: 4/5; overflow: hidden; background: var(--surface-2); border-radius: 8px; margin-bottom: 16px; position: relative; }
+    .product .ph img { width: 100%; height: 100%; object-fit: cover; transition: transform 600ms cubic-bezier(0.16, 1, 0.3, 1); }
+    .product:hover .ph img { transform: scale(1.05); }
+    .product .tag { position: absolute; top: 14px; right: 14px; background: var(--accent); color: var(--surface-2); font-size: 10px; padding: 4px 10px; border-radius: 999px; letter-spacing: 0.12em; text-transform: uppercase; font-family: 'Inter', sans-serif; font-weight: 500; }
+    .product h3 { font-family: 'DM Serif Display', serif; font-size: 22px; margin: 0 0 4px; font-weight: 400; letter-spacing: -0.01em; }
+    .product .scent { font-size: 13px; color: var(--fg-2); font-style: italic; margin-bottom: 6px; }
+    .product .price { font-size: 14px; color: var(--fg); letter-spacing: 0.04em; }
+    @media (max-width: 1080px) { .products { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .products { grid-template-columns: 1fr; } }
+
+    /* Collection bands */
+    .collection { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+    .coll-card { position: relative; aspect-ratio: 4/5; overflow: hidden; border-radius: 8px; }
+    .coll-card img { width: 100%; height: 100%; object-fit: cover; }
+    .coll-card .meta { position: absolute; left: 0; right: 0; bottom: 0; padding: 32px; color: var(--surface-2); background: linear-gradient(to top, rgba(43, 31, 23, 0.7), transparent 70%); }
+    .coll-card .meta h3 { font-family: 'DM Serif Display', serif; font-size: clamp(28px, 3.6vw, 44px); font-weight: 400; margin: 0 0 8px; line-height: 1; }
+    .coll-card .meta p { font-size: 14px; opacity: 0.9; margin: 0 0 14px; }
+    .coll-card .meta a { display: inline-block; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; border-bottom: 1px solid var(--surface-2); padding-bottom: 4px; }
+    @media (max-width: 1080px) { .collection { grid-template-columns: 1fr; } }
+
+    /* Atelier story */
+    .atelier { display: grid; grid-template-columns: 1.1fr 1fr; gap: 80px; align-items: center; }
+    .atelier-img { aspect-ratio: 4/5; overflow: hidden; border-radius: 8px; }
+    .atelier-img img { width: 100%; height: 100%; object-fit: cover; }
+    .atelier h2 { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(40px, 5.5vw, 72px); letter-spacing: -0.02em; line-height: 1; margin: 12px 0 24px; }
+    .atelier h2 em { font-style: italic; color: var(--accent); }
+    .atelier p { font-size: 17px; color: var(--fg-2); margin: 0 0 18px; max-width: 460px; }
+    .atelier-quote { margin-top: 32px; padding-left: 24px; border-left: 2px solid var(--accent); font-family: 'DM Serif Display', serif; font-style: italic; font-size: 22px; line-height: 1.4; color: var(--fg); }
+    .atelier-quote cite { display: block; font-size: 13px; color: var(--fg-2); font-style: normal; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 12px; }
+    @media (max-width: 1080px) { .atelier { grid-template-columns: 1fr; gap: 40px; } }
+
+    /* Reviews */
+    .reviews { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+    .review { background: var(--surface-2); padding: 32px; border-radius: 8px; }
+    .review p { font-family: 'DM Serif Display', serif; font-size: 22px; line-height: 1.45; font-style: italic; margin: 0 0 18px; }
+    .review .who { font-size: 13px; color: var(--fg-2); letter-spacing: 0.06em; }
+    .review .who strong { display: block; color: var(--fg); font-style: normal; }
+    @media (max-width: 1080px) { .reviews { grid-template-columns: 1fr; } }
+
+    /* Newsletter */
+    .news { padding: 96px 0; text-align: center; background: var(--surface); }
+    .news h2 { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(40px, 6vw, 80px); line-height: 0.98; letter-spacing: -0.02em; margin: 12px 0 16px; }
+    .news h2 em { font-style: italic; color: var(--accent); }
+    .news p { color: var(--fg-2); max-width: 500px; margin: 0 auto 32px; font-size: 17px; }
+    .news form { display: flex; gap: 8px; max-width: 480px; margin: 0 auto; border-bottom: 1px solid var(--fg); padding-bottom: 6px; }
+    .news input { flex: 1; height: 48px; padding: 0 4px; background: transparent; border: 0; color: var(--fg); font-size: 16px; font-family: inherit; outline: none; }
+    .news input::placeholder { color: var(--fg-3); }
+    .news button { height: 48px; padding: 0 14px; background: transparent; color: var(--fg); border: 0; font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase; cursor: pointer; font-weight: 600; }
+
+    /* Footer */
+    footer { padding: 64px 0 28px; }
+    .foot-grid { display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 40px; }
+    .foot-col h4 { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent-deep); margin: 0 0 16px; font-weight: 500; }
+    .foot-col a { display: block; padding: 5px 0; font-size: 14px; color: var(--fg-2); }
+    .foot-col a:hover { color: var(--accent); }
+    .foot-brand { font-family: 'DM Serif Display', serif; font-size: 36px; font-style: italic; }
+    .foot-bot { margin-top: 48px; padding-top: 22px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; font-size: 12px; color: var(--fg-3); letter-spacing: 0.1em; text-transform: uppercase; }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 8px; text-align: center; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">Lumière</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#shop">Candles</a>
+        <a href="#shop">Ceramics</a>
+        <a href="#shop">Objects</a>
+        <a href="#atelier">Atelier</a>
+        <a href="#">Journal</a>
+      </nav>
+      <div class="nav-tools">
+        <a href="#" aria-label="Search">Search</a>
+        <a href="#" aria-label="Account">Account</a>
+        <a class="cart" href="#" aria-label="Cart">Cart <span class="cart-pip">2</span></a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <span class="eyebrow">Autumn collection · 2026</span>
+        <h1>Quiet <em>objects</em><br/>for a louder world.</h1>
+        <div class="hero-grid">
+          <div>
+            <p class="lede">Lumière is a small studio in Marseille. We hand-pour candles in coconut wax, slow-fire ceramics in a wood kiln, and shape small wooden objects on a lathe that is older than any of us.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#shop">Shop the collection</a>
+              <a class="btn btn-ghost" href="#atelier">Visit the atelier</a>
+            </div>
+          </div>
+          <div class="hero-img">
+            <img src="https://picsum.photos/seed/lumiere-1/900/1200" width="900" height="1200" alt="A terracotta candle vessel on a sand-colored linen, soft afternoon light." loading="eager" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="notice">Free shipping in France &amp; Belgium · two pieces or more</div>
+
+    <section class="section" id="shop">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Featured</span>
+          <h2>The Terracotta <em>edit.</em></h2>
+        </div>
+        <div class="products">
+          <a class="product" href="#">
+            <div class="ph"><span class="tag">New</span><img src="https://picsum.photos/seed/lumiere-2/800/1000" width="800" height="1000" alt="A terracotta candle vessel, hand-thrown." loading="lazy" /></div>
+            <h3>Mistral No. 02</h3>
+            <p class="scent">Cypress, dry stone, white smoke</p>
+            <p class="price">$72 · 60h burn</p>
+          </a>
+          <a class="product" href="#">
+            <div class="ph"><img src="https://picsum.photos/seed/lumiere-3/800/1000" width="800" height="1000" alt="A pair of pinched ceramic cups in matte sand." loading="lazy" /></div>
+            <h3>Salins Cup, pair</h3>
+            <p class="scent">Slow-fired stoneware, sand glaze</p>
+            <p class="price">$58</p>
+          </a>
+          <a class="product" href="#">
+            <div class="ph"><img src="https://picsum.photos/seed/lumiere-4/800/1000" width="800" height="1000" alt="Cream candle vessel with a paper label." loading="lazy" /></div>
+            <h3>Calanque</h3>
+            <p class="scent">Sea pine, salt, neroli</p>
+            <p class="price">$64 · 50h burn</p>
+          </a>
+          <a class="product" href="#">
+            <div class="ph"><img src="https://picsum.photos/seed/lumiere-5/800/1000" width="800" height="1000" alt="A small wooden bowl on a folded napkin." loading="lazy" /></div>
+            <h3>Olivier bowl, small</h3>
+            <p class="scent">Hand-turned olive wood</p>
+            <p class="price">$48</p>
+          </a>
+          <a class="product" href="#">
+            <div class="ph"><span class="tag">Last 12</span><img src="https://picsum.photos/seed/lumiere-6/800/1000" width="800" height="1000" alt="A ribbed terracotta vase with a sprig of olive." loading="lazy" /></div>
+            <h3>Camargue vase</h3>
+            <p class="scent">Wheel-thrown, unglazed</p>
+            <p class="price">$95</p>
+          </a>
+          <a class="product" href="#">
+            <div class="ph"><img src="https://picsum.photos/seed/lumiere-7/800/1000" width="800" height="1000" alt="A linen sachet beside dried lavender." loading="lazy" /></div>
+            <h3>Lavande sachet, set of 3</h3>
+            <p class="scent">Provence lavender, raw linen</p>
+            <p class="price">$28</p>
+          </a>
+          <a class="product" href="#">
+            <div class="ph"><img src="https://picsum.photos/seed/lumiere-8/800/1000" width="800" height="1000" alt="A tall, dark green candle on a wooden block." loading="lazy" /></div>
+            <h3>Garrigue</h3>
+            <p class="scent">Wild rosemary, fig leaf, oak</p>
+            <p class="price">$72 · 60h burn</p>
+          </a>
+          <a class="product" href="#">
+            <div class="ph"><img src="https://picsum.photos/seed/lumiere-9/800/1000" width="800" height="1000" alt="A brass match holder on a marble counter." loading="lazy" /></div>
+            <h3>Brass match keeper</h3>
+            <p class="scent">Solid brass, brushed finish</p>
+            <p class="price">$42</p>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">By collection</span>
+          <h2>For the <em>quiet</em> hours.</h2>
+        </div>
+        <div class="collection">
+          <a class="coll-card" href="#">
+            <img src="https://picsum.photos/seed/lumiere-10/1100/1400" width="1100" height="1400" alt="A candle next to an open book and a glass of wine." loading="lazy" />
+            <div class="meta">
+              <h3>Evening with Mistral</h3>
+              <p>A trio of candles and one small ceramic cup. Built for the hour after dinner.</p>
+              <a href="#">Shop the set →</a>
+            </div>
+          </a>
+          <a class="coll-card" href="#">
+            <img src="https://picsum.photos/seed/lumiere-11/1100/1400" width="1100" height="1400" alt="A clean table set with linen napkins and ceramic plates." loading="lazy" />
+            <div class="meta">
+              <h3>Table Salins</h3>
+              <p>Six pinched cups, two bowls, one bud vase. A complete service for slow Sundays.</p>
+              <a href="#">Shop the set →</a>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="atelier">
+      <div class="wrap">
+        <div class="atelier">
+          <div class="atelier-img">
+            <img src="https://picsum.photos/seed/lumiere-12/900/1200" width="900" height="1200" alt="A potter at a wheel, hands shaping a wide clay vessel." loading="lazy" />
+          </div>
+          <div>
+            <span class="eyebrow">The atelier</span>
+            <h2>One studio. Two <em>kilns.</em> Three potters.</h2>
+            <p>Lumière began in 2017 as one person and a small electric kiln. Today we are three potters and a wax-pourer, working from a converted tannery in the Vieille Charité.</p>
+            <p>Every piece is made by a hand we know. Every scent is composed by a perfumer we have worked with for six years.</p>
+            <div class="atelier-quote">
+              "We do not make objects for the showroom. We make objects for the kitchen counter, the bedside table, the chair you read in. That is the only test."
+              <cite>— Hélène, founder</cite>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Inside the boxes</span>
+          <h2>Composed for <em>the senses.</em></h2>
+        </div>
+        <div class="collection" style="grid-template-columns: 1fr 1fr 1fr;">
+          <div style="padding: 28px; border: 1px solid var(--border); border-radius: 8px; aspect-ratio: auto;">
+            <span class="eyebrow">Top notes</span>
+            <h3 style="font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 28px; margin: 10px 0 8px; letter-spacing: -0.01em;">Bergamot, salt, fig leaf</h3>
+            <p style="color: var(--fg-2); font-size: 14px; margin: 0;">The opening minute of every candle. Crisp, citric, alive.</p>
+          </div>
+          <div style="padding: 28px; border: 1px solid var(--border); border-radius: 8px; aspect-ratio: auto;">
+            <span class="eyebrow">Heart notes</span>
+            <h3 style="font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 28px; margin: 10px 0 8px; letter-spacing: -0.01em;">Cypress, neroli, rosemary</h3>
+            <p style="color: var(--fg-2); font-size: 14px; margin: 0;">The body of the burn. Where Provence lives, ten meters from the kitchen.</p>
+          </div>
+          <div style="padding: 28px; border: 1px solid var(--border); border-radius: 8px; aspect-ratio: auto;">
+            <span class="eyebrow">Base notes</span>
+            <h3 style="font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 28px; margin: 10px 0 8px; letter-spacing: -0.01em;">Smoke, oud, dry stone</h3>
+            <p style="color: var(--fg-2); font-size: 14px; margin: 0;">What stays on the room after the flame is out, sometimes through the night.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">From the home</span>
+          <h2>What customers <em>say.</em></h2>
+        </div>
+        <div class="reviews">
+          <figure class="review">
+            <p>"The Mistral candle has become a marker of evening. I light it, the room slows down, and the day ends."</p>
+            <figcaption class="who"><strong>Camille D.</strong>Paris</figcaption>
+          </figure>
+          <figure class="review">
+            <p>"I bought the Salins cups for myself, then four more sets for friends. The weight in the hand is exactly right."</p>
+            <figcaption class="who"><strong>Theo M.</strong>Antwerp</figcaption>
+          </figure>
+          <figure class="review">
+            <p>"Every parcel from Lumière is wrapped like a letter. The objects, the paper, the small note. It is a complete gesture."</p>
+            <figcaption class="who"><strong>Iris B.</strong>Copenhagen</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="news">
+    <div class="wrap">
+      <span class="eyebrow">Le Carnet</span>
+      <h2>A letter, twice a <em>season.</em></h2>
+      <p>Drop dates, new scents, and the occasional photograph from the workshop. We write four times a year. That is all.</p>
+      <form onsubmit="event.preventDefault(); this.querySelector('button').textContent='Merci';">
+        <input type="email" required placeholder="your email" aria-label="Email address" />
+        <button type="submit">Subscribe</button>
+      </form>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <div class="foot-brand">Lumière</div>
+          <p style="color:var(--fg-2); margin-top: 12px; font-size:14px; max-width: 300px;">Hand-poured candles, slow-fired ceramics, and quiet objects, made in Marseille since 2017.</p>
+        </div>
+        <div class="foot-col">
+          <h4>Boutique</h4>
+          <a href="#">Candles</a>
+          <a href="#">Ceramics</a>
+          <a href="#">Wood &amp; brass</a>
+          <a href="#">Gift sets</a>
+          <a href="#">Gift cards</a>
+        </div>
+        <div class="foot-col">
+          <h4>Atelier</h4>
+          <a href="#">Our story</a>
+          <a href="#">Journal</a>
+          <a href="#">Wholesale</a>
+          <a href="#">Visit us</a>
+        </div>
+        <div class="foot-col">
+          <h4>Care</h4>
+          <a href="#">Candle care</a>
+          <a href="#">Ceramic care</a>
+          <a href="#">Shipping</a>
+          <a href="#">Contact</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Lumière atelier</span>
+        <span>Marseille · Made by hand</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

@@ -127,6 +127,56 @@ func (p *Proxy) PortAllowed(port int) bool {
 	return p.AllowedPorts[port]
 }
 
+// HealthCheck probes the workspace's dev server at workspaceID:port. It
+// resolves the upstream via the same TargetResolver the proxy uses (so a
+// docker driver and a mock driver are treated uniformly), then issues a
+// short-deadline HTTP request to "/". Any 2xx-4xx response is "alive";
+// connection refused / DNS error / timeout is "not alive". 5xx counts as
+// alive (the server IS responding, just unhappy) so a flaky app doesn't
+// disappear from the preview list. Returns (latencyMs, true) on a
+// successful probe and (0, false) otherwise.
+func (p *Proxy) HealthCheck(ctx context.Context, workspaceID string, port int) (int64, bool) {
+	probeCtx, cancel := context.WithTimeout(ctx, 1500*time.Millisecond)
+	defer cancel()
+	target, err := p.Targets.PreviewTarget(probeCtx, workspaceID, port)
+	if err != nil {
+		return 0, false
+	}
+	dst, scheme := normaliseTarget(target)
+	url := scheme + "://" + dst + "/"
+	req, err := http.NewRequestWithContext(probeCtx, http.MethodGet, url, nil)
+	if err != nil {
+		return 0, false
+	}
+	req.Header.Set("User-Agent", "Ironflyer-PreviewHealth/1.0")
+	// We don't want keep-alives polluting the runtime's pool just for a
+	// liveness probe — use a one-shot transport with a small dial deadline.
+	client := &http.Client{
+		Timeout: 1500 * time.Millisecond,
+		Transport: &http.Transport{
+			DisableKeepAlives:   true,
+			DialContext:         (&net.Dialer{Timeout: 700 * time.Millisecond}).DialContext,
+			MaxIdleConns:        1,
+			IdleConnTimeout:     500 * time.Millisecond,
+			TLSHandshakeTimeout: 700 * time.Millisecond,
+		},
+	}
+	start := time.Now()
+	resp, err := client.Do(req)
+	if err != nil {
+		return 0, false
+	}
+	_ = resp.Body.Close()
+	if resp.StatusCode >= 500 && resp.StatusCode < 600 {
+		// Server is reachable but broken — still "alive" for our purposes.
+		return time.Since(start).Milliseconds(), true
+	}
+	if resp.StatusCode >= 200 && resp.StatusCode < 500 {
+		return time.Since(start).Milliseconds(), true
+	}
+	return 0, false
+}
+
 // BuildPreviewPath returns the public path (no host) for a workspace+port
 // + optional sub-path. Always begins with the configured prefix.
 func (p *Proxy) BuildPreviewPath(workspaceID string, port int, sub string) string {
@@ -456,9 +506,19 @@ type tokenPayload struct {
 	Exp       int64  `json:"exp"`
 }
 
-// Mint returns a fresh token and its expiry time.
+// Mint returns a fresh token with the signer's default TTL.
 func (s *TokenSigner) Mint(workspaceID string, port int) (token string, exp time.Time, err error) {
-	exp = time.Now().Add(s.ttl).UTC()
+	return s.MintWithTTL(workspaceID, port, s.ttl)
+}
+
+// MintWithTTL returns a fresh token with an explicit lifetime. Used by
+// the share-link endpoint to issue long-lived tokens (default sessions
+// stay short-lived at 30 min; share links can run for days).
+func (s *TokenSigner) MintWithTTL(workspaceID string, port int, ttl time.Duration) (token string, exp time.Time, err error) {
+	if ttl <= 0 {
+		ttl = s.ttl
+	}
+	exp = time.Now().Add(ttl).UTC()
 	payload := tokenPayload{Workspace: workspaceID, Port: port, Exp: exp.Unix()}
 	body := marshalJSONCompact(payload)
 	sig := hmacSHA256(s.secret, body)

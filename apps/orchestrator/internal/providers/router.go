@@ -23,6 +23,15 @@ const (
 	CapThinking  Capability = "thinking" // extended thinking (Claude 4.x)
 	CapTools     Capability = "tools"    // tool use
 	CapCache     Capability = "cache"    // prompt caching
+	// CapSpeculative tells the router to race the top two matching
+	// providers in parallel and return the first one to emit a token. The
+	// loser is cancelled. Use only for calls where any non-error response
+	// is a valid answer (Critic verdicts, brainstorm rounds, intent
+	// classification) — never for calls where the model's identity affects
+	// downstream behaviour (a Coder vs. Coder race could produce two
+	// different patches; the winner is the one that started talking first,
+	// not necessarily the better one).
+	CapSpeculative Capability = "speculative"
 )
 
 type Request struct {
@@ -50,6 +59,20 @@ type Request struct {
 
 	// Tools the agent may invoke during this completion.
 	Tools []ToolSpec
+
+	// Attachments are user-supplied images (screenshots, mockups, design
+	// references) sent alongside Prompt. Providers MUST advertise CapVision
+	// before they will honour these; the router skips vision-bearing calls
+	// to text-only providers in the failover chain.
+	Attachments []Attachment
+}
+
+// Attachment is one user-supplied image attached to the prompt. MediaType
+// is the IANA type ("image/png", "image/jpeg", "image/webp", "image/gif").
+// Base64 is the raw image bytes, base64-encoded with no data: prefix.
+type Attachment struct {
+	MediaType string
+	Base64    string
 }
 
 type ToolSpec struct {
@@ -178,9 +201,38 @@ func (r *Router) PickChain(caps []Capability) []Provider {
 }
 
 func (r *Router) CompleteStream(ctx context.Context, req Request) (<-chan Delta, error) {
-	chain := r.PickChain(req.Capabilities)
+	// Speculative path: race the top 2 matching providers. We strip the
+	// CapSpeculative tag before forwarding so the inner picker doesn't
+	// try to filter on a tag no provider actually advertises.
+	if containsCap(req.Capabilities, CapSpeculative) {
+		inner := req
+		inner.Capabilities = stripCap(inner.Capabilities, CapSpeculative)
+		return r.RaceFirst(ctx, inner, 2)
+	}
+
+	// Attachments imply CapVision — silently promote so the chain only
+	// considers providers that advertise it. Without this a vision payload
+	// could be routed to a text-only fallback and 400 mid-stream.
+	caps := req.Capabilities
+	if len(req.Attachments) > 0 && !containsCap(caps, CapVision) {
+		caps = append([]Capability{CapVision}, caps...)
+	}
+	chain := r.PickChain(caps)
 	if len(chain) == 0 {
 		return nil, errors.New("no providers registered")
+	}
+	// Drop providers that can't honour vision when attachments are present.
+	if len(req.Attachments) > 0 {
+		filtered := chain[:0]
+		for _, p := range chain {
+			if containsCap(p.Capabilities(), CapVision) {
+				filtered = append(filtered, p)
+			}
+		}
+		if len(filtered) == 0 {
+			return nil, errors.New("no vision-capable provider registered for image attachments")
+		}
+		chain = filtered
 	}
 	// Try the best provider first. If its first delta arrives intact we
 	// return that channel as-is. Only "couldn't even start the stream"
@@ -193,6 +245,110 @@ func (r *Router) CompleteStream(ctx context.Context, req Request) (<-chan Delta,
 	wrapped := make(chan Delta, 32)
 	go runFallbackChain(ctx, wrapped, chain, req)
 	return wrapped, nil
+}
+
+// RaceFirst launches up to `n` providers in parallel, returns the channel
+// of the FIRST one that emits any non-error delta, and cancels the rest.
+// This is the speculative-execution play: when the cheap model usually
+// produces a correct answer in half the time, we let it race the
+// expensive model; only when it errors or stalls past the deadline does
+// the expensive winner pay off. Callers should use this only for tasks
+// where ANY non-error stream is a valid answer (e.g. Critic verdicts,
+// brainstorm rounds) — never for tasks where the model's identity
+// affects downstream behaviour.
+//
+// `n <= 1` falls back to plain CompleteStream so the call shape is safe to
+// adopt unconditionally.
+func (r *Router) RaceFirst(ctx context.Context, req Request, n int) (<-chan Delta, error) {
+	if n <= 1 {
+		return r.CompleteStream(ctx, req)
+	}
+	chain := r.PickChain(req.Capabilities)
+	if len(chain) == 0 {
+		return nil, errors.New("no providers registered")
+	}
+	if n > len(chain) {
+		n = len(chain)
+	}
+
+	out := make(chan Delta, 64)
+
+	// Each speculator gets its own context so the loser can be cancelled
+	// the instant a winner commits. We don't cancel the parent: the caller
+	// owns it.
+	type result struct {
+		ch     <-chan Delta
+		cancel func()
+		err    error
+	}
+
+	type firstFrame struct {
+		delta Delta
+		ch    <-chan Delta
+		cancel func()
+		idx   int
+	}
+	firstCh := make(chan firstFrame, n)
+	cancellers := make([]func(), 0, n)
+	var spawnMu sync.Mutex
+
+	for i := 0; i < n; i++ {
+		i := i
+		childCtx, cancel := context.WithCancel(ctx)
+		spawnMu.Lock()
+		cancellers = append(cancellers, cancel)
+		spawnMu.Unlock()
+		go func() {
+			ch, err := chain[i].CompleteStream(childCtx, req)
+			if err != nil {
+				cancel()
+				return
+			}
+			// Wait for the first delta. If it's an error frame, the
+			// speculator is dead — silently drop and let other racers win.
+			// Anything else qualifies as "this one is winning."
+			d, ok := <-ch
+			if !ok {
+				cancel()
+				return
+			}
+			if d.Type == DeltaError {
+				cancel()
+				return
+			}
+			firstCh <- firstFrame{delta: d, ch: ch, cancel: cancel, idx: i}
+		}()
+		_ = result{}
+	}
+
+	go func() {
+		defer close(out)
+		select {
+		case <-ctx.Done():
+			spawnMu.Lock()
+			for _, c := range cancellers {
+				c()
+			}
+			spawnMu.Unlock()
+			out <- Delta{Type: DeltaError, Err: ctx.Err()}
+			return
+		case ff := <-firstCh:
+			// Cancel every loser.
+			spawnMu.Lock()
+			for j, c := range cancellers {
+				if j != ff.idx {
+					c()
+				}
+			}
+			spawnMu.Unlock()
+			out <- ff.delta
+			for d := range ff.ch {
+				out <- d
+			}
+		}
+	}()
+
+	return out, nil
 }
 
 // runFallbackChain drives the entire fallback policy on a goroutine.
@@ -275,4 +431,17 @@ func containsCap(caps []Capability, want Capability) bool {
 		}
 	}
 	return false
+}
+
+// stripCap returns caps without `drop`. Used by CompleteStream to remove
+// router-only tags (e.g. CapSpeculative) before forwarding the request
+// to a provider that doesn't recognise them.
+func stripCap(caps []Capability, drop Capability) []Capability {
+	out := caps[:0:0]
+	for _, c := range caps {
+		if c != drop {
+			out = append(out, c)
+		}
+	}
+	return out
 }

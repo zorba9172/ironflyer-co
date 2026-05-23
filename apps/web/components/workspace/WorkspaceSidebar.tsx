@@ -51,11 +51,11 @@ export function WorkspaceSidebar({
   return (
     <Stack spacing={1} sx={{ height: '100%', minHeight: 0, overflowY: 'auto', pr: 0.3 }}>
       <Section
-        title="קבצים"
+        title="Files"
         icon={<Folder fontSize="small" />}
         open={openTree}
         onToggle={() => setOpenTree((v) => !v)}
-        meta={workspace ? `${files.length}` : 'אין סביבת ריצה'}
+        meta={workspace ? `${files.length}` : 'No runtime'}
       >
         <FileTree
           workspace={workspace}
@@ -160,8 +160,8 @@ function FileTree({
   if (!workspace) {
     return (
       <Hint
-        title="אין סביבת ריצה משויכת"
-        body="פתחו את לשונית 'Editor' או 'Terminal' כדי לאתחל סביבה."
+        title="No runtime attached"
+        body="Open the Editor or Terminal tab to initialize a workspace."
       />
     );
   }
@@ -176,14 +176,14 @@ function FileTree({
   }
   if (error) {
     return (
-      <ErrorRow message="לא הצלחנו לטעון את עץ הקבצים." onRetry={onRetry} />
+      <ErrorRow message="We could not load the file tree." onRetry={onRetry} />
     );
   }
   if (files.length === 0) {
     return (
       <Hint
-        title="העץ ריק"
-        body="הריצו את ה־Finisher כדי שהסוכן ייצור את שלד הקוד."
+        title="The tree is empty"
+        body="Run the Finisher so the agent can create the codebase skeleton."
       />
     );
   }
@@ -274,13 +274,13 @@ function PatchList({
     );
   }
   if (error) {
-    return <ErrorRow message="לא הצלחנו לטעון את ה־Patches." onRetry={onRetry} />;
+    return <ErrorRow message="We could not load patches." onRetry={onRetry} />;
   }
   if (patches.length === 0) {
     return (
       <Hint
-        title="אין Patches עדיין"
-        body="כל שינוי שהסוכן מציע יופיע כאן כדי שתוכלו לעיין ולאשר."
+        title="No patches yet"
+        body="Every proposed agent change will appear here for review and approval."
       />
     );
   }
@@ -370,7 +370,7 @@ function ErrorRow({ message, onRetry }: { message: string; onRetry: () => void }
         onClick={onRetry}
         sx={{ color: tokens.color.accent.lime, cursor: 'pointer', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}
       >
-        נסו שוב
+        Try again
       </Typography>
     </Stack>
   );

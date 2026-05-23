@@ -33,12 +33,12 @@ interface ConnectorCard {
 }
 
 const groups: { value: 'all' | ConnectorCard['group']; label: string }[] = [
-  { value: 'all',     label: 'הכל' },
-  { value: 'apps',    label: 'אפליקציה' },
-  { value: 'deploy',  label: 'פריסה' },
-  { value: 'ai',      label: 'ספקי AI' },
-  { value: 'chat',    label: 'צ׳אט' },
-  { value: 'runtime', label: 'ריצה' },
+  { value: 'all',     label: 'All' },
+  { value: 'apps',    label: 'Apps' },
+  { value: 'deploy',  label: 'Deploy' },
+  { value: 'ai',      label: 'AI providers' },
+  { value: 'chat',    label: 'Chat' },
+  { value: 'runtime', label: 'Runtime' },
 ];
 
 export default function ConnectorsPage() {
@@ -72,7 +72,7 @@ function ConnectorsInner() {
       const msg = e instanceof Error ? e.message : String(e);
       if (msg === 'github-disabled') {
         setGithub({ connected: false });
-        setGithubError('המחבר ל־GitHub מנוטרל בסביבה זו');
+        setGithubError('The GitHub connector is disabled in this environment');
       } else {
         setGithubError(msg);
       }
@@ -112,41 +112,41 @@ function ConnectorsInner() {
       name: 'GitHub',
       group: 'apps',
       icon: <GitHub />,
-      desc: 'סנכרון רפו, יצירת Pull Requests, וקלון אוטומטי של פרויקטים לסביבת הריצה.',
+      desc: 'Sync repositories, create pull requests, and clone projects into the runtime workspace.',
       state: githubLoading ? 'available' : github?.connected ? 'connected' : 'available',
-      meta: githubLoading ? 'טוען מצב...' : github?.login ? `מחובר כ־${github.login}` : 'דרושה הסכמת OAuth',
-      primaryLabel: githubLoading ? 'בודק...' : github?.connected ? 'נתק' : 'התחבר',
+      meta: githubLoading ? 'Checking status...' : github?.login ? `Connected as ${github.login}` : 'OAuth consent required',
+      primaryLabel: githubLoading ? 'Checking...' : github?.connected ? 'Disconnect' : 'Connect',
       onPrimary: githubLoading ? undefined : github?.connected ? disconnectGithub : connectGithub,
       busy: githubBusy,
       error: githubError,
     },
     {
       id: 'runtime',
-      name: 'סביבת ריצה',
+      name: 'Runtime workspace',
       group: 'runtime',
       icon: <Code />,
-      desc: 'תצוגה מקדימה, טרמינל ו־file API לכל פרויקט. רץ ב־Mock או Docker בהתאם לסביבה.',
+      desc: 'Preview, terminal, and file API for every project. Runs with the mock or Docker driver depending on environment.',
       state: 'connected',
-      meta: 'מופעל אוטומטית לכל פרויקט',
+      meta: 'Enabled automatically for every project',
     },
     {
       id: 'vercel',
       name: 'Vercel',
       group: 'deploy',
       icon: <RocketLaunch />,
-      desc: 'יעד פריסה אוטומטי לפרויקטים מבוססי Next.js. מתחבר לאחר חיבור GitHub.',
+      desc: 'Automatic deployment target for Next.js projects. Connects after GitHub is available.',
       state: github?.connected ? 'available' : 'soon',
-      meta: github?.connected ? 'התקנה ידנית בקרוב' : 'דורש חיבור GitHub תחילה',
+      meta: github?.connected ? 'Manual setup coming soon' : 'Requires GitHub first',
     },
     {
       id: 'anthropic',
       name: 'Anthropic Override',
       group: 'ai',
       icon: <AutoAwesome />,
-      desc: 'השתמש במפתח Claude משלך כדי לעקוף את ברירת המחדל וחיוב ישיר אל החשבון שלך.',
+      desc: 'Use your own Claude key to override the default routing policy and bill directly to your account.',
       state: 'available',
-      meta: 'נוסף דרך הגדרות → אינטגרציות',
-      primaryLabel: 'פתח הגדרות',
+      meta: 'Added from Settings -> Integrations',
+      primaryLabel: 'Open settings',
       onPrimary: () => { window.location.href = '/app/settings?tab=integrations'; },
     },
     {
@@ -154,10 +154,10 @@ function ConnectorsInner() {
       name: 'OpenAI Override',
       group: 'ai',
       icon: <AutoAwesome />,
-      desc: 'מפתח OpenAI אישי לשימוש בגייטים שתומכים בכך. החיוב מועבר אלייך ישירות.',
+      desc: 'Personal OpenAI key for supported gates. Provider usage bills directly to your account.',
       state: 'available',
-      meta: 'נוסף דרך הגדרות → אינטגרציות',
-      primaryLabel: 'פתח הגדרות',
+      meta: 'Added from Settings -> Integrations',
+      primaryLabel: 'Open settings',
       onPrimary: () => { window.location.href = '/app/settings?tab=integrations'; },
     },
     {
@@ -165,36 +165,36 @@ function ConnectorsInner() {
       name: 'Supabase',
       group: 'apps',
       icon: <Storage />,
-      desc: 'מסד נתונים, אימות, אחסון ו־RLS. מתאים לפרויקטים שמצריכים backend מנוהל.',
+      desc: 'Database, auth, storage, and RLS for projects that need a managed backend.',
       state: 'available',
-      meta: 'דורש הוספת סודות בפרויקט',
+      meta: 'Requires project secrets',
     },
     {
       id: 'figma',
       name: 'Figma',
       group: 'chat',
       icon: <DataObject />,
-      desc: 'הפניית פריימים, צילומי מסך ומערכת עיצוב כקונטקסט לזמן הבנייה.',
+      desc: 'Attach frames, screenshots, and design-system context during the build.',
       state: 'soon',
-      meta: 'בקרוב',
+      meta: 'Coming soon',
     },
     {
       id: 'search',
-      name: 'חיפוש רשת',
+      name: 'Web search',
       group: 'chat',
       icon: <TravelExplore />,
-      desc: 'חיפוש Web חי לעיגון מחקר, תיעוד ועובדות בזמן בנייה.',
+      desc: 'Live web search for research, documentation, and factual grounding during builds.',
       state: 'connected',
-      meta: 'מופעל לכל המשתמשים',
+      meta: 'Enabled for all users',
     },
     {
       id: 'mcp',
       name: 'MCP Servers',
       group: 'chat',
       icon: <Hub />,
-      desc: 'כלי קונטקסט פרטיים לצוותים ו־Enterprise. נוסף דרך מדיניות מנהל בלבד.',
+      desc: 'Private context tools for teams and Enterprise. Added through admin policy.',
       state: 'soon',
-      meta: 'יתאפשר בחבילת Team',
+      meta: 'Available on Team',
     },
   ], [github, githubBusy, githubLoading, githubError]);
 
@@ -219,12 +219,12 @@ function ConnectorsInner() {
       setQuery={setQuery}
     >
       <PageTitle
-        eyebrow="מחברים"
-        title="חיבורים חיצוניים"
-        subtitle="חיבורים שמשתלבים עם בנייה, תצוגה מקדימה והפריסה. כל חיבור עם סטטוס בזמן אמת."
+        eyebrow="Connectors"
+        title="External connections"
+        subtitle="Integrations that support building, previewing, and deploying. Every connector reports live status."
         action={
           <Button variant="outlined" startIcon={<Refresh fontSize="small" />} onClick={() => void loadGithub()}>
-            רענן סטטוס
+            Refresh status
           </Button>
         }
       />
@@ -236,9 +236,9 @@ function ConnectorsInner() {
               <Security />
             </Box>
             <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography variant="h6" sx={{ fontWeight: 900 }}>מוכנות מחברים</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 900 }}>Connector readiness</Typography>
               <Typography variant="body2" color="text.secondary">
-                {connectedCount} מתוך {connectors.length} כלים מוכנים לשימוש מיידי
+                {connectedCount} of {connectors.length} tools are ready to use now
               </Typography>
             </Box>
             <Typography variant="h5" sx={{ color: tokens.color.text.inverse, fontFamily: tokens.font.mono }}>{readiness}%</Typography>
@@ -255,9 +255,9 @@ function ConnectorsInner() {
           <Stack direction="row" spacing={1.2} alignItems="flex-start">
             <Lock sx={{ color: tokens.color.accent.coral }} />
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 900 }}>בטוח כברירת מחדל</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 900 }}>Safe by default</Typography>
               <Typography variant="body2" color="text.secondary">
-                אתה שולט במה שמתחבר. כל חיבור נשמר בהיקף החשבון שלך עד שתבחר לקשר אותו לפרויקט ספציפי.
+                You control what connects. Each connector stays scoped to your account until you attach it to a project.
               </Typography>
             </Box>
           </Stack>
@@ -283,16 +283,16 @@ function ConnectorsInner() {
 
       {githubError && (
         <Box sx={{ mb: 1.4 }}>
-          <ErrorBox title="סטטוס GitHub" description={githubError} onRetry={() => void loadGithub()} />
+          <ErrorBox title="GitHub status" description={githubError} onRetry={() => void loadGithub()} />
         </Box>
       )}
 
       {visible.length === 0 ? (
         <EmptyState
           illustration="orbit"
-          title="אין מחברים תואמים"
-          description="נסה לבחור קבוצה אחרת או לרוקן את החיפוש."
-          primaryLabel="ניקוי חיפוש"
+          title="No matching connectors"
+          description="Choose another group or clear the search."
+          primaryLabel="Clear search"
           onPrimary={() => { setQuery(''); setGroup('all'); }}
         />
       ) : (
@@ -311,10 +311,10 @@ function ConnectorCardView({ card }: { card: ConnectorCard }) {
     card.state === 'disabled' ? 'failed' :
     'idle';
   const pillLabel =
-    card.state === 'connected' ? 'מחובר' :
-    card.state === 'available' ? 'זמין' :
-    card.state === 'disabled' ? 'מנוטרל' :
-    'בקרוב';
+    card.state === 'connected' ? 'Connected' :
+    card.state === 'available' ? 'Available' :
+    card.state === 'disabled' ? 'Disabled' :
+    'Soon';
   return (
     <Surface sx={{ p: 2, minHeight: 196, display: 'flex', flexDirection: 'column' }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center">

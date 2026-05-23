@@ -3,8 +3,12 @@ package providers
 import (
 	"context"
 	"errors"
+	"time"
+
+	"go.opentelemetry.io/otel/attribute"
 
 	"ironflyer/apps/orchestrator/internal/budget"
+	"ironflyer/apps/orchestrator/internal/tracing"
 )
 
 // BillingGuard wraps the Router with the budget Enforcer + Ledger. Every
@@ -13,6 +17,7 @@ import (
 type BillingGuard struct {
 	router  *Router
 	billing *budget.Billing
+	tel     TelemetrySink // optional; nil = no telemetry (still works)
 }
 
 func NewBillingGuard(r *Router, b *budget.Billing) *BillingGuard {
@@ -27,6 +32,16 @@ func (g *BillingGuard) CompleteStream(ctx context.Context, req Request) (<-chan 
 		userID = "anonymous"
 	}
 	required := capsAsStrings(req.Capabilities)
+
+	// Open a billing-guard span around the whole admit + provider call.
+	// We end it manually on the synchronous error paths so the span doesn't
+	// leak past the function on a budget refusal; the streaming goroutine
+	// ends it once the channel drains.
+	ctx, span := tracing.StartSpan(ctx, "billing_guard.complete_stream",
+		attribute.String("user.id", userID),
+		attribute.StringSlice("capabilities", required),
+	)
+
 	estIn := estimateTokens(req.System) + estimateTokens(req.ProjectContext) + estimateTokens(req.Prompt)
 	estOut := req.MaxTokens
 	if estOut == 0 {
@@ -34,7 +49,10 @@ func (g *BillingGuard) CompleteStream(ctx context.Context, req Request) (<-chan 
 	}
 	decision := g.billing.Admit(ctx, userID, required, estIn, estOut)
 	if !decision.Admit {
-		return nil, errors.New("budget: " + decision.Reason)
+		err := errors.New("budget: " + decision.Reason)
+		span.RecordError(err)
+		span.End()
+		return nil, err
 	}
 
 	// Pick the provider by name to honor the optimizer's choice.
@@ -43,27 +61,90 @@ func (g *BillingGuard) CompleteStream(ctx context.Context, req Request) (<-chan 
 		provider = pickAnyMatching(g.router, req.Capabilities)
 	}
 	if provider == nil {
-		return nil, errors.New("no provider available")
-	}
-
-	in, err := provider.CompleteStream(ctx, req)
-	if err != nil {
+		err := errors.New("no provider available")
+		span.RecordError(err)
+		span.End()
 		return nil, err
 	}
 
-	// Tap the stream: forward everything, and on DeltaDone record the charge.
+	started := time.Now().UTC()
+	in, err := provider.CompleteStream(ctx, req)
+	if err != nil {
+		span.RecordError(err)
+		span.End()
+		if g.tel != nil {
+			g.tel.Record(AgentCall{
+				UserID: userID, Provider: decision.Provider, Model: decision.Model,
+				Capabilities: required, StartedAt: started,
+				DurationMS: time.Since(started).Milliseconds(),
+				Error:      err.Error(),
+			})
+		}
+		return nil, err
+	}
+
+	// Tap the stream: forward everything, charge on DeltaDone, and
+	// emit one telemetry record per completed call (success or stream
+	// error). The telemetry write is non-blocking; the sink owns its
+	// own backpressure.
 	out := make(chan Delta, 32)
 	go func() {
 		defer close(out)
+		defer span.End()
+		var lastDone *Delta
+		var streamErr string
 		for d := range in {
 			out <- d
-			if d.Type == DeltaDone && d.Usage != nil {
-				g.billing.Charge(ctx, userID, "", d.Provider, d.Model,
-					d.Usage.InputTokens, d.Usage.OutputTokens,
-					d.Usage.CacheReadTokens, d.Usage.CacheCreationTokens,
-				)
+			switch d.Type {
+			case DeltaDone:
+				dCopy := d
+				lastDone = &dCopy
+				if d.Usage != nil {
+					span.SetAttributes(
+						attribute.Int("input_tokens", d.Usage.InputTokens),
+						attribute.Int("output_tokens", d.Usage.OutputTokens),
+						attribute.Float64("cost_usd", d.Usage.CostUSD),
+						attribute.String("model", d.Model),
+					)
+					g.billing.Charge(ctx, userID, "", d.Provider, d.Model,
+						d.Usage.InputTokens, d.Usage.OutputTokens,
+						d.Usage.CacheReadTokens, d.Usage.CacheCreationTokens,
+					)
+				}
+			case DeltaError:
+				if d.Err != nil {
+					streamErr = d.Err.Error()
+					span.RecordError(d.Err)
+				}
 			}
 		}
+		if g.tel == nil {
+			return
+		}
+		row := AgentCall{
+			UserID: userID, Capabilities: required,
+			StartedAt:  started,
+			DurationMS: time.Since(started).Milliseconds(),
+			Error:      streamErr,
+		}
+		if lastDone != nil {
+			row.Provider = lastDone.Provider
+			row.Model = lastDone.Model
+			if lastDone.Usage != nil {
+				row.InputTokens = lastDone.Usage.InputTokens
+				row.OutputTokens = lastDone.Usage.OutputTokens
+				row.CacheReadTokens = lastDone.Usage.CacheReadTokens
+				row.CacheNewTokens = lastDone.Usage.CacheCreationTokens
+				row.CostUSD = lastDone.Usage.CostUSD
+			}
+		}
+		if row.Provider == "" {
+			row.Provider = decision.Provider
+		}
+		if row.Model == "" {
+			row.Model = decision.Model
+		}
+		g.tel.Record(row)
 	}()
 	return out, nil
 }

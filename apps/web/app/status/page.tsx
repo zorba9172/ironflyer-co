@@ -60,7 +60,7 @@ export default function StatusPage() {
 
   return (
     <main
-      dir="rtl"
+      dir="ltr"
       style={{
         minHeight: '100vh',
         background: '#f4f0e8',
@@ -72,36 +72,27 @@ export default function StatusPage() {
       <div style={{ maxWidth: 760, margin: '0 auto' }}>
         <header style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 32 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div
-              aria-hidden
-              style={{
-                width: 40,
-                height: 40,
-                background: '#e5ff00',
-                borderRadius: 8,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontFamily: 'var(--font-display), Arial Black, sans-serif',
-                fontSize: 26,
-                lineHeight: 1,
-              }}
-            >
-              I
-            </div>
+            <svg width="42" height="42" viewBox="0 0 64 64" aria-hidden>
+              <rect x="4" y="4" width="56" height="56" rx="8" fill="#0d0e0f" />
+              <path d="M19 14h13c9 0 15 5 15 13 0 6-3 10-9 12l10 11H35L26 40h-3v10H12V14h7Z" fill="#e5ff00" />
+              <path d="M23 23h12c3 0 5 2 5 5s-2 5-5 5H23V23Z" fill="#0d0e0f" />
+              <path d="M15 14h10v36H15V14Z" fill="#e5ff00" />
+              <path d="M28 18h16v4H28V18Zm0 12h16v4H28v-4Zm0 12h16v4H28v-4Z" fill="#f4f0e8" />
+              <path d="M46 24l8 8-8 8v-6h-6v-4h6v-6Z" fill="#f4f0e8" />
+            </svg>
             <h1
               style={{
                 margin: 0,
                 fontFamily: 'var(--font-display), Arial Black, sans-serif',
                 fontSize: '2rem',
-                letterSpacing: -0.5,
+                letterSpacing: 0,
               }}
             >
-              סטטוס Ironflyer
+              Ironflyer Status
             </h1>
           </div>
           <p style={{ margin: 0, color: '#3a3a36', lineHeight: 1.5 }}>
-            הדף הזה מתעדכן אוטומטית כל 30 שניות. אם משהו לא תקין — תראו את זה כאן.
+            This page updates automatically every 30 seconds. If something is unhealthy, it will show up here.
           </p>
         </header>
 
@@ -129,8 +120,8 @@ export default function StatusPage() {
             </div>
             <span style={{ color: '#77736b', fontSize: '0.875rem' }}>
               {lastUpdated
-                ? `עודכן ב-${lastUpdated.toLocaleTimeString('he-IL')}`
-                : 'טוען…'}
+                ? `Updated at ${lastUpdated.toLocaleTimeString('en-US')}`
+                : 'Loading...'}
             </span>
           </div>
         </section>
@@ -169,7 +160,7 @@ export default function StatusPage() {
         </section>
 
         <p style={{ marginTop: 24, color: '#77736b', fontSize: '0.8125rem' }}>
-          הנתונים נשלפים מ-{ORCH_URL}/healthz ומ-{RUNTIME_URL}/healthz.
+          Data is fetched from {ORCH_URL}/healthz and {RUNTIME_URL}/healthz.
         </p>
       </div>
     </main>
@@ -212,7 +203,7 @@ async function fetchAll(): Promise<{ rows: Row[]; overall: ServiceState }> {
       name: 'Orchestrator',
       state: orchState,
       detail: orch?.version
-        ? `גרסה ${orch.version}${orch.uptime ? ` · ${orch.uptime}` : ''}`
+        ? `Version ${orch.version}${orch.uptime ? ` · ${orch.uptime}` : ''}`
         : undefined,
     },
     {
@@ -225,17 +216,17 @@ async function fetchAll(): Promise<{ rows: Row[]; overall: ServiceState }> {
     {
       name: 'Anthropic',
       state: boolState(services.anthropic, orchReachable),
-      detail: 'נתב מודלים ראשי',
+      detail: 'Primary model router',
     },
     {
       name: 'Postgres',
       state: boolState(services.postgres, orchReachable),
-      detail: 'מסד נתונים ראשי',
+      detail: 'Primary database',
     },
     {
       name: 'Stripe',
       state: boolState(services.stripe, orchReachable),
-      detail: 'תשלומים ומנויים',
+      detail: 'Payments and subscriptions',
     },
   ];
 
@@ -269,13 +260,13 @@ function worstOf(a: ServiceState, b: ServiceState): ServiceState {
 function overallLabel(state: ServiceState): string {
   switch (state) {
     case 'ok':
-      return 'כל המערכות פעילות';
+      return 'All systems operational';
     case 'degraded':
-      return 'תקלה חלקית';
+      return 'Partial outage';
     case 'down':
-      return 'שירות לא זמין';
+      return 'Service unavailable';
     default:
-      return 'בודקים…';
+      return 'Checking...';
   }
 }
 
@@ -365,12 +356,12 @@ function pillFg(state: ServiceState): string {
 function pillLabel(state: ServiceState): string {
   switch (state) {
     case 'ok':
-      return 'תקין';
+      return 'Operational';
     case 'degraded':
-      return 'תקלה חלקית';
+      return 'Degraded';
     case 'down':
-      return 'לא זמין';
+      return 'Unavailable';
     default:
-      return 'בודקים';
+      return 'Checking';
   }
 }

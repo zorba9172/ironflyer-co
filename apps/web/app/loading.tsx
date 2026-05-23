@@ -25,24 +25,14 @@ export default function Loading() {
         }}
       >
         {/* Logo glyph */}
-        <div
-          style={{
-            width: 56,
-            height: 56,
-            background: '#e5ff00',
-            borderRadius: 12,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontFamily: 'var(--font-display), Arial Black, sans-serif',
-            fontSize: 36,
-            color: '#0d0e0f',
-            lineHeight: 1,
-          }}
-          aria-hidden
-        >
-          I
-        </div>
+        <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden>
+          <rect x="4" y="4" width="56" height="56" rx="8" fill="#0d0e0f" />
+          <path d="M19 14h13c9 0 15 5 15 13 0 6-3 10-9 12l10 11H35L26 40h-3v10H12V14h7Z" fill="#e5ff00" />
+          <path d="M23 23h12c3 0 5 2 5 5s-2 5-5 5H23V23Z" fill="#0d0e0f" />
+          <path d="M15 14h10v36H15V14Z" fill="#e5ff00" />
+          <path d="M28 18h16v4H28V18Zm0 12h16v4H28v-4Zm0 12h16v4H28v-4Z" fill="#f4f0e8" />
+          <path d="M46 24l8 8-8 8v-6h-6v-4h6v-6Z" fill="#f4f0e8" />
+        </svg>
 
         {/* Skeleton rows — keyframes are scoped via <style> so we don't
             need to touch the global stylesheet from this file. */}
@@ -62,7 +52,7 @@ export default function Loading() {
             fontSize: '0.875rem',
           }}
         >
-          טוען…
+          Loading...
         </span>
       </div>
     </main>

@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Polenta Café — Coffee, pastry, and a quiet morning</title>
+  <meta name="description" content="A neighborhood café and bakery on Linden Lane. Slow coffee, sourdough out at eight, biscotti in a glass jar by the window." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #efe6d3;
+      --bg-2: #e3d8bf;
+      --paper: #f8f1de;
+      --ink: #2c3320;
+      --ink-2: #4a5236;
+      --ink-3: #7a8260;
+      --accent: #5b6a3a;
+      --accent-2: #3f4a26;
+      --warm: #b88240;
+      --rule: rgba(44, 51, 32, 0.14);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
+    .display { font-family: 'Fraunces', 'Times New Roman', serif; }
+    .hand { font-family: 'Caveat', cursive; }
+    .eyebrow {
+      font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--accent); font-weight: 600;
+    }
+
+    /* Nav */
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(239, 230, 211, 0.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--rule);
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 76px; }
+    .brand {
+      display: flex; align-items: center; gap: 12px;
+      font-family: 'Fraunces', serif; font-size: 26px; font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+    .brand .hand-bit { font-family: 'Caveat', cursive; font-weight: 600; font-size: 30px; color: var(--accent); }
+    .nav-links { display: flex; gap: 32px; font-size: 14px; color: var(--ink-2); }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta {
+      border: 1.5px solid var(--ink); color: var(--ink);
+      padding: 10px 22px; border-radius: 999px;
+      font-size: 13px; font-weight: 600;
+      transition: background 200ms, color 200ms;
+    }
+    .nav-cta:hover { background: var(--ink); color: var(--paper); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 64px 0 96px; }
+    .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+    h1 {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(56px, 8vw, 104px);
+      line-height: 1; letter-spacing: -0.02em;
+      font-weight: 500; margin: 24px 0 28px;
+    }
+    h1 em {
+      font-style: italic; color: var(--accent);
+      position: relative; display: inline-block;
+    }
+    h1 .scribble {
+      font-family: 'Caveat', cursive; font-style: normal;
+      color: var(--warm); font-size: 0.55em; font-weight: 600;
+      position: absolute; left: -10%; top: -22px;
+      transform: rotate(-6deg);
+    }
+    .lede {
+      font-family: 'Fraunces', serif; font-size: 22px; color: var(--ink-2);
+      max-width: 460px; line-height: 1.55; font-weight: 400;
+    }
+    .hero-meta {
+      margin-top: 40px; display: flex; gap: 36px; flex-wrap: wrap;
+      padding-top: 28px; border-top: 1px solid var(--rule);
+    }
+    .hero-meta div { font-size: 14px; color: var(--ink-2); }
+    .hero-meta strong {
+      display: block;
+      font-family: 'Caveat', cursive; font-size: 26px;
+      color: var(--ink); font-weight: 700; margin-bottom: -2px;
+    }
+    .hero-art {
+      position: relative; aspect-ratio: 4/5; overflow: hidden;
+      border-radius: 8px;
+    }
+    .hero-art img { width: 100%; height: 100%; object-fit: cover; }
+    .hero-art .pinned {
+      position: absolute; top: 24px; right: -10px;
+      background: var(--paper); color: var(--ink);
+      padding: 14px 22px;
+      font-family: 'Caveat', cursive; font-size: 24px;
+      font-weight: 600; transform: rotate(6deg);
+      box-shadow: 0 8px 24px rgba(44, 51, 32, 0.18);
+    }
+    .hero-art .pinned::before {
+      content: ''; position: absolute; top: -8px; left: 50%;
+      transform: translateX(-50%);
+      width: 12px; height: 12px; background: var(--warm); border-radius: 50%;
+    }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 56px; } }
+
+    /* Today's bakes */
+    .today { background: var(--paper); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 56px 0; }
+    .today-head { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 16px; margin-bottom: 32px; }
+    .today-head h2 {
+      font-family: 'Fraunces', serif; font-size: clamp(32px, 4vw, 48px);
+      font-weight: 500; letter-spacing: -0.01em; margin: 0;
+    }
+    .today-head h2 em { font-style: italic; color: var(--accent); }
+    .today-head .stamp {
+      font-family: 'Caveat', cursive; font-size: 26px; color: var(--warm);
+      transform: rotate(-3deg); display: inline-block;
+    }
+    .bakes-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    .bake {
+      text-align: center;
+      padding: 24px; background: var(--bg);
+      border: 1px solid var(--rule);
+      border-radius: 8px;
+    }
+    .bake-img { aspect-ratio: 1/1; border-radius: 50%; overflow: hidden; margin: 0 auto 16px; max-width: 160px; border: 4px solid var(--paper); box-shadow: 0 8px 20px rgba(44, 51, 32, 0.1); }
+    .bake-img img { width: 100%; height: 100%; object-fit: cover; }
+    .bake h3 { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; margin: 0 0 4px; letter-spacing: -0.005em; }
+    .bake .when { font-family: 'Caveat', cursive; font-size: 20px; color: var(--warm); font-weight: 600; margin-bottom: 8px; }
+    .bake .price { font-family: 'Fraunces', serif; font-size: 18px; color: var(--accent); font-weight: 600; }
+    @media (max-width: 1080px) { .bakes-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    /* Section */
+    .section { padding: 120px 0; }
+    .section-head { max-width: 720px; margin: 0 auto 56px; text-align: center; }
+    h2 {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(40px, 5vw, 64px);
+      letter-spacing: -0.015em; line-height: 1.05;
+      font-weight: 500; margin: 16px 0 16px;
+    }
+    h2 em { font-style: italic; color: var(--accent); }
+    .section-head p { color: var(--ink-2); font-size: 17px; }
+
+    /* Menu */
+    .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px 80px; max-width: 1000px; margin: 0 auto; }
+    .menu-col h3 {
+      font-family: 'Caveat', cursive; font-size: 36px;
+      color: var(--accent); margin: 0 0 24px;
+      letter-spacing: 0; font-weight: 700;
+    }
+    .menu-item {
+      display: flex; justify-content: space-between; align-items: baseline;
+      gap: 16px;
+      padding: 16px 0; border-bottom: 1px dotted var(--rule);
+    }
+    .menu-item:last-child { border-bottom: none; }
+    .menu-item .name { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 500; }
+    .menu-item .desc { display: block; font-size: 13px; color: var(--ink-3); font-style: italic; margin-top: 2px; }
+    .menu-item .price { font-family: 'Fraunces', serif; font-size: 18px; color: var(--accent); font-weight: 600; }
+    @media (max-width: 720px) { .menu-grid { grid-template-columns: 1fr; gap: 32px; } }
+
+    /* Story / kitchen */
+    .story {
+      background: var(--accent); color: var(--paper);
+      padding: 120px 0; position: relative; overflow: hidden;
+    }
+    .story h2 { color: var(--paper); }
+    .story h2 em { font-style: italic; color: var(--bg-2); }
+    .story-grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 80px; align-items: center; }
+    .story-img { aspect-ratio: 4/5; overflow: hidden; border-radius: 8px; transform: rotate(-2deg); }
+    .story-img img { width: 100%; height: 100%; object-fit: cover; }
+    .story-body p { font-family: 'Fraunces', serif; font-size: 20px; line-height: 1.6; color: rgba(248, 241, 222, 0.85); margin: 0 0 20px; }
+    .story-sig { font-family: 'Caveat', cursive; font-size: 40px; margin-top: 32px; color: var(--bg-2); font-weight: 700; }
+    .story-sig small { display: block; font-family: 'Inter', sans-serif; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(248, 241, 222, 0.6); margin-top: 4px; font-weight: 600; }
+    @media (max-width: 1080px) { .story-grid { grid-template-columns: 1fr; gap: 48px; } .story-img { transform: none; } }
+
+    /* Beans */
+    .beans-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+    .bean {
+      background: var(--paper);
+      border-radius: 8px; padding: 32px;
+      border: 1px solid var(--rule);
+    }
+    .bean .origin {
+      font-family: 'Caveat', cursive; font-size: 28px;
+      color: var(--warm); font-weight: 600; margin-bottom: 6px;
+    }
+    .bean h3 { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 600; margin: 0 0 12px; letter-spacing: -0.01em; }
+    .bean .notes { font-size: 14px; color: var(--ink-2); margin-bottom: 16px; line-height: 1.6; }
+    .bean .farmer { font-size: 13px; color: var(--ink-3); font-style: italic; padding-top: 12px; border-top: 1px dotted var(--rule); }
+    @media (max-width: 1080px) { .beans-row { grid-template-columns: 1fr; } }
+
+    /* Visit */
+    .visit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; }
+    .hours-list { list-style: none; padding: 0; margin: 24px 0 0; }
+    .hours-list li {
+      display: flex; justify-content: space-between; padding: 14px 0;
+      border-bottom: 1px dotted var(--rule); font-size: 16px;
+    }
+    .hours-list .day { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 500; font-style: italic; }
+    .hours-list li.today { color: var(--accent); font-weight: 600; }
+    .hours-list li.closed { color: var(--ink-3); }
+    .address-card { font-family: 'Fraunces', serif; font-size: 24px; line-height: 1.4; margin: 24px 0; font-style: italic; }
+    .map {
+      aspect-ratio: 4/5;
+      background: var(--paper);
+      border: 1.5px solid var(--ink);
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+    .map::before {
+      content: ''; position: absolute; inset: 0;
+      background:
+        linear-gradient(transparent 95%, var(--bg-2) 95%),
+        linear-gradient(90deg, transparent 95%, var(--bg-2) 95%);
+      background-size: 40px 40px;
+      opacity: 0.6;
+    }
+    .map-pin {
+      position: absolute; left: 48%; top: 42%;
+      width: 18px; height: 18px;
+      background: var(--warm); border-radius: 50%;
+      box-shadow: 0 0 0 8px rgba(184, 130, 64, 0.2);
+    }
+    .map-label {
+      position: absolute; left: 24px; bottom: 24px;
+      background: var(--paper); border: 1.5px solid var(--ink);
+      padding: 12px 18px;
+      font-family: 'Caveat', cursive; font-size: 22px; font-weight: 600;
+    }
+    @media (max-width: 1080px) { .visit-grid { grid-template-columns: 1fr; } }
+
+    /* CTA */
+    .cta { padding: 100px 0; text-align: center; background: var(--bg-2); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+    .cta h2 { margin-bottom: 16px; }
+    .cta p { font-family: 'Fraunces', serif; font-size: 22px; max-width: 520px; margin: 0 auto 32px; font-style: italic; color: var(--ink-2); }
+    .cta-btn {
+      display: inline-block; background: var(--ink); color: var(--paper);
+      padding: 16px 32px; border-radius: 999px;
+      font-size: 14px; font-weight: 600; letter-spacing: 0.04em;
+    }
+
+    /* Footer */
+    footer { padding: 64px 0 32px; }
+    .foot-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 40px; }
+    .foot-col h4 { font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent); margin: 0 0 14px; font-weight: 600; }
+    .foot-col p, .foot-col a { color: var(--ink-2); font-size: 14px; line-height: 1.7; }
+    .foot-col a { display: block; }
+    .foot-col a:hover { color: var(--accent); }
+    .foot-bot { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; color: var(--ink-3); font-size: 12px; }
+    .foot-bot .hand { font-family: 'Caveat', cursive; font-size: 18px; color: var(--accent); }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 8px; text-align: center; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a href="#" class="brand">Polenta <span class="hand-bit">café</span></a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#today">Today's bakes</a>
+        <a href="#menu">Menu</a>
+        <a href="#beans">Coffee</a>
+        <a href="#visit">Visit</a>
+      </nav>
+      <a href="#visit" class="nav-cta">Find the café</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow">Café · Bakery · Linden Lane</span>
+            <h1>A slow <em>morning<span class="scribble">always</span></em>, on the corner.</h1>
+            <p class="lede">A small neighborhood café and bakery. Sourdough out of the oven at eight, biscotti in a glass jar by the window, and a quiet seat if you want one.</p>
+            <div class="hero-meta">
+              <div><strong>7 am</strong>Beans pulled fresh</div>
+              <div><strong>8 am</strong>First loaves out</div>
+              <div><strong>3 pm</strong>Cookies if you're lucky</div>
+            </div>
+          </div>
+          <div class="hero-art">
+            <img src="https://picsum.photos/seed/polenta-cafe-1/900/1100" width="900" height="1100" alt="A latte with rosetta art and a piece of fresh focaccia at Polenta Café." loading="eager" />
+            <span class="pinned" aria-hidden="true">open today!</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="today" id="today">
+      <div class="wrap">
+        <div class="today-head">
+          <h2><em>Today's</em> bakes</h2>
+          <span class="stamp">— pulled today, sold today —</span>
+        </div>
+        <div class="bakes-grid">
+          <article class="bake">
+            <div class="bake-img"><img src="https://picsum.photos/seed/polenta-cafe-2/400/400" width="400" height="400" alt="A round country sourdough loaf with a dark crust." loading="lazy" /></div>
+            <h3>Country sourdough</h3>
+            <p class="when">out at 8 am</p>
+            <p class="price">$9 loaf</p>
+          </article>
+          <article class="bake">
+            <div class="bake-img"><img src="https://picsum.photos/seed/polenta-cafe-3/400/400" width="400" height="400" alt="A laminated almond croissant dusted with sugar." loading="lazy" /></div>
+            <h3>Almond croissant</h3>
+            <p class="when">out at 7:30</p>
+            <p class="price">$6</p>
+          </article>
+          <article class="bake">
+            <div class="bake-img"><img src="https://picsum.photos/seed/polenta-cafe-4/400/400" width="400" height="400" alt="A wedge of olive oil polenta cake." loading="lazy" /></div>
+            <h3>Polenta orange cake</h3>
+            <p class="when">all day</p>
+            <p class="price">$5 slice</p>
+          </article>
+          <article class="bake">
+            <div class="bake-img"><img src="https://picsum.photos/seed/polenta-cafe-5/400/400" width="400" height="400" alt="A jar of crunchy almond biscotti." loading="lazy" /></div>
+            <h3>Anise biscotti</h3>
+            <p class="when">always</p>
+            <p class="price">$3 each</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="menu">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">The Menu</span>
+          <h2>Coffee, pastry, <em>and a little lunch.</em></h2>
+          <p>A small menu, served all day. Most of it changes with the seasons.</p>
+        </div>
+        <div class="menu-grid">
+          <div class="menu-col">
+            <h3>From the bar</h3>
+            <div class="menu-item">
+              <div>
+                <span class="name">Espresso</span>
+                <span class="desc">Pulled short. Six bean lots, single-origin only.</span>
+              </div>
+              <span class="price">$4</span>
+            </div>
+            <div class="menu-item">
+              <div>
+                <span class="name">Cortado</span>
+                <span class="desc">Equal parts espresso and steamed milk. Six ounces.</span>
+              </div>
+              <span class="price">$5</span>
+            </div>
+            <div class="menu-item">
+              <div>
+                <span class="name">Cappuccino</span>
+                <span class="desc">A proper one. Five ounces, dry foam.</span>
+              </div>
+              <span class="price">$5</span>
+            </div>
+            <div class="menu-item">
+              <div>
+                <span class="name">Latte</span>
+                <span class="desc">Eight or twelve ounces. Whole, oat, almond.</span>
+              </div>
+              <span class="price">$6</span>
+            </div>
+            <div class="menu-item">
+              <div>
+                <span class="name">Drip coffee</span>
+                <span class="desc">Brewed on a Fetco. Free refills if you're sitting in.</span>
+              </div>
+              <span class="price">$4</span>
+            </div>
+            <div class="menu-item">
+              <div>
+                <span class="name">Pot of tea</span>
+                <span class="desc">Loose leaf, single-estate. We brew it for six minutes.</span>
+              </div>
+              <span class="price">$6</span>
+            </div>
+          </div>
+          <div class="menu-col">
+            <h3>From the kitchen</h3>
+            <div class="menu-item">
+              <div>
+                <span class="name">Polenta porridge</span>
+                <span class="desc">Stone-ground polenta, brown sugar, cream, roasted plum. The house breakfast.</span>
+              </div>
+              <span class="price">$11</span>
+            </div>
+            <div class="menu-item">
+              <div>
+                <span class="name">Soft-boiled egg & soldiers</span>
+                <span class="desc">A six-minute egg, two slices of buttered sourdough, sea salt.</span>
+              </div>
+              <span class="price">$9</span>
+            </div>
+            <div class="menu-item">
+              <div>
+                <span class="name">Avocado toast</span>
+                <span class="desc">Honest one. Sourdough, smashed avocado, lemon, chili, soft-boiled egg.</span>
+              </div>
+              <span class="price">$14</span>
+            </div>
+            <div class="menu-item">
+              <div>
+                <span class="name">Tomato & ricotta tartine</span>
+                <span class="desc">Open-faced. Sheep's-milk ricotta, blistered tomato, basil, olive oil.</span>
+              </div>
+              <span class="price">$13</span>
+            </div>
+            <div class="menu-item">
+              <div>
+                <span class="name">Soup of the day</span>
+                <span class="desc">Made fresh, written on the chalkboard, two ladles, with bread.</span>
+              </div>
+              <span class="price">$11</span>
+            </div>
+            <div class="menu-item">
+              <div>
+                <span class="name">Frittata, by the slice</span>
+                <span class="desc">Leek and goat cheese this week. Served warm or cold.</span>
+              </div>
+              <span class="price">$10</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="story">
+      <div class="wrap">
+        <div class="story-grid">
+          <div class="story-img">
+            <img src="https://picsum.photos/seed/polenta-cafe-6/900/1100" width="900" height="1100" alt="The owners Sarah and Tom kneading dough at Polenta Café early in the morning." loading="lazy" />
+          </div>
+          <div class="story-body">
+            <span class="eyebrow" style="color: var(--bg-2);">Hello</span>
+            <h2>We're Sarah <em>and Tom.</em></h2>
+            <p>We opened Polenta in 2019 above a hardware shop on Linden Lane. Sarah ran the bakery at a vineyard in Sonoma. Tom was a barista in Melbourne for ten years and a coffee buyer for five.</p>
+            <p>We wanted a café that felt like a friend's kitchen — a place to read for an hour, eat a slice of cake, walk home with a loaf of bread. Quiet music, soft chairs, good cups.</p>
+            <p>We bake the bread, pull the shots, write the chalkboard. If you have a question, ask us. We are usually behind the counter.</p>
+            <p class="story-sig">Sarah & Tom<small>Owners · Bakers · Pourers</small></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="beans">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">The Coffee</span>
+          <h2>Three farms, <em>this season.</em></h2>
+          <p>We change the espresso lot every six weeks. Right now we are pulling a washed Ethiopian; the filter rotates a little more often.</p>
+        </div>
+        <div class="beans-row">
+          <article class="bean">
+            <div class="origin">Ethiopia, Yirgacheffe</div>
+            <h3>Banko Gotiti</h3>
+            <p class="notes">Bright, floral, honey-and-bergamot. Pulled as a single espresso, served as a cortado. Light roast.</p>
+            <p class="farmer">— Bombe Cooperative · 1,920 m · washed</p>
+          </article>
+          <article class="bean">
+            <div class="origin">Colombia, Huila</div>
+            <h3>Las Brisas</h3>
+            <p class="notes">Deeper, plum, dark chocolate, almond. The house blend backbone for filter and milk drinks.</p>
+            <p class="farmer">— Finca Las Brisas · Edilberto Sánchez · 1,750 m</p>
+          </article>
+          <article class="bean">
+            <div class="origin">Guatemala, Huehuetenango</div>
+            <h3>Finca La Soledad</h3>
+            <p class="notes">Cocoa, dried apricot, brown sugar. The decaf — Swiss water process, no chemicals.</p>
+            <p class="farmer">— Familia Recinos · 1,650 m · decaf SWP</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="visit">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Visit</span>
+          <h2>Linden Lane, <em>by the bookshop.</em></h2>
+        </div>
+        <div class="visit-grid">
+          <div>
+            <ul class="hours-list">
+              <li id="day-mon"><span class="day">Monday</span><span>7 am – 5 pm</span></li>
+              <li id="day-tue"><span class="day">Tuesday</span><span>7 am – 5 pm</span></li>
+              <li id="day-wed"><span class="day">Wednesday</span><span>7 am – 5 pm</span></li>
+              <li id="day-thu"><span class="day">Thursday</span><span>7 am – 5 pm</span></li>
+              <li id="day-fri"><span class="day">Friday</span><span>7 am – 6 pm</span></li>
+              <li id="day-sat"><span class="day">Saturday</span><span>8 am – 6 pm</span></li>
+              <li id="day-sun" class="closed"><span class="day">Sunday</span><span>Closed</span></li>
+            </ul>
+            <p class="address-card">112 Linden Lane<br/>Northampton, MA 01060</p>
+            <p style="color: var(--ink-2); font-size: 14px;">Wifi for the first hour, then we'd love your seat. Order a loaf the day before for guaranteed pickup.</p>
+          </div>
+          <div class="map" aria-label="Map showing Polenta Café at 112 Linden Lane.">
+            <span class="map-pin" aria-hidden="true"></span>
+            <span class="map-label">Polenta · 112 Linden</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="cta">
+    <div class="wrap">
+      <span class="eyebrow">Pre-order</span>
+      <h2>Loaves <em>by the dozen,</em> for the weekend.</h2>
+      <p>Hosting? Order a few country loaves or a tray of focaccia by Wednesday for Saturday pickup.</p>
+      <a href="#" class="cta-btn">Pre-order a loaf →</a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a href="#" class="brand" style="margin-bottom: 16px;">Polenta <span class="hand-bit">café</span></a>
+          <p>A neighborhood café and bakery on Linden Lane. Bread, coffee, cake, a quiet hour.</p>
+        </div>
+        <div class="foot-col">
+          <h4>Visit</h4>
+          <p>112 Linden Lane</p>
+          <p>Northampton, MA 01060</p>
+          <p>hello@polentacafe.com</p>
+        </div>
+        <div class="foot-col">
+          <h4>Hours</h4>
+          <p>Mon – Thu · 7 to 5</p>
+          <p>Fri – Sat · til 6</p>
+          <p>Sun · closed</p>
+        </div>
+        <div class="foot-col">
+          <h4>Follow</h4>
+          <a href="#">Instagram</a>
+          <a href="#">Pre-orders</a>
+          <a href="#">Catering</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Polenta Café LLC</span>
+        <span class="hand">see you in the morning x</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var days = ['day-sun','day-mon','day-tue','day-wed','day-thu','day-fri','day-sat'];
+      var idx = new Date().getDay();
+      var el = document.getElementById(days[idx]);
+      if (el && !el.classList.contains('closed')) el.classList.add('today');
+    })();
+  </script>
+</body>
+</html>

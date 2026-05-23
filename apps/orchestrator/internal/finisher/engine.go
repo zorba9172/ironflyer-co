@@ -10,7 +10,9 @@ import (
 	"time"
 
 	"ironflyer/apps/orchestrator/internal/agents"
+	"ironflyer/apps/orchestrator/internal/audit"
 	"ironflyer/apps/orchestrator/internal/domain"
+	"ironflyer/apps/orchestrator/internal/memory"
 	"ironflyer/apps/orchestrator/internal/patch"
 	"ironflyer/apps/orchestrator/internal/runtime"
 	"ironflyer/apps/orchestrator/internal/store"
@@ -19,7 +21,10 @@ import (
 // ctxKey is unexported so callers must use WithBearer / bearerFromCtx.
 type ctxKey struct{ name string }
 
-var bearerKey = ctxKey{"bearer"}
+var (
+	bearerKey      = ctxKey{"bearer"}
+	workspaceIDKey = ctxKey{"workspaceID"}
+)
 
 // WithBearer stamps the user's JWT onto the context so gates that hit the
 // workspace runtime can re-present it for the ownership check.
@@ -32,6 +37,23 @@ func WithBearer(ctx context.Context, token string) context.Context {
 
 func bearerFromCtx(ctx context.Context) string {
 	if v, ok := ctx.Value(bearerKey).(string); ok {
+		return v
+	}
+	return ""
+}
+
+// withWorkspaceID stamps the resolved workspace ID onto the context so
+// built-in tools dispatched deep inside an agent Run (e.g. generate_image)
+// can target the caller's sandbox without re-resolving it.
+func withWorkspaceID(ctx context.Context, ws string) context.Context {
+	if ws == "" {
+		return ctx
+	}
+	return context.WithValue(ctx, workspaceIDKey, ws)
+}
+
+func workspaceIDFromCtx(ctx context.Context) string {
+	if v, ok := ctx.Value(workspaceIDKey).(string); ok {
 		return v
 	}
 	return ""
@@ -55,6 +77,12 @@ type RunReport struct {
 	PatchIDs   []string           `json:"patchIds,omitempty"`
 }
 
+// BudgetSource is the optional callback the Engine consults before each
+// gate iteration to populate GateEnv.Budget. Implementations typically
+// inspect the budget ledger + the user's plan; returning a nil snapshot is
+// fine and degrades the Budget gate to a warning.
+type BudgetSource func(ctx context.Context, userID, projectID string) (*BudgetSnapshot, error)
+
 type Engine struct {
 	mu               sync.RWMutex
 	projects         store.Store
@@ -62,12 +90,21 @@ type Engine struct {
 	patches          *patch.Engine
 	runtime          *runtime.Client
 	applier          RuntimeApplier
+	budget           BudgetSource
+	dbProvisioner    DBProvisioner
+	authScaffolder   AuthScaffolder
+	stripeScaffolder StripeScaffolder
+	domainScaffolders []DomainScaffolder
+	memory           memory.Store
+	audit            audit.Store
 	gates            []Gate
 	maxIterations    int
 	maxCoderRetries  int
 	maxPatchBytes    int
 	maxFilesPerPatch int
 	subscribers      map[string][]chan domain.Event
+	plans            *planCache
+	patchesCache     *patchCache
 }
 
 func NewEngine(projects store.Store, registry *agents.Registry, patches *patch.Engine) *Engine {
@@ -82,6 +119,8 @@ func NewEngine(projects store.Store, registry *agents.Registry, patches *patch.E
 		maxPatchBytes:    defaultMaxPatchBytes,
 		maxFilesPerPatch: defaultMaxFilesPerPatch,
 		subscribers:      make(map[string][]chan domain.Event),
+		plans:            newPlanCache(),
+		patchesCache:     newPatchCache(),
 	}
 }
 
@@ -112,6 +151,75 @@ func (e *Engine) WithMaxCoderRetries(n int) *Engine {
 		e.maxCoderRetries = n
 	}
 	return e
+}
+
+// WithBudgetSource registers a callback the Budget gate uses to fetch the
+// current spend posture for a project. Without this wired, the Budget gate
+// degrades to a "spend tracking is dark" warning but the loop still
+// progresses; callers should wire it in production.
+func (e *Engine) WithBudgetSource(fn BudgetSource) *Engine {
+	e.budget = fn
+	return e
+}
+
+// WithDBProvisioner registers the database provisioner the pipeline calls
+// before Coder. Pass NoopDBProvisioner{} (or leave unset) to disable —
+// the loop still runs but generated apps that need a database will fail
+// the Test gate. Wire a real backend (Supabase admin, Neon, in-cluster
+// Postgres) in production deployments.
+func (e *Engine) WithDBProvisioner(p DBProvisioner) *Engine {
+	e.dbProvisioner = p
+	return e
+}
+
+// WithAuthScaffolder registers the auth scaffolder. Pass
+// DefaultAuthScaffolder{} for the canonical Supabase + Next.js recipe;
+// nil disables auth scaffolding entirely so generated apps will lack a
+// signup/login surface unless the Coder invents one.
+func (e *Engine) WithAuthScaffolder(s AuthScaffolder) *Engine {
+	e.authScaffolder = s
+	return e
+}
+
+// WithStripeScaffolder registers the payments scaffolder. Triggers only
+// when the spec mentions billing/subscription/checkout — generated apps
+// without payments are unaffected. Pass DefaultStripeScaffolder{} for the
+// canonical Next.js + Stripe Checkout recipe.
+func (e *Engine) WithStripeScaffolder(s StripeScaffolder) *Engine {
+	e.stripeScaffolder = s
+	return e
+}
+
+// WithMemory registers the persistent-intelligence store (Layer 6 of
+// the AI Completion Infrastructure blueprint). The engine writes
+// failure/fix lineage + decision records here and reads them back on
+// every run to ground agent context. Nil disables the moat — gates
+// still run, but the system stops accumulating intelligence between
+// sessions.
+func (e *Engine) WithMemory(m memory.Store) *Engine {
+	e.memory = m
+	return e
+}
+
+// WithAudit registers the immutable hash-chained audit log. The engine
+// writes one entry per consequential action (patch proposed / applied
+// / rolled back, gate verdict, agent dispatch). Nil disables auditing
+// but the rest of the pipeline still runs.
+func (e *Engine) WithAudit(a audit.Store) *Engine {
+	e.audit = a
+	return e
+}
+
+// recordAudit is the nil-safe entry point capture hooks use. Drops on
+// nil store, so callers don't have to gate every call site themselves.
+func (e *Engine) recordAudit(ctx context.Context, entry audit.Entry) {
+	if e == nil || e.audit == nil {
+		return
+	}
+	if entry.CreatedAt.IsZero() {
+		entry.CreatedAt = time.Now().UTC()
+	}
+	_, _ = e.audit.Record(ctx, entry)
 }
 
 // Run executes the finisher loop for a project. It first drives the
@@ -150,6 +258,10 @@ func (e *Engine) Run(ctx context.Context, projectID string) (RunReport, error) {
 			workspaceID = ws.ID
 		}
 	}
+	// Stamp the resolved workspace ID onto the context so any agent Run
+	// triggered downstream (built-in tools like generate_image) can target
+	// the caller's sandbox without plumbing it through every helper.
+	ctx = withWorkspaceID(ctx, workspaceID)
 
 	// Phase A: generative pipeline. The pipeline mutates the project Spec +
 	// Files in-place so the gate phase that follows sees the freshly drafted
@@ -202,6 +314,11 @@ func (e *Engine) Run(ctx context.Context, projectID string) (RunReport, error) {
 				WorkspaceID: workspaceID,
 				UserBearer:  bearer,
 			}
+			if e.budget != nil {
+				if snap, err := e.budget(ctx, p.OwnerID, projectID); err == nil {
+					env.Budget = snap
+				}
+			}
 			issues := gate.Check(ctx, env)
 			status := domain.GateStatusPassed
 			if len(issues) > 0 {
@@ -210,6 +327,25 @@ func (e *Engine) Run(ctx context.Context, projectID string) (RunReport, error) {
 			}
 			e.setGate(projectID, gate.Name(), domain.GateState{
 				Name: gate.Name(), Status: status, Issues: issues, UpdatedAt: time.Now().UTC(),
+			})
+
+			// Audit trail entry — one per gate verdict so the production-
+			// trust moat has a verifiable line-by-line history.
+			outcome := audit.OutcomeSuccess
+			if len(issues) > 0 {
+				outcome = audit.OutcomeFailure
+			}
+			e.recordAudit(ctx, audit.Entry{
+				Action:    audit.ActionGateVerdict,
+				Outcome:   outcome,
+				UserID:    p.OwnerID,
+				ProjectID: projectID,
+				GateName:  string(gate.Name()),
+				Summary:   "gate=" + string(gate.Name()) + " status=" + string(status) + " issues=" + itoaPositive(len(issues)),
+				Attrs: map[string]any{
+					"iteration": i + 1,
+					"issues":    len(issues),
+				},
 			})
 
 			if len(issues) == 0 {
@@ -235,18 +371,32 @@ func (e *Engine) Run(ctx context.Context, projectID string) (RunReport, error) {
 				continue
 			}
 
-			// Dispatch repair agent.
+			// Dispatch repair agent. A gate may opt out of agent-driven
+			// repair by returning the empty role — used by the Budget gate,
+			// where overruns must be resolved by plan/billing changes, not
+			// by another LLM call. We mark such failures blocked so the
+			// loop ends gracefully.
 			role := gate.RepairAgent()
+			if role == "" {
+				e.setGate(projectID, gate.Name(), domain.GateState{
+					Name: gate.Name(), Status: domain.GateStatusBlocked,
+					Issues:    issues,
+					UpdatedAt: time.Now().UTC(),
+				})
+				continue
+			}
 			e.emit(projectID, domain.Event{
 				ID: newEventID(), Step: "repair", Gate: gate.Name(), Agent: string(role),
 				Message: "repair_started", Status: StatusRunning, CreatedAt: time.Now().UTC(),
 			})
 
 			task := agents.Task{
-				Role:    role,
-				Project: &p,
-				Goal:    "Repair gate " + string(gate.Name()),
-				Issues:  issues,
+				Role:        role,
+				Project:     &p,
+				Goal:        "Repair gate " + string(gate.Name()),
+				Issues:      issues,
+				UserBearer:  bearerFromCtx(ctx),
+				WorkspaceID: workspaceIDFromCtx(ctx),
 			}
 			res, err := e.registry.Run(ctx, task)
 			if err != nil {

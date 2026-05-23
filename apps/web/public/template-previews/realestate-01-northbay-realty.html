@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Northbay Realty — Coastal homes on the Northern California shore</title>
+  <meta name="description" content="A boutique brokerage representing the finest coastal residences from Sausalito to Mendocino. Agent-led, image-first, and quietly selective." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #efe9da;
+      --bg-2: #e6dfcc;
+      --fg: #1a2b4a;
+      --fg-2: #4a5872;
+      --fg-3: #7a8499;
+      --accent: #1a2b4a;
+      --line: rgba(26, 43, 74, 0.18);
+      --line-soft: rgba(26, 43, 74, 0.1);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 16px; line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .serif { font-family: 'Cormorant Garamond', Georgia, serif; }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 0 28px; }
+
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(239, 233, 218, 0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line-soft);
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 76px; }
+    .brand {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 26px; font-weight: 600; letter-spacing: 0.01em;
+    }
+    .brand small { font-size: 11px; font-family: 'Inter', sans-serif; letter-spacing: 0.24em; text-transform: uppercase; color: var(--fg-3); margin-left: 10px; }
+    .nav-links { display: flex; gap: 36px; font-size: 14px; color: var(--fg-2); }
+    .nav-links a:hover { color: var(--fg); }
+    .nav-cta a { font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase; border-bottom: 1px solid var(--fg); padding-bottom: 4px; }
+    @media (max-width: 1080px) { .nav-links { display: none; } }
+
+    .hero { padding: 56px 0 96px; }
+    .hero-media {
+      position: relative; border-radius: 4px; overflow: hidden;
+    }
+    .hero-media img { width: 100%; height: 64vh; min-height: 480px; object-fit: cover; }
+    .hero-caption {
+      position: absolute; left: 28px; bottom: 24px;
+      background: rgba(239, 233, 218, 0.94);
+      padding: 14px 18px; max-width: 360px;
+    }
+    .hero-caption .ref { font-family: 'Inter', sans-serif; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--fg-3); }
+    .hero-caption h2 { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; margin: 6px 0 4px; }
+    .hero-caption p { margin: 0; font-size: 13px; color: var(--fg-2); }
+    .hero-head { margin: 64px 0 32px; display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 56px; align-items: end; }
+    h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(48px, 6.4vw, 84px);
+      line-height: 1.02; letter-spacing: -0.01em;
+      font-weight: 500; margin: 0;
+    }
+    h1 em { font-style: italic; color: var(--fg-2); }
+    .hero-lede { font-size: 17px; color: var(--fg-2); max-width: 420px; }
+    .hero-lede p { margin: 0 0 18px; }
+    @media (max-width: 1080px) {
+      .hero-head { grid-template-columns: 1fr; gap: 24px; }
+    }
+
+    /* Search bar */
+    .search {
+      display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr auto;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .search > div { padding: 14px 18px; border-right: 1px solid var(--line-soft); }
+    .search > div:last-of-type { border-right: none; }
+    .search label { display: block; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--fg-3); margin-bottom: 4px; }
+    .search input, .search select {
+      border: none; background: transparent; font-family: inherit; font-size: 15px; color: var(--fg);
+      width: 100%; padding: 0; outline: none;
+    }
+    .search button {
+      background: var(--accent); color: var(--bg);
+      border: none; padding: 0 32px; font-family: 'Cormorant Garamond', serif;
+      font-size: 18px; letter-spacing: 0.04em; cursor: pointer;
+    }
+    .search button:hover { background: #0e1c36; }
+    @media (max-width: 1080px) {
+      .search { grid-template-columns: 1fr 1fr; }
+      .search > div { border-right: none; border-bottom: 1px solid var(--line-soft); }
+      .search button { grid-column: 1 / -1; padding: 16px; }
+    }
+    @media (max-width: 720px) {
+      .search { grid-template-columns: 1fr; }
+    }
+
+    .section { padding: 96px 0; border-top: 1px solid var(--line-soft); }
+    .section-head { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 56px; align-items: end; margin-bottom: 56px; }
+    .section h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(36px, 4.4vw, 56px);
+      line-height: 1.05; letter-spacing: -0.005em;
+      font-weight: 500; margin: 8px 0 0;
+    }
+    .eyebrow { font-size: 11px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--fg-3); }
+    .section-head p { font-size: 16px; color: var(--fg-2); margin: 0; }
+    @media (max-width: 1080px) {
+      .section-head { grid-template-columns: 1fr; gap: 18px; }
+    }
+
+    /* Listings */
+    .listings { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+    .listing { background: #fff; border: 1px solid var(--line-soft); border-radius: 4px; overflow: hidden; transition: transform 320ms ease, box-shadow 320ms ease; }
+    .listing:hover { transform: translateY(-4px); box-shadow: 0 30px 60px -30px rgba(26, 43, 74, 0.2); }
+    .listing-img { position: relative; aspect-ratio: 4/3; overflow: hidden; }
+    .listing-img img { width: 100%; height: 100%; object-fit: cover; }
+    .listing-tag { position: absolute; top: 14px; left: 14px; background: var(--bg); padding: 4px 10px; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; }
+    .listing-body { padding: 22px 22px 24px; }
+    .listing-loc { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--fg-3); }
+    .listing h3 { font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 26px; margin: 6px 0 8px; }
+    .listing-stats { display: flex; gap: 18px; color: var(--fg-2); font-size: 14px; margin: 10px 0 16px; }
+    .listing-stats span strong { color: var(--fg); font-weight: 600; }
+    .listing-price { display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid var(--line-soft); padding-top: 14px; }
+    .listing-price .price { font-family: 'Cormorant Garamond', serif; font-size: 24px; }
+    .listing-price a { font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; border-bottom: 1px solid var(--fg); padding-bottom: 2px; }
+    @media (max-width: 1080px) { .listings { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .listings { grid-template-columns: 1fr; } }
+
+    /* Story split */
+    .story { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+    .story-media img { width: 100%; aspect-ratio: 4/5; object-fit: cover; }
+    .story-body h2 { font-family: 'Cormorant Garamond', serif; font-size: clamp(36px, 4vw, 52px); font-weight: 500; line-height: 1.05; margin: 8px 0 22px; }
+    .story-body p { color: var(--fg-2); font-size: 16px; margin: 0 0 16px; max-width: 520px; }
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-top: 36px; }
+    .stat-num { font-family: 'Cormorant Garamond', serif; font-size: 38px; font-weight: 500; }
+    .stat-lbl { font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--fg-3); }
+    @media (max-width: 1080px) { .story { grid-template-columns: 1fr; gap: 40px; } }
+
+    /* Agents */
+    .agents { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; }
+    .agent img { width: 100%; aspect-ratio: 3/4; object-fit: cover; margin-bottom: 14px; }
+    .agent h3 { font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 22px; margin: 0 0 2px; }
+    .agent p { margin: 0; color: var(--fg-3); font-size: 13px; letter-spacing: 0.06em; }
+    @media (max-width: 1080px) { .agents { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .agents { grid-template-columns: 1fr 1fr; } }
+
+    /* Testimonials */
+    .quotes { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; }
+    .quote { background: #fff; padding: 36px; border: 1px solid var(--line-soft); border-radius: 4px; }
+    .quote blockquote { font-family: 'Cormorant Garamond', serif; font-size: 24px; line-height: 1.35; margin: 0 0 20px; font-weight: 500; }
+    .quote cite { font-style: normal; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--fg-3); }
+    @media (max-width: 720px) { .quotes { grid-template-columns: 1fr; } }
+
+    /* CTA */
+    .cta { background: var(--accent); color: var(--bg); padding: 96px 0; }
+    .cta-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 56px; align-items: end; }
+    .cta h2 { font-family: 'Cormorant Garamond', serif; font-size: clamp(40px, 5vw, 64px); font-weight: 500; margin: 0; line-height: 1.05; color: #fff; }
+    .cta p { font-size: 16px; color: rgba(239, 233, 218, 0.78); margin: 0 0 18px; }
+    .cta a.button { display: inline-block; padding: 14px 24px; border: 1px solid var(--bg); color: var(--bg); font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; }
+    .cta a.button:hover { background: var(--bg); color: var(--accent); }
+    @media (max-width: 1080px) { .cta-grid { grid-template-columns: 1fr; gap: 28px; } }
+
+    footer { background: var(--bg-2); padding: 56px 0 32px; }
+    .foot-grid { display: grid; grid-template-columns: 1.4fr repeat(3, 1fr); gap: 40px; }
+    .foot-col h4 { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--fg-3); margin: 0 0 14px; font-weight: 600; }
+    .foot-col a, .foot-col p { display: block; color: var(--fg-2); font-size: 14px; padding: 4px 0; margin: 0; }
+    .foot-col a:hover { color: var(--fg); }
+    .foot-bot { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--line-soft); display: flex; justify-content: space-between; font-size: 12px; color: var(--fg-3); letter-spacing: 0.04em; }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 8px; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a href="#" class="brand">Northbay Realty<small>EST. 1998</small></a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#listings">Residences</a>
+        <a href="#story">Our practice</a>
+        <a href="#agents">Agents</a>
+        <a href="#press">Journal</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <div class="nav-cta"><a href="#contact">Schedule a viewing</a></div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-media">
+          <img src="https://picsum.photos/seed/northbay-1/2000/1200" width="2000" height="1200" alt="A timber and glass coastal home perched above a Pacific cove at golden hour." loading="eager" />
+          <div class="hero-caption">
+            <div class="ref">Now representing — Belvedere</div>
+            <h2>The Cove House</h2>
+            <p>Four bedrooms, deep-water dock, west-facing terrace. Offered at $12,400,000.</p>
+          </div>
+        </div>
+
+        <div class="hero-head">
+          <h1>Quietly representing the <em>finest homes</em> on the Northern California shore.</h1>
+          <div class="hero-lede">
+            <p>Northbay is a 14-agent brokerage on the bay side of the Golden Gate. We work by referral, sell by relationship, and accept a small number of new mandates each season.</p>
+            <p>Forty-six closings in 2025. Average days on market: 19. Average list-to-sale: 99.4%.</p>
+          </div>
+        </div>
+
+        <form class="search" onsubmit="event.preventDefault();">
+          <div><label for="loc">Location</label><input id="loc" type="text" placeholder="Belvedere, Sausalito, Tiburon…" /></div>
+          <div><label for="type">Type</label><select id="type"><option>Any residence</option><option>Single family</option><option>Estate</option><option>Waterfront</option><option>Condominium</option></select></div>
+          <div><label for="price">Price</label><select id="price"><option>$2M – $5M</option><option>$5M – $10M</option><option>$10M – $25M</option><option>$25M +</option></select></div>
+          <div><label for="beds">Bedrooms</label><select id="beds"><option>2 +</option><option>3 +</option><option>4 +</option><option>5 +</option></select></div>
+          <button type="submit">Search</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="section" id="listings">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">Current portfolio</span>
+            <h2>Six homes on the market this month.</h2>
+          </div>
+          <p>Each represented exclusively by Northbay. We tour by appointment and prefer to walk a house with you before we share the full package.</p>
+        </div>
+        <div class="listings">
+          <article class="listing">
+            <div class="listing-img">
+              <img src="https://picsum.photos/seed/northbay-2/900/700" width="900" height="700" alt="A modern shingled cottage with weathered cedar siding overlooking Belvedere lagoon." loading="lazy" />
+              <span class="listing-tag">New listing</span>
+            </div>
+            <div class="listing-body">
+              <div class="listing-loc">Belvedere · Marin</div>
+              <h3>The Lagoon House</h3>
+              <div class="listing-stats"><span><strong>4</strong> bd</span><span><strong>3.5</strong> ba</span><span><strong>3,420</strong> sqft</span></div>
+              <div class="listing-price"><span class="price">$8,450,000</span><a href="#">View details</a></div>
+            </div>
+          </article>
+          <article class="listing">
+            <div class="listing-img">
+              <img src="https://picsum.photos/seed/northbay-3/900/700" width="900" height="700" alt="A glass-walled home cantilevered over a Pacific cliffside at sunset." loading="lazy" />
+              <span class="listing-tag">Off-market</span>
+            </div>
+            <div class="listing-body">
+              <div class="listing-loc">Sea Ranch · Sonoma</div>
+              <h3>The Glasshouse, Pacific Heights</h3>
+              <div class="listing-stats"><span><strong>5</strong> bd</span><span><strong>4</strong> ba</span><span><strong>4,180</strong> sqft</span></div>
+              <div class="listing-price"><span class="price">$6,250,000</span><a href="#">View details</a></div>
+            </div>
+          </article>
+          <article class="listing">
+            <div class="listing-img">
+              <img src="https://picsum.photos/seed/northbay-4/900/700" width="900" height="700" alt="A craftsman cottage with rose garden and pergola in Mill Valley." loading="lazy" />
+            </div>
+            <div class="listing-body">
+              <div class="listing-loc">Mill Valley · Marin</div>
+              <h3>The Quarry Cottage</h3>
+              <div class="listing-stats"><span><strong>3</strong> bd</span><span><strong>2</strong> ba</span><span><strong>2,140</strong> sqft</span></div>
+              <div class="listing-price"><span class="price">$3,295,000</span><a href="#">View details</a></div>
+            </div>
+          </article>
+          <article class="listing">
+            <div class="listing-img">
+              <img src="https://picsum.photos/seed/northbay-5/900/700" width="900" height="700" alt="A stone Mediterranean villa with terracotta tiles and olive trees in Tiburon." loading="lazy" />
+              <span class="listing-tag">Under contract</span>
+            </div>
+            <div class="listing-body">
+              <div class="listing-loc">Tiburon · Marin</div>
+              <h3>Villa Belvedere</h3>
+              <div class="listing-stats"><span><strong>6</strong> bd</span><span><strong>5.5</strong> ba</span><span><strong>6,800</strong> sqft</span></div>
+              <div class="listing-price"><span class="price">$12,900,000</span><a href="#">View details</a></div>
+            </div>
+          </article>
+          <article class="listing">
+            <div class="listing-img">
+              <img src="https://picsum.photos/seed/northbay-6/900/700" width="900" height="700" alt="A vineyard estate with stone walls and rolling hills in Napa Valley." loading="lazy" />
+            </div>
+            <div class="listing-body">
+              <div class="listing-loc">Napa · Sonoma County</div>
+              <h3>Cabernet Hill Estate</h3>
+              <div class="listing-stats"><span><strong>5</strong> bd</span><span><strong>4</strong> ba</span><span><strong>5,240</strong> sqft</span></div>
+              <div class="listing-price"><span class="price">$9,750,000</span><a href="#">View details</a></div>
+            </div>
+          </article>
+          <article class="listing">
+            <div class="listing-img">
+              <img src="https://picsum.photos/seed/northbay-7/900/700" width="900" height="700" alt="A redwood-shingled cabin tucked among coastal pines above a small harbor." loading="lazy" />
+              <span class="listing-tag">Just reduced</span>
+            </div>
+            <div class="listing-body">
+              <div class="listing-loc">Mendocino · North Coast</div>
+              <h3>Headland Cottage</h3>
+              <div class="listing-stats"><span><strong>3</strong> bd</span><span><strong>2</strong> ba</span><span><strong>1,820</strong> sqft</span></div>
+              <div class="listing-price"><span class="price">$2,150,000</span><a href="#">View details</a></div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="story">
+      <div class="wrap">
+        <div class="story">
+          <div class="story-media">
+            <img src="https://picsum.photos/seed/northbay-8/800/1000" width="800" height="1000" alt="Northbay partners walking the bluff above Belvedere island at dawn." loading="lazy" />
+          </div>
+          <div class="story-body">
+            <span class="eyebrow">Our practice</span>
+            <h2>A small house, by design.</h2>
+            <p>Northbay was founded in Sausalito in 1998 with a simple premise: a brokerage works for the seller, not the listing count. Fourteen agents. Three offices. One waitlist for new mandates.</p>
+            <p>We sell fewer homes than the franchises and we sell them quietly. The print catalog arrives twice a year. The full portfolio is shared by introduction.</p>
+            <div class="stats-row">
+              <div><div class="stat-num">$486M</div><div class="stat-lbl">2025 volume</div></div>
+              <div><div class="stat-num">46</div><div class="stat-lbl">Closings 2025</div></div>
+              <div><div class="stat-num">99.4%</div><div class="stat-lbl">List-to-sale</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="agents">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">Agents</span>
+            <h2>The people you'll actually meet.</h2>
+          </div>
+          <p>Every Northbay listing is led by a partner. Coordinators support the work, but the agent walks the home and writes the marketing themselves.</p>
+        </div>
+        <div class="agents">
+          <div class="agent">
+            <img src="https://picsum.photos/seed/northbay-9/500/660" width="500" height="660" alt="Portrait of Eleanor Whitcomb, founding partner." loading="lazy" />
+            <h3>Eleanor Whitcomb</h3><p>Founding partner · Belvedere</p>
+          </div>
+          <div class="agent">
+            <img src="https://picsum.photos/seed/northbay-10/500/660" width="500" height="660" alt="Portrait of David Marchetti, partner." loading="lazy" />
+            <h3>David Marchetti</h3><p>Partner · Sausalito</p>
+          </div>
+          <div class="agent">
+            <img src="https://picsum.photos/seed/northbay-11/500/660" width="500" height="660" alt="Portrait of Maya Tanaka, senior agent." loading="lazy" />
+            <h3>Maya Tanaka</h3><p>Senior agent · Mill Valley</p>
+          </div>
+          <div class="agent">
+            <img src="https://picsum.photos/seed/northbay-12/500/660" width="500" height="660" alt="Portrait of Thomas Reilly, partner." loading="lazy" />
+            <h3>Thomas Reilly</h3><p>Partner · Mendocino</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="press">
+      <div class="wrap">
+        <div class="section-head">
+          <div><span class="eyebrow">Client letters</span><h2>What our owners say after closing.</h2></div>
+          <p>The shortest measure of a brokerage is whether the previous owner introduces the next one. Most of our work arrives that way.</p>
+        </div>
+        <div class="quotes">
+          <div class="quote">
+            <blockquote>"They sold our home in eleven days at full ask without putting it on the public MLS. The buyer was on Eleanor's list before the sign went up."</blockquote>
+            <cite>— Mr. & Mrs. Halsey, Belvedere</cite>
+          </div>
+          <div class="quote">
+            <blockquote>"I have bought four homes through Northbay. I have never once needed a second opinion on the inspection report. That is what you are paying for."</blockquote>
+            <cite>— J. Lindgren, Tiburon</cite>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="cta" id="contact">
+    <div class="wrap cta-grid">
+      <div><h2>Considering a quiet sale?</h2></div>
+      <div>
+        <p>We accept a small number of new mandates each quarter and we prefer to begin with a walk through the property and a candid conversation about price.</p>
+        <a class="button" href="#">Request an introduction →</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <div class="brand" style="font-size:24px;">Northbay Realty</div>
+          <p style="margin-top:12px; max-width: 280px;">A boutique brokerage representing fine residences on the Northern California shore. DRE #00978413.</p>
+        </div>
+        <div class="foot-col">
+          <h4>Offices</h4>
+          <p>14 Caledonia, Sausalito</p>
+          <p>112 Beach Road, Belvedere</p>
+          <p>45 Main, Mendocino</p>
+        </div>
+        <div class="foot-col">
+          <h4>Practice</h4>
+          <a href="#">Residences</a>
+          <a href="#">Off-market</a>
+          <a href="#">The Journal</a>
+          <a href="#">Agents</a>
+        </div>
+        <div class="foot-col">
+          <h4>Contact</h4>
+          <p>+1 415 555 0148</p>
+          <p>desk@northbayrealty.com</p>
+          <a href="#">Newsletter</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Northbay Realty. Each office independently owned.</span>
+        <span>An equal housing opportunity brokerage.</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

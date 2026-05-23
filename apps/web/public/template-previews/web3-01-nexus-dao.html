@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nexus DAO — Onchain governance for serious protocols</title>
+  <meta name="description" content="Nexus DAO is a modular governance stack for treasury, voting, and execution. Snapshot tally, onchain queue, multisig timelock, every action audited." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #07080a;
+      --surface: #0f1115;
+      --surface-2: #161a21;
+      --border: rgba(180, 210, 230, 0.10);
+      --border-strong: rgba(180, 210, 230, 0.22);
+      --fg: #e8eef4;
+      --fg-2: #9aa4b2;
+      --fg-3: #5f6877;
+      --accent: #6dd5ff;
+      --accent-dim: rgba(109, 213, 255, 0.18);
+      --green: #5cf0a1;
+      --red: #ff6680;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: blur(16px);
+      background: rgba(7, 8, 10, 0.8);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 66px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: -0.015em; font-size: 17px; }
+    .brand-mark {
+      width: 26px; height: 26px; border-radius: 6px;
+      background: linear-gradient(135deg, var(--accent), #2b8fc7);
+      display: grid; place-items: center; color: #07080a; font-weight: 800;
+      font-family: 'JetBrains Mono', monospace; font-size: 13px;
+    }
+    .nav-links { display: flex; gap: 28px; color: var(--fg-2); font-size: 14px; }
+    .nav-links a:hover { color: var(--fg); }
+    .nav-cta { display: flex; gap: 10px; align-items: center; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      height: 38px; padding: 0 16px;
+      border-radius: 8px; font-weight: 600; font-size: 14px;
+      border: 1px solid transparent; cursor: pointer;
+      transition: transform 160ms cubic-bezier(.22,1,.36,1), background 160ms, border-color 160ms;
+      font-family: inherit;
+    }
+    .btn-primary { background: var(--accent); color: #061421; }
+    .btn-primary:hover { transform: translateY(-1px); }
+    .btn-ghost { background: transparent; color: var(--fg); border-color: var(--border-strong); }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    .wallet-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      height: 38px; padding: 0 14px; border-radius: 999px;
+      border: 1px solid var(--border-strong);
+      font-family: 'JetBrains Mono', monospace; font-size: 12px;
+      color: var(--fg-2); cursor: pointer; background: transparent;
+    }
+    .wallet-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
+    @media (max-width: 900px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { position: relative; padding: 96px 0 72px; overflow: hidden; }
+    .hero::before {
+      content: ''; position: absolute; inset: -20% -10% auto auto; width: 720px; height: 720px;
+      background: radial-gradient(circle, rgba(109, 213, 255, 0.18), transparent 60%);
+      pointer-events: none;
+    }
+    .hero-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 56px; align-items: center; position: relative; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 12px; border: 1px solid var(--border-strong);
+      border-radius: 999px; font-size: 12px; color: var(--fg-2);
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+    h1 {
+      font-size: clamp(40px, 6.4vw, 80px);
+      line-height: 0.98; letter-spacing: -0.03em;
+      font-weight: 800; margin: 22px 0 22px;
+    }
+    h1 em { font-style: normal; color: var(--accent); }
+    .lede { font-size: 19px; color: var(--fg-2); max-width: 540px; line-height: 1.55; }
+    .hero-cta { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; }
+    .hero-cta .btn { height: 48px; padding: 0 22px; }
+
+    /* Proposal card */
+    .proposal-card {
+      background: linear-gradient(180deg, var(--surface) 0%, #0b0d11 100%);
+      border: 1px solid var(--border-strong);
+      border-radius: 14px; padding: 22px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+    }
+    .pc-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .pc-id { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--fg-3); }
+    .pc-status {
+      font-family: 'JetBrains Mono', monospace; font-size: 11px;
+      padding: 4px 8px; border-radius: 4px;
+      background: rgba(92, 240, 161, 0.12); color: var(--green);
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .pc-title { font-size: 17px; font-weight: 700; margin: 8px 0 6px; }
+    .pc-meta { font-size: 13px; color: var(--fg-2); margin-bottom: 16px; }
+    .vote-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--surface-2); margin-bottom: 8px; }
+    .vote-for { background: var(--green); }
+    .vote-against { background: var(--red); }
+    .vote-abstain { background: var(--fg-3); }
+    .vote-legend { display: flex; gap: 14px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--fg-2); margin-bottom: 18px; }
+    .vote-legend span b { color: var(--fg); font-weight: 600; }
+    .pc-foot { display: flex; gap: 8px; padding-top: 14px; border-top: 1px solid var(--border); }
+    .pc-vote {
+      flex: 1; height: 38px; border-radius: 8px;
+      border: 1px solid var(--border-strong); background: transparent;
+      color: var(--fg); font-family: 'JetBrains Mono', monospace; font-size: 13px;
+      cursor: pointer; transition: border-color 160ms;
+    }
+    .pc-vote:hover { border-color: var(--accent); color: var(--accent); }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 48px; } }
+
+    /* Stats band */
+    .stats {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 40px 0;
+    }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    .stat .val { font-family: 'JetBrains Mono', monospace; font-size: clamp(28px, 3.4vw, 40px); font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+    .stat .val em { font-style: normal; color: var(--accent); }
+    .stat .label { color: var(--fg-2); font-size: 13px; margin-top: 8px; }
+    @media (max-width: 720px) { .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 28px; } }
+
+    /* Section */
+    .section { padding: 96px 0; }
+    .section-head { max-width: 720px; margin-bottom: 56px; }
+    .section h2 { font-size: clamp(32px, 4.4vw, 52px); letter-spacing: -0.025em; line-height: 1.05; font-weight: 800; margin: 14px 0 16px; }
+    .section h2 em { font-style: normal; color: var(--accent); }
+    .section .lede { font-size: 17px; }
+
+    /* How it works */
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; position: relative; }
+    .step {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 28px; position: relative;
+    }
+    .step-num {
+      font-family: 'JetBrains Mono', monospace; font-size: 12px;
+      color: var(--accent); margin-bottom: 12px;
+      display: inline-flex; padding: 4px 8px;
+      background: var(--accent-dim); border-radius: 4px;
+    }
+    .step h3 { font-size: 19px; font-weight: 700; margin: 8px 0 10px; letter-spacing: -0.01em; }
+    .step p { color: var(--fg-2); margin: 0; font-size: 14px; line-height: 1.6; }
+    @media (max-width: 1080px) { .steps { grid-template-columns: 1fr; } }
+
+    /* Features */
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .feature {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 28px;
+      transition: border-color 240ms;
+    }
+    .feature:hover { border-color: var(--border-strong); }
+    .feature-icon {
+      width: 38px; height: 38px; border-radius: 8px;
+      background: var(--accent-dim);
+      display: grid; place-items: center; margin-bottom: 18px;
+      color: var(--accent); font-family: 'JetBrains Mono', monospace; font-weight: 700;
+    }
+    .feature h3 { font-size: 17px; font-weight: 700; margin: 0 0 8px; letter-spacing: -0.01em; }
+    .feature p { color: var(--fg-2); margin: 0; font-size: 14px; line-height: 1.6; }
+    @media (max-width: 1080px) { .features { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .features { grid-template-columns: 1fr; } }
+
+    /* Security */
+    .security { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 96px 0; }
+    .sec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+    .auditors { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .auditor {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 18px;
+    }
+    .auditor-name { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+    .auditor-meta { font-size: 12px; color: var(--fg-2); font-family: 'JetBrains Mono', monospace; }
+    .auditor a { color: var(--accent); font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+    @media (max-width: 1080px) { .sec-grid { grid-template-columns: 1fr; gap: 40px; } }
+
+    /* Token */
+    .token-card {
+      background: linear-gradient(135deg, var(--surface), var(--surface-2));
+      border: 1px solid var(--border-strong);
+      border-radius: 16px; padding: 40px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
+    }
+    .token-info h3 { font-size: 24px; font-weight: 700; margin: 0 0 12px; letter-spacing: -0.01em; }
+    .token-info p { color: var(--fg-2); font-size: 15px; }
+    .token-meta { display: grid; gap: 14px; }
+    .token-meta-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+    .token-meta-row span:first-child { color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.08em; font-size: 11px; }
+    @media (max-width: 1080px) { .token-card { grid-template-columns: 1fr; padding: 28px; } }
+
+    /* Ecosystem */
+    .ecosystem { padding: 64px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .eco-label { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.1em; text-align: center; margin-bottom: 24px; }
+    .eco-row {
+      display: grid; grid-template-columns: repeat(6, 1fr); gap: 28px;
+      align-items: center; justify-items: center;
+      color: var(--fg-2); font-weight: 700; font-size: 16px;
+    }
+    @media (max-width: 720px) { .eco-row { grid-template-columns: repeat(3, 1fr); gap: 20px; } }
+
+    /* Dev */
+    .dev-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; overflow: hidden; margin-top: 32px;
+    }
+    .dev-tabs { display: flex; gap: 4px; padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--surface-2); }
+    .dev-dot { width: 11px; height: 11px; border-radius: 50%; background: #2a2f37; }
+    .dev-dot + .dev-dot { margin-left: -4px; }
+    .dev-file { margin-left: 16px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--fg-2); padding: 4px 10px; border-radius: 6px; background: rgba(255,255,255,0.03); }
+    pre.code {
+      margin: 0; padding: 28px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13.5px; line-height: 1.7;
+      color: var(--fg); overflow-x: auto;
+    }
+    .tk-key { color: #c78fff; }
+    .tk-str { color: var(--green); }
+    .tk-com { color: var(--fg-3); font-style: italic; }
+    .tk-fn { color: var(--accent); }
+    .tk-num { color: #ffc400; }
+
+    /* Footer */
+    footer { border-top: 1px solid var(--border); padding: 56px 0 32px; background: #050608; }
+    .foot-grid { display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 40px; }
+    .foot-col h4 { font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-3); margin: 0 0 16px; }
+    .foot-col a { display: block; color: var(--fg-2); font-size: 14px; padding: 6px 0; }
+    .foot-col a:hover { color: var(--accent); }
+    .foot-bot { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; color: var(--fg-3); font-size: 13px; font-family: 'JetBrains Mono', monospace; }
+    .socials { display: flex; gap: 10px; }
+    .socials a { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border); display: grid; place-items: center; color: var(--fg-2); }
+    .socials a:hover { color: var(--accent); border-color: var(--accent); }
+    @media (max-width: 720px) {
+      .foot-grid { grid-template-columns: 1fr 1fr; }
+      .foot-bot { flex-direction: column; gap: 12px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">
+        <span class="brand-mark">N</span>
+        Nexus DAO
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#how">How it works</a>
+        <a href="#features">Modules</a>
+        <a href="#security">Security</a>
+        <a href="#token">Token</a>
+        <a href="#dev">Developers</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-ghost" href="#">Docs</a>
+        <button class="wallet-pill" id="connectBtn"><span class="dot"></span><span id="walletText">Connect wallet</span></button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>v6 · multi-chain timelock</span>
+            <h1>Governance that <em>actually</em> ships.</h1>
+            <p class="lede">Nexus DAO is a modular governance stack for treasury, voting, and execution. Snapshot tally, onchain queue, multisig timelock — every action is signed, audited, and reproducible from chain state.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#">Launch app →</a>
+              <a class="btn btn-ghost" href="#how">See how it works</a>
+            </div>
+          </div>
+          <div class="proposal-card" role="region" aria-label="Active proposal preview">
+            <div class="pc-head">
+              <span class="pc-id">NEX-0142 · Snapshot 21,486,902</span>
+              <span class="pc-status">Active</span>
+            </div>
+            <div class="pc-title">Allocate 1.2M USDC from treasury to L2 incentives</div>
+            <div class="pc-meta">Quorum 4% · Ends in 2d 14h · 312 voters</div>
+            <div class="vote-bar" aria-hidden="true">
+              <div class="vote-for" style="width: 62%"></div>
+              <div class="vote-against" style="width: 18%"></div>
+              <div class="vote-abstain" style="width: 20%"></div>
+            </div>
+            <div class="vote-legend">
+              <span><b>62%</b> For</span>
+              <span><b>18%</b> Against</span>
+              <span><b>20%</b> Abstain</span>
+            </div>
+            <div class="pc-foot">
+              <button class="pc-vote">Vote for</button>
+              <button class="pc-vote">Against</button>
+              <button class="pc-vote">Abstain</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats">
+      <div class="wrap">
+        <div class="stats-grid">
+          <div class="stat"><div class="val"><em>$847M</em></div><div class="label">total treasury TVL</div></div>
+          <div class="stat"><div class="val">2,148</div><div class="label">DAOs deployed</div></div>
+          <div class="stat"><div class="val">71,302</div><div class="label">proposals executed</div></div>
+          <div class="stat"><div class="val">14</div><div class="label">supported chains</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="how">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>How it works</span>
+          <h2>Propose, vote, <em>execute</em>.</h2>
+          <p class="lede">Three signed steps from a forum thread to an onchain transaction. The timelock is mandatory and the verdict is on a block explorer before the queue moves.</p>
+        </div>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">01 / propose</div>
+            <h3>Draft and pin a proposal</h3>
+            <p>Submit a proposal with calldata, target contracts, and value. Bond a small NXS deposit. Discussion happens onchain, signed by the proposer's wallet.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">02 / vote</div>
+            <h3>Gasless tally with onchain settle</h3>
+            <p>Voters sign EIP-712 messages on Snapshot. When quorum and majority are reached, the tally is settled onchain in a single transaction, ready for the queue.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">03 / execute</div>
+            <h3>Timelocked multisig execution</h3>
+            <p>Approved proposals enter a 48-hour timelock. A 5-of-9 multisig signs the execution. Every step is on-chain, in your block explorer, before the funds move.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="features" style="padding-top: 0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Modules</span>
+          <h2>The governance stack, <em>composable</em>.</h2>
+          <p class="lede">Mix and match: treasury, voting, delegation, and execution modules. Swap implementations without redeploying the DAO.</p>
+        </div>
+        <div class="features">
+          <div class="feature">
+            <div class="feature-icon">T</div>
+            <h3>Treasury module</h3>
+            <p>Multi-asset vault with daily spend limits, allowlisted recipients, and onchain accounting. Integrates with Safe and Zodiac roles.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">V</div>
+            <h3>Voting module</h3>
+            <p>ERC-20 weighted, NFT-gated, or quadratic. Snapshot integration for gasless polls, onchain Bravo for binding votes.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">D</div>
+            <h3>Delegation</h3>
+            <p>EIP-5805 vote delegation with checkpoints. Track delegate performance, revoke instantly, attest your delegate's voting record.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">L</div>
+            <h3>Timelock</h3>
+            <p>OpenZeppelin TimelockController under the hood. Configurable delay per action class, emergency veto multisig, full event log.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">M</div>
+            <h3>Multi-chain</h3>
+            <p>Run treasuries on Ethereum, Optimism, Arbitrum, Base, and Polygon. Cross-chain calls via CCIP and LayerZero, settlement on mainnet.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">A</div>
+            <h3>Attestations</h3>
+            <p>EAS-backed proposal attestations. Voters, delegates, and execution multisigs leave a signed, queryable record on every action.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="security" id="security">
+      <div class="wrap">
+        <div class="sec-grid">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>Security</span>
+            <h2>Audited by the firms <em>you trust</em>.</h2>
+            <p class="lede">Every module ships with a public audit, a deployed verifier contract, and an immutable invariant suite. Bug bounty live on Immunefi at $500k.</p>
+            <div style="margin-top: 28px; display: flex; gap: 10px; flex-wrap: wrap;">
+              <a class="btn btn-ghost" href="#">Read audits</a>
+              <a class="btn btn-ghost" href="#">Bug bounty</a>
+            </div>
+          </div>
+          <div class="auditors">
+            <div class="auditor">
+              <div class="auditor-name">OpenZeppelin</div>
+              <div class="auditor-meta">v6 governance core · Feb 2026</div>
+              <a href="#">View report →</a>
+            </div>
+            <div class="auditor">
+              <div class="auditor-name">Trail of Bits</div>
+              <div class="auditor-meta">timelock + multisig · Jan 2026</div>
+              <a href="#">View report →</a>
+            </div>
+            <div class="auditor">
+              <div class="auditor-name">Halborn</div>
+              <div class="auditor-meta">cross-chain bridge · Nov 2025</div>
+              <a href="#">View report →</a>
+            </div>
+            <div class="auditor">
+              <div class="auditor-name">Spearbit</div>
+              <div class="auditor-meta">treasury module · Oct 2025</div>
+              <a href="#">View report →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="token">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Token</span>
+          <h2>NXS — the <em>governance</em> primitive.</h2>
+          <p class="lede">NXS holders propose, vote, and earn from protocol fees. No team allocation cliff stunts; vesting is published onchain and you can verify it block by block.</p>
+        </div>
+        <div class="token-card">
+          <div class="token-info">
+            <h3>Nexus Token (NXS)</h3>
+            <p>ERC-20 with vote delegation. Total supply 100M, 38% to community treasury, 22% to contributors, 24% to ecosystem, 16% locked for liquidity. All cliffs are onchain.</p>
+            <div style="margin-top: 24px; display: flex; gap: 10px;">
+              <a class="btn btn-primary" href="#">View on Etherscan</a>
+              <a class="btn btn-ghost" href="#">Tokenomics doc</a>
+            </div>
+          </div>
+          <div class="token-meta">
+            <div class="token-meta-row"><span>Contract</span><span>0x4f3b…a92e</span></div>
+            <div class="token-meta-row"><span>Total supply</span><span>100,000,000</span></div>
+            <div class="token-meta-row"><span>Circulating</span><span>42,180,490</span></div>
+            <div class="token-meta-row"><span>Quorum</span><span>4.00%</span></div>
+            <div class="token-meta-row"><span>Timelock delay</span><span>48 hours</span></div>
+            <div class="token-meta-row"><span>Holders</span><span>14,302</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ecosystem">
+      <div class="wrap">
+        <p class="eco-label">Deployed on</p>
+        <div class="eco-row">
+          <span>Ethereum</span>
+          <span>Optimism</span>
+          <span>Arbitrum</span>
+          <span>Base</span>
+          <span>Polygon</span>
+          <span>zkSync</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="dev">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Developers</span>
+          <h2>SDK first. <em>Forge-ready</em>.</h2>
+          <p class="lede">TypeScript SDK, Foundry templates, and Hardhat plugins. Deploy a governance stack with sane defaults, then peel back to raw calldata when you need it.</p>
+        </div>
+        <div class="dev-card">
+          <div class="dev-tabs">
+            <span class="dev-dot"></span><span class="dev-dot"></span><span class="dev-dot"></span>
+            <span class="dev-file">scripts/deploy.ts</span>
+          </div>
+<pre class="code"><span class="tk-com">// deploy a full governance stack with token + timelock + voting</span>
+<span class="tk-key">import</span> { <span class="tk-fn">NexusFactory</span> } <span class="tk-key">from</span> <span class="tk-str">"@nexus-dao/sdk"</span>;
+
+<span class="tk-key">const</span> stack = <span class="tk-key">await</span> NexusFactory.<span class="tk-fn">deploy</span>({
+  chain: <span class="tk-str">"optimism"</span>,
+  token: { name: <span class="tk-str">"Field"</span>, symbol: <span class="tk-str">"FIELD"</span>, supply: <span class="tk-num">100_000_000n</span> },
+  quorum: <span class="tk-num">4</span>,                <span class="tk-com">// percent of total supply</span>
+  timelock: <span class="tk-num">48 * 60 * 60</span>, <span class="tk-com">// seconds</span>
+  modules: [<span class="tk-str">"treasury"</span>, <span class="tk-str">"voting-bravo"</span>, <span class="tk-str">"delegation"</span>],
+});
+
+<span class="tk-fn">console</span>.<span class="tk-fn">log</span>(stack.governor, stack.timelock, stack.token);
+<span class="tk-com">// ✓ deployed at block 121,448,302 · gas 4.2M · cost $34.18</span>
+</pre>
+        </div>
+        <div style="margin-top: 24px; display: flex; gap: 10px; flex-wrap: wrap;">
+          <a class="btn btn-primary" href="#">Read the SDK docs</a>
+          <a class="btn btn-ghost" href="#">View on GitHub</a>
+          <a class="btn btn-ghost" href="#">Foundry template</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a class="brand" href="#" style="margin-bottom:16px;">
+            <span class="brand-mark">N</span>
+            Nexus DAO
+          </a>
+          <p style="color:var(--fg-2); font-size:14px; max-width:300px;">Onchain governance for serious protocols. Snapshot tally, onchain queue, multisig timelock — every action signed and auditable.</p>
+        </div>
+        <div class="foot-col">
+          <h4>Protocol</h4>
+          <a href="#">Modules</a>
+          <a href="#">Security</a>
+          <a href="#">Tokenomics</a>
+          <a href="#">Roadmap</a>
+        </div>
+        <div class="foot-col">
+          <h4>Developers</h4>
+          <a href="#">Docs</a>
+          <a href="#">SDK</a>
+          <a href="#">GitHub</a>
+          <a href="#">Bug bounty</a>
+        </div>
+        <div class="foot-col">
+          <h4>Community</h4>
+          <a href="#">Forum</a>
+          <a href="#">Discord</a>
+          <a href="#">Twitter / X</a>
+          <a href="#">Mirror</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Nexus Labs · MIT licensed</span>
+        <div class="socials" aria-label="Social">
+          <a href="#" aria-label="GitHub">GH</a>
+          <a href="#" aria-label="Discord">DS</a>
+          <a href="#" aria-label="Twitter">TW</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function() {
+      var btn = document.getElementById('connectBtn');
+      var label = document.getElementById('walletText');
+      if (!btn || !label) return;
+      btn.addEventListener('click', function() {
+        if (label.textContent === 'Connect wallet') {
+          label.textContent = '0x4f3b…a92e';
+        } else {
+          label.textContent = 'Connect wallet';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

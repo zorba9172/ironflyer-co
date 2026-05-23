@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LawPath — Bar exam prep and 1L study materials</title>
+  <meta name="description" content="LawPath is the bar prep and 1L outlines program built by practicing attorneys. UBE, MEE, MPRE, and 1L core. Pass on the first attempt." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0b1736;
+      --surface: #142048;
+      --surface-2: #1a2a5a;
+      --border: rgba(239, 225, 200, 0.14);
+      --border-strong: rgba(239, 225, 200, 0.30);
+      --fg: #efe1c8;
+      --fg-2: #b5a98e;
+      --fg-3: #7a7160;
+      --accent: #efe1c8;
+      --accent-warm: #d9b271;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--fg); font-family: 'Inter', system-ui, sans-serif; font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+    .serif { font-family: 'Cormorant', Georgia, serif; }
+
+    .nav { position: sticky; top: 0; z-index: 50; background: rgba(11, 23, 54, 0.92); backdrop-filter: blur(14px); border-bottom: 1px solid var(--border); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+    .brand { font-family: 'Cormorant', serif; font-size: 28px; font-weight: 600; letter-spacing: -0.005em; }
+    .brand-sub { display: block; font-family: 'Inter'; font-size: 10px; font-weight: 600; letter-spacing: 0.28em; color: var(--accent-warm); text-transform: uppercase; margin-top: -6px; }
+    .nav-links { display: flex; gap: 30px; color: var(--fg-2); font-size: 14px; }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta { display: flex; gap: 10px; align-items: center; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 22px; border-radius: 2px; font-weight: 600; font-size: 13px; letter-spacing: 0.06em; border: 1px solid transparent; cursor: pointer; transition: background 200ms; }
+    .btn-primary { background: var(--accent); color: var(--bg); }
+    .btn-primary:hover { background: var(--accent-warm); }
+    .btn-ghost { background: transparent; color: var(--accent); border-color: var(--accent); }
+    .btn-ghost:hover { background: var(--accent); color: var(--bg); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    .hero { padding: 96px 0 80px; border-bottom: 1px solid var(--border); }
+    .hero-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 80px; align-items: center; }
+    .eyebrow { display: inline-block; font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--accent-warm); padding-bottom: 10px; border-bottom: 1px solid var(--accent-warm); margin-bottom: 28px; font-weight: 600; }
+    h1 { font-family: 'Cormorant', serif; font-size: clamp(48px, 7vw, 88px); line-height: 1; letter-spacing: -0.015em; font-weight: 500; margin: 0 0 28px; }
+    h1 em { font-style: italic; color: var(--accent-warm); }
+    .lede { font-size: 19px; color: var(--fg-2); max-width: 500px; }
+    .hero-cta { display: flex; gap: 14px; margin-top: 36px; flex-wrap: wrap; }
+    .hero-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-top: 48px; padding-top: 36px; border-top: 1px solid var(--border); }
+    .hero-stats .v { font-family: 'Cormorant', serif; font-size: 38px; font-weight: 600; line-height: 1; color: var(--accent-warm); }
+    .hero-stats .l { color: var(--fg-2); font-size: 12px; margin-top: 8px; letter-spacing: 0.06em; text-transform: uppercase; }
+    .hero-art { position: relative; }
+    .hero-art img { width: 100%; aspect-ratio: 4/5; object-fit: cover; }
+    .hero-art .seal { position: absolute; bottom: 24px; right: 24px; width: 120px; height: 120px; border: 1px solid var(--accent); border-radius: 50%; display: grid; place-items: center; background: rgba(11, 23, 54, 0.86); }
+    .hero-art .seal-text { font-family: 'Cormorant', serif; text-align: center; font-style: italic; color: var(--accent); font-size: 13px; line-height: 1.2; padding: 0 12px; }
+    .hero-art .seal-text strong { display: block; font-size: 22px; font-style: normal; font-weight: 600; }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 48px; } }
+    @media (max-width: 720px) { .hero { padding: 64px 0 56px; } .hero-cta .btn { width: 100%; justify-content: center; } .hero-stats { grid-template-columns: 1fr; gap: 20px; } }
+
+    .section { padding: 96px 0; }
+    .section-head { max-width: 720px; margin-bottom: 56px; }
+    .section h2 { font-family: 'Cormorant', serif; font-size: clamp(40px, 5.4vw, 64px); letter-spacing: -0.015em; line-height: 1.05; font-weight: 500; margin: 12px 0 16px; }
+    .section h2 em { font-style: italic; color: var(--accent-warm); }
+
+    .tracks { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+    .track { background: var(--surface); border: 1px solid var(--border); padding: 40px; display: flex; flex-direction: column; gap: 16px; transition: border-color 220ms; }
+    .track:hover { border-color: var(--accent); }
+    .track .label { font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--accent-warm); font-weight: 600; }
+    .track h3 { font-family: 'Cormorant', serif; font-size: 36px; margin: 0; font-weight: 500; line-height: 1; }
+    .track p { color: var(--fg-2); margin: 0; font-size: 15px; }
+    .track ul { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
+    .track li { color: var(--fg-2); font-size: 14px; }
+    .track li::before { content: '§ '; color: var(--accent-warm); }
+    .track .row { display: flex; justify-content: space-between; align-items: baseline; padding-top: 20px; border-top: 1px solid var(--border); }
+    .track .price { font-family: 'Cormorant', serif; font-size: 32px; font-weight: 500; }
+    .track .duration { font-size: 12px; color: var(--fg-3); letter-spacing: 0.08em; text-transform: uppercase; }
+    @media (max-width: 1080px) { .tracks { grid-template-columns: 1fr; } }
+    @media (max-width: 720px) { .track ul { grid-template-columns: 1fr; } }
+
+    .how { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-top: 1px solid var(--border); }
+    .step { padding: 36px 28px; border-right: 1px solid var(--border); }
+    .step:last-child { border-right: 0; }
+    .step .num { font-family: 'Cormorant', serif; font-style: italic; color: var(--accent-warm); font-size: 44px; line-height: 1; font-weight: 500; }
+    .step h3 { font-family: 'Cormorant', serif; font-size: 24px; margin: 14px 0 8px; font-weight: 500; }
+    .step p { color: var(--fg-2); margin: 0; font-size: 14px; }
+    @media (max-width: 1080px) { .how { grid-template-columns: repeat(2, 1fr); } .step:nth-child(2) { border-right: 0; } }
+    @media (max-width: 720px) { .how { grid-template-columns: 1fr; } .step { border-right: 0; border-bottom: 1px solid var(--border); } }
+
+    .instructors { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+    .person { display: flex; flex-direction: column; gap: 14px; }
+    .person img { width: 100%; aspect-ratio: 4/5; object-fit: cover; filter: grayscale(50%); transition: filter 240ms; }
+    .person:hover img { filter: grayscale(0%); }
+    .person h4 { font-family: 'Cormorant', serif; margin: 0; font-size: 26px; font-weight: 500; }
+    .person .role { color: var(--accent-warm); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 600; }
+    .person p { color: var(--fg-2); font-size: 14px; margin: 0; }
+    @media (max-width: 1080px) { .instructors { grid-template-columns: 1fr; } }
+
+    .outcomes { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; }
+    .quote { border-left: 1px solid var(--accent-warm); padding: 8px 0 8px 32px; }
+    .quote p { font-family: 'Cormorant', serif; font-size: 26px; font-style: italic; line-height: 1.35; margin: 0 0 20px; font-weight: 500; }
+    .quote .who { font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--fg-3); font-weight: 600; }
+    .quote .who strong { color: var(--accent-warm); }
+    @media (max-width: 720px) { .outcomes { grid-template-columns: 1fr; } }
+
+    .pricing { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .plan { background: var(--surface); border: 1px solid var(--border); padding: 40px 32px; display: flex; flex-direction: column; }
+    .plan.featured { border-color: var(--accent-warm); border-width: 2px; }
+    .plan h3 { font-family: 'Cormorant', serif; font-size: 28px; font-weight: 500; margin: 0 0 8px; }
+    .plan .price { font-family: 'Cormorant', serif; font-size: 56px; font-weight: 500; margin: 8px 0 4px; line-height: 1; color: var(--accent-warm); }
+    .plan .price small { font-family: 'Inter'; font-size: 13px; color: var(--fg-3); letter-spacing: 0.06em; }
+    .plan .desc { color: var(--fg-2); font-size: 14px; min-height: 44px; }
+    .plan ul { list-style: none; padding: 0; margin: 24px 0; flex: 1; }
+    .plan li { padding: 10px 0; color: var(--fg-2); font-size: 14px; display: flex; gap: 10px; border-bottom: 1px dashed var(--border); }
+    .plan li:last-child { border: 0; }
+    .plan li::before { content: '✦'; color: var(--accent-warm); flex-shrink: 0; }
+    @media (max-width: 1080px) { .pricing { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; } }
+
+    .faq { max-width: 820px; margin: 0 auto; }
+    .faq details { border-bottom: 1px solid var(--border); padding: 28px 0; }
+    .faq summary { cursor: pointer; font-family: 'Cormorant', serif; font-weight: 500; font-size: 26px; list-style: none; display: flex; justify-content: space-between; align-items: baseline; }
+    .faq summary::after { content: '+'; color: var(--accent-warm); font-size: 28px; font-weight: 300; }
+    .faq details[open] summary::after { content: '−'; }
+    .faq p { color: var(--fg-2); margin: 14px 0 0; font-size: 16px; }
+
+    footer.site { border-top: 1px solid var(--border); padding: 56px 0 32px; }
+    .foot-grid { display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 48px; }
+    .foot-col h4 { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent-warm); margin: 0 0 18px; font-weight: 600; }
+    .foot-col a { display: block; color: var(--fg-2); font-size: 14px; padding: 6px 0; }
+    .foot-col a:hover { color: var(--accent); }
+    .foot-bot { margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; color: var(--fg-3); font-size: 12px; letter-spacing: 0.06em; }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 12px; text-align: center; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">LawPath<span class="brand-sub">est. 2016 — attorney built</span></a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#tracks">Tracks</a>
+        <a href="#how">How it works</a>
+        <a href="#instructors">Instructors</a>
+        <a href="#pricing">Tuition</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-ghost" href="#">Sign in</a>
+        <a class="btn btn-primary" href="#pricing">Enroll</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow">UBE · July 2026 · cohort 18</span>
+            <h1>Pass on the <em>first</em> attempt.</h1>
+            <p class="lede">LawPath is bar exam preparation and 1L study materials, built by practicing attorneys. We do not sell hours of lecture; we sell the discipline of issue spotting, the rhythm of essay writing, and a study plan you can hold to.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#tracks">View tracks</a>
+              <a class="btn btn-ghost" href="#how">How it works</a>
+            </div>
+            <div class="hero-stats">
+              <div><div class="v">93%</div><div class="l">First-attempt pass rate</div></div>
+              <div><div class="v">14,800</div><div class="l">Alumni in 50 states</div></div>
+              <div><div class="v">2016</div><div class="l">Founded by litigators</div></div>
+            </div>
+          </div>
+          <div class="hero-art">
+            <img src="https://picsum.photos/seed/lawpath-hero/900/1100" width="900" height="1100" alt="A law school library: oak shelves, brass lamps, and a row of casebooks under a green-shaded desk light." loading="eager" />
+            <div class="seal"><div class="seal-text">Pass<br/><strong>93%</strong><br/>2025 UBE</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="tracks">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Programs</span>
+          <h2>Four <em>tracks</em>.</h2>
+          <p style="font-size: 17px; color: var(--fg-2);">Each track has its own materials, its own schedule, and its own pass-rate guarantee.</p>
+        </div>
+        <div class="tracks">
+          <article class="track">
+            <span class="label">Bar exam</span>
+            <h3>UBE Full Course</h3>
+            <p>The complete UBE program for July or February takers. Twelve weeks of lectures, essays, MBE practice, and weekly graded assignments.</p>
+            <ul>
+              <li>MEE essays</li>
+              <li>MPT performance</li>
+              <li>MBE multiple choice</li>
+              <li>Two full mock exams</li>
+            </ul>
+            <div class="row"><span class="price">$1,995</span><span class="duration">12 weeks</span></div>
+          </article>
+          <article class="track">
+            <span class="label">First year</span>
+            <h3>1L Core</h3>
+            <p>Outlines, lectures, and practice essays for the seven 1L subjects. Built for students taking exams in the next 90 days.</p>
+            <ul>
+              <li>Civil Procedure</li>
+              <li>Contracts</li>
+              <li>Torts</li>
+              <li>Criminal Law</li>
+              <li>Property</li>
+              <li>Con Law</li>
+            </ul>
+            <div class="row"><span class="price">$595</span><span class="duration">Self-paced</span></div>
+          </article>
+          <article class="track">
+            <span class="label">Ethics</span>
+            <h3>MPRE Sprint</h3>
+            <p>A two-week sprint for the MPRE. Daily lectures, 600+ practice questions, and a passing-score guarantee or your money back.</p>
+            <ul>
+              <li>Live daily reviews</li>
+              <li>Question bank with rationales</li>
+              <li>Score-guarantee policy</li>
+              <li>Mobile-first study app</li>
+            </ul>
+            <div class="row"><span class="price">$249</span><span class="duration">2 weeks</span></div>
+          </article>
+          <article class="track">
+            <span class="label">Repeat</span>
+            <h3>UBE Retake</h3>
+            <p>For attorneys retaking the UBE. We start with your last score sheet, build a remediation plan, and add weekly essay grading by attorney faculty.</p>
+            <ul>
+              <li>Personalized plan</li>
+              <li>Weekly graded essays</li>
+              <li>1-on-1 attorney mentor</li>
+              <li>Full course library access</li>
+            </ul>
+            <div class="row"><span class="price">$2,795</span><span class="duration">14 weeks</span></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="how" style="background: var(--surface);">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Method</span>
+          <h2>Four <em>elements</em>.</h2>
+          <p style="font-size: 17px; color: var(--fg-2);">Every track contains the same four elements in different proportions. They are the things that pass bar exams.</p>
+        </div>
+        <div class="how">
+          <div class="step">
+            <div class="num">i.</div>
+            <h3>Issue spotting</h3>
+            <p>Twenty minutes a day spotting issues in real essays from the last decade. The skill the bar is testing.</p>
+          </div>
+          <div class="step">
+            <div class="num">ii.</div>
+            <h3>Black letter</h3>
+            <p>Concise outlines for each subject, refreshed each year against the released exam questions.</p>
+          </div>
+          <div class="step">
+            <div class="num">iii.</div>
+            <h3>Writing under timer</h3>
+            <p>You write at least one timed essay every day. Faculty grade two of them each week with comments.</p>
+          </div>
+          <div class="step">
+            <div class="num">iv.</div>
+            <h3>MBE practice</h3>
+            <p>Daily question sets with rationale review. Performance tracked subject by subject, week by week.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="instructors">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Instructors</span>
+          <h2>Practicing <em>attorneys</em>.</h2>
+          <p style="font-size: 17px; color: var(--fg-2);">Every LawPath instructor is a practicing or recently practicing attorney with bar admission in at least one UBE jurisdiction.</p>
+        </div>
+        <div class="instructors">
+          <div class="person">
+            <img src="https://picsum.photos/seed/lp-i1/500/620" width="500" height="620" alt="Portrait of Hon. Margaret Reston." loading="lazy" />
+            <h4>Hon. Margaret Reston</h4>
+            <span class="role">Civil Procedure · NY</span>
+            <p>Former federal magistrate, S.D.N.Y. Teaches civ pro the way the bar tests it.</p>
+          </div>
+          <div class="person">
+            <img src="https://picsum.photos/seed/lp-i2/500/620" width="500" height="620" alt="Portrait of David Okafor, Esq." loading="lazy" />
+            <h4>David Okafor, Esq.</h4>
+            <span class="role">Contracts &amp; UCC · IL</span>
+            <p>Partner, commercial litigation. Specializes in UCC fact patterns and the merchant rule.</p>
+          </div>
+          <div class="person">
+            <img src="https://picsum.photos/seed/lp-i3/500/620" width="500" height="620" alt="Portrait of Sara Bishara, Esq." loading="lazy" />
+            <h4>Sara Bishara, Esq.</h4>
+            <span class="role">Torts &amp; Crim · TX</span>
+            <p>Senior public defender. Teaches negligence and crim with real case examples.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="outcomes" style="background: var(--surface);">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Alumni</span>
+          <h2>From the <em>passing</em> side.</h2>
+        </div>
+        <div class="outcomes">
+          <figure class="quote">
+            <p>I had failed twice with the big-name course. LawPath rebuilt my approach to the MEE in three weeks. I passed in July with a 282.</p>
+            <div class="who"><strong>J. Alvarez, Esq.</strong> — UBE 2025 · TX bar</div>
+          </figure>
+          <figure class="quote">
+            <p>The weekly graded essays are the only thing that changed how I wrote. By week eight I was writing essays I would have been proud to file.</p>
+            <div class="who"><strong>M. Carbone, Esq.</strong> — UBE 2024 · NY bar</div>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="pricing">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Tuition</span>
+          <h2>Three <em>plans</em>.</h2>
+        </div>
+        <div class="pricing">
+          <div class="plan">
+            <h3>1L Core</h3>
+            <div class="price">$595</div>
+            <p class="desc">All seven 1L subjects, self-paced.</p>
+            <ul>
+              <li>40+ hours of lecture</li>
+              <li>Updated outlines</li>
+              <li>200+ practice essays</li>
+              <li>180 days of access</li>
+            </ul>
+            <a class="btn btn-ghost" href="#">Enroll</a>
+          </div>
+          <div class="plan featured">
+            <h3>UBE Full</h3>
+            <div class="price">$1,995</div>
+            <p class="desc">The complete bar exam program.</p>
+            <ul>
+              <li>12-week study plan</li>
+              <li>Weekly graded essays</li>
+              <li>Two full mock exams</li>
+              <li>2,400+ MBE questions</li>
+              <li>Live office hours</li>
+              <li>Pass guarantee</li>
+            </ul>
+            <a class="btn btn-primary" href="#">Enroll for the bar</a>
+          </div>
+          <div class="plan">
+            <h3>UBE Retake</h3>
+            <div class="price">$2,795</div>
+            <p class="desc">Personalized retake program.</p>
+            <ul>
+              <li>Score-sheet review</li>
+              <li>1-on-1 attorney mentor</li>
+              <li>14-week plan</li>
+              <li>Weekly graded essays</li>
+              <li>Full library access</li>
+            </ul>
+            <a class="btn btn-ghost" href="#">Apply</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="faq" style="background: var(--surface);">
+      <div class="wrap">
+        <div class="section-head" style="margin: 0 auto 40px; text-align: center;">
+          <span class="eyebrow">FAQ</span>
+          <h2>Common <em>questions</em>.</h2>
+        </div>
+        <div class="faq">
+          <details>
+            <summary>What is the pass guarantee?</summary>
+            <p>If you complete the UBE Full program — every lecture, every graded essay, both mock exams — and do not pass on your first attempt, we refund the tuition or extend you a free retake program.</p>
+          </details>
+          <details>
+            <summary>Do you cover non-UBE jurisdictions?</summary>
+            <p>We cover all 41 UBE jurisdictions. For California and Florida, we offer supplemental state-specific modules at additional cost.</p>
+          </details>
+          <details>
+            <summary>Are the materials in print or digital?</summary>
+            <p>Both. The full set of printed outlines and a hardcover review book ships with the UBE Full and Retake programs at no extra charge.</p>
+          </details>
+          <details>
+            <summary>Who grades the essays?</summary>
+            <p>Practicing attorneys with bar admission in a UBE jurisdiction. Each essay returns within seven days with margin comments and a section-by-section score.</p>
+          </details>
+          <details>
+            <summary>Can I switch from another bar prep program?</summary>
+            <p>Yes. We honor a partial credit if you can show a paid receipt from a competing program for the same exam administration. Contact admissions for details.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site">
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a class="brand" href="#" style="margin-bottom: 16px;">LawPath<span class="brand-sub">est. 2016 — attorney built</span></a>
+          <p style="color: var(--fg-2); font-size: 14px; max-width: 280px;">Bar exam prep and 1L study materials built by practicing attorneys. Concise, rigorous, and graded by humans.</p>
+        </div>
+        <div class="foot-col">
+          <h4>Programs</h4>
+          <a href="#">UBE Full</a>
+          <a href="#">UBE Retake</a>
+          <a href="#">1L Core</a>
+          <a href="#">MPRE Sprint</a>
+        </div>
+        <div class="foot-col">
+          <h4>Resources</h4>
+          <a href="#">Pass guarantee</a>
+          <a href="#">Free study plan</a>
+          <a href="#">Sample essays</a>
+          <a href="#">Calendar</a>
+        </div>
+        <div class="foot-col">
+          <h4>Firm</h4>
+          <a href="#">About</a>
+          <a href="#">Faculty</a>
+          <a href="#">Press</a>
+          <a href="#">Contact</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 LawPath, Inc.</span>
+        <span>Attorney built · Pass guaranteed · 41 UBE jurisdictions</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

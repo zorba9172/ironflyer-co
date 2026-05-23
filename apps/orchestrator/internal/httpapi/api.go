@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -17,6 +18,7 @@ import (
 	"github.com/rs/zerolog"
 
 	"ironflyer/apps/orchestrator/internal/agents"
+	"ironflyer/apps/orchestrator/internal/audit"
 	"ironflyer/apps/orchestrator/internal/auth"
 	"ironflyer/apps/orchestrator/internal/brainstorm"
 	"ironflyer/apps/orchestrator/internal/budget"
@@ -25,10 +27,13 @@ import (
 	"ironflyer/apps/orchestrator/internal/integrations"
 	"ironflyer/apps/orchestrator/internal/integrations/github"
 	"ironflyer/apps/orchestrator/internal/leads"
+	"ironflyer/apps/orchestrator/internal/memory"
 	"ironflyer/apps/orchestrator/internal/metrics"
 	"ironflyer/apps/orchestrator/internal/notify"
 	"ironflyer/apps/orchestrator/internal/patch"
+	"ironflyer/apps/orchestrator/internal/projectgraph"
 	"ironflyer/apps/orchestrator/internal/providers"
+	"ironflyer/apps/orchestrator/internal/retriever"
 	"ironflyer/apps/orchestrator/internal/store"
 	"ironflyer/apps/orchestrator/internal/webhooks"
 )
@@ -59,6 +64,21 @@ type Deps struct {
 	WebhookDispatcher *webhooks.Dispatcher
 	NotifyPrefs       notify.PrefsStore
 	Notify            *notify.Engine
+	// Telemetry is the structured feed of agent calls (provider, model,
+	// tokens, latency, cost). Optional; nil disables the /telemetry/agents
+	// endpoint but the rest of the API still functions.
+	Telemetry providers.TelemetrySink
+	// Memory is the persistent intelligence store (Project / Execution /
+	// User / Business memories). The finisher loop reads from it to ground
+	// agent context; the HTTP API exposes it for dashboards + manual
+	// curation. Optional; nil disables the /memory endpoints.
+	Memory memory.Store
+	// Audit is the immutable hash-chained action log. Powers the
+	// production-trust moat — every consequential action lands here so
+	// an enterprise customer can prove what happened, when, and to whom.
+	// Optional; nil disables /audit endpoints but the rest of the API
+	// stays functional.
+	Audit audit.Store
 }
 
 type API struct{ d Deps }
@@ -122,6 +142,7 @@ func New(d Deps) http.Handler {
 			r.Route("/{id}", func(r chi.Router) {
 				r.Get("/", a.getProject)
 				r.Get("/files", a.listFiles)
+				r.Get("/graph", a.projectGraph)
 				r.Get("/gates", a.listGates)
 				r.Post("/run", a.runFinisher)
 				r.Get("/stream", a.streamEvents)
@@ -130,12 +151,18 @@ func New(d Deps) http.Handler {
 				r.Post("/brainstorm", a.brainstormRun)
 				r.Get("/patches", a.listPatches)
 				r.Post("/patches", a.proposePatch)
+				r.Post("/visual-edit", a.visualEdit)
+				r.Get("/visual-targets", a.listVisualTargets)
+				r.Post("/visual-targets", a.addVisualTarget)
+				r.Delete("/visual-targets/{targetId}", a.deleteVisualTarget)
+				r.Get("/search", a.searchProjectCode)
 				r.Post("/connect-github", a.projectConnectGitHub)
 				r.Delete("/connect-github", a.projectDisconnectGitHub)
 				r.Post("/clone-into-workspace", a.projectCloneIntoWorkspace)
 			})
 		})
 		r.Post("/patches/{patchId}/apply", a.applyPatch)
+		r.Post("/patches/{patchId}/rollback", a.rollbackPatch)
 		r.Get("/agents", a.listAgents)
 
 		// Budget — per-user data is auth-scoped.
@@ -146,6 +173,34 @@ func New(d Deps) http.Handler {
 
 		// Dashboard self-service: per-user vault, bulk-delete projects, close account.
 		a.RegisterDashboard(r)
+
+		// MCP (Model Context Protocol) — JSON-RPC at /mcp so external AI
+		// clients (Claude Desktop, Cursor, Zed, custom agents) can list
+		// projects, read files, and propose patches under the
+		// authenticated user's identity.
+		a.RegisterMCP(r)
+
+		// Agent telemetry feed — per-call structured record (provider,
+		// model, tokens, cost, latency). Operators use it to tune the
+		// model router and to spot slow / expensive agents.
+		r.Get("/telemetry/agents", a.listAgentTelemetry)
+
+		// Memory engine — persistent project intelligence. Layer 6 of
+		// the AI Completion Infrastructure blueprint: the moat that
+		// turns a long-lived project into a compounding asset.
+		r.Route("/memory", func(r chi.Router) {
+			r.Get("/", a.listMemory)
+			r.Post("/", a.addMemory)
+			r.Delete("/{id}", a.deleteMemory)
+		})
+
+		// Immutable hash-chained audit log. Powers the production-trust
+		// moat: enterprise customers can replay or verify every
+		// consequential action the orchestrator took.
+		r.Route("/audit", func(r chi.Router) {
+			r.Get("/", a.listAudit)
+			r.Get("/verify", a.verifyAudit)
+		})
 
 		// Webhooks + notification preferences (Agent N). Appended as a single
 		// block so the route group stays diff-friendly for other agents.
@@ -257,6 +312,17 @@ func (a *API) listFiles(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, p.Files)
 }
 
+// projectGraph returns the derived dependency graph for the project's files.
+// See package projectgraph for parser scope and resolution rules.
+func (a *API) projectGraph(w http.ResponseWriter, r *http.Request) {
+	p, ok := a.requireProjectAccess(w, r, chi.URLParam(r, "id"))
+	if !ok {
+		return
+	}
+	graph := projectgraph.Build(r.Context(), &p)
+	writeJSON(w, http.StatusOK, graph)
+}
+
 func (a *API) listGates(w http.ResponseWriter, r *http.Request) {
 	p, ok := a.requireProjectAccess(w, r, chi.URLParam(r, "id"))
 	if !ok {
@@ -354,6 +420,14 @@ func (a *API) chatStream(w http.ResponseWriter, r *http.Request) {
 		// models, Power biases toward reasoning+thinking. Empty/"economy" keeps
 		// the agent's declared capabilities untouched.
 		Effort string `json:"effort"`
+		// Attachments are user-supplied images (screenshots / mockups / design
+		// references) sent inline with the prompt. Each entry is base64 image
+		// bytes + IANA media type. Total decoded size is hard-capped so the
+		// caller can't shovel megabytes of garbage at the vision provider.
+		Attachments []struct {
+			MediaType string `json:"mediaType"`
+			Base64    string `json:"base64"`
+		} `json:"attachments,omitempty"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		http.Error(w, "invalid JSON", http.StatusBadRequest)
@@ -394,6 +468,31 @@ func (a *API) chatStream(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	caps, enableThinking := applyEffort(body.Effort, agent.Capabilities, agent.EnableThinking)
+	// Validate + normalise attachments. We accept the common web image
+	// types only and cap total payload at 8 MiB so a stray screen-recording
+	// can't blow the request body up.
+	const maxImagePayload = 8 << 20
+	var atts []providers.Attachment
+	var total int
+	allowed := map[string]bool{
+		"image/png": true, "image/jpeg": true, "image/webp": true, "image/gif": true,
+	}
+	for _, a := range body.Attachments {
+		if a.Base64 == "" {
+			continue
+		}
+		mt := strings.ToLower(strings.TrimSpace(a.MediaType))
+		if !allowed[mt] {
+			send("error", errJSON("unsupported attachment type: "+a.MediaType))
+			return
+		}
+		total += (len(a.Base64) * 3) / 4
+		if total > maxImagePayload {
+			send("error", errJSON("attachments exceed 8 MiB total"))
+			return
+		}
+		atts = append(atts, providers.Attachment{MediaType: mt, Base64: a.Base64})
+	}
 	req := providers.Request{
 		System:         agent.System,
 		Prompt:         "# Goal\n" + body.Prompt,
@@ -401,6 +500,7 @@ func (a *API) chatStream(w http.ResponseWriter, r *http.Request) {
 		EnableThinking: enableThinking,
 		ProjectContext: projectContextFor(&p),
 		TenantID:       userID,
+		Attachments:    atts,
 	}
 	ch, err := a.d.Guard.CompleteStream(r.Context(), req)
 	if err != nil {
@@ -462,6 +562,493 @@ func (a *API) brainstormRun(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"plan": plan, "outcome": outcome})
 }
 
+// visualEdit drives the click-to-edit path: the UI sends a CSS selector
+// (or descriptive locator) plus a natural-language instruction, optionally
+// with a screenshot of the live preview. We hand the bundle to the Coder
+// agent and parse its response into a patch.Patch that the user can then
+// review and apply through the normal Patch lifecycle. The endpoint is
+// intentionally synchronous (single-request) — unlike /run, which kicks
+// off the full finisher loop, this is a surgical "edit just this element"
+// operation, so we want the patch back in the same response.
+func (a *API) visualEdit(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		// Selector is the locator for the element the user clicked. We accept
+		// either a CSS selector ("button.cta-primary"), a path-style
+		// description ("Hero > Buttons[0]"), or a verbatim text snippet —
+		// the Coder is told to treat it as a hint, not a literal query.
+		Selector string `json:"selector"`
+		// Instruction is the user's request in plain English ("make the
+		// padding larger", "change copy to 'Get started'", "use lime accent").
+		Instruction string `json:"instruction"`
+		// Screenshot, if present, is base64-encoded image bytes of the live
+		// preview at the moment of the click. The Coder uses it as a visual
+		// reference; vision-capable models only.
+		Screenshot          string `json:"screenshot,omitempty"`
+		ScreenshotMediaType string `json:"screenshotMediaType,omitempty"`
+		// Path narrows the search to a specific file when the UI knows
+		// which component owns the selector (faster + cheaper than letting
+		// the Coder grep the whole tree).
+		Path string `json:"path,omitempty"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		writeJSON(w, http.StatusBadRequest, errJSON("invalid JSON"))
+		return
+	}
+	if strings.TrimSpace(body.Selector) == "" || strings.TrimSpace(body.Instruction) == "" {
+		writeJSON(w, http.StatusBadRequest, errJSON("selector and instruction required"))
+		return
+	}
+	proj, ok := a.requireProjectAccess(w, r, chi.URLParam(r, "id"))
+	if !ok {
+		return
+	}
+	coder, ok := a.d.Agents.Get(agents.RoleCoder)
+	if !ok {
+		writeJSON(w, http.StatusServiceUnavailable, errJSON("coder agent unavailable"))
+		return
+	}
+
+	prompt := "# Visual edit\nThe user clicked an element in the live preview and asked for a surgical change.\n\n" +
+		"Selector / locator hint: " + body.Selector + "\n"
+	if body.Path != "" {
+		prompt += "Likely owning file: " + body.Path + "\n"
+	}
+	prompt += "Instruction: " + body.Instruction + "\n\n" +
+		"Reply with the SAME JSON shape the Coder always emits (a single patch with `changes`). " +
+		"Prefer `replace` or `insert_after` ops keyed to a unique anchor near the target element — full-file rewrites are wasteful for a single-element tweak. " +
+		"If the screenshot reveals layout or copy that differs from the source, trust the SOURCE and only change what the instruction asks for."
+
+	caps := append([]providers.Capability(nil), coder.Capabilities...)
+	var atts []providers.Attachment
+	if body.Screenshot != "" {
+		mt := strings.ToLower(strings.TrimSpace(body.ScreenshotMediaType))
+		if mt == "" {
+			mt = "image/png"
+		}
+		atts = []providers.Attachment{{MediaType: mt, Base64: body.Screenshot}}
+	}
+
+	req := providers.Request{
+		System:         coder.System,
+		Prompt:         prompt,
+		Capabilities:   caps,
+		EnableThinking: coder.EnableThinking,
+		ProjectContext: projectContextFor(&proj),
+		TenantID:       userIDFromCtx(r),
+		Attachments:    atts,
+	}
+	ch, err := a.d.Guard.CompleteStream(r.Context(), req)
+	if err != nil {
+		writeJSON(w, http.StatusServiceUnavailable, errJSON(err.Error()))
+		return
+	}
+	var text strings.Builder
+	for d := range ch {
+		switch d.Type {
+		case providers.DeltaText:
+			text.WriteString(d.Text)
+		case providers.DeltaError:
+			writeJSON(w, http.StatusBadGateway, errJSON(d.Err.Error()))
+			return
+		}
+	}
+	raw := strings.TrimSpace(text.String())
+	if raw == "" {
+		writeJSON(w, http.StatusBadGateway, errJSON("coder returned empty response"))
+		return
+	}
+	// The Coder may wrap the JSON in a fenced block; strip a leading/trailing
+	// ``` line if present so json.Unmarshal still sees a clean object.
+	raw = stripJSONFence(raw)
+
+	var coderOut struct {
+		Title   string `json:"title"`
+		Summary string `json:"summary"`
+		Changes []struct {
+			Op          string `json:"op"`
+			Path        string `json:"path"`
+			Content     string `json:"content,omitempty"`
+			Anchor      string `json:"anchor,omitempty"`
+			Replacement string `json:"replacement,omitempty"`
+		} `json:"changes"`
+	}
+	if err := json.Unmarshal([]byte(raw), &coderOut); err != nil {
+		writeJSON(w, http.StatusBadGateway, errJSON("coder produced invalid JSON: "+err.Error()))
+		return
+	}
+	p := patch.Patch{
+		ProjectID: proj.ID,
+		Title:     coderOut.Title,
+		Summary:   coderOut.Summary,
+		Author:    "visual-edit",
+	}
+	for _, c := range coderOut.Changes {
+		p.Changes = append(p.Changes, patch.FileChange{
+			Op:          patch.Op(strings.ToLower(strings.TrimSpace(c.Op))),
+			Path:        strings.TrimPrefix(c.Path, "/"),
+			Content:     c.Content,
+			Anchor:      c.Anchor,
+			Replacement: c.Replacement,
+		})
+	}
+	out, err := a.d.Patches.Propose(p)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, errJSON(err.Error()))
+		return
+	}
+	writeJSON(w, http.StatusCreated, out)
+}
+
+// listVisualTargets returns the project's pixel-perfect targets. We
+// trim ImagePNGBase64 in the response so the listing stays small;
+// callers that need the bytes (rendering thumbnails) hit a dedicated
+// per-target endpoint — added later if needed. For now we return the
+// full payload to keep the API tight.
+func (a *API) listVisualTargets(w http.ResponseWriter, r *http.Request) {
+	p, ok := a.requireProjectAccess(w, r, chi.URLParam(r, "id"))
+	if !ok {
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"targets": p.VisualTargets,
+		"count":   len(p.VisualTargets),
+	})
+}
+
+// addVisualTarget uploads a reference screenshot the UXGate will diff
+// the live preview against. Body: { name, routeHint, viewportW,
+// viewportH, imagePngBase64, tolerance? }. We allocate the ID
+// server-side so callers can't collide.
+func (a *API) addVisualTarget(w http.ResponseWriter, r *http.Request) {
+	if _, ok := a.requireProjectAccess(w, r, chi.URLParam(r, "id")); !ok {
+		return
+	}
+	id := chi.URLParam(r, "id")
+	var body struct {
+		Name           string  `json:"name"`
+		RouteHint      string  `json:"routeHint"`
+		ViewportW      int     `json:"viewportW"`
+		ViewportH      int     `json:"viewportH"`
+		ImagePNGBase64 string  `json:"imagePngBase64"`
+		Tolerance      float64 `json:"tolerance"`
+	}
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 4<<20)).Decode(&body); err != nil {
+		writeJSON(w, http.StatusBadRequest, errJSON("invalid JSON or payload > 4 MiB"))
+		return
+	}
+	if strings.TrimSpace(body.ImagePNGBase64) == "" {
+		writeJSON(w, http.StatusBadRequest, errJSON("imagePngBase64 required"))
+		return
+	}
+	if body.ViewportW <= 0 {
+		body.ViewportW = 1280
+	}
+	if body.ViewportH <= 0 {
+		body.ViewportH = 800
+	}
+	target := domain.VisualTarget{
+		ID:             uuid.NewString(),
+		Name:           strings.TrimSpace(body.Name),
+		RouteHint:      strings.TrimSpace(body.RouteHint),
+		ViewportW:      body.ViewportW,
+		ViewportH:      body.ViewportH,
+		ImagePNGBase64: body.ImagePNGBase64,
+		Tolerance:      body.Tolerance,
+	}
+	updated, err := a.d.Projects.Update(id, func(p *domain.Project) {
+		p.VisualTargets = append(p.VisualTargets, target)
+	})
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, errJSON(err.Error()))
+		return
+	}
+	writeJSON(w, http.StatusCreated, map[string]any{
+		"target": target,
+		"count":  len(updated.VisualTargets),
+	})
+}
+
+// deleteVisualTarget removes one target by id. Returns 404 when the id
+// isn't on the project; idempotent on the wire (re-DELETE returns 404
+// instead of erroring louder).
+func (a *API) deleteVisualTarget(w http.ResponseWriter, r *http.Request) {
+	if _, ok := a.requireProjectAccess(w, r, chi.URLParam(r, "id")); !ok {
+		return
+	}
+	id := chi.URLParam(r, "id")
+	targetID := chi.URLParam(r, "targetId")
+	if targetID == "" {
+		writeJSON(w, http.StatusBadRequest, errJSON("targetId required"))
+		return
+	}
+	var removed bool
+	_, err := a.d.Projects.Update(id, func(p *domain.Project) {
+		kept := p.VisualTargets[:0]
+		for _, t := range p.VisualTargets {
+			if t.ID == targetID {
+				removed = true
+				continue
+			}
+			kept = append(kept, t)
+		}
+		p.VisualTargets = kept
+	})
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, errJSON(err.Error()))
+		return
+	}
+	if !removed {
+		writeJSON(w, http.StatusNotFound, errJSON("target not found"))
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
+}
+
+// listAudit returns audit entries matching the query filters. Read-only
+// — the audit log is append-only by contract. Query params:
+//   - projectId, userId
+//   - action: patch.proposed | patch.applied | gate.verdict | ...
+//   - outcome: success | failure | blocked
+//   - since / until (RFC3339)
+//   - limit: cap, default 100, ceiling 1000
+func (a *API) listAudit(w http.ResponseWriter, r *http.Request) {
+	if a.d.Audit == nil {
+		writeJSON(w, http.StatusServiceUnavailable, errJSON("audit store not configured"))
+		return
+	}
+	q := audit.Query{
+		UserID:    r.URL.Query().Get("userId"),
+		ProjectID: r.URL.Query().Get("projectId"),
+		Action:    audit.Action(r.URL.Query().Get("action")),
+		Outcome:   audit.Outcome(r.URL.Query().Get("outcome")),
+	}
+	if v := r.URL.Query().Get("since"); v != "" {
+		if t, err := time.Parse(time.RFC3339, v); err == nil {
+			q.Since = t
+		}
+	}
+	if v := r.URL.Query().Get("until"); v != "" {
+		if t, err := time.Parse(time.RFC3339, v); err == nil {
+			q.Until = t
+		}
+	}
+	if v := r.URL.Query().Get("limit"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			q.Limit = n
+		}
+	}
+	if q.Limit > 1000 {
+		q.Limit = 1000
+	}
+	// Ownership scope: project-scoped reads check access; otherwise the
+	// caller can only see entries tagged with their own userId.
+	if q.ProjectID != "" {
+		if _, ok := a.requireProjectAccess(w, r, q.ProjectID); !ok {
+			return
+		}
+	} else {
+		q.UserID = userIDFromCtx(r)
+	}
+	rows, err := a.d.Audit.Query(r.Context(), q)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, errJSON(err.Error()))
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"entries": rows, "count": len(rows)})
+}
+
+// verifyAudit walks the audit log's hash chain and returns the index of
+// the first inconsistency, or -1 when the log is intact. Used for
+// compliance attestations — the operator pipes the result into a
+// monitoring system and fires on chain breakage.
+func (a *API) verifyAudit(w http.ResponseWriter, r *http.Request) {
+	if a.d.Audit == nil {
+		writeJSON(w, http.StatusServiceUnavailable, errJSON("audit store not configured"))
+		return
+	}
+	idx, err := a.d.Audit.Verify(r.Context())
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, errJSON(err.Error()))
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"intact":          idx < 0,
+		"firstBadIndex":   idx,
+	})
+}
+
+// listMemory returns memory records matching the query filters.
+// Query params:
+//   - kind: project | execution | user | business
+//   - projectId / userId / storyId / gateName: scope filters
+//   - tag: single-tag filter
+//   - q: substring search across title+body
+//   - limit: cap, default 20, hard ceiling 200
+// At least one of kind / projectId / userId is required.
+func (a *API) listMemory(w http.ResponseWriter, r *http.Request) {
+	if a.d.Memory == nil {
+		writeJSON(w, http.StatusServiceUnavailable, errJSON("memory store not configured"))
+		return
+	}
+	q := memory.Query{
+		Kind:      memory.Kind(strings.ToLower(r.URL.Query().Get("kind"))),
+		ProjectID: r.URL.Query().Get("projectId"),
+		UserID:    r.URL.Query().Get("userId"),
+		StoryID:   r.URL.Query().Get("storyId"),
+		GateName:  r.URL.Query().Get("gateName"),
+		Tag:       r.URL.Query().Get("tag"),
+		Substring: r.URL.Query().Get("q"),
+	}
+	if v := r.URL.Query().Get("limit"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			q.Limit = n
+		}
+	}
+	if q.Limit > 200 {
+		q.Limit = 200
+	}
+	// Ownership scope: when caller is authenticated AND projectId is
+	// supplied, verify access through the standard path. Anonymous /
+	// public reads are limited to public projects.
+	if q.ProjectID != "" {
+		if _, ok := a.requireProjectAccess(w, r, q.ProjectID); !ok {
+			return
+		}
+	} else if q.Kind == "" && q.UserID == "" {
+		writeJSON(w, http.StatusBadRequest, errJSON("at least one of kind / projectId / userId is required"))
+		return
+	}
+	// For user memories, enforce that the caller owns the userId scope.
+	if q.UserID != "" && q.UserID != userIDFromCtx(r) {
+		writeJSON(w, http.StatusForbidden, errJSON("cannot read another user's memory"))
+		return
+	}
+	rows, err := a.d.Memory.Query(r.Context(), q)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, errJSON(err.Error()))
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"records": rows, "count": len(rows)})
+}
+
+// addMemory persists a single record. Body matches memory.Record; the
+// server assigns ID + CreatedAt server-side. User-memory writes are
+// pinned to the caller's userId regardless of payload (no spoofing).
+func (a *API) addMemory(w http.ResponseWriter, r *http.Request) {
+	if a.d.Memory == nil {
+		writeJSON(w, http.StatusServiceUnavailable, errJSON("memory store not configured"))
+		return
+	}
+	var rec memory.Record
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 256<<10)).Decode(&rec); err != nil {
+		writeJSON(w, http.StatusBadRequest, errJSON("invalid JSON or payload > 256 KiB"))
+		return
+	}
+	switch rec.Kind {
+	case memory.KindProject, memory.KindExecution, memory.KindBusiness:
+		if rec.ProjectID == "" {
+			writeJSON(w, http.StatusBadRequest, errJSON("projectId required for this kind"))
+			return
+		}
+		if _, ok := a.requireProjectAccess(w, r, rec.ProjectID); !ok {
+			return
+		}
+	case memory.KindUser:
+		// Always stamp the authenticated user — never let a payload
+		// pretend to write into another user's memory.
+		rec.UserID = userIDFromCtx(r)
+		if rec.UserID == "" {
+			writeJSON(w, http.StatusUnauthorized, errJSON("user memory requires authentication"))
+			return
+		}
+	default:
+		writeJSON(w, http.StatusBadRequest, errJSON("kind must be project | execution | user | business"))
+		return
+	}
+	stored, err := a.d.Memory.Record(r.Context(), rec)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, errJSON(err.Error()))
+		return
+	}
+	writeJSON(w, http.StatusCreated, stored)
+}
+
+// deleteMemory removes a record by id. Idempotent — unknown id returns
+// 204 so DELETE retries don't surface a 404 in dashboards.
+func (a *API) deleteMemory(w http.ResponseWriter, r *http.Request) {
+	if a.d.Memory == nil {
+		writeJSON(w, http.StatusServiceUnavailable, errJSON("memory store not configured"))
+		return
+	}
+	if err := a.d.Memory.Delete(r.Context(), chi.URLParam(r, "id")); err != nil {
+		writeJSON(w, http.StatusInternalServerError, errJSON(err.Error()))
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// listAgentTelemetry returns the most recent agent calls. Query params:
+//   - limit: max rows (default 100, hard cap 1000)
+//   - role / provider / model: optional client-side filters (server filters)
+// Returns an array of provider.AgentCall objects, newest first.
+func (a *API) listAgentTelemetry(w http.ResponseWriter, r *http.Request) {
+	if a.d.Telemetry == nil {
+		writeJSON(w, http.StatusServiceUnavailable, errJSON("telemetry sink not configured"))
+		return
+	}
+	limit := 100
+	if v := r.URL.Query().Get("limit"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			limit = n
+		}
+	}
+	if limit > 1000 {
+		limit = 1000
+	}
+	wantRole := strings.ToLower(r.URL.Query().Get("role"))
+	wantProvider := strings.ToLower(r.URL.Query().Get("provider"))
+	wantModel := strings.ToLower(r.URL.Query().Get("model"))
+
+	rows := a.d.Telemetry.Recent(limit * 2) // headroom so filters still hit `limit`
+	out := make([]providers.AgentCall, 0, limit)
+	for _, c := range rows {
+		if wantRole != "" && !strings.EqualFold(c.Role, wantRole) {
+			continue
+		}
+		if wantProvider != "" && !strings.EqualFold(c.Provider, wantProvider) {
+			continue
+		}
+		if wantModel != "" && !strings.EqualFold(c.Model, wantModel) {
+			continue
+		}
+		out = append(out, c)
+		if len(out) >= limit {
+			break
+		}
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"calls": out,
+		"count": len(out),
+	})
+}
+
+// stripJSONFence trims a leading/trailing ```json fence (and a bare ```
+// closer) from a model response. The Coder is supposed to emit raw JSON,
+// but some prompts produce a fence regardless — fall back gracefully.
+func stripJSONFence(s string) string {
+	s = strings.TrimSpace(s)
+	if strings.HasPrefix(s, "```") {
+		// Drop the opening fence line.
+		if nl := strings.IndexByte(s, '\n'); nl >= 0 {
+			s = s[nl+1:]
+		}
+	}
+	if strings.HasSuffix(s, "```") {
+		s = strings.TrimSuffix(s, "```")
+	}
+	return strings.TrimSpace(s)
+}
+
 func (a *API) listPatches(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if _, ok := a.requireProjectAccess(w, r, id); !ok {
@@ -506,6 +1093,129 @@ func (a *API) applyPatch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, out)
+}
+
+// searchProjectCode exposes the in-process retriever (BM25 + structure-
+// aware chunker) over HTTP so the VSCode extension, SDK clients, and
+// downstream tools can query the project's source without re-implementing
+// retrieval. The same Build()/Query() helpers power the Coder's RAG
+// context inside the finisher loop — this endpoint is just a public
+// surface for the same index. Per-user ownership is enforced.
+//
+// Query string:
+//   q       — the search query (required)
+//   k       — max hits to return (default 8, hard-capped at 32)
+//   max_kb  — per-chunk truncation in KiB (default 8) so a 1 MiB file
+//             body never blows up the JSON response
+//
+// Response: {"hits": [{ "path", "startLine", "endLine", "symbols", "score", "text" }, ...]}
+func (a *API) searchProjectCode(w http.ResponseWriter, r *http.Request) {
+	projectID := chi.URLParam(r, "id")
+	proj, ok := a.requireProjectAccess(w, r, projectID)
+	if !ok {
+		return
+	}
+	q := strings.TrimSpace(r.URL.Query().Get("q"))
+	if q == "" {
+		writeJSON(w, http.StatusBadRequest, errJSON("query parameter q is required"))
+		return
+	}
+	k := parsePositiveIntDefault(r.URL.Query().Get("k"), 8)
+	if k > 32 {
+		k = 32
+	}
+	maxBytes := parsePositiveIntDefault(r.URL.Query().Get("max_kb"), 8) * 1024
+	idx := retriever.Build(&proj, retriever.Options{TopK: k})
+	hits := idx.Query(q, k)
+
+	type hit struct {
+		Path      string   `json:"path"`
+		StartLine int      `json:"startLine"`
+		EndLine   int      `json:"endLine"`
+		Symbols   []string `json:"symbols,omitempty"`
+		Score     float64  `json:"score"`
+		Text      string   `json:"text"`
+	}
+	out := struct {
+		Hits []hit `json:"hits"`
+	}{Hits: make([]hit, 0, len(hits))}
+	for _, h := range hits {
+		body := h.Text
+		if len(body) > maxBytes {
+			body = body[:maxBytes] + "\n…[truncated]"
+		}
+		out.Hits = append(out.Hits, hit{
+			Path:      h.Path,
+			StartLine: h.StartLine,
+			EndLine:   h.EndLine,
+			Symbols:   h.Symbols,
+			Score:     h.Score,
+			Text:      body,
+		})
+	}
+	writeJSON(w, http.StatusOK, out)
+}
+
+// parsePositiveIntDefault parses query-string ints with a fallback. We
+// reject non-positive values so callers can't pass k=-1 to force the
+// retriever's "all chunks" path.
+func parsePositiveIntDefault(s string, fallback int) int {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return fallback
+	}
+	n := 0
+	for _, r := range s {
+		if r < '0' || r > '9' {
+			return fallback
+		}
+		n = n*10 + int(r-'0')
+		if n > 100000 {
+			return fallback
+		}
+	}
+	if n <= 0 {
+		return fallback
+	}
+	return n
+}
+
+// rollbackPatch reverts the project tree to the snapshot taken just before
+// the named patch was applied. This is the user-facing escape hatch — it
+// exposes the in-process snapshot store that patch.Engine.Apply has been
+// populating on every successful apply. Returns 404 if the patch is
+// unknown, 409 if no snapshot exists for that patch (e.g. it was never
+// applied), or 200 with the restored snapshot's metadata on success.
+func (a *API) rollbackPatch(w http.ResponseWriter, r *http.Request) {
+	patchID := chi.URLParam(r, "patchId")
+	existing, err := a.d.Patches.Get(patchID)
+	if err != nil {
+		writeJSON(w, http.StatusNotFound, errJSON("not found"))
+		return
+	}
+	if _, ok := a.requireProjectAccess(w, r, existing.ProjectID); !ok {
+		return
+	}
+	// Locate the snapshot that this patch produced. Snapshots are tagged
+	// with the patch ID on the Engine.Snapshot path so a 1:1 lookup is
+	// stable even after multiple patches stack up.
+	var targetSnap string
+	for _, snap := range a.d.Patches.Snapshots(existing.ProjectID) {
+		if snap.PatchID == patchID {
+			targetSnap = snap.ID
+			break
+		}
+	}
+	if targetSnap == "" {
+		writeJSON(w, http.StatusConflict, errJSON("no snapshot for this patch — rollback unavailable"))
+		return
+	}
+	restored, err := a.d.Patches.Rollback(existing.ProjectID, targetSnap)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, errJSON(err.Error()))
+		return
+	}
+	writeJSON(w, http.StatusOK, restored)
 }
 
 // listAgents returns the full agent catalogue — role, system prompt,

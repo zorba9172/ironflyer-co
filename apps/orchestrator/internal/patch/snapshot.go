@@ -151,6 +151,7 @@ func (e *Engine) Rollback(projectID, snapID string) (Snapshot, error) {
 	}
 
 	// Mark any patches applied AFTER this snapshot as rolled-back.
+	var rolled []Patch
 	e.mu.Lock()
 	for id, p := range e.patches {
 		if p.ProjectID != projectID {
@@ -159,9 +160,16 @@ func (e *Engine) Rollback(projectID, snapID string) (Snapshot, error) {
 		if p.AppliedAt != nil && !p.AppliedAt.Before(snap.CreatedAt) {
 			p.Status = StatusRolled
 			e.patches[id] = p
+			rolled = append(rolled, p)
 		}
 	}
+	cb := e.onRolledBack
 	e.mu.Unlock()
+	if cb != nil {
+		for _, p := range rolled {
+			cb(p, snap.ID)
+		}
+	}
 	return snap, nil
 }
 

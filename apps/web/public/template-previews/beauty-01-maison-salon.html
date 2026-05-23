@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Maison — A small editorial salon in the West Village</title>
+  <meta name="description" content="A quiet, appointment-only salon on Bedford Street. Editorial color, lived-in cuts, and a chair that's yours for the afternoon." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Italiana&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #efe9da;
+      --paper: #f6f1e3;
+      --ink: #181613;
+      --ink-2: #4a463d;
+      --ink-3: #8a8475;
+      --line: rgba(24, 22, 19, 0.14);
+      --accent: #181613;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--ink); font-family: 'Inter', system-ui, sans-serif; font-size: 16px; line-height: 1.65; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
+    .display { font-family: 'Italiana', serif; font-weight: 400; }
+    .serif { font-family: 'Cormorant Garamond', serif; }
+    .eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: 0.28em; color: var(--ink-2); }
+
+    .nav { padding: 24px 0; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--bg); z-index: 10; }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { font-family: 'Italiana', serif; font-size: 28px; letter-spacing: 0.18em; }
+    .nav-links { display: flex; gap: 32px; font-size: 13px; letter-spacing: 0.05em; color: var(--ink-2); }
+    .nav-links a:hover { color: var(--ink); }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; font-size: 12px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; border: 1px solid var(--ink); cursor: pointer; transition: background 200ms, color 200ms; }
+    .btn-primary { background: var(--ink); color: var(--bg); }
+    .btn-primary:hover { background: transparent; color: var(--ink); }
+    .btn-ghost { background: transparent; color: var(--ink); }
+    .btn-ghost:hover { background: var(--ink); color: var(--bg); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    .hero { padding: 60px 0 100px; }
+    .hero-top { display: flex; justify-content: space-between; align-items: flex-end; gap: 28px; }
+    .hero-top h1 { font-family: 'Italiana', serif; font-size: clamp(56px, 11vw, 168px); line-height: 0.9; letter-spacing: -0.01em; margin: 24px 0 0; }
+    .hero-meta { text-align: right; font-size: 13px; color: var(--ink-2); max-width: 280px; }
+    .hero-img { margin-top: 56px; }
+    .hero-img img { width: 100%; aspect-ratio: 16/8; object-fit: cover; }
+    .hero-foot { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 48px; margin-top: 40px; align-items: start; }
+    .hero-foot p { font-family: 'Cormorant Garamond', serif; font-size: 22px; line-height: 1.5; color: var(--ink); margin: 0; }
+    .hero-foot .meta dt { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-3); }
+    .hero-foot .meta dd { font-family: 'Cormorant Garamond', serif; font-size: 19px; margin: 2px 0 14px; }
+    @media (max-width: 1080px) { .hero-foot { grid-template-columns: 1fr 1fr; } .hero-foot p { grid-column: 1 / -1; } }
+    @media (max-width: 720px) { .hero-top { flex-direction: column; align-items: flex-start; } .hero-meta { text-align: left; } }
+
+    section { padding: 96px 0; }
+    section h2 { font-family: 'Italiana', serif; font-size: clamp(40px, 6vw, 76px); letter-spacing: -0.005em; line-height: 1.02; margin: 16px 0 22px; max-width: 18ch; }
+    .section-head { max-width: 720px; margin-bottom: 56px; }
+    .section-head p { font-family: 'Cormorant Garamond', serif; font-size: 21px; color: var(--ink-2); margin: 0; }
+
+    .services { border-top: 1px solid var(--line); padding-top: 0; }
+    .service { display: grid; grid-template-columns: 80px 1.4fr 1fr 1fr 160px; gap: 28px; align-items: baseline; padding: 28px 0; border-bottom: 1px solid var(--line); }
+    .service .num { font-family: 'Italiana', serif; font-size: 22px; color: var(--ink-3); }
+    .service .name { font-family: 'Italiana', serif; font-size: 30px; letter-spacing: 0.01em; }
+    .service .desc { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: var(--ink-2); font-style: italic; }
+    .service .time { font-size: 13px; color: var(--ink-3); letter-spacing: 0.1em; }
+    .service .price { font-family: 'Italiana', serif; font-size: 26px; text-align: right; }
+    @media (max-width: 1080px) { .service { grid-template-columns: 1fr 1fr; gap: 6px 28px; } .service .num { display: none; } .service .desc { grid-column: 1 / -1; } .service .price { text-align: left; } }
+
+    .artists { background: var(--paper); }
+    .artists-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px; }
+    .artist img { width: 100%; aspect-ratio: 4/5; object-fit: cover; }
+    .artist h3 { font-family: 'Italiana', serif; font-size: 32px; margin: 18px 0 0; }
+    .artist .role { font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--ink-2); font-size: 17px; }
+    .artist p { font-size: 14px; color: var(--ink-2); margin: 12px 0 0; }
+    @media (max-width: 1080px) { .artists-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .artists-grid { grid-template-columns: 1fr; } }
+
+    .gallery-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .gallery-grid img { width: 100%; aspect-ratio: 3/4; object-fit: cover; }
+    .gallery-grid img.tall { aspect-ratio: 3/5; }
+    @media (max-width: 1080px) { .gallery-grid { grid-template-columns: 1fr 1fr; } }
+
+    .quotes { background: var(--paper); }
+    .quotes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px 80px; }
+    .quote p { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 24px; line-height: 1.5; margin: 0 0 14px; }
+    .quote .who { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-3); }
+    @media (max-width: 1080px) { .quotes-grid { grid-template-columns: 1fr; gap: 40px; } }
+
+    .visit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+    .visit-grid img { width: 100%; aspect-ratio: 4/5; object-fit: cover; }
+    .visit dl { font-family: 'Cormorant Garamond', serif; font-size: 19px; display: grid; grid-template-columns: 140px 1fr; gap: 10px 22px; margin-top: 28px; }
+    .visit dt { color: var(--ink-3); font-style: italic; }
+    .visit dd { margin: 0; }
+    @media (max-width: 1080px) { .visit-grid { grid-template-columns: 1fr; } }
+
+    footer { border-top: 1px solid var(--line); padding: 56px 0 36px; }
+    .foot { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 36px; align-items: end; }
+    .foot .copy { font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--ink-3); font-size: 15px; }
+    .foot .links { display: flex; flex-wrap: wrap; gap: 22px; font-size: 13px; letter-spacing: 0.06em; color: var(--ink-2); justify-self: center; }
+    .foot .brand { justify-self: end; }
+    @media (max-width: 720px) { .foot { grid-template-columns: 1fr; } .foot .links, .foot .brand { justify-self: start; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">MAISON</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#services">Services</a>
+        <a href="#artists">Artists</a>
+        <a href="#gallery">Gallery</a>
+        <a href="#quotes">Clients</a>
+        <a href="#visit">Visit</a>
+      </nav>
+      <a class="btn btn-primary" href="#visit">Book a chair</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-top">
+          <div>
+            <span class="eyebrow">Bedford Street · West Village</span>
+            <h1>Maison.</h1>
+          </div>
+          <div class="hero-meta">
+            <p>A small, appointment-only hair salon. Editorial color. Lived-in cuts. One client at a time, by design.</p>
+          </div>
+        </div>
+        <div class="hero-img">
+          <img src="https://picsum.photos/seed/maison-salon-hero/1700/900" width="1700" height="900" alt="A sunlit hair salon with a marble basin, brass fixtures, and a single styling chair in front of a tall mirror." loading="eager" />
+        </div>
+        <div class="hero-foot">
+          <p>"We don't take more than six clients a day. The result is a chair that doesn't rush you and color that lasts through the season."</p>
+          <dl class="meta">
+            <dt>Founded</dt><dd>2017, New York</dd>
+            <dt>Chairs</dt><dd>Four, by appointment</dd>
+          </dl>
+          <dl class="meta">
+            <dt>Hours</dt><dd>Tue–Sat, 10–7</dd>
+            <dt>Book</dt><dd>(212) 555-0144</dd>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <section class="services" id="services">
+      <div class="wrap">
+        <div class="section-head" style="padding-top:72px;">
+          <span class="eyebrow">Services</span>
+          <h2>A short menu, done well.</h2>
+          <p>Every appointment begins with a consult in the chair. Pricing starts where it starts; if the work is unusual, we'll quote it before the first foil.</p>
+        </div>
+        <div class="service-list">
+          <div class="service">
+            <span class="num">01</span>
+            <span class="name">Cut &amp; finish</span>
+            <span class="desc">A precise dry cut, shaped to how you wear it.</span>
+            <span class="time">90 min</span>
+            <span class="price">from $185</span>
+          </div>
+          <div class="service">
+            <span class="num">02</span>
+            <span class="name">Single-process color</span>
+            <span class="desc">Root touch-up, gloss, or all-over tone refresh.</span>
+            <span class="time">120 min</span>
+            <span class="price">from $220</span>
+          </div>
+          <div class="service">
+            <span class="num">03</span>
+            <span class="name">Balayage</span>
+            <span class="desc">Hand-painted dimension, low-maintenance grow-out.</span>
+            <span class="time">3 hrs</span>
+            <span class="price">from $385</span>
+          </div>
+          <div class="service">
+            <span class="num">04</span>
+            <span class="name">Editorial color</span>
+            <span class="desc">Custom formulation. Includes a private consult.</span>
+            <span class="time">3–5 hrs</span>
+            <span class="price">from $520</span>
+          </div>
+          <div class="service">
+            <span class="num">05</span>
+            <span class="name">Gloss &amp; refresh</span>
+            <span class="desc">Between-appointment shine and tone correction.</span>
+            <span class="time">45 min</span>
+            <span class="price">$95</span>
+          </div>
+          <div class="service">
+            <span class="num">06</span>
+            <span class="name">Bridal &amp; event</span>
+            <span class="desc">Hair styled to last twelve hours and three slow dances.</span>
+            <span class="time">2 hrs</span>
+            <span class="price">from $325</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="artists" id="artists">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">The chairs</span>
+          <h2>Four stylists, fifteen years average behind the chair.</h2>
+        </div>
+        <div class="artists-grid">
+          <div class="artist">
+            <img src="https://picsum.photos/seed/maison-salon-a1/700/900" width="700" height="900" alt="Stylist Camille Reyes adjusting a client's hair in soft afternoon light." loading="lazy" />
+            <h3>Camille Reyes</h3>
+            <span class="role">Founder · color &amp; cut</span>
+            <p>Trained at Sally Hershberger, eleven years coloring brunettes in this room. Quiet hands.</p>
+          </div>
+          <div class="artist">
+            <img src="https://picsum.photos/seed/maison-salon-a2/700/900" width="700" height="900" alt="Stylist Idris Allen smiling beside a mirror." loading="lazy" />
+            <h3>Idris Allen</h3>
+            <span class="role">Cut specialist</span>
+            <p>Vidal Sassoon Academy. Best in the room for short hair, fringes, and a perfectly even blunt.</p>
+          </div>
+          <div class="artist">
+            <img src="https://picsum.photos/seed/maison-salon-a3/700/900" width="700" height="900" alt="Stylist Marit Larsen with a foil tray in hand." loading="lazy" />
+            <h3>Marit Larsen</h3>
+            <span class="role">Balayage &amp; blondes</span>
+            <p>Eight years in Oslo before joining Maison. Specialist in textured, sun-soft blondes.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="gallery">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Work, this season</span>
+          <h2>A few quiet things we did this month.</h2>
+        </div>
+        <div class="gallery-grid">
+          <img src="https://picsum.photos/seed/maison-salon-g1/600/800" width="600" height="800" alt="A copper, low-maintenance balayage on long hair." loading="lazy" />
+          <img class="tall" src="https://picsum.photos/seed/maison-salon-g2/600/1000" width="600" height="1000" alt="A blunt chin-length bob shot from the back." loading="lazy" />
+          <img src="https://picsum.photos/seed/maison-salon-g3/600/800" width="600" height="800" alt="Soft beige blonde balayage on shoulder-length hair." loading="lazy" />
+          <img src="https://picsum.photos/seed/maison-salon-g4/600/800" width="600" height="800" alt="A textured shag with curtain bangs." loading="lazy" />
+          <img class="tall" src="https://picsum.photos/seed/maison-salon-g5/600/1000" width="600" height="1000" alt="A glossy chestnut single-process color on a long bob." loading="lazy" />
+          <img src="https://picsum.photos/seed/maison-salon-g6/600/800" width="600" height="800" alt="A precise undercut and pixie cut on dark hair." loading="lazy" />
+          <img src="https://picsum.photos/seed/maison-salon-g7/600/800" width="600" height="800" alt="A face-framing money piece in honey blonde." loading="lazy" />
+          <img src="https://picsum.photos/seed/maison-salon-g8/600/800" width="600" height="800" alt="A bridal updo with hand-pressed curls." loading="lazy" />
+        </div>
+      </div>
+    </section>
+
+    <section class="quotes" id="quotes">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>What clients quietly say.</h2>
+        </div>
+        <div class="quotes-grid">
+          <div class="quote">
+            <p>"Camille is the only person I trust with my color. It looks like sun even in February."</p>
+            <div class="who">— Hannah K., client five years</div>
+          </div>
+          <div class="quote">
+            <p>"Idris cut my hair once and I haven't gone anywhere else since. He doesn't oversell, and he doesn't talk through the cut."</p>
+            <div class="who">— Daniel R., client two years</div>
+          </div>
+          <div class="quote">
+            <p>"You can hear the room. No music thumping, no fifteen blow-dryers. It feels like getting your hair done in someone's apartment, in the best way."</p>
+            <div class="who">— Lena F., client four years</div>
+          </div>
+          <div class="quote">
+            <p>"Marit took me from a box-dye disaster to a real, warm brunette across two appointments. Patient, honest pricing, beautiful work."</p>
+            <div class="who">— Adrian M., client one year</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="visit">
+      <div class="wrap">
+        <div class="visit-grid visit">
+          <img src="https://picsum.photos/seed/maison-salon-visit/900/1100" width="900" height="1100" alt="A quiet brownstone storefront with a small brass plaque reading Maison." loading="lazy" />
+          <div>
+            <span class="eyebrow">Visit</span>
+            <h2>A door under a green awning.</h2>
+            <p style="font-family:'Cormorant Garamond',serif; font-size:21px; color:var(--ink-2); margin:0;">We're a small parlor floor between Christopher and 10th. Ring the bell — we'll meet you at the stairs.</p>
+            <dl>
+              <dt>Address</dt><dd>62 Bedford St, New York NY</dd>
+              <dt>Hours</dt><dd>Tue–Sat · 10am — 7pm</dd>
+              <dt>Email</dt><dd>chair@maison.salon</dd>
+              <dt>Phone</dt><dd>(212) 555-0144</dd>
+            </dl>
+            <div style="margin-top:28px;"><a class="btn btn-primary" href="#">Request an appointment</a></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot">
+        <div class="copy">© 2026 Maison Salon · West Village, New York</div>
+        <div class="links">
+          <a href="#services">Services</a>
+          <a href="#artists">Artists</a>
+          <a href="#gallery">Gallery</a>
+          <a href="#visit">Visit</a>
+          <a href="#">Gift cards</a>
+        </div>
+        <div class="brand display" style="font-size:22px; letter-spacing:0.18em;">MAISON</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

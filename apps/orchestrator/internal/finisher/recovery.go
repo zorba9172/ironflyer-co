@@ -158,10 +158,12 @@ func (r *RecoveryEngine) Recover(
 
 		// ---- 2. ask the Coder via the registry router -----------------------
 		res, runErr := r.engine.registry.Run(ctx, agents.Task{
-			Role:    agents.RoleCoder,
-			Project: &proj,
-			Goal:    goal,
-			Issues:  failure.Issues,
+			Role:        agents.RoleCoder,
+			Project:     &proj,
+			Goal:        goal,
+			Issues:      failure.Issues,
+			UserBearer:  bearerFromCtx(ctx),
+			WorkspaceID: workspaceIDFromCtx(ctx),
 		})
 		if runErr != nil {
 			r.engine.emitProviderErr(projectID, StepRecovery, agents.RoleCoder, runErr)

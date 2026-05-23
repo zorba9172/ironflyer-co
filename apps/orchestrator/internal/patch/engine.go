@@ -5,6 +5,7 @@ package patch
 
 import (
 	"errors"
+	"strings"
 	"sync"
 	"time"
 
@@ -18,12 +19,28 @@ const (
 	OpCreate Op = "create"
 	OpUpdate Op = "update"
 	OpDelete Op = "delete"
+	// OpReplace is an anchor-based partial-file rewrite. The agent supplies
+	// an Anchor (a unique substring that already exists in the file) plus a
+	// Replacement that takes the anchor's place. The engine validates that
+	// the anchor occurs EXACTLY once before applying — anything else is a
+	// rejection, no line-number guessing. Compared to a unified diff this
+	// is robust to whitespace/line drift while still trimming the output
+	// budget by an order of magnitude on large files.
+	OpReplace Op = "replace"
+	// OpInsertAfter inserts new lines immediately after a unique anchor.
+	// Useful for adding routes, imports, exports without rewriting the
+	// whole file. Same uniqueness invariant as OpReplace.
+	OpInsertAfter Op = "insert_after"
 )
 
 type FileChange struct {
 	Op      Op     `json:"op"`
 	Path    string `json:"path"`
 	Content string `json:"content,omitempty"`
+	// Anchor + Replacement are used by OpReplace / OpInsertAfter. Ignored
+	// by OpCreate/Update/Delete.
+	Anchor      string `json:"anchor,omitempty"`
+	Replacement string `json:"replacement,omitempty"`
 }
 
 type Status string
@@ -55,6 +72,10 @@ type Engine struct {
 	patches   map[string]Patch
 	order     []string
 	snapshots *snapshotStore
+
+	onProposed   func(p Patch)
+	onApplied    func(p Patch)
+	onRolledBack func(p Patch, snapshotID string)
 }
 
 func NewEngine(projects store.Store) *Engine {
@@ -65,11 +86,36 @@ func NewEngine(projects store.Store) *Engine {
 	}
 }
 
+// WithOnProposed registers a callback invoked AFTER a patch is
+// successfully proposed (status == proposed). nil disables it.
+func (e *Engine) WithOnProposed(fn func(p Patch)) *Engine {
+	e.onProposed = fn
+	return e
+}
+
+// WithOnApplied registers a callback invoked AFTER a patch reaches
+// status == applied AND its files have been written into the project
+// store. Snapshot of the prior state has been captured by the time
+// this fires, so the callback can reference the rollback id.
+func (e *Engine) WithOnApplied(fn func(p Patch)) *Engine {
+	e.onApplied = fn
+	return e
+}
+
+// WithOnRolledBack registers a callback invoked AFTER a patch is
+// rolled back from `applied` state, with the snapshot id that was
+// used to restore the project. nil disables it.
+func (e *Engine) WithOnRolledBack(fn func(p Patch, snapshotID string)) *Engine {
+	e.onRolledBack = fn
+	return e
+}
+
 func (e *Engine) Propose(p Patch) (Patch, error) {
 	if p.ProjectID == "" {
 		return Patch{}, errors.New("projectId required")
 	}
-	if _, err := e.projects.Get(p.ProjectID); err != nil {
+	proj, err := e.projects.Get(p.ProjectID)
+	if err != nil {
 		return Patch{}, err
 	}
 	if p.ID == "" {
@@ -77,7 +123,13 @@ func (e *Engine) Propose(p Patch) (Patch, error) {
 	}
 	p.Status = StatusProposed
 	p.CreatedAt = time.Now().UTC()
-	if issues := e.Validate(p); len(issues) > 0 {
+	issues := e.Validate(p)
+	// Anchor checks are project-aware so they must run here, not in
+	// Validate (which is intentionally pure). Verify each OpReplace /
+	// OpInsertAfter anchor occurs exactly once in the target file. Less
+	// than one → "anchor not found"; more than one → ambiguous (refuse).
+	issues = append(issues, validateAnchors(&proj, p.Changes)...)
+	if len(issues) > 0 {
 		p.Issues = issues
 		p.Status = StatusRejected
 	} else {
@@ -86,7 +138,12 @@ func (e *Engine) Propose(p Patch) (Patch, error) {
 	e.mu.Lock()
 	e.patches[p.ID] = p
 	e.order = append(e.order, p.ID)
+	stored := e.patches[p.ID]
+	cb := e.onProposed
 	e.mu.Unlock()
+	if cb != nil {
+		cb(stored)
+	}
 	return p, nil
 }
 
@@ -108,6 +165,14 @@ func (e *Engine) Validate(p Patch) []domain.Issue {
 			}
 		case OpDelete:
 			// nothing
+		case OpReplace, OpInsertAfter:
+			if c.Anchor == "" {
+				issues = append(issues, domain.Issue{Severity: domain.SeverityError, Message: "anchor required for " + string(c.Op), Path: c.Path})
+			}
+			// Replacement may legitimately be empty for OpReplace ("delete
+			// this block") so we don't require it; the file existence /
+			// uniqueness check happens at apply time when we hold the
+			// current body.
 		default:
 			issues = append(issues, domain.Issue{Severity: domain.SeverityError, Message: "unknown op: " + string(c.Op), Path: c.Path})
 		}
@@ -161,7 +226,12 @@ func (e *Engine) Apply(id string) (Patch, error) {
 	p.AppliedAt = &now
 	e.mu.Lock()
 	e.patches[id] = p
+	applied := e.patches[id]
+	cb := e.onApplied
 	e.mu.Unlock()
+	if cb != nil {
+		cb(applied)
+	}
 	return p, nil
 }
 
@@ -188,6 +258,56 @@ func (e *Engine) Get(id string) (Patch, error) {
 	return p, nil
 }
 
+// validateAnchors enforces the OpReplace / OpInsertAfter contract: the file
+// must exist and the anchor must occur in it exactly once. We reject "found
+// 0" (the AI misremembered the source) AND "found N>1" (the substitution
+// would be ambiguous). The full-file ops (OpCreate/Update/Delete) are
+// ignored here — they are validated by the generic Validate pass.
+func validateAnchors(proj *domain.Project, changes []FileChange) []domain.Issue {
+	var issues []domain.Issue
+	for _, c := range changes {
+		if c.Op != OpReplace && c.Op != OpInsertAfter {
+			continue
+		}
+		var body string
+		var found bool
+		for _, f := range proj.Files {
+			if f.Path == c.Path {
+				body = f.Content
+				found = true
+				break
+			}
+		}
+		if !found {
+			issues = append(issues, domain.Issue{
+				Severity: domain.SeverityError,
+				Message:  "anchor target file does not exist",
+				Path:     c.Path,
+				Hint:     "either OpCreate the file first or use the actual path",
+			})
+			continue
+		}
+		count := strings.Count(body, c.Anchor)
+		switch {
+		case count == 0:
+			issues = append(issues, domain.Issue{
+				Severity: domain.SeverityError,
+				Message:  "anchor not found in file",
+				Path:     c.Path,
+				Hint:     "the anchor must be a verbatim substring of the current file body",
+			})
+		case count > 1:
+			issues = append(issues, domain.Issue{
+				Severity: domain.SeverityError,
+				Message:  "anchor matches more than once — would be ambiguous",
+				Path:     c.Path,
+				Hint:     "extend the anchor with surrounding context until it is unique",
+			})
+		}
+	}
+	return issues
+}
+
 func applyChange(p *domain.Project, c FileChange) {
 	switch c.Op {
 	case OpDelete:
@@ -209,6 +329,25 @@ func applyChange(p *domain.Project, c FileChange) {
 		p.Files = append(p.Files, domain.FileNode{
 			Path: c.Path, Type: "file", Content: c.Content, Size: len(c.Content),
 		})
+	case OpReplace, OpInsertAfter:
+		// Anchor-based partial rewrite. Find the file, locate the anchor,
+		// substitute. The Validate / pre-apply gate already guaranteed the
+		// anchor exists exactly once; this is a pure string substitution.
+		for i := range p.Files {
+			if p.Files[i].Path != c.Path {
+				continue
+			}
+			old := p.Files[i].Content
+			var updated string
+			if c.Op == OpReplace {
+				updated = strings.Replace(old, c.Anchor, c.Replacement, 1)
+			} else { // OpInsertAfter
+				updated = strings.Replace(old, c.Anchor, c.Anchor+c.Replacement, 1)
+			}
+			p.Files[i].Content = updated
+			p.Files[i].Size = len(updated)
+			return
+		}
 	}
 }
 

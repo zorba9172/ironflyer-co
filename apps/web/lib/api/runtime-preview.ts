@@ -21,6 +21,8 @@ interface RuntimeDetectedPort {
   lastSeen: string;
   previewPath: string;
   allowed: boolean;
+  healthy?: boolean;
+  latencyMs?: number;
 }
 
 interface RuntimePreviewToken {
@@ -37,6 +39,12 @@ export interface PortMapping {
   url?: string;
   source?: string;
   label?: string;
+  // Runtime liveness probe results (runtime polls each forwarded port on
+  // GET /ports). `healthy` undefined means the runtime did not probe (older
+  // runtime, or port not allowed). `latencyMs` is only populated on a
+  // successful probe.
+  healthy?: boolean;
+  latencyMs?: number;
 }
 
 export interface PortsResponse {
@@ -70,6 +78,8 @@ function normalisePort(p: RuntimeDetectedPort): PortMapping {
     ready: p.allowed,
     source: p.source,
     label: labelForPort(p.port),
+    healthy: p.healthy,
+    latencyMs: p.latencyMs,
   };
 }
 
@@ -97,6 +107,41 @@ export async function mintPreviewToken(
   });
   if (!res.ok) return null;
   return (await res.json()) as RuntimePreviewToken;
+}
+
+export interface RuntimeShareLink {
+  url: string;
+  path: string;
+  token: string;
+  expiresAt: string;
+  ttlHours: number;
+}
+
+/**
+ * Mint a long-lived share link the owner can hand to teammates. The token
+ * is bound to (workspace, port) and expires after `ttlHours` (default 7
+ * days, capped at 30 by the runtime).
+ */
+export async function mintShareLink(
+  workspaceId: string,
+  port: number,
+  ttlHours?: number,
+): Promise<RuntimeShareLink | null> {
+  const res = await fetch(`${base}/workspaces/${workspaceId}/share-link`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ port, ttlHours }),
+    cache: 'no-store',
+  });
+  if (!res.ok) return null;
+  const raw = (await res.json()) as RuntimeShareLink;
+  // Runtime returns the path part of the URL. Resolve to an absolute URL
+  // the user can paste into Slack: the proxy is the web app's own origin
+  // (Next rewrite forwards /api/runtime/preview/* to the runtime).
+  if (typeof window !== 'undefined' && raw.url.startsWith('/')) {
+    return { ...raw, url: window.location.origin + raw.url };
+  }
+  return raw;
 }
 
 // resolvePreviewURL picks the best preview URL for a workspace:

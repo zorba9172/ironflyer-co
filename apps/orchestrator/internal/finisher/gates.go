@@ -21,6 +21,25 @@ type GateEnv struct {
 	Runtime     *runtime.Client
 	WorkspaceID string
 	UserBearer  string
+	// Budget is an optional snapshot of the project's billing posture at the
+	// start of this gate iteration. Set by the Engine when a BudgetSource is
+	// wired; nil otherwise. The Budget gate is the primary consumer.
+	Budget *BudgetSnapshot
+}
+
+// BudgetSnapshot is the projected billing posture for a project at gate
+// evaluation time. CapUSD is the user's plan cap; SpentUSD is what has
+// already landed in the ledger for this project; RemainingUSD = CapUSD -
+// SpentUSD. HardStop mirrors the plan's HardStop flag — when true, an
+// overage MUST block deploy; when false, it warns only.
+type BudgetSnapshot struct {
+	CapUSD       float64
+	SpentUSD     float64
+	RemainingUSD float64
+	HardStop     bool
+	// Reason explains how the snapshot was produced. Used for issue text on
+	// the Budget gate, e.g. "no budget source configured".
+	Reason string
 }
 
 // HasRuntime is the nil-safe predicate gates call before reaching for Exec.
@@ -112,7 +131,7 @@ const (
 	designTokensPath = ".ironflyer/design_tokens.json"
 )
 
-func (UXGate) Check(_ context.Context, env *GateEnv) []domain.Issue {
+func (UXGate) Check(ctx context.Context, env *GateEnv) []domain.Issue {
 	p := env.Project
 	if len(p.Spec.UserStories) == 0 {
 		return []domain.Issue{{
@@ -217,7 +236,164 @@ func (UXGate) Check(_ context.Context, env *GateEnv) []domain.Issue {
 		}
 	}
 
+	// Pixel-perfect contract — when the project has VisualTargets we
+	// screenshot the live preview and refuse to pass the gate until the
+	// rendered output matches within tolerance. This is what turns
+	// Lovable's "Visual Edits" into a blocking gate: drift is no longer
+	// "show me the diff and hope I notice", it's "ship-blocking until
+	// you fix it".
+	issues = append(issues, visualTargetChecks(ctx, env)...)
+
 	return issues
+}
+
+// visualTargetChecks runs the per-VisualTarget diff against the live
+// preview. Returns one Issue per failing target, plus aggregated stats
+// in the Hint so the UI / Coder repair prompt sees the full picture
+// (diff ratio, mean color delta, perceptual hash distance, base64 diff
+// overlay).
+//
+// Best-effort: when the runtime is absent or no targets are configured,
+// we return zero issues so the gate degrades cleanly on dev/self-hosted
+// setups that don't have headless chromium wired.
+func visualTargetChecks(ctx context.Context, env *GateEnv) []domain.Issue {
+	if env == nil || env.Project == nil || len(env.Project.VisualTargets) == 0 {
+		return nil
+	}
+	if !env.HasRuntime() {
+		// No runtime → no screenshot → can't enforce.  Surface as a
+		// warning so the dashboard shows "visual contract pending" instead
+		// of silently passing.
+		return []domain.Issue{{
+			Gate: domain.GateUX, Severity: domain.SeverityWarning,
+			Message: "visual targets configured but runtime is unavailable — pixel-perfect gate is dark",
+			Hint:    "start a workspace and re-run; the live preview is required for screenshot diff",
+		}}
+	}
+	var issues []domain.Issue
+	for _, t := range env.Project.VisualTargets {
+		issues = append(issues, runOneVisualTarget(ctx, env, t)...)
+	}
+	return issues
+}
+
+// runOneVisualTarget captures the live preview matching the target's
+// viewport + route and runs CompareScreenshots. A Tolerance of 0 keeps
+// the default at 0.02 so the gate isn't a trip-wire on AA flicker.
+func runOneVisualTarget(ctx context.Context, env *GateEnv, target domain.VisualTarget) []domain.Issue {
+	tol := target.Tolerance
+	if tol <= 0 {
+		tol = 0.02
+	}
+	currentB64, err := captureLivePreview(ctx, env, target)
+	if err != nil {
+		return []domain.Issue{{
+			Gate: domain.GateUX, Severity: domain.SeverityWarning,
+			Message: "visual target '" + visualTargetLabel(target) + "': could not screenshot preview: " + err.Error(),
+			Hint:    "is the dev server running on a forwarded port? does the workspace include chromium-headless?",
+		}}
+	}
+	diff, err := CompareScreenshots(target.ImagePNGBase64, currentB64)
+	if err != nil {
+		return []domain.Issue{{
+			Gate: domain.GateUX, Severity: domain.SeverityError,
+			Message: "visual target '" + visualTargetLabel(target) + "': diff failed: " + err.Error(),
+		}}
+	}
+	if diff.DiffRatio <= tol && !diff.SizeMismatch {
+		return nil // matched within tolerance
+	}
+	// Encode a structured hint the Coder repair prompt can read.
+	hint := visualDiffHint(target, diff, tol)
+	return []domain.Issue{{
+		Gate: domain.GateUX, Severity: domain.SeverityError,
+		Message: "visual target '" + visualTargetLabel(target) + "' does not match preview within tolerance",
+		Hint:    hint,
+	}}
+}
+
+func visualTargetLabel(t domain.VisualTarget) string {
+	if t.Name != "" {
+		return t.Name
+	}
+	if t.RouteHint != "" {
+		return t.RouteHint
+	}
+	if t.ID != "" {
+		return t.ID
+	}
+	return "target"
+}
+
+// visualDiffHint returns a compact human + machine readable summary so
+// the repair Coder sees what changed without the full overlay bytes
+// drowning the prompt. The diff overlay itself is shipped to the Coder
+// as a vision attachment by the recovery loop, not via this hint.
+func visualDiffHint(t domain.VisualTarget, d VisualDiffResult, tol float64) string {
+	var b strings.Builder
+	b.WriteString("route=")
+	if t.RouteHint != "" {
+		b.WriteString(t.RouteHint)
+	} else {
+		b.WriteString("/")
+	}
+	if t.ViewportW > 0 && t.ViewportH > 0 {
+		b.WriteString(" viewport=")
+		b.WriteString(itoaPositive(t.ViewportW))
+		b.WriteString("x")
+		b.WriteString(itoaPositive(t.ViewportH))
+	}
+	if d.SizeMismatch {
+		b.WriteString(" size_mismatch=true")
+	}
+	b.WriteString(" diff_ratio=")
+	b.WriteString(formatRatio(d.DiffRatio))
+	b.WriteString(" tolerance=")
+	b.WriteString(formatRatio(tol))
+	b.WriteString(" mean_delta=")
+	b.WriteString(formatRatio(d.MeanColorDelta))
+	b.WriteString(" phash_distance=")
+	b.WriteString(itoaPositive(d.PerceptualHashDistance))
+	return b.String()
+}
+
+// formatRatio renders 0..1 as e.g. "0.034". Two-decimal precision is
+// enough for gate messages.
+func formatRatio(v float64) string {
+	if v < 0 {
+		v = 0
+	}
+	thousandths := int(v*1000 + 0.5)
+	whole := thousandths / 1000
+	frac := thousandths % 1000
+	s := itoaPositive(whole) + "."
+	if frac < 10 {
+		s += "00"
+	} else if frac < 100 {
+		s += "0"
+	}
+	s += itoaPositive(frac)
+	return s
+}
+
+// captureLivePreview shells into the workspace, finds the first running
+// preview port the gate-time HasRuntime() guard already validated, then
+// asks the runtime to screenshot route+viewport. The runtime endpoint
+// uses chromium-headless when available and falls back to a stub.
+func captureLivePreview(ctx context.Context, env *GateEnv, target domain.VisualTarget) (string, error) {
+	w := target.ViewportW
+	if w <= 0 {
+		w = 1280
+	}
+	h := target.ViewportH
+	if h <= 0 {
+		h = 800
+	}
+	route := target.RouteHint
+	if route == "" {
+		route = "/"
+	}
+	return env.Runtime.Screenshot(ctx, env.UserBearer, env.WorkspaceID, route, w, h)
 }
 
 // artifactForPath maps the legacy .ironflyer/<name>.json convention to the
@@ -583,6 +759,80 @@ func shellQuote(s string) string {
 	return "'" + strings.ReplaceAll(s, "'", `'\''`) + "'"
 }
 
+// BudgetGate enforces that a project's accumulated provider cost stays
+// within the user's plan cap. Unlike Code/Lint/Test/Security, no LLM repair
+// can fix an overspend — RepairAgent() returns "" so the engine marks the
+// gate blocked instead of looping a Coder. The gate runs after Security
+// and before Deploy: if a project burned through its cap during the
+// implementation passes, we refuse to ship it.
+type BudgetGate struct{}
+
+func (BudgetGate) Name() domain.GateName    { return domain.GateBudget }
+func (BudgetGate) RepairAgent() agents.Role { return "" }
+func (BudgetGate) Check(_ context.Context, env *GateEnv) []domain.Issue {
+	if env == nil || env.Budget == nil {
+		// Wiring degraded — emit a warning so the gate is visible in the UI
+		// without hard-failing self-hosted setups that haven't connected a
+		// vault. The gate still counts as "passed" (zero error-severity
+		// issues), so the loop progresses.
+		return []domain.Issue{{
+			Gate: domain.GateBudget, Severity: domain.SeverityWarning,
+			Message: "budget source not configured — spend tracking is dark",
+			Hint:    "wire a BudgetSource via Engine.WithBudgetSource at startup",
+		}}
+	}
+	b := env.Budget
+	var issues []domain.Issue
+	if b.CapUSD <= 0 {
+		issues = append(issues, domain.Issue{
+			Gate: domain.GateBudget, Severity: domain.SeverityWarning,
+			Message: "no cost cap configured for the active plan",
+			Hint:    "set plan.CostCapUSD so overspend protection has a ceiling to enforce",
+		})
+		return issues
+	}
+	if b.SpentUSD > b.CapUSD {
+		sev := domain.SeverityError
+		if !b.HardStop {
+			sev = domain.SeverityWarning
+		}
+		issues = append(issues, domain.Issue{
+			Gate: domain.GateBudget, Severity: sev,
+			Message: "provider cost exceeded the plan cap (spent $" +
+				formatUSD(b.SpentUSD) + " of $" + formatUSD(b.CapUSD) + ")",
+			Hint: "raise the plan tier, prune iterations, or split the project",
+		})
+		return issues
+	}
+	// Soft-warning threshold at 80% of cap so the dashboard can surface a
+	// yellow chip before the wall hits.
+	if b.SpentUSD > 0 && b.SpentUSD/b.CapUSD > 0.80 {
+		issues = append(issues, domain.Issue{
+			Gate: domain.GateBudget, Severity: domain.SeverityWarning,
+			Message: "approaching plan cap (spent $" +
+				formatUSD(b.SpentUSD) + " of $" + formatUSD(b.CapUSD) + ")",
+			Hint: "remaining iterations may push spend over budget",
+		})
+	}
+	return issues
+}
+
+// formatUSD renders a float as "12.34". Two decimals — we never report
+// fractions of a cent to users.
+func formatUSD(v float64) string {
+	if v < 0 {
+		v = 0
+	}
+	cents := int64(v*100 + 0.5)
+	dollars := cents / 100
+	hundredths := cents % 100
+	d := itoaPositive(int(dollars))
+	if hundredths < 10 {
+		return d + ".0" + itoaPositive(int(hundredths))
+	}
+	return d + "." + itoaPositive(int(hundredths))
+}
+
 type DeployGate struct{}
 
 func (DeployGate) Name() domain.GateName    { return domain.GateDeploy }
@@ -714,6 +964,6 @@ func DefaultGates() []Gate {
 	return []Gate{
 		SpecGate{}, UXGate{}, ArchGate{},
 		CodeGate{}, LintGate{}, TestGate{},
-		SecurityGate{}, DeployGate{},
+		SecurityGate{}, BudgetGate{}, DeployGate{},
 	}
 }

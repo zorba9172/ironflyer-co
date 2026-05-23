@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trail Lodge — A high-country lodge for hikers and climbers</title>
+  <meta name="description" content="Trail Lodge is a twenty-bunk mountain lodge above the Wind River Range. Wood-fired sauna, an honest dinner at 7, and a guide service that runs every ridge inside a forty-mile arc." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #2c2f24;
+      --bg-2: #353a2b;
+      --bg-3: #1e211a;
+      --paper: #ece3cf;
+      --fg: #ece3cf;
+      --fg-2: rgba(236, 227, 207, 0.72);
+      --fg-3: rgba(236, 227, 207, 0.45);
+      --accent: #c1832d;
+      --accent-2: #db9a3d;
+      --line: rgba(236, 227, 207, 0.14);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--fg); font-family: 'Inter', sans-serif; font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .display { font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.02em; }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
+
+    /* Nav */
+    .nav { padding: 22px 0; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: rgba(44, 47, 36, 0.96); backdrop-filter: blur(8px); z-index: 50; }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { font-family: 'Bebas Neue', sans-serif; font-size: 30px; letter-spacing: 0.08em; display: flex; align-items: center; gap: 12px; }
+    .brand-mark { width: 30px; height: 30px; background: var(--accent); display: grid; place-items: center; color: var(--bg); font-family: 'Inter', sans-serif; font-weight: 800; font-size: 14px; }
+    .nav-links { display: flex; gap: 28px; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--fg-2); font-weight: 700; }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta { display: flex; gap: 10px; align-items: center; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 13px 24px; font-weight: 700; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; cursor: pointer; border: 2px solid transparent; }
+    .btn-solid { background: var(--accent); color: var(--bg); }
+    .btn-solid:hover { background: var(--accent-2); }
+    .btn-line { color: var(--paper); border-color: var(--paper); }
+    .btn-line:hover { background: var(--paper); color: var(--bg); }
+    @media (max-width: 1080px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { position: relative; overflow: hidden; }
+    .hero-img { position: absolute; inset: 0; }
+    .hero-img img { width: 100%; height: 100%; object-fit: cover; }
+    .hero-img::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(44, 47, 36, 0.5) 0%, rgba(44, 47, 36, 0.3) 50%, rgba(44, 47, 36, 0.94) 100%); }
+    .hero-inner { position: relative; z-index: 2; padding: 96px 0 56px; min-height: 86vh; display: flex; flex-direction: column; justify-content: flex-end; }
+    .eyebrow { font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 0.32em; color: var(--accent); margin-bottom: 16px; }
+    h1 { font-family: 'Bebas Neue', sans-serif; font-weight: 400; font-size: clamp(72px, 13vw, 220px); line-height: 0.86; letter-spacing: 0.005em; margin: 0 0 24px; }
+    h1 small { font-family: 'Inter', sans-serif; font-weight: 400; display: block; font-size: 18px; letter-spacing: 0; line-height: 1.5; max-width: 560px; color: var(--fg-2); margin-top: 32px; text-transform: none; }
+    .hero-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; padding-top: 40px; border-top: 1px solid var(--line); }
+    .hero-stat .n { font-family: 'Bebas Neue', sans-serif; font-size: 56px; line-height: 1; }
+    .hero-stat .l { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--fg-3); margin-top: 6px; }
+    @media (max-width: 1080px) { .hero-stats { grid-template-columns: 1fr 1fr; gap: 24px; } }
+
+    /* Booking */
+    .book-section { padding: 56px 0; background: var(--bg-3); border-bottom: 1px solid var(--line); }
+    .book { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 0; align-items: stretch; background: var(--bg-2); border: 1px solid var(--line); }
+    .book-field { padding: 18px 28px; border-right: 1px solid var(--line); }
+    .book-field:last-of-type { border-right: none; }
+    .book-field label { display: block; font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--fg-3); margin-bottom: 6px; }
+    .book-field input, .book-field select { width: 100%; border: none; background: transparent; color: var(--paper); font-family: inherit; font-size: 15px; padding: 0; outline: none; }
+    .book button { background: var(--accent); color: var(--bg); border: none; padding: 0 36px; font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 0.16em; cursor: pointer; }
+    .book button:hover { background: var(--accent-2); }
+    @media (max-width: 1080px) {
+      .book { grid-template-columns: 1fr 1fr; }
+      .book-field { border-right: none; border-bottom: 1px solid var(--line); }
+      .book button { grid-column: 1 / -1; padding: 18px; }
+    }
+    @media (max-width: 720px) { .book { grid-template-columns: 1fr; } }
+
+    /* Sections */
+    .section { padding: 112px 0; border-top: 1px solid var(--line); }
+    h2 { font-family: 'Bebas Neue', sans-serif; font-weight: 400; font-size: clamp(48px, 7.4vw, 128px); line-height: 0.92; letter-spacing: 0.005em; margin: 0; }
+    h3 { font-family: 'Bebas Neue', sans-serif; font-weight: 400; letter-spacing: 0.02em; }
+    .section-head { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: end; margin-bottom: 64px; }
+    .section-head p { font-size: 17px; color: var(--fg-2); margin: 0; max-width: 520px; }
+    @media (max-width: 1080px) { .section-head { grid-template-columns: 1fr; gap: 16px; } }
+
+    /* Bunks / rooms */
+    .bunks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+    .bunk { background: var(--bg-2); border: 1px solid var(--line); display: flex; flex-direction: column; }
+    .bunk img { width: 100%; aspect-ratio: 4/3; object-fit: cover; }
+    .bunk-body { padding: 28px; flex: 1; display: flex; flex-direction: column; }
+    .bunk-meta { font-size: 11px; color: var(--fg-3); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 8px; }
+    .bunk h3 { margin: 0 0 12px; font-size: 38px; line-height: 1; }
+    .bunk p { color: var(--fg-2); font-size: 14px; margin: 0 0 20px; }
+    .bunk-foot { margin-top: auto; display: flex; justify-content: space-between; align-items: baseline; padding-top: 16px; border-top: 1px solid var(--line); }
+    .bunk-price { font-family: 'Bebas Neue', sans-serif; font-size: 36px; color: var(--accent); line-height: 1; }
+    .bunk-price span { font-family: 'Inter', sans-serif; font-size: 11px; color: var(--fg-3); letter-spacing: 0.1em; text-transform: uppercase; }
+    .bunk-foot a { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 700; }
+    .bunk-foot a:hover { color: var(--accent); }
+    @media (max-width: 1080px) { .bunks { grid-template-columns: 1fr; } }
+
+    /* Routes / trip days */
+    .routes { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .route { position: relative; background: var(--bg-2); border: 1px solid var(--line); overflow: hidden; display: grid; grid-template-columns: 0.8fr 1.2fr; min-height: 280px; }
+    .route img { width: 100%; height: 100%; object-fit: cover; }
+    .route-body { padding: 32px; display: flex; flex-direction: column; justify-content: space-between; }
+    .route-grade { display: inline-block; padding: 4px 10px; background: var(--accent); color: var(--bg); font-family: 'Bebas Neue', sans-serif; font-size: 13px; letter-spacing: 0.18em; align-self: start; }
+    .route h3 { margin: 14px 0 8px; font-size: 32px; line-height: 1; }
+    .route p { color: var(--fg-2); font-size: 14px; margin: 0; }
+    .route-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding-top: 16px; margin-top: 16px; border-top: 1px solid var(--line); }
+    .route-stats div .n { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--paper); }
+    .route-stats div .l { font-size: 10px; color: var(--fg-3); letter-spacing: 0.14em; text-transform: uppercase; }
+    @media (max-width: 1080px) { .routes { grid-template-columns: 1fr; } .route { grid-template-columns: 1fr; } .route img { aspect-ratio: 16/9; } }
+
+    /* Day in life */
+    .day { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+    .day img { width: 100%; aspect-ratio: 4/5; object-fit: cover; }
+    .day-list { list-style: none; padding: 0; margin: 32px 0 0; }
+    .day-list li { padding: 20px 0; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 100px 1fr; gap: 24px; align-items: baseline; }
+    .day-list .t { font-family: 'Bebas Neue', sans-serif; font-size: 30px; color: var(--accent); line-height: 1; }
+    .day-list h4 { margin: 0 0 4px; font-family: 'Bebas Neue', sans-serif; font-size: 22px; font-weight: 400; letter-spacing: 0.02em; }
+    .day-list p { margin: 0; font-size: 14px; color: var(--fg-2); }
+    @media (max-width: 1080px) { .day { grid-template-columns: 1fr; gap: 32px; } }
+
+    /* Testimonials */
+    .testi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .testi { background: var(--bg-2); padding: 32px; border: 1px solid var(--line); }
+    .testi .stars { color: var(--accent); letter-spacing: 0.2em; margin-bottom: 14px; font-size: 14px; }
+    .testi blockquote { margin: 0 0 18px; font-size: 16px; line-height: 1.55; }
+    .testi .who { font-size: 12px; color: var(--fg-3); letter-spacing: 0.1em; text-transform: uppercase; }
+    .testi .who b { color: var(--paper); font-weight: 700; }
+    @media (max-width: 1080px) { .testi-grid { grid-template-columns: 1fr; } }
+
+    /* CTA strip */
+    .cta { padding: 80px 56px; background: var(--accent); color: var(--bg); display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 32px; align-items: end; }
+    .cta h2 { color: var(--bg); }
+    .cta p { color: rgba(44, 47, 36, 0.8); margin: 0 0 16px; }
+    @media (max-width: 1080px) { .cta { grid-template-columns: 1fr; padding: 48px 32px; } }
+
+    /* Footer */
+    footer { padding: 80px 0 28px; }
+    .foot-grid { display: grid; grid-template-columns: 1.4fr repeat(3, 1fr); gap: 32px; }
+    .foot-col h4 { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 0.18em; color: var(--accent); margin: 0 0 14px; }
+    .foot-col a, .foot-col p { display: block; color: var(--fg-2); font-size: 13px; padding: 4px 0; margin: 0; }
+    .foot-col a:hover { color: var(--accent); }
+    .foot-bot { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; font-size: 12px; color: var(--fg-3); }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 8px; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a href="#" class="brand"><span class="brand-mark">T</span>TRAIL LODGE</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#bunks">Bunks</a>
+        <a href="#routes">Routes</a>
+        <a href="#day">A day here</a>
+        <a href="#guests">Guests</a>
+        <a href="#getting-here">Getting here</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-line" href="tel:+13075552840">+1 307 555 2840</a>
+        <a class="btn btn-solid" href="#book">Book a bunk</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-img"><img src="https://picsum.photos/seed/traillodge-1/2200/1500" width="2200" height="1500" alt="A rugged timber lodge below granite peaks with climbers walking up a trail toward it." loading="eager" /></div>
+      <div class="hero-inner">
+        <div class="wrap">
+          <div class="eyebrow">Wind River Range · Wyoming · 9,840 ft</div>
+          <h1>Up the trail.<br/>Boots off.<br/>Dinner at seven.<small>Twenty bunks, a wood-fired sauna, an honest kitchen, and a guide service that runs every ridge inside a forty-mile arc. Open May to October.</small></h1>
+          <div class="hero-stats">
+            <div class="hero-stat"><div class="n">20</div><div class="l">Bunks · 6 private rooms</div></div>
+            <div class="hero-stat"><div class="n">9,840</div><div class="l">Feet above sea level</div></div>
+            <div class="hero-stat"><div class="n">142</div><div class="l">Routes inside 40 mi</div></div>
+            <div class="hero-stat"><div class="n">7</div><div class="l">In-house mountain guides</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="book-section">
+      <div class="wrap">
+        <form class="book" id="book" onsubmit="event.preventDefault();" aria-label="Booking">
+          <div class="book-field"><label for="b-checkin">Arrive</label><input id="b-checkin" type="date" /></div>
+          <div class="book-field"><label for="b-checkout">Leave</label><input id="b-checkout" type="date" /></div>
+          <div class="book-field"><label for="b-bunks">Bunks</label><select id="b-bunks"><option>1 bunk</option><option>2 bunks</option><option>4 bunks</option><option>Private room (2)</option><option>Whole lodge (20)</option></select></div>
+          <div class="book-field"><label for="b-guide">Guide</label><select id="b-guide"><option>No guide</option><option>Half-day guided</option><option>Full-day guided</option><option>Multi-day expedition</option></select></div>
+          <button type="submit">Hold a bunk</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="section" id="bunks">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">SLEEPING</div>
+            <h2>BUNKS &<br/>PRIVATE ROOMS.</h2>
+          </div>
+          <p>Twenty beds across six private rooms and one shared bunkhouse. Every bed gets sheets, a wool blanket, and a window with a view. All rates include breakfast, a hot lunch packed in the morning, and a four-course family dinner at seven.</p>
+        </div>
+        <div class="bunks">
+          <article class="bunk">
+            <img src="https://picsum.photos/seed/traillodge-2/900/700" width="900" height="700" alt="Shared bunkhouse with timber-framed bunks and wool blankets." loading="lazy" />
+            <div class="bunk-body">
+              <div class="bunk-meta">Bunkhouse · 8 beds · shared bath</div>
+              <h3>The Bunkhouse</h3>
+              <p>The classic eight-bed room above the boot dryer. Solid wool blankets, lights out by ten, coffee on at six.</p>
+              <div class="bunk-foot"><div class="bunk-price">$185 <span>/ night · all meals</span></div><a href="#book">Book →</a></div>
+            </div>
+          </article>
+          <article class="bunk">
+            <img src="https://picsum.photos/seed/traillodge-3/900/700" width="900" height="700" alt="Two-person private room with a queen bed and a window onto granite." loading="lazy" />
+            <div class="bunk-body">
+              <div class="bunk-meta">Private · sleeps 2 · shared bath</div>
+              <h3>Climbers' Double</h3>
+              <p>Six of these, one bed, one window onto the granite. The closest you get to quiet on this mountain.</p>
+              <div class="bunk-foot"><div class="bunk-price">$365 <span>/ night · all meals</span></div><a href="#book">Book →</a></div>
+            </div>
+          </article>
+          <article class="bunk">
+            <img src="https://picsum.photos/seed/traillodge-4/900/700" width="900" height="700" alt="A family room with bunks above a queen bed and a wood-stove in the corner." loading="lazy" />
+            <div class="bunk-body">
+              <div class="bunk-meta">Private · sleeps 4 · ensuite</div>
+              <h3>The Foreman's Room</h3>
+              <p>A queen bed below, two bunks above, the only ensuite on the property, and a small wood-stove. Best for families.</p>
+              <div class="bunk-foot"><div class="bunk-price">$520 <span>/ night · all meals</span></div><a href="#book">Book →</a></div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="routes">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">From the door</div>
+            <h2>FOUR ROUTES<br/>WE LOVE.</h2>
+          </div>
+          <p>Hand-picked by our guides Sam, Aviva, Hoyt, and Reggie. All within a day on foot from the lodge. The grade tells you what you are in for; the time assumes you are reasonably fit and acclimatised.</p>
+        </div>
+        <div class="routes">
+          <article class="route">
+            <img src="https://picsum.photos/seed/traillodge-5/900/900" width="900" height="900" alt="Granite peak with a long ridge line and a climber walking up." loading="lazy" />
+            <div class="route-body">
+              <div>
+                <span class="route-grade">CLASS 3</span>
+                <h3>Wind Ridge Traverse</h3>
+                <p>The classic ridge above the lodge. Long approach, exposed scrambling, summit by lunch on a good day.</p>
+              </div>
+              <div class="route-stats">
+                <div><div class="n">14 mi</div><div class="l">Round trip</div></div>
+                <div><div class="n">4,200 ft</div><div class="l">Vert</div></div>
+                <div><div class="n">9–11 hr</div><div class="l">Day length</div></div>
+              </div>
+            </div>
+          </article>
+          <article class="route">
+            <img src="https://picsum.photos/seed/traillodge-6/900/900" width="900" height="900" alt="An alpine lake with a small island and steep granite walls behind." loading="lazy" />
+            <div class="route-body">
+              <div>
+                <span class="route-grade">CLASS 1</span>
+                <h3>Pine Lake Loop</h3>
+                <p>A rest-day stroll. Two alpine lakes, a wildflower meadow, and a swimming dock that the guides put in every June.</p>
+              </div>
+              <div class="route-stats">
+                <div><div class="n">6 mi</div><div class="l">Round trip</div></div>
+                <div><div class="n">800 ft</div><div class="l">Vert</div></div>
+                <div><div class="n">3–4 hr</div><div class="l">Day length</div></div>
+              </div>
+            </div>
+          </article>
+          <article class="route">
+            <img src="https://picsum.photos/seed/traillodge-7/900/900" width="900" height="900" alt="A climber on a sheer granite face with a rope and clean cracks." loading="lazy" />
+            <div class="route-body">
+              <div>
+                <span class="route-grade">5.9 TRAD</span>
+                <h3>Cathedral Buttress</h3>
+                <p>Eight pitches of clean splitter cracks on south-facing granite. Dry by 9 a.m. most days. Bring doubles to a number 4.</p>
+              </div>
+              <div class="route-stats">
+                <div><div class="n">8 P</div><div class="l">Pitches</div></div>
+                <div><div class="n">1,100 ft</div><div class="l">Wall height</div></div>
+                <div><div class="n">7–9 hr</div><div class="l">Car to car</div></div>
+              </div>
+            </div>
+          </article>
+          <article class="route">
+            <img src="https://picsum.photos/seed/traillodge-8/900/900" width="900" height="900" alt="A snowy couloir between two peaks with a climber roped at the bottom." loading="lazy" />
+            <div class="route-body">
+              <div>
+                <span class="route-grade">AI 2</span>
+                <h3>North Couloir</h3>
+                <p>A spring snow couloir best in late June. A guided objective for most teams. Crampons, axe, and a steady head.</p>
+              </div>
+              <div class="route-stats">
+                <div><div class="n">2,800 ft</div><div class="l">Couloir</div></div>
+                <div><div class="n">50°</div><div class="l">Max angle</div></div>
+                <div><div class="n">10–13 hr</div><div class="l">Car to car</div></div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="day">
+      <div class="wrap">
+        <div class="day">
+          <img src="https://picsum.photos/seed/traillodge-9/1100/1400" width="1100" height="1400" alt="A timber lodge dining hall with a long communal table and a wood-burning stove." loading="lazy" />
+          <div>
+            <div class="eyebrow">A day at the lodge</div>
+            <h2>FROM DAWN<br/>TO DOWN.</h2>
+            <p style="font-size: 17px; color: var(--fg-2); margin: 22px 0 0; max-width: 480px;">The lodge runs on the rhythm of the mountain, not the clock on the wall. This is the cadence most days settle into.</p>
+            <ul class="day-list">
+              <li><div class="t">05:30</div><div><h4>Coffee on</h4><p>The kitchen is open. Oats, eggs, three kinds of jam, and the weather report from the ranger.</p></div></li>
+              <li><div class="t">07:00</div><div><h4>Walk out</h4><p>Guided parties leave together. Lunch in the pack, beta on the table by the door.</p></div></li>
+              <li><div class="t">14:30</div><div><h4>Back at the porch</h4><p>Boots off, beer or kombucha on the deck, sauna fired up by Reggie around three.</p></div></li>
+              <li><div class="t">18:30</div><div><h4>A drink in the hall</h4><p>Cocktails in the library, fire lit, a rough debrief of the day with whoever climbed what.</p></div></li>
+              <li><div class="t">19:00</div><div><h4>Dinner at the long table</h4><p>Four courses, one menu, twenty seats. Cooked by Marcus, who used to run a smokehouse in Bozeman.</p></div></li>
+              <li><div class="t">22:00</div><div><h4>Lights out</h4><p>The generator goes off. Stars do not.</p></div></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="guests">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">GUESTS</div>
+            <h2>WHAT FOLKS<br/>SAID AFTER.</h2>
+          </div>
+          <p>Reviews verified through our booking system. 4.92 across 412 stays in the last twenty-four months. We do not pay for opinions.</p>
+        </div>
+        <div class="testi-grid">
+          <div class="testi"><div class="stars">★★★★★</div><blockquote>"Sam read my skill level inside of ten minutes and pointed me at exactly the right line. We summited Cathedral on a perfect June day. I left with a guide for life."</blockquote><div class="who"><b>Theo W.</b> · climbers' double · June 2025</div></div>
+          <div class="testi"><div class="stars">★★★★★</div><blockquote>"Marcus's elk stew on a cold night, after twelve hours on the ridge, was a religious experience. The sauna was the second one."</blockquote><div class="who"><b>Aviva P.</b> · bunkhouse · September 2025</div></div>
+          <div class="testi"><div class="stars">★★★★★</div><blockquote>"Three generations of my family at the long table, the kids learning knots from Hoyt, my dad telling lies about his trad rack. Booked next August."</blockquote><div class="who"><b>The McKee family</b> · whole lodge · July 2025</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="getting-here">
+      <div class="wrap">
+        <div class="cta">
+          <div>
+            <div class="eyebrow" style="color: var(--bg);">Getting here</div>
+            <h2>JACKSON HOLE,<br/>THEN UP THE TRAIL.</h2>
+          </div>
+          <div>
+            <p>Jackson Hole airport to the trailhead is two hours by car. From the trailhead it is a 3.2 mile walk in with a 1,400 foot gain. We send a mule team for your bag if you ask. Drop us a line a week ahead.</p>
+            <a class="btn" style="background: var(--bg); color: var(--accent); border: 2px solid var(--bg);" href="mailto:hello@traillodge.us">hello@traillodge.us</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <div class="brand"><span class="brand-mark">T</span>TRAIL LODGE</div>
+          <p style="margin-top: 14px; max-width: 280px;">A twenty-bunk lodge and guide service above the Wind River Range. Open May to October. AMGA-certified guides.</p>
+        </div>
+        <div class="foot-col"><h4>STAY</h4><a href="#bunks">Bunks & rooms</a><a href="#book">Book</a><a href="#">Whole-lodge buyouts</a><a href="#">Gift nights</a></div>
+        <div class="foot-col"><h4>GUIDED</h4><a href="#routes">Routes</a><a href="#">Half-day rates</a><a href="#">Multi-day</a><a href="#">Avalanche courses</a></div>
+        <div class="foot-col"><h4>CONTACT</h4><a href="tel:+13075552840">+1 307 555 2840</a><a href="mailto:hello@traillodge.us">hello@traillodge.us</a><a href="#getting-here">Getting here</a></div>
+      </div>
+      <div class="foot-bot"><span>© 2026 Trail Lodge LLC · Pinedale · Wyoming</span><span>20 bunks · 7 guides · 142 routes</span></div>
+    </div>
+  </footer>
+</body>
+</html>

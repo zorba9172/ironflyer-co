@@ -80,16 +80,16 @@ export function EditorPane({ workspace, selectedFile }: Props) {
   if (!workspace) {
     return (
       <EmptyEditor
-        title="אין סביבת ריצה"
-        body="הריצו את ה־Finisher כדי להפעיל סביבה ולערוך קבצים בלייב."
+        title="No runtime"
+        body="Run the Finisher to start a workspace and edit files live."
       />
     );
   }
   if (!selectedFile) {
     return (
       <EmptyEditor
-        title="בחרו קובץ מהעץ"
-        body="לחיצה על קובץ ברשימה משמאל תפתח אותו כאן בעורך מלא."
+        title="Choose a file from the tree"
+        body="Select a file from the left rail to open it in the editor."
       />
     );
   }
@@ -113,7 +113,7 @@ export function EditorPane({ workspace, selectedFile }: Props) {
             </Box>
           )}
         </Typography>
-        <Tooltip title={dirty ? 'שמירה לסביבת הריצה' : 'אין שינויים'}>
+        <Tooltip title={dirty ? 'Save to runtime workspace' : 'No changes'}>
           <span>
             <Button
               startIcon={<Save fontSize="small" />}
@@ -122,7 +122,7 @@ export function EditorPane({ workspace, selectedFile }: Props) {
               onClick={save}
               sx={{ borderRadius: '10px' }}
             >
-              {saving ? 'שומר…' : 'שמירה'}
+              {saving ? 'Saving...' : 'Save'}
             </Button>
           </span>
         </Tooltip>
@@ -139,7 +139,7 @@ export function EditorPane({ workspace, selectedFile }: Props) {
         ) : error ? (
           <Box sx={{ p: 2 }}>
             <Typography variant="body2" sx={{ color: tokens.color.accent.danger, fontWeight: 700 }}>
-              לא הצלחנו לטעון את הקובץ
+              We could not load the file
             </Typography>
             <Typography variant="caption" color="text.secondary">{error}</Typography>
           </Box>

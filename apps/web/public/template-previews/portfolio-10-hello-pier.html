@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hello, Pier — Indie hacker, full-stack engineer</title>
+  <meta name="description" content="Pier Marcucci is a full-stack engineer and indie hacker building small bets. Products, side projects, and a public log of what's shipping." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Caveat:wght@500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #1d1d1a;
+      --bg-2: #26261f;
+      --bg-3: #2f2f27;
+      --rule: rgba(243, 239, 230, 0.10);
+      --rule-strong: rgba(243, 239, 230, 0.22);
+      --fg: #f3efe6;
+      --fg-2: #b4afa4;
+      --fg-3: #7c786f;
+      --yellow: #ffd400;
+      --yellow-deep: #d9b300;
+      --green: #6ce28a;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Geist', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      font-size: 16px; line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
+    .mono { font-family: 'Geist Mono', ui-monospace, monospace; }
+    .hand { font-family: 'Caveat', cursive; color: var(--yellow); }
+
+    /* Nav */
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(29, 29, 26, 0.86);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--rule);
+    }
+    .nav-inner { display: flex; justify-content: space-between; align-items: center; height: 64px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; }
+    .brand .mark {
+      width: 28px; height: 28px;
+      background: var(--yellow); color: var(--bg);
+      border-radius: 8px; display: grid; place-items: center;
+      font-weight: 700; font-size: 14px;
+    }
+    .brand .wave { font-family: 'Caveat', cursive; color: var(--yellow); font-size: 20px; margin-left: 4px; }
+    .nav-links { display: flex; gap: 24px; font-size: 14px; color: var(--fg-2); }
+    .nav-links a:hover { color: var(--yellow); }
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 10px; border-radius: 999px;
+      background: var(--bg-2); border: 1px solid var(--rule); color: var(--fg-2);
+      font-family: 'Geist Mono', monospace; font-size: 12px;
+    }
+    .badge::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 88px 0 64px; position: relative; }
+    .hello {
+      font-family: 'Caveat', cursive; font-size: 36px; color: var(--yellow);
+      transform: rotate(-2deg); display: inline-block; margin-bottom: 4px;
+    }
+    h1 {
+      font-family: 'Geist', sans-serif;
+      font-size: clamp(48px, 7vw, 88px);
+      line-height: 1.02; letter-spacing: -0.028em; font-weight: 700;
+      margin: 12px 0 24px;
+    }
+    h1 .yellow { color: var(--yellow); }
+    h1 .underline {
+      position: relative; display: inline-block;
+    }
+    h1 .underline::after {
+      content: ''; position: absolute; left: -2%; right: -2%; bottom: 4px; height: 12px;
+      background: var(--yellow); opacity: 0.35; z-index: -1; transform: skewX(-6deg);
+    }
+    .hero-lede {
+      font-size: 19px; color: var(--fg-2); line-height: 1.55; max-width: 60ch;
+    }
+    .hero-lede strong { color: var(--fg); font-weight: 600; }
+    .hero-cta { margin-top: 28px; display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      height: 42px; padding: 0 18px;
+      border-radius: 10px; font-size: 14px; font-weight: 500;
+      border: 1px solid transparent; cursor: pointer;
+      transition: transform 180ms cubic-bezier(0.22,1,0.36,1);
+    }
+    .btn.primary { background: var(--yellow); color: var(--bg); }
+    .btn.primary:hover { transform: translateY(-2px); }
+    .btn.ghost { background: transparent; color: var(--fg); border-color: var(--rule-strong); }
+    .btn.ghost:hover { border-color: var(--yellow); color: var(--yellow); }
+
+    .hero-grid {
+      display: grid; grid-template-columns: 1.4fr 1fr; gap: 48px; align-items: center;
+    }
+    .hero-card {
+      background: var(--bg-2); border: 1px solid var(--rule);
+      border-radius: 16px; padding: 24px;
+    }
+    .hero-card h3 { font-size: 14px; color: var(--fg-3); margin: 0 0 14px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; }
+    .ship-list { display: flex; flex-direction: column; gap: 12px; }
+    .ship {
+      display: flex; align-items: center; gap: 12px;
+      padding-bottom: 12px; border-bottom: 1px dashed var(--rule);
+    }
+    .ship:last-child { border-bottom: none; padding-bottom: 0; }
+    .ship .dot { width: 8px; height: 8px; background: var(--yellow); border-radius: 50%; flex-shrink: 0; }
+    .ship .body { flex: 1; }
+    .ship .body .t { font-size: 14px; color: var(--fg); font-weight: 500; }
+    .ship .body .s { font-size: 12px; color: var(--fg-3); font-family: 'Geist Mono', monospace; margin-top: 2px; }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; } }
+
+    /* Section */
+    .section { padding: 88px 0; border-top: 1px solid var(--rule); }
+    .section-head {
+      display: flex; justify-content: space-between; align-items: end; gap: 24px; flex-wrap: wrap;
+      margin-bottom: 40px;
+    }
+    .section h2 {
+      font-family: 'Geist', sans-serif;
+      font-size: clamp(28px, 3.8vw, 44px);
+      letter-spacing: -0.02em; line-height: 1.05; margin: 0; font-weight: 700;
+    }
+    .section h2 .yellow { color: var(--yellow); }
+    .section-head .right { font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--fg-3); }
+    .section-head p { color: var(--fg-2); margin: 8px 0 0; font-size: 16px; max-width: 56ch; }
+
+    /* Products */
+    .products { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .product {
+      background: var(--bg-2); border: 1px solid var(--rule);
+      border-radius: 18px; padding: 28px;
+      display: flex; flex-direction: column; gap: 14px;
+      transition: border-color 200ms, transform 200ms cubic-bezier(0.22,1,0.36,1);
+      position: relative; overflow: hidden;
+    }
+    .product:hover { border-color: var(--yellow); transform: translateY(-2px); }
+    .product-head { display: flex; align-items: center; gap: 12px; }
+    .product-logo {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: var(--yellow); color: var(--bg);
+      display: grid; place-items: center; font-weight: 700; font-size: 18px;
+      font-family: 'Geist', sans-serif;
+    }
+    .product-name { font-family: 'Geist', sans-serif; font-size: 20px; font-weight: 700; letter-spacing: -0.01em; margin: 0; }
+    .product-sub { font-size: 13px; color: var(--fg-3); font-family: 'Geist Mono', monospace; }
+    .product-desc { color: var(--fg-2); font-size: 15px; margin: 0; flex: 1; }
+    .product-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; padding-top: 14px; border-top: 1px dashed var(--rule); }
+    .product-stat .n { font-family: 'Geist Mono', monospace; font-size: 18px; color: var(--yellow); font-weight: 500; }
+    .product-stat .l { font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.1em; }
+    .product-link {
+      font-size: 13px; color: var(--yellow); font-family: 'Geist Mono', monospace;
+      display: inline-flex; gap: 6px; align-items: center;
+    }
+    @media (max-width: 1080px) { .products { grid-template-columns: 1fr; } }
+
+    /* Side projects */
+    .side { display: grid; grid-template-columns: 1fr; }
+    .side-row {
+      display: grid; grid-template-columns: 60px 1fr 1fr 100px; gap: 24px;
+      padding: 18px 0; border-top: 1px solid var(--rule);
+      align-items: baseline; font-size: 14px;
+    }
+    .side-row:hover { background: var(--bg-2); padding-left: 8px; padding-right: 8px; }
+    .side-row .yr { font-family: 'Geist Mono', monospace; color: var(--fg-3); }
+    .side-row .t { font-weight: 500; }
+    .side-row .t::after { content: ' →'; color: var(--fg-3); }
+    .side-row .d { color: var(--fg-2); }
+    .side-row .s {
+      font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--fg-3);
+      text-transform: uppercase; letter-spacing: 0.1em; text-align: right;
+    }
+    .side-row .s.alive { color: var(--green); }
+    .side-row .s.dead { color: var(--fg-3); text-decoration: line-through; }
+    @media (max-width: 720px) {
+      .side-row { grid-template-columns: 50px 1fr; }
+      .side-row .d, .side-row .s { display: none; }
+    }
+
+    /* Now */
+    .now-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; }
+    .now-card {
+      background: var(--bg-2); border: 1px solid var(--rule);
+      border-radius: 16px; padding: 28px;
+    }
+    .now-card h3 {
+      font-family: 'Caveat', cursive; color: var(--yellow);
+      font-size: 28px; margin: 0 0 8px; transform: rotate(-1deg); display: inline-block;
+    }
+    .now-card .updated {
+      font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--fg-3);
+      margin-left: 8px;
+    }
+    .now-card p { color: var(--fg-2); margin: 8px 0; font-size: 16px; }
+    .now-card p strong { color: var(--fg); font-weight: 600; }
+    .now-card ul { list-style: none; padding: 0; margin: 12px 0 0; }
+    .now-card li { padding: 4px 0; color: var(--fg-2); font-size: 14px; }
+    .now-card li::before { content: '— '; color: var(--yellow); }
+    @media (max-width: 1080px) { .now-grid { grid-template-columns: 1fr; } }
+
+    /* Writing */
+    .writing { display: grid; grid-template-columns: 1fr; }
+    .post {
+      display: grid; grid-template-columns: 100px 1fr 80px; gap: 24px;
+      padding: 18px 0; border-top: 1px solid var(--rule);
+      align-items: baseline; font-size: 15px;
+    }
+    .post:hover .t { color: var(--yellow); }
+    .post .d { font-family: 'Geist Mono', monospace; color: var(--fg-3); font-size: 13px; }
+    .post .t { color: var(--fg); font-weight: 500; }
+    .post .m { font-family: 'Geist Mono', monospace; color: var(--fg-3); font-size: 12px; text-align: right; }
+    @media (max-width: 720px) {
+      .post { grid-template-columns: 1fr; gap: 4px; }
+      .post .m { text-align: left; }
+    }
+
+    /* Stats band */
+    .stats-band {
+      padding: 56px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+      background: var(--bg-2);
+    }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; align-items: center; }
+    .stat { text-align: center; }
+    .stat .n {
+      font-family: 'Geist', sans-serif; font-size: clamp(32px, 5vw, 52px);
+      font-weight: 700; letter-spacing: -0.03em; color: var(--yellow); line-height: 1;
+    }
+    .stat .l {
+      font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--fg-2);
+      text-transform: uppercase; letter-spacing: 0.12em; margin-top: 10px;
+    }
+    @media (max-width: 720px) { .stats-grid { grid-template-columns: 1fr 1fr; gap: 32px; } }
+
+    /* Uses */
+    .uses { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .uses-col {
+      background: var(--bg-2); border: 1px solid var(--rule);
+      border-radius: 16px; padding: 24px;
+    }
+    .uses-col h3 {
+      font-family: 'Caveat', cursive; color: var(--yellow); font-size: 26px;
+      margin: 0 0 10px; transform: rotate(-1deg); display: inline-block;
+    }
+    .uses-col ul { list-style: none; padding: 0; margin: 0; }
+    .uses-col li {
+      display: flex; justify-content: space-between; gap: 12px;
+      padding: 8px 0; border-top: 1px dashed var(--rule);
+      font-size: 14px; color: var(--fg-2);
+    }
+    .uses-col li:first-child { border-top: none; }
+    .uses-col li span:last-child { color: var(--fg-3); font-family: 'Geist Mono', monospace; font-size: 12px; }
+    @media (max-width: 1080px) { .uses { grid-template-columns: 1fr; } }
+
+    /* Contact */
+    .contact {
+      padding: 96px 0; border-top: 1px solid var(--rule);
+    }
+    .contact-card {
+      background: var(--yellow); color: var(--bg); border-radius: 24px;
+      padding: 56px 48px;
+      display: grid; grid-template-columns: 1.4fr 1fr; gap: 48px; align-items: center;
+    }
+    .contact-card h2 {
+      font-family: 'Geist', sans-serif; font-size: clamp(36px, 5vw, 56px);
+      margin: 0 0 12px; letter-spacing: -0.025em; line-height: 1.02; color: var(--bg); font-weight: 700;
+    }
+    .contact-card p { margin: 0; color: rgba(29, 29, 26, 0.8); font-size: 17px; }
+    .contact-card .email {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--bg); color: var(--yellow); padding: 16px 22px;
+      border-radius: 12px; font-weight: 600; font-size: 16px;
+      font-family: 'Geist Mono', monospace;
+    }
+    .contact-card .wave-hand {
+      font-family: 'Caveat', cursive; font-size: 32px; color: var(--bg); display: block;
+      margin-top: 16px; transform: rotate(-1deg);
+    }
+    @media (max-width: 1080px) {
+      .contact-card { grid-template-columns: 1fr; padding: 40px 28px; }
+    }
+
+    /* Footer */
+    footer { padding: 40px 0; }
+    .foot {
+      display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+      color: var(--fg-3); font-size: 13px; font-family: 'Geist Mono', monospace;
+    }
+    .foot a:hover { color: var(--yellow); }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">
+        <span class="mark">P</span>
+        Pier<span class="wave">~</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#products">Products</a>
+        <a href="#side">Side projects</a>
+        <a href="#writing">Writing</a>
+        <a href="#now">Now</a>
+        <a href="#uses">Uses</a>
+      </nav>
+      <div class="nav-right">
+        <span class="badge">Shipping</span>
+        <a class="btn primary" href="#contact" style="height:36px;padding:0 14px;font-size:13px;">Say hi →</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="hello">Ciao — I'm Pier.</span>
+            <h1>I build <span class="underline">small bets</span> and ship them <span class="yellow">on Fridays</span>.</h1>
+            <p class="hero-lede">I'm a full-stack engineer turned indie hacker. I run <strong>three small SaaS products</strong>, hack on a few weird side projects, and write about all of it in public. Currently in Bologna, often in Lisbon, always behind on email.</p>
+            <div class="hero-cta">
+              <a class="btn primary" href="#products">See the products →</a>
+              <a class="btn ghost" href="#writing">Read the blog</a>
+            </div>
+          </div>
+          <div class="hero-card">
+            <h3>Latest ships</h3>
+            <div class="ship-list">
+              <div class="ship"><span class="dot"></span><div class="body"><div class="t">Tinypost — new team plan + RLS</div><div class="s">2h ago · v3.14 · 412 LOC</div></div></div>
+              <div class="ship"><span class="dot"></span><div class="body"><div class="t">Quietmail — bounces dashboard</div><div class="s">Yesterday · v1.22</div></div></div>
+              <div class="ship"><span class="dot"></span><div class="body"><div class="t">Blog post — "Three years of one-person SaaS"</div><div class="s">May 14 · 18 min read</div></div></div>
+              <div class="ship"><span class="dot"></span><div class="body"><div class="t">Sidecar — Mac app, public beta</div><div class="s">May 8 · TestFlight</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="products">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <h2>The <span class="yellow">products</span> I run.</h2>
+            <p>Three small businesses, all profitable, all built by me. Numbers are honest; I update this page on the first of every month.</p>
+          </div>
+          <span class="right">// updated 2026-05-01</span>
+        </div>
+
+        <div class="products">
+          <article class="product">
+            <div class="product-head">
+              <div class="product-logo">T</div>
+              <div>
+                <h3 class="product-name">Tinypost</h3>
+                <div class="product-sub">tinypost.app · Since 2022</div>
+              </div>
+            </div>
+            <p class="product-desc">A friendly little blogging tool for people who want a domain, a feed, and a writing space, without becoming a CMS sysadmin. Markdown in, RSS out.</p>
+            <div class="product-stats">
+              <div class="product-stat"><div class="n">$8.2k</div><div class="l">MRR</div></div>
+              <div class="product-stat"><div class="n">1,432</div><div class="l">paying</div></div>
+              <div class="product-stat"><div class="n">99.98%</div><div class="l">uptime</div></div>
+            </div>
+            <a class="product-link" href="#">tinypost.app →</a>
+          </article>
+
+          <article class="product">
+            <div class="product-head">
+              <div class="product-logo">Q</div>
+              <div>
+                <h3 class="product-name">Quietmail</h3>
+                <div class="product-sub">quietmail.io · Since 2023</div>
+              </div>
+            </div>
+            <p class="product-desc">Transactional email for small SaaS that doesn't want a six-figure quote. Postgres-backed, OpenAPI-first, no AI summary of your customer's password reset.</p>
+            <div class="product-stats">
+              <div class="product-stat"><div class="n">$5.6k</div><div class="l">MRR</div></div>
+              <div class="product-stat"><div class="n">214</div><div class="l">teams</div></div>
+              <div class="product-stat"><div class="n">99.99%</div><div class="l">delivery</div></div>
+            </div>
+            <a class="product-link" href="#">quietmail.io →</a>
+          </article>
+
+          <article class="product">
+            <div class="product-head">
+              <div class="product-logo">S</div>
+              <div>
+                <h3 class="product-name">Sidecar</h3>
+                <div class="product-sub">sidecar.coffee · Since 2024</div>
+              </div>
+            </div>
+            <p class="product-desc">A tiny Mac app that sits next to your editor and runs the small tasks you keep forgetting — backups, snapshots, daily standups, the cron jobs you wish you'd never written.</p>
+            <div class="product-stats">
+              <div class="product-stat"><div class="n">$2.1k</div><div class="l">MRR</div></div>
+              <div class="product-stat"><div class="n">486</div><div class="l">licenses</div></div>
+              <div class="product-stat"><div class="n">v0.9</div><div class="l">public beta</div></div>
+            </div>
+            <a class="product-link" href="#">sidecar.coffee →</a>
+          </article>
+
+          <article class="product">
+            <div class="product-head">
+              <div class="product-logo">F</div>
+              <div>
+                <h3 class="product-name">Field Notes</h3>
+                <div class="product-sub">notes.hellopier.com · Since 2021</div>
+              </div>
+            </div>
+            <p class="product-desc">My free newsletter on building one-person software businesses. Once a week, on Sundays, with the weekly numbers I actually track.</p>
+            <div class="product-stats">
+              <div class="product-stat"><div class="n">14,217</div><div class="l">subscribers</div></div>
+              <div class="product-stat"><div class="n">62%</div><div class="l">open rate</div></div>
+              <div class="product-stat"><div class="n">$0</div><div class="l">monetised</div></div>
+            </div>
+            <a class="product-link" href="#">notes.hellopier.com →</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="side">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <h2>Side <span class="yellow">projects</span> &amp; experiments.</h2>
+            <p>Small things I built in a weekend. Most died, some shipped, all taught me something.</p>
+          </div>
+          <span class="right">// 41 total · 8 alive</span>
+        </div>
+
+        <div class="side">
+          <a class="side-row" href="#"><span class="yr">2026</span><span class="t">esp32-checkin</span><span class="d">A wifi button that posts to my standup channel</span><span class="s alive">alive</span></a>
+          <a class="side-row" href="#"><span class="yr">2025</span><span class="t">slowsearch</span><span class="d">A search engine for personal RSS archives</span><span class="s alive">alive</span></a>
+          <a class="side-row" href="#"><span class="yr">2025</span><span class="t">cron-postcards</span><span class="d">A Mac app that snail-mails you a postcard every Friday</span><span class="s alive">alive</span></a>
+          <a class="side-row" href="#"><span class="yr">2024</span><span class="t">cofounder-bot</span><span class="d">A standup partner that doesn't take equity</span><span class="s dead">retired</span></a>
+          <a class="side-row" href="#"><span class="yr">2024</span><span class="t">mocha.fm</span><span class="d">A web radio of audio essays I wanted to hear</span><span class="s alive">alive</span></a>
+          <a class="side-row" href="#"><span class="yr">2023</span><span class="t">latency-postcard</span><span class="d">A toy that pings 47 cities and prints a postcard map</span><span class="s alive">alive</span></a>
+          <a class="side-row" href="#"><span class="yr">2023</span><span class="t">readme-fixer</span><span class="d">A CLI that opens a PR with the README you'd write at 10am</span><span class="s dead">retired</span></a>
+          <a class="side-row" href="#"><span class="yr">2022</span><span class="t">brew-thursdays</span><span class="d">A weekly digest of brew packages I actually used</span><span class="s alive">alive</span></a>
+          <a class="side-row" href="#"><span class="yr">2022</span><span class="t">tinypost</span><span class="d">The weekend project that became my main income</span><span class="s alive">alive</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="now">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <h2><span class="yellow">/now</span> — what I'm doing this week.</h2>
+            <p>An honest, frequently-updated answer to "what are you working on right now". <a href="#" style="text-decoration: underline; text-underline-offset: 4px; text-decoration-color: var(--yellow);">/now movement</a>.</p>
+          </div>
+          <span class="right">// pushed 2026-05-19</span>
+        </div>
+
+        <div class="now-grid">
+          <div class="now-card">
+            <h3>This week</h3><span class="updated">— week 21 of 52</span>
+            <p>Shipping the team plan on <strong>Tinypost</strong>. Postgres RLS migration is live; auth flows for org invites land Wednesday. Targeting $9k MRR by end of June.</p>
+            <p>Drafting an essay on the actual cost of building in public, which has taken me three years to learn and four weeks to write down.</p>
+            <ul>
+              <li>Daily Loom for paying customers (week 4)</li>
+              <li>One support session at 10:00 CET</li>
+              <li>One walking phone call every afternoon</li>
+              <li>Lifting on Tue/Thu, espresso always</li>
+            </ul>
+          </div>
+          <div class="now-card">
+            <h3>Reading</h3>
+            <p><em>Working in Public</em> by Nadia Eghbal (third time).</p>
+            <p><em>The Mom Test</em>, twice a year, every year.</p>
+            <p>Slowly through the <em>Lindy newsletter</em> archive.</p>
+            <h3 style="margin-top:18px;">Not doing</h3>
+            <p>No new SaaS this year. No paid speaking. Cohort 2 of the indie cohort is closed; no waitlist.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="writing">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <h2>Things I've <span class="yellow">written</span>.</h2>
+            <p>One essay every other Sunday. Mostly about running a small SaaS and the small-business side of being an engineer.</p>
+          </div>
+          <a class="right" href="#">All 84 posts →</a>
+        </div>
+
+        <div class="writing">
+          <a class="post" href="#"><span class="d">2026-05-14</span><span class="t">Three years of one-person SaaS, in numbers</span><span class="m">18 min</span></a>
+          <a class="post" href="#"><span class="d">2026-04-22</span><span class="t">Why I stopped tracking churn weekly</span><span class="m">9 min</span></a>
+          <a class="post" href="#"><span class="d">2026-03-30</span><span class="t">The Postgres RLS pattern I keep coming back to</span><span class="m">14 min</span></a>
+          <a class="post" href="#"><span class="d">2026-02-11</span><span class="t">A small case for boring marketing</span><span class="m">7 min</span></a>
+          <a class="post" href="#"><span class="d">2026-01-04</span><span class="t">Annual review: 2025 in two pages</span><span class="m">12 min</span></a>
+          <a class="post" href="#"><span class="d">2025-11-19</span><span class="t">The one-person SaaS support ladder</span><span class="m">11 min</span></a>
+          <a class="post" href="#"><span class="d">2025-09-02</span><span class="t">Pricing Tinypost — what I got wrong twice</span><span class="m">16 min</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats-band">
+      <div class="wrap">
+        <div class="stats-grid">
+          <div class="stat"><div class="n">$15.9k</div><div class="l">monthly recurring</div></div>
+          <div class="stat"><div class="n">2,132</div><div class="l">paying customers</div></div>
+          <div class="stat"><div class="n">84</div><div class="l">essays published</div></div>
+          <div class="stat"><div class="n">1</div><div class="l">founder, still</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="uses">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <h2><span class="yellow">/uses</span> — the stuff I actually use.</h2>
+            <p>An honest list. Updated when something changes, not on a schedule.</p>
+          </div>
+          <span class="right">// no affiliate links, ever</span>
+        </div>
+
+        <div class="uses">
+          <div class="uses-col">
+            <h3>desk</h3>
+            <ul>
+              <li><span>14" MacBook Pro M3</span><span>2024</span></li>
+              <li><span>Studio Display</span><span>27"</span></li>
+              <li><span>HHKB Pro Hybrid</span><span>Type-S</span></li>
+              <li><span>MX Master 3S</span><span>since 2022</span></li>
+              <li><span>One Apple Magic Trackpad</span><span>always</span></li>
+            </ul>
+          </div>
+          <div class="uses-col">
+            <h3>stack</h3>
+            <ul>
+              <li><span>Go for the backends</span><span>chi · sqlc</span></li>
+              <li><span>SvelteKit for the apps</span><span>+ Tailwind</span></li>
+              <li><span>Postgres, Fly.io, S3</span><span>boring is good</span></li>
+              <li><span>Resend for outbound mail</span><span>quietmail for transactional</span></li>
+              <li><span>Linear, no project manager</span><span>just me</span></li>
+            </ul>
+          </div>
+          <div class="uses-col">
+            <h3>life</h3>
+            <ul>
+              <li><span>Brunelli espresso machine</span><span>2017</span></li>
+              <li><span>Vibram fivefingers</span><span>for walks</span></li>
+              <li><span>Field Notes Steno book</span><span>weekly</span></li>
+              <li><span>Lamy 2000</span><span>black ink</span></li>
+              <li><span>One unread book always on the desk</span><span>currently: Pollan</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="contact" id="contact">
+      <div class="wrap">
+        <div class="contact-card">
+          <div>
+            <h2>Want to chat?</h2>
+            <p>I'm not for hire — but I love to hear about other people's small bets, dumb side projects, and the parts of running a one-person business that nobody talks about. Email me; I'll write back.</p>
+            <span class="wave-hand">— Pier ✿</span>
+          </div>
+          <a class="email" href="mailto:pier@hellopier.com">→ pier@hellopier.com</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap foot">
+      <span>© 2026 Pier Marcucci · Hello, Pier · Bologna 🇮🇹</span>
+      <span><a href="#">Twitter</a> · <a href="#">GitHub</a> · <a href="#">RSS</a> · <a href="#">/uses</a> · <a href="#">/now</a></span>
+    </div>
+  </footer>
+</body>
+</html>

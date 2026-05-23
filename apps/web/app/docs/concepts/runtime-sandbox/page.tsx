@@ -26,7 +26,7 @@ const toc = [
 export default function RuntimeSandboxPage() {
   return (
     <DocPage
-      eyebrow="Concepts · מושגים"
+      eyebrow="Concepts"
       title="Runtime Sandbox"
       description="The thing that turns generated code into a live URL. One Linux box per user, owner-checked end to end."
       toc={toc}

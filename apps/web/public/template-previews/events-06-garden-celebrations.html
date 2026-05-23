@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Garden — Private celebrations for the days you will remember</title>
+  <meta name="description" content="Garden is a celebration studio in the Hudson Valley. We plan birthdays, anniversaries, bat &amp; bar mitzvahs, and the quiet milestones that come with no template." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #efe5d4;
+      --bg-2: #e6d9c1;
+      --paper: #f6eedb;
+      --ink: #2b3424;
+      --ink-2: #56624a;
+      --ink-3: #8d9482;
+      --accent: #75876b;
+      --accent-2: #4f5e44;
+      --rule: rgba(43, 52, 36, 0.18);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg); color: var(--ink);
+      font-family: 'Manrope', system-ui, sans-serif;
+      font-size: 16px; line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 28px; }
+    .serif { font-family: 'DM Serif Display', Georgia, serif; }
+    .eyebrow { font-family: 'DM Serif Display', serif; font-style: italic; font-size: 18px; color: var(--accent); }
+    .underline-wave {
+      background: linear-gradient(transparent 75%, var(--accent) 75%, var(--accent) 90%, transparent 90%);
+      background-size: 100% 100%;
+      padding: 0 4px;
+    }
+
+    /* Nav */
+    .nav { padding: 28px 0; }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { font-family: 'DM Serif Display', serif; font-size: 30px; font-weight: 400; }
+    .brand .leaf { display: inline-block; transform: translateY(2px); margin-right: 4px; color: var(--accent); font-style: italic; }
+    .nav-links { display: flex; gap: 32px; font-size: 14px; color: var(--ink-2); }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta {
+      background: var(--ink); color: var(--bg);
+      padding: 11px 22px; font-size: 13px; font-weight: 600;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      border-radius: 999px;
+    }
+    .nav-cta:hover { background: var(--accent); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 56px 0 96px; position: relative; }
+    .hero-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 72px; align-items: center; }
+    h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(52px, 7.5vw, 104px);
+      line-height: 1; letter-spacing: -0.01em;
+      font-weight: 400; margin: 20px 0 28px;
+    }
+    h1 em { font-style: italic; color: var(--accent); }
+    .hero p.lede { font-size: 19px; color: var(--ink-2); max-width: 520px; line-height: 1.5; }
+    .hero-meta { margin-top: 36px; display: flex; gap: 28px; padding: 24px 28px; background: var(--paper); border-radius: 16px; flex-wrap: wrap; }
+    .hero-meta div { font-size: 14px; color: var(--ink-2); }
+    .hero-meta strong { display: block; font-family: 'DM Serif Display', serif; font-style: italic; font-size: 22px; color: var(--ink); margin-bottom: 4px; font-weight: 400; }
+    .hero-art { position: relative; }
+    .hero-art img.main { aspect-ratio: 4/5; object-fit: cover; border-radius: 6px; }
+    .hero-art img.over { position: absolute; bottom: -28px; left: -36px; width: 45%; aspect-ratio: 1/1; object-fit: cover; border-radius: 6px; border: 8px solid var(--bg); box-shadow: 0 18px 40px rgba(43, 52, 36, 0.18); }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 48px; } .hero-art img.over { width: 35%; } }
+
+    /* Sections */
+    .section { padding: 96px 0; }
+    .section-head { max-width: 720px; margin: 0 auto 56px; text-align: center; }
+    .section h2 { font-family: 'DM Serif Display', serif; font-size: clamp(40px, 5.5vw, 64px); font-weight: 400; line-height: 1.05; margin: 14px 0 14px; letter-spacing: -0.01em; }
+    .section h2 em { font-style: italic; color: var(--accent); }
+    .section .lede { color: var(--ink-2); font-size: 17px; }
+
+    /* Occasions */
+    .occasions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .occasion { background: var(--paper); border-radius: 16px; padding: 32px 24px; text-align: center; transition: transform 200ms; }
+    .occasion:hover { transform: translateY(-4px); }
+    .occasion .icon { font-family: 'DM Serif Display', serif; font-style: italic; font-size: 40px; color: var(--accent); margin-bottom: 8px; }
+    .occasion h3 { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 22px; margin: 0 0 6px; }
+    .occasion p { color: var(--ink-2); font-size: 14px; margin: 0; }
+    @media (max-width: 1080px) { .occasions { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .occasions { grid-template-columns: 1fr; } }
+
+    /* Story */
+    .story { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; background: var(--paper); padding: 64px; border-radius: 24px; }
+    .story img { aspect-ratio: 4/5; object-fit: cover; border-radius: 12px; }
+    .story h2 { text-align: left; margin-top: 8px; }
+    .story p { color: var(--ink-2); font-size: 16px; }
+    .story .sig { font-family: 'DM Serif Display', serif; font-style: italic; font-size: 24px; color: var(--ink); margin-top: 28px; }
+    @media (max-width: 1080px) { .story { grid-template-columns: 1fr; padding: 36px; } }
+
+    /* Process */
+    .process { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    .step { padding: 28px; border-top: 2px solid var(--accent); }
+    .step .num { font-family: 'DM Serif Display', serif; font-style: italic; font-size: 36px; color: var(--accent); margin-bottom: 8px; }
+    .step h4 { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 22px; margin: 0 0 8px; }
+    .step p { color: var(--ink-2); font-size: 14px; margin: 0; }
+    @media (max-width: 1080px) { .process { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .process { grid-template-columns: 1fr; } }
+
+    /* Portfolio */
+    .portfolio { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; grid-auto-rows: 280px; }
+    .portfolio .p { position: relative; border-radius: 12px; overflow: hidden; }
+    .portfolio .p img { width: 100%; height: 100%; object-fit: cover; transition: transform 400ms; }
+    .portfolio .p:hover img { transform: scale(1.04); }
+    .portfolio .p:nth-child(1) { grid-row: span 2; }
+    .portfolio .p:nth-child(4) { grid-column: span 2; }
+    .portfolio .p .cap { position: absolute; bottom: 14px; left: 14px; background: rgba(43, 52, 36, 0.88); color: var(--bg); padding: 8px 14px; border-radius: 999px; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
+    @media (max-width: 1080px) { .portfolio { grid-template-columns: 1fr; grid-auto-rows: 240px; } .portfolio .p:nth-child(1), .portfolio .p:nth-child(4) { grid-column: span 1; grid-row: span 1; } }
+
+    /* Investment */
+    .invest { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .tier { background: var(--paper); border-radius: 20px; padding: 40px 32px; }
+    .tier h3 { font-family: 'DM Serif Display', serif; font-style: italic; font-size: 30px; font-weight: 400; margin: 0 0 8px; color: var(--accent); }
+    .tier .price { font-family: 'DM Serif Display', serif; font-size: 44px; font-weight: 400; margin: 8px 0 16px; line-height: 1; }
+    .tier .price small { font-size: 14px; font-family: 'Manrope', sans-serif; color: var(--ink-3); }
+    .tier p { color: var(--ink-2); font-size: 15px; min-height: 50px; }
+    .tier ul { list-style: none; padding: 0; margin: 20px 0 0; }
+    .tier li { padding: 8px 0; font-size: 14px; color: var(--ink-2); border-bottom: 1px dashed var(--rule); }
+    .tier li:last-child { border-bottom: none; }
+    .tier li::before { content: '✿ '; color: var(--accent); }
+    @media (max-width: 1080px) { .invest { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; } }
+
+    /* Venues */
+    .venues { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .venue { background: var(--paper); border-radius: 12px; overflow: hidden; }
+    .venue img { aspect-ratio: 4/3; object-fit: cover; }
+    .venue-body { padding: 22px 24px; }
+    .venue h4 { font-family: 'DM Serif Display', serif; font-style: italic; font-weight: 400; font-size: 22px; margin: 0 0 6px; }
+    .venue .where { font-size: 12px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 10px; font-weight: 600; }
+    .venue p { font-size: 14px; color: var(--ink-2); margin: 0; }
+    @media (max-width: 1080px) { .venues { grid-template-columns: 1fr; } }
+
+    /* Testimonials */
+    .quotes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 28px; }
+    .quote { background: var(--paper); padding: 36px 32px; border-radius: 16px; }
+    .quote p { font-family: 'DM Serif Display', serif; font-style: italic; font-size: 22px; line-height: 1.4; color: var(--ink); margin: 0 0 18px; }
+    .quote .who { font-size: 13px; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; }
+    @media (max-width: 1080px) { .quotes { grid-template-columns: 1fr; } }
+
+    /* Inquire */
+    .inquire { background: var(--ink); color: var(--bg); padding: 96px 0; border-radius: 32px 32px 0 0; margin-top: 64px; }
+    .inquire h2 { color: var(--bg); }
+    .inquire h2 em { color: var(--bg-2); }
+    .inquire .lede { color: rgba(239, 229, 212, 0.8); }
+    .form { max-width: 640px; margin: 48px auto 0; display: grid; gap: 18px; }
+    .form .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form label { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(239, 229, 212, 0.6); display: block; margin-bottom: 6px; font-weight: 600; }
+    .form input, .form textarea, .form select {
+      width: 100%; background: rgba(239, 229, 212, 0.08); border: 1px solid rgba(239, 229, 212, 0.15);
+      color: var(--bg); padding: 14px 16px; font-family: inherit; font-size: 15px; border-radius: 8px;
+    }
+    .form input:focus, .form textarea:focus, .form select:focus { outline: none; border-color: var(--accent); }
+    .form .submit {
+      background: var(--bg); color: var(--ink); border: none;
+      padding: 16px 28px; font-weight: 700; font-size: 13px;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      border-radius: 999px; cursor: pointer; justify-self: center; margin-top: 12px;
+    }
+    @media (max-width: 720px) { .form .row2 { grid-template-columns: 1fr; } }
+
+    /* Footer */
+    footer { background: var(--ink); color: rgba(239, 229, 212, 0.75); padding: 32px 0 28px; }
+    .foot { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+    .foot .brand { color: var(--bg); }
+    @media (max-width: 720px) { .foot { flex-direction: column; gap: 10px; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#"><span class="leaf">❀</span>Garden</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#occasions">Occasions</a>
+        <a href="#story">Studio</a>
+        <a href="#portfolio">Past work</a>
+        <a href="#invest">Investment</a>
+        <a href="#inquire">Inquire</a>
+      </nav>
+      <a class="nav-cta" href="#inquire">Begin →</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow">Private milestone celebrations · est. 2019</span>
+            <h1>The day will <em>arrive</em>. We will be ready.</h1>
+            <p class="lede">A celebration studio in the Hudson Valley designing the days that come with no template — birthdays you actually want to attend, bat and bar mitzvahs, anniversaries, the dinner after the last chemotherapy session.</p>
+            <div class="hero-meta">
+              <div><strong>42</strong>celebrations in 2025</div>
+              <div><strong>1–250</strong>guests, any size</div>
+              <div><strong>Hudson Valley + NYC</strong>where we work</div>
+            </div>
+          </div>
+          <div class="hero-art">
+            <img class="main" src="https://picsum.photos/seed/garden-celebrations-2/1000/1250" width="1000" height="1250" alt="A long candle-lit dinner table set for a 60th birthday on a stone patio, with overgrown rosemary in clay pots." loading="eager" />
+            <img class="over" src="https://picsum.photos/seed/garden-celebrations-3/600/600" width="600" height="600" alt="A close-up of hand-painted place cards on linen napkins." loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="occasions">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">What we plan</span>
+          <h2>The kinds of days we <em>are good at</em>.</h2>
+          <p class="lede">We do not plan weddings. We refer those out to two studios we trust. Everything else where you want it to feel like a room, not a transaction.</p>
+        </div>
+        <div class="occasions">
+          <div class="occasion">
+            <div class="icon">i.</div>
+            <h3>Milestone birthdays</h3>
+            <p>40ths, 50ths, 60ths, 70ths. The ones with speeches.</p>
+          </div>
+          <div class="occasion">
+            <div class="icon">ii.</div>
+            <h3>Bat &amp; bar mitzvahs</h3>
+            <p>Sunday-after parties for the kid and the family.</p>
+          </div>
+          <div class="occasion">
+            <div class="icon">iii.</div>
+            <h3>Anniversaries</h3>
+            <p>Tenth, twenty-fifth, fortieth. The vow-renewal kind, or quieter.</p>
+          </div>
+          <div class="occasion">
+            <div class="icon">iv.</div>
+            <h3>Quiet milestones</h3>
+            <p>The retirement, the citizenship, the last-treatment dinner.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="story">
+          <img src="https://picsum.photos/seed/garden-celebrations-4/900/1125" width="900" height="1125" alt="Founder Lena Mosseri leaning against a wooden farmhouse table covered in linen samples and ribbon spools." loading="lazy" />
+          <div>
+            <span class="eyebrow">The studio</span>
+            <h2>We started Garden after a <em>seventieth</em>.</h2>
+            <p>Lena Mosseri opened Garden in 2019 after planning her father's seventieth and realizing how badly the "events industry" served a Sunday lunch for forty people in a backyard. We are now a team of four, and the soft kind of thorough.</p>
+            <p>We meet you at home, we eat with you, we draw with paper. We have an Excel sheet but we do not show it until the third meeting. The first two meetings are about what the day is actually for.</p>
+            <p class="sig">— Lena, founder</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">How we work</span>
+          <h2>A planning <em>year</em>, paced gently.</h2>
+          <p class="lede">A representative arc for a milestone birthday or bat/bar mitzvah, six to nine months ahead.</p>
+        </div>
+        <div class="process">
+          <div class="step"><div class="num">01.</div><h4>Slow start</h4><p>Two long conversations. We learn the family, the regulars, the people you have to sit far apart.</p></div>
+          <div class="step"><div class="num">02.</div><h4>Direction</h4><p>A printed direction book — palette, paper, food story, music, lighting. We sit at your kitchen table and walk through it.</p></div>
+          <div class="step"><div class="num">03.</div><h4>Sourcing</h4><p>Venue, caterer, florist, music. All of them visited in person, all of them references from us.</p></div>
+          <div class="step"><div class="num">04.</div><h4>The day</h4><p>We arrive early. We hold the timeline. We make the speeches happen on time. You are inside the day, not running it.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="portfolio">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Past work</span>
+          <h2>A few we are <em>still proud</em> of.</h2>
+          <p class="lede">Photographs from celebrations between 2022 and 2025, used with permission. We can share full case studies on request.</p>
+        </div>
+        <div class="portfolio">
+          <div class="p"><img src="https://picsum.photos/seed/garden-celebrations-5/1200/1200" width="1200" height="1200" alt="A 50th birthday backyard dinner with garden roses, lit by string lights." loading="lazy" /><span class="cap">A 50th · Beacon, NY</span></div>
+          <div class="p"><img src="https://picsum.photos/seed/garden-celebrations-6/600/600" width="600" height="600" alt="A bat mitzvah brunch table with citrus centerpieces and pastel place settings." loading="lazy" /><span class="cap">Bat mitzvah · NYC</span></div>
+          <div class="p"><img src="https://picsum.photos/seed/garden-celebrations-7/600/600" width="600" height="600" alt="A 25th-anniversary cake on a wooden cake stand surrounded by hydrangeas." loading="lazy" /><span class="cap">25th anniversary · Rhinebeck</span></div>
+          <div class="p"><img src="https://picsum.photos/seed/garden-celebrations-8/1200/600" width="1200" height="600" alt="A long retirement dinner under a white tent on a lawn at golden hour." loading="lazy" /><span class="cap">Retirement · Hudson, NY</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="invest">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Investment</span>
+          <h2>What it <em>costs</em>.</h2>
+          <p class="lede">Posted so the price is the first thing you know. All three tiers include on-site coordination and vendor payouts.</p>
+        </div>
+        <div class="invest">
+          <div class="tier">
+            <h3>Intimate</h3>
+            <div class="price">$3,800<small> · up to 30 guests</small></div>
+            <p>A small celebration, often at home. We handle vendors, paper, and the day.</p>
+            <ul>
+              <li>3 vendor sources</li>
+              <li>Paper goods design</li>
+              <li>Tabletop styling</li>
+              <li>On-site lead</li>
+              <li>Day-of coordination</li>
+            </ul>
+          </div>
+          <div class="tier">
+            <h3>Milestone</h3>
+            <div class="price">$8,500<small> · 30–100 guests</small></div>
+            <p>The center of the studio. A birthday with speeches, a bat/bar mitzvah, an anniversary.</p>
+            <ul>
+              <li>6 vendor sources</li>
+              <li>Paper, signage, favors</li>
+              <li>Full tabletop design</li>
+              <li>On-site lead + assistant</li>
+              <li>Speech program</li>
+              <li>Vendor payout reconciliation</li>
+            </ul>
+          </div>
+          <div class="tier">
+            <h3>Generation</h3>
+            <div class="price">$16,500<small> · 100–250 guests</small></div>
+            <p>The big one. A seventieth with grandchildren on three flights, a multi-day mitzvah.</p>
+            <ul>
+              <li>Concept to send-off</li>
+              <li>All vendor sourcing</li>
+              <li>Guest logistics + hotels</li>
+              <li>On-site lead + two assistants</li>
+              <li>Welcome + send-off events</li>
+              <li>Travel coordination</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="venues">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Where we host</span>
+          <h2>Venues we <em>know well</em>.</h2>
+          <p class="lede">Hudson Valley, Catskills, and the city. We have hosted at all three; we have direct lines to their event leads.</p>
+        </div>
+        <div class="venues">
+          <div class="venue">
+            <img src="https://picsum.photos/seed/garden-celebrations-9/800/600" width="800" height="600" alt="The stone exterior of Stissing House in Pine Plains, NY, with red shutters." loading="lazy" />
+            <div class="venue-body">
+              <h4>Stissing House</h4>
+              <p class="where">Pine Plains, NY · 60 seats</p>
+              <p>An 18th-century inn turned restaurant. The downstairs takes 60 for dinner; the patio holds 90 standing.</p>
+            </div>
+          </div>
+          <div class="venue">
+            <img src="https://picsum.photos/seed/garden-celebrations-10/800/600" width="800" height="600" alt="The barn at Spruceton Inn, set with a long farm table." loading="lazy" />
+            <div class="venue-body">
+              <h4>Spruceton Inn</h4>
+              <p class="where">West Kill, NY · 120 seats</p>
+              <p>A small inn with a barn and a creek behind it. Twelve guest rooms on site, plus three nearby cottages.</p>
+            </div>
+          </div>
+          <div class="venue">
+            <img src="https://picsum.photos/seed/garden-celebrations-11/800/600" width="800" height="600" alt="The interior of Beatrice Inn in the West Village, a wood-paneled room with red banquettes." loading="lazy" />
+            <div class="venue-body">
+              <h4>The Beatrice Inn</h4>
+              <p class="where">West Village, NYC · 90 seats</p>
+              <p>A private dining room on Bank Street that has hosted three of our birthdays. Discreet, dark wood, excellent wine list.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">From past hosts</span>
+          <h2>What they said <em>after</em>.</h2>
+        </div>
+        <div class="quotes">
+          <div class="quote"><p>"Lena planned my father's seventieth as if it were her own father's. He still talks about the rosemary on the bread basket. So do I."</p><span class="who">Mira S. · Beacon, NY</span></div>
+          <div class="quote"><p>"We were dreading the bat mitzvah brunch. Garden made it the best part of the weekend. Our daughter still cries when she looks at the photos."</p><span class="who">The Wexler family · NYC</span></div>
+          <div class="quote"><p>"My wife's twenty-fifth anniversary surprise involved twenty-six people, four flights, and one secret. Garden held all of it. She has no idea any of it was hard."</p><span class="who">David R. · Rhinebeck, NY</span></div>
+          <div class="quote"><p>"My last-treatment dinner. I will never forget the way they set the room. It felt like coming home."</p><span class="who">Anonymous · 2024</span></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="inquire" id="inquire">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow" style="color:var(--bg-2);">Inquire</span>
+        <h2>Tell us about <em>the day</em>.</h2>
+        <p class="lede">We answer every inquiry by hand within four business days. The first conversation is always free.</p>
+      </div>
+      <form class="form" onsubmit="event.preventDefault();">
+        <div class="row2">
+          <div><label for="g-name">Your name</label><input id="g-name" type="text" placeholder="Mira Steinberg" /></div>
+          <div><label for="g-email">Email</label><input id="g-email" type="email" placeholder="you@example.com" /></div>
+        </div>
+        <div class="row2">
+          <div><label for="g-occ">Occasion</label><select id="g-occ"><option>Milestone birthday</option><option>Bat / bar mitzvah</option><option>Anniversary</option><option>Quiet milestone</option><option>Something else</option></select></div>
+          <div><label for="g-date">Approximate date</label><input id="g-date" type="text" placeholder="October 18, 2026 — or fall 2026" /></div>
+        </div>
+        <div class="row2">
+          <div><label for="g-where">Location</label><input id="g-where" type="text" placeholder="Hudson Valley · NYC · elsewhere" /></div>
+          <div><label for="g-count">Guests</label><input id="g-count" type="text" placeholder="Approximate" /></div>
+        </div>
+        <div>
+          <label for="g-note">A little about the day</label>
+          <textarea id="g-note" rows="4" placeholder="What is the day for? What matters to the person it is for?"></textarea>
+        </div>
+        <button class="submit" type="submit">Send inquiry</button>
+      </form>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap foot">
+      <span class="brand serif"><span class="leaf" style="color:var(--accent);">❀</span> Garden</span>
+      <span>© 2026 Garden Celebrations · Hudson Valley · hello@garden-celebrations.com</span>
+    </div>
+  </footer>
+</body>
+</html>

@@ -9,6 +9,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -52,7 +53,7 @@ func (e *Engine) runCritic(
 	}
 
 	e.emit(projectID, domain.Event{
-		ID: newEventID(), Step: StepReviewer, Agent: string(agents.RoleCritic),
+		ID: newEventID(), Step: StepCritic, Agent: string(agents.RoleCritic),
 		Status: StatusRunning, Message: "critic_started", CreatedAt: time.Now().UTC(),
 	})
 
@@ -61,16 +62,40 @@ func (e *Engine) runCritic(
 		return nil, nil, false
 	}
 
-	res, err := e.registry.Run(ctx, agents.Task{
-		Role:    agents.RoleCritic,
-		Project: &proj,
-		Goal:    buildCriticGoal(story, proposed),
-	})
+	criticTask := agents.Task{
+		Role:        agents.RoleCritic,
+		Project:     &proj,
+		Goal:        buildCriticGoal(story, proposed),
+		UserBearer:  bearerFromCtx(ctx),
+		WorkspaceID: workspaceIDFromCtx(ctx),
+	}
+
+	// High-stakes decision: race N copies of the Critic and take the
+	// majority verdict. Falls back to a single-shot Run when no bucket
+	// reaches majority — some signal beats none, and the Reviewer +
+	// gates downstream still catch what a split critic missed.
+	const voteN = 3
+	res, ok, share, err := RunVotedShare(ctx, e.registry, criticTask, VoteOpts{N: voteN, Confidence: 0.5})
 	if err != nil {
 		// Fail-open: critic is a cost-saving heuristic, not a blocker. A
 		// provider error during critic should not stop the pipeline — the
 		// Reviewer + gates that follow will catch issues unilaterally.
 		return nil, nil, false
+	}
+	if ok {
+		e.emit(projectID, domain.Event{
+			ID: newEventID(), Step: StepCritic, Agent: string(agents.RoleCritic),
+			Status:    StatusDone,
+			Message:   "critic_voted n=" + strconv.Itoa(voteN) + " winner_share=" + formatFloat(share),
+			CreatedAt: time.Now().UTC(),
+		})
+	} else {
+		res, err = e.registry.Run(ctx, criticTask)
+		if err != nil {
+			// Same fail-open contract: critic errors do not stop the
+			// pipeline.
+			return nil, nil, false
+		}
 	}
 
 	var out criticOutput
@@ -80,8 +105,10 @@ func (e *Engine) runCritic(
 
 	if strings.EqualFold(out.Verdict, "clean") || len(out.Findings) == 0 {
 		e.emit(projectID, domain.Event{
-			ID: newEventID(), Step: StepReviewer, Agent: string(agents.RoleCritic),
-			Status: StatusDone, Message: "critic_clean", CreatedAt: time.Now().UTC(),
+			ID: newEventID(), Step: StepCritic, Agent: string(agents.RoleCritic),
+			Status:    StatusDone,
+			Message:   fmt.Sprintf("critic_clean provider=%s tokens=%d", res.Provider, res.Tokens),
+			CreatedAt: time.Now().UTC(),
 		})
 		return nil, &res, true
 	}

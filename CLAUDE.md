@@ -59,6 +59,48 @@ Both Go modules use their own `go.mod`. Web is a single Next app under
 - **Per-user isolation.** Workspaces, projects, leads, tokens — every
   store has an owner check. Use `requireProjectAccess` in HTTP handlers.
 
+## Language, brand voice, and market position
+
+- **English is the product language until localization is explicitly chosen.**
+  All visible UI copy, marketing pages, docs, metadata, transactional states,
+  errors, placeholders, empty states, and demo content must be written in
+  clear product English. Do not add Hebrew, RTL-specific positioning, or
+  bilingual copy unless a localization plan and locale switcher exist.
+- **Tone:** precise, senior, builder-facing, and confident. Ironflyer should
+  sound like an engineering lead who has shipped production software under
+  real constraints: direct, useful, specific, and allergic to hype.
+- **Competitive frame:** Lovable, Base44, Bolt, Replit Agent, and v0 generally
+  sell "describe an idea and get an app fast." Ironflyer sells the missing
+  production discipline: gates that block, patches that can be reviewed,
+  live cost visibility, real Linux workspaces, and deployment ownership.
+- **Messaging rule:** lead with proof and mechanics, not vibes. Prefer
+  concrete nouns such as `gate verdict`, `patch`, `ledger`, `Docker
+  workspace`, `owner check`, `deploy artifact`, and `rollback` over generic
+  phrases such as "magic", "limitless", "revolutionary", or "AI-powered".
+- **Default headline posture:** "Ship finished software" beats "build apps in
+  minutes." Speed matters, but production readiness is the differentiator.
+- **Claims discipline:** comparisons must stay honest. If a competitor ships
+  a capability we list as missing, update the comparison table rather than
+  stretching the truth.
+
+## Visual identity
+
+- **Logo concept:** the Ironflyer mark is a gate-forward symbol: a compact
+  black tile, electric-lime code rail, cream gate bars, and a forward arrow.
+  It represents code moving through enforced review gates until it is ready
+  to ship.
+- **Use the system mark.** Product chrome, marketing nav, loading states,
+  favicon, Apple icon, and OpenGraph art should use the shared Ironflyer mark
+  or its direct SVG equivalent. Do not replace it with a plain letter,
+  gradient blob, mascot, or generic app-builder sparkle.
+- **Visual tone:** severe, engineered, and legible. Favor flat geometry,
+  high contrast, tight grids, proof panels, terminal output, gate verdicts,
+  ledgers, and deploy artifacts. Avoid ornamental glows, floating orbs,
+  fake testimonials, and soft SaaS wallpaper.
+- **Shape language:** cards and logo tiles stay at 8px radius unless a native
+  platform requirement says otherwise. The lime accent is a signal, not a
+  background theme.
+
 ## Quality bar
 
 - `go build`, `go vet`, and `go test ./...` MUST pass in both Go modules.

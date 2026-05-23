@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -13,20 +14,25 @@ import (
 	"github.com/rs/zerolog"
 
 	"ironflyer/apps/orchestrator/internal/agents"
+	"ironflyer/apps/orchestrator/internal/audit"
 	"ironflyer/apps/orchestrator/internal/auth"
 	"ironflyer/apps/orchestrator/internal/brainstorm"
 	"ironflyer/apps/orchestrator/internal/budget"
 	"ironflyer/apps/orchestrator/internal/config"
+	"ironflyer/apps/orchestrator/internal/context7"
 	"ironflyer/apps/orchestrator/internal/finisher"
 	"ironflyer/apps/orchestrator/internal/httpapi"
+	"ironflyer/apps/orchestrator/internal/imagegen"
 	"ironflyer/apps/orchestrator/internal/integrations"
 	"ironflyer/apps/orchestrator/internal/integrations/github"
 	"ironflyer/apps/orchestrator/internal/leads"
+	"ironflyer/apps/orchestrator/internal/memory"
 	"ironflyer/apps/orchestrator/internal/notify"
 	"ironflyer/apps/orchestrator/internal/patch"
 	"ironflyer/apps/orchestrator/internal/providers"
 	"ironflyer/apps/orchestrator/internal/runtime"
 	"ironflyer/apps/orchestrator/internal/store"
+	"ironflyer/apps/orchestrator/internal/tracing"
 	"ironflyer/apps/orchestrator/internal/webhooks"
 	"ironflyer/apps/orchestrator/internal/workflow"
 )
@@ -41,6 +47,32 @@ func main() {
 	}
 
 	ctx := context.Background()
+
+	// ---------------- OpenTelemetry tracing (optional) ---------------------
+	// Tracing must come up before anything that issues spans. Init is fail-
+	// soft: any exporter problem logs a warning and leaves the no-op provider
+	// installed so the orchestrator boots regardless of collector state.
+	tracingShutdown, err := tracing.Init(ctx, tracing.Opts{
+		Exporter:       cfg.OTelExporter,
+		Endpoint:       cfg.OTelEndpoint,
+		Insecure:       cfg.OTelInsecure,
+		ServiceName:    "ironflyer-orchestrator",
+		ServiceVersion: "1.0",
+		SampleRatio:    cfg.OTelSampleRatio,
+		Headers:        parseOTelHeaders(cfg.OTelHeaders),
+	})
+	if err != nil {
+		logger.Warn().Err(err).Msg("tracing init failed; continuing without OTel")
+	} else if cfg.OTelExporter != "none" && cfg.OTelExporter != "" {
+		logger.Info().Str("exporter", cfg.OTelExporter).Msg("OTel tracing initialised")
+	}
+	defer func() {
+		if tracingShutdown != nil {
+			shCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			_ = tracingShutdown(shCtx)
+		}
+	}()
 
 	// ---------------- Postgres pool (shared by budget + auth) ---------------
 	var pgPool *pgxpool.Pool
@@ -179,19 +211,169 @@ func main() {
 	} else {
 		logger.Warn().Msg("ANTHROPIC_API_KEY not set — running on mock provider only")
 	}
-	guard := providers.NewBillingGuard(router, billing)
+	if cfg.OpenAIAPIKey != "" {
+		router.Register(providers.NewOpenAIProvider(providers.OpenAIOpts{
+			APIKey: cfg.OpenAIAPIKey, Model: cfg.OpenAIModel,
+		}))
+		logger.Info().Str("model", cfg.OpenAIModel).Msg("OpenAI provider registered")
+	}
+	if cfg.GeminiAPIKey != "" {
+		router.Register(providers.NewGeminiProvider(providers.GeminiOpts{
+			APIKey: cfg.GeminiAPIKey, Model: cfg.GeminiModel,
+		}))
+		logger.Info().Str("model", cfg.GeminiModel).Msg("Gemini provider registered")
+	}
+	telemetrySink := providers.NewMemorySink(2048)
+	guard := providers.NewBillingGuard(router, billing).WithTelemetry(telemetrySink)
+	memoryStore := memory.NewMemoryStore(4096)
+	auditStore := audit.NewMemoryStore(16 * 1024)
 
 	registry := agents.NewRegistry(router)
 	registry.RegisterDefaults()
+
+	// ---------------- MCP clients (optional, Coder-only) ------------------
+	// IRONFLYER_MCP_SERVERS is a comma-separated list of "name=URL" pairs;
+	// per-server bearer tokens come from IRONFLYER_MCP_TOKEN_<UPPER>.
+	// Failures here are degraded to warnings — a misconfigured outbound
+	// server should never block the orchestrator from booting.
+	mcpRegistry := providers.NewMCPClientRegistry()
+	mcpNames := parseMCPServers(cfg.MCPServers, mcpRegistry, logger)
+	// Context7 is registered before WithMCPClients so its tools are
+	// part of the catalogue the Coder sees from the first turn. It is
+	// safe to add even when the operator already listed "context7=..."
+	// in IRONFLYER_MCP_SERVERS — the registry doesn't dedupe by name,
+	// so we skip the auto-registration in that case to avoid two
+	// `context7.*` prefixes shadowing each other.
+	if cfg.Context7Enabled {
+		alreadyConfigured := false
+		for _, n := range mcpNames {
+			if n == context7.Name {
+				alreadyConfigured = true
+				break
+			}
+		}
+		if alreadyConfigured {
+			logger.Info().Msg("Context7: skipped auto-registration (already listed in IRONFLYER_MCP_SERVERS)")
+		} else {
+			c7Client := context7.NewClient(cfg.Context7AuthToken)
+			mcpRegistry.Register(c7Client)
+			mcpNames = append(mcpNames, context7.Name)
+			c7Tool := &context7.Tool{Client: c7Client}
+			registry.WithBuiltinTool(c7Tool.Spec(), c7Tool.Call)
+			logger.Info().Msg("Context7: registered as MCP server + builtin lookup_docs tool")
+		}
+	}
+	registry.WithMCPClients(mcpRegistry)
+	if len(mcpNames) > 0 {
+		logger.Info().Int("count", len(mcpNames)).Strs("servers", mcpNames).
+			Msg("MCP clients configured")
+	} else {
+		logger.Info().Msg("MCP clients: 0 configured (set IRONFLYER_MCP_SERVERS=name=URL,...)")
+	}
 
 	strategist := brainstorm.NewStrategist()
 	bsRunner := brainstorm.NewRunner(registry, router)
 
 	patches := patch.NewEngine(projects)
+	patches.
+		WithOnProposed(func(p patch.Patch) {
+			_, _ = auditStore.Record(ctx, audit.Entry{
+				Action:    audit.ActionPatchProposed,
+				Outcome:   audit.OutcomeSuccess,
+				ProjectID: p.ProjectID,
+				Summary:   "patch_proposed id=" + p.ID + " title=" + p.Title,
+				Attrs:     map[string]any{"changeCount": len(p.Changes)},
+			})
+		}).
+		WithOnApplied(func(p patch.Patch) {
+			_, _ = auditStore.Record(ctx, audit.Entry{
+				Action:    audit.ActionPatchApplied,
+				Outcome:   audit.OutcomeSuccess,
+				ProjectID: p.ProjectID,
+				Summary:   "patch_applied id=" + p.ID + " title=" + p.Title,
+				Attrs:     map[string]any{"changeCount": len(p.Changes)},
+			})
+		}).
+		WithOnRolledBack(func(p patch.Patch, snapID string) {
+			_, _ = auditStore.Record(ctx, audit.Entry{
+				Action:    audit.ActionPatchRolledBack,
+				Outcome:   audit.OutcomeSuccess,
+				ProjectID: p.ProjectID,
+				Summary:   "patch_rolled_back id=" + p.ID + " snapshot=" + snapID,
+			})
+		})
 	runtimeClient := runtime.New(cfg.RuntimeURL)
+
+	// ---------------- Built-in Coder tools (generate_image) ---------------
+	// The image-generation tool gives the Coder parity with Lovable's
+	// inline image generation: mid-Run it can produce a PNG asset and
+	// reference it in the patch it then emits. Provider selection is
+	// best-effort — when no API key is configured we still register
+	// the tool but back it with a Noop provider so calls fail with a
+	// readable "image generation disabled" rather than a missing-tool
+	// error from the model.
+	var imgProv imagegen.Provider = imagegen.NoopProvider{}
+	imgKey := cfg.OpenAIImageAPIKey
+	if imgKey == "" {
+		imgKey = cfg.OpenAIAPIKey
+	}
+	if imgKey != "" {
+		imgProv = &imagegen.OpenAIImagesProvider{APIKey: imgKey}
+		logger.Info().Msg("Image generation: OpenAI Images")
+	} else {
+		logger.Warn().Msg("Image generation disabled (OPENAI_IMAGE_API_KEY or OPENAI_API_KEY missing)")
+	}
+	imgTool := &imagegen.Tool{
+		Gen:       imgProv,
+		Writer:    runtimeClient,
+		AssetsDir: "public/assets",
+		MaxBytes:  4 << 20,
+	}
+	registry.WithBuiltinTool(imgTool.Spec(), imgTool.Call)
+
 	engine := finisher.NewEngine(projects, registry, patches).
 		WithRuntime(runtimeClient).
-		WithApplier(runtime.NewApplier(runtimeClient))
+		WithApplier(runtime.NewApplier(runtimeClient)).
+		WithDBProvisioner(selectDBProvisioner(cfg, logger)).
+		WithAuthScaffolder(finisher.DefaultAuthScaffolder{}).
+		WithStripeScaffolder(finisher.DefaultStripeScaffolder{}).
+		WithDomainScaffolders(
+			finisher.GameScaffolder{},
+			finisher.EcommerceScaffolder{},
+			finisher.MobileScaffolder{},
+			finisher.SocialScaffolder{},
+			finisher.LearningScaffolder{},
+			finisher.DashboardScaffolder{},
+		).
+		WithMemory(memoryStore).
+		WithAudit(auditStore).
+		WithBudgetSource(func(ctx context.Context, userID, projectID string) (*finisher.BudgetSnapshot, error) {
+			// Resolve the user's plan, sum what they've spent this period,
+			// and project the gate-readable posture. Unauthenticated runs
+			// (userID == "") still get a snapshot keyed against the Free
+			// plan so the cap is meaningful on the seed/demo project.
+			tier := billing.PlanFor(userID)
+			var plan budget.Plan
+			for _, p := range billing.Plans {
+				if p.Tier == tier {
+					plan = p
+					break
+				}
+			}
+			spent, err := billing.Ledger.SpentByUser(ctx, userID)
+			if err != nil {
+				return nil, err
+			}
+			capF, _ := plan.CostCapUSD.Float64()
+			spentF, _ := spent.Float64()
+			return &finisher.BudgetSnapshot{
+				CapUSD:       capF,
+				SpentUSD:     spentF,
+				RemainingUSD: capF - spentF,
+				HardStop:     plan.HardStop,
+				Reason:       "plan=" + string(plan.Tier),
+			}, nil
+		})
 	if runtimeClient.Enabled() {
 		logger.Info().Str("runtime", cfg.RuntimeURL).
 			Msg("finisher wired to runtime: build/test gates exec inside workspaces; approved patches materialise via the File API")
@@ -222,6 +404,9 @@ func main() {
 		RuntimeURL: cfg.RuntimeURL,
 		Webhooks:   webhookStore, WebhookDispatcher: webhookDispatcher,
 		NotifyPrefs: prefsStore, Notify: notifyEngine,
+		Telemetry: telemetrySink,
+		Memory: memoryStore,
+		Audit: auditStore,
 		Logger: logger,
 	})
 
@@ -276,6 +461,118 @@ func main() {
 	if pgPool != nil {
 		pgPool.Close()
 	}
+}
+
+// selectDBProvisioner returns the configured DBProvisioner. Defaults to
+// the no-op implementation when nothing is wired so the finisher loop
+// still boots cleanly in dev. Misconfigured Supabase (missing PAT or
+// org id) logs a warning and falls back to no-op rather than crashing —
+// projects that need a database will simply fail the Test gate, which
+// is the right surface for that failure.
+func selectDBProvisioner(cfg config.Config, logger zerolog.Logger) finisher.DBProvisioner {
+	switch cfg.DBProvisioner {
+	case "supabase":
+		if cfg.SupabasePAT == "" || cfg.SupabaseOrgID == "" {
+			logger.Warn().Msg("IRONFLYER_DB_PROVISIONER=supabase but IRONFLYER_SUPABASE_PAT / IRONFLYER_SUPABASE_ORG_ID are missing — falling back to no-op")
+			return finisher.NoopDBProvisioner{}
+		}
+		logger.Info().Str("org", cfg.SupabaseOrgID).Str("region", cfg.SupabaseRegion).
+			Msg("DB provisioner: Supabase Management API")
+		return &finisher.SupabaseProvisioner{
+			AccessToken:    cfg.SupabasePAT,
+			OrganizationID: cfg.SupabaseOrgID,
+			Region:         cfg.SupabaseRegion,
+		}
+	case "shared-postgres":
+		if cfg.SharedPostgresAdminDSN == "" {
+			logger.Warn().Msg("IRONFLYER_DB_PROVISIONER=shared-postgres but IRONFLYER_SHARED_POSTGRES_ADMIN_DSN is missing — falling back to no-op")
+			return finisher.NoopDBProvisioner{}
+		}
+		logger.Info().Str("public_host", cfg.SharedPostgresPublicHost).
+			Msg("DB provisioner: shared Postgres (per-project role + database)")
+		return &finisher.SharedPostgresProvisioner{
+			AdminDSN:   cfg.SharedPostgresAdminDSN,
+			PublicHost: cfg.SharedPostgresPublicHost,
+			PublicPort: cfg.SharedPostgresPublicPort,
+		}
+	default:
+		return finisher.NoopDBProvisioner{}
+	}
+}
+
+// parseMCPServers takes the IRONFLYER_MCP_SERVERS env value (a
+// comma-separated list of name=URL pairs) and registers one
+// providers.MCPClient per entry. Tokens are pulled at startup from
+// IRONFLYER_MCP_TOKEN_<UPPERCASE_NAME>. Malformed entries are
+// skipped with a warning so a typo in one server doesn't kill the
+// rest of the catalogue.
+func parseMCPServers(spec string, reg *providers.MCPClientRegistry, logger zerolog.Logger) []string {
+	spec = strings.TrimSpace(spec)
+	if spec == "" {
+		return nil
+	}
+	var names []string
+	for _, raw := range strings.Split(spec, ",") {
+		entry := strings.TrimSpace(raw)
+		if entry == "" {
+			continue
+		}
+		eq := strings.IndexByte(entry, '=')
+		if eq <= 0 || eq == len(entry)-1 {
+			logger.Warn().Str("entry", entry).Msg("MCP server entry malformed (want name=URL); skipping")
+			continue
+		}
+		name := strings.TrimSpace(entry[:eq])
+		url := strings.TrimSpace(entry[eq+1:])
+		if name == "" || url == "" {
+			logger.Warn().Str("entry", entry).Msg("MCP server entry has empty name or URL; skipping")
+			continue
+		}
+		token := os.Getenv("IRONFLYER_MCP_TOKEN_" + strings.ToUpper(name))
+		auth := ""
+		if token != "" {
+			auth = "Bearer " + token
+		}
+		reg.Register(&providers.MCPClient{
+			Name:          name,
+			Endpoint:      url,
+			Authorization: auth,
+		})
+		names = append(names, name)
+	}
+	return names
+}
+
+// parseOTelHeaders parses the IRONFLYER_OTEL_HEADERS env value — a
+// comma-separated list of "key=value" pairs — into the map shape the
+// OTLP HTTP exporter expects. Empty / malformed entries are skipped
+// silently so a stray comma doesn't break startup.
+func parseOTelHeaders(s string) map[string]string {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return nil
+	}
+	out := map[string]string{}
+	for _, raw := range strings.Split(s, ",") {
+		entry := strings.TrimSpace(raw)
+		if entry == "" {
+			continue
+		}
+		eq := strings.IndexByte(entry, '=')
+		if eq <= 0 || eq == len(entry)-1 {
+			continue
+		}
+		key := strings.TrimSpace(entry[:eq])
+		val := strings.TrimSpace(entry[eq+1:])
+		if key == "" || val == "" {
+			continue
+		}
+		out[key] = val
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
 }
 
 func buildLogger(cfg config.Config) zerolog.Logger {

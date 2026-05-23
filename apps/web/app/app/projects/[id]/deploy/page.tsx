@@ -1,6 +1,6 @@
 'use client';
 
-// Deploy page — Hebrew copy, MUI 6, alabaster + lime palette.
+// Deploy page — MUI 6, alabaster + lime palette.
 //
 // One-click pipeline: pick a provider, optionally set env vars, hit Deploy.
 // Live logs stream over SSE. Past deployments live at the bottom with
@@ -78,12 +78,12 @@ type DeployEvent = {
 };
 
 const FLY_REGIONS = [
-  { id: 'iad', label: 'אשבורן (US East)' },
-  { id: 'lhr', label: 'לונדון' },
-  { id: 'fra', label: 'פרנקפורט' },
-  { id: 'sin', label: 'סינגפור' },
-  { id: 'syd', label: 'סידני' },
-  { id: 'gru', label: 'סאו פאולו' },
+  { id: 'iad', label: 'Ashburn (US East)' },
+  { id: 'lhr', label: 'London' },
+  { id: 'fra', label: 'Frankfurt' },
+  { id: 'sin', label: 'Singapore' },
+  { id: 'syd', label: 'Sydney' },
+  { id: 'gru', label: 'Sao Paulo' },
 ];
 
 export default function ProjectDeployPage() {
@@ -161,7 +161,7 @@ function DeployInner() {
       });
       if (!res.ok) {
         const text = await res.text();
-        setBanner({ kind: 'error', text: text || `שגיאת deploy: ${res.status}` });
+        setBanner({ kind: 'error', text: text || `Deploy failed: ${res.status}` });
         setRunning(false);
         return;
       }
@@ -182,7 +182,7 @@ function DeployInner() {
         const data = JSON.parse(ev.data) as DeployEvent;
         setLogs((prev) => [...prev, data]);
         if (data.kind === 'deployed') {
-          setBanner({ kind: 'success', text: `נפרס בהצלחה: ${data.url ?? ''}` });
+          setBanner({ kind: 'success', text: `Deployment live: ${data.url ?? ''}` });
           setRunning(false);
           es.close();
           void refreshHistory();
@@ -215,7 +215,7 @@ function DeployInner() {
       });
       if (!res.ok) {
         const text = await res.text();
-        setBanner({ kind: 'error', text: text || `ZIP export נכשל: ${res.status}` });
+        setBanner({ kind: 'error', text: text || `ZIP export failed: ${res.status}` });
         return;
       }
       const blob = await res.blob();
@@ -224,7 +224,7 @@ function DeployInner() {
       a.download = `${projectId}.zip`;
       a.click();
       URL.revokeObjectURL(a.href);
-      setBanner({ kind: 'success', text: 'ה־ZIP ירד למחשב שלך.' });
+      setBanner({ kind: 'success', text: 'ZIP export downloaded.' });
     } catch (err) {
       setBanner({ kind: 'error', text: (err as Error).message });
     }
@@ -240,11 +240,11 @@ function DeployInner() {
       });
       if (!res.ok) {
         const text = await res.text();
-        setBanner({ kind: 'error', text: text || `GitHub export נכשל: ${res.status}` });
+        setBanner({ kind: 'error', text: text || `GitHub export failed: ${res.status}` });
         return;
       }
       const json = (await res.json()) as { repoUrl: string };
-      setBanner({ kind: 'success', text: `הפרויקט הועלה ל־GitHub: ${json.repoUrl}` });
+      setBanner({ kind: 'success', text: `Project pushed to GitHub: ${json.repoUrl}` });
       window.open(json.repoUrl, '_blank');
     } catch (err) {
       setBanner({ kind: 'error', text: (err as Error).message });
@@ -256,13 +256,13 @@ function DeployInner() {
   return (
     <AppShell userEmail={user?.email ?? 'workspace'} recents={[]} onLogout={logout}>
       <PageTitle
-        eyebrow="פריסה לייצור"
+        eyebrow="Production deploy"
         title={project ? `Deploy · ${project.name}` : 'Deploy'}
-        subtitle="בחר ספק, הגדר משתני סביבה, וקבל URL ציבורי תוך דקות. או ייצא את הקוד ל־GitHub / ZIP."
+        subtitle="Choose a provider, set environment variables, and get a public URL in minutes. You can also export the code to GitHub or ZIP."
         action={
           <Stack direction="row" spacing={1}>
             <Button startIcon={<Refresh />} variant="outlined" onClick={refreshHistory}>
-              רענן היסטוריה
+              Refresh history
             </Button>
           </Stack>
         }
@@ -277,7 +277,7 @@ function DeployInner() {
       <Stack spacing={2.4}>
         <Surface sx={{ p: 2.4 }}>
           <Typography variant="overline" sx={{ color: '#9fb500' }}>
-            בחר ספק
+            Choose provider
           </Typography>
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.4} sx={{ mt: 1.2 }}>
             {(['fly', 'railway', 'github', 'zip'] as Provider[]).map((p) => (
@@ -296,12 +296,12 @@ function DeployInner() {
           </Stack>
           {plan && !plan.providers.fly && provider === 'fly' && (
             <Alert severity="warning" sx={{ mt: 1.6 }}>
-              FLY_API_TOKEN לא מוגדר על השרת. הוסף את המשתנה ל־orchestrator והפעל מחדש.
+              FLY_API_TOKEN is not configured on the server. Add it to the orchestrator environment and restart.
             </Alert>
           )}
           {plan && !plan.providers.railway && provider === 'railway' && (
             <Alert severity="warning" sx={{ mt: 1.6 }}>
-              RAILWAY_TOKEN לא מוגדר על השרת.
+              RAILWAY_TOKEN is not configured on the server.
             </Alert>
           )}
         </Surface>
@@ -310,13 +310,13 @@ function DeployInner() {
           <Surface sx={{ p: 2.4 }}>
             <Stack spacing={2}>
               <Typography variant="overline" sx={{ color: '#9fb500' }}>
-                הגדרות פריסה
+                Deployment settings
               </Typography>
 
               {provider === 'fly' && (
                 <Box>
                   <Typography variant="body2" sx={{ mb: 0.8 }}>
-                    אזור פריסה
+                    Deployment region
                   </Typography>
                   <Stack direction="row" spacing={0.8} useFlexGap flexWrap="wrap">
                     {FLY_REGIONS.map((r) => (
@@ -338,13 +338,13 @@ function DeployInner() {
 
               <Box>
                 <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.8 }}>
-                  <Typography variant="body2">משתני סביבה</Typography>
+                  <Typography variant="body2">Environment variables</Typography>
                   <Button
                     size="small"
                     startIcon={<Add />}
                     onClick={() => setEnvRows((prev) => [...prev, { key: '', value: '' }])}
                   >
-                    הוסף משתנה
+                    Add variable
                   </Button>
                 </Stack>
                 <Stack spacing={0.8}>
@@ -369,7 +369,7 @@ function DeployInner() {
                         sx={{ flex: 2, ...envFieldSx }}
                       />
                       <IconButton
-                        aria-label="הסר"
+                        aria-label="Remove variable"
                         size="small"
                         onClick={() => setEnvRows((prev) => prev.filter((_, i) => i !== idx))}
                         sx={{ color: tokens.color.text.inverse }}
@@ -395,7 +395,7 @@ function DeployInner() {
                   startIcon={running ? <CircularProgress size={18} /> : providerCard.icon}
                   sx={{ minWidth: 200 }}
                 >
-                  {running ? 'מפרסם…' : `Deploy ל־${providerCard.label}`}
+                  {running ? 'Deploying...' : `Deploy to ${providerCard.label}`}
                 </Button>
               </Stack>
             </Stack>
@@ -406,10 +406,10 @@ function DeployInner() {
           <Surface sx={{ p: 2.4 }}>
             <Stack spacing={2}>
               <Typography variant="overline" sx={{ color: '#9fb500' }}>
-                ייצוא ל־GitHub
+                Export to GitHub
               </Typography>
               <TextField
-                label="שם הריפו"
+                label="Repository name"
                 value={repoName}
                 onChange={(e) => setRepoName(e.target.value)}
                 placeholder={projectId}
@@ -418,7 +418,7 @@ function DeployInner() {
               />
               <Stack direction="row" alignItems="center" spacing={1}>
                 <Switch checked={repoPrivate} onChange={(e) => setRepoPrivate(e.target.checked)} />
-                <Typography variant="body2">ריפו פרטי</Typography>
+                <Typography variant="body2">Private repository</Typography>
               </Stack>
               <Button
                 variant="contained"
@@ -427,7 +427,7 @@ function DeployInner() {
                 onClick={exportGitHub}
                 sx={{ alignSelf: 'flex-end', minWidth: 200 }}
               >
-                צור ריפו ודחוף
+                Create repo and push
               </Button>
             </Stack>
           </Surface>
@@ -437,10 +437,10 @@ function DeployInner() {
           <Surface sx={{ p: 2.4 }}>
             <Stack spacing={2} alignItems="flex-start">
               <Typography variant="overline" sx={{ color: '#9fb500' }}>
-                הורדה כ־ZIP
+                Download as ZIP
               </Typography>
               <Typography variant="body2" sx={{ color: '#686158' }}>
-                כל קבצי הפרויקט נארזים לארכיון אחד שמוכן לפריסה ידנית בכל ספק.
+                Package every project file into one archive that is ready for manual deployment on any provider.
               </Typography>
               <Button
                 variant="contained"
@@ -449,7 +449,7 @@ function DeployInner() {
                 onClick={exportZip}
                 sx={{ minWidth: 200 }}
               >
-                הורד ZIP
+                Download ZIP
               </Button>
             </Stack>
           </Surface>
@@ -459,9 +459,9 @@ function DeployInner() {
           <Surface sx={{ p: 2 }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.2 }}>
               <Typography variant="overline" sx={{ color: '#9fb500' }}>
-                לוג פריסה {activeDeploymentId ? `· ${activeDeploymentId.slice(0, 12)}` : ''}
+                Deployment log {activeDeploymentId ? `· ${activeDeploymentId.slice(0, 12)}` : ''}
               </Typography>
-              {running && <Chip size="small" label="פעיל" sx={{ bgcolor: tokens.color.accent.lime, color: '#111' }} />}
+              {running && <Chip size="small" label="Running" sx={{ bgcolor: tokens.color.accent.lime, color: '#111' }} />}
             </Stack>
             <Box
               sx={{
@@ -493,11 +493,11 @@ function DeployInner() {
 
         <Surface sx={{ p: 2.4 }}>
           <Typography variant="overline" sx={{ color: '#9fb500' }}>
-            פריסות קודמות
+            Previous deployments
           </Typography>
           {deployments.length === 0 ? (
             <Typography variant="body2" sx={{ color: '#686158', mt: 1.2 }}>
-              עדיין לא הופעלה פריסה לפרויקט הזה.
+              This project has not been deployed yet.
             </Typography>
           ) : (
             <Stack spacing={1.2} sx={{ mt: 1.4 }}>
@@ -520,7 +520,7 @@ function DeployInner() {
                       {d.provider.toUpperCase()} · {d.region || '—'}
                     </Typography>
                     <Typography variant="caption" sx={{ color: '#686158' }}>
-                      {new Date(d.createdAt).toLocaleString('he-IL')}
+                      {new Date(d.createdAt).toLocaleString('en-US')}
                       {d.error ? ` · ${d.error}` : ''}
                     </Typography>
                   </Box>
@@ -533,7 +533,7 @@ function DeployInner() {
                       target="_blank"
                       rel="noreferrer"
                     >
-                      פתח
+                      Open
                     </Button>
                   )}
                 </Box>
@@ -545,7 +545,7 @@ function DeployInner() {
         {plan && plan.artifacts.length > 0 && (
           <Surface sx={{ p: 2.4 }}>
             <Typography variant="overline" sx={{ color: '#9fb500' }}>
-              קבצי deploy שיווצרו אוטומטית
+              Deployment files generated automatically
             </Typography>
             <Stack direction="row" spacing={0.8} useFlexGap flexWrap="wrap" sx={{ mt: 1.4 }}>
               {plan.artifacts.map((a) => (
@@ -562,7 +562,7 @@ function DeployInner() {
               ))}
             </Stack>
             <Typography variant="caption" sx={{ display: 'block', color: '#686158', mt: 1 }}>
-              stack מזוהה: {plan.stack || 'לא מזוהה'}
+              Detected stack: {plan.stack || 'Unknown'}
             </Typography>
           </Surface>
         )}
@@ -573,9 +573,9 @@ function DeployInner() {
 
 function StatusPill({ status }: { status: DeploymentRecord['status'] }) {
   const map: Record<string, { bg: string; fg: string; label: string }> = {
-    running: { bg: '#e9f0d0', fg: '#3a4c00', label: 'פעיל' },
-    deployed: { bg: tokens.color.accent.lime, fg: '#111', label: 'חי' },
-    failed: { bg: '#ffd7d7', fg: '#7a0000', label: 'נכשל' },
+    running: { bg: '#e9f0d0', fg: '#3a4c00', label: 'Running' },
+    deployed: { bg: tokens.color.accent.lime, fg: '#111', label: 'Live' },
+    failed: { bg: '#ffd7d7', fg: '#7a0000', label: 'Failed' },
   };
   const s = map[status] ?? map.running;
   return (
@@ -593,13 +593,13 @@ function providerCardSpec(p: Provider) {
       return {
         label: 'Fly.io',
         icon: <RocketLaunch />,
-        helper: 'הפריסה רצה מרחוק על Fly. אם flyctl לא מותקן על השרת — נציג הודעת התקנה.',
+        helper: 'Deployment runs remotely on Fly. If flyctl is missing on the server, we will show the install message.',
       };
     case 'railway':
       return {
         label: 'Railway',
         icon: <Train />,
-        helper: 'דורש CLI של Railway מותקן (npm i -g @railway/cli).',
+        helper: 'Requires the Railway CLI to be installed (npm i -g @railway/cli).',
       };
     case 'github':
       return { label: 'GitHub', icon: <GitHub />, helper: '' };
@@ -647,10 +647,10 @@ function ProviderTile({
           {spec.label}
         </Typography>
         <Typography variant="caption" sx={{ display: 'block', opacity: 0.75 }}>
-          {kind === 'fly' && 'URL ציבורי תוך דקה'}
-          {kind === 'railway' && 'פריסה דרך CLI'}
-          {kind === 'github' && 'ריפו חדש + push ראשון'}
-          {kind === 'zip' && 'הורדה כקובץ אחד'}
+          {kind === 'fly' && 'Public URL in about a minute'}
+          {kind === 'railway' && 'Deploy through the CLI'}
+          {kind === 'github' && 'New repo with first push'}
+          {kind === 'zip' && 'Single-file export'}
         </Typography>
       </Box>
       {/* placeholder for upload icon when relevant */}

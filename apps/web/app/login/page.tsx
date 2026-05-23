@@ -11,6 +11,7 @@ import { auth as authStore } from '../../lib/auth';
 import { tokens } from '../../lib/theme';
 import { PromptBox } from '../prompt-box';
 import { githubLoginStartURL } from '../../lib/github';
+import { IronflyerLogo } from '../../components/brand/IronflyerLogo';
 
 // Allow VSCode and (later) Cursor / Windsurf URI schemes to round-trip the
 // JWT back into a desktop client. Anything else is silently ignored — we
@@ -123,15 +124,14 @@ export default function LoginPage() {
           maxWidth: 420,
           bgcolor: '#fffcf3',
           border: '1px solid rgba(13,14,15,0.06)',
-          borderRadius: 4,
+          borderRadius: 1,
           p: { xs: 3.6, md: 4.8 },
-          boxShadow: '0 24px 64px rgba(13,14,15,0.08)',
+          boxShadow: '0 18px 44px rgba(13,14,15,0.08)',
         }}>
           <Link href="/" style={{ color: 'inherit', textDecoration: 'none' }}>
-            <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 5 }}>
-              <Box sx={{ width: 34, height: 34, borderRadius: 1, bgcolor: tokens.color.accent.lime }} />
-              <Typography variant="h5" sx={{ fontFamily: tokens.font.display, fontWeight: 400, letterSpacing: 0, textTransform: 'uppercase' }}>Ironflyer</Typography>
-            </Stack>
+            <Box sx={{ mb: 5 }}>
+              <IronflyerLogo size={36} tone="light" tagline />
+            </Box>
           </Link>
 
           <Typography variant="h3" sx={{ mb: 3, letterSpacing: 0, textTransform: 'uppercase' }}>
@@ -205,14 +205,6 @@ export default function LoginPage() {
         color: tokens.color.bg.alabaster,
         overflow: 'hidden',
       }}>
-        <Box sx={{
-          position: 'absolute',
-          inset: 'auto -160px -200px auto',
-          width: 520, height: 520,
-          background: 'radial-gradient(circle, rgba(229,255,0,0.22), transparent 60%)',
-          filter: 'blur(20px)',
-          pointerEvents: 'none',
-        }} />
         <Box sx={{ position: 'relative', maxWidth: 480 }}>
           <Typography variant="overline" sx={{ color: tokens.color.accent.lime, fontWeight: 900, letterSpacing: '0.14em' }}>
             Welcome back to Ironflyer
@@ -223,7 +215,7 @@ export default function LoginPage() {
             fontWeight: 400,
             fontSize: 42,
             lineHeight: 0.95,
-            letterSpacing: '-0.01em',
+            letterSpacing: 0,
             color: tokens.color.bg.alabaster,
           }}>
             Pick up where the finisher loop left off.

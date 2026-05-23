@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BeaconHR — Treat people like a roster, not a ticket</title>
+  <meta name="description" content="BeaconHR is HR software for companies that hire humans, not headcounts. Onboarding, time off, reviews, and people analytics — finally in one warm, readable place." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #fdfbf6;
+      --paper: #ffffff;
+      --paper-2: #faf6ee;
+      --ink: #2a1b15;
+      --ink-2: #5a4a44;
+      --ink-3: #968880;
+      --rule: #ece2d5;
+      --rule-strong: #d9cbb8;
+      --accent: #ff5d4d;
+      --accent-deep: #c9412f;
+      --accent-soft: #ffe8e3;
+      --warm: #f4a261;
+      --good: #4a7c59;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 22px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 28px; }
+    .serif { font-family: 'DM Serif Display', Georgia, serif; }
+
+    /* Nav */
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(253, 251, 246, 0.85);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--rule);
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 70px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 18px; letter-spacing: -0.015em; }
+    .brand-mark {
+      width: 32px; height: 32px; border-radius: 10px;
+      background: var(--accent);
+      color: white; font-weight: 800; display: grid; place-items: center;
+      font-family: 'DM Serif Display', serif; font-size: 20px;
+    }
+    .nav-links { display: flex; gap: 30px; font-size: 14px; color: var(--ink-2); font-weight: 500; }
+    .nav-links a:hover { color: var(--ink); }
+    .nav-cta { display: flex; gap: 10px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      height: 42px; padding: 0 20px;
+      border-radius: 999px;
+      font-weight: 600; font-size: 14px;
+      border: 1px solid transparent;
+      cursor: pointer; transition: transform 160ms ease, background 160ms ease;
+    }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover { background: var(--accent-deep); transform: translateY(-1px); }
+    .btn-ghost { background: var(--paper); color: var(--ink); border-color: var(--rule-strong); }
+    .btn-ghost:hover { border-color: var(--ink); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 96px 0 64px; position: relative; }
+    .hero-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 64px; align-items: center; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 14px;
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      border-radius: 999px;
+      font-size: 12px; font-weight: 600; letter-spacing: 0.02em;
+    }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    h1 {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: clamp(52px, 7.6vw, 96px);
+      line-height: 0.98;
+      letter-spacing: -0.025em;
+      font-weight: 400;
+      margin: 22px 0 22px;
+    }
+    h1 em { font-style: italic; color: var(--accent); }
+    .lede { font-size: 20px; color: var(--ink-2); max-width: 540px; line-height: 1.55; }
+    .hero-cta { display: flex; gap: 12px; margin-top: 30px; flex-wrap: wrap; }
+    .hero-cta .btn { height: 50px; padding: 0 24px; font-size: 15px; }
+    .hero-meta {
+      margin-top: 26px;
+      display: flex; gap: 28px; flex-wrap: wrap;
+      font-size: 13px; color: var(--ink-3);
+    }
+    .hero-meta strong { color: var(--ink); font-weight: 700; }
+
+    /* Roster mockup */
+    .roster {
+      background: var(--paper);
+      border: 1px solid var(--rule-strong);
+      border-radius: var(--radius-lg);
+      padding: 26px;
+      box-shadow: 0 36px 80px -40px rgba(42, 27, 21, 0.25);
+    }
+    .roster-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 18px; }
+    .roster-head h3 { font-family: 'DM Serif Display', serif; font-size: 22px; margin: 0; font-weight: 400; }
+    .roster-head .sub { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
+    .row-people { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .person {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px; border: 1px solid var(--rule); border-radius: 12px;
+      background: var(--paper-2);
+    }
+    .av {
+      width: 38px; height: 38px; border-radius: 50%;
+      color: white; font-weight: 700; font-size: 13px;
+      display: grid; place-items: center; flex-shrink: 0;
+    }
+    .av.a1 { background: linear-gradient(135deg, #ff5d4d, #ff8b6e); }
+    .av.a2 { background: linear-gradient(135deg, #f4a261, #e76f51); }
+    .av.a3 { background: linear-gradient(135deg, #2a9d8f, #4a7c59); }
+    .av.a4 { background: linear-gradient(135deg, #6b5cff, #a78bfa); }
+    .av.a5 { background: linear-gradient(135deg, #f59e0b, #facc15); color: #3a2a04; }
+    .av.a6 { background: linear-gradient(135deg, #e879f9, #f472b6); }
+    .person .n { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; }
+    .person .r { font-size: 12px; color: var(--ink-2); margin-top: 1px; }
+    .person .tag { font-size: 10px; padding: 2px 6px; border-radius: 999px; margin-top: 4px; display: inline-block; font-family: 'JetBrains Mono', monospace; }
+    .tag.new { background: var(--accent-soft); color: var(--accent-deep); }
+    .tag.pto { background: #e0f2fe; color: #075985; }
+    .tag.rev { background: #fef3c7; color: #92400e; }
+    .roster-foot { margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--rule); display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-3); font-family: 'JetBrains Mono', monospace; }
+
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 48px; } }
+    @media (max-width: 720px) { .hero { padding: 64px 0 48px; } .hero-cta .btn { width: 100%; justify-content: center; } .row-people { grid-template-columns: 1fr; } }
+
+    /* Logos */
+    .logos { padding: 36px 0 64px; }
+    .logos-label { font-size: 12px; color: var(--ink-3); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; text-align: center; margin-bottom: 22px; }
+    .logos-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 28px; align-items: center; justify-items: center; color: var(--ink-2); font-weight: 700; font-size: 18px; font-family: 'DM Serif Display', serif; }
+    .logos-row span { opacity: 0.55; }
+    @media (max-width: 720px) { .logos-row { grid-template-columns: repeat(3, 1fr); } }
+
+    /* Sections */
+    .section { padding: 104px 0; }
+    .section-head { max-width: 760px; margin-bottom: 56px; }
+    .section h2 {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: clamp(42px, 5.4vw, 68px);
+      letter-spacing: -0.02em;
+      line-height: 1.02;
+      font-weight: 400;
+      margin: 14px 0 16px;
+    }
+    .section h2 em { font-style: italic; color: var(--accent); }
+
+    /* Features */
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .feature {
+      background: var(--paper);
+      border: 1px solid var(--rule);
+      border-radius: var(--radius-md);
+      padding: 32px;
+      transition: transform 220ms ease, border-color 220ms ease;
+    }
+    .feature:hover { transform: translateY(-3px); border-color: var(--rule-strong); }
+    .feature-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--accent-soft); color: var(--accent-deep); display: grid; place-items: center; margin-bottom: 18px; font-size: 20px; }
+    .feature h3 { font-family: 'DM Serif Display', serif; font-size: 24px; font-weight: 400; margin: 0 0 8px; letter-spacing: -0.01em; }
+    .feature p { color: var(--ink-2); font-size: 15px; margin: 0; }
+    @media (max-width: 1080px) { .features { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .features { grid-template-columns: 1fr; } }
+
+    /* Editorial split */
+    .editorial { background: var(--paper-2); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 104px 0; }
+    .ed-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+    .ed-art { border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--rule-strong); }
+    .ed-art img { width: 100%; aspect-ratio: 5/4; object-fit: cover; }
+    .ed-grid h2 { font-family: 'DM Serif Display', serif; font-size: clamp(36px, 4.8vw, 56px); font-weight: 400; line-height: 1.04; letter-spacing: -0.02em; margin: 14px 0 16px; }
+    .ed-grid h2 em { font-style: italic; color: var(--accent); }
+    .pull {
+      margin-top: 24px; padding: 18px 22px;
+      background: var(--paper); border-left: 3px solid var(--accent);
+      border-radius: 0 12px 12px 0;
+      font-style: italic; color: var(--ink); font-size: 17px;
+    }
+    .pull cite { display: block; font-style: normal; font-size: 12px; color: var(--ink-3); font-family: 'JetBrains Mono', monospace; margin-top: 8px; letter-spacing: 0.06em; text-transform: uppercase; }
+    @media (max-width: 1080px) { .ed-grid { grid-template-columns: 1fr; } }
+
+    /* Reviews mosaic */
+    .mosaic { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .post {
+      background: var(--paper); border: 1px solid var(--rule);
+      border-radius: var(--radius-md); padding: 28px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .post .who { display: flex; align-items: center; gap: 12px; }
+    .post .who .av { width: 32px; height: 32px; font-size: 11px; }
+    .post .who .n { font-size: 13px; font-weight: 700; }
+    .post .who .r { font-size: 11px; color: var(--ink-3); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+    .post p { font-family: 'DM Serif Display', serif; font-size: 20px; line-height: 1.25; margin: 0; font-weight: 400; }
+    @media (max-width: 1080px) { .mosaic { grid-template-columns: 1fr; } }
+
+    /* Metric ribbon */
+    .ribbon { background: var(--ink); color: var(--bg); padding: 88px 0; }
+    .ribbon-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    .ribbon .val { font-family: 'DM Serif Display', serif; font-size: clamp(40px, 5.2vw, 60px); font-weight: 400; letter-spacing: -0.025em; line-height: 1; }
+    .ribbon .val em { font-style: italic; color: var(--warm); font-weight: 400; }
+    .ribbon .label { color: #cab9b0; font-size: 14px; margin-top: 10px; }
+    @media (max-width: 1080px) { .ribbon-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    /* Pricing */
+    .pricing { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .plan {
+      background: var(--paper); border: 1px solid var(--rule);
+      border-radius: var(--radius-md); padding: 36px;
+      display: flex; flex-direction: column;
+    }
+    .plan.featured { border-color: var(--accent); position: relative; }
+    .plan.featured::after {
+      content: '★ MOST CHOSEN'; position: absolute; top: -12px; right: 24px;
+      background: var(--accent); color: white;
+      font-family: 'JetBrains Mono', monospace; font-size: 10px;
+      padding: 5px 10px; border-radius: 999px; letter-spacing: 0.08em; font-weight: 700;
+    }
+    .plan h3 { font-family: 'DM Serif Display', serif; font-size: 28px; font-weight: 400; margin: 0; }
+    .plan .price { font-family: 'DM Serif Display', serif; font-size: 50px; font-weight: 400; letter-spacing: -0.025em; margin: 14px 0 4px; }
+    .plan .price small { font-size: 14px; color: var(--ink-3); font-weight: 500; font-family: 'Inter', sans-serif; }
+    .plan .desc { color: var(--ink-2); font-size: 15px; min-height: 44px; }
+    .plan ul { list-style: none; padding: 0; margin: 22px 0; flex: 1; }
+    .plan li { padding: 7px 0; color: var(--ink-2); font-size: 14px; display: flex; gap: 10px; }
+    .plan li::before { content: '✦'; color: var(--accent); flex-shrink: 0; }
+    @media (max-width: 1080px) { .pricing { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; } }
+
+    /* CTA */
+    .cta-band { padding: 120px 0; text-align: center; }
+    .cta-band h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(44px, 6.4vw, 84px);
+      letter-spacing: -0.025em; line-height: 1.02;
+      margin: 0 0 20px; font-weight: 400;
+    }
+    .cta-band h2 em { font-style: italic; color: var(--accent); }
+    .cta-band p { color: var(--ink-2); max-width: 520px; margin: 0 auto 32px; font-size: 19px; }
+
+    /* Footer */
+    footer { padding: 56px 0 36px; border-top: 1px solid var(--rule); background: var(--paper-2); }
+    .foot-grid { display: grid; grid-template-columns: 1.6fr repeat(3, 1fr); gap: 44px; }
+    .foot-col h4 { font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-3); margin: 0 0 16px; }
+    .foot-col a { display: block; color: var(--ink-2); font-size: 14px; padding: 6px 0; }
+    .foot-col a:hover { color: var(--accent); }
+    .foot-bot { margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; color: var(--ink-3); font-size: 13px; }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 12px; text-align: center; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">
+        <span class="brand-mark">B</span>
+        BeaconHR
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#features">Product</a>
+        <a href="#editorial">Approach</a>
+        <a href="#reviews">Customers</a>
+        <a href="#pricing">Pricing</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-ghost" href="#">Sign in</a>
+        <a class="btn btn-primary" href="#">Book a walkthrough</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>HR software for companies that hire humans</span>
+            <h1>Treat people like a <em>roster</em>, not a ticket.</h1>
+            <p class="lede">BeaconHR is the warm, readable home for onboarding, time off, reviews, and people analytics. One profile per teammate. One file per moment. No 47-tab dashboard.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#">Book a walkthrough</a>
+              <a class="btn btn-ghost" href="#editorial">Read our approach →</a>
+            </div>
+            <div class="hero-meta">
+              <span><strong>14 day</strong> migration, including payroll handover</span>
+              <span><strong>SOC 2 Type II</strong> · GDPR · CCPA</span>
+            </div>
+          </div>
+          <div class="roster" role="img" aria-label="BeaconHR roster for the design team showing teammates and their current status.">
+            <div class="roster-head">
+              <h3>Design team · today</h3>
+              <span class="sub">6 people · 2 events</span>
+            </div>
+            <div class="row-people">
+              <div class="person">
+                <div class="av a1">RM</div>
+                <div>
+                  <div class="n">Rosa Marlow</div>
+                  <div class="r">Design lead</div>
+                </div>
+              </div>
+              <div class="person">
+                <div class="av a2">TG</div>
+                <div>
+                  <div class="n">Tomás Granados</div>
+                  <div class="r">Senior designer</div>
+                  <div class="tag pto">on PTO · back Mon</div>
+                </div>
+              </div>
+              <div class="person">
+                <div class="av a3">AS</div>
+                <div>
+                  <div class="n">Ada Senna</div>
+                  <div class="r">Product designer</div>
+                  <div class="tag rev">review due · Tue</div>
+                </div>
+              </div>
+              <div class="person">
+                <div class="av a4">JM</div>
+                <div>
+                  <div class="n">June Mwangi</div>
+                  <div class="r">Brand designer</div>
+                </div>
+              </div>
+              <div class="person">
+                <div class="av a5">PV</div>
+                <div>
+                  <div class="n">Pablo Vega</div>
+                  <div class="r">Motion designer</div>
+                  <div class="tag new">day 4 · onboarding</div>
+                </div>
+              </div>
+              <div class="person">
+                <div class="av a6">HK</div>
+                <div>
+                  <div class="n">Hana Kalmar</div>
+                  <div class="r">Design ops</div>
+                </div>
+              </div>
+            </div>
+            <div class="roster-foot">
+              <span>last updated 2 minutes ago</span>
+              <span>3 docs · 2 reviews · 1 birthday</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="logos">
+      <div class="wrap">
+        <p class="logos-label">People teams who chose warmth over wiring</p>
+        <div class="logos-row">
+          <span>Field &amp; Format</span>
+          <span>Studio Marlow</span>
+          <span>Bureau Verso</span>
+          <span>Brigantine</span>
+          <span>Atlas Group</span>
+          <span>Pivot House</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="features">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>What it does</span>
+          <h2>Everything for the <em>roster</em>. Nothing for the dashboard.</h2>
+          <p class="lede">BeaconHR replaces three half-built tools with one that's actually finished. Designed for the people who say "good morning" to teammates by name.</p>
+        </div>
+        <div class="features">
+          <div class="feature">
+            <div class="feature-icon">✦</div>
+            <h3>Onboarding that breathes</h3>
+            <p>A real first week — laptop, accounts, mentor, lunch — orchestrated by week, not a Trello board. New hires arrive prepared, not paged.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">☼</div>
+            <h3>Time off that asks softly</h3>
+            <p>One-tap PTO request. Auto-balanced accruals. Coverage suggestions. Approval Slack message your manager actually reads.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">❀</div>
+            <h3>Reviews humans write</h3>
+            <p>Drafts pulled from real work — shipped projects, calls, kudos — so writing a review takes twenty minutes, not a Saturday.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">⌗</div>
+            <h3>People analytics, gently</h3>
+            <p>Tenure, comp bands, attrition signals, DEI rollups — visible, exportable, and never on a screen new hires can see.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">⎈</div>
+            <h3>Compliance, quietly</h3>
+            <p>I-9, EEO-1, work authorization, GDPR data export. We do the paperwork and the audit trail. You do the warm welcome.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">✿</div>
+            <h3>Payroll bridges</h3>
+            <p>Native integrations with Gusto, Deel, Remote, ADP. One source of truth for hires, leaves, comp changes, and offboarding.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="editorial" id="editorial">
+      <div class="wrap">
+        <div class="ed-grid">
+          <div class="ed-art">
+            <img src="https://picsum.photos/seed/beacon-hr-1/1200/960" width="1200" height="960" loading="lazy" alt="A people lead reviewing a roster on a laptop, with handwritten notes beside her." />
+          </div>
+          <div>
+            <span class="eyebrow"><span class="dot"></span>Our approach</span>
+            <h2>People work doesn't belong in a <em>ticket queue</em>.</h2>
+            <p class="lede">HR teams aren't IT support. They're the institutional memory of a company. BeaconHR is built on that idea — files that read like notebooks, profiles that feel like portraits, dashboards that fade when you're not using them.</p>
+            <div class="pull">
+              "We stopped calling people 'records'. We started writing about them again. BeaconHR just made that the path of least resistance."
+              <cite>— Director of People · Studio Marlow</cite>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="reviews">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Customers</span>
+          <h2>What people leads say after the <em>migration</em>.</h2>
+        </div>
+        <div class="mosaic">
+          <div class="post">
+            <p>"My onboarding checklist used to be a Notion doc. Now it's a real week. New hires close their laptop on day five and feel like they belong."</p>
+            <div class="who"><div class="av a1">EA</div><div><div class="n">Erin Asher</div><div class="r">People lead · Pivot House</div></div></div>
+          </div>
+          <div class="post">
+            <p>"The review tool drafted from real shipped work changed my one-on-ones. We talk about the work, not who remembered to fill in the form."</p>
+            <div class="who"><div class="av a3">MN</div><div><div class="n">Marius Novak</div><div class="r">Director of Engineering · Atlas Group</div></div></div>
+          </div>
+          <div class="post">
+            <p>"I migrated 240 people in eleven days. Payroll didn't blink. My CFO sent a thank-you note — and a renewal."</p>
+            <div class="who"><div class="av a5">RA</div><div><div class="n">Rina Achebe</div><div class="r">Head of People · Bureau Verso</div></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ribbon">
+      <div class="wrap">
+        <div class="ribbon-grid">
+          <div><div class="val">11<em>d</em></div><div class="label">median migration time</div></div>
+          <div><div class="val">94<em>%</em></div><div class="label">new hires complete week-one plan</div></div>
+          <div><div class="val">3<em>×</em></div><div class="label">faster review cycles</div></div>
+          <div><div class="val">0</div><div class="label">ticket queues anywhere on the page</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="pricing">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Pricing</span>
+          <h2>Priced per <em>teammate</em>, billed annually.</h2>
+          <p class="lede">No HRIS module fees. No per-feature seat upgrades. Reviews, time off, analytics, payroll bridges — all included.</p>
+        </div>
+        <div class="pricing">
+          <div class="plan">
+            <h3>Studio</h3>
+            <div class="price">$6<small> / teammate / mo</small></div>
+            <p class="desc">For teams under 25.</p>
+            <ul>
+              <li>Full HRIS, time off, reviews</li>
+              <li>One payroll bridge</li>
+              <li>Email support</li>
+            </ul>
+            <a class="btn btn-ghost" href="#">Start trial</a>
+          </div>
+          <div class="plan featured">
+            <h3>Roster</h3>
+            <div class="price">$10<small> / teammate / mo</small></div>
+            <p class="desc">For growing companies that take people work seriously.</p>
+            <ul>
+              <li>All payroll bridges</li>
+              <li>People analytics &amp; comp bands</li>
+              <li>SAML SSO &amp; audit log</li>
+              <li>Dedicated success engineer</li>
+            </ul>
+            <a class="btn btn-primary" href="#">Choose Roster</a>
+          </div>
+          <div class="plan">
+            <h3>Enterprise</h3>
+            <div class="price">Custom</div>
+            <p class="desc">For multi-jurisdiction companies with a CHRO and a global payroll team.</p>
+            <ul>
+              <li>Custom data residency</li>
+              <li>Multi-entity rollup</li>
+              <li>Custom workflows</li>
+              <li>24×7 support &amp; named CSM</li>
+            </ul>
+            <a class="btn btn-ghost" href="#">Talk to us</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="cta-band">
+    <div class="wrap">
+      <h2>People work, finally <em>at home</em>.</h2>
+      <p>Migrate your team in under two weeks. We'll handle the payroll handover. You'll handle the welcome lunch.</p>
+      <a class="btn btn-primary" href="#" style="height: 56px; padding: 0 30px; font-size: 16px;">Book a walkthrough →</a>
+    </div>
+  </section>
+
+  <footer id="footer">
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a class="brand" href="#" style="margin-bottom: 16px;">
+            <span class="brand-mark">B</span>
+            BeaconHR
+          </a>
+          <p style="color: var(--ink-2); font-size: 14px; max-width: 300px;">HR software for companies that hire humans, not headcounts. One roster. One warm home for every person on it.</p>
+        </div>
+        <div class="foot-col">
+          <h4>Product</h4>
+          <a href="#">Onboarding</a>
+          <a href="#">Time off</a>
+          <a href="#">Reviews</a>
+          <a href="#">Analytics</a>
+        </div>
+        <div class="foot-col">
+          <h4>Resources</h4>
+          <a href="#">Help center</a>
+          <a href="#">Migration guide</a>
+          <a href="#">Compliance</a>
+          <a href="#">Status</a>
+        </div>
+        <div class="foot-col">
+          <h4>Company</h4>
+          <a href="#">About</a>
+          <a href="#">Our values</a>
+          <a href="#">Careers</a>
+          <a href="#">Contact</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Beacon People, Inc.</span>
+        <span>Built for the welcome lunch.</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

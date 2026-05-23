@@ -22,7 +22,7 @@ const toc = [
 export default function VSCodeExtensionPage() {
   return (
     <DocPage
-      eyebrow="Clients · לקוחות"
+      eyebrow="Clients"
       title="VSCode Extension"
       description="A thin client for the platform. Auth, AI calls, and patch state live on the server; the extension renders the loop and routes your input."
       toc={toc}
@@ -30,7 +30,7 @@ export default function VSCodeExtensionPage() {
       <h2 id="what-it-is">What it is</h2>
       <p>
         The Ironflyer VSCode extension is the delightful editor surface for the AI Product Finisher.
-        Pin a project, hit Run, watch the eight gates light up. Patches arrive as diffs you can review
+        Pin a project, hit Run, watch the nine gates light up. Patches arrive as diffs you can review
         side-by-side; the live preview renders inside a webview with mobile / tablet / desktop presets;
         every editor diagnostic gets an <em>Ask Ironflyer to fix</em> quick action.
       </p>

@@ -127,7 +127,7 @@ const ENTRIES: Entry[] = [
     notes: [
       { category: 'new', text: 'design-tokens package with output.com-inspired aesthetic.' },
       { category: 'improved', text: 'Marketing surface rebuilt with MUI 6 and the new tokens.' },
-      { category: 'improved', text: 'Hebrew copy promoted to first-class on every marketing page.' },
+      { category: 'improved', text: 'Marketing copy tightened around the production-readiness story.' },
     ],
   },
   {
@@ -151,7 +151,7 @@ export default function ChangelogPage() {
         <Container maxWidth="md" sx={{ py: { xs: 6, md: 10 } }}>
           <Stack direction="row" alignItems="baseline" justifyContent="space-between" sx={{ mb: 1 }}>
             <Typography variant="overline" sx={{ color: '#5c5750', letterSpacing: '0.16em', fontWeight: 800, fontSize: 12 }}>
-              Changelog · יומן שינויים
+              Changelog
             </Typography>
             <Box
               component="a"

@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LayerZero Net — The L2 for high-throughput onchain apps</title>
+  <meta name="description" content="LayerZero Net is a zk-rollup L2 with sub-cent fees, native account abstraction, and full Ethereum security. Build for millions of users without leaving the EVM." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #000;
+      --bg-2: #050008;
+      --surface: #0a0612;
+      --surface-2: #120a1f;
+      --border: rgba(167, 139, 250, 0.10);
+      --border-strong: rgba(167, 139, 250, 0.28);
+      --fg: #f5f0ff;
+      --fg-2: #a596c8;
+      --fg-3: #5e5078;
+      --accent: #671dfc;
+      --accent-2: #a78bfa;
+      --accent-3: #ff6bfa;
+      --green: #5cf0a1;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* Ambient orbs */
+    .bg-fx { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.5; }
+    .orb-1 { width: 800px; height: 800px; top: -300px; left: -200px; background: radial-gradient(circle, #671dfc, transparent 70%); }
+    .orb-2 { width: 700px; height: 700px; top: 400px; right: -300px; background: radial-gradient(circle, #ff6bfa, transparent 70%); opacity: 0.25; }
+    .orb-3 { width: 600px; height: 600px; bottom: -200px; left: 30%; background: radial-gradient(circle, #a78bfa, transparent 70%); opacity: 0.2; }
+
+    main, .nav, footer { position: relative; z-index: 1; }
+
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: blur(18px);
+      background: rgba(0, 0, 0, 0.6);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 68px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: -0.02em; font-size: 18px; }
+    .brand-mark {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: conic-gradient(from 180deg, var(--accent), var(--accent-3), var(--accent-2), var(--accent));
+      box-shadow: 0 0 30px rgba(103, 29, 252, 0.5);
+    }
+    .nav-links { display: flex; gap: 30px; color: var(--fg-2); font-size: 14px; }
+    .nav-links a:hover { color: var(--fg); }
+    .nav-cta { display: flex; gap: 10px; align-items: center; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      height: 40px; padding: 0 18px;
+      border-radius: 8px; font-weight: 600; font-size: 14px;
+      border: 1px solid transparent; cursor: pointer;
+      transition: transform 160ms, box-shadow 160ms;
+      font-family: inherit;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-3));
+      color: #fff;
+      box-shadow: 0 0 30px rgba(103, 29, 252, 0.4);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 0 40px rgba(103, 29, 252, 0.6); }
+    .btn-ghost { background: transparent; color: var(--fg); border-color: var(--border-strong); }
+    .btn-ghost:hover { border-color: var(--accent-2); color: var(--accent-2); }
+    @media (max-width: 900px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 120px 0 100px; text-align: center; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 16px; border: 1px solid var(--border-strong);
+      border-radius: 999px; font-size: 12px; color: var(--accent-2);
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase; letter-spacing: 0.12em;
+      background: rgba(103, 29, 252, 0.08);
+    }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
+    h1 {
+      font-size: clamp(54px, 9vw, 132px);
+      line-height: 0.95; letter-spacing: -0.045em;
+      font-weight: 900; margin: 30px auto 26px;
+      max-width: 1000px;
+    }
+    h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--accent-2), var(--accent-3));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .lede { font-size: clamp(18px, 1.6vw, 21px); color: var(--fg-2); max-width: 680px; line-height: 1.55; margin: 0 auto; }
+    .hero-cta { display: flex; gap: 14px; justify-content: center; margin-top: 36px; flex-wrap: wrap; }
+    .hero-cta .btn { height: 52px; padding: 0 28px; font-size: 15px; }
+
+    /* Spec card under hero */
+    .spec {
+      margin: 72px auto 0; max-width: 960px;
+      background: rgba(10, 6, 18, 0.6);
+      border: 1px solid var(--border-strong);
+      border-radius: 20px;
+      backdrop-filter: blur(20px);
+      padding: 0;
+      overflow: hidden;
+    }
+    .spec-grid { display: grid; grid-template-columns: repeat(4, 1fr); }
+    .spec-cell { padding: 28px; text-align: left; border-right: 1px solid var(--border); }
+    .spec-cell:last-child { border-right: 0; }
+    .spec-cell .label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 12px; }
+    .spec-cell .val { font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; color: var(--fg); }
+    .spec-cell .val em { font-style: normal; background: linear-gradient(135deg, var(--accent-2), var(--accent-3)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    @media (max-width: 1080px) {
+      .spec-grid { grid-template-columns: repeat(2, 1fr); }
+      .spec-cell:nth-child(2) { border-right: 0; }
+      .spec-cell:nth-child(1), .spec-cell:nth-child(2) { border-bottom: 1px solid var(--border); }
+    }
+
+    /* Section */
+    .section { padding: 100px 0; }
+    .section-head { max-width: 760px; margin: 0 auto 56px; text-align: center; }
+    .section h2 { font-size: clamp(36px, 5vw, 64px); letter-spacing: -0.035em; line-height: 1.02; font-weight: 800; margin: 14px 0 16px; }
+    .section h2 em { font-style: normal; background: linear-gradient(135deg, var(--accent-2), var(--accent-3)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .section .lede { font-size: 18px; }
+
+    /* How it works */
+    .steps {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 0;
+      background: var(--surface); border: 1px solid var(--border-strong);
+      border-radius: 20px; overflow: hidden;
+    }
+    .step { padding: 40px; position: relative; }
+    .step + .step { border-left: 1px solid var(--border); }
+    .step-num {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-3));
+      display: grid; place-items: center;
+      font-family: 'JetBrains Mono', monospace; font-weight: 700;
+      margin-bottom: 20px;
+    }
+    .step h3 { font-size: 20px; font-weight: 700; margin: 0 0 10px; letter-spacing: -0.01em; }
+    .step p { color: var(--fg-2); margin: 0; font-size: 15px; line-height: 1.65; }
+    @media (max-width: 1080px) {
+      .steps { grid-template-columns: 1fr; }
+      .step + .step { border-left: 0; border-top: 1px solid var(--border); }
+    }
+
+    /* Features */
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .feature {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 32px;
+      transition: border-color 240ms, transform 240ms;
+      position: relative; overflow: hidden;
+    }
+    .feature:hover { border-color: var(--accent-2); transform: translateY(-3px); }
+    .feature-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: linear-gradient(135deg, rgba(103, 29, 252, 0.3), rgba(255, 107, 250, 0.2));
+      border: 1px solid var(--border-strong);
+      display: grid; place-items: center; margin-bottom: 20px;
+      color: var(--accent-2); font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 18px;
+    }
+    .feature h3 { font-size: 18px; font-weight: 700; margin: 0 0 8px; letter-spacing: -0.01em; }
+    .feature p { color: var(--fg-2); margin: 0; font-size: 14.5px; line-height: 1.6; }
+    @media (max-width: 1080px) { .features { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .features { grid-template-columns: 1fr; } }
+
+    /* Comparison */
+    .compare-card { background: var(--surface); border: 1px solid var(--border-strong); border-radius: 16px; overflow: hidden; }
+    .compare-head { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; padding: 18px 24px; background: var(--surface-2); font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 1px solid var(--border); }
+    .compare-row { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; padding: 18px 24px; border-bottom: 1px solid var(--border); align-items: center; }
+    .compare-row:last-child { border-bottom: 0; }
+    .compare-cell { font-size: 14px; }
+    .compare-cell.metric { color: var(--fg-2); font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+    .compare-cell.us { color: var(--accent-2); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+    .compare-cell.them { color: var(--fg-3); font-family: 'JetBrains Mono', monospace; }
+    @media (max-width: 1080px) {
+      .compare-head { display: none; }
+      .compare-row { grid-template-columns: 1fr; gap: 6px; }
+    }
+
+    /* Ecosystem grid */
+    .eco-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; }
+    .eco-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 18px;
+      text-align: center;
+      transition: border-color 240ms;
+    }
+    .eco-card:hover { border-color: var(--border-strong); }
+    .eco-card-ico { width: 36px; height: 36px; border-radius: 10px; margin: 0 auto 10px; }
+    .eco-card-name { font-weight: 600; font-size: 13px; }
+    @media (max-width: 1080px) { .eco-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 720px) { .eco-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    /* Security */
+    .security { padding: 100px 0; background: var(--bg-2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .sec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: start; }
+    .auditors { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .auditor { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+    .auditor-name { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+    .auditor-meta { font-size: 12px; color: var(--fg-2); font-family: 'JetBrains Mono', monospace; }
+    .auditor a { color: var(--accent-2); font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+    @media (max-width: 1080px) { .sec-grid { grid-template-columns: 1fr; gap: 40px; } }
+
+    /* CTA */
+    .cta-band {
+      padding: 100px 0; text-align: center;
+      background: radial-gradient(ellipse at center, rgba(103, 29, 252, 0.16), transparent 70%);
+      border-top: 1px solid var(--border);
+    }
+    .cta-band h2 { font-size: clamp(40px, 5.4vw, 72px); letter-spacing: -0.035em; line-height: 1.02; margin: 0 0 24px; }
+    .cta-band p { color: var(--fg-2); max-width: 580px; margin: 0 auto 36px; font-size: 18px; }
+
+    /* Footer */
+    footer { border-top: 1px solid var(--border); padding: 56px 0 32px; background: #050008; }
+    .foot-grid { display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 40px; }
+    .foot-col h4 { font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent-2); margin: 0 0 16px; }
+    .foot-col a { display: block; color: var(--fg-2); font-size: 14px; padding: 6px 0; }
+    .foot-col a:hover { color: var(--accent-2); }
+    .foot-bot { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; color: var(--fg-3); font-size: 13px; font-family: 'JetBrains Mono', monospace; }
+    @media (max-width: 720px) {
+      .foot-grid { grid-template-columns: 1fr 1fr; }
+      .foot-bot { flex-direction: column; gap: 12px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-fx" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">
+        <span class="brand-mark" aria-hidden="true"></span>
+        LayerZero Net
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#how">Architecture</a>
+        <a href="#features">Features</a>
+        <a href="#compare">vs others</a>
+        <a href="#ecosystem">Ecosystem</a>
+        <a href="#security">Security</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-ghost" href="#">Docs</a>
+        <a class="btn btn-primary" href="#">Bridge to L0 Net</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <span class="eyebrow"><span class="dot"></span>mainnet · 4,200 TPS · $0.003 median fee</span>
+        <h1>The L2 for the <em>next billion</em> users.</h1>
+        <p class="lede">LayerZero Net is a zk-rollup with sub-cent fees, native account abstraction, and full Ethereum security. Build for millions of users without leaving the EVM, without giving up custody, and without locking yourself into a sidechain.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="#">Bridge to LayerZero Net →</a>
+          <a class="btn btn-ghost" href="#">Read the docs</a>
+        </div>
+
+        <div class="spec">
+          <div class="spec-grid">
+            <div class="spec-cell"><div class="label">throughput</div><div class="val"><em>4,200</em> TPS</div></div>
+            <div class="spec-cell"><div class="label">median fee</div><div class="val">$0.003</div></div>
+            <div class="spec-cell"><div class="label">finality</div><div class="val">~ 2s</div></div>
+            <div class="spec-cell"><div class="label">L1 security</div><div class="val">Ethereum</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="how">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>architecture</span>
+          <h2>A zk-rollup, <em>done properly</em>.</h2>
+          <p class="lede">Three layers: an EVM execution layer, a proving system, and an Ethereum settlement contract. Every state transition is proven; nothing is trusted.</p>
+        </div>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">01</div>
+            <h3>Execute on L2</h3>
+            <p>Transactions execute in our EVM-equivalent sequencer at 4,200 TPS. The same Solidity, the same bytecode, the same tooling — without re-deploying anything.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">02</div>
+            <h3>Prove the batch</h3>
+            <p>Every 2 seconds, the prover generates a zk-SNARK over the batch. The proof is small (~50KB), fast to verify (~12ms), and posted to Ethereum within one slot.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">03</div>
+            <h3>Settle on L1</h3>
+            <p>The Ethereum verifier checks the proof and finalizes the batch. From that block onward, withdrawals from L2 are honored at the source by the rollup contract.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="features" style="padding-top: 0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>features</span>
+          <h2>Built for <em>app developers</em>.</h2>
+          <p class="lede">Native account abstraction, paymaster support, fast finality, and zero-cost gas sponsorship. The boring infrastructure that makes apps feel instant.</p>
+        </div>
+        <div class="features">
+          <div class="feature"><div class="feature-icon">⚡</div><h3>EVM-equivalent</h3><p>Same Solidity, same bytecode, same RPC. Foundry, Hardhat, viem, ethers — everything works without modification.</p></div>
+          <div class="feature"><div class="feature-icon">⛬</div><h3>Native AA</h3><p>ERC-4337 baked into the protocol. Session keys, sponsored gas, social recovery, and multicall as a first-class transaction type.</p></div>
+          <div class="feature"><div class="feature-icon">$</div><h3>Paymaster ready</h3><p>Sponsor your users' gas, accept ERC-20 fees, or rebate gas through a public paymaster pool. No middleware required.</p></div>
+          <div class="feature"><div class="feature-icon">∞</div><h3>Sub-cent fees</h3><p>Median fee is $0.003. p99 fee is $0.018. Fees are denominated in ETH but you can let users pay in USDC.</p></div>
+          <div class="feature"><div class="feature-icon">↻</div><h3>Fast withdrawals</h3><p>Standard L1 exits via the rollup contract, plus a fast-withdraw market for instant exits backed by liquidity providers.</p></div>
+          <div class="feature"><div class="feature-icon">⛨</div><h3>L1 security</h3><p>Every state root is verified by an Ethereum smart contract. We inherit Ethereum's economic security; the sequencer cannot rug.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="compare" style="padding-top: 0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>vs others</span>
+          <h2>Where LayerZero Net <em>differs</em>.</h2>
+          <p class="lede">An honest comparison. We respect every L2 in this list and ship with the same tooling, but the numbers below are reproducible from public block explorers.</p>
+        </div>
+        <div class="compare-card">
+          <div class="compare-head">
+            <div>Metric</div>
+            <div>LayerZero Net</div>
+            <div>Comparable A</div>
+            <div>Comparable B</div>
+          </div>
+          <div class="compare-row">
+            <div class="compare-cell metric">Median transfer fee</div>
+            <div class="compare-cell us">$0.003</div>
+            <div class="compare-cell them">$0.014</div>
+            <div class="compare-cell them">$0.022</div>
+          </div>
+          <div class="compare-row">
+            <div class="compare-cell metric">Throughput (sustained)</div>
+            <div class="compare-cell us">4,200 TPS</div>
+            <div class="compare-cell them">1,800 TPS</div>
+            <div class="compare-cell them">2,400 TPS</div>
+          </div>
+          <div class="compare-row">
+            <div class="compare-cell metric">Finality (best case)</div>
+            <div class="compare-cell us">~ 2 seconds</div>
+            <div class="compare-cell them">~ 12 seconds</div>
+            <div class="compare-cell them">~ 7 days (optimistic)</div>
+          </div>
+          <div class="compare-row">
+            <div class="compare-cell metric">Native AA</div>
+            <div class="compare-cell us">Built in</div>
+            <div class="compare-cell them">Bundler required</div>
+            <div class="compare-cell them">Bundler required</div>
+          </div>
+          <div class="compare-row">
+            <div class="compare-cell metric">L1 settlement</div>
+            <div class="compare-cell us">Ethereum (zk)</div>
+            <div class="compare-cell them">Ethereum (zk)</div>
+            <div class="compare-cell them">Ethereum (optimistic)</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="ecosystem" style="padding-top: 0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>ecosystem</span>
+          <h2>318 apps. <em>$2.4B TVL</em>.</h2>
+          <p class="lede">DeFi, NFTs, games, and consumer apps already deployed. Bridges from every major L1 and L2.</p>
+        </div>
+        <div class="eco-grid">
+          <div class="eco-card"><div class="eco-card-ico" style="background: linear-gradient(135deg, #ff6bfa, #a78bfa);"></div><div class="eco-card-name">Uniswap V4</div></div>
+          <div class="eco-card"><div class="eco-card-ico" style="background: linear-gradient(135deg, #5cf0a1, #6dd5ff);"></div><div class="eco-card-name">Aave V4</div></div>
+          <div class="eco-card"><div class="eco-card-ico" style="background: linear-gradient(135deg, #c5ff3a, #5cf0a1);"></div><div class="eco-card-name">Lido</div></div>
+          <div class="eco-card"><div class="eco-card-ico" style="background: linear-gradient(135deg, #fbbf24, #f59e0b);"></div><div class="eco-card-name">Pendle</div></div>
+          <div class="eco-card"><div class="eco-card-ico" style="background: linear-gradient(135deg, #ff6c3a, #fbbf24);"></div><div class="eco-card-name">Curve</div></div>
+          <div class="eco-card"><div class="eco-card-ico" style="background: linear-gradient(135deg, #671dfc, #ff6bfa);"></div><div class="eco-card-name">Morpho</div></div>
+          <div class="eco-card"><div class="eco-card-ico" style="background: linear-gradient(135deg, #6dd5ff, #a78bfa);"></div><div class="eco-card-name">OpenSea</div></div>
+          <div class="eco-card"><div class="eco-card-ico" style="background: linear-gradient(135deg, #ec4899, #f97316);"></div><div class="eco-card-name">Blur</div></div>
+          <div class="eco-card"><div class="eco-card-ico" style="background: linear-gradient(135deg, #10b981, #5cf0a1);"></div><div class="eco-card-name">Stargate</div></div>
+          <div class="eco-card"><div class="eco-card-ico" style="background: linear-gradient(135deg, #f472b6, #c084fc);"></div><div class="eco-card-name">Friend.tech</div></div>
+          <div class="eco-card"><div class="eco-card-ico" style="background: linear-gradient(135deg, #38bdf8, #818cf8);"></div><div class="eco-card-name">Farcaster</div></div>
+          <div class="eco-card"><div class="eco-card-ico" style="background: linear-gradient(135deg, #fde047, #facc15);"></div><div class="eco-card-name">Reservoir</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="security" id="security">
+      <div class="wrap">
+        <div class="sec-grid">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>security</span>
+            <h2>Proven, not <em>trusted</em>.</h2>
+            <p class="lede">Every state transition is verified by a zk-SNARK on Ethereum. The sequencer cannot withhold funds, censor permanently, or finalize an invalid state. The bridge is audited by four firms; the prover by three.</p>
+            <div style="margin-top: 28px;">
+              <a class="btn btn-ghost" href="#" style="margin-right: 10px;">View audits</a>
+              <a class="btn btn-ghost" href="#">Bug bounty</a>
+            </div>
+          </div>
+          <div class="auditors">
+            <div class="auditor"><div class="auditor-name">Trail of Bits</div><div class="auditor-meta">Rollup bridge · Feb 2026</div><a href="#">View report →</a></div>
+            <div class="auditor"><div class="auditor-name">OpenZeppelin</div><div class="auditor-meta">Account abstraction · Dec 2025</div><a href="#">View report →</a></div>
+            <div class="auditor"><div class="auditor-name">Halborn</div><div class="auditor-meta">Sequencer client · Oct 2025</div><a href="#">View report →</a></div>
+            <div class="auditor"><div class="auditor-name">Sigma Prime</div><div class="auditor-meta">Prover circuits · Aug 2025</div><a href="#">View report →</a></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="cta-band">
+    <div class="wrap">
+      <h2>Ready to deploy?</h2>
+      <p>Same Solidity. Same tooling. Sub-cent fees. Deploy your contracts to LayerZero Net in 60 seconds and see what your app feels like when gas isn't an excuse.</p>
+      <a class="btn btn-primary" href="#" style="height:56px;padding:0 32px;font-size:15px;">Bridge to LayerZero Net →</a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a class="brand" href="#" style="margin-bottom:16px;">
+            <span class="brand-mark" aria-hidden="true"></span>
+            LayerZero Net
+          </a>
+          <p style="color:var(--fg-2); font-size:14px; max-width:300px;">A zk-rollup L2 with sub-cent fees, native account abstraction, and full Ethereum security.</p>
+        </div>
+        <div class="foot-col">
+          <h4>Network</h4>
+          <a href="#">Bridge</a>
+          <a href="#">Explorer</a>
+          <a href="#">Status</a>
+          <a href="#">Stats</a>
+        </div>
+        <div class="foot-col">
+          <h4>Developers</h4>
+          <a href="#">Docs</a>
+          <a href="#">SDK</a>
+          <a href="#">GitHub</a>
+          <a href="#">Grants</a>
+        </div>
+        <div class="foot-col">
+          <h4>Community</h4>
+          <a href="#">Discord</a>
+          <a href="#">Twitter / X</a>
+          <a href="#">Forum</a>
+          <a href="#">Mirror</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 LayerZero Foundation</span>
+        <span>chain id 421614 · block 12,448,902</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

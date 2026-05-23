@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { Box, Stack, Typography } from '@mui/material';
 import { auth, AuthUser } from '../lib/auth';
 import { tokens } from '../lib/theme';
+import { IronflyerMark } from '../components/brand/IronflyerLogo';
 
 interface AuthCtx {
   user: AuthUser | null;
@@ -85,7 +86,7 @@ function AuthLoading() {
   return (
     <Box sx={{ minHeight: '100vh', display: 'grid', placeItems: 'center', bgcolor: tokens.color.bg.base }}>
       <Stack spacing={1.5} alignItems="center">
-        <Box sx={{ width: 36, height: 36, borderRadius: 1, bgcolor: tokens.color.accent.lime, boxShadow: `0 0 28px ${tokens.color.accent.lime}` }} />
+        <IronflyerMark size={42} tone="dark" />
         <Typography variant="body2" color="text.secondary">Opening Ironflyer workspace...</Typography>
       </Stack>
     </Box>

@@ -5,7 +5,7 @@
 // ---------- Finisher gates ---------------------------------------------------
 
 export type GateName =
-  | 'spec' | 'ux' | 'arch' | 'code' | 'lint' | 'test' | 'security' | 'deploy';
+  | 'spec' | 'ux' | 'arch' | 'code' | 'lint' | 'test' | 'security' | 'budget' | 'deploy';
 
 export type GateStatus =
   | 'pending' | 'running' | 'passed' | 'failed' | 'blocked' | 'repaired';
@@ -81,6 +81,16 @@ export interface ExecutionEvent {
   createdAt: string;
 }
 
+export interface VisualTarget {
+  id: string;
+  name?: string;
+  routeHint?: string;
+  viewportW: number;
+  viewportH: number;
+  imagePngBase64: string;
+  tolerance?: number;
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -92,6 +102,7 @@ export interface Project {
   gates: Record<GateName, GateState>;
   events: ExecutionEvent[];
   github?: GitHubLink;
+  visualTargets?: VisualTarget[];
   createdAt: string;
   updatedAt: string;
 }

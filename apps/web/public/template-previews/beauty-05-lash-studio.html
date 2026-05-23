@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lash &amp; Brow Studio — Custom lash extensions and brow shaping in NoHo</title>
+  <meta name="description" content="A two-chair lash studio specializing in classic, hybrid, and volume lash extensions, plus brow lamination and tinting. By appointment only." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #ffffff;
+      --paper: #faf3f0;
+      --paper-2: #f4e8e2;
+      --ink: #2a1f1c;
+      --ink-2: #5a4d49;
+      --ink-3: #998782;
+      --line: rgba(42, 31, 28, 0.10);
+      --accent: #c79c8c;
+      --accent-deep: #a87a6a;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--ink); font-family: 'Inter', system-ui, sans-serif; font-size: 16px; line-height: 1.65; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
+    .serif { font-family: 'DM Serif Display', serif; }
+    .eyebrow { font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent-deep); }
+
+    .nav { padding: 24px 0; border-bottom: 1px solid var(--line); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { font-family: 'DM Serif Display', serif; font-size: 26px; letter-spacing: 0.04em; }
+    .brand .amp { color: var(--accent-deep); font-style: italic; padding: 0 6px; }
+    .nav-links { display: flex; gap: 28px; font-size: 14px; color: var(--ink-2); }
+    .nav-links a:hover { color: var(--ink); }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border-radius: 999px; font-size: 13px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; border: 1px solid transparent; cursor: pointer; transition: background 200ms, color 200ms; }
+    .btn-primary { background: var(--ink); color: #fff; }
+    .btn-primary:hover { background: var(--accent-deep); }
+    .btn-soft { background: var(--accent); color: var(--ink); }
+    .btn-soft:hover { background: var(--accent-deep); color: #fff; }
+    .btn-ghost { background: transparent; color: var(--ink); border-color: rgba(42,31,28,0.2); }
+    .btn-ghost:hover { border-color: var(--ink); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    .hero { padding: 80px 0 80px; }
+    .hero-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 56px; align-items: center; }
+    h1 { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(48px, 7.5vw, 96px); line-height: 1.0; letter-spacing: -0.01em; margin: 16px 0 22px; }
+    h1 em { font-style: italic; color: var(--accent-deep); }
+    .lede { font-size: 18px; color: var(--ink-2); max-width: 460px; }
+    .hero-cta { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
+    .hero-meta { display: flex; gap: 30px; margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--line); }
+    .hero-meta dt { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-3); }
+    .hero-meta dd { font-family: 'DM Serif Display', serif; font-size: 22px; margin: 4px 0 0; }
+    .hero-img { position: relative; }
+    .hero-img img { width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 4px; }
+    .hero-img .ribbon { position: absolute; bottom: 22px; left: 22px; right: 22px; background: rgba(255,255,255,0.94); padding: 16px 22px; font-family: 'DM Serif Display', serif; font-size: 16px; font-style: italic; }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; } }
+
+    section { padding: 100px 0; }
+    h2 { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(36px, 5vw, 62px); letter-spacing: -0.005em; line-height: 1.05; margin: 14px 0 18px; max-width: 18ch; }
+    h2 em { font-style: italic; color: var(--accent-deep); }
+    .section-head { max-width: 720px; margin-bottom: 56px; }
+    .section-head p { font-size: 17px; color: var(--ink-2); }
+
+    .style-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 42px; flex-wrap: wrap; }
+    .style-tabs button { background: transparent; border: 0; padding: 18px 22px; font-family: 'Inter'; font-size: 14px; letter-spacing: 0.06em; color: var(--ink-3); cursor: pointer; border-bottom: 2px solid transparent; transition: color 200ms, border-color 200ms; }
+    .style-tabs button.is-on { color: var(--ink); border-color: var(--accent-deep); }
+    .style-tabs button:hover { color: var(--ink); }
+    .style-grid { display: grid; grid-template-columns: 1.1fr 1fr 1fr; gap: 36px; align-items: start; }
+    .style-grid > .img { aspect-ratio: 4/5; overflow: hidden; border-radius: 4px; }
+    .style-grid > .img img { width: 100%; height: 100%; object-fit: cover; }
+    .style-grid .desc h3 { font-family: 'DM Serif Display', serif; font-size: 36px; margin: 0 0 12px; }
+    .style-grid .desc p { font-size: 16px; color: var(--ink-2); margin: 0 0 18px; }
+    .style-grid .desc ul { padding: 0; margin: 18px 0 0; list-style: none; font-size: 14px; color: var(--ink-2); }
+    .style-grid .desc li { padding: 8px 0; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; }
+    .style-grid .price-card { background: var(--paper); padding: 28px; border-radius: 4px; }
+    .style-grid .price-card .p { font-family: 'DM Serif Display', serif; font-size: 56px; line-height: 1; color: var(--ink); margin: 6px 0 4px; }
+    .style-grid .price-card .per { font-size: 13px; color: var(--ink-3); }
+    .style-grid .price-card .meta { font-size: 14px; color: var(--ink-2); margin: 22px 0; line-height: 1.7; }
+    [data-style] { display: none; }
+    [data-style].is-active { display: grid; }
+    @media (max-width: 1080px) { .style-grid { grid-template-columns: 1fr; } }
+
+    .brows { background: var(--paper); }
+    .brows-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 80px; }
+    .brow-row { display: grid; grid-template-columns: 1fr auto; gap: 14px 24px; padding: 22px 0; border-bottom: 1px solid var(--line); align-items: baseline; }
+    .brow-row h3 { font-family: 'DM Serif Display', serif; font-size: 22px; margin: 0; }
+    .brow-row .meta { font-size: 13px; color: var(--ink-3); margin-top: 4px; }
+    .brow-row .price { font-family: 'DM Serif Display', serif; font-size: 22px; white-space: nowrap; color: var(--accent-deep); }
+    @media (max-width: 1080px) { .brows-grid { grid-template-columns: 1fr; gap: 0; } }
+
+    .artists-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; }
+    .artist img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 4px; }
+    .artist h3 { font-family: 'DM Serif Display', serif; font-size: 32px; margin: 22px 0 4px; }
+    .artist .role { font-style: italic; color: var(--accent-deep); font-size: 16px; }
+    .artist p { color: var(--ink-2); margin: 12px 0 0; }
+    @media (max-width: 720px) { .artists-grid { grid-template-columns: 1fr; } }
+
+    .gallery { background: var(--paper); }
+    .gallery-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .gallery-grid img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 4px; }
+    @media (max-width: 1080px) { .gallery-grid { grid-template-columns: 1fr 1fr; } }
+
+    .quotes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px 80px; }
+    .quote p { font-family: 'DM Serif Display', serif; font-style: italic; font-size: 22px; line-height: 1.5; margin: 0 0 14px; }
+    .quote .who { font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-3); }
+    @media (max-width: 1080px) { .quotes-grid { grid-template-columns: 1fr; gap: 36px; } }
+
+    .visit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+    .visit-grid img { width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 4px; }
+    .visit dl { display: grid; grid-template-columns: 130px 1fr; gap: 12px 24px; font-family: 'DM Serif Display', serif; font-size: 18px; margin-top: 24px; }
+    .visit dt { color: var(--ink-3); font-style: italic; }
+    .visit dd { margin: 0; }
+    @media (max-width: 1080px) { .visit-grid { grid-template-columns: 1fr; } }
+
+    footer { border-top: 1px solid var(--line); padding: 48px 0 32px; }
+    .foot { display: flex; justify-content: space-between; align-items: flex-end; gap: 28px; flex-wrap: wrap; }
+    .foot .links { display: flex; gap: 22px; font-size: 14px; color: var(--ink-2); }
+    .foot .copy { font-size: 13px; color: var(--ink-3); font-style: italic; }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">Lash<span class="amp">&amp;</span>Brow</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#lashes">Lashes</a>
+        <a href="#brows">Brows</a>
+        <a href="#artists">Artists</a>
+        <a href="#gallery">Gallery</a>
+        <a href="#visit">Visit</a>
+      </nav>
+      <a class="btn btn-primary" href="#visit">Book a fill</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow">NoHo · New York · since 2018</span>
+            <h1>Lashes that look like <em>your own</em>, only better.</h1>
+            <p class="lede">A two-chair studio specializing in classic, hybrid, and volume lash extensions, plus brow lamination, tinting, and a careful, considered shape. By appointment only.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#visit">Book a new set</a>
+              <a class="btn btn-ghost" href="#lashes">See the styles</a>
+            </div>
+            <dl class="hero-meta">
+              <div><dt>New set, classic</dt><dd>$185</dd></div>
+              <div><dt>Two-week fill</dt><dd>$95</dd></div>
+              <div><dt>Brow lamination</dt><dd>$110</dd></div>
+            </dl>
+          </div>
+          <div class="hero-img">
+            <img src="https://picsum.photos/seed/lash-studio-hero/900/1120" width="900" height="1120" alt="Close-up of an eye with soft, fluttery lash extensions catching the light." loading="eager" />
+            <div class="ribbon">"You can sleep on them, swim with them, cry through a Pixar movie."</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="lashes">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Lash extensions</span>
+          <h2>Four styles, one <em>honest consult</em>.</h2>
+          <p>Every first-time client gets a free fifteen-minute consult before the first set, in the chair, with a mirror. We'll tell you what your natural lashes can support — and what looks best on your face.</p>
+        </div>
+        <div class="style-tabs" role="tablist">
+          <button class="is-on" data-tab="classic" type="button">Classic</button>
+          <button data-tab="hybrid" type="button">Hybrid</button>
+          <button data-tab="volume" type="button">Volume</button>
+          <button data-tab="mega" type="button">Mega volume</button>
+        </div>
+
+        <div class="style-grid is-active" data-style="classic">
+          <div class="img"><img src="https://picsum.photos/seed/lash-studio-classic/700/900" width="700" height="900" alt="A natural classic lash set, one extension per natural lash." loading="lazy" /></div>
+          <div class="desc">
+            <h3>Classic</h3>
+            <p>One extension per natural lash. The most natural look, like a great mascara — but for six weeks.</p>
+            <ul>
+              <li><span>Best for</span><span>Everyday, mascara-free</span></li>
+              <li><span>Look</span><span>Soft, defined, natural</span></li>
+              <li><span>Lasts</span><span>4–6 weeks with fills</span></li>
+            </ul>
+          </div>
+          <div class="price-card">
+            <span class="eyebrow">From</span>
+            <div class="p">$185</div>
+            <div class="per">new set · 90 min</div>
+            <div class="meta">Two-week fill · $95<br/>Three-week fill · $115<br/>Lash removal · $45</div>
+            <a class="btn btn-primary" href="#visit">Book a new set</a>
+          </div>
+        </div>
+
+        <div class="style-grid" data-style="hybrid">
+          <div class="img"><img src="https://picsum.photos/seed/lash-studio-hybrid/700/900" width="700" height="900" alt="A hybrid lash set blending classic and volume technique." loading="lazy" /></div>
+          <div class="desc">
+            <h3>Hybrid</h3>
+            <p>A mix of classic and volume extensions. Adds density without going dramatic. Our most popular set.</p>
+            <ul>
+              <li><span>Best for</span><span>Sparse spots, soft drama</span></li>
+              <li><span>Look</span><span>Textured, lifted</span></li>
+              <li><span>Lasts</span><span>4–6 weeks with fills</span></li>
+            </ul>
+          </div>
+          <div class="price-card">
+            <span class="eyebrow">From</span>
+            <div class="p">$220</div>
+            <div class="per">new set · 100 min</div>
+            <div class="meta">Two-week fill · $110<br/>Three-week fill · $130<br/>Lash removal · $45</div>
+            <a class="btn btn-primary" href="#visit">Book a new set</a>
+          </div>
+        </div>
+
+        <div class="style-grid" data-style="volume">
+          <div class="img"><img src="https://picsum.photos/seed/lash-studio-volume/700/900" width="700" height="900" alt="A volume lash set, hand-made fans on each natural lash." loading="lazy" /></div>
+          <div class="desc">
+            <h3>Volume</h3>
+            <p>Hand-made fans of three to five lightweight extensions on each natural lash. Fuller without weight.</p>
+            <ul>
+              <li><span>Best for</span><span>Dressier days</span></li>
+              <li><span>Look</span><span>Dense, fluffy</span></li>
+              <li><span>Lasts</span><span>3–5 weeks with fills</span></li>
+            </ul>
+          </div>
+          <div class="price-card">
+            <span class="eyebrow">From</span>
+            <div class="p">$260</div>
+            <div class="per">new set · 2 hrs</div>
+            <div class="meta">Two-week fill · $125<br/>Three-week fill · $150<br/>Lash removal · $45</div>
+            <a class="btn btn-primary" href="#visit">Book a new set</a>
+          </div>
+        </div>
+
+        <div class="style-grid" data-style="mega">
+          <div class="img"><img src="https://picsum.photos/seed/lash-studio-mega/700/900" width="700" height="900" alt="A mega volume lash set, dense and dramatic." loading="lazy" /></div>
+          <div class="desc">
+            <h3>Mega volume</h3>
+            <p>Six to ten ultra-fine extensions per fan. The most dramatic look — for the event, the photo, the trip.</p>
+            <ul>
+              <li><span>Best for</span><span>Bridal, photo days</span></li>
+              <li><span>Look</span><span>Dramatic, full</span></li>
+              <li><span>Lasts</span><span>3–4 weeks with fills</span></li>
+            </ul>
+          </div>
+          <div class="price-card">
+            <span class="eyebrow">From</span>
+            <div class="p">$310</div>
+            <div class="per">new set · 2.5 hrs</div>
+            <div class="meta">Two-week fill · $145<br/>Three-week fill · $170<br/>Lash removal · $45</div>
+            <a class="btn btn-primary" href="#visit">Book a new set</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="brows" id="brows">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Brows</span>
+          <h2>Brow services that respect the brow <em>you grew</em>.</h2>
+          <p>We don't oversell brow shaping. If your shape is already working, we'll say so, charge you for the tint, and send you home.</p>
+        </div>
+        <div class="brows-grid">
+          <div class="brow-row">
+            <div>
+              <h3>Brow shaping</h3>
+              <div class="meta">Tweeze · trim · clean lines</div>
+            </div>
+            <div class="price">$45 · 30 min</div>
+          </div>
+          <div class="brow-row">
+            <div>
+              <h3>Brow tint</h3>
+              <div class="meta">Plant-based dye · 4–6 weeks</div>
+            </div>
+            <div class="price">$45 · 25 min</div>
+          </div>
+          <div class="brow-row">
+            <div>
+              <h3>Brow lamination</h3>
+              <div class="meta">Brushed-up, fuller look · 6 weeks</div>
+            </div>
+            <div class="price">$110 · 45 min</div>
+          </div>
+          <div class="brow-row">
+            <div>
+              <h3>Lamination + tint + shape</h3>
+              <div class="meta">The full reset · 75 min</div>
+            </div>
+            <div class="price">$165</div>
+          </div>
+          <div class="brow-row">
+            <div>
+              <h3>Lash lift</h3>
+              <div class="meta">Curls your natural lashes · 6 weeks</div>
+            </div>
+            <div class="price">$110 · 60 min</div>
+          </div>
+          <div class="brow-row">
+            <div>
+              <h3>Lash lift + tint</h3>
+              <div class="meta">Lift + tint · 6 weeks</div>
+            </div>
+            <div class="price">$140 · 75 min</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="artists">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">The chairs</span>
+          <h2>Two artists, <em>seven years</em> behind the tweezer.</h2>
+        </div>
+        <div class="artists-grid">
+          <div class="artist">
+            <img src="https://picsum.photos/seed/lash-studio-a1/700/700" width="700" height="700" alt="Lash artist Yael Avraham smiling at her station." loading="lazy" />
+            <h3>Yael Avraham</h3>
+            <span class="role">Founder · classic &amp; hybrid specialist</span>
+            <p>Trained in Tel Aviv, certified in volume technique at NovaLash. Quiet hands. Will gently overrule your reference photo if it's wrong for your face.</p>
+          </div>
+          <div class="artist">
+            <img src="https://picsum.photos/seed/lash-studio-a2/700/700" width="700" height="700" alt="Lash artist Mira Costa holding a tweezer up to the light." loading="lazy" />
+            <h3>Mira Costa</h3>
+            <span class="role">Volume &amp; mega volume</span>
+            <p>Three years at our chairs. Best in the room for dense, fluffy sets. Specialist in brow lamination and lash lifts.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="gallery" id="gallery">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Work</span>
+          <h2>A few sets from <em>this month</em>.</h2>
+        </div>
+        <div class="gallery-grid">
+          <img src="https://picsum.photos/seed/lash-studio-g1/600/600" width="600" height="600" alt="A close-up of soft hybrid lashes on green eyes." loading="lazy" />
+          <img src="https://picsum.photos/seed/lash-studio-g2/600/600" width="600" height="600" alt="A volume lash set, eyes closed." loading="lazy" />
+          <img src="https://picsum.photos/seed/lash-studio-g3/600/600" width="600" height="600" alt="A laminated brow shaped to a soft arch." loading="lazy" />
+          <img src="https://picsum.photos/seed/lash-studio-g4/600/600" width="600" height="600" alt="A mega volume set on blue eyes." loading="lazy" />
+          <img src="https://picsum.photos/seed/lash-studio-g5/600/600" width="600" height="600" alt="A natural classic set, eyes open and smiling." loading="lazy" />
+          <img src="https://picsum.photos/seed/lash-studio-g6/600/600" width="600" height="600" alt="A laminated and tinted brow in soft brown." loading="lazy" />
+          <img src="https://picsum.photos/seed/lash-studio-g7/600/600" width="600" height="600" alt="A wispy hybrid set, side profile." loading="lazy" />
+          <img src="https://picsum.photos/seed/lash-studio-g8/600/600" width="600" height="600" alt="A lash lift before-and-after split." loading="lazy" />
+        </div>
+      </div>
+    </section>
+
+    <section id="quotes">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>What clients <em>quietly say</em>.</h2>
+        </div>
+        <div class="quotes-grid">
+          <div class="quote">
+            <p>"Yael talked me down from a mega-volume reference into a beautiful hybrid that actually looks like my face. I get compliments every week."</p>
+            <div class="who">— Hannah K., client two years</div>
+          </div>
+          <div class="quote">
+            <p>"Mira's volume sets are the only ones I've had that don't tug on my natural lashes. I've kept the same set for eight months."</p>
+            <div class="who">— Sofia M., client one year</div>
+          </div>
+          <div class="quote">
+            <p>"The brow lamination outlasts every product I've put on my brows. Five weeks in and they still brush up perfectly."</p>
+            <div class="who">— Daniel R., client six months</div>
+          </div>
+          <div class="quote">
+            <p>"Two chairs, no upsell, no Instagram playlist. Just lashes done well. I drive in from Jersey for it."</p>
+            <div class="who">— Lena F., client three years</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="visit">
+      <div class="wrap">
+        <div class="visit-grid visit">
+          <img src="https://picsum.photos/seed/lash-studio-visit/900/1100" width="900" height="1100" alt="The discreet entrance of the Lash and Brow Studio with a soft pink awning." loading="lazy" />
+          <div>
+            <span class="eyebrow">Visit</span>
+            <h2>A studio off <em>Bond Street</em>.</h2>
+            <p style="font-size:17px; color:var(--ink-2);">Buzz at the door — we'll let you up. New clients arrive ten minutes early for a brief consult and to fill out a one-page intake.</p>
+            <dl>
+              <dt>Address</dt><dd>16 Bond St, Suite 3R</dd>
+              <dt>Hours</dt><dd>Tue–Sat · 9am — 8pm</dd>
+              <dt>Email</dt><dd>hello@lashandbrow.studio</dd>
+              <dt>Phone</dt><dd>(212) 555-0198</dd>
+            </dl>
+            <div style="margin-top:28px;"><a class="btn btn-primary" href="#">Request an appointment</a></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot">
+        <div class="brand">Lash<span class="amp">&amp;</span>Brow</div>
+        <div class="links">
+          <a href="#lashes">Lashes</a>
+          <a href="#brows">Brows</a>
+          <a href="#artists">Artists</a>
+          <a href="#gallery">Gallery</a>
+          <a href="#visit">Visit</a>
+        </div>
+        <div class="copy">© 2026 · NoHo, New York</div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var tabs = document.querySelectorAll('.style-tabs button[data-tab]');
+      var panels = document.querySelectorAll('[data-style]');
+      tabs.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var key = btn.getAttribute('data-tab');
+          tabs.forEach(function (b) { b.classList.toggle('is-on', b === btn); });
+          panels.forEach(function (p) { p.classList.toggle('is-active', p.getAttribute('data-style') === key); });
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -16,7 +16,6 @@ import { MarketingShellClient } from './marketing-shell';
 import { PricingCalculator } from './pricing-calculator';
 import { PromptBox } from './prompt-box';
 import { TemplatesGrid } from './templates-grid';
-import { TestimonialMarquee } from './testimonials';
 import { UpgradeButton } from './upgrade-button';
 
 // -- Tokens / shared sx --------------------------------------------------
@@ -27,7 +26,7 @@ const LIME = tokens.color.accent.lime;
 const MUTED = '#5b554b';
 
 const panelSx = {
-  borderRadius: { xs: 3, md: 5 },
+  borderRadius: 1,
   backgroundColor: '#ece5d4',
   overflow: 'hidden',
   color: INK,
@@ -98,72 +97,77 @@ top models     :
 
 const capabilityCards = [
   {
-    eyebrow: '01 · Finish, not start',
-    title: 'Apps that ship through eight gates.',
-    text: 'Spec, UX, Architecture, Code, Lint, Tests, Security, Deploy. The loop refuses to publish until each gate passes — so the AI never hands you a half-done preview and calls it done.',
+    eyebrow: '01 · Governed generation',
+    title: 'The app does not move forward until the gate says yes.',
+    text: 'Spec, UX, Architecture, Code, Lint, Tests, Security, Budget, Deploy. Each gate produces a readable verdict, blocks bad work, and gives the agent a repair target.',
     chip: 'Finisher loop',
     icon: <CheckCircle />,
   },
   {
-    eyebrow: '02 · Real Linux, real sandboxes',
-    title: 'Per-user Docker workspace with PTY.',
-    text: 'Every project runs in its own Linux container with a terminal, file API, and a budget ledger. Not WebContainer, not a shared runtime — a real sandbox you can SSH-like into.',
-    chip: 'Cloud IDE included',
+    eyebrow: '02 · Reviewable changes',
+    title: 'Every AI edit becomes a patch, not a mystery write.',
+    text: 'The agent proposes a patch, the engine validates it, the UI previews the diff, and the workspace applies it only after the lifecycle accepts the change.',
+    chip: 'Patch lifecycle',
     icon: <Terminal />,
   },
   {
-    eyebrow: '03 · Self-managing budget',
-    title: 'subscription − cost = margin.',
-    text: 'A live budget card shows your $ burn, the top three models, and where the cap is. No credit packs, no surprise overage — when the cap is near, the router downgrades or pauses cleanly.',
-    chip: 'Transparent pricing',
+    eyebrow: '03 · Real runtime',
+    title: 'A Linux workspace your engineers can actually inspect.',
+    text: 'Per-user Docker sandboxes expose files, terminal, preview, and execution logs. Open the same project from the browser, VSCode, or the runtime API.',
+    chip: 'Docker workspace',
     icon: <Insights />,
   },
   {
-    eyebrow: '04 · Multi-provider routing',
-    title: 'Pick the cheapest model that passes.',
-    text: 'Anthropic + OpenAI + on-device ONNX. The router selects by capability tags on each agent call. A Lite / Economy / Power dial in chat puts the cost-vs-quality call back in your hand.',
-    chip: 'Open routing',
+    eyebrow: '04 · Cost discipline',
+    title: 'The model bill is visible before it becomes a problem.',
+    text: 'Every provider call lands in the ledger. Capability routing chooses the cheapest model that can pass the gate, then downgrades or pauses when the cap gets close.',
+    chip: 'Budget ledger',
     icon: <AutoAwesome />,
   },
 ];
 
 const comparisonRows: { label: string; values: [string, string, string, string] }[] = [
-  { label: 'Enforced finisher gates (refuses to ship if any fail)',  values: ['8 gates',         '—',           '—',           '—'] },
+  { label: 'Enforced finisher gates (refuses to ship if any fail)',  values: ['9 gates',         '—',           '—',           '—'] },
+  { label: 'Budget gate blocks deploy on overspend',                  values: ['✓ Enforced',      '—',           '—',           '—'] },
   { label: 'Live $-burn vs cost cap (no credit traps)',              values: ['✓ Live ledger',   'Credit packs', 'Credit packs', 'Token bucket'] },
   { label: 'Per-user Linux sandbox + real terminal',                 values: ['✓ Docker',        'Hosted',      'Hosted',      'WebContainer'] },
   { label: 'Multi-provider routing (Anthropic + OpenAI + on-device)', values: ['✓ Capability-tagged', '—',     'Internal',    'Frontier coder'] },
+  { label: 'Multi-provider routing (Anthropic + OpenAI + Gemini)',    values: ['✓ 3 providers',  'Hidden',      '✓',           'Switchable'] },
+  { label: 'OpenTelemetry traces out of the box',                     values: ['✓ OTLP',         '—',           '—',           '—'] },
+  { label: 'Inline AI image generation in patches',                   values: ['✓ OpenAI Images', '✓',          '—',           '—'] },
+  { label: 'Project dependency graph (imports/exports)',              values: ['✓ API',          '—',           '—',           '—'] },
   { label: 'Effort dial (Lite / Economy / Power)',                    values: ['✓',              '—',           '—',           '—'] },
   { label: 'Bring-your-own cloud via Helm chart',                     values: ['✓ Shipped',       '—',           '—',           '—'] },
   { label: 'VSCode extension (native client)',                        values: ['✓',              '—',           '—',           '—'] },
   { label: 'GitHub bi-directional push',                              values: ['✓',              '✓',           '✓',           '✓'] },
-  { label: 'Visual click-to-edit sidebar',                            values: ['Private beta',   '—',           '✓',           '—'] },
+  { label: 'Image-attached prompts (design refs in chat)',            values: ['✓',              '✓',           '✓',           '✓'] },
+  { label: 'Pixel-perfect visual diff gate',                          values: ['✓ Blocking',     '—',           '—',           '—'] },
+  { label: 'Persistent project memory (4 dimensions)',                values: ['✓ Auto-captured', '—',          '—',           '—'] },
+  { label: 'Hash-chained audit log',                                  values: ['✓ SHA-256 chain', '—',          '—',           '—'] },
+  { label: 'MCP integration (server + client)',                       values: ['✓ Both directions', '—',        '—',           '✓ partial'] },
+  { label: 'Database + auth scaffolded into generated apps',         values: ['✓ 6 domain packs', '✓',          '✓ Supabase',  '—'] },
 ];
 
-const testimonials = [
+const proofPoints = [
   {
-    quote: 'The finisher gates are the first thing that made me trust an AI builder with anything past a demo. We shipped our customer portal in nine days and security caught two findings I would have missed.',
-    name: 'Naomi K.',
-    role: 'Lead engineer, Series B fintech',
+    label: 'Blocking verdicts',
+    value: '9 gates',
+    text: 'Spec, UX, Architecture, Code, Lint, Tests, Security, Budget, and Deploy produce explicit pass/fail evidence before the project moves forward.',
   },
   {
-    quote: 'I’ve burned thousands on credit packs that disappeared overnight. Ironflyer’s budget card showed me exactly which model was costing what — and the cap stopped a runaway loop dead.',
-    name: 'Marcus L.',
-    role: 'Founder, two-person SaaS',
+    label: 'Change control',
+    value: 'Patch-first',
+    text: 'The agent proposes diffs through the patch engine. No direct mystery writes, and every change can be reviewed or rolled back.',
   },
   {
-    quote: 'The cloud IDE is the unlock. My non-technical PM can chat with the agent and I can drop into the same workspace, open a terminal, and patch what I need to patch.',
-    name: 'Avi R.',
-    role: 'CTO, healthtech startup',
+    label: 'Runtime ownership',
+    value: 'Linux workspace',
+    text: 'Files, terminal, preview ports, and execution logs live in a per-user workspace your team can inspect from web, API, or VSCode.',
   },
   {
-    quote: 'We replaced two no-code tools with Ironflyer. The Helm chart means it lives in our cluster, talks to our Postgres, and nothing leaks to a vendor. Procurement closed in a week.',
-    name: 'Diana O.',
-    role: 'VP Engineering, Series C SaaS',
-  },
-  {
-    quote: 'Hebrew prompts, English code, RTL UI that actually renders correctly. Finally an AI builder built by someone who saw a non-English market and didn’t treat it as an afterthought.',
-    name: 'יואב ב.',
-    role: 'מנכ"ל, סטארטאפ שלב סיד',
+    label: 'Persistent intelligence',
+    value: 'Memory + audit',
+    text: 'Every fix becomes context for the next run. Four memory stores feed the coder on every retry, and a hash-chained audit log records each gate verdict as immutable, verifiable evidence.',
   },
 ];
 
@@ -185,24 +189,24 @@ const useCasesByRole = [
   { tag: 'analytics',   label: 'Business Intelligence' },
 ];
 
-// -- Hebrew copy bank (primary) -----------------------------------------
+// -- Brand copy bank -----------------------------------------------------
 
-const heb = {
-  heroBadge: 'גרסה 1.0 · עכשיו בייטא ציבורית',
-  heroTitle: ['בנו מוצר ', 'מוגמר'],
-  heroSubtitle: 'תארו את המוצר. Ironflyer דוחף אותו דרך שמונה שערים — מפרט, UX, ארכיטקטורה, קוד, בדיקות, אבטחה ופריסה — עד שהוא ראוי לפרודקשן.',
-  heroCtaPrimary: 'התחל לבנות',
-  heroCtaSecondary: 'ראה דמו',
-  capabilityEyebrow: 'מה משתחרר בלולאה',
-  capabilityTitle: 'מ‑prompt לפרודקשן — בשערים, לא בקפיצה.',
-  gatesEyebrow: 'דוגמאות מהשערים',
-  gatesTitle: 'איך נראה שער כשהוא חוסם או מאשר.',
-  socialEyebrow: 'איך זה נשמע מצוות אמיתי',
-  socialTitle: 'מי שכבר עבר ממסטבט ל‑Ironflyer.',
-  compareEyebrow: 'השוואה ישירה',
-  compareTitle: 'מה ה־finisher עושה שאחרים פשוט לא.',
-  ctaTitle: 'מוכנים לסגור פיצ\'ר?',
-  ctaSubtitle: 'הביאו רעיון. Ironflyer יעביר אותו דרך אותם שערים בכל פעם — כדי שמה שיוצא מהסטודיו יוכל להישלח באותו רגע.',
+const brand = {
+  heroBadge: 'Public beta · built for production-minded teams',
+  heroTitle: ['Ship software ', 'that survives review.'],
+  heroSubtitle: 'Describe the product. Ironflyer plans it, builds it, and pushes every change through Spec, UX, Architecture, Code, Lint, Tests, Security, Budget, and Deploy gates before anyone calls it finished.',
+  heroCtaPrimary: 'Start building',
+  heroCtaSecondary: 'See the loop',
+  capabilityEyebrow: 'Why Ironflyer exists',
+  capabilityTitle: 'AI builders are fast. Finishing is the hard part.',
+  gatesEyebrow: 'Gate verdicts',
+  gatesTitle: 'Every pass or block is written down.',
+  socialEyebrow: 'Operating proof',
+  socialTitle: 'Evidence beats promises.',
+  compareEyebrow: 'Market position',
+  compareTitle: 'Where Ironflyer draws the line.',
+  ctaTitle: 'Bring the idea. Keep the standard.',
+  ctaSubtitle: 'Start from a prompt and end with a repo, a running workspace, a budget ledger, and deploy artifacts your team can defend.',
 };
 
 // -----------------------------------------------------------------------
@@ -241,7 +245,7 @@ function HeroSection() {
       <Container maxWidth="xl">
         <Stack alignItems="center" spacing={{ xs: 3, md: 4 }} sx={{ textAlign: 'center' }}>
           <Chip
-            label={heb.heroBadge}
+            label={brand.heroBadge}
             sx={{
               bgcolor: 'rgba(13,14,15,0.06)',
               color: INK,
@@ -260,13 +264,13 @@ function HeroSection() {
               fontWeight: 400,
               fontSize: { xs: '3.4rem', sm: '5rem', md: '7.4rem' },
               lineHeight: 0.86,
-              letterSpacing: '-0.02em',
+              letterSpacing: 0,
               color: INK,
               maxWidth: 1100,
               textWrap: 'balance',
             }}
           >
-            {heb.heroTitle[0]}
+            {brand.heroTitle[0]}
             <Box component="span" sx={{
               background: `linear-gradient(180deg, ${LIME} 0%, #b6db00 100%)`,
               WebkitBackgroundClip: 'text',
@@ -283,10 +287,7 @@ function HeroSection() {
                 borderRadius: 999,
               },
             }}>
-              {heb.heroTitle[1]}
-            </Box>
-            <Box component="span" sx={{ display: 'block', mt: 0.4, fontSize: { xs: '2.2rem', sm: '3.4rem', md: '4.8rem' }, color: '#1b1b18' }}>
-              Build something <Box component="span" sx={{ color: INK, fontStyle: 'italic', fontFamily: tokens.font.family, fontWeight: 700, opacity: 0.42 }}>finished.</Box>
+              {brand.heroTitle[1]}
             </Box>
           </Typography>
 
@@ -299,29 +300,19 @@ function HeroSection() {
               lineHeight: 1.45,
             }}
           >
-            {heb.heroSubtitle}
+            {brand.heroSubtitle}
           </Typography>
 
           <Box sx={{
             width: '100%',
             maxWidth: 860,
             pt: { xs: 1, md: 2 },
-            position: 'relative',
           }}>
-            <Box sx={{
-              position: 'absolute',
-              inset: -22,
-              borderRadius: 8,
-              background: `radial-gradient(60% 60% at 50% 50%, rgba(229,255,0,0.22), transparent 70%)`,
-              filter: 'blur(28px)',
-              pointerEvents: 'none',
-              zIndex: 0,
-            }} />
-            <Box sx={{ position: 'relative', zIndex: 1 }}>
+            <Box>
               <PromptBox
                 size="hero"
-                cta="Build"
-                placeholder="תארו את האפליקציה שתרצו ליצור..."
+                cta="Start the loop"
+                placeholder="Describe the product you want to ship..."
               />
               <HeroQuickStarts items={heroQuickStarts} />
             </Box>
@@ -329,10 +320,10 @@ function HeroSection() {
 
           <Stack direction="row" spacing={2.5} alignItems="center" sx={{ pt: 1.5, color: MUTED, flexWrap: 'wrap', justifyContent: 'center', rowGap: 1 }}>
             {[
-              { icon: <CheckCircle sx={{ fontSize: 16 }} />, text: 'No credit traps' },
-              { icon: <Lock sx={{ fontSize: 16 }} />, text: 'Real Linux sandbox' },
-              { icon: <Bolt sx={{ fontSize: 16 }} />, text: 'Multi-provider router' },
-              { icon: <Speed sx={{ fontSize: 16 }} />, text: 'Helm-chart deploy' },
+              { icon: <CheckCircle sx={{ fontSize: 16 }} />, text: 'Blocking gates' },
+              { icon: <Lock sx={{ fontSize: 16 }} />, text: 'Reviewable patches' },
+              { icon: <Bolt sx={{ fontSize: 16 }} />, text: 'Live cost ledger' },
+              { icon: <Speed sx={{ fontSize: 16 }} />, text: 'Deploy ownership' },
             ].map((item) => (
               <Stack key={item.text} direction="row" spacing={0.8} alignItems="center">
                 <Box sx={{ color: '#6c8400', display: 'inline-flex' }}>{item.icon}</Box>
@@ -347,13 +338,13 @@ function HeroSection() {
 }
 
 function LogoBand() {
-  const labels = ['Y Combinator alums', 'Series B fintechs', 'Healthtech ops', 'EU agencies', 'IL startups', 'Internal AI teams'];
+  const labels = ['Spec review', 'Diff approval', 'Runtime logs', 'Security scan', 'Cost ledger', 'Deploy artifact'];
   return (
     <Box sx={{ bgcolor: ALABASTER, py: { xs: 4, md: 6 }, borderTop: '1px solid rgba(13,14,15,0.07)', borderBottom: '1px solid rgba(13,14,15,0.07)' }}>
       <Container maxWidth="lg">
         <Stack spacing={3} alignItems="center">
           <Typography variant="caption" sx={{ color: MUTED, fontWeight: 800, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
-            Trusted by teams shipping real products
+            The review checklist is built into the loop
           </Typography>
           <Stack direction="row" spacing={{ xs: 3, md: 6 }} useFlexGap flexWrap="wrap" justifyContent="center" alignItems="center" sx={{ opacity: 0.78 }}>
             {labels.map((label) => (
@@ -375,7 +366,11 @@ function LogoBand() {
 function CapabilityTour() {
   return (
     <Section>
-      <SectionHeader eyebrow={heb.capabilityEyebrow} title={heb.capabilityTitle} />
+      <SectionHeader
+        eyebrow={brand.capabilityEyebrow}
+        title={brand.capabilityTitle}
+        subtitle="Lovable, Base44, Bolt, Replit Agent, and v0 proved that prompting can create a working start. Ironflyer is built for the part after that: decisions, diffs, tests, security, spend, and deploy."
+      />
       <Box sx={{
         display: 'grid',
         gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
@@ -391,7 +386,7 @@ function CapabilityTour() {
             minHeight: { xs: 260, md: 320 },
             position: 'relative',
             transition: `transform ${tokens.motion.base} ${tokens.motion.curve}, box-shadow ${tokens.motion.base} ${tokens.motion.curve}`,
-            '&:hover': { transform: 'translateY(-3px)', boxShadow: '0 18px 48px rgba(13,14,15,0.12)' },
+            '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 14px 36px rgba(13,14,15,0.10)' },
           }}>
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
               <Typography variant="overline" sx={{ color: MUTED, fontWeight: 900, letterSpacing: '0.12em' }}>
@@ -446,9 +441,9 @@ export function GateExamples() {
   return (
     <Section dark>
       <SectionHeader
-        eyebrow={heb.gatesEyebrow}
-        title={heb.gatesTitle}
-        subtitle="Every gate writes a verdict that you can read. Below is real output, lightly edited."
+        eyebrow={brand.gatesEyebrow}
+        title={brand.gatesTitle}
+        subtitle="A gate is not a badge. It is a blocking verdict with the evidence needed to repair the product."
         light
       />
       <Box sx={{
@@ -458,7 +453,7 @@ export function GateExamples() {
       }}>
         {gateExamples.map((gate) => (
           <Box key={gate.name} sx={{
-            borderRadius: { xs: 3, md: 4 },
+            borderRadius: 1,
             border: '1px solid rgba(244,240,232,0.1)',
             bgcolor: '#15161a',
             overflow: 'hidden',
@@ -525,16 +520,16 @@ function CloudIDEPreview() {
   return (
     <Section>
       <SectionHeader
-        eyebrow="Cloud IDE"
-        title="A real workspace, not a sandbox toy."
-        subtitle="Per-user Docker container, file API, full PTY terminal. Open in browser. Open in VSCode. Open in your VSCode-extension client. Same workspace."
+        eyebrow="Workspace"
+        title="A real runtime for real debugging."
+        subtitle="Per-user Docker container, file API, full PTY terminal, live preview, and the same project state across browser and VSCode."
       />
       <Box sx={{
         ...panelSx,
         bgcolor: '#0d0e0f',
         color: ALABASTER,
         p: { xs: 1.5, md: 2 },
-        boxShadow: '0 30px 80px rgba(13,14,15,0.32)',
+        boxShadow: '0 24px 56px rgba(13,14,15,0.26)',
       }}>
         <Stack direction="row" spacing={0.8} alignItems="center" sx={{ px: 1.4, py: 1.2 }}>
           {['#ff5f57', '#febc2e', '#28c840'].map((c) => (
@@ -558,7 +553,7 @@ function CloudIDEPreview() {
           fontFamily: tokens.font.mono,
           fontSize: 12.5,
         }}>
-          <Box sx={{ bgcolor: '#16171b', borderRadius: 2, p: 2, color: '#bdb7ab' }}>
+          <Box sx={{ bgcolor: '#16171b', borderRadius: 1, p: 2, color: '#bdb7ab' }}>
             <Typography variant="caption" sx={{ color: '#7d7770', textTransform: 'uppercase', letterSpacing: '0.14em' }}>Files</Typography>
             <Stack spacing={0.6} sx={{ mt: 1.4, fontFamily: tokens.font.mono, fontSize: 12.5 }}>
               {[
@@ -580,7 +575,7 @@ function CloudIDEPreview() {
               ))}
             </Stack>
           </Box>
-          <Box sx={{ bgcolor: '#0f1013', borderRadius: 2, p: 2.4, overflow: 'hidden' }}>
+          <Box sx={{ bgcolor: '#0f1013', borderRadius: 1, p: 2.4, overflow: 'hidden' }}>
             <Typography variant="caption" sx={{ color: '#7d7770', textTransform: 'uppercase', letterSpacing: '0.14em' }}>portal/page.tsx</Typography>
             <Box component="pre" sx={{ m: 0, mt: 1.4, fontFamily: tokens.font.mono, color: '#d6cfbf', whiteSpace: 'pre' }}>
 {`'use client';
@@ -596,7 +591,7 @@ export default function PortalPage() {
 }`}
             </Box>
           </Box>
-          <Box sx={{ bgcolor: '#16171b', borderRadius: 2, p: 2.4, color: '#bdb7ab', display: 'flex', flexDirection: 'column', gap: 1.4 }}>
+          <Box sx={{ bgcolor: '#16171b', borderRadius: 1, p: 2.4, color: '#bdb7ab', display: 'flex', flexDirection: 'column', gap: 1.4 }}>
             <Typography variant="caption" sx={{ color: '#7d7770', textTransform: 'uppercase', letterSpacing: '0.14em' }}>Terminal</Typography>
             <Box component="pre" sx={{ m: 0, fontFamily: tokens.font.mono, color: '#d6cfbf', whiteSpace: 'pre-wrap', flex: 1 }}>
 {`$ npm test
@@ -654,10 +649,10 @@ function BudgetSpotlight() {
             mt: 1.2,
             letterSpacing: 0,
           }}>
-            subscription − provider cost = your margin.
+            The bill is part of the product.
           </Typography>
           <Typography sx={{ mt: 2.4, color: '#cfc7b8', maxWidth: 560, fontSize: { xs: 15, md: 17 }, lineHeight: 1.55, fontWeight: 500 }}>
-            Most AI builders sell credit packs and pray you don’t notice when they run out at 2 AM. Ironflyer charges a flat subscription, absorbs the provider cost up to a cap, and shows you exactly what the model bill looks like — so the company makes a real margin and you never get a surprise invoice.
+            AI builders hide behind credits. Ironflyer shows the ledger: which gate spent money, which provider handled it, how close you are to the cap, and when the router changed models to protect the budget.
           </Typography>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mt: 3.2 }}>
             <Button component={Link} href="/pricing" variant="contained" endIcon={<ArrowForward />} sx={{ bgcolor: LIME, color: INK, fontWeight: 800, borderRadius: '999px', px: 2.6 }}>
@@ -669,7 +664,7 @@ function BudgetSpotlight() {
           </Stack>
         </Box>
         <Box sx={{
-          borderRadius: 3,
+          borderRadius: 1,
           bgcolor: 'rgba(244,240,232,0.04)',
           border: '1px solid rgba(244,240,232,0.1)',
           p: { xs: 2.5, md: 3.2 },
@@ -728,8 +723,45 @@ function BudgetSpotlight() {
 function TestimonialsSection() {
   return (
     <Section>
-      <SectionHeader eyebrow={heb.socialEyebrow} title={heb.socialTitle} />
-      <TestimonialMarquee items={testimonials} />
+      <SectionHeader
+        eyebrow={brand.socialEyebrow}
+        title={brand.socialTitle}
+        subtitle="The homepage should make a claim only when the product surface can show the evidence. These are the proof objects Ironflyer exposes instead of hiding the work behind a demo."
+      />
+      <Box sx={{
+        display: 'grid',
+        gridTemplateColumns: { xs: '1fr', md: 'repeat(4, 1fr)' },
+        gap: 2,
+      }}>
+        {proofPoints.map((point) => (
+          <Box key={point.label} sx={{
+            ...panelSx,
+            bgcolor: '#fffaf1',
+            border: '1px solid rgba(13,14,15,0.08)',
+            p: { xs: 2.4, md: 3 },
+            minHeight: 250,
+            display: 'flex',
+            flexDirection: 'column',
+          }}>
+            <Typography variant="overline" sx={{ color: MUTED, fontWeight: 900, letterSpacing: '0.12em', fontSize: 11.5 }}>
+              {point.label}
+            </Typography>
+            <Typography sx={{
+              fontFamily: tokens.font.display,
+              fontSize: { xs: '2rem', md: '2.35rem' },
+              lineHeight: 0.95,
+              letterSpacing: 0,
+              color: INK,
+              mt: 1,
+            }}>
+              {point.value}
+            </Typography>
+            <Typography sx={{ mt: 'auto', pt: 3, color: MUTED, fontWeight: 600, lineHeight: 1.55 }}>
+              {point.text}
+            </Typography>
+          </Box>
+        ))}
+      </Box>
     </Section>
   );
 }
@@ -742,7 +774,11 @@ function ComparisonTable() {
   const competitors = ['Ironflyer', 'Base44', 'Lovable', 'v0/Bolt'] as const;
   return (
     <Section>
-      <SectionHeader eyebrow={heb.compareEyebrow} title={heb.compareTitle} />
+      <SectionHeader
+        eyebrow={brand.compareEyebrow}
+        title={brand.compareTitle}
+        subtitle="Competitors made the first prompt feel powerful. Ironflyer is designed for the review that follows: can we ship this, own it, and explain it?"
+      />
       <Box sx={{
         ...panelSx,
         overflow: 'auto',
@@ -856,24 +892,24 @@ function UseCaseGrid() {
 
 const faqs = [
   {
-    q: 'מה ההבדל בין Ironflyer ל‑Base44 / Lovable / v0?',
-    a: 'הגנרטורים שולחים קוד ישר לתצוגה. Ironflyer מעביר אותו דרך שערים — Spec, UX, Architecture, Code, Lint, Tests, Security, Deploy — ולא יוצא ל‑publish עד שכולם ירוקים. מקבלים מוצר גמור, לא דמו.',
+    q: 'How is Ironflyer different from Base44, Lovable, Bolt, Replit Agent, or v0?',
+    a: 'Those products are strong at the first prompt: describe an idea and get something running. Ironflyer is built for the next review: is the spec complete, does the code build, did security pass, what did it cost, and can we deploy it with ownership?',
   },
   {
     q: 'How does the budget work?',
     a: 'Each plan has a flat subscription and a cost cap — that’s what Ironflyer is willing to spend on provider calls. A live budget card shows your $ burn vs cap and the top three models. No credit packs to top up. When the cap is reached, the router downgrades or pauses cleanly.',
   },
   {
-    q: 'אני לא יודע לתכנת. אפשר להשתמש בזה?',
-    a: 'כן. תארו את האפליקציה ב‑prompt והסוכנים יעשו את העבודה. למפתחים יש בונוס: כל פרויקט הוא ריפו אמיתי עם סנדבוקס לינוקס אישי — אפשר להיכנס ל‑IDE, לפתוח טרמינל, ולערוך כל קובץ בעצמכם.',
+    q: 'Do I need to know how to code?',
+    a: 'No. You can start from plain English and let the agents plan, build, test, and deploy. Technical teams get the deeper control: a real repo, a Linux workspace, terminal access, and reviewable patches for every change.',
   },
   {
     q: 'Can I bring it to my own cloud?',
     a: 'Yes. The whole stack ships as a Helm chart you install in any Kubernetes cluster — orchestrator, runtime sandboxes, web, Postgres, optional ingress + TLS. DEPLOY.md walks you through it.',
   },
   {
-    q: 'איך אתם מטפלים באבטחה?',
-    a: 'שער Security סורק credentials, dep drift ובעיות OWASP בכל patch. סביבת ה‑IDE רצה בקונטיינר Docker אישי — אף פעם לא משותף. סודות יושבים ב‑Kubernetes Secret שאתם שולטים בו. וכל כתיבת קובץ עוברת patch lifecycle — ה‑AI לא נוגע בקבצים ישירות.',
+    q: 'How do you handle security?',
+    a: 'The Security gate scans every patch for credentials, dependency risk, and OWASP-shaped issues. Workspaces run in per-user Docker containers, secrets live in controlled secret stores, and the AI never writes files directly.',
   },
   {
     q: 'Who owns the code?',
@@ -946,8 +982,8 @@ function FAQSection() {
 // -----------------------------------------------------------------------
 
 export function FinalCta({
-  primary = heb.heroCtaPrimary,
-  secondary = heb.heroCtaSecondary,
+  primary = brand.heroCtaPrimary,
+  secondary = brand.heroCtaSecondary,
   primaryHref = '/app',
   secondaryHref = '/product',
 }: {
@@ -965,30 +1001,21 @@ export function FinalCta({
         display: 'grid',
         gridTemplateColumns: { xs: '1fr', md: '1.2fr 0.8fr' },
         gap: 3,
-        position: 'relative',
         overflow: 'hidden',
       }}>
-        <Box sx={{
-          position: 'absolute',
-          inset: 'auto -120px -180px auto',
-          width: 460, height: 460,
-          background: `radial-gradient(circle, rgba(229,255,0,0.22), transparent 60%)`,
-          filter: 'blur(20px)',
-          pointerEvents: 'none',
-        }} />
-        <Box sx={{ position: 'relative' }}>
+        <Box>
           <Typography sx={{
             fontFamily: tokens.font.display, fontWeight: 400,
             letterSpacing: 0,
             fontSize: { xs: '2.6rem', md: '4.2rem' }, lineHeight: 0.95,
           }}>
-            {heb.ctaTitle}
+            {brand.ctaTitle}
           </Typography>
           <Typography sx={{ mt: 2.2, color: '#cfc7b8', fontWeight: 500, maxWidth: 560, lineHeight: 1.55, fontSize: { xs: 15, md: 17 } }}>
-            {heb.ctaSubtitle}
+            {brand.ctaSubtitle}
           </Typography>
         </Box>
-        <Stack direction={{ xs: 'column', sm: 'row', md: 'column' }} spacing={1.5} justifyContent="center" sx={{ position: 'relative' }}>
+        <Stack direction={{ xs: 'column', sm: 'row', md: 'column' }} spacing={1.5} justifyContent="center">
           <Button component={Link} href={primaryHref} variant="contained" size="large" endIcon={<RocketLaunch />} sx={{ bgcolor: LIME, color: INK, py: 1.6, borderRadius: '999px', fontWeight: 800, fontSize: 16 }}>
             {primary}
           </Button>
@@ -1050,7 +1077,7 @@ export function SectionHeader({
           fontWeight: 400,
           fontSize: compact ? { xs: '2.3rem', md: '3.4rem' } : { xs: '2.6rem', md: '4.6rem' },
           lineHeight: 0.92,
-          letterSpacing: '-0.01em',
+          letterSpacing: 0,
           color: light ? ALABASTER : INK,
           textWrap: 'balance',
         }}>
@@ -1098,10 +1125,10 @@ export function PageHero({
           <Typography variant="overline" sx={{ color: '#6c7a00', fontWeight: 900, letterSpacing: '0.14em', fontSize: 13 }}>
             {eyebrow}
           </Typography>
-          <Typography sx={{
+          <Typography component="h1" sx={{
             fontFamily: tokens.font.display, fontWeight: 400,
             fontSize: { xs: '3rem', md: '6rem' },
-            lineHeight: 0.9, letterSpacing: '-0.02em',
+            lineHeight: 0.9, letterSpacing: 0,
             color: INK,
             textWrap: 'balance',
           }}>
@@ -1151,7 +1178,7 @@ export function ProductPage() {
       <PageHero
         eyebrow="Product"
         title="The Finisher Loop, in detail."
-        subtitle="Eight gates. One workspace. The AI never writes files directly — every change is a patch the loop has to approve."
+        subtitle="Nine gates. One workspace. The AI never writes files directly — every change is a patch the loop has to approve."
         primary="Start a project"
         primaryHref="/app"
         secondary="See pricing"
@@ -1211,7 +1238,7 @@ export function ProductPage() {
             { title: 'SecretStorage auth', text: 'Token sits in VSCode SecretStorage, refreshed via the URI handler. No copy-paste tokens, no .env leak.' },
             { title: 'Patch lifecycle UI', text: 'Every patch shows its source gate, diff preview, and admit/reject affordance — like an integrated code review.' },
           ].map((c) => (
-            <Box key={c.title} sx={{ bgcolor: '#fffaf1', borderRadius: 3, p: 3 }}>
+            <Box key={c.title} sx={{ bgcolor: '#fffaf1', borderRadius: 1, p: 3 }}>
               <Typography sx={{ fontFamily: tokens.font.display, fontWeight: 400, fontSize: 22, lineHeight: 1, mb: 1.4 }}>{c.title}</Typography>
               <Typography variant="body2" sx={{ color: MUTED, fontWeight: 600, lineHeight: 1.55 }}>{c.text}</Typography>
             </Box>
@@ -1325,7 +1352,7 @@ export function SolutionsPage() {
               <Typography sx={{
                 fontFamily: tokens.font.display, fontWeight: 400,
                 fontSize: { xs: '2.4rem', md: '3.6rem' },
-                lineHeight: 0.94, letterSpacing: '-0.01em',
+                lineHeight: 0.94, letterSpacing: 0,
                 mt: 1.2,
                 color: idx % 2 === 1 ? ALABASTER : INK,
               }}>
@@ -1335,7 +1362,7 @@ export function SolutionsPage() {
                 {story.subtitle}
               </Typography>
               <Box sx={{
-                mt: 4, p: 3, borderRadius: 3,
+                mt: 4, p: 3, borderRadius: 1,
                 bgcolor: idx % 2 === 1 ? 'rgba(244,240,232,0.04)' : 'rgba(13,14,15,0.04)',
                 border: `1px solid ${idx % 2 === 1 ? 'rgba(244,240,232,0.1)' : 'rgba(13,14,15,0.08)'}`,
               }}>
@@ -1351,7 +1378,7 @@ export function SolutionsPage() {
             <Stack spacing={2}>
               {story.points.map((p) => (
                 <Box key={p.label} sx={{
-                  borderRadius: 3,
+                  borderRadius: 1,
                   bgcolor: idx % 2 === 1 ? 'rgba(244,240,232,0.04)' : '#ece5d4',
                   p: 3,
                   border: `1px solid ${idx % 2 === 1 ? 'rgba(244,240,232,0.08)' : 'transparent'}`,
@@ -1546,14 +1573,6 @@ function PricingTiersSection() {
               overflow: 'hidden',
               border: dark ? `2px solid ${LIME}` : '2px solid transparent',
             }}>
-              {dark && (
-                <Box sx={{
-                  position: 'absolute', inset: 'auto -60px -100px auto',
-                  width: 260, height: 260,
-                  background: `radial-gradient(circle, rgba(229,255,0,0.18), transparent 60%)`,
-                  pointerEvents: 'none',
-                }} />
-              )}
               <Chip
                 label={plan.badge}
                 sx={{
@@ -1710,7 +1729,7 @@ export function SecurityPage() {
             { title: 'GDPR + DPA',             status: 'Available',              text: 'Standard DPA, SCCs in place. EU data-residency clusters available on Enterprise.' },
             { title: 'ISO 27001',              status: 'Roadmap · 2027',         text: 'Tracking ISO 27001 for late 2027 once SOC 2 lands. Controls already largely overlap.' },
           ].map((c) => (
-            <Box key={c.title} sx={{ borderRadius: 3, p: 3.2, border: '1px solid rgba(244,240,232,0.1)', bgcolor: 'rgba(244,240,232,0.03)' }}>
+            <Box key={c.title} sx={{ borderRadius: 1, p: 3.2, border: '1px solid rgba(244,240,232,0.1)', bgcolor: 'rgba(244,240,232,0.03)' }}>
               <Typography variant="overline" sx={{ color: LIME, fontWeight: 900, letterSpacing: '0.14em' }}>{c.status}</Typography>
               <Typography sx={{ fontFamily: tokens.font.display, fontWeight: 400, fontSize: 26, lineHeight: 1, letterSpacing: 0, mt: 0.6 }}>{c.title}</Typography>
               <Typography variant="body2" sx={{ mt: 1.4, color: '#cfc7b8', fontWeight: 500, lineHeight: 1.55 }}>{c.text}</Typography>

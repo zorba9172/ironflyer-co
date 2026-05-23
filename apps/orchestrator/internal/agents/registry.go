@@ -46,6 +46,12 @@ type Task struct {
 	// more reasoning tokens to harder steps (architecture, security) and
 	// less to mechanical ones (lint repair, dockerfile generation).
 	ThinkingBudget int
+	// UserBearer + WorkspaceID are forwarded to in-process built-in
+	// tools (currently generate_image) so the handler can write into
+	// the caller's runtime sandbox. Empty values are tolerated — the
+	// built-in handlers fail with a readable error rather than crash.
+	UserBearer  string
+	WorkspaceID string
 }
 
 type Result struct {
@@ -65,9 +71,16 @@ type Agent struct {
 }
 
 type Registry struct {
-	mu     sync.RWMutex
-	router *providers.Router
-	agents map[Role]Agent
+	mu         sync.RWMutex
+	router     *providers.Router
+	agents     map[Role]Agent
+	mcpClients *providers.MCPClientRegistry
+	// builtinTools is the slice of in-process tools (e.g. generate_image)
+	// the Coder sees alongside MCP-provided tools. builtinCalls maps
+	// tool name → handler; dispatch checks this map first so a built-in
+	// always wins over an external MCP server advertising the same name.
+	builtinTools []providers.ToolSpec
+	builtinCalls map[string]BuiltinToolFunc
 }
 
 func NewRegistry(r *providers.Router) *Registry {
@@ -111,27 +124,76 @@ func (r *Registry) All() []Agent {
 }
 
 // RunStream invokes the agent and returns a streaming Delta channel.
+// The Coder role additionally receives the union of every configured
+// MCP server's tool catalogue so a downstream provider with native
+// tool-use (e.g. Anthropic) can decide to invoke them inline.
 func (r *Registry) RunStream(ctx context.Context, task Task) (<-chan providers.Delta, error) {
 	a, ok := r.Get(task.Role)
 	if !ok {
 		return nil, errors.New("unknown agent role: " + string(task.Role))
 	}
-	return r.router.CompleteStream(ctx, providers.Request{
+	req := providers.Request{
 		System:         a.System,
 		Prompt:         buildPrompt(task),
 		Capabilities:   a.Capabilities,
 		EnableThinking: a.EnableThinking,
 		ProjectContext: projectContext(task.Project),
 		ThinkingBudget: task.ThinkingBudget,
-	})
+	}
+	if task.Role == RoleCoder {
+		if tools := r.mcpToolSpecs(ctx); len(tools) > 0 {
+			req.Tools = tools
+			if !containsCap(req.Capabilities, providers.CapTools) {
+				req.Capabilities = append(req.Capabilities, providers.CapTools)
+			}
+		}
+	}
+	return r.router.CompleteStream(ctx, req)
 }
 
-// Run drains the stream and returns the aggregate result.
-func (r *Registry) Run(ctx context.Context, task Task) (Result, error) {
-	ch, err := r.RunStream(ctx, task)
-	if err != nil {
-		return Result{}, err
+// containsCap is a local helper duplicated from the providers package
+// to avoid exporting an internal predicate just so the Registry can
+// guard against double-appending CapTools.
+func containsCap(caps []providers.Capability, want providers.Capability) bool {
+	for _, c := range caps {
+		if c == want {
+			return true
+		}
 	}
+	return false
+}
+
+// Run drains the stream and returns the aggregate result. For the
+// Coder role, when the provider emits tool_use deltas we collect
+// them, dispatch each via the attached MCP client registry, then
+// re-invoke the provider ONCE with a "## Tool results" continuation
+// appended to the original prompt. The loop is capped at
+// maxToolRounds rounds so a misbehaving model that keeps calling
+// tools can't pin a single Run.
+func (r *Registry) Run(ctx context.Context, task Task) (Result, error) {
+	a, ok := r.Get(task.Role)
+	if !ok {
+		return Result{}, errors.New("unknown agent role: " + string(task.Role))
+	}
+
+	const maxToolRounds = 2
+
+	prompt := buildPrompt(task)
+	projectCtx := projectContext(task.Project)
+
+	// Build the request once; the tool-loop rewrites Prompt between
+	// rounds. CapTools is only attached for the Coder when either the
+	// MCP registry or the built-in tools produced a non-empty
+	// catalogue. `toolsEnabled` controls whether we dispatch tool_use
+	// deltas (still named `mcpEnabled` in the closure below for
+	// historical reasons — it now covers built-ins too).
+	mcpEnabled := false
+	var toolSpecs []providers.ToolSpec
+	if task.Role == RoleCoder {
+		toolSpecs = r.mcpToolSpecs(ctx)
+		mcpEnabled = len(toolSpecs) > 0
+	}
+
 	var (
 		text     []byte
 		thinking []byte
@@ -139,22 +201,107 @@ func (r *Registry) Run(ctx context.Context, task Task) (Result, error) {
 		tokens   int
 		cost     float64
 	)
-	for d := range ch {
-		switch d.Type {
-		case providers.DeltaText:
-			text = append(text, d.Text...)
-		case providers.DeltaThinking:
-			thinking = append(thinking, d.Text...)
-		case providers.DeltaDone:
-			provider = d.Provider
-			if d.Usage != nil {
-				tokens = d.Usage.InputTokens + d.Usage.OutputTokens
-				cost = d.Usage.CostUSD
-			}
-		case providers.DeltaError:
-			return Result{}, d.Err
+
+	for round := 0; round < maxToolRounds+1; round++ {
+		req := providers.Request{
+			System:         a.System,
+			Prompt:         prompt,
+			Capabilities:   a.Capabilities,
+			EnableThinking: a.EnableThinking,
+			ProjectContext: projectCtx,
+			ThinkingBudget: task.ThinkingBudget,
 		}
+		if mcpEnabled {
+			req.Tools = toolSpecs
+			if !containsCap(req.Capabilities, providers.CapTools) {
+				req.Capabilities = append(req.Capabilities, providers.CapTools)
+			}
+		}
+
+		ch, err := r.router.CompleteStream(ctx, req)
+		if err != nil {
+			return Result{}, err
+		}
+
+		// pendingTools collects the tool_use deltas emitted by this
+		// round. Anthropic streams tool input as `_partial` JSON
+		// fragments under the same (ID, Name) so we accumulate them
+		// per-ID and decode once the round closes.
+		type toolAcc struct {
+			id        string
+			name      string
+			fragments []string
+		}
+		pending := map[string]*toolAcc{}
+		order := []string{}
+
+		var (
+			roundText     []byte
+			roundThinking []byte
+		)
+
+		for d := range ch {
+			switch d.Type {
+			case providers.DeltaText:
+				roundText = append(roundText, d.Text...)
+			case providers.DeltaThinking:
+				roundThinking = append(roundThinking, d.Text...)
+			case providers.DeltaToolUse:
+				if d.ToolUse == nil {
+					continue
+				}
+				acc, ok := pending[d.ToolUse.ID]
+				if !ok {
+					acc = &toolAcc{id: d.ToolUse.ID, name: d.ToolUse.Name}
+					pending[d.ToolUse.ID] = acc
+					order = append(order, d.ToolUse.ID)
+				}
+				if frag, ok := d.ToolUse.Input["_partial"].(string); ok && frag != "" {
+					acc.fragments = append(acc.fragments, frag)
+				}
+			case providers.DeltaDone:
+				provider = d.Provider
+				if d.Usage != nil {
+					tokens += d.Usage.InputTokens + d.Usage.OutputTokens
+					cost += d.Usage.CostUSD
+				}
+			case providers.DeltaError:
+				return Result{}, d.Err
+			}
+		}
+
+		text = append(text, roundText...)
+		thinking = append(thinking, roundThinking...)
+
+		// No tool calls — we're done.
+		if len(order) == 0 || !mcpEnabled {
+			break
+		}
+		// Cap hit — return whatever text we have rather than spinning.
+		if round == maxToolRounds {
+			break
+		}
+
+		// Dispatch each tool call and build a continuation prompt.
+		// Built-in tools (e.g. generate_image) take precedence over
+		// MCP — see WithBuiltinTool. The bearer + workspace ID come
+		// from the Task so the handler can hit the caller's sandbox.
+		results := "\n\n## Tool results\n"
+		for _, id := range order {
+			acc := pending[id]
+			args := decodeToolInput(acc.fragments)
+			out, err := r.dispatchTool(ctx, task, acc.name, args)
+			results += "- " + acc.name + ": "
+			if err != nil {
+				results += "error: " + err.Error() + "\n"
+				continue
+			}
+			results += out + "\n"
+		}
+		prompt = buildPrompt(task) + string(roundText) + results +
+			"\nContinue. Use the tool results above to complete the task."
 	}
+
 	return Result{
 		Role: task.Role, Output: string(text), Thinking: string(thinking),
 		Provider: provider, Tokens: tokens, CostUSD: cost,

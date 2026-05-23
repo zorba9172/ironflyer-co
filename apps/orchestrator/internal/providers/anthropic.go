@@ -13,15 +13,22 @@ import (
 //  - Prompt caching for system + project context (ephemeral cache markers)
 //  - Extended thinking for reasoning-heavy tasks (planner/architect/security)
 //  - Tool use passthrough
+//  - Cost-aware tiering: CapCheap → Haiku, CapThinking/CapReasoning → Opus,
+//    default → Sonnet. The configured base Model is used when no
+//    capability hint applies, so operators retain full override control.
 type AnthropicProvider struct {
-	client        anthropic.Client
-	model         anthropic.Model
+	client         anthropic.Client
+	model          anthropic.Model
+	cheapModel     anthropic.Model
+	powerModel     anthropic.Model
 	thinkingBudget int64
 }
 
 type AnthropicOpts struct {
 	APIKey         string
 	Model          string // e.g. "claude-opus-4-7"
+	CheapModel     string // override the "cheap" tier; default claude-haiku-4-5-20251001
+	PowerModel     string // override the "power/reasoning" tier; default claude-opus-4-7
 	ThinkingBudget int64  // tokens budget for extended thinking; 0 = default
 }
 
@@ -29,13 +36,48 @@ func NewAnthropicProvider(opts AnthropicOpts) *AnthropicProvider {
 	client := anthropic.NewClient(option.WithAPIKey(opts.APIKey))
 	model := anthropic.Model(opts.Model)
 	if model == "" {
-		model = anthropic.Model("claude-opus-4-7")
+		model = anthropic.Model("claude-sonnet-4-6")
+	}
+	cheap := anthropic.Model(opts.CheapModel)
+	if cheap == "" {
+		cheap = anthropic.Model("claude-haiku-4-5-20251001")
+	}
+	power := anthropic.Model(opts.PowerModel)
+	if power == "" {
+		power = anthropic.Model("claude-opus-4-7")
 	}
 	budget := opts.ThinkingBudget
 	if budget == 0 {
 		budget = 8000
 	}
-	return &AnthropicProvider{client: client, model: model, thinkingBudget: budget}
+	return &AnthropicProvider{
+		client: client, model: model,
+		cheapModel: cheap, powerModel: power,
+		thinkingBudget: budget,
+	}
+}
+
+// pickModel applies the cost-aware tier policy to a single request. CapCheap
+// wins outright (we'd rather pay Haiku rates for a Critic verdict than rent
+// Opus to compose a JSON object). When the caller asked for extended
+// thinking or reasoning we promote to Opus — those are the tasks where
+// the larger model meaningfully changes output quality. Anything else
+// uses the configured base model.
+func (a *AnthropicProvider) pickModel(req Request) anthropic.Model {
+	for _, c := range req.Capabilities {
+		if c == CapCheap {
+			return a.cheapModel
+		}
+	}
+	if req.EnableThinking {
+		return a.powerModel
+	}
+	for _, c := range req.Capabilities {
+		if c == CapThinking || c == CapReasoning {
+			return a.powerModel
+		}
+	}
+	return a.model
 }
 
 func (a *AnthropicProvider) Name() string { return "anthropic" }
@@ -58,8 +100,9 @@ func (a *AnthropicProvider) CompleteStream(ctx context.Context, req Request) (<-
 		maxTokens = 8192
 	}
 
+	model := a.pickModel(req)
 	params := anthropic.MessageNewParams{
-		Model:     a.model,
+		Model:     model,
 		MaxTokens: maxTokens,
 		System:    systemBlocks,
 		Messages:  messages,
@@ -90,7 +133,7 @@ func (a *AnthropicProvider) CompleteStream(ctx context.Context, req Request) (<-
 
 	go func() {
 		defer close(out)
-		out <- Delta{Type: DeltaStart, Provider: a.Name(), Model: string(a.model)}
+		out <- Delta{Type: DeltaStart, Provider: a.Name(), Model: string(model)}
 
 		stream := a.client.Messages.NewStreaming(ctx, params)
 		var (
@@ -162,13 +205,13 @@ func (a *AnthropicProvider) CompleteStream(ctx context.Context, req Request) (<-
 		}
 
 		out <- Delta{
-			Type: DeltaDone, Provider: a.Name(), Model: string(a.model),
+			Type: DeltaDone, Provider: a.Name(), Model: string(model),
 			Usage: &Usage{
 				InputTokens:         inputTokens,
 				OutputTokens:        outputTokens,
 				CacheReadTokens:     cacheReadTokens,
 				CacheCreationTokens: cacheCreationTokens,
-				CostUSD:             estimateCost(string(a.model), inputTokens, outputTokens, cacheReadTokens, cacheCreationTokens),
+				CostUSD:             estimateCost(string(model), inputTokens, outputTokens, cacheReadTokens, cacheCreationTokens),
 			},
 		}
 	}()
@@ -197,8 +240,29 @@ func buildSystemBlocks(req Request) []anthropic.TextBlockParam {
 }
 
 func buildMessages(req Request) []anthropic.MessageParam {
-	user := anthropic.NewUserMessage(anthropic.NewTextBlock(req.Prompt))
-	return []anthropic.MessageParam{user}
+	// Most calls are text-only: keep that path cheap.
+	if len(req.Attachments) == 0 {
+		return []anthropic.MessageParam{
+			anthropic.NewUserMessage(anthropic.NewTextBlock(req.Prompt)),
+		}
+	}
+	// Vision call: emit each attachment as an image block in the same user
+	// turn as the prompt. Anthropic accepts base64 image source with the
+	// IANA media type — we trust the caller to have validated both before
+	// the request landed here.
+	blocks := make([]anthropic.ContentBlockParamUnion, 0, len(req.Attachments)+1)
+	for _, att := range req.Attachments {
+		if att.Base64 == "" {
+			continue
+		}
+		mt := att.MediaType
+		if mt == "" {
+			mt = "image/png"
+		}
+		blocks = append(blocks, anthropic.NewImageBlockBase64(mt, att.Base64))
+	}
+	blocks = append(blocks, anthropic.NewTextBlock(req.Prompt))
+	return []anthropic.MessageParam{anthropic.NewUserMessage(blocks...)}
 }
 
 // estimateCost rough-bills tokens based on published Anthropic pricing tiers.

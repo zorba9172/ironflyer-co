@@ -20,52 +20,52 @@ type EmailContent struct {
 
 // renderRunComplete builds the email body for a successful project run.
 func renderRunComplete(projectName, projectID, dashboardURL string) EmailContent {
-	subject := fmt.Sprintf("הריצה של %s הושלמה בהצלחה", projectName)
+	subject := fmt.Sprintf("%s run completed successfully", projectName)
 	return EmailContent{
 		Subject:  subject,
-		HTMLBody: wrapHTML("הריצה הושלמה!", "כל השערים עברו והפרויקט "+projectName+" מוכן להמשך שלב.", "צפה בלוח הבקרה", projectLink(dashboardURL, projectID)),
-		TextBody: textVersion(subject, "הפרויקט "+projectName+" סיים את הריצה והוא מוכן לסקירה.", projectLink(dashboardURL, projectID)),
+		HTMLBody: wrapHTML("Run complete", "Every gate passed and "+projectName+" is ready for review.", "View dashboard", projectLink(dashboardURL, projectID)),
+		TextBody: textVersion(subject, projectName+" finished the run and is ready for review.", projectLink(dashboardURL, projectID)),
 	}
 }
 
 // renderGateFailed builds the email body for a gate failure event.
 func renderGateFailed(projectName, projectID, gateName, reason, dashboardURL string) EmailContent {
-	subject := fmt.Sprintf("שער %s נכשל בפרויקט %s", gateName, projectName)
+	subject := fmt.Sprintf("%s gate failed in %s", gateName, projectName)
 	return EmailContent{
 		Subject:  subject,
-		HTMLBody: wrapHTML("שער נכשל", "השער "+gateName+" נכשל בפרויקט "+projectName+". סיבה: "+reason, "פתח את הפרויקט", projectLink(dashboardURL, projectID)),
-		TextBody: textVersion(subject, "שער "+gateName+" נכשל בפרויקט "+projectName+". סיבה: "+reason, projectLink(dashboardURL, projectID)),
+		HTMLBody: wrapHTML("Gate failed", "The "+gateName+" gate failed in "+projectName+". Reason: "+reason, "Open project", projectLink(dashboardURL, projectID)),
+		TextBody: textVersion(subject, "The "+gateName+" gate failed in "+projectName+". Reason: "+reason, projectLink(dashboardURL, projectID)),
 	}
 }
 
 // renderDeployDone builds the email body for a successful deploy event.
 func renderDeployDone(projectName, projectID, dashboardURL string) EmailContent {
-	subject := fmt.Sprintf("%s עלה לאוויר", projectName)
+	subject := fmt.Sprintf("%s is live", projectName)
 	return EmailContent{
 		Subject:  subject,
-		HTMLBody: wrapHTML("הפריסה הושלמה", "הפרויקט "+projectName+" נפרס בהצלחה. אפשר לחגוג.", "פתח את הפרויקט", projectLink(dashboardURL, projectID)),
-		TextBody: textVersion(subject, "הפרויקט "+projectName+" נפרס בהצלחה.", projectLink(dashboardURL, projectID)),
+		HTMLBody: wrapHTML("Deployment complete", projectName+" deployed successfully.", "Open project", projectLink(dashboardURL, projectID)),
+		TextBody: textVersion(subject, projectName+" deployed successfully.", projectLink(dashboardURL, projectID)),
 	}
 }
 
 // renderBudgetWarning builds the email body when the user is near their cap.
 func renderBudgetWarning(projectName, dashboardURL string) EmailContent {
-	subject := "התרעת תקציב — מתקרבים למכסה"
+	subject := "Budget warning: approaching plan cap"
 	return EmailContent{
 		Subject:  subject,
-		HTMLBody: wrapHTML("שימו לב לתקציב", "השימוש בפרויקט "+projectName+" מתקרב למכסה. כדאי להעיף מבט.", "פתח את התקציב", strings.TrimRight(dashboardURL, "/")+"/billing"),
-		TextBody: textVersion(subject, "השימוש בפרויקט "+projectName+" מתקרב למכסה.", strings.TrimRight(dashboardURL, "/")+"/billing"),
+		HTMLBody: wrapHTML("Budget attention needed", "Usage for "+projectName+" is approaching the plan cap.", "Open budget", strings.TrimRight(dashboardURL, "/")+"/billing"),
+		TextBody: textVersion(subject, "Usage for "+projectName+" is approaching the plan cap.", strings.TrimRight(dashboardURL, "/")+"/billing"),
 	}
 }
 
 // renderWebhookDisabled is sent when a webhook is auto-disabled after
 // repeated failures. It is the only non-event-driven email the engine sends.
 func renderWebhookDisabled(webhookURL, dashboardURL string, failures int) EmailContent {
-	subject := "Webhook הושבת אוטומטית"
+	subject := "Webhook disabled automatically"
 	return EmailContent{
 		Subject:  subject,
-		HTMLBody: wrapHTML("Webhook נכשל יותר מדי פעמים", fmt.Sprintf("ה-Webhook %s נכשל %d פעמים ברצף והושבת אוטומטית. אפשר להפעיל אותו מחדש לאחר תיקון.", webhookURL, failures), "ניהול Webhooks", strings.TrimRight(dashboardURL, "/")+"/settings/notifications"),
-		TextBody: textVersion(subject, fmt.Sprintf("ה-Webhook %s הושבת לאחר %d כשלונות.", webhookURL, failures), strings.TrimRight(dashboardURL, "/")+"/settings/notifications"),
+		HTMLBody: wrapHTML("Webhook failed too many times", fmt.Sprintf("Webhook %s failed %d times in a row and was disabled automatically. You can re-enable it after fixing the endpoint.", webhookURL, failures), "Manage webhooks", strings.TrimRight(dashboardURL, "/")+"/settings/notifications"),
+		TextBody: textVersion(subject, fmt.Sprintf("Webhook %s was disabled after %d failures.", webhookURL, failures), strings.TrimRight(dashboardURL, "/")+"/settings/notifications"),
 	}
 }
 
@@ -87,8 +87,8 @@ func projectLink(dashboardURL, projectID string) string {
 // transactional email. Inline styles are required because most clients
 // strip <style> tags.
 func wrapHTML(heading, body, ctaLabel, ctaURL string) string {
-	return `<!doctype html><html dir="rtl" lang="he"><head><meta charset="utf-8"></head>
-<body style="margin:0;padding:0;background:#F6F4EE;font-family:'Inter','Heebo',Arial,sans-serif;color:#111;">
+	return `<!doctype html><html dir="ltr" lang="en"><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#F6F4EE;font-family:'Inter',Arial,sans-serif;color:#111;">
   <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="padding:32px 0;">
     <tr><td align="center">
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="560" style="background:#FFFFFF;border-radius:18px;overflow:hidden;border:1px solid rgba(17,17,17,0.08);">
@@ -101,7 +101,7 @@ func wrapHTML(heading, body, ctaLabel, ctaURL string) string {
           <a href="` + ctaURL + `" style="display:inline-block;padding:12px 22px;background:#111;color:#CFEF38;border-radius:999px;font-weight:800;text-decoration:none;">` + ctaLabel + `</a>
         </td></tr>
         <tr><td style="padding:0 32px 28px 32px;font-size:12px;color:rgba(17,17,17,0.55);">
-          קיבלת את ההודעה כי הפעלת התראות בחשבון Ironflyer שלך. אפשר לכבות אותן בכל רגע מ-Settings → Notifications.
+          You received this email because notifications are enabled for your Ironflyer account. You can turn them off at any time from Settings → Notifications.
         </td></tr>
       </table>
     </td></tr>

@@ -22,7 +22,7 @@ const toc = [
 export default function SDKPage() {
   return (
     <DocPage
-      eyebrow="SDK · ערכת פיתוח"
+      eyebrow="SDK"
       title="@ironflyer/sdk"
       description="A small TypeScript client that wraps both Ironflyer services — orchestrator and runtime — with strict types and no runtime dependencies."
       toc={toc}
@@ -79,7 +79,7 @@ if (projects.length === 0) {
 
 for await (const delta of ifc.orchestrator.streamChat(
   project.id,
-  { prompt: 'Add a Hebrew RTL switch.', role: 'coder', effort: 'economy' },
+  { prompt: 'Add a compact settings panel.', role: 'coder', effort: 'economy' },
   { signal: ctrl.signal },
 )) {
   if (delta.type === 'text') process.stdout.write(delta.text);

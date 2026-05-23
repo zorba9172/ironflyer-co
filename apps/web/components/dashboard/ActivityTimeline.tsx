@@ -55,13 +55,13 @@ function relative(time: string) {
   if (Number.isNaN(t)) return time;
   const diff = Date.now() - t;
   const min = Math.round(diff / 60_000);
-  if (min < 1) return 'עכשיו';
-  if (min < 60) return `לפני ${min} ד׳`;
+  if (min < 1) return 'Just now';
+  if (min < 60) return `${min}m ago`;
   const hr = Math.round(min / 60);
-  if (hr < 24) return `לפני ${hr} שע׳`;
+  if (hr < 24) return `${hr}h ago`;
   const days = Math.round(hr / 24);
-  if (days < 7) return `לפני ${days} ימים`;
-  return new Date(t).toLocaleDateString('he-IL');
+  if (days < 7) return `${days}d ago`;
+  return new Date(t).toLocaleDateString('en-US');
 }
 
 export function ActivityTimeline({ rows, emptyHint }: { rows: ActivityRow[]; emptyHint?: string }) {
@@ -69,7 +69,7 @@ export function ActivityTimeline({ rows, emptyHint }: { rows: ActivityRow[]; emp
     return (
       <Box sx={{ py: 3, px: 1.6, textAlign: 'center' }}>
         <Typography variant="body2" sx={{ color: '#686158' }}>
-          {emptyHint ?? 'עוד לא נרשמה פעילות בפרויקטים שלך'}
+          {emptyHint ?? 'No project activity yet'}
         </Typography>
       </Box>
     );

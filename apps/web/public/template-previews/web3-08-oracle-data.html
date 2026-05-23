@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Oracle Data — On-chain data oracles for serious infrastructure</title>
+  <meta name="description" content="Oracle Data is a decentralized oracle network. Price feeds, randomness, off-chain compute, and cross-chain attestations — signed by 32 independent operators." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0a0d;
+      --surface: #111114;
+      --surface-2: #18181d;
+      --border: rgba(255, 108, 58, 0.10);
+      --border-strong: rgba(255, 108, 58, 0.25);
+      --fg: #f0eee8;
+      --fg-2: #998f7e;
+      --fg-3: #5a5345;
+      --accent: #ff6c3a;
+      --accent-dim: rgba(255, 108, 58, 0.16);
+      --green: #5cf0a1;
+      --terminal: #0c0c0e;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: blur(14px);
+      background: rgba(10, 10, 13, 0.88);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 66px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 16px; letter-spacing: -0.01em; }
+    .brand-mark { width: 22px; height: 22px; background: var(--accent); border-radius: 2px; display: grid; place-items: center; color: var(--bg); font-weight: 800; font-size: 12px; }
+    .nav-links { display: flex; gap: 28px; color: var(--fg-2); font-size: 13px; font-family: 'JetBrains Mono', monospace; }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta { display: flex; gap: 10px; align-items: center; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      height: 36px; padding: 0 14px;
+      border-radius: 4px; font-weight: 600; font-size: 13px;
+      border: 1px solid transparent; cursor: pointer;
+      transition: transform 160ms, background 160ms;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .btn-primary { background: var(--accent); color: var(--bg); }
+    .btn-primary:hover { transform: translateY(-1px); }
+    .btn-ghost { background: transparent; color: var(--fg); border-color: var(--border-strong); }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    @media (max-width: 900px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 96px 0 72px; position: relative; overflow: hidden; border-bottom: 1px solid var(--border); }
+    .hero-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 56px; align-items: center; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 5px 10px; border: 1px solid var(--border-strong);
+      border-radius: 2px; font-size: 11px; color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase; letter-spacing: 0.12em;
+    }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
+    h1 {
+      font-family: 'Inter', sans-serif;
+      font-size: clamp(40px, 6.2vw, 76px);
+      line-height: 1.02; letter-spacing: -0.03em;
+      font-weight: 800; margin: 22px 0 22px;
+    }
+    h1 em { font-style: normal; color: var(--accent); }
+    .lede { font-size: 18px; color: var(--fg-2); max-width: 540px; line-height: 1.55; }
+    .hero-cta { display: flex; gap: 12px; margin-top: 30px; flex-wrap: wrap; }
+    .hero-cta .btn { height: 44px; padding: 0 20px; font-size: 13px; }
+
+    /* Terminal */
+    .terminal {
+      background: var(--terminal);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+    }
+    .term-head {
+      display: flex; align-items: center;
+      padding: 10px 14px; background: #16161a;
+      border-bottom: 1px solid var(--border);
+      font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--fg-3);
+      gap: 8px;
+    }
+    .term-dot { width: 11px; height: 11px; border-radius: 50%; background: #2a2a30; }
+    .term-title { margin-left: 14px; }
+    .term-body { padding: 20px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.85; color: var(--fg); min-height: 360px; }
+    .t-prompt { color: var(--accent); }
+    .t-cmd { color: var(--fg); }
+    .t-com { color: var(--fg-3); }
+    .t-ok { color: var(--green); }
+    .t-warn { color: #fbbf24; }
+    .t-key { color: var(--accent); }
+    .t-val { color: var(--fg); }
+    .t-feed-row { display: flex; gap: 16px; }
+    .t-feed-row span:first-child { color: var(--fg-3); width: 90px; }
+    .t-blink { display: inline-block; width: 7px; height: 14px; background: var(--accent); vertical-align: -2px; animation: blink 1s steps(2, end) infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 40px; } }
+
+    /* Stats */
+    .stats {
+      border-bottom: 1px solid var(--border);
+      padding: 40px 0;
+      background: rgba(255, 108, 58, 0.02);
+    }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    .stat .val { font-family: 'JetBrains Mono', monospace; font-size: clamp(28px, 3.4vw, 40px); font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+    .stat .val em { font-style: normal; color: var(--accent); }
+    .stat .label { color: var(--fg-2); font-size: 12px; margin-top: 8px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; }
+    @media (max-width: 720px) { .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 28px; } }
+
+    /* Section */
+    .section { padding: 96px 0; }
+    .section-head { max-width: 720px; margin-bottom: 48px; }
+    .section h2 { font-size: clamp(32px, 4.2vw, 50px); letter-spacing: -0.025em; line-height: 1.05; font-weight: 800; margin: 14px 0 16px; }
+    .section h2 em { font-style: normal; color: var(--accent); }
+    .section .lede { font-size: 16.5px; }
+
+    /* Live feeds */
+    .feeds-card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+    .feeds-head { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr 1fr; padding: 14px 22px; background: var(--surface-2); font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 1px solid var(--border); }
+    .feed-row { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr 1fr; padding: 16px 22px; border-bottom: 1px solid var(--border); align-items: center; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+    .feed-row:last-child { border-bottom: 0; }
+    .feed-row:hover { background: rgba(255, 108, 58, 0.03); }
+    .feed-name { font-weight: 700; color: var(--fg); }
+    .feed-meta { font-size: 11px; color: var(--fg-3); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.08em; }
+    .feed-cell { color: var(--fg-2); }
+    .feed-cell.val { color: var(--accent); font-weight: 700; }
+    .feed-cell.live { color: var(--green); }
+    @media (max-width: 1080px) {
+      .feeds-head { display: none; }
+      .feed-row { grid-template-columns: 1fr; gap: 8px; padding: 18px 22px; }
+    }
+
+    /* How it works */
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .step {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 6px; padding: 28px;
+    }
+    .step-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.12em; }
+    .step h3 { font-size: 19px; font-weight: 700; margin: 8px 0 10px; letter-spacing: -0.01em; }
+    .step p { color: var(--fg-2); margin: 0; font-size: 14.5px; line-height: 1.65; }
+    @media (max-width: 1080px) { .steps { grid-template-columns: 1fr; } }
+
+    /* Features */
+    .features { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+    .feature {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 6px; padding: 32px;
+      display: grid; grid-template-columns: 50px 1fr; gap: 20px; align-items: start;
+    }
+    .feature:hover { border-color: var(--border-strong); }
+    .feature-icon { width: 44px; height: 44px; border-radius: 6px; background: var(--accent-dim); display: grid; place-items: center; color: var(--accent); font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 16px; }
+    .feature h3 { font-size: 18px; font-weight: 700; margin: 0 0 8px; letter-spacing: -0.01em; }
+    .feature p { color: var(--fg-2); margin: 0; font-size: 14.5px; line-height: 1.65; }
+    @media (max-width: 720px) { .features { grid-template-columns: 1fr; } }
+
+    /* Security */
+    .security { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 96px 0; }
+    .sec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: start; }
+    .auditors { display: grid; gap: 12px; }
+    .auditor { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+    .auditor-name { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 14px; }
+    .auditor-meta { font-size: 11px; color: var(--fg-2); font-family: 'JetBrains Mono', monospace; margin-top: 4px; }
+    .auditor a { color: var(--accent); font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+    @media (max-width: 1080px) { .sec-grid { grid-template-columns: 1fr; gap: 40px; } }
+
+    /* Dev */
+    .dev-card { background: var(--terminal); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-top: 24px; }
+    .dev-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); background: var(--surface-2); }
+    .dev-tab { padding: 12px 18px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--fg-3); border-right: 1px solid var(--border); cursor: pointer; }
+    .dev-tab.active { color: var(--accent); background: var(--terminal); }
+    pre.code { margin: 0; padding: 26px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.75; color: var(--fg); overflow-x: auto; }
+    .tk-key { color: var(--accent); }
+    .tk-str { color: var(--green); }
+    .tk-com { color: var(--fg-3); font-style: italic; }
+    .tk-fn { color: #fbbf24; }
+    .tk-num { color: #ff9bc7; }
+
+    /* Footer */
+    footer { border-top: 1px solid var(--border); padding: 56px 0 32px; background: #050507; }
+    .foot-grid { display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 40px; }
+    .foot-col h4 { font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); margin: 0 0 16px; }
+    .foot-col a { display: block; color: var(--fg-2); font-size: 14px; padding: 6px 0; }
+    .foot-col a:hover { color: var(--accent); }
+    .foot-bot { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; color: var(--fg-3); font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+    @media (max-width: 720px) {
+      .foot-grid { grid-template-columns: 1fr 1fr; }
+      .foot-bot { flex-direction: column; gap: 12px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">
+        <span class="brand-mark">O</span>
+        oracle/data
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#feeds">feeds</a>
+        <a href="#how">protocol</a>
+        <a href="#features">products</a>
+        <a href="#security">security</a>
+        <a href="#dev">developers</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-ghost" href="#">docs</a>
+        <a class="btn btn-primary" href="#">launch app →</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>32 operators · k=21 quorum</span>
+            <h1>Truth, <em>signed</em>. On-chain.</h1>
+            <p class="lede">Oracle Data is a decentralized oracle network. Price feeds, verifiable randomness, off-chain compute, and cross-chain attestations — signed by 32 independent operators and verified on-chain in under a block.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#">read docs</a>
+              <a class="btn btn-ghost" href="#feeds">browse feeds</a>
+            </div>
+          </div>
+          <div class="terminal" role="region" aria-label="Live oracle terminal">
+            <div class="term-head">
+              <span class="term-dot"></span><span class="term-dot"></span><span class="term-dot"></span>
+              <span class="term-title">~/oracle$ subscribe ETH/USD</span>
+            </div>
+            <div class="term-body">
+              <div><span class="t-prompt">$</span> <span class="t-cmd">oracle subscribe --feed ETH/USD --chain optimism</span></div>
+              <div><span class="t-com">› establishing connection to gateway-iad-04...</span></div>
+              <div><span class="t-ok">✓ connected · gateway responded in 18ms</span></div>
+              <div><span class="t-com">› awaiting quorum k=21/32 ...</span></div>
+              <div><span class="t-ok">✓ quorum reached · 21 signatures collected</span></div>
+              <div style="margin-top: 8px;">
+                <div class="t-feed-row"><span>feed</span><span class="t-val">ETH/USD</span></div>
+                <div class="t-feed-row"><span>price</span><span class="t-val">$ 3,154.20</span></div>
+                <div class="t-feed-row"><span>deviation</span><span class="t-ok">0.04%</span></div>
+                <div class="t-feed-row"><span>round</span><span class="t-val">142,894,302</span></div>
+                <div class="t-feed-row"><span>block</span><span class="t-val">21,448,902</span></div>
+                <div class="t-feed-row"><span>updated</span><span class="t-val">2s ago</span></div>
+              </div>
+              <div style="margin-top: 8px;"><span class="t-prompt">$</span> <span class="t-cmd">watch</span><span class="t-blink"></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats">
+      <div class="wrap">
+        <div class="stats-grid">
+          <div class="stat"><div class="val"><em>$48B</em></div><div class="label">TVS secured</div></div>
+          <div class="stat"><div class="val">214</div><div class="label">Live feeds</div></div>
+          <div class="stat"><div class="val">32</div><div class="label">Node operators</div></div>
+          <div class="stat"><div class="val">18</div><div class="label">Supported chains</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="feeds">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>live feeds</span>
+          <h2>Data feeds, <em>signed and live</em>.</h2>
+          <p class="lede">Every feed is signed by k-of-n operators, with deviation triggers, heartbeat intervals, and a published reference contract on every chain.</p>
+        </div>
+        <div class="feeds-card">
+          <div class="feeds-head">
+            <div>feed</div>
+            <div>chain</div>
+            <div>last update</div>
+            <div>deviation</div>
+            <div>status</div>
+          </div>
+          <div class="feed-row">
+            <div><div class="feed-name">ETH/USD</div><div class="feed-meta">heartbeat 60s · deviation 0.5%</div></div>
+            <div class="feed-cell">Optimism</div>
+            <div class="feed-cell">2s ago</div>
+            <div class="feed-cell val">0.04%</div>
+            <div class="feed-cell live">● live</div>
+          </div>
+          <div class="feed-row">
+            <div><div class="feed-name">BTC/USD</div><div class="feed-meta">heartbeat 60s · deviation 0.5%</div></div>
+            <div class="feed-cell">Ethereum</div>
+            <div class="feed-cell">4s ago</div>
+            <div class="feed-cell val">0.02%</div>
+            <div class="feed-cell live">● live</div>
+          </div>
+          <div class="feed-row">
+            <div><div class="feed-name">USDC/USD</div><div class="feed-meta">heartbeat 300s · deviation 0.1%</div></div>
+            <div class="feed-cell">Arbitrum</div>
+            <div class="feed-cell">14s ago</div>
+            <div class="feed-cell val">0.00%</div>
+            <div class="feed-cell live">● live</div>
+          </div>
+          <div class="feed-row">
+            <div><div class="feed-name">stETH/ETH</div><div class="feed-meta">heartbeat 1800s · deviation 0.25%</div></div>
+            <div class="feed-cell">Ethereum</div>
+            <div class="feed-cell">2m ago</div>
+            <div class="feed-cell val">0.08%</div>
+            <div class="feed-cell live">● live</div>
+          </div>
+          <div class="feed-row">
+            <div><div class="feed-name">UNI/USD</div><div class="feed-meta">heartbeat 60s · deviation 1.0%</div></div>
+            <div class="feed-cell">Base</div>
+            <div class="feed-cell">8s ago</div>
+            <div class="feed-cell val">0.32%</div>
+            <div class="feed-cell live">● live</div>
+          </div>
+          <div class="feed-row">
+            <div><div class="feed-name">EUR/USD (FX)</div><div class="feed-meta">heartbeat 600s · deviation 0.1%</div></div>
+            <div class="feed-cell">Polygon</div>
+            <div class="feed-cell">42s ago</div>
+            <div class="feed-cell val">0.01%</div>
+            <div class="feed-cell live">● live</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="how" style="padding-top: 0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>protocol</span>
+          <h2>How a feed <em>gets signed</em>.</h2>
+          <p class="lede">No black-box. The protocol is documented, the contracts are public, and every signed round is reproducible from chain state.</p>
+        </div>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">01 / collect</div>
+            <h3>Operators pull data</h3>
+            <p>Each of the 32 operators pulls the raw data from its independent source set — exchanges, RWA custodians, RNG entropy, or off-chain compute results.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">02 / aggregate</div>
+            <h3>Median + outlier reject</h3>
+            <p>The off-chain aggregator computes a trimmed median across submissions, rejecting outliers beyond 1.5σ. The resulting value is signed by each operator.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">03 / publish</div>
+            <h3>Quorum settles on-chain</h3>
+            <p>A relayer submits the signed payload to the on-chain verifier. The contract checks k-of-n signatures, deviation, and heartbeat, then writes the round.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="features" style="padding-top: 0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>products</span>
+          <h2>Four products. <em>One network</em>.</h2>
+          <p class="lede">The same operator set, the same signing scheme, four very different on-chain capabilities.</p>
+        </div>
+        <div class="features">
+          <div class="feature">
+            <div class="feature-icon">$</div>
+            <div>
+              <h3>Price feeds</h3>
+              <p>Sub-cent precision across 214 pairs. Spot, TWAP, and protected reference rates. Used by lending, perps, stablecoins, and treasury accounting.</p>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">⚂</div>
+            <div>
+              <h3>Verifiable randomness</h3>
+              <p>VRF backed by drand and threshold BLS. Useful for NFT mints, fair launches, gaming, and committee selection. Bias-resistant, request-response.</p>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">λ</div>
+            <div>
+              <h3>Off-chain compute</h3>
+              <p>Run user-defined computations off-chain, post the result with signatures. Replaces gas-heavy on-chain math: matrix ops, ML inference, range proofs.</p>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">↔</div>
+            <div>
+              <h3>Cross-chain attestations</h3>
+              <p>Sign state from one chain, verify it on another. Used for cross-chain governance, omnichain accounting, and L2-to-L2 messaging fallback.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="security" id="security">
+      <div class="wrap">
+        <div class="sec-grid">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>security</span>
+            <h2>Slashed for <em>misreporting</em>.</h2>
+            <p class="lede">Operators bond ORAC and are slashed for collusion, deviation, or downtime. The signing path is open-source, audited, and verified by a public reference implementation.</p>
+            <div style="margin-top: 28px;">
+              <a class="btn btn-primary" href="#" style="margin-right: 10px;">View audits</a>
+              <a class="btn btn-ghost" href="#">Slashing log</a>
+            </div>
+          </div>
+          <div class="auditors">
+            <div class="auditor"><div><div class="auditor-name">Trail of Bits</div><div class="auditor-meta">Verifier contracts · Feb 2026</div></div><a href="#">→</a></div>
+            <div class="auditor"><div><div class="auditor-name">OpenZeppelin</div><div class="auditor-meta">Aggregator + VRF · Dec 2025</div></div><a href="#">→</a></div>
+            <div class="auditor"><div><div class="auditor-name">Halborn</div><div class="auditor-meta">Cross-chain attest · Oct 2025</div></div><a href="#">→</a></div>
+            <div class="auditor"><div><div class="auditor-name">Sigma Prime</div><div class="auditor-meta">Slashing logic · Aug 2025</div></div><a href="#">→</a></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="dev">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>developers</span>
+          <h2>Read a feed in <em>3 lines</em>.</h2>
+          <p class="lede">Solidity, Rust, or TypeScript. Reference contracts on every chain, deterministic addresses, and a single CLI to subscribe to any feed.</p>
+        </div>
+        <div class="dev-card">
+          <div class="dev-tabs">
+            <div class="dev-tab active">Consumer.sol</div>
+            <div class="dev-tab">consumer.ts</div>
+            <div class="dev-tab">consumer.rs</div>
+          </div>
+<pre class="code"><span class="tk-key">pragma</span> solidity ^<span class="tk-num">0.8.24</span>;
+
+<span class="tk-key">import</span> { <span class="tk-fn">IOracleFeed</span> } <span class="tk-key">from</span> <span class="tk-str">"@oracle-data/contracts/IOracleFeed.sol"</span>;
+
+<span class="tk-key">contract</span> <span class="tk-fn">VaultPricer</span> {
+    <span class="tk-fn">IOracleFeed</span> <span class="tk-key">public immutable</span> ethUsd;
+
+    <span class="tk-key">constructor</span>(<span class="tk-key">address</span> _feed) { ethUsd = <span class="tk-fn">IOracleFeed</span>(_feed); }
+
+    <span class="tk-key">function</span> <span class="tk-fn">value</span>(<span class="tk-key">uint256</span> ethAmount) <span class="tk-key">external view returns</span> (<span class="tk-key">uint256</span>) {
+        (<span class="tk-key">int256</span> price, <span class="tk-key">uint256</span> updatedAt) = ethUsd.<span class="tk-fn">latestRoundData</span>();
+        <span class="tk-key">require</span>(block.timestamp - updatedAt &lt; <span class="tk-num">300</span>, <span class="tk-str">"stale price"</span>);
+        <span class="tk-key">return</span> <span class="tk-key">uint256</span>(price) * ethAmount / <span class="tk-num">1e8</span>;
+    }
+}
+</pre>
+        </div>
+        <div style="margin-top: 28px; display: flex; gap: 10px; flex-wrap: wrap;">
+          <a class="btn btn-primary" href="#">read full docs</a>
+          <a class="btn btn-ghost" href="#">addresses by chain</a>
+          <a class="btn btn-ghost" href="#">github</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a class="brand" href="#" style="margin-bottom:16px;">
+            <span class="brand-mark">O</span>
+            oracle/data
+          </a>
+          <p style="color:var(--fg-2); font-size:14px; max-width:300px;">A decentralized oracle network for serious infrastructure. 32 operators, k-of-n quorum, slashable signing.</p>
+        </div>
+        <div class="foot-col">
+          <h4>Network</h4>
+          <a href="#">Feeds</a>
+          <a href="#">Operators</a>
+          <a href="#">Status</a>
+          <a href="#">Slashing</a>
+        </div>
+        <div class="foot-col">
+          <h4>Developers</h4>
+          <a href="#">Docs</a>
+          <a href="#">SDK</a>
+          <a href="#">GitHub</a>
+          <a href="#">Discord</a>
+        </div>
+        <div class="foot-col">
+          <h4>Company</h4>
+          <a href="#">About</a>
+          <a href="#">Careers</a>
+          <a href="#">Privacy</a>
+          <a href="#">Terms</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Oracle Data Foundation · MIT</span>
+        <span>uptime 99.997% · last incident 142 days ago</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

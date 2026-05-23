@@ -35,8 +35,8 @@ export default function PatchesAPIPage() {
       <h2 id="propose">POST /projects/&#123;id&#125;/patches</h2>
       <p>Submit a patch. The engine validates and gates synchronously; a rejected patch returns 400 with the issues.</p>
       <CodeBlock language="json">{`{
-  "title":   "Add Hebrew RTL switch",
-  "summary": "Wires a dir=rtl toggle into the root layout.",
+  "title":   "Add compact settings panel",
+  "summary": "Adds account controls to the application shell.",
   "changes": [
     { "op": "update", "path": "app/layout.tsx", "content": "…" }
   ]

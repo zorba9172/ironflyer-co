@@ -16,11 +16,12 @@ const (
 	GateLint     GateName = "lint"
 	GateTest     GateName = "test"
 	GateSecurity GateName = "security"
+	GateBudget   GateName = "budget"
 	GateDeploy   GateName = "deploy"
 )
 
 func AllGates() []GateName {
-	return []GateName{GateSpec, GateUX, GateArch, GateCode, GateLint, GateTest, GateSecurity, GateDeploy}
+	return []GateName{GateSpec, GateUX, GateArch, GateCode, GateLint, GateTest, GateSecurity, GateBudget, GateDeploy}
 }
 
 type GateStatus string
@@ -77,6 +78,18 @@ type Project struct {
 	Gates   map[GateName]GateState `json:"gates"`
 	Events  []Event                `json:"events"`
 	GitHub  *GitHubLink            `json:"github,omitempty"`
+	// Secrets holds provisioned per-project credentials — DATABASE_URL,
+	// Stripe keys, Supabase service-role tokens, etc. Never serialised to
+	// JSON so it cannot leak through API responses; callers that need a
+	// value must read it through the store and inject it explicitly (the
+	// runtime sandbox is the typical sink).
+	Secrets map[string]string `json:"-"`
+	// VisualTargets is the pixel-perfect contract: the user uploads one
+	// or more reference screenshots (Figma export, Lovable iteration,
+	// hand-drawn mockup) and the UXGate refuses to pass until the live
+	// preview matches within tolerance. Empty slice = no visual contract
+	// (project ships on the regular gate set).
+	VisualTargets []VisualTarget `json:"visualTargets,omitempty"`
 	CreatedAt time.Time            `json:"createdAt"`
 	UpdatedAt time.Time            `json:"updatedAt"`
 }
@@ -111,6 +124,28 @@ type StackDecision struct {
 	Backend  string `json:"backend"`
 	Storage  string `json:"storage"`
 	Auth     string `json:"auth"`
+}
+
+// VisualTarget is one reference screenshot the user wants the live
+// preview to match. The UXGate fetches a screenshot of the running app
+// at RouteHint + viewport, diffs it against ImagePNGBase64, and refuses
+// to pass when the difference exceeds Tolerance.
+type VisualTarget struct {
+	ID              string `json:"id"`
+	Name            string `json:"name,omitempty"`
+	// RouteHint is the path the runtime should screenshot (e.g. "/",
+	// "/pricing", "/app/dashboard"). Empty = "/".
+	RouteHint       string `json:"routeHint,omitempty"`
+	ViewportW       int    `json:"viewportW"`        // e.g. 1280
+	ViewportH       int    `json:"viewportH"`        // e.g. 800
+	// ImagePNGBase64 is the target screenshot, base64-encoded PNG bytes
+	// (no data: prefix). The orchestrator decodes lazily — keep it small
+	// (<= 2 MiB after encoding).
+	ImagePNGBase64  string `json:"imagePngBase64"`
+	// Tolerance is the fraction of pixels (0..1) that may differ before
+	// the gate fails. Default 0.02 = 2% — generous enough that anti-
+	// aliasing flicker won't fire false positives.
+	Tolerance       float64 `json:"tolerance,omitempty"`
 }
 
 // GitHubLink binds a project to a remote GitHub repo so the coder/deploy

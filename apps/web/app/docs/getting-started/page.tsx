@@ -29,7 +29,7 @@ const toc = [
 export default function GettingStartedPage() {
   return (
     <DocPage
-      eyebrow="Getting Started · התחלה מהירה"
+      eyebrow="Getting Started"
       title="Ship your first project in five minutes."
       description="From an empty screen to a live URL — the finisher does the gating, you do the deciding."
       toc={toc}
@@ -61,12 +61,12 @@ export default function GettingStartedPage() {
       <h2 id="2-first-prompt">2. Your first prompt</h2>
       <p>
         Once you are signed in, the dashboard greets you with a prompt box. Type the product you want
-        in plain Hebrew or English — the planner will translate either way. The clearest prompts mention
+        in clear English. The clearest prompts mention
         a <em>who</em>, a <em>what</em>, and a <em>constraint</em>. Examples that work well:
       </p>
       <ul>
-        <li><strong>SaaS dashboard</strong> — “A revenue dashboard for indie SaaS founders. Stripe + Postgres. Hebrew RTL.”</li>
-        <li><strong>Internal tool</strong> — “כלי פנימי לאישור החזרים. טופס, רשימה, ייצוא ל־CSV.”</li>
+        <li><strong>SaaS dashboard</strong> — “A revenue dashboard for indie SaaS founders. Stripe + Postgres. CSV export.”</li>
+        <li><strong>Internal tool</strong> — “An internal refund approvals tool with a form, review queue, and CSV export.”</li>
         <li><strong>API service</strong> — “A Go service that proxies OpenAI with per-user budgets and prom metrics.”</li>
       </ul>
       <p>
@@ -87,7 +87,7 @@ const ifc = ironflyer({
 
 const project = await ifc.orchestrator.createProject({
   name: 'Revenue dashboard',
-  idea: 'A revenue dashboard for indie SaaS founders. Stripe + Postgres. Hebrew RTL.',
+  idea: 'A revenue dashboard for indie SaaS founders. Stripe + Postgres. CSV export.',
 });
 
 await ifc.orchestrator.runFinisher(project.id);`}</CodeBlock>
@@ -110,8 +110,8 @@ curl -X POST https://api.ironflyer.dev/projects/revenue-dashboard/run \\
 
       <h2 id="3-finisher-loop">3. The finisher loop</h2>
       <p>
-        As soon as you trigger a run, the eight gates start streaming. The order is fixed — Spec → UX →
-        Architecture → Code → Lint → Tests → Security → Deploy — because each gate consumes the output
+        As soon as you trigger a run, the nine gates start streaming. The order is fixed — Spec → UX →
+        Architecture → Code → Lint → Tests → Security → Budget → Deploy — because each gate consumes the output
         of the previous one. A red gate halts the loop and surfaces the issues; a green gate emits a
         patch that the orchestrator applies through <code>patch.Engine</code>. The dashboard shows the
         feed live; the SDK exposes the same stream via SSE:
@@ -153,7 +153,7 @@ for await (const evt of stream) {
 
       <h2 id="next">Where to next</h2>
       <p>
-        Read the <a href="/docs/concepts/finisher-gates">Finisher Gates</a> page for the eight gates in
+        Read the <a href="/docs/concepts/finisher-gates">Finisher Gates</a> page for the nine gates in
         detail, the <a href="/docs/concepts/budget">Budget</a> page for how revenue minus provider cost
         equals our margin (and why we show it to you), and the <a href="/docs/sdk">SDK reference</a> for
         every method available in TypeScript. If you live in your editor,

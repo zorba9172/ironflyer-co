@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>First Class — Learn a language with a real teacher</title>
+  <meta name="description" content="A marketplace of vetted language teachers. Book a 60-minute lesson, on your schedule, in 28 languages. No chatbots, no auto-graded grammar drills." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f5efe4;
+      --surface: #faf6ec;
+      --surface-2: #ebe3d2;
+      --border: rgba(27, 24, 20, 0.12);
+      --border-strong: rgba(27, 24, 20, 0.28);
+      --fg: #1b1814;
+      --fg-2: #5a4f44;
+      --fg-3: #8a7e6e;
+      --accent: #d63a3a;
+      --accent-deep: #a82323;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--fg); font-family: 'Inter', system-ui, sans-serif; font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+    .serif { font-family: 'Fraunces', Georgia, serif; }
+
+    .nav { position: sticky; top: 0; z-index: 50; background: rgba(245, 239, 228, 0.88); backdrop-filter: blur(14px); border-bottom: 1px solid var(--border); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 68px; }
+    .brand { display: flex; align-items: baseline; gap: 8px; font-family: 'Fraunces', serif; font-weight: 800; font-size: 22px; letter-spacing: -0.01em; }
+    .brand .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; }
+    .nav-links { display: flex; gap: 28px; color: var(--fg-2); font-size: 14px; }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta { display: flex; gap: 10px; align-items: center; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 18px; border-radius: 999px; font-weight: 600; font-size: 14px; border: 1px solid transparent; cursor: pointer; transition: transform 160ms, background 160ms; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-deep); transform: translateY(-1px); }
+    .btn-ghost { background: transparent; color: var(--fg); border-color: var(--border-strong); }
+    .btn-ghost:hover { border-color: var(--fg); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    .hero { padding: 80px 0 64px; }
+    .hero-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 56px; align-items: center; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; background: rgba(214, 58, 58, 0.10); border-radius: 999px; font-size: 12px; color: var(--accent-deep); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
+    h1 { font-family: 'Fraunces', serif; font-size: clamp(44px, 7vw, 88px); line-height: 0.98; letter-spacing: -0.02em; font-weight: 800; margin: 18px 0 24px; }
+    h1 em { font-style: italic; color: var(--accent); }
+    .lede { font-size: 20px; color: var(--fg-2); max-width: 520px; }
+    .hero-cta { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; }
+    .hero-cta .btn { height: 50px; padding: 0 26px; font-size: 15px; }
+    .hero-art { position: relative; }
+    .hero-art img.main { width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 14px; }
+    .hero-art .pill { position: absolute; bottom: 20px; left: 20px; background: var(--surface); padding: 12px 16px; border-radius: 999px; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); font-size: 14px; }
+    .hero-art .pill img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 48px; } }
+    @media (max-width: 720px) { .hero { padding: 56px 0 40px; } .hero-cta .btn { width: 100%; justify-content: center; } }
+
+    .section { padding: 96px 0; }
+    .section-head { max-width: 720px; margin-bottom: 48px; }
+    .section h2 { font-family: 'Fraunces', serif; font-size: clamp(36px, 5vw, 60px); letter-spacing: -0.02em; line-height: 1.02; font-weight: 800; margin: 12px 0 16px; }
+    .section h2 em { font-style: italic; color: var(--accent); }
+
+    .teachers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    .teacher { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; transition: transform 220ms; }
+    .teacher:hover { transform: translateY(-2px); }
+    .teacher img { width: 100%; aspect-ratio: 4/5; object-fit: cover; }
+    .teacher .body { padding: 18px 20px 22px; }
+    .teacher h3 { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 800; margin: 0 0 4px; }
+    .teacher .lang { color: var(--accent-deep); font-size: 13px; font-weight: 600; }
+    .teacher p { color: var(--fg-2); font-size: 14px; margin: 10px 0 12px; }
+    .teacher .row { display: flex; justify-content: space-between; align-items: baseline; padding-top: 12px; border-top: 1px solid var(--border); font-size: 13px; }
+    .teacher .rate { font-weight: 700; }
+    .teacher .stars { color: var(--accent); }
+    @media (max-width: 1080px) { .teachers { grid-template-columns: repeat(2, 1fr); } }
+
+    .how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .step { background: var(--surface); padding: 32px; border-radius: 14px; border: 1px solid var(--border); }
+    .step .num { font-family: 'Fraunces', serif; font-size: 56px; color: var(--accent); line-height: 1; font-weight: 800; font-style: italic; }
+    .step h3 { font-family: 'Fraunces', serif; font-size: 22px; margin: 12px 0 8px; font-weight: 700; }
+    .step p { color: var(--fg-2); margin: 0; font-size: 15px; }
+    @media (max-width: 720px) { .how { grid-template-columns: 1fr; } }
+
+    .languages { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .lang-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 22px; display: flex; justify-content: space-between; align-items: center; transition: background 200ms, border-color 200ms; }
+    .lang-card:hover { background: var(--surface-2); border-color: var(--border-strong); }
+    .lang-card .name { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; }
+    .lang-card .count { color: var(--fg-3); font-size: 13px; }
+    @media (max-width: 1080px) { .languages { grid-template-columns: repeat(2, 1fr); } }
+
+    .outcomes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+    .quote { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 36px; position: relative; }
+    .quote::before { content: '"'; font-family: 'Fraunces', serif; font-size: 96px; color: var(--accent); position: absolute; top: 0; left: 24px; line-height: 1; }
+    .quote p { font-family: 'Fraunces', serif; font-size: 22px; line-height: 1.4; margin: 32px 0 24px; font-weight: 500; }
+    .quote footer { display: flex; gap: 12px; align-items: center; padding: 0; border: 0; }
+    .quote footer img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; }
+    .quote .who { font-weight: 700; font-size: 15px; }
+    .quote .who span { display: block; color: var(--fg-3); font-size: 13px; font-weight: 400; }
+    @media (max-width: 720px) { .outcomes { grid-template-columns: 1fr; } }
+
+    .pricing { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .plan { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 32px; display: flex; flex-direction: column; }
+    .plan.featured { background: var(--fg); color: #fff; border-color: var(--fg); }
+    .plan.featured .price small, .plan.featured .desc { color: rgba(255,255,255,0.7); }
+    .plan.featured li { color: rgba(255,255,255,0.85); }
+    .plan h3 { font-family: 'Fraunces', serif; font-size: 22px; margin: 0; font-weight: 700; }
+    .plan .price { font-family: 'Fraunces', serif; font-size: 56px; font-weight: 800; letter-spacing: -0.02em; margin: 12px 0 4px; line-height: 1; }
+    .plan .price small { font-size: 14px; color: var(--fg-3); font-weight: 500; font-family: 'Inter'; }
+    .plan .desc { color: var(--fg-2); font-size: 15px; min-height: 44px; }
+    .plan ul { list-style: none; padding: 0; margin: 24px 0; flex: 1; }
+    .plan li { padding: 8px 0; color: var(--fg-2); font-size: 14px; display: flex; gap: 10px; }
+    .plan li::before { content: '✓'; color: var(--accent); flex-shrink: 0; font-weight: 700; }
+    @media (max-width: 1080px) { .pricing { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; } }
+
+    .faq { max-width: 820px; margin: 0 auto; }
+    .faq details { border-bottom: 1px solid var(--border); padding: 24px 0; }
+    .faq summary { cursor: pointer; font-family: 'Fraunces', serif; font-weight: 700; font-size: 20px; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+    .faq summary::after { content: '+'; color: var(--accent); font-size: 24px; font-weight: 400; }
+    .faq details[open] summary::after { content: '−'; }
+    .faq p { color: var(--fg-2); margin: 14px 0 0; font-size: 16px; }
+
+    footer.site { border-top: 1px solid var(--border); padding: 48px 0 32px; }
+    .foot-grid { display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 40px; }
+    .foot-col h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-3); margin: 0 0 16px; }
+    .foot-col a { display: block; color: var(--fg-2); font-size: 14px; padding: 6px 0; }
+    .foot-col a:hover { color: var(--accent); }
+    .foot-bot { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; color: var(--fg-3); font-size: 13px; }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 12px; text-align: center; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#"><span class="dot"></span> First Class</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#teachers">Teachers</a>
+        <a href="#languages">Languages</a>
+        <a href="#how">How it works</a>
+        <a href="#pricing">Pricing</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-ghost" href="#">Become a teacher</a>
+        <a class="btn btn-primary" href="#">Book a class →</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow">28 languages · 2,100 teachers</span>
+            <h1>Learn a language with a <em>real</em> teacher.</h1>
+            <p class="lede">First Class is a small, curated marketplace of working language teachers. You book a 60-minute live lesson on your schedule. No chatbots, no flashcards, no auto-graded grammar drills.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#teachers">Find a teacher</a>
+              <a class="btn btn-ghost" href="#how">How it works</a>
+            </div>
+          </div>
+          <div class="hero-art">
+            <img class="main" src="https://picsum.photos/seed/first-class-hero/900/1100" width="900" height="1100" alt="A teacher and a student in conversation during a First Class live lesson." loading="eager" />
+            <div class="pill">
+              <img src="https://picsum.photos/seed/first-class-pill/120/120" width="120" height="120" alt="Portrait of teacher Lucia." />
+              <span><strong>Lucia</strong> · Italian · live now</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="teachers">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Featured teachers</span>
+          <h2>Meet a few of our <em>teachers</em>.</h2>
+        </div>
+        <div class="teachers">
+          <div class="teacher">
+            <img src="https://picsum.photos/seed/fc-t1/400/500" width="400" height="500" alt="Portrait of Lucia D'Amico." loading="lazy" />
+            <div class="body">
+              <h3>Lucia D'Amico</h3>
+              <div class="lang">Italian · Bologna</div>
+              <p>Eight years teaching Italian to adult learners. Specializes in conversation and grammar without tears.</p>
+              <div class="row"><span class="rate">$32 / hr</span><span class="stars">★★★★★ 4.9</span></div>
+            </div>
+          </div>
+          <div class="teacher">
+            <img src="https://picsum.photos/seed/fc-t2/400/500" width="400" height="500" alt="Portrait of Hiroshi Tanaka." loading="lazy" />
+            <div class="body">
+              <h3>Hiroshi Tanaka</h3>
+              <div class="lang">Japanese · Kyoto</div>
+              <p>Former NHK news editor. Teaches Japanese for travel, business, and reading manga without the dictionary.</p>
+              <div class="row"><span class="rate">$38 / hr</span><span class="stars">★★★★★ 5.0</span></div>
+            </div>
+          </div>
+          <div class="teacher">
+            <img src="https://picsum.photos/seed/fc-t3/400/500" width="400" height="500" alt="Portrait of Camila Rojas." loading="lazy" />
+            <div class="body">
+              <h3>Camila Rojas</h3>
+              <div class="lang">Spanish · Bogotá</div>
+              <p>Linguistics PhD and certified DELE examiner. Works with students preparing for the B2 and C1 exams.</p>
+              <div class="row"><span class="rate">$28 / hr</span><span class="stars">★★★★★ 4.9</span></div>
+            </div>
+          </div>
+          <div class="teacher">
+            <img src="https://picsum.photos/seed/fc-t4/400/500" width="400" height="500" alt="Portrait of Émile Laurent." loading="lazy" />
+            <div class="body">
+              <h3>Émile Laurent</h3>
+              <div class="lang">French · Lyon</div>
+              <p>Teaches French through cinema and food writing. Patient, structured, and quietly hilarious.</p>
+              <div class="row"><span class="rate">$34 / hr</span><span class="stars">★★★★★ 4.8</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="how" style="background: var(--surface-2);">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">How it works</span>
+          <h2>From <em>browsing</em> to your first lesson.</h2>
+        </div>
+        <div class="how">
+          <div class="step">
+            <div class="num">1.</div>
+            <h3>Pick a teacher</h3>
+            <p>Filter by language, accent, price, and availability. Watch a 60-second intro video before you decide.</p>
+          </div>
+          <div class="step">
+            <div class="num">2.</div>
+            <h3>Book a trial</h3>
+            <p>Trial lessons are 30 minutes for $9. We refund the trial if you don't book a paid lesson within a week.</p>
+          </div>
+          <div class="step">
+            <div class="num">3.</div>
+            <h3>Learn, every week</h3>
+            <p>Schedule weekly 60-minute lessons. Pay per lesson or buy a pack. Cancel a lesson up to 12 hours ahead, free.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="languages">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Catalog</span>
+          <h2>Twenty-eight languages, one <em>marketplace</em>.</h2>
+          <p style="font-size: 17px; color: var(--fg-2);">From Mandarin to Modern Greek. Each language has at least 40 teachers, vetted and rated.</p>
+        </div>
+        <div class="languages">
+          <a class="lang-card" href="#"><span class="name">Spanish</span><span class="count">342 teachers</span></a>
+          <a class="lang-card" href="#"><span class="name">French</span><span class="count">281 teachers</span></a>
+          <a class="lang-card" href="#"><span class="name">Italian</span><span class="count">204 teachers</span></a>
+          <a class="lang-card" href="#"><span class="name">Mandarin</span><span class="count">198 teachers</span></a>
+          <a class="lang-card" href="#"><span class="name">Japanese</span><span class="count">172 teachers</span></a>
+          <a class="lang-card" href="#"><span class="name">German</span><span class="count">160 teachers</span></a>
+          <a class="lang-card" href="#"><span class="name">Portuguese</span><span class="count">128 teachers</span></a>
+          <a class="lang-card" href="#"><span class="name">Korean</span><span class="count">112 teachers</span></a>
+          <a class="lang-card" href="#"><span class="name">Arabic</span><span class="count">96 teachers</span></a>
+          <a class="lang-card" href="#"><span class="name">Russian</span><span class="count">84 teachers</span></a>
+          <a class="lang-card" href="#"><span class="name">Hebrew</span><span class="count">71 teachers</span></a>
+          <a class="lang-card" href="#"><span class="name">Greek</span><span class="count">42 teachers</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="outcomes" style="background: var(--surface);">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Students</span>
+          <h2>Why our students <em>stay</em>.</h2>
+        </div>
+        <div class="outcomes">
+          <figure class="quote">
+            <p>After two months with Lucia I held a full conversation with my partner's grandmother in Italian. Eighteen months of an app had not gotten me there.</p>
+            <footer>
+              <img src="https://picsum.photos/seed/fc-q1/120/120" width="120" height="120" alt="Portrait of student Sara Ben-David." />
+              <div class="who">Sara Ben-David<span>Italian · 8 months on First Class</span></div>
+            </footer>
+          </figure>
+          <figure class="quote">
+            <p>I needed B2 Spanish for a job in Madrid. Camila built me a 12-week plan, ran mock orals, and I passed on the first attempt.</p>
+            <footer>
+              <img src="https://picsum.photos/seed/fc-q2/120/120" width="120" height="120" alt="Portrait of student Tom Lawrence." />
+              <div class="who">Tom Lawrence<span>Spanish · DELE B2 passed</span></div>
+            </footer>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="pricing">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Pricing</span>
+          <h2>Pay per <em>lesson</em>, save with packs.</h2>
+        </div>
+        <div class="pricing">
+          <div class="plan">
+            <h3>Trial</h3>
+            <div class="price">$9<small> / 30 min</small></div>
+            <p class="desc">Try any teacher for 30 minutes, fully refundable.</p>
+            <ul>
+              <li>One 30-minute trial lesson</li>
+              <li>Refunded after first paid lesson</li>
+              <li>Try as many teachers as you like</li>
+            </ul>
+            <a class="btn btn-ghost" href="#">Book a trial</a>
+          </div>
+          <div class="plan featured">
+            <h3>Pay as you go</h3>
+            <div class="price">$28+<small> / 60 min</small></div>
+            <p class="desc">Pay per lesson, at the teacher's posted rate.</p>
+            <ul>
+              <li>Book anytime, free cancel within 12h</li>
+              <li>Switch teachers anytime</li>
+              <li>Lesson notes saved to your profile</li>
+              <li>Receipts for tax and reimbursement</li>
+            </ul>
+            <a class="btn btn-primary" href="#">Browse teachers</a>
+          </div>
+          <div class="plan">
+            <h3>Lesson pack</h3>
+            <div class="price">10× <small>save 10%</small></div>
+            <p class="desc">Buy 10 lessons with your teacher upfront.</p>
+            <ul>
+              <li>10% off the teacher's hourly rate</li>
+              <li>Lessons valid for 6 months</li>
+              <li>Transferable on request</li>
+            </ul>
+            <a class="btn btn-ghost" href="#">Buy a pack</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="faq" style="background: var(--surface-2);">
+      <div class="wrap">
+        <div class="section-head" style="margin: 0 auto 40px; text-align: center;">
+          <span class="eyebrow">FAQ</span>
+          <h2>Before you <em>book</em>.</h2>
+        </div>
+        <div class="faq">
+          <details>
+            <summary>How are teachers vetted?</summary>
+            <p>Every teacher submits credentials, a video sample, and a teaching plan. We run a 30-minute live interview. Less than 18% of applicants are accepted.</p>
+          </details>
+          <details>
+            <summary>What happens if my teacher cancels?</summary>
+            <p>You get an automatic refund and credit for the lesson. We surface backup teachers who match your level and schedule within a few minutes.</p>
+          </details>
+          <details>
+            <summary>Can I switch teachers later?</summary>
+            <p>Yes. Many students work with two teachers — one for grammar, one for conversation. Lesson packs are tied to a single teacher; pay-as-you-go is not.</p>
+          </details>
+          <details>
+            <summary>Do you provide lesson materials?</summary>
+            <p>Teachers bring their own. Most use a shared Notion or Google Doc per student. We supply a built-in whiteboard, video, and lesson note system.</p>
+          </details>
+          <details>
+            <summary>How do payouts work for teachers?</summary>
+            <p>Teachers keep 85% of their hourly rate. Payouts go out every Friday via Stripe Connect to 32 supported countries.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site">
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a class="brand" href="#" style="margin-bottom: 16px;"><span class="dot"></span> First Class</a>
+          <p style="color: var(--fg-2); font-size: 14px; max-width: 280px;">A small, curated marketplace of working language teachers. Live lessons, paid by the hour, in 28 languages.</p>
+        </div>
+        <div class="foot-col">
+          <h4>Learners</h4>
+          <a href="#">Find a teacher</a>
+          <a href="#">Languages</a>
+          <a href="#">Trial lessons</a>
+          <a href="#">Gift a class</a>
+        </div>
+        <div class="foot-col">
+          <h4>Teachers</h4>
+          <a href="#">Become a teacher</a>
+          <a href="#">Teacher handbook</a>
+          <a href="#">Payouts</a>
+          <a href="#">Community</a>
+        </div>
+        <div class="foot-col">
+          <h4>Company</h4>
+          <a href="#">About</a>
+          <a href="#">Press</a>
+          <a href="#">Privacy</a>
+          <a href="#">Contact</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 First Class Inc.</span>
+        <span>Made with patience in Lisbon</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

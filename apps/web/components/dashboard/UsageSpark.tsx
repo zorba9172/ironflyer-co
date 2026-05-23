@@ -48,7 +48,7 @@ export function UsageSpark({ points, height = 96, showAxis = true, emptyHint, ca
         px: 2,
       }}>
         <Typography variant="caption" sx={{ color: '#686158', textAlign: 'center' }}>
-          {emptyHint ?? 'עוד אין נתוני שימוש להצגה'}
+          {emptyHint ?? 'No usage data to show yet'}
         </Typography>
       </Box>
     );
@@ -69,7 +69,7 @@ export function UsageSpark({ points, height = 96, showAxis = true, emptyHint, ca
         viewBox={`0 0 ${w} ${h}`}
         preserveAspectRatio="none"
         sx={{ width: '100%', height, display: 'block' }}
-        aria-label="גרף שימוש חודשי"
+        aria-label="Monthly usage chart"
         role="img"
       >
         <defs>

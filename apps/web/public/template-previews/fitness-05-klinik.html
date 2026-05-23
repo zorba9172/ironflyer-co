@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Klinik — A calmer kind of dental practice</title>
+  <meta name="description" content="A modern dental clinic offering general, cosmetic, and orthodontic care in a calm, transparent setting. Same-day estimates, in-network with major insurers." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #ffffff;
+      --paper: #f5f9f7;
+      --ink: #0d1b1a;
+      --ink-2: #4a5957;
+      --ink-3: #8a9794;
+      --line: rgba(13,27,26,0.10);
+      --line-strong: rgba(13,27,26,0.22);
+      --accent: #6ad9b3;
+      --accent-deep: #2e9b7c;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--ink); font-family: 'Inter', system-ui, sans-serif; line-height: 1.6; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+    .serif { font-family: 'Fraunces', serif; font-weight: 500; }
+
+    .nav { padding: 18px 0; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: rgba(255,255,255,0.92); backdrop-filter: blur(10px); z-index: 50; }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: flex; align-items: center; gap: 10px; font-family: 'Fraunces', serif; font-size: 24px; font-weight: 500; letter-spacing: -0.01em; }
+    .brand-mark { width: 32px; height: 32px; background: var(--accent); border-radius: 10px; display: grid; place-items: center; color: var(--ink); font-weight: 700; font-family: 'Inter'; font-size: 16px; }
+    .nav-links { display: flex; gap: 28px; font-size: 14px; color: var(--ink-2); font-weight: 500; }
+    .nav-links a:hover { color: var(--ink); }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 22px; border-radius: 999px; font-weight: 600; font-size: 14px; border: 1px solid transparent; cursor: pointer; transition: transform 200ms; }
+    .btn-primary { background: var(--ink); color: var(--bg); }
+    .btn-primary:hover { background: var(--accent-deep); }
+    .btn-ghost { background: transparent; color: var(--ink); border-color: var(--line-strong); }
+    .btn-ghost:hover { border-color: var(--ink); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    .hero { padding: 80px 0 80px; }
+    .hero-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 64px; align-items: center; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; background: var(--paper); border: 1px solid var(--line); border-radius: 999px; font-size: 12px; color: var(--ink-2); font-weight: 500; }
+    .eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+    h1 { font-family: 'Fraunces', serif; font-weight: 500; font-size: clamp(44px, 6.5vw, 80px); line-height: 1.02; letter-spacing: -0.02em; margin: 18px 0 22px; }
+    h1 em { font-style: italic; color: var(--accent-deep); }
+    .lede { font-size: 18px; color: var(--ink-2); max-width: 480px; }
+    .hero-cta { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
+    .hero-art { position: relative; }
+    .hero-art img { width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 16px; }
+    .hero-art .float { position: absolute; bottom: 24px; left: -24px; right: -24px; background: var(--bg); padding: 18px 22px; border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 14px 40px rgba(13,27,26,0.08); display: flex; gap: 14px; align-items: center; }
+    .hero-art .float .ic { width: 40px; height: 40px; background: var(--accent); border-radius: 50%; display: grid; place-items: center; font-weight: 700; }
+    .hero-art .float .t { font-size: 14px; }
+    .hero-art .float .t strong { display: block; font-size: 15px; }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; } .hero-art .float { left: 24px; right: 24px; } }
+
+    .section { padding: 96px 0; }
+    .section.alt { background: var(--paper); }
+    .section h2 { font-family: 'Fraunces', serif; font-weight: 500; font-size: clamp(34px, 4.6vw, 52px); letter-spacing: -0.02em; line-height: 1.08; margin: 12px 0 16px; }
+    .section h2 em { font-style: italic; color: var(--accent-deep); }
+    .section-head { max-width: 680px; margin-bottom: 56px; }
+    .section-head .lede { font-size: 17px; }
+
+    .services { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .service { background: var(--bg); border: 1px solid var(--line); padding: 32px; border-radius: 14px; transition: transform 240ms, border-color 240ms; }
+    .service:hover { transform: translateY(-3px); border-color: var(--accent); }
+    .service .ic { width: 44px; height: 44px; border-radius: 10px; background: var(--accent); display: grid; place-items: center; margin-bottom: 18px; font-size: 18px; font-weight: 700; }
+    .service h3 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 22px; margin: 0 0 8px; letter-spacing: -0.01em; }
+    .service p { color: var(--ink-2); font-size: 15px; margin: 0; }
+    .service .price { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-3); }
+    .service .price strong { color: var(--ink); font-weight: 600; }
+    @media (max-width: 1080px) { .services { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .services { grid-template-columns: 1fr; } }
+
+    .process { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; counter-reset: step; }
+    .step { background: var(--bg); border: 1px solid var(--line); padding: 28px; border-radius: 14px; position: relative; counter-increment: step; }
+    .step::before { content: counter(step, decimal-leading-zero); font-family: 'Fraunces', serif; font-size: 36px; color: var(--accent-deep); display: block; margin-bottom: 10px; }
+    .step h3 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 20px; margin: 0 0 6px; }
+    .step p { color: var(--ink-2); font-size: 14px; margin: 0; }
+    @media (max-width: 1080px) { .process { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .process { grid-template-columns: 1fr; } }
+
+    .team { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+    .doc { }
+    .doc img { width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 14px; }
+    .doc h3 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 22px; margin: 16px 0 4px; }
+    .doc .role { color: var(--accent-deep); font-size: 14px; font-weight: 500; }
+    .doc p { color: var(--ink-2); font-size: 14px; margin: 8px 0 0; }
+    @media (max-width: 1080px) { .team { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .team { grid-template-columns: 1fr; } }
+
+    .testimonials { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .quote { background: var(--bg); border: 1px solid var(--line); padding: 30px; border-radius: 14px; }
+    .quote .rating { color: var(--accent-deep); font-size: 14px; letter-spacing: 0.05em; margin-bottom: 12px; }
+    .quote p { font-family: 'Fraunces', serif; font-size: 18px; line-height: 1.5; margin: 0 0 18px; }
+    .quote .who { font-size: 13px; color: var(--ink-3); }
+    .quote .who strong { color: var(--ink); display: block; font-size: 14px; }
+    @media (max-width: 1080px) { .testimonials { grid-template-columns: 1fr; max-width: 540px; margin: 0 auto; } }
+
+    .insurance { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+    .insurance img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 14px; }
+    .insurance ul { list-style: none; padding: 0; margin: 18px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px; }
+    .insurance li { display: flex; gap: 10px; align-items: center; font-size: 15px; color: var(--ink-2); }
+    .insurance li::before { content: '✓'; color: var(--accent-deep); font-weight: 700; }
+    @media (max-width: 1080px) { .insurance { grid-template-columns: 1fr; } }
+
+    .visit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+    .visit-grid img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 14px; }
+    .visit-grid dl { display: grid; grid-template-columns: 110px 1fr; gap: 12px 18px; font-size: 16px; }
+    .visit-grid dt { color: var(--ink-3); font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .visit-grid dd { margin: 0; }
+    @media (max-width: 1080px) { .visit-grid { grid-template-columns: 1fr; } }
+
+    .booking { background: var(--ink); color: var(--bg); padding: 80px 0; }
+    .booking h2 { color: var(--bg); }
+    .booking h2 em { color: var(--accent); }
+    .booking p { color: rgba(255,255,255,0.7); max-width: 480px; }
+    .booking-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+    .book-form { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 28px; }
+    .book-form label { display: block; font-size: 12px; color: rgba(255,255,255,0.6); margin: 0 0 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .book-form input, .book-form select { width: 100%; height: 44px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.14); border-radius: 8px; color: var(--bg); padding: 0 14px; font-family: inherit; font-size: 14px; margin-bottom: 14px; }
+    .book-form .btn-primary { background: var(--accent); color: var(--ink); width: 100%; justify-content: center; }
+    .book-form .btn-primary:hover { background: #8eedc7; }
+    @media (max-width: 1080px) { .booking-grid { grid-template-columns: 1fr; } }
+
+    footer { padding: 48px 0 28px; border-top: 1px solid var(--line); }
+    .foot-grid { display: grid; grid-template-columns: 2fr repeat(3, 1fr); gap: 36px; }
+    .foot-col h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); margin: 0 0 16px; }
+    .foot-col a { display: block; color: var(--ink-2); font-size: 14px; padding: 5px 0; }
+    .foot-col a:hover { color: var(--ink); }
+    .foot-bot { margin-top: 36px; padding-top: 20px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; color: var(--ink-3); font-size: 13px; }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 8px; text-align: center; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#"><span class="brand-mark">k</span> Klinik</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#services">Services</a>
+        <a href="#process">New patients</a>
+        <a href="#team">Team</a>
+        <a href="#insurance">Insurance</a>
+        <a href="#visit">Visit</a>
+      </nav>
+      <a class="btn btn-primary" href="#booking">Book a visit</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>Capitol Hill, Seattle · Accepting new patients</span>
+            <h1>Dental care, <em>plainly explained</em>.</h1>
+            <p class="lede">Klinik is a small dental practice with one rule: explain everything before we touch your teeth. Same-day estimates. In-network with most insurers. Quiet rooms, real reclining chairs, and headphones if you want them.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#booking">Book a cleaning</a>
+              <a class="btn btn-ghost" href="#services">See services</a>
+            </div>
+          </div>
+          <div class="hero-art">
+            <img src="https://picsum.photos/seed/klinik-1/900/1100" width="900" height="1100" alt="A bright modern dental operatory with soft natural light and mint-colored accents." loading="eager" />
+            <div class="float">
+              <div class="ic">★</div>
+              <div class="t"><strong>4.9 / 5 average</strong>312 verified Google reviews</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="services">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Services</span>
+          <h2>Care for <em>every visit</em>, no upsells.</h2>
+          <p class="lede">We list a starting price for every service. If your treatment needs more, we walk through the estimate with you before we book it.</p>
+        </div>
+        <div class="services">
+          <div class="service"><div class="ic">✦</div><h3>Cleanings &amp; checkups</h3><p>Hygienist visit, exam, X-rays as needed. We don't routinely take X-rays at every visit.</p><div class="price">From <strong>$135</strong></div></div>
+          <div class="service"><div class="ic">◐</div><h3>Whitening</h3><p>Take-home trays with prescription-strength gel. The in-office option is rarely worth it.</p><div class="price">From <strong>$320</strong></div></div>
+          <div class="service"><div class="ic">▣</div><h3>Composite fillings</h3><p>Tooth-colored, mercury-free. Same-day for single-tooth fillings.</p><div class="price">From <strong>$210</strong></div></div>
+          <div class="service"><div class="ic">◇</div><h3>Crowns &amp; bridges</h3><p>Same-week digital crowns. No goop, no temporary that falls off at brunch.</p><div class="price">From <strong>$1,180</strong></div></div>
+          <div class="service"><div class="ic">⬡</div><h3>Invisalign &amp; clear aligners</h3><p>Full Invisalign or simpler clear-aligner cases for crowding. Free consult.</p><div class="price">From <strong>$3,400</strong></div></div>
+          <div class="service"><div class="ic">◎</div><h3>Implants</h3><p>Single-tooth implants and small-area restoration. We refer out for full-arch.</p><div class="price">From <strong>$3,900</strong></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="process">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>New patients</span>
+          <h2>Four steps, no <em>surprises</em>.</h2>
+        </div>
+        <div class="process">
+          <div class="step"><h3>Book in 90 seconds</h3><p>Pick a 60-minute new-patient slot online. We confirm the same day.</p></div>
+          <div class="step"><h3>Tell us about your teeth</h3><p>Short online intake. Bring records if you have them; we'll request the rest.</p></div>
+          <div class="step"><h3>First visit</h3><p>Exam, cleaning, and a written treatment plan with prices before anything is scheduled.</p></div>
+          <div class="step"><h3>Decide later</h3><p>Take the plan home, ask questions, get a second opinion. We don't sell from the chair.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="team">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Team</span>
+          <h2>The dentists <em>and</em> the hygienists.</h2>
+          <p class="lede">Three dentists and four hygienists. Most of us have been here since the practice opened in 2017.</p>
+        </div>
+        <div class="team">
+          <div class="doc">
+            <img src="https://picsum.photos/seed/klinik-d1/600/750" width="600" height="750" alt="Dentist Dr. Rena Park in a clinic gown." loading="lazy" />
+            <h3>Dr. Rena Park, DDS</h3>
+            <span class="role">Founder · General &amp; cosmetic</span>
+            <p>UW Dental School 2010. Quiet, patient, and very good with people who hate dentists.</p>
+          </div>
+          <div class="doc">
+            <img src="https://picsum.photos/seed/klinik-d2/600/750" width="600" height="750" alt="Dentist Dr. Theo Sands smiling at the camera." loading="lazy" />
+            <h3>Dr. Theo Sands, DDS</h3>
+            <span class="role">General &amp; pediatric</span>
+            <p>OHSU 2014. Father of two. The clinic's kid whisperer and the calmest person in any room.</p>
+          </div>
+          <div class="doc">
+            <img src="https://picsum.photos/seed/klinik-d3/600/750" width="600" height="750" alt="Dentist Dr. Anya Vance reviewing X-rays on a screen." loading="lazy" />
+            <h3>Dr. Anya Vance, DMD</h3>
+            <span class="role">Orthodontics</span>
+            <p>Tufts 2016. Invisalign Diamond+ provider. Treats adult cases more than teens these days.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Patients</span>
+          <h2>What people <em>say after</em>, not before.</h2>
+        </div>
+        <div class="testimonials">
+          <div class="quote">
+            <div class="rating">★★★★★</div>
+            <p>"I hadn't been to a dentist in seven years. They were honest about what I needed and what could wait. I left with a plan I could actually follow."</p>
+            <div class="who"><strong>Maddie L.</strong>Patient since 2023</div>
+          </div>
+          <div class="quote">
+            <div class="rating">★★★★★</div>
+            <p>"They quoted my crown at $1,180 and the final bill was $1,180. The estimate matched the invoice. That's a first for me with a dentist."</p>
+            <div class="who"><strong>Owen J.</strong>Patient since 2021</div>
+          </div>
+          <div class="quote">
+            <div class="rating">★★★★★</div>
+            <p>"My six-year-old asks when she gets to go back. Dr. Theo gave her a tour of the chair. We've been four times. Zero tears."</p>
+            <div class="who"><strong>Priya S.</strong>Patient since 2022</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="insurance">
+      <div class="wrap">
+        <div class="insurance">
+          <img src="https://picsum.photos/seed/klinik-ins/900/700" width="900" height="700" alt="A patient at the reception desk reviewing an insurance estimate." loading="lazy" />
+          <div>
+            <span class="eyebrow"><span class="dot"></span>Insurance &amp; payments</span>
+            <h2>In-network with <em>most</em> insurers.</h2>
+            <p class="lede">We file insurance directly on your behalf. If you don't have a plan, our membership saves an average of $480 a year.</p>
+            <ul>
+              <li>Delta Dental</li>
+              <li>Cigna</li>
+              <li>Premera Blue Cross</li>
+              <li>Aetna</li>
+              <li>Regence</li>
+              <li>UnitedHealthcare</li>
+              <li>MetLife</li>
+              <li>HSA / FSA accepted</li>
+            </ul>
+            <div style="margin-top:22px;"><a class="btn btn-ghost" href="#">See membership plan</a></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="visit">
+      <div class="wrap">
+        <div class="visit-grid">
+          <img src="https://picsum.photos/seed/klinik-visit/900/700" width="900" height="700" alt="The reception area of Klinik with plants, a wooden bench, and clean signage." loading="lazy" />
+          <div>
+            <span class="eyebrow"><span class="dot"></span>Visit</span>
+            <h2 style="margin-top:14px;">1488 19th Ave E, <em>Seattle</em></h2>
+            <dl>
+              <dt>Hours</dt><dd>Mon–Fri 7:30am — 5:30pm · Sat 8am — 1pm</dd>
+              <dt>Phone</dt><dd>(206) 555-0142</dd>
+              <dt>Email</dt><dd>hello@klinik.dental</dd>
+              <dt>Parking</dt><dd>Free in lot · 19th Ave entrance</dd>
+              <dt>Transit</dt><dd>Routes 8 &amp; 48 stop at the door</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="booking" id="booking">
+    <div class="wrap">
+      <div class="booking-grid">
+        <div>
+          <span class="eyebrow" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);border-color:rgba(255,255,255,0.18);"><span class="dot"></span>Book in 90 seconds</span>
+          <h2 style="margin-top:14px;">Pick a time. We <em>confirm today</em>.</h2>
+          <p>Tell us a little about you. We'll confirm your appointment by text within an hour of office hours.</p>
+        </div>
+        <form class="book-form" onsubmit="event.preventDefault(); alert('Thanks! We will call to confirm.');">
+          <label for="bk-name">Your name</label>
+          <input id="bk-name" name="name" type="text" placeholder="First and last" required />
+          <label for="bk-svc">What kind of visit</label>
+          <select id="bk-svc" name="service">
+            <option>New patient cleaning</option>
+            <option>Existing patient cleaning</option>
+            <option>Toothache or urgent</option>
+            <option>Whitening consult</option>
+            <option>Invisalign consult</option>
+          </select>
+          <label for="bk-phone">Phone</label>
+          <input id="bk-phone" name="phone" type="tel" placeholder="(206) 555-0123" required />
+          <button class="btn btn-primary" type="submit">Request a time →</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a class="brand" href="#" style="margin-bottom:14px;"><span class="brand-mark">k</span> Klinik</a>
+          <p style="color:var(--ink-2);font-size:14px;max-width:280px;">Dental care that's easy to understand and easy to afford. Capitol Hill, Seattle.</p>
+        </div>
+        <div class="foot-col"><h4>Care</h4><a href="#services">Services</a><a href="#process">New patients</a><a href="#insurance">Insurance</a></div>
+        <div class="foot-col"><h4>About</h4><a href="#team">Team</a><a href="#visit">Visit</a><a href="#">Reviews</a></div>
+        <div class="foot-col"><h4>More</h4><a href="#booking">Book</a><a href="#">Membership</a><a href="#">Contact</a></div>
+      </div>
+      <div class="foot-bot"><span>© 2026 Klinik Dental, PLLC</span><span>Privacy · HIPAA notice</span></div>
+    </div>
+  </footer>
+</body>
+</html>

@@ -41,9 +41,9 @@ function NotificationsInner() {
   return (
     <AppShell userEmail={user?.email ?? 'workspace'} onLogout={logout}>
       <PageTitle
-        eyebrow="הגדרות"
-        title="התראות"
-        subtitle="קבע מתי Ironflyer ידחוף לאימייל או לוובהוק חיצוני."
+        eyebrow="Settings"
+        title="Notifications"
+        subtitle="Choose when Ironflyer sends email or calls an external webhook."
       />
       <Tabs
         value={tab}
@@ -54,7 +54,7 @@ function NotificationsInner() {
           '& .MuiTabs-indicator': { bgcolor: tokens.color.accent.lime, height: 3, borderRadius: '4px' },
         }}
       >
-        <Tab value="email" icon={<Email fontSize="small" />} iconPosition="start" label="אימייל" />
+        <Tab value="email" icon={<Email fontSize="small" />} iconPosition="start" label="Email" />
         <Tab value="webhooks" icon={<Webhook fontSize="small" />} iconPosition="start" label="Webhooks" />
       </Tabs>
 
@@ -96,7 +96,7 @@ function EmailTab({ defaultEmail }: { defaultEmail: string }) {
     try {
       const next = await notificationsApi.setPreferences(rule);
       setRule(next);
-      setOk('ההעדפות נשמרו.');
+      setOk('Preferences saved.');
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
     } finally {
@@ -116,21 +116,21 @@ function EmailTab({ defaultEmail }: { defaultEmail: string }) {
       {ok && <Alert severity="success">{ok}</Alert>}
 
       <Surface sx={{ p: 3 }}>
-        <Typography variant="h6" sx={{ mb: 2, fontWeight: 800 }}>ערוצים</Typography>
+        <Typography variant="h6" sx={{ mb: 2, fontWeight: 800 }}>Channels</Typography>
         <Stack spacing={1.5}>
           <FormControlLabel
             control={<Switch checked={rule.channelEmail} onChange={(_, v) => update({ channelEmail: v })} />}
-            label="שלח התראות באימייל"
+            label="Send email notifications"
           />
           <FormControlLabel
             control={<Switch checked={rule.channelWebhook} onChange={(_, v) => update({ channelWebhook: v })} />}
-            label="הפעל גם Webhooks (מנוהל בלשונית השנייה)"
+            label="Enable webhooks too (managed in the second tab)"
           />
         </Stack>
       </Surface>
 
       <Surface sx={{ p: 3 }}>
-        <Typography variant="h6" sx={{ mb: 2, fontWeight: 800 }}>כתובת אימייל</Typography>
+        <Typography variant="h6" sx={{ mb: 2, fontWeight: 800 }}>Email address</Typography>
         <TextField
           fullWidth
           value={rule.email}
@@ -141,23 +141,23 @@ function EmailTab({ defaultEmail }: { defaultEmail: string }) {
       </Surface>
 
       <Surface sx={{ p: 3 }}>
-        <Typography variant="h6" sx={{ mb: 2, fontWeight: 800 }}>אירועים</Typography>
+        <Typography variant="h6" sx={{ mb: 2, fontWeight: 800 }}>Events</Typography>
         <Stack spacing={1.5}>
           <FormControlLabel
             control={<Checkbox checked={rule.onRunComplete} onChange={(_, v) => update({ onRunComplete: v })} />}
-            label="ריצה הסתיימה בהצלחה"
+            label="Run completed successfully"
           />
           <FormControlLabel
             control={<Checkbox checked={rule.onGateFailed} onChange={(_, v) => update({ onGateFailed: v })} />}
-            label="שער נכשל"
+            label="Gate failed"
           />
           <FormControlLabel
             control={<Checkbox checked={rule.onDeployDone} onChange={(_, v) => update({ onDeployDone: v })} />}
-            label="פריסה הסתיימה"
+            label="Deployment finished"
           />
           <FormControlLabel
             control={<Checkbox checked={rule.onBudgetWarning} onChange={(_, v) => update({ onBudgetWarning: v })} />}
-            label="התרעת תקציב"
+            label="Budget warning"
           />
         </Stack>
       </Surface>
@@ -169,9 +169,9 @@ function EmailTab({ defaultEmail }: { defaultEmail: string }) {
           onClick={() => void save()}
           sx={{ bgcolor: tokens.color.accent.lime, color: tokens.color.text.inverse, fontWeight: 800, '&:hover': { bgcolor: '#b9d930' } }}
         >
-          {saving ? 'שומר…' : 'שמור'}
+          {saving ? 'Saving...' : 'Save'}
         </Button>
-        <Button variant="outlined" startIcon={<Refresh />} onClick={() => void load()}>רענן</Button>
+        <Button variant="outlined" startIcon={<Refresh />} onClick={() => void load()}>Refresh</Button>
       </Stack>
     </Stack>
   );
@@ -206,7 +206,7 @@ function WebhooksTab() {
     setOk(null);
     try {
       await webhooksApi.test(id);
-      setOk('אירוע בדיקה נשלח. בדוק את ה-endpoint.');
+      setOk('Test event queued. Check the endpoint.');
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
     }
@@ -229,7 +229,7 @@ function WebhooksTab() {
 
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Typography variant="body2" color="textSecondary">
-          POST חתום ב-HMAC-SHA256 אל ה-URL שלך לכל אירוע מהפרויקטים שאתה הבעלים שלהם.
+          HMAC-SHA256 signed POST requests to your URL for events from projects you own.
         </Typography>
         <Button
           variant="contained"
@@ -237,7 +237,7 @@ function WebhooksTab() {
           onClick={() => setAddOpen(true)}
           sx={{ bgcolor: tokens.color.accent.lime, color: tokens.color.text.inverse, fontWeight: 800, '&:hover': { bgcolor: '#b9d930' } }}
         >
-          הוסף Webhook
+          Add webhook
         </Button>
       </Stack>
 
@@ -245,7 +245,7 @@ function WebhooksTab() {
         <Surface sx={{ p: 4, textAlign: 'center' }}><CircularProgress size={24} /></Surface>
       ) : items.length === 0 ? (
         <Surface sx={{ p: 4, textAlign: 'center' }}>
-          <Typography>עדיין אין Webhooks. לחץ "הוסף Webhook" כדי להתחיל.</Typography>
+          <Typography>No webhooks yet. Click "Add webhook" to start.</Typography>
         </Surface>
       ) : (
         <Stack spacing={2}>
@@ -267,19 +267,19 @@ function WebhooksTab() {
       />
 
       <Dialog open={Boolean(confirmId)} onClose={() => setConfirmId(null)}>
-        <DialogTitle>למחוק את ה-Webhook?</DialogTitle>
+        <DialogTitle>Delete this webhook?</DialogTitle>
         <DialogContent>
-          <Typography>הפעולה בלתי הפיכה. ה-endpoint יפסיק לקבל אירועים מיד.</Typography>
+          <Typography>This cannot be undone. The endpoint will stop receiving events immediately.</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setConfirmId(null)}>ביטול</Button>
+          <Button onClick={() => setConfirmId(null)}>Cancel</Button>
           <Button
             variant="contained"
             color="error"
             startIcon={<Delete />}
             onClick={() => confirmId && void onDelete(confirmId)}
           >
-            מחק
+            Delete
           </Button>
         </DialogActions>
       </Dialog>
@@ -298,18 +298,18 @@ function WebhookRow({ w, onTest, onDelete }: { w: WebhookSub; onTest: () => void
             {events.map((e) => (
               <Chip key={e} size="small" label={e} sx={{ borderColor: 'rgba(17,17,17,0.14)' }} variant="outlined" />
             ))}
-            {w.projectId && <Chip size="small" label={`פרויקט: ${w.projectId}`} variant="outlined" />}
-            {w.disabled && <Chip size="small" color="error" label="הושבת" />}
+            {w.projectId && <Chip size="small" label={`Project: ${w.projectId}`} variant="outlined" />}
+            {w.disabled && <Chip size="small" color="error" label="Disabled" />}
           </Stack>
           <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mt: 1 }}>
-            {w.lastSentAt ? `נשלח לאחרונה: ${new Date(w.lastSentAt).toLocaleString('he-IL')}` : 'טרם נשלח'} · כשלונות: {w.failureCount}
+            {w.lastSentAt ? `Last sent: ${new Date(w.lastSentAt).toLocaleString('en-US')}` : 'Never sent'} · Failures: {w.failureCount}
           </Typography>
         </Box>
         <Stack direction="row" spacing={1}>
-          <Tooltip title="שלח אירוע בדיקה">
+          <Tooltip title="Send test event">
             <IconButton onClick={onTest}><PlayArrow /></IconButton>
           </Tooltip>
-          <Tooltip title="מחק">
+          <Tooltip title="Delete">
             <IconButton onClick={onDelete}><Delete /></IconButton>
           </Tooltip>
         </Stack>
@@ -352,7 +352,7 @@ function AddWebhookDialog({ open, onClose, onCreated }: { open: boolean; onClose
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>הוסף Webhook</DialogTitle>
+      <DialogTitle>Add webhook</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
           {err && <Alert severity="error">{err}</Alert>}
@@ -365,19 +365,19 @@ function AddWebhookDialog({ open, onClose, onCreated }: { open: boolean; onClose
             required
           />
           <TextField
-            label="Secret (חתימה HMAC, אופציונלי)"
+            label="Secret (HMAC signature, optional)"
             value={secret}
             onChange={(e) => setSecret(e.target.value)}
             fullWidth
           />
           <TextField
-            label="מזהה פרויקט (ריק = כל הפרויקטים שלי)"
+            label="Project ID (empty = all my projects)"
             value={projectId}
             onChange={(e) => setProjectId(e.target.value)}
             fullWidth
           />
           <Box>
-            <Typography variant="body2" sx={{ mb: 0.5 }}>אירועים (ריק = הכל)</Typography>
+            <Typography variant="body2" sx={{ mb: 0.5 }}>Events (empty = all)</Typography>
             <Select
               multiple
               fullWidth
@@ -399,14 +399,14 @@ function AddWebhookDialog({ open, onClose, onCreated }: { open: boolean; onClose
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={() => { reset(); onClose(); }}>ביטול</Button>
+        <Button onClick={() => { reset(); onClose(); }}>Cancel</Button>
         <Button
           variant="contained"
           disabled={submitting || !url.trim()}
           onClick={() => void submit()}
           sx={{ bgcolor: tokens.color.accent.lime, color: tokens.color.text.inverse, fontWeight: 800, '&:hover': { bgcolor: '#b9d930' } }}
         >
-          {submitting ? 'שומר…' : 'צור'}
+          {submitting ? 'Saving...' : 'Create'}
         </Button>
       </DialogActions>
     </Dialog>

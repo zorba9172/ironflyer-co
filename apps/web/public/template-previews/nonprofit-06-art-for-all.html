@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Art For All — Every kid is an artist. Every school deserves an art room.</title>
+  <meta name="description" content="Art For All puts certified art teachers, real materials, and finished public exhibitions into underfunded K-8 schools. 184 schools served in 2025." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #ffffff;
+      --bg-2: #fdf3ff;
+      --paper: #ffffff;
+      --ink: #1a0822;
+      --ink-2: #4a3958;
+      --ink-3: #7a6c87;
+      --accent: #d946ef;
+      --accent-2: #b322ce;
+      --line: #efe1f3;
+      --radius-sm: 6px;
+      --radius-md: 14px;
+      --radius-lg: 22px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--ink); font-family: 'Inter', system-ui, sans-serif; font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 0 28px; }
+    .display { font-family: 'Archivo Black', system-ui, sans-serif; font-weight: 400; }
+
+    /* Nav */
+    .nav { position: sticky; top: 0; z-index: 50; background: rgba(255,255,255,0.95); backdrop-filter: blur(14px); border-bottom: 2px solid var(--ink); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 76px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-family: 'Archivo Black', sans-serif; font-size: 22px; letter-spacing: -0.02em; }
+    .brand-mark { width: 36px; height: 36px; border-radius: 10px; background: var(--accent); display: grid; place-items: center; color: #fff; font-family: 'Archivo Black', sans-serif; font-size: 16px; transform: rotate(-6deg); }
+    .nav-links { display: flex; gap: 30px; color: var(--ink-2); font-size: 14px; font-weight: 600; }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta { display: flex; gap: 10px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 22px; border-radius: 6px; font-weight: 700; font-size: 14px; border: 2px solid var(--ink); cursor: pointer; transition: transform 160ms, background 160ms; }
+    .btn-primary { background: var(--accent); color: #fff; border-color: var(--ink); box-shadow: 4px 4px 0 var(--ink); }
+    .btn-primary:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); }
+    .btn-ghost { background: #fff; color: var(--ink); box-shadow: 4px 4px 0 var(--ink); }
+    .btn-ghost:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); background: var(--bg-2); }
+    @media (max-width: 1080px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 80px 0 64px; position: relative; overflow: hidden; }
+    .hero-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: center; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; background: var(--ink); color: var(--accent); border-radius: 999px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 800; }
+    .eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+    h1 { font-family: 'Archivo Black', sans-serif; font-weight: 400; font-size: clamp(52px, 8vw, 108px); line-height: 0.92; letter-spacing: -0.04em; margin: 22px 0 22px; }
+    h1 .scribble { color: var(--accent); position: relative; display: inline-block; }
+    h1 .scribble::after { content: ''; position: absolute; left: -4px; right: -4px; bottom: 4px; height: 12px; background: var(--accent); opacity: 0.18; z-index: -1; transform: skewX(-8deg); }
+    .lede { font-size: 19px; color: var(--ink-2); max-width: 520px; }
+    .hero-cta { display: flex; gap: 14px; margin-top: 30px; flex-wrap: wrap; }
+    .collage { position: relative; }
+    .collage img { border-radius: var(--radius-md); border: 2px solid var(--ink); width: 100%; aspect-ratio: 1/1; object-fit: cover; }
+    .collage .img-a { transform: rotate(-3deg); box-shadow: 8px 8px 0 var(--ink); }
+    .collage .img-b { position: absolute; top: 24%; right: -8%; width: 56%; transform: rotate(6deg); box-shadow: 6px 6px 0 var(--accent); }
+    .collage .img-c { position: absolute; bottom: -8%; left: -6%; width: 46%; transform: rotate(-8deg); box-shadow: 6px 6px 0 var(--accent); }
+    .collage .tag { position: absolute; top: -16px; right: 20%; background: var(--accent); color: #fff; padding: 8px 14px; border-radius: 999px; transform: rotate(-6deg); font-weight: 800; font-size: 13px; border: 2px solid var(--ink); }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 64px; } .collage { padding-bottom: 32px; } }
+    @media (max-width: 720px) { .hero { padding: 56px 0 36px; } .hero-cta .btn { width: 100%; justify-content: center; } }
+
+    /* Sections */
+    .section { padding: 100px 0; }
+    .section.tint { background: var(--bg-2); border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); }
+    .section.dark { background: var(--ink); color: var(--bg-2); }
+    .section.dark h2 { color: #fff; }
+    .section-head { max-width: 760px; margin-bottom: 56px; }
+    h2 { font-family: 'Archivo Black', sans-serif; font-weight: 400; font-size: clamp(40px, 5.6vw, 72px); letter-spacing: -0.025em; line-height: 1.0; margin: 14px 0 16px; }
+    h2 .scribble { color: var(--accent); position: relative; display: inline-block; }
+    .section.dark .lede { color: rgba(253,243,255,0.78); }
+
+    /* Stats */
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+    .stat { padding: 36px 28px; background: var(--paper); border: 2px solid var(--ink); border-radius: var(--radius-md); box-shadow: 6px 6px 0 var(--accent); }
+    .stat .val { font-family: 'Archivo Black', sans-serif; font-size: clamp(40px, 5vw, 60px); line-height: 1; color: var(--ink); letter-spacing: -0.03em; }
+    .stat .label { color: var(--ink-2); font-size: 14px; margin-top: 10px; font-weight: 500; }
+    @media (max-width: 1080px) { .stats { grid-template-columns: 1fr 1fr; } }
+
+    /* Programs */
+    .programs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+    .program { background: var(--paper); border: 2px solid var(--ink); border-radius: var(--radius-md); overflow: hidden; box-shadow: 6px 6px 0 var(--ink); display: flex; flex-direction: column; transition: transform 200ms; }
+    .program:hover { transform: translate(-3px, -3px); box-shadow: 9px 9px 0 var(--ink); }
+    .program img { width: 100%; aspect-ratio: 5/4; object-fit: cover; border-bottom: 2px solid var(--ink); }
+    .program-body { padding: 24px; display: flex; flex-direction: column; flex: 1; }
+    .program h3 { font-family: 'Archivo Black', sans-serif; font-size: 24px; font-weight: 400; margin: 0 0 8px; letter-spacing: -0.01em; }
+    .program p { color: var(--ink-2); font-size: 15px; margin: 0 0 14px; flex: 1; }
+    .program .tag { background: var(--accent); color: #fff; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; align-self: flex-start; border: 2px solid var(--ink); }
+    @media (max-width: 1080px) { .programs { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .programs { grid-template-columns: 1fr; } }
+
+    /* Donate band */
+    .donate-band { background: var(--accent); color: #fff; border-radius: var(--radius-lg); border: 2px solid var(--ink); box-shadow: 10px 10px 0 var(--ink); padding: 56px; display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: center; }
+    .donate-band h2 { color: #fff; }
+    .donate-band p { color: rgba(255,255,255,0.92); }
+    .tiers { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 16px; }
+    .tier { background: rgba(255,255,255,0.1); border: 2px solid #fff; border-radius: 10px; padding: 18px; cursor: pointer; text-align: left; transition: all 160ms; color: #fff; }
+    .tier:hover, .tier.active { background: #fff; color: var(--ink); }
+    .tier .amt { font-family: 'Archivo Black', sans-serif; font-size: 28px; line-height: 1; }
+    .tier .what { font-size: 13px; opacity: 0.9; margin-top: 6px; }
+    .donate-band .btn { background: var(--ink); color: #fff; border-color: #fff; box-shadow: 4px 4px 0 #fff; height: 50px; padding: 0 26px; margin-top: 20px; }
+    .donate-band .btn:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 #fff; }
+    @media (max-width: 1080px) { .donate-band { grid-template-columns: 1fr; padding: 32px; } }
+
+    /* Story / Gallery */
+    .gallery { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .gallery .cell { position: relative; aspect-ratio: 1/1; border: 2px solid var(--ink); border-radius: var(--radius-md); overflow: hidden; }
+    .gallery .cell.tall { grid-row: span 2; aspect-ratio: 1/2; }
+    .gallery .cell img { width: 100%; height: 100%; object-fit: cover; }
+    .gallery .cell .credit { position: absolute; left: 12px; bottom: 12px; right: 12px; color: #fff; font-size: 12px; background: rgba(26,8,34,0.78); padding: 6px 10px; border-radius: 6px; }
+    @media (max-width: 1080px) { .gallery { grid-template-columns: 1fr 1fr; } .gallery .cell.tall { grid-row: auto; aspect-ratio: 1/1; } }
+
+    /* Quote */
+    .quote-band { padding: 100px 0; background: var(--bg-2); border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); }
+    .quote-card { max-width: 920px; margin: 0 auto; text-align: center; }
+    .quote-card blockquote { font-family: 'Archivo Black', sans-serif; font-weight: 400; font-size: clamp(28px, 3.6vw, 44px); line-height: 1.08; letter-spacing: -0.02em; margin: 0 0 20px; color: var(--ink); }
+    .quote-card cite { font-style: normal; color: var(--ink-2); font-size: 15px; }
+    .quote-card cite strong { color: var(--ink); display: block; font-weight: 700; margin-bottom: 2px; }
+
+    /* Transparency */
+    .trans { background: var(--paper); border: 2px solid var(--ink); border-radius: var(--radius-lg); padding: 40px; box-shadow: 8px 8px 0 var(--accent); display: grid; grid-template-columns: 1.2fr 1fr; gap: 48px; align-items: center; }
+    .stack-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+    .stack-row .item { padding: 18px; border: 2px solid var(--ink); border-radius: 10px; background: var(--bg-2); }
+    .stack-row .item strong { display: block; font-family: 'Archivo Black', sans-serif; font-size: 28px; color: var(--accent); line-height: 1; margin-bottom: 6px; }
+    .stack-row .item span { font-size: 13px; color: var(--ink-2); }
+    @media (max-width: 1080px) { .trans { grid-template-columns: 1fr; padding: 28px; } }
+
+    /* Team */
+    .team { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
+    .person { transform: rotate(-1deg); }
+    .person:nth-child(2n) { transform: rotate(1.5deg); }
+    .person img { aspect-ratio: 1/1; object-fit: cover; border: 2px solid var(--ink); border-radius: var(--radius-md); margin-bottom: 12px; box-shadow: 5px 5px 0 var(--accent); }
+    .person h4 { margin: 0 0 2px; font-size: 16px; font-weight: 700; }
+    .person p { margin: 0; color: var(--ink-2); font-size: 13px; }
+    @media (max-width: 1080px) { .team { grid-template-columns: repeat(2, 1fr); } }
+
+    /* Footer */
+    footer { background: var(--ink); color: #d2c4d8; padding: 64px 0 28px; border-top: 2px solid var(--ink); }
+    .foot-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1.2fr; gap: 40px; }
+    .foot-col h4 { color: var(--accent); font-family: 'Archivo Black', sans-serif; font-weight: 400; font-size: 16px; margin: 0 0 14px; letter-spacing: -0.01em; }
+    .foot-col a { display: block; color: #d2c4d8; font-size: 14px; padding: 6px 0; }
+    .foot-col a:hover { color: #fff; }
+    .foot-bot { margin-top: 48px; padding-top: 24px; border-top: 1px solid rgba(253,243,255,0.12); display: flex; justify-content: space-between; font-size: 13px; }
+    @media (max-width: 1080px) { .foot-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr; } .foot-bot { flex-direction: column; gap: 10px; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#"><span class="brand-mark">AfA</span>Art For All</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#impact">Impact</a>
+        <a href="#programs">Programs</a>
+        <a href="#gallery">Student work</a>
+        <a href="#transparency">Where it goes</a>
+        <a href="#team">Team</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-ghost" href="#help">Volunteer</a>
+        <a class="btn btn-primary" href="#donate">Donate</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>Now in 184 schools across 9 cities</span>
+            <h1>Every kid is an artist. <span class="scribble">Every school</span> deserves an art room.</h1>
+            <p class="lede">Art For All puts certified art teachers, real materials, and finished public exhibitions into K-8 schools that lost their art rooms to budget cuts. We pay teacher salaries, ship supplies, and rent the gallery for the year-end show.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#donate">Fund a classroom →</a>
+              <a class="btn btn-ghost" href="#programs">See the programs</a>
+            </div>
+          </div>
+          <div class="collage">
+            <img class="img-a" src="https://picsum.photos/seed/art-for-all-1/800/800" width="800" height="800" alt="A first-grader painting a vibrant self-portrait with thick gouache strokes at a school easel." loading="eager" />
+            <img class="img-b" src="https://picsum.photos/seed/art-for-all-2/600/600" width="600" height="600" alt="A close-up of a child's hand working with colorful clay on a wooden art-room table." loading="lazy" />
+            <img class="img-c" src="https://picsum.photos/seed/art-for-all-3/600/600" width="600" height="600" alt="A wall of mounted children's prints at a year-end Art For All gallery show." loading="lazy" />
+            <div class="tag">Spring show open!</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section tint" id="impact">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>2025 in numbers</span>
+          <h2>Real <span class="scribble">art rooms.</span> Real materials. Real shows.</h2>
+          <p class="lede">A laminator and a clipart printout is not an art education. We measure four things: classrooms staffed, supplies delivered, exhibitions hung, and kids served.</p>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="val">184</div><div class="label">schools with a funded art room in 2025</div></div>
+          <div class="stat"><div class="val">62,400</div><div class="label">K-8 students taught by an Art For All teacher</div></div>
+          <div class="stat"><div class="val">98</div><div class="label">year-end public exhibitions hung in 2025</div></div>
+          <div class="stat"><div class="val">$1.4M</div><div class="label">of art supplies shipped directly to classrooms</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="programs">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>What we do</span>
+          <h2>One <span class="scribble">model</span>, three programs.</h2>
+        </div>
+        <div class="programs">
+          <article class="program">
+            <img src="https://picsum.photos/seed/art-for-all-4/800/640" width="800" height="640" alt="A bright elementary art classroom with student desks, easels, and a teacher's workstation." loading="lazy" />
+            <div class="program-body">
+              <span class="tag">Core</span>
+              <h3 style="margin-top: 12px;">Funded Art Rooms</h3>
+              <p>We pay a certified art teacher's salary, ship a full year of supplies, and equip the room. The teacher reports to the school principal but we cover the cost.</p>
+              <p style="margin: 0; color: var(--ink); font-weight: 700; font-size: 14px;">$48,400 / school / year</p>
+            </div>
+          </article>
+          <article class="program">
+            <img src="https://picsum.photos/seed/art-for-all-5/800/640" width="800" height="640" alt="A small group of children working on a community mural with a teaching artist mentor." loading="lazy" />
+            <div class="program-body">
+              <span class="tag">After school</span>
+              <h3 style="margin-top: 12px;">Teaching Artist Residencies</h3>
+              <p>Local working artists run 12-week after-school residencies. Each cohort produces a publicly installed mural, sculpture, or zine. Kids get paid as junior collaborators.</p>
+              <p style="margin: 0; color: var(--ink); font-weight: 700; font-size: 14px;">$12,800 / residency</p>
+            </div>
+          </article>
+          <article class="program">
+            <img src="https://picsum.photos/seed/art-for-all-6/800/640" width="800" height="640" alt="A gallery opening for student artwork with parents, kids, and framed prints on the walls." loading="lazy" />
+            <div class="program-body">
+              <span class="tag">Showcase</span>
+              <h3 style="margin-top: 12px;">Spring Show</h3>
+              <p>Every Art For All school gets a year-end public exhibition. We rent the gallery, frame the work, cater the opening, and bus the families. Real artists, real openings.</p>
+              <p style="margin: 0; color: var(--ink); font-weight: 700; font-size: 14px;">$3,200 / show</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="donate">
+      <div class="wrap">
+        <div class="donate-band">
+          <div>
+            <span class="eyebrow" style="background: var(--ink); color: var(--accent);"><span class="dot"></span>Help fund the room</span>
+            <h2>Buy paint. <span class="scribble" style="color: #fff;">Pay the teacher.</span> Hang the show.</h2>
+            <p style="font-size: 17px;">Every gift is restricted to one of three programs. No general fund, no operational vortex. Pick what your dollar buys and we'll send the receipt.</p>
+          </div>
+          <div>
+            <div class="tiers" role="group" aria-label="Donation amounts">
+              <button type="button" class="tier"><div class="amt">$25</div><div class="what">A full set of brushes + tempera for one child</div></button>
+              <button type="button" class="tier active"><div class="amt">$100</div><div class="what">A week of supplies for an entire art class</div></button>
+              <button type="button" class="tier"><div class="amt">$500</div><div class="what">A framed wall of student work at the Spring Show</div></button>
+              <button type="button" class="tier"><div class="amt">$1,000</div><div class="what">One full week of a teaching artist's residency</div></button>
+            </div>
+            <a class="btn" href="#">Donate now →</a>
+          </div>
+        </div>
+
+        <div id="help" style="margin-top: 72px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;">
+          <div style="background: #fff; border: 2px solid var(--ink); border-radius: var(--radius-md); padding: 26px; box-shadow: 5px 5px 0 var(--ink);">
+            <strong class="display" style="font-size: 22px; display: block; margin-bottom: 6px;">Adopt a school</strong>
+            <p style="color: var(--ink-2); font-size: 14.5px;">$48,400 sponsors a school's whole year — art teacher, supplies, and the year-end show. Naming rights and a wall plaque included.</p>
+            <a href="#" style="color: var(--accent); font-weight: 700; font-size: 14px;">Adopt a school →</a>
+          </div>
+          <div style="background: #fff; border: 2px solid var(--ink); border-radius: var(--radius-md); padding: 26px; box-shadow: 5px 5px 0 var(--ink);">
+            <strong class="display" style="font-size: 22px; display: block; margin-bottom: 6px;">Teach a residency</strong>
+            <p style="color: var(--ink-2); font-size: 14.5px;">Working artists with 5+ years of practice can apply to lead a 12-week residency. Paid honorarium, full materials budget, classroom support.</p>
+            <a href="#" style="color: var(--accent); font-weight: 700; font-size: 14px;">Apply to teach →</a>
+          </div>
+          <div style="background: #fff; border: 2px solid var(--ink); border-radius: var(--radius-md); padding: 26px; box-shadow: 5px 5px 0 var(--ink);">
+            <strong class="display" style="font-size: 22px; display: block; margin-bottom: 6px;">Buy the show</strong>
+            <p style="color: var(--ink-2); font-size: 14.5px;">Spring Show works are for sale. 100% goes back to the school's art room. You get a real piece of student art and they get next year's clay.</p>
+            <a href="#" style="color: var(--accent); font-weight: 700; font-size: 14px;">Browse the shop →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section tint" id="gallery">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Student work</span>
+          <h2>From the <span class="scribble">2025</span> Spring Show.</h2>
+          <p class="lede">A small selection from the 98 exhibitions we hung this year. All artists are 6–13. Most pieces are still on sale.</p>
+        </div>
+        <div class="gallery">
+          <div class="cell tall"><img src="https://picsum.photos/seed/art-for-all-7/600/1200" width="600" height="1200" alt="A vivid portrait painted by a fifth-grade student using broad gouache brushstrokes." loading="lazy" /><div class="credit">"Lola at Recess" — Marisol, age 11 · Boyle Heights, LA</div></div>
+          <div class="cell"><img src="https://picsum.photos/seed/art-for-all-8/600/600" width="600" height="600" alt="A cut-paper collage by a third-grade student with a rainbow color palette." loading="lazy" /><div class="credit">"My Block" — Theo, age 8 · West Oakland</div></div>
+          <div class="cell"><img src="https://picsum.photos/seed/art-for-all-9/600/600" width="600" height="600" alt="A ceramic hand-built bowl with painted geometric pattern by a seventh-grade student." loading="lazy" /><div class="credit">"Bowl 14" — Amara, age 13 · East Baltimore</div></div>
+          <div class="cell"><img src="https://picsum.photos/seed/art-for-all-10/600/600" width="600" height="600" alt="A linocut print of a city skyline made by a sixth-grade student." loading="lazy" /><div class="credit">"View from the Bus" — Jameel, age 12 · Bronx</div></div>
+          <div class="cell"><img src="https://picsum.photos/seed/art-for-all-11/600/600" width="600" height="600" alt="A textile-and-yarn sculpture by a second-grade student." loading="lazy" /><div class="credit">"Brave Sister" — Cleo, age 7 · South Philly</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="quote-band">
+      <div class="wrap">
+        <div class="quote-card">
+          <blockquote>“My principal told me art was a luxury. Then Art For All paid my salary, sent me clay, and rented the gallery. I'm a luxury that doesn't cost the school a dollar.”</blockquote>
+          <cite><strong>Ms. Beatriz Cordero</strong>Art teacher, P.S. 218 — Bronx, NY · Art For All–funded since 2022</cite>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="transparency">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>The receipts</span>
+          <h2>Where the <span class="scribble">money</span> goes.</h2>
+          <p class="lede">Audited annually by Mendelsohn &amp; Park. Full 990 and per-school spend breakdowns are public.</p>
+        </div>
+        <div class="trans">
+          <div>
+            <h3 class="display" style="font-size: 32px; margin: 0 0 8px;">Programs: 88%</h3>
+            <p style="color: var(--ink-2); margin-bottom: 0;">Teacher salaries (52%), supplies (24%), residencies (8%), and Spring Shows (4%). Overhead is 8% — admin and fundraising combined.</p>
+            <div class="stack-row">
+              <div class="item"><strong>52%</strong><span>Certified art teacher salaries</span></div>
+              <div class="item"><strong>24%</strong><span>Art supplies, shipped to classrooms</span></div>
+              <div class="item"><strong>8%</strong><span>Teaching artist residencies</span></div>
+              <div class="item"><strong>4%</strong><span>Year-end Spring Shows</span></div>
+            </div>
+          </div>
+          <div>
+            <h3 class="display" style="font-size: 22px; margin: 0 0 12px;">Read more.</h3>
+            <p style="color: var(--ink-2); margin-bottom: 18px;">Annual reports, Form 990s, and per-school grant pages — all public, all without an email gate.</p>
+            <a class="btn btn-ghost" href="#" style="margin-right: 10px;">2025 annual report</a>
+            <a class="btn btn-ghost" href="#">Form 990 (2024)</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section tint" id="team">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Our <span class="scribble">team.</span></h2>
+          <p class="lede">A small staff supporting 184 art teachers and a much larger network of teaching artists. Bios and salaries are in the annual report.</p>
+        </div>
+        <div class="team">
+          <div class="person"><img src="https://picsum.photos/seed/art-for-all-12/500/500" width="500" height="500" alt="Portrait of Art For All executive director." loading="lazy" /><h4>Wren Calloway</h4><p>Executive Director</p></div>
+          <div class="person"><img src="https://picsum.photos/seed/art-for-all-13/500/500" width="500" height="500" alt="Portrait of Art For All director of programs." loading="lazy" /><h4>Selma Reyes</h4><p>Director of Programs</p></div>
+          <div class="person"><img src="https://picsum.photos/seed/art-for-all-14/500/500" width="500" height="500" alt="Portrait of Art For All head of teacher recruiting." loading="lazy" /><h4>Ravi Patel</h4><p>Head of Recruiting</p></div>
+          <div class="person"><img src="https://picsum.photos/seed/art-for-all-15/500/500" width="500" height="500" alt="Portrait of Art For All chief financial officer." loading="lazy" /><h4>June Wallace</h4><p>Chief Financial Officer</p></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a class="brand" href="#" style="color: #fff; margin-bottom: 14px;"><span class="brand-mark">AfA</span>Art For All</a>
+          <p style="font-size: 14px; max-width: 320px;">A K-8 arts education nonprofit funding art teachers, supplies, and public exhibitions. 501(c)(3) EIN 47-1290418. Founded 2009, headquartered in Brooklyn.</p>
+          <a class="btn btn-primary" href="#donate" style="margin-top: 16px;">Donate now</a>
+        </div>
+        <div class="foot-col">
+          <h4>Programs</h4>
+          <a href="#">Funded Art Rooms</a>
+          <a href="#">Teaching Artist Residencies</a>
+          <a href="#">Spring Show</a>
+          <a href="#">Supply Drive</a>
+        </div>
+        <div class="foot-col">
+          <h4>Get involved</h4>
+          <a href="#">Adopt a school</a>
+          <a href="#">Teach a residency</a>
+          <a href="#">Buy student work</a>
+          <a href="#">Monthly giving</a>
+        </div>
+        <div class="foot-col">
+          <h4>Contact</h4>
+          <a href="mailto:hello@artforall.org">hello@artforall.org</a>
+          <a href="tel:+17185550129">+1 (718) 555-0129</a>
+          <a href="#">68 Jay Street, Studio 410, Brooklyn, NY 11201</a>
+          <a href="#">Newsletter</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Art For All · 501(c)(3) EIN 47-1290418</span>
+        <span>Audited annually by Mendelsohn &amp; Park</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.querySelectorAll('.tier').forEach(t => t.addEventListener('click', () => {
+      document.querySelectorAll('.tier').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+    }));
+  </script>
+</body>
+</html>

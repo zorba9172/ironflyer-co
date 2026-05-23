@@ -26,11 +26,11 @@ import {
 type TabKey = 'account' | 'billing' | 'integrations' | 'vault' | 'danger';
 
 const tabs: { value: TabKey; label: string; icon: React.ReactElement }[] = [
-  { value: 'account',      label: 'חשבון',        icon: <AccountCircle fontSize="small" /> },
-  { value: 'billing',      label: 'חיוב',          icon: <AccountBalanceWallet fontSize="small" /> },
-  { value: 'integrations', label: 'אינטגרציות',   icon: <Hub fontSize="small" /> },
-  { value: 'vault',        label: 'כספת',          icon: <Shield fontSize="small" /> },
-  { value: 'danger',       label: 'אזור מסוכן',    icon: <ErrorOutline fontSize="small" /> },
+  { value: 'account',      label: 'Account',      icon: <AccountCircle fontSize="small" /> },
+  { value: 'billing',      label: 'Billing',      icon: <AccountBalanceWallet fontSize="small" /> },
+  { value: 'integrations', label: 'Integrations', icon: <Hub fontSize="small" /> },
+  { value: 'vault',        label: 'Vault',        icon: <Shield fontSize="small" /> },
+  { value: 'danger',       label: 'Danger zone',  icon: <ErrorOutline fontSize="small" /> },
 ];
 
 export default function SettingsPage() {
@@ -88,9 +88,9 @@ function SettingsInner() {
       onLogout={logout}
     >
       <PageTitle
-        eyebrow="הגדרות"
-        title="ניהול הסביבה"
-        subtitle="חשבון, תשלומים, אינטגרציות, כספת תקציבית ופעולות מסוכנות."
+        eyebrow="Settings"
+        title="Workspace controls"
+        subtitle="Account, billing, integrations, budget vault, and destructive actions."
       />
       <Box sx={{ mb: 1.5 }}>
         <BillingStatusBanner compact />
@@ -98,7 +98,7 @@ function SettingsInner() {
 
       {error && (
         <Box sx={{ mb: 1.6 }}>
-          <ErrorBox title="שגיאת טעינה" description={error} onRetry={() => void refresh()} />
+          <ErrorBox title="Loading error" description={error} onRetry={() => void refresh()} />
         </Box>
       )}
 
@@ -168,9 +168,9 @@ function AccountTab({ user, onLogout, loading }: { user: ReturnType<typeof useAu
   return (
     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.1fr 0.9fr' }, gap: 1.6 }}>
       <Surface sx={{ p: 2.4 }}>
-        <Typography variant="h6" sx={{ fontWeight: 900 }}>פרופיל</Typography>
+        <Typography variant="h6" sx={{ fontWeight: 900 }}>Profile</Typography>
         <Typography variant="body2" sx={{ color: '#686158', mt: 0.4 }}>
-          מידע אישי שמופיע בלוח הבקרה. השם וה־avatar נשמרים מקומית כברירת מחדל; אינטגרציה לשרת תגיע בהמשך.
+          Personal details shown in the dashboard. Display name and avatar are stored locally for now; server sync will come later.
         </Typography>
         <Stack spacing={1.6} sx={{ mt: 2.4 }}>
           <Stack direction="row" spacing={1.4} alignItems="center">
@@ -190,30 +190,30 @@ function AccountTab({ user, onLogout, loading }: { user: ReturnType<typeof useAu
           ) : (
             <>
               <TextField
-                label="שם תצוגה"
+                label="Display name"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 InputLabelProps={{ shrink: true }}
               />
               <TextField
-                label="דוא״ל"
+                label="Email"
                 value={user?.email ?? ''}
                 InputLabelProps={{ shrink: true }}
                 disabled
-                helperText="הדוא״ל מוגדר בעת יצירת החשבון ולא ניתן לעריכה כאן."
+                helperText="Email is set when the account is created and cannot be edited here."
               />
               <TextField
-                label="קישור ל־avatar"
+                label="Avatar URL"
                 placeholder="https://..."
                 value={avatarUrl}
                 onChange={(e) => setAvatarUrl(e.target.value)}
                 InputLabelProps={{ shrink: true }}
               />
               <Stack direction="row" spacing={1} sx={{ mt: 0.6 }}>
-                <Button variant="contained" startIcon={<Save />} onClick={save}>שמור</Button>
+                <Button variant="contained" startIcon={<Save />} onClick={save}>Save</Button>
                 {savedAt && (
                   <Typography variant="caption" sx={{ alignSelf: 'center', color: '#6f7e00', fontWeight: 800 }}>
-                    נשמר ב־{new Date(savedAt).toLocaleTimeString('he-IL')}
+                    Saved at {new Date(savedAt).toLocaleTimeString('en-US')}
                   </Typography>
                 )}
               </Stack>
@@ -223,27 +223,27 @@ function AccountTab({ user, onLogout, loading }: { user: ReturnType<typeof useAu
       </Surface>
 
       <Surface sx={{ p: 2.4 }}>
-        <Typography variant="h6" sx={{ fontWeight: 900 }}>סשן ואבטחה</Typography>
+        <Typography variant="h6" sx={{ fontWeight: 900 }}>Session and security</Typography>
         <Typography variant="body2" sx={{ color: '#686158', mt: 0.4 }}>
-          ניתוק יוצר ממך מהדפדפן הנוכחי. כדי להתחבר ממכשיר אחר השתמש באותו דוא״ל וסיסמה.
+          Signing out removes this browser session. Use the same email and password to sign in on another device.
         </Typography>
         <Stack spacing={1} sx={{ mt: 2.4 }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={infoRowSx}>
             <Box>
-              <Typography variant="subtitle2" sx={{ fontWeight: 900 }}>מצב התחברות</Typography>
-              <Typography variant="caption" sx={{ color: '#86807a' }}>JWT פעיל בדפדפן הזה.</Typography>
+              <Typography variant="subtitle2" sx={{ fontWeight: 900 }}>Sign-in status</Typography>
+              <Typography variant="caption" sx={{ color: '#86807a' }}>JWT active in this browser.</Typography>
             </Box>
-            <StatusPill kind="passed" label="פעיל" />
+            <StatusPill kind="passed" label="Active" />
           </Stack>
           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={infoRowSx}>
             <Box>
-              <Typography variant="subtitle2" sx={{ fontWeight: 900 }}>אימות דו־שלבי</Typography>
-              <Typography variant="caption" sx={{ color: '#86807a' }}>זמין לאחר חיבור חשבון Single-Sign-On.</Typography>
+              <Typography variant="subtitle2" sx={{ fontWeight: 900 }}>Two-factor authentication</Typography>
+              <Typography variant="caption" sx={{ color: '#86807a' }}>Available after Single Sign-On is connected.</Typography>
             </Box>
-            <StatusPill kind="idle" label="בקרוב" />
+            <StatusPill kind="idle" label="Soon" />
           </Stack>
           <Button onClick={onLogout} variant="outlined" startIcon={<Logout />} sx={{ mt: 1, alignSelf: 'flex-start' }}>
-            התנתק מסביבה זו
+            Sign out of this workspace
           </Button>
         </Stack>
       </Surface>
@@ -275,24 +275,24 @@ function BillingTab({
       <Surface sx={{ p: 2.4 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
           <Box>
-            <Typography variant="overline" sx={{ color: '#9fb500' }}>חבילה נוכחית</Typography>
+            <Typography variant="overline" sx={{ color: '#9fb500' }}>Current plan</Typography>
             <Typography variant="h5" sx={{ fontWeight: 900, mt: 0.4 }}>
               {currentPlan?.name ?? (tier === 'free' ? 'Free workspace' : tier)}
             </Typography>
             <Typography variant="body2" sx={{ color: '#686158', mt: 0.4 }}>
               {currentPlan?.monthlyPrice
-                ? `${currentPlan.monthlyPrice} לחודש — חידוש אוטומטי`
-                : 'חבילה חינמית עם תקרת עלות קשיחה.'}
+                ? `${currentPlan.monthlyPrice} per month — renews automatically`
+                : 'Free plan with a hard cost cap.'}
             </Typography>
           </Box>
-          <Tooltip title="רענן">
+          <Tooltip title="Refresh">
             <IconButton size="small" onClick={onRefresh}><Refresh fontSize="small" /></IconButton>
           </Tooltip>
         </Stack>
 
         <Box sx={{ mt: 2.4 }}>
           <Stack direction="row" justifyContent="space-between">
-            <Typography variant="caption" sx={{ color: '#686158' }}>הוצאה בחודש זה</Typography>
+            <Typography variant="caption" sx={{ color: '#686158' }}>Spend this month</Typography>
             <Typography variant="caption" sx={{ fontFamily: tokens.font.mono }}>${spent.toFixed(2)} / ${cap.toFixed(2)}</Typography>
           </Stack>
           <LinearProgress
@@ -309,7 +309,7 @@ function BillingTab({
         </Box>
 
         <Box sx={{ mt: 2.4 }}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 900 }}>שימוש ב־30 הימים האחרונים</Typography>
+          <Typography variant="subtitle2" sx={{ fontWeight: 900 }}>Usage over the last 30 days</Typography>
           {loading ? (
             <Box sx={{ mt: 1 }}><SkeletonBlock height={96} radius={8} /></Box>
           ) : (
@@ -317,7 +317,7 @@ function BillingTab({
               <UsageSpark
                 points={points}
                 height={110}
-                emptyHint="עוד לא בוצעו חיובים מאומתים החודש"
+                emptyHint="No verified charges this month"
               />
             </Box>
           )}
@@ -326,16 +326,16 @@ function BillingTab({
         <Divider sx={{ my: 2.2 }} />
         {stripeEnabled ? (
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
-            <UpgradeButton tier="pro" label="שדרג ל־Pro" size="small" />
-            <UpgradeButton tier="team" label="פתח חבילת Team" size="small" variant="outlined" />
-            <UpgradeButton tier="enterprise" label="צור קשר ל־Enterprise" size="small" variant="outlined" />
+            <UpgradeButton tier="pro" label="Upgrade to Pro" size="small" />
+            <UpgradeButton tier="team" label="Open Team plan" size="small" variant="outlined" />
+            <UpgradeButton tier="enterprise" label="Contact Enterprise" size="small" variant="outlined" />
           </Stack>
         ) : (
           <Box sx={{ p: 1.6, borderRadius: '8px', bgcolor: 'rgba(255,196,0,0.16)', border: '1px solid rgba(122,91,0,0.26)' }}>
             <Stack direction="row" spacing={1} alignItems="center">
               <Warning fontSize="small" sx={{ color: '#7a5b00' }} />
               <Typography variant="body2" sx={{ color: '#5b4500', fontWeight: 800 }}>
-                Stripe מנוטרל בסביבה זו — שדרוג ידני יבוצע על ידי הצוות.
+                Stripe is disabled in this environment. The team will handle upgrades manually.
               </Typography>
             </Stack>
           </Box>
@@ -343,7 +343,7 @@ function BillingTab({
       </Surface>
 
       <Surface sx={{ p: 2.4 }}>
-        <Typography variant="h6" sx={{ fontWeight: 900 }}>חבילות אפשריות</Typography>
+        <Typography variant="h6" sx={{ fontWeight: 900 }}>Available plans</Typography>
         <Stack spacing={1} sx={{ mt: 1.8 }}>
           {(plans.length ? plans : fallbackPlans).map((plan) => (
             <PlanRow key={plan.tier} plan={plan} active={plan.tier === tier} />
@@ -351,7 +351,7 @@ function BillingTab({
         </Stack>
         <Divider sx={{ my: 2 }} />
         <Typography variant="caption" sx={{ color: '#686158' }}>
-          חיובים מתבצעים על בסיס שימוש בפועל בתוך תקרת החבילה. כל הרצה משויכת לחשבון שלך וניתנת לבדיקה ב<Link href="/app/settings?tab=vault" style={{ color: '#6f7e00', fontWeight: 800 }}>כספת</Link>.
+          Charges are based on verified usage inside the plan cap. Every run is tied to your account and visible in the <Link href="/app/settings?tab=vault" style={{ color: '#6f7e00', fontWeight: 800 }}>Vault</Link>.
         </Typography>
       </Surface>
     </Box>
@@ -376,10 +376,10 @@ function PlanRow({ plan, active }: { plan: Plan; active: boolean }) {
       <Box sx={{ minWidth: 0 }}>
         <Stack direction="row" spacing={1} alignItems="center">
           <Typography variant="subtitle2" sx={{ fontWeight: 900 }}>{plan.name}</Typography>
-          {active && <StatusPill kind="passed" label="פעיל" />}
+          {active && <StatusPill kind="passed" label="Active" />}
         </Stack>
         <Typography variant="caption" sx={{ color: '#686158' }}>
-          תקרת עלות ${Number(plan.costCapUSD).toFixed(2)}/חודש{plan.hardStop ? ' · עצירה קשיחה' : ''}
+          Cost cap ${Number(plan.costCapUSD).toFixed(2)}/month{plan.hardStop ? ' · hard stop' : ''}
         </Typography>
       </Box>
       <Typography variant="subtitle2" sx={{ fontFamily: tokens.font.mono }}>{plan.monthlyPrice}</Typography>
@@ -403,7 +403,7 @@ function IntegrationsTab() {
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       if (msg === 'github-disabled') {
-        setError('המחבר ל־GitHub מנוטרל בסביבה זו');
+        setError('The GitHub connector is disabled in this environment');
         setGithub({ connected: false });
       } else {
         setError(msg);
@@ -441,36 +441,36 @@ function IntegrationsTab() {
       <IntegrationCard
         title="GitHub"
         icon={<GitHub />}
-        description="חיבור לרפו אישי לסנכרון קוד, יצירת Pull Requests, וקלון אוטומטי לסביבת הריצה."
+        description="Connect a personal repository for code sync, pull requests, and automatic runtime cloning."
         status={loading ? 'loading' : (github?.connected ? 'connected' : 'disconnected')}
-        meta={github?.login ? `מחובר כ־${github.login}` : 'לא מחובר'}
-        primaryLabel={github?.connected ? 'נתק חיבור' : 'התחבר ל־GitHub'}
+        meta={github?.login ? `Connected as ${github.login}` : 'Not connected'}
+        primaryLabel={github?.connected ? 'Disconnect' : 'Connect GitHub'}
         onPrimary={github?.connected ? disconnect : connect}
         busy={busy}
         error={error}
       />
       <IntegrationCard
-        title="Vercel / יעדי פריסה"
+        title="Vercel / deploy targets"
         icon={<Hub />}
-        description="הוספת חשבון פריסה תתאפשר לאחר חיבור GitHub. כרגע פריסה מבוצעת דרך תהליך ה־deploy gate הפנימי."
+        description="Deployment account linking will be available after GitHub is connected. For now, deploys run through the internal deploy gate."
         status="idle"
-        meta="בקרוב"
+        meta="Coming soon"
       />
       <IntegrationCard
-        title="Override לספק AI"
+        title="AI provider override"
         icon={<Shield />}
-        description="עקוף את ברירת המחדל של Ironflyer במפתח Anthropic או OpenAI משלך — חיובי הספק יחויבו אליך ישירות."
+        description="Override Ironflyer defaults with your own Anthropic or OpenAI key. Provider usage bills directly to you."
         status="idle"
-        meta="ניהול במסך המחברים"
-        primaryLabel="פתח מחברים"
+        meta="Managed from Connectors"
+        primaryLabel="Open connectors"
         onPrimary={() => { window.location.href = '/app/connectors'; }}
       />
       <IntegrationCard
         title="Webhooks"
         icon={<Hub />}
-        description="קבל אירועי גייט ופריסה לכל endpoint שתגדיר. שימושי עבור Slack, Discord או דשבורד פנימי."
+        description="Send gate and deploy events to any endpoint you configure. Useful for Slack, Discord, or internal dashboards."
         status="idle"
-        meta="בקרוב"
+        meta="Coming soon"
       />
     </Box>
   );
@@ -495,10 +495,10 @@ function IntegrationCard({
     status === 'loading' ? 'pending' :
     'idle';
   const pillLabel =
-    status === 'connected' ? 'מחובר' :
-    status === 'disconnected' ? 'לא מחובר' :
-    status === 'loading' ? 'טוען' :
-    'בקרוב';
+    status === 'connected' ? 'Connected' :
+    status === 'disconnected' ? 'Not connected' :
+    status === 'loading' ? 'Loading' :
+    'Soon';
   return (
     <Surface sx={{ p: 2.2, display: 'flex', flexDirection: 'column' }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center">
@@ -564,33 +564,33 @@ function VaultTab() {
       <Surface sx={{ p: 2.4, gridColumn: { xs: '1', md: '1 / -1' } }}>
         <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={1.2} alignItems={{ xs: 'flex-start', md: 'center' }}>
           <Box>
-            <Typography variant="overline" sx={{ color: '#9fb500' }}>{scope === 'user' ? 'הכספת שלך' : 'כספת סביבה'}</Typography>
-            <Typography variant="h5" sx={{ fontWeight: 900, mt: 0.4 }}>הכנסות, עלות ספקים, מרווח</Typography>
+            <Typography variant="overline" sx={{ color: '#9fb500' }}>{scope === 'user' ? 'Your vault' : 'Workspace vault'}</Typography>
+            <Typography variant="h5" sx={{ fontWeight: 900, mt: 0.4 }}>Revenue, provider cost, margin</Typography>
             <Typography variant="body2" sx={{ color: '#686158', mt: 0.4, maxWidth: 540 }}>
-              שיקוף מלא: revenue − providerCost = margin. הנתונים מגיעים ישירות מספר ה־ledger של Ironflyer ומתעדכנים בכל חיוב.
+              Full visibility: revenue minus provider cost equals margin. Values come directly from the Ironflyer ledger and update on every charge.
             </Typography>
           </Box>
-          <Button variant="outlined" startIcon={<Refresh />} onClick={() => void refresh()}>רענן</Button>
+          <Button variant="outlined" startIcon={<Refresh />} onClick={() => void refresh()}>Refresh</Button>
         </Stack>
         {error && (
           <Box sx={{ mt: 1.4 }}>
-            <ErrorBox title="לא ניתן לטעון את הכספת" description={error} onRetry={() => void refresh()} />
+            <ErrorBox title="Could not load vault" description={error} onRetry={() => void refresh()} />
           </Box>
         )}
       </Surface>
 
-      <VaultStat label="הכנסות (revenue)" value={snapshot?.revenue} loading={loading} accent="lime" />
-      <VaultStat label="עלות ספקים (provider cost)" value={snapshot?.providerCost} loading={loading} accent="coral" negative />
-      <VaultStat label="מרווח (margin)" value={snapshot?.margin} loading={loading} accent="sky" />
-      <VaultStat label="זיכויים (refunds)" value={snapshot?.refunds} loading={loading} accent="neutral" />
-      <VaultStat label="התאמות (adjustments)" value={snapshot?.adjustments} loading={loading} accent="neutral" />
+      <VaultStat label="Revenue" value={snapshot?.revenue} loading={loading} accent="lime" />
+      <VaultStat label="Provider cost" value={snapshot?.providerCost} loading={loading} accent="coral" negative />
+      <VaultStat label="Margin" value={snapshot?.margin} loading={loading} accent="sky" />
+      <VaultStat label="Refunds" value={snapshot?.refunds} loading={loading} accent="neutral" />
+      <VaultStat label="Adjustments" value={snapshot?.adjustments} loading={loading} accent="neutral" />
       <Surface sx={{ p: 2.2 }}>
-        <Typography variant="subtitle2" sx={{ fontWeight: 900 }}>נוסחת המרווח</Typography>
+        <Typography variant="subtitle2" sx={{ fontWeight: 900 }}>Margin formula</Typography>
         <Typography variant="body2" sx={{ color: '#686158', mt: 0.6 }}>
           margin = revenue − providerCost − refunds + adjustments
         </Typography>
         <Typography variant="caption" sx={{ color: '#86807a', display: 'block', mt: 1 }}>
-          ערכי הכספת זהים בכל מסך — כל ייצור מחיר חוזר לאותו ה־snapshot.
+          Vault values are identical across screens because every pricing view reads from the same snapshot.
         </Typography>
       </Surface>
     </Box>
@@ -638,7 +638,7 @@ function DangerTab({ projectCount, onLogout }: { projectCount: number; onLogout:
     setBusy(true); setFeedback(null);
     try {
       await accountApi.deleteAllProjects();
-      setFeedback({ kind: 'ok', msg: 'כל הפרויקטים נמחקו. רענן את הדשבורד כדי לראות מצב נקי.' });
+      setFeedback({ kind: 'ok', msg: 'All projects were deleted. Refresh the dashboard to see a clean workspace.' });
       setStage(null);
     } catch (e) {
       setFeedback({ kind: 'err', msg: e instanceof Error ? e.message : String(e) });
@@ -651,7 +651,7 @@ function DangerTab({ projectCount, onLogout }: { projectCount: number; onLogout:
     setBusy(true); setFeedback(null);
     try {
       await accountApi.deleteAccount();
-      setFeedback({ kind: 'ok', msg: 'החשבון נמחק. מתנתק...' });
+      setFeedback({ kind: 'ok', msg: 'Account deleted. Signing out...' });
       setTimeout(onLogout, 800);
     } catch (e) {
       setFeedback({ kind: 'err', msg: e instanceof Error ? e.message : String(e) });
@@ -664,9 +664,9 @@ function DangerTab({ projectCount, onLogout }: { projectCount: number; onLogout:
       <Surface sx={{ p: 2.4, borderColor: 'rgba(255,108,58,0.4) !important', bgcolor: 'rgba(255,108,58,0.06)' }}>
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.4} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }}>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 900 }}>מחיקת כל הפרויקטים</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 900 }}>Delete all projects</Typography>
             <Typography variant="body2" sx={{ color: '#5b554b', mt: 0.4 }}>
-              פעולה זו מסירה את {projectCount} הפרויקטים שלך, כולל היסטוריית גייטים ופאצ׳ים. לא ניתן לשחזר.
+              This removes all {projectCount} projects, including gate history and patches. This cannot be undone.
             </Typography>
           </Box>
           <Stack direction="row" spacing={1}>
@@ -676,7 +676,7 @@ function DangerTab({ projectCount, onLogout }: { projectCount: number; onLogout:
                 color="error"
                 onClick={() => setStage({ kind: 'projects', step: 2 })}
               >
-                אישור ראשון — הבא
+                First confirmation — continue
               </Button>
             )}
             {stage?.kind === 'projects' && stage.step === 2 && (
@@ -687,7 +687,7 @@ function DangerTab({ projectCount, onLogout }: { projectCount: number; onLogout:
                 startIcon={busy ? <CircularProgress size={14} color="inherit" /> : <Delete />}
                 onClick={() => void deleteAllProjects()}
               >
-                מחק עכשיו את כל ה־{projectCount} הפרויקטים
+                Delete all {projectCount} projects now
               </Button>
             )}
             {(!stage || stage.kind !== 'projects') && (
@@ -697,11 +697,11 @@ function DangerTab({ projectCount, onLogout }: { projectCount: number; onLogout:
                 onClick={() => setStage({ kind: 'projects', step: 1 })}
                 startIcon={<Delete fontSize="small" />}
               >
-                מחק את כל הפרויקטים
+                Delete all projects
               </Button>
             )}
             {stage && (
-              <Button onClick={() => setStage(null)}>ביטול</Button>
+              <Button onClick={() => setStage(null)}>Cancel</Button>
             )}
           </Stack>
         </Stack>
@@ -710,15 +710,15 @@ function DangerTab({ projectCount, onLogout }: { projectCount: number; onLogout:
       <Surface sx={{ p: 2.4, borderColor: 'rgba(255,24,24,0.32) !important', bgcolor: 'rgba(255,24,24,0.04)' }}>
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.4} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }}>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 900, color: '#7a0e0e' }}>מחיקת חשבון</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 900, color: '#7a0e0e' }}>Delete account</Typography>
             <Typography variant="body2" sx={{ color: '#5b554b', mt: 0.4 }}>
-              סוגרת לצמיתות את החשבון, כל הפרויקטים, וההיסטוריה. דרושים שני אישורים. הפעולה אינה ניתנת לביטול.
+              Permanently closes the account, all projects, and history. Two confirmations are required. This cannot be undone.
             </Typography>
           </Box>
           <Stack direction="row" spacing={1}>
             {stage?.kind === 'account' && stage.step === 1 && (
               <Button variant="contained" color="error" onClick={() => setStage({ kind: 'account', step: 2 })}>
-                הבנתי — המשך
+                I understand — continue
               </Button>
             )}
             {stage?.kind === 'account' && stage.step === 2 && (
@@ -729,16 +729,16 @@ function DangerTab({ projectCount, onLogout }: { projectCount: number; onLogout:
                 startIcon={busy ? <CircularProgress size={14} color="inherit" /> : <Delete />}
                 onClick={() => void deleteAccount()}
               >
-                מחק את החשבון
+                Delete account
               </Button>
             )}
             {(!stage || stage.kind !== 'account') && (
               <Button variant="outlined" color="error" onClick={() => setStage({ kind: 'account', step: 1 })} startIcon={<Delete fontSize="small" />}>
-                מחק חשבון
+                Delete account
               </Button>
             )}
             {stage?.kind === 'account' && (
-              <Button onClick={() => setStage(null)}>ביטול</Button>
+              <Button onClick={() => setStage(null)}>Cancel</Button>
             )}
           </Stack>
         </Stack>
@@ -751,7 +751,7 @@ function DangerTab({ projectCount, onLogout }: { projectCount: number; onLogout:
               <Typography variant="body2" sx={{ fontWeight: 800 }}>{feedback.msg}</Typography>
             </Surface>
           ) : (
-            <ErrorBox title="הפעולה נכשלה" description={feedback.msg} />
+            <ErrorBox title="Action failed" description={feedback.msg} />
           )}
         </Box>
       )}

@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Stillpoint Yoga — A quieter studio in Cobble Hill</title>
+  <meta name="description" content="A small, candle-warm yoga studio teaching vinyasa, restorative, and yin in Cobble Hill, Brooklyn. Twelve mats per class, never more." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #efe2c8;
+      --paper: #f6ecd6;
+      --ink: #2b2a23;
+      --ink-2: #5e5a4c;
+      --ink-3: #8d8773;
+      --line: rgba(43, 42, 35, 0.14);
+      --accent: #5b6a3a;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--ink); font-family: 'Inter', system-ui, sans-serif; font-size: 16px; line-height: 1.65; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+    .serif { font-family: 'Cormorant Garamond', serif; font-weight: 500; }
+
+    .nav { padding: 22px 0; border-bottom: 1px solid var(--line); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { font-family: 'Cormorant Garamond', serif; font-size: 22px; letter-spacing: 0.06em; }
+    .brand span { color: var(--accent); }
+    .nav-links { display: flex; gap: 28px; font-size: 14px; color: var(--ink-2); }
+    .nav-links a:hover { color: var(--ink); }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 999px; font-size: 14px; font-weight: 500; border: 1px solid transparent; cursor: pointer; transition: background 200ms; }
+    .btn-primary { background: var(--ink); color: var(--bg); }
+    .btn-primary:hover { background: var(--accent); }
+    .btn-ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+    .btn-ghost:hover { border-color: var(--ink); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    .hero { padding: 80px 0 80px; }
+    .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+    .eyebrow { font-family: 'Inter'; font-size: 12px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--accent); }
+    h1 { font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: clamp(48px, 7vw, 92px); line-height: 1.02; letter-spacing: -0.01em; margin: 18px 0 22px; }
+    h1 em { font-style: italic; color: var(--accent); }
+    .lede { font-size: 18px; color: var(--ink-2); max-width: 480px; line-height: 1.7; }
+    .hero-cta { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
+    .hero-art { position: relative; }
+    .hero-art img { width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 4px; }
+    .hero-art .caption { position: absolute; bottom: -18px; left: 24px; background: var(--paper); padding: 12px 18px; border: 1px solid var(--line); border-radius: 4px; font-style: italic; font-family: 'Cormorant Garamond', serif; font-size: 17px; }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 36px; } }
+
+    .section { padding: 96px 0; }
+    .section h2 { font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: clamp(36px, 5vw, 56px); letter-spacing: -0.01em; line-height: 1.08; margin: 14px 0 18px; }
+    .section h2 em { font-style: italic; color: var(--accent); }
+    .section-head { max-width: 660px; margin-bottom: 56px; }
+    .section-head .lede { font-size: 17px; }
+
+    .philosophy { background: var(--paper); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .phil-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; padding: 80px 0; }
+    .phil { }
+    .phil .n { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 36px; color: var(--accent); }
+    .phil h3 { font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 26px; margin: 4px 0 10px; }
+    .phil p { color: var(--ink-2); font-size: 15px; }
+    @media (max-width: 1080px) { .phil-grid { grid-template-columns: 1fr; gap: 36px; } }
+
+    .classes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .class-card { background: var(--paper); border: 1px solid var(--line); padding: 28px; border-radius: 4px; }
+    .class-card h3 { font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 26px; margin: 0 0 10px; }
+    .class-card p { color: var(--ink-2); font-size: 14px; margin: 0 0 16px; }
+    .class-card .level { font-family: 'Inter'; font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--accent); }
+    .class-card .duration { font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--ink-3); font-size: 15px; }
+    @media (max-width: 1080px) { .classes { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .classes { grid-template-columns: 1fr; } }
+
+    .schedule-table { width: 100%; border-collapse: collapse; background: var(--paper); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+    .schedule-table th { text-align: left; padding: 16px 20px; font-family: 'Cormorant Garamond', serif; font-weight: 500; font-style: italic; font-size: 18px; color: var(--accent); border-bottom: 1px solid var(--line); }
+    .schedule-table td { padding: 18px 20px; border-bottom: 1px solid var(--line); font-size: 15px; }
+    .schedule-table tr:last-child td { border-bottom: 0; }
+    .schedule-table .time { font-family: 'Cormorant Garamond', serif; font-size: 20px; color: var(--ink); width: 130px; }
+    .schedule-table .teacher { color: var(--ink-3); font-style: italic; }
+    .schedule-table .cls { font-weight: 500; }
+    @media (max-width: 720px) { .schedule-table .teacher { display: block; font-size: 13px; } .schedule-table td { padding: 14px 16px; } }
+
+    .teachers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    .teacher { text-align: left; }
+    .teacher img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 4px; }
+    .teacher h3 { font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 24px; margin: 16px 0 4px; }
+    .teacher .style { font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--accent); font-size: 15px; }
+    .teacher p { font-size: 14px; color: var(--ink-2); margin: 10px 0 0; }
+    @media (max-width: 1080px) { .teachers { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .teachers { grid-template-columns: 1fr; } }
+
+    .quote-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .quote { background: var(--paper); border: 1px solid var(--line); border-radius: 4px; padding: 36px; }
+    .quote p { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 22px; line-height: 1.45; margin: 0 0 18px; }
+    .quote .who { font-size: 13px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.12em; }
+    @media (max-width: 1080px) { .quote-grid { grid-template-columns: 1fr; } }
+
+    .pricing { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .price-card { background: var(--paper); border: 1px solid var(--line); padding: 36px; text-align: center; border-radius: 4px; }
+    .price-card.featured { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+    .price-card h3 { font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 24px; margin: 0 0 10px; }
+    .price-card .p { font-family: 'Cormorant Garamond', serif; font-size: 56px; line-height: 1; margin: 18px 0 6px; }
+    .price-card .per { font-size: 14px; color: var(--ink-3); font-style: italic; }
+    .price-card.featured .per { color: rgba(239, 226, 200, 0.7); }
+    .price-card ul { list-style: none; padding: 0; margin: 24px 0; font-size: 14px; color: var(--ink-2); }
+    .price-card.featured ul { color: rgba(239, 226, 200, 0.8); }
+    .price-card li { padding: 5px 0; }
+    @media (max-width: 1080px) { .pricing { grid-template-columns: 1fr; max-width: 440px; margin: 0 auto; } }
+
+    .visit { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+    .visit img { width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 4px; }
+    .visit h2 { margin-top: 14px; }
+    .visit dl { font-family: 'Cormorant Garamond', serif; font-size: 19px; display: grid; grid-template-columns: 120px 1fr; gap: 8px 18px; }
+    .visit dt { color: var(--ink-3); font-style: italic; }
+    .visit dd { margin: 0; }
+    @media (max-width: 1080px) { .visit { grid-template-columns: 1fr; } }
+
+    footer { border-top: 1px solid var(--line); padding: 48px 0 32px; }
+    .foot { display: flex; justify-content: space-between; align-items: flex-end; gap: 30px; flex-wrap: wrap; }
+    .foot .links { display: flex; gap: 28px; font-size: 14px; color: var(--ink-2); }
+    .foot .copy { font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--ink-3); font-size: 15px; }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">Stillpoint<span>.</span></a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#classes">Classes</a>
+        <a href="#schedule">Schedule</a>
+        <a href="#teachers">Teachers</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#visit">Visit</a>
+      </nav>
+      <a class="btn btn-primary" href="#pricing">Book a class</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow">Cobble Hill, Brooklyn · Est. 2019</span>
+            <h1>A practice. <em>Not a performance.</em></h1>
+            <p class="lede">Stillpoint is a small studio teaching vinyasa, restorative, and yin. Twelve mats per class. Real silence between cues. Candles instead of speakers.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#pricing">First class · $15</a>
+              <a class="btn btn-ghost" href="#schedule">See the schedule</a>
+            </div>
+          </div>
+          <div class="hero-art">
+            <img src="https://picsum.photos/seed/stillpoint-yoga-1/900/1100" width="900" height="1100" alt="A warmly lit yoga studio with rolled mats, low cushions, and afternoon light through tall windows." loading="eager" />
+            <div class="caption">"Move slow enough to feel it."</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="philosophy">
+      <div class="wrap">
+        <div class="phil-grid">
+          <div class="phil">
+            <div class="n">01</div>
+            <h3>Small rooms</h3>
+            <p>Twelve mats. The teacher learns your name in the first class and remembers your shoulder by the second.</p>
+          </div>
+          <div class="phil">
+            <div class="n">02</div>
+            <h3>Quiet light</h3>
+            <p>Beeswax candles and a single salt lamp. No tracking watches, no Insta wall, no playlist that loops in 28 minutes.</p>
+          </div>
+          <div class="phil">
+            <div class="n">03</div>
+            <h3>Long apprenticeship</h3>
+            <p>Every teacher has at least 500 hours of training and three years on a mat before they hold a room of yours.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="classes">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Classes</span>
+          <h2>Four kinds of <em>slowing down</em>.</h2>
+          <p class="lede">Every class is taught by a senior teacher. There are no recorded sessions, no app, no leaderboard.</p>
+        </div>
+        <div class="classes">
+          <div class="class-card">
+            <span class="level">All levels</span>
+            <h3>Vinyasa</h3>
+            <p>A warm, flowing class linking breath and movement. Music kept under your voice, never over it.</p>
+            <span class="duration">60 minutes</span>
+          </div>
+          <div class="class-card">
+            <span class="level">Restorative</span>
+            <h3>Restore</h3>
+            <p>Six supported postures, held for six to ten minutes each. Bolsters, blankets, an eye pillow you can keep.</p>
+            <span class="duration">75 minutes</span>
+          </div>
+          <div class="class-card">
+            <span class="level">Intermediate</span>
+            <h3>Yin</h3>
+            <p>Long, quiet holds in the connective tissue. Cold tea afterwards. No music.</p>
+            <span class="duration">90 minutes</span>
+          </div>
+          <div class="class-card">
+            <span class="level">Beginner</span>
+            <h3>Foundations</h3>
+            <p>A six-week series for new students. Same teacher, same room, same time every week.</p>
+            <span class="duration">75 minutes</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="schedule" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">This week</span>
+          <h2>What's on the <em>schedule</em>.</h2>
+        </div>
+        <table class="schedule-table">
+          <thead><tr><th>Day</th><th>Class</th><th></th><th>Time</th></tr></thead>
+          <tbody>
+            <tr><td>Mon</td><td><span class="cls">Vinyasa</span> <span class="teacher">w/ Naomi</span></td><td></td><td class="time">7:00 — 8:00 am</td></tr>
+            <tr><td>Mon</td><td><span class="cls">Restore</span> <span class="teacher">w/ Ruth</span></td><td></td><td class="time">6:30 — 7:45 pm</td></tr>
+            <tr><td>Tue</td><td><span class="cls">Foundations (wk 3 of 6)</span> <span class="teacher">w/ Theo</span></td><td></td><td class="time">10:00 — 11:15 am</td></tr>
+            <tr><td>Wed</td><td><span class="cls">Vinyasa</span> <span class="teacher">w/ Maya</span></td><td></td><td class="time">7:00 — 8:00 am</td></tr>
+            <tr><td>Wed</td><td><span class="cls">Yin</span> <span class="teacher">w/ Naomi</span></td><td></td><td class="time">7:30 — 9:00 pm</td></tr>
+            <tr><td>Thu</td><td><span class="cls">Vinyasa</span> <span class="teacher">w/ Theo</span></td><td></td><td class="time">6:00 — 7:00 pm</td></tr>
+            <tr><td>Fri</td><td><span class="cls">Restore</span> <span class="teacher">w/ Maya</span></td><td></td><td class="time">5:30 — 6:45 pm</td></tr>
+            <tr><td>Sat</td><td><span class="cls">Vinyasa</span> <span class="teacher">w/ Ruth</span></td><td></td><td class="time">9:00 — 10:00 am</td></tr>
+            <tr><td>Sun</td><td><span class="cls">Yin</span> <span class="teacher">w/ Maya</span></td><td></td><td class="time">4:00 — 5:30 pm</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" id="teachers" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Teachers</span>
+          <h2>The people <em>holding the room</em>.</h2>
+        </div>
+        <div class="teachers">
+          <div class="teacher">
+            <img src="https://picsum.photos/seed/stillpoint-yoga-t1/500/500" width="500" height="500" alt="Yoga teacher Naomi Park at the front of the studio." loading="lazy" />
+            <h3>Naomi Park</h3>
+            <span class="style">Founder · Yin &amp; Vinyasa</span>
+            <p>800-hour Yoga Medicine. Studied with Tias Little, Sarah Powers. Twelve years on the mat.</p>
+          </div>
+          <div class="teacher">
+            <img src="https://picsum.photos/seed/stillpoint-yoga-t2/500/500" width="500" height="500" alt="Yoga teacher Theo Marin in a quiet sun-lit room." loading="lazy" />
+            <h3>Theo Marin</h3>
+            <span class="style">Foundations · Vinyasa</span>
+            <p>500-hour Jivamukti. Patient with new students. Used to be a high-school music teacher.</p>
+          </div>
+          <div class="teacher">
+            <img src="https://picsum.photos/seed/stillpoint-yoga-t3/500/500" width="500" height="500" alt="Yoga teacher Ruth Avery folding a blanket in the studio." loading="lazy" />
+            <h3>Ruth Avery</h3>
+            <span class="style">Restorative</span>
+            <p>RYT-500. Background in physical therapy. Knows what to do with your shoulder.</p>
+          </div>
+          <div class="teacher">
+            <img src="https://picsum.photos/seed/stillpoint-yoga-t4/500/500" width="500" height="500" alt="Yoga teacher Maya Levin holding a bolster." loading="lazy" />
+            <h3>Maya Levin</h3>
+            <span class="style">Yin · Restorative</span>
+            <p>Trained at Triyoga London. Wrote a quiet, well-loved newsletter about slowness.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="quotes" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>What students <em>say</em>, eventually.</h2>
+        </div>
+        <div class="quote-grid">
+          <div class="quote">
+            <p>"I never thought I'd be the person who arrives early to sit on a cushion for ten minutes. Stillpoint made that ordinary."</p>
+            <div class="who">— Hannah K., student two years</div>
+          </div>
+          <div class="quote">
+            <p>"It's the first studio where I haven't been sold a tote bag, a retreat, or a body type. It's just yoga, twice a week."</p>
+            <div class="who">— Daniel R., student one year</div>
+          </div>
+          <div class="quote">
+            <p>"The teachers actually adjust you with their hands and ask first. I came in injured and left, slowly, repaired."</p>
+            <div class="who">— Lena F., student three years</div>
+          </div>
+          <div class="quote">
+            <p>"I take Naomi's Wednesday yin like I take a long bath. I come out a different week."</p>
+            <div class="who">— Adrian M., student eighteen months</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="pricing" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Pricing</span>
+          <h2>Pay <em>per class</em>, or stay a while.</h2>
+        </div>
+        <div class="pricing">
+          <div class="price-card">
+            <h3>Drop in</h3>
+            <div class="p">$28</div>
+            <div class="per">per class</div>
+            <ul>
+              <li>Any class, any teacher</li>
+              <li>Book up to two weeks ahead</li>
+              <li>Free mat and props</li>
+            </ul>
+            <a class="btn btn-ghost" href="#">Book one</a>
+          </div>
+          <div class="price-card featured">
+            <h3>Member</h3>
+            <div class="p">$180</div>
+            <div class="per">per month</div>
+            <ul>
+              <li>Unlimited classes</li>
+              <li>Priority booking, 21 days out</li>
+              <li>20% off workshops</li>
+              <li>Guest pass each month</li>
+            </ul>
+            <a class="btn" href="#" style="background:var(--accent);color:var(--paper);">Become a member</a>
+          </div>
+          <div class="price-card">
+            <h3>Foundations</h3>
+            <div class="p">$220</div>
+            <div class="per">six-week series</div>
+            <ul>
+              <li>Same teacher every week</li>
+              <li>Includes a private intake</li>
+              <li>One drop-in to keep</li>
+            </ul>
+            <a class="btn btn-ghost" href="#">Join the next series</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="visit" style="padding-top:0;">
+      <div class="wrap">
+        <div class="visit">
+          <img src="https://picsum.photos/seed/stillpoint-yoga-visit/900/1100" width="900" height="1100" alt="The front door of Stillpoint Yoga, a small brick building on a quiet Brooklyn street." loading="lazy" />
+          <div>
+            <span class="eyebrow">Visit</span>
+            <h2 class="serif">A quiet door <em>off Court Street</em>.</h2>
+            <dl>
+              <dt>Address</dt><dd>176 Kane St, Brooklyn NY</dd>
+              <dt>Hours</dt><dd>Mon–Sun, 6:30am — 9:00pm</dd>
+              <dt>Email</dt><dd>hello@stillpoint.studio</dd>
+              <dt>Phone</dt><dd>(347) 555-0188</dd>
+            </dl>
+            <div style="margin-top:24px;"><a class="btn btn-primary" href="#">Find us</a></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot">
+        <div class="brand">Stillpoint<span style="color:var(--accent);">.</span></div>
+        <div class="links">
+          <a href="#classes">Classes</a>
+          <a href="#schedule">Schedule</a>
+          <a href="#teachers">Teachers</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#">Newsletter</a>
+        </div>
+        <div class="copy">© 2026 · Brooklyn, New York</div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

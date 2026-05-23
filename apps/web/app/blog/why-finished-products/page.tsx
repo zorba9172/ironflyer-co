@@ -23,23 +23,25 @@ export default function WhyFinishedProductsPost() {
       gradient="linear-gradient(135deg, #e5ff00 0%, #79e07a 100%)"
     >
       <p>
-        אנחנו עובדים על Ironflyer בערך שנה. הדבר הראשון שעשינו, באמת, היה להוריד שמונה־עשרה
-        AI app builder־ים שונים ולשלוח לכל אחד את אותו prompt: <em>“בנה לי דשבורד הכנסות
-        למייסדי SaaS עצמאיים, עם Stripe ו־Postgres ו־RTL.”</em> כל אחד מהם החזיר תוצאה מרשימה
-        תוך דקה־שתיים. אף אחד מהם לא החזיר מוצר.
+        We have been working on Ironflyer for about a year. One of the first things we did was
+        benchmark the field: we tried a long list of AI app builders and gave each one the same
+        production-minded prompt: <em>“Build a revenue dashboard for indie SaaS founders, with
+        Stripe, Postgres, and CSV export.”</em> Every tool returned something impressive in a minute
+        or two. None of them returned a finished product.
       </p>
       <p>
-        ה־delta בין השניים — בין דמו ל־מוצר — היא בערך עשרים האחוזים האחרונים של העבודה.
-        רובם הולכים מ־0 ל־80 בצורה מדהימה ואז נופלים. אנחנו בנינו את Ironflyer כדי לעשות את
-        העשרים האחוזים האחרונים. זאת הסיבה שהכל בפלטפורמה נקרא בשם “Finisher” ולא “Generator”.
+        The distance between those two outcomes, demo and product, is the last twenty percent of
+        the work. Most tools go from zero to eighty with startling speed and then stall. We built
+        Ironflyer for the final stretch. That is why the platform calls itself a Finisher, not a
+        Generator.
       </p>
 
       <h2>What the demo hides</h2>
       <p>
         Watch ten AI app builder demos in a row and you start noticing the seams. The generated
         UI is gorgeous, but the types are wrong. The test suite is missing. The deploy config is
-        for a stack that does not match the framework. The secrets are hardcoded. The Hebrew text
-        renders left-to-right because nobody wired <code>dir="rtl"</code>. The pricing page is a
+        for a stack that does not match the framework. The secrets are hardcoded. The billing flow
+        trusts a client-side flag. The pricing page is a
         component the model invented from a training-data hallucination and nobody noticed.
       </p>
       <p>
@@ -92,7 +94,7 @@ export default function WhyFinishedProductsPost() {
       <p>
         Internally we measure ourselves by a simple test: pick a generated project at random,
         deploy it, and try to break it the way a junior engineer on their first day would. The
-        bar is that the eight gates should have caught everything in advance. So far the bar is
+        bar is that the nine gates should have caught everything in advance. So far the bar is
         not always met — every miss is a new gate rule. But the trajectory matters, and the
         platform is set up so that every fix benefits every future user.
       </p>

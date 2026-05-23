@@ -1,50 +1,14 @@
 import { ImageResponse } from 'next/og';
-import { readFile } from 'node:fs/promises';
-import path from 'node:path';
 
-// 1200x630 social card. Hebrew-first headline, alabaster background,
-// subtle radial gradient, lime accent block carrying the wordmark.
-//
-// Hebrew typography: ships with Noto Sans Hebrew Bold (variable) — a
-// permissive OFL font from Google — under apps/web/app/_fonts/.
-// Vercel's build packs that file into the OG function payload because it
-// sits inside the app/ tree, so cold-start fetches are local I/O.
-//
-// Production install procedure (when the TTF is missing from the repo):
-//   1. Download the file from
-//      https://fonts.google.com/noto/specimen/Noto+Sans+Hebrew
-//   2. Place it at apps/web/app/_fonts/NotoSansHebrew-Bold.ttf
-//   3. Redeploy. If missing, this route falls back to system Arial which
-//      renders Hebrew via the platform's fallback font matching — usable
-//      but visually inconsistent across browsers/OSes.
-export const alt = 'Ironflyer — האפליקציות הטובות בעולם נסגרות בעצמן';
+// 1200x630 social card: disciplined brand mark, product promise, and proof
+// line. Keep it flat and legible; no ornamental background effects.
+export const alt = 'Ironflyer — ship software that survives review';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
-async function loadHebrewFont(): Promise<ArrayBuffer | null> {
-  try {
-    const filePath = path.join(
-      process.cwd(),
-      'app',
-      '_fonts',
-      'NotoSansHebrew-Bold.ttf',
-    );
-    const buf = await readFile(filePath);
-    return buf.buffer.slice(
-      buf.byteOffset,
-      buf.byteOffset + buf.byteLength,
-    ) as ArrayBuffer;
-  } catch {
-    return null;
-  }
-}
-
-export default async function OpenGraphImage() {
-  const hebrew = await loadHebrewFont();
-  const headlineFont = hebrew
-    ? 'NotoSansHebrew'
-    : 'Arial Black, Arial, sans-serif';
-  const bodyFont = hebrew ? 'NotoSansHebrew' : 'Arial, sans-serif';
+export default function OpenGraphImage() {
+  const headlineFont = 'Arial Black, Arial, sans-serif';
+  const bodyFont = 'Arial, sans-serif';
 
   return new ImageResponse(
     (
@@ -56,8 +20,7 @@ export default async function OpenGraphImage() {
           flexDirection: 'column',
           justifyContent: 'space-between',
           padding: 72,
-          background:
-            'radial-gradient(circle at 20% 20%, #f7f3ea 0%, #e7dfd2 70%, #d9cfbe 100%)',
+          background: '#f4f0e8',
           color: '#0d0e0f',
           fontFamily: headlineFont,
         }}
@@ -70,28 +33,19 @@ export default async function OpenGraphImage() {
             gap: 18,
           }}
         >
-          <div
-            style={{
-              width: 64,
-              height: 64,
-              background: '#e5ff00',
-              borderRadius: 12,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#0d0e0f',
-              fontSize: 48,
-              fontWeight: 900,
-              lineHeight: 1,
-            }}
-          >
-            I
-          </div>
+          <svg width="72" height="72" viewBox="0 0 64 64">
+            <rect x="4" y="4" width="56" height="56" rx="8" fill="#0d0e0f" />
+            <path d="M19 14h13c9 0 15 5 15 13 0 6-3 10-9 12l10 11H35L26 40h-3v10H12V14h7Z" fill="#e5ff00" />
+            <path d="M23 23h12c3 0 5 2 5 5s-2 5-5 5H23V23Z" fill="#0d0e0f" />
+            <path d="M15 14h10v36H15V14Z" fill="#e5ff00" />
+            <path d="M28 18h16v4H28V18Zm0 12h16v4H28v-4Zm0 12h16v4H28v-4Z" fill="#f4f0e8" />
+            <path d="M46 24l8 8-8 8v-6h-6v-4h6v-6Z" fill="#f4f0e8" />
+          </svg>
           <div
             style={{
               fontSize: 36,
               fontWeight: 900,
-              letterSpacing: -0.5,
+              letterSpacing: 0,
             }}
           >
             Ironflyer
@@ -104,7 +58,6 @@ export default async function OpenGraphImage() {
             display: 'flex',
             flexDirection: 'column',
             gap: 24,
-            direction: 'rtl',
           }}
         >
           <div
@@ -112,12 +65,12 @@ export default async function OpenGraphImage() {
               fontSize: 88,
               fontWeight: 900,
               lineHeight: 1.05,
-              letterSpacing: -1.5,
+              letterSpacing: 0,
               maxWidth: 980,
               fontFamily: headlineFont,
             }}
           >
-            האפליקציות הטובות בעולם נסגרות בעצמן.
+            Ship software that survives review.
           </div>
           <div
             style={{
@@ -155,22 +108,10 @@ export default async function OpenGraphImage() {
             />
             ironflyer.dev
           </div>
-          <div style={{ color: '#5a564d' }}>finish, don&apos;t fake</div>
+          <div style={{ color: '#5a564d' }}>gates · patches · runtime · ledger</div>
         </div>
       </div>
     ),
-    {
-      ...size,
-      fonts: hebrew
-        ? [
-            {
-              name: 'NotoSansHebrew',
-              data: hebrew,
-              weight: 700,
-              style: 'normal',
-            },
-          ]
-        : undefined,
-    },
+    size,
   );
 }

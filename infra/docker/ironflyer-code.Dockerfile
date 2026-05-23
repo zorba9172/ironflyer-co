@@ -23,6 +23,41 @@ COPY infra/docker/ironflyer-code/settings.json /home/coder/.local/share/code-ser
 COPY infra/docker/ironflyer-code/welcome.html /home/coder/.config/welcome.html
 RUN chown -R coder:coder /home/coder/.local /home/coder/.config
 
+# Pre-install the toolchain the Ironflyer finisher gates rely on. Each
+# tool degrades the gate gracefully when missing, but baking them into
+# the image is the difference between "Security gate reports nothing" and
+# "Security gate finds an OWASP A03 SQL injection in 4 seconds."
+#
+#  - semgrep      : multi-language SAST (Security gate)
+#  - hadolint     : Dockerfile linter         (Deploy gate)
+#  - govulncheck  : Go-specific CVE scanner   (Security gate, Go projects)
+#  - go + node    : already standard but pinned here so finisher gates
+#                   can `go test`, `npm test`, `npm audit` without a
+#                   per-workspace bootstrap step
+#  - git, jq, curl: utility belt every workspace assumes
+#
+# We refuse to install pinned-vulnerable versions: semgrep is taken from
+# pip (stable), hadolint from its official static binary (no apt repo).
+RUN apt-get update \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      ca-certificates curl git jq python3-pip python3-venv nodejs npm \
+ && python3 -m pip install --no-cache-dir --break-system-packages 'semgrep>=1.71' \
+ && curl -sSL https://github.com/hadolint/hadolint/releases/download/v2.12.0/hadolint-Linux-x86_64 \
+      -o /usr/local/bin/hadolint \
+ && chmod +x /usr/local/bin/hadolint \
+ && rm -rf /var/lib/apt/lists/*
+
+# Go toolchain (mirrors the orchestrator image so projects with go.mod
+# `go build ./...` works the moment the workspace boots). We pin the
+# minor version to match orchestrator/go.mod's directive.
+ENV GO_VERSION=1.25.1
+RUN curl -sSL "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" \
+     | tar -C /usr/local -xz \
+ && /usr/local/go/bin/go install golang.org/x/vuln/cmd/govulncheck@latest \
+ && mv /root/go/bin/govulncheck /usr/local/bin/ \
+ && rm -rf /root/go
+ENV PATH=/usr/local/go/bin:/usr/local/bin:${PATH}
+
 USER coder
 WORKDIR /home/coder
 
