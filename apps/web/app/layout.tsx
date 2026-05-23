@@ -1,9 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Archivo_Black, Inter } from 'next/font/google';
 import Script from 'next/script';
-import 'swiper/css';
-import 'swiper/css/navigation';
-import 'swiper/css/pagination';
 import './globals.css';
 import { Providers } from './providers';
 import { PWARegister } from './pwa-register';

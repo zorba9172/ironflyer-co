@@ -1,13 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import {
   Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle,
-  IconButton, List, ListItemButton, ListItemText, Stack, TextField, Tooltip,
+  IconButton, ListItemButton, ListItemText, Stack, TextField, Tooltip,
   Typography,
 } from '@mui/material';
 import { githubApi, GitHubRepo, GitHubStatus } from '../../../lib/github';
 import { tokens } from '../../../lib/theme';
+import { VirtualList } from '../../../components/performance/VirtualList';
 
 interface Props {
   projectId: string;
@@ -127,9 +128,12 @@ export function GitHubPanel({ projectId, github, workspaceId, onLinked }: Props)
     );
   }
 
-  const visible = repos.filter((r) =>
-    !filter || r.fullName.toLowerCase().includes(filter.toLowerCase()),
-  );
+  const deferredFilter = useDeferredValue(filter);
+  const visible = useMemo(() => {
+    const q = deferredFilter.trim().toLowerCase();
+    if (!q) return repos;
+    return repos.filter((r) => r.fullName.toLowerCase().includes(q));
+  }, [deferredFilter, repos]);
 
   return (
     <Stack spacing={1.5}>
@@ -203,31 +207,46 @@ export function GitHubPanel({ projectId, github, workspaceId, onLinked }: Props)
         <DialogContent>
           <TextField fullWidth size="small" placeholder="filter…" value={filter}
                      onChange={(e) => setFilter(e.target.value)} sx={{ mb: 1 }} />
-          <List dense sx={{ maxHeight: 360, overflow: 'auto' }}>
+          <Box sx={{ height: visible.length === 0 ? 'auto' : 360 }}>
             {visible.length === 0 && (
               <Typography variant="body2" color="text.secondary" sx={{ p: 2 }}>
                 {busy ? 'Loading…' : 'No repos match.'}
               </Typography>
             )}
-            {visible.map((r) => (
-              <ListItemButton key={r.id} onClick={() => pickRepo(r)} disabled={busy}>
-                <ListItemText
-                  primary={<span style={{ fontFamily: tokens.font.mono }}>{r.fullName}</span>}
-                  secondary={
-                    <>
-                      {r.private && <Chip label="private" size="small" sx={{ mr: 1 }} />}
-                      {r.description}
-                    </>
-                  }
-                />
-              </ListItemButton>
-            ))}
-          </List>
+            {visible.length > 0 && (
+              <VirtualList
+                items={visible}
+                itemHeight={66}
+                height={360}
+                keyExtractor={(repo) => repo.id}
+                ariaLabel="GitHub repositories"
+                renderItem={(repo) => (
+                  <RepoRow repo={repo} busy={busy} onPick={() => pickRepo(repo)} />
+                )}
+              />
+            )}
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setPicking(false)} disabled={busy}>Cancel</Button>
         </DialogActions>
       </Dialog>
     </Stack>
+  );
+}
+
+function RepoRow({ repo, busy, onPick }: { repo: GitHubRepo; busy: boolean; onPick: () => void }) {
+  return (
+    <ListItemButton onClick={onPick} disabled={busy} sx={{ minHeight: 66 }}>
+      <ListItemText
+        primary={<span style={{ fontFamily: tokens.font.mono }}>{repo.fullName}</span>}
+        secondary={
+          <>
+            {repo.private && <Chip label="private" size="small" sx={{ mr: 1 }} />}
+            {repo.description}
+          </>
+        }
+      />
+    </ListItemButton>
   );
 }

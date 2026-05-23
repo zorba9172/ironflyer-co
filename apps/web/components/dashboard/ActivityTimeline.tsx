@@ -20,6 +20,7 @@ export interface ActivityRow {
 
 export function flattenActivity(projects: Project[], limit = 10): ActivityRow[] {
   const rows: ActivityRow[] = [];
+  const pruneAt = Math.max(limit * 8, 50);
   for (const project of projects) {
     const events: ExecutionEvent[] = Array.isArray(project.events) ? project.events : [];
     for (const ev of events) {
@@ -33,6 +34,10 @@ export function flattenActivity(projects: Project[], limit = 10): ActivityRow[] 
         step: ev.step,
         createdAt: ev.createdAt,
       });
+    }
+    if (rows.length > pruneAt) {
+      rows.sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+      rows.length = Math.max(limit * 4, limit);
     }
   }
   rows.sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));

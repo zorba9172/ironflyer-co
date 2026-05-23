@@ -10,7 +10,7 @@
 // small enough that splitting into shells/cards/log-viewers obscures more
 // than it clarifies.
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import {
   Alert,
@@ -41,6 +41,7 @@ import { auth } from '../../../../../lib/auth';
 import { tokens } from '../../../../../lib/theme';
 import { RequireAuth, useAuth } from '../../../../auth-context';
 import { AppShell, PageTitle, Surface } from '../../../workspace-shell';
+import { VirtualList } from '../../../../../components/performance/VirtualList';
 
 type Provider = 'fly' | 'railway' | 'github' | 'zip';
 
@@ -86,6 +87,8 @@ const FLY_REGIONS = [
   { id: 'gru', label: 'Sao Paulo' },
 ];
 
+const LOG_LIMIT = 700;
+
 export default function ProjectDeployPage() {
   return (
     <RequireAuth>
@@ -110,7 +113,6 @@ function DeployInner() {
   const [activeDeploymentId, setActiveDeploymentId] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
   const [banner, setBanner] = useState<{ kind: 'success' | 'error'; text: string } | null>(null);
-  const logEndRef = useRef<HTMLDivElement | null>(null);
 
   const base = '/api/orchestrator';
 
@@ -125,11 +127,6 @@ function DeployInner() {
       .then((p) => setPlan(p));
     void refreshHistory();
   }, [projectId]);
-
-  // Auto-scroll log panel.
-  useEffect(() => {
-    logEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-  }, [logs.length]);
 
   const refreshHistory = async () => {
     try {
@@ -180,7 +177,10 @@ function DeployInner() {
     const handler = (ev: MessageEvent) => {
       try {
         const data = JSON.parse(ev.data) as DeployEvent;
-        setLogs((prev) => [...prev, data]);
+        setLogs((prev) => {
+          const next = [...prev, data];
+          return next.length > LOG_LIMIT ? next.slice(-LOG_LIMIT) : next;
+        });
         if (data.kind === 'deployed') {
           setBanner({ kind: 'success', text: `Deployment live: ${data.url ?? ''}` });
           setRunning(false);
@@ -471,22 +471,20 @@ function DeployInner() {
                 fontSize: 12,
                 p: 1.5,
                 borderRadius: 1,
-                maxHeight: 360,
-                overflowY: 'auto',
                 whiteSpace: 'pre-wrap',
                 direction: 'ltr',
                 textAlign: 'left',
               }}
             >
-              {logs.map((ev, i) => (
-                <Box key={i} sx={{ opacity: ev.kind === 'failed' ? 1 : 0.92 }}>
-                  <Box component="span" sx={{ color: '#9fb500' }}>
-                    [{ev.kind}]
-                  </Box>{' '}
-                  {ev.line ?? ev.url ?? ev.error}
-                </Box>
-              ))}
-              <div ref={logEndRef} />
+              <VirtualList
+                items={logs}
+                itemHeight={22}
+                getItemHeight={(ev) => ((ev.line ?? ev.url ?? ev.error ?? '').length > 140 ? 44 : 22)}
+                height={Math.min(360, Math.max(88, logs.length * 22))}
+                keyExtractor={(ev, index) => `${ev.at}-${ev.kind}-${index}`}
+                ariaLabel="Deployment log"
+                renderItem={(ev) => <DeployLogRow event={ev} />}
+              />
             </Box>
           </Surface>
         )}
@@ -584,6 +582,22 @@ function StatusPill({ status }: { status: DeploymentRecord['status'] }) {
       size="small"
       sx={{ bgcolor: s.bg, color: s.fg, fontWeight: 500, minWidth: 56, justifyContent: 'center' }}
     />
+  );
+}
+
+function DeployLogRow({ event }: { event: DeployEvent }) {
+  return (
+    <Box sx={{
+      opacity: event.kind === 'failed' ? 1 : 0.92,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'pre-wrap',
+    }}>
+      <Box component="span" sx={{ color: '#9fb500' }}>
+        [{event.kind}]
+      </Box>{' '}
+      {event.line ?? event.url ?? event.error}
+    </Box>
   );
 }
 

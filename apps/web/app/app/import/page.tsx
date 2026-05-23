@@ -17,6 +17,7 @@ import { githubApi, GitHubStatus } from '../../../lib/github';
 import {
   ImportEvent, ImportResult, startImport,
 } from '../../../lib/api/import';
+import { VirtualList } from '../../../components/performance/VirtualList';
 
 interface LogLine {
   id: number;
@@ -24,6 +25,8 @@ interface LogLine {
   text: string;
   ts: string;
 }
+
+const LOG_LIMIT = 500;
 
 export default function ImportPage() {
   return (
@@ -77,29 +80,25 @@ function ImportInner() {
   const [failure, setFailure] = useState<string | null>(null);
   const ctrlRef = useRef<AbortController | null>(null);
   const logIdRef = useRef(0);
-  const logScrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     void githubApi.me().then((s) => setGithub(s)).catch(() => setGithub({ connected: false })).finally(() => setGithubLoaded(true));
   }, []);
 
-  useEffect(() => {
-    if (logScrollRef.current) {
-      logScrollRef.current.scrollTop = logScrollRef.current.scrollHeight;
-    }
-  }, [logs]);
-
   const pushLog = useCallback((level: LogLine['level'], text: string) => {
     logIdRef.current += 1;
-    setLogs((prev) => [
-      ...prev,
-      {
+    setLogs((prev) => {
+      const next = [
+        ...prev,
+        {
         id: logIdRef.current,
         level,
         text,
         ts: new Date().toLocaleTimeString('en-US'),
-      },
-    ]);
+        },
+      ];
+      return next.length > LOG_LIMIT ? next.slice(-LOG_LIMIT) : next;
+    });
   }, []);
 
   const stageLabel = useMemo<Record<string, string>>(() => ({
@@ -346,9 +345,8 @@ function ImportInner() {
             }}
           />
           <Box
-            ref={logScrollRef}
             sx={{
-              flex: 1, minHeight: 200, maxHeight: 360, overflowY: 'auto',
+              flex: 1, minHeight: 200,
               bgcolor: '#0d0d0d', color: '#e7e2d4', borderRadius: '8px',
               fontFamily: tokens.font.mono, fontSize: 12.5, lineHeight: 1.6,
               p: 1.4,
@@ -359,16 +357,15 @@ function ImportInner() {
                 The log will appear here once the import starts.
               </Typography>
             ) : (
-              logs.map((line) => (
-                <Box key={line.id} sx={{
-                  color: line.level === 'error' ? '#ff8a8a'
-                    : line.level === 'warn' ? '#ffd166'
-                    : line.level === 'success' ? tokens.color.accent.lime
-                    : '#e7e2d4',
-                }}>
-                  <span style={{ opacity: 0.55 }}>[{line.ts}]</span> {line.text}
-                </Box>
-              ))
+              <VirtualList
+                items={logs}
+                itemHeight={22}
+                getItemHeight={(line) => (line.text.length > 120 ? 44 : 22)}
+                height={Math.min(360, Math.max(200, logs.length * 22))}
+                keyExtractor={(line) => line.id}
+                ariaLabel="Import log"
+                renderItem={(line) => <LogLineRow line={line} />}
+              />
             )}
           </Box>
 
@@ -391,5 +388,21 @@ function ImportInner() {
         </Surface>
       </Box>
     </AppShell>
+  );
+}
+
+function LogLineRow({ line }: { line: LogLine }) {
+  return (
+    <Box sx={{
+      color: line.level === 'error' ? '#ff8a8a'
+        : line.level === 'warn' ? '#ffd166'
+        : line.level === 'success' ? tokens.color.accent.lime
+        : '#e7e2d4',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'pre-wrap',
+    }}>
+      <span style={{ opacity: 0.55 }}>[{line.ts}]</span> {line.text}
+    </Box>
   );
 }
