@@ -91,6 +91,15 @@ export interface VisualTarget {
   tolerance?: number;
 }
 
+export interface Subproject {
+  id: string;
+  name: string;
+  path: string;
+  stack?: ProductSpec['stack'];
+  role?: 'frontend' | 'backend' | 'worker' | 'mobile' | 'ml' | string;
+  createdAt: string;
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -103,6 +112,7 @@ export interface Project {
   events: ExecutionEvent[];
   github?: GitHubLink;
   visualTargets?: VisualTarget[];
+  subprojects?: Subproject[];
   createdAt: string;
   updatedAt: string;
 }

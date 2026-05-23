@@ -23,6 +23,7 @@ import (
 	"ironflyer/apps/orchestrator/internal/brainstorm"
 	"ironflyer/apps/orchestrator/internal/budget"
 	"ironflyer/apps/orchestrator/internal/domain"
+	"ironflyer/apps/orchestrator/internal/figma"
 	"ironflyer/apps/orchestrator/internal/finisher"
 	"ironflyer/apps/orchestrator/internal/integrations"
 	"ironflyer/apps/orchestrator/internal/integrations/github"
@@ -79,6 +80,19 @@ type Deps struct {
 	// Optional; nil disables /audit endpoints but the rest of the API
 	// stays functional.
 	Audit audit.Store
+	// FigmaTool is the in-process figma_import tool. The HTTP endpoint
+	// invokes it directly so an operator can ingest a design from the
+	// dashboard without going through the Coder loop. Optional — when
+	// nil, /api/projects/:id/figma-import returns 503.
+	FigmaTool *figma.Tool
+	// Build identity stamped at link time via the orchestrator Makefile's
+	// -ldflags target. In dev (`go run`, plain `go build`) these stay at
+	// their defaults so /version still answers — it just reports "dev" /
+	// "unknown", which is the correct signal that the binary did not
+	// come out of the release pipeline.
+	Version   string
+	Commit    string
+	BuildTime string
 }
 
 type API struct{ d Deps }
@@ -144,6 +158,7 @@ func New(d Deps) http.Handler {
 				r.Get("/files", a.listFiles)
 				r.Get("/graph", a.projectGraph)
 				r.Get("/gates", a.listGates)
+				r.Get("/snapshot", a.projectSnapshot)
 				r.Post("/run", a.runFinisher)
 				r.Get("/stream", a.streamEvents)
 				r.Post("/prompt", a.promptPlan)
@@ -155,10 +170,14 @@ func New(d Deps) http.Handler {
 				r.Get("/visual-targets", a.listVisualTargets)
 				r.Post("/visual-targets", a.addVisualTarget)
 				r.Delete("/visual-targets/{targetId}", a.deleteVisualTarget)
+				r.Get("/subprojects", a.listSubprojects)
+				r.Post("/subprojects", a.addSubproject)
+				r.Delete("/subprojects/{subId}", a.deleteSubproject)
 				r.Get("/search", a.searchProjectCode)
 				r.Post("/connect-github", a.projectConnectGitHub)
 				r.Delete("/connect-github", a.projectDisconnectGitHub)
 				r.Post("/clone-into-workspace", a.projectCloneIntoWorkspace)
+				r.Post("/figma-import", a.figmaImport)
 			})
 		})
 		r.Post("/patches/{patchId}/apply", a.applyPatch)
@@ -799,6 +818,106 @@ func (a *API) deleteVisualTarget(w http.ResponseWriter, r *http.Request) {
 	}
 	if !removed {
 		writeJSON(w, http.StatusNotFound, errJSON("target not found"))
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
+}
+
+// listSubprojects returns the project's subprojects (multi-service /
+// monorepo layout). Empty slice means single-service (the default).
+func (a *API) listSubprojects(w http.ResponseWriter, r *http.Request) {
+	p, ok := a.requireProjectAccess(w, r, chi.URLParam(r, "id"))
+	if !ok {
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"subprojects": p.Subprojects,
+		"count":       len(p.Subprojects),
+	})
+}
+
+// addSubproject registers a new service inside the project. Body:
+// { name, path, role?, stack? }. The server assigns ID + CreatedAt so
+// callers can't collide. Path is required because it's what
+// SubprojectByPath uses to claim files at execution time.
+func (a *API) addSubproject(w http.ResponseWriter, r *http.Request) {
+	if _, ok := a.requireProjectAccess(w, r, chi.URLParam(r, "id")); !ok {
+		return
+	}
+	id := chi.URLParam(r, "id")
+	var body struct {
+		Name  string               `json:"name"`
+		Path  string               `json:"path"`
+		Role  string               `json:"role"`
+		Stack domain.StackDecision `json:"stack"`
+	}
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 64<<10)).Decode(&body); err != nil {
+		writeJSON(w, http.StatusBadRequest, errJSON("invalid JSON or payload > 64 KiB"))
+		return
+	}
+	name := strings.TrimSpace(body.Name)
+	path := strings.Trim(strings.TrimSpace(body.Path), "/")
+	if name == "" {
+		writeJSON(w, http.StatusBadRequest, errJSON("name required"))
+		return
+	}
+	if path == "" {
+		writeJSON(w, http.StatusBadRequest, errJSON("path required"))
+		return
+	}
+	sub := domain.Subproject{
+		ID:        uuid.NewString(),
+		Name:      name,
+		Path:      path,
+		Role:      strings.TrimSpace(body.Role),
+		Stack:     body.Stack,
+		CreatedAt: time.Now().UTC(),
+	}
+	updated, err := a.d.Projects.Update(id, func(p *domain.Project) {
+		p.Subprojects = append(p.Subprojects, sub)
+	})
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, errJSON(err.Error()))
+		return
+	}
+	writeJSON(w, http.StatusCreated, map[string]any{
+		"subproject": sub,
+		"count":      len(updated.Subprojects),
+	})
+}
+
+// deleteSubproject removes a subproject by id. Idempotent on the wire
+// — re-DELETE returns 200 with ok:false rather than a noisy 404, mirroring
+// memory.Delete. Returns 404 when the subproject isn't on the project so
+// dashboards can detect the no-op explicitly.
+func (a *API) deleteSubproject(w http.ResponseWriter, r *http.Request) {
+	if _, ok := a.requireProjectAccess(w, r, chi.URLParam(r, "id")); !ok {
+		return
+	}
+	id := chi.URLParam(r, "id")
+	subID := chi.URLParam(r, "subId")
+	if subID == "" {
+		writeJSON(w, http.StatusBadRequest, errJSON("subId required"))
+		return
+	}
+	var removed bool
+	_, err := a.d.Projects.Update(id, func(p *domain.Project) {
+		kept := p.Subprojects[:0]
+		for _, s := range p.Subprojects {
+			if s.ID == subID {
+				removed = true
+				continue
+			}
+			kept = append(kept, s)
+		}
+		p.Subprojects = kept
+	})
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, errJSON(err.Error()))
+		return
+	}
+	if !removed {
+		writeJSON(w, http.StatusNotFound, errJSON("subproject not found"))
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
@@ -1622,6 +1741,49 @@ func (a *API) projectCloneIntoWorkspace(w http.ResponseWriter, r *http.Request) 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(resp.StatusCode)
 	_, _ = w.Write(bodyBytes)
+}
+
+// figmaImport ingests a Figma file into the calling user's workspace.
+// Body: { "fileKey": "...", "workspaceId": "..." }. The workspaceId is
+// required because the underlying figma.Tool writes the extracted
+// manifests directly into a runtime sandbox; without it the call would
+// fail anyway with "no workspace bound". The operator-configured
+// FIGMA_TOKEN is read out of cfg.FigmaToken (held inside the tool's
+// Client); when empty the endpoint returns 503 so the dashboard can
+// render a "connect Figma" prompt instead of a confusing 500.
+func (a *API) figmaImport(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if _, ok := a.requireProjectAccess(w, r, id); !ok {
+		return
+	}
+	if a.d.FigmaTool == nil || a.d.FigmaTool.Client == nil || a.d.FigmaTool.Client.Token == "" {
+		writeJSON(w, http.StatusServiceUnavailable, errJSON("figma token not configured"))
+		return
+	}
+	var body struct {
+		FileKey     string `json:"fileKey"`
+		WorkspaceID string `json:"workspaceId"`
+	}
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 64<<10)).Decode(&body); err != nil {
+		writeJSON(w, http.StatusBadRequest, errJSON("invalid JSON or payload > 64 KiB"))
+		return
+	}
+	if strings.TrimSpace(body.FileKey) == "" {
+		writeJSON(w, http.StatusBadRequest, errJSON("fileKey required"))
+		return
+	}
+	if strings.TrimSpace(body.WorkspaceID) == "" {
+		writeJSON(w, http.StatusBadRequest, errJSON("workspaceId required"))
+		return
+	}
+	out, err := a.d.FigmaTool.Run(r.Context(), bearerFrom(r), body.WorkspaceID, body.FileKey)
+	if err != nil {
+		writeJSON(w, http.StatusBadGateway, errJSON(err.Error()))
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte(out))
 }
 
 func (a *API) projectDisconnectGitHub(w http.ResponseWriter, r *http.Request) {

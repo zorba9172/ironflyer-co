@@ -88,6 +88,80 @@ export interface BudgetSnapshot {
   hardStop: boolean;
 }
 
+export type MemoryKind = 'project' | 'execution' | 'user' | 'business';
+
+export interface MemoryRecord {
+  id: string;
+  kind: MemoryKind;
+  projectId?: string;
+  userId?: string;
+  storyId?: string;
+  gateName?: string;
+  title: string;
+  body: string;
+  tags?: string[];
+  confidence?: number;
+  createdAt: string;
+}
+
+export interface AuditEntry {
+  id: string;
+  action: string;
+  outcome: string;
+  userId?: string;
+  projectId?: string;
+  storyId?: string;
+  gateName?: string;
+  agentRole?: string;
+  summary: string;
+  inputHash?: string;
+  outputHash?: string;
+  attrs?: Record<string, unknown>;
+  createdAt: string;
+  prevHash?: string;
+  contentHash: string;
+}
+
+export interface AuditVerifyResult {
+  ok: boolean;
+  brokenAt?: number;
+}
+
+export interface AgentCall {
+  userId: string;
+  projectId?: string;
+  role?: string;
+  provider: string;
+  model: string;
+  capabilities?: string[];
+  inputTokens: number;
+  outputTokens: number;
+  cacheReadTokens?: number;
+  cacheNewTokens?: number;
+  costUSD: number;
+  durationMs: number;
+  startedAt: string;
+  error?: string;
+}
+
+export interface GraphNode {
+  path: string;
+  language: string;
+  exports?: string[];
+  symbolCount?: number;
+}
+
+export interface GraphEdge {
+  from: string;
+  to: string;
+  raw: string;
+}
+
+export interface ProjectGraph {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+}
+
 export type WorkspaceStatus = 'creating' | 'running' | 'stopped' | 'error';
 
 export interface Workspace {
@@ -174,6 +248,42 @@ export class Api {
 
   myBudget(): Promise<BudgetSnapshot> {
     return this.request<BudgetSnapshot>('GET', '/budget/users/me');
+  }
+
+  async listMemory(opts: { kind?: MemoryKind; projectId?: string; limit?: number } = {}): Promise<MemoryRecord[]> {
+    const qs = new URLSearchParams();
+    if (opts.kind) qs.set('kind', opts.kind);
+    if (opts.projectId) qs.set('projectId', opts.projectId);
+    if (opts.limit) qs.set('limit', String(opts.limit));
+    const suffix = qs.toString();
+    const res = await this.request<{ records?: MemoryRecord[] }>('GET', `/memory/${suffix ? `?${suffix}` : ''}`);
+    return res?.records ?? [];
+  }
+
+  async listAudit(opts: { projectId?: string; limit?: number } = {}): Promise<AuditEntry[]> {
+    const qs = new URLSearchParams();
+    if (opts.projectId) qs.set('projectId', opts.projectId);
+    if (opts.limit) qs.set('limit', String(opts.limit));
+    const suffix = qs.toString();
+    const res = await this.request<{ entries?: AuditEntry[] }>('GET', `/audit/${suffix ? `?${suffix}` : ''}`);
+    return res?.entries ?? [];
+  }
+
+  async verifyAudit(): Promise<AuditVerifyResult> {
+    const res = await this.request<{ intact?: boolean; firstBadIndex?: number }>('GET', '/audit/verify');
+    return { ok: Boolean(res?.intact), brokenAt: res?.firstBadIndex ?? undefined };
+  }
+
+  async listAgentTelemetry(limit = 30): Promise<AgentCall[]> {
+    const res = await this.request<{ calls?: AgentCall[] }>(
+      'GET',
+      `/telemetry/agents?limit=${encodeURIComponent(String(limit))}`,
+    );
+    return res?.calls ?? [];
+  }
+
+  projectGraph(projectId: string): Promise<ProjectGraph> {
+    return this.request<ProjectGraph>('GET', `/projects/${encodeURIComponent(projectId)}/graph`);
   }
 
   me(): Promise<{ id: string; email: string; name?: string }> {

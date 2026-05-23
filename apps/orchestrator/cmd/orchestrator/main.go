@@ -12,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
+	surrealdb "github.com/surrealdb/surrealdb.go"
 
 	"ironflyer/apps/orchestrator/internal/agents"
 	"ironflyer/apps/orchestrator/internal/audit"
@@ -20,6 +21,8 @@ import (
 	"ironflyer/apps/orchestrator/internal/budget"
 	"ironflyer/apps/orchestrator/internal/config"
 	"ironflyer/apps/orchestrator/internal/context7"
+	"ironflyer/apps/orchestrator/internal/embeddings"
+	"ironflyer/apps/orchestrator/internal/figma"
 	"ironflyer/apps/orchestrator/internal/finisher"
 	"ironflyer/apps/orchestrator/internal/httpapi"
 	"ironflyer/apps/orchestrator/internal/imagegen"
@@ -30,11 +33,24 @@ import (
 	"ironflyer/apps/orchestrator/internal/notify"
 	"ironflyer/apps/orchestrator/internal/patch"
 	"ironflyer/apps/orchestrator/internal/providers"
+	"ironflyer/apps/orchestrator/internal/redisbus"
 	"ironflyer/apps/orchestrator/internal/runtime"
 	"ironflyer/apps/orchestrator/internal/store"
 	"ironflyer/apps/orchestrator/internal/tracing"
 	"ironflyer/apps/orchestrator/internal/webhooks"
 	"ironflyer/apps/orchestrator/internal/workflow"
+)
+
+// Build identifiers. Populated at link time via -ldflags (see
+// apps/orchestrator/Makefile). In a plain `go run` / `go build`
+// development invocation these stay at their defaults so /version
+// still answers — it just reports "dev" / "unknown", which is the
+// correct signal that the binary was not produced by the release
+// pipeline.
+var (
+	buildVersion = "dev"
+	buildCommit  = "unknown"
+	buildTime    = "unknown"
 )
 
 func main() {
@@ -86,6 +102,9 @@ func main() {
 
 	// ---------------- Project store (in-memory or SurrealDB) ----------------
 	var projects store.Store
+	// Hoisted to the outer scope so the memory + audit construction
+	// sites below can attach to the same SurrealDB connection.
+	var surrealDB *surrealdb.DB
 	if cfg.UseSurreal() {
 		db, err := store.ConnectSurreal(ctx, store.SurrealOpts{
 			URL: cfg.SurrealURL, Namespace: cfg.SurrealNS, Database: cfg.SurrealDB,
@@ -102,6 +121,7 @@ func main() {
 			logger.Warn().Err(err).Msg("surreal seed failed (continuing)")
 		}
 		projects = ss
+		surrealDB = db
 		logger.Info().Str("url", cfg.SurrealURL).Str("ns", cfg.SurrealNS).
 			Str("db", cfg.SurrealDB).Msg("SurrealDB store enabled")
 	} else {
@@ -200,6 +220,25 @@ func main() {
 		logger.Warn().Msg("GitHub integration disabled (set GITHUB_CLIENT_ID + GITHUB_CLIENT_SECRET)")
 	}
 
+	// ---------------- Redis (optional, multi-pod coordination) -------------
+	// When IRONFLYER_REDIS_ENABLED=true the orchestrator can run as 2+ pods
+	// safely: the finisher Engine acquires a distributed lock per project
+	// run, and the rate limiter swap-in points use Redis as the single
+	// source of truth across pods. Left disabled, every helper degrades to
+	// the in-process implementation that ships single-pod by default.
+	var redisClient *redisbus.Client
+	if cfg.RedisEnabled {
+		rc, err := redisbus.New(cfg.RedisAddr, cfg.RedisPassword, cfg.RedisDB)
+		if err != nil {
+			logger.Fatal().Err(err).Msg("connect redis")
+		}
+		if err := rc.Ping(ctx); err != nil {
+			logger.Fatal().Err(err).Msg("ping redis")
+		}
+		redisClient = rc
+		logger.Info().Str("addr", cfg.RedisAddr).Msg("Redis enabled (distributed locks + rate limit)")
+	}
+
 	// ---------------- Providers + Guard + Agents ----------------------------
 	router := providers.NewRouter()
 	router.Register(providers.NewMockProvider("mock"))
@@ -223,10 +262,55 @@ func main() {
 		}))
 		logger.Info().Str("model", cfg.GeminiModel).Msg("Gemini provider registered")
 	}
+	if cfg.HFAPIKey != "" {
+		router.Register(providers.NewHuggingFaceProvider(providers.HuggingFaceOpts{
+			APIKey: cfg.HFAPIKey,
+		}))
+		logger.Info().Msg("HuggingFace provider registered (Llama 3.3 / Qwen / DeepSeek / Mixtral)")
+	}
 	telemetrySink := providers.NewMemorySink(2048)
+	router.WithBandit(&providers.Bandit{Sink: telemetrySink})
+	logger.Info().Msg("Router bandit enabled (UCB1 over telemetry)")
 	guard := providers.NewBillingGuard(router, billing).WithTelemetry(telemetrySink)
-	memoryStore := memory.NewMemoryStore(4096)
-	auditStore := audit.NewMemoryStore(16 * 1024)
+	// ---------------- Memory + audit stores (in-memory or SurrealDB) -------
+	// The "surreal" backend only kicks in when the project-store branch
+	// above also connected to SurrealDB. Otherwise we keep the bounded
+	// ring buffer so the orchestrator stays bootable with zero infra.
+	var memoryStore memory.Store
+	if cfg.MemoryBackend == "surreal" && surrealDB != nil {
+		if err := memory.BootstrapSurreal(ctx, surrealDB); err != nil {
+			logger.Fatal().Err(err).Msg("memory: surreal bootstrap")
+		}
+		memoryStore = memory.NewSurrealStore(surrealDB)
+		logger.Info().Msg("Memory store: SurrealDB (persistent)")
+	} else {
+		memoryStore = memory.NewMemoryStore(4096)
+		logger.Info().Msg("Memory store: in-process ring buffer")
+	}
+	// Semantic-search wrapper: when HF_API_KEY is configured, every
+	// memory.Query with a non-empty Substring is re-ranked by cosine
+	// similarity against HuggingFace-encoded embeddings. Nil-safe: an
+	// unset key leaves the underlying store untouched (substring fallback).
+	if cfg.HFAPIKey != "" {
+		memoryStore = &memory.VectorStore{
+			Inner:    memoryStore,
+			Embedder: embeddings.NewHuggingFaceEmbedder(cfg.HFAPIKey, cfg.HFEmbedModel),
+		}
+		logger.Info().Str("model", cfg.HFEmbedModel).Msg("Memory store: HF semantic re-ranking enabled")
+	}
+
+	var auditStore audit.Store
+	if cfg.AuditBackend == "surreal" && surrealDB != nil {
+		s, err := audit.NewSurrealStore(ctx, surrealDB)
+		if err != nil {
+			logger.Fatal().Err(err).Msg("audit: surreal bootstrap")
+		}
+		auditStore = s
+		logger.Info().Msg("Audit store: SurrealDB (persistent hash chain)")
+	} else {
+		auditStore = audit.NewMemoryStore(16 * 1024)
+		logger.Info().Msg("Audit store: in-process hash chain")
+	}
 
 	registry := agents.NewRegistry(router)
 	registry.RegisterDefaults()
@@ -331,9 +415,23 @@ func main() {
 	}
 	registry.WithBuiltinTool(imgTool.Spec(), imgTool.Call)
 
+	// ---------------- Built-in Coder tools (figma_import) -----------------
+	// The Figma importer turns a Figma file URL into the design-tokens
+	// manifest + component inventory the Coder consumes. The tool is
+	// always registered so the model sees it — when FIGMA_TOKEN is
+	// empty, calls fail with "figma token not configured" rather than
+	// a missing-tool error.
+	figmaClient := figma.New(cfg.FigmaToken)
+	figmaTool := &figma.Tool{Client: figmaClient, Writer: runtimeClient}
+	registry.WithBuiltinTool(figmaTool.Spec(), figmaTool.Call)
+	if cfg.FigmaToken != "" {
+		logger.Info().Msg("Figma import enabled")
+	}
+
 	engine := finisher.NewEngine(projects, registry, patches).
 		WithRuntime(runtimeClient).
 		WithApplier(runtime.NewApplier(runtimeClient)).
+		WithRedis(redisClient).
 		WithDBProvisioner(selectDBProvisioner(cfg, logger)).
 		WithAuthScaffolder(finisher.DefaultAuthScaffolder{}).
 		WithStripeScaffolder(finisher.DefaultStripeScaffolder{}).
@@ -344,6 +442,20 @@ func main() {
 			finisher.SocialScaffolder{},
 			finisher.LearningScaffolder{},
 			finisher.DashboardScaffolder{},
+			// Native-language backend scaffolders (Rust, Go, Python).
+			finisher.RustScaffolder{},
+			finisher.GoHTTPScaffolder{},
+			finisher.PythonFastAPIScaffolder{},
+			// JVM + native mobile scaffolders.
+			finisher.JavaSpringScaffolder{},
+			finisher.KotlinAndroidScaffolder{},
+			finisher.SwiftIOSScaffolder{},
+			// Long-tail backend scaffolders (Ruby, PHP, .NET).
+			finisher.RailsScaffolder{},
+			finisher.LaravelScaffolder{},
+			finisher.DotNetScaffolder{},
+			// Production CI/CD bundle (GitHub Actions + Argo + K8s manifests).
+			finisher.CICDScaffolder{},
 		).
 		WithMemory(memoryStore).
 		WithAudit(auditStore).
@@ -407,6 +519,9 @@ func main() {
 		Telemetry: telemetrySink,
 		Memory: memoryStore,
 		Audit: auditStore,
+		Version:   buildVersion,
+		Commit:    buildCommit,
+		BuildTime: buildTime,
 		Logger: logger,
 	})
 

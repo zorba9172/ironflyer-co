@@ -177,6 +177,15 @@
         "command": "ironflyer.quickActions",
         "title": "Ironflyer: Quick Actions",
         "icon": "$(zap)"
+      },
+      {
+        "command": "ironflyer.openDependencyGraph",
+        "title": "Ironflyer: Open Dependency Graph",
+        "icon": "$(type-hierarchy)"
+      },
+      {
+        "command": "ironflyer.openMemoryRecord",
+        "title": "Ironflyer: Open Memory Record"
       }
     ],
     "keybindings": [
@@ -212,6 +221,24 @@
           "id": "ironflyer.gates",
           "name": "Finisher Gates",
           "icon": "$(checklist)",
+          "contextualTitle": "Ironflyer"
+        },
+        {
+          "id": "ironflyer.memory",
+          "name": "Memory",
+          "icon": "$(book)",
+          "contextualTitle": "Ironflyer"
+        },
+        {
+          "id": "ironflyer.audit",
+          "name": "Audit",
+          "icon": "$(shield)",
+          "contextualTitle": "Ironflyer"
+        },
+        {
+          "id": "ironflyer.telemetry",
+          "name": "Agent Telemetry",
+          "icon": "$(pulse)",
           "contextualTitle": "Ironflyer"
         },
         {
@@ -295,6 +322,21 @@
         "view": "ironflyer.gates",
         "contents": "Sign in to Ironflyer to see Finisher gates.\n[Sign In](command:ironflyer.signIn)",
         "when": "!ironflyer.signedIn"
+      },
+      {
+        "view": "ironflyer.memory",
+        "contents": "Sign in to Ironflyer to browse project memory.\n[Sign In](command:ironflyer.signIn)",
+        "when": "!ironflyer.signedIn"
+      },
+      {
+        "view": "ironflyer.audit",
+        "contents": "Sign in to Ironflyer to view the audit log.\n[Sign In](command:ironflyer.signIn)",
+        "when": "!ironflyer.signedIn"
+      },
+      {
+        "view": "ironflyer.telemetry",
+        "contents": "Sign in to Ironflyer to see agent telemetry.\n[Sign In](command:ironflyer.signIn)",
+        "when": "!ironflyer.signedIn"
       }
     ],
     "menus": {
@@ -320,6 +362,26 @@
           "group": "navigation"
         },
         {
+          "command": "ironflyer.refresh",
+          "when": "view == ironflyer.memory",
+          "group": "navigation"
+        },
+        {
+          "command": "ironflyer.refresh",
+          "when": "view == ironflyer.audit",
+          "group": "navigation"
+        },
+        {
+          "command": "ironflyer.refresh",
+          "when": "view == ironflyer.telemetry",
+          "group": "navigation"
+        },
+        {
+          "command": "ironflyer.openDependencyGraph",
+          "when": "view == ironflyer.projects",
+          "group": "navigation@3"
+        },
+        {
           "command": "ironflyer.refreshPreview",
           "when": "view == ironflyer.preview",
           "group": "navigation@1"
@@ -341,6 +403,10 @@
         },
         {
           "command": "ironflyer.showPatchDiff",
+          "when": "false"
+        },
+        {
+          "command": "ironflyer.openMemoryRecord",
           "when": "false"
         }
       ],

@@ -29,6 +29,17 @@ const (
 	// findings the Coder can fix in a single retry without paying for a
 	// full Reviewer re-run. Cheap model by design.
 	RoleCritic Role = "critic"
+	// RoleMigrator is the schema-evolution agent: when the Coder changes
+	// the project's data model the Migrator emits a reversible migration
+	// patch in the project's existing migration toolchain instead of
+	// letting the DB drift behind freshly generated types.
+	RoleMigrator Role = "migrator"
+	// RoleFigmaTranslator turns a structured Figma extract (design
+	// tokens + component inventory + per-component screenshots) into a
+	// Coder-shaped patch that materialises the design pixel-perfect in
+	// the project's existing stack. Powers the premium Figma → code
+	// tier — see internal/figma for the extraction pipeline.
+	RoleFigmaTranslator Role = "figma-translator"
 )
 
 type Task struct {

@@ -5,6 +5,7 @@ metadata:
   name: runtime-config
   labels:
     {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: runtime
 data:
   IRONFLYER_RUNTIME_ADDR: ":8090"
   IRONFLYER_RUNTIME_DRIVER: {{ .Values.runtime.driver | quote }}
@@ -13,6 +14,10 @@ data:
   IRONFLYER_LOG_FORMAT: "json"
   IRONFLYER_LOG_LEVEL: "info"
   IRONFLYER_JWT_ISSUER: "ironflyer"
+  {{- if .Values.otel.enabled }}
+  OTEL_EXPORTER_OTLP_ENDPOINT: {{ .Values.otel.endpoint | quote }}
+  OTEL_SERVICE_NAME: "ironflyer-runtime"
+  {{- end }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -20,6 +25,7 @@ metadata:
   name: runtime-workspaces
   labels:
     {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: runtime
 spec:
   accessModes: ["ReadWriteOnce"]
   resources:
@@ -38,6 +44,7 @@ metadata:
     app.kubernetes.io/name: runtime
 spec:
   replicas: 1
+  revisionHistoryLimit: 5
   strategy: { type: {{ .Values.runtime.strategy }} }
   selector:
     matchLabels:
@@ -45,12 +52,20 @@ spec:
   template:
     metadata:
       labels:
+        {{- include "ironflyer.labels" . | nindent 8 }}
         {{- include "ironflyer.selectorLabels" (dict "name" "runtime" "release" .Release.Name) | nindent 8 }}
+      annotations:
+        {{- include "ironflyer.podAnnotations" . | nindent 8 }}
+        checksum/config: {{ include (print $.Template.BasePath "/runtime.yaml") . | sha256sum }}
     spec:
+      serviceAccountName: {{ include "ironflyer.serviceAccountName" (dict "name" "runtime" "Values" .Values "Release" .Release "Chart" .Chart) }}
+      {{- $pc := include "ironflyer.priorityClassName" . }}
+      {{- if $pc }}
+      priorityClassName: {{ $pc }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 10001
-        fsGroup: 10001
+        {{- include "ironflyer.podSecurityContext" . | nindent 8 }}
       containers:
         - name: runtime
           image: {{ include "ironflyer.image" (dict "name" "runtime" "Values" .Values) }}
@@ -65,28 +80,42 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.orchestrator.secrets.name }}
                   key: IRONFLYER_JWT_SECRET
+          startupProbe:
+            httpGet: { path: /readyz, port: http }
+            periodSeconds: 5
+            failureThreshold: 60
+            timeoutSeconds: 3
           readinessProbe:
             httpGet: { path: /readyz, port: http }
-            initialDelaySeconds: 3
-            periodSeconds: 5
-            timeoutSeconds: 2
+            periodSeconds: 10
             failureThreshold: 3
+            timeoutSeconds: 3
           livenessProbe:
             httpGet: { path: /healthz, port: http }
-            initialDelaySeconds: 15
-            periodSeconds: 15
-            timeoutSeconds: 3
-            failureThreshold: 3
+            periodSeconds: 30
+            failureThreshold: 5
+            timeoutSeconds: 5
           resources:
             {{- toYaml .Values.runtime.resources | nindent 12 }}
           volumeMounts:
             - { name: workspaces, mountPath: /workspaces }
+            - { name: tmp, mountPath: /tmp }
           securityContext:
-            allowPrivilegeEscalation: false
-            capabilities: { drop: ["ALL"] }
+            runAsNonRoot: {{ .Values.securityContext.runAsNonRoot }}
+            runAsUser: {{ .Values.securityContext.runAsUser }}
+            allowPrivilegeEscalation: {{ .Values.securityContext.allowPrivilegeEscalation }}
+            readOnlyRootFilesystem: {{ .Values.runtime.readOnlyRootFilesystem }}
+            capabilities:
+              drop: ["ALL"]
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep {{ .Values.preStopSleepSeconds }}"]
       volumes:
         - name: workspaces
           persistentVolumeClaim: { claimName: runtime-workspaces }
+        - name: tmp
+          emptyDir: { medium: Memory, sizeLimit: 64Mi }
 ---
 apiVersion: v1
 kind: Service
@@ -94,6 +123,7 @@ metadata:
   name: runtime
   labels:
     {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: runtime
 spec:
   selector:
     {{- include "ironflyer.selectorLabels" (dict "name" "runtime" "release" .Release.Name) | nindent 4 }}

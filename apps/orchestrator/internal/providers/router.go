@@ -137,9 +137,20 @@ type Provider interface {
 type Router struct {
 	mu        sync.RWMutex
 	providers []Provider
+	bandit    *Bandit
 }
 
 func NewRouter() *Router { return &Router{} }
+
+// WithBandit attaches a UCB1 bandit that re-ranks PickChain output using
+// historical telemetry. Pass nil to disable. Returns the router so it
+// chains with NewRouter().
+func (r *Router) WithBandit(b *Bandit) *Router {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.bandit = b
+	return r
+}
 
 func (r *Router) Register(p Provider) {
 	r.mu.Lock()
@@ -196,6 +207,9 @@ func (r *Router) PickChain(caps []Capability) []Provider {
 	out := make([]Provider, len(candidates))
 	for i, c := range candidates {
 		out[i] = c.p
+	}
+	if r.bandit != nil {
+		out = r.bandit.Rerank(out, caps)
 	}
 	return out
 }

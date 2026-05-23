@@ -52,6 +52,13 @@ type Config struct {
 	// is registered but every call returns "image generation disabled".
 	OpenAIImageAPIKey string `env:"OPENAI_IMAGE_API_KEY"`
 
+	// FigmaToken authorises the built-in figma_import tool + the
+	// /api/projects/:id/figma-import HTTP endpoint. Leave empty to
+	// disable both — the tool registers either way but every call
+	// fails with a readable "figma token not configured" rather than
+	// crashing the Coder.
+	FigmaToken string `env:"FIGMA_TOKEN"`
+
 	// GitHub OAuth + integration. Leaving CLIENT_ID empty disables the
 	// /auth/github/* endpoints (they return 503).
 	GitHubClientID     string `env:"GITHUB_CLIENT_ID"`
@@ -86,6 +93,15 @@ type Config struct {
 	SurrealDB   string `env:"SURREAL_DB" envDefault:"main"`
 	SurrealUser string `env:"SURREAL_USER" envDefault:"root"`
 	SurrealPass string `env:"SURREAL_PASS" envDefault:"root"`
+
+	// Memory + audit backends. "memory" keeps the in-process ring buffers
+	// (fine for dev / single-node demos); "surreal" persists records +
+	// the hash chain to SurrealDB so they survive restarts. Selecting
+	// "surreal" only takes effect when DBDriver also activates SurrealDB
+	// (surreal / hybrid); otherwise the orchestrator silently falls back
+	// to the in-process implementation.
+	MemoryBackend string `env:"IRONFLYER_MEMORY_BACKEND" envDefault:"memory" validate:"oneof=memory surreal"`
+	AuditBackend  string `env:"IRONFLYER_AUDIT_BACKEND"  envDefault:"memory" validate:"oneof=memory surreal"`
 
 	// -------------------- Temporal worker (production) --------------------
 	// When TemporalHost is set, main.go boots a Temporal worker on startup so
@@ -177,6 +193,17 @@ type Config struct {
 	// optional (Context7 is public) but raises the rate limit.
 	Context7Enabled   bool   `env:"IRONFLYER_CONTEXT7_ENABLED" envDefault:"true"`
 	Context7AuthToken string `env:"IRONFLYER_CONTEXT7_TOKEN"`
+
+	// -------------------- Redis (optional, horizontal scaling) -----------
+	// IRONFLYER_REDIS_ENABLED=true switches the orchestrator into multi-pod
+	// mode: finisher runs are coordinated through a distributed lock so two
+	// pods can't race on the same project, and rate limits become a single
+	// source of truth across pods. Leaving it disabled keeps the in-process
+	// implementations as the source of truth — fine for single-pod dev.
+	RedisEnabled  bool   `env:"IRONFLYER_REDIS_ENABLED" envDefault:"false"`
+	RedisAddr     string `env:"REDIS_ADDR"              envDefault:"localhost:6379"`
+	RedisPassword string `env:"REDIS_PASSWORD"`
+	RedisDB       int    `env:"REDIS_DB"                envDefault:"0"`
 }
 
 func (c Config) UsePostgres() bool {

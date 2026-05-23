@@ -54,7 +54,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the CodeForge template as the foundation for a developer-focused SaaS landing with hero, logo strip, feature grid, code demo, metrics, pricing, and a tight footer. Keep the dark, alabaster-on-near-black, electric-lime accent system. Replace placeholder copy with the product's actual positioning.",
-    "livePreview": "/template-previews/saas-01-codeforge.html",
+    "livePreview": "/template-previews/saas-01-codeforge/",
     "source": "templates/sites/saas/01-codeforge",
     "categoryDir": "saas",
     "index": "templates/sites/saas/01-codeforge/index.html"
@@ -93,7 +93,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the PulseAnalytics template as the foundation for a data-forward, editorial SaaS landing: serif headlines on cream, a live dashboard hero, attribution and dashboard split-views, executive quote band, and a usage-based pricing grid.",
-    "livePreview": "/template-previews/saas-02-pulseanalytics.html",
+    "livePreview": "/template-previews/saas-02-pulseanalytics/",
     "source": "templates/sites/saas/02-pulseanalytics",
     "categoryDir": "saas",
     "index": "templates/sites/saas/02-pulseanalytics/index.html"
@@ -131,7 +131,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the InboxZero template as the foundation for a friendly productivity SaaS landing: soft white background with magenta accents, a realistic inbox mockup in the hero, a numbered workflow band, customer quote grid, metric strip, and per-resolved pricing.",
-    "livePreview": "/template-previews/saas-03-inboxzero.html",
+    "livePreview": "/template-previews/saas-03-inboxzero/",
     "source": "templates/sites/saas/03-inboxzero",
     "categoryDir": "saas",
     "index": "templates/sites/saas/03-inboxzero/index.html"
@@ -168,7 +168,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the LedgerPro template as the foundation for a fintech-grade accounting SaaS: navy + gold palette, serif headlines, a live journal entry mockup, audit packet section with compliance badges, recognized quote, and per-entity pricing.",
-    "livePreview": "/template-previews/saas-04-ledgerpro.html",
+    "livePreview": "/template-previews/saas-04-ledgerpro/",
     "source": "templates/sites/saas/04-ledgerpro",
     "categoryDir": "saas",
     "index": "templates/sites/saas/04-ledgerpro/index.html"
@@ -205,7 +205,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Synthwave AI template as the foundation for a near-black, neon violet developer-tools landing page: gradient brand mark, editor mockup with a grounded suggestion, comparison table, neon stat strip, and per-developer pricing.",
-    "livePreview": "/template-previews/saas-05-synthwave-ai.html",
+    "livePreview": "/template-previews/saas-05-synthwave-ai/",
     "source": "templates/sites/saas/05-synthwave-ai",
     "categoryDir": "saas",
     "index": "templates/sites/saas/05-synthwave-ai/index.html"
@@ -242,7 +242,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the RouteCloud template as the foundation for a brutalist, terminal-coded devops landing: square edges, lime CTAs on near-black, a live terminal hero, sentence-to-Terraform recipe grid, monospaced footers, and a flat-fee pricing block.",
-    "livePreview": "/template-previews/saas-06-routecloud.html",
+    "livePreview": "/template-previews/saas-06-routecloud/",
     "source": "templates/sites/saas/06-routecloud",
     "categoryDir": "saas",
     "index": "templates/sites/saas/06-routecloud/index.html"
@@ -279,7 +279,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the OrbitCRM template as the foundation for a soft, friendly CRM landing page: pastel lavender background, Newsreader serif headings, an account-view hero with a live activity timeline, a five-stage pipeline mockup, recognized quote, and per-rep pricing.",
-    "livePreview": "/template-previews/saas-07-orbitcrm.html",
+    "livePreview": "/template-previews/saas-07-orbitcrm/",
     "source": "templates/sites/saas/07-orbitcrm",
     "categoryDir": "saas",
     "index": "templates/sites/saas/07-orbitcrm/index.html"
@@ -317,7 +317,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the KernelLogs template as the foundation for a dense, technical observability landing: charcoal background with orange accents, an inline flame graph hero, KQL query block with sample results, honest comparison table, and ingest-priced plans.",
-    "livePreview": "/template-previews/saas-08-kernel-logs.html",
+    "livePreview": "/template-previews/saas-08-kernel-logs/",
     "source": "templates/sites/saas/08-kernel-logs",
     "categoryDir": "saas",
     "index": "templates/sites/saas/08-kernel-logs/index.html"
@@ -355,7 +355,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the BeaconHR template as the foundation for a warm, editorial HR SaaS landing: cream background, coral CTAs, DM Serif Display headlines, a team roster hero, an approach editorial section with a pull quote, customer mosaic, and per-teammate pricing.",
-    "livePreview": "/template-previews/saas-09-beacon-hr.html",
+    "livePreview": "/template-previews/saas-09-beacon-hr/",
     "source": "templates/sites/saas/09-beacon-hr",
     "categoryDir": "saas",
     "index": "templates/sites/saas/09-beacon-hr/index.html"
@@ -393,7 +393,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Vaultline template as the foundation for a brutalist, bold-typography security SaaS landing: black background, electric red accents, Archivo display headlines, a paranoia gauge hero, blast-radius diagram, structured audit log, and per-workload pricing.",
-    "livePreview": "/template-previews/saas-10-vaultline.html",
+    "livePreview": "/template-previews/saas-10-vaultline/",
     "source": "templates/sites/saas/10-vaultline",
     "categoryDir": "saas",
     "index": "templates/sites/saas/10-vaultline/index.html"
@@ -430,7 +430,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Northstand template as the foundation for a dark, premium agency site with a manifesto-style hero, capability grid, selected-work gallery, and a confident editorial voice for a brand-and-product studio focused on second-act companies.",
-    "livePreview": "/template-previews/agency-01-northstand.html",
+    "livePreview": "/template-previews/agency-01-northstand/",
     "source": "templates/sites/agency/01-northstand",
     "categoryDir": "agency",
     "index": "templates/sites/agency/01-northstand/index.html"
@@ -468,7 +468,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Studio Curio template as the foundation for a minimal, editorial agency site built on cream and black with serif headlines, a typographic work index, and a careful tone aimed at heritage product brands and houseware makers.",
-    "livePreview": "/template-previews/agency-02-studio-curio.html",
+    "livePreview": "/template-previews/agency-02-studio-curio/",
     "source": "templates/sites/agency/02-studio-curio",
     "categoryDir": "agency",
     "index": "templates/sites/agency/02-studio-curio/index.html"
@@ -505,7 +505,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Glaze Creative template as the foundation for a bold, color-forward agency site in hot pink and yellow with oversized type, big shapes, and a playful tone aimed at consumer challenger brands.",
-    "livePreview": "/template-previews/agency-03-glaze-creative.html",
+    "livePreview": "/template-previews/agency-03-glaze-creative/",
     "source": "templates/sites/agency/03-glaze-creative",
     "categoryDir": "agency",
     "index": "templates/sites/agency/03-glaze-creative/index.html"
@@ -542,7 +542,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Field & Format template as the foundation for a Swiss-grid, print-inspired design practice site on off-white with a single red accent. Restrained typography, an essay strip, and a quiet but confident voice.",
-    "livePreview": "/template-previews/agency-04-field-format.html",
+    "livePreview": "/template-previews/agency-04-field-format/",
     "source": "templates/sites/agency/04-field-format",
     "categoryDir": "agency",
     "index": "templates/sites/agency/04-field-format/index.html"
@@ -579,7 +579,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Bureau Verso template as the foundation for a Swiss-grid, monospace-detailed brand studio site on white with a cobalt accent, aimed at deep-tech and infrastructure companies who need a systems-led brand.",
-    "livePreview": "/template-previews/agency-05-bureau-verso.html",
+    "livePreview": "/template-previews/agency-05-bureau-verso/",
     "source": "templates/sites/agency/05-bureau-verso",
     "categoryDir": "agency",
     "index": "templates/sites/agency/05-bureau-verso/index.html"
@@ -616,7 +616,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Salt & Pine template as the foundation for a warm, boutique studio site in sand and forest green with a hand-set feel, careful typography, and a slow, considered voice aimed at small businesses and craft brands.",
-    "livePreview": "/template-previews/agency-06-salt-pine.html",
+    "livePreview": "/template-previews/agency-06-salt-pine/",
     "source": "templates/sites/agency/06-salt-pine",
     "categoryDir": "agency",
     "index": "templates/sites/agency/06-salt-pine/index.html"
@@ -654,7 +654,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Atlas Films template as the foundation for a cinematic, image-led production company site in inky black with a warm cinema-gold accent, oversized stills, a directors index, and a film-credits feel.",
-    "livePreview": "/template-previews/agency-07-atlas-films.html",
+    "livePreview": "/template-previews/agency-07-atlas-films/",
     "source": "templates/sites/agency/07-atlas-films",
     "categoryDir": "agency",
     "index": "templates/sites/agency/07-atlas-films/index.html"
@@ -692,7 +692,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Volt Marketing template as the foundation for a bold, data-forward performance marketing agency site in black with an electric blue accent, big numerical stats, an inline chart, and a confident growth-focused voice.",
-    "livePreview": "/template-previews/agency-08-volt-marketing.html",
+    "livePreview": "/template-previews/agency-08-volt-marketing/",
     "source": "templates/sites/agency/08-volt-marketing",
     "categoryDir": "agency",
     "index": "templates/sites/agency/08-volt-marketing/index.html"
@@ -729,7 +729,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Hangar 12 template as the foundation for a confident, photo-led brand consultancy in warm grey and coral, aimed at founder-led companies. Long-form prose, founder portraits, an essays section, a serious-but-warm tone.",
-    "livePreview": "/template-previews/agency-09-hangar-12.html",
+    "livePreview": "/template-previews/agency-09-hangar-12/",
     "source": "templates/sites/agency/09-hangar-12",
     "categoryDir": "agency",
     "index": "templates/sites/agency/09-hangar-12/index.html"
@@ -767,7 +767,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Pivot House template as the foundation for a startup studio site in clay and mint, with a built-in-house aesthetic, a portfolio company grid, operating-model breakdown, and a confident builder voice. Tight, gritty, on-the-tools.",
-    "livePreview": "/template-previews/agency-10-pivot-house.html",
+    "livePreview": "/template-previews/agency-10-pivot-house/",
     "source": "templates/sites/agency/10-pivot-house",
     "categoryDir": "agency",
     "index": "templates/sites/agency/10-pivot-house/index.html"
@@ -803,7 +803,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Lina Mora template as the foundation for an editorial product designer portfolio. Keep the warm cream background, near-black ink, large serif display headings, and disciplined two-column case studies. Replace the persona's copy with the actual designer's manifesto, selected work, and process. Six case studies max, photographed flat.",
-    "livePreview": "/template-previews/portfolio-01-lina-mora.html",
+    "livePreview": "/template-previews/portfolio-01-lina-mora/",
     "source": "templates/sites/portfolio/01-lina-mora",
     "categoryDir": "portfolio",
     "index": "templates/sites/portfolio/01-lina-mora/index.html"
@@ -839,7 +839,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Devven template as the foundation for a staff-level software engineer portfolio. Keep the terminal-black background, mono-leading typography, green prompt accent, and dense factual sections. Replace the persona with the engineer's actual work history, writing, and talks. Aim for an engineer's CV, not a designer's deck.",
-    "livePreview": "/template-previews/portfolio-02-devven.html",
+    "livePreview": "/template-previews/portfolio-02-devven/",
     "source": "templates/sites/portfolio/02-devven",
     "categoryDir": "portfolio",
     "index": "templates/sites/portfolio/02-devven/index.html"
@@ -875,7 +875,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Aria Park template as the foundation for a documentary photographer portfolio. Keep the off-white paper background, very small typography, generous whitespace, large editorial imagery, and discreet captions. The photography is the front page — every other element apologises for being there.",
-    "livePreview": "/template-previews/portfolio-03-aria-park.html",
+    "livePreview": "/template-previews/portfolio-03-aria-park/",
     "source": "templates/sites/portfolio/03-aria-park",
     "categoryDir": "portfolio",
     "index": "templates/sites/portfolio/03-aria-park/index.html"
@@ -911,7 +911,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Mark Studio template as the foundation for an illustrator and zine-maker portfolio. Keep the warm white background, hand-set red accent, slightly wobbly section frames, and a playful tone of voice. Show illustration grids and zines as objects, not just images. Friendly first-person copy.",
-    "livePreview": "/template-previews/portfolio-04-mark-studio.html",
+    "livePreview": "/template-previews/portfolio-04-mark-studio/",
     "source": "templates/sites/portfolio/04-mark-studio",
     "categoryDir": "portfolio",
     "index": "templates/sites/portfolio/04-mark-studio/index.html"
@@ -948,7 +948,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use The Cabin template as the foundation for a writer-and-essayist portfolio. Keep the cream paper background, deep brown accent, generous serif typography, drop caps on essays, and a quiet long-form feel. Lead with three to five essays, a newsletter sign-up, a book, and an honest 'about' page. No popups.",
-    "livePreview": "/template-previews/portfolio-05-the-cabin.html",
+    "livePreview": "/template-previews/portfolio-05-the-cabin/",
     "source": "templates/sites/portfolio/05-the-cabin",
     "categoryDir": "portfolio",
     "index": "templates/sites/portfolio/05-the-cabin/index.html"
@@ -985,7 +985,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Pixel Diary template as the foundation for a senior UI designer portfolio focused on small, polished work. Keep the white background, hot pink accent, sharp grids, and screens-as-product feel. Show actual interface shots, components, and a process. Crisp, modern, no editorial flourishes.",
-    "livePreview": "/template-previews/portfolio-06-pixel-diary.html",
+    "livePreview": "/template-previews/portfolio-06-pixel-diary/",
     "source": "templates/sites/portfolio/06-pixel-diary",
     "categoryDir": "portfolio",
     "index": "templates/sites/portfolio/06-pixel-diary/index.html"
@@ -1022,7 +1022,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Resonate template as the foundation for a composer and sound designer portfolio. Keep the inky dark background, coral accent, big serif display type, waveform motifs, and a cinematic restraint. Show projects with track players, score notes, and frame stills. The site should feel like an opening title sequence.",
-    "livePreview": "/template-previews/portfolio-07-resonate.html",
+    "livePreview": "/template-previews/portfolio-07-resonate/",
     "source": "templates/sites/portfolio/07-resonate",
     "categoryDir": "portfolio",
     "index": "templates/sites/portfolio/07-resonate/index.html"
@@ -1059,7 +1059,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Folio Brut template as the foundation for a brand designer with a brutalist hand and a soft palette. Keep the bone background, electric blue accent, oversized condensed display type, raw black rules, and dense numbered index. Big projects, no apologies. The voice is short, opinionated, and slightly funny.",
-    "livePreview": "/template-previews/portfolio-08-folio-brut.html",
+    "livePreview": "/template-previews/portfolio-08-folio-brut/",
     "source": "templates/sites/portfolio/08-folio-brut",
     "categoryDir": "portfolio",
     "index": "templates/sites/portfolio/08-folio-brut/index.html"
@@ -1096,7 +1096,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Cartographer template as the foundation for a UX researcher portfolio. Keep the paper background, deep navy accent, careful sans-serif typography, diagram-like section dividers, footnote-style citations, and a tone that's evidence-led without being academic. Studies should read like trip reports, not slides.",
-    "livePreview": "/template-previews/portfolio-09-cartographer.html",
+    "livePreview": "/template-previews/portfolio-09-cartographer/",
     "source": "templates/sites/portfolio/09-cartographer",
     "categoryDir": "portfolio",
     "index": "templates/sites/portfolio/09-cartographer/index.html"
@@ -1134,7 +1134,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Hello, Pier template as the foundation for an indie-hacker full-stack engineer portfolio. Keep the warm dark grey background, yellow accent, friendly first-person voice, product cards with MRR/users metrics, side-project list, and a /now style block. The site should feel like the home page of someone who actually ships.",
-    "livePreview": "/template-previews/portfolio-10-hello-pier.html",
+    "livePreview": "/template-previews/portfolio-10-hello-pier/",
     "source": "templates/sites/portfolio/10-hello-pier",
     "categoryDir": "portfolio",
     "index": "templates/sites/portfolio/10-hello-pier/index.html"
@@ -1171,7 +1171,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Salt & Spruce template as the foundation for a heritage apparel storefront. Cream and near-black, Cormorant Garamond serif headlines, editorial product grid, slow-fashion story panel, customer voice quotes, and a calm newsletter band. Replace placeholder copy with the actual brand, drop, and product names.",
-    "livePreview": "/template-previews/ecommerce-01-salt-spruce.html",
+    "livePreview": "/template-previews/ecommerce-01-salt-spruce/",
     "source": "templates/sites/ecommerce/01-salt-spruce",
     "categoryDir": "ecommerce",
     "index": "templates/sites/ecommerce/01-salt-spruce/index.html"
@@ -1208,7 +1208,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Bloom template as the foundation for a seasonal flower farm storefront. Soft off-white and sage palette, Fraunces serif headlines, rounded photo-led product cards, a subscription chooser, farm story panel with stats, and a sage newsletter band. Replace placeholder copy with the farm's actual harvest and plans.",
-    "livePreview": "/template-previews/ecommerce-02-bloom.html",
+    "livePreview": "/template-previews/ecommerce-02-bloom/",
     "source": "templates/sites/ecommerce/02-bloom",
     "categoryDir": "ecommerce",
     "index": "templates/sites/ecommerce/02-bloom/index.html"
@@ -1245,7 +1245,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Wired template as the foundation for a technical audio / electronics storefront. Matte black with hot orange accent, JetBrains Mono labels, product cards with sensitivity / impedance specs, a measurements panel with an SVG frequency-response chart, a compare strip, and a no-hype newsletter band. Replace placeholder copy with the brand's real lineup.",
-    "livePreview": "/template-previews/ecommerce-03-wired.html",
+    "livePreview": "/template-previews/ecommerce-03-wired/",
     "source": "templates/sites/ecommerce/03-wired",
     "categoryDir": "ecommerce",
     "index": "templates/sites/ecommerce/03-wired/index.html"
@@ -1282,7 +1282,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Lumière template as the foundation for a home goods / candle / ceramics storefront. Sand and terracotta palette, DM Serif Display italic headlines, centered product grid with scent notes, two-card collection band, atelier story with founder quote, and a quiet newsletter. Replace placeholder copy with the studio's actual collection.",
-    "livePreview": "/template-previews/ecommerce-04-lumiere.html",
+    "livePreview": "/template-previews/ecommerce-04-lumiere/",
     "source": "templates/sites/ecommerce/04-lumiere",
     "categoryDir": "ecommerce",
     "index": "templates/sites/ecommerce/04-lumiere/index.html"
@@ -1320,7 +1320,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Highline template as the foundation for an eyewear storefront. White background with olive accent, Manrope sans + Newsreader serif italics, category tab strip, product grid with screen / polarized pills and swatches, editorial story panel, asymmetric lookbook grid, reviews, and a structured newsletter band. Replace placeholder copy with the brand's actual frames.",
-    "livePreview": "/template-previews/ecommerce-05-highline.html",
+    "livePreview": "/template-previews/ecommerce-05-highline/",
     "source": "templates/sites/ecommerce/05-highline",
     "categoryDir": "ecommerce",
     "index": "templates/sites/ecommerce/05-highline/index.html"
@@ -1358,7 +1358,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Roastbox template as the foundation for a specialty coffee storefront. Cream and espresso palette with a gold accent, Playfair Display italic headlines, single-origin bag grid with tasting notes, dark subscription configurator, four-step process panel, story panel about the roastery, customer quotes, and a Friday-morning newsletter. Replace placeholder copy with the roaster's actual lots and farms.",
-    "livePreview": "/template-previews/ecommerce-06-roastbox.html",
+    "livePreview": "/template-previews/ecommerce-06-roastbox/",
     "source": "templates/sites/ecommerce/06-roastbox",
     "categoryDir": "ecommerce",
     "index": "templates/sites/ecommerce/06-roastbox/index.html"
@@ -1396,7 +1396,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Ferment template as the foundation for a playful drinks storefront. Bright cream and lime palette with magenta and berry accents, Archivo Black display headlines and Caveat handwritten notes, marquee strip, label-style stat band, tilted product cards with badges, three variety packs, brewery story with hand-drawn tag, and a colorful newsletter band. Replace placeholder copy with the brand's actual flavors.",
-    "livePreview": "/template-previews/ecommerce-07-ferment.html",
+    "livePreview": "/template-previews/ecommerce-07-ferment/",
     "source": "templates/sites/ecommerce/07-ferment",
     "categoryDir": "ecommerce",
     "index": "templates/sites/ecommerce/07-ferment/index.html"
@@ -1433,7 +1433,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Tonic template as the foundation for a science-forward wellness storefront. Pale green and amber palette, Cormorant serif headlines, single-active product grid with dosage detail, four-principle formulation panel, three time-of-day routine cards, customer reports, and a journal-style newsletter band. Replace placeholder copy with the brand's actual actives and doses.",
-    "livePreview": "/template-previews/ecommerce-08-tonic.html",
+    "livePreview": "/template-previews/ecommerce-08-tonic/",
     "source": "templates/sites/ecommerce/08-tonic",
     "categoryDir": "ecommerce",
     "index": "templates/sites/ecommerce/08-tonic/index.html"
@@ -1472,7 +1472,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Yardbird template as the foundation for an outdoor / trail gear storefront. Dusty olive and rust palette, Space Grotesk + Space Mono typography, full-bleed hero, mono-stat field bar, light-section product grid, asymmetric trail photo grid, repair-shop panel with stats, kit pick cards, and field-log testimonials. Replace placeholder copy with the brand's actual lineup.",
-    "livePreview": "/template-previews/ecommerce-09-yardbird.html",
+    "livePreview": "/template-previews/ecommerce-09-yardbird/",
     "source": "templates/sites/ecommerce/09-yardbird",
     "categoryDir": "ecommerce",
     "index": "templates/sites/ecommerce/09-yardbird/index.html"
@@ -1510,7 +1510,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the PaperCut template as the foundation for a stationery storefront. White paper background with cherry red accent and italic Instrument Serif headlines, four-rule strip, numbered product catalogue grid, bindery process panel with numbered steps, paper-spec type band, and a quiet monthly dispatch newsletter. Replace placeholder copy with the brand's actual notebooks and tools.",
-    "livePreview": "/template-previews/ecommerce-10-papercut.html",
+    "livePreview": "/template-previews/ecommerce-10-papercut/",
     "source": "templates/sites/ecommerce/10-papercut",
     "categoryDir": "ecommerce",
     "index": "templates/sites/ecommerce/10-papercut/index.html"
@@ -1546,7 +1546,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Vita Trattoria template as the foundation for a warm, serif Italian restaurant site — a quiet hero with a single sentence of story, a printed-menu section with dish names, prices, and short Italian descriptors, a chef-and-kitchen narrative, a press strip, hours and a styled map placeholder, and a reservation CTA.",
-    "livePreview": "/template-previews/restaurant-01-vita-trattoria.html",
+    "livePreview": "/template-previews/restaurant-01-vita-trattoria/",
     "source": "templates/sites/restaurant/01-vita-trattoria",
     "categoryDir": "restaurant",
     "index": "templates/sites/restaurant/01-vita-trattoria/index.html"
@@ -1584,7 +1584,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Ember template as the foundation for a dramatic, dark, fire-led steakhouse site — a full-bleed hearth hero, a stats strip with dry-age numbers, a cuts grid with image cards and prices, a long-form story about the fire, a bourbon list, press strip, hours and reservation CTA.",
-    "livePreview": "/template-previews/restaurant-02-ember-steakhouse.html",
+    "livePreview": "/template-previews/restaurant-02-ember-steakhouse/",
     "source": "templates/sites/restaurant/02-ember-steakhouse",
     "categoryDir": "restaurant",
     "index": "templates/sites/restaurant/02-ember-steakhouse/index.html"
@@ -1620,7 +1620,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Shoji template as the foundation for a minimal Japanese ramen counter site — off-white paper background with indigo accents and red brush marks, a quiet hero with vertical kanji, a tabbed menu with circular dish photos, a broth process story, a counter gallery, and walk-in hours.",
-    "livePreview": "/template-previews/restaurant-03-shoji-ramen.html",
+    "livePreview": "/template-previews/restaurant-03-shoji-ramen/",
     "source": "templates/sites/restaurant/03-shoji-ramen",
     "categoryDir": "restaurant",
     "index": "templates/sites/restaurant/03-shoji-ramen/index.html"
@@ -1657,7 +1657,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Saffron template as the foundation for a jewel-toned modern Indian restaurant site — warm saffron and emerald palette, ornament-decorated rules, a hero with framed photo and current season badge, a region strip showing past and future menus, a printed-style menu with veg markers, a chef-on-the-road story, and reservation CTA.",
-    "livePreview": "/template-previews/restaurant-04-saffron-modern.html",
+    "livePreview": "/template-previews/restaurant-04-saffron-modern/",
     "source": "templates/sites/restaurant/04-saffron-modern",
     "categoryDir": "restaurant",
     "index": "templates/sites/restaurant/04-saffron-modern/index.html"
@@ -1695,7 +1695,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use The Honest Sandwich template as the foundation for a loud, playful sandwich-shop site — yellow background, Archivo Black display type, scrolling marquee, tilted hero photos, a nine-sandwich card grid with numbers, a dark sides section, an in-house bread story, and an order-ahead CTA.",
-    "livePreview": "/template-previews/restaurant-05-honest-sandwich.html",
+    "livePreview": "/template-previews/restaurant-05-honest-sandwich/",
     "source": "templates/sites/restaurant/05-honest-sandwich",
     "categoryDir": "restaurant",
     "index": "templates/sites/restaurant/05-honest-sandwich/index.html"
@@ -1732,7 +1732,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Polenta Café template as the foundation for a friendly neighborhood-café site — cream and olive palette, Fraunces serif with handwritten Caveat accents, a today's-bakes circle grid, an all-day menu split between bar and kitchen, a single-origin coffee spotlight, and warm hours and pre-order CTA.",
-    "livePreview": "/template-previews/restaurant-06-polenta-cafe.html",
+    "livePreview": "/template-previews/restaurant-06-polenta-cafe/",
     "source": "templates/sites/restaurant/06-polenta-cafe",
     "categoryDir": "restaurant",
     "index": "templates/sites/restaurant/06-polenta-cafe/index.html"
@@ -1770,7 +1770,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Mariposa template as the foundation for a vibrant modern Mexican restaurant site — deep navy with coral and gold, full-bleed photo hero, mixed Bricolage Grotesque and Marcellus serif headlines, a magazine-style dish grid with bento sizing, a long mezcal list, a chef story, and a late-night reservation CTA.",
-    "livePreview": "/template-previews/restaurant-07-mariposa.html",
+    "livePreview": "/template-previews/restaurant-07-mariposa/",
     "source": "templates/sites/restaurant/07-mariposa",
     "categoryDir": "restaurant",
     "index": "templates/sites/restaurant/07-mariposa/index.html"
@@ -1809,7 +1809,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Smoke & Oak template as the foundation for a gritty Texas BBQ site — barn-red and cream with gold accents, Alfa Slab One headlines, a scrolling tape banner, a sold-out live count strip, by-the-pound menu cards with grade tags, sides band, a post-oak fire story, beer-garden section, and burnet-Texas hours.",
-    "livePreview": "/template-previews/restaurant-08-smoke-oak.html",
+    "livePreview": "/template-previews/restaurant-08-smoke-oak/",
     "source": "templates/sites/restaurant/08-smoke-oak",
     "categoryDir": "restaurant",
     "index": "templates/sites/restaurant/08-smoke-oak/index.html"
@@ -1847,7 +1847,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Algae template as the foundation for a minimal plant-based tasting menu site — sage and ink palette, restrained Cormorant Garamond serif over JetBrains Mono labels, a numbered twenty-one-course menu, a dark fermentation-lab story, a single-farm sourcing list, and a Tock booking CTA.",
-    "livePreview": "/template-previews/restaurant-09-algae-kitchen.html",
+    "livePreview": "/template-previews/restaurant-09-algae-kitchen/",
     "source": "templates/sites/restaurant/09-algae-kitchen",
     "categoryDir": "restaurant",
     "index": "templates/sites/restaurant/09-algae-kitchen/index.html"
@@ -1886,7 +1886,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Crust + Crumb template as the foundation for a warm, label-style sourdough bakery site — wheat and red palette, DM Serif Display headlines with Special Elite typewriter labels, a six-card daily bake schedule with day highlight, hand-tagged bread cards with lot numbers, a pastry-case grid, a starter story with a feeding recipe card, and a pre-order CTA.",
-    "livePreview": "/template-previews/restaurant-10-crust-crumb.html",
+    "livePreview": "/template-previews/restaurant-10-crust-crumb/",
     "source": "templates/sites/restaurant/10-crust-crumb",
     "categoryDir": "restaurant",
     "index": "templates/sites/restaurant/10-crust-crumb/index.html"
@@ -1923,7 +1923,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Northbay Realty template as the foundation for a luxury coastal brokerage site with a signature hero residence, a refined property search bar, six exclusive listing cards, a story panel with closing volume, agent grid, client testimonials, and a quiet sale CTA.",
-    "livePreview": "/template-previews/realestate-01-northbay-realty.html",
+    "livePreview": "/template-previews/realestate-01-northbay-realty/",
     "source": "templates/sites/realestate/01-northbay-realty",
     "categoryDir": "realestate",
     "index": "templates/sites/realestate/01-northbay-realty/index.html"
@@ -1960,7 +1960,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Urban Capital template as the foundation for an institutional commercial real estate brokerage site with a dark editorial hero, sector strip, six investment-grade offerings with cap rates and NRA, four advisory practices, a track-record table, principal testimonials, and a confidential-brief CTA.",
-    "livePreview": "/template-previews/realestate-02-urban-capital.html",
+    "livePreview": "/template-previews/realestate-02-urban-capital/",
     "source": "templates/sites/realestate/02-urban-capital",
     "categoryDir": "realestate",
     "index": "templates/sites/realestate/02-urban-capital/index.html"
@@ -1997,7 +1997,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Field Estates template as the foundation for a land brokerage site representing working ranches, vineyards, and farms with a sand and forest-green palette, photo-led hero, land search, six property listings with acres and AUM, a four-step walk-through approach, land-type cards, owner stories, and a porch-side CTA.",
-    "livePreview": "/template-previews/realestate-03-field-estates.html",
+    "livePreview": "/template-previews/realestate-03-field-estates/",
     "source": "templates/sites/realestate/03-field-estates",
     "categoryDir": "realestate",
     "index": "templates/sites/realestate/03-field-estates/index.html"
@@ -2034,7 +2034,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use The Crown Group template as the foundation for an ultra-luxury international residence brokerage with a full-bleed cinematic hero, twelve-city strip, six privately presented residences across global cities, a chairman philosophy panel, three sole-mandate advisory practices, principal testimonials, and a discreet introduction CTA.",
-    "livePreview": "/template-previews/realestate-04-crown-group.html",
+    "livePreview": "/template-previews/realestate-04-crown-group/",
     "source": "templates/sites/realestate/04-crown-group",
     "categoryDir": "realestate",
     "index": "templates/sites/realestate/04-crown-group/index.html"
@@ -2071,7 +2071,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Halo Spaces template as the foundation for a coworking and private studios brand with a bright modern hero, location search, customer logo strip, six city flagships with pricing, four membership tiers, eight amenities, member testimonials, and a tour-booking CTA.",
-    "livePreview": "/template-previews/realestate-05-halo-spaces.html",
+    "livePreview": "/template-previews/realestate-05-halo-spaces/",
     "source": "templates/sites/realestate/05-halo-spaces",
     "categoryDir": "realestate",
     "index": "templates/sites/realestate/05-halo-spaces/index.html"
@@ -2108,7 +2108,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Modern Plot template as the foundation for a new-construction modernist homebuilder site with a technical hero, six available plots with engineering specs, a five-step sealed-plan process, base specification table, in-house architect grid, owner testimonials, and a site-visit reservation CTA.",
-    "livePreview": "/template-previews/realestate-06-modern-plot.html",
+    "livePreview": "/template-previews/realestate-06-modern-plot/",
     "source": "templates/sites/realestate/06-modern-plot",
     "categoryDir": "realestate",
     "index": "templates/sites/realestate/06-modern-plot/index.html"
@@ -2145,7 +2145,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Tideline template as the foundation for a beachfront vacation rental brand with a coastal sea-foam palette and coral accent, dreamy hero with date/guest search, six destination chips, six editorially curated stays with per-night pricing, a four-step how-it-works panel with host handover, guest testimonials, and a list-your-home CTA.",
-    "livePreview": "/template-previews/realestate-07-tideline.html",
+    "livePreview": "/template-previews/realestate-07-tideline/",
     "source": "templates/sites/realestate/07-tideline",
     "categoryDir": "realestate",
     "index": "templates/sites/realestate/07-tideline/index.html"
@@ -2183,7 +2183,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Cedar Architects template as the foundation for a residential architecture monograph site with a serif editorial hero, three inline SVG architectural drawings, four monograph project entries with spec lists, a four-phase process panel, studio biography, press list, client quotes, and a single-email engagement CTA.",
-    "livePreview": "/template-previews/realestate-08-cedar-architects.html",
+    "livePreview": "/template-previews/realestate-08-cedar-architects/",
     "source": "templates/sites/realestate/08-cedar-architects",
     "categoryDir": "realestate",
     "index": "templates/sites/realestate/08-cedar-architects/index.html"
@@ -2222,7 +2222,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Rent Atlas template as the foundation for a rental-search marketplace with a productized hero, six-field rental search, city tile grid, filterable verified listings with photos taken this month, six trust rules including price-lock and verified landlords, four platform stats, an iOS/Android app callout, renter testimonials, and a city search CTA.",
-    "livePreview": "/template-previews/realestate-09-rent-atlas.html",
+    "livePreview": "/template-previews/realestate-09-rent-atlas/",
     "source": "templates/sites/realestate/09-rent-atlas",
     "categoryDir": "realestate",
     "index": "templates/sites/realestate/09-rent-atlas/index.html"
@@ -2260,7 +2260,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Roost template as the foundation for a first-time home-buyer brokerage with a warm mint palette, friendly hero with mortgage callout, four-step how-it-works, six entry-level listings with monthly payment, an honest mortgage calculator panel, three plain-English guides, a flat-fee pricing card, buyer stories, and an email-capture CTA.",
-    "livePreview": "/template-previews/realestate-10-roost.html",
+    "livePreview": "/template-previews/realestate-10-roost/",
     "source": "templates/sites/realestate/10-roost",
     "categoryDir": "realestate",
     "index": "templates/sites/realestate/10-roost/index.html"
@@ -2296,7 +2296,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Forge Gym template as the foundation for a dark, barbell-focused strength gym site with hero, program cards, weekly schedule, coach grid, member testimonials, and membership tiers.",
-    "livePreview": "/template-previews/fitness-01-forge-gym.html",
+    "livePreview": "/template-previews/fitness-01-forge-gym/",
     "source": "templates/sites/fitness/01-forge-gym",
     "categoryDir": "fitness",
     "index": "templates/sites/fitness/01-forge-gym/index.html"
@@ -2333,7 +2333,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Stillpoint Yoga template as the foundation for a soft, sand-and-olive yoga studio site with hero photo, class types, weekly schedule, teacher grid, member quotes, and pricing.",
-    "livePreview": "/template-previews/fitness-02-stillpoint-yoga.html",
+    "livePreview": "/template-previews/fitness-02-stillpoint-yoga/",
     "source": "templates/sites/fitness/02-stillpoint-yoga",
     "categoryDir": "fitness",
     "index": "templates/sites/fitness/02-stillpoint-yoga/index.html"
@@ -2369,7 +2369,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Trail Run Club template as the foundation for a photo-led city running club site with hero, run groups, weekly meet schedule, race calendar, member quotes, and a membership join section.",
-    "livePreview": "/template-previews/fitness-03-trail-run.html",
+    "livePreview": "/template-previews/fitness-03-trail-run/",
     "source": "templates/sites/fitness/03-trail-run",
     "categoryDir": "fitness",
     "index": "templates/sites/fitness/03-trail-run/index.html"
@@ -2406,7 +2406,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Cyclebar Loop template as the foundation for a dark, neon-pink indoor cycling studio site with hero, ride types, schedule, instructor grid, member quotes, and class pack pricing.",
-    "livePreview": "/template-previews/fitness-04-cyclebar-loop.html",
+    "livePreview": "/template-previews/fitness-04-cyclebar-loop/",
     "source": "templates/sites/fitness/04-cyclebar-loop",
     "categoryDir": "fitness",
     "index": "templates/sites/fitness/04-cyclebar-loop/index.html"
@@ -2443,7 +2443,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Klinik template as the foundation for a clean, mint-accented dental clinic site with hero, services grid, four-step new-patient process, dentist team, patient testimonials, insurance info, and booking section.",
-    "livePreview": "/template-previews/fitness-05-klinik.html",
+    "livePreview": "/template-previews/fitness-05-klinik/",
     "source": "templates/sites/fitness/05-klinik",
     "categoryDir": "fitness",
     "index": "templates/sites/fitness/05-klinik/index.html"
@@ -2480,7 +2480,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Pulse Cardio template as the foundation for a navy and electric-blue HIIT studio site with hero, heart-rate zones, class types, weekly schedule, coach grid, member results, and class-pack pricing.",
-    "livePreview": "/template-previews/fitness-06-pulse-cardio.html",
+    "livePreview": "/template-previews/fitness-06-pulse-cardio/",
     "source": "templates/sites/fitness/06-pulse-cardio",
     "categoryDir": "fitness",
     "index": "templates/sites/fitness/06-pulse-cardio/index.html"
@@ -2517,7 +2517,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Roam Therapy template as the foundation for a warm, lavender-accented mental health practice site with hero, modalities, four-step intake process, therapist grid, specialties, patient quotes, fees, and FAQ.",
-    "livePreview": "/template-previews/fitness-07-roam-therapy.html",
+    "livePreview": "/template-previews/fitness-07-roam-therapy/",
     "source": "templates/sites/fitness/07-roam-therapy",
     "categoryDir": "fitness",
     "index": "templates/sites/fitness/07-roam-therapy/index.html"
@@ -2554,7 +2554,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Bowline Wellness template as the foundation for a sea-foam and coral retreat brand combining sailing with breathwork. Hero, retreat types, day-on-board itinerary, guides, what's included, testimonials, upcoming dates, and booking.",
-    "livePreview": "/template-previews/fitness-08-bowline.html",
+    "livePreview": "/template-previews/fitness-08-bowline/",
     "source": "templates/sites/fitness/08-bowline",
     "categoryDir": "fitness",
     "index": "templates/sites/fitness/08-bowline/index.html"
@@ -2591,7 +2591,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Athlon Performance template as the foundation for an inky-red sports science lab site with hero, lab tests, performance services, intake process, athlete roster, performance metrics, coach grid, and program pricing.",
-    "livePreview": "/template-previews/fitness-09-athlon-performance.html",
+    "livePreview": "/template-previews/fitness-09-athlon-performance/",
     "source": "templates/sites/fitness/09-athlon-performance",
     "categoryDir": "fitness",
     "index": "templates/sites/fitness/09-athlon-performance/index.html"
@@ -2628,7 +2628,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Bloom Doula template as the foundation for a warm, blush-and-sage doula practice site with hero, service tiers, approach, doula team, classes, parent quotes, pricing, and FAQ.",
-    "livePreview": "/template-previews/fitness-10-bloom-doula.html",
+    "livePreview": "/template-previews/fitness-10-bloom-doula/",
     "source": "templates/sites/fitness/10-bloom-doula",
     "categoryDir": "fitness",
     "index": "templates/sites/fitness/10-bloom-doula/index.html"
@@ -2664,7 +2664,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Mentor School template as the foundation for a dark, technical code bootcamp landing page. Keep the charcoal background, lime accent, JetBrains Mono detailing, and cohort-based language. Replace course names, instructor bios, and outcomes with the customer's real cohorts.",
-    "livePreview": "/template-previews/education-01-mentor-school.html",
+    "livePreview": "/template-previews/education-01-mentor-school/",
     "source": "templates/sites/education/01-mentor-school",
     "categoryDir": "education",
     "index": "templates/sites/education/01-mentor-school/index.html"
@@ -2700,7 +2700,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the LabLine template as the foundation for a bright STEM course site aimed at high school and early university students. Keep the white background, cobalt accent, and didactic, no-nonsense tone. Replace subjects, course lengths, and instructor profiles with the customer's real catalog.",
-    "livePreview": "/template-previews/education-02-labline.html",
+    "livePreview": "/template-previews/education-02-labline/",
     "source": "templates/sites/education/02-labline",
     "categoryDir": "education",
     "index": "templates/sites/education/02-labline/index.html"
@@ -2736,7 +2736,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the First Class template as the foundation for an editorial, warm-cream language marketplace site. Keep the serif headings, red accent, friendly tone, and live-teacher positioning. Replace teacher cards, language list, and rates with the customer's real catalog.",
-    "livePreview": "/template-previews/education-03-first-class.html",
+    "livePreview": "/template-previews/education-03-first-class/",
     "source": "templates/sites/education/03-first-class",
     "categoryDir": "education",
     "index": "templates/sites/education/03-first-class/index.html"
@@ -2772,7 +2772,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Studyloop template as the foundation for a modern study app marketing page. Keep the off-white background, purple accent, screen mockups, and spaced-repetition framing. Replace exam types, feature copy, and screen content with the customer's real flows.",
-    "livePreview": "/template-previews/education-04-studyloop.html",
+    "livePreview": "/template-previews/education-04-studyloop/",
     "source": "templates/sites/education/04-studyloop",
     "categoryDir": "education",
     "index": "templates/sites/education/04-studyloop/index.html"
@@ -2808,7 +2808,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Curator Academy template as the foundation for a museum-tone art history and curatorial studies site. Keep the bone background, burgundy accent, serif typography, and editorial pace. Replace programs, syllabus weeks, and faculty with the customer's real catalog.",
-    "livePreview": "/template-previews/education-05-curator-academy.html",
+    "livePreview": "/template-previews/education-05-curator-academy/",
     "source": "templates/sites/education/05-curator-academy",
     "categoryDir": "education",
     "index": "templates/sites/education/05-curator-academy/index.html"
@@ -2844,7 +2844,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Founder Track template as the foundation for a gritty startup school landing page. Keep the warm-white background, orange accent, builder-tone copy, and weekly office-hours framing. Replace mentors, alumni, and weekly modules with the customer's real cohort.",
-    "livePreview": "/template-previews/education-06-founder-track.html",
+    "livePreview": "/template-previews/education-06-founder-track/",
     "source": "templates/sites/education/06-founder-track",
     "categoryDir": "education",
     "index": "templates/sites/education/06-founder-track/index.html"
@@ -2880,7 +2880,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Mathwave template as the foundation for a friendly K-12 math tutoring site. Keep the white background, teal accent, parent-friendly tone, and human-tutor-plus-AI-practice framing. Replace grade ranges, tutor profiles, and pricing with the customer's real catalog.",
-    "livePreview": "/template-previews/education-07-mathwave.html",
+    "livePreview": "/template-previews/education-07-mathwave/",
     "source": "templates/sites/education/07-mathwave",
     "categoryDir": "education",
     "index": "templates/sites/education/07-mathwave/index.html"
@@ -2916,7 +2916,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Composer School template as the foundation for a dark, elegant music composition school. Keep the inky background, gold accent, serif headings, and concert-program tone. Replace courses, faculty, and student works with the customer's real catalog.",
-    "livePreview": "/template-previews/education-08-composer-school.html",
+    "livePreview": "/template-previews/education-08-composer-school/",
     "source": "templates/sites/education/08-composer-school",
     "categoryDir": "education",
     "index": "templates/sites/education/08-composer-school/index.html"
@@ -2952,7 +2952,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the LawPath template as the foundation for a serious, navy-and-cream bar exam prep site. Keep the serif headings, deep navy background, cream typography, and attorney-built tone. Replace tracks, instructor bios, and pricing with the customer's real catalog.",
-    "livePreview": "/template-previews/education-09-lawpath.html",
+    "livePreview": "/template-previews/education-09-lawpath/",
     "source": "templates/sites/education/09-lawpath",
     "categoryDir": "education",
     "index": "templates/sites/education/09-lawpath/index.html"
@@ -2988,7 +2988,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the KidsCanvas template as the foundation for a playful kids creative classes site. Keep the warm-white background, hot-pink accent, big rounded shapes, and parent-friendly tone. Replace classes, teacher cards, and ages with the customer's real catalog.",
-    "livePreview": "/template-previews/education-10-kidscanvas.html",
+    "livePreview": "/template-previews/education-10-kidscanvas/",
     "source": "templates/sites/education/10-kidscanvas",
     "categoryDir": "education",
     "index": "templates/sites/education/10-kidscanvas/index.html"
@@ -3025,7 +3025,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use The Tinder template as the foundation for an editorial essay publication. Cream paper background, Fraunces display serif, Inter body, restrained red accent, big masthead, one feature essay hero, three-up essay grid, conversations list, an editor's note, newsletter signup, and a numbered archive. Replace copy with the publication's real essays and bylines, keep the slow editorial voice.",
-    "livePreview": "/template-previews/blog-01-the-tinder.html",
+    "livePreview": "/template-previews/blog-01-the-tinder/",
     "source": "templates/sites/blog/01-the-tinder",
     "categoryDir": "blog",
     "index": "templates/sites/blog/01-the-tinder/index.html"
@@ -3062,7 +3062,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Roastery Notes template as the foundation for a specialty coffee publication. Warm cream paper, espresso ink, soft gold accents, italic Cormorant display, Source Sans body. Sections cover origins, tasting notes, interviews, an editor's letter, and a newsletter subscription on a dark espresso band. Keep the slow, journalistic voice; replace copy with the publication's own writing.",
-    "livePreview": "/template-previews/blog-02-roastery-notes.html",
+    "livePreview": "/template-previews/blog-02-roastery-notes/",
     "source": "templates/sites/blog/02-roastery-notes",
     "categoryDir": "blog",
     "index": "templates/sites/blog/02-roastery-notes/index.html"
@@ -3098,7 +3098,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Voyage Field template as the foundation for a travel magazine. Full-bleed photographic hero with italic Playfair display headline, navy and bone palette, gold accents, dispatches grid, photo essay block, long-reads list, about-the-journal section, and a dark newsletter band. Keep the slow, reader-supported, no-sponsored-travel editorial voice.",
-    "livePreview": "/template-previews/blog-03-voyage-field.html",
+    "livePreview": "/template-previews/blog-03-voyage-field/",
     "source": "templates/sites/blog/03-voyage-field",
     "categoryDir": "blog",
     "index": "templates/sites/blog/03-voyage-field/index.html"
@@ -3136,7 +3136,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Slow Living template as the foundation for a warm lifestyle magazine. Sun-cream paper, olive accent, terracotta highlight, italic DM Serif Display and Inter body. Sections cover Home, Food, Garden, Essays, with a four-up category strip, three-up editorial grids, a long-recipe band on the olive accent, a circular-image house-notes list, about, and a newsletter footer. Voice is patient, hand-made, no sponsored content.",
-    "livePreview": "/template-previews/blog-04-slow-living.html",
+    "livePreview": "/template-previews/blog-04-slow-living/",
     "source": "templates/sites/blog/04-slow-living",
     "categoryDir": "blog",
     "index": "templates/sites/blog/04-slow-living/index.html"
@@ -3174,7 +3174,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Wired & Wild template as the foundation for an outdoor adventure magazine. Charcoal background, electric orange accent, Archivo Black display, Inter body, JetBrains Mono for tags and metadata. Full-bleed photographic hero, scrolling orange ticker band, big-left/small-right feature row, gear and guides 4-up card grids, a numbered field-log dispatch list, an about section, and a bold orange newsletter band. Voice is gritty, no-sponsored-gear, photo-led.",
-    "livePreview": "/template-previews/blog-05-wired-wild.html",
+    "livePreview": "/template-previews/blog-05-wired-wild/",
     "source": "templates/sites/blog/05-wired-wild",
     "categoryDir": "blog",
     "index": "templates/sites/blog/05-wired-wild/index.html"
@@ -3212,7 +3212,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Cinemaze template as the foundation for a film publication. Inky black background, cinema-gold accent, Bodoni Moda italic display, Inter body. Cinematic hero with star rating, scrolling marquee, three-up review grid with poster cards and star ratings, director interview block with a pull-quote, festival dispatch cards, a Letterboxd-style ranked list, an about section, and a newsletter signup. Voice is patient, cinephile, watched-it-twice.",
-    "livePreview": "/template-previews/blog-06-cinemaze.html",
+    "livePreview": "/template-previews/blog-06-cinemaze/",
     "source": "templates/sites/blog/06-cinemaze",
     "categoryDir": "blog",
     "index": "templates/sites/blog/06-cinemaze/index.html"
@@ -3250,7 +3250,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Soundboard template as the foundation for a music publication. White paper, red accent, yellow secondary accent, Anton display, Space Grotesk body. Big-type hero, scrolling now-playing strip, three-up features, album reviews 4-up grid with scores, tracks-of-the-week list with play buttons, a dark scene-report band, a yellow newsletter band, about, and footer. Voice is loud, independent, paid-for-by-readers.",
-    "livePreview": "/template-previews/blog-07-soundboard.html",
+    "livePreview": "/template-previews/blog-07-soundboard/",
     "source": "templates/sites/blog/07-soundboard",
     "categoryDir": "blog",
     "index": "templates/sites/blog/07-soundboard/index.html"
@@ -3288,7 +3288,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Field Notes Quarterly template as the foundation for a design and architecture publication. Concrete-grey paper, black ink, a single hot-orange accent, Inter and JetBrains Mono on a strict 12-column Swiss grid with slash-prefixed section numbering. Sections cover projects, a studio visit, long reads, material specimens, a colophon, and a tight newsletter footer. Voice is technical, built-and-lived-in, no-advertising.",
-    "livePreview": "/template-previews/blog-08-field-notes-quarterly.html",
+    "livePreview": "/template-previews/blog-08-field-notes-quarterly/",
     "source": "templates/sites/blog/08-field-notes-quarterly",
     "categoryDir": "blog",
     "index": "templates/sites/blog/08-field-notes-quarterly/index.html"
@@ -3325,7 +3325,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Provender template as the foundation for a food writing publication. Warm cream paper, wine red accent, ochre and handwritten Caveat highlights, EB Garamond italic display, Inter body. Sections cover stories, a long recipe band on the wine accent, a four-up larder grid with circular images, a cook's-table pull-quote block, about, and newsletter. Voice is patient, hand-tested, no-sponsored-recipes.",
-    "livePreview": "/template-previews/blog-09-provender.html",
+    "livePreview": "/template-previews/blog-09-provender/",
     "source": "templates/sites/blog/09-provender",
     "categoryDir": "blog",
     "index": "templates/sites/blog/09-provender/index.html"
@@ -3364,7 +3364,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Tradewinds template as the foundation for a finance and business newsletter. Off-white paper, deep navy ink, gold accent, Lora display serif with IBM Plex Mono for tickers and Inter for sans elements. Sections cover a dark scrolling market ticker, masthead with metadata, a left essay plus right briefs hero, three-up companies stories, a four-up numbers-of-the-week grid, an inline SVG chart-of-the-week, a long-reads list, an editor's note, and a dark newsletter band. Voice is precise, footnoted, reader-supported.",
-    "livePreview": "/template-previews/blog-10-tradewinds.html",
+    "livePreview": "/template-previews/blog-10-tradewinds/",
     "source": "templates/sites/blog/10-tradewinds",
     "categoryDir": "blog",
     "index": "templates/sites/blog/10-tradewinds/index.html"
@@ -3400,7 +3400,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Tally template as the foundation for a habit-tracker mobile-app landing. Keep the soft mint-on-white system, the CSS phone frame, App Store + Google Play badges, three-step explainer, and the calm download CTA band. Replace placeholder copy with the product's actual habit-tracker positioning.",
-    "livePreview": "/template-previews/mobile-app-01-tally.html",
+    "livePreview": "/template-previews/mobile-app-01-tally/",
     "source": "templates/sites/mobile-app/01-tally",
     "categoryDir": "mobile-app",
     "index": "templates/sites/mobile-app/01-tally/index.html"
@@ -3437,7 +3437,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Vault Wallet template as the foundation for a self-custody crypto wallet mobile-app landing. Keep the near-black + electric-green system, the CSS phone frame with a wallet UI, supported-chains strip, App Store + Google Play badges, security FAQ, and a final download CTA. Replace placeholder copy with the product's actual wallet positioning.",
-    "livePreview": "/template-previews/mobile-app-02-vault-wallet.html",
+    "livePreview": "/template-previews/mobile-app-02-vault-wallet/",
     "source": "templates/sites/mobile-app/02-vault-wallet",
     "categoryDir": "mobile-app",
     "index": "templates/sites/mobile-app/02-vault-wallet/index.html"
@@ -3474,7 +3474,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Heard template as the foundation for a podcast-app landing. Keep the warm cream-and-orange editorial system, the CSS phone frame with a now-playing UI, transcript-search feature highlight, App Store + Google Play badges, hand-picked shows shelf, and review band.",
-    "livePreview": "/template-previews/mobile-app-03-heard.html",
+    "livePreview": "/template-previews/mobile-app-03-heard/",
     "source": "templates/sites/mobile-app/03-heard",
     "categoryDir": "mobile-app",
     "index": "templates/sites/mobile-app/03-heard/index.html"
@@ -3511,7 +3511,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Threads template as the foundation for a fitness-logger mobile-app landing. Keep the charcoal + lime athletic system, the CSS phone frame with workout log UI, the stat strip, App Store + Google Play badges, three-step explainer, and a punchy download CTA.",
-    "livePreview": "/template-previews/mobile-app-04-threads-fit.html",
+    "livePreview": "/template-previews/mobile-app-04-threads-fit/",
     "source": "templates/sites/mobile-app/04-threads-fit",
     "categoryDir": "mobile-app",
     "index": "templates/sites/mobile-app/04-threads-fit/index.html"
@@ -3548,7 +3548,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the GreenLight template as the foundation for a smart-home mobile-app landing. Keep the navy + yellow system, the CSS phone frame with a room-control UI, supported-device strip, App Store + Google Play badges, three-step setup explainer, and a calm download CTA.",
-    "livePreview": "/template-previews/mobile-app-05-greenlight.html",
+    "livePreview": "/template-previews/mobile-app-05-greenlight/",
     "source": "templates/sites/mobile-app/05-greenlight",
     "categoryDir": "mobile-app",
     "index": "templates/sites/mobile-app/05-greenlight/index.html"
@@ -3585,7 +3585,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Loop template as the foundation for a sleep-tracker mobile-app landing. Keep the inky + lavender dreamy system, the CSS phone frame with a night summary UI, the phases visual, App Store + Google Play badges, three-step bedtime explainer, and a calm download CTA.",
-    "livePreview": "/template-previews/mobile-app-06-loop-sleep.html",
+    "livePreview": "/template-previews/mobile-app-06-loop-sleep/",
     "source": "templates/sites/mobile-app/06-loop-sleep",
     "categoryDir": "mobile-app",
     "index": "templates/sites/mobile-app/06-loop-sleep/index.html"
@@ -3622,7 +3622,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the RidePool template as the foundation for a carpool mobile-app landing. Keep the white + coral civic-friendly system, the CSS phone frame with a ride match UI, weekly savings stat strip, App Store + Google Play badges, three-step explainer, and a friendly download CTA.",
-    "livePreview": "/template-previews/mobile-app-07-ridepool.html",
+    "livePreview": "/template-previews/mobile-app-07-ridepool/",
     "source": "templates/sites/mobile-app/07-ridepool",
     "categoryDir": "mobile-app",
     "index": "templates/sites/mobile-app/07-ridepool/index.html"
@@ -3659,7 +3659,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Stillwater template as the foundation for a meditation-app landing. Keep the cream + sage soft palette, the CSS phone frame with a breath-pacer UI, hand-picked session shelf, App Store + Google Play badges, calm explainer, and a quiet download CTA.",
-    "livePreview": "/template-previews/mobile-app-08-stillwater.html",
+    "livePreview": "/template-previews/mobile-app-08-stillwater/",
     "source": "templates/sites/mobile-app/08-stillwater",
     "categoryDir": "mobile-app",
     "index": "templates/sites/mobile-app/08-stillwater/index.html"
@@ -3696,7 +3696,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Pocket Atlas template as the foundation for a travel-companion mobile-app landing. Keep the sand + brick-red editorial system, the CSS phone frame with an offline-map UI, photo-rich city cards, App Store + Google Play badges, three-step trip explainer, and an editorial download CTA.",
-    "livePreview": "/template-previews/mobile-app-09-pocket-atlas.html",
+    "livePreview": "/template-previews/mobile-app-09-pocket-atlas/",
     "source": "templates/sites/mobile-app/09-pocket-atlas",
     "categoryDir": "mobile-app",
     "index": "templates/sites/mobile-app/09-pocket-atlas/index.html"
@@ -3734,7 +3734,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Lumi template as the foundation for a kids-learning mobile-app landing. Keep the warm-white + hot-pink playful system with big shapes, the CSS phone frame with a phonics lesson UI, parent-facing reassurance section, App Store + Google Play badges, and a joyful download CTA.",
-    "livePreview": "/template-previews/mobile-app-10-lumi-kids.html",
+    "livePreview": "/template-previews/mobile-app-10-lumi-kids/",
     "source": "templates/sites/mobile-app/10-lumi-kids",
     "categoryDir": "mobile-app",
     "index": "templates/sites/mobile-app/10-lumi-kids/index.html"
@@ -3773,7 +3773,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Lumen Weddings template as the foundation for a boutique wedding planner's site. Keep the soft blush + cream palette, italic serif headlines, and the planning timeline. Replace photos and copy with the studio's real ceremonies, services, and pricing.",
-    "livePreview": "/template-previews/events-01-lumen-weddings.html",
+    "livePreview": "/template-previews/events-01-lumen-weddings/",
     "source": "templates/sites/events/01-lumen-weddings",
     "categoryDir": "events",
     "index": "templates/sites/events/01-lumen-weddings/index.html"
@@ -3811,7 +3811,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Syndicate template as the foundation for a serious, mono-styled engineering conference site. Keep the charcoal + lime palette, multi-track schedule, and the speakers wall. Replace tracks, speakers, and venue with the actual event.",
-    "livePreview": "/template-previews/events-02-conference-syndicate.html",
+    "livePreview": "/template-previews/events-02-conference-syndicate/",
     "source": "templates/sites/events/02-conference-syndicate",
     "categoryDir": "events",
     "index": "templates/sites/events/02-conference-syndicate/index.html"
@@ -3849,7 +3849,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Fieldfest template as the foundation for an outdoor summer music festival landing. Keep the sand + orange palette, hero photo, layered lineup, and three-day schedule. Replace artists, stages, and the venue town with the festival's real details.",
-    "livePreview": "/template-previews/events-03-fieldfest.html",
+    "livePreview": "/template-previews/events-03-fieldfest/",
     "source": "templates/sites/events/03-fieldfest",
     "categoryDir": "events",
     "index": "templates/sites/events/03-fieldfest/index.html"
@@ -3887,7 +3887,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Quill template as the foundation for an academic research conference site. Keep the warm-white + navy palette, serif headings, paper list, and the deadlines block. Replace tracks, papers, and committee with the conference's actual program.",
-    "livePreview": "/template-previews/events-04-quill-papers.html",
+    "livePreview": "/template-previews/events-04-quill-papers/",
     "source": "templates/sites/events/04-quill-papers",
     "categoryDir": "events",
     "index": "templates/sites/events/04-quill-papers/index.html"
@@ -3925,7 +3925,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Vinyl Launch Night template as the foundation for a record label's launch event series page. Keep the inky background, hot-pink accent, big record art, and the running event calendar. Replace artists, set lists, and venue with the label's actual roster and venue.",
-    "livePreview": "/template-previews/events-05-vinyl-launch.html",
+    "livePreview": "/template-previews/events-05-vinyl-launch/",
     "source": "templates/sites/events/05-vinyl-launch",
     "categoryDir": "events",
     "index": "templates/sites/events/05-vinyl-launch/index.html"
@@ -3964,7 +3964,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Garden template as the foundation for a private-celebration planning studio: birthdays, bat/bar mitzvahs, anniversaries. Keep the cream + sage palette, hand-drawn feel, occasion grid, and the milestone gallery. Replace photography and copy with the studio's real work.",
-    "livePreview": "/template-previews/events-06-garden-celebrations.html",
+    "livePreview": "/template-previews/events-06-garden-celebrations/",
     "source": "templates/sites/events/06-garden-celebrations",
     "categoryDir": "events",
     "index": "templates/sites/events/06-garden-celebrations/index.html"
@@ -4002,7 +4002,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Launchpad Demo Day template as the foundation for a startup demo-day event series. Keep the charcoal + green palette, brutalist grid, cohort wall, and investor strip. Replace the cohort, the investors, and the venue with the series' real data.",
-    "livePreview": "/template-previews/events-07-launchpad-demoday.html",
+    "livePreview": "/template-previews/events-07-launchpad-demoday/",
     "source": "templates/sites/events/07-launchpad-demoday",
     "categoryDir": "events",
     "index": "templates/sites/events/07-launchpad-demoday/index.html"
@@ -4041,7 +4041,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Cinema Fest template as the foundation for an independent film festival site. Keep the inky background, gold accent, marquee animation, and the program grid. Replace selections, filmmakers, and screening venues with the festival's actual program.",
-    "livePreview": "/template-previews/events-08-cinema-fest.html",
+    "livePreview": "/template-previews/events-08-cinema-fest/",
     "source": "templates/sites/events/08-cinema-fest",
     "categoryDir": "events",
     "index": "templates/sites/events/08-cinema-fest/index.html"
@@ -4080,7 +4080,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Haven Retreats template as the foundation for a corporate offsite planning studio. Keep the warm-white + clay palette, photo-forward destinations, agenda sample, and the calm tone. Replace destinations, programming, and team with the studio's real offerings.",
-    "livePreview": "/template-previews/events-09-retreats-haven.html",
+    "livePreview": "/template-previews/events-09-retreats-haven/",
     "source": "templates/sites/events/09-retreats-haven",
     "categoryDir": "events",
     "index": "templates/sites/events/09-retreats-haven/index.html"
@@ -4119,7 +4119,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Community Fair template as the foundation for a neighborhood or city fair landing. Keep the white + bright red and yellow palette, big graphic shapes, attractions grid, and volunteer signup. Replace the schedule, vendors, and venue with the fair's real details.",
-    "livePreview": "/template-previews/events-10-community-fair.html",
+    "livePreview": "/template-previews/events-10-community-fair/",
     "source": "templates/sites/events/10-community-fair",
     "categoryDir": "events",
     "index": "templates/sites/events/10-community-fair/index.html"
@@ -4154,7 +4154,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Maison template as the foundation for an editorial, cream-and-black luxury hair salon site with a tall display headline, priced service list, stylist bios, photo gallery, and quiet client quotes.",
-    "livePreview": "/template-previews/beauty-01-maison-salon.html",
+    "livePreview": "/template-previews/beauty-01-maison-salon/",
     "source": "templates/sites/beauty/01-maison-salon",
     "categoryDir": "beauty",
     "index": "templates/sites/beauty/01-maison-salon/index.html"
@@ -4191,7 +4191,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Nailroom template as the foundation for a clean, dusty-pink nail studio site with photo grid, priced service menu, technician bios, reviews, and an inline booking request form.",
-    "livePreview": "/template-previews/beauty-02-nailroom.html",
+    "livePreview": "/template-previews/beauty-02-nailroom/",
     "source": "templates/sites/beauty/02-nailroom",
     "categoryDir": "beauty",
     "index": "templates/sites/beauty/02-nailroom/index.html"
@@ -4227,7 +4227,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Ember Barbershop template as the foundation for a dark, charcoal-and-amber traditional men's barbershop site with a bold display headline, priced services, barber bios with photos, work gallery, and walk-in hours.",
-    "livePreview": "/template-previews/beauty-03-ember-barbershop.html",
+    "livePreview": "/template-previews/beauty-03-ember-barbershop/",
     "source": "templates/sites/beauty/03-ember-barbershop",
     "categoryDir": "beauty",
     "index": "templates/sites/beauty/03-ember-barbershop/index.html"
@@ -4263,7 +4263,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Bathhouse template as the foundation for a calm, off-white-and-jade Korean spa site with a tall hero photo, a ritual sequence, treatment menu with prices, interior gallery, member stories, and visit details.",
-    "livePreview": "/template-previews/beauty-04-bathhouse.html",
+    "livePreview": "/template-previews/beauty-04-bathhouse/",
     "source": "templates/sites/beauty/04-bathhouse",
     "categoryDir": "beauty",
     "index": "templates/sites/beauty/04-bathhouse/index.html"
@@ -4299,7 +4299,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Lash & Brow Studio template as the foundation for a refined, rose-gold lash studio site with a tabbed lash-style picker, brow service list, two artist bios, photo gallery, and quiet client quotes.",
-    "livePreview": "/template-previews/beauty-05-lash-studio.html",
+    "livePreview": "/template-previews/beauty-05-lash-studio/",
     "source": "templates/sites/beauty/05-lash-studio",
     "categoryDir": "beauty",
     "index": "templates/sites/beauty/05-lash-studio/index.html"
@@ -4336,7 +4336,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Stillwater Spa template as the foundation for a calm, sea-foam-and-sand day spa site with a centered serif hero, treatment menu split between massage and facial, room photos, therapist bios, day packages, and a quiet pull quote.",
-    "livePreview": "/template-previews/beauty-06-stillwater-spa.html",
+    "livePreview": "/template-previews/beauty-06-stillwater-spa/",
     "source": "templates/sites/beauty/06-stillwater-spa",
     "categoryDir": "beauty",
     "index": "templates/sites/beauty/06-stillwater-spa/index.html"
@@ -4373,7 +4373,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Atelier Skin template as the foundation for a clinical, sage-and-white medical-grade skincare site with a stats hero, evidence-led protocol cards, a four-step method, an honest pricing table, clinician bios with credentials, a before/after section, and an inline consult booking form.",
-    "livePreview": "/template-previews/beauty-07-atelier-skin.html",
+    "livePreview": "/template-previews/beauty-07-atelier-skin/",
     "source": "templates/sites/beauty/07-atelier-skin",
     "categoryDir": "beauty",
     "index": "templates/sites/beauty/07-atelier-skin/index.html"
@@ -4410,7 +4410,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Mane Color Bar template as the foundation for a bold, cream-and-electric-blue hair color specialty salon site with a giant serif headline, color-only price menu, work gallery, colorist bios, a four-step process, reviews, and visit details.",
-    "livePreview": "/template-previews/beauty-08-mane-color-bar.html",
+    "livePreview": "/template-previews/beauty-08-mane-color-bar/",
     "source": "templates/sites/beauty/08-mane-color-bar",
     "categoryDir": "beauty",
     "index": "templates/sites/beauty/08-mane-color-bar/index.html"
@@ -4447,7 +4447,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Honey Aesthetics template as the foundation for a luxe, blush-and-gold medical aesthetics site with a serif hero, trust stats, transparent treatment pricing, a featured medical director, brand promises, client stories, an FAQ, and an inline consult booking form.",
-    "livePreview": "/template-previews/beauty-09-honey-aesthetics.html",
+    "livePreview": "/template-previews/beauty-09-honey-aesthetics/",
     "source": "templates/sites/beauty/09-honey-aesthetics",
     "categoryDir": "beauty",
     "index": "templates/sites/beauty/09-honey-aesthetics/index.html"
@@ -4485,7 +4485,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Forge Tattoo template as the foundation for a dark, charcoal-and-red custom tattoo studio site with a giant condensed display headline, style grid, healed-work flash gallery, six artist bios with hour rates, four-step process, transparent pricing, reviews, and a brief-submission booking form.",
-    "livePreview": "/template-previews/beauty-10-forge-tattoo.html",
+    "livePreview": "/template-previews/beauty-10-forge-tattoo/",
     "source": "templates/sites/beauty/10-forge-tattoo",
     "categoryDir": "beauty",
     "index": "templates/sites/beauty/10-forge-tattoo/index.html"
@@ -4522,7 +4522,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Alpenhaus template as the foundation for a small boutique mountain hotel: cream and forest-green palette, Fraunces serif headlines, full-bleed hero with a green booking widget, three room cards with per-night euro pricing, a family-history split section with amenities list, a long-table dining grid, four handwritten-style guest entries, a forest-green location panel with travel routes, and a quiet family-run footer.",
-    "livePreview": "/template-previews/travel-01-alpenhaus-hotel.html",
+    "livePreview": "/template-previews/travel-01-alpenhaus-hotel/",
     "source": "templates/sites/travel/01-alpenhaus-hotel",
     "categoryDir": "travel",
     "index": "templates/sites/travel/01-alpenhaus-hotel/index.html"
@@ -4559,7 +4559,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Desert Bloom template as the foundation for a desert resort and spa: sand and terracotta palette, Cormorant Garamond italic serif headlines, a center-aligned hero, a four-field booking widget that overlaps the hero image, three image-led experience cards with gradient overlays, two suite cards with all-inclusive pricing, a warm spa pull-quote panel, four guest reviews, and a dark stone-coloured location panel.",
-    "livePreview": "/template-previews/travel-02-desert-bloom-resort.html",
+    "livePreview": "/template-previews/travel-02-desert-bloom-resort/",
     "source": "templates/sites/travel/02-desert-bloom-resort",
     "categoryDir": "travel",
     "index": "templates/sites/travel/02-desert-bloom-resort/index.html"
@@ -4594,7 +4594,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Wayfinder template as the foundation for a small-group guided tour company: navy and coral palette, Playfair Display serif headlines on Inter body, an editorial hero with portrait image and three stats, six departure cards with country, duration, seats-left tag and per-traveller pricing, a sticky-image day-by-day itinerary panel, four traveller reviews, and a coral call-a-planner CTA.",
-    "livePreview": "/template-previews/travel-03-wayfinder-tours.html",
+    "livePreview": "/template-previews/travel-03-wayfinder-tours/",
     "source": "templates/sites/travel/03-wayfinder-tours",
     "categoryDir": "travel",
     "index": "templates/sites/travel/03-wayfinder-tours/index.html"
@@ -4631,7 +4631,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the City Suites template as the foundation for a dark urban boutique hotel: charcoal and gold palette, Italiana display serif headlines, full-bleed dimly lit hero with an overlapping cream booking widget, three room cards with euro pricing, a numbered amenities list with two portrait images, two large dining-and-bar cards with gradient overlays, three editorial guest pull-quotes, and a side-by-side location panel.",
-    "livePreview": "/template-previews/travel-04-city-suites.html",
+    "livePreview": "/template-previews/travel-04-city-suites/",
     "source": "templates/sites/travel/04-city-suites",
     "categoryDir": "travel",
     "index": "templates/sites/travel/04-city-suites/index.html"
@@ -4668,7 +4668,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Island Haven template as the foundation for a tropical beach resort: sea-foam and coral palette, DM Serif Display headlines, a rounded-corner hero image with overlaid title and white booking widget, three villa cards including one feature, four experience tiles with circular icons, a split dining panel with weekly menu list, three guest reviews with portraits, and a five-stat dark location strip.",
-    "livePreview": "/template-previews/travel-05-island-haven.html",
+    "livePreview": "/template-previews/travel-05-island-haven/",
     "source": "templates/sites/travel/05-island-haven",
     "categoryDir": "travel",
     "index": "templates/sites/travel/05-island-haven/index.html"
@@ -4705,7 +4705,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Trail Lodge template as the foundation for an adventure lodge and guide service: olive and amber palette, Bebas Neue condensed display headlines on Inter body, full-bleed lodge-and-mountain hero with four stats, a dark booking widget with optional guide selection, three bunk cards from bunkhouse to family room with all-meal pricing, four route cards with class grade and distance/vert stats, a day-rhythm timeline, three guest reviews, and an amber call-to-action with directions.",
-    "livePreview": "/template-previews/travel-06-trail-lodge.html",
+    "livePreview": "/template-previews/travel-06-trail-lodge/",
     "source": "templates/sites/travel/06-trail-lodge",
     "categoryDir": "travel",
     "index": "templates/sites/travel/06-trail-lodge/index.html"
@@ -4742,7 +4742,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Voyage Rail template as the foundation for a luxury sleeper-train company: cream and burgundy palette with gold accents, Cormorant Garamond italic display, ornament dividers, centered hero, a four-field booking widget, four journey cards with stat panels and per-guest pricing, a dark burgundy seven-stop schedule panel, three cabin-class tiles with roman numeral icons, a dining-car menu list, and four guest-book quotes.",
-    "livePreview": "/template-previews/travel-07-voyage-rail.html",
+    "livePreview": "/template-previews/travel-07-voyage-rail/",
     "source": "templates/sites/travel/07-voyage-rail",
     "categoryDir": "travel",
     "index": "templates/sites/travel/07-voyage-rail/index.html"
@@ -4779,7 +4779,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Cabin template as the foundation for a vacation-rental marketplace: white and sage palette, Fraunces serif headlines on Inter body, a centered hero with a five-field search form and filter chips, a four-stat strip, six cabin cards with rating star/locale/specs/price, a how-it-works panel with four steps, three guest reviews, and a sage owners-CTA panel with apply button.",
-    "livePreview": "/template-previews/travel-08-cabin-rentals.html",
+    "livePreview": "/template-previews/travel-08-cabin-rentals/",
     "source": "templates/sites/travel/08-cabin-rentals",
     "categoryDir": "travel",
     "index": "templates/sites/travel/08-cabin-rentals/index.html"
@@ -4816,7 +4816,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Yacht Charter Co. template as the foundation for a Mediterranean yacht charter brokerage: navy and champagne palette, Cormorant Garamond italic display, a portrait-image hero with a pinned featured yacht, a four-field charter brief form, three yacht cards with spec grids and weekly-base pricing, four cruising-ground itinerary cards with gradient overlays, a four-step charter process panel, four guest reviews, and a champagne CTA panel.",
-    "livePreview": "/template-previews/travel-09-yacht-charter.html",
+    "livePreview": "/template-previews/travel-09-yacht-charter/",
     "source": "templates/sites/travel/09-yacht-charter",
     "categoryDir": "travel",
     "index": "templates/sites/travel/09-yacht-charter/index.html"
@@ -4853,7 +4853,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Expedition Co. template as the foundation for a polar and remote expedition company: charcoal and orange palette, Space Grotesk and JetBrains Mono typography, a full-bleed hero with telemetry strip, a dark roster-filter bar with grade dropdown, four expedition rosters with grade tags, spec tables, and per-person pricing, a sticky day-by-day schedule with latitude column, a four-column kit-and-support strip, four field-report quotes with orange left rule, and an orange apply CTA.",
-    "livePreview": "/template-previews/travel-10-expedition-co.html",
+    "livePreview": "/template-previews/travel-10-expedition-co/",
     "source": "templates/sites/travel/10-expedition-co",
     "categoryDir": "travel",
     "index": "templates/sites/travel/10-expedition-co/index.html"
@@ -4890,7 +4890,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the OceanGuard template as the foundation for a marine-conservation nonprofit site with a photo-led hero, impact stats grid, programs grid, a donation tier card with selectable amounts, real story quote, audited transparency bars, leadership grid, and a navy footer. Keep the white + deep-blue palette and the serif-display + Inter type pairing.",
-    "livePreview": "/template-previews/nonprofit-01-oceanguard.html",
+    "livePreview": "/template-previews/nonprofit-01-oceanguard/",
     "source": "templates/sites/nonprofit/01-oceanguard",
     "categoryDir": "nonprofit",
     "index": "templates/sites/nonprofit/01-oceanguard/index.html"
@@ -4928,7 +4928,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the First Light template as the foundation for a children's literacy nonprofit site with a warm cream + yellow palette, DM Serif Display headings, hero with rotated photo card, impact stats grid, three program cards with per-child costs, a bright donate band with selectable tiers, get-involved trio, a teacher quote, transparency reports, leadership grid, and a dark ink footer.",
-    "livePreview": "/template-previews/nonprofit-02-first-light.html",
+    "livePreview": "/template-previews/nonprofit-02-first-light/",
     "source": "templates/sites/nonprofit/02-first-light",
     "categoryDir": "nonprofit",
     "index": "templates/sites/nonprofit/02-first-light/index.html"
@@ -4966,7 +4966,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Reforest Now template as the foundation for an earthy reforestation nonprofit site with a cream + deep-forest palette, Cormorant Garamond serif headings, a full-bleed hero photo, divided stat strip, six biome cards with overlay info, a donate card with live impact label, dark cooperative-partnership band, cooperative quote, transparency pie + legend, leadership grid, and a dark forest footer.",
-    "livePreview": "/template-previews/nonprofit-03-reforest-now.html",
+    "livePreview": "/template-previews/nonprofit-03-reforest-now/",
     "source": "templates/sites/nonprofit/03-reforest-now",
     "categoryDir": "nonprofit",
     "index": "templates/sites/nonprofit/03-reforest-now/index.html"
@@ -5004,7 +5004,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Clean Water Access template as the foundation for a water-access nonprofit site with a white + sky-blue + deep-navy palette, Source Serif 4 headings, photo-led hero with overlapping data card, impact stats grid, four-step well pipeline, six regional program cards with per-person cost, a donate card with selectable tiers, monthly-giving + corporate trio, beneficiary quote, a dark transparency band, leadership grid, and a navy footer.",
-    "livePreview": "/template-previews/nonprofit-04-clean-water-access.html",
+    "livePreview": "/template-previews/nonprofit-04-clean-water-access/",
     "source": "templates/sites/nonprofit/04-clean-water-access",
     "categoryDir": "nonprofit",
     "index": "templates/sites/nonprofit/04-clean-water-access/index.html"
@@ -5042,7 +5042,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Shelter House template as the foundation for a homeless-services nonprofit site with a warm cream + coral palette, Bricolage Grotesque headings, a Housing First three-pillar block, a dark stats band, four large program tiles with imagery + costs, a dark coral donate card with tiers, a four-way get-involved row, a resident quote with lived experience, an audited ledger table, a leadership grid, and a dark footer with 24-hour outreach number.",
-    "livePreview": "/template-previews/nonprofit-05-shelter-house.html",
+    "livePreview": "/template-previews/nonprofit-05-shelter-house/",
     "source": "templates/sites/nonprofit/05-shelter-house",
     "categoryDir": "nonprofit",
     "index": "templates/sites/nonprofit/05-shelter-house/index.html"
@@ -5080,7 +5080,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Art For All template as the foundation for a playful arts-education nonprofit site with a white + magenta palette, Archivo Black display headings, hard offset shadows, a rotated photo collage hero, three program tiles with per-school costs, a magenta donate band with selectable tiers, a student-work gallery with credits, a teacher quote, a transparency block with stacked numbers, and a tilted-photo leadership grid.",
-    "livePreview": "/template-previews/nonprofit-06-art-for-all.html",
+    "livePreview": "/template-previews/nonprofit-06-art-for-all/",
     "source": "templates/sites/nonprofit/06-art-for-all",
     "categoryDir": "nonprofit",
     "index": "templates/sites/nonprofit/06-art-for-all/index.html"
@@ -5118,7 +5118,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Elder Circle template as the foundation for a senior-care nonprofit site with a cream + sage palette, italic Lora serif headings, photo hero with overlapping pull-quote card, divided stats strip, three program cards, a weekly day-center schedule block, donate card with selectable tiers, sage volunteer band, intergenerational quote, audited ledger table, leadership grid, and a warm dark footer.",
-    "livePreview": "/template-previews/nonprofit-07-elder-circle.html",
+    "livePreview": "/template-previews/nonprofit-07-elder-circle/",
     "source": "templates/sites/nonprofit/07-elder-circle",
     "categoryDir": "nonprofit",
     "index": "templates/sites/nonprofit/07-elder-circle/index.html"
@@ -5156,7 +5156,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Hope Runs template as the foundation for an annual fundraising race site with a white + hot pink palette, Anton display headings, a full-bleed photo hero with countdown card, three race-distance cards including a featured half-marathon, cumulative impact stats, four funded-lab grant cards, a pink donate band with selectable tiers, a survivor quote, sponsor strip, and dark leadership grid.",
-    "livePreview": "/template-previews/nonprofit-08-hope-runs.html",
+    "livePreview": "/template-previews/nonprofit-08-hope-runs/",
     "source": "templates/sites/nonprofit/08-hope-runs",
     "categoryDir": "nonprofit",
     "index": "templates/sites/nonprofit/08-hope-runs/index.html"
@@ -5195,7 +5195,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Builders Foundation template as the foundation for a gritty community-housing nonprofit site with a charcoal + lime palette, Space Grotesk + JetBrains Mono pairing, a per-house build-log card styled like a terminal, impact stats grid, three program tiles with cost taglines, an eight-city grid, a dark donate band with selectable tiers, an owner quote, a lime transparency band with bars, and a code-flavored footer.",
-    "livePreview": "/template-previews/nonprofit-09-builders-foundation.html",
+    "livePreview": "/template-previews/nonprofit-09-builders-foundation/",
     "source": "templates/sites/nonprofit/09-builders-foundation",
     "categoryDir": "nonprofit",
     "index": "templates/sites/nonprofit/09-builders-foundation/index.html"
@@ -5234,7 +5234,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Voices Coalition template as the foundation for an urgent civil-rights advocacy nonprofit site with a white + red palette, Tiempos Headline serif, a top urgent banner, hard-edged buttons, a three-pillar mission strip, a dark stats band, a four-case docket grid with status tags, a red donate band with tiers, a four-up take-action row, a centered pull quote, a transparency ledger, a counsel-and-coalition team grid, and a dark serif footer with a red accent stripe.",
-    "livePreview": "/template-previews/nonprofit-10-voices-coalition.html",
+    "livePreview": "/template-previews/nonprofit-10-voices-coalition/",
     "source": "templates/sites/nonprofit/10-voices-coalition",
     "categoryDir": "nonprofit",
     "index": "templates/sites/nonprofit/10-voices-coalition/index.html"
@@ -5271,7 +5271,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Nexus DAO template as the foundation for a DAO governance protocol landing. Keep the near-black background with cyan accent, the active proposal preview in the hero, the timelock/multisig narrative, and the modular features grid. Replace placeholder copy with the specific protocol's positioning, quorum, and chain set.",
-    "livePreview": "/template-previews/web3-01-nexus-dao.html",
+    "livePreview": "/template-previews/web3-01-nexus-dao/",
     "source": "templates/sites/web3/01-nexus-dao",
     "categoryDir": "web3",
     "index": "templates/sites/web3/01-nexus-dao/index.html"
@@ -5308,7 +5308,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Stargate Bridge template as the foundation for a cross-chain bridge protocol landing. Keep the neon violet on dark scheme, the interactive bridge widget in the hero, the chain-by-chain TVL grid, and the developer SDK section. Replace placeholder amounts and chain TVL numbers with the protocol's real figures.",
-    "livePreview": "/template-previews/web3-02-stargate-bridge.html",
+    "livePreview": "/template-previews/web3-02-stargate-bridge/",
     "source": "templates/sites/web3/02-stargate-bridge",
     "categoryDir": "web3",
     "index": "templates/sites/web3/02-stargate-bridge/index.html"
@@ -5344,7 +5344,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Cipher Wallet template as the foundation for a non-custodial crypto wallet landing. Keep the pure black background with electric green accent, the phone preview in the hero, the signature simulation card, and the trustworthy security framing. Replace placeholder copy with the wallet's actual chain set and feature list.",
-    "livePreview": "/template-previews/web3-03-cipher-wallet.html",
+    "livePreview": "/template-previews/web3-03-cipher-wallet/",
     "source": "templates/sites/web3/03-cipher-wallet",
     "categoryDir": "web3",
     "index": "templates/sites/web3/03-cipher-wallet/index.html"
@@ -5379,7 +5379,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Vault Finance template as the foundation for a premium DeFi yield aggregator. Keep the charcoal background with gold accent and the editorial serif headlines, the live vault listing table with APY/TVL/risk columns, and the curator-led narrative. Replace placeholder vaults with the protocol's actual strategies.",
-    "livePreview": "/template-previews/web3-04-vault-defi.html",
+    "livePreview": "/template-previews/web3-04-vault-defi/",
     "source": "templates/sites/web3/04-vault-defi",
     "categoryDir": "web3",
     "index": "templates/sites/web3/04-vault-defi/index.html"
@@ -5414,7 +5414,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Chronos template as the foundation for a generative art NFT platform with an editorial sensibility. Keep the cream background, large serif headlines, the live drop layout, and the gallery grid with CSS-rendered artwork tiles. Replace placeholder artists and editions with the platform's actual lineup.",
-    "livePreview": "/template-previews/web3-05-chronos-nft.html",
+    "livePreview": "/template-previews/web3-05-chronos-nft/",
     "source": "templates/sites/web3/05-chronos-nft",
     "categoryDir": "web3",
     "index": "templates/sites/web3/05-chronos-nft/index.html"
@@ -5451,7 +5451,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Stake Protocol template as the foundation for a liquid staking protocol landing. Keep the navy background with lime accent, the live stake widget in the hero, the APR chart, and the named validator table. Replace placeholder operators, APR numbers, and tokenomics with the protocol's real data.",
-    "livePreview": "/template-previews/web3-06-stake-protocol.html",
+    "livePreview": "/template-previews/web3-06-stake-protocol/",
     "source": "templates/sites/web3/06-stake-protocol",
     "categoryDir": "web3",
     "index": "templates/sites/web3/06-stake-protocol/index.html"
@@ -5489,7 +5489,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Mint Launchpad template as the foundation for a token launchpad landing. Keep the bright white background with electric blue accent, the featured launch card in the hero, the live/upcoming/ended launch grid, and the vesting breakdown. Replace placeholder projects with the platform's actual launches.",
-    "livePreview": "/template-previews/web3-07-mint-launchpad.html",
+    "livePreview": "/template-previews/web3-07-mint-launchpad/",
     "source": "templates/sites/web3/07-mint-launchpad",
     "categoryDir": "web3",
     "index": "templates/sites/web3/07-mint-launchpad/index.html"
@@ -5525,7 +5525,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Oracle Data template as the foundation for a decentralized oracle network landing. Keep the dark terminal aesthetic with orange accent, the live terminal in the hero, the live feed table with deviation/heartbeat columns, and the Solidity code example. Replace placeholder feeds and operator counts with the network's real numbers.",
-    "livePreview": "/template-previews/web3-08-oracle-data.html",
+    "livePreview": "/template-previews/web3-08-oracle-data/",
     "source": "templates/sites/web3/08-oracle-data",
     "categoryDir": "web3",
     "index": "templates/sites/web3/08-oracle-data/index.html"
@@ -5562,7 +5562,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the LayerZero Net template as the foundation for an L2 rollup landing. Keep the black background with purple gradient accents and ambient orbs, the center-aligned hero with metric card, the architecture steps, and the honest comparison table. Replace placeholder TPS/fee/ecosystem numbers with the network's real data.",
-    "livePreview": "/template-previews/web3-09-layer-zero-net.html",
+    "livePreview": "/template-previews/web3-09-layer-zero-net/",
     "source": "templates/sites/web3/09-layer-zero-net",
     "categoryDir": "web3",
     "index": "templates/sites/web3/09-layer-zero-net/index.html"
@@ -5600,7 +5600,7 @@ export const TEMPLATES: TemplateMeta[] = [
     ],
     "stack": "HTML + inline CSS",
     "prompt": "Use the Archive template as the foundation for an on-chain permanent storage network. Keep the bright white background with the neon green underline accent, the upload zone demo in the hero with replicating file list, the pay-once pricing card, and the proof-of-storage narrative. Replace placeholder pricing and file examples with the protocol's real numbers.",
-    "livePreview": "/template-previews/web3-10-archive-onchain.html",
+    "livePreview": "/template-previews/web3-10-archive-onchain/",
     "source": "templates/sites/web3/10-archive-onchain",
     "categoryDir": "web3",
     "index": "templates/sites/web3/10-archive-onchain/index.html"

@@ -112,6 +112,115 @@ export interface LedgerEntry {
   createdAt: string;
 }
 
+// VisualTarget is a pixel-perfect reference screenshot the UX gate diffs
+// the live preview against. `imagePngBase64` is the raw PNG bytes
+// base64-encoded (no `data:` prefix) — the orchestrator caps uploads at
+// 4 MiB.
+export interface VisualTarget {
+  id: string;
+  name?: string;
+  routeHint?: string;
+  viewportW: number;
+  viewportH: number;
+  imagePngBase64: string;
+  tolerance?: number;
+}
+
+// Subproject models one service inside a monorepo project. `path` is what
+// the file claimer uses to route generated files to the right directory.
+export interface Subproject {
+  id: string;
+  name: string;
+  path: string;
+  stack?: {
+    frontend?: string;
+    backend?: string;
+    storage?: string;
+    auth?: string;
+  };
+  role?: 'frontend' | 'backend' | 'worker' | 'mobile' | 'ml' | 'other' | string;
+  createdAt: string;
+}
+
+// ---------- Intelligence surfaces (memory / audit / telemetry / graph) -------
+
+export type MemoryKind = 'project' | 'execution' | 'user' | 'business';
+
+export interface MemoryRecord {
+  id: string;
+  kind: MemoryKind;
+  projectId?: string;
+  userId?: string;
+  storyId?: string;
+  gateName?: string;
+  title: string;
+  body: string;
+  tags?: string[];
+  confidence?: number;
+  createdAt: string;
+}
+
+export type AuditAction =
+  | 'patch.proposed'
+  | 'patch.applied'
+  | 'patch.rolled_back'
+  | 'gate.verdict'
+  | 'agent.dispatch'
+  | 'secret.written'
+  | 'workspace.exec'
+  | 'deploy'
+  | 'memory.record';
+
+export type AuditOutcome = 'success' | 'failure' | 'blocked';
+
+export interface AuditEntry {
+  id: string;
+  action: AuditAction;
+  outcome: AuditOutcome;
+  userId?: string;
+  projectId?: string;
+  storyId?: string;
+  gateName?: string;
+  agentRole?: string;
+  summary: string;
+  inputHash?: string;
+  outputHash?: string;
+  attrs?: Record<string, unknown>;
+  createdAt: string;
+  prevHash?: string;
+  contentHash: string;
+}
+
+export interface AgentCall {
+  userId: string;
+  projectId?: string;
+  role?: string;
+  provider: string;
+  model: string;
+  capabilities?: string[];
+  inputTokens: number;
+  outputTokens: number;
+  cacheReadTokens?: number;
+  cacheNewTokens?: number;
+  costUSD: number;
+  durationMs: number;
+  startedAt: string;
+  error?: string;
+}
+
+export interface GraphNode {
+  path: string;
+  language: 'ts' | 'go' | 'py' | 'other' | string;
+  exports?: string[];
+  symbolCount?: number;
+}
+
+export interface GraphEdge {
+  from: string;
+  to: string;
+  raw: string;
+}
+
 export interface BrainstormOutcome {
   plan: {
     mode: 'direct' | 'brainstorm' | 'debate' | 'research';
@@ -202,6 +311,130 @@ export const api = {
       '/leads/enterprise',
       { method: 'POST', body: JSON.stringify(body) },
     ),
+  // ---- subprojects --------------------------------------------------
+  // Monorepo modeling: one entry per app/service inside a project.
+  listSubprojects: async (id: string) => {
+    const r = await jsonFetch<{ subprojects: Subproject[] | null; count: number }>(
+      `/projects/${id}/subprojects`,
+    );
+    return r.subprojects ?? [];
+  },
+  addSubproject: (
+    id: string,
+    body: {
+      name: string;
+      path: string;
+      role?: string;
+      stack?: { frontend?: string; backend?: string; storage?: string; auth?: string };
+    },
+  ) =>
+    jsonFetch<{ subproject: Subproject; count: number }>(
+      `/projects/${id}/subprojects`,
+      { method: 'POST', body: JSON.stringify(body) },
+    ),
+  deleteSubproject: (id: string, subId: string) =>
+    jsonFetch<{ ok: true }>(
+      `/projects/${id}/subprojects/${subId}`,
+      { method: 'DELETE' },
+    ),
+  // ---- visual targets -----------------------------------------------
+  // Pixel-perfect references the UX gate diffs against the live preview.
+  listVisualTargets: async (id: string) => {
+    const r = await jsonFetch<{ targets: VisualTarget[] | null; count: number }>(
+      `/projects/${id}/visual-targets`,
+    );
+    return r.targets ?? [];
+  },
+  addVisualTarget: (
+    id: string,
+    body: {
+      name?: string;
+      routeHint?: string;
+      viewportW: number;
+      viewportH: number;
+      imagePngBase64: string;
+      tolerance?: number;
+    },
+  ) =>
+    jsonFetch<{ target: VisualTarget; count: number }>(
+      `/projects/${id}/visual-targets`,
+      { method: 'POST', body: JSON.stringify(body) },
+    ),
+  deleteVisualTarget: (id: string, targetId: string) =>
+    jsonFetch<{ ok: true }>(
+      `/projects/${id}/visual-targets/${targetId}`,
+      { method: 'DELETE' },
+    ),
+  // ---- intelligence: memory / audit / telemetry / graph ----------------
+  // Persistent project intelligence — newest-first. At least one of kind /
+  // projectId is required so the response is scoped, not a firehose.
+  listMemory: (opts: {
+    kind?: MemoryKind;
+    projectId?: string;
+    q?: string;
+    tag?: string;
+    limit?: number;
+  } = {}) => {
+    const params = new URLSearchParams();
+    if (opts.kind) params.set('kind', opts.kind);
+    if (opts.projectId) params.set('projectId', opts.projectId);
+    if (opts.q) params.set('q', opts.q);
+    if (opts.tag) params.set('tag', opts.tag);
+    if (opts.limit) params.set('limit', String(opts.limit));
+    const qs = params.toString();
+    return jsonFetch<{ records: MemoryRecord[] | null; count: number }>(
+      `/memory${qs ? `?${qs}` : ''}`,
+    ).then((r) => ({ records: r.records ?? [], count: r.count }));
+  },
+  // Immutable audit log — append-only hash chain. Filter by action /
+  // outcome / time window; capped at 1000 entries per call by the server.
+  listAudit: (opts: {
+    projectId?: string;
+    action?: string;
+    outcome?: string;
+    since?: string;
+    until?: string;
+    limit?: number;
+  } = {}) => {
+    const params = new URLSearchParams();
+    if (opts.projectId) params.set('projectId', opts.projectId);
+    if (opts.action) params.set('action', opts.action);
+    if (opts.outcome) params.set('outcome', opts.outcome);
+    if (opts.since) params.set('since', opts.since);
+    if (opts.until) params.set('until', opts.until);
+    if (opts.limit) params.set('limit', String(opts.limit));
+    const qs = params.toString();
+    return jsonFetch<{ entries: AuditEntry[] | null; count: number }>(
+      `/audit${qs ? `?${qs}` : ''}`,
+    ).then((r) => ({ entries: r.entries ?? [], count: r.count }));
+  },
+  // Compliance attestation: walks the chain and returns whether tampering
+  // has been detected. firstBadIndex is -1 when the chain is intact.
+  verifyAudit: () =>
+    jsonFetch<{ intact: boolean; firstBadIndex: number }>(`/audit/verify`),
+  // Per-call agent telemetry — provider/model/tokens/cost/duration.
+  listTelemetry: (opts: {
+    limit?: number;
+    role?: string;
+    provider?: string;
+    model?: string;
+  } = {}) => {
+    const params = new URLSearchParams();
+    if (opts.limit) params.set('limit', String(opts.limit));
+    if (opts.role) params.set('role', opts.role);
+    if (opts.provider) params.set('provider', opts.provider);
+    if (opts.model) params.set('model', opts.model);
+    const qs = params.toString();
+    return jsonFetch<{ calls: AgentCall[] | null; count: number }>(
+      `/telemetry/agents${qs ? `?${qs}` : ''}`,
+    ).then((r) => ({ calls: r.calls ?? [], count: r.count }));
+  },
+  // Derived dependency graph for a project — nodes + edges across the
+  // project's in-memory file tree.
+  projectGraph: (id: string) =>
+    jsonFetch<{ nodes: GraphNode[] | null; edges: GraphEdge[] | null }>(
+      `/projects/${id}/graph`,
+    ).then((r) => ({ nodes: r.nodes ?? [], edges: r.edges ?? [] })),
 };
 
 // streamChat opens a POST SSE stream against /chat. Browsers do not allow

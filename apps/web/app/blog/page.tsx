@@ -27,6 +27,22 @@ interface PostCard {
 
 const POSTS: PostCard[] = [
   {
+    slug: 'serious-projects-not-mvps',
+    title: 'Serious projects, not MVPs.',
+    subtitle: '12 native scaffolders, monorepo subprojects, schema migrations, real K8s CI/CD — the production layer that wasn\'t in the MVP demo.',
+    date: '2026-05-26',
+    gradient: 'linear-gradient(135deg, #ff6c3a 0%, #c7ff00 60%, #671dfc 100%)',
+    tag: 'Engineering',
+  },
+  {
+    slug: 'five-providers-one-router',
+    title: 'Five AI providers, one capability-tagged router.',
+    subtitle: 'Anthropic + OpenAI + Gemini + HuggingFace + Mock — and a UCB1 bandit that learns which one ships best per task.',
+    date: '2026-05-25',
+    gradient: 'linear-gradient(135deg, #c7ff00 0%, #6e44ff 100%)',
+    tag: 'Engineering',
+  },
+  {
     slug: 'multi-provider-routing',
     title: 'How we route across Anthropic, OpenAI, and Gemini.',
     subtitle: 'A capability-tagged router, a billing guard, and a speculative-decoding race — the three pieces that make multi-provider routing real.',

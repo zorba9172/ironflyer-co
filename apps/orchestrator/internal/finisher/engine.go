@@ -6,6 +6,8 @@ package finisher
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"sync"
 	"time"
 
@@ -14,9 +16,16 @@ import (
 	"ironflyer/apps/orchestrator/internal/domain"
 	"ironflyer/apps/orchestrator/internal/memory"
 	"ironflyer/apps/orchestrator/internal/patch"
+	"ironflyer/apps/orchestrator/internal/redisbus"
 	"ironflyer/apps/orchestrator/internal/runtime"
 	"ironflyer/apps/orchestrator/internal/store"
 )
+
+// eventsChannel returns the Redis pub/sub channel name for a project's
+// event stream. Centralised so emit + Subscribe stay in lockstep.
+func eventsChannel(projectID string) string {
+	return "ironflyer:events:" + projectID
+}
 
 // ctxKey is unexported so callers must use WithBearer / bearerFromCtx.
 type ctxKey struct{ name string }
@@ -66,6 +75,30 @@ const (
 	defaultMaxFilesPerPatch = 40
 )
 
+// adaptiveCaps scales the per-run resource budgets up for genuinely
+// large projects. The defaults are tuned for MVPs (3-7 stories); a
+// 25-story project with 12 subprojects shouldn't be choked off by a
+// 40-file patch ceiling. We grow the ceilings monotonically with the
+// project's apparent complexity (stories + subprojects + file count)
+// so MVPs stay fast and "serious projects" don't hit invisible walls.
+func adaptiveCaps(p *domain.Project) (maxIter, maxRetries, maxBytes, maxFiles int) {
+	storyCount := len(p.Spec.UserStories)
+	subCount := len(p.Subprojects)
+	fileCount := len(p.Files)
+	complexity := storyCount + 2*subCount + fileCount/20
+
+	switch {
+	case complexity >= 40:
+		return 10, 6, 2 * 1024 * 1024, 200
+	case complexity >= 20:
+		return 7, 5, 1 * 1024 * 1024, 100
+	case complexity >= 10:
+		return 5, 4, 512 * 1024, 60
+	default:
+		return defaultMaxIterations, defaultMaxCoderRetries, defaultMaxPatchBytes, defaultMaxFilesPerPatch
+	}
+}
+
 type RunReport struct {
 	ProjectID  string             `json:"projectId"`
 	Iterations int                `json:"iterations"`
@@ -97,6 +130,7 @@ type Engine struct {
 	domainScaffolders []DomainScaffolder
 	memory           memory.Store
 	audit            audit.Store
+	redis            *redisbus.Client
 	gates            []Gate
 	maxIterations    int
 	maxCoderRetries  int
@@ -201,6 +235,15 @@ func (e *Engine) WithMemory(m memory.Store) *Engine {
 	return e
 }
 
+// WithRedis attaches a Redis-backed bus so multi-pod deployments
+// can coordinate finisher runs through a distributed lock. Nil-safe:
+// passing nil leaves the engine on its single-pod path where the
+// in-process mutex is sufficient.
+func (e *Engine) WithRedis(c *redisbus.Client) *Engine {
+	e.redis = c
+	return e
+}
+
 // WithAudit registers the immutable hash-chained audit log. The engine
 // writes one entry per consequential action (patch proposed / applied
 // / rolled back, gate verdict, agent dispatch). Nil disables auditing
@@ -229,6 +272,36 @@ func (e *Engine) recordAudit(ctx context.Context, entry audit.Entry) {
 // stable ErrorCode; the function still returns normally so the HTTP
 // handler closes the response cleanly.
 func (e *Engine) Run(ctx context.Context, projectID string) (RunReport, error) {
+	// Distributed lock: when Redis is wired in main.go, two pods that
+	// both receive a Run for the same project must not race. The lock
+	// is keyed on the project and held for the worst-case run length —
+	// the unlock script is token-bound so a slow holder can't release
+	// a different pod's lock.
+	//
+	// When e.redis is nil, redisbus.Client.Lock returns acquired=true
+	// with a no-op unlock so single-pod behaviour is preserved.
+	unlock, acquired, _ := e.redis.Lock(ctx, "ironflyer:run:"+projectID, 30*time.Minute)
+	if !acquired {
+		e.emit(projectID, domain.Event{
+			ID: newEventID(), Step: StepRun, Status: StatusFailed,
+			Message:   "run already in progress on another instance",
+			CreatedAt: time.Now().UTC(),
+		})
+		return RunReport{ProjectID: projectID, Completed: false}, errors.New("run already in progress")
+	}
+	defer unlock()
+
+	// Adaptive caps: grow the per-run resource budgets when the project
+	// is large (many stories, many subprojects, many files). MVPs keep
+	// the existing tight defaults; serious projects get headroom.
+	if p, err := e.projects.Get(projectID); err == nil {
+		iter, retries, bytesCap, fileCap := adaptiveCaps(&p)
+		e.maxIterations = iter
+		e.maxCoderRetries = retries
+		e.maxPatchBytes = bytesCap
+		e.maxFilesPerPatch = fileCap
+	}
+
 	report := RunReport{ProjectID: projectID, StartedAt: time.Now().UTC()}
 
 	defer func() {
@@ -463,23 +536,124 @@ func (e *Engine) setGate(projectID string, name domain.GateName, gs domain.GateS
 
 // Subscribe returns a channel that receives events for a project. Caller must
 // call the returned unsubscribe func.
+//
+// When Redis is wired, the subscriber also receives events emitted by other
+// pods through the `ironflyer:events:<projectID>` pub/sub channel. The
+// returned channel merges the in-process feed with the Redis feed; events
+// are de-duplicated by ID so a subscriber that happens to be on the same
+// pod that produced the event sees it exactly once.
 func (e *Engine) Subscribe(projectID string) (<-chan domain.Event, func()) {
-	ch := make(chan domain.Event, 32)
+	local := make(chan domain.Event, 32)
 	e.mu.Lock()
-	e.subscribers[projectID] = append(e.subscribers[projectID], ch)
+	e.subscribers[projectID] = append(e.subscribers[projectID], local)
 	e.mu.Unlock()
-	return ch, func() {
+
+	localUnsub := func() {
 		e.mu.Lock()
 		defer e.mu.Unlock()
 		subs := e.subscribers[projectID]
 		for i, s := range subs {
-			if s == ch {
+			if s == local {
 				e.subscribers[projectID] = append(subs[:i], subs[i+1:]...)
-				close(ch)
+				close(local)
 				return
 			}
 		}
 	}
+
+	// Single-pod path: no Redis, just hand back the local channel and
+	// the local unsubscribe. Behaviour is identical to the original.
+	if e.redis == nil {
+		return local, localUnsub
+	}
+
+	subCtx, subCancel := context.WithCancel(context.Background())
+	redisCh, redisCancel, err := e.redis.Subscribe(subCtx, eventsChannel(projectID))
+	if err != nil {
+		// Redis hiccup at subscribe time — degrade to local-only rather
+		// than fail the SSE handler. Cross-pod events will be missed
+		// for this subscriber's lifetime; SSE reconnects naturally pick
+		// up a fresh attempt.
+		subCancel()
+		return local, localUnsub
+	}
+
+	out := make(chan domain.Event, 64)
+	// FIFO de-dupe ring: keeps the last 256 IDs we've forwarded so an
+	// event that arrives via both the in-process fan-out AND the Redis
+	// mirror is delivered once.
+	const dedupeCap = 256
+	seen := make(map[string]struct{}, dedupeCap)
+	order := make([]string, 0, dedupeCap)
+	var dmu sync.Mutex
+	markSeen := func(id string) bool {
+		if id == "" {
+			return false // can't de-dupe an unidentified event; let it through
+		}
+		dmu.Lock()
+		defer dmu.Unlock()
+		if _, ok := seen[id]; ok {
+			return true
+		}
+		if len(order) >= dedupeCap {
+			evict := order[0]
+			order = order[1:]
+			delete(seen, evict)
+		}
+		seen[id] = struct{}{}
+		order = append(order, id)
+		return false
+	}
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		for evt := range local {
+			if markSeen(evt.ID) {
+				continue
+			}
+			select {
+			case out <- evt:
+			default:
+			}
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		for raw := range redisCh {
+			var evt domain.Event
+			if err := json.Unmarshal([]byte(raw), &evt); err != nil {
+				continue
+			}
+			if markSeen(evt.ID) {
+				continue
+			}
+			select {
+			case out <- evt:
+			default:
+			}
+		}
+	}()
+
+	// When both upstreams are drained, close the merged channel so the
+	// SSE handler's range loop exits cleanly.
+	go func() {
+		wg.Wait()
+		close(out)
+	}()
+
+	var once sync.Once
+	unsubscribe := func() {
+		once.Do(func() {
+			localUnsub()    // closes `local`, which drains the local goroutine
+			redisCancel()   // closes `redisCh`, which drains the redis goroutine
+			subCancel()
+		})
+	}
+	return out, unsubscribe
 }
 
 func (e *Engine) emit(projectID string, evt domain.Event) {
@@ -495,6 +669,15 @@ func (e *Engine) emit(projectID string, evt domain.Event) {
 		default:
 			// drop if subscriber is slow; SSE will reconnect.
 		}
+	}
+	// Mirror to Redis so subscribers on other pods see the event. The
+	// publish is best-effort — a Redis hiccup must never block or fail
+	// the finisher loop, and pods still see their own in-process events
+	// through the local fan-out above.
+	if e.redis != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		_, _ = e.redis.Publish(ctx, eventsChannel(projectID), evt)
+		cancel()
 	}
 }
 

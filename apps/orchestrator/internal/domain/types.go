@@ -3,6 +3,7 @@ package domain
 
 import (
 	"encoding/json"
+	"strings"
 	"time"
 )
 
@@ -90,6 +91,11 @@ type Project struct {
 	// preview matches within tolerance. Empty slice = no visual contract
 	// (project ships on the regular gate set).
 	VisualTargets []VisualTarget `json:"visualTargets,omitempty"`
+	// Subprojects models multi-service / monorepo layouts. When empty,
+	// the project is single-service (the existing default). When non-
+	// empty, each Subproject represents a deployable unit; the finisher
+	// can apply scaffolders + gates per-subproject in a later iteration.
+	Subprojects []Subproject `json:"subprojects,omitempty"`
 	CreatedAt time.Time            `json:"createdAt"`
 	UpdatedAt time.Time            `json:"updatedAt"`
 }
@@ -97,6 +103,43 @@ type Project struct {
 // IsAccessibleBy returns true when userID owns the project or it is public.
 func (p Project) IsAccessibleBy(userID string) bool {
 	return p.OwnerID == "" || p.OwnerID == userID
+}
+
+// Subproject is one service within a monorepo Project. The parent
+// Project owns the overall spec + gates; each Subproject owns its
+// own slice of files + its own scaffolder choice + its own
+// language stack. Inspired by Nx / Turbo / pnpm workspaces.
+type Subproject struct {
+	ID        string        `json:"id"`
+	Name      string        `json:"name"`
+	Path      string        `json:"path"`           // e.g. "apps/api", "services/worker"
+	Stack     StackDecision `json:"stack"`          // frontend/backend/storage/auth declared per service
+	Role      string        `json:"role,omitempty"` // "frontend" | "backend" | "worker" | "mobile" | "ml" | ...
+	CreatedAt time.Time     `json:"createdAt"`
+}
+
+// SubprojectByPath returns the Subproject whose Path matches the
+// file's directory prefix (longest match wins). Returns nil when
+// no subproject claims the file — that's the implicit "root"
+// subproject.
+func (p Project) SubprojectByPath(filePath string) *Subproject {
+	clean := strings.TrimPrefix(filePath, "/")
+	var best *Subproject
+	bestLen := -1
+	for i := range p.Subprojects {
+		sp := &p.Subprojects[i]
+		base := strings.Trim(sp.Path, "/")
+		if base == "" {
+			continue
+		}
+		if clean == base || strings.HasPrefix(clean, base+"/") {
+			if len(base) > bestLen {
+				best = sp
+				bestLen = len(base)
+			}
+		}
+	}
+	return best
 }
 
 type ProductSpec struct {

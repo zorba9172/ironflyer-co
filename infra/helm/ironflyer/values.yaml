@@ -12,18 +12,113 @@ ingress:
   enabled: true
   className: nginx
   tlsSecret: ironflyer-tls
+  # cert-manager integration. When clusterIssuer is set, cert-manager
+  # provisions the TLS secret automatically; otherwise bring your own.
+  certManager:
+    enabled: false
+    clusterIssuer: "letsencrypt-prod"
+
+# Default replica count applied when a service-specific value is omitted.
+replicaCount: 2
+
+# Pod-level security defaults — every workload inherits these unless it
+# explicitly opts out (the runtime, for instance, needs a writable
+# workspace root).
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 65532          # nonroot user baked into distroless images
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+
+# Dedicated ServiceAccount + minimal RBAC. Each service gets its own SA so
+# we can scope IAM / IRSA / Workload Identity per workload.
+serviceAccount:
+  create: true
+  # When create=false the chart falls back to this name.
+  name: ""
+  # Cloud annotations (AWS IRSA, GCP workload identity) layer in here.
+  annotations: {}
+
+# RBAC: minimum permissions for self-introspection (lease + lookup) only.
+rbac:
+  create: true
+
+# PodDisruptionBudget — protects against voluntary disruptions
+# (node drains, cluster upgrades, autoscaler scale-down).
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# Autoscaling defaults applied to stateless services (orchestrator + web).
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+  # Stabilize scale-down so we don't thrash during traffic dips.
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+    scaleUp:
+      stabilizationWindowSeconds: 60
+
+# Default-deny NetworkPolicy + explicit allow rules. Disable only in
+# clusters where another mesh / policy engine owns this concern.
+networkPolicy:
+  enabled: true
+  # Egress allow-lists. CIDRs let you carve out managed Postgres / Redis
+  # endpoints that don't live in-cluster.
+  egress:
+    dnsEnabled: true
+    extraCIDRs: []            # e.g. ["10.0.0.0/8", "172.16.0.0/12"]
+
+# Prometheus integration. ServiceMonitor + PodMonitor are mutually
+# compatible but typically only one is needed; pick by what the
+# operator is wired to scrape.
+serviceMonitor:
+  enabled: false
+  interval: 30s
+  scrapeTimeout: 10s
+  labels: {}
+podMonitor:
+  enabled: false
+  interval: 30s
+
+# OpenTelemetry collector annotations. When enabled, an in-cluster
+# OTel operator sidecar injects the SDK + autoexports OTLP.
+otel:
+  enabled: false
+  endpoint: "http://otel-collector.observability:4318"
+
+# PriorityClass — ironflyer pods preempt low-priority noise during
+# capacity pressure. Production clusters should map this to a class
+# that sits just below `system-cluster-critical`.
+priorityClass:
+  create: true
+  name: ""                   # only used when create=false
+  value: 1000000             # well above default 0, below cluster-critical
+  description: "Ironflyer production workloads. Preempt low-prio noise."
+
+# Tuned graceful-shutdown windows. preStop sleep lets the service mesh /
+# ingress drop the pod from rotation before SIGTERM lands.
+terminationGracePeriodSeconds: 30
+preStopSleepSeconds: 10
 
 orchestrator:
   enabled: true
   replicas: 2
   resources:
     requests: { cpu: "200m", memory: "256Mi" }
-    limits:   { cpu: "1",    memory: "1Gi" }
+    limits:   { cpu: "2",    memory: "2Gi" }
+  # Per-service autoscaling override. Empty = inherit chart-level
+  # autoscaling block.
   autoscaling:
     enabled: true
     minReplicas: 2
-    maxReplicas: 8
+    maxReplicas: 10
     targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
   # Temporal worker — leave host empty to keep the orchestrator on the
   # embedded executor. Set host (e.g. "temporal:7233") to flip on the
   # production workflow path; namespace+taskQueue feed into both the worker
@@ -55,6 +150,8 @@ orchestrator:
       IRONFLYER_JWT_SECRET: ""
       ANTHROPIC_API_KEY: ""
       OPENAI_API_KEY: ""
+      GOOGLE_API_KEY: ""
+      HUGGINGFACE_API_KEY: ""
       GITHUB_CLIENT_ID: ""
       GITHUB_CLIENT_SECRET: ""
       STRIPE_SECRET_KEY: ""
@@ -74,7 +171,10 @@ runtime:
     storageClass: ""        # use cluster default when empty
   resources:
     requests: { cpu: "200m", memory: "256Mi" }
-    limits:   { cpu: "2",    memory: "1Gi" }
+    limits:   { cpu: "2",    memory: "2Gi" }
+  # The workspace driver writes to the workspaces PVC, but the pod
+  # filesystem itself stays read-only.
+  readOnlyRootFilesystem: true
   # No HPA: runtime is per-pod stateful (workspaces live on disk). Scale
   # vertically or shard by tenant routing at the orchestrator layer.
 
@@ -87,12 +187,15 @@ web:
   autoscaling:
     enabled: true
     minReplicas: 2
-    maxReplicas: 6
+    maxReplicas: 10
     targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  # Next.js .next cache + tmpfs writes.
+  readOnlyRootFilesystem: true
 
 postgres:
   # Set to false when pointing the orchestrator at managed Postgres
-  # (Cloud SQL, RDS, Neon, Supabase).
+  # (Cloud SQL, RDS, Neon, Supabase) — strongly recommended for prod.
   enabled: true
   storage: 10Gi
   storageClass: ""

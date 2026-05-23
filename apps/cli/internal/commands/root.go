@@ -77,6 +77,10 @@ func Root() *Command {
 		exportCmd(),
 		statusCmd(),
 		configCmd(),
+		memoryCmd(),
+		auditCmd(),
+		telemetryCmd(),
+		graphCmd(),
 		versionCmd(),
 	}
 	return root

@@ -146,6 +146,17 @@ const comparisonRows: { label: string; values: [string, string, string, string] 
   { label: 'Hash-chained audit log',                                  values: ['✓ SHA-256 chain', '—',          '—',           '—'] },
   { label: 'MCP integration (server + client)',                       values: ['✓ Both directions', '—',        '—',           '✓ partial'] },
   { label: 'Database + auth scaffolded into generated apps',         values: ['✓ 6 domain packs', '✓',          '✓ Supabase',  '—'] },
+  { label: 'HuggingFace open-model routing (Llama / Qwen / DeepSeek)', values: ['✓ 5 OSS models', '—',           '—',           '—'] },
+  { label: 'Semantic memory retrieval (HF embeddings)',               values: ['✓ bge-small + cosine', '—',     '—',           '—'] },
+  { label: 'Context7 docs lookup in every Coder call',                values: ['✓ Auto-registered', '—',        '—',           '—'] },
+  { label: 'Persistent hash-chain audit (SurrealDB)',                 values: ['✓ Survives restart', '—',       '—',           '—'] },
+  { label: 'Multi-agent voting on critical gates',                    values: ['✓ 3-way Critic', '—',           '—',           '—'] },
+  { label: 'Post-patch reflection (accomplished / drift)',            values: ['✓ Memory-fed',   '—',           '—',           '—'] },
+  { label: 'Native scaffolders for 12+ stacks (Rust / Java / .NET / Swift / Kotlin / Ruby / PHP / Python / Go / TS)', values: ['✓ 12 packs', 'Web only', 'Web only', 'Web only'] },
+  { label: 'Monorepo subprojects (one repo, many services)',          values: ['✓ Native',       '—',           '—',           '—'] },
+  { label: 'Migration manager (Drizzle / Prisma / Alembic / EF Core)', values: ['✓ Agent-driven', '—',          '—',           '—'] },
+  { label: 'Production CI/CD scaffold (Actions + Argo CD + K8s)',     values: ['✓ Out of the box', '—',         '—',           '—'] },
+  { label: 'Distributed locks + cross-pod rate limit (Redis)',        values: ['✓ Horizontal-scale ready', '—', '—',           '—'] },
 ];
 
 const proofPoints = [
@@ -165,9 +176,9 @@ const proofPoints = [
     text: 'Files, terminal, preview ports, and execution logs live in a per-user workspace your team can inspect from web, API, or VSCode.',
   },
   {
-    label: 'Persistent intelligence',
-    value: 'Memory + audit',
-    text: 'Every fix becomes context for the next run. Four memory stores feed the coder on every retry, and a hash-chained audit log records each gate verdict as immutable, verifiable evidence.',
+    label: 'Stacks covered',
+    value: '12 native',
+    text: 'Rust, Go HTTP, Python FastAPI, Java Spring, Kotlin Android, Swift iOS, Rails, Laravel, .NET, Next.js, Phaser, Expo — auto-detected from the spec.',
   },
 ];
 

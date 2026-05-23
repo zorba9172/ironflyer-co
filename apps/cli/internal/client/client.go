@@ -348,6 +348,210 @@ func (c *Client) Health(ctx context.Context) (*HealthResponse, error) {
 	return &h, nil
 }
 
+// ---- Memory ----
+
+// MemoryRecord mirrors orchestrator memory.Record. We duplicate the
+// shape (rather than import the orchestrator module) to keep the CLI
+// dependency-free of the server module.
+type MemoryRecord struct {
+	ID         string   `json:"id,omitempty"`
+	Kind       string   `json:"kind"`
+	ProjectID  string   `json:"projectId,omitempty"`
+	UserID     string   `json:"userId,omitempty"`
+	StoryID    string   `json:"storyId,omitempty"`
+	GateName   string   `json:"gateName,omitempty"`
+	Title      string   `json:"title"`
+	Body       string   `json:"body"`
+	Tags       []string `json:"tags,omitempty"`
+	Confidence float64  `json:"confidence,omitempty"`
+	CreatedAt  string   `json:"createdAt,omitempty"`
+}
+
+// MemoryListResponse is the envelope returned by GET /memory.
+type MemoryListResponse struct {
+	Records []MemoryRecord `json:"records"`
+	Count   int            `json:"count"`
+}
+
+// ListMemory calls GET /memory with the supplied query parameters.
+// Empty strings / zero limits are omitted so the server picks defaults.
+func (c *Client) ListMemory(ctx context.Context, params map[string]string) (*MemoryListResponse, error) {
+	q := url.Values{}
+	for k, v := range params {
+		if v != "" {
+			q.Set(k, v)
+		}
+	}
+	path := "/memory"
+	if enc := q.Encode(); enc != "" {
+		path += "?" + enc
+	}
+	var out MemoryListResponse
+	if err := c.JSON(ctx, http.MethodGet, path, nil, &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// AddMemory calls POST /memory with the supplied record. The server
+// assigns id + createdAt and returns the stored row.
+func (c *Client) AddMemory(ctx context.Context, rec MemoryRecord) (*MemoryRecord, error) {
+	var out MemoryRecord
+	if err := c.JSON(ctx, http.MethodPost, "/memory", rec, &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// DeleteMemory calls DELETE /memory/{id}. Idempotent — unknown ids
+// return 204 from the orchestrator.
+func (c *Client) DeleteMemory(ctx context.Context, id string) error {
+	return c.JSON(ctx, http.MethodDelete, "/memory/"+url.PathEscape(id), nil, nil)
+}
+
+// ---- Audit ----
+
+// AuditEntry mirrors orchestrator audit.Entry.
+type AuditEntry struct {
+	ID          string         `json:"id"`
+	Action      string         `json:"action"`
+	Outcome     string         `json:"outcome"`
+	UserID      string         `json:"userId,omitempty"`
+	ProjectID   string         `json:"projectId,omitempty"`
+	StoryID     string         `json:"storyId,omitempty"`
+	GateName    string         `json:"gateName,omitempty"`
+	AgentRole   string         `json:"agentRole,omitempty"`
+	Summary     string         `json:"summary"`
+	InputHash   string         `json:"inputHash,omitempty"`
+	OutputHash  string         `json:"outputHash,omitempty"`
+	Attrs       map[string]any `json:"attrs,omitempty"`
+	CreatedAt   string         `json:"createdAt"`
+	PrevHash    string         `json:"prevHash,omitempty"`
+	ContentHash string         `json:"contentHash"`
+}
+
+// AuditListResponse is the envelope returned by GET /audit.
+type AuditListResponse struct {
+	Entries []AuditEntry `json:"entries"`
+	Count   int          `json:"count"`
+}
+
+// AuditVerifyResponse is the body of GET /audit/verify.
+type AuditVerifyResponse struct {
+	Intact        bool `json:"intact"`
+	FirstBadIndex int  `json:"firstBadIndex"`
+}
+
+// ListAudit calls GET /audit with the supplied query parameters.
+func (c *Client) ListAudit(ctx context.Context, params map[string]string) (*AuditListResponse, error) {
+	q := url.Values{}
+	for k, v := range params {
+		if v != "" {
+			q.Set(k, v)
+		}
+	}
+	path := "/audit"
+	if enc := q.Encode(); enc != "" {
+		path += "?" + enc
+	}
+	var out AuditListResponse
+	if err := c.JSON(ctx, http.MethodGet, path, nil, &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// VerifyAudit calls GET /audit/verify. The response carries Intact +
+// the index of the first broken entry (or -1 if intact).
+func (c *Client) VerifyAudit(ctx context.Context) (*AuditVerifyResponse, error) {
+	var out AuditVerifyResponse
+	if err := c.JSON(ctx, http.MethodGet, "/audit/verify", nil, &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ---- Telemetry ----
+
+// AgentCall mirrors orchestrator providers.AgentCall — one structured
+// row of per-call telemetry.
+type AgentCall struct {
+	UserID          string   `json:"userId"`
+	ProjectID       string   `json:"projectId,omitempty"`
+	Role            string   `json:"role,omitempty"`
+	Provider        string   `json:"provider"`
+	Model           string   `json:"model"`
+	Capabilities    []string `json:"capabilities,omitempty"`
+	InputTokens     int      `json:"inputTokens"`
+	OutputTokens    int      `json:"outputTokens"`
+	CacheReadTokens int      `json:"cacheReadTokens,omitempty"`
+	CacheNewTokens  int      `json:"cacheNewTokens,omitempty"`
+	CostUSD         float64  `json:"costUSD"`
+	DurationMS      int64    `json:"durationMs"`
+	StartedAt       string   `json:"startedAt"`
+	Error           string   `json:"error,omitempty"`
+}
+
+// TelemetryAgentsResponse is the envelope returned by GET
+// /telemetry/agents.
+type TelemetryAgentsResponse struct {
+	Calls []AgentCall `json:"calls"`
+	Count int         `json:"count"`
+}
+
+// ListAgentTelemetry calls GET /telemetry/agents with the supplied
+// filter parameters.
+func (c *Client) ListAgentTelemetry(ctx context.Context, params map[string]string) (*TelemetryAgentsResponse, error) {
+	q := url.Values{}
+	for k, v := range params {
+		if v != "" {
+			q.Set(k, v)
+		}
+	}
+	path := "/telemetry/agents"
+	if enc := q.Encode(); enc != "" {
+		path += "?" + enc
+	}
+	var out TelemetryAgentsResponse
+	if err := c.JSON(ctx, http.MethodGet, path, nil, &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ---- Project graph ----
+
+// GraphNode mirrors projectgraph.Node.
+type GraphNode struct {
+	Path        string   `json:"path"`
+	Language    string   `json:"language"`
+	Exports     []string `json:"exports,omitempty"`
+	SymbolCount int      `json:"symbolCount,omitempty"`
+}
+
+// GraphEdge mirrors projectgraph.Edge.
+type GraphEdge struct {
+	From string `json:"from"`
+	To   string `json:"to"`
+	Raw  string `json:"raw"`
+}
+
+// ProjectGraph mirrors projectgraph.Graph.
+type ProjectGraph struct {
+	Nodes []GraphNode `json:"nodes"`
+	Edges []GraphEdge `json:"edges"`
+}
+
+// GetProjectGraph calls GET /projects/{id}/graph.
+func (c *Client) GetProjectGraph(ctx context.Context, projectID string) (*ProjectGraph, error) {
+	var out ProjectGraph
+	if err := c.JSON(ctx, http.MethodGet,
+		"/projects/"+url.PathEscape(projectID)+"/graph", nil, &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // HealthAt hits GET /healthz on an arbitrary base URL — used by `status`
 // to ping the runtime as well as the orchestrator.
 func (c *Client) HealthAt(ctx context.Context, baseURL string) (*HealthResponse, error) {

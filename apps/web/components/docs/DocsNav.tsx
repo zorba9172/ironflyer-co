@@ -37,6 +37,8 @@ export const DOCS_NAV: NavGroup[] = [
       { label: 'Budget', href: '/docs/concepts/budget' },
       { label: 'Runtime Sandbox', href: '/docs/concepts/runtime-sandbox' },
       { label: 'Tech stack', href: '/docs/concepts/tech-stack' },
+      { label: 'AI stack', href: '/docs/concepts/ai-stack' },
+      { label: 'Multi-stack', href: '/docs/concepts/multi-stack' },
     ],
   },
   {

@@ -8,7 +8,7 @@
 
 import * as vscode from 'vscode';
 import { Auth } from './auth';
-import { Api, ApiError, GateName, GateState } from './api';
+import { Api, ApiError, GateName, GateState, MemoryRecord } from './api';
 import { IronflyerUriHandler } from './uriHandler';
 import { ProjectsTree } from './projectsTree';
 import { StatusBar } from './statusBar';
@@ -17,6 +17,10 @@ import { PatchDiffProvider } from './diffProvider';
 import { PatchesTree } from './patchesTree';
 import { buildPatchUri, patchTabTitle } from './patchUri';
 import { GatesTree } from './gatesTree';
+import { IronflyerMemoryProvider, openMemoryRecord } from './memoryTree';
+import { IronflyerAuditProvider } from './auditTree';
+import { IronflyerTelemetryProvider } from './telemetryTree';
+import { GraphView } from './graphView';
 import { ProjectStream } from './projectStream';
 import { throttleTrailing } from './throttle';
 import { ActiveProject } from './activeProject';
@@ -39,6 +43,9 @@ export function activate(context: vscode.ExtensionContext): void {
   const status = new StatusBar(api, auth, activeProject);
   const previewView = new PreviewView(api, auth, context.extensionUri);
   const runOutput = new RunOutput();
+  const memoryTree = new IronflyerMemoryProvider(api, auth, activeProject);
+  const auditTree = new IronflyerAuditProvider(api, auth, activeProject);
+  const telemetryTree = new IronflyerTelemetryProvider(api, auth);
 
   // Coalesce bursts of lifecycle events into a single refresh per project.
   // Without this the trees thrash when the orchestrator emits a stream
@@ -108,6 +115,9 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.window.registerTreeDataProvider('ironflyer.projects', tree),
     vscode.window.registerTreeDataProvider('ironflyer.patches', patchesTree),
     vscode.window.registerTreeDataProvider('ironflyer.gates', gatesTree),
+    vscode.window.registerTreeDataProvider('ironflyer.memory', memoryTree),
+    vscode.window.registerTreeDataProvider('ironflyer.audit', auditTree),
+    vscode.window.registerTreeDataProvider('ironflyer.telemetry', telemetryTree),
     vscode.window.registerWebviewViewProvider(PreviewView.viewId, previewView, {
       webviewOptions: { retainContextWhenHidden: true },
     }),
@@ -146,7 +156,19 @@ export function activate(context: vscode.ExtensionContext): void {
       tree.refresh();
       patchesTree.refresh();
       gatesTree.refresh();
+      memoryTree.refresh();
+      auditTree.refresh();
+      telemetryTree.refresh();
       void previewView.refresh();
+    }),
+
+    vscode.commands.registerCommand('ironflyer.openMemoryRecord', async (record: MemoryRecord) => {
+      if (!record) return;
+      await openMemoryRecord(record);
+    }),
+
+    vscode.commands.registerCommand('ironflyer.openDependencyGraph', () => {
+      GraphView.reveal(api, activeProject);
     }),
 
     vscode.commands.registerCommand(

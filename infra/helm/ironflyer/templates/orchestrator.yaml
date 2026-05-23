@@ -5,6 +5,7 @@ metadata:
   name: orchestrator-config
   labels:
     {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: orchestrator
 data:
   IRONFLYER_ADDR: ":8080"
   IRONFLYER_RUNTIME_URL: "http://runtime:8090"
@@ -21,6 +22,10 @@ data:
   {{- end }}
   IRONFLYER_EMAIL_PROVIDER: {{ .Values.orchestrator.email.provider | quote }}
   IRONFLYER_EMAIL_FROM: {{ .Values.orchestrator.email.from | quote }}
+  {{- if .Values.otel.enabled }}
+  OTEL_EXPORTER_OTLP_ENDPOINT: {{ .Values.otel.endpoint | quote }}
+  OTEL_SERVICE_NAME: "ironflyer-orchestrator"
+  {{- end }}
   {{- range $k, $v := .Values.orchestrator.config }}
   {{ $k }}: {{ $v | quote }}
   {{- end }}
@@ -32,6 +37,7 @@ metadata:
   name: {{ .Values.orchestrator.secrets.name }}
   labels:
     {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: orchestrator
 type: Opaque
 stringData:
   {{- range $k, $v := .Values.orchestrator.secrets.data }}
@@ -47,18 +53,34 @@ metadata:
     {{- include "ironflyer.labels" . | nindent 4 }}
     app.kubernetes.io/name: orchestrator
 spec:
-  replicas: {{ .Values.orchestrator.replicas }}
+  replicas: {{ .Values.orchestrator.replicas | default .Values.replicaCount }}
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       {{- include "ironflyer.selectorLabels" (dict "name" "orchestrator" "release" .Release.Name) | nindent 6 }}
   template:
     metadata:
       labels:
+        {{- include "ironflyer.labels" . | nindent 8 }}
         {{- include "ironflyer.selectorLabels" (dict "name" "orchestrator" "release" .Release.Name) | nindent 8 }}
+      annotations:
+        {{- include "ironflyer.podAnnotations" . | nindent 8 }}
+        checksum/config: {{ include (print $.Template.BasePath "/orchestrator.yaml") . | sha256sum }}
     spec:
+      serviceAccountName: {{ include "ironflyer.serviceAccountName" (dict "name" "orchestrator" "Values" .Values "Release" .Release "Chart" .Chart) }}
+      {{- $pc := include "ironflyer.priorityClassName" . }}
+      {{- if $pc }}
+      priorityClassName: {{ $pc }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 10001
+        {{- include "ironflyer.podSecurityContext" . | nindent 8 }}
+      {{- include "ironflyer.spread" (dict "name" "orchestrator") | nindent 6 }}
       containers:
         - name: orchestrator
           image: {{ include "ironflyer.image" (dict "name" "orchestrator" "Values" .Values) }}
@@ -68,24 +90,37 @@ spec:
           envFrom:
             - configMapRef: { name: orchestrator-config }
             - secretRef:    { name: {{ .Values.orchestrator.secrets.name }} }
+          startupProbe:
+            httpGet: { path: /readyz, port: http }
+            periodSeconds: 5
+            failureThreshold: 60
+            timeoutSeconds: 3
           readinessProbe:
             httpGet: { path: /readyz, port: http }
-            initialDelaySeconds: 3
-            periodSeconds: 5
-            timeoutSeconds: 2
+            periodSeconds: 10
             failureThreshold: 3
-          livenessProbe:
-            httpGet: { path: /healthz, port: http }
-            initialDelaySeconds: 15
-            periodSeconds: 15
             timeoutSeconds: 3
-            failureThreshold: 3
+          livenessProbe:
+            httpGet: { path: /livez, port: http }
+            periodSeconds: 30
+            failureThreshold: 5
+            timeoutSeconds: 5
           resources:
             {{- toYaml .Values.orchestrator.resources | nindent 12 }}
           securityContext:
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-            capabilities: { drop: ["ALL"] }
+            {{- include "ironflyer.containerSecurityContext" . | nindent 12 }}
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep {{ .Values.preStopSleepSeconds }}"]
+          volumeMounts:
+            - { name: tmp,   mountPath: /tmp }
+            - { name: cache, mountPath: /var/cache/ironflyer }
+      volumes:
+        - name: tmp
+          emptyDir: { medium: Memory, sizeLimit: 64Mi }
+        - name: cache
+          emptyDir: { sizeLimit: 256Mi }
 ---
 apiVersion: v1
 kind: Service
@@ -93,32 +128,10 @@ metadata:
   name: orchestrator
   labels:
     {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: orchestrator
 spec:
   selector:
     {{- include "ironflyer.selectorLabels" (dict "name" "orchestrator" "release" .Release.Name) | nindent 4 }}
   ports:
     - { name: http, port: 8080, targetPort: http }
-{{- if .Values.orchestrator.autoscaling.enabled }}
----
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: orchestrator
-  labels:
-    {{- include "ironflyer.labels" . | nindent 4 }}
-spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: orchestrator
-  minReplicas: {{ .Values.orchestrator.autoscaling.minReplicas }}
-  maxReplicas: {{ .Values.orchestrator.autoscaling.maxReplicas }}
-  metrics:
-    - type: Resource
-      resource:
-        name: cpu
-        target:
-          type: Utilization
-          averageUtilization: {{ .Values.orchestrator.autoscaling.targetCPUUtilizationPercentage }}
-{{- end }}
 {{- end }}

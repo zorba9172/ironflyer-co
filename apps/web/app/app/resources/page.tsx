@@ -197,26 +197,39 @@ function ResourcesInner() {
       </Box>
 
       {visible.length > 0 ? (
-        <Box sx={swiperWrapSx}>
-          <Swiper
-            modules={[Navigation, Pagination, Keyboard, A11y]}
-            navigation
-            pagination={{ clickable: true }}
-            keyboard={{ enabled: true }}
-            spaceBetween={14}
-            slidesPerView={1.03}
-            breakpoints={{
-              720: { slidesPerView: view === 'list' ? 1.45 : 2.05, spaceBetween: 16 },
-              1120: { slidesPerView: view === 'list' ? 2.05 : 3.05, spaceBetween: 16 },
-            }}
-          >
+        view === 'grid' ? (
+          <Box sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)', lg: 'repeat(4, 1fr)' },
+            gap: 1.6,
+            mt: 0.5,
+          }}>
             {visible.map((item) => (
-              <SwiperSlide key={item.title}>
-                <TemplateCard item={item} onUse={() => useTemplate(item)} />
-              </SwiperSlide>
+              <TemplateCard key={item.slug} item={item} onUse={() => useTemplate(item)} />
             ))}
-          </Swiper>
-        </Box>
+          </Box>
+        ) : (
+          <Box sx={swiperWrapSx}>
+            <Swiper
+              modules={[Navigation, Pagination, Keyboard, A11y]}
+              navigation
+              pagination={{ clickable: true }}
+              keyboard={{ enabled: true }}
+              spaceBetween={14}
+              slidesPerView={1.03}
+              breakpoints={{
+                720: { slidesPerView: 1.45, spaceBetween: 16 },
+                1120: { slidesPerView: 2.05, spaceBetween: 16 },
+              }}
+            >
+              {visible.map((item) => (
+                <SwiperSlide key={item.slug}>
+                  <TemplateCard item={item} onUse={() => useTemplate(item)} />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          </Box>
+        )
       ) : (
         <Surface sx={{ p: 4, mt: 1.5, textAlign: 'center' }}>
           <Typography variant="h6" sx={{ fontWeight: 900 }}>No matching templates</Typography>
