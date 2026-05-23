@@ -13,6 +13,7 @@
 //   - if a ?initialPrompt= query is present, kick off the first run.
 
 import { use, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import {
   Box, Chip, IconButton, Stack, Tab, Tabs, Typography,
@@ -31,11 +32,21 @@ import { RequireAuth } from '../../auth-context';
 
 import { WorkspaceSidebar } from '../../../components/workspace/WorkspaceSidebar';
 import { RunPanel } from '../../../components/workspace/RunPanel';
-import { PreviewPane } from '../../../components/workspace/PreviewPane';
-import { EditorPane } from '../../../components/workspace/EditorPane';
 import { ChatPane } from '../../../components/workspace/ChatPane';
 import { PatchDrawer } from '../../../components/workspace/PatchDrawer';
-import { Terminal } from './Terminal';
+
+const EditorPane = dynamic(
+  () => import('../../../components/workspace/EditorPane').then((m) => m.EditorPane),
+  { ssr: false, loading: () => <PaneLoading label="Loading editor..." /> },
+);
+const PreviewPane = dynamic(
+  () => import('../../../components/workspace/PreviewPane').then((m) => m.PreviewPane),
+  { ssr: false, loading: () => <PaneLoading label="Loading preview..." /> },
+);
+const Terminal = dynamic(
+  () => import('./Terminal').then((m) => m.Terminal),
+  { ssr: false, loading: () => <PaneLoading label="Opening terminal..." /> },
+);
 
 // GATE_ORDER mirrors finisher.DefaultGates() on the orchestrator. Keep in
 // sync when the gate list changes — the backend treats the gate keys as
@@ -54,6 +65,14 @@ const GATE_ORDER: { key: string; label: string }[] = [
 ];
 
 type CenterTab = 'chat' | 'editor' | 'preview' | 'terminal';
+
+function PaneLoading({ label }: { label: string }) {
+  return (
+    <Box sx={{ height: '100%', minHeight: 320, display: 'grid', placeItems: 'center', color: tokens.color.text.secondary }}>
+      <Typography variant="body2">{label}</Typography>
+    </Box>
+  );
+}
 
 export default function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   return (

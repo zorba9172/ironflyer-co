@@ -17,6 +17,7 @@ import {
 } from '@mui/icons-material';
 import { tokens } from '../../lib/theme';
 import { RunEvent, eventSeverity } from '../../lib/api/orchestrator-stream';
+import { VirtualList } from '../performance/VirtualList';
 
 interface Props {
   events: RunEvent[];
@@ -33,6 +34,7 @@ export function RunPanel({ events, running, streamHealthy, onRun, onRepair, empt
     [events],
   );
   const progress = useMemo(() => computeProgress(events), [events]);
+  const orderedEvents = useMemo(() => events.slice().reverse(), [events]);
 
   return (
     <Stack spacing={0.8} sx={{ overflowY: 'auto', height: '100%', minHeight: 0 }}>
@@ -104,13 +106,20 @@ export function RunPanel({ events, running, streamHealthy, onRun, onRepair, empt
           </Typography>
         </Stack>
 
-        <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', px: 0.8, pb: 1 }}>
+        <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden', px: 0.8, pb: 1 }}>
           {events.length === 0 ? (
             <EmptyState hint={emptyHint} />
           ) : (
-            <Stack spacing={0.6} sx={{ pt: 0.6 }}>
-              {events.slice().reverse().map((e) => <TimelineRow key={e.id} event={e} />)}
-            </Stack>
+            <VirtualList
+              items={orderedEvents}
+              itemHeight={58}
+              getItemHeight={timelineRowHeight}
+              height="100%"
+              keyExtractor={(event, index) => event.id || `${event.kind}-${event.createdAt}-${index}`}
+              ariaLabel="Live run activity"
+              sx={{ pt: 0.6 }}
+              renderItem={(event) => <TimelineRow event={event} />}
+            />
           )}
         </Box>
       </Box>
@@ -205,7 +214,14 @@ function TimelineRow({ event }: { event: RunEvent }) {
         </Stack>
         <Typography
           variant="caption"
-          sx={{ display: 'block', color: tokens.color.text.secondary, mt: 0.1 }}
+          sx={{
+            display: '-webkit-box',
+            color: tokens.color.text.secondary,
+            mt: 0.1,
+            overflow: 'hidden',
+            WebkitBoxOrient: 'vertical',
+            WebkitLineClamp: 3,
+          }}
           title={event.message}
         >
           {event.message}
@@ -213,6 +229,13 @@ function TimelineRow({ event }: { event: RunEvent }) {
       </Box>
     </Stack>
   );
+}
+
+function timelineRowHeight(event: RunEvent): number {
+  const length = event.message?.length ?? 0;
+  if (length > 160) return 98;
+  if (length > 80) return 76;
+  return 58;
 }
 
 function EmptyState({ hint }: { hint?: string }) {

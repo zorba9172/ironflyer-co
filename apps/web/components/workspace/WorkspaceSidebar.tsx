@@ -9,7 +9,7 @@
 // accent on active items, alabaster surface. Loading and empty states are
 // styled, never blank.
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Box, Chip, Collapse, IconButton, Skeleton, Stack, Tooltip, Typography,
 } from '@mui/material';
@@ -21,6 +21,7 @@ import { GateState, Project } from '../../lib/api';
 import { FileEntry, Workspace } from '../../lib/runtime';
 import { Patch } from '../../lib/api/patches';
 import { tokens } from '../../lib/theme';
+import { VirtualList } from '../performance/VirtualList';
 
 interface Props {
   project: Project;
@@ -158,6 +159,11 @@ function FileTree({
   onSelect: (path: string) => void;
   onRetry: () => void;
 }) {
+  const sorted = useMemo(
+    () => files.filter((f) => !f.isDir).slice().sort((a, b) => a.path.localeCompare(b.path)),
+    [files],
+  );
+
   if (!workspace) {
     return (
       <Hint
@@ -188,14 +194,18 @@ function FileTree({
       />
     );
   }
-  const sorted = files.filter((f) => !f.isDir).slice().sort((a, b) => a.path.localeCompare(b.path));
   return (
-    <Box sx={{ maxHeight: 260, overflowY: 'auto', fontFamily: tokens.font.mono, fontSize: 12 }}>
-      {sorted.map((f) => {
+    <VirtualList
+      items={sorted}
+      itemHeight={28}
+      height={Math.min(260, Math.max(84, sorted.length * 28))}
+      keyExtractor={(f) => f.path}
+      ariaLabel="Workspace files"
+      sx={{ fontFamily: tokens.font.mono, fontSize: 12 }}
+      renderItem={(f) => {
         const active = selected === f.path;
         return (
           <Stack
-            key={f.path}
             direction="row"
             alignItems="center"
             spacing={0.8}
@@ -220,8 +230,8 @@ function FileTree({
             </Typography>
           </Stack>
         );
-      })}
-    </Box>
+      }}
+    />
   );
 }
 
@@ -272,6 +282,8 @@ function PatchList({
   onSelect: (patchId: string) => void;
   onRetry: () => void;
 }) {
+  const ordered = useMemo(() => patches.slice().reverse(), [patches]);
+
   if (loading) {
     return (
       <Stack spacing={0.6} sx={{ py: 0.6 }}>
@@ -291,10 +303,14 @@ function PatchList({
     );
   }
   return (
-    <Stack spacing={0.5}>
-      {patches.slice().reverse().map((p) => (
+    <VirtualList
+      items={ordered}
+      itemHeight={58}
+      height={Math.min(280, Math.max(88, ordered.length * 58))}
+      keyExtractor={(p) => p.id}
+      ariaLabel="Project patches"
+      renderItem={(p) => (
         <Stack
-          key={p.id}
           direction="row"
           spacing={0.8}
           onClick={() => onSelect(p.id)}
@@ -329,8 +345,8 @@ function PatchList({
             }}
           />
         </Stack>
-      ))}
-    </Stack>
+      )}
+    />
   );
 }
 

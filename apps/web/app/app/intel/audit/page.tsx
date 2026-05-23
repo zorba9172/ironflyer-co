@@ -17,6 +17,7 @@ import { tokens } from '../../../../lib/theme';
 import { RequireAuth, useAuth } from '../../../auth-context';
 import { AppShell, PageTitle, Surface } from '../../workspace-shell';
 import { EmptyState, ErrorBox } from '../../../../components/dashboard';
+import { VirtualList } from '../../../../components/performance/VirtualList';
 
 const ACTIONS: { value: AuditAction; label: string }[] = [
   { value: 'patch.proposed',     label: 'Patch proposed' },
@@ -175,59 +176,27 @@ function AuditInner() {
       ) : (
         <Surface sx={{ overflow: 'hidden' }}>
           <Box sx={{ overflowX: 'auto' }}>
-            <Box component="table" sx={tableSx}>
-              <Box component="thead">
-                <Box component="tr">
-                  <Box component="th" sx={thSx}>Time</Box>
-                  <Box component="th" sx={thSx}>Action</Box>
-                  <Box component="th" sx={thSx}>Outcome</Box>
-                  <Box component="th" sx={thSx}>User</Box>
-                  <Box component="th" sx={thSx}>Project</Box>
-                  <Box component="th" sx={thSx}>Summary</Box>
-                  <Box component="th" sx={thSx}>Hash</Box>
-                </Box>
-              </Box>
-              <Box component="tbody">
-                {entries.map((e) => (
-                  <>
-                    <Box
-                      key={e.id}
-                      component="tr"
-                      sx={trSx}
-                      onClick={() => setExpanded(expanded === e.id ? null : e.id)}
-                    >
-                      <Box component="td" sx={tdSx}><Typography variant="caption" sx={{ fontFamily: tokens.font.mono }}>{formatTime(e.createdAt)}</Typography></Box>
-                      <Box component="td" sx={tdSx}><Chip label={e.action} size="small" sx={metaChipSx} /></Box>
-                      <Box component="td" sx={tdSx}><Chip label={e.outcome} size="small" sx={outcomeChipSx(e.outcome)} /></Box>
-                      <Box component="td" sx={tdSx}><Typography variant="caption" sx={{ fontFamily: tokens.font.mono }}>{short(e.userId)}</Typography></Box>
-                      <Box component="td" sx={tdSx}><Typography variant="caption" sx={{ fontFamily: tokens.font.mono }}>{short(e.projectId)}</Typography></Box>
-                      <Box component="td" sx={tdSx}><Typography variant="body2">{e.summary}</Typography></Box>
-                      <Box component="td" sx={tdSx}><Typography variant="caption" sx={{ fontFamily: tokens.font.mono }}>{e.contentHash.slice(0, 10)}</Typography></Box>
-                    </Box>
-                    {expanded === e.id && (
-                      <Box component="tr" key={`${e.id}-detail`}>
-                        <Box component="td" colSpan={7} sx={{ ...tdSx, bgcolor: '#fffaf1' }}>
-                          <Stack spacing={0.6} sx={{ p: 1 }}>
-                            <Row label="ID" value={e.id} mono />
-                            <Row label="Gate" value={e.gateName || '—'} />
-                            <Row label="Agent role" value={e.agentRole || '—'} />
-                            <Row label="InputHash" value={e.inputHash || '—'} mono />
-                            <Row label="OutputHash" value={e.outputHash || '—'} mono />
-                            <Row label="PrevHash" value={e.prevHash || '—'} mono />
-                            <Row label="ContentHash" value={e.contentHash} mono />
-                            {e.attrs && Object.keys(e.attrs).length > 0 && (
-                              <Box>
-                                <Typography variant="caption" color="text.secondary">Attrs</Typography>
-                                <Box component="pre" sx={preSx}>{JSON.stringify(e.attrs, null, 2)}</Box>
-                              </Box>
-                            )}
-                          </Stack>
-                        </Box>
-                      </Box>
-                    )}
-                  </>
+            <Box sx={{ minWidth: 980 }}>
+              <Box sx={auditHeaderSx}>
+                {['Time', 'Action', 'Outcome', 'User', 'Project', 'Summary', 'Hash'].map((label) => (
+                  <Box key={label} sx={thSx}>{label}</Box>
                 ))}
               </Box>
+              <VirtualList
+                items={entries}
+                itemHeight={58}
+                getItemHeight={(entry) => (expanded === entry.id ? 260 : 58)}
+                height={Math.min(620, Math.max(120, entries.length * 58 + (expanded ? 202 : 0)))}
+                keyExtractor={(entry) => entry.id}
+                ariaLabel="Audit entries"
+                renderItem={(entry) => (
+                  <AuditEntryRow
+                    entry={entry}
+                    expanded={expanded === entry.id}
+                    onToggle={() => setExpanded(expanded === entry.id ? null : entry.id)}
+                  />
+                )}
+              />
             </Box>
           </Box>
         </Surface>
@@ -242,6 +211,50 @@ function AuditInner() {
     </AppShell>
   );
 }
+
+function AuditEntryRow({
+  entry,
+  expanded,
+  onToggle,
+}: {
+  entry: AuditEntry;
+  expanded: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <Box sx={{ borderBottom: '1px solid rgba(17,17,17,0.08)' }}>
+      <Box sx={trSx} onClick={onToggle}>
+        <Box sx={tdSx}><Typography variant="caption" sx={{ fontFamily: tokens.font.mono }}>{formatTime(entry.createdAt)}</Typography></Box>
+        <Box sx={tdSx}><Chip label={entry.action} size="small" sx={metaChipSx} /></Box>
+        <Box sx={tdSx}><Chip label={entry.outcome} size="small" sx={outcomeChipSx(entry.outcome)} /></Box>
+        <Box sx={tdSx}><Typography variant="caption" sx={{ fontFamily: tokens.font.mono }}>{short(entry.userId)}</Typography></Box>
+        <Box sx={tdSx}><Typography variant="caption" sx={{ fontFamily: tokens.font.mono }}>{short(entry.projectId)}</Typography></Box>
+        <Box sx={tdSx}><Typography variant="body2" noWrap title={entry.summary}>{entry.summary}</Typography></Box>
+        <Box sx={tdSx}><Typography variant="caption" sx={{ fontFamily: tokens.font.mono }}>{entry.contentHash.slice(0, 10)}</Typography></Box>
+      </Box>
+      {expanded && (
+        <Box sx={{ px: 1.4, py: 1, bgcolor: '#fffaf1', maxHeight: 202, overflow: 'auto' }}>
+          <Stack spacing={0.6}>
+            <Row label="ID" value={entry.id} mono />
+            <Row label="Gate" value={entry.gateName || '-'} />
+            <Row label="Agent role" value={entry.agentRole || '-'} />
+            <Row label="InputHash" value={entry.inputHash || '-'} mono />
+            <Row label="OutputHash" value={entry.outputHash || '-'} mono />
+            <Row label="PrevHash" value={entry.prevHash || '-'} mono />
+            <Row label="ContentHash" value={entry.contentHash} mono />
+            {entry.attrs && Object.keys(entry.attrs).length > 0 && (
+              <Box>
+                <Typography variant="caption" color="text.secondary">Attrs</Typography>
+                <Box component="pre" sx={preSx}>{JSON.stringify(entry.attrs, null, 2)}</Box>
+              </Box>
+            )}
+          </Stack>
+        </Box>
+      )}
+    </Box>
+  );
+}
+
 
 function Row({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
   return (
@@ -265,10 +278,10 @@ function formatTime(iso: string) {
   }
 }
 
-const tableSx = {
-  width: '100%',
-  borderCollapse: 'collapse',
-  '& td, & th': { borderBottom: '1px solid rgba(17,17,17,0.08)' },
+const auditHeaderSx = {
+  display: 'grid',
+  gridTemplateColumns: '150px 170px 110px 110px 110px minmax(240px, 1fr) 90px',
+  borderBottom: '1px solid rgba(17,17,17,0.08)',
 };
 
 const thSx = {
@@ -285,20 +298,24 @@ const thSx = {
 const tdSx = {
   px: 1.4,
   py: 1,
+  minWidth: 0,
   verticalAlign: 'top',
 };
 
 const trSx = {
+  display: 'grid',
+  gridTemplateColumns: '150px 170px 110px 110px 110px minmax(240px, 1fr) 90px',
   cursor: 'pointer',
   '&:hover': { bgcolor: 'rgba(17,17,17,0.04)' },
 };
 
 const metaChipSx = {
   borderRadius: '4px',
-  bgcolor: '#fffaf1',
-  border: '1px solid rgba(17,17,17,0.12)',
-  color: '#514a41',
+  bgcolor: 'rgba(244,240,232,0.1)',
+  border: '1px solid rgba(244,240,232,0.16)',
+  color: tokens.color.text.primary,
   fontSize: '0.7rem',
+  '& .MuiChip-label': { color: tokens.color.text.primary },
 };
 
 function outcomeChipSx(o: AuditOutcome) {
@@ -312,9 +329,10 @@ function outcomeChipSx(o: AuditOutcome) {
     borderRadius: '4px',
     bgcolor: c.bg,
     border: `1px solid ${c.border}`,
-    color: tokens.color.text.inverse,
+    color: tokens.color.text.primary,
     fontWeight: 700,
     fontSize: '0.7rem',
+    '& .MuiChip-label': { color: tokens.color.text.primary },
   };
 }
 

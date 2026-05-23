@@ -19,6 +19,7 @@
 import { Box, Stack, Typography } from '@mui/material';
 import { tokens } from '../../lib/theme';
 import { FileChange } from '../../lib/api/patches';
+import { VirtualList } from '../performance/VirtualList';
 
 interface Props {
   change: FileChange;
@@ -29,9 +30,13 @@ interface Props {
 }
 
 type DiffLine = { kind: 'context' | 'add' | 'remove'; left?: string; right?: string; ln?: number; rn?: number };
+const LCS_CELL_LIMIT = 240_000;
 
 export function DiffViewer({ change, previousContent, maxLines = 600 }: Props) {
   let lines: DiffLine[] = [];
+  let estimatedLineCount: number | null = null;
+  let addCount: number | null = null;
+  let removeCount: number | null = null;
 
   switch (change.op) {
     case 'create':
@@ -47,7 +52,14 @@ export function DiffViewer({ change, previousContent, maxLines = 600 }: Props) {
     case 'update': {
       const prev = (previousContent ?? '').split('\n');
       const next = (change.content ?? '').split('\n');
-      lines = lcsLineDiff(prev, next);
+      addCount = next.length;
+      removeCount = prev.length;
+      if (prev.length * next.length > LCS_CELL_LIMIT) {
+        estimatedLineCount = prev.length + next.length;
+        lines = coarseUpdateDiff(prev, next, maxLines);
+      } else {
+        lines = lcsLineDiff(prev, next);
+      }
       break;
     }
     case 'replace': {
@@ -70,14 +82,16 @@ export function DiffViewer({ change, previousContent, maxLines = 600 }: Props) {
     }
   }
 
-  const truncated = lines.length > maxLines;
+  const truncated = lines.length > maxLines || (estimatedLineCount !== null && estimatedLineCount > lines.length);
   const visible = truncated ? lines.slice(0, maxLines) : lines;
 
-  let adds = 0;
-  let removes = 0;
-  for (const l of lines) {
-    if (l.kind === 'add') adds += 1;
-    if (l.kind === 'remove') removes += 1;
+  let adds = addCount ?? 0;
+  let removes = removeCount ?? 0;
+  if (addCount === null || removeCount === null) {
+    for (const l of lines) {
+      if (l.kind === 'add') adds += 1;
+      if (l.kind === 'remove') removes += 1;
+    }
   }
 
   return (
@@ -99,22 +113,21 @@ export function DiffViewer({ change, previousContent, maxLines = 600 }: Props) {
         </Typography>
         {truncated && (
           <Typography variant="caption" sx={{ color: '#928e83', ml: 'auto' }}>
-            showing first {maxLines} of {lines.length}
+            showing first {maxLines} of {estimatedLineCount ?? lines.length}
           </Typography>
         )}
       </Stack>
 
-      <Box sx={{
-        display: 'grid',
-        gridTemplateColumns: '36px 1fr 36px 1fr',
-        gap: 0,
-        maxHeight: 360,
-        overflow: 'auto',
-      }}>
-        {visible.map((l, i) => (
-          <DiffRow key={i} line={l} />
-        ))}
-      </Box>
+      <VirtualList
+        items={visible}
+        itemHeight={24}
+        height={Math.min(360, Math.max(48, visible.length * 24))}
+        keyExtractor={(_, index) => index}
+        ariaLabel={`Diff for ${change.path}`}
+        itemOverflow="visible"
+        sx={{ overflowX: 'auto' }}
+        renderItem={(line) => <DiffRow line={line} />}
+      />
     </Box>
   );
 }
@@ -123,7 +136,12 @@ function DiffRow({ line }: { line: DiffLine }) {
   const leftBg = line.kind === 'remove' ? 'rgba(229,79,79,0.16)' : 'transparent';
   const rightBg = line.kind === 'add' ? 'rgba(106,209,118,0.18)' : 'transparent';
   return (
-    <>
+    <Box sx={{
+      display: 'grid',
+      gridTemplateColumns: '36px minmax(0, 1fr) 36px minmax(0, 1fr)',
+      minWidth: 960,
+      minHeight: 24,
+    }}>
       <Box sx={{
         px: 0.6, color: '#5a5750', textAlign: 'right',
         bgcolor: leftBg, userSelect: 'none', borderRight: '1px solid #18191a',
@@ -148,7 +166,7 @@ function DiffRow({ line }: { line: DiffLine }) {
       }}>
         {line.kind === 'add' ? '+' : ' '} {line.right ?? ''}
       </Box>
-    </>
+    </Box>
   );
 }
 
@@ -157,6 +175,15 @@ function DiffRow({ line }: { line: DiffLine }) {
 // time and O(n*m) memory — fine for files up to a few thousand lines.
 // We could swap in a Myers diff later if patches against bigger files
 // become common; the public DiffViewer signature wouldn't change.
+function coarseUpdateDiff(a: string[], b: string[], maxLines: number): DiffLine[] {
+  const removeBudget = Math.ceil(maxLines / 2);
+  const addBudget = Math.max(1, maxLines - removeBudget);
+  return [
+    ...a.slice(0, removeBudget).map((s, i) => ({ kind: 'remove' as const, left: s, ln: i + 1 })),
+    ...b.slice(0, addBudget).map((s, i) => ({ kind: 'add' as const, right: s, rn: i + 1 })),
+  ];
+}
+
 function lcsLineDiff(a: string[], b: string[]): DiffLine[] {
   const n = a.length;
   const m = b.length;

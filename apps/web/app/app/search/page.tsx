@@ -12,6 +12,7 @@ import { tokens } from '../../../lib/theme';
 import { RequireAuth, useAuth } from '../../auth-context';
 import { AppShell, PageTitle, Surface } from '../workspace-shell';
 import { EmptyState, ErrorBox, SkeletonGrid, StatusPill, statusKindFromGate } from '../../../components/dashboard';
+import { VirtualList } from '../../../components/performance/VirtualList';
 
 type ResultKind = 'project' | 'patch' | 'gate' | 'nav';
 
@@ -165,9 +166,14 @@ function ResultGroup({ title, icon, hits }: { title: string; icon: React.ReactNo
         <Typography variant="subtitle2" sx={{ fontWeight: 900 }}>{title}</Typography>
         <Typography variant="caption" sx={{ color: '#86807a' }}>· {hits.length}</Typography>
       </Stack>
-      <Stack divider={<Box sx={{ borderTop: '1px solid rgba(17,17,17,0.06)' }} />}>
-        {hits.map((hit) => <ResultRow key={hit.id} hit={hit} />)}
-      </Stack>
+      <VirtualList
+        items={hits}
+        itemHeight={66}
+        height={Math.min(420, Math.max(72, hits.length * 66))}
+        keyExtractor={(hit) => hit.id}
+        ariaLabel={`${title} search results`}
+        renderItem={(hit) => <ResultRow hit={hit} />}
+      />
     </Surface>
   );
 }
@@ -182,6 +188,7 @@ function ResultRow({ hit }: { hit: SearchHit }) {
       alignItems="center"
       sx={{
         px: 1.8, py: 1.2,
+        minHeight: 66,
         color: 'inherit',
         textDecoration: 'none',
         transition: 'background-color 160ms',
