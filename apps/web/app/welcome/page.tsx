@@ -872,7 +872,7 @@ function WizardFooter({
           Back
         </Button>
 
-        {isOptional && step !== 0 && (
+        {isOptional && (
           <Typography variant="caption" sx={{ color: '#86807a', fontWeight: 700, display: { xs: 'none', sm: 'block' } }}>
             Optional step — skip if you want
           </Typography>
