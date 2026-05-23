@@ -7,6 +7,7 @@ import {
 } from '@mui/icons-material';
 import { Box, Button, Chip, Stack, Typography } from '@mui/material';
 import { api, LedgerEntry, Plan, Project, UserBudget } from '../../lib/api';
+import { brandAssets } from '../../lib/brand-assets';
 import { tokens } from '../../lib/theme';
 import { RequireAuth, useAuth } from '../auth-context';
 import { PromptBox } from '../prompt-box';
@@ -225,9 +226,6 @@ function HeroPrompt({
         borderRadius: '8px',
         overflow: 'hidden',
         position: 'relative',
-        backgroundImage: 'linear-gradient(180deg, rgba(7,9,13,0.54), rgba(7,9,13,0.92)), url(/brand/data-flow.jpg)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
         boxShadow: '0 32px 90px rgba(0,0,0,0.34)',
         '&:before': {
           content: '""',
@@ -239,6 +237,31 @@ function HeroPrompt({
         '& > *': { position: 'relative', zIndex: 1 },
       }}
     >
+      <Box
+        component="video"
+        src={brandAssets.motion.finisherHero.src}
+        poster={brandAssets.motion.finisherHero.poster}
+        autoPlay
+        muted
+        loop
+        playsInline
+        aria-hidden="true"
+        sx={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          opacity: 0.74,
+          zIndex: 0,
+        }}
+      />
+      <Box sx={{
+        position: 'absolute',
+        inset: 0,
+        zIndex: 0,
+        background: 'linear-gradient(180deg, rgba(7,9,13,0.46), rgba(7,9,13,0.88))',
+      }} />
       <Chip
         icon={<AutoAwesome sx={{ fontSize: 14 }} />}
         label="Finisher OS cockpit"

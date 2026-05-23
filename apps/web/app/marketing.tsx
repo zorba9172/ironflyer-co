@@ -9,6 +9,7 @@ import {
   Box, Button, Chip, Container, Stack, Typography,
 } from '@mui/material';
 import { tokens } from '../../../packages/design-tokens';
+import { brandAssets } from '../lib/brand-assets';
 import { BillingStatusBanner } from './billing-status-banner';
 import { EnterpriseLeadForm } from './enterprise-lead-form';
 import { HeroQuickStarts } from './hero-quick-starts';
@@ -252,16 +253,53 @@ export function MarketingHome() {
 
 function HeroSection() {
   return (
-    <Box component="main" sx={{ bgcolor: ALABASTER, pt: { xs: 5, md: 8 }, pb: { xs: 8, md: 10 } }}>
-      <Container maxWidth="xl">
-        <Stack alignItems="center" spacing={{ xs: 3, md: 4 }} sx={{ textAlign: 'center' }}>
+    <Box
+      component="main"
+      sx={{
+        minHeight: { xs: '82svh', md: '86svh' },
+        bgcolor: INK,
+        color: ALABASTER,
+        position: 'relative',
+        overflow: 'hidden',
+        display: 'flex',
+        alignItems: 'center',
+        pt: { xs: 7, md: 10 },
+        pb: { xs: 6, md: 8 },
+      }}
+    >
+      <Box
+        component="video"
+        src={brandAssets.motion.finisherHero.src}
+        poster={brandAssets.motion.finisherHero.poster}
+        autoPlay
+        muted
+        loop
+        playsInline
+        aria-hidden="true"
+        sx={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          opacity: 0.74,
+          filter: 'saturate(1.08) contrast(1.08)',
+        }}
+      />
+      <Box sx={{
+        position: 'absolute',
+        inset: 0,
+        background: 'linear-gradient(180deg, rgba(7,9,13,0.5), rgba(7,9,13,0.86) 58%, rgba(7,9,13,1)), radial-gradient(circle at 50% 36%, rgba(83,255,189,0.2), transparent 32%)',
+      }} />
+      <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1 }}>
+        <Stack alignItems="center" spacing={{ xs: 2.5, md: 3.4 }} sx={{ textAlign: 'center' }}>
           <Chip
-            label={brand.heroBadge}
+            label="Finisher OS · prompt to proved product"
             sx={{
-              bgcolor: 'rgba(13,14,15,0.06)',
-              color: INK,
-              border: '1px solid rgba(13,14,15,0.1)',
-              borderRadius: '999px',
+              bgcolor: 'rgba(83,255,189,0.12)',
+              color: tokens.color.brand.mint,
+              border: '1px solid rgba(83,255,189,0.28)',
+              borderRadius: '8px',
               fontWeight: 800,
               fontSize: 12.5,
               px: 0.8,
@@ -273,45 +311,29 @@ function HeroSection() {
             sx={{
               fontFamily: tokens.font.display,
               fontWeight: 400,
-              fontSize: { xs: '3.4rem', sm: '5rem', md: '7.4rem' },
-              lineHeight: 0.86,
+              fontSize: { xs: '3rem', sm: '5.4rem', md: '9rem' },
+              lineHeight: 0.82,
               letterSpacing: 0,
-              color: INK,
+              color: ALABASTER,
               maxWidth: 1100,
               textWrap: 'balance',
+              textTransform: 'uppercase',
+              textShadow: '0 22px 80px rgba(0,0,0,0.48)',
             }}
           >
-            {brand.heroTitle[0]}
-            <Box component="span" sx={{
-              background: `linear-gradient(180deg, ${LIME} 0%, #b6db00 100%)`,
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              position: 'relative',
-              '&::after': {
-                content: '""',
-                position: 'absolute',
-                left: 0, right: 0, bottom: '-0.06em',
-                height: '0.14em',
-                background: LIME,
-                opacity: 0.18,
-                borderRadius: 999,
-              },
-            }}>
-              {brand.heroTitle[1]}
-            </Box>
+            Ironflyer
           </Typography>
 
           <Typography
             sx={{
-              maxWidth: 760,
-              color: '#3a352d',
-              fontSize: { xs: '1.05rem', md: '1.32rem' },
-              fontWeight: 500,
+              maxWidth: 840,
+              color: '#dbe6ef',
+              fontSize: { xs: '1.05rem', md: '1.34rem' },
+              fontWeight: 650,
               lineHeight: 1.45,
             }}
           >
-            {brand.heroSubtitle}
+            Build the product. Prove it is done. Ironflyer turns an idea into a gated build plan, reviewable patches, live runtime evidence, budget control, and deploy-ready software.
           </Typography>
 
           <Box sx={{
@@ -329,7 +351,7 @@ function HeroSection() {
             </Box>
           </Box>
 
-          <Stack direction="row" spacing={2.5} alignItems="center" sx={{ pt: 1.5, color: MUTED, flexWrap: 'wrap', justifyContent: 'center', rowGap: 1 }}>
+          <Stack direction="row" spacing={2.5} alignItems="center" sx={{ pt: 1.2, color: '#dbe6ef', flexWrap: 'wrap', justifyContent: 'center', rowGap: 1 }}>
             {[
               { icon: <CheckCircle sx={{ fontSize: 16 }} />, text: 'Blocking gates' },
               { icon: <Lock sx={{ fontSize: 16 }} />, text: 'Reviewable patches' },
@@ -337,8 +359,8 @@ function HeroSection() {
               { icon: <Speed sx={{ fontSize: 16 }} />, text: 'Deploy ownership' },
             ].map((item) => (
               <Stack key={item.text} direction="row" spacing={0.8} alignItems="center">
-                <Box sx={{ color: '#6c8400', display: 'inline-flex' }}>{item.icon}</Box>
-                <Typography variant="caption" sx={{ fontWeight: 700, fontSize: 12.5, color: INK }}>{item.text}</Typography>
+                <Box sx={{ color: tokens.color.brand.mint, display: 'inline-flex' }}>{item.icon}</Box>
+                <Typography variant="caption" sx={{ fontWeight: 800, fontSize: 12.5, color: ALABASTER }}>{item.text}</Typography>
               </Stack>
             ))}
           </Stack>
@@ -349,7 +371,14 @@ function HeroSection() {
 }
 
 function LogoBand() {
-  const labels = ['Spec review', 'Diff approval', 'Runtime logs', 'Security scan', 'Cost ledger', 'Deploy artifact'];
+  const labels = [
+    { text: 'Spec review', glyph: brandAssets.glyphs.webSearch },
+    { text: 'Diff approval', glyph: brandAssets.glyphs.pullRequest },
+    { text: 'Runtime logs', glyph: brandAssets.glyphs.terminal },
+    { text: 'Security scan', glyph: brandAssets.glyphs.shieldTick },
+    { text: 'Cost ledger', glyph: brandAssets.glyphs.timeline },
+    { text: 'Deploy artifact', glyph: brandAssets.glyphs.cubes },
+  ];
   return (
     <Box sx={{ bgcolor: ALABASTER, py: { xs: 4, md: 6 }, borderTop: '1px solid rgba(13,14,15,0.07)', borderBottom: '1px solid rgba(13,14,15,0.07)' }}>
       <Container maxWidth="lg">
@@ -358,10 +387,19 @@ function LogoBand() {
             The review checklist is built into the loop
           </Typography>
           <Stack direction="row" spacing={{ xs: 3, md: 6 }} useFlexGap flexWrap="wrap" justifyContent="center" alignItems="center" sx={{ opacity: 0.78 }}>
-            {labels.map((label) => (
-              <Typography key={label} variant="h6" sx={{ fontFamily: tokens.font.display, fontWeight: 400, color: INK, fontSize: { xs: 16, md: 20 }, letterSpacing: 0 }}>
-                {label}
-              </Typography>
+            {labels.map((item) => (
+              <Stack key={item.text} direction="row" spacing={1} alignItems="center">
+                <Box
+                  component="img"
+                  src={item.glyph.src}
+                  alt=""
+                  aria-hidden="true"
+                  sx={{ width: 22, height: 22, objectFit: 'contain', filter: 'brightness(0)' }}
+                />
+                <Typography variant="h6" sx={{ fontFamily: tokens.font.display, fontWeight: 400, color: INK, fontSize: { xs: 16, md: 20 }, letterSpacing: 0 }}>
+                  {item.text}
+                </Typography>
+              </Stack>
             ))}
           </Stack>
         </Stack>
@@ -541,8 +579,47 @@ function CloudIDEPreview() {
         color: ALABASTER,
         p: { xs: 1.5, md: 2 },
         boxShadow: '0 24px 56px rgba(13,14,15,0.26)',
+        position: 'relative',
+        isolation: 'isolate',
+        overflow: 'hidden',
       }}>
-        <Stack direction="row" spacing={0.8} alignItems="center" sx={{ px: 1.4, py: 1.2 }}>
+        <Box
+          component="video"
+          src={brandAssets.motion.gateEvidence.src}
+          poster={brandAssets.motion.gateEvidence.poster}
+          autoPlay
+          muted
+          loop
+          playsInline
+          aria-hidden="true"
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            opacity: 0.18,
+            mixBlendMode: 'screen',
+            zIndex: -1,
+          }}
+        />
+        <Box
+          component="img"
+          src={brandAssets.stills.aiReplyCard.src}
+          alt=""
+          aria-hidden="true"
+          sx={{
+            display: { xs: 'none', md: 'block' },
+            position: 'absolute',
+            right: 24,
+            bottom: 22,
+            width: 220,
+            opacity: 0.24,
+            filter: 'drop-shadow(0 24px 60px rgba(0,0,0,0.55))',
+            zIndex: -1,
+          }}
+        />
+        <Stack direction="row" spacing={0.8} alignItems="center" sx={{ px: 1.4, py: 1.2, position: 'relative' }}>
           {['#ff5f57', '#febc2e', '#28c840'].map((c) => (
             <Box key={c} sx={{ width: 11, height: 11, borderRadius: 999, bgcolor: c }} />
           ))}
@@ -563,6 +640,7 @@ function CloudIDEPreview() {
           minHeight: { xs: 380, md: 480 },
           fontFamily: tokens.font.mono,
           fontSize: 12.5,
+          position: 'relative',
         }}>
           <Box sx={{ bgcolor: '#16171b', borderRadius: 1, p: 2, color: '#bdb7ab' }}>
             <Typography variant="caption" sx={{ color: '#7d7770', textTransform: 'uppercase', letterSpacing: '0.14em' }}>Files</Typography>
@@ -1013,6 +1091,10 @@ export function FinalCta({
         gridTemplateColumns: { xs: '1fr', md: '1.2fr 0.8fr' },
         gap: 3,
         overflow: 'hidden',
+        position: 'relative',
+        backgroundImage: `linear-gradient(90deg, rgba(13,14,15,0.94), rgba(13,14,15,0.74)), url(${brandAssets.stills.systemOsField.src})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
       }}>
         <Box>
           <Typography sx={{

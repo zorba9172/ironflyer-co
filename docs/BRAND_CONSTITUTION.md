@@ -90,13 +90,20 @@ Use:
 Approved primary assets:
 
 - `/brand/data-flow.jpg` for data/build flow and hero depth
+- `/brand/motion/finisher-os-hero-loop.mp4` for full-bleed hero motion
+- `/brand/motion/gate-evidence-flow.mp4` for gates, risk, and evidence sections
 - `/marketplace/output-ref/fx.png` as workspace/product-surface reference
 - `/brand/icon-ai-code.png`, `/brand/icon-repository.png`,
   `/brand/icon-console.png`, `/brand/icon-api.png` for primitive cards
+- `/brand/glyphs/*.svg` for special capability icons in product surfaces
 - existing `/templates/*.jpg` thumbnails for revenue-ready starts
 
 Avoid generic developer/person illustrations as primary brand visuals. They
 can be used in docs or empty states only when the message benefits from them.
+
+The source of truth for web usage is `apps/web/lib/brand-assets.ts`. New
+assets must be added there with source path, intended use, and guidance before
+they appear in UI code.
 
 ## Voice
 
