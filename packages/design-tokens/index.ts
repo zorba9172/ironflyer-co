@@ -4,6 +4,15 @@
 
 export const tokens = {
   color: {
+    brand: {
+      graphite: '#07090d',
+      slate: '#10151d',
+      paper: '#f5f2ea',
+      mint: '#53ffbd',
+      cyan: '#5bc8ff',
+      amber: '#ffd166',
+      ember: '#ff7a45',
+    },
     // backgrounds
     bg: {
       base: '#0d0e0f',

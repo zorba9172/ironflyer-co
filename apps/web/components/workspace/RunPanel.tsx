@@ -35,9 +35,9 @@ export function RunPanel({ events, running, streamHealthy, onRun, onRepair, empt
   const progress = useMemo(() => computeProgress(events), [events]);
 
   return (
-    <Stack spacing={1.2} sx={{ overflowY: 'auto', height: '100%', minHeight: 0 }}>
+    <Stack spacing={0.8} sx={{ overflowY: 'auto', height: '100%', minHeight: 0 }}>
       <Box sx={panelSx}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 1.8, pt: 1.6 }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 1.2, pt: 1.1 }}>
           <Stack direction="row" alignItems="center" spacing={1}>
             <RocketLaunch fontSize="small" sx={{ color: tokens.color.accent.lime }} />
             <Typography variant="overline" color="text.secondary">Finisher</Typography>
@@ -45,18 +45,18 @@ export function RunPanel({ events, running, streamHealthy, onRun, onRepair, empt
           <Stream pulse={running} healthy={streamHealthy} />
         </Stack>
 
-        <Box sx={{ px: 1.8, pt: 0.8 }}>
+        <Box sx={{ px: 1.2, pt: 0.7 }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 800, lineHeight: 1.2 }}>
             {running ? 'Running the gates...' : 'Ready for the next run'}
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.4 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.35 }}>
             {running
               ? 'The agent plans, writes, tests, and repairs until every gate passes.'
               : 'We run spec, UX, code, tests, security, and deploy gates. If something fails, the agent repairs it and loops.'}
           </Typography>
         </Box>
 
-        <Box sx={{ px: 1.8, pt: 1.4, pb: 1.6 }}>
+        <Box sx={{ px: 1.2, pt: 1.1, pb: 1.2 }}>
           <Button
             fullWidth
             variant="contained"
@@ -65,8 +65,8 @@ export function RunPanel({ events, running, streamHealthy, onRun, onRepair, empt
             startIcon={running ? <CircularProgress size={16} sx={{ color: 'currentColor' }} /> : <Bolt />}
             onClick={onRun}
             sx={{
-              minHeight: 48,
-              borderRadius: '12px',
+              minHeight: 44,
+              borderRadius: `${tokens.radius.sm}px`,
               fontWeight: 900,
               fontSize: 15,
             }}
@@ -97,14 +97,14 @@ export function RunPanel({ events, running, streamHealthy, onRun, onRepair, empt
       )}
 
       <Box sx={{ ...panelSx, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 1.8, pt: 1.4, pb: 0.6 }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 1.2, pt: 1.1, pb: 0.5 }}>
           <Typography variant="overline" color="text.secondary">Live activity</Typography>
           <Typography variant="caption" sx={{ color: tokens.color.text.muted, fontFamily: tokens.font.mono }}>
             {events.length} events
           </Typography>
         </Stack>
 
-        <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', px: 1.2, pb: 1.4 }}>
+        <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', px: 0.8, pb: 1 }}>
           {events.length === 0 ? (
             <EmptyState hint={emptyHint} />
           ) : (
@@ -123,10 +123,10 @@ function FailureCard({ event, onRepair }: { event: RunEvent; onRepair: () => voi
   return (
     <Box sx={{
       ...panelSx,
-      borderColor: 'rgba(229, 79, 79, 0.45)',
-      bgcolor: 'rgba(229, 79, 79, 0.06)',
+      borderColor: 'rgba(255, 24, 24, 0.42)',
+      bgcolor: 'rgba(255, 24, 24, 0.08)',
     }}>
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ px: 1.6, py: 1.2 }}>
+      <Stack direction="row" alignItems="center" spacing={1} sx={{ px: 1.1, py: 1 }}>
         <Cancel fontSize="small" sx={{ color: tokens.color.accent.danger }} />
         <Box sx={{ minWidth: 0, flex: 1 }}>
           <Typography variant="subtitle2" noWrap>
@@ -136,16 +136,18 @@ function FailureCard({ event, onRepair }: { event: RunEvent; onRepair: () => voi
             {event.message}
           </Typography>
         </Box>
-        <IconButton size="small" onClick={() => setOpen((v) => !v)}>
+        <IconButton size="small" onClick={() => setOpen((v) => !v)} sx={{ color: tokens.color.text.secondary }}>
           {open ? <ExpandLess fontSize="small" /> : <ExpandMore fontSize="small" />}
         </IconButton>
       </Stack>
       <Collapse in={open}>
-        <Box sx={{ px: 1.6, pb: 1.4 }}>
+        <Box sx={{ px: 1.1, pb: 1.1 }}>
           {event.detail && (
             <Box sx={{
-              px: 1.2, py: 1, borderRadius: 1.2,
+              px: 1, py: 0.9,
+              borderRadius: `${tokens.radius.sm}px`,
               bgcolor: tokens.color.bg.inset,
+              border: `1px solid ${tokens.color.border.subtle}`,
               fontFamily: tokens.font.mono, fontSize: 12,
               whiteSpace: 'pre-wrap', color: tokens.color.text.primary,
               maxHeight: 140, overflow: 'auto',
@@ -158,7 +160,7 @@ function FailureCard({ event, onRepair }: { event: RunEvent; onRepair: () => voi
             variant="contained"
             size="small"
             onClick={onRepair}
-            sx={{ mt: 1.2, borderRadius: '10px' }}
+            sx={{ mt: 1, borderRadius: `${tokens.radius.sm}px` }}
           >
             Repair this gate
           </Button>
@@ -173,9 +175,19 @@ function TimelineRow({ event }: { event: RunEvent }) {
   const colour = SEV_COLOUR[sev];
   const Icon = SEV_ICON[sev];
   return (
-    <Stack direction="row" spacing={1} sx={{ px: 0.6, py: 0.5, borderRadius: 1.1 }}>
+    <Stack
+      direction="row"
+      spacing={1}
+      sx={{
+        px: 0.65, py: 0.55,
+        borderRadius: `${tokens.radius.sm}px`,
+        '&:hover': { bgcolor: tokens.color.bg.surfaceHover },
+      }}
+    >
       <Box sx={{
-        mt: 0.3, width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+        mt: 0.3, width: 22, height: 22,
+        borderRadius: `${tokens.radius.sm}px`,
+        flexShrink: 0,
         display: 'grid', placeItems: 'center',
         bgcolor: `${colour}1f`,
         color: colour,
@@ -205,11 +217,13 @@ function TimelineRow({ event }: { event: RunEvent }) {
 
 function EmptyState({ hint }: { hint?: string }) {
   return (
-    <Stack alignItems="center" spacing={1} sx={{ py: 3, textAlign: 'center', px: 1.5 }}>
+    <Stack alignItems="center" spacing={1} sx={{ py: 2.4, textAlign: 'center', px: 1.2 }}>
       <Box sx={{
-        width: 44, height: 44, borderRadius: '50%',
+        width: 42, height: 42,
+        borderRadius: `${tokens.radius.sm}px`,
         display: 'grid', placeItems: 'center',
         bgcolor: tokens.color.bg.inset,
+        border: `1px solid ${tokens.color.border.subtle}`,
         color: tokens.color.text.muted,
       }}>
         <AutoAwesome fontSize="small" />
@@ -288,8 +302,9 @@ function formatTime(iso: string): string {
 }
 
 const panelSx = {
-  borderRadius: '14px',
-  border: '1px solid rgba(17,17,17,0.12)',
-  bgcolor: tokens.color.bg.surface,
+  borderRadius: `${tokens.radius.sm}px`,
+  border: `1px solid ${tokens.color.border.subtle}`,
+  bgcolor: tokens.color.bg.surfaceRaised,
+  boxShadow: tokens.shadow.sm,
   overflow: 'hidden',
 };

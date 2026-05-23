@@ -156,7 +156,7 @@ export function ChatPane({ projectId, defaultRole = 'planner' }: Props) {
   }
 
   return (
-    <Stack spacing={1} sx={{ height: '100%', minHeight: 0 }}>
+    <Stack spacing={1} sx={{ height: '100%', minHeight: 0, minWidth: 0, width: '100%', overflow: 'hidden' }}>
       <Box ref={scrollRef} sx={{ flex: 1, minHeight: 0, overflowY: 'auto', pr: 0.4 }}>
         {turns.length === 0 ? (
           <EmptyChat />
@@ -172,6 +172,7 @@ export function ChatPane({ projectId, defaultRole = 'planner' }: Props) {
         border: '1px solid rgba(17,17,17,0.12)',
         bgcolor: tokens.color.bg.surface,
         p: 1,
+        minWidth: 0,
       }}>
         <Stack direction="row" spacing={0.6} sx={{ overflowX: 'auto', pb: 0.6 }}>
           {ROLES.map((r) => {
@@ -221,13 +222,14 @@ export function ChatPane({ projectId, defaultRole = 'planner' }: Props) {
             {attachError}
           </Typography>
         )}
-        <Stack direction="row" spacing={1} alignItems="flex-end">
+        <Stack direction="row" spacing={1} alignItems="flex-end" sx={{ minWidth: 0 }}>
           <Tooltip title="Attach image (screenshot, mockup, design ref)">
             <span>
               <IconButton
                 disabled={streaming}
                 onClick={() => fileInputRef.current?.click()}
                 sx={{
+                  flexShrink: 0,
                   bgcolor: tokens.color.bg.inset, color: tokens.color.text.primary,
                   '&:hover': { bgcolor: tokens.color.bg.surfaceHover },
                 }}
@@ -257,6 +259,7 @@ export function ChatPane({ projectId, defaultRole = 'planner' }: Props) {
               }
             }}
             sx={{
+              minWidth: 0,
               '& .MuiOutlinedInput-root': {
                 bgcolor: tokens.color.bg.inset,
                 borderRadius: '12px',
@@ -280,6 +283,7 @@ export function ChatPane({ projectId, defaultRole = 'planner' }: Props) {
                   onClick={() => void send()}
                   disabled={!draft.trim() && pending.length === 0}
                   sx={{
+                    flexShrink: 0,
                     bgcolor: tokens.color.accent.lime, color: tokens.color.text.inverse,
                     '&:hover': { bgcolor: tokens.color.accent.lime },
                     '&.Mui-disabled': { bgcolor: tokens.color.bg.inset, color: tokens.color.text.muted },
@@ -338,7 +342,7 @@ function applyDelta(turns: Turn[], d: ChatDelta): Turn[] {
 
 function EmptyChat() {
   return (
-    <Stack spacing={1.4} alignItems="center" sx={{ py: 6, textAlign: 'center' }}>
+    <Stack spacing={1.4} alignItems="center" sx={{ py: 6, px: { xs: 1, sm: 2 }, textAlign: 'center', width: '100%', minWidth: 0 }}>
       <Typography variant="h6" sx={{ fontWeight: 800 }}>
         What should we build today?
       </Typography>

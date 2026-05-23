@@ -108,8 +108,11 @@ export default function LoginPage() {
       minHeight: '100vh',
       display: 'grid',
       gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-      bgcolor: tokens.color.bg.alabaster,
-      color: tokens.color.text.inverse,
+      bgcolor: tokens.color.bg.base,
+      color: tokens.color.text.primary,
+      backgroundImage: 'linear-gradient(90deg, rgba(7,9,13,0.96), rgba(7,9,13,0.74)), url(/brand/data-flow.jpg)',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
     }}>
       <Box sx={{
         display: 'flex',
@@ -122,15 +125,16 @@ export default function LoginPage() {
         <Box sx={{
           width: '100%',
           maxWidth: 420,
-          bgcolor: '#fffcf3',
-          border: '1px solid rgba(13,14,15,0.06)',
+          bgcolor: 'rgba(16,21,29,0.92)',
+          border: '1px solid rgba(226,236,248,0.14)',
           borderRadius: 1,
           p: { xs: 3.6, md: 4.8 },
-          boxShadow: '0 18px 44px rgba(13,14,15,0.08)',
+          boxShadow: '0 28px 80px rgba(0,0,0,0.42)',
+          backdropFilter: 'blur(18px)',
         }}>
           <Link href="/" style={{ color: 'inherit', textDecoration: 'none' }}>
             <Box sx={{ mb: 5 }}>
-              <IronflyerLogo size={36} tone="light" tagline />
+              <IronflyerLogo size={36} tone="dark" tagline />
             </Box>
           </Link>
 
@@ -173,20 +177,20 @@ export default function LoginPage() {
             </Stack>
           </form>
 
-          <Typography variant="body2" sx={{ mt: 2.5, color: '#555' }}>
+          <Typography variant="body2" sx={{ mt: 2.5, color: tokens.color.text.secondary }}>
             {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
-            <Button onClick={() => setMode(mode === 'login' ? 'signup' : 'login')} sx={{ p: 0, minWidth: 0, color: '#111', textDecoration: 'underline' }}>
+            <Button onClick={() => setMode(mode === 'login' ? 'signup' : 'login')} sx={{ p: 0, minWidth: 0, color: tokens.color.accent.lime, textDecoration: 'underline' }}>
               {mode === 'login' ? 'Create your account' : 'Log in'}
             </Button>
           </Typography>
 
           {mode === 'login' && (
-            <Typography variant="caption" sx={{ display: 'block', mt: 2, color: '#666' }}>
+            <Typography variant="caption" sx={{ display: 'block', mt: 2, color: tokens.color.text.secondary }}>
               Dev demo: <b>demo@ironflyer.dev</b> / <b>demo1234</b>
             </Typography>
           )}
 
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 3, color: '#666' }}>
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 3, color: tokens.color.text.secondary }}>
             <Lock fontSize="small" />
             <Typography variant="caption">SSO available on Team and Enterprise plans</Typography>
           </Stack>
@@ -201,8 +205,8 @@ export default function LoginPage() {
         p: 8,
         gap: 4,
         position: 'relative',
-        background: 'linear-gradient(140deg, #0d0e0f 0%, #15161a 60%, #1d1d1a 100%)',
-        color: tokens.color.bg.alabaster,
+        background: 'linear-gradient(140deg, rgba(7,9,13,0.28), rgba(16,21,29,0.72))',
+        color: tokens.color.text.primary,
         overflow: 'hidden',
       }}>
         <Box sx={{ position: 'relative', maxWidth: 480 }}>
@@ -216,11 +220,11 @@ export default function LoginPage() {
             fontSize: 42,
             lineHeight: 0.95,
             letterSpacing: 0,
-            color: tokens.color.bg.alabaster,
+            color: tokens.color.text.primary,
           }}>
-            Pick up where the finisher loop left off.
+            Pick up where the gates left off.
           </Typography>
-          <Typography sx={{ mt: 2, color: '#cfc7b8', fontWeight: 500, fontSize: 16, lineHeight: 1.5 }}>
+          <Typography sx={{ mt: 2, color: '#c9d4df', fontWeight: 500, fontSize: 16, lineHeight: 1.5 }}>
             Sign in to open your workspaces, gate runs, and budget ledger. Your draft prompt is preserved below — submit it after you log in.
           </Typography>
         </Box>
@@ -239,9 +243,9 @@ export default function LoginPage() {
 }
 
 const socialButtonSx = {
-  color: '#111',
-  borderColor: 'rgba(17,17,17,0.25)',
+  color: tokens.color.text.primary,
+  borderColor: 'rgba(226,236,248,0.22)',
   borderRadius: 1,
   py: 1,
-  '&:hover': { borderColor: '#111', bgcolor: 'rgba(17,17,17,0.04)' },
+  '&:hover': { borderColor: tokens.color.accent.lime, bgcolor: 'rgba(83,255,189,0.08)' },
 };

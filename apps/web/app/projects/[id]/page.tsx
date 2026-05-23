@@ -271,7 +271,7 @@ function ProjectWorkspace({ params }: { params: Promise<{ id: string }> }) {
 
   if (!project) {
     return (
-      <Box sx={{ p: 4, minHeight: '100vh', bgcolor: tokens.color.bg.alabaster }}>
+      <Box sx={{ p: 4, minHeight: '100vh', bgcolor: tokens.color.bg.base, color: tokens.color.text.primary }}>
         <Typography variant="body2" color="text.secondary">
           {projectError ? `Loading error: ${projectError}` : 'Loading the workspace...'}
         </Typography>
@@ -282,21 +282,31 @@ function ProjectWorkspace({ params }: { params: Promise<{ id: string }> }) {
   return (
     <Box dir="ltr" sx={{
       minHeight: '100vh',
-      bgcolor: tokens.color.bg.alabaster,
-      color: tokens.color.text.inverse,
-      overflow: 'hidden',
+      bgcolor: tokens.color.bg.base,
+      color: tokens.color.text.primary,
+      overflow: { xs: 'auto', lg: 'hidden' },
+      overflowX: 'hidden',
+      maxWidth: '100vw',
     }}>
       <ProjectHeader p={project} running={running} />
 
       <Box sx={{
         display: 'grid',
         gridTemplateColumns: { xs: '1fr', lg: '320px minmax(0, 1fr) 360px' },
-        gap: 1.2,
-        p: { xs: 1, lg: 1.4 },
+        gap: { xs: 0.8, lg: 1 },
+        p: { xs: 0.8, sm: 1, lg: 1.2 },
         height: { xs: 'auto', lg: 'calc(100vh - 58px)' },
         minHeight: { xs: 'calc(100vh - 58px)', lg: 'auto' },
+        width: '100%',
+        maxWidth: '100vw',
+        overflowX: 'hidden',
       }}>
-        <Box sx={{ minHeight: 0, display: { xs: 'none', lg: 'block' } }}>
+        <Box sx={{
+          minWidth: 0,
+          minHeight: 0,
+          order: { xs: 3, lg: 1 },
+          maxHeight: { xs: 380, lg: 'none' },
+        }}>
           <WorkspaceSidebar
             project={project}
             workspace={workspace}
@@ -316,10 +326,13 @@ function ProjectWorkspace({ params }: { params: Promise<{ id: string }> }) {
         </Box>
 
         <Box sx={{
+          minWidth: 0,
           minHeight: 0,
-          borderRadius: '14px',
-          border: '1px solid rgba(17,17,17,0.12)',
+          order: { xs: 1, lg: 2 },
+          borderRadius: `${tokens.radius.sm}px`,
+          border: `1px solid ${tokens.color.border.subtle}`,
           bgcolor: tokens.color.bg.surface,
+          boxShadow: tokens.shadow.sm,
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
@@ -327,15 +340,18 @@ function ProjectWorkspace({ params }: { params: Promise<{ id: string }> }) {
           <Tabs
             value={tab}
             onChange={(_, v) => setTab(v as CenterTab)}
+            variant="scrollable"
+            allowScrollButtonsMobile
             sx={{
-              px: 1.4,
-              minHeight: 46,
+              px: { xs: 0.6, sm: 1 },
+              minHeight: 42,
               borderBottom: `1px solid ${tokens.color.border.subtle}`,
+              bgcolor: tokens.color.bg.surfaceRaised,
               '& .MuiTab-root': {
-                minHeight: 46, fontSize: 13, fontWeight: 700,
+                minHeight: 42, minWidth: { xs: 88, sm: 108 }, fontSize: 12, fontWeight: 800,
                 color: tokens.color.text.muted,
               },
-              '& .Mui-selected': { color: tokens.color.text.inverse },
+              '& .Mui-selected': { color: tokens.color.text.primary },
               '& .MuiTabs-indicator': { bgcolor: tokens.color.accent.lime, height: 2.5 },
             }}
           >
@@ -345,7 +361,7 @@ function ProjectWorkspace({ params }: { params: Promise<{ id: string }> }) {
             <Tab icon={<TerminalIcon fontSize="small" />} iconPosition="start" value="terminal" label="Terminal" />
           </Tabs>
 
-          <Box sx={{ flex: 1, minHeight: 0, p: 1.4 }}>
+          <Box sx={{ flex: 1, minHeight: { xs: 460, lg: 0 }, p: { xs: 0.8, lg: 1 } }}>
             {tab === 'chat'     && <ChatPane projectId={id} />}
             {tab === 'editor'   && <EditorPane workspace={workspace} selectedFile={selectedFile} />}
             {tab === 'preview'  && (
@@ -367,7 +383,12 @@ function ProjectWorkspace({ params }: { params: Promise<{ id: string }> }) {
           </Box>
         </Box>
 
-        <Box sx={{ minHeight: 0, display: { xs: 'none', lg: 'block' } }}>
+        <Box sx={{
+          minWidth: 0,
+          minHeight: 0,
+          order: { xs: 2, lg: 3 },
+          maxHeight: { xs: 430, lg: 'none' },
+        }}>
           <RunPanel
             events={runEvents}
             running={running}
@@ -404,31 +425,42 @@ function ProjectHeader({ p, running }: { p: Project; running: boolean }) {
   const total = Object.keys(p.gates).length || GATE_ORDER.length;
   return (
     <Box sx={{
-      px: 1.6, py: 0.8, minHeight: 58,
-      borderBottom: '1px solid rgba(17,17,17,0.12)',
+      px: { xs: 1, sm: 1.4 }, py: 0.7, minHeight: 58,
+      borderBottom: `1px solid ${tokens.color.border.subtle}`,
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      gap: 2,
-      bgcolor: 'rgba(248,244,236,0.94)',
-      color: tokens.color.text.inverse,
+      gap: { xs: 1, sm: 2 },
+      bgcolor: tokens.color.bg.surface,
+      color: tokens.color.text.primary,
     }}>
       <Stack direction="row" alignItems="center" spacing={1.4} sx={{ minWidth: 0 }}>
-        <IconButton size="small" href="/app" sx={{ color: '#4a453e' }}>
+        <IconButton
+          size="small"
+          href="/app"
+          sx={{
+            color: tokens.color.text.secondary,
+            border: `1px solid ${tokens.color.border.subtle}`,
+            borderRadius: `${tokens.radius.sm}px`,
+            '&:hover': { color: tokens.color.accent.sky, bgcolor: tokens.color.bg.surfaceHover },
+          }}
+        >
           <KeyboardBackspace fontSize="small" />
         </IconButton>
         <Box sx={{ minWidth: 0 }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 900 }} noWrap>{p.name}</Typography>
-          <Typography variant="caption" sx={{ color: '#686158' }} noWrap>
+          <Typography variant="caption" sx={{ color: tokens.color.text.secondary }} noWrap>
             {p.spec.idea || p.description}
           </Typography>
         </Box>
       </Stack>
-      <Stack direction="row" alignItems="center" spacing={1}>
+      <Stack direction="row" alignItems="center" spacing={0.7} sx={{ flexShrink: 0 }}>
         <Chip
           label={`Gates ${passed}/${total}`}
           size="small"
           sx={{
-            bgcolor: '#fffaf1', color: tokens.color.text.inverse,
-            border: '1px solid rgba(17,17,17,0.12)', fontWeight: 800,
+            bgcolor: tokens.color.bg.surfaceRaised,
+            color: tokens.color.text.primary,
+            border: `1px solid ${tokens.color.border.subtle}`,
+            fontWeight: 800,
           }}
         />
         {running && (

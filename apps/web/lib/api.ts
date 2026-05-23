@@ -221,6 +221,44 @@ export interface GraphEdge {
   raw: string;
 }
 
+export interface FigmaTypographyToken {
+  name?: string;
+  id?: string;
+  fontFamily?: string;
+  family?: string;
+  font?: string;
+  fontSize?: number;
+  size?: number;
+  fontWeight?: number;
+  weight?: number;
+  lineHeightPx?: number;
+}
+
+export interface FigmaComponentRef {
+  nodeId: string;
+  name: string;
+  type: string;
+  width: number;
+  height: number;
+  childCounts?: Record<string, number>;
+}
+
+export interface FigmaImportResult {
+  tokens: {
+    colors?: Record<string, string>;
+    typography?: FigmaTypographyToken[];
+    spacing?: number[];
+    radii?: number[];
+  };
+  inventory?: {
+    components?: FigmaComponentRef[];
+  };
+  file?: {
+    name?: string;
+    lastModified?: string;
+  };
+}
+
 export interface BrainstormOutcome {
   plan: {
     mode: 'direct' | 'brainstorm' | 'debate' | 'research';
@@ -244,6 +282,19 @@ import { auth } from './auth';
 import type { Patch } from './api/patches';
 
 const base = '/api/orchestrator';
+
+export function extractFigmaFileKey(input: string): string | null {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+  try {
+    const url = new URL(trimmed);
+    const match = url.pathname.match(/\/(?:file|design|proto)\/([A-Za-z0-9]+)/);
+    return match?.[1] ?? null;
+  } catch {
+    const match = trimmed.match(/figma\.com\/(?:file|design|proto)\/([A-Za-z0-9]+)/);
+    return match?.[1] ?? null;
+  }
+}
 
 async function jsonFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${base}${path}`, {
@@ -435,6 +486,11 @@ export const api = {
     jsonFetch<{ nodes: GraphNode[] | null; edges: GraphEdge[] | null }>(
       `/projects/${id}/graph`,
     ).then((r) => ({ nodes: r.nodes ?? [], edges: r.edges ?? [] })),
+  figmaImport: (id: string, fileKey: string, workspaceId: string) =>
+    jsonFetch<FigmaImportResult>(`/projects/${id}/figma-import`, {
+      method: 'POST',
+      body: JSON.stringify({ fileKey, workspaceId }),
+    }),
 };
 
 // streamChat opens a POST SSE stream against /chat. Browsers do not allow

@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowForward, AutoAwesome, OpenInNew, PlayArrow } from '@mui/icons-material';
+import {
+  ArrowForward, AutoAwesome, FactCheck, OpenInNew, Paid, PlayArrow, Smartphone, Terminal,
+} from '@mui/icons-material';
 import { Box, Button, Chip, Stack, Typography } from '@mui/material';
 import { api, LedgerEntry, Plan, Project, UserBudget } from '../../lib/api';
 import { tokens } from '../../lib/theme';
@@ -131,6 +133,7 @@ function AppHomeInner() {
           error={error}
           onSubmit={createFromIdea}
         />
+        <MissionControl />
 
         {error && !busy && (
           <ErrorBox
@@ -212,30 +215,53 @@ function HeroPrompt({
   onSubmit: (v: string) => void;
 }) {
   return (
-    <Stack alignItems="center" spacing={1.7} sx={{ textAlign: 'center', pt: { xs: 0.3, md: 1 }, pb: { xs: 0.2, md: 0.6 } }}>
+    <Stack
+      alignItems="center"
+      spacing={1.7}
+      sx={{
+        textAlign: 'center',
+        p: { xs: 2, sm: 3, md: 4 },
+        border: '1px solid rgba(226,236,248,0.12)',
+        borderRadius: '8px',
+        overflow: 'hidden',
+        position: 'relative',
+        backgroundImage: 'linear-gradient(180deg, rgba(7,9,13,0.54), rgba(7,9,13,0.92)), url(/brand/data-flow.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        boxShadow: '0 32px 90px rgba(0,0,0,0.34)',
+        '&:before': {
+          content: '""',
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(90deg, rgba(83,255,189,0.1), transparent 38%, rgba(91,200,255,0.1))',
+          pointerEvents: 'none',
+        },
+        '& > *': { position: 'relative', zIndex: 1 },
+      }}
+    >
       <Chip
         icon={<AutoAwesome sx={{ fontSize: 14 }} />}
-        label="Build with Ironflyer"
+        label="Finisher OS cockpit"
         sx={{
-          bgcolor: 'rgba(229,255,0,0.18)',
-          color: '#586500',
-          border: '1px solid rgba(17,17,17,0.12)',
+          bgcolor: 'rgba(83,255,189,0.14)',
+          color: tokens.color.brand.mint,
+          border: '1px solid rgba(83,255,189,0.26)',
           borderRadius: '8px',
           fontWeight: 900,
-          '& .MuiChip-icon': { color: '#586500' },
+          '& .MuiChip-icon': { color: tokens.color.brand.mint },
         }}
       />
       <Typography variant="h2" sx={{
-        maxWidth: 760,
-        fontSize: { xs: '1.68rem', sm: '2.35rem', md: '3rem' },
+        maxWidth: 820,
+        fontSize: { xs: '1.82rem', sm: '2.5rem', md: '3.35rem' },
         lineHeight: 0.96,
         textTransform: 'uppercase',
         textWrap: 'balance',
       }}>
-        What are we shipping today?
+        What needs to be finished today?
       </Typography>
-      <Typography variant="body1" sx={{ maxWidth: 640, fontSize: { xs: '0.98rem', sm: '1rem' }, fontWeight: 600, color: '#686158' }}>
-        Describe the product in plain English. Ironflyer will plan it, build it, test it, secure it, and prepare it for deployment one gate at a time.
+      <Typography variant="body1" sx={{ maxWidth: 690, fontSize: { xs: '0.98rem', sm: '1rem' }, fontWeight: 600, color: '#c9d4df' }}>
+        Describe the outcome. Ironflyer turns it into a gated build plan, reviewable patches, a live runtime, a cost ledger, and a deploy package your team can defend.
       </Typography>
       <Box sx={{ width: '100%', maxWidth: 820 }}>
         <PromptBox
@@ -260,17 +286,17 @@ function HeroPrompt({
               minHeight: 38,
               px: 1.4,
               borderRadius: '8px',
-              bgcolor: '#fffaf1',
-              color: '#4a453e',
-              borderColor: 'rgba(17,17,17,0.12)',
+              bgcolor: 'rgba(16,21,29,0.7)',
+              color: tokens.color.text.primary,
+              borderColor: 'rgba(226,236,248,0.16)',
               justifyContent: 'flex-start',
               textAlign: 'left',
               fontWeight: 800,
               fontSize: { xs: '0.88rem', sm: '0.92rem' },
               lineHeight: 1.28,
               '&:hover': {
-                borderColor: 'rgba(17,17,17,0.28)',
-                bgcolor: 'rgba(229,255,0,0.24)',
+                borderColor: 'rgba(83,255,189,0.4)',
+                bgcolor: 'rgba(83,255,189,0.1)',
               },
             }}
           >
@@ -282,14 +308,96 @@ function HeroPrompt({
   );
 }
 
+function MissionControl() {
+  const items = [
+    {
+      icon: <FactCheck fontSize="small" />,
+      label: 'Gate stack',
+      value: '9 verdicts',
+      text: 'Spec, UX, Architecture, Code, Lint, Tests, Security, Budget, Deploy.',
+      color: tokens.color.brand.mint,
+    },
+    {
+      icon: <Terminal fontSize="small" />,
+      label: 'Runtime',
+      value: 'Linux live',
+      text: 'Files, terminal, preview ports, logs, and patch evidence in one workspace.',
+      color: tokens.color.brand.cyan,
+    },
+    {
+      icon: <Paid fontSize="small" />,
+      label: 'Budget',
+      value: 'Cap aware',
+      text: 'Provider spend is visible early so the build protects margin.',
+      color: tokens.color.brand.amber,
+    },
+    {
+      icon: <Smartphone fontSize="small" />,
+      label: 'Mobile',
+      value: 'Approve fast',
+      text: 'Review blockers, risk, preview status, and next action from the phone.',
+      color: '#d7b3ff',
+    },
+  ];
+
+  return (
+    <Box sx={{
+      display: 'grid',
+      gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' },
+      gap: 1.2,
+    }}>
+      {items.map((item) => (
+        <Surface
+          key={item.label}
+          sx={{
+            p: 1.6,
+            minHeight: 148,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            background: `linear-gradient(180deg, ${item.color}18, rgba(16,21,29,0.86) 56%)`,
+          }}
+        >
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Stack direction="row" spacing={0.8} alignItems="center">
+              <Box sx={{
+                width: 30,
+                height: 30,
+                borderRadius: '8px',
+                display: 'grid',
+                placeItems: 'center',
+                bgcolor: `${item.color}1f`,
+                color: item.color,
+              }}>
+                {item.icon}
+              </Box>
+              <Typography variant="caption" sx={{ color: tokens.color.text.secondary, fontWeight: 900, textTransform: 'uppercase' }}>
+                {item.label}
+              </Typography>
+            </Stack>
+          </Stack>
+          <Box sx={{ mt: 1.6 }}>
+            <Typography sx={{ fontFamily: tokens.font.display, fontSize: '1.45rem', lineHeight: 1, textTransform: 'uppercase' }}>
+              {item.value}
+            </Typography>
+            <Typography variant="body2" sx={{ mt: 0.8, color: tokens.color.text.secondary }}>
+              {item.text}
+            </Typography>
+          </Box>
+        </Surface>
+      ))}
+    </Box>
+  );
+}
+
 function WelcomeCard({ onPick, templates }: { onPick: (prompt: string) => void; templates: typeof featuredTemplates }) {
   return (
     <Surface sx={{ p: { xs: 2.2, md: 3 } }}>
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }}>
         <Box sx={{ maxWidth: 520 }}>
-          <Typography variant="overline" sx={{ color: '#9fb500' }}>Welcome to Ironflyer</Typography>
+          <Typography variant="overline" sx={{ color: tokens.color.brand.mint }}>Welcome to Ironflyer</Typography>
           <Typography variant="h5" sx={{ mt: 0.4, fontWeight: 900 }}>Let’s build your first finished product</Typography>
-          <Typography variant="body2" sx={{ mt: 0.6, color: '#686158' }}>
+          <Typography variant="body2" sx={{ mt: 0.6, color: tokens.color.text.secondary }}>
             Pick a starter template or write your idea in the prompt box above. Ironflyer will move it through spec,
             architecture, code, tests, security, and deploy gates until the product is ready to ship.
           </Typography>
@@ -306,17 +414,17 @@ function WelcomeCard({ onPick, templates }: { onPick: (prompt: string) => void; 
             sx={{
               p: 2,
               borderRadius: '8px',
-              border: '1px solid rgba(17,17,17,0.12)',
-              bgcolor: '#fffaf1',
+              border: '1px solid rgba(226,236,248,0.12)',
+              bgcolor: 'rgba(7,9,13,0.42)',
               display: 'flex',
               flexDirection: 'column',
               transition: 'transform 200ms',
-              '&:hover': { transform: 'translateY(-2px)', borderColor: 'rgba(17,17,17,0.28)' },
+              '&:hover': { transform: 'translateY(-2px)', borderColor: 'rgba(83,255,189,0.32)' },
             }}
           >
-            <Chip label={item.tag} size="small" sx={{ alignSelf: 'flex-start', borderRadius: '6px', bgcolor: 'rgba(229,255,0,0.32)', color: '#3f4900', fontWeight: 800 }} />
+            <Chip label={item.tag} size="small" sx={{ alignSelf: 'flex-start', borderRadius: '6px', bgcolor: 'rgba(83,255,189,0.14)', color: tokens.color.brand.mint, fontWeight: 800 }} />
             <Typography variant="subtitle1" sx={{ mt: 1.1, fontWeight: 900 }}>{item.title}</Typography>
-            <Typography variant="body2" sx={{ mt: 0.4, color: '#686158', flex: 1 }}>{item.desc}</Typography>
+            <Typography variant="body2" sx={{ mt: 0.4, color: tokens.color.text.secondary, flex: 1 }}>{item.desc}</Typography>
             <Button onClick={() => onPick(item.prompt)} variant="contained" size="small" sx={{ mt: 1.4, alignSelf: 'flex-start' }}>
               Use template
             </Button>
@@ -338,12 +446,12 @@ function ContinueRow({ project }: { project: Project }) {
     <Surface sx={{ p: { xs: 2, md: 2.4 } }}>
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }}>
         <Box sx={{ minWidth: 0, flex: 1 }}>
-          <Typography variant="overline" sx={{ color: '#9fb500' }}>Continue where you left off</Typography>
+          <Typography variant="overline" sx={{ color: tokens.color.brand.mint }}>Continue where you left off</Typography>
           <Stack direction="row" spacing={1.2} alignItems="center" sx={{ mt: 0.4, flexWrap: 'wrap' }}>
             <Typography variant="h5" sx={{ fontWeight: 900, minWidth: 0 }} noWrap>{project.name}</Typography>
             <StatusPill kind={statusKindFromGate(project.status)} label={project.status || 'idle'} />
           </Stack>
-          <Typography variant="body2" sx={{ mt: 0.6, color: '#686158', maxWidth: 560 }}>
+          <Typography variant="body2" sx={{ mt: 0.6, color: tokens.color.text.secondary, maxWidth: 560 }}>
             {lastEvent ? lastEvent.message : project.description || project.spec?.idea || 'This project is waiting for its first run.'}
           </Typography>
         </Box>
@@ -373,7 +481,7 @@ function SectionHeading({
     <Stack direction="row" justifyContent="space-between" alignItems="center">
       <Box>
         <Typography variant="subtitle1" sx={{ fontWeight: 900 }}>{title}</Typography>
-        {subtitle && <Typography variant="caption" sx={{ color: '#86807a' }}>{subtitle}</Typography>}
+        {subtitle && <Typography variant="caption" sx={{ color: tokens.color.text.secondary }}>{subtitle}</Typography>}
       </Box>
       {href && hrefLabel && (
         <Button component={Link} href={href} size="small" endIcon={<ArrowForward fontSize="small" />}>
@@ -384,7 +492,7 @@ function SectionHeading({
   );
   if (inline) return inner;
   return (
-    <Box sx={{ px: 1.8, py: 1.2, borderBottom: '1px solid rgba(17,17,17,0.08)' }}>
+    <Box sx={{ px: 1.8, py: 1.2, borderBottom: '1px solid rgba(226,236,248,0.1)' }}>
       {inner}
     </Box>
   );
@@ -396,10 +504,10 @@ function UsageStat({ label, value, accent = false }: { label: string; value: str
       flex: 1,
       p: 1.2,
       borderRadius: '8px',
-      bgcolor: accent ? 'rgba(229,255,0,0.22)' : '#fffaf1',
-      border: '1px solid rgba(17,17,17,0.1)',
+      bgcolor: accent ? 'rgba(83,255,189,0.14)' : 'rgba(7,9,13,0.42)',
+      border: '1px solid rgba(226,236,248,0.1)',
     }}>
-      <Typography variant="caption" sx={{ color: '#86807a' }}>{label}</Typography>
+      <Typography variant="caption" sx={{ color: tokens.color.text.secondary }}>{label}</Typography>
       <Typography variant="h6" sx={{ fontWeight: 900, fontFamily: tokens.font.mono }}>{value}</Typography>
     </Box>
   );

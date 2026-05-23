@@ -14,14 +14,16 @@ interface IronflyerLogoProps extends IronflyerMarkProps {
   tagline?: boolean;
 }
 
-const ink = '#0d0e0f';
+const ink = tokens.color.brand.graphite;
 const alabaster = tokens.color.bg.alabaster;
 const lime = tokens.color.accent.lime;
+const cyan = tokens.color.accent.sky;
 
 export function IronflyerMark({ size = 32, tone = 'light', labelled = false }: IronflyerMarkProps) {
   const tile = tone === 'dark' ? alabaster : ink;
   const rail = tone === 'dark' ? ink : lime;
-  const gate = tone === 'dark' ? lime : alabaster;
+  const gate = tone === 'dark' ? lime : cyan;
+  const cut = tone === 'dark' ? alabaster : '#111820';
 
   return (
     <Box
@@ -37,12 +39,12 @@ export function IronflyerMark({ size = 32, tone = 'light', labelled = false }: I
         flexShrink: 0,
       }}
     >
-      <rect x="4" y="4" width="56" height="56" rx="8" fill={tile} />
-      <path d="M19 14h13c9 0 15 5 15 13 0 6-3 10-9 12l10 11H35L26 40h-3v10H12V14h7Z" fill={rail} />
-      <path d="M23 23h12c3 0 5 2 5 5s-2 5-5 5H23V23Z" fill={tile} />
-      <path d="M15 14h10v36H15V14Z" fill={rail} />
-      <path d="M28 18h16v4H28V18Zm0 12h16v4H28v-4Zm0 12h16v4H28v-4Z" fill={gate} />
-      <path d="M46 24l8 8-8 8v-6h-6v-4h6v-6Z" fill={gate} />
+      <rect x="4" y="4" width="56" height="56" rx="10" fill={tile} />
+      <path d="M17 13h30v8H27v7h18v8H27v15H17V13Z" fill={rail} />
+      <path d="M36 27h10.5L55 35.5 46.5 44H36l8.5-8.5L36 27Z" fill={gate} />
+      <path d="M13 43h26v8H13v-8Z" fill={rail} />
+      <path d="M27 28h13v8H27v-8Z" fill={cut} opacity={tone === 'dark' ? 0.24 : 1} />
+      <circle cx="49" cy="17" r="3" fill={gate} />
     </Box>
   );
 }
@@ -92,10 +94,10 @@ export function IronflyerLogo({
                 fontSize: 10,
                 lineHeight: 1,
                 textTransform: 'uppercase',
-                letterSpacing: '0.12em',
+                letterSpacing: '0.08em',
               }}
             >
-              Finish, then ship
+              Finisher OS
             </Typography>
           )}
         </Box>

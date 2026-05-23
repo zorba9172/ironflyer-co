@@ -64,10 +64,10 @@ export function AppShell({
       minHeight: '100vh',
       display: 'grid',
       gridTemplateColumns: { xs: '1fr', lg: '248px 1fr' },
-      bgcolor: tokens.color.bg.alabaster,
-      color: tokens.color.text.inverse,
+      bgcolor: tokens.color.brand.graphite,
+      color: tokens.color.text.primary,
       overflow: 'hidden',
-      '& .MuiTypography-colorTextSecondary': { color: '#686158' },
+      '& .MuiTypography-colorTextSecondary': { color: tokens.color.text.secondary },
     }}>
       <Sidebar userEmail={userEmail} recents={recents} onLogout={onLogout} />
       <Box sx={{ minWidth: 0, minHeight: 0, height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -91,11 +91,11 @@ export function AppShell({
           px: { xs: 1.5, sm: 2.5, md: 4 },
           pt: { xs: 2.2, md: 4 },
           pb: { xs: 11, lg: 5 },
-          bgcolor: tokens.color.bg.alabaster,
-          backgroundImage: 'linear-gradient(180deg, rgba(229,255,0,0.16), rgba(244,240,232,0) 260px)',
+          bgcolor: tokens.color.brand.graphite,
+          backgroundImage: 'radial-gradient(circle at 12% 0%, rgba(83,255,189,0.16), transparent 28%), radial-gradient(circle at 88% 8%, rgba(91,200,255,0.14), transparent 32%), linear-gradient(180deg, rgba(16,21,29,0.96), rgba(7,9,13,1) 340px)',
           '& .MuiButton-outlined': {
-            color: tokens.color.text.inverse,
-            borderColor: 'rgba(17,17,17,0.24)',
+            color: tokens.color.text.primary,
+            borderColor: 'rgba(226,236,248,0.2)',
           },
         }}>
           <Box sx={{ width: '100%', maxWidth: 1120, minWidth: 0, mx: 'auto' }}>
@@ -129,7 +129,7 @@ export function PageTitle({
     >
       <Box sx={{ maxWidth: 720 }}>
         {eyebrow && (
-          <Typography variant="overline" sx={{ color: '#9fb500' }}>
+          <Typography variant="overline" sx={{ color: tokens.color.brand.mint }}>
             {eyebrow}
           </Typography>
         )}
@@ -147,7 +147,7 @@ export function PageTitle({
           {title}
         </Typography>
         {subtitle && (
-          <Typography variant="body1" sx={{ mt: 1, maxWidth: 620, color: '#686158' }}>
+          <Typography variant="body1" sx={{ mt: 1, maxWidth: 620, color: tokens.color.text.secondary }}>
             {subtitle}
           </Typography>
         )}
@@ -166,33 +166,34 @@ export function Surface({
 }) {
   return (
     <Box sx={{
-      border: '1px solid rgba(17,17,17,0.12)',
+      border: '1px solid rgba(226,236,248,0.12)',
       borderRadius: '8px',
-      bgcolor: '#f8f4ec',
-      color: tokens.color.text.inverse,
+      bgcolor: 'rgba(16,21,29,0.82)',
+      color: tokens.color.text.primary,
       boxShadow: 'none',
+      backdropFilter: 'blur(18px)',
       '& .MuiTypography-root': { color: 'inherit' },
-      '& .MuiTypography-colorTextSecondary': { color: '#686158' },
+      '& .MuiTypography-colorTextSecondary': { color: tokens.color.text.secondary },
       '& .MuiChip-root': {
-        color: tokens.color.text.inverse,
-        borderColor: 'rgba(17,17,17,0.14)',
+        color: tokens.color.text.primary,
+        borderColor: 'rgba(226,236,248,0.16)',
       },
       '& .MuiChip-icon': { color: 'inherit' },
       '&& .MuiOutlinedInput-root': {
-        bgcolor: '#fffaf1',
-        color: tokens.color.text.inverse,
+        bgcolor: 'rgba(7,9,13,0.72)',
+        color: tokens.color.text.primary,
         borderRadius: '8px',
       },
       '&& .MuiInputBase-input': {
-        color: tokens.color.text.inverse,
+        color: tokens.color.text.primary,
       },
       '&& .MuiInputBase-input::placeholder': {
-        color: '#6b645b',
+        color: '#8a95a3',
         opacity: 1,
       },
-      '& .MuiInputLabel-root': { color: '#686158' },
-      '& .MuiInputLabel-root.Mui-focused': { color: '#6f7e00' },
-      '& .MuiSwitch-track': { bgcolor: 'rgba(17,17,17,0.22)' },
+      '& .MuiInputLabel-root': { color: tokens.color.text.secondary },
+      '& .MuiInputLabel-root.Mui-focused': { color: tokens.color.brand.mint },
+      '& .MuiSwitch-track': { bgcolor: 'rgba(226,236,248,0.2)' },
       ...sx,
     }}>
       {children}
@@ -228,7 +229,7 @@ function Sidebar({ userEmail, recents, onLogout }: { userEmail: string; recents:
       position: 'relative',
       top: 0,
       borderRight: '1px solid rgba(244,240,232,0.1)',
-      bgcolor: tokens.color.bg.inset,
+      bgcolor: '#05070a',
       color: tokens.color.text.primary,
       p: 1.5,
       overflow: 'hidden',
@@ -408,9 +409,9 @@ function MobileNav() {
       zIndex: 20,
       border: '1px solid rgba(17,17,17,0.14)',
       borderRadius: '8px',
-      bgcolor: 'rgba(248,244,236,0.94)',
+      bgcolor: 'rgba(7,9,13,0.92)',
       backdropFilter: 'blur(16px)',
-      boxShadow: '0 18px 48px rgba(17,17,17,0.18)',
+      boxShadow: '0 18px 48px rgba(0,0,0,0.36)',
     }}>
       <Stack direction="row" spacing={0.5} sx={{ p: 0.5 }}>
         {mobileNav.map((item) => {
@@ -428,12 +429,12 @@ function MobileNav() {
                 minHeight: 44,
                 px: 0.8,
                 borderRadius: '8px',
-                color: active ? tokens.color.text.inverse : '#4f4941',
-                bgcolor: active ? tokens.color.accent.lime : 'transparent',
+                color: active ? tokens.color.text.inverse : tokens.color.text.secondary,
+                bgcolor: active ? tokens.color.brand.mint : 'transparent',
                 '& .MuiButton-startIcon': { mr: { xs: 0, sm: 0.7 } },
                 '& .MuiButton-startIcon svg': { fontSize: 19 },
                 '&:hover': {
-                  bgcolor: active ? tokens.color.accent.lime : 'rgba(17,17,17,0.06)',
+                  bgcolor: active ? tokens.color.brand.mint : 'rgba(226,236,248,0.08)',
                 },
               }}
             >
@@ -501,15 +502,15 @@ function TopBar({
       gap: 1,
       px: { xs: 1.5, md: 2 },
       py: { xs: 1, sm: 0 },
-      borderBottom: '1px solid rgba(17,17,17,0.1)',
-      bgcolor: 'rgba(244,240,232,0.9)',
+      borderBottom: '1px solid rgba(226,236,248,0.1)',
+      bgcolor: 'rgba(7,9,13,0.82)',
       backdropFilter: 'blur(14px)',
       position: 'sticky',
       top: 0,
       zIndex: 9,
     }}>
       <Stack direction="row" spacing={1} alignItems="center" sx={{ display: { xs: 'flex', lg: 'none' }, minWidth: 0 }}>
-        <IronflyerLogo size={24} tone="light" />
+        <IronflyerLogo size={24} tone="dark" />
       </Stack>
       <TextField
         value={internalQuery}
@@ -527,19 +528,19 @@ function TopBar({
           maxWidth: { sm: 360, lg: 520 },
           ml: { xs: 'auto', lg: 0 },
           '& .MuiOutlinedInput-root': {
-            bgcolor: '#fffaf1',
-            color: tokens.color.text.inverse,
+            bgcolor: 'rgba(16,21,29,0.92)',
+            color: tokens.color.text.primary,
             borderRadius: '8px',
-            '& fieldset': { borderColor: 'rgba(17,17,17,0.16)' },
-            '&:hover fieldset': { borderColor: 'rgba(17,17,17,0.34)' },
-            '&.Mui-focused fieldset': { borderColor: tokens.color.accent.lime },
+            '& fieldset': { borderColor: 'rgba(226,236,248,0.16)' },
+            '&:hover fieldset': { borderColor: 'rgba(226,236,248,0.34)' },
+            '&.Mui-focused fieldset': { borderColor: tokens.color.brand.mint },
           },
           '& .MuiInputBase-input': {
             fontSize: { xs: '0.95rem', sm: '0.92rem' },
             py: { xs: 1.1, sm: 0.9 },
           },
-          '& .MuiInputBase-input::placeholder': { color: '#5f5a52', opacity: 1 },
-          '& .MuiSvgIcon-root': { color: '#5f5a52' },
+          '& .MuiInputBase-input::placeholder': { color: '#8a95a3', opacity: 1 },
+          '& .MuiSvgIcon-root': { color: '#8a95a3' },
         }}
         InputProps={{
           startAdornment: (
@@ -600,13 +601,13 @@ function TopBar({
         onClose={() => setNotifEl(null)}
         slotProps={{
           paper: {
-            sx: { mt: 1, minWidth: 280, borderRadius: '10px', border: '1px solid rgba(17,17,17,0.1)' },
+            sx: { mt: 1, minWidth: 280, borderRadius: '8px', border: '1px solid rgba(226,236,248,0.12)', bgcolor: tokens.color.bg.surface, color: tokens.color.text.primary },
           },
         }}
       >
         <Box sx={{ px: 2, py: 1.4 }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 900 }}>No new notifications</Typography>
-          <Typography variant="caption" sx={{ color: '#686158' }}>
+          <Typography variant="caption" sx={{ color: tokens.color.text.secondary }}>
             Run, gate, patch, and deployment alerts will appear here.
           </Typography>
         </Box>
@@ -618,12 +619,12 @@ function TopBar({
         onClose={() => setMenuEl(null)}
         slotProps={{
           paper: {
-            sx: { mt: 1, minWidth: 220, borderRadius: '10px', border: '1px solid rgba(17,17,17,0.1)' },
+            sx: { mt: 1, minWidth: 220, borderRadius: '8px', border: '1px solid rgba(226,236,248,0.12)', bgcolor: tokens.color.bg.surface, color: tokens.color.text.primary },
           },
         }}
       >
         <Box sx={{ px: 2, py: 1.2 }}>
-          <Typography variant="caption" sx={{ color: '#86807a' }}>Signed in as</Typography>
+          <Typography variant="caption" sx={{ color: tokens.color.text.secondary }}>Signed in as</Typography>
           <Typography variant="body2" sx={{ fontWeight: 900 }} noWrap>{userEmail}</Typography>
         </Box>
         <Divider />
@@ -656,10 +657,10 @@ function topIconButtonSx(active: boolean) {
     width: 36,
     height: 36,
     borderRadius: '8px',
-    color: active ? tokens.color.text.inverse : '#3f3b35',
-    bgcolor: active ? tokens.color.accent.lime : 'transparent',
+    color: active ? tokens.color.text.inverse : tokens.color.text.secondary,
+    bgcolor: active ? tokens.color.brand.mint : 'transparent',
     '&:hover': {
-      bgcolor: active ? tokens.color.accent.lime : 'rgba(17,17,17,0.08)',
+      bgcolor: active ? tokens.color.brand.mint : 'rgba(226,236,248,0.08)',
     },
   };
 }

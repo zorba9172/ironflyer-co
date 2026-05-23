@@ -49,7 +49,7 @@ export function WorkspaceSidebar({
   const [openPatches, setOpenPatches] = useState(true);
 
   return (
-    <Stack spacing={1} sx={{ height: '100%', minHeight: 0, overflowY: 'auto', pr: 0.3 }}>
+    <Stack spacing={0.8} sx={{ height: '100%', minHeight: 0, overflowY: 'auto', pr: 0.3 }}>
       <Section
         title="Files"
         icon={<Folder fontSize="small" />}
@@ -113,24 +113,25 @@ function Section({
 }) {
   return (
     <Box sx={{
-      borderRadius: '14px',
-      border: '1px solid rgba(17,17,17,0.12)',
-      bgcolor: tokens.color.bg.surface,
+      borderRadius: `${tokens.radius.sm}px`,
+      border: `1px solid ${tokens.color.border.subtle}`,
+      bgcolor: tokens.color.bg.surfaceRaised,
       overflow: 'hidden',
+      boxShadow: tokens.shadow.sm,
     }}>
       <Stack
         direction="row" alignItems="center" spacing={1}
         onClick={onToggle}
         sx={{
-          px: 1.4, py: 1, cursor: 'pointer',
+          px: 1, py: 0.75, cursor: 'pointer',
           '&:hover': { bgcolor: tokens.color.bg.surfaceHover },
         }}
       >
         <IconButton size="small" sx={{ p: 0.2, color: tokens.color.text.muted }}>
           {open ? <ExpandMore fontSize="small" /> : <ChevronRight fontSize="small" />}
         </IconButton>
-        <Box sx={{ color: tokens.color.text.muted, display: 'flex' }}>{icon}</Box>
-        <Typography variant="overline" sx={{ flex: 1, color: tokens.color.text.secondary }}>
+        <Box sx={{ color: tokens.color.accent.sky, display: 'flex' }}>{icon}</Box>
+        <Typography variant="overline" sx={{ flex: 1, color: tokens.color.text.secondary, lineHeight: 1.2 }}>
           {title}
         </Typography>
         {meta && (
@@ -140,7 +141,7 @@ function Section({
         )}
       </Stack>
       <Collapse in={open}>
-        <Box sx={{ px: 1.2, pb: 1.2 }}>{children}</Box>
+        <Box sx={{ px: 0.8, pb: 0.8 }}>{children}</Box>
       </Collapse>
     </Box>
   );
@@ -200,13 +201,13 @@ function FileTree({
             spacing={0.8}
             onClick={() => onSelect(f.path)}
             sx={{
-              px: 0.9, py: 0.4, borderRadius: 1, cursor: 'pointer',
-              bgcolor: active ? 'rgba(229,255,0,0.16)' : 'transparent',
+              px: 0.8, py: 0.42, borderRadius: `${tokens.radius.sm}px`, cursor: 'pointer',
+              bgcolor: active ? tokens.color.accent.lime : 'transparent',
               color: active ? tokens.color.text.inverse : tokens.color.text.primary,
-              '&:hover': { bgcolor: active ? 'rgba(229,255,0,0.22)' : tokens.color.bg.surfaceHover },
+              '&:hover': { bgcolor: active ? '#f0ff36' : tokens.color.bg.surfaceHover },
             }}
           >
-            <FileIcon sx={{ fontSize: 13, color: active ? tokens.color.accent.lime : tokens.color.text.muted }} />
+            <FileIcon sx={{ fontSize: 13, color: active ? tokens.color.text.inverse : tokens.color.text.muted }} />
             <Typography
               variant="caption"
               sx={{
@@ -237,10 +238,15 @@ function GateRow({ state, label }: { state?: GateState; label: string }) {
   return (
     <Stack
       direction="row" alignItems="center" spacing={1}
-      sx={{ px: 1, py: 0.6, borderRadius: 1.1, bgcolor: tokens.color.bg.inset }}
+      sx={{
+        px: 0.85, py: 0.55,
+        borderRadius: `${tokens.radius.sm}px`,
+        bgcolor: tokens.color.bg.inset,
+        border: `1px solid ${tokens.color.border.subtle}`,
+      }}
     >
       <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: colour }} />
-      <Typography variant="body2" sx={{ flex: 1 }}>{label}</Typography>
+      <Typography variant="body2" sx={{ flex: 1, color: tokens.color.text.primary }}>{label}</Typography>
       <Tooltip title={state?.updatedAt ? new Date(state.updatedAt).toLocaleString() : 'Pending'}>
         <Chip
           label={status}
@@ -293,8 +299,9 @@ function PatchList({
           spacing={0.8}
           onClick={() => onSelect(p.id)}
           sx={{
-            px: 1, py: 0.7, borderRadius: 1.1, cursor: 'pointer',
+            px: 0.85, py: 0.65, borderRadius: `${tokens.radius.sm}px`, cursor: 'pointer',
             bgcolor: tokens.color.bg.inset,
+            border: `1px solid ${tokens.color.border.subtle}`,
             '&:hover': { bgcolor: tokens.color.bg.surfaceHover },
           }}
         >
@@ -348,8 +355,11 @@ function gateMetaLabel(project: Project, order: { key: string }[]): string {
 function Hint({ title, body }: { title: string; body: string }) {
   return (
     <Box sx={{
-      px: 1.2, py: 1.4, borderRadius: 1.2,
-      bgcolor: tokens.color.bg.inset, textAlign: 'center',
+      px: 1, py: 1.1,
+      borderRadius: `${tokens.radius.sm}px`,
+      bgcolor: tokens.color.bg.inset,
+      border: `1px solid ${tokens.color.border.subtle}`,
+      textAlign: 'center',
     }}>
       <Typography variant="body2" sx={{ fontWeight: 700 }}>{title}</Typography>
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.3 }}>
@@ -361,7 +371,15 @@ function Hint({ title, body }: { title: string; body: string }) {
 
 function ErrorRow({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <Stack spacing={0.8} sx={{ px: 1.2, py: 1.2, borderRadius: 1.2, bgcolor: 'rgba(229,79,79,0.06)' }}>
+    <Stack
+      spacing={0.8}
+      sx={{
+        px: 1, py: 1,
+        borderRadius: `${tokens.radius.sm}px`,
+        bgcolor: 'rgba(255,24,24,0.08)',
+        border: '1px solid rgba(255,24,24,0.28)',
+      }}
+    >
       <Typography variant="body2" sx={{ color: tokens.color.accent.danger, fontWeight: 700 }}>
         {message}
       </Typography>
