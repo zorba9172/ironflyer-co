@@ -70,7 +70,7 @@ export default function OpenGraphImage() {
               fontFamily: headlineFont,
             }}
           >
-            Ship software that survives review.
+            The #1 AI Completion Engine.
           </div>
           <div
             style={{
@@ -81,7 +81,7 @@ export default function OpenGraphImage() {
               fontFamily: bodyFont,
             }}
           >
-            AI Product Finisher — Spec, UX, Code, Tests, Security, Deploy.
+            From AI-generated starts to proved, deploy-ready software.
           </div>
         </div>
 

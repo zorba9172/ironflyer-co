@@ -204,21 +204,21 @@ const useCasesByRole = [
 // -- Brand copy bank -----------------------------------------------------
 
 const brand = {
-  heroBadge: 'Public beta · built for production-minded teams',
-  heroTitle: ['Ship software ', 'that survives review.'],
-  heroSubtitle: 'Describe the product. Ironflyer plans it, builds it, and pushes every change through Spec, UX, Architecture, Code, Lint, Tests, Security, Budget, and Deploy gates before anyone calls it finished.',
+  heroBadge: 'The #1 AI Completion Engine',
+  heroTitle: ['AI Completion ', 'Engine'],
+  heroSubtitle: 'AI can start it. Ironflyer completes it: gated build plans, reviewable patches, live runtime evidence, budget control, and deploy-ready software.',
   heroCtaPrimary: 'Start building',
   heroCtaSecondary: 'See the loop',
   capabilityEyebrow: 'Why Ironflyer exists',
-  capabilityTitle: 'AI builders are fast. Finishing is the hard part.',
+  capabilityTitle: 'AI builders start fast. Completion is the market gap.',
   gatesEyebrow: 'Gate verdicts',
   gatesTitle: 'Every pass or block is written down.',
   socialEyebrow: 'Operating proof',
   socialTitle: 'Evidence beats promises.',
   compareEyebrow: 'Market position',
   compareTitle: 'Where Ironflyer draws the line.',
-  ctaTitle: 'Bring the idea. Keep the standard.',
-  ctaSubtitle: 'Start from a prompt and end with a repo, a running workspace, a budget ledger, and deploy artifacts your team can defend.',
+  ctaTitle: 'Start with AI. Complete with Ironflyer.',
+  ctaSubtitle: 'The AI Completion Engine moves from prompt to repo, runtime, budget ledger, gate evidence, and deploy artifacts your team can defend.',
 };
 
 // -----------------------------------------------------------------------
@@ -294,7 +294,7 @@ function HeroSection() {
       <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1 }}>
         <Stack alignItems="center" spacing={{ xs: 2.5, md: 3.4 }} sx={{ textAlign: 'center' }}>
           <Chip
-            label="Finisher OS · prompt to proved product"
+            label={brand.heroBadge}
             sx={{
               bgcolor: 'rgba(83,255,189,0.12)',
               color: tokens.color.brand.mint,
@@ -321,7 +321,10 @@ function HeroSection() {
               textShadow: '0 22px 80px rgba(0,0,0,0.48)',
             }}
           >
-            Ironflyer
+            {brand.heroTitle[0]}
+            <Box component="span" sx={{ color: tokens.color.brand.mint }}>
+              {brand.heroTitle[1]}
+            </Box>
           </Typography>
 
           <Typography
@@ -333,7 +336,7 @@ function HeroSection() {
               lineHeight: 1.45,
             }}
           >
-            Build the product. Prove it is done. Ironflyer turns an idea into a gated build plan, reviewable patches, live runtime evidence, budget control, and deploy-ready software.
+            {brand.heroSubtitle}
           </Typography>
 
           <Box sx={{

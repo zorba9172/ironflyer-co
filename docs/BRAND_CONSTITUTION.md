@@ -2,7 +2,11 @@
 
 ## Position
 
-Ironflyer is the Finisher OS for AI-built software.
+Ironflyer is the AI Completion Engine.
+
+We position Ironflyer as the number 1 AI Completion Engine in the market:
+the system that turns AI-generated starts into finished, reviewed,
+deploy-ready software.
 
 The market already understands prompt-to-app. Ironflyer owns what comes next:
 reviewable patches, blocking gates, real runtime evidence, budget control,
@@ -11,6 +15,12 @@ audit trails, and deploy readiness.
 ## Promise
 
 Build the product. Prove it is done.
+
+Short form:
+
+- "The #1 AI Completion Engine."
+- "From prompt to proved product."
+- "AI can start it. Ironflyer completes it."
 
 Every surface should answer:
 
@@ -38,6 +48,10 @@ Own the gap they leave open:
 - real Linux runtime ownership
 - visual QA targets and pixel-diff evidence
 - audit-grade memory and event history
+
+The category language is "AI Completion Engine". "Finisher OS" and
+"finisher gates" are internal/product capability names, not the primary
+external category.
 
 ## Visual System
 
@@ -114,11 +128,14 @@ Say:
 - "Deploy blocked: security repair queued."
 - "Patch risk low. Preview responsive. Cost inside cap."
 - "Build the product. Prove it is done."
+- "The #1 AI Completion Engine."
+- "AI can start it. Ironflyer completes it."
 
 Avoid:
 
 - vague AI magic
 - "10x" without proof
+- unsupported category claims without evidence nearby
 - overpromising autonomous delivery without gates
 - generic "beautiful apps in minutes" copy
 

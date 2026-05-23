@@ -264,7 +264,7 @@ function HeroPrompt({
       }} />
       <Chip
         icon={<AutoAwesome sx={{ fontSize: 14 }} />}
-        label="Finisher OS cockpit"
+        label="#1 AI Completion Engine cockpit"
         sx={{
           bgcolor: 'rgba(83,255,189,0.14)',
           color: tokens.color.brand.mint,
@@ -281,10 +281,10 @@ function HeroPrompt({
         textTransform: 'uppercase',
         textWrap: 'balance',
       }}>
-        What needs to be finished today?
+        What needs completion today?
       </Typography>
       <Typography variant="body1" sx={{ maxWidth: 690, fontSize: { xs: '0.98rem', sm: '1rem' }, fontWeight: 600, color: '#c9d4df' }}>
-        Describe the outcome. Ironflyer turns it into a gated build plan, reviewable patches, a live runtime, a cost ledger, and a deploy package your team can defend.
+        Describe the outcome. Ironflyer completes the product with gates, reviewable patches, live runtime evidence, cost control, and a deploy package your team can defend.
       </Typography>
       <Box sx={{ width: '100%', maxWidth: 820 }}>
         <PromptBox

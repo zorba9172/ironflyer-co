@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import { tokens } from '../../../packages/design-tokens';
 import { IronflyerLogo } from '../components/brand/IronflyerLogo';
+import { StatusBadge } from '../components/StatusBadge';
 
 // Shared marketing chrome — sticky blur nav, generous footer with real links,
 // announcement bar. Lives in a client component so we can drive the scroll-
@@ -32,7 +33,7 @@ const footerGroups = [
       { label: 'Templates',  href: '/templates' },
       { label: 'Pricing',    href: '/pricing' },
       { label: 'Changelog',  href: '/product#changelog' },
-      { label: 'Status',     href: 'https://status.ironflyer.dev' },
+      { label: 'Status',     href: '/status' },
     ],
   },
   {
@@ -56,9 +57,9 @@ const footerGroups = [
   {
     title: 'Legal',
     links: [
-      { label: 'Privacy', href: '/security#privacy' },
-      { label: 'Terms',   href: '/security#terms' },
-      { label: 'DPA',     href: '/security#dpa' },
+      { label: 'Privacy', href: '/legal/privacy' },
+      { label: 'Terms',   href: '/legal/terms' },
+      { label: 'DPA',     href: '/legal/dpa' },
     ],
   },
 ];
@@ -112,7 +113,7 @@ export function SiteNav() {
             boxShadow: '0 0 10px rgba(229,255,0,0.65)',
           }} />
           <Typography variant="body2" sx={{ fontWeight: 800, fontSize: 12.5, letterSpacing: 0.2 }}>
-            Ironflyer 1.0 — finisher gates, transparent budget, real Linux sandboxes
+            Ironflyer — the #1 AI Completion Engine for proved software
           </Typography>
           <Link href="/product" style={{ color: tokens.color.accent.lime, textDecoration: 'none' }}>
             <Stack direction="row" spacing={0.4} alignItems="center">
@@ -192,7 +193,7 @@ export function SiteFooter() {
           <Box>
             <IronflyerLogo size={36} tone="dark" tagline />
             <Typography variant="body2" sx={{ mt: 2.2, maxWidth: 320, color: '#9c968a', lineHeight: 1.55 }}>
-              The AI Product Finisher. Spec to deploy, gated end-to-end — built so the AI never ships work that wouldn’t survive a code review.
+              The #1 AI Completion Engine. Spec to deploy, gated end-to-end — built so AI-generated software survives real review.
             </Typography>
             <Stack direction="row" spacing={0.5} sx={{ mt: 3 }}>
               <IconButton component="a" href="https://github.com/ironflyer" aria-label="GitHub" sx={socialIconSx}><GitHub fontSize="small" /></IconButton>
@@ -228,16 +229,11 @@ export function SiteFooter() {
             © {new Date().getFullYear()} Ironflyer Labs. All rights reserved.
           </Typography>
           <Stack direction="row" spacing={3} sx={{ color: '#7d7770' }}>
-            <Link href="https://status.ironflyer.dev" style={{ color: 'inherit', textDecoration: 'none' }}>
-              <Stack direction="row" spacing={0.8} alignItems="center">
-                <Box sx={{ width: 7, height: 7, borderRadius: '999px', bgcolor: tokens.color.accent.success, boxShadow: '0 0 8px rgba(121,224,122,0.6)' }} />
-                <Typography variant="caption" sx={{ color: '#9c968a', fontSize: 12 }}>All systems normal</Typography>
-              </Stack>
-            </Link>
-            <Link href="/security#privacy" style={{ color: 'inherit', textDecoration: 'none' }}>
+            <StatusBadge />
+            <Link href="/legal/privacy" style={{ color: 'inherit', textDecoration: 'none' }}>
               <Typography variant="caption" sx={{ color: '#9c968a', fontSize: 12 }}>Privacy</Typography>
             </Link>
-            <Link href="/security#terms" style={{ color: 'inherit', textDecoration: 'none' }}>
+            <Link href="/legal/terms" style={{ color: 'inherit', textDecoration: 'none' }}>
               <Typography variant="caption" sx={{ color: '#9c968a', fontSize: 12 }}>Terms</Typography>
             </Link>
           </Stack>

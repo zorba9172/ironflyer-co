@@ -97,7 +97,7 @@ export function IronflyerLogo({
                 letterSpacing: '0.08em',
               }}
             >
-              Finisher OS
+              AI Completion Engine
             </Typography>
           )}
         </Box>
