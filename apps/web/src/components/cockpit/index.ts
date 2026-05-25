@@ -11,3 +11,4 @@ export { ErrorPanel, type ErrorPanelProps } from "./ErrorPanel";
 export { StatusBadge, type StatusBadgeProps } from "./StatusBadge";
 export { CodeBlock, type CodeBlockProps } from "./CodeBlock";
 export { VirtualTable, type VirtualTableColumn, type VirtualTableProps } from "./VirtualTable";
+export { Lightbox, type LightboxProps } from "./Lightbox";

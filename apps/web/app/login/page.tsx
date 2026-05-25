@@ -1,7 +1,7 @@
 "use client";
 
 // /login — Base44-style split AuthShell hosting SignInForm. Honours
-// ?redirect= for routing back to the originating page after a
+// ?redirect= / ?next= / ?returnTo= for routing back to the originating page after a
 // successful sign-in. If the user is already signed in we bounce them
 // straight to the redirect target so a stale tab doesn't look broken.
 
@@ -34,7 +34,7 @@ function LoginPageInner() {
   // Accept ?redirect= or ?next= — the brief uses next=, the prior
   // codebase uses redirect=. Honour either.
   const redirect = safeRedirect(
-    search?.get("redirect") ?? search?.get("next") ?? null,
+    search?.get("redirect") ?? search?.get("next") ?? search?.get("returnTo") ?? null,
   );
   const signupHref =
     redirect && redirect !== "/"

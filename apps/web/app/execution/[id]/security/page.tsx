@@ -52,7 +52,40 @@ function SecurityInner({ id }: { id: string }) {
     );
   }
   const r = data?.executionSecurityReport;
-  if (!r) return null;
+  if (!r) {
+    return (
+      <Box>
+        <PageHeader
+          eyebrow="Security report"
+          title="No security report yet"
+          breadcrumbs={[
+            { label: "Executions", href: "/executions" },
+            { label: id.slice(0, 10), href: `/execution/${id}` },
+            { label: "Security" },
+          ]}
+          actions={
+            <Button
+              component={Link}
+              href={`/execution/${id}`}
+              variant="outlined"
+              startIcon={<ArrowBackRounded fontSize="small" />}
+              sx={{
+                borderColor: tokens.color.border.strong,
+                color: tokens.color.text.primary,
+              }}
+            >
+              Back to execution
+            </Button>
+          }
+        />
+        <EmptyState
+          title="No report has been generated for this execution."
+          body="Run verification or open the execution timeline to check whether the security scan has completed."
+          cta={{ label: "Back to execution", href: `/execution/${id}` }}
+        />
+      </Box>
+    );
+  }
 
   const owaspCount = countOwasp(r.owaspCoverage);
   const findingsCount = r.findings.length;

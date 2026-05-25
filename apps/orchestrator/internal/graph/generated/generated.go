@@ -6854,6 +6854,12 @@ input DescribeIdeaInput {
   # finisher worker after admission. Defaults to true — the user
   # expects "describe → live preview" without extra clicks.
   startImmediately: Boolean = true
+  # blueprintIDOverride pins the execution to a specific blueprint
+  # from the registry, bypassing the LLM/rules parser. The Templates
+  # surface uses this so "Pick blueprint X" actually starts execution
+  # against X instead of letting the parser re-pick from the prompt
+  # text. Unknown IDs are rejected.
+  blueprintIDOverride: String
 }
 
 # StudioBootstrap is the single payload the studio screen needs to
@@ -28039,7 +28045,7 @@ func (ec *executionContext) unmarshalInputDescribeIdeaInput(ctx context.Context,
 		asMap["startImmediately"] = true
 	}
 
-	fieldsInOrder := [...]string{"text", "budgetUSDOverride", "startImmediately"}
+	fieldsInOrder := [...]string{"text", "budgetUSDOverride", "startImmediately", "blueprintIDOverride"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -28067,6 +28073,13 @@ func (ec *executionContext) unmarshalInputDescribeIdeaInput(ctx context.Context,
 				return it, err
 			}
 			it.StartImmediately = data
+		case "blueprintIDOverride":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("blueprintIDOverride"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BlueprintIDOverride = data
 		}
 	}
 	return it, nil

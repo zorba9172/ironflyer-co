@@ -5,6 +5,11 @@
 # render the parsed-idea panel + cost estimate without a second round
 # trip.
 
+# DescribeIdea is the chat-driven entrypoint. Callers pass natural
+# language; the orchestrator parses the spec, picks a blueprint
+# (unless the caller pins one via blueprintIDOverride), places the
+# wallet hold, admits + starts the execution. Templates pins the
+# blueprint so the user actually gets the blueprint they picked.
 mutation DescribeIdea($input: DescribeIdeaInput!) {
   describeIdea(input: $input) {
     project {

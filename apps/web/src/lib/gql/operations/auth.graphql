@@ -54,3 +54,27 @@ mutation SignOut {
     message
   }
 }
+
+mutation RequestPasswordReset($email: String!) {
+  requestPasswordReset(email: $email) {
+    ok
+    message
+  }
+}
+
+mutation ResetPassword($token: String!, $newPassword: String!) {
+  resetPassword(token: $token, newPassword: $newPassword) {
+    token
+    expiresAt
+    user {
+      id
+      email
+      name
+      plan
+      orgId
+      telemetryOptOut
+      emailVerifiedAt
+      createdAt
+    }
+  }
+}

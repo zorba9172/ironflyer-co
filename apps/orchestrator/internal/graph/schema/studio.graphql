@@ -41,6 +41,12 @@ input DescribeIdeaInput {
   # finisher worker after admission. Defaults to true — the user
   # expects "describe → live preview" without extra clicks.
   startImmediately: Boolean = true
+  # blueprintIDOverride pins the execution to a specific blueprint
+  # from the registry, bypassing the LLM/rules parser. The Templates
+  # surface uses this so "Pick blueprint X" actually starts execution
+  # against X instead of letting the parser re-pick from the prompt
+  # text. Unknown IDs are rejected.
+  blueprintIDOverride: String
 }
 
 # StudioBootstrap is the single payload the studio screen needs to

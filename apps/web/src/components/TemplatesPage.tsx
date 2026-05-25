@@ -3,16 +3,19 @@
 // TemplatesPage — blueprint catalogue with category filter, ranking
 // strip, and a "use this template" CTA.
 //
-// V22 createProject has no `blueprintID` field, so we encode the
-// chosen blueprint id as a `[BP:<id>]` prefix in the `idea` field —
-// the finisher reads it (see report at end).
+// V22 contract: "Use this template" goes through describeIdea so the
+// wallet hold + execution admit happen atomically (law 1). We pass
+// the picked blueprint via blueprintIDOverride so the orchestrator
+// pins to it instead of letting the parser re-pick from the
+// description text. After the bootstrap returns we route the user
+// straight into /p/[projectID]?executionID=<id> so the studio loads
+// the running execution without a recents scan.
 //
 // GraphQL operations consumed:
 //   - query Blueprints                  (generated)
 //   - query BlueprintRanking            (generated)
-//   - mutation TemplatesCreateProject   (inline gql — `createProject`)
+//   - mutation DescribeIdea             (generated; with blueprintIDOverride)
 
-import { gql, useMutation } from "@apollo/client";
 import {
   AutoAwesomeRounded,
   RocketLaunchRounded,
@@ -39,6 +42,7 @@ import { formatMoney, formatNumber } from "../lib/format";
 import {
   useBlueprintRankingQuery,
   useBlueprintsQuery,
+  useDescribeIdeaMutation,
   type BlueprintsQuery,
 } from "../lib/gql/__generated__";
 import { tokens } from "../theme";
@@ -47,20 +51,6 @@ import { EmptyState, ErrorPanel, LoadingPanel, PageHeader } from "./cockpit";
 type Blueprint = BlueprintsQuery["blueprints"][number];
 
 const ALL_CATEGORIES = "All categories";
-
-interface TemplatesCreateProjectData {
-  createProject: { id: string };
-}
-interface TemplatesCreateProjectVars {
-  input: { name: string; description?: string | null; idea?: string | null };
-}
-const TEMPLATES_CREATE_PROJECT = gql`
-  mutation TemplatesCreateProject($input: CreateProjectInput!) {
-    createProject(input: $input) {
-      id
-    }
-  }
-`;
 
 const skelSx = {
   bgcolor: tokens.color.bg.surfaceHover,
@@ -87,10 +77,7 @@ export function TemplatesPage() {
     variables: { byMetric: "executions", limit: 5 },
   });
 
-  const [createProject, createProjectM] = useMutation<
-    TemplatesCreateProjectData,
-    TemplatesCreateProjectVars
-  >(TEMPLATES_CREATE_PROJECT);
+  const [describeIdea, describeIdeaM] = useDescribeIdeaMutation();
 
   const [activeCategory, setActiveCategory] = useState<string>(ALL_CATEGORIES);
   const [snack, setSnack] = useState<string | null>(null);
@@ -122,19 +109,29 @@ export function TemplatesPage() {
       setSnack(null);
       setPendingId(bp.id);
       try {
-        const idea = `[BP:${bp.id}] ${bp.description}`.trim();
-        const res = await createProject({
-          variables: { input: { name: bp.name, idea } },
+        const res = await describeIdea({
+          variables: {
+            input: {
+              text: bp.description?.trim() || bp.name,
+              blueprintIDOverride: bp.id,
+              startImmediately: true,
+            },
+          },
         });
-        const id = res.data?.createProject.id;
-        if (!id) throw new Error("Backend did not return a project id.");
-        router.push(`/studio/${encodeURIComponent(id)}?autorun=1`);
+        const projectID = res.data?.describeIdea.project.id;
+        const executionID = res.data?.describeIdea.execution.id;
+        if (!projectID) {
+          throw new Error("Backend did not return a project id.");
+        }
+        const qs = new URLSearchParams({ tab: "preview" });
+        if (executionID) qs.set("executionID", executionID);
+        router.push(`/p/${encodeURIComponent(projectID)}?${qs.toString()}`);
       } catch (err) {
         setSnack(extractErrorMessage(err));
         setPendingId(null);
       }
     },
-    [createProject, router],
+    [describeIdea, router],
   );
 
   if (authLoading || !authenticated) {
@@ -161,7 +158,7 @@ export function TemplatesPage() {
           blueprintsById={blueprintsById}
           onUse={handleUse}
           pendingId={pendingId}
-          submitting={createProjectM.loading}
+          submitting={describeIdeaM.loading}
         />
 
         <CategoryFilter
@@ -215,8 +212,8 @@ export function TemplatesPage() {
                 key={bp.id}
                 bp={bp}
                 onUse={() => handleUse(bp)}
-                busy={pendingId === bp.id && createProjectM.loading}
-                disabled={createProjectM.loading && pendingId !== bp.id}
+                busy={pendingId === bp.id && describeIdeaM.loading}
+                disabled={describeIdeaM.loading && pendingId !== bp.id}
               />
             ))}
           </Box>

@@ -12,10 +12,11 @@
 // from the same fabric — no separate hardcoded chip pattern.
 
 import { Box, Stack, Typography } from "@mui/material";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
+import { useAuth } from "../../lib/auth";
 import { useBlueprintsQuery } from "../../lib/gql/__generated__";
+import { bind as bindLightbox, unbind as unbindLightbox } from "../../lib/lightbox";
 import { tokens } from "../../theme";
-import { ErrorPanel } from "../cockpit/ErrorPanel";
 import { TemplateCard } from "../templates/TemplateCard";
 import {
   FALLBACK_TEMPLATES,
@@ -28,9 +29,22 @@ export interface TemplatesGalleryPreviewProps {
 }
 
 export function TemplatesGalleryPreview({ onPick }: TemplatesGalleryPreviewProps) {
-  const { data, loading, error } = useBlueprintsQuery({
+  const { authenticated } = useAuth();
+  const { data, loading } = useBlueprintsQuery({
+    skip: !authenticated,
     fetchPolicy: "cache-and-network",
   });
+
+  // Wire Fancybox for the home rail so the per-card preview buttons
+  // open the high-res image without the user having to navigate to
+  // /templates first. unbind() on unmount keeps the listener from
+  // outliving the home page when the router swaps in a new route.
+  useEffect(() => {
+    bindLightbox();
+    return () => {
+      unbindLightbox();
+    };
+  }, []);
 
   const templates = useMemo<TemplateData[]>(() => {
     const live = data?.blueprints ?? [];
@@ -58,8 +72,6 @@ export function TemplatesGalleryPreview({ onPick }: TemplatesGalleryPreviewProps
       >
         Start from a proven template
       </Typography>
-
-      {error && <ErrorPanel error={error} title="Could not load templates" />}
 
       <Box
         sx={{

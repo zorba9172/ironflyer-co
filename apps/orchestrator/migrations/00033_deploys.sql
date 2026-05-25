@@ -8,6 +8,7 @@
 -- the deploy.Service state machine: planned → preview_building →
 -- preview_ready → awaiting_approval → promoting → promoted, with
 -- rolled_back / failed / cancelled as the three terminal off-ramps.
+-- +goose StatementBegin
 DO $$ BEGIN
   CREATE TYPE deploy_status AS ENUM (
     'planned', 'preview_building', 'preview_ready',
@@ -15,6 +16,7 @@ DO $$ BEGIN
     'rolled_back', 'failed', 'cancelled'
   );
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+-- +goose StatementEnd
 
 CREATE TABLE IF NOT EXISTS deploys (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

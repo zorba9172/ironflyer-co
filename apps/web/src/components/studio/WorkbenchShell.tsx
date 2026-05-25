@@ -90,6 +90,7 @@ export interface WorkbenchShellProps {
 
   // Slots — the page provides the actual panes.
   previewSlot: ReactNode;
+  mobileSlot?: ReactNode;
   codeSlot: ReactNode;
   filesSlot: ReactNode;
   dashboardSlot: ReactNode;
@@ -120,6 +121,7 @@ export function WorkbenchShell(props: WorkbenchShellProps) {
     setDockTab,
     setDockHeight,
     previewSlot,
+    mobileSlot,
     codeSlot,
     filesSlot,
     dashboardSlot,
@@ -176,11 +178,14 @@ export function WorkbenchShell(props: WorkbenchShellProps) {
           setPrimary("preview");
         } else if (event.key === "2") {
           event.preventDefault();
-          setPrimary("code");
+          setPrimary("mobile");
         } else if (event.key === "3") {
           event.preventDefault();
-          setPrimary("files");
+          setPrimary("code");
         } else if (event.key === "4") {
+          event.preventDefault();
+          setPrimary("files");
+        } else if (event.key === "5") {
           event.preventDefault();
           setPrimary("dashboard");
         }
@@ -222,6 +227,7 @@ export function WorkbenchShell(props: WorkbenchShellProps) {
         setDockTab={setDockTab}
         setDockHeight={setDockHeight}
         previewSlot={previewSlot}
+        mobileSlot={mobileSlot}
         codeSlot={codeSlot}
         filesSlot={filesSlot}
         dashboardSlot={dashboardSlot}
@@ -332,6 +338,7 @@ export function WorkbenchShell(props: WorkbenchShellProps) {
                 <PrimaryStage
                   primary={primary}
                   preview={previewSlot}
+                  mobile={mobileSlot ?? previewSlot}
                   code={codeSlot}
                   files={filesSlot}
                   dashboard={dashboardSlot}
@@ -393,12 +400,14 @@ export function WorkbenchShell(props: WorkbenchShellProps) {
 function PrimaryStage({
   primary,
   preview,
+  mobile,
   code,
   files,
   dashboard,
 }: {
   primary: WorkbenchPrimary;
   preview: ReactNode;
+  mobile: ReactNode;
   code: ReactNode;
   files: ReactNode;
   dashboard: ReactNode;
@@ -415,6 +424,7 @@ function PrimaryStage({
       }}
     >
       {primary === "preview" ? preview : null}
+      {primary === "mobile" ? mobile : null}
       {primary === "code" ? code : null}
       {primary === "files" ? files : null}
       {primary === "dashboard" ? dashboard : null}
@@ -502,6 +512,7 @@ interface MobileWorkbenchProps {
   setDockTab: WorkbenchShellProps["setDockTab"];
   setDockHeight: (px: number) => void;
   previewSlot: ReactNode;
+  mobileSlot?: ReactNode;
   codeSlot: ReactNode;
   filesSlot: ReactNode;
   dashboardSlot: ReactNode;
@@ -526,6 +537,7 @@ function MobileWorkbench(props: MobileWorkbenchProps) {
     setDockTab,
     setDockHeight,
     previewSlot,
+    mobileSlot,
     codeSlot,
     filesSlot,
     dashboardSlot,

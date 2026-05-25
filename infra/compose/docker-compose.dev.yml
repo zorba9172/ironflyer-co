@@ -1,16 +1,29 @@
 # Ironflyer local dev infra.
-# Brings up the storage/queue/objects layer so the Go orchestrator and Next
-# web can run locally against real backends. Run with:
-#   docker compose -f infra/compose/docker-compose.dev.yml up -d
 #
-# App services (orchestrator/runtime/web) are wired but disabled by default —
-# `docker compose --profile apps up` to also bring them online inside Docker.
-# Without the profile, run the apps on the host (faster iteration) and let
-# them dial the storage containers exposed on localhost.
+# Default (`docker compose up -d`) brings up the LEAN stack only:
+#   postgres + redis + surrealdb + minio   (~300 MB combined RAM).
+# That's everything orchestrator + runtime need to start. Heavy / optional
+# services are gated behind profiles you opt into:
+#
+#   --profile analytics    redpanda + clickhouse   (~1.3 GB) — event stream → CH
+#   --profile temporal     temporal + temporal-ui  (~768 MB) — durable workflows
+#   --profile ide          openvscode-server       (~1 GB) — full VS Code in browser
+#   --profile ide-legacy   codeserver (Coder fork) — needs local image build
+#   --profile stripe       stripe-cli forwarder    — webhook tunnel
+#   --profile apps         orchestrator+runtime+web — run apps in containers
+#   --profile full         everything above        — kitchen-sink dev box
+#
+# Most dev sessions only need the lean default + the apps on host. Apps on
+# host iterate fastest; switch to `--profile apps` only when you need to
+# test the production container build path.
+# Run with:
+#   docker compose -f infra/compose/docker-compose.dev.yml up -d
 
 services:
   postgres:
-    image: postgres:16-alpine
+    # pgvector image = postgres:16 + the pgvector extension preinstalled.
+    # Required by migration 00017_pgvector_memory.sql (`CREATE EXTENSION vector`).
+    image: pgvector/pgvector:pg16
     environment:
       POSTGRES_USER: ironflyer
       POSTGRES_PASSWORD: ironflyer
@@ -35,7 +48,12 @@ services:
       timeout: 3s
       retries: 10
 
+  # --- analytics profile (opt-in: --profile analytics) -----------------
+  # Redpanda + ClickHouse are heavy (~1.3 GB combined RAM) and only needed
+  # for the event-stream → analytics pipeline. The orchestrator gracefully
+  # degrades when REDPANDA_BROKERS / CLICKHOUSE_URL are unset.
   redpanda:
+    profiles: ["analytics", "full"]
     image: redpandadata/redpanda:v24.3.7
     command:
       - redpanda
@@ -44,7 +62,7 @@ services:
       - --smp
       - "1"
       - --memory
-      - 1G
+      - 512M
       - --reserve-memory
       - 0M
       - --node-id
@@ -59,6 +77,8 @@ services:
       - "9644:9644"
     volumes:
       - redpanda-data:/var/lib/redpanda/data
+    mem_limit: 768m
+    cpus: 1.0
     healthcheck:
       test: ["CMD-SHELL", "rpk cluster health | grep -E 'Healthy:.+true'"]
       interval: 10s
@@ -66,6 +86,7 @@ services:
       retries: 12
 
   clickhouse:
+    profiles: ["analytics", "full"]
     image: clickhouse/clickhouse-server:24.12-alpine
     environment:
       CLICKHOUSE_DB: ironflyer
@@ -79,6 +100,8 @@ services:
       - ../clickhouse:/docker-entrypoint-initdb.d:ro
     depends_on:
       redpanda: { condition: service_healthy }
+    mem_limit: 1g
+    cpus: 1.0
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:8123/ping"]
       interval: 5s
@@ -130,8 +153,14 @@ services:
 
   # Temporal dev server (in-memory, no extra DB). Web UI on :8233.
   # For production, swap for a clustered Temporal with PostgreSQL.
+  # --- temporal profile (opt-in: --profile temporal) ------------------
+  # Skip unless IRONFLYER_EXECUTOR=temporal. The embedded executor is the
+  # default for local dev and runs in-process inside the orchestrator.
   temporal:
+    profiles: ["temporal", "full"]
     image: temporalio/auto-setup:1.25
+    mem_limit: 768m
+    cpus: 1.0
     environment:
       DB: postgres12
       DB_PORT: 5432
@@ -146,6 +175,7 @@ services:
         condition: service_healthy
 
   temporal-ui:
+    profiles: ["temporal", "full"]
     image: temporalio/ui:2.31.2
     environment:
       TEMPORAL_ADDRESS: temporal:7233
@@ -155,12 +185,37 @@ services:
     depends_on:
       - temporal
 
-  # code-server is the per-user workspace IDE — Ironflyer-branded build.
-  # In dev one shared instance; production has the runtime spawn one per user.
-  # Build first with:
-  #   docker build -f infra/docker/ironflyer-code.Dockerfile \
-  #     -t ironflyer/ironflyer-code:dev .
+  # --- ide profile (opt-in: --profile ide) -----------------------------
+  # Two browser-IDE options. Pick one with `--profile ide`; both share
+  # the workspace volume so a user's project is reachable from either.
+  #
+  # openvscode-server (preferred): Microsoft's upstream port of VS Code
+  # to the browser. Lighter image, faster boot, marketplace works out of
+  # the box. Far beyond a Monaco textarea — full VS Code: extensions,
+  # debugger, terminal, source control, settings sync.
+  #   http://localhost:3030/?folder=/home/workspace
+  openvscode:
+    profiles: ["ide", "full"]
+    image: gitpod/openvscode-server:latest
+    environment:
+      OPENVSCODE_SERVER_ROOT: /home/.openvscode-server
+    ports:
+      - "3030:3000"
+    volumes:
+      - workspace-data:/home/workspace
+    command:
+      - --host
+      - 0.0.0.0
+      - --without-connection-token
+      - /home/workspace
+    mem_limit: 1g
+    cpus: 1.5
+
+  # code-server (legacy): Coder's downstream fork, Ironflyer-branded build.
+  # Requires `docker build -f infra/docker/ironflyer-code.Dockerfile .`
+  # before first up. Kept for parity with the older runtime adapter.
   codeserver:
+    profiles: ["ide-legacy", "full"]
     image: ironflyer/ironflyer-code:dev
     build:
       context: ../..
@@ -172,6 +227,8 @@ services:
     volumes:
       - codeserver-data:/home/coder/project
     command: ["--auth", "password", "--bind-addr", "0.0.0.0:8080", "/home/coder/project"]
+    mem_limit: 1g
+    cpus: 1.5
 
   # Stripe CLI — opt in with `--profile stripe` to forward webhook events
   # into the local orchestrator. Requires STRIPE_DEVICE_NAME +
@@ -271,6 +328,7 @@ volumes:
   redpanda-data:
   clickhouse-data:
   minio-data:
+  workspace-data:
   codeserver-data:
   surreal-data:
   runtime-workspaces:

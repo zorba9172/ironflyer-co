@@ -12,8 +12,8 @@
 //   variant="featured" — wide hero card with eyebrow + larger title.
 //                        Used at the top of the gallery.
 
-import { ArrowForwardRounded } from "@mui/icons-material";
-import { Box, Chip, Stack, Typography } from "@mui/material";
+import { ArrowForwardRounded, ZoomInRounded } from "@mui/icons-material";
+import { Box, Chip, IconButton, Stack, Typography } from "@mui/material";
 import Link from "next/link";
 import { tokens } from "../../theme";
 import {
@@ -57,6 +57,59 @@ function gradientFor(slug: string): string {
     `radial-gradient(circle at ${70 + (b % 20)}% ${65 + (a % 25)}%, ${purple}40, transparent 55%)`,
     `linear-gradient(135deg, ${violet} 0%, ${purple} 100%)`,
   ].join(", ");
+}
+
+// previewImageFor — Fancybox needs a real image URL. We produce a
+// 1280x800 SVG painted with the same gradient signature as the
+// thumbnail, then encode it as a data URI. Same hash → same image, so
+// repeated opens are cache-friendly even without a CDN.
+function previewImageFor(template: TemplateData): string {
+  let h = 0;
+  for (let i = 0; i < template.slug.length; i += 1) {
+    h = (h << 5) - h + template.slug.charCodeAt(i);
+    h |= 0;
+  }
+  const a = Math.abs(h % 60);
+  const b = 30 + Math.abs((h >> 4) % 50);
+  const violet = tokens.color.accent.violet;
+  const purple = tokens.color.accent.purple;
+  const bg = tokens.color.bg.surface;
+  const text = tokens.color.text.primary;
+  const subtle = tokens.color.text.secondary;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 800" width="1280" height="800">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="${violet}"/>
+      <stop offset="100%" stop-color="${purple}"/>
+    </linearGradient>
+    <radialGradient id="h1" cx="${20 + a}%" cy="${30 + (a % 30)}%" r="60%">
+      <stop offset="0%" stop-color="${violet}" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="${violet}" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="h2" cx="${70 + (b % 20)}%" cy="${65 + (a % 25)}%" r="55%">
+      <stop offset="0%" stop-color="${purple}" stop-opacity="0.40"/>
+      <stop offset="100%" stop-color="${purple}" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1280" height="800" fill="${bg}"/>
+  <rect width="1280" height="800" fill="url(#g)"/>
+  <rect width="1280" height="800" fill="url(#h1)"/>
+  <rect width="1280" height="800" fill="url(#h2)"/>
+  <rect x="48" y="48" width="1184" height="704" rx="16" ry="16" fill="none" stroke="${text}" stroke-opacity="0.18" stroke-width="2"/>
+  <text x="80" y="120" font-family="Inter, system-ui, sans-serif" font-size="20" fill="${text}" fill-opacity="0.55" letter-spacing="4">IRONFLYER · TEMPLATE PREVIEW</text>
+  <text x="80" y="220" font-family="Inter, system-ui, sans-serif" font-size="72" font-weight="800" fill="${text}">${escapeXml(template.name)}</text>
+  <text x="80" y="280" font-family="Inter, system-ui, sans-serif" font-size="22" fill="${subtle}">${escapeXml(template.description)}</text>
+</svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+function escapeXml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
 }
 
 export function TemplateCard({
@@ -149,6 +202,53 @@ export function TemplateCard({
             pointerEvents: "none",
           }}
         />
+
+        {/* Preview button — opens the high-res gradient image in
+            Fancybox. The data-fancybox group includes the template slug
+            so each card is its own single-slide lightbox; the parent
+            page calls bind() in a useEffect so the click handler is
+            installed before users can press this button. We stop
+            propagation so opening the preview does not also navigate
+            to Studio. */}
+        <Box
+          component="a"
+          data-fancybox={`template-${template.slug}`}
+          data-src={previewImageFor(template)}
+          data-caption={`${template.name} — ${template.description}`}
+          href={previewImageFor(template)}
+          aria-label={`Preview ${template.name}`}
+          onClick={(e: React.MouseEvent) => {
+            e.stopPropagation();
+          }}
+          sx={{
+            position: "absolute",
+            top: 8,
+            right: 8,
+            display: "inline-flex",
+            textDecoration: "none",
+          }}
+        >
+          <IconButton
+            component="span"
+            size="small"
+            aria-hidden
+            sx={{
+              width: compact ? 26 : 30,
+              height: compact ? 26 : 30,
+              bgcolor: `${tokens.color.bg.surface}cc`,
+              border: `1px solid ${tokens.color.border.subtle}`,
+              color: tokens.color.text.primary,
+              backdropFilter: "blur(4px)",
+              transition: `background-color ${tokens.motion.fast} ${tokens.motion.snap}, border-color ${tokens.motion.fast} ${tokens.motion.snap}`,
+              "&:hover": {
+                bgcolor: tokens.color.bg.surfaceRaised,
+                borderColor: tokens.color.accent.violet,
+              },
+            }}
+          >
+            <ZoomInRounded sx={{ fontSize: compact ? 16 : 18 }} />
+          </IconButton>
+        </Box>
       </Box>
 
       <Stack

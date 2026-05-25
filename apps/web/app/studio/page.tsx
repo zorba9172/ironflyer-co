@@ -218,6 +218,13 @@ export default function StudioIndexPage() {
             creating={creating}
             error={error}
             onPromptChange={setPrompt}
+            onImprove={() => {
+              const base = prompt.trim() || DEFAULT_PROMPT;
+              setPrompt(
+                `${base}\nInclude authenticated roles, billing events, approval states, mobile breakpoints, deploy gates, and an admin dashboard.`,
+              );
+              setAssistantText("Prompt improved with roles, billing, mobile, deploy gates, and admin coverage.");
+            }}
             onGenerate={onGenerate}
             onSuggestion={(text) => {
               setPrompt((current) => `${current.trim()}\n${text}`.trim());
@@ -226,7 +233,13 @@ export default function StudioIndexPage() {
           />
           <CodeWorkbench mode={mode} />
           <PreviewWorkbench mode={mode} onModeChange={setMode} />
-          <AssistantDock assistantText={assistantText} />
+          <AssistantDock
+            assistantText={assistantText}
+            onSend={(message) => {
+              setAssistantText(`Queued refinement: ${message}`);
+              setPrompt((current) => `${current.trim()}\nRefine: ${message}`.trim());
+            }}
+          />
         </Box>
       </Box>
     </Box>
@@ -362,7 +375,7 @@ function StudioRail({
         <Typography sx={{ color: tokens.color.text.secondary, fontSize: 12.5, lineHeight: 1.45, mt: 0.8 }}>
           Get more agent minutes and private deploys.
         </Typography>
-        <Button fullWidth size="small" sx={{ mt: 1, border: `1px solid ${tokens.color.border.accent}` }}>
+        <Button component={Link} href="/pricing" fullWidth size="small" sx={{ mt: 1, border: `1px solid ${tokens.color.border.accent}` }}>
           Upgrade now
         </Button>
       </Box>
@@ -421,13 +434,13 @@ function TopBar() {
       <Typography sx={{ fontSize: 13, fontWeight: 800, minWidth: 0 }}>ClientFlow</Typography>
       <KeyboardArrowRightRounded sx={{ color: tokens.color.text.muted, fontSize: 17 }} />
       <Box sx={{ flex: 1 }} />
-      <Button size="small" startIcon={<GitHub />} sx={{ display: { xs: "none", md: "inline-flex" }, border: `1px solid ${tokens.color.border.strong}` }}>
+      <Button component={Link} href="/resources" size="small" startIcon={<GitHub />} sx={{ display: { xs: "none", md: "inline-flex" }, border: `1px solid ${tokens.color.border.strong}` }}>
         GitHub
       </Button>
-      <Button size="small" startIcon={<PlayArrowRounded />} sx={{ display: { xs: "none", sm: "inline-flex" }, border: `1px solid ${tokens.color.border.strong}` }}>
+      <Button component="a" href="#studio-preview" size="small" startIcon={<PlayArrowRounded />} sx={{ display: { xs: "none", sm: "inline-flex" }, border: `1px solid ${tokens.color.border.strong}` }}>
         Preview live
       </Button>
-      <Button size="small" variant="contained" endIcon={<RocketLaunchRounded />}>
+      <Button component={Link} href="/deploy" size="small" variant="contained" endIcon={<RocketLaunchRounded />}>
         Publish
       </Button>
     </Stack>
@@ -509,6 +522,7 @@ function PromptPanel({
   creating,
   error,
   onPromptChange,
+  onImprove,
   onGenerate,
   onSuggestion,
 }: {
@@ -516,6 +530,7 @@ function PromptPanel({
   creating: boolean;
   error: string | null;
   onPromptChange: (next: string) => void;
+  onImprove: () => void;
   onGenerate: () => void;
   onSuggestion: (text: string) => void;
 }) {
@@ -542,7 +557,7 @@ function PromptPanel({
       <Stack direction="row" sx={{ alignItems: "center", gap: 0.8 }}>
         <Typography sx={{ fontSize: 16, fontWeight: 900 }}>AI Prompt</Typography>
         <Box sx={{ flex: 1 }} />
-        <Button size="small" startIcon={<AutoAwesomeRounded sx={{ fontSize: 14 }} />} sx={{ border: `1px solid ${tokens.color.border.subtle}`, color: tokens.color.text.secondary, minHeight: 30 }}>
+        <Button size="small" onClick={onImprove} startIcon={<AutoAwesomeRounded sx={{ fontSize: 14 }} />} sx={{ border: `1px solid ${tokens.color.border.subtle}`, color: tokens.color.text.secondary, minHeight: 30 }}>
           Improve prompt
         </Button>
       </Stack>
@@ -631,7 +646,7 @@ function CodeWorkbench({ mode }: { mode: StudioMode }) {
         <Typography sx={{ fontSize: 16, fontWeight: 900 }}>Code</Typography>
         <Box sx={{ flex: 1 }} />
         {[ContentCopyRounded, FolderRounded, OpenInFullRounded].map((Icon, index) => (
-          <IconButton key={index} size="small"><Icon sx={{ fontSize: 16 }} /></IconButton>
+          <IconButton key={index} size="small" disabled><Icon sx={{ fontSize: 16 }} /></IconButton>
         ))}
       </Stack>
       <Box sx={{ display: "grid", flex: 1, gridTemplateColumns: { xs: "1fr", lg: "136px minmax(0, 1fr)" }, minHeight: 0, minWidth: 0 }}>
@@ -651,11 +666,11 @@ function CodeWorkbench({ mode }: { mode: StudioMode }) {
             <CodeRounded sx={{ color: tokens.color.accent.sky, fontSize: 17 }} />
             <Typography sx={{ fontSize: 13, fontWeight: 900 }}>{mode === "mobile" ? "MobilePreview.tsx" : "Dashboard.tsx"}</Typography>
             <Box sx={{ flex: 1 }} />
-            <IconButton size="small"><MoreHorizRounded /></IconButton>
+            <IconButton size="small" disabled><MoreHorizRounded /></IconButton>
           </Stack>
           <Box component="pre" sx={{ color: tokens.color.text.secondary, flex: 1, fontFamily: tokens.font.mono, fontSize: { xs: 11, md: 12.5 }, lineHeight: 1.7, m: 0, minHeight: 0, overflow: "auto", p: 1.4 }}>
             {CODE_LINES.map((line, index) => (
-              <Box component="code" key={`${line}-${index}`} sx={{ display: "block", whiteSpace: "pre" }}>
+              <Box component="code" key={`${line}-${index}`} sx={{ display: "block", whiteSpace: { xs: "pre-wrap", md: "pre" }, wordBreak: { xs: "break-word", md: "normal" } }}>
                 <Box component="span" sx={{ color: tokens.color.text.muted, display: "inline-block", pr: 1.5, textAlign: "right", width: 28 }}>{index + 1}</Box>
                 <Box component="span" sx={{ color: line.includes("import") || line.includes("export") ? tokens.color.accent.violet : line.includes("Stat") ? tokens.color.accent.success : tokens.color.text.secondary }}>{line || " "}</Box>
               </Box>
@@ -713,7 +728,7 @@ function PreviewWorkbench({
     },
   ];
   return (
-    <Box sx={{ border: `1px solid ${tokens.color.border.subtle}`, borderRadius: `${tokens.radius.md}px`, bgcolor: `${tokens.color.bg.surfaceRaised}c9`, display: { xs: "block", lg: "flex" }, flexDirection: "column", gridRow: { lg: 1 }, minHeight: { xs: 430, lg: 0 }, minWidth: 0, overflow: "hidden" }}>
+    <Box id="studio-preview" sx={{ border: `1px solid ${tokens.color.border.subtle}`, borderRadius: `${tokens.radius.md}px`, bgcolor: `${tokens.color.bg.surfaceRaised}c9`, display: { xs: "block", lg: "flex" }, flexDirection: "column", gridRow: { lg: 1 }, minHeight: { xs: 430, lg: 0 }, minWidth: 0, overflow: "hidden" }}>
       <Stack direction="row" sx={{ alignItems: "center", borderBottom: `1px solid ${tokens.color.border.subtle}`, gap: 1, px: 1.3, py: 1 }}>
         <Typography sx={{ fontSize: 16, fontWeight: 900 }}>Preview</Typography>
         <Box sx={{ flex: 1 }} />
@@ -738,8 +753,8 @@ function PreviewWorkbench({
             </IconButton>
           ))}
         </Stack>
-        <IconButton size="small"><RefreshRounded sx={{ fontSize: 17 }} /></IconButton>
-        <IconButton size="small"><MoreHorizRounded /></IconButton>
+        <IconButton size="small" onClick={() => onModeChange("preview")}><RefreshRounded sx={{ fontSize: 17 }} /></IconButton>
+        <IconButton size="small" disabled><MoreHorizRounded /></IconButton>
       </Stack>
       <Box sx={{ p: 1.4, minWidth: 0, overflow: "auto" }}>
         <Box sx={{ mx: mobile ? "auto" : 0, maxWidth: mobile ? 300 : "none", border: `1px solid ${tokens.color.border.strong}`, borderRadius: `${tokens.radius.md}px`, bgcolor: tokens.color.bg.inset, boxShadow: `inset 0 1px 0 ${tokens.color.text.primary}10`, overflow: "hidden" }}>
@@ -747,7 +762,7 @@ function PreviewWorkbench({
             <RocketLaunchRounded sx={{ color: tokens.color.accent.violet, fontSize: 18 }} />
             <Typography sx={{ flex: 1, fontSize: 15, fontWeight: 900 }}>Client operations portal</Typography>
             <Chip size="small" label="Live" sx={{ bgcolor: `${tokens.color.accent.success}22`, color: tokens.color.accent.success }} />
-            <IconButton size="small" sx={{ height: 26, width: 26 }}><MoreHorizRounded sx={{ fontSize: 16 }} /></IconButton>
+            <IconButton size="small" disabled sx={{ height: 26, width: 26 }}><MoreHorizRounded sx={{ fontSize: 16 }} /></IconButton>
           </Stack>
           <Box sx={{ display: "grid", gap: 1, gridTemplateColumns: mobile ? "1fr" : "repeat(2, minmax(0, 1fr))", px: 1.4 }}>
             {metrics.map(({ label, value, accent, icon: Icon, path }) => (
@@ -840,7 +855,14 @@ function MetricSparkline({ color, path }: { color: string; path: string }) {
   );
 }
 
-function AssistantDock({ assistantText }: { assistantText: string }) {
+function AssistantDock({
+  assistantText,
+  onSend,
+}: {
+  assistantText: string;
+  onSend: (message: string) => void;
+}) {
+  const [draft, setDraft] = useState("");
   const done = [
     "Added project table with filters and search",
     "Connected Stripe billing flow",
@@ -865,10 +887,38 @@ function AssistantDock({ assistantText }: { assistantText: string }) {
       </Box>
       <Box sx={{ border: `1px solid ${tokens.color.border.subtle}`, borderRadius: `${tokens.radius.md}px`, bgcolor: `${tokens.color.bg.inset}c7`, minWidth: 0, p: 1.2 }}>
         <Typography sx={{ color: tokens.color.text.secondary, fontSize: 13 }}>{assistantText}</Typography>
-        <Stack direction="row" sx={{ alignItems: "center", gap: 0.8, mt: 1.2 }}>
-          <Typography sx={{ color: tokens.color.text.muted, fontSize: 12 }}>Ask anything...</Typography>
+        <Stack
+          component="form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const message = draft.trim();
+            if (!message) return;
+            onSend(message);
+            setDraft("");
+          }}
+          direction="row"
+          sx={{ alignItems: "center", gap: 0.8, mt: 1.2 }}
+        >
+          <Box
+            component="input"
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            placeholder="Ask anything..."
+            aria-label="Studio assistant message"
+            sx={{
+              bgcolor: "transparent",
+              border: 0,
+              color: tokens.color.text.primary,
+              flex: 1,
+              font: "inherit",
+              fontSize: 12,
+              minWidth: 0,
+              outline: "none",
+              "&::placeholder": { color: tokens.color.text.muted },
+            }}
+          />
           <Box sx={{ flex: 1 }} />
-          <IconButton size="small" sx={{ bgcolor: `${tokens.color.accent.purple}70` }}>
+          <IconButton type="submit" disabled={!draft.trim()} size="small" sx={{ bgcolor: `${tokens.color.accent.purple}70` }}>
             <SendRounded sx={{ fontSize: 18 }} />
           </IconButton>
         </Stack>

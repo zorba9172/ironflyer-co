@@ -20,7 +20,8 @@
 //     even if the query string is stripped by a client-side redirect.
 
 import { Box, Skeleton, Stack } from "@mui/material";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { bind as bindLightbox, unbind as unbindLightbox } from "../../src/lib/lightbox";
 import {
   EmptyState,
   ErrorPanel,
@@ -61,6 +62,18 @@ export default function TemplatesPage() {
 
 function TemplatesView() {
   const [filter, setFilter] = useState<CategoryFilter>("all");
+
+  // Install Fancybox once for the whole page. Cards render with
+  // `data-fancybox="template-{slug}"` attributes; one global bind
+  // covers every card mounted under this route, including cards that
+  // appear after filter changes (Fancybox uses event delegation, so a
+  // re-render does not require a re-bind).
+  useEffect(() => {
+    bindLightbox();
+    return () => {
+      unbindLightbox();
+    };
+  }, []);
 
   const blueprintsQuery = useBlueprintsQuery({
     fetchPolicy: "cache-and-network",

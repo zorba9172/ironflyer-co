@@ -10,7 +10,7 @@
 
 import { Box, Stack, Tab, Tabs } from "@mui/material";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import {
   EmptyState,
   ErrorPanel,
@@ -78,7 +78,8 @@ function DeployListInner() {
   const { user } = useAuth();
   const operator = isOperator(user?.plan);
 
-  const tab = tabFromString(search.get("tab"));
+  const requestedTab = tabFromString(search.get("tab"));
+  const tab = operator ? requestedTab : "mine";
   const filter = filterFromString(search.get("status"));
 
   const updateParams = (mut: (p: URLSearchParams) => void) => {
@@ -100,6 +101,15 @@ function DeployListInner() {
       else p.set("status", next);
     });
   };
+
+  useEffect(() => {
+    if (!operator && requestedTab === "queue") {
+      updateParams((p) => p.delete("tab"));
+    }
+    // updateParams closes over search/router; this effect only needs to
+    // normalize the invalid deep-link once when role/search changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [operator, requestedTab]);
 
   const deploysQ = useDeploysQuery({
     variables: { limit: 50, offset: 0 },

@@ -311,9 +311,10 @@ type DeployEvent struct {
 }
 
 type DescribeIdeaInput struct {
-	Text              string   `json:"text"`
-	BudgetUSDOverride *float64 `json:"budgetUSDOverride,omitempty"`
-	StartImmediately  *bool    `json:"startImmediately,omitempty"`
+	Text                string   `json:"text"`
+	BudgetUSDOverride   *float64 `json:"budgetUSDOverride,omitempty"`
+	StartImmediately    *bool    `json:"startImmediately,omitempty"`
+	BlueprintIDOverride *string  `json:"blueprintIDOverride,omitempty"`
 }
 
 type EmailChangeInput struct {

@@ -16,6 +16,7 @@
     "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@fancyapps/ui": "^6.1.14",
     "@fontsource/geist-mono": "^5.2.8",
     "@fontsource/inter": "^5.2.8",
     "@monaco-editor/react": "^4.7.0",

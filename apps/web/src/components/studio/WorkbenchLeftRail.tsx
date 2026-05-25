@@ -23,6 +23,7 @@ import {
   FolderRounded,
   KeyboardCommandKeyRounded,
   LayersRounded,
+  PhoneIphoneRounded,
   RocketLaunchRounded,
 } from "@mui/icons-material";
 import { Box, Stack, Tooltip, Typography } from "@mui/material";
@@ -50,9 +51,10 @@ interface PrimaryRow {
 
 const PRIMARY_ROWS: PrimaryRow[] = [
   { key: "preview", label: "Preview", icon: RocketLaunchRounded, shortcut: "1" },
-  { key: "code", label: "Code", icon: CodeRounded, shortcut: "2" },
-  { key: "files", label: "Files", icon: FolderRounded, shortcut: "3" },
-  { key: "dashboard", label: "Dashboard", icon: LayersRounded, shortcut: "4" },
+  { key: "mobile", label: "Mobile", icon: PhoneIphoneRounded, shortcut: "2" },
+  { key: "code", label: "Code", icon: CodeRounded, shortcut: "3" },
+  { key: "files", label: "Files", icon: FolderRounded, shortcut: "4" },
+  { key: "dashboard", label: "Dashboard", icon: LayersRounded, shortcut: "5" },
 ];
 
 export function WorkbenchLeftRail({
@@ -231,7 +233,7 @@ export function WorkbenchLeftRail({
           <div>⌘\ · chat</div>
           <div>⌘J · patches</div>
           <div>F · focus</div>
-          <div>1–4 · pane</div>
+          <div>1–5 · pane</div>
         </Box>
       </Box>
 

@@ -58,7 +58,7 @@ interface PrimaryTab {
 
 const PRIMARY_TABS: PrimaryTab[] = [
   { key: "preview", label: "Preview", icon: LaptopMacRounded },
-  { key: "files", label: "Mobile", icon: PhoneIphoneRounded },
+  { key: "mobile", label: "Mobile", icon: PhoneIphoneRounded },
   { key: "code", label: "Code", icon: CodeRounded },
 ];
 
@@ -156,7 +156,11 @@ export function WorkbenchHeader({
 
         <Chip
           size="small"
-          label="Default workspace"
+          label={
+            execution?.workspaceID
+              ? `ws ${execution.workspaceID.slice(0, 8)}`
+              : "Default workspace"
+          }
           sx={{
             bgcolor: tokens.color.bg.surfaceRaised,
             border: `1px solid ${tokens.color.border.subtle}`,

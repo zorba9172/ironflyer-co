@@ -143,6 +143,9 @@ export function Nav() {
   const [notifAnchor, setNotifAnchor] = useState<HTMLElement | null>(null);
   const [mobileNavAnchor, setMobileNavAnchor] = useState<HTMLElement | null>(null);
   const visibleLinks = links.filter((l) => !l.operatorOnly || operator);
+  const authReturn = pathname === "/" ? "/studio" : pathname;
+  const loginHref = `/login?returnTo=${encodeURIComponent(authReturn)}`;
+  const signupHref = `/signup?redirect=${encodeURIComponent(authReturn)}`;
 
   return (
     <AppBar
@@ -157,9 +160,9 @@ export function Nav() {
         sx={{
           px:
             pathname === "/studio"
-              ? { xs: 1.6, md: 1.6 }
-              : { xs: 2, md: 4 },
-          gap: { xs: 1.5, md: 3 },
+              ? { xs: 1, sm: 1.4, md: 1.6 }
+              : { xs: 1, sm: 2, md: 4 },
+          gap: { xs: 0.8, sm: 1.5, md: 3 },
           minHeight: pathname === "/studio" ? 58 : 70,
           position: "relative",
         }}
@@ -507,7 +510,7 @@ export function Nav() {
           <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
             <Button
               component={Link}
-              href="/login"
+              href={loginHref}
               size="small"
               variant="text"
               sx={{
@@ -521,11 +524,20 @@ export function Nav() {
             </Button>
             <Button
               component={Link}
-              href="/signup"
+              href={signupHref}
               size="small"
               variant="contained"
               color="primary"
               endIcon={<ArrowForwardRounded sx={{ fontSize: 15 }} />}
+              sx={{
+                minWidth: { xs: 74, sm: 132 },
+                px: { xs: 1.15, sm: 1.8 },
+                whiteSpace: "nowrap",
+                "& .MuiButton-endIcon": {
+                  display: { xs: "none", sm: "inherit" },
+                  ml: { sm: 0.75 },
+                },
+              }}
             >
               <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
                 Start a project

@@ -23,7 +23,9 @@ import {
   Typography,
 } from "@mui/material";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
+import { useAuth } from "../lib/auth";
 import { extractErrorMessage } from "../lib/errors";
 import { formatMoney } from "../lib/format";
 import { tokens } from "../theme";
@@ -115,14 +117,67 @@ const FAQ: Array<{ q: string; a: string }> = [
   },
 ];
 
+const FALLBACK_PLANS: PricingPlansData["plans"] = [
+  {
+    tier: "free",
+    name: "Free",
+    priceUsd: "0",
+    costCapUsd: "5",
+    description: "Start a workspace and build the first product preview.",
+    features: ["1 workspace", "2 projects", "Community support"],
+    stripePriceId: null,
+  },
+  {
+    tier: "pro",
+    name: "Pro",
+    priceUsd: "29",
+    costCapUsd: "50",
+    description: "For founders shipping production-ready product flows.",
+    features: ["Unlimited projects", "AI templates", "Email support"],
+    stripePriceId: null,
+  },
+  {
+    tier: "team",
+    name: "Team",
+    priceUsd: "79",
+    costCapUsd: "250",
+    description: "For teams that need review, roles and launch controls.",
+    features: ["SSO and RBAC", "Environments", "Priority support"],
+    stripePriceId: null,
+  },
+  {
+    tier: "enterprise",
+    name: "Enterprise",
+    priceUsd: "0",
+    costCapUsd: "1000",
+    description: "Custom security, governance and deployment support.",
+    features: ["Advanced security", "SLA and support", "Custom integrations"],
+    stripePriceId: null,
+  },
+];
+
+const FALLBACK_RATES: PricingRatesData["rates"] = [
+  { provider: "OpenAI", model: "GPT production tier", promptPerMTok: "2.50", completionPerMTok: "10.00" },
+  { provider: "Anthropic", model: "Claude production tier", promptPerMTok: "3.00", completionPerMTok: "15.00" },
+  { provider: "Sandbox", model: "Build runtime", promptPerMTok: "0.80", completionPerMTok: "0.80" },
+];
+
 const skelSx = {
   bgcolor: tokens.color.bg.surfaceHover,
   borderRadius: 1,
 };
 
 export function PricingPage() {
-  const plansQ = useQuery<PricingPlansData>(PRICING_PLANS);
-  const ratesQ = useQuery<PricingRatesData>(PRICING_RATES);
+  const router = useRouter();
+  const { authenticated } = useAuth();
+  const plansQ = useQuery<PricingPlansData>(PRICING_PLANS, {
+    skip: !authenticated,
+    errorPolicy: "all",
+  });
+  const ratesQ = useQuery<PricingRatesData>(PRICING_RATES, {
+    skip: !authenticated,
+    errorPolicy: "all",
+  });
   const [startCheckout, startCheckoutM] = useMutation<
     PricingStartCheckoutData,
     PricingStartCheckoutVars
@@ -135,6 +190,10 @@ export function PricingPage() {
     async (tier: string) => {
       setError(null);
       setPendingTier(tier);
+      if (!authenticated) {
+        router.push(`/signup?redirect=${encodeURIComponent("/studio")}`);
+        return;
+      }
       try {
         const origin =
           typeof window !== "undefined" ? window.location.origin : "";
@@ -155,10 +214,13 @@ export function PricingPage() {
         setPendingTier(null);
       }
     },
-    [startCheckout],
+    [authenticated, router, startCheckout],
   );
 
-  const plans = plansQ.data?.plans ?? [];
+  const plans =
+    plansQ.data?.plans && plansQ.data.plans.length > 0
+      ? plansQ.data.plans
+      : FALLBACK_PLANS;
   const highlightTier = useMemo(() => {
     if (plans.length < 2) return null;
     const sorted = [...plans].sort(
@@ -168,7 +230,10 @@ export function PricingPage() {
   }, [plans]);
 
   const sortedRates = useMemo(() => {
-    const rows = ratesQ.data?.rates ?? [];
+    const rows =
+      ratesQ.data?.rates && ratesQ.data.rates.length > 0
+        ? ratesQ.data.rates
+        : FALLBACK_RATES;
     return [...rows].sort((a, b) => {
       if (a.provider !== b.provider) return a.provider.localeCompare(b.provider);
       return a.model.localeCompare(b.model);
@@ -253,9 +318,7 @@ export function PricingPage() {
               <ErrorPanel error={error} title="Could not start checkout" />
             </Box>
           )}
-          {plansQ.error ? (
-            <ErrorPanel error={plansQ.error} title="Could not load plans" />
-          ) : plansQ.loading ? (
+          {plansQ.loading && authenticated && !plansQ.data ? (
             <Box
               sx={{
                 display: "grid",
@@ -267,10 +330,6 @@ export function PricingPage() {
                 <Skeleton key={i} variant="rectangular" height={360} sx={skelSx} />
               ))}
             </Box>
-          ) : plans.length === 0 ? (
-            <Card sx={{ p: 3, color: tokens.color.text.muted }}>
-              No plans configured yet — check back shortly.
-            </Card>
           ) : (
             <Box
               sx={{
@@ -293,6 +352,7 @@ export function PricingPage() {
                   busy={pendingTier === p.tier && startCheckoutM.loading}
                   disabled={startCheckoutM.loading && pendingTier !== p.tier}
                   onCheckout={() => handleCheckout(p.tier)}
+                  authenticated={authenticated}
                 />
               ))}
             </Box>
@@ -323,18 +383,12 @@ export function PricingPage() {
             scale with confidence after they choose a plan.
           </Typography>
           <Box sx={{ mt: 3 }}>
-            {ratesQ.error ? (
-              <ErrorPanel error={ratesQ.error} title="Could not load rate sheet" />
-            ) : ratesQ.loading ? (
+            {ratesQ.loading && authenticated && !ratesQ.data ? (
               <Stack spacing={1}>
                 {Array.from({ length: 6 }).map((_, i) => (
                   <Skeleton key={i} variant="rectangular" height={44} sx={skelSx} />
                 ))}
               </Stack>
-            ) : sortedRates.length === 0 ? (
-              <Card sx={{ p: 2, color: tokens.color.text.muted }}>
-                Rate sheet not published yet.
-              </Card>
             ) : (
               <Card sx={{ overflow: "hidden", p: 0 }}>
                 <Box
@@ -496,12 +550,14 @@ function PlanCard({
   busy,
   disabled,
   onCheckout,
+  authenticated,
 }: {
   plan: PricingPlansData["plans"][number];
   highlighted: boolean;
   busy: boolean;
   disabled: boolean;
   onCheckout: () => void;
+  authenticated: boolean;
 }) {
   const price = Number(plan.priceUsd);
   const priceDisplay =
@@ -642,7 +698,7 @@ function PlanCard({
               }),
         }}
       >
-        {busy ? "Opening Stripe…" : "Start checkout"}
+        {busy ? "Opening Stripe…" : authenticated ? "Start checkout" : "Start building"}
       </Button>
     </Card>
   );

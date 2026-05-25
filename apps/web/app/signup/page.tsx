@@ -33,10 +33,10 @@ function SignUpPageInner() {
   const search = useSearchParams();
   const { authenticated, loading } = useAuth();
 
-  // Accept ?redirect= or ?next= — keeps the home composer's
+  // Accept ?redirect= / ?next= / ?returnTo= — keeps the home composer's
   // "continue building" flow working end to end.
   const redirect = safeRedirect(
-    search?.get("redirect") ?? search?.get("next") ?? null,
+    search?.get("redirect") ?? search?.get("next") ?? search?.get("returnTo") ?? null,
   );
   const loginHref =
     redirect && redirect !== "/?welcome=1"

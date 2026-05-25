@@ -68,7 +68,10 @@ func (r *mutationResolver) DescribeIdea(ctx context.Context, input model.Describ
 	// 2) Pick a blueprint. When the IdeaParser is wired (A54), it
 	// returns a fully structured Idea (LLM or rules backend); otherwise
 	// we fall back to the keyword heuristic below so the studio still
-	// boots on air-gapped dev.
+	// boots on air-gapped dev. If the caller pinned a blueprint
+	// (Templates → "Use this template"), respect it and skip the
+	// parser entirely so the user actually gets the template they
+	// picked.
 	var (
 		bp           studioBlueprintRef
 		parsedIdea   *ideaparser.Idea
@@ -76,7 +79,19 @@ func (r *mutationResolver) DescribeIdea(ctx context.Context, input model.Describ
 		parsedTags   []string
 		parsedSugBud = decimal.Zero
 	)
-	if r.IdeaParser != nil {
+	if input.BlueprintIDOverride != nil && strings.TrimSpace(*input.BlueprintIDOverride) != "" {
+		pinned := strings.TrimSpace(*input.BlueprintIDOverride)
+		if r.BlueprintsReg == nil {
+			return nil, fmt.Errorf("describeIdea: blueprint registry not configured")
+		}
+		if _, ok := r.BlueprintsReg.Get(pinned); !ok {
+			return nil, fmt.Errorf("describeIdea: unknown blueprintIDOverride %q", pinned)
+		}
+		ref := studioMaybeBlueprint(r.BlueprintsReg, pinned)
+		ref.Reason = "Operator pinned this blueprint via Templates."
+		bp = ref
+	}
+	if bp.ID == "" && r.IdeaParser != nil {
 		maxBud := available
 		if input.BudgetUSDOverride != nil && *input.BudgetUSDOverride > 0 {
 			cap := decimal.NewFromFloat(*input.BudgetUSDOverride)

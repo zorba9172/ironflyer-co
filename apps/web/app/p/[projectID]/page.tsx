@@ -27,6 +27,8 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo } from "react";
 import { LoadingPanel } from "../../../src/components/cockpit/LoadingPanel";
 import { ChatPanel } from "../../../src/components/studio/ChatPanel";
+import { CodeModeSwitcher } from "../../../src/components/studio/CodeModeSwitcher";
+import { MobilePreviewFrame } from "../../../src/components/studio/MobilePreviewFrame";
 import { PreviewPane } from "../../../src/components/studio/PreviewPane";
 import { StudioErrorPanel } from "../../../src/components/studio/StudioErrorPanel";
 import { WorkbenchShell } from "../../../src/components/studio/WorkbenchShell";
@@ -282,6 +284,7 @@ function ProjectStudioInner() {
         setDockTab={layout.setDockTab}
         setDockHeight={layout.setDockHeight}
         previewSlot={<NoExecutionPlaceholder />}
+        mobileSlot={<NoExecutionPlaceholder />}
         codeSlot={<NoExecutionPlaceholder />}
         filesSlot={<NoExecutionPlaceholder />}
         dashboardSlot={<NoExecutionPlaceholder />}
@@ -325,11 +328,26 @@ function ProjectStudioInner() {
           executionStatus={execution.status}
         />
       }
+      mobileSlot={
+        <MobilePreviewFrame>
+          <PreviewPane
+            executionID={execution.id}
+            executionStatus={execution.status}
+          />
+        </MobilePreviewFrame>
+      }
       codeSlot={
-        <CodePane
+        <CodeModeSwitcher
+          mode={layout.codeMode}
+          onModeChange={layout.setCodeMode}
           projectID={projectID}
-          executionID={execution.id}
-          executionStatus={execution.status}
+          monacoSlot={
+            <CodePane
+              projectID={projectID}
+              executionID={execution.id}
+              executionStatus={execution.status}
+            />
+          }
         />
       }
       filesSlot={
