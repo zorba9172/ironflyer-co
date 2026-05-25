@@ -111,6 +111,13 @@ type Deps struct {
 	Commit    string
 	BuildTime string
 
+	// Dev convenience: when DevEnv == "dev" and DevWalletSeedUSD > 0,
+	// the SignUp resolver credits the new wallet so describeIdea works
+	// without Stripe. Wired from config.Config in main.go; ignored in
+	// staging / prod.
+	DevEnv           string
+	DevWalletSeedUSD float64
+
 	// Public origin (e.g. https://app.ironflyer.dev). Forwarded to the
 	// resolver so generated URLs match the externally visible host.
 	PublicBaseURL string
@@ -311,6 +318,10 @@ func (a *API) newResolver() *resolver.Resolver {
 		PasswordResetIPLimiter:    a.d.PasswordResetIPLimiter,
 		PasswordResetEmailLimiter: a.d.PasswordResetEmailLimiter,
 		ResendVerificationLimiter: a.d.ResendVerificationLimiter,
+
+		// Dev convenience wallet seed (no-op outside dev).
+		DevEnv:           a.d.DevEnv,
+		DevWalletSeedUSD: a.d.DevWalletSeedUSD,
 
 		// V22 service surface.
 		WalletSvc:         a.d.Wallet,

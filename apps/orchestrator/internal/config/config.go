@@ -18,6 +18,13 @@ type Config struct {
 	// set this to the exact origin(s) of the web SPA.
 	CORSOrigins []string `env:"IRONFLYER_CORS_ORIGINS" envSeparator:"," envDefault:""`
 	Env       string `env:"IRONFLYER_ENV" envDefault:"dev" validate:"oneof=dev staging prod"`
+
+	// DevWalletSeedUSD — dev-only convenience. When > 0 AND Env == "dev",
+	// the SignUp resolver credits the freshly-minted wallet with this
+	// USD amount via wallet.TopUp(stripeSessionID="dev-seed-<userID>")
+	// so the operator can immediately run describeIdea without going
+	// through Stripe. Ignored outside of dev. Default 0 (off).
+	DevWalletSeedUSD float64 `env:"IRONFLYER_DEV_WALLET_SEED_USD" envDefault:"0"`
 	LogLevel  string `env:"IRONFLYER_LOG_LEVEL" envDefault:"info" validate:"oneof=debug info warn error"`
 	LogFormat string `env:"IRONFLYER_LOG_FORMAT" envDefault:"console" validate:"oneof=console json"`
 

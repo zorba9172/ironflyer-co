@@ -1085,6 +1085,8 @@ func main() {
 		Version:                   buildVersion,
 		Commit:                    buildCommit,
 		BuildTime:                 buildTime,
+		DevEnv:                    cfg.Env,
+		DevWalletSeedUSD:          cfg.DevWalletSeedUSD,
 		Verifications:             verifications,
 		PasswordResets:            passwordResets,
 		Sessions:                  sessionStore,

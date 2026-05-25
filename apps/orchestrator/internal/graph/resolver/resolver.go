@@ -106,6 +106,14 @@ type Resolver struct {
 	// user" so the dev box stays usable.
 	AdminUserIDs map[string]bool
 
+	// DevWalletSeedUSD — convenience credit applied by SignUp in dev
+	// only, so a fresh account can immediately run describeIdea
+	// without Stripe being configured. Wired from
+	// config.Config.DevWalletSeedUSD (gated by Env=="dev").
+	DevWalletSeedUSD float64
+	// DevEnv reflects config.Env so SignUp can gate the seed.
+	DevEnv string
+
 	// ---------- V22 service surface --------------------------------
 	// Each pointer is nil-safe — resolvers return gqlNotConfigured if
 	// the matching dependency was not wired by main.go.

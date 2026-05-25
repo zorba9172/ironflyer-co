@@ -11,6 +11,8 @@ import (
 	"ironflyer/apps/orchestrator/internal/auth"
 	"ironflyer/apps/orchestrator/internal/graph/model"
 	"time"
+
+	"github.com/shopspring/decimal"
 )
 
 // SignUp resolves the signUp mutation. Creates a new user + issues a
@@ -30,6 +32,12 @@ func (r *mutationResolver) SignUp(ctx context.Context, input model.SignUpInput) 
 	})
 	if err != nil {
 		return nil, err
+	}
+	// Dev convenience: pre-fund the new wallet so describeIdea runs
+	// without Stripe being wired. Strictly Env=="dev" + seed > 0.
+	if r.DevEnv == "dev" && r.DevWalletSeedUSD > 0 && r.WalletSvc != nil {
+		amt := decimal.NewFromFloat(r.DevWalletSeedUSD)
+		_ = r.WalletSvc.TopUp(ctx, u.ID, amt, "dev-seed-"+u.ID)
 	}
 	exp := time.Now().Add(r.Auth.TTL()).UTC()
 	return &model.Session{
