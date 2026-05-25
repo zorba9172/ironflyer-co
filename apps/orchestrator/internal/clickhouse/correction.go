@@ -182,7 +182,8 @@ func (j *CorrectionJob) recomputeDay(ctx context.Context, r dailyRollup, day tim
 	// SummingMergeTree (or ReplacingMergeTree for cohort); writing
 	// the same logical day twice produces the same totals after merge
 	// because the keys collide and the engine collapses.
-	if err := j.client.Exec(ctx, r.insertSQL, dayStart, dayEnd); err != nil {
+	args := expandWindowArgs(r.insertSQL, dayStart, dayEnd)
+	if err := j.client.Exec(ctx, r.insertSQL, args...); err != nil {
 		summary := truncErr(err)
 		j.log.Warn().Err(err).Str("rollup", r.name).Time("day", dayStart).
 			Msg("recompute insert failed")
@@ -227,7 +228,8 @@ func (j *CorrectionJob) RecomputeCohort(ctx context.Context) error {
 	if err := j.markState(ctx, "rollup_cohort_monthly", monthStart, "running", 0, ""); err != nil {
 		j.log.Warn().Err(err).Msg("cohort: mark running")
 	}
-	if err := j.client.Exec(ctx, cohortMonthlySQL, monthStart, monthEnd); err != nil {
+	cohortArgs := expandWindowArgs(cohortMonthlySQL, monthStart, monthEnd)
+	if err := j.client.Exec(ctx, cohortMonthlySQL, cohortArgs...); err != nil {
 		summary := truncErr(err)
 		if mErr := j.markState(ctx, "rollup_cohort_monthly", monthStart, "failed", 0, summary); mErr != nil {
 			j.log.Warn().Err(mErr).Msg("cohort: mark failed")
@@ -264,6 +266,30 @@ func dayColumnFor(rollup string) string {
 	default:
 		return "day"
 	}
+}
+
+// expandWindowArgs returns a flat []any with dayStart/dayEnd repeated
+// once per `?` pair in the SQL template. Every correction-job template
+// follows the convention "WHERE occurred_at >= ? AND occurred_at < ?"
+// inside one-or-more UNION ALL branches, so the count of `?` is always
+// even and the binding is positional + alternating. Centralising this
+// here means a future template that adds a UNION ALL leg only needs
+// to drop the WHERE clause in — no caller update.
+func expandWindowArgs(sql string, dayStart, dayEnd time.Time) []any {
+	n := strings.Count(sql, "?")
+	if n == 0 {
+		return nil
+	}
+	// Every leg consumes exactly two parameters; round up defensively
+	// so a malformed template doesn't strand an arg.
+	args := make([]any, 0, n)
+	for i := 0; i < n; i += 2 {
+		args = append(args, dayStart)
+		if i+1 < n {
+			args = append(args, dayEnd)
+		}
+	}
+	return args
 }
 
 // truncErr returns a short error summary safe to store in a
@@ -442,20 +468,41 @@ FROM (
 // Source: fact_execution_completion (first/second paid runs +
 // totals). The job recomputes only the current month; older cohorts
 // are append-only after their month closes.
+//
+// "Second paid at" used to be expressed as minIf(...) nested inside
+// another minIf(...) condition, which ClickHouse rejects:
+//
+//	"nested aggregate function minIf inside another aggregate"
+//
+// Per ClickHouse docs the aggregate must be computed once and then
+// re-aggregated, so we compute first_paid_at in an inner SELECT and
+// reference that scalar in the outer minIf for second_paid_at.
 const cohortMonthlySQL = `
 INSERT INTO rollup_cohort_monthly
 SELECT
-    toStartOfMonth(min(occurred_at))                AS cohort_month,
-    tenant_id,
-    minIf(occurred_at, status IN ('settled','completed'))                     AS first_paid_at,
-    minIf(occurred_at, status IN ('settled','completed')
-                       AND occurred_at > minIf(occurred_at, status IN ('settled','completed'))) AS second_paid_at,
-    count()                                         AS total_runs,
-    sum(spent_usd)                                  AS spend_usd_sum,
-    sum(revenue_usd)                                AS revenue_usd_sum,
-    sumIf(toUInt64(1), refunded_usd > 0)            AS refund_count,
-    sumIf(toUInt64(1), status IN ('settled','completed')) AS completed_count
-FROM fact_execution_completion FINAL
-WHERE occurred_at >= ? AND occurred_at < ?
-GROUP BY tenant_id
+    toStartOfMonth(min(rows.occurred_at))                          AS cohort_month,
+    rows.tenant_id                                                  AS tenant_id,
+    any(firsts.first_paid_at)                                       AS first_paid_at,
+    minIf(rows.occurred_at,
+          rows.status IN ('settled','completed')
+          AND rows.occurred_at > firsts.first_paid_at)              AS second_paid_at,
+    count()                                                         AS total_runs,
+    sum(rows.spent_usd)                                             AS spend_usd_sum,
+    sum(rows.revenue_usd)                                           AS revenue_usd_sum,
+    sumIf(toUInt64(1), rows.refunded_usd > 0)                       AS refund_count,
+    sumIf(toUInt64(1), rows.status IN ('settled','completed'))      AS completed_count
+FROM (
+    SELECT tenant_id, occurred_at, status, spent_usd, revenue_usd, refunded_usd
+    FROM fact_execution_completion FINAL
+    WHERE occurred_at >= ? AND occurred_at < ?
+) AS rows
+LEFT JOIN (
+    SELECT
+        tenant_id,
+        minIf(occurred_at, status IN ('settled','completed')) AS first_paid_at
+    FROM fact_execution_completion FINAL
+    WHERE occurred_at >= ? AND occurred_at < ?
+    GROUP BY tenant_id
+) AS firsts USING (tenant_id)
+GROUP BY rows.tenant_id
 `

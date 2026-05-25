@@ -2,13 +2,10 @@
 
 // SparklineSVG — dependency-free inline SVG sparkline.
 //
-// Used by:
-//   - DashboardPage   24h hourly spend strip
-//   - WalletPage      7d daily spend strip
-//
-// The component is intentionally tiny — no axis labels, no legend; the
-// surrounding card supplies context. A lime stroke + soft fill keeps the
-// brand accent in play without becoming chartjunk.
+// Reserved for the smallest inline strips (list rows, badges) where a
+// full echarts canvas would be overkill. Dashboards use the
+// echarts-backed components under ./charts/ instead. Stroke defaults
+// to the violet primary so the strip honors the no-lime-first identity.
 
 import { Box } from "@mui/material";
 import { tokens } from "../theme";

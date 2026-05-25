@@ -47,7 +47,16 @@ import {
   PageHeader,
   StatusBadge,
 } from "./cockpit";
+import dynamic from "next/dynamic";
 import { SparklineSVG, type SparklinePoint } from "./SparklineSVG";
+
+// Lazy-load echarts: the chart chunk loads only when the wallet
+// page mounts, keeping the cockpit shell shipping a tiny initial
+// bundle.
+const SpendBars = dynamic(
+  () => import("./charts/SpendBars").then((m) => m.SpendBars),
+  { ssr: false, loading: () => <Box sx={{ height: 180 }} /> },
+);
 
 interface WalletBudgetData {
   myBudget: {
@@ -484,17 +493,28 @@ function SpendStripCard({
         </Typography>
       </Stack>
       {loading ? (
-        <Skeleton variant="rectangular" height={80} sx={skelSx} />
+        <Skeleton variant="rectangular" height={180} sx={skelSx} />
       ) : (
-        <SparklineSVG
-          points={points}
-          width={720}
-          height={80}
+        <SpendBars
+          points={points.map((p, i) => ({
+            label: p.ts ? shortDay(p.ts, i) : `D${i + 1}`,
+            value: p.value,
+          }))}
+          height={180}
           ariaLabel="Spend per day over the last 7 days"
         />
       )}
     </Card>
   );
+}
+
+// shortDay — "Mon", "Tue", ... with the most recent bucket marked
+// "today" so the operator instantly orients on the latest column.
+function shortDay(iso: string, idx: number): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return `D${idx + 1}`;
+  // The buckets render oldest→newest with 7 items; last index is today.
+  return d.toLocaleDateString(undefined, { weekday: "short" });
 }
 
 function BreakdownTable({

@@ -179,6 +179,16 @@ function HomeInner() {
             },
           },
         });
+        // Apollo client is configured with errorPolicy: "all", so GraphQL
+        // errors land in result.errors instead of being thrown. Surface
+        // them first so the user sees the real cause (wallet shortfall,
+        // admit failure, etc.) rather than a generic "no project id".
+        if (result.errors && result.errors.length > 0) {
+          throw new Error(
+            result.errors.map((e) => e.message).join("\n") ||
+              "Studio rejected the request.",
+          );
+        }
         const project = result.data?.describeIdea.project;
         const execution = result.data?.describeIdea.execution;
         if (!project?.id) {

@@ -120,6 +120,12 @@ export default function StudioIndexPage() {
       const result = await describeIdea({
         variables: { input: { text, startImmediately: true } },
       });
+      if (result.errors && result.errors.length > 0) {
+        throw new Error(
+          result.errors.map((e) => e.message).join("\n") ||
+            "Studio rejected the request.",
+        );
+      }
       const project = result.data?.describeIdea.project;
       const execution = result.data?.describeIdea.execution;
       if (!project?.id) throw new Error("Studio did not return a project id.");

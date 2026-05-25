@@ -162,9 +162,13 @@ function ProjectStudioInner() {
   const execution: ExecutionCoreFragment | null =
     executionQuery.data?.execution ?? (executionIDParam ? null : resolvedExecution);
   const executionID = execution?.id ?? "";
+  // chatStoreKey routes both modes through the same chat store: when
+  // an execution exists, messages key off its id; otherwise the free-
+  // chat sentinel "_" matches the orchestrator's chat_stream path.
+  const chatStoreKey = executionID || "_";
 
   // 2. Chat buffer.
-  const messages = useChatStore(selectMessages(executionID));
+  const messages = useChatStore(selectMessages(chatStoreKey));
   const hydrate = useChatStore((s) => s.hydrate);
   const appendIncoming = useChatStore((s) => s.appendIncoming);
   const appendLocal = useChatStore((s) => s.appendLocal);
@@ -182,8 +186,8 @@ function ProjectStudioInner() {
   }, []);
 
   useEffect(() => {
-    hydrate(executionID);
-  }, [executionID, hydrate]);
+    hydrate(chatStoreKey);
+  }, [chatStoreKey, hydrate]);
 
   // 3. Subscribe to executionFeed.
   const sub = useExecutionFeedSubscription({
@@ -212,25 +216,24 @@ function ProjectStudioInner() {
   const [refineIdea, refineState] = useRefineIdeaMutation();
   const onSend = useCallback(
     async (text: string, attachments?: StudioAttachment[]) => {
-      if (!executionID) {
-        appendLocal(
-          executionID,
-          makeErrorMessage(
-            "No active execution yet — wait for the orchestrator to admit one.",
-          ),
-        );
-        return;
-      }
-      appendLocal(executionID, makeUserMessage(text, attachments));
+      // Free-chat sentinel: when no execution has been admitted yet,
+      // the orchestrator's /executions/_/chat/stream path runs a
+      // general copilot reply without execution context. The chat
+      // store keys off the same id so messages stay coherent until
+      // an execution arrives.
+      const chatID = executionID || "_";
+      appendLocal(chatID, makeUserMessage(text, attachments));
 
-      // Record the refinement on the running execution. Fire-and-
-      // forget by design — the finisher picks it up on the next loop;
-      // failure surfaces as an inline error but does not block the
-      // assistant reply stream below.
-      try {
-        await refineIdea({ variables: { executionID, message: text } });
-      } catch (e) {
-        appendLocal(executionID, makeErrorMessage(extractErrorMessage(e)));
+      // Record the refinement on the running execution. Skipped in
+      // free-chat mode — no execution exists to refine yet. Fire-and-
+      // forget by design when sent; failure surfaces inline but does
+      // not block the assistant reply stream below.
+      if (executionID) {
+        try {
+          await refineIdea({ variables: { executionID, message: text } });
+        } catch (e) {
+          appendLocal(chatID, makeErrorMessage(extractErrorMessage(e)));
+        }
       }
 
       // Cancel any in-flight stream before opening a new one.
@@ -239,19 +242,19 @@ function ProjectStudioInner() {
       const token = getToken();
       if (!token) {
         appendLocal(
-          executionID,
+          chatID,
           makeErrorMessage("Session expired — please sign in again."),
         );
         return;
       }
 
       const assistant = makeAssistantThinkingMessage("");
-      appendLocal(executionID, assistant);
+      appendLocal(chatID, assistant);
 
       let buffer = "";
       setStreaming(true);
       const handle = streamChat(
-        { executionID, message: text, token },
+        { executionID: chatID, message: text, token },
         (ev) => {
           switch (ev.type) {
             case "delta": {
@@ -259,11 +262,11 @@ function ProjectStudioInner() {
                 typeof ev.data.text === "string" ? ev.data.text : "";
               if (!chunk) return;
               buffer += chunk;
-              updateLocal(executionID, assistant.id, { body: buffer });
+              updateLocal(chatID, assistant.id, { body: buffer });
               break;
             }
             case "finish": {
-              updateLocal(executionID, assistant.id, {
+              updateLocal(chatID, assistant.id, {
                 body: buffer || "(no response)",
               });
               break;
@@ -273,7 +276,7 @@ function ProjectStudioInner() {
                 typeof ev.data.message === "string"
                   ? ev.data.message
                   : "Stream error";
-              appendLocal(executionID, makeErrorMessage(msg));
+              appendLocal(chatID, makeErrorMessage(msg));
               break;
             }
             // tool_call / tool_result / thinking — surfaced via the
@@ -374,6 +377,13 @@ function ProjectStudioInner() {
             onSend={onSend}
             onStop={onStop}
             userInitials={initials}
+            contextBar={
+              <PromptContextBar
+                projectID={projectID}
+                execution={null}
+                prompt={projectQuery.data?.project?.idea ?? null}
+              />
+            }
           />
         }
       />
@@ -456,9 +466,102 @@ function ProjectStudioInner() {
           onSend={onSend}
           onStop={onStop}
           userInitials={initials}
+          contextBar={
+            <PromptContextBar
+              projectID={projectID}
+              execution={execution}
+              prompt={
+                execution.promptSummary ??
+                projectQuery.data?.project?.idea ??
+                null
+              }
+            />
+          }
         />
       }
     />
+  );
+}
+
+function PromptContextBar({
+  projectID,
+  execution,
+  prompt,
+}: {
+  projectID: string;
+  execution: ExecutionCoreFragment | null;
+  prompt: string | null;
+}) {
+  const shortProject = projectID ? projectID.slice(0, 8) : "project";
+  const shortExecution = execution?.id ? execution.id.slice(0, 8) : "no-run";
+  const workspace = execution?.workspaceID
+    ? execution.workspaceID.slice(0, 8)
+    : shortExecution;
+  const promptText = prompt?.trim() || "No prompt captured yet";
+
+  return (
+    <Box
+      sx={{
+        borderBottom: `1px solid ${tokens.color.border.subtle}`,
+        bgcolor: tokens.color.bg.inset,
+        px: 1.5,
+        py: 0.9,
+      }}
+    >
+      <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", minWidth: 0 }}>
+        <Box
+          sx={{
+            bgcolor: `${tokens.color.accent.purple}22`,
+            border: `1px solid ${tokens.color.border.accent}`,
+            borderRadius: 0.75,
+            color: tokens.color.accent.violet,
+            flex: "0 0 auto",
+            fontFamily: tokens.font.mono,
+            fontSize: 10,
+            fontWeight: 800,
+            letterSpacing: 0.7,
+            px: 0.75,
+            py: 0.25,
+            textTransform: "uppercase",
+          }}
+        >
+          prompt
+        </Box>
+        <Typography
+          sx={{
+            color: tokens.color.text.primary,
+            flex: 1,
+            fontSize: 12.5,
+            lineHeight: 1.35,
+            minWidth: 0,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+          title={promptText}
+        >
+          {promptText}
+        </Typography>
+      </Stack>
+      <Stack
+        direction="row"
+        spacing={1.2}
+        sx={{
+          color: tokens.color.text.muted,
+          fontFamily: tokens.font.mono,
+          fontSize: 10,
+          letterSpacing: 0.45,
+          mt: 0.5,
+          overflow: "hidden",
+          textTransform: "uppercase",
+          whiteSpace: "nowrap",
+        }}
+      >
+        <Box component="span">project {shortProject}</Box>
+        <Box component="span">workspace {workspace}</Box>
+        <Box component="span">{execution ? "files mirrored" : "files pending"}</Box>
+      </Stack>
+    </Box>
   );
 }
 

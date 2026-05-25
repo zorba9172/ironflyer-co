@@ -23,6 +23,7 @@
     "@mui/icons-material": "^6.5.0",
     "@mui/material": "^6.5.0",
     "@mui/material-nextjs": "^6.5.0",
+    "echarts": "^6.1.0",
     "framer-motion": "^12.40.0",
     "graphql": "^16.9.0",
     "graphql-ws": "^5.16.0",

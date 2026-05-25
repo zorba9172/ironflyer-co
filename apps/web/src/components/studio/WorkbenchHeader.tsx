@@ -113,6 +113,53 @@ export function WorkbenchHeader({
             <ArrowBackRounded sx={{ fontSize: 17 }} />
           </IconButton>
         </Tooltip>
+        <Stack
+          component={Link}
+          href="/studio"
+          direction="row"
+          spacing={0.7}
+          sx={{
+            alignItems: "center",
+            color: tokens.color.text.primary,
+            display: { xs: "none", lg: "flex" },
+            minWidth: 0,
+            textDecoration: "none",
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              gap: 0.25,
+              height: 18,
+              width: 32,
+              "& span": {
+                bgcolor: tokens.color.accent.violet,
+                borderRadius: 0.5,
+                display: "block",
+                flex: "0 0 7px",
+                transform: "skewX(-26deg)",
+              },
+              "& span:nth-of-type(1)": { bgcolor: tokens.color.accent.coral },
+              "& span:nth-of-type(2)": { bgcolor: tokens.color.brand.magenta },
+            }}
+            aria-hidden
+          >
+            <span />
+            <span />
+            <span />
+          </Box>
+          <Typography
+            sx={{
+              color: tokens.color.text.primary,
+              fontSize: 14,
+              fontStyle: "italic",
+              fontWeight: 900,
+              letterSpacing: 0.1,
+            }}
+          >
+            ironflyer
+          </Typography>
+        </Stack>
         <Stack direction="row" spacing={0.6} sx={{ alignItems: "center", minWidth: 0 }}>
           <Box
             component={Link}
@@ -156,9 +203,27 @@ export function WorkbenchHeader({
 
         <Chip
           size="small"
+          label="Private"
+          sx={{
+            bgcolor: tokens.color.bg.inset,
+            border: `1px solid ${tokens.color.border.subtle}`,
+            borderRadius: 0.75,
+            color: tokens.color.text.secondary,
+            display: { xs: "none", lg: "inline-flex" },
+            fontFamily: tokens.font.mono,
+            fontSize: 10,
+            fontWeight: 700,
+            height: 22,
+            letterSpacing: 0.4,
+            "& .MuiChip-label": { px: 1 },
+          }}
+        />
+
+        <Chip
+          size="small"
           label={
             execution?.workspaceID
-              ? `ws ${execution.workspaceID.slice(0, 8)}`
+              ? `workspace ${execution.workspaceID.slice(0, 8)}`
               : "Default workspace"
           }
           sx={{

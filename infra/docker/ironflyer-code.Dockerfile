@@ -12,8 +12,8 @@
 #
 # Run (manually, for inspection):
 #   docker run -it --rm -p 8443:8080 \
-#     -e PASSWORD=ironflyer-dev \
-#     ghcr.io/zorba9172/ironflyer-code:latest
+#     ghcr.io/zorba9172/ironflyer-code:latest --auth none \
+#     --bind-addr 0.0.0.0:8080 /home/coder/project
 FROM codercom/code-server:latest
 
 # Bake brand assets in before switching back to coder.
@@ -73,15 +73,12 @@ RUN code-server --install-extension golang.go \
  && code-server --install-extension editorconfig.editorconfig \
  || true
 
-# Default landing — code-server reads $PASSWORD or hashed-password from config.
-# In dev we pass PASSWORD=ironflyer-dev. Production should mount a hashed
-# password file via the workspace-runtime ConfigMap.
+# Default landing. Local Studio compose passes `--auth none` so users do not
+# see a second IDE login after the IronFlyer app session already allowed them
+# into the workspace. Production should front the IDE with a signed runtime or
+# edge route scoped to tenant/workspace/expiry instead of exposing this port.
 EXPOSE 8080
 ENV CS_DISABLE_GETTING_STARTED_OVERRIDE=1
-# code-server returns 302 on `/` (redirect to /login) when password auth is
-# enabled, so we accept any 2xx/3xx via curl --fail's default behaviour.
-# We hit the login page directly to avoid following redirects through the
-# whole UI bootstrap during a probe.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-    CMD curl -fsS http://127.0.0.1:8080/healthz || curl -fsS http://127.0.0.1:8080/login || exit 1
+    CMD curl -fsS http://127.0.0.1:8080/healthz || curl -fsSI http://127.0.0.1:8080/ >/dev/null || exit 1
 ENTRYPOINT ["/usr/bin/entrypoint.sh", "--bind-addr", "0.0.0.0:8080", "/home/coder"]

@@ -209,7 +209,8 @@ services:
   # Served at /ide so the Next.js dev server can same-origin-proxy it
   # at apps/web /ide/* → http://openvscode:3000/ide/*. Same-origin
   # removes the iframe friction (CORS, X-Frame-Options, clipboard
-  # grants, third-party cookie blocks).
+  # grants, third-party cookie blocks). Dev intentionally has no nested
+  # IDE login; Studio/session auth owns access to the containing app.
   #   Direct: http://localhost:3030/ide/?folder=/home/workspace
   #   Proxy : http://localhost:3017/ide/?folder=/home/workspace
   openvscode:
@@ -241,13 +242,11 @@ services:
   codeserver:
     profiles: ["ide-legacy", "full"]
     image: ironflyer/code:dev
-    environment:
-      PASSWORD: ironflyer-dev
     ports:
       - "8443:8080"
     volumes:
       - codeserver-data:/home/coder/project
-    command: ["--auth", "password", "--bind-addr", "0.0.0.0:8080", "/home/coder/project"]
+    command: ["--auth", "none", "--bind-addr", "0.0.0.0:8080", "/home/coder/project"]
     mem_limit: 1g
     cpus: 1.5
 

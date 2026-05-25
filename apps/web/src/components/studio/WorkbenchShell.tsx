@@ -60,10 +60,10 @@ import type {
 import type { ExecutionCoreFragment } from "../../lib/gql/__generated__";
 import type { StudioMessage } from "./types";
 
-const RIGHT_RAIL_WIDTH = 380;
+const RIGHT_RAIL_WIDTH = 420;
 const RIGHT_RAIL_COLLAPSED = 44;
-const LEFT_RAIL_EXPANDED = 200;
-const LEFT_RAIL_COLLAPSED = 56;
+const LEFT_RAIL_EXPANDED = 232;
+const LEFT_RAIL_COLLAPSED = 52;
 
 export interface WorkbenchShellProps {
   projectName: string;
@@ -255,7 +255,7 @@ export function WorkbenchShell(props: WorkbenchShellProps) {
         height: "100%",
         minHeight: 0,
         minWidth: 0,
-        p: { xs: 0.6, md: 1.2 },
+        p: { xs: 0.6, md: 0.9 },
         width: "100%",
       }}
     >

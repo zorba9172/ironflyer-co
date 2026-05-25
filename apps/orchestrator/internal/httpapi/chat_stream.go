@@ -60,33 +60,44 @@ func (a *API) chatStream(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if a.d.Execution == nil {
-		writeJSON(w, http.StatusServiceUnavailable, map[string]string{"error": "execution service not configured"})
-		return
-	}
 	if a.d.Guard == nil {
 		writeJSON(w, http.StatusServiceUnavailable, map[string]string{"error": "billing guard not configured"})
 		return
 	}
 
-	exec, err := a.d.Execution.Get(r.Context(), executionID)
-	if err != nil {
-		writeJSON(w, http.StatusNotFound, map[string]string{"error": "execution not found"})
-		return
-	}
-
-	// Owner check — tenantFor mirrors the GraphQL resolvers: orgID
-	// when set, else user.ID.
+	// Tenant for ledger / owner checks — orgID when present, else user.ID.
 	tenant := u.OrgID
 	if tenant == "" {
 		tenant = u.ID
 	}
-	if exec.TenantID != tenant {
-		writeJSON(w, http.StatusForbidden, map[string]string{"error": "forbidden"})
-		return
+
+	// Free-chat mode: executionID == "_" means the caller wants a
+	// general copilot reply (chat + product-building guidance) before
+	// any execution has been admitted. Skip the execution lookup and
+	// ProfitGuard entirely — BillingGuard still debits the user's
+	// wallet so cost stays attributed.
+	freeChat := executionID == "_"
+
+	var execPromptSummary string
+	if !freeChat {
+		if a.d.Execution == nil {
+			writeJSON(w, http.StatusServiceUnavailable, map[string]string{"error": "execution service not configured"})
+			return
+		}
+		e, err := a.d.Execution.Get(r.Context(), executionID)
+		if err != nil {
+			writeJSON(w, http.StatusNotFound, map[string]string{"error": "execution not found"})
+			return
+		}
+		if e.TenantID != tenant {
+			writeJSON(w, http.StatusForbidden, map[string]string{"error": "forbidden"})
+			return
+		}
+		execPromptSummary = e.PromptSummary
 	}
 
-	// Decode body (best-effort — empty body is allowed).
+	// Decode body (best-effort — empty body is allowed when an
+	// execution is attached, since we fall back to its prompt summary).
 	var body chatStreamRequest
 	if r.ContentLength != 0 {
 		limited := io.LimitReader(r.Body, 1<<20) // 1 MiB cap
@@ -97,7 +108,7 @@ func (a *API) chatStream(w http.ResponseWriter, r *http.Request) {
 	}
 	prompt := strings.TrimSpace(body.Message)
 	if prompt == "" {
-		prompt = exec.PromptSummary
+		prompt = execPromptSummary
 	}
 	if prompt == "" {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "message required"})
@@ -119,13 +130,25 @@ func (a *API) chatStream(w http.ResponseWriter, r *http.Request) {
 
 	// Attach execution + tenant to ctx so BillingGuard's per-token
 	// cost attribution lands on the right execution / ledger row.
+	// In free-chat mode no execution exists yet — ProfitGuard is
+	// skipped, BillingGuard still debits the wallet via TenantID below.
 	streamCtx, cancel := context.WithCancel(r.Context())
 	defer cancel()
-	streamCtx = profitguardctx.WithExecution(streamCtx, executionID, tenant)
+	if !freeChat {
+		streamCtx = profitguardctx.WithExecution(streamCtx, executionID, tenant)
+	}
+
+	system := "You are Ironflyer, a senior AI builder copilot. " +
+		"Hold a natural conversation with the user: answer questions, brainstorm, " +
+		"plan product work, and propose concrete next steps. When the user signals " +
+		"intent to build, outline what you would ship, in what order, and what gates " +
+		"or budget implications matter. Be precise, direct, and useful — no hype."
+	if !freeChat {
+		system += " An execution is currently running; keep replies grounded in it when relevant."
+	}
 
 	req := providers.Request{
-		System: "You are Ironflyer, the AI execution engine. Reply to the user's chat message in plain English. " +
-			"Keep replies grounded in the running execution.",
+		System:       system,
 		Prompt:       prompt,
 		TenantID:     tenant,
 		Capabilities: []providers.Capability{providers.CapCode, providers.CapFast},

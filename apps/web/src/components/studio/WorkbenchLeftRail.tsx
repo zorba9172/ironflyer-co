@@ -6,8 +6,8 @@
 // the right rail (chat) / the bottom dock (patches).
 //
 // Two render modes:
-//   • collapsed — 56px strip, icon only, tooltip on hover.
-//   • expanded  — 200px wide, icon + label, the active row gets a
+//   • collapsed — 52px strip, icon only, tooltip on hover.
+//   • expanded  — 232px wide, icon + label, the active row gets a
 //                 violet glow.
 //
 // The rail itself is purely a controlled view — every state and every
@@ -67,7 +67,7 @@ export function WorkbenchLeftRail({
   onToggleChat,
   onToggleDock,
 }: WorkbenchLeftRailProps) {
-  const width = expanded ? 200 : 56;
+  const width = expanded ? 232 : 52;
   return (
     <Box
       sx={{
@@ -88,9 +88,9 @@ export function WorkbenchLeftRail({
         sx={{
           borderBottom: `1px solid ${tokens.color.border.subtle}`,
           color: tokens.color.text.muted,
-          height: 44,
+          height: 46,
           justifyContent: expanded ? "space-between" : "center",
-          px: expanded ? 1.4 : 0,
+          px: expanded ? 1.25 : 0,
         }}
       >
         {expanded ? (
@@ -153,8 +153,8 @@ export function WorkbenchLeftRail({
           flex: 1,
           minHeight: 0,
           overflowY: "auto",
-          px: expanded ? 1 : 0.6,
-          py: 1,
+          px: expanded ? 1.05 : 0.55,
+          py: 1.2,
         }}
       >
         {PRIMARY_ROWS.map((row) => (
@@ -229,42 +229,106 @@ export function WorkbenchLeftRail({
             mt: 0.6,
           }}
         >
-          <div>⌘B · rail</div>
-          <div>⌘\ · chat</div>
-          <div>⌘J · patches</div>
-          <div>F · focus</div>
-          <div>1–5 · pane</div>
+          <ShortcutRow command="⌘B" label="Build rail" />
+          <ShortcutRow command="⌘\\" label="Chat" />
+          <ShortcutRow command="⌘J" label="Patches" />
+          <ShortcutRow command="F" label="Focus" />
+          <ShortcutRow command="1–5" label="Panes" />
         </Box>
       </Box>
 
       <Box
         component="div"
         sx={{
-          alignItems: "center",
           borderTop: `1px solid ${tokens.color.border.subtle}`,
-          color: tokens.color.text.muted,
-          display: "flex",
-          gap: 0.6,
-          height: 32,
-          justifyContent: "center",
-          px: expanded ? 1 : 0,
+          display: expanded ? "block" : "flex",
+          px: expanded ? 1.15 : 0,
+          py: expanded ? 1.15 : 0,
         }}
       >
-        <AccountTreeRounded sx={{ color: tokens.color.accent.violet, fontSize: 14 }} />
         {expanded ? (
-          <Typography
+          <Box
             sx={{
-              color: tokens.color.text.muted,
-              fontFamily: tokens.font.mono,
-              fontSize: 10,
-              letterSpacing: 0.4,
-              textTransform: "uppercase",
+              bgcolor: tokens.color.bg.inset,
+              border: `1px solid ${tokens.color.border.subtle}`,
+              borderRadius: 1,
+              p: 1.15,
             }}
           >
-            Finisher loop
-          </Typography>
-        ) : null}
+            <Stack direction="row" spacing={0.75} sx={{ alignItems: "center" }}>
+              <AccountTreeRounded sx={{ color: tokens.color.accent.violet, fontSize: 15 }} />
+              <Box sx={{ minWidth: 0 }}>
+                <Typography
+                  sx={{
+                    color: tokens.color.text.secondary,
+                    fontFamily: tokens.font.mono,
+                    fontSize: 10.5,
+                    fontWeight: 800,
+                    letterSpacing: 0.5,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Finisher loop
+                </Typography>
+                <Typography
+                  sx={{
+                    color: tokens.color.text.muted,
+                    fontSize: 11,
+                    mt: 0.25,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Ironflyer Execution Engine
+                </Typography>
+              </Box>
+            </Stack>
+            <Box
+              sx={{
+                bgcolor: tokens.color.bg.surfaceRaised,
+                borderRadius: 999,
+                height: 5,
+                mt: 1.25,
+                overflow: "hidden",
+              }}
+            >
+              <Box
+                sx={{
+                  bgcolor: tokens.color.accent.violet,
+                  borderRadius: 999,
+                  height: "100%",
+                  width: "72%",
+                }}
+              />
+            </Box>
+          </Box>
+        ) : (
+          <Tooltip title="Finisher loop" placement="right" arrow>
+            <Box
+              sx={{
+                alignItems: "center",
+                color: tokens.color.accent.violet,
+                display: "flex",
+                height: 34,
+                justifyContent: "center",
+                width: "100%",
+              }}
+            >
+              <AccountTreeRounded sx={{ fontSize: 15 }} />
+            </Box>
+          </Tooltip>
+        )}
       </Box>
+    </Box>
+  );
+}
+
+function ShortcutRow({ command, label }: { command: string; label: string }) {
+  return (
+    <Box sx={{ display: "flex", gap: 1, justifyContent: "space-between" }}>
+      <span>{command}</span>
+      <span>{label}</span>
     </Box>
   );
 }

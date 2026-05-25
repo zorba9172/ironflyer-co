@@ -26,6 +26,7 @@
 import {
   ArchiveRounded,
   ArticleOutlined,
+  CloudDownloadRounded,
   ContentCopyRounded,
   DownloadRounded,
   FolderOutlined,
@@ -87,6 +88,20 @@ const MonacoFileView = dynamic(
 
 type ProjectFile = ProjectFilesQuery["projectFiles"][number];
 type PatchLite = PatchCoreFragment;
+
+type IdeSnapshotFile = Pick<ProjectFile, "path" | "content" | "size" | "updatedAt"> & {
+  language: string | null;
+};
+
+interface IdeSnapshotResponse {
+  files?: Array<{
+    path: string;
+    content: string;
+    size: number;
+    updatedAt: string;
+  }>;
+  error?: string;
+}
 
 interface FileNode {
   name: string;
@@ -189,6 +204,41 @@ async function downloadProjectZip(projectID: string, files: ProjectFile[]): Prom
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
+}
+
+function mergeIdeSnapshot(
+  graphFiles: ProjectFile[],
+  ideFiles: IdeSnapshotFile[] | null,
+): ProjectFile[] {
+  if (!ideFiles) return graphFiles;
+  const out = new Map<string, ProjectFile>();
+  graphFiles.forEach((file) => out.set(file.path, file));
+  ideFiles.forEach((file) => {
+    const graph = out.get(file.path);
+    out.set(file.path, {
+      __typename: graph?.__typename,
+      path: file.path,
+      content: file.content,
+      size: file.size,
+      language: graph?.language ?? languageFromPath(file.path),
+      updatedAt: file.updatedAt,
+    });
+  });
+  return [...out.values()].sort((a, b) => a.path.localeCompare(b.path));
+}
+
+function ideChangedPaths(
+  graphFiles: ProjectFile[],
+  ideFiles: IdeSnapshotFile[] | null,
+): Set<string> {
+  const out = new Set<string>();
+  if (!ideFiles) return out;
+  const graphByPath = new Map(graphFiles.map((file) => [file.path, file]));
+  ideFiles.forEach((file) => {
+    const graph = graphByPath.get(file.path);
+    if (!graph || graph.content !== file.content) out.add(file.path);
+  });
+  return out;
 }
 
 // languageFromPath — quick file-extension → display label. The
@@ -364,7 +414,18 @@ export function CodePane({ projectID, executionID, executionStatus }: CodePanePr
     pollInterval: isTerminal ? 0 : 8000,
   });
 
-  const files = filesQuery.data?.projectFiles ?? [];
+  const graphFiles = filesQuery.data?.projectFiles ?? [];
+  const [ideFiles, setIdeFiles] = useState<IdeSnapshotFile[] | null>(null);
+  const [ideLoading, setIdeLoading] = useState(false);
+  const [ideError, setIdeError] = useState<string | null>(null);
+  const files = useMemo(
+    () => mergeIdeSnapshot(graphFiles, ideFiles),
+    [graphFiles, ideFiles],
+  );
+  const ideChanged = useMemo(
+    () => ideChangedPaths(graphFiles, ideFiles),
+    [graphFiles, ideFiles],
+  );
   const changed = useMemo(
     () => new Set(bundleQuery.data?.executionSupportBundle?.changedFiles ?? []),
     [bundleQuery.data],
@@ -390,14 +451,20 @@ export function CodePane({ projectID, executionID, executionStatus }: CodePanePr
   const [exportingZip, setExportingZip] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
 
+  const effectiveChanged = useMemo(() => {
+    const out = new Set(changed);
+    ideChanged.forEach((path) => out.add(path));
+    return out;
+  }, [changed, ideChanged]);
+
   // Auto-pick the first changed file (or first file overall) when the
   // pane opens so the right column is never blank.
   useEffect(() => {
     if (selected) return;
     if (files.length === 0) return;
-    const first = files.find((f) => changed.has(f.path)) ?? files[0];
+    const first = files.find((f) => effectiveChanged.has(f.path)) ?? files[0];
     setSelected(first.path);
-  }, [files, changed, selected]);
+  }, [files, effectiveChanged, selected]);
 
   const selectedFile = files.find((f) => f.path === selected) ?? null;
   const selectedPatch = selected ? patchByPath.get(selected) ?? null : null;
@@ -412,6 +479,36 @@ export function CodePane({ projectID, executionID, executionStatus }: CodePanePr
       setExportError(e instanceof Error ? e.message : "Could not create ZIP");
     } finally {
       setExportingZip(false);
+    }
+  };
+
+  const onPullIdeSnapshot = async () => {
+    if (!projectID || ideLoading) return;
+    setIdeLoading(true);
+    setIdeError(null);
+    try {
+      const res = await fetch(
+        `/api/ide/sync?projectID=${encodeURIComponent(projectID)}`,
+        { method: "GET" },
+      );
+      const payload = (await res.json().catch(() => ({}))) as IdeSnapshotResponse;
+      if (!res.ok) throw new Error(payload.error || `IDE pull failed (${res.status})`);
+      const next = (payload.files ?? []).map((file) => ({
+        path: file.path,
+        content: file.content,
+        size: file.size,
+        language: null,
+        updatedAt: file.updatedAt,
+      }));
+      if (next.length === 0) {
+        setIdeError("No IDE snapshot yet");
+        return;
+      }
+      setIdeFiles(next);
+    } catch (e) {
+      setIdeError(e instanceof Error ? e.message : "Could not read IDE snapshot");
+    } finally {
+      setIdeLoading(false);
     }
   };
 
@@ -463,6 +560,22 @@ export function CodePane({ projectID, executionID, executionStatus }: CodePanePr
           >
             {files.length}
           </Typography>
+          <Tooltip title="Pull IDE snapshot into Monaco" arrow>
+            <span>
+              <IconButton
+                size="small"
+                onClick={() => void onPullIdeSnapshot()}
+                disabled={!projectID || ideLoading}
+                sx={{
+                  color: ideFiles ? tokens.color.accent.success : tokens.color.text.secondary,
+                  p: 0.25,
+                }}
+                aria-label="Pull IDE snapshot"
+              >
+                <CloudDownloadRounded sx={{ fontSize: 14 }} />
+              </IconButton>
+            </span>
+          </Tooltip>
           <Tooltip title="Download project ZIP" arrow>
             <span>
               <IconButton
@@ -483,6 +596,7 @@ export function CodePane({ projectID, executionID, executionStatus }: CodePanePr
                 void filesQuery.refetch();
                 void bundleQuery.refetch();
                 void patchesQuery.refetch();
+                setIdeFiles(null);
               }}
               sx={{ color: tokens.color.text.secondary, p: 0.25 }}
               aria-label="Refresh files"
@@ -503,6 +617,19 @@ export function CodePane({ projectID, executionID, executionStatus }: CodePanePr
               }}
             >
               ZIP failed: {exportError}
+            </Typography>
+          ) : null}
+          {ideError ? (
+            <Typography
+              sx={{
+                color: tokens.color.accent.warning,
+                fontFamily: tokens.font.mono,
+                fontSize: 11,
+                px: 1.5,
+                py: 0.75,
+              }}
+            >
+              IDE pull: {ideError}
             </Typography>
           ) : null}
           {files.length === 0 ? (
@@ -526,7 +653,7 @@ export function CodePane({ projectID, executionID, executionStatus }: CodePanePr
                 depth={0}
                 onPick={setSelected}
                 selected={selected}
-                changed={changed}
+                changed={effectiveChanged}
               />
             ))
           )}
@@ -539,6 +666,7 @@ export function CodePane({ projectID, executionID, executionStatus }: CodePanePr
           <FileViewer
             file={selectedFile}
             changed={changed.has(selectedFile.path)}
+            ideChanged={ideChanged.has(selectedFile.path)}
             patch={selectedPatch}
             wordWrap={wordWrap}
             minimap={minimap}
@@ -569,6 +697,7 @@ export function CodePane({ projectID, executionID, executionStatus }: CodePanePr
 function FileViewer({
   file,
   changed,
+  ideChanged,
   patch,
   wordWrap,
   minimap,
@@ -577,6 +706,7 @@ function FileViewer({
 }: {
   file: ProjectFile;
   changed: boolean;
+  ideChanged: boolean;
   patch: PatchLite | null;
   wordWrap: boolean;
   minimap: boolean;
@@ -650,6 +780,25 @@ function FileViewer({
             }}
           >
             changed
+          </Box>
+        ) : null}
+        {ideChanged ? (
+          <Box
+            sx={{
+              bgcolor: `${tokens.color.accent.success}1f`,
+              border: `1px solid ${tokens.color.accent.success}55`,
+              borderRadius: 0.75,
+              color: tokens.color.accent.success,
+              fontFamily: tokens.font.mono,
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: 0.6,
+              px: 0.75,
+              py: 0.25,
+              textTransform: "uppercase",
+            }}
+          >
+            ide edit
           </Box>
         ) : null}
         {patch ? (

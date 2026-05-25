@@ -49,6 +49,13 @@ export interface IDEFramePaneProps {
 
 type FrameStatus = "loading" | "ready" | "failed";
 type SyncStatus = "idle" | "syncing" | "ready" | "failed";
+interface SyncMeta {
+  written: number;
+  skipped: number;
+  preserved: number;
+  removed: number;
+  durationMs: number;
+}
 
 export function IDEFramePane({ projectID }: IDEFramePaneProps) {
   const muiTheme = useTheme();
@@ -67,15 +74,18 @@ export function IDEFramePane({ projectID }: IDEFramePaneProps) {
   const [nonce, setNonce] = useState(0);
   const [status, setStatus] = useState<FrameStatus>("loading");
   const [syncStatus, setSyncStatus] = useState<SyncStatus>("idle");
-  const [syncMeta, setSyncMeta] = useState<{ written: number; skipped: number } | null>(null);
+  const [syncMeta, setSyncMeta] = useState<SyncMeta | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
+  const [frameLoadMs, setFrameLoadMs] = useState<number | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const frameStartedAt = useRef<number>(nowMs());
 
   useEffect(() => {
     if (isMobile || !projectID || !filesQuery.data) return;
     const projectFiles = filesQuery.data.projectFiles;
     let alive = true;
     const sync = async () => {
+      const startedAt = nowMs();
       setSyncStatus("syncing");
       setSyncError(null);
       try {
@@ -93,6 +103,8 @@ export function IDEFramePane({ projectID }: IDEFramePaneProps) {
         const payload = (await res.json().catch(() => ({}))) as {
           written?: number;
           skipped?: number;
+          preserved?: number;
+          removed?: number;
           error?: string;
         };
         if (!res.ok) {
@@ -102,6 +114,9 @@ export function IDEFramePane({ projectID }: IDEFramePaneProps) {
         setSyncMeta({
           written: payload.written ?? 0,
           skipped: payload.skipped ?? 0,
+          preserved: payload.preserved ?? 0,
+          removed: payload.removed ?? 0,
+          durationMs: Math.max(0, Math.round(nowMs() - startedAt)),
         });
         setSyncStatus("ready");
       } catch (e) {
@@ -119,6 +134,8 @@ export function IDEFramePane({ projectID }: IDEFramePaneProps) {
   useEffect(() => {
     if (isMobile) return;
     if (syncStatus !== "ready" && syncStatus !== "failed") return;
+    frameStartedAt.current = nowMs();
+    setFrameLoadMs(null);
     setStatus("loading");
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
@@ -133,6 +150,7 @@ export function IDEFramePane({ projectID }: IDEFramePaneProps) {
   }, [nonce, url, isMobile, syncStatus]);
 
   const onLoad = useCallback(() => {
+    setFrameLoadMs(Math.max(0, Math.round(nowMs() - frameStartedAt.current)));
     setStatus("ready");
     if (timerRef.current) {
       clearTimeout(timerRef.current);
@@ -196,6 +214,7 @@ export function IDEFramePane({ projectID }: IDEFramePaneProps) {
           }}
         >
           openvscode · {folder}
+          {frameLoadMs != null ? ` · load ${frameLoadMs}ms` : ""}
         </Typography>
         <Tooltip title={syncTooltip(syncStatus, syncMeta, syncError)} arrow>
           <Stack
@@ -365,9 +384,9 @@ function IDESkeleton({ label = "Loading IDE…" }: { label?: string }) {
 
 function syncLabel(
   status: SyncStatus,
-  meta: { written: number; skipped: number } | null,
+  meta: SyncMeta | null,
 ): string {
-  if (status === "ready" && meta) return `synced ${meta.written}`;
+  if (status === "ready" && meta) return `synced ${meta.written} · ${meta.durationMs}ms`;
   if (status === "failed") return "sync failed";
   if (status === "syncing") return "syncing";
   return "sync queued";
@@ -375,15 +394,26 @@ function syncLabel(
 
 function syncTooltip(
   status: SyncStatus,
-  meta: { written: number; skipped: number } | null,
+  meta: SyncMeta | null,
   error: string | null,
 ): string {
   if (status === "ready" && meta) {
-    return `${meta.written} files synced${meta.skipped ? `, ${meta.skipped} skipped` : ""}`;
+    return [
+      `${meta.written} files synced in ${meta.durationMs}ms`,
+      meta.preserved ? `${meta.preserved} VS Code edits preserved` : "",
+      meta.removed ? `${meta.removed} stale files removed` : "",
+      meta.skipped ? `${meta.skipped} skipped` : "",
+    ]
+      .filter(Boolean)
+      .join(", ");
   }
   if (status === "failed") return error || "Project sync failed";
   if (status === "syncing") return "Writing the Monaco project snapshot into the IDE workspace";
   return "Waiting for project files";
+}
+
+function nowMs(): number {
+  return typeof performance !== "undefined" ? performance.now() : Date.now();
 }
 
 // IDEFallback — token-driven panel surfaced when the iframe never

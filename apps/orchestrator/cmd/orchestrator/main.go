@@ -174,6 +174,13 @@ func main() {
 					logger.Warn().Err(err).Msg("event publisher stopped")
 				}
 			}()
+			// Pre-create DLQ topics so the first dead row finds its
+			// target ready. Idempotent and best-effort: a failure here
+			// is logged but never blocks startup.
+			if err := events.EnsureDLQTopics(ctx, strings.Split(cfg.RedpandaBrokers, ","), "outbox-publisher",
+				logger.With().Str("svc", "event-publisher").Logger()); err != nil {
+				logger.Warn().Err(err).Msg("dlq topic bootstrap")
+			}
 			logger.Info().Str("brokers", cfg.RedpandaBrokers).Msg("Redpanda event publisher enabled")
 		} else {
 			logger.Info().Msg("event outbox enabled; Redpanda publisher disabled (set REDPANDA_BROKERS)")

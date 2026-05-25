@@ -73,7 +73,13 @@ import {
   PageHeader,
   StatusBadge,
 } from "./cockpit";
+import dynamic from "next/dynamic";
 import { SparklineSVG, type SparklinePoint } from "./SparklineSVG";
+
+const SpendBars = dynamic(
+  () => import("./charts/SpendBars").then((m) => m.SpendBars),
+  { ssr: false, loading: () => <Box sx={{ height: 160 }} /> },
+);
 
 // ----- inline GraphQL operations -----
 
@@ -335,6 +341,12 @@ export function DashboardPage() {
       const name = deriveProjectName(cleaned);
       const idea = planMode ? `[PLAN]\n${cleaned}` : cleaned;
       const res = await createProject({ variables: { input: { name, idea } } });
+      if (res.errors && res.errors.length > 0) {
+        throw new Error(
+          res.errors.map((e) => e.message).join("\n") ||
+            "Backend rejected the request.",
+        );
+      }
       const id = res.data?.createProject.id;
       if (!id) throw new Error("Backend did not return a project id.");
       router.push(`/studio/${encodeURIComponent(id)}?autorun=1`);
@@ -1240,17 +1252,27 @@ function CostStripCard({
         </Typography>
       </Stack>
       {loading ? (
-        <Skeleton variant="rectangular" height={72} sx={skelSx} />
+        <Skeleton variant="rectangular" height={160} sx={skelSx} />
       ) : (
-        <SparklineSVG
-          points={points}
-          width={720}
-          height={72}
+        <SpendBars
+          points={points.map((p, i) => ({
+            label: p.ts ? hourLabel(p.ts) : `${i}h`,
+            value: p.value,
+          }))}
+          height={160}
+          showCumulative={false}
           ariaLabel="Spend per hour over the last 24 hours"
         />
       )}
     </Card>
   );
+}
+
+// hourLabel — "09" / "14" etc., dense format so 24 columns stay legible.
+function hourLabel(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.getHours().toString().padStart(2, "0");
 }
 
 // ============================================================

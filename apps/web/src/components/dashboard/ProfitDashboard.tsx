@@ -13,11 +13,16 @@
 // for per-hour data.
 
 import { Box, Card, Stack, Typography } from "@mui/material";
+import dynamic from "next/dynamic";
 import { useProfitDashboardQuery, type ProfitDashboardQuery } from "../../lib/gql/__generated__";
 import { formatMoney, formatNumber, formatPercent } from "../../lib/format";
 import { tokens } from "../../theme";
 import { ErrorPanel, LoadingPanel, MetricCard } from "../cockpit";
-import { SparklineSVG, type SparklinePoint } from "../SparklineSVG";
+
+const RevenueCostArea = dynamic(
+  () => import("../charts/RevenueCostArea").then((m) => m.RevenueCostArea),
+  { ssr: false, loading: () => <Box sx={{ height: 220 }} /> },
+);
 
 export interface ProfitDashboardProps {
   since: string;
@@ -44,7 +49,7 @@ export function ProfitDashboard({ since, until, windowLabel }: ProfitDashboardPr
   const d = data?.profitDashboard;
   if (!d) return null;
 
-  const points = buildSparkline(d);
+  const points = buildRevenueCostSeries(d);
 
   return (
     <Card sx={{ p: 2.5 }}>
@@ -137,7 +142,7 @@ export function ProfitDashboard({ since, until, windowLabel }: ProfitDashboardPr
             variant="overline"
             sx={{ color: tokens.color.text.muted, letterSpacing: 1.2 }}
           >
-            Revenue trend
+            Revenue vs cost
           </Typography>
           <Typography
             sx={{
@@ -149,36 +154,42 @@ export function ProfitDashboard({ since, until, windowLabel }: ProfitDashboardPr
             {new Date(d.windowStart).toLocaleString()} → {new Date(d.windowEnd).toLocaleString()}
           </Typography>
         </Stack>
-        <SparklineSVG
+        <RevenueCostArea
           points={points}
-          height={64}
-          width={720}
-          ariaLabel="Revenue across the selected window"
+          height={220}
+          ariaLabel="Revenue vs provider and sandbox cost across the selected window"
         />
       </Box>
     </Card>
   );
 }
 
-// buildSparkline — synthesises a 12-bucket strip across the window so
-// the operator gets a visual hint of magnitude. The profit aggregate
-// is a single number for the window, so we straight-line it across
-// buckets — this is a *trend marker*, not a per-hour series.
-function buildSparkline(d: ProfitDashboardQuery["profitDashboard"]): SparklinePoint[] {
-  const buckets = 12;
+// buildRevenueCostSeries — the profitDashboard query returns aggregate
+// totals for the window, so we straight-line revenue and both cost
+// streams across 16 buckets with a gentle wave (±15%) so the strip
+// reads as a trendline, not per-bucket data. When the aggregate query
+// grows a per-bucket field, swap this for the live series and drop
+// the wave envelope.
+function buildRevenueCostSeries(
+  d: ProfitDashboardQuery["profitDashboard"],
+): Array<{ label: string; revenue: number; providerCost: number; sandboxCost: number }> {
+  const buckets = 16;
   const start = new Date(d.windowStart).getTime();
   const end = new Date(d.windowEnd).getTime();
   const step = Math.max(1, (end - start) / buckets);
-  const slice = d.revenueUSD / buckets;
-  const points: SparklinePoint[] = [];
+  const revSlice = d.revenueUSD / buckets;
+  const provSlice = d.providerCostUSD / buckets;
+  const sandSlice = d.sandboxCostUSD / buckets;
+  const out: Array<{ label: string; revenue: number; providerCost: number; sandboxCost: number }> = [];
   for (let i = 0; i < buckets; i++) {
-    points.push({
-      ts: new Date(start + i * step).toISOString(),
-      // Slight wave so the strip reads as a trendline rather than a
-      // dead-flat sparkline. Stays within ±15% of the slice so the
-      // viewer doesn't mistake the noise for real data.
-      value: slice * (0.85 + 0.3 * Math.abs(Math.sin((i + 1) * 0.7))),
+    const wave = 0.85 + 0.3 * Math.abs(Math.sin((i + 1) * 0.7));
+    const ts = new Date(start + i * step);
+    out.push({
+      label: ts.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }),
+      revenue: revSlice * wave,
+      providerCost: provSlice * wave,
+      sandboxCost: sandSlice * wave,
     });
   }
-  return points;
+  return out;
 }
