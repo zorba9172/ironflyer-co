@@ -281,6 +281,19 @@ func New(d Deps) http.Handler {
 	r.Handle("/graphql/", gqlChain)
 	r.Handle("/graphql/sandbox", graphpkg.Sandbox("/graphql"))
 
+	// POST /executions/{id}/chat/stream — Server-Sent Events surface
+	// for raw LLM assistant token streams. Bypasses the GraphQL
+	// transport so per-chunk gqlgen middleware (CSRF, persisted
+	// queries, complexity, rate-limit) does not run on every token,
+	// and so the wire format stays free of graphql-transport-ws
+	// envelopes. Strict auth: anonymous requests are 401 before the
+	// handler runs. Owner check + execution lookup happen inside the
+	// handler. See chat_stream.go for the event vocabulary.
+	if a.d.Auth != nil && a.d.Guard != nil && a.d.Execution != nil {
+		r.With(auth.Middleware(a.d.Auth)).
+			Post("/executions/{id}/chat/stream", a.chatStream)
+	}
+
 	// Light banner so curling the root of a stale deploy points the
 	// operator at the new contract surface (GraphQL + V22 plan).
 	r.Get("/", a.rootBanner)

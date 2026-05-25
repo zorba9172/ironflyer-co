@@ -24,7 +24,7 @@ import { Box, Stack, Typography } from "@mui/material";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LoadingPanel } from "../../../src/components/cockpit/LoadingPanel";
 import { ChatPanel } from "../../../src/components/studio/ChatPanel";
 import { CodeModeSwitcher } from "../../../src/components/studio/CodeModeSwitcher";
@@ -40,7 +40,8 @@ import {
 } from "../../../src/components/studio/eventToMessage";
 import type { StudioStatusBucket } from "../../../src/components/studio/SuggestionsRow";
 import { useWorkbenchLayout } from "../../../src/components/studio/useWorkbenchLayout";
-import { RequireAuth, useAuth } from "../../../src/lib/auth";
+import { getToken, RequireAuth, useAuth } from "../../../src/lib/auth";
+import { streamChat, type StreamChatHandle } from "../../../src/lib/chat/stream";
 import { extractErrorMessage } from "../../../src/lib/errors";
 import {
   useExecutionFeedSubscription,
@@ -167,6 +168,18 @@ function ProjectStudioInner() {
   const hydrate = useChatStore((s) => s.hydrate);
   const appendIncoming = useChatStore((s) => s.appendIncoming);
   const appendLocal = useChatStore((s) => s.appendLocal);
+  const updateLocal = useChatStore((s) => s.updateLocal);
+
+  // Streaming chat handle — exposed so the user can hit Stop mid-reply
+  // (cancels the upstream provider call) and so unmounting cleans up.
+  const streamRef = useRef<StreamChatHandle | null>(null);
+  const [streaming, setStreaming] = useState(false);
+  useEffect(() => {
+    return () => {
+      streamRef.current?.abort();
+      streamRef.current = null;
+    };
+  }, []);
 
   useEffect(() => {
     hydrate(executionID);
@@ -190,7 +203,12 @@ function ProjectStudioInner() {
     appendIncoming(executionID, msg);
   }, [sub.data, executionID, appendIncoming]);
 
-  // 4. refineIdea on chat send.
+  // 4. Chat send: (a) optimistic user echo, (b) record the refinement
+  // on GraphQL so the finisher loop folds it into the next iteration,
+  // (c) open the dedicated SSE chat stream for the assistant's reply.
+  //    The SSE endpoint owns RAW assistant token deltas; orchestration
+  //    events (gate verdicts, cost ticks) continue to flow via the
+  //    executionFeed subscription wired above.
   const [refineIdea, refineState] = useRefineIdeaMutation();
   const onSend = useCallback(
     async (text: string, attachments?: StudioAttachment[]) => {
@@ -204,23 +222,82 @@ function ProjectStudioInner() {
         return;
       }
       appendLocal(executionID, makeUserMessage(text, attachments));
+
+      // Record the refinement on the running execution. Fire-and-
+      // forget by design — the finisher picks it up on the next loop;
+      // failure surfaces as an inline error but does not block the
+      // assistant reply stream below.
       try {
-        await refineIdea({
-          variables: { executionID, message: text },
-        });
-        appendLocal(
-          executionID,
-          makeAssistantThinkingMessage(
-            "Refinement queued. Streaming gate verdicts as they land.",
-            "Thought for less than a second",
-          ),
-        );
+        await refineIdea({ variables: { executionID, message: text } });
       } catch (e) {
         appendLocal(executionID, makeErrorMessage(extractErrorMessage(e)));
       }
+
+      // Cancel any in-flight stream before opening a new one.
+      streamRef.current?.abort();
+
+      const token = getToken();
+      if (!token) {
+        appendLocal(
+          executionID,
+          makeErrorMessage("Session expired — please sign in again."),
+        );
+        return;
+      }
+
+      const assistant = makeAssistantThinkingMessage("");
+      appendLocal(executionID, assistant);
+
+      let buffer = "";
+      setStreaming(true);
+      const handle = streamChat(
+        { executionID, message: text, token },
+        (ev) => {
+          switch (ev.type) {
+            case "delta": {
+              const chunk =
+                typeof ev.data.text === "string" ? ev.data.text : "";
+              if (!chunk) return;
+              buffer += chunk;
+              updateLocal(executionID, assistant.id, { body: buffer });
+              break;
+            }
+            case "finish": {
+              updateLocal(executionID, assistant.id, {
+                body: buffer || "(no response)",
+              });
+              break;
+            }
+            case "error": {
+              const msg =
+                typeof ev.data.message === "string"
+                  ? ev.data.message
+                  : "Stream error";
+              appendLocal(executionID, makeErrorMessage(msg));
+              break;
+            }
+            // tool_call / tool_result / thinking — surfaced via the
+            // dashboard panes for now; the chat buffer keeps only the
+            // visible assistant body.
+            default:
+              break;
+          }
+        },
+      );
+      streamRef.current = handle;
+      handle.done.finally(() => {
+        if (streamRef.current === handle) streamRef.current = null;
+        setStreaming(false);
+      });
     },
-    [executionID, refineIdea, appendLocal],
+    [executionID, refineIdea, appendLocal, updateLocal],
   );
+
+  const onStop = useCallback(() => {
+    streamRef.current?.abort();
+    streamRef.current = null;
+    setStreaming(false);
+  }, []);
 
   // Derive a one-line last-patch headline for the header status strip.
   const lastPatchSummary = useMemo(() => {
@@ -293,8 +370,9 @@ function ProjectStudioInner() {
           <ChatPanel
             messages={messages}
             status="idle"
-            pending={false}
+            pending={streaming || refineState.loading}
             onSend={onSend}
+            onStop={onStop}
             userInitials={initials}
           />
         }
@@ -363,8 +441,9 @@ function ProjectStudioInner() {
         <ChatPanel
           messages={messages}
           status={bucket}
-          pending={refineState.loading}
+          pending={streaming || refineState.loading}
           onSend={onSend}
+          onStop={onStop}
           userInitials={initials}
         />
       }

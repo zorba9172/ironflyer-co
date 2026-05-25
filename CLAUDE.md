@@ -78,6 +78,11 @@ Sandbox as live documentation.
   - Third-party callbacks: `POST /budget/webhook` (Stripe).
   - k8s probes: `GET /healthz`, `/livez`, `/readyz`, `/version`.
   - Prometheus scrape: `GET /metrics`.
+  - AI streaming: `POST /executions/{id}/chat/stream` — Server-Sent
+    Events for raw LLM assistant deltas. GraphQL subscriptions are
+    wrong here (per-chunk gqlgen middleware overhead, schema-bound
+    types over free-form provider output). Orchestration events stay
+    on `executionFeed`.
 - **Operator banner:** `GET /` returns a JSON pointer to `/graphql`,
   `/graphql/sandbox`, and `docs/V22_PLAN.md`.
 

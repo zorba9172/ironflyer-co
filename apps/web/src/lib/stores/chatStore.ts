@@ -39,6 +39,15 @@ interface ChatState {
   // Append a message generated locally (user input, optimistic ack,
   // error). Skips merge logic — local messages always render as-is.
   appendLocal(executionID: string, message: StudioMessage): void;
+  // Update an existing message in place by id. Used by the SSE chat
+  // stream to grow the assistant bubble as `delta` frames arrive
+  // without re-appending a new message per token. No-op when the
+  // message id is not in the buffer.
+  updateLocal(
+    executionID: string,
+    messageID: string,
+    patch: Partial<StudioMessage>,
+  ): void;
   // Wipe an execution's buffer + clear localStorage.
   clear(executionID: string): void;
 }
@@ -75,6 +84,20 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const prev = state.byExecution[executionID] ?? EMPTY_MESSAGES;
       if (prev.some((m) => m.id === message.id)) return state;
       const next = [...prev, message];
+      saveMessages(executionID, next);
+      return {
+        byExecution: { ...state.byExecution, [executionID]: next },
+      };
+    });
+  },
+  updateLocal: (executionID, messageID, patch) => {
+    if (!executionID || !messageID) return;
+    set((state) => {
+      const prev = state.byExecution[executionID] ?? EMPTY_MESSAGES;
+      const idx = prev.findIndex((m) => m.id === messageID);
+      if (idx < 0) return state;
+      const next = prev.slice();
+      next[idx] = { ...next[idx], ...patch };
       saveMessages(executionID, next);
       return {
         byExecution: { ...state.byExecution, [executionID]: next },
