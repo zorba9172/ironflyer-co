@@ -218,11 +218,8 @@ export default function StudioIndexPage() {
             creating={creating}
             error={error}
             onPromptChange={setPrompt}
-            onImprove={() => {
-              const base = prompt.trim() || DEFAULT_PROMPT;
-              setPrompt(
-                `${base}\nInclude authenticated roles, billing events, approval states, mobile breakpoints, deploy gates, and an admin dashboard.`,
-              );
+            onImprove={(nextPrompt) => {
+              setPrompt(nextPrompt);
               setAssistantText("Prompt improved with roles, billing, mobile, deploy gates, and admin coverage.");
             }}
             onGenerate={onGenerate}
@@ -530,7 +527,7 @@ function PromptPanel({
   creating: boolean;
   error: string | null;
   onPromptChange: (next: string) => void;
-  onImprove: () => void;
+  onImprove: (nextPrompt: string) => void;
   onGenerate: () => void;
   onSuggestion: (text: string) => void;
 }) {
@@ -557,7 +554,15 @@ function PromptPanel({
       <Stack direction="row" sx={{ alignItems: "center", gap: 0.8 }}>
         <Typography sx={{ fontSize: 16, fontWeight: 900 }}>AI Prompt</Typography>
         <Box sx={{ flex: 1 }} />
-        <Button size="small" onClick={onImprove} startIcon={<AutoAwesomeRounded sx={{ fontSize: 14 }} />} sx={{ border: `1px solid ${tokens.color.border.subtle}`, color: tokens.color.text.secondary, minHeight: 30 }}>
+        <Button
+          size="small"
+          onClick={() => {
+            const base = prompt.trim() || DEFAULT_PROMPT;
+            onImprove(`${base}\nInclude authenticated roles, billing events, approval states, mobile breakpoints, deploy gates, and an admin dashboard.`);
+          }}
+          startIcon={<AutoAwesomeRounded sx={{ fontSize: 14 }} />}
+          sx={{ border: `1px solid ${tokens.color.border.subtle}`, color: tokens.color.text.secondary, minHeight: 30 }}
+        >
           Improve prompt
         </Button>
       </Stack>
@@ -918,7 +923,15 @@ function AssistantDock({
             }}
           />
           <Box sx={{ flex: 1 }} />
-          <IconButton type="submit" disabled={!draft.trim()} size="small" sx={{ bgcolor: `${tokens.color.accent.purple}70` }}>
+          <IconButton
+            type="submit"
+            aria-label="Send assistant message"
+            size="small"
+            sx={{
+              bgcolor: `${tokens.color.accent.purple}70`,
+              opacity: draft.trim() ? 1 : 0.55,
+            }}
+          >
             <SendRounded sx={{ fontSize: 18 }} />
           </IconButton>
         </Stack>

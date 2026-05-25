@@ -42,6 +42,15 @@ export type StudioMessageRole =
   | "agent_result"
   | "refinement_ack";
 
+export interface StudioAttachment {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  kind: "image" | "document" | "code" | "data";
+  previewUrl?: string;
+}
+
 export interface StudioMessage {
   // Stable id — falls back to a UUID-ish random when the source event
   // does not provide one. Used as the React key in MessageList.
@@ -59,6 +68,7 @@ export interface StudioMessage {
   // costtick we carry { amountUSD, ledgerEntryID? }. For system we
   // carry { eventType } so the dashboard can cross-reference.
   meta?: Record<string, unknown>;
+  attachments?: StudioAttachment[];
   // ── Agent reasoning fields (A58) ───────────────────────────────────
   // Lifecycle stage the agent is operating on: spec | ux | arch | code
   // | test | security | deploy | studio.

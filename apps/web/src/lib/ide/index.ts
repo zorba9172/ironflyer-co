@@ -1,28 +1,34 @@
 // ide — small helper for opening the openvscode-server iframe.
 //
-// openvscode-server runs as the `openvscode` service in
-// infra/compose/docker-compose.dev.yml under the `--profile ide`
-// profile, exposed at http://localhost:3030 by default. The browser-
-// facing URL is configured through `NEXT_PUBLIC_OPENVSCODE_URL` so the
-// production deployment (which fronts openvscode behind a TLS
-// hostname) can point the Studio at the right origin without touching
-// component code.
+// openvscode-server is started with --server-base-path /ide so every
+// asset and WS URL is namespaced under /ide. Two ways to embed:
 //
-// Today the openvscode workspace folder is always `/home/workspace`
-// inside the container. Per-project scoping (one workspace per
-// Ironflyer project) is on the roadmap — the helper accepts a
-// projectID argument so the call sites already pass it; the value is
-// appended as a `projectID` query parameter for the openvscode side to
-// pick up when that work lands.
+//   1. **Same-origin proxy** (preferred for production): a real
+//      reverse proxy (nginx / Caddy / cloudflared) at the web origin
+//      forwards /ide/* to the per-user openvscode container, with
+//      WebSocket upgrade support. Cookies, clipboard, popups, and
+//      X-Frame-Options all behave naturally on the same origin.
+//   2. **Direct cross-origin** (default in dev): the iframe points at
+//      http://localhost:3030/ide. Next.js's dev rewrite layer does not
+//      proxy WS upgrades reliably, and VS Code in the browser needs WS
+//      for its extension host. Cross-origin is fine — the only
+//      friction is a clipboard permission prompt on first use.
+//
+// NEXT_PUBLIC_OPENVSCODE_URL is the single switch. Set to "/ide" in
+// production behind a real reverse proxy; leave at
+// http://localhost:3030/ide in dev.
+//
+// Today the workspace folder is always /home/workspace. Per-project
+// sandboxes are on the roadmap — the helper accepts a projectID and
+// forwards it as a query parameter for forward compatibility.
 
 export const OPENVSCODE_DEFAULT_PORT = 3030;
-export const OPENVSCODE_DEFAULT_URL = `http://localhost:${OPENVSCODE_DEFAULT_PORT}`;
+export const OPENVSCODE_DEFAULT_URL = `http://localhost:${OPENVSCODE_DEFAULT_PORT}/ide`;
 export const OPENVSCODE_WORKSPACE_FOLDER = "/home/workspace";
 
 // resolveOpenvscodeBase — returns the configured base URL with no
-// trailing slash. Falls back to the dev default so the iframe still
-// renders against a local openvscode container when no env override
-// is present.
+// trailing slash. Defaults to the direct dev URL so the iframe works
+// out of the box without a reverse proxy in front.
 export function resolveOpenvscodeBase(): string {
   const raw =
     (typeof process !== "undefined" &&
@@ -32,11 +38,6 @@ export function resolveOpenvscodeBase(): string {
 }
 
 // getOpenvscodeUrl — builds the iframe src.
-//
-// Today we always open `/home/workspace`. Once openvscode-server is
-// taught about per-project sandboxes the `projectID` will route the
-// iframe at `/home/workspace/<projectID>` (or similar) — for now the
-// value is forwarded as a query parameter for forward compatibility.
 export function getOpenvscodeUrl(projectID?: string): string {
   const base = resolveOpenvscodeBase();
   const params = new URLSearchParams();

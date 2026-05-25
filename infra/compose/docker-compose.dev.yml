@@ -193,7 +193,13 @@ services:
   # to the browser. Lighter image, faster boot, marketplace works out of
   # the box. Far beyond a Monaco textarea — full VS Code: extensions,
   # debugger, terminal, source control, settings sync.
-  #   http://localhost:3030/?folder=/home/workspace
+  #
+  # Served at /ide so the Next.js dev server can same-origin-proxy it
+  # at apps/web /ide/* → http://openvscode:3000/ide/*. Same-origin
+  # removes the iframe friction (CORS, X-Frame-Options, clipboard
+  # grants, third-party cookie blocks).
+  #   Direct: http://localhost:3030/ide/?folder=/home/workspace
+  #   Proxy : http://localhost:3017/ide/?folder=/home/workspace
   openvscode:
     profiles: ["ide", "full"]
     image: gitpod/openvscode-server:latest
@@ -207,6 +213,8 @@ services:
       - --host
       - 0.0.0.0
       - --without-connection-token
+      - --server-base-path
+      - /ide
       - /home/workspace
     mem_limit: 1g
     cpus: 1.5

@@ -14,7 +14,7 @@
 
 import { ArrowForwardRounded, ZoomInRounded } from "@mui/icons-material";
 import { Box, Chip, IconButton, Stack, Typography } from "@mui/material";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { tokens } from "../../theme";
 import {
   persistTemplatePick,
@@ -118,6 +118,7 @@ export function TemplateCard({
   eyebrow,
   onPick,
 }: TemplateCardProps) {
+  const router = useRouter();
   const featured = variant === "featured";
   const compact = variant === "compact";
 
@@ -134,17 +135,19 @@ export function TemplateCard({
     if (onPick) {
       e.preventDefault();
       onPick(template);
+    } else {
+      router.push(buildHref(template.slug));
     }
   };
 
-  const linkProps = onPick
-    ? { role: "button" as const }
-    : { component: Link as never, href: buildHref(template.slug) };
-
   return (
     <Box
-      {...linkProps}
       onClick={onActivate}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") onActivate(e as unknown as React.MouseEvent);
+      }}
+      role="link"
+      tabIndex={0}
       aria-label={`Open template ${template.name} in Studio`}
       sx={{
         position: "relative",
@@ -203,28 +206,29 @@ export function TemplateCard({
           }}
         />
 
-        {/* Preview button — opens the high-res gradient image in
-            Fancybox. The data-fancybox group includes the template slug
-            so each card is its own single-slide lightbox; the parent
-            page calls bind() in a useEffect so the click handler is
-            installed before users can press this button. We stop
-            propagation so opening the preview does not also navigate
-            to Studio. */}
+        {/* Preview button. Keep it as a button, not an anchor, because
+            the whole card acts as the navigation surface. Nested
+            anchors create invalid HTML and React hydration errors. */}
         <Box
-          component="a"
+          component="button"
           data-fancybox={`template-${template.slug}`}
           data-src={previewImageFor(template)}
           data-caption={`${template.name} — ${template.description}`}
-          href={previewImageFor(template)}
           aria-label={`Preview ${template.name}`}
           onClick={(e: React.MouseEvent) => {
+            e.preventDefault();
             e.stopPropagation();
           }}
           sx={{
+            appearance: "none",
+            bgcolor: "transparent",
+            border: 0,
+            cursor: "pointer",
             position: "absolute",
             top: 8,
             right: 8,
             display: "inline-flex",
+            p: 0,
             textDecoration: "none",
           }}
         >

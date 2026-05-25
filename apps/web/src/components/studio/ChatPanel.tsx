@@ -12,13 +12,13 @@ import { tokens } from "../../theme";
 import { ChatComposer } from "./ChatComposer";
 import { MessageList } from "./MessageList";
 import { SuggestionsRow, type StudioStatusBucket } from "./SuggestionsRow";
-import type { StudioMessage } from "./types";
+import type { StudioAttachment, StudioMessage } from "./types";
 
 export interface ChatPanelProps {
   messages: StudioMessage[];
   status: StudioStatusBucket;
   pending: boolean;
-  onSend: (text: string) => void | Promise<void>;
+  onSend: (text: string, attachments?: StudioAttachment[]) => void | Promise<void>;
   onStop?: () => void;
   onRetry?: () => void;
   userInitials?: string;

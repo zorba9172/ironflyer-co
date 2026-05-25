@@ -13,7 +13,7 @@
 // studio.refine.consumed.v1) so the chat can render a live "thinking
 // out loud" thread alongside the gate verdicts.
 
-import { EVENT_TYPES, type StudioMessage } from "./types";
+import { EVENT_TYPES, type StudioAttachment, type StudioMessage } from "./types";
 
 function rid(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -305,12 +305,16 @@ export function eventToMessage(ev: RawExecutionEvent): StudioMessage | null {
   }
 }
 
-export function makeUserMessage(body: string): StudioMessage {
+export function makeUserMessage(
+  body: string,
+  attachments?: StudioAttachment[],
+): StudioMessage {
   return {
     id: rid(),
     role: "user",
     body,
     createdAt: new Date().toISOString(),
+    attachments,
   };
 }
 
