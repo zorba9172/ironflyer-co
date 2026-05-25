@@ -1,7 +1,7 @@
 # Ironflyer-branded code-server.
 #
 # Extends the upstream codercom/code-server image with:
-#   - Dark + lime theme baked into the default User settings.json
+#   - IronFlyer dark-violet theme baked into the default User settings.json
 #   - Pre-installed extensions (Go, Prettier, ESLint, GitLens, EditorConfig)
 #   - A branded welcome page available at /home/coder/.config/welcome.html
 #   - Sensible defaults: telemetry off, updates off, format on save
@@ -75,4 +75,10 @@ RUN code-server --install-extension golang.go \
 # password file via the workspace-runtime ConfigMap.
 EXPOSE 8080
 ENV CS_DISABLE_GETTING_STARTED_OVERRIDE=1
+# code-server returns 302 on `/` (redirect to /login) when password auth is
+# enabled, so we accept any 2xx/3xx via curl --fail's default behaviour.
+# We hit the login page directly to avoid following redirects through the
+# whole UI bootstrap during a probe.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+    CMD curl -fsS http://127.0.0.1:8080/healthz || curl -fsS http://127.0.0.1:8080/login || exit 1
 ENTRYPOINT ["/usr/bin/entrypoint.sh", "--bind-addr", "0.0.0.0:8080", "/home/coder"]

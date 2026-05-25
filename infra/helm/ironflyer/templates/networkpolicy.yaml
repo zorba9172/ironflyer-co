@@ -1,0 +1,153 @@
+{{- /*
+NetworkPolicies — default-deny ingress baseline + per-service allow
+rules. Egress is intentionally permissive (`to: []` from each policy)
+because Ironflyer's providers (Anthropic, OpenAI, Google, Stripe,
+GitHub) all live on the public internet. If you front the providers via
+an egress proxy or VPC peering, tighten the egress block to that CIDR
+instead.
+
+Requires a NetworkPolicy-aware CNI (Calico, Cilium, Antrea). On a CNI
+without enforcement these documents render but do nothing — explicitly
+opt in via `.Values.networkPolicy.enabled=true`.
+
+The ingress controller pod is matched via a label commonly applied by
+ingress-nginx / Traefik / Contour helm charts. Adjust if your ingress
+class uses a different label set.
+*/ -}}
+{{- if .Values.networkPolicy.enabled -}}
+# Default-deny ingress for every pod in the namespace. Anything not
+# explicitly allowed below cannot be reached from outside the pod.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "ironflyer.fullname" . }}-default-deny
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes: ["Ingress"]
+  ingress: []
+---
+# Orchestrator <- web, ingress controller (covers vscode-extension via
+# the Ingress), runtime callbacks.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "ironflyer.fullname" . }}-orchestrator-ingress
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: orchestrator
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: web
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: runtime
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - { protocol: TCP, port: 8080 }
+---
+# Runtime <- orchestrator (workspace control plane) and ingress
+# controller (PTY WebSocket + File API are reached from the browser
+# via the Ingress).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "ironflyer.fullname" . }}-runtime-ingress
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: runtime
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: orchestrator
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - { protocol: TCP, port: 8090 }
+---
+# Web <- ingress controller only. No service-to-service traffic into web.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "ironflyer.fullname" . }}-web-ingress
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: web
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - { protocol: TCP, port: 3000 }
+---
+# Postgres <- orchestrator, web. Nothing else in the namespace should
+# touch the DB port.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "ironflyer.fullname" . }}-postgres-ingress
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: postgres
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: orchestrator
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: web
+      ports:
+        - { protocol: TCP, port: 5432 }
+---
+# Egress — DNS to kube-system (so pods can resolve service names + the
+# public providers) and otherwise everything-allowed. LLM providers live
+# on the public internet; tightening egress requires fronting them with
+# an egress proxy or NAT gateway and updating extraCIDRs.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "ironflyer.fullname" . }}-egress
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes: ["Egress"]
+  egress:
+    {{- if .Values.networkPolicy.egress.dnsEnabled }}
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - { protocol: UDP, port: 53 }
+        - { protocol: TCP, port: 53 }
+    {{- end }}
+    # Allow egress to everything else (LLM providers, Stripe, GitHub).
+    # See values.yaml networkPolicy.egress.extraCIDRs for narrowing.
+    - to: []
+{{- end }}

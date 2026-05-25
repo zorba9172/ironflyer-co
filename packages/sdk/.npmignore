@@ -1,0 +1,11 @@
+src/
+examples/
+codegen.yml
+tsconfig.json
+tsup.config.ts
+.npmignore
+node_modules/
+*.tsbuildinfo
+.turbo/
+.DS_Store
+*.log

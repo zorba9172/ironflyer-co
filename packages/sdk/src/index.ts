@@ -1,44 +1,132 @@
-export * from './types.js';
-export { IronflyerError, type TokenProvider, type TransportConfig } from './http.js';
-export { OrchestratorClient } from './orchestrator.js';
-export { RuntimeClient } from './runtime.js';
-
-import { OrchestratorClient } from './orchestrator.js';
-import { RuntimeClient } from './runtime.js';
-import type { TokenProvider } from './http.js';
-
-export interface IronflyerConfig {
-  /** Base URL of the orchestrator HTTP API. */
-  orchestratorUrl: string;
-  /** Base URL of the workspace runtime HTTP API. */
-  runtimeUrl?: string;
-  /** Bearer-token getter shared by both clients. */
-  getToken?: TokenProvider;
-  /** Optional fetch override (Node 18 / Bun / Deno / browser). */
-  fetch?: typeof fetch;
-  /** Optional default headers merged into every request. */
-  headers?: Record<string, string>;
-}
-
 /**
- * ironflyer is the convenience factory: one config, one auth source, both
- * clients. Use the clients directly when you need them in different contexts
- * with different tokens.
+ * @ironflyer/sdk — official TypeScript client for the Ironflyer
+ * orchestrator GraphQL API.
  *
- *     const ifc = ironflyer({
- *       orchestratorUrl: process.env.IRONFLYER_ORCHESTRATOR_URL!,
- *       runtimeUrl: process.env.IRONFLYER_RUNTIME_URL!,
- *       getToken: () => localStorage.getItem('ironflyer.token'),
- *     });
- *     await ifc.orchestrator.listProjects();
- *     await ifc.runtime.exec(wsId, { shell: 'go test ./...' });
+ * Public surface:
+ *
+ *   - `Ironflyer` — the class clients construct.
+ *   - `IronflyerError` — thrown on any HTTP or WS failure.
+ *   - `IronflyerOptions` — constructor options shape.
+ *   - Re-exported codegen types (inputs, enums, payload shapes) so
+ *     consumers don't have to dig into `@ironflyer/sdk/gql`.
  */
-export function ironflyer(cfg: IronflyerConfig) {
-  const shared = { getToken: cfg.getToken, fetch: cfg.fetch, headers: cfg.headers };
-  return {
-    orchestrator: new OrchestratorClient({ baseUrl: cfg.orchestratorUrl, ...shared }),
-    runtime: cfg.runtimeUrl
-      ? new RuntimeClient({ baseUrl: cfg.runtimeUrl, ...shared })
-      : undefined,
-  };
-}
+
+export { Ironflyer, IronflyerError, type IronflyerOptions, type WebSocketImpl } from './client.js';
+
+// Re-export the codegen-generated types so consumers can name them
+// without reaching past the package root.
+export type {
+  // Auth
+  User,
+  Session,
+  SignInInput,
+  SignUpInput,
+
+  // Projects
+  Project,
+  ProjectFile,
+  ProjectGraph,
+  ProjectGraphNode,
+  ProjectGraphEdge,
+  CodeSearchHit,
+  CreateProjectInput,
+  UpdateProjectInput,
+
+  // Gates + finisher
+  GateVerdict,
+  GateIssue,
+  GateStatus,
+  RerunGateInput,
+
+  // Patches
+  Patch,
+  PatchChange,
+  PatchChangeOp,
+  PatchStatus,
+  ProposePatchInput,
+  PatchChangeInput,
+
+  // Budget
+  Plan,
+  Rate,
+  BudgetSummary,
+  LedgerEntry,
+  VaultSnapshot,
+  StartCheckoutInput,
+  CancelSubscriptionInput,
+  StripeCheckoutSession,
+  Subscription_Stripe as StripeSubscription,
+
+  // Memory
+  MemoryRecord,
+  MemoryKind,
+  MemoryQueryInput,
+  AddMemoryInput,
+
+  // Audit
+  AuditEntry,
+  AuditOutcome,
+  AuditQueryInput,
+  AuditVerifyResult,
+
+  // Webhooks
+  WebhookSubscription,
+  WebhookDeliveryStatus,
+  CreateWebhookInput,
+  WebhookTestResult,
+
+  // Deploys
+  Deploy,
+  DeployStatus,
+  DeployTarget,
+  StartDeployInput,
+  DeployEnvVar,
+  VercelEnvTarget,
+
+  // Chats
+  Chat,
+  ChatMessage,
+  ChatAttachment,
+  ChatAttachmentInput,
+  CreateChatInput,
+  ForkChatInput,
+  ChatInput,
+  ChatDelta,
+  ChatStartDelta,
+  ChatTextDelta,
+  ChatThinkingDelta,
+  ChatToolUseDelta,
+  ChatDoneDelta,
+  ChatErrorDelta,
+
+  // Inline completion
+  InlineInput,
+  InlineDelta,
+  InlineStartDelta,
+  InlineTextDelta,
+  InlineDoneDelta,
+  InlineCancelledDelta,
+  InlineErrorDelta,
+
+  // Workspaces
+  Workspace,
+  WorkspaceFile,
+  WorkspaceFileContent,
+  ExecResult,
+  PtyEvent,
+  PtyOutput,
+  PtyExit,
+
+  // Run events
+  RunEvent,
+  RunExecutionEvent,
+  RunGateEvent,
+  RunDoneEvent,
+  RunErrorEvent,
+
+  // Cost delta
+  CostDelta,
+
+  // Common
+  OperationResult,
+} from './gql/index.js';

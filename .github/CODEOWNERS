@@ -1,0 +1,33 @@
+# Ironflyer CODEOWNERS
+#
+# GitHub uses the LAST matching pattern. Keep the most specific rules at the
+# bottom. The `@<owner>` placeholders are intentional — real team handles
+# (e.g. `@ironflyer/ops`) get swapped in once the org's teams are configured.
+# Until then a single repo admin (the project owner placeholder below) is the
+# fallback reviewer everywhere.
+
+# ------------------------------ default owner -------------------------------
+*       @owner
+
+# ------------------------------ infra / ops ---------------------------------
+# Anything that touches the production blast radius routes through ops.
+/infra/                     @ops
+/infra/pulumi/              @ops
+/infra/pulumi-data/         @ops
+/infra/helm/                @ops
+/infra/k8s/                 @ops
+/infra/docker/              @ops
+/.github/workflows/         @ops
+
+# ------------------------------ API surface ---------------------------------
+# GraphQL schema changes ship the public API contract — API owners must sign
+# off so we don't accidentally break the SDK or the dashboard.
+/apps/orchestrator/internal/graph/schema/  @api-owners
+/apps/orchestrator/internal/graph/         @api-owners
+/packages/sdk/                             @api-owners
+
+# ------------------------------ security ------------------------------------
+# Authn/authz, owner checks, JWT signing — anything that gates access.
+/apps/orchestrator/internal/auth/                       @security
+/apps/orchestrator/internal/middleware/requireProject*  @security
+/apps/orchestrator/internal/budget/                     @security

@@ -1,0 +1,46 @@
+# Customer-visible security report — 90-day-plan closure.
+#
+# Backed by internal/securityreport.Builder. The Builder reads the
+# finisher Security gate's findings for an execution and folds them
+# into a structured, queryable resource.
+#
+# Naming note: the finding type is called SecurityReportFinding (not
+# SecurityFinding) to avoid colliding with the SecurityFinding type
+# declared by A34 in wowloop.graphql. Both types should converge
+# under a future schema refactor; until then the names stay distinct.
+
+extend type Query {
+  executionSecurityReport(executionID: ID!): SecurityReport!
+}
+
+type SecurityReport {
+  executionID: ID!
+  tenantID: ID!
+  # "pass" | "fail" | "warning"
+  status: String!
+  # 0..1; higher is safer.
+  overallScore: Float!
+  findings: [SecurityReportFinding!]!
+  secretsFound: Int!
+  outdatedDeps: Int!
+  # JSON object: { "A01": true, "A02": false, ... } for OWASP top-10.
+  owaspCoverage: JSON!
+  generatedAt: DateTime!
+  # True when the orchestrator's deploy plane must refuse to ship the
+  # execution's artefact based on the finding bag + tenant policy.
+  blockedDeploy: Boolean!
+}
+
+type SecurityReportFinding {
+  id: ID!
+  # "info" | "low" | "medium" | "high" | "critical"
+  severity: String!
+  ruleID: String!
+  # "secrets" | "deps" | "code" | "config" | "policy"
+  category: String!
+  path: String!
+  line: Int!
+  summary: String!
+  remediation: String!
+  detectedAt: DateTime!
+}

@@ -30,8 +30,19 @@ import { log } from './logger';
 import { PreviewView } from './previewView';
 import { RunOutput } from './runOutput';
 import { readConfig } from './config';
+import { initSentry, captureException, flushSentry } from './sentry';
+import {
+  IronflyerInlineCompletionProvider,
+  InlineCompletionsStatusBar,
+} from './inlineCompletions';
 
 export function activate(context: vscode.ExtensionContext): void {
+  // Sentry — fail-soft. Returns false when ironflyer.sentryDsn is empty,
+  // so users who haven't opted in never ship telemetry from their editor.
+  if (initSentry()) {
+    log.info('Sentry exception reporting enabled');
+  }
+  context.subscriptions.push({ dispose: () => void flushSentry() });
   const auth = new Auth(context.secrets);
   const api = new Api(auth);
   const tree = new ProjectsTree(api, auth);
@@ -41,6 +52,8 @@ export function activate(context: vscode.ExtensionContext): void {
   const projectStream = new ProjectStream(api, (msg, err) => log.warn(msg, err));
   const activeProject = new ActiveProject(context.workspaceState, api, auth);
   const status = new StatusBar(api, auth, activeProject);
+  const inlineProvider = new IronflyerInlineCompletionProvider(api, auth);
+  const inlineStatus = new InlineCompletionsStatusBar();
   const previewView = new PreviewView(api, auth, context.extensionUri);
   const runOutput = new RunOutput();
   const memoryTree = new IronflyerMemoryProvider(api, auth, activeProject);
@@ -144,6 +157,38 @@ export function activate(context: vscode.ExtensionContext): void {
       },
     },
     status,
+    inlineStatus,
+
+    // Cursor-style ghost-text. Registered for all languages — the
+    // orchestrator picks the right provider via the capability-tagged
+    // bandit, and the provider itself bails when the user disables
+    // `ironflyer.completions.enabled` so the registration stays static.
+    vscode.languages.registerInlineCompletionItemProvider(
+      { pattern: '**' },
+      inlineProvider,
+    ),
+
+    vscode.commands.registerCommand('ironflyer.toggleInlineCompletions', async () => {
+      const cfg = vscode.workspace.getConfiguration('ironflyer');
+      const current = cfg.get<boolean>('completions.enabled', true);
+      const target = !current;
+      // Workspace wins when an explicit workspace value already exists;
+      // otherwise we flip the Global setting so a fresh window inherits
+      // the user's preference.
+      const inspect = cfg.inspect<boolean>('completions.enabled');
+      const scope = inspect?.workspaceValue !== undefined
+        ? vscode.ConfigurationTarget.Workspace
+        : vscode.ConfigurationTarget.Global;
+      await cfg.update('completions.enabled', target, scope);
+      inlineStatus.refresh();
+      void vscode.window.showInformationMessage(
+        `Ironflyer inline AI is now ${target ? 'on' : 'off'}.`,
+      );
+    }),
+
+    vscode.commands.registerCommand('ironflyer.inlineCompletionAccepted', () => {
+      void api.inlineCompletionAccept();
+    }),
 
     vscode.commands.registerCommand('ironflyer.signIn', () => auth.beginSignIn()),
 
@@ -623,6 +668,13 @@ async function handleError(
   retry?: () => Promise<unknown>,
 ): Promise<void> {
   log.error('command failed', err);
+  // Report to Sentry alongside the existing error toast. 401s are user
+  // state, not a defect — skip those so the dashboard doesn't fill with
+  // session-expiry noise. Everything else (5xx, unexpected client-side
+  // throws) is worth investigating.
+  if (!(err instanceof ApiError && err.status === 401)) {
+    captureException(err, err instanceof ApiError ? { status: err.status } : undefined);
+  }
   if (err instanceof ApiError && err.status === 401) {
     const pick = await vscode.window.showWarningMessage(
       'Ironflyer session expired — sign in again.',

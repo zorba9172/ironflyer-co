@@ -1,0 +1,102 @@
+# Deploy plane (Wave 2 / Trust). Plan → BuildPreview → RequestApproval
+# → Decide → Promote | Rollback. Consumed by /deploy (A49).
+
+fragment DeployCore on Deploy {
+  id
+  tenantID
+  projectID
+  executionID
+  blueprintID
+  target
+  environment
+  status
+  providerDeploymentID
+  previewURL
+  productionURL
+  diffHash
+  artifactHash
+  gateSummary
+  costUSD
+  createdAt
+  previewReadyAt
+  promotedAt
+  rolledBackAt
+}
+
+fragment DeployApprovalCore on DeployApproval {
+  id
+  deployID
+  tenantID
+  status
+  diffHash
+  artifactHash
+  gateSummary
+  costImpactUSD
+  expiresAt
+  decisionNote
+  requestedAt
+  decidedAt
+}
+
+query Deploys($limit: Int, $offset: Int) {
+  deploys(limit: $limit, offset: $offset) {
+    ...DeployCore
+  }
+}
+
+query Deploy($id: ID!) {
+  deploy(id: $id) {
+    ...DeployCore
+  }
+}
+
+query PendingDeployApprovals {
+  pendingDeployApprovals {
+    ...DeployApprovalCore
+  }
+}
+
+mutation PlanDeploy($input: PlanDeployInput!) {
+  planDeploy(input: $input) {
+    ...DeployCore
+  }
+}
+
+mutation BuildDeployPreview($deployID: ID!) {
+  buildDeployPreview(deployID: $deployID) {
+    ...DeployCore
+  }
+}
+
+mutation RequestDeployApproval($deployID: ID!, $expiresInMinutes: Int) {
+  requestDeployApproval(deployID: $deployID, expiresInMinutes: $expiresInMinutes) {
+    ...DeployApprovalCore
+  }
+}
+
+mutation DecideDeployApproval($approvalID: ID!, $approve: Boolean!, $note: String) {
+  decideDeployApproval(approvalID: $approvalID, approve: $approve, note: $note) {
+    ...DeployApprovalCore
+  }
+}
+
+mutation PromoteDeploy($deployID: ID!) {
+  promoteDeploy(deployID: $deployID) {
+    ...DeployCore
+  }
+}
+
+mutation RollbackDeploy($deployID: ID!, $reason: String!) {
+  rollbackDeploy(deployID: $deployID, reason: $reason) {
+    ...DeployCore
+  }
+}
+
+subscription DeployFeed($id: ID!) {
+  deployFeed(id: $id) {
+    deployID
+    eventType
+    payload
+    createdAt
+  }
+}

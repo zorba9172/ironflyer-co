@@ -1,0 +1,15 @@
+# Cost forecast — answers "what would this cost?" before any wallet
+# hold lands. Consumed by /execute (A48).
+
+query EstimateExecutionCost($input: EstimateInput!) {
+  estimateExecutionCost(input: $input) {
+    lowUSD
+    medianUSD
+    highUSD
+    p95USD
+    breakdown
+    confidence
+    basedOnRuns
+    caveat
+  }
+}

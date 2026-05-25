@@ -1,0 +1,51 @@
+# V22 in-process diagnostics surface.
+#
+# Two operator-gated queries backed by the diagnostics ring buffer the
+# zerolog hook feeds. The buffer holds the most-recent N warn-and-above
+# log lines so on-call operators can investigate "what just broke" from
+# inside the GraphQL API without standing up an external aggregator.
+#
+# Both queries return empty lists for non-operator principals (rather
+# than 403 / GraphQL error) so a misconfigured client doesn't get
+# masked behind a permission error during boot — the operator check is
+# the same canonical operator.IsOperator that gates every other
+# admin-only resolver.
+
+extend type Query {
+  # recentErrors aggregates WARN+ log entries by normalized message
+  # class and returns the result sorted by Count desc, LastSeen desc.
+  # Useful for the operator dashboard: one row per error class with
+  # how many times it fired and a sample request id to chase.
+  recentErrors(limit: Int = 50): [ErrorAggregate!]!
+
+  # recentLogs returns recent log entries newer than `since`, capped at
+  # `limit`. minLevel defaults to "warn" — set to "info" to widen the
+  # window. The result is newest-first.
+  recentLogs(since: DateTime, limit: Int = 200, minLevel: String): [LogEntry!]!
+}
+
+# ErrorAggregate is one row of the recentErrors response. Class is the
+# normalized error message (lowercased, with UUIDs / large numbers /
+# long hex runs collapsed, truncated to 80 chars).
+type ErrorAggregate {
+  class: String!
+  count: Int!
+  lastSeen: DateTime!
+  lastMessage: String!
+  lastLevel: String!
+  sampleRequestID: String
+}
+
+# LogEntry is one row of the recentLogs response. The ring buffer only
+# captures the fields it can recover from the zerolog event — the
+# message + level + ctx-carried ids. Operators who need the full
+# structured row should grep the canonical log stream.
+type LogEntry {
+  time: DateTime!
+  level: String!
+  message: String!
+  requestID: String
+  tenantID: String
+  executionID: String
+  fields: JSON!
+}

@@ -90,7 +90,74 @@ type Driver interface {
 	// either of the form "host:port" or a fully-qualified base URL with the
 	// scheme (e.g. "http://172.17.0.2:3000").
 	PreviewTarget(ctx context.Context, ws Workspace, port int) (string, error)
+
+	// RestoreFromSnapshot pulls a snapshot from snapshotURI and unpacks
+	// it into workspaceDir. snapshotURI is the s3:// URI returned by
+	// the snapshots.Manager (snapshots.Metadata.URI()); workspaceDir
+	// is the driver-local path the sandbox should mount.
+	//
+	// Implementations may skip the network round-trip when they have a
+	// node-local hot cache for workspaceDir. Errors must NOT be
+	// fatal at the driver layer — the allocator will fall back to a
+	// fresh workspace if RestoreFromSnapshot fails.
+	RestoreFromSnapshot(ctx context.Context, snapshotURI, workspaceDir string) error
+
+	// Checkpoint tars+compresses workspaceDir and uploads it to
+	// destSnapshotURI (s3://bucket/key). Called at lifecycle gates
+	// (after_patch / after_gate / before_idle_teardown / periodic).
+	// The snapshots.Manager owns the URI scheme; the driver owns the
+	// transport. Empty destSnapshotURI is a no-op.
+	Checkpoint(ctx context.Context, workspaceDir string, destSnapshotURI string) error
+
+	// AllocatePreviewPort assigns a port for the workspace's dev server
+	// (Next.js 3000, Vite 5173, etc.) and returns a publicly-reachable
+	// URL the studio iframe can load.
+	//
+	// Idempotent: repeat calls with the same workspaceID return the
+	// same binding (and refresh its expiry). internalPort must come
+	// from PreviewPortSafelist so untrusted blueprints can't expose
+	// arbitrary container ports.
+	AllocatePreviewPort(ctx context.Context, workspaceID string, internalPort int) (PreviewBinding, error)
+
+	// ReleasePreviewPort frees the workspace's preview binding.
+	// Best-effort: unknown workspace IDs return nil.
+	ReleasePreviewPort(ctx context.Context, workspaceID string) error
 }
+
+// PreviewBinding describes a workspace's live-preview reservation so
+// the orchestrator can hand the iframe a URL the moment the workspace
+// exists — no waiting for a deploy step to finish.
+type PreviewBinding struct {
+	WorkspaceID  string    `json:"workspaceId"`
+	InternalPort int       `json:"internalPort"`
+	ExternalPort int       `json:"externalPort"`
+	URL          string    `json:"url"`
+	ExpiresAt    time.Time `json:"expiresAt"`
+}
+
+// PreviewPortSafelist enumerates the internal dev-server ports a
+// workspace is permitted to publish via AllocatePreviewPort. Keeping
+// this small avoids accidentally exposing SSH (22), metrics (9090),
+// databases, or any port a malicious blueprint might bind. Edit with
+// care.
+var PreviewPortSafelist = map[int]bool{
+	3000: true, // Next.js, Express defaults
+	4200: true, // Angular CLI
+	5173: true, // Vite
+	8000: true, // Django, FastAPI, Python http.server
+	8080: true, // Spring Boot, Go default
+	8081: true, // alt http
+}
+
+// PreviewPortAllowed reports whether port is on the safelist.
+func PreviewPortAllowed(port int) bool {
+	return PreviewPortSafelist[port]
+}
+
+// PreviewLeaseDuration is how long a freshly-allocated preview lease
+// stays valid before the periodic janitor may reclaim it. Refreshed
+// implicitly on every AllocatePreviewPort call (idempotency path).
+const PreviewLeaseDuration = time.Hour
 
 // ExecOpts describes a one-shot command run inside a workspace.
 type ExecOpts struct {
@@ -278,6 +345,48 @@ func (m *Manager) Destroy(ctx context.Context, id string) error {
 	delete(m.ports, id)
 	m.mu.Unlock()
 	return m.driver.Destroy(ctx, ws)
+}
+
+// AllocatePreview asks the driver to allocate a preview binding for
+// the workspace and caches the URL on the workspace record so a
+// subsequent GET /workspaces/{id} can surface it without a second
+// driver round-trip.
+func (m *Manager) AllocatePreview(ctx context.Context, workspaceID string, internalPort int) (PreviewBinding, error) {
+	if _, err := m.Get(workspaceID); err != nil {
+		return PreviewBinding{}, err
+	}
+	if !PreviewPortAllowed(internalPort) {
+		return PreviewBinding{}, errors.New("internal port not on safelist")
+	}
+	binding, err := m.driver.AllocatePreviewPort(ctx, workspaceID, internalPort)
+	if err != nil {
+		return PreviewBinding{}, err
+	}
+	m.mu.Lock()
+	if w, ok := m.byID[workspaceID]; ok {
+		w.PreviewURL = binding.URL
+		w.UpdatedAt = time.Now().UTC()
+		m.byID[workspaceID] = w
+	}
+	m.mu.Unlock()
+	return binding, nil
+}
+
+// ReleasePreview releases the workspace's preview binding via the
+// driver and clears the cached URL on the workspace record.
+func (m *Manager) ReleasePreview(ctx context.Context, workspaceID string) error {
+	if _, err := m.Get(workspaceID); err != nil {
+		return err
+	}
+	err := m.driver.ReleasePreviewPort(ctx, workspaceID)
+	m.mu.Lock()
+	if w, ok := m.byID[workspaceID]; ok {
+		w.PreviewURL = ""
+		w.UpdatedAt = time.Now().UTC()
+		m.byID[workspaceID] = w
+	}
+	m.mu.Unlock()
+	return err
 }
 
 // touch updates the UpdatedAt time after any successful operation.

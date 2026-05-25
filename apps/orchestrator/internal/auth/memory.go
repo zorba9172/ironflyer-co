@@ -78,6 +78,21 @@ func (s *MemoryUserStore) GetByID(_ context.Context, id string) (User, error) {
 	return u, nil
 }
 
+// GetByIDs batch-loads users by id under a single read lock. Missing ids
+// are omitted from the result map; the caller decides whether that's a
+// 404 or simply "not in this batch".
+func (s *MemoryUserStore) GetByIDs(_ context.Context, ids []string) (map[string]User, error) {
+	out := make(map[string]User, len(ids))
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	for _, id := range ids {
+		if u, ok := s.byID[id]; ok {
+			out[id] = u
+		}
+	}
+	return out, nil
+}
+
 func (s *MemoryUserStore) SetPlan(_ context.Context, id, plan string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -86,6 +101,39 @@ func (s *MemoryUserStore) SetPlan(_ context.Context, id, plan string) error {
 		return ErrUserNotFound
 	}
 	u.Plan = plan
+	s.byID[id] = u
+	return nil
+}
+
+// SetTelemetryOptOut mirrors the Postgres implementation: flips the
+// per-user opt-out boolean in-place. Returns ErrUserNotFound for an
+// unknown id so callers can route 404 vs 500.
+func (s *MemoryUserStore) SetTelemetryOptOut(_ context.Context, id string, opt bool) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	u, ok := s.byID[id]
+	if !ok {
+		return ErrUserNotFound
+	}
+	u.TelemetryOptOut = opt
+	s.byID[id] = u
+	return nil
+}
+
+// SetRoles overwrites the in-memory user's role set so dev seeding
+// (e.g. promoting demo@ironflyer.dev to platform_operator) can match
+// the Postgres path. Roles are normalised through normaliseRoleSet
+// so a stray "Platform_Operator " behaves identically to its
+// canonical "platform_operator" form. Implements auth.RoleSetter.
+func (s *MemoryUserStore) SetRoles(_ context.Context, id string, roles []string) error {
+	clean := normaliseRoleSet(roles)
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	u, ok := s.byID[id]
+	if !ok {
+		return ErrUserNotFound
+	}
+	u.Roles = clean
 	s.byID[id] = u
 	return nil
 }

@@ -1,0 +1,105 @@
+{{- /*
+HorizontalPodAutoscaler manifests for the three scale-out services.
+Additive — gated per-service on `<svc>.autoscaling.enabled`, with the
+scaling targets read from the same per-service stanzas operators are
+already used to tuning (`<svc>.autoscaling.minReplicas`,
+`maxReplicas`, `targetCPUUtilizationPercentage`,
+`targetMemoryUtilizationPercentage`). The chart-level
+`.Values.autoscaling.behavior` block is honoured when set so the
+existing stabilization windows don't regress.
+
+Defaults are documented in docs/SCALE.md § HPA defaults.
+*/}}
+{{- define "ironflyer.hpa.behavior" -}}
+{{- if .Values.autoscaling.behavior }}
+  behavior:
+{{ toYaml .Values.autoscaling.behavior | indent 4 }}
+{{- end }}
+{{- end -}}
+
+{{- if and .Values.orchestrator.enabled .Values.orchestrator.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: orchestrator
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: orchestrator
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: orchestrator
+  minReplicas: {{ .Values.orchestrator.autoscaling.minReplicas | default 3 }}
+  maxReplicas: {{ .Values.orchestrator.autoscaling.maxReplicas | default 30 }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.orchestrator.autoscaling.targetCPUUtilizationPercentage | default 65 }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.orchestrator.autoscaling.targetMemoryUtilizationPercentage | default 75 }}
+  {{- include "ironflyer.hpa.behavior" . }}
+---
+{{- end }}
+{{- if and .Values.runtime.enabled (and .Values.runtime.autoscaling .Values.runtime.autoscaling.enabled) }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: runtime
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: runtime
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: runtime
+  minReplicas: {{ .Values.runtime.autoscaling.minReplicas | default 2 }}
+  maxReplicas: {{ .Values.runtime.autoscaling.maxReplicas | default 20 }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.runtime.autoscaling.targetCPUUtilizationPercentage | default 60 }}
+  {{- include "ironflyer.hpa.behavior" . }}
+---
+{{- end }}
+{{- if and .Values.web.enabled .Values.web.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: web
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: web
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: web
+  minReplicas: {{ .Values.web.autoscaling.minReplicas | default 2 }}
+  maxReplicas: {{ .Values.web.autoscaling.maxReplicas | default 10 }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.web.autoscaling.targetCPUUtilizationPercentage | default 70 }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.web.autoscaling.targetMemoryUtilizationPercentage | default 80 }}
+  {{- include "ironflyer.hpa.behavior" . }}
+{{- end }}

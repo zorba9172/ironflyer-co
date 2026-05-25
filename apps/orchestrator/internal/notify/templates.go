@@ -58,17 +58,6 @@ func renderBudgetWarning(projectName, dashboardURL string) EmailContent {
 	}
 }
 
-// renderWebhookDisabled is sent when a webhook is auto-disabled after
-// repeated failures. It is the only non-event-driven email the engine sends.
-func renderWebhookDisabled(webhookURL, dashboardURL string, failures int) EmailContent {
-	subject := "Webhook disabled automatically"
-	return EmailContent{
-		Subject:  subject,
-		HTMLBody: wrapHTML("Webhook failed too many times", fmt.Sprintf("Webhook %s failed %d times in a row and was disabled automatically. You can re-enable it after fixing the endpoint.", webhookURL, failures), "Manage webhooks", strings.TrimRight(dashboardURL, "/")+"/settings/notifications"),
-		TextBody: textVersion(subject, fmt.Sprintf("Webhook %s was disabled after %d failures.", webhookURL, failures), strings.TrimRight(dashboardURL, "/")+"/settings/notifications"),
-	}
-}
-
 // projectLink composes the URL the email CTA points at. We pick a project
 // when one is known so the user lands on the actionable screen, not the
 // generic dashboard.

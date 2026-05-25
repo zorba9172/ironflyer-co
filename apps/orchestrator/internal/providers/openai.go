@@ -77,15 +77,23 @@ func (o *OpenAIProvider) Name() string { return "openai" }
 func (o *OpenAIProvider) Capabilities() []Capability {
 	return []Capability{
 		CapReasoning, CapCode, CapJSON, CapVision, CapTools, CapCache,
+		// CapInline — gpt-4o-mini is the cheap+fast fit for Cursor-
+		// style middle-fill-in completions; advertising it here lets
+		// the router score OpenAI alongside Anthropic when the caller
+		// asks for inline completions.
+		CapInline,
 	}
 }
 
-// pickModel mirrors anthropic.go: CapCheap wins outright, thinking /
-// reasoning hints promote to the power tier, otherwise the configured
-// base model is used.
+// pickModel mirrors anthropic.go: cheap/fast/inline win outright (any of
+// those = "we'd rather pay mini rates"), thinking / reasoning / quality
+// promote to the power tier, otherwise the configured base model is
+// used. gpt-4o-mini is the canonical inline-completion default — fast
+// and cheap enough for Cursor-style ghost-text without taxing the
+// ledger.
 func (o *OpenAIProvider) pickModel(req Request) string {
 	for _, c := range req.Capabilities {
-		if c == CapCheap {
+		if c == CapCheap || c == CapFast || c == CapInline {
 			return o.cheapModel
 		}
 	}
@@ -93,7 +101,7 @@ func (o *OpenAIProvider) pickModel(req Request) string {
 		return o.powerModel
 	}
 	for _, c := range req.Capabilities {
-		if c == CapThinking || c == CapReasoning {
+		if c == CapQuality || c == CapThinking || c == CapReasoning {
 			return o.powerModel
 		}
 	}

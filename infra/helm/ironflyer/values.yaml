@@ -6,6 +6,23 @@ imageRegistry: ghcr.io/zorba9172
 imageTag: latest
 imagePullPolicy: IfNotPresent
 
+# Data-residency region. One Helm release per region — Ironflyer keeps
+# tenant data hermetic per region (no cross-region replication). The
+# value flows into:
+#   - the `ironflyer.io/region` label on the namespace + every Deployment + Service
+#   - the `IRONFLYER_DATA_RESIDENCY` env var on the orchestrator (audit + storage
+#     writes stamp this so the audit trail proves where data was processed)
+#   - a guardrail check that fails the install when `requireRegion: true`
+#     and `region: "unknown"` (prevents an unlabelled prod chart going live)
+#
+# Valid values: "eu" | "us" | "il" | "unknown". Document the routing
+# contract (edge GeoIP / DNS) in docs/MULTI_REGION.md.
+region: "unknown"
+
+# When true, the chart refuses to install if `region == "unknown"`.
+# Production releases MUST set this; staging/dev can leave it false.
+requireRegion: false
+
 # Public hostname the ingress publishes everything under.
 host: ironflyer.example.com
 ingress:
@@ -65,13 +82,51 @@ autoscaling:
 
 # Default-deny NetworkPolicy + explicit allow rules. Disable only in
 # clusters where another mesh / policy engine owns this concern.
+# Opt-in: requires a CNI that enforces NetworkPolicy (Calico, Cilium,
+# Antrea, etc.). Egress to remote LLM providers is wide-open by design —
+# documented risk; tighten with extraCIDRs if you front the providers via
+# an egress proxy.
 networkPolicy:
-  enabled: true
+  enabled: false
   # Egress allow-lists. CIDRs let you carve out managed Postgres / Redis
   # endpoints that don't live in-cluster.
   egress:
     dnsEnabled: true
     extraCIDRs: []            # e.g. ["10.0.0.0/8", "172.16.0.0/12"]
+
+# Namespace-scoped resource budget. Caps blast radius from runaway pods
+# (e.g. a misconfigured HPA scaling to the cluster's limit). Tune for
+# the cluster you're targeting.
+quota:
+  enabled: true
+  cpu: "16"                   # total CPU cores requested across the namespace
+  memory: "32Gi"              # total memory requested
+  pods: 50                    # absolute pod count cap (incl. completed jobs)
+  persistentvolumeclaims: 20  # PVCs created in the namespace
+  # Default container requests/limits applied via LimitRange so a pod
+  # without an explicit `resources:` block doesn't starve neighbors or
+  # blow the quota.
+  limitRange:
+    defaultRequest:
+      cpu: "100m"
+      memory: "128Mi"
+    default:
+      cpu: "500m"
+      memory: "512Mi"
+
+# PodSecurityStandards label the release namespace at the `restricted`
+# level (the strictest baseline — disallows privileged pods, hostNetwork,
+# capabilities, runAsRoot, etc.). Skipped automatically when
+# `.Values.namespaceOverride` is set (the user owns the namespace and we
+# don't relabel it out from under them).
+podSecurity:
+  enabled: true
+  level: "restricted"         # privileged | baseline | restricted
+
+# When set, the chart assumes the namespace already exists and is owned
+# externally — it will not relabel it with PodSecurityStandards. Leave
+# empty to let the chart manage the namespace it's installed into.
+namespaceOverride: ""
 
 # Prometheus integration. ServiceMonitor + PodMonitor are mutually
 # compatible but typically only one is needed; pick by what the
@@ -90,6 +145,31 @@ podMonitor:
 otel:
   enabled: false
   endpoint: "http://otel-collector.observability:4318"
+
+# Sentry exception reporting. Empty DSN ⇒ disabled (each service's SDK
+# short-circuits init when the env var is empty). We never bake a DSN
+# default into the chart — bring your own via:
+#
+#   --set sentry.existingSecret='my-sentry-secret'
+#     Skip Secret templating and read from an existing Secret you manage
+#     out-of-band (External Secrets, Sealed Secrets, Vault). Expected keys:
+#       - SENTRY_DSN           (orchestrator + runtime fallback)
+#       - RUNTIME_SENTRY_DSN   (optional runtime-specific DSN)
+#       - NEXT_PUBLIC_SENTRY_DSN (optional, web SDK reads this directly)
+#
+#   sentry.createSecret: true (default false)
+#     Mint a Secret named `<release>-ironflyer-sentry` from the data
+#     block below. Use only when DSNs are sourced from a CI secret store
+#     and rendered into Helm values — never commit a DSN to git.
+sentry:
+  existingSecret: ""
+  createSecret: false
+  data:
+    SENTRY_DSN: ""
+    RUNTIME_SENTRY_DSN: ""
+    NEXT_PUBLIC_SENTRY_DSN: ""
+  # Fraction of traces Sentry retains (0–1). 0.05 = 5%.
+  tracesSampleRate: "0.05"
 
 # PriorityClass — ironflyer pods preempt low-priority noise during
 # capacity pressure. Production clusters should map this to a class
@@ -111,14 +191,17 @@ orchestrator:
   resources:
     requests: { cpu: "200m", memory: "256Mi" }
     limits:   { cpu: "2",    memory: "2Gi" }
-  # Per-service autoscaling override. Empty = inherit chart-level
-  # autoscaling block.
+  # Per-service autoscaling override. Recommended production defaults
+  # for the orchestrator (set via templates/hpa.yaml). Bumped from 2→3
+  # minReplicas so a single-pod rolling deploy still leaves capacity to
+  # absorb in-flight SSE / WS subscribers; max 30 leaves operators room
+  # to ride through traffic spikes before re-tuning. See docs/SCALE.md.
   autoscaling:
     enabled: true
-    minReplicas: 2
-    maxReplicas: 10
-    targetCPUUtilizationPercentage: 70
-    targetMemoryUtilizationPercentage: 80
+    minReplicas: 3
+    maxReplicas: 30
+    targetCPUUtilizationPercentage: 65
+    targetMemoryUtilizationPercentage: 75
   # Temporal worker — leave host empty to keep the orchestrator on the
   # embedded executor. Set host (e.g. "temporal:7233") to flip on the
   # production workflow path; namespace+taskQueue feed into both the worker
@@ -175,8 +258,18 @@ runtime:
   # The workspace driver writes to the workspaces PVC, but the pod
   # filesystem itself stays read-only.
   readOnlyRootFilesystem: true
-  # No HPA: runtime is per-pod stateful (workspaces live on disk). Scale
-  # vertically or shard by tenant routing at the orchestrator layer.
+  # Runtime is stateful per-pod (workspaces live on disk + S3
+  # snapshots for portability — see docs/SCALE.md § Workspace
+  # portability). Horizontal scaling needs an upstream tenant-router
+  # so a workspace consistently lands on its owning pod; the HPA
+  # below is opt-in so single-pod deploys keep their old behaviour.
+  # Once orchestrator-side workspace routing is in place, flip
+  # `enabled: true` to scale runtime pods up under workspace pressure.
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 20
+    targetCPUUtilizationPercentage: 60
 
 web:
   enabled: true
@@ -200,8 +293,198 @@ postgres:
   storage: 10Gi
   storageClass: ""
   user: ironflyer
-  password: ironflyer        # CHANGE IN PROD
   database: ironflyer
+  # Connection target embedded in the templated DSN. Leave host empty to use
+  # the in-cluster `postgres` Service; override when `enabled: false` and
+  # you're pointing at managed Postgres.
+  host: "postgres"
+  port: 5432
+  sslmode: "disable"          # use "require" for managed Postgres
+  # ---------------------------------------------------------------------
+  # SECURITY: there is intentionally no default password. The chart will
+  # refuse to render until you supply one of:
+  #
+  #   --set postgres.password='<a-strong-random-secret>'
+  #     The chart mints a Secret named `<release>-ironflyer-postgres` with
+  #     keys `postgres-password` and `POSTGRES_URL` (full DSN).
+  #
+  #   --set postgres.existingSecret='my-pg-secret'
+  #     The chart skips Secret templating and reads from an existing
+  #     Secret you manage out-of-band (External Secrets Operator, SOPS,
+  #     Sealed Secrets, Vault, etc.). That Secret MUST expose keys:
+  #       - postgres-password
+  #       - POSTGRES_URL  (postgres://user:pass@host:5432/db?sslmode=...)
+  #     and, when `postgres.enabled: true`, also:
+  #       - POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
+  #     (the in-cluster Postgres image initialises from those env vars).
+  #
+  # Never reintroduce a default value here. A baked-in password is a
+  # supply-chain accident waiting to happen.
+  password: ""
+  existingSecret: ""
+
+# Continuous WAL archiving via wal-g. When enabled, the Postgres
+# StatefulSet runs a `postgres-wal-archiver` sidecar that ships WAL
+# segments to ${WAL_S3_URI} continuously, and the Postgres container's
+# `archive_command` invokes `wal-g wal-push`. Combined with daily base
+# backups (also via wal-g), this drops RPO from 24h to ~5min
+# (archive_timeout=300s).
+#
+# Restore is via scripts/restore-pitr.sh — see docs/DR_RUNBOOK.md
+# § Point-in-time recovery for the exact command + walk-through.
+walg:
+  enabled: false
+  # TODO: pin to an immutable sha (e.g. wal-g/wal-g@sha256:<digest>).
+  # The :latest tag is convenient for first deploys but production should
+  # cut over to a sha-pinned release once a known-good digest is captured.
+  image: "ghcr.io/wal-g/wal-g:latest"
+  # Destination prefix for base backups + WAL segments
+  # (s3://bucket/prefix — region-local bucket; see DR_RUNBOOK § residency).
+  s3Uri: ""
+  # Name of an existing Secret holding wal-g credentials. Expected keys:
+  #   AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
+  #   (and optionally AWS_SESSION_TOKEN / WALG_S3_PREFIX overrides).
+  # Reuse the same Secret as `.Values.backup.s3SecretName` when the
+  # logical-backup bucket and the WAL bucket share creds.
+  existingSecret: "backup-s3"
+  # archive_timeout (seconds). Postgres forces a WAL switch this often
+  # even on quiet databases, capping worst-case RPO to roughly this
+  # value. 300s = 5min; tighten for tighter RPO at the cost of more
+  # tiny WAL segments shipped.
+  archiveTimeoutSeconds: 300
+
+# Disaster recovery: daily logical backup of Postgres to S3.
+# See docs/DR_RUNBOOK.md for restore procedure and RPO/RTO targets.
+backup:
+  # Off by default. Enable per-environment once s3Uri + s3SecretName are
+  # populated. The chart will not render the CronJob while disabled, so
+  # forgetting to flip this in dev/CI is harmless.
+  enabled: false
+  # Standard cron expression; the template falls back to 03:00 UTC daily
+  # when this is empty.
+  schedule: "0 3 * * *"
+  # Destination bucket prefix (s3://bucket/prefix). No trailing slash needed.
+  s3Uri: ""
+  # Name of an existing Secret holding AWS credentials for the uploader.
+  # Expected keys: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and optionally
+  # AWS_REGION / AWS_SESSION_TOKEN. Create out-of-band (External Secrets,
+  # SOPS, Sealed Secrets) — the chart never templates AWS keys.
+  s3SecretName: "backup-s3"
+  # Objects older than this many days are pruned from s3Uri after each run.
+  retentionDays: 30
+
+# Hourly audit-chain integrity CronJob. Hits the orchestrator's
+# /audit/verify endpoint and pages a Slack/Discord webhook on any break.
+# See docs/SLO.md § 6 and docs/RUNBOOKS/audit-chain-break.md.
+auditVerify:
+  enabled: true
+  schedule: "0 * * * *"        # every hour, on the hour
+  image: "curlimages/curl:8.7.1"
+  # In-cluster default — point at the public hostname if probing from
+  # outside the cluster matters more than minimizing blast radius.
+  apiURL: "http://orchestrator:8080"
+  # Service-account bearer with scope to call /audit/verify. Populate via
+  # --set-string or external-secrets; baked-in defaults are intentionally
+  # blank so the chart fails closed if the operator forgets.
+  bearer: ""
+  # Slack / Discord incoming webhook URL (accepts {"text": "..."}).
+  alertWebhookURL: ""
+
+# Schema migrations. The chart's pre-install / pre-upgrade Job runs the
+# orchestrator's `migrate` CLI against POSTGRES_URL BEFORE the
+# orchestrator Deployment rolls. goose tracks applied versions in the
+# `goose_db_version` table, so the Job is idempotent across upgrades.
+#
+# When disabled, the orchestrator pod still self-applies migrations at
+# startup (single-replica deploys are fine; multi-replica clusters
+# should leave this `true` to avoid CREATE-TABLE races).
+migrate:
+  enabled: true
+  # Image follows the orchestrator binary — the migrate CLI ships in the
+  # same container image under /app/migrate.
+  image:
+    repository: ""    # default: ironflyer-orchestrator
+    tag: ""           # default: .Values.imageTag
+  resources:
+    requests: { cpu: "50m",  memory: "64Mi" }
+    limits:   { cpu: "500m", memory: "256Mi" }
+  # Helm Job activeDeadlineSeconds. Schema work is fast; cap blast
+  # radius so a stuck job doesn't block the install forever.
+  activeDeadlineSeconds: 300
+  # How many failed pods Helm keeps for forensics.
+  backoffLimit: 1
+
+# KEDA (Kubernetes Event-Driven Autoscaling) — scales the orchestrator
+# and runtime allocator from Redpanda consumer-group lag instead of raw
+# HTTP traffic. Per ARCHITECTURE_RUNTIME_SCALE.md § Kubernetes Scaling
+# and ARCHITECTURE_EVENTS.md § KEDA Scaling.
+#
+# Prerequisite: KEDA installed in-cluster (one-time per cluster):
+#   helm repo add kedacore https://kedacore.github.io/charts
+#   helm install keda kedacore/keda --namespace keda --create-namespace
+#
+# Off by default — opt in with `--set keda.enabled=true`.
+keda:
+  enabled: false
+  # Redpanda Kafka API endpoint the KEDA scalers connect to. Defaults to
+  # the in-cluster Redpanda service; set to a managed Kafka host
+  # (e.g. `pkc-xxxxx.us-east-1.aws.confluent.cloud:9092`) when
+  # `redpanda.enabled=false` and you're pointing at an external bus.
+  kafkaBootstrapServers: "redpanda:9092"
+
+# OPA (Open Policy Agent) — runtime Policy Decision Point per
+# ARCHITECTURE_POLICY_SECURITY.md § OPA / Cedar Decision.
+#
+# Off by default. When enabled, the chart deploys:
+#   - A standalone OPA Deployment + Service reachable at http://opa:8181
+#     from inside the cluster.
+#   - A ConfigMap with minimal deny-by-default + tenant_isolation Rego
+#     bundles. Replace with a real bundle server in production via
+#     `bundleEndpoint`.
+#
+# The true V22 topology is OPA-as-sidecar on every orchestrator pod;
+# this chart ships the standalone Deployment first because injecting a
+# sidecar requires modifying the orchestrator Deployment template
+# (tracked separately). See templates/opa-sidecar.yaml header for the
+# full compromise note.
+opa:
+  enabled: false
+  image: openpolicyagent/opa:latest-rootless
+  # Optional remote bundle server (HTTP). When set, OPA pulls signed
+  # policy bundles from this URL and ignores the inline ConfigMap
+  # defaults. Example:
+  #   bundleEndpoint: "https://policies.ironflyer.com"
+  bundleEndpoint: ""
+
+# ClickHouse — analytics store for Redpanda projection consumers
+# (dashboards, cost attribution, audit projections per
+# ARCHITECTURE_EVENTS.md). Single-replica StatefulSet with a dedicated
+# PVC. For multi-shard production, swap in the ClickHouse Operator and
+# leave this disabled.
+clickhouse:
+  enabled: false
+  image: clickhouse/clickhouse-server:24.10
+  storageSize: 50Gi
+  storageClass: ""  # use cluster default when empty
+
+# Redpanda — durable event backbone (Kafka-compatible) per
+# ARCHITECTURE_EVENTS.md. Off by default; enable when standing up the
+# event backbone or the chart's KEDA scalers in-cluster.
+#
+# For multi-broker / production-grade deploys, prefer the upstream
+# Redpanda Operator and disable this resource.
+redpanda:
+  enabled: false
+  image: docker.redpanda.com/redpandadata/redpanda:v24.3.1
+  storageSize: 100Gi
+  storageClass: ""
+  partitions: 12
+  replicationFactor: 1
+  # Optional Redpanda Console (UI for topics, consumer groups, Schema
+  # Registry subjects, lag dashboards).
+  schemaRegistry:
+    enabled: false
+    image: docker.redpanda.com/redpandadata/console:v2.7.2
 
 # Image overrides — only set the keys you want to deviate from the global
 # imageTag / imageRegistry.

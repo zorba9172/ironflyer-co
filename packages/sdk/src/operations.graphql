@@ -1,0 +1,746 @@
+# Curated public operations for @ironflyer/sdk.
+#
+# These are the operations the SDK exposes to third-party integrators.
+# Internal / admin / experimental operations (affiliates, telemetry,
+# SAML config, collab cursors, federation, mcpRPC, etc.) are
+# deliberately omitted — third parties shouldn't depend on them and
+# they tend to change without notice.
+#
+# Add a new operation here, then run `npm run codegen` and (if a method
+# wrapper is required) update src/client.ts.
+
+# ─── Shared fragments ─────────────────────────────────────────────────
+
+fragment UserFields on User {
+  id
+  email
+  name
+  plan
+  orgId
+  telemetryOptOut
+  createdAt
+}
+
+fragment SessionFields on Session {
+  token
+  expiresAt
+  user {
+    ...UserFields
+  }
+}
+
+fragment GateVerdictFields on GateVerdict {
+  gate
+  status
+  startedAt
+  finishedAt
+  durationMs
+  notes
+  issues {
+    path
+    line
+    rule
+    severity
+    message
+  }
+}
+
+fragment ProjectFields on Project {
+  id
+  name
+  description
+  status
+  ownerId
+  isPublic
+  idea
+  createdAt
+  updatedAt
+  github {
+    owner
+    repo
+    fullName
+    defaultBranch
+    htmlUrl
+  }
+}
+
+fragment PatchFields on Patch {
+  id
+  projectId
+  title
+  summary
+  author
+  status
+  createdAt
+  appliedAt
+  changes {
+    op
+    path
+    content
+    anchor
+    replacement
+    symbol
+  }
+}
+
+fragment ChatFields on Chat {
+  id
+  projectId
+  title
+  parentChatId
+  messageCount
+  createdAt
+  updatedAt
+}
+
+fragment ChatMessageFields on ChatMessage {
+  id
+  chatId
+  role
+  text
+  toolUse
+  createdAt
+  provider
+  model
+  usage
+  attachments {
+    mediaType
+    base64
+  }
+}
+
+fragment WorkspaceFields on Workspace {
+  id
+  projectId
+  driver
+  status
+  createdAt
+  updatedAt
+}
+
+fragment DeployFields on Deploy {
+  id
+  projectId
+  target
+  targetMeta
+  status
+  url
+  startedAt
+  finishedAt
+  durationMs
+  artifact
+  log {
+    ts
+    level
+    message
+  }
+}
+
+fragment MemoryRecordFields on MemoryRecord {
+  id
+  kind
+  userId
+  projectId
+  storyId
+  gateName
+  title
+  body
+  tags
+  createdAt
+}
+
+fragment AuditEntryFields on AuditEntry {
+  id
+  ts
+  userId
+  projectId
+  action
+  outcome
+  ok
+  actor
+  resource
+  storyId
+  gateName
+  agentRole
+  summary
+  hash
+  prevHash
+  inputHash
+  outputHash
+  payload
+}
+
+fragment WebhookFields on WebhookSubscription {
+  id
+  userId
+  url
+  events
+  secret
+  enabled
+  createdAt
+  lastDeliveryAt
+}
+
+# ─── Auth ─────────────────────────────────────────────────────────────
+
+query Me {
+  me {
+    ...UserFields
+  }
+}
+
+mutation SignIn($input: SignInInput!) {
+  signIn(input: $input) {
+    ...SessionFields
+  }
+}
+
+mutation SignUp($input: SignUpInput!) {
+  signUp(input: $input) {
+    ...SessionFields
+  }
+}
+
+mutation SignOut {
+  signOut {
+    ok
+  }
+}
+
+# ─── Projects ─────────────────────────────────────────────────────────
+
+query Projects {
+  projects {
+    ...ProjectFields
+  }
+}
+
+query Project($id: ID!) {
+  project(id: $id) {
+    ...ProjectFields
+    files {
+      path
+      size
+      language
+      updatedAt
+    }
+    gates {
+      ...GateVerdictFields
+    }
+  }
+}
+
+query ProjectFiles($id: ID!) {
+  projectFiles(id: $id) {
+    path
+    content
+    size
+    language
+    updatedAt
+  }
+}
+
+query ProjectGraph($id: ID!) {
+  projectGraph(id: $id) {
+    nodes {
+      id
+      path
+      language
+      size
+    }
+    edges {
+      from
+      to
+      kind
+    }
+  }
+}
+
+query ProjectSnapshot($id: ID!) {
+  projectSnapshot(id: $id)
+}
+
+query SearchProjectCode($id: ID!, $q: String!, $k: Int, $maxKb: Int) {
+  searchProjectCode(id: $id, q: $q, k: $k, maxKb: $maxKb) {
+    path
+    startLine
+    endLine
+    symbols
+    score
+    text
+  }
+}
+
+mutation CreateProject($input: CreateProjectInput!) {
+  createProject(input: $input) {
+    ...ProjectFields
+  }
+}
+
+mutation UpdateProject($id: ID!, $input: UpdateProjectInput!) {
+  updateProject(id: $id, input: $input) {
+    ...ProjectFields
+  }
+}
+
+mutation DeleteProject($id: ID!) {
+  deleteProject(id: $id) {
+    ok
+  }
+}
+
+mutation BulkDeleteProjects($ids: [ID!]!) {
+  bulkDeleteProjects(ids: $ids) {
+    ok
+  }
+}
+
+# ─── Gates + finisher ─────────────────────────────────────────────────
+
+query Gates($projectId: ID!, $sub: ID) {
+  gates(projectId: $projectId, sub: $sub) {
+    ...GateVerdictFields
+  }
+}
+
+mutation RerunGate($input: RerunGateInput!) {
+  rerunGate(input: $input) {
+    ...GateVerdictFields
+  }
+}
+
+mutation RunFinisher($id: ID!) {
+  runFinisher(id: $id)
+}
+
+# ─── Patches ──────────────────────────────────────────────────────────
+
+query Patches($projectId: ID!) {
+  patches(projectId: $projectId) {
+    ...PatchFields
+  }
+}
+
+mutation ProposePatch($input: ProposePatchInput!) {
+  proposePatch(input: $input) {
+    ...PatchFields
+  }
+}
+
+mutation ApplyPatch($patchId: ID!) {
+  applyPatch(patchId: $patchId) {
+    ...PatchFields
+  }
+}
+
+mutation RollbackPatch($patchId: ID!) {
+  rollbackPatch(patchId: $patchId)
+}
+
+# ─── Budget + billing ─────────────────────────────────────────────────
+
+query MyBudget {
+  myBudget {
+    userId
+    email
+    tier
+    spentUsd
+    entries {
+      id
+      provider
+      model
+      promptTokens
+      completionTokens
+      costUsd
+      revenueUsd
+      ts
+      agent
+      durationMs
+    }
+  }
+}
+
+query Plans {
+  plans {
+    tier
+    name
+    priceUsd
+    costCapUsd
+    description
+    features
+    stripePriceId
+  }
+}
+
+query Rates {
+  rates {
+    provider
+    model
+    promptPerMTok
+    completionPerMTok
+  }
+}
+
+query Vault {
+  vault {
+    revenueUsd
+    providerCostUsd
+    marginUsd
+    entries
+    asOf
+  }
+}
+
+query MySubscription {
+  mySubscription {
+    userId
+    tier
+    customerId
+    subscriptionId
+    status
+    currentPeriodEnd
+    cancelAtPeriodEnd
+  }
+}
+
+mutation StartCheckout($input: StartCheckoutInput!) {
+  startCheckout(input: $input) {
+    sessionId
+    url
+  }
+}
+
+mutation CancelSubscription($input: CancelSubscriptionInput!) {
+  cancelSubscription(input: $input) {
+    ok
+  }
+}
+
+# ─── Memory ───────────────────────────────────────────────────────────
+
+query Memory($query: MemoryQueryInput) {
+  memory(query: $query) {
+    ...MemoryRecordFields
+  }
+}
+
+mutation AddMemory($input: AddMemoryInput!) {
+  addMemory(input: $input) {
+    ...MemoryRecordFields
+  }
+}
+
+mutation DeleteMemory($id: ID!) {
+  deleteMemory(id: $id) {
+    ok
+  }
+}
+
+# ─── Audit ────────────────────────────────────────────────────────────
+
+query Audit($query: AuditQueryInput) {
+  audit(query: $query) {
+    ...AuditEntryFields
+  }
+}
+
+query VerifyAudit {
+  verifyAudit {
+    intact
+    firstBadIndex
+  }
+}
+
+# ─── Webhooks ─────────────────────────────────────────────────────────
+
+query Webhooks {
+  webhooks {
+    ...WebhookFields
+  }
+}
+
+mutation CreateWebhook($input: CreateWebhookInput!) {
+  createWebhook(input: $input) {
+    ...WebhookFields
+  }
+}
+
+mutation DeleteWebhook($id: ID!) {
+  deleteWebhook(id: $id) {
+    ok
+  }
+}
+
+mutation TestWebhook($id: ID!) {
+  testWebhook(id: $id) {
+    ok
+    status
+    body
+  }
+}
+
+# ─── Deploys ──────────────────────────────────────────────────────────
+
+query Deploys($projectId: ID!) {
+  deploys(projectId: $projectId) {
+    ...DeployFields
+  }
+}
+
+mutation StartDeploy($input: StartDeployInput!) {
+  startDeploy(input: $input) {
+    ...DeployFields
+  }
+}
+
+# ─── Inline completion ────────────────────────────────────────────────
+
+mutation AcceptInlineCompletion($requestId: ID!) {
+  acceptInlineCompletion(requestId: $requestId) {
+    ok
+  }
+}
+
+# ─── Chats ────────────────────────────────────────────────────────────
+
+query Chats($projectId: ID!) {
+  chats(projectId: $projectId) {
+    ...ChatFields
+  }
+}
+
+query ChatMessages($chatId: ID!) {
+  chatMessages(chatId: $chatId) {
+    ...ChatMessageFields
+  }
+}
+
+mutation CreateChat($input: CreateChatInput!) {
+  createChat(input: $input) {
+    ...ChatFields
+  }
+}
+
+mutation ForkChat($input: ForkChatInput!) {
+  forkChat(input: $input) {
+    ...ChatFields
+  }
+}
+
+# ─── Workspaces ───────────────────────────────────────────────────────
+
+query Workspaces($projectId: ID!) {
+  workspaces(projectId: $projectId) {
+    ...WorkspaceFields
+  }
+}
+
+query Workspace($id: ID!) {
+  workspace(id: $id) {
+    ...WorkspaceFields
+  }
+}
+
+query WorkspaceFiles($workspaceId: ID!, $path: String) {
+  workspaceFiles(workspaceId: $workspaceId, path: $path) {
+    path
+    size
+    isDir
+    modifiedAt
+  }
+}
+
+query WorkspaceFile($workspaceId: ID!, $path: String!) {
+  workspaceFile(workspaceId: $workspaceId, path: $path) {
+    path
+    content
+    bytes
+    encoding
+  }
+}
+
+mutation CreateWorkspace($projectId: ID!, $driver: String) {
+  createWorkspace(projectId: $projectId, driver: $driver) {
+    ...WorkspaceFields
+  }
+}
+
+mutation StartWorkspace($id: ID!) {
+  startWorkspace(id: $id) {
+    ...WorkspaceFields
+  }
+}
+
+mutation StopWorkspace($id: ID!) {
+  stopWorkspace(id: $id) {
+    ok
+  }
+}
+
+mutation WriteWorkspaceFile($workspaceId: ID!, $path: String!, $content: String!) {
+  writeWorkspaceFile(workspaceId: $workspaceId, path: $path, content: $content) {
+    ok
+  }
+}
+
+mutation ExecInWorkspace($workspaceId: ID!, $command: String!, $timeoutSec: Int) {
+  execInWorkspace(workspaceId: $workspaceId, command: $command, timeoutSec: $timeoutSec) {
+    exitCode
+    stdout
+    stderr
+    durMs
+    timedOut
+  }
+}
+
+# ─── Subscriptions ────────────────────────────────────────────────────
+#
+# These are NOT consumed by graphql-request — codegen still emits typed
+# Document + result types, and src/client.ts hands them to graphql-ws.
+
+subscription RunProject($projectId: ID!) {
+  runProject(projectId: $projectId) {
+    __typename
+    ... on RunExecutionEvent {
+      ts
+      payload
+    }
+    ... on RunGateEvent {
+      ts
+      gate
+      status
+      gateMessage: message
+    }
+    ... on RunDoneEvent {
+      ts
+      ok
+    }
+    ... on RunErrorEvent {
+      ts
+      code
+      message
+    }
+  }
+}
+
+subscription ChatStream($projectId: ID!, $input: ChatInput!) {
+  chatStream(projectId: $projectId, input: $input) {
+    __typename
+    ... on ChatStartDelta {
+      startTurnId: turnId
+      startProvider: provider
+      startModel: model
+    }
+    ... on ChatTextDelta {
+      textTurnId: turnId
+      text
+    }
+    ... on ChatThinkingDelta {
+      thinkingTurnId: turnId
+      thinkingText: text
+    }
+    ... on ChatToolUseDelta {
+      toolUseTurnId: turnId
+      toolUse
+    }
+    ... on ChatDoneDelta {
+      doneTurnId: turnId
+      doneProvider: provider
+      doneModel: model
+      usage
+    }
+    ... on ChatErrorDelta {
+      errorTurnId: turnId
+      code
+      message
+    }
+  }
+}
+
+subscription InlineCompletion($input: InlineInput!) {
+  inlineCompletion(input: $input) {
+    __typename
+    ... on InlineStartDelta {
+      startRequestId: requestId
+      startProvider: provider
+      startModel: model
+    }
+    ... on InlineTextDelta {
+      textRequestId: requestId
+      text
+    }
+    ... on InlineDoneDelta {
+      doneRequestId: requestId
+      doneProvider: provider
+      doneModel: model
+      usage
+    }
+    ... on InlineCancelledDelta {
+      cancelledRequestId: requestId
+      reason
+    }
+    ... on InlineErrorDelta {
+      errorRequestId: requestId
+      code
+      message
+    }
+  }
+}
+
+subscription DeployStream($deployId: ID!) {
+  deployStream(deployId: $deployId) {
+    __typename
+    ... on DeployStateEvent {
+      deployId
+      status
+      ts
+    }
+    ... on DeployLogEvent {
+      logDeployId: deployId
+      logLine: line {
+        ts
+        level
+        message
+      }
+    }
+    ... on DeployFinishedEvent {
+      finishedDeployId: deployId
+      finishedStatus: status
+      url
+      durationMs
+    }
+    ... on DeployErrorEvent {
+      errorDeployId: deployId
+      code
+      message
+    }
+    ... on DeployBuildLogLine {
+      buildTs: ts
+      source
+      buildLine: line
+    }
+  }
+}
+
+subscription WorkspacePty($workspaceId: ID!) {
+  workspacePty(workspaceId: $workspaceId) {
+    __typename
+    ... on PtyOutput {
+      data
+    }
+    ... on PtyExit {
+      code
+    }
+  }
+}
+
+subscription CostStream {
+  costStream {
+    ts
+    usdSpent
+    model
+    provider
+    agent
+    durationMs
+  }
+}

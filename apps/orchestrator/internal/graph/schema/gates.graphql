@@ -1,0 +1,49 @@
+# Gate verdict domain. Maps onto domain.GateState + finisher.DefaultGates.
+
+enum GateStatus {
+  PENDING
+  RUNNING
+  PASS
+  FAIL
+  WARN
+  BLOCKED
+  SKIPPED
+}
+
+type GateVerdict {
+  gate: String!
+  status: GateStatus!
+  issues: [GateIssue!]!
+  startedAt: DateTime
+  finishedAt: DateTime
+  durationMs: Int
+  notes: String
+}
+
+type GateIssue {
+  path: String
+  line: Int
+  rule: String
+  severity: String
+  message: String!
+}
+
+extend type Query {
+  # Per-project gate verdicts; optional sub=subproject scopes the view
+  # to issues whose path starts with that subproject's directory.
+  gates(projectId: ID!, sub: ID): [GateVerdict!]!
+  gate(projectId: ID!, gate: String!): GateVerdict
+}
+
+input RerunGateInput {
+  projectId: ID!
+  gate: String!
+}
+
+extend type Mutation {
+  # Re-run a single gate against the project's current tree without
+  # going through the full finisher loop. Kicks the finisher engine for
+  # that one gate only and emits the same SSE / RunGateEvent stream so
+  # subscribers see the update.
+  rerunGate(input: RerunGateInput!): GateVerdict!
+}

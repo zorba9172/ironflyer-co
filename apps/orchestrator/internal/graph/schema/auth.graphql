@@ -1,0 +1,88 @@
+# Authentication + session domain. Maps onto auth.Service in
+# internal/auth/service.go.
+#
+# V22 trims this surface to email + password + verification + reset
+# + sessions + telemetry preference. MFA, SAML, IP allowlist, and
+# GitHub OAuth are deferred per docs/V22_PLAN.md.
+
+type User {
+  id: ID!
+  email: String!
+  name: String
+  plan: String
+  orgId: String
+  createdAt: DateTime!
+  telemetryOptOut: Boolean!
+  emailVerifiedAt: DateTime
+}
+
+# Session is the canonical post-sign-in envelope.
+type Session {
+  user: User!
+  token: String!
+  expiresAt: DateTime
+  # Stateful session columns (sessions table). jti uniquely identifies
+  # the row so revokeSession can target it.
+  jti: ID
+  ipAddress: String
+  userAgent: String
+  lastSeenAt: DateTime
+  # current is true when this session matches the caller's own token.
+  current: Boolean
+}
+
+input SignUpInput {
+  email: String!
+  name: String
+  password: String!
+}
+
+input SignInInput {
+  email: String!
+  password: String!
+}
+
+input TelemetryPreferenceInput {
+  optOut: Boolean!
+}
+
+# requestEmailChange requires the current password — defence against
+# drive-by hijack from an unattended logged-in browser.
+input EmailChangeInput {
+  newEmail: String!
+  currentPassword: String!
+}
+
+extend type Query {
+  # Authenticated user record, or null when the request is anonymous.
+  me: User
+  # Active sessions for the caller. The session whose jti matches the
+  # caller's token is flagged current=true so the UI can disable its
+  # own revoke button.
+  mySessions: [Session!]!
+}
+
+extend type Mutation {
+  signUp(input: SignUpInput!): Session!
+  signIn(input: SignInInput!): Session!
+  signOut: OperationResult!
+
+  # Email verification on signup.
+  verifyEmail(token: String!): Session!
+  resendVerificationEmail: OperationResult!
+
+  # Password reset.
+  requestPasswordReset(email: String!): OperationResult!
+  resetPassword(token: String!, newPassword: String!): Session!
+
+  # Session list + revocation.
+  revokeSession(jti: ID!): OperationResult!
+  revokeAllOtherSessions: OperationResult!
+
+  # Email change flow.
+  requestEmailChange(input: EmailChangeInput!): OperationResult!
+  confirmEmailChange(token: String!): OperationResult!
+
+  # Toggle per-user telemetry. Mirrors the env-level opt-out.
+  setTelemetryPreference(input: TelemetryPreferenceInput!): User!
+}

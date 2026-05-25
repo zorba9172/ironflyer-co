@@ -5,16 +5,26 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
 
 	"ironflyer/apps/runtime/internal/auth"
 	"ironflyer/apps/runtime/internal/config"
 	"ironflyer/apps/runtime/internal/httpapi"
+	rtmigrate "ironflyer/apps/runtime/internal/migrate"
 	"ironflyer/apps/runtime/internal/sandbox"
+	"ironflyer/apps/runtime/internal/sentryext"
+	"ironflyer/apps/runtime/internal/snapshot"
+	"ironflyer/apps/runtime/internal/snapshots"
+	"ironflyer/apps/runtime/internal/state"
+	"ironflyer/apps/runtime/internal/wireup"
+	"ironflyer/apps/runtime/internal/workspaces"
+	migrations "ironflyer/apps/runtime/migrations"
 )
 
 func main() {
@@ -25,16 +35,170 @@ func main() {
 		logger.Fatal().Err(err).Msg("config")
 	}
 
+	// ---------------- Sentry (optional) ------------------------------------
+	dsn := strings.TrimSpace(os.Getenv("RUNTIME_SENTRY_DSN"))
+	if dsn == "" {
+		dsn = os.Getenv("SENTRY_DSN")
+	}
+	sentryEnv := strings.TrimSpace(os.Getenv("IRONFLYER_ENV"))
+	if sentryEnv == "" {
+		sentryEnv = "development"
+	}
+	sentryFlush, err := sentryext.Init(sentryext.Opts{
+		DSN:              dsn,
+		Environment:      sentryEnv,
+		Release:          strings.TrimSpace(os.Getenv("IRONFLYER_VERSION")),
+		TracesSampleRate: sentryext.FloatFromEnv("SENTRY_TRACES_SAMPLE", 0.05),
+		ServerName:       "ironflyer-runtime",
+	})
+	if err != nil {
+		logger.Warn().Err(err).Msg("sentry init failed; continuing without exception reporting")
+	} else if dsn != "" {
+		logger.Info().Str("env", sentryEnv).Msg("Sentry initialised")
+	}
+	defer sentryFlush()
+
+	// ---------------- V22 Wave-2: runtime scale plane --------------------
+	// snapshots.S3Manager / quota / warmpool / allocator / runtimeclass —
+	// see ARCHITECTURE_RUNTIME_SCALE.md. Wired here so the docker driver
+	// below can lean on the SnapshotShim adapter for cross-pod restore.
+	bgCtxScale, bgCancelScale := context.WithCancel(context.Background())
+	defer bgCancelScale()
+	scaleRes, scaleErr := wireup.BuildScale(bgCtxScale, snapshots.Config{
+		Bucket:    strings.TrimSpace(os.Getenv("WORKSPACE_BUCKET")),
+		Region:    strings.TrimSpace(os.Getenv("AWS_REGION")),
+		Endpoint:  strings.TrimSpace(os.Getenv("WORKSPACE_S3_ENDPOINT")),
+		Prefix:    "snapshots",
+		Retention: 5,
+		KMSKeyID:  strings.TrimSpace(os.Getenv("WORKSPACE_KMS_KEY_ID")),
+		Excludes:  snapshots.LoadExcludesFromEnv(),
+	}, logger)
+	if scaleErr != nil {
+		logger.Warn().Err(scaleErr).Msg("runtime scale plane disabled (boot error)")
+	}
+	if scaleRes.Drainer != nil {
+		go scaleRes.Drainer.Run(bgCtxScale)
+		logger.Info().Msg("warm pool drainer started")
+	}
+
+	// ---------------- Driver --------------------------------------------
 	var driver sandbox.Driver
 	switch cfg.Driver {
 	case "docker":
-		driver = sandbox.NewDockerDriver(cfg.DockerImage)
-		logger.Info().Str("image", cfg.DockerImage).Msg("docker driver enabled")
+		dd := sandbox.NewDockerDriver(cfg.DockerImage).WithEFS(cfg.EFSMount, cfg.WorkspaceDir)
+		if scaleRes.Snapshots != nil {
+			dd = dd.WithSnapshotShim(wireup.SnapshotShimAdapter{Mgr: scaleRes.Snapshots})
+			logger.Info().Msg("docker driver: snapshot shim wired")
+		}
+		driver = dd
+		logger.Info().Str("image", cfg.DockerImage).Str("efs", cfg.EFSMount).Msg("docker driver enabled")
 	default:
 		driver = sandbox.NewMockDriver(cfg.WorkspaceDir)
 		logger.Info().Str("dir", cfg.WorkspaceDir).Msg("mock driver enabled")
 	}
 	mgr := sandbox.NewManager(driver)
+
+	// ---------------- Postgres (workspace registry) ---------------------
+	bgCtx, bgCancel := context.WithCancel(context.Background())
+	defer bgCancel()
+
+	var (
+		store    workspaces.Store = workspaces.NewMemoryStore()
+		pool     *pgxpool.Pool
+	)
+	if pgURL := strings.TrimSpace(os.Getenv("POSTGRES_URL")); pgURL != "" {
+		ctx, cancel := context.WithTimeout(bgCtx, 10*time.Second)
+		p, perr := pgxpool.New(ctx, pgURL)
+		cancel()
+		if perr != nil {
+			logger.Warn().Err(perr).Msg("postgres connect failed; falling back to memory workspace store")
+		} else {
+			pool = p
+			defer pool.Close()
+			migCtx, mcancel := context.WithTimeout(bgCtx, 30*time.Second)
+			if merr := rtmigrate.RunPool(migCtx, pool, migrations.FS); merr != nil {
+				logger.Warn().Err(merr).Msg("workspace migrations failed; falling back to memory store")
+			} else {
+				store = workspaces.NewPostgresStore(pool)
+				logger.Info().Msg("postgres workspace store enabled")
+			}
+			mcancel()
+		}
+	} else {
+		logger.Warn().Msg("POSTGRES_URL empty — using in-memory workspace store (single-pod only)")
+	}
+
+	// ---------------- Redis pod registry --------------------------------
+	registry, err := workspaces.New(workspaces.Config{
+		RedisURL:          strings.TrimSpace(os.Getenv("RUNTIME_REDIS_URL")),
+		PodIP:             strings.TrimSpace(os.Getenv("RUNTIME_POD_IP")),
+		KeyTTL:            90 * time.Second,
+		HeartbeatInterval: 30 * time.Second,
+	})
+	if err != nil {
+		logger.Warn().Err(err).Msg("redis registry init failed; running single-pod")
+		registry, _ = workspaces.New(workspaces.Config{})
+	}
+	if pingErr := registry.Ping(bgCtx); pingErr != nil {
+		logger.Warn().Err(pingErr).Msg("redis ping failed")
+	}
+	registry.Heartbeat(bgCtx)
+
+	// ---------------- S3 archiver + idle scanner ------------------------
+	archiver, err := workspaces.NewArchiver(bgCtx, workspaces.ArchiverConfig{
+		Bucket:      strings.TrimSpace(os.Getenv("WORKSPACE_S3_BUCKET")),
+		Region:      strings.TrimSpace(os.Getenv("WORKSPACE_S3_REGION")),
+		EFSRoot:     cfg.EFSMount,
+		Concurrency: cfg.ArchiveConcurrency,
+		Store:       store,
+	}, logger)
+	if err != nil {
+		logger.Warn().Err(err).Msg("archiver init failed; archives disabled")
+		archiver, _ = workspaces.NewArchiver(bgCtx, workspaces.ArchiverConfig{EFSRoot: cfg.EFSMount, Store: store}, logger)
+	}
+	idleScanner := workspaces.NewScanner(store, archiver, cfg.IdleArchiveAfter, 2*time.Minute, logger)
+	go idleScanner.Run(bgCtx)
+
+	// ---------------- Portability (state + snapshot) --------------------
+	// The portable workspace stack is additive: the legacy single-pod
+	// workspaces.* registry above keeps working, and the new state +
+	// snapshot layer powers cross-pod handoff. When POD_NAME isn't set
+	// (dev) the heartbeat/reaper goroutines short-circuit so we never
+	// reclaim our own dev workspaces.
+	var portState state.Store = state.NewMemoryStore()
+	if pool != nil {
+		bsCtx, bsCancel := context.WithTimeout(bgCtx, 10*time.Second)
+		if err := state.BootstrapPostgres(bsCtx, pool); err != nil {
+			logger.Warn().Err(err).Msg("portability: bootstrap postgres failed; using memory state store")
+		} else {
+			portState = state.NewPostgresStore(pool)
+			logger.Info().Msg("portability: postgres state store enabled")
+		}
+		bsCancel()
+	}
+	snapMgr, err := snapshot.New(bgCtx, snapshot.Config{
+		Bucket:    strings.TrimSpace(os.Getenv("WORKSPACE_BUCKET")),
+		Region:    strings.TrimSpace(os.Getenv("AWS_REGION")),
+		Prefix:    "workspaces",
+		Retention: 5,
+		KMSKeyID:  strings.TrimSpace(os.Getenv("WORKSPACE_KMS_KEY_ID")),
+	}, logger)
+	if err != nil {
+		logger.Warn().Err(err).Msg("portability: snapshot manager init failed; portability snapshots disabled")
+		snapMgr, _ = snapshot.New(bgCtx, snapshot.Config{}, logger)
+	}
+	if snapMgr.Enabled() {
+		logger.Info().Str("bucket", os.Getenv("WORKSPACE_BUCKET")).Msg("portability: S3 snapshots enabled")
+	}
+	podID := strings.TrimSpace(os.Getenv("POD_NAME"))
+	if podID == "" {
+		podID = strings.TrimSpace(os.Getenv("HOSTNAME"))
+	}
+	workingDir := strings.TrimSpace(os.Getenv("WORKSPACE_LIVE_DIR"))
+	if workingDir == "" {
+		workingDir = "/var/lib/ironflyer/live"
+	}
+
 	var verifier *auth.Verifier
 	if cfg.JWTSecret != "" {
 		verifier = auth.NewVerifier([]byte(cfg.JWTSecret), cfg.JWTIssuer)
@@ -45,23 +209,42 @@ func main() {
 
 	previewSecret := []byte(cfg.PreviewTokenSecret)
 	if len(previewSecret) == 0 && cfg.JWTSecret != "" {
-		// Reuse the JWT secret so preview tokens survive restarts in any
-		// deployment that has JWT configured. Still distinct domain via
-		// the token payload, but the key material can safely be shared
-		// because the signing protocols don't overlap.
 		previewSecret = []byte(cfg.JWTSecret)
 	}
+
+	portability := httpapi.Portability{
+		State:          portState,
+		Snapshots:      snapMgr,
+		PodID:          podID,
+		WorkingDir:     workingDir,
+		StaleAfter:     60 * time.Second,
+		HeartbeatEvery: 15 * time.Second,
+	}
+	handler := httpapi.New(mgr, httpapi.Options{
+		CORSOrigin:      cfg.CORSOrigin,
+		Verifier:        verifier,
+		PreviewPrefix:   cfg.PreviewPrefix,
+		AllowedPorts:    cfg.AllowedPreviewPorts,
+		PreviewSecret:   previewSecret,
+		PreviewTokenTTL: cfg.PreviewTokenTTL,
+		MaxWorkspaces:   cfg.MaxWorkspaces,
+		Lifecycle: httpapi.Lifecycle{
+			Store:    store,
+			Registry: registry,
+			Archiver: archiver,
+		},
+		Portability: portability,
+		// V22 Wave-2: every workspace create runs through the
+		// allocator's admission funnel; the quota enforcer is also the
+		// data source for the GET /quota/usage dashboard endpoint.
+		Allocator:     scaleRes.Allocator,
+		QuotaEnforcer: scaleRes.Quota,
+	}, logger)
+	httpapi.StartPortabilityWorkers(bgCtx, portability, logger)
+
 	server := &http.Server{
-		Addr: cfg.Addr,
-		Handler: httpapi.New(mgr, httpapi.Options{
-			CORSOrigin:      cfg.CORSOrigin,
-			Verifier:        verifier,
-			PreviewPrefix:   cfg.PreviewPrefix,
-			AllowedPorts:    cfg.AllowedPreviewPorts,
-			PreviewSecret:   previewSecret,
-			PreviewTokenTTL: cfg.PreviewTokenTTL,
-			MaxWorkspaces:   cfg.MaxWorkspaces,
-		}, logger),
+		Addr:              cfg.Addr,
+		Handler:           handler,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 	go func() {
@@ -74,9 +257,17 @@ func main() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 	<-stop
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	logger.Info().Msg("SIGTERM received — releasing owned workspaces")
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
-	_ = server.Shutdown(ctx)
+	// Release Redis claims so the next request lands on whichever pod
+	// the LB picks. PTY clients have already received their
+	// `pty.shutdown_imminent` frame at this point.
+	for _, id := range registry.OwnedIDs() {
+		registry.Release(shutdownCtx, id)
+	}
+	_ = server.Shutdown(shutdownCtx)
+	_ = registry.Close()
 }
 
 func buildLogger(cfg config.Config) zerolog.Logger {

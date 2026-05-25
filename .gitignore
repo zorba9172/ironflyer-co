@@ -4,6 +4,7 @@ node_modules/
 out/
 *.tsbuildinfo
 next-env.d.ts
+!apps/web/next-env.d.ts
 
 # Compiled SDK / package build outputs
 packages/*/dist/
@@ -26,6 +27,14 @@ vendor/
 *.exe
 *.test
 *.out
+# Compiled Go service binaries (built next to main.go) — never commit.
+apps/orchestrator/orchestrator
+apps/runtime/runtime
+apps/cli/cli
+
+# Third-party marketing asset packs (PSDs, MP4s, MOGRTs, huge PNGs) —
+# kept locally for design reference but not tracked.
+assets/market/
 
 # Env / secrets
 .env

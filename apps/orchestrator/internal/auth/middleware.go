@@ -1,3 +1,15 @@
+// CSRF posture: this orchestrator authenticates EVERY protected route via
+// the Authorization: Bearer <jwt> header (with a ?token= query-string
+// fallback for SSE/EventSource, which cannot set headers — see
+// extractToken below). There is NO cookie path: the JWT is never read
+// from, nor written to, an HTTP cookie anywhere in this package. CSRF
+// attacks rely on the browser auto-attaching credentials (cookies, HTTP
+// auth) cross-origin; Authorization headers are not auto-attached, so
+// the API is structurally immune. CSRF middleware (gorilla/csrf, double-
+// submit tokens, SameSite cookies) is therefore intentionally not wired
+// in. If ANY future endpoint ever accepts the JWT from a cookie, this
+// invariant breaks and a CSRF token mechanism MUST be added before that
+// endpoint ships.
 package auth
 
 import (

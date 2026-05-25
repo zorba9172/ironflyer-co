@@ -1,0 +1,59 @@
+// Ironflyer blueprint: go-http-api.
+// Chi-based HTTP service with a /healthz probe, a CRUD /items
+// surface, and a Postgres-backed store. Read DATABASE_URL from the
+// environment; default port is :8080 (override via PORT).
+package main
+
+import (
+	"context"
+	"log"
+	"net/http"
+	"os"
+	"time"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+
+	"ironflyer.app/blueprint/go-http-api/handlers"
+	"ironflyer.app/blueprint/go-http-api/store"
+)
+
+func main() {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	st, err := store.Open(ctx, os.Getenv("DATABASE_URL"))
+	if err != nil {
+		log.Fatalf("store open: %v", err)
+	}
+	defer st.Close()
+
+	r := chi.NewRouter()
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+	r.Use(middleware.Timeout(30 * time.Second))
+
+	r.Get("/healthz", handlers.Health)
+	r.Route("/items", func(r chi.Router) {
+		r.Get("/", handlers.ListItems(st))
+		r.Post("/", handlers.CreateItem(st))
+		r.Get("/{id}", handlers.GetItem(st))
+		r.Delete("/{id}", handlers.DeleteItem(st))
+	})
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	srv := &http.Server{
+		Addr:              ":" + port,
+		Handler:           r,
+		ReadHeaderTimeout: 5 * time.Second,
+	}
+	log.Printf("listening on %s", srv.Addr)
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		log.Fatalf("server: %v", err)
+	}
+}

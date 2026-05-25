@@ -18,6 +18,9 @@ data:
   OTEL_EXPORTER_OTLP_ENDPOINT: {{ .Values.otel.endpoint | quote }}
   OTEL_SERVICE_NAME: "ironflyer-runtime"
   {{- end }}
+  # Sentry trace sampling rate. DSN itself comes from the Sentry Secret
+  # via env.secretKeyRef below so it never appears in this ConfigMap.
+  SENTRY_TRACES_SAMPLE: {{ .Values.sentry.tracesSampleRate | quote }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -80,6 +83,38 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.orchestrator.secrets.name }}
                   key: IRONFLYER_JWT_SECRET
+            # Runtime doesn't speak to Postgres directly today, but the
+            # workspace driver may emit ledger rows in future. Wire the
+            # Secret-backed DSN now so credentials never leak via ConfigMap.
+            - name: POSTGRES_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ironflyer.postgresSecretName" . }}
+                  key: POSTGRES_URL
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ironflyer.postgresSecretName" . }}
+                  key: postgres-password
+            {{- if include "ironflyer.sentryEnabled" . }}
+            # Sentry DSNs — RUNTIME_SENTRY_DSN takes precedence over the
+            # shared SENTRY_DSN inside the runtime binary, so dashboards
+            # can split orchestrator vs runtime events without a shared
+            # project. `optional: true` so a Secret missing one key (e.g.
+            # only the shared SENTRY_DSN is populated) still mounts.
+            - name: RUNTIME_SENTRY_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ironflyer.sentrySecretName" . }}
+                  key: RUNTIME_SENTRY_DSN
+                  optional: true
+            - name: SENTRY_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ironflyer.sentrySecretName" . }}
+                  key: SENTRY_DSN
+                  optional: true
+            {{- end }}
           startupProbe:
             httpGet: { path: /readyz, port: http }
             periodSeconds: 5
@@ -107,6 +142,8 @@ spec:
             readOnlyRootFilesystem: {{ .Values.runtime.readOnlyRootFilesystem }}
             capabilities:
               drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
           lifecycle:
             preStop:
               exec:

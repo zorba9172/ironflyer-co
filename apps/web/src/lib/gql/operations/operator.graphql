@@ -1,0 +1,47 @@
+# Operator-only surface. The resolver layer enforces
+# operator.RequireOperator and returns FORBIDDEN for any non-operator
+# caller. Consumed by /operator (A50).
+
+query OperatorPendingApprovals($tenantID: ID) {
+  operatorPendingApprovals(tenantID: $tenantID) {
+    ...DeployApprovalCore
+  }
+}
+
+query OperatorAbuseScore($tenantID: ID!, $userID: ID!) {
+  operatorAbuseScore(tenantID: $tenantID, userID: $userID) {
+    tenantID
+    userID
+    score
+    tier
+  }
+}
+
+query OperatorScaleSnapshot {
+  operatorScaleSnapshot {
+    activeExecutions
+    queuedExecutions
+    sandboxCapacity
+    workerUtilizationPct
+  }
+}
+
+query OperatorWalletSnapshot($tenantID: ID!) {
+  operatorWalletSnapshot(tenantID: $tenantID) {
+    tenantID
+    balanceUSD
+    holdUSD
+    lifetimeTopUpUSD
+    lifetimeSpendUSD
+  }
+}
+
+query OperatorAuditCursor($since: DateTime!, $limit: Int) {
+  operatorAuditCursor(since: $since, limit: $limit) {
+    id
+    timestamp
+    action
+    outcome
+    hash
+  }
+}

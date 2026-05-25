@@ -1,0 +1,72 @@
+# V22 dashboards (Agent 7). Read-only operator views surfaced by the
+# `internal/dashboards/` aggregator. Resolvers and the concrete source
+# adapters are wired by Agent 8 — this schema file is declarative only.
+#
+# The blueprint stats type is intentionally renamed to
+# `DashboardBlueprintStats` to avoid a name collision with the
+# `BlueprintStats` type owned by the blueprints package's GraphQL
+# schema.
+
+extend type Query {
+  profitDashboard(since: DateTime!, until: DateTime!): ProfitDashboard!
+  scaleDashboard: ScaleDashboard!
+  cohortDashboard(sinceMonth: DateTime!): CohortDashboard!
+  blueprintDashboard: BlueprintDashboard!
+}
+
+type ProfitDashboard {
+  windowStart: DateTime!
+  windowEnd: DateTime!
+  revenueUSD: Float!
+  providerCostUSD: Float!
+  sandboxCostUSD: Float!
+  otherCostUSD: Float!
+  grossProfitUSD: Float!
+  grossMarginPct: Float!
+  activeExecutions: Int!
+  blockedExecutions: Int!
+  refundCount: Int!
+  topUpRate: Float!
+}
+
+type ScaleDashboard {
+  activeExecutions: Int!
+  queuedExecutions: Int!
+  queueWaitSec: Float!
+  sandboxCapacity: Int!
+  workerUtilizationPct: Float!
+  scaleHealth: Float!
+}
+
+type CohortDashboard {
+  cohorts: [Cohort!]!
+}
+
+type Cohort {
+  month: DateTime!
+  newPayingUsers: Int!
+  secondExecutionUsers: Int!
+  day7RepeatUsers: Int!
+  day30RepeatUsers: Int!
+  avgSpendUSD: Float!
+  grossMarginPct: Float!
+  completionRate: Float!
+  refundRate: Float!
+  supportTicketsPerExec: Float!
+}
+
+type BlueprintDashboard {
+  blueprints: [DashboardBlueprintStats!]!
+}
+
+type DashboardBlueprintStats {
+  blueprintID: String!
+  executions: Int!
+  avgRevenueUSD: Float!
+  avgCostUSD: Float!
+  grossMarginPct: Float!
+  previewSuccess: Int!
+  refunds: Int!
+  repairCount: Int!
+  avgCompletionScore: Float!
+}

@@ -176,7 +176,17 @@ func (v *VectorStore) Query(ctx context.Context, q Query) ([]Record, error) {
 	return out, nil
 }
 
+// GetByID delegates to the inner store. The vector cache is per-id but
+// does not hold a Record so we cannot answer without the inner store.
+func (v *VectorStore) GetByID(ctx context.Context, id string) (Record, error) {
+	return v.Inner.GetByID(ctx, id)
+}
+
 // Delete clears the cached vector and delegates.
+//
+// TENANT ISOLATION: ownership-check is the caller's job; the wrapper
+// does NOT re-derive the owner from the cached vector entry. See the
+// invariant on memory.Store.
 func (v *VectorStore) Delete(ctx context.Context, id string) error {
 	v.vectors.Delete(id)
 	return v.Inner.Delete(ctx, id)

@@ -1,0 +1,101 @@
+# Project + file domain. Maps onto store.Store / domain.Project.
+#
+# V22 trims this surface: GitHub import, Figma import, subprojects,
+# visual targets, brainstorm, projectGraph, and code search are
+# deferred or out of scope per docs/V22_PLAN.md. The finisher loop
+# still runs via runFinisher + the runProject subscription so the
+# core execution path stays exercised.
+
+type Project {
+  id: ID!
+  name: String!
+  description: String
+  status: String!
+  ownerId: ID!
+  isPublic: Boolean!
+  idea: String
+  files: [ProjectFile!]!
+  # Per-project gate verdicts. Equivalent to the top-level
+  # `gates(projectId)` query — exposed here so a single round-trip
+  # selects project + gates.
+  gates: [GateVerdict!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type ProjectFile {
+  path: String!
+  content: String
+  size: Int
+  language: String
+  updatedAt: DateTime
+}
+
+input CreateProjectInput {
+  id: ID
+  name: String!
+  description: String
+  idea: String
+}
+
+input UpdateProjectInput {
+  name: String
+  description: String
+  idea: String
+  status: String
+}
+
+extend type Query {
+  # Canonical owner-scoped project list. limit/offset paginate over
+  # the caller's projects (plus public seeds) newest-first as the
+  # store returns them. Defaults mirror what the dashboard expects so
+  # `projects` with no args remains the friendly path.
+  projects(limit: Int = 50, offset: Int = 0): [Project!]!
+  project(id: ID!): Project
+  projectFiles(id: ID!): [ProjectFile!]!
+}
+
+extend type Mutation {
+  createProject(input: CreateProjectInput!): Project!
+  updateProject(id: ID!, input: UpdateProjectInput!): Project!
+  deleteProject(id: ID!): OperationResult!
+  bulkDeleteProjects(ids: [ID!]!): OperationResult!
+  runFinisher(id: ID!): JSON!
+  promptPlan(id: ID!, prompt: String!): JSON!
+}
+
+extend type Subscription {
+  # Live execution stream for the finisher loop on a single project.
+  # Each event is a typed envelope so clients can branch on `__typename`.
+  runProject(projectId: ID!): RunEvent!
+}
+
+union RunEvent =
+    RunExecutionEvent
+  | RunGateEvent
+  | RunDoneEvent
+  | RunErrorEvent
+
+type RunExecutionEvent {
+  ts: DateTime!
+  payload: JSON!
+}
+
+type RunGateEvent {
+  ts: DateTime!
+  gate: String!
+  status: String!
+  message: String
+}
+
+type RunDoneEvent {
+  ts: DateTime!
+  ok: Boolean!
+  summary: JSON
+}
+
+type RunErrorEvent {
+  ts: DateTime!
+  code: String!
+  message: String!
+}

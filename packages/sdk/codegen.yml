@@ -1,0 +1,44 @@
+# GraphQL Code Generator config for @ironflyer/sdk.
+#
+# Reads the orchestrator schema directly from the monorepo and the
+# curated public operations from src/operations.graphql, then emits a
+# typed graphql-request SDK into src/gql/. Subscriptions are NOT in the
+# generated SDK — they're wired manually via graphql-ws in src/client.ts.
+#
+# Run via `npm run codegen` after editing operations.graphql or after
+# the upstream schema changes.
+
+schema:
+  - "../../apps/orchestrator/internal/graph/schema/*.graphql"
+
+documents:
+  - "src/operations.graphql"
+
+generates:
+  src/gql/index.ts:
+    plugins:
+      - typescript
+      - typescript-operations
+      - typescript-graphql-request
+    config:
+      avoidOptionals:
+        field: false
+        inputValue: false
+        object: false
+        defaultValue: true
+      maybeValue: "T | null"
+      enumsAsTypes: true
+      useTypeImports: true
+      skipTypename: false
+      scalars:
+        DateTime: "string"
+        JSON: "unknown"
+        Decimal: "string"
+        Upload: "File | Blob"
+
+config:
+  noSilentErrors: true
+
+hooks:
+  afterAllFileWrite:
+    - "node -e \"console.log('@ironflyer/sdk: codegen complete')\""

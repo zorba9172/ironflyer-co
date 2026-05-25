@@ -1,4 +1,13 @@
 {{- if .Values.orchestrator.enabled -}}
+{{- /*
+Multi-region guardrail. Production releases set `.Values.requireRegion: true`
+so a chart shipped with `.Values.region == "unknown"` fails at template-render
+time rather than landing in the cluster as an unlabelled, audit-trail-broken
+deployment. See docs/MULTI_REGION.md § Operator responsibility.
+*/ -}}
+{{- if and .Values.requireRegion (eq (.Values.region | default "unknown") "unknown") -}}
+{{- fail "values.region is required (eu | us | il). Set --set region=<code> or disable the guardrail with --set requireRegion=false. See docs/MULTI_REGION.md." -}}
+{{- end -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -9,7 +18,12 @@ metadata:
 data:
   IRONFLYER_ADDR: ":8080"
   IRONFLYER_RUNTIME_URL: "http://runtime:8090"
-  POSTGRES_URL: {{ printf "postgres://%s:%s@postgres:5432/%s?sslmode=disable" .Values.postgres.user .Values.postgres.password .Values.postgres.database | quote }}
+  # POSTGRES_URL is intentionally NOT in this ConfigMap. The Postgres DSN
+  # (which embeds the password) lives in the Secret minted by
+  # templates/postgres-secret.yaml — or in `.Values.postgres.existingSecret`
+  # when you bring your own — and is injected into the orchestrator
+  # container via env.secretKeyRef below. ConfigMaps are plaintext and
+  # cluster-readable; database credentials must never land in one.
   GITHUB_REDIRECT_URL: {{ printf "https://%s/auth/github/callback" .Values.host | quote }}
   GITHUB_POST_LOGIN_URL: {{ printf "https://%s/app" .Values.host | quote }}
   STRIPE_SUCCESS_URL: {{ printf "https://%s/app/settings?stripe=success" .Values.host | quote }}
@@ -22,10 +36,18 @@ data:
   {{- end }}
   IRONFLYER_EMAIL_PROVIDER: {{ .Values.orchestrator.email.provider | quote }}
   IRONFLYER_EMAIL_FROM: {{ .Values.orchestrator.email.from | quote }}
+  # Data-residency stamp. Read by the orchestrator's audit + storage
+  # layers so every persisted event proves which region processed it.
+  # Must match `.Values.region`. See docs/compliance/DATA_RESIDENCY.md.
+  IRONFLYER_DATA_RESIDENCY: {{ .Values.region | default "unknown" | quote }}
   {{- if .Values.otel.enabled }}
   OTEL_EXPORTER_OTLP_ENDPOINT: {{ .Values.otel.endpoint | quote }}
   OTEL_SERVICE_NAME: "ironflyer-orchestrator"
   {{- end }}
+  # Sentry — the DSN itself is wired via env.secretKeyRef below so it
+  # never lands in this ConfigMap. SENTRY_TRACES_SAMPLE controls trace
+  # sampling and is non-sensitive, so it stays here.
+  SENTRY_TRACES_SAMPLE: {{ .Values.sentry.tracesSampleRate | quote }}
   {{- range $k, $v := .Values.orchestrator.config }}
   {{ $k }}: {{ $v | quote }}
   {{- end }}
@@ -90,6 +112,32 @@ spec:
           envFrom:
             - configMapRef: { name: orchestrator-config }
             - secretRef:    { name: {{ .Values.orchestrator.secrets.name }} }
+          env:
+            # Database credentials come exclusively from the Postgres Secret
+            # — never from the ConfigMap. See templates/postgres-secret.yaml
+            # and `.Values.postgres.existingSecret`.
+            - name: POSTGRES_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ironflyer.postgresSecretName" . }}
+                  key: POSTGRES_URL
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ironflyer.postgresSecretName" . }}
+                  key: postgres-password
+            {{- if include "ironflyer.sentryEnabled" . }}
+            # Sentry DSN — sourced from the chart-minted Secret or
+            # `.Values.sentry.existingSecret`. An empty value keeps the
+            # SDK in no-op mode, so a partially-configured Sentry Secret
+            # is still safe to ship.
+            - name: SENTRY_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ironflyer.sentrySecretName" . }}
+                  key: SENTRY_DSN
+                  optional: true
+            {{- end }}
           startupProbe:
             httpGet: { path: /readyz, port: http }
             periodSeconds: 5

@@ -1,28 +1,45 @@
 # Ironflyer
 
-**AI Product Finisher** — combines Lovable + Base44 + Copilot on steroids,
-engineered to actually finish real products end-to-end.
+**Paid AI execution engine** — ships finished products end-to-end on
+prepaid wallet credits, with hard economic enforcement at every step.
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for the locked spec.
+- Architecture: [ARCHITECTURE.md](ARCHITECTURE.md)
+- Implementation contract: [docs/V22_PLAN.md](docs/V22_PLAN.md)
+- Closeout plan: [docs/PROJECT_CLOSEOUT_PLAN.md](docs/PROJECT_CLOSEOUT_PLAN.md)
+- Economic proof pack:
+  [docs/ironflyer_deep_atomic_plan_v22_profit_scale_proof_pack/](docs/ironflyer_deep_atomic_plan_v22_profit_scale_proof_pack/)
 
-## What's in the box (current state)
+## Hard economic laws
 
-- **Go orchestrator** with streaming-first provider router, Anthropic Claude
-  adapter (caching + extended thinking + tools), Temporal workflow engine,
-  patch lifecycle, finisher gates, brainstorm strategist.
-- **Self-managing budget** — subscription tiers, rate sheet, per-user
-  ledger, company vault, optimizer (cheapest model that satisfies the
-  required capabilities), enforcer (admit/downgrade/block).
-- **Workspace runtime** — per-user sandboxes via Mock or Docker driver,
-  File API, PTY WebSocket bridge for live terminals.
-- **Next.js + MUI dashboard** — output.com aesthetic, lovable.dev flow,
-  streaming chat with token deltas, Finisher gates panel, Budget meter,
-  Brainstorm pane, PWA manifest for mobile take-away.
+1. **No execution starts without budget.** Wallet balance ≥ reservation
+   or the API returns 402 Payment Required with a `top_up_url`.
+2. **No expensive reasoning runs without expected ROI.** ProfitGuard
+   gates every premium model call, sandbox allocation, retry loop,
+   long verification, and large artifact write.
+3. **No scale is considered healthy unless gross margin stays
+   protected.**
+
+## What's in the box
+
+- **Go orchestrator** with streaming-first provider router (Anthropic
+  Claude, OpenAI, Gemini, HuggingFace, DeepSeek, Vercel AI Gateway),
+  patch lifecycle, finisher gates, audit hash chain, append-only
+  ledger, and wallet-aware billing guard. Wallet, execution,
+  ProfitGuard, blueprints, repair recipes, completion scoring, and
+  dashboards are owned by Agents 2-7 of the V22 overhaul.
+- **Workspace runtime** — per-user sandboxes via Mock or Docker
+  driver, File API, PTY WebSocket bridge for live terminals, and the
+  code-server based cloud IDE path.
+- **Next.js + MUI Studio cockpit** — wallet, execution, profit, scale,
+  Studio, preview, deploy and cloud IDE entry points. Web UI changes
+  are governed by [`apps/web/DESIGN_REFERENCE.md`](apps/web/DESIGN_REFERENCE.md)
+  and [`design-reference/2026-05-25-private-ironflyer/`](design-reference/2026-05-25-private-ironflyer/).
+- **VSCode extension** — thin client for chat + gates + patches.
 
 ## Quick start (dev)
 
 ```bash
-# 1. Optional: spin up infra (Postgres, Redis, MinIO, Temporal, code-server)
+# 1. Optional: spin up infra (Postgres, Redis, MinIO, code-server)
 docker compose -f infra/compose/docker-compose.dev.yml up -d
 
 # 2. Run orchestrator (defaults to mock provider; export ANTHROPIC_API_KEY for real)
@@ -40,113 +57,83 @@ cd apps/web && npm install && npm run dev
 
 ## Environment
 
-| Var | Default | Purpose |
-| --- | --- | --- |
-| `IRONFLYER_ADDR` | `:8080` | Orchestrator listen addr |
-| `IRONFLYER_ENV` | `dev` | dev / staging / prod |
-| `IRONFLYER_LOG_FORMAT` | `console` | `console` or `json` |
-| `IRONFLYER_EXECUTOR` | `embedded` | `embedded` or `temporal` |
-| `TEMPORAL_ADDR` | `localhost:7233` | when executor=temporal |
-| `ANTHROPIC_API_KEY` | _(empty)_ | enable real Claude streaming |
-| `ANTHROPIC_MODEL` | `claude-opus-4-7` | preferred Claude model |
-| `OPENAI_API_KEY` | _(empty)_ | reserved |
-| `IRONFLYER_RUNTIME_ADDR` | `:8090` | Workspace runtime listen addr |
-| `IRONFLYER_RUNTIME_DRIVER` | `mock` | `mock` or `docker` |
-| `STRIPE_SECRET_KEY` | _(empty)_ | enable `/budget/checkout` + webhook |
-| `STRIPE_WEBHOOK_SECRET` | _(empty)_ | required to verify Stripe webhooks |
-| `STRIPE_PRICE_PRO` / `_TEAM` / `_ENTERPRISE` | _(empty)_ | Stripe price IDs per tier |
-| `STRIPE_SUCCESS_URL` | `http://localhost:3000/app/settings?stripe=success` | post-checkout redirect |
-| `STRIPE_CANCEL_URL` | `http://localhost:3000/pricing?stripe=cancel` | abandoned-checkout redirect |
+The orchestrator + runtime are configured by env vars. The full list,
+with secret tables for the production install, lives in
+[`DEPLOY.md`](DEPLOY.md) § 4. For local-only dev the defaults work;
+the most common dev overrides are:
+
+- `ANTHROPIC_API_KEY` — enable real Claude streaming.
+- `OPENAI_API_KEY` / `GEMINI_API_KEY` / `HF_API_KEY` /
+  `DEEPSEEK_API_KEY` — enable additional providers in the bandit.
+- `IRONFLYER_RUNTIME_DRIVER=docker` — switch the runtime off the mock
+  driver to real Docker sandboxes.
+- `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` + `STRIPE_PRICE_*` —
+  enable the wallet top-up Checkout flow.
 
 ## Monorepo
 
 | Path | Purpose |
 | --- | --- |
-| `apps/api` | Public API gateway (reserved) |
-| `apps/orchestrator` | Finisher engine + gates + repair loop + budget + brainstorm |
-| `apps/inference` | ONNX private AI (reserved) |
-| `apps/runtime` | Workspace runtime — sandboxes, File API, PTY WS |
-| `apps/web` | Next.js + MUI dashboard |
-| `apps/mobile` | PWA mobile shell (web is PWA-installable) |
-| `apps/vscode-extension` | VSCode extension — thin client (sidebar, chat, finisher, budget) |
-| `packages/agents` | Agent prompts + JSON schemas (reserved) |
-| `packages/design-tokens` | output.com-inspired tokens |
-| `packages/ui`, `packages/sdk` | Reserved |
-| `services/figma-slicer` | Figma → component tree (reserved) |
-| `services/patch-engine`, `services/sandbox` | Reserved |
-| `infra/` | Compose / Docker / k8s |
+| `apps/orchestrator` | Finisher engine + gates + wallet + ledger + ProfitGuard + auth |
+| `apps/runtime`      | Workspace runtime — sandboxes, File API, PTY WS |
+| `apps/web`          | Next.js + MUI dashboard (wallet, profit, scale views) |
+| `apps/cli`          | Operator CLI |
+| `apps/vscode-extension` | VSCode extension — thin client |
+| `packages/design-tokens` | IronFlyer design tokens implementing the locked reference |
+| `packages/sdk`      | TypeScript client SDK |
+| `packages/agents`   | Agent prompts + JSON schemas (reserved) |
+| `infra/`            | Compose / Docker / k8s / Helm |
 
-## Key endpoints
+## API documentation
 
-### Orchestrator
-- `GET  /health` · `GET /agents`
-- `GET  /projects` · `POST /projects` · `GET /projects/{id}`
-- `POST /projects/{id}/run` — finisher loop (gates + repair)
-- `GET  /projects/{id}/stream` — execution SSE
-- `POST /projects/{id}/chat` — streaming chat SSE (POST)
-- `POST /projects/{id}/brainstorm` — Strategist + Runner
-- `GET  /projects/{id}/files` · `POST /projects/{id}/patches` · `POST /patches/{id}/apply`
-- `GET  /budget/plans` · `/budget/rates` · `/budget/vault` · `/budget/users/me`
-- `POST /budget/checkout` (auth) — body `{tier}`, returns `{url}` to Stripe
-- `POST /budget/webhook` (Stripe-signed) — checkout/invoice/refund events
+The orchestrator's API of record is **GraphQL**. The schema is the
+single source of truth — see
+`apps/orchestrator/internal/graph/schema/*.graphql`.
 
-### Runtime (workspace)
-- `POST   /workspaces` — create per-user workspace
-- `GET    /workspaces/{id}` — status
-- `DELETE /workspaces/{id}` — teardown
-- `GET    /workspaces/{id}/files` — list files
-- `GET    /workspaces/{id}/files/*path` — read file
-- `PUT    /workspaces/{id}/files/*path` — write file
-- `DELETE /workspaces/{id}/files/*path` — delete file
-- `GET    /workspaces/{id}/terminal` — WebSocket → PTY
-- `POST   /workspaces/{id}/exec` — one-shot command, returns `{stdout, stderr, exitCode, durationMs, timedOut?, truncatedAt?}`
+| Surface                  | URL                       | Transport                   |
+| ------------------------ | ------------------------- | --------------------------- |
+| Queries / mutations      | `POST /graphql`           | HTTP                        |
+| Persisted-query GETs     | `GET  /graphql`           | HTTP                        |
+| Subscriptions            | `WS   /graphql`           | `graphql-transport-ws`      |
+| Live schema + playground | `GET  /graphql/sandbox`   | HTML (Apollo Sandbox embed) |
 
-## Branded cloud IDE
+Visit `/graphql/sandbox` in a browser to explore the schema, paste a
+JWT into the HTTP Headers tab, and run live queries.
 
-The Docker driver provisions a per-user code-server container. By default it
-uses our Ironflyer-branded build:
+REST is reserved for k8s probes (`/healthz`, `/livez`, `/readyz`,
+`/version`), Prometheus (`/metrics`), and the Stripe webhook
+(`/budget/webhook`). New features land as GraphQL operations — see
+[`CLAUDE.md`](CLAUDE.md).
 
-```bash
-docker build -f infra/docker/ironflyer-code.Dockerfile \
-  -t ghcr.io/zorba9172/ironflyer-code:latest .
-```
+## Operations
 
-The image bakes in:
+Everything operational — install, upgrade, rollback, runbooks, SLOs,
+DR, scale, multi-region — lives behind a single index:
 
-- A dark + lime VS Code theme via `workbench.colorCustomizations` (no
-  separate extension required).
-- Pre-installed extensions: Go, Prettier, ESLint, EditorConfig, GitLens.
-- Telemetry off, updates disabled, format-on-save on.
-- A branded welcome page at `~/.config/welcome.html`.
+**[`docs/OPERATIONS.md`](docs/OPERATIONS.md)** — the page operators
+bookmark.
 
-The `web` app renders the per-project IDE inside an iframe in the
-**Project → IDE** tab; clicking the share icon opens it in a new tab.
-Override the image at runtime by setting `IRONFLYER_RUNTIME_DOCKER_IMAGE`.
+If you're installing for the first time, start at
+[`DEPLOY.md`](DEPLOY.md).
 
-## VSCode extension
+## Architecture Closeout
 
-For users who already live in VSCode, the `apps/vscode-extension` package
-ships a thin client that talks to the same orchestrator. It does **not**
-fork or replace VSCode — it adds a Projects sidebar, a streaming chat
-panel, a Run Finisher command, and a budget status bar item, then gets out
-of the way for editing, terminal, and git (VSCode already does those well).
+V22 now has explicit, non-overlapping architecture planes:
 
-```bash
-cd apps/vscode-extension
-npm install && npm run build
-# F5 in VSCode to launch an Extension Development Host, or:
-npm run package    # produces ironflyer-0.1.0.vsix
-```
-
-Sign-in: `Ironflyer: Sign In` opens the web app's `/login` page with a
-`vscode://ironflyer.ironflyer/auth` callback; after login the web app
-hands the JWT back over the URI handler and stores it in VSCode
-`SecretStorage`. No API keys to paste.
+- [Events / Redpanda](docs/ARCHITECTURE_EVENTS.md)
+- [Analytics / ClickHouse](docs/ARCHITECTURE_ANALYTICS.md)
+- [Durable Workflows / Temporal](docs/ARCHITECTURE_WORKFLOWS.md)
+- [AI Memory Graph / SurrealDB](docs/ARCHITECTURE_MEMORY_GRAPH.md)
+- [Runtime Scale / Sandboxes](docs/ARCHITECTURE_RUNTIME_SCALE.md)
+- [Policy, Security, Trust](docs/ARCHITECTURE_POLICY_SECURITY.md)
+- [Project Closeout Plan](docs/PROJECT_CLOSEOUT_PLAN.md)
 
 ## Status
 
-Phase 1 — runnable foundation with streaming chat, multi-agent brainstorm,
-self-managing budget, Temporal workflow, and cloud workspace runtime.
-Mock providers/drivers make everything work without external credentials.
-
-Next: ONNX inference service, Figma slicer, finisher gates against real files.
+V22 is in commercial closeout. The backend foundation builds, the
+wallet/ledger/execution/ProfitGuard surface is present, and the current
+priority is closing the paid execution loop end-to-end: every agent call
+through BillingGuard, durable events through Redpanda, margin analytics
+through ClickHouse, long executions through Temporal, and AI memory
+through SurrealDB. The web surface is intentionally next: rebuild it as
+an execution cockpit against GraphQL and the SDK.

@@ -1,0 +1,107 @@
+# V22 Execution surface.
+#
+# An Execution is one paid run of the finisher. createPaidExecution
+# (after wallet hold) → Admit → Start → repeated cost/score updates →
+# Succeed | Fail | Stop | Kill → optional Refund. The full FSM lives
+# in apps/orchestrator/internal/execution/fsm.go.
+#
+# `scalar JSON` and `scalar DateTime` are declared in zbase.graphql.
+
+extend type Query {
+  # execution returns the row for id, or null if it does not exist /
+  # the caller has no access. Resolver MUST enforce tenant ownership.
+  execution(id: ID!): Execution
+
+  # executions returns the most recent executions for the calling
+  # tenant, newest first. Pagination is offset-based for parity with
+  # the dashboards; switch to cursors when a single tenant approaches
+  # the natural offset limit.
+  executions(limit: Int = 50, offset: Int = 0): [Execution!]!
+
+  # projectExecutions returns the most recent executions scoped to a
+  # single project. Same tenant-owner check as `executions`; clients
+  # use this on the studio /p/[projectID] path so the page does not
+  # have to scan the full tenant window to find the project's run.
+  projectExecutions(projectId: ID!, limit: Int = 50, offset: Int = 0): [Execution!]!
+}
+
+extend type Mutation {
+  # createPaidExecution opens a new execution in `created` status.
+  # The resolver places the wallet hold (law 1) before returning; if
+  # the wallet has insufficient available balance it returns the
+  # standard 402-style GraphQL error with a top_up_url extension.
+  createPaidExecution(input: CreatePaidExecutionInput!): Execution!
+
+  # stopExecution moves the execution to `stopped`. Used by the UI
+  # stop button, CLI, and the ProfitGuard stop verdict path.
+  stopExecution(id: ID!, reason: String!): Execution!
+
+  # refundExecution records a wallet credit-back on a terminal
+  # execution. amountUSD defaults to the unused reserve when omitted.
+  refundExecution(id: ID!, amountUSD: Float, reason: String): Execution!
+}
+
+extend type Subscription {
+  # executionFeed streams the event log for a single execution. Events
+  # carry their type (created/admitted/started/cost_added/…) and a
+  # JSON payload — see internal/execution/events.go for the event
+  # vocabulary.
+  executionFeed(id: ID!): ExecutionEvent!
+}
+
+input CreatePaidExecutionInput {
+  projectID: ID
+  blueprintID: String
+  budgetUSD: Float!
+  stopLossUSD: Float
+  promptSummary: String
+  metadata: JSON
+}
+
+# Execution is the GraphQL projection of one `executions` row. Money
+# fields are Float USD for client convenience; the durable source of
+# truth is decimal.Decimal in the orchestrator.
+type Execution {
+  id: ID!
+  tenantID: ID!
+  projectID: ID
+  blueprintID: String
+  # workspaceID is the runtime sandbox bound to this execution. The
+  # finisher engine stamps it the moment a workspace is resolved/
+  # allocated; null for legacy executions and for runs that never
+  # spun up a sandbox. Frontends use it to address the workspace API
+  # (preview URL, file tree, PTY) without a second lookup.
+  workspaceID: String
+  status: String!
+  budgetUSD: Float!
+  reservedUSD: Float!
+  spentUSD: Float!
+  refundedUSD: Float!
+  revenueUSD: Float!
+  providerCostUSD: Float!
+  sandboxCostUSD: Float!
+  storageCostUSD: Float!
+  deploymentCostUSD: Float!
+  completionScore: Float!
+  grossMarginPct: Float
+  expectedCompletionDelta: Float
+  riskScore: Float
+  stopLossUSD: Float
+  promptSummary: String
+  failureReason: String
+  metadata: JSON!
+  createdAt: DateTime!
+  admittedAt: DateTime
+  startedAt: DateTime
+  endedAt: DateTime
+}
+
+# ExecutionEvent is one row from execution_events flattened for the
+# subscription stream. payload is event-type-specific JSON; clients
+# switch on eventType and decode accordingly.
+type ExecutionEvent {
+  executionID: ID!
+  eventType: String!
+  payload: JSON!
+  createdAt: DateTime!
+}

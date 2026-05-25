@@ -1,0 +1,329 @@
+# Operations consumed by the VSCode extension. Codegen emits typed
+# document nodes into src/gql/ from this file. Keep operation names
+# unique — Apollo's normalized cache keys off them.
+
+# ---------------- auth ----------------
+
+query Me {
+  me {
+    id
+    email
+    name
+    plan
+  }
+}
+
+# ---------------- projects ----------------
+
+fragment ProjectSummary on Project {
+  id
+  name
+  description
+  status
+  ownerId
+  isPublic
+  idea
+  files {
+    path
+    size
+    language
+  }
+}
+
+query Projects {
+  projects {
+    ...ProjectSummary
+  }
+}
+
+query ProjectById($id: ID!) {
+  project(id: $id) {
+    ...ProjectSummary
+  }
+}
+
+query ProjectFiles($id: ID!) {
+  projectFiles(id: $id) {
+    path
+    content
+    size
+    language
+  }
+}
+
+query ProjectGraphView($id: ID!) {
+  projectGraph(id: $id) {
+    nodes {
+      id
+      path
+      language
+      size
+    }
+    edges {
+      from
+      to
+      kind
+    }
+  }
+}
+
+mutation CreateProject($input: CreateProjectInput!) {
+  createProject(input: $input) {
+    ...ProjectSummary
+  }
+}
+
+mutation RunFinisher($id: ID!) {
+  runFinisher(id: $id)
+}
+
+subscription RunProject($projectId: ID!) {
+  runProject(projectId: $projectId) {
+    __typename
+    ... on RunExecutionEvent {
+      ts
+      payload
+    }
+    ... on RunGateEvent {
+      ts
+      gate
+      status
+      gateMessage: message
+    }
+    ... on RunDoneEvent {
+      ts
+      ok
+      summary
+    }
+    ... on RunErrorEvent {
+      ts
+      code
+      errorMessage: message
+    }
+  }
+}
+
+# ---------------- gates ----------------
+
+fragment GateVerdictView on GateVerdict {
+  gate
+  status
+  startedAt
+  finishedAt
+  durationMs
+  notes
+  issues {
+    path
+    line
+    rule
+    severity
+    message
+  }
+}
+
+query Gates($projectId: ID!) {
+  gates(projectId: $projectId) {
+    ...GateVerdictView
+  }
+}
+
+mutation RerunGate($projectId: ID!, $gate: String!) {
+  rerunGate(projectId: $projectId, gate: $gate) {
+    ...GateVerdictView
+  }
+}
+
+# ---------------- patches ----------------
+
+fragment PatchView on Patch {
+  id
+  projectId
+  title
+  summary
+  author
+  status
+  createdAt
+  appliedAt
+  changes {
+    op
+    path
+    content
+    anchor
+    replacement
+    symbol
+  }
+}
+
+query Patches($projectId: ID!) {
+  patches(projectId: $projectId) {
+    ...PatchView
+  }
+}
+
+mutation ApplyPatch($patchId: ID!) {
+  applyPatch(patchId: $patchId) {
+    ...PatchView
+  }
+}
+
+mutation RollbackPatch($patchId: ID!) {
+  rollbackPatch(patchId: $patchId)
+}
+
+# ---------------- chats ----------------
+
+subscription ChatStream($projectId: ID!, $input: ChatInput!) {
+  chatStream(projectId: $projectId, input: $input) {
+    __typename
+    ... on ChatStartDelta {
+      startTurnId: turnId
+      startProvider: provider
+      startModel: model
+    }
+    ... on ChatTextDelta {
+      textTurnId: turnId
+      text
+    }
+    ... on ChatThinkingDelta {
+      thinkingTurnId: turnId
+      thinkingText: text
+    }
+    ... on ChatToolUseDelta {
+      toolTurnId: turnId
+      toolUse
+    }
+    ... on ChatDoneDelta {
+      doneTurnId: turnId
+      doneProvider: provider
+      doneModel: model
+      usage
+    }
+    ... on ChatErrorDelta {
+      errorTurnId: turnId
+      errorCode: code
+      errorMessage: message
+    }
+  }
+}
+
+# ---------------- inline completions ----------------
+
+subscription InlineCompletion($input: InlineInput!) {
+  inlineCompletion(input: $input) {
+    __typename
+    ... on InlineStartDelta {
+      startRequestId: requestId
+      startProvider: provider
+      startModel: model
+    }
+    ... on InlineTextDelta {
+      textRequestId: requestId
+      text
+    }
+    ... on InlineDoneDelta {
+      doneRequestId: requestId
+      doneProvider: provider
+      doneModel: model
+      usage
+    }
+    ... on InlineCancelledDelta {
+      cancelRequestId: requestId
+      reason
+    }
+    ... on InlineErrorDelta {
+      errorRequestId: requestId
+      errorCode: code
+      errorMessage: message
+    }
+  }
+}
+
+mutation AcceptInlineCompletion($requestId: ID!) {
+  acceptInlineCompletion(requestId: $requestId) {
+    ok
+    message
+  }
+}
+
+# ---------------- budget ----------------
+
+query MyBudget {
+  myBudget {
+    userId
+    email
+    tier
+    spentUsd
+    entries {
+      id
+      provider
+      model
+      promptTokens
+      completionTokens
+      costUsd
+      ts
+    }
+  }
+  plans {
+    tier
+    name
+    priceUsd
+    costCapUsd
+  }
+}
+
+# ---------------- memory ----------------
+
+query Memory($query: MemoryQueryInput) {
+  memory(query: $query) {
+    id
+    kind
+    userId
+    projectId
+    storyId
+    gateName
+    title
+    body
+    tags
+    createdAt
+  }
+}
+
+# ---------------- audit ----------------
+
+query Audit($query: AuditQueryInput) {
+  audit(query: $query) {
+    id
+    ts
+    userId
+    projectId
+    action
+    outcome
+    hash
+    prevHash
+    payload
+  }
+  verifyAudit {
+    intact
+    firstBadIndex
+  }
+}
+
+# ---------------- agent telemetry ----------------
+
+query AgentTelemetry($limit: Int) {
+  agentTelemetry(limit: $limit) {
+    id
+    ts
+    role
+    provider
+    model
+    promptTokens
+    completionTokens
+    costUsd
+    durationMs
+    error
+    capabilities
+    userId
+    projectId
+  }
+}

@@ -1,0 +1,63 @@
+# Operator dashboards (Profit / Scale / Cohort / Blueprint). Consumed
+# by /dashboard (A50).
+
+query ProfitDashboard($since: DateTime!, $until: DateTime!) {
+  profitDashboard(since: $since, until: $until) {
+    windowStart
+    windowEnd
+    revenueUSD
+    providerCostUSD
+    sandboxCostUSD
+    otherCostUSD
+    grossProfitUSD
+    grossMarginPct
+    activeExecutions
+    blockedExecutions
+    refundCount
+    topUpRate
+  }
+}
+
+query ScaleDashboard {
+  scaleDashboard {
+    activeExecutions
+    queuedExecutions
+    queueWaitSec
+    sandboxCapacity
+    workerUtilizationPct
+    scaleHealth
+  }
+}
+
+query CohortDashboard($sinceMonth: DateTime!) {
+  cohortDashboard(sinceMonth: $sinceMonth) {
+    cohorts {
+      month
+      newPayingUsers
+      secondExecutionUsers
+      day7RepeatUsers
+      day30RepeatUsers
+      avgSpendUSD
+      grossMarginPct
+      completionRate
+      refundRate
+      supportTicketsPerExec
+    }
+  }
+}
+
+query BlueprintDashboard {
+  blueprintDashboard {
+    blueprints {
+      blueprintID
+      executions
+      avgRevenueUSD
+      avgCostUSD
+      grossMarginPct
+      previewSuccess
+      refunds
+      repairCount
+      avgCompletionScore
+    }
+  }
+}

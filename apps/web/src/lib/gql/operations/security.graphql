@@ -1,0 +1,27 @@
+# Customer-visible security report. Consumed by the security tab on
+# /execution/[id] (A48).
+
+query ExecutionSecurityReport($executionID: ID!) {
+  executionSecurityReport(executionID: $executionID) {
+    executionID
+    tenantID
+    status
+    overallScore
+    secretsFound
+    outdatedDeps
+    owaspCoverage
+    blockedDeploy
+    generatedAt
+    findings {
+      id
+      severity
+      ruleID
+      category
+      path
+      line
+      summary
+      remediation
+      detectedAt
+    }
+  }
+}

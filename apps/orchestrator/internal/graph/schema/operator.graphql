@@ -1,0 +1,66 @@
+# V22 Operator surface.
+#
+# Read-only queries exposed only to platform-operator principals (the
+# resolver layer enforces this via operator.RequireOperator, which
+# returns FORBIDDEN for any non-operator caller). These queries wrap
+# the V22 deploy / abuse / execution / wallet / audit services so the
+# on-call operator has one shaped API to investigate live state.
+#
+# DeployApproval is reused from deploy.graphql.
+
+extend type Query {
+  # operatorPendingApprovals lists open deploy_approvals rows. When
+  # tenantID is null the resolver enumerates every tenant with
+  # pending approvals so the operator sees the full backlog in one
+  # call.
+  operatorPendingApprovals(tenantID: ID): [DeployApproval!]!
+
+  # operatorAbuseScore returns the (score, tier) pair the abuse
+  # engine currently computes for the (tenantID, userID) pair.
+  operatorAbuseScore(tenantID: ID!, userID: ID!): AbuseScoreResult!
+
+  # operatorScaleSnapshot returns active / queued execution counts
+  # plus sandbox capacity. workerUtilizationPct is active / capacity
+  # * 100, or 0 when capacity is unknown.
+  operatorScaleSnapshot: OperatorScaleSnapshot!
+
+  # operatorWalletSnapshot returns the wallet projection for tenantID
+  # — balance, hold, and the two lifetime counters the profit
+  # dashboards aggregate over.
+  operatorWalletSnapshot(tenantID: ID!): OperatorWalletSnapshot!
+
+  # operatorAuditCursor returns audit chain entries created on or
+  # after `since`, newest-first, capped at `limit` (default 100,
+  # max 1000).
+  operatorAuditCursor(since: DateTime!, limit: Int = 100): [OperatorAuditEntry!]!
+}
+
+type AbuseScoreResult {
+  tenantID: ID!
+  userID: ID!
+  score: Int!
+  tier: String!
+}
+
+type OperatorScaleSnapshot {
+  activeExecutions: Int!
+  queuedExecutions: Int!
+  sandboxCapacity: Int!
+  workerUtilizationPct: Float!
+}
+
+type OperatorWalletSnapshot {
+  tenantID: ID!
+  balanceUSD: Float!
+  holdUSD: Float!
+  lifetimeTopUpUSD: Float!
+  lifetimeSpendUSD: Float!
+}
+
+type OperatorAuditEntry {
+  id: ID!
+  timestamp: DateTime!
+  action: String!
+  outcome: String!
+  hash: String!
+}

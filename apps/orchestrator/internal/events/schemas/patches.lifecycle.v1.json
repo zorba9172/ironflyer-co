@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "patches.lifecycle.v1",
+  "type": "object",
+  "required": ["event_id", "tenant_id", "occurred_at", "project_id", "patch_id", "phase"],
+  "properties": {
+    "event_id": {"type": "string"},
+    "tenant_id": {"type": "string"},
+    "occurred_at": {"type": "string", "format": "date-time"},
+    "project_id": {"type": "string"},
+    "patch_id": {"type": "string"},
+    "phase": {"type": "string", "enum": ["proposed", "previewed", "approved", "applied", "rolled_back", "rejected"]},
+    "actor": {"type": ["string", "null"]},
+    "metadata": {"type": "object"}
+  }
+}

@@ -68,6 +68,12 @@ type Project struct {
 	// OwnerID is the user that owns this project. Empty means "public" —
 	// every authenticated user can read it (used for the seed demo project).
 	OwnerID string                 `json:"ownerId,omitempty"`
+	// Federated is true when the owner has opted this project into their
+	// own personal memory-federation pool. Federation NEVER crosses users
+	// — only the same OwnerID's other federated projects can read this
+	// project's memory. See internal/memory + the /me/memory-federation
+	// endpoints.
+	Federated bool `json:"federated,omitempty"`
 	Spec    ProductSpec            `json:"spec"`
 	Files   []FileNode             `json:"files"`
 	// Artifacts holds typed, structured documents produced by the finisher
@@ -216,4 +222,27 @@ type Event struct {
 	Message   string    `json:"message"`
 	Status    string    `json:"status"`
 	CreatedAt time.Time `json:"createdAt"`
+}
+
+// AcceptanceCriterion is the structured form of a single user-story
+// acceptance line. The Spec gate extracts these from UserStory.Acceptance
+// and walks the file tree to mark each one as `Validated` when SOMETHING in
+// the workspace appears to address it (route, handler, component, …).
+// `StoryID` ties the criterion back to its UserStory.ID.
+type AcceptanceCriterion struct {
+	ID          string `json:"id"`
+	StoryID     string `json:"storyId,omitempty"`
+	Description string `json:"description"`
+	// Validated is set true when a Spec-gate sweep has matched at least
+	// one piece of code/spec text to the criterion. Unvalidated criteria
+	// fail the Spec gate; validated-without-test criteria warn.
+	Validated bool `json:"validated"`
+	// HasAutomatedTest is true when a test file appears to assert this
+	// criterion. When all criteria are Validated but at least one lacks
+	// an automated test, the Spec gate downgrades to a warn verdict.
+	HasAutomatedTest bool `json:"hasAutomatedTest,omitempty"`
+	// EvidencePath is a single file path that satisfied the criterion
+	// (empty when not Validated). Used by the dashboard to deep-link the
+	// user to the supporting code.
+	EvidencePath string `json:"evidencePath,omitempty"`
 }

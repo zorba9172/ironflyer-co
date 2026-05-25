@@ -1,0 +1,59 @@
+# Enterprise audit export — 90-day-plan closure.
+#
+# GraphQL is intentionally the *metadata* surface here. The raw
+# export bytes flow through the existing REST exception
+# `/audit/export.csv` (and `.jsonl`) because GraphQL is poor at
+# streaming multi-megabyte payloads. The Query below returns a
+# short-TTL signed URL the client uses to start the download.
+#
+# Backed by internal/auditexport.Exporter (Stream + ChainProof).
+
+extend type Query {
+  # Preview the export the supplied filter would produce — entry
+  # count, byte estimate, and a short-TTL signed download URL. The
+  # client follows signedURL to receive the streamed CSV/JSONL.
+  auditExportPreview(filter: AuditExportFilter!): AuditExportPreview!
+
+  # Verify the hash chain over a [since, until] window and return a
+  # chain-of-custody proof. brokenLinks is empty when verified=true.
+  auditChainProof(since: DateTime!, until: DateTime!): AuditChainProof!
+}
+
+input AuditExportFilter {
+  # MANDATORY. Use "*" only when the caller has platform_operator
+  # scope; the resolver rejects "*" otherwise.
+  tenantId: ID!
+  since: DateTime!
+  until: DateTime!
+  # Optional whitelist of audit Action / Attrs.event names.
+  eventTypes: [String!]
+  # "csv" (default) or "jsonl".
+  format: String
+  # When true, the export includes the audit Attrs map. Default false
+  # so PII / billing detail does not leak by accident.
+  includeAttrs: Boolean
+}
+
+type AuditExportPreview {
+  estimatedEntryCount: Int!
+  estimatedBytes: Int!
+  format: String!
+  signedURL: String
+  expiresAt: DateTime
+}
+
+type AuditChainProof {
+  windowStart: DateTime!
+  windowEnd: DateTime!
+  entryCount: Int!
+  startHash: String!
+  endHash: String!
+  verified: Boolean!
+  brokenLinks: [BrokenAuditLink!]!
+}
+
+type BrokenAuditLink {
+  atEntryID: ID!
+  expectedPrevHash: String!
+  actualPrevHash: String!
+}

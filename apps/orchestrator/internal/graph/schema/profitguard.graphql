@@ -1,0 +1,28 @@
+# V22 ProfitGuard (Agent 5) — read-only audit surface over the
+# profit_guard_decisions table. The mutation surface is implicit: every
+# enforcement point in the orchestrator calls Guard.Decide, which calls
+# Guard.Record; clients never write ProfitGuardDecision rows directly.
+#
+# Queries here power the per-execution drill-down ("why did this run
+# pause / degrade / kill_branch?") and the operator profit dashboard
+# ("how often does Profit Guard fire across the fleet?").
+
+extend type Query {
+  profitGuardDecisions(executionID: ID, limit: Int = 100): [ProfitGuardDecision!]!
+}
+
+type ProfitGuardDecision {
+  id: ID!
+  executionID: ID!
+  enforcementPoint: String!
+  decision: String!
+  reason: String!
+  spentUSD: Float!
+  reservedUSD: Float!
+  estimatedStepCostUSD: Float!
+  expectedCompletionDelta: Float!
+  expectedMarginPct: Float
+  riskScore: Float
+  recommendedProvider: String
+  createdAt: DateTime!
+}

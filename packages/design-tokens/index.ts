@@ -1,54 +1,59 @@
-// Ironflyer design tokens — output.com-inspired aesthetic.
-// Warm near-black foundations, alabaster contrast, blunt display typography,
-// and a single electric CTA accent used with restraint.
+// IronFlyer visual reference tokens.
+// Locked to the private 2026-05-25 dark SaaS handoff: deep space base,
+// violet surfaces, orange-to-magenta CTAs, tight 8px radii.
 
 export const tokens = {
   color: {
     brand: {
-      graphite: '#07090d',
-      slate: '#10151d',
-      paper: '#f5f2ea',
+      graphite: '#050612',
+      slate: '#0b0d1d',
+      paper: '#f7f5ff',
       mint: '#53ffbd',
-      cyan: '#5bc8ff',
-      amber: '#ffd166',
-      ember: '#ff7a45',
+      cyan: '#8fc7ff',
+      amber: '#ff9f43',
+      ember: '#ff6f3c',
+      // Magenta — the middle stop in the primary CTA gradient (coral
+      // → magenta → purple). Lives on brand so MarketingLandingPage
+      // and theme.containedPrimary can both reference it without
+      // hardcoding the hex inline.
+      magenta: '#e149c9',
     },
     // backgrounds
     bg: {
-      base: '#0d0e0f',
-      surface: '#151513',
-      surfaceRaised: '#1d1d1a',
-      surfaceHover: '#262620',
-      inset: '#070807',
+      base: '#050612',
+      surface: '#0c0d20',
+      surfaceRaised: '#11132a',
+      surfaceHover: '#191538',
+      inset: '#080918',
       alabaster: '#f4f0e8',
       alabasterDeep: '#e7dfd2',
-      overlay: 'rgba(13, 14, 15, 0.74)',
+      overlay: 'rgba(5, 6, 18, 0.78)',
     },
     // text
     text: {
-      primary: '#f7f3ea',
-      secondary: '#b9b3a8',
-      muted: '#77736b',
-      inverse: '#111111',
+      primary: '#f7f4ff',
+      secondary: '#b9b2d3',
+      muted: '#777096',
+      inverse: '#090816',
     },
     // borders / dividers
     border: {
-      subtle: 'rgba(244, 240, 232, 0.12)',
-      strong: 'rgba(244, 240, 232, 0.24)',
-      accent: 'rgba(229, 255, 0, 0.55)',
+      subtle: 'rgba(178, 133, 255, 0.16)',
+      strong: 'rgba(187, 147, 255, 0.34)',
+      accent: 'rgba(154, 86, 255, 0.72)',
     },
-    // accents — Output-like loud colors, led by electric lime
+    // accents — private handoff palette: violet product glow + warm CTA.
     accent: {
-      lime: '#e5ff00',
-      yellow: '#ffc400',
-      red: '#ff1818',
-      purple: '#671dfc',
-      sky: '#78dbff',
-      violet: '#8b5cff',
-      coral: '#ff6c3a',
-      success: '#79e07a',
-      warning: '#ffc400',
-      danger: '#ff1818',
+      lime: '#9dff7a',
+      yellow: '#ffb457',
+      red: '#ff4f6d',
+      purple: '#8f4dff',
+      sky: '#7eb7ff',
+      violet: '#b56cff',
+      coral: '#ff7848',
+      success: '#7fe28a',
+      warning: '#ffb457',
+      danger: '#ff4f6d',
     },
   },
   radius: {
@@ -68,7 +73,7 @@ export const tokens = {
   },
   font: {
     family: 'var(--font-body), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-    display: 'var(--font-display), "Arial Black", "Inter", -apple-system, BlinkMacSystemFont, sans-serif',
+    display: 'var(--font-body), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     mono: '"Geist Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, monospace',
     weight: {
       regular: 400,
@@ -88,9 +93,9 @@ export const tokens = {
     },
   },
   shadow: {
-    sm: '0 1px 2px rgba(0,0,0,0.28)',
-    md: '0 14px 36px rgba(0,0,0,0.38)',
-    lg: '0 32px 90px rgba(0,0,0,0.52)',
+    sm: '0 1px 2px rgba(0,0,0,0.32)',
+    md: '0 18px 44px rgba(0,0,0,0.42)',
+    lg: '0 36px 110px rgba(54,18,116,0.46)',
   },
   motion: {
     fast: '160ms',

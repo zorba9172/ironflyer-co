@@ -73,6 +73,11 @@
           "default": "",
           "description": "Project ID to pin automatically on first activation in a new window. Leave empty to be prompted."
         },
+        "ironflyer.sentryDsn": {
+          "type": "string",
+          "default": "",
+          "description": "Optional Sentry DSN. When set, the extension reports unhandled errors to Sentry. Leave empty to disable error telemetry entirely (default — no data leaves your editor)."
+        },
         "ironflyer.preview.defaultViewport": {
           "type": "string",
           "enum": [
@@ -83,6 +88,25 @@
           ],
           "default": "responsive",
           "description": "Initial viewport size for the Live Preview pane."
+        },
+        "ironflyer.completions.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show Cursor-style inline AI completions as ghost text while you type. Toggle from the status bar pill or via the 'Ironflyer: Toggle Inline AI' command."
+        },
+        "ironflyer.completions.debounceMs": {
+          "type": "number",
+          "default": 250,
+          "minimum": 50,
+          "maximum": 2000,
+          "description": "Milliseconds to wait after the cursor settles before requesting an inline completion."
+        },
+        "ironflyer.completions.maxLines": {
+          "type": "number",
+          "default": 6,
+          "minimum": 1,
+          "maximum": 40,
+          "description": "Maximum number of lines to display in an inline AI suggestion. Lower values keep suggestions snappy and visually quiet."
         }
       }
     },
@@ -186,13 +210,41 @@
       {
         "command": "ironflyer.openMemoryRecord",
         "title": "Ironflyer: Open Memory Record"
+      },
+      {
+        "command": "ironflyer.toggleInlineCompletions",
+        "title": "Ironflyer: Toggle Inline AI"
+      },
+      {
+        "command": "ironflyer.inlineCompletionAccepted",
+        "title": "Ironflyer: Inline Completion Accepted (telemetry)"
       }
     ],
     "keybindings": [
-      { "command": "ironflyer.openChat", "key": "ctrl+alt+i", "mac": "cmd+alt+i", "when": "ironflyer.signedIn" },
-      { "command": "ironflyer.newProject", "key": "ctrl+alt+n", "mac": "cmd+alt+n", "when": "ironflyer.signedIn" },
-      { "command": "ironflyer.openPreview", "key": "ctrl+alt+p", "mac": "cmd+alt+p", "when": "ironflyer.signedIn" },
-      { "command": "ironflyer.runFinisher", "key": "ctrl+alt+r", "mac": "cmd+alt+r", "when": "ironflyer.signedIn && ironflyer.hasActiveProject" }
+      {
+        "command": "ironflyer.openChat",
+        "key": "ctrl+alt+i",
+        "mac": "cmd+alt+i",
+        "when": "ironflyer.signedIn"
+      },
+      {
+        "command": "ironflyer.newProject",
+        "key": "ctrl+alt+n",
+        "mac": "cmd+alt+n",
+        "when": "ironflyer.signedIn"
+      },
+      {
+        "command": "ironflyer.openPreview",
+        "key": "ctrl+alt+p",
+        "mac": "cmd+alt+p",
+        "when": "ironflyer.signedIn"
+      },
+      {
+        "command": "ironflyer.runFinisher",
+        "key": "ctrl+alt+r",
+        "mac": "cmd+alt+r",
+        "when": "ironflyer.signedIn && ironflyer.hasActiveProject"
+      }
     ],
     "viewsContainers": {
       "activitybar": [
@@ -260,22 +312,34 @@
             "id": "signIn",
             "title": "Sign in",
             "description": "Open the Ironflyer web app in your browser and bounce the JWT back to VSCode. No API keys to paste.\n[Sign In](command:ironflyer.signIn)",
-            "media": { "markdown": "media/walkthrough/sign-in.md" },
-            "completionEvents": ["onContext:ironflyer.signedIn"]
+            "media": {
+              "markdown": "media/walkthrough/sign-in.md"
+            },
+            "completionEvents": [
+              "onContext:ironflyer.signedIn"
+            ]
           },
           {
             "id": "pinProject",
             "title": "Pin a project",
             "description": "Tell Ironflyer which project this window belongs to. The pin powers the Ask Ironflyer to Fix quick action and is persisted per workspace.\n[Set Active Project](command:ironflyer.setActiveProject)",
-            "media": { "markdown": "media/walkthrough/pin-project.md" },
-            "completionEvents": ["onContext:ironflyer.hasActiveProject"]
+            "media": {
+              "markdown": "media/walkthrough/pin-project.md"
+            },
+            "completionEvents": [
+              "onContext:ironflyer.hasActiveProject"
+            ]
           },
           {
             "id": "openChat",
             "title": "Open chat for a project",
             "description": "Open the streaming chat panel and try a prompt. The agent role + effort dial mirror the web app.\n[Open Chat](command:ironflyer.openChat)",
-            "media": { "markdown": "media/walkthrough/open-chat.md" },
-            "completionEvents": ["onCommand:ironflyer.openChat"]
+            "media": {
+              "markdown": "media/walkthrough/open-chat.md"
+            },
+            "completionEvents": [
+              "onCommand:ironflyer.openChat"
+            ]
           },
           {
             "id": "openPreview",
@@ -286,13 +350,17 @@
             "id": "askToFix",
             "title": "Ask Ironflyer to fix a diagnostic",
             "description": "Hover any TypeScript / ESLint / Go diagnostic, press the lightbulb, and pick \"Ask Ironflyer to fix\". The extension bundles the snippet + message + range and routes it to the coder agent.",
-            "media": { "markdown": "media/walkthrough/ask-to-fix.md" }
+            "media": {
+              "markdown": "media/walkthrough/ask-to-fix.md"
+            }
           },
           {
             "id": "reviewPatches",
             "title": "Review and apply patches",
             "description": "Every patch the orchestrator proposes shows up in the Patches view. Click a file to open a native side-by-side diff; tap the checkmark to apply.\n[Open Patches](command:workbench.view.extension.ironflyer)",
-            "media": { "markdown": "media/walkthrough/patches.md" }
+            "media": {
+              "markdown": "media/walkthrough/patches.md"
+            }
           }
         ]
       }
@@ -408,6 +476,10 @@
         {
           "command": "ironflyer.openMemoryRecord",
           "when": "false"
+        },
+        {
+          "command": "ironflyer.inlineCompletionAccepted",
+          "when": "false"
         }
       ],
       "view/item/context": [
@@ -457,6 +529,7 @@
     "build": "node esbuild.js --production",
     "watch": "node esbuild.js --watch",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "codegen": "graphql-codegen --config codegen.yml",
     "lint": "eslint src --ext ts",
     "test": "vitest run",
     "package": "vsce package --no-dependencies",
@@ -464,8 +537,13 @@
     "publish:ovsx": "ovsx publish --no-dependencies"
   },
   "devDependencies": {
+    "@graphql-codegen/cli": "^7.0.0",
+    "@graphql-codegen/client-preset": "^6.0.0",
+    "@graphql-codegen/typescript": "^6.0.1",
+    "@graphql-codegen/typescript-operations": "^6.0.2",
     "@types/node": "^20.10.0",
     "@types/vscode": "^1.85.0",
+    "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
     "@vscode/vsce": "^2.24.0",
@@ -474,5 +552,12 @@
     "ovsx": "^0.9.5",
     "typescript": "^5.4.0",
     "vitest": "^1.6.1"
+  },
+  "dependencies": {
+    "@apollo/client": "^3.14.1",
+    "@sentry/node": "^10.53.1",
+    "graphql": "^16.14.0",
+    "graphql-ws": "^5.16.2",
+    "ws": "^8.21.0"
   }
 }

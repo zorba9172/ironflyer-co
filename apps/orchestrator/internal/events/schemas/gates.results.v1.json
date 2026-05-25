@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "gates.results.v1",
+  "type": "object",
+  "required": ["event_id", "tenant_id", "occurred_at", "project_id", "gate", "verdict"],
+  "properties": {
+    "event_id": {"type": "string"},
+    "tenant_id": {"type": "string"},
+    "occurred_at": {"type": "string", "format": "date-time"},
+    "project_id": {"type": "string"},
+    "execution_id": {"type": ["string", "null"]},
+    "gate": {"type": "string"},
+    "verdict": {"type": "string", "enum": ["pass", "fail", "skip", "block"]},
+    "issues": {"type": "integer"},
+    "metadata": {"type": "object"}
+  }
+}

@@ -1,0 +1,119 @@
+{{- /*
+Postgres backup CronJob.
+
+Approach: single `postgres:16-alpine` image, with an initContainer that
+installs the AWS CLI v2 into a shared emptyDir; the main container PATHs
+it in and runs scripts/backup.sh equivalent inline. The reason for this
+shape over `amazon/aws-cli` + curl-installing pg_dump:
+
+  - postgres:16-alpine ships a known-good pg_dump matched to the server.
+  - aws-cli is a fixed-version download — install cost amortises against
+    a daily schedule.
+  - Avoids importing the script as a ConfigMap; the chart stays self-
+    contained and the operator can read the spec directly.
+
+Enable with `--set backup.enabled=true` and `--set backup.s3Uri=s3://...`.
+*/ -}}
+{{- if .Values.backup.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "ironflyer.fullname" . }}-backup
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: backup
+    app.kubernetes.io/component: backup
+spec:
+  schedule: {{ .Values.backup.schedule | default "0 3 * * *" | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 600
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: backup
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: {{ include "ironflyer.serviceAccountName" (dict "name" "backup" "Values" .Values "Release" .Release) }}
+          securityContext:
+            runAsNonRoot: false
+            fsGroup: {{ .Values.securityContext.runAsUser }}
+          initContainers:
+            - name: install-awscli
+              image: alpine:3.20
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  set -euo pipefail
+                  apk add --no-cache aws-cli ca-certificates
+                  cp /usr/bin/aws /shared/aws
+                  cp -r /usr/libexec/aws-cli /shared/aws-cli || true
+              volumeMounts:
+                - { name: shared, mountPath: /shared }
+          containers:
+            - name: backup
+              image: postgres:16-alpine
+              imagePullPolicy: {{ .Values.imagePullPolicy }}
+              env:
+                - name: POSTGRES_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "ironflyer.postgresSecretName" . }}
+                      key: POSTGRES_URL
+                - name: BACKUP_S3_URI
+                  value: {{ .Values.backup.s3Uri | quote }}
+                - name: BACKUP_RETENTION_DAYS
+                  value: {{ .Values.backup.retentionDays | default 30 | quote }}
+                # Region passed through so scripts/backup.sh can refuse to
+                # ship `eu` data to a `us-east-1` bucket (GDPR boundary).
+                - name: IRONFLYER_REGION
+                  value: {{ .Values.region | default "unknown" | quote }}
+              envFrom:
+                - secretRef:
+                    name: {{ .Values.backup.s3SecretName | quote }}
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  set -euo pipefail
+                  export PATH="/shared:$PATH"
+                  : "${POSTGRES_URL:?}"; : "${BACKUP_S3_URI:?}"
+                  TS="$(date -u +%Y%m%d-%H%M%S)"
+                  FILE="ironflyer-pg-${TS}.dump"
+                  LOCAL="/tmp/${FILE}"
+                  echo "[cron] dumping → ${LOCAL}"
+                  apk add --no-cache --quiet ca-certificates >/dev/null 2>&1 || true
+                  pg_dump --format=custom --compress=9 --no-owner --no-privileges \
+                    --file="$LOCAL" "$POSTGRES_URL"
+                  echo "[cron] uploading → ${BACKUP_S3_URI%/}/${FILE}"
+                  /shared/aws s3 cp "$LOCAL" "${BACKUP_S3_URI%/}/${FILE}" --no-progress
+                  CUTOFF="$(($(date -u +%s) - ${BACKUP_RETENTION_DAYS} * 86400))"
+                  echo "[cron] pruning older than ${BACKUP_RETENTION_DAYS}d"
+                  /shared/aws s3 ls "${BACKUP_S3_URI%/}/" | while read -r line; do
+                    [ -z "$line" ] && continue
+                    d="$(echo "$line" | awk '{print $1" "$2}')"
+                    n="$(echo "$line" | awk '{print $4}')"
+                    case "$n" in ironflyer-pg-*.dump) ;; *) continue ;; esac
+                    e="$(date -u -d "$d" +%s 2>/dev/null || true)"
+                    [ -z "$e" ] && continue
+                    if [ "$e" -lt "$CUTOFF" ]; then
+                      echo "[cron] prune $n"
+                      /shared/aws s3 rm "${BACKUP_S3_URI%/}/$n"
+                    fi
+                  done
+                  echo "[cron] done ${FILE}"
+              resources:
+                requests: { cpu: "100m", memory: "256Mi" }
+                limits:   { cpu: "1",    memory: "1Gi" }
+              volumeMounts:
+                - { name: shared, mountPath: /shared }
+                - { name: tmp,    mountPath: /tmp }
+          volumes:
+            - name: shared
+              emptyDir: {}
+            - name: tmp
+              emptyDir: {}
+{{- end }}

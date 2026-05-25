@@ -1,0 +1,67 @@
+name: ironflyer-data
+runtime: go
+description: |
+  Ironflyer data layer (AWS): KMS CMKs, Aurora Postgres, ElastiCache Redis,
+  S3 buckets (backups + workspaces + assets + audit), Secrets Manager
+  entries, and the External Secrets Operator bridge that materializes those
+  AWS Secrets as in-cluster Kubernetes Secrets the Helm chart consumes via
+  its `existingSecret` knobs.
+
+  This stack is intentionally split from `ironflyer-infra` (VPC + EKS +
+  edge) so the data plane can be upgraded or destroyed independently of
+  the compute plane. The compute stack publishes the inputs this stack
+  consumes via `pulumi.StackReference`.
+
+config:
+  aws:region:
+    description: AWS region for the regional resources.
+  data:computeStack:
+    description: |
+      Fully-qualified name of the compute Pulumi stack to read outputs
+      from (e.g. "myorg/ironflyer-infra/dev"). Defaults to
+      "ironflyer-infra/${stack}" if unset.
+    default: ""
+  data:dbName:
+    description: Postgres database name.
+    default: ironflyer
+  data:dbUser:
+    description: Postgres master username.
+    default: ironflyer
+  data:postgresEngineVersion:
+    description: Aurora Postgres engine version.
+    default: "16.4"
+  data:redisEngineVersion:
+    description: ElastiCache Redis engine version.
+    default: "7.1"
+  data:backupWindow:
+    description: RDS daily backup window (UTC, format hh24:mi-hh24:mi).
+    default: "02:00-03:00"
+  data:maintenanceWindow:
+    description: RDS weekly maintenance window (UTC).
+    default: "sun:03:30-sun:04:30"
+  data:replicaRegion:
+    description: |
+      Region to replicate prod backup buckets into. Required when
+      cross-region replication is enabled (prod-*). For non-prod this is
+      ignored.
+    default: ""
+  data:eso.install:
+    description: Install the external-secrets operator Helm chart.
+    default: "true"
+  data:eso.namespace:
+    description: Namespace for the external-secrets operator.
+    default: external-secrets
+  data:appNamespace:
+    description: Namespace where the Helm chart's K8s Secrets land.
+    default: ironflyer
+  data:kubeconfig:
+    description: |
+      Kubeconfig string for the EKS cluster the External Secrets bridge
+      targets. If empty, the K8s bridge is skipped (AWS-side resources
+      still provision).
+    default: ""
+  data:enableCrossRegionReplication:
+    description: |
+      Replicate prod backup + audit buckets to the alternate region's
+      sibling buckets. Auto-enabled for prod-*.
+    default: ""

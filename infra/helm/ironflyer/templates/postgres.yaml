@@ -1,17 +1,5 @@
 {{- if .Values.postgres.enabled -}}
 apiVersion: v1
-kind: Secret
-metadata:
-  name: postgres-secret
-  labels:
-    {{- include "ironflyer.labels" . | nindent 4 }}
-type: Opaque
-stringData:
-  POSTGRES_USER: {{ .Values.postgres.user | quote }}
-  POSTGRES_PASSWORD: {{ .Values.postgres.password | quote }}
-  POSTGRES_DB: {{ .Values.postgres.database | quote }}
----
-apiVersion: v1
 kind: Service
 metadata:
   name: postgres
@@ -24,6 +12,40 @@ spec:
   ports:
     - { name: pg, port: 5432, targetPort: 5432 }
 ---
+{{- if .Values.walg.enabled }}
+# WAL archiving config + a tiny entrypoint that wraps `wal-g wal-push`.
+# Mounted into the Postgres container at /etc/postgresql-walg/ and
+# referenced from postgres.conf via `archive_command`. The wrapper exists
+# so the archive_command stays short + we can add backoff/logging without
+# a chart re-template.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-walg-config
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: postgres
+data:
+  postgres.conf: |
+    # Continuous archiving — see docs/DR_RUNBOOK.md § PITR.
+    wal_level = replica
+    archive_mode = on
+    archive_command = '/etc/postgresql-walg/archive.sh %p %f'
+    archive_timeout = {{ .Values.walg.archiveTimeoutSeconds | default 300 }}
+    # Keep enough WAL on disk so a brief S3 outage doesn't break the chain.
+    max_wal_size = 2GB
+    min_wal_size = 512MB
+  archive.sh: |
+    #!/bin/sh
+    # archive_command wrapper. %p is absolute path to the WAL segment;
+    # %f is the bare segment name. Postgres considers the segment archived
+    # iff this script exits 0 — keep it idempotent + loud on failure.
+    set -eu
+    SRC="$1"
+    NAME="$2"
+    exec /usr/local/bin/wal-g wal-push "$SRC" >>/tmp/wal-g.log 2>&1
+---
+{{- end }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -41,23 +63,182 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: postgres
+        {{- if .Values.walg.enabled }}
+        ironflyer.io/wal-archiving: "enabled"
+        {{- end }}
     spec:
+      # postgres:16-alpine ships uid 70 (`postgres`) by default; the official
+      # image's docker-entrypoint sets up dirs assuming uid 999 when running
+      # via the `postgres` user. We pin uid 999 explicitly to satisfy the
+      # `restricted` PodSecurityStandard (must be non-root + non-zero) while
+      # matching the upstream image's expected ownership of /var/lib/postgresql.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: postgres
           image: postgres:16-alpine
           ports:
             - { name: pg, containerPort: 5432 }
-          envFrom:
-            - secretRef: { name: postgres-secret }
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ironflyer.postgresSecretName" . }}
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ironflyer.postgresSecretName" . }}
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ironflyer.postgresSecretName" . }}
+                  key: POSTGRES_DB
+            # Postgres' initdb writes lockfiles to /var/run/postgresql by
+            # default; we redirect to the emptyDir below so the rootfs can
+            # stay read-only.
+            - name: PGRUN
+              value: /var/run/postgresql
+            {{- if .Values.walg.enabled }}
+            # WAL archiving — pull the conf snippet onto the live cluster.
+            # `docker-entrypoint.sh` honours POSTGRES_INITDB_ARGS during
+            # bootstrap; for the running cluster we append `include_dir`
+            # to the generated postgresql.conf via the command line below.
+            - name: POSTGRES_INITDB_ARGS
+              value: "--data-checksums"
+            - name: WALG_S3_PREFIX
+              value: {{ .Values.walg.s3Uri | quote }}
+            - name: WALG_COMPRESSION_METHOD
+              value: "lz4"
+            envFrom:
+              - secretRef: { name: {{ .Values.walg.existingSecret | quote }} }
+            {{- end }}
+          {{- if .Values.walg.enabled }}
+          # Override the default command so we can wire postgres.conf
+          # includes for the archive_command + share the wal-g binary
+          # from the sidecar via /usr/local/bin.
+          args:
+            - "-c"
+            - "config_file=/var/lib/postgresql/data/postgresql.conf"
+            - "-c"
+            - "include_if_exists=/etc/postgresql-walg/postgres.conf"
+          {{- end }}
           readinessProbe:
             exec: { command: ["pg_isready", "-U", {{ .Values.postgres.user | quote }}] }
             initialDelaySeconds: 5
             periodSeconds: 5
           volumeMounts:
             - { name: data, mountPath: /var/lib/postgresql/data, subPath: pgdata }
+            - { name: run, mountPath: /var/run/postgresql }
+            - { name: tmp, mountPath: /tmp }
+            {{- if .Values.walg.enabled }}
+            # Shared volume gives the postgres container access to the
+            # wal-g binary copied by the sidecar's initContainer, plus
+            # the archive_command wrapper script.
+            - { name: walg-bin, mountPath: /usr/local/bin/wal-g, subPath: wal-g }
+            - { name: walg-conf, mountPath: /etc/postgresql-walg }
+            {{- end }}
           resources:
             requests: { cpu: "100m", memory: "256Mi" }
             limits:   { cpu: "1",    memory: "1Gi" }
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 999
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+        {{- if .Values.walg.enabled }}
+        # ---------------------------------------------------------------
+        # WAL archiver sidecar.
+        #
+        # Runs `wal-g` continuously. The Postgres container fires
+        # `wal-g wal-push` synchronously via archive_command; the sidecar
+        # additionally:
+        #   - runs a daily `wal-g backup-push` of the live cluster (base
+        #     backup for the PITR chain).
+        #   - keeps wal-g in a known-good state on disk for the postgres
+        #     container to invoke (shared volume).
+        #
+        # Image: ghcr.io/wal-g/wal-g — pin to a sha for prod (TODO).
+        # Credentials come from .Values.walg.existingSecret.
+        # ---------------------------------------------------------------
+        - name: postgres-wal-archiver
+          image: {{ .Values.walg.image | quote }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -eu
+              # Make wal-g available to the postgres container.
+              cp /usr/local/bin/wal-g /walg-bin/wal-g 2>/dev/null || \
+                cp "$(command -v wal-g)" /walg-bin/wal-g
+              echo "[wal-g] sidecar ready — daily base-backup loop"
+              # Daily base backup. wal-g handles dedupe + lifecycle.
+              while true; do
+                if PGHOST=/var/run/postgresql wal-g backup-push /var/lib/postgresql/data/pgdata; then
+                  echo "[wal-g] backup-push OK $(date -u +%FT%TZ)"
+                else
+                  echo "[wal-g] backup-push FAILED $(date -u +%FT%TZ)" >&2
+                fi
+                sleep 86400
+              done
+          env:
+            - name: WALG_S3_PREFIX
+              value: {{ .Values.walg.s3Uri | quote }}
+            - name: WALG_COMPRESSION_METHOD
+              value: "lz4"
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ironflyer.postgresSecretName" . }}
+                  key: POSTGRES_USER
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ironflyer.postgresSecretName" . }}
+                  key: POSTGRES_PASSWORD
+          envFrom:
+            - secretRef: { name: {{ .Values.walg.existingSecret | quote }} }
+          volumeMounts:
+            - { name: data, mountPath: /var/lib/postgresql/data, subPath: pgdata }
+            - { name: run,  mountPath: /var/run/postgresql }
+            - { name: walg-bin,  mountPath: /walg-bin }
+            - { name: walg-conf, mountPath: /etc/postgresql-walg }
+          resources:
+            requests: { cpu: "50m",  memory: "128Mi" }
+            limits:   { cpu: "500m", memory: "512Mi" }
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 999
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+        {{- end }}
+      volumes:
+        - name: run
+          emptyDir: { sizeLimit: 16Mi }
+        - name: tmp
+          emptyDir: { medium: Memory, sizeLimit: 32Mi }
+        {{- if .Values.walg.enabled }}
+        - name: walg-bin
+          emptyDir: { sizeLimit: 64Mi }
+        - name: walg-conf
+          configMap:
+            name: postgres-walg-config
+            defaultMode: 0o755
+        {{- end }}
   volumeClaimTemplates:
     - metadata: { name: data }
       spec:

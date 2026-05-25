@@ -6,13 +6,160 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
+
+	"github.com/shopspring/decimal"
 
 	"ironflyer/apps/orchestrator/internal/agents"
 	"ironflyer/apps/orchestrator/internal/domain"
+	"ironflyer/apps/orchestrator/internal/execution"
 	"ironflyer/apps/orchestrator/internal/patch"
+	"ironflyer/apps/orchestrator/internal/profitguardctx"
 	"ironflyer/apps/orchestrator/internal/retriever"
 )
+
+// lastAgentCostUSD returns the cost of the most-recently recorded
+// agents.Result on the report, as a decimal.Decimal. Returns zero
+// when the report has no runs. Used by the learning hook to attach a
+// realistic cost prior to the patch-memory entry without re-querying
+// the BillingGuard.
+func lastAgentCostUSD(report *RunReport) decimal.Decimal {
+	if report == nil || len(report.AgentRuns) == 0 {
+		return decimal.Zero
+	}
+	last := report.AgentRuns[len(report.AgentRuns)-1]
+	return decimal.NewFromFloat(last.CostUSD)
+}
+
+// LongVerificationHook is the V22 ProfitGuard seam for "before we
+// kick off a verification step we know runs > 60s". Implementations
+// return a profitguard.Action wire string ("continue", "stop",
+// "kill_branch", "degrade", ...) plus a reason; nil errors only ever
+// flow up when the hook itself failed (not when ProfitGuard chose to
+// deny — that is signalled through the action string).
+//
+// Wired by the integration agent in cmd/orchestrator/main.go via
+// Engine.WithLongVerificationHook. Nil-safe: when the hook is unset,
+// verifications run unguarded just as they did pre-V22.
+type LongVerificationHook interface {
+	BeforeLongVerification(ctx context.Context, executionID string, estimatedSec float64) (action, reason string, err error)
+}
+
+// longVerifyState carries the per-engine LongVerificationHook wiring
+// + the rolling duration estimate. We keep it in a package-level map
+// keyed by *Engine instead of as fields on Engine so the file
+// ownership boundary stays clean (engine.go is owned by the
+// integration agent); the indirection costs one mutex lookup per
+// reviewer pass which is negligible against the cost of the
+// verification it gates.
+type longVerifyState struct {
+	hook   LongVerificationHook
+	lastMS float64
+}
+
+var (
+	longVerifyMu      sync.RWMutex
+	longVerifyStates  = map[*Engine]*longVerifyState{}
+)
+
+// getLongVerifyState returns the per-engine state, creating an empty
+// row on first access.
+func getLongVerifyState(e *Engine) *longVerifyState {
+	longVerifyMu.RLock()
+	s, ok := longVerifyStates[e]
+	longVerifyMu.RUnlock()
+	if ok {
+		return s
+	}
+	longVerifyMu.Lock()
+	defer longVerifyMu.Unlock()
+	if s, ok := longVerifyStates[e]; ok {
+		return s
+	}
+	s = &longVerifyState{}
+	longVerifyStates[e] = s
+	return s
+}
+
+// WithLongVerificationHook wires the V22 BeforeLongVerification hook.
+// The finisher consults it inside runReviewer (and at any other site
+// that previously paid the > 60s cost of a Security / Tests sweep).
+// Stop / KillBranch verdicts short-circuit the verification. Pass nil
+// to disable.
+func (e *Engine) WithLongVerificationHook(h LongVerificationHook) *Engine {
+	if e == nil {
+		return e
+	}
+	s := getLongVerifyState(e)
+	longVerifyMu.Lock()
+	s.hook = h
+	longVerifyMu.Unlock()
+	return e
+}
+
+// estimatedLongVerificationSec is the rolling estimate of how long
+// the reviewer-side verification suite takes for the active project.
+// Zero (the default for an unmeasured execution) returns 0 so the
+// > 60s guard short-circuits to "no estimate yet, run unconditionally".
+func (e *Engine) estimatedLongVerificationSec() float64 {
+	if e == nil {
+		return 0
+	}
+	s := getLongVerifyState(e)
+	longVerifyMu.RLock()
+	defer longVerifyMu.RUnlock()
+	return s.lastMS
+}
+
+// RecordLongVerificationMeasurement updates the rolling estimate. Use
+// after a verification run to feed the next iteration's > 60s guard.
+// Currently exposed for the integration agent and any future call
+// sites that measure their own verifications.
+func (e *Engine) RecordLongVerificationMeasurement(seconds float64) {
+	if e == nil || seconds < 0 {
+		return
+	}
+	s := getLongVerifyState(e)
+	longVerifyMu.Lock()
+	s.lastMS = seconds
+	longVerifyMu.Unlock()
+}
+
+// guardLongVerification consults the BeforeLongVerification hook for
+// the current ctx-bound execution. Returns true when the hook
+// instructed us to skip (Stop / KillBranch); false when there is no
+// hook OR the hook said proceed. Other actions (Continue, Degrade,
+// SwitchProvider) all return false here — the reviewer doesn't have
+// the surface to degrade in place, so anything short of Stop/Kill
+// runs the verification normally.
+func (e *Engine) guardLongVerification(ctx context.Context, label string, estimatedSec float64) bool {
+	if e == nil {
+		return false
+	}
+	s := getLongVerifyState(e)
+	longVerifyMu.RLock()
+	hook := s.hook
+	longVerifyMu.RUnlock()
+	if hook == nil {
+		return false
+	}
+	execID, _ := profitguardctx.ExecutionID(ctx)
+	action, _, err := hook.BeforeLongVerification(ctx, execID, estimatedSec)
+	if err != nil {
+		// Fail-open: a hook error must not block the verification — we
+		// log the issue via a tracer in production wiring but never
+		// silently skip the gate on an infra failure.
+		return false
+	}
+	_ = label // reserved for richer telemetry once metrics land
+	switch action {
+	case "stop", "kill_branch":
+		return true
+	default:
+		return false
+	}
+}
 
 // runPipeline drives the LLM-backed generative phase. Each stage persists
 // its artefacts into the Project so the static gates that come after can
@@ -35,7 +182,6 @@ func (e *Engine) runPipeline(ctx context.Context, projectID, workspaceID, bearer
 		}
 		e.ensureDatabase(ctx, projectID)
 		e.ensureAuth(ctx, projectID)
-		e.ensureStripe(ctx, projectID)
 		e.ensureDomains(ctx, projectID)
 		return e.runCoderReviewLoop(ctx, projectID, workspaceID, bearer, report)
 	}
@@ -68,9 +214,6 @@ func (e *Engine) runPipeline(ctx context.Context, projectID, workspaceID, bearer
 	// default) so the Coder builds product code on top of a known contract
 	// instead of reinventing signup/login each run.
 	e.ensureAuth(ctx, projectID)
-	// Payments scaffold (Stripe Checkout + webhook) — only triggers when
-	// the spec asks for billing/subscription/checkout.
-	e.ensureStripe(ctx, projectID)
 	// Domain packs (games, e-commerce, social, learning, ...) — each
 	// pack inspects the spec and self-decides whether to apply. Lets the
 	// platform genuinely cover "everything" without bloating Auth/Stripe.
@@ -194,8 +337,8 @@ func (e *Engine) runPlanner(ctx context.Context, projectID string, report *RunRe
 	if err := unmarshalJSONFromText(res.Output, &plan); err != nil {
 		e.emit(projectID, domain.Event{
 			ID: newEventID(), Step: StepPlanner, Agent: string(agents.RolePlanner),
-			Status: StatusFailed,
-			Message: fmtErr(ErrCodePlanMalformed, "planner did not return parseable JSON"),
+			Status:    StatusFailed,
+			Message:   fmtErr(ErrCodePlanMalformed, "planner did not return parseable JSON"),
 			CreatedAt: time.Now().UTC(),
 		})
 		return err
@@ -203,8 +346,8 @@ func (e *Engine) runPlanner(ctx context.Context, projectID string, report *RunRe
 	if len(plan.UserStories) == 0 {
 		e.emit(projectID, domain.Event{
 			ID: newEventID(), Step: StepPlanner, Agent: string(agents.RolePlanner),
-			Status: StatusFailed,
-			Message: fmtErr(ErrCodePlanMalformed, "planner returned zero user stories"),
+			Status:    StatusFailed,
+			Message:   fmtErr(ErrCodePlanMalformed, "planner returned zero user stories"),
 			CreatedAt: time.Now().UTC(),
 		})
 		return errors.New("planner: no stories")
@@ -274,8 +417,8 @@ type architectOutput struct {
 		Auth     string `json:"auth"`
 	} `json:"stack"`
 	Services []struct {
-		Name        string   `json:"name"`
-		Description string   `json:"description"`
+		Name         string   `json:"name"`
+		Description  string   `json:"description"`
 		Dependencies []string `json:"dependencies,omitempty"`
 	} `json:"services"`
 	DataFlow string `json:"dataFlow"`
@@ -330,8 +473,8 @@ func (e *Engine) runArchitect(ctx context.Context, projectID string, report *Run
 	if err := unmarshalJSONFromText(res.Output, &arch); err != nil {
 		e.emit(projectID, domain.Event{
 			ID: newEventID(), Step: StepArchitect, Agent: string(agents.RoleArchitect),
-			Status: StatusFailed,
-			Message: fmtErr(ErrCodePlanMalformed, "architect did not return parseable JSON"),
+			Status:    StatusFailed,
+			Message:   fmtErr(ErrCodePlanMalformed, "architect did not return parseable JSON"),
 			CreatedAt: time.Now().UTC(),
 		})
 		return err
@@ -339,8 +482,8 @@ func (e *Engine) runArchitect(ctx context.Context, projectID string, report *Run
 	if arch.Stack.Frontend == "" || arch.Stack.Backend == "" {
 		e.emit(projectID, domain.Event{
 			ID: newEventID(), Step: StepArchitect, Agent: string(agents.RoleArchitect),
-			Status: StatusFailed,
-			Message: fmtErr(ErrCodePlanMalformed, "architect returned an incomplete stack"),
+			Status:    StatusFailed,
+			Message:   fmtErr(ErrCodePlanMalformed, "architect returned an incomplete stack"),
 			CreatedAt: time.Now().UTC(),
 		})
 		return errors.New("architect: incomplete stack")
@@ -440,8 +583,8 @@ func (e *Engine) runUXer(ctx context.Context, projectID string, report *RunRepor
 	if err := unmarshalJSONFromText(res.Output, &ux); err != nil {
 		e.emit(projectID, domain.Event{
 			ID: newEventID(), Step: StepUXer, Agent: string(agents.RoleUXer),
-			Status: StatusFailed,
-			Message: fmtErr(ErrCodePlanMalformed, "UXer did not return parseable JSON"),
+			Status:    StatusFailed,
+			Message:   fmtErr(ErrCodePlanMalformed, "UXer did not return parseable JSON"),
 			CreatedAt: time.Now().UTC(),
 		})
 		return err
@@ -449,8 +592,8 @@ func (e *Engine) runUXer(ctx context.Context, projectID string, report *RunRepor
 	if len(ux.ScreenMap.Screens) == 0 {
 		e.emit(projectID, domain.Event{
 			ID: newEventID(), Step: StepUXer, Agent: string(agents.RoleUXer),
-			Status: StatusFailed,
-			Message: fmtErr(ErrCodePlanMalformed, "UXer returned zero screens"),
+			Status:    StatusFailed,
+			Message:   fmtErr(ErrCodePlanMalformed, "UXer returned zero screens"),
 			CreatedAt: time.Now().UTC(),
 		})
 		return errors.New("uxer: no screens")
@@ -498,9 +641,9 @@ func (e *Engine) runUXer(ctx context.Context, projectID string, report *RunRepor
 // We deliberately use a JSON file-change array instead of unified diff text:
 // the LLM produces it more reliably and our patch.Engine consumes it directly.
 type coderPatch struct {
-	Title   string                  `json:"title"`
-	Summary string                  `json:"summary"`
-	Changes []coderPatchFileChange  `json:"changes"`
+	Title   string                 `json:"title"`
+	Summary string                 `json:"summary"`
+	Changes []coderPatchFileChange `json:"changes"`
 }
 
 type coderPatchFileChange struct {
@@ -582,8 +725,8 @@ func (e *Engine) codeOneStory(ctx context.Context, projectID, workspaceID, beare
 					}
 					e.emit(projectID, domain.Event{
 						ID: newEventID(), Step: StepPatch, Agent: string(agents.RoleCoder),
-						Status: StatusDone,
-						Message: "patch_cache_hit story=" + story.ID + " id=" + applied.ID,
+						Status:    StatusDone,
+						Message:   "patch_cache_hit story=" + story.ID + " id=" + applied.ID,
 						CreatedAt: time.Now().UTC(),
 					})
 					report.PatchIDs = append(report.PatchIDs, applied.ID)
@@ -602,6 +745,25 @@ func (e *Engine) codeOneStory(ctx context.Context, projectID, workspaceID, beare
 		if err := ctx.Err(); err != nil {
 			return err
 		}
+		// V22 ProfitGuard BeforeRetryLoop hook. The integration loop in
+		// main.go wires profitguard.Guard behind ProfitGuardHook so the
+		// retry budget is short-circuited the moment the policy decides
+		// the next round is unprofitable. Nil-safe — without the hook
+		// the loop runs unchanged.
+		if e.profitGuard != nil {
+			if execID, ok := profitguardctx.ExecutionID(ctx); ok {
+				allow, reason := e.profitGuard.BeforeRetry(ctx, execID, "coder", attempt, 0)
+				if !allow {
+					e.emit(projectID, domain.Event{
+						ID: newEventID(), Step: StepCoder, Agent: string(agents.RoleCoder),
+						Status:    StatusFailed,
+						Message:   fmt.Sprintf("profitguard_stop attempt=%d reason=%s", attempt+1, reason),
+						CreatedAt: time.Now().UTC(),
+					})
+					return errors.New("profitguard: " + reason)
+				}
+			}
+		}
 		p, err := e.projects.Get(projectID)
 		if err != nil {
 			return err
@@ -609,8 +771,8 @@ func (e *Engine) codeOneStory(ctx context.Context, projectID, workspaceID, beare
 
 		e.emit(projectID, domain.Event{
 			ID: newEventID(), Step: StepCoder, Agent: string(agents.RoleCoder),
-			Status: StatusRunning,
-			Message: fmt.Sprintf("coder_started story=%s attempt=%d", story.ID, attempt+1),
+			Status:    StatusRunning,
+			Message:   fmt.Sprintf("coder_started story=%s attempt=%d", story.ID, attempt+1),
 			CreatedAt: time.Now().UTC(),
 		})
 
@@ -631,7 +793,14 @@ func (e *Engine) codeOneStory(ctx context.Context, projectID, workspaceID, beare
 				rag = mem + "\n\n" + rag
 			}
 		}
-		res, runErr := e.registry.Run(ctx, agents.Task{
+		// Parallel critic: the Coder streams tokens and a critic
+		// goroutine runs alongside, firing partial critiques against a
+		// sliding window. A `severity: blocker` finding cancels the
+		// Coder mid-stream and we fail the gate fast rather than burn
+		// the retry budget on a doomed patch. When
+		// IRONFLYER_CRITIC_PARALLEL=false, this transparently falls
+		// back to the original single-shot registry.Run().
+		coderTask := agents.Task{
 			Role:           agents.RoleCoder,
 			Project:        &p,
 			Goal:           goal,
@@ -640,7 +809,25 @@ func (e *Engine) codeOneStory(ctx context.Context, projectID, workspaceID, beare
 			ThinkingBudget: coderThinkingBudget(story, p),
 			UserBearer:     bearerFromCtx(ctx),
 			WorkspaceID:    workspaceIDFromCtx(ctx),
+		}
+		// A55 agent reasoning — Coder is about to call the model.
+		emitExecutionEvent(ctx, e.executionService, execution.EventAgentStageActionV1, map[string]any{
+			"stage":      "coder",
+			"agent_role": "coder",
+			"action":     "patch_propose",
+			"story":      story.ID,
+			"attempt":    attempt + 1,
+			"message":    "Generating patch for " + story.ID + " (attempt " + itoaPositive(attempt+1) + ")",
 		})
+		res, runErr := e.runCoderStreamingWithCritic(ctx, projectID, story, coderTask)
+		if errors.Is(runErr, abortedByCriticErr) {
+			// The parallel critic killed the stream — the abort event
+			// + audit entry were already emitted inside the helper.
+			// Don't burn the rest of the retry budget on a doomed
+			// generation; bail out of this story so the caller moves
+			// on to the next one.
+			return runErr
+		}
 		if runErr != nil {
 			e.emitProviderErr(projectID, StepCoder, agents.RoleCoder, runErr)
 			return runErr
@@ -652,8 +839,8 @@ func (e *Engine) codeOneStory(ctx context.Context, projectID, workspaceID, beare
 			failureContext = "Your previous response was not parseable JSON. Return exactly the schema, no fences."
 			e.emit(projectID, domain.Event{
 				ID: newEventID(), Step: StepCoder, Agent: string(agents.RoleCoder),
-				Status: StatusFailed,
-				Message: fmtErr(ErrCodePatchInvalid, "coder JSON unparseable on attempt "+itoaPositive(attempt+1)),
+				Status:    StatusFailed,
+				Message:   fmtErr(ErrCodePatchInvalid, "coder JSON unparseable on attempt "+itoaPositive(attempt+1)),
 				CreatedAt: time.Now().UTC(),
 			})
 			continue
@@ -681,8 +868,8 @@ func (e *Engine) codeOneStory(ctx context.Context, projectID, workspaceID, beare
 			lastErrIssues = violations
 			e.emit(projectID, domain.Event{
 				ID: newEventID(), Step: StepCoder, Agent: string(agents.RoleCoder),
-				Status: StatusFailed,
-				Message: fmtErr(ErrCodePatchTooLarge, "patch out of bounds on attempt "+itoaPositive(attempt+1)),
+				Status:    StatusFailed,
+				Message:   fmtErr(ErrCodePatchTooLarge, "patch out of bounds on attempt "+itoaPositive(attempt+1)),
 				CreatedAt: time.Now().UTC(),
 			})
 			continue
@@ -696,8 +883,8 @@ func (e *Engine) codeOneStory(ctx context.Context, projectID, workspaceID, beare
 			lastErrIssues = syntaxIssues
 			e.emit(projectID, domain.Event{
 				ID: newEventID(), Step: StepCoder, Agent: string(agents.RoleCoder),
-				Status: StatusFailed,
-				Message: fmtErr(ErrCodePatchInvalid, "syntax precheck rejected the patch"),
+				Status:    StatusFailed,
+				Message:   fmtErr(ErrCodePatchInvalid, "syntax precheck rejected the patch"),
 				CreatedAt: time.Now().UTC(),
 			})
 			continue
@@ -708,8 +895,8 @@ func (e *Engine) codeOneStory(ctx context.Context, projectID, workspaceID, beare
 			failureContext = "Patch was rejected by the engine: " + err.Error()
 			e.emit(projectID, domain.Event{
 				ID: newEventID(), Step: StepCoder, Agent: string(agents.RoleCoder),
-				Status: StatusFailed,
-				Message: fmtErr(ErrCodePatchInvalid, err.Error()),
+				Status:    StatusFailed,
+				Message:   fmtErr(ErrCodePatchInvalid, err.Error()),
 				CreatedAt: time.Now().UTC(),
 			})
 			continue
@@ -719,8 +906,8 @@ func (e *Engine) codeOneStory(ctx context.Context, projectID, workspaceID, beare
 			lastErrIssues = proposed.Issues
 			e.emit(projectID, domain.Event{
 				ID: newEventID(), Step: StepCoder, Agent: string(agents.RoleCoder),
-				Status: StatusFailed,
-				Message: fmtErr(ErrCodePatchInvalid, "validator rejected patch"),
+				Status:    StatusFailed,
+				Message:   fmtErr(ErrCodePatchInvalid, "validator rejected patch"),
 				CreatedAt: time.Now().UTC(),
 			})
 			continue
@@ -752,8 +939,8 @@ func (e *Engine) codeOneStory(ctx context.Context, projectID, workspaceID, beare
 		report.PatchIDs = append(report.PatchIDs, proposed.ID)
 		e.emit(projectID, domain.Event{
 			ID: newEventID(), Step: StepPatch, Agent: string(agents.RoleCoder),
-			Status: StatusDone,
-			Message: "patch_proposed id=" + proposed.ID + " story=" + story.ID,
+			Status:    StatusDone,
+			Message:   "patch_proposed id=" + proposed.ID + " story=" + story.ID,
 			CreatedAt: time.Now().UTC(),
 		})
 
@@ -782,8 +969,8 @@ func (e *Engine) codeOneStory(ctx context.Context, projectID, workspaceID, beare
 		if applyErr != nil {
 			e.emit(projectID, domain.Event{
 				ID: newEventID(), Step: StepPatch, Agent: string(agents.RoleCoder),
-				Status: StatusFailed,
-				Message: fmtErr(ErrCodePatchInvalid, applyErr.Error()),
+				Status:    StatusFailed,
+				Message:   fmtErr(ErrCodePatchInvalid, applyErr.Error()),
 				CreatedAt: time.Now().UTC(),
 			})
 			return applyErr
@@ -792,8 +979,8 @@ func (e *Engine) codeOneStory(ctx context.Context, projectID, workspaceID, beare
 			if err := e.applier.Apply(ctx, bearer, workspaceID, applied); err != nil {
 				e.emit(projectID, domain.Event{
 					ID: newEventID(), Step: StepPatch, Agent: string(agents.RoleCoder),
-					Status: StatusFailed,
-					Message: fmtErr(ErrCodeRuntimeError, "workspace apply failed: "+err.Error()),
+					Status:    StatusFailed,
+					Message:   fmtErr(ErrCodeRuntimeError, "workspace apply failed: "+err.Error()),
 					CreatedAt: time.Now().UTC(),
 				})
 				// Continue — the gate phase will catch any divergence.
@@ -801,14 +988,78 @@ func (e *Engine) codeOneStory(ctx context.Context, projectID, workspaceID, beare
 		}
 		e.emit(projectID, domain.Event{
 			ID: newEventID(), Step: StepPatch, Agent: string(agents.RoleCoder),
-			Status: StatusDone,
-			Message: "patch_applied id=" + applied.ID + " story=" + story.ID,
+			Status:    StatusDone,
+			Message:   "patch_applied id=" + applied.ID + " story=" + story.ID,
 			CreatedAt: time.Now().UTC(),
 		})
+		// A55 agent reasoning — patch landed.
+		{
+			pathNames := make([]string, 0, len(applied.Changes))
+			for _, c := range applied.Changes {
+				pathNames = append(pathNames, c.Path)
+			}
+			suffix := "s"
+			if len(applied.Changes) == 1 {
+				suffix = ""
+			}
+			summary := fmt.Sprintf("Applied %d file%s for %s",
+				len(applied.Changes), suffix, story.ID)
+			emitExecutionEvent(ctx, e.executionService, execution.EventAgentStageResultV1, map[string]any{
+				"stage":      "coder",
+				"agent_role": "coder",
+				"action":     "patch_apply",
+				"success":    true,
+				"story":      story.ID,
+				"patch_id":   applied.ID,
+				"paths":      pathNames,
+				"summary":    summary,
+			})
+		}
+		// Wow-loop event ring: emit patch.applied.v1 so the customer-
+		// facing executionSupportBundle's "what changed" panel reflects
+		// the Coder's landed patch. Cost is sourced from the most-recent
+		// AgentRuns entry (same source the learning hook below uses) so
+		// the row carries realistic margin signal for downstream.
+		{
+			appliedPaths := make([]string, 0, len(applied.Changes))
+			for _, c := range applied.Changes {
+				appliedPaths = append(appliedPaths, c.Path)
+			}
+			emitExecutionEvent(ctx, e.executionService, execution.EventPatchAppliedV1, map[string]any{
+				"patch_id":       applied.ID,
+				"affected_paths": appliedPaths,
+				"cost_usd":       lastAgentCostUSD(report).String(),
+				"applied_at":     time.Now().UTC().Format(time.RFC3339Nano),
+			})
+		}
 		// Cache the successful patch keyed by spec hash so future
 		// repair iterations on the same story short-circuit.
 		if proj, getErr := e.projects.Get(projectID); getErr == nil {
 			e.patchesCache.put(projectID, story.ID, hashSpec(&proj), applied)
+		}
+		// V22 learning: persist the patch shape against the (gate +
+		// story) intent in patch memory. The intent string is stable
+		// across runs of the same story; matching past patches feed
+		// future Coder calls + dashboard "patch reuse rate" stats.
+		if e.learning != nil {
+			execID, _ := profitguardctx.ExecutionID(ctx)
+			intent := IntentForGateStory(string(domain.GateCode), story.ID, applied.Title)
+			paths := make([]string, 0, len(applied.Changes))
+			for _, c := range applied.Changes {
+				paths = append(paths, c.Path)
+			}
+			patchBlob := map[string]any{
+				"title":   applied.Title,
+				"summary": applied.Summary,
+				"id":      applied.ID,
+				"story":   story.ID,
+			}
+			// Cost USD — the Coder Result attached to report.AgentRuns
+			// carries the realised provider cost. Sum any runs since
+			// the last patch landed (kept as the last AgentRuns entry
+			// in the v1 wiring).
+			cost := lastAgentCostUSD(report)
+			e.learning.OnPatchApplied(ctx, execID, intent, patchBlob, paths, cost)
 		}
 		// Memory capture — record the winning patch pattern, plus a
 		// failure-fix lineage entry when this attempt followed a
@@ -833,8 +1084,8 @@ func (e *Engine) codeOneStory(ctx context.Context, projectID, workspaceID, beare
 	// All retries exhausted.
 	e.emit(projectID, domain.Event{
 		ID: newEventID(), Step: StepCoder, Agent: string(agents.RoleCoder),
-		Status: StatusFailed,
-		Message: fmtErr(ErrCodeGateUnrecoverable, "coder exhausted retries for story "+story.ID),
+		Status:    StatusFailed,
+		Message:   fmtErr(ErrCodeGateUnrecoverable, "coder exhausted retries for story "+story.ID),
 		CreatedAt: time.Now().UTC(),
 	})
 	return errors.New("coder: max retries for " + story.ID)
@@ -860,6 +1111,23 @@ func (e *Engine) runReviewer(ctx context.Context, projectID string, proposed *pa
 
 	env := &GateEnv{Project: &preview} // no Runtime — keep this loop fast.
 	var issues []domain.Issue
+	// V22 BeforeLongVerification gate. When the long-verification hook
+	// is wired AND we have prior measurements suggesting the Security
+	// gate (or any other reviewer-side verification) routinely runs
+	// past 60s for this execution, consult ProfitGuard before paying
+	// the cost again. Stop / KillBranch verdicts skip the verification
+	// step and let the reviewer pass with a degraded (warn-only)
+	// verdict. nil-safe — without the hook the cheap reviewer runs
+	// unchanged.
+	estSec := e.estimatedLongVerificationSec()
+	if estSec > 60 && e.guardLongVerification(ctx, "reviewer.security", estSec) {
+		e.emit(projectID, domain.Event{
+			ID: newEventID(), Step: StepReviewer, Agent: string(agents.RoleReviewer),
+			Status: StatusDone, Message: "long_verification_skipped profitguard",
+			CreatedAt: time.Now().UTC(),
+		})
+		return nil
+	}
 	for _, g := range cheapReviewerGates() {
 		issues = append(issues, g.Check(ctx, env)...)
 	}

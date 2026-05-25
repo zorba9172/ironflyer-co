@@ -26,6 +26,61 @@ func (e *Engine) memoryEnabled() bool {
 	return e != nil && e.memory != nil
 }
 
+// federationFor returns the owner-scoped federation set the agent
+// context-bundle helpers should widen their reads with. Returns ("", nil)
+// when federation is disabled OR the project has no owner OR the owner
+// has no other federated projects — in any of those cases the read stays
+// strictly per-project, matching the pre-federation behaviour.
+//
+// Owner isolation invariant: the returned userID is ALWAYS the project's
+// owner; the returned ids are ALWAYS rows from that same owner's
+// federation table. The downstream memory.Query then re-asserts
+// record.UserID == userID before surfacing federated rows. Two layers,
+// because losing either one would be a tenant leak.
+func (e *Engine) federationFor(ctx context.Context, projectID string) (string, []string) {
+	if e == nil || e.federation == nil || e.projects == nil || projectID == "" {
+		return "", nil
+	}
+	p, err := e.projects.Get(projectID)
+	if err != nil || p.OwnerID == "" {
+		return "", nil
+	}
+	ids, err := memory.ProjectIDsFor(ctx, e.federation, p.OwnerID)
+	if err != nil || len(ids) == 0 {
+		return "", nil
+	}
+	// Drop the local project from the federation set — it would just
+	// be a no-op filter at the store layer, but stripping it here makes
+	// the contract obvious to a future reader.
+	out := make([]string, 0, len(ids))
+	for _, id := range ids {
+		if id != projectID {
+			out = append(out, id)
+		}
+	}
+	if len(out) == 0 {
+		return "", nil
+	}
+	return p.OwnerID, out
+}
+
+// applyFederation mutates q in place to widen the read to the owner's
+// federated projects when federation is configured. Returns q for
+// fluent chaining.
+func (e *Engine) applyFederation(q memory.Query, ownerID string, fedIDs []string, perFedCap int) memory.Query {
+	if ownerID == "" || len(fedIDs) == 0 {
+		return q
+	}
+	q.IncludeFederated = true
+	q.FederatedProjectIDs = fedIDs
+	q.UserID = ownerID
+	if perFedCap <= 0 {
+		perFedCap = 5
+	}
+	q.FederatedLimit = perFedCap
+	return q
+}
+
 // rememberDecision records a structured architectural decision. Called
 // from runArchitect after a successful StackDecision lands so future
 // runs (and the Architect itself, via inject below) see the chosen
@@ -122,16 +177,17 @@ func (e *Engine) contextBundleForArchitect(ctx context.Context, projectID string
 	}
 	deadline, cancel := context.WithTimeout(ctx, 1500*time.Millisecond)
 	defer cancel()
-	decisions, _ := e.memory.Query(deadline, memory.Query{
+	ownerID, fedIDs := e.federationFor(deadline, projectID)
+	decisions, _ := e.memory.Query(deadline, e.applyFederation(memory.Query{
 		Kind:      memory.KindProject,
 		ProjectID: projectID,
 		Tag:       "decision",
 		Limit:     12,
-	})
+	}, ownerID, fedIDs, 5))
 	if len(decisions) == 0 {
 		return ""
 	}
-	return memory.FormatForContext(decisions)
+	return memory.FormatWithFederation(decisions, projectID)
 }
 
 // contextBundleForPlanner returns prior project decisions, prior specs,
@@ -144,18 +200,19 @@ func (e *Engine) contextBundleForPlanner(ctx context.Context, projectID string) 
 	}
 	deadline, cancel := context.WithTimeout(ctx, 1500*time.Millisecond)
 	defer cancel()
-	decisions, _ := e.memory.Query(deadline, memory.Query{
+	ownerID, fedIDs := e.federationFor(deadline, projectID)
+	decisions, _ := e.memory.Query(deadline, e.applyFederation(memory.Query{
 		Kind:      memory.KindProject,
 		ProjectID: projectID,
 		Tag:       "decision",
 		Limit:     10,
-	})
-	specs, _ := e.memory.Query(deadline, memory.Query{
+	}, ownerID, fedIDs, 3))
+	specs, _ := e.memory.Query(deadline, e.applyFederation(memory.Query{
 		Kind:      memory.KindProject,
 		ProjectID: projectID,
 		Tag:       "spec",
 		Limit:     6,
-	})
+	}, ownerID, fedIDs, 2))
 	business, _ := e.memory.Query(deadline, memory.Query{
 		Kind:      memory.KindBusiness,
 		ProjectID: projectID,
@@ -166,7 +223,7 @@ func (e *Engine) contextBundleForPlanner(ctx context.Context, projectID string) 
 	if len(merged) == 0 {
 		return ""
 	}
-	return memory.FormatForContext(merged)
+	return memory.FormatWithFederation(merged, projectID)
 }
 
 // contextBundleForUXer returns prior design / ux notes recorded against
@@ -178,23 +235,24 @@ func (e *Engine) contextBundleForUXer(ctx context.Context, projectID string) str
 	}
 	deadline, cancel := context.WithTimeout(ctx, 1500*time.Millisecond)
 	defer cancel()
-	design, _ := e.memory.Query(deadline, memory.Query{
+	ownerID, fedIDs := e.federationFor(deadline, projectID)
+	design, _ := e.memory.Query(deadline, e.applyFederation(memory.Query{
 		Kind:      memory.KindProject,
 		ProjectID: projectID,
 		Tag:       "design",
 		Limit:     8,
-	})
-	ux, _ := e.memory.Query(deadline, memory.Query{
+	}, ownerID, fedIDs, 3))
+	ux, _ := e.memory.Query(deadline, e.applyFederation(memory.Query{
 		Kind:      memory.KindProject,
 		ProjectID: projectID,
 		Tag:       "ux",
 		Limit:     8,
-	})
+	}, ownerID, fedIDs, 2))
 	merged := append(design, ux...)
 	if len(merged) == 0 {
 		return ""
 	}
-	return memory.FormatForContext(merged)
+	return memory.FormatWithFederation(merged, projectID)
 }
 
 // contextBundleForCoder returns a markdown block of the top-N most
@@ -211,30 +269,34 @@ func (e *Engine) contextBundleForCoder(ctx context.Context, projectID string, st
 	deadline, cancel := context.WithTimeout(ctx, 1500*time.Millisecond)
 	defer cancel()
 
-	lineage, _ := e.memory.Query(deadline, memory.Query{
+	ownerID, fedIDs := e.federationFor(deadline, projectID)
+	// Lineage is the highest-signal cross-project class — failure→fix
+	// pairs from Project A often inform Project B's repair iteration.
+	// We allow 5 federated lineage entries per the task spec.
+	lineage, _ := e.memory.Query(deadline, e.applyFederation(memory.Query{
 		Kind:      memory.KindExecution,
 		ProjectID: projectID,
 		StoryID:   story.ID,
 		Limit:     5,
-	})
-	decisions, _ := e.memory.Query(deadline, memory.Query{
+	}, ownerID, fedIDs, 5))
+	decisions, _ := e.memory.Query(deadline, e.applyFederation(memory.Query{
 		Kind:      memory.KindProject,
 		ProjectID: projectID,
 		Tag:       "decision",
 		Limit:     5,
-	})
-	patterns, _ := e.memory.Query(deadline, memory.Query{
+	}, ownerID, fedIDs, 3))
+	patterns, _ := e.memory.Query(deadline, e.applyFederation(memory.Query{
 		Kind:      memory.KindProject,
 		ProjectID: projectID,
 		Tag:       "pattern",
 		Substring: story.IWant,
 		Limit:     3,
-	})
+	}, ownerID, fedIDs, 2))
 
 	merged := append(lineage, decisions...)
 	merged = append(merged, patterns...)
 	if len(merged) == 0 {
 		return ""
 	}
-	return memory.FormatForContext(merged)
+	return memory.FormatWithFederation(merged, projectID)
 }

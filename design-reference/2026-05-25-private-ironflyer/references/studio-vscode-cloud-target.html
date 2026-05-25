@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IronFlyer Studio Target Reference</title>
+  <style>
+    :root {
+      --bg: #050612;
+      --inset: #080918;
+      --surface: #0c0d20;
+      --raised: #11132a;
+      --hover: #191538;
+      --text: #f7f4ff;
+      --secondary: #b9b2d3;
+      --muted: #777096;
+      --border: rgba(178, 133, 255, .16);
+      --strong: rgba(187, 147, 255, .34);
+      --violet: #b56cff;
+      --purple: #8f4dff;
+      --coral: #ff7848;
+      --magenta: #e149c9;
+      --success: #7fe28a;
+      --warning: #ffb457;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text); font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; overflow-x: clip; }
+    body {
+      background:
+        radial-gradient(circle at 93% 18%, rgba(143,77,255,.36), transparent 22%),
+        radial-gradient(circle at 12% 90%, rgba(181,108,255,.16), transparent 22%),
+        var(--bg);
+    }
+    .topnav {
+      height: 58px;
+      display: grid;
+      grid-template-columns: 250px 1fr auto;
+      align-items: center;
+      gap: 20px;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(5,6,18,.92);
+    }
+    .logo { display: flex; align-items: center; gap: 10px; font-size: 21px; font-weight: 900; }
+    .mark { width: 34px; height: 21px; position: relative; }
+    .mark i { position: absolute; top: 3px; width: 8px; height: 20px; transform: skewX(-28deg); background: linear-gradient(180deg, var(--coral), var(--purple)); border-radius: 2px; }
+    .mark i:nth-child(1) { left: 0; }
+    .mark i:nth-child(2) { left: 12px; }
+    .mark i:nth-child(3) { left: 24px; opacity: .82; }
+    .navlinks { display: flex; justify-content: center; gap: 34px; font-size: 13px; font-weight: 800; }
+    .actions { display: flex; align-items: center; gap: 14px; font-size: 13px; font-weight: 800; }
+    .cta, .publish, .generate {
+      border: 0;
+      color: var(--text);
+      background: linear-gradient(100deg, var(--coral), var(--magenta) 52%, var(--purple));
+      border-radius: 8px;
+      font-weight: 900;
+    }
+    .cta { padding: 12px 18px; }
+    .app {
+      height: calc(100vh - 58px);
+      display: grid;
+      grid-template-columns: 250px minmax(0, 1fr);
+      min-width: 0;
+    }
+    .rail {
+      border-right: 1px solid var(--border);
+      padding: 24px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      min-height: 0;
+      background: rgba(5,6,18,.72);
+    }
+    .new-app, .ghost {
+      border: 1px solid var(--strong);
+      border-radius: 8px;
+      background: rgba(17,19,42,.7);
+      color: var(--text);
+      height: 38px;
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      font-weight: 800;
+    }
+    .navitem, .recent {
+      display: flex;
+      align-items: center;
+      height: 36px;
+      padding: 0 10px;
+      border-radius: 8px;
+      color: var(--secondary);
+      font-weight: 760;
+      font-size: 14px;
+    }
+    .navitem.active { background: rgba(143,77,255,.62); color: var(--text); }
+    .section { color: var(--muted); text-transform: uppercase; font-size: 11px; letter-spacing: .6px; margin-top: 4px; }
+    .recent.active { border: 1px solid var(--strong); background: rgba(143,77,255,.2); color: var(--text); }
+    .upgrade, .plan {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      background: rgba(17,19,42,.82);
+      margin-top: auto;
+    }
+    .main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+    .bar {
+      min-height: 70px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 0 28px;
+      border-bottom: 1px solid var(--border);
+    }
+    .bar .spacer { flex: 1; }
+    .pill {
+      min-height: 38px;
+      padding: 0 18px;
+      border: 1px solid var(--strong);
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(17,19,42,.68);
+      font-size: 13px;
+      font-weight: 850;
+    }
+    .publish { min-height: 38px; padding: 0 28px; }
+    .control {
+      display: grid;
+      grid-template-columns: 330px minmax(0, 1fr);
+      gap: 28px;
+      align-items: center;
+      min-height: 88px;
+      padding: 0 28px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tabs { display: flex; gap: 10px; }
+    .tab { min-width: 100px; height: 38px; border: 1px solid var(--border); background: rgba(17,19,42,.7); border-radius: 8px; display: grid; place-items: center; font-weight: 850; }
+    .tab.active, .status.active { border-color: var(--violet); background: rgba(143,77,255,.45); }
+    .statuses { display: grid; grid-template-columns: repeat(5, minmax(112px, 1fr)); gap: 14px; }
+    .status { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; background: rgba(8,9,24,.74); }
+    .small { color: var(--secondary); font-size: 11px; }
+    .value { font-weight: 900; font-size: 15px; margin-top: 2px; }
+    .work {
+      flex: 1;
+      min-height: 0;
+      padding: 18px;
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr) 430px;
+      grid-template-rows: minmax(0, 1fr) 140px;
+      gap: 16px;
+    }
+    .panel {
+      min-width: 0;
+      min-height: 0;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: rgba(17,19,42,.74);
+      overflow: hidden;
+    }
+    .panel-head { height: 54px; display: flex; align-items: center; gap: 10px; padding: 0 18px; border-bottom: 1px solid var(--border); font-weight: 900; }
+    .prompt { padding: 16px; }
+    textarea { width: 100%; height: 164px; resize: none; border: 1px solid var(--strong); border-radius: 8px; background: var(--inset); color: var(--text); padding: 14px; font: inherit; line-height: 1.55; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+    .chip { border-radius: 7px; background: rgba(255,255,255,.06); color: var(--secondary); padding: 7px 10px; font-size: 12px; font-weight: 750; }
+    .chip.hot { color: var(--warning); background: rgba(255,180,87,.12); }
+    .generate { width: 100%; height: 38px; font-size: 15px; }
+    .suggestions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+    .suggestion { border: 1px solid var(--border); border-radius: 8px; background: rgba(8,9,24,.7); padding: 14px; min-height: 74px; font-size: 12px; }
+    .code-panel { display: grid; grid-template-columns: 136px minmax(0, 1fr); }
+    .files { border-right: 1px solid var(--border); padding: 18px; color: var(--secondary); font-size: 13px; }
+    .file { margin: 14px 0; }
+    .editor { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+    .tabbar { height: 42px; display: flex; align-items: center; padding: 0 14px; border-bottom: 1px solid var(--border); }
+    pre { flex: 1; margin: 0; overflow: auto; padding: 16px 20px; color: var(--secondary); font: 12px/1.7 "Geist Mono", ui-monospace, monospace; }
+    .green { color: var(--success); }
+    .violet { color: var(--violet); }
+    .footer { height: 32px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 12px; padding: 0 14px; color: var(--secondary); font-size: 11px; }
+    .preview-body { padding: 18px; }
+    .preview-card { border: 1px solid var(--border); border-radius: 10px; background: rgba(8,9,24,.9); padding: 18px; }
+    .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+    .metric { border: 1px solid var(--border); border-radius: 8px; padding: 12px; background: rgba(255,255,255,.04); }
+    .metric b { display: block; font-size: 22px; margin-top: 4px; }
+    .table { margin-top: 16px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .row { display: grid; grid-template-columns: 1.4fr 1fr .8fr 1fr; gap: 10px; padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--secondary); }
+    .row:last-child { border-bottom: 0; }
+    .live { color: var(--success); font-weight: 900; }
+    .queued { color: var(--warning); font-weight: 900; }
+    .assistant {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(360px, .9fr);
+      gap: 20px;
+      padding: 16px;
+    }
+    .done-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; margin-top: 12px; }
+    .done, .composer { border: 1px solid var(--border); border-radius: 8px; padding: 12px; background: rgba(8,9,24,.72); font-size: 12px; }
+    .composer { min-height: 92px; color: var(--secondary); }
+    @media (max-width: 900px) {
+      .topnav { grid-template-columns: 1fr auto; }
+      .navlinks, .rail, .actions .login { display: none; }
+      .app { grid-template-columns: 1fr; height: auto; min-height: calc(100vh - 58px); }
+      .bar, .control { padding: 12px; min-height: auto; }
+      .control { grid-template-columns: 1fr; }
+      .statuses { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .work { grid-template-columns: 1fr; grid-template-rows: auto; overflow: visible; }
+      .code-panel { grid-template-columns: 1fr; }
+      .files { display: none; }
+      .assistant { grid-template-columns: 1fr; }
+      .done-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topnav">
+    <div class="logo"><span class="mark"><i></i><i></i><i></i></span>IronFlyer</div>
+    <nav class="navlinks"><span>Product</span><span>Templates</span><span>Solutions</span><span>Pricing</span><span>Resources</span><span>Enterprise</span></nav>
+    <div class="actions"><span class="login">Log in</span><button class="cta">Start a project</button></div>
+  </header>
+  <div class="app">
+    <aside class="rail">
+      <div class="new-app">+ &nbsp; New app</div>
+      <div>
+        <div class="navitem">Home</div><div class="navitem">All apps</div><div class="navitem">Templates</div><div class="navitem">Integrations</div><div class="navitem active">Studio</div>
+      </div>
+      <div class="section">Recents</div>
+      <div><div class="recent">MathQuest</div><div class="recent active">ClientFlow</div><div class="recent">Fit booking</div><div class="recent">InvoicePro</div><div class="recent">TeamHub</div></div>
+      <div class="upgrade"><b>Upgrade your plan</b><p class="small">Get more agent minutes and private deploys.</p><div class="ghost">Upgrade now</div></div>
+    </aside>
+    <main class="main">
+      <div class="bar"><span>Studio</span><span>›</span><b>ClientFlow</b><span class="spacer"></span><span class="pill">GitHub</span><span class="pill">Preview live</span><button class="publish">Publish</button></div>
+      <div class="control"><div class="tabs"><div class="tab">Preview</div><div class="tab">Mobile</div><div class="tab active">Code</div></div><div class="statuses"><div class="status"><div class="small">Plan</div><div class="value">Locked</div></div><div class="status"><div class="small">Web</div><div class="value">Live</div></div><div class="status"><div class="small">Mobile</div><div class="value">Queued</div></div><div class="status active"><div class="small">Gate</div><div class="value">92/100</div></div><div class="status"><div class="small">Deploy</div><div class="value">Preview</div></div></div></div>
+      <section class="work">
+        <section class="panel prompt"><div style="display:flex;align-items:center;gap:12px"><h3 style="margin:0">AI Prompt</h3><span class="spacer"></span><span class="pill">Improve prompt</span></div><textarea>Build a client operations portal with projects, invoices, approvals, role-based access and team activity dashboard.</textarea><div class="chips"><span class="chip">Add context</span><span class="chip hot">Business goals</span><span class="chip">Data models</span></div><button class="generate">Generate ✦</button><p class="small">Suggestions</p><div class="suggestions"><div class="suggestion">Add subscription billing flow with stripe</div><div class="suggestion">Add team chat and mentions</div><div class="suggestion">Add client portal notifications</div><div class="suggestion">Add advanced permissions</div></div></section>
+        <section class="panel code-panel"><div class="files"><b>Files</b><div class="file">▸ src</div><div class="file">▸ components</div><div class="file">▸ pages</div><div class="file">▸ hooks</div><div class="file">▸ lib</div><div class="file">▸ styles</div><hr style="border-color:var(--border)"><div class="file">.env.local</div><div class="file">package.json</div><div class="file">README.md</div></div><div class="editor"><div class="tabbar"><b>Dashboard.tsx</b></div><pre><span class="violet">import</span> { Card, Stat, Table, Badge } from '@/ui'
+<span class="violet">import</span> { useProjects } from '@/hooks/useProjects'
+
+<span class="violet">export default function</span> Dashboard() {
+  const { data: projects } = useProjects()
+
+  return (
+    &lt;div className="p-6 space-y-6"&gt;
+      &lt;StatsGrid&gt;
+        &lt;Stat label=<span class="green">"Revenue"</span> value=<span class="green">"$18.2k"</span> /&gt;
+        &lt;Stat label=<span class="green">"Open approvals"</span> value=<span class="green">"27"</span> /&gt;
+        &lt;Stat label=<span class="green">"Files"</span> value=<span class="green">"1.4k"</span> /&gt;
+        &lt;Stat label=<span class="green">"Deploy health"</span> value=<span class="green">"99.9%"</span> /&gt;
+      &lt;/StatsGrid&gt;
+      &lt;ProjectsTable data={projects} /&gt;
+    &lt;/div&gt;
+  )
+}</pre><div class="footer">TypeScript <span class="live">●</span> Saved 2m ago <span style="margin-left:auto">Ln 14, Col 22</span> <span>Format</span></div></div></section>
+        <section class="panel"><div class="panel-head">Preview <span style="margin-left:auto" class="small">▭ ▯ ▯ ↻</span></div><div class="preview-body"><div class="preview-card"><b>Client operations portal</b><span class="live" style="float:right">Live</span><div class="metrics"><div class="metric"><span class="small">Revenue</span><b>$18.2k</b></div><div class="metric"><span class="small">Open approvals</span><b>27</b></div><div class="metric"><span class="small">Files</span><b>1.4k</b></div><div class="metric"><span class="small">Deploy health</span><b>99.9%</b></div></div><div class="table"><div class="row"><b>Website redesign</b><span>Maya P.</span><span class="live">Live</span><span>2m ago</span></div><div class="row"><b>Mobile app</b><span>Noah K.</span><span class="violet">Preview</span><span>10m ago</span></div><div class="row"><b>CRM integration</b><span>Liam T.</span><span class="live">Live</span><span>1h ago</span></div><div class="row"><b>Analytics dashboard</b><span>Emma R.</span><span class="queued">Queued</span><span>2h ago</span></div></div></div></div></section>
+        <section class="panel assistant"><div><b>✦ Studio Assistant</b><div class="done-grid"><div class="done">✓ Added project table with filters and search</div><div class="done">✓ Connected Stripe billing flow</div><div class="done">✓ Added role-based access control</div><div class="done">✓ Added activity feed and notifications</div></div></div><div class="composer">Ask anything... (e.g. "Add invoice approvals flow")<div class="chips"><span class="chip">ClientFlow</span><span class="chip">src/dashboard.tsx</span><span class="chip">Data models</span></div></div></section>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

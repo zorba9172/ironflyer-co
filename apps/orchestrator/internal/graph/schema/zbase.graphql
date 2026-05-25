@@ -1,0 +1,82 @@
+# Base schema — scalars, root types, pagination envelope, generic
+# result + error types. Every other *.graphql file `extend`s the three
+# root types so each domain owns a self-contained slice.
+#
+# Endpoint: POST /graphql (queries + mutations), WS /graphql
+# (subscriptions over `graphql-transport-ws`). Sandbox lives at
+# GET /graphql/sandbox.
+
+scalar DateTime
+scalar JSON
+scalar Decimal
+scalar Bytes
+
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+type Query {
+  # Liveness check — always returns "ok". Real health is in /healthz.
+  ping: String!
+  # Build identity — version / commit / buildTime so the dashboard can
+  # render a footer without needing a second REST hop.
+  version: VersionInfo!
+}
+
+type Mutation {
+  # Mutation root is extended per-domain. The placeholder field below
+  # exists so gqlgen does not emit a "Mutation has no fields" error
+  # when only a subset of domain schemas are present at codegen time.
+  _empty: String
+}
+
+type Subscription {
+  # Subscription root is extended per-domain. The placeholder is
+  # documented but never invoked — clients always subscribe to a
+  # real, domain-specific field.
+  _heartbeat: HeartbeatEvent!
+}
+
+type VersionInfo {
+  version: String!
+  commit: String!
+  buildTime: String!
+  service: String!
+}
+
+type HeartbeatEvent {
+  ts: DateTime!
+  message: String
+}
+
+# Generic pagination envelope. Cursor-based to avoid the deep-offset
+# antipattern; every paginated list resolver returns a Page<T> wrapper.
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  totalCount: Int
+}
+
+# OperationResult is the generic mutation outcome. Used for delete /
+# revoke / disconnect style endpoints where the only payload is
+# success + an optional message.
+type OperationResult {
+  ok: Boolean!
+  message: String
+}
+
+# Standard error envelope. Resolvers either return the typed payload
+# OR throw a GraphQL error — this is the user-presentable wrapper.
+type GqlError {
+  code: String!
+  message: String!
+  details: JSON
+}
+
+# Directives for documentation / future authz wiring. @auth is a marker
+# the GraphQL handler reads to enforce scopes; @internal documents
+# fields not meant for public clients.
+directive @auth(scope: String) on FIELD_DEFINITION | OBJECT
+directive @internal on FIELD_DEFINITION | OBJECT

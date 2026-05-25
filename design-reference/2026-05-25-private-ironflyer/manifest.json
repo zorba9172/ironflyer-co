@@ -1,0 +1,52 @@
+{
+  "lockedAt": "2026-05-25",
+  "status": "locked",
+  "governingDocument": "../../apps/web/DESIGN_REFERENCE.md",
+  "primaryReference": "Private product-design screenshots supplied in the 2026-05-25 handoff conversation",
+  "policy": "The private screenshots win over implementation, generated captures, local handoff screenshots, theme comments, and token names.",
+  "references": [
+    {
+      "id": "home-private-dark",
+      "route": "/",
+      "role": "primary visual target",
+      "localSupport": "references/home-desktop-reference.png",
+      "implementationCaptureMobile": "references/home-mobile-current-gap.png"
+    },
+    {
+      "id": "login-base44-private-dark",
+      "route": "/login",
+      "role": "primary visual target",
+      "implementationCapture": "references/login-desktop-current-gap.png"
+    },
+    {
+      "id": "studio-vscode-cloud-private-dark",
+      "route": "/studio",
+      "role": "primary visual target",
+      "targetSpec": "references/STUDIO_VSCODE_CLOUD_TARGET.md",
+      "targetHtml": "references/studio-vscode-cloud-target.html",
+      "implementationCapture": "references/studio-entry-current-gap.png",
+      "implementationCaptureMobile": "references/studio-mobile-current-gap.png",
+      "note": "Target is the supplied private Studio/VS Code cloud screenshot. implementationCapture is not a target."
+    },
+    {
+      "id": "studio-workspace-private-dark",
+      "route": "/p/[projectID]",
+      "role": "primary visual target",
+      "targetSpec": "references/STUDIO_VSCODE_CLOUD_TARGET.md",
+      "targetHtml": "references/studio-vscode-cloud-target.html",
+      "implementationCapture": "references/studio-entry-current-gap.png"
+    }
+  ],
+  "secondaryBundles": [
+    "../../design-handoff-screenshots/ironflyer-app-2026-05-25/"
+  ],
+  "forbiddenDrift": [
+    "light theme fallback",
+    "lime-first CTA identity",
+    "random decorative shadows or silhouettes",
+    "flattened product screenshots instead of interactive UI",
+    "page-level horizontal scroll",
+    "marketing hero in the Studio workbench",
+    "changing palette, radius, layout, logo, or composition without approval"
+  ]
+}

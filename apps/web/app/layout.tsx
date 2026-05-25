@@ -1,84 +1,46 @@
-import type { Metadata, Viewport } from 'next';
-import { Archivo_Black, Inter } from 'next/font/google';
-import Script from 'next/script';
-import './globals.css';
-import { Providers } from './providers';
-import { PWARegister } from './pwa-register';
-import { PWAInstaller } from '../components/PWAInstaller';
+import "@fontsource/inter/400.css";
+import "@fontsource/inter/500.css";
+import "@fontsource/inter/600.css";
+import "@fontsource/inter/700.css";
+import "@fontsource/inter/900.css";
+import "@fontsource/geist-mono/400.css";
+import "@fontsource/geist-mono/500.css";
+import "@fontsource/geist-mono/700.css";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import type { Metadata, Viewport } from "next";
+import { tokens } from "../../../packages/design-tokens";
+import type { ReactNode } from "react";
+import { CockpitFrame } from "../src/components/cockpit";
+import { Providers } from "./providers";
 
-const displayFont = Archivo_Black({
-  subsets: ['latin'],
-  weight: '400',
-  variable: '--font-display',
-  display: 'swap',
-});
-
-const bodyFont = Inter({
-  subsets: ['latin'],
-  variable: '--font-body',
-  display: 'swap',
-});
-
-// SEO + social card. English is the canonical product language until a
-// formal localization strategy exists.
 export const metadata: Metadata = {
-  title: 'Ironflyer — Build, gate, and ship AI apps end-to-end',
+  title: "Ironflyer — Profitable Completed Execution",
   description:
-    'Describe the app you want. Ironflyer ships it through Spec, UX, Code, Lint, Tests, Security, and Deploy gates — no credit traps, real Linux sandboxes, multi-provider routing.',
-  manifest: '/manifest.webmanifest',
-  appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Ironflyer' },
+    "Ironflyer is a paid AI execution engine that ships finished products end-to-end on prepaid wallet credits, with gates that block, patches that can be reviewed, and ProfitGuard before every expensive call.",
   openGraph: {
-    title: 'Ironflyer — AI Product Finisher',
+    title: "Ironflyer — Profitable Completed Execution",
     description:
-      'Vibe-code apps the finisher way: gated end-to-end with real sandboxes, transparent budget, and multi-provider routing.',
-    siteName: 'Ironflyer',
-    locale: 'en_US',
-    type: 'website',
+      "A paid AI execution engine with gates that block, reviewable patches, live cost visibility, and prepaid wallet enforcement.",
+    type: "website",
   },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Ironflyer — AI Product Finisher',
-    description:
-      'Ship done, not demo. AI app builder with finisher gates, transparent margin pricing, and real cloud workspaces.',
-  },
-  alternates: {
-    languages: {
-      'en-US': '/',
-    },
-  },
+  icons: { icon: "/favicon.svg" },
 };
 
 export const viewport: Viewport = {
-  themeColor: '#f4f0e8',
-  width: 'device-width',
+  width: "device-width",
   initialScale: 1,
-  maximumScale: 5,
+  themeColor: tokens.color.bg.base,
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${displayFont.variable} ${bodyFont.variable}`}>
-      <head>
-        <Script id="google-tag-manager" strategy="beforeInteractive">
-          {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-M9PQ2TT6');`}
-        </Script>
-      </head>
-      <body style={{ margin: 0, background: '#f4f0e8', fontFamily: 'var(--font-body)', color: '#0d0e0f' }}>
-        <noscript>
-          <iframe
-            src="https://www.googletagmanager.com/ns.html?id=GTM-M9PQ2TT6"
-            height="0"
-            width="0"
-            style={{ display: 'none', visibility: 'hidden' }}
-          />
-        </noscript>
-        <Providers>{children}</Providers>
-        <PWARegister />
-        <PWAInstaller />
+    <html lang="en">
+      <body>
+        <Providers>
+          <CockpitFrame>{children}</CockpitFrame>
+        </Providers>
       </body>
     </html>
   );

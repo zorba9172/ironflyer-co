@@ -14,13 +14,16 @@ import (
 	"time"
 
 	"github.com/coder/websocket"
+	sentryhttp "github.com/getsentry/sentry-go/http"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/rs/zerolog"
 
+	"ironflyer/apps/runtime/internal/allocator"
 	"ironflyer/apps/runtime/internal/auth"
 	"ironflyer/apps/runtime/internal/patcher"
 	"ironflyer/apps/runtime/internal/preview"
+	"ironflyer/apps/runtime/internal/quota"
 	"ironflyer/apps/runtime/internal/sandbox"
 )
 
@@ -35,29 +38,58 @@ type Options struct {
 	PreviewSecret   []byte
 	PreviewTokenTTL time.Duration
 	MaxWorkspaces   int
+
+	// Scale-ready dependencies; all may be nil for legacy single-pod mode.
+	Lifecycle Lifecycle
+
+	// Portability dependencies. When the State store is nil the runtime
+	// degrades to legacy single-pod behaviour and the /admin/drain
+	// endpoint short-circuits.
+	Portability Portability
+
+	// Allocator funnels every workspace create through the V22 Wave-2
+	// admission flow (wallet hold → ProfitGuard → tenant quota → warm
+	// slot / cold start → runtime-class selector). nil means dev /
+	// legacy mode: the create handler skips admission and behaves like
+	// the pre-allocator runtime did.
+	Allocator allocator.Allocator
+	// QuotaEnforcer backs GET /quota/usage. nil disables the endpoint.
+	QuotaEnforcer quota.Enforcer
 }
 
 type API struct {
-	mgr      *sandbox.Manager
-	logger   zerolog.Logger
-	cors     string
-	verifier *auth.Verifier
-	preview  *preview.Proxy
-	signer   *preview.TokenSigner
-	maxWS    int
+	mgr           *sandbox.Manager
+	logger        zerolog.Logger
+	cors          string
+	verifier      *auth.Verifier
+	preview       *preview.Proxy
+	signer        *preview.TokenSigner
+	maxWS         int
+	lc            Lifecycle
+	portability   Portability
+	allocator     allocator.Allocator
+	quotaEnforcer quota.Enforcer
+	allocs        *allocTracker
+	previews      *previewState
 }
 
 // New builds the runtime API.
 func New(mgr *sandbox.Manager, opts Options, logger zerolog.Logger) http.Handler {
 	signer := preview.NewSigner(opts.PreviewSecret, opts.PreviewTokenTTL)
 	a := &API{
-		mgr:      mgr,
-		logger:   logger,
-		cors:     opts.CORSOrigin,
-		verifier: opts.Verifier,
-		signer:   signer,
-		maxWS:    opts.MaxWorkspaces,
+		mgr:           mgr,
+		logger:        logger,
+		cors:          opts.CORSOrigin,
+		verifier:      opts.Verifier,
+		signer:        signer,
+		maxWS:         opts.MaxWorkspaces,
+		lc:            opts.Lifecycle,
+		allocator:     opts.Allocator,
+		quotaEnforcer: opts.QuotaEnforcer,
+		allocs:        newAllocTracker(),
+		previews:      newPreviewState(),
 	}
+	a.SetPortability(opts.Portability)
 	a.preview = preview.New(
 		preview.Config{
 			Prefix:       opts.PreviewPrefix,
@@ -70,11 +102,16 @@ func New(mgr *sandbox.Manager, opts Options, logger zerolog.Logger) http.Handler
 	)
 
 	r := chi.NewRouter()
+	// sentryhttp is the outermost middleware: it scopes a fresh Hub to each
+	// inbound request and converts panics into Sentry events. Repanic:true
+	// so the runtime's own recoverer below still produces the 500 response.
+	// When SENTRY_DSN was empty at boot, Handle is a thin pass-through.
+	r.Use(sentryhttp.New(sentryhttp.Options{Repanic: true}).Handle)
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(a.corsMW)
 	r.Use(a.logMW)
-	r.Use(middleware.Recoverer)
+	r.Use(sentryRecoverer(logger))
 	r.Use(requestIDMiddleware)
 	r.Use(accessLogMiddleware(logger, opts.PreviewPrefix))
 
@@ -86,9 +123,22 @@ func New(mgr *sandbox.Manager, opts Options, logger zerolog.Logger) http.Handler
 	// The proxy itself enforces auth via preview.Authorizer.
 	r.HandleFunc(a.preview.Prefix+"/*", a.preview.ServeHTTP)
 
+	// Pod-internal admin routes (drain hook). Reachable only from inside
+	// the pod network (kubelet preStop) — NetworkPolicy enforces the
+	// network-level boundary, so no JWT here.
+	a.registerPortabilityRoutes(r)
+
 	// Everything else requires a verified user (or no-auth if verifier nil).
 	r.Group(func(r chi.Router) {
 		r.Use(auth.Middleware(a.verifier))
+		// The proxy middleware runs after auth so authenticated users can
+		// be forwarded to whichever pod owns their workspace. When the
+		// Registry is nil (single-pod mode) it short-circuits to next.
+		r.Use(a.proxyToActivePod)
+		// Live tenant counters for dashboards + the orchestrator's scale
+		// loop. Sits behind JWT (when configured) but outside the
+		// /workspaces tree because it isn't scoped to a single workspace.
+		r.Get("/quota/usage", a.quotaUsage)
 		r.Route("/workspaces", func(r chi.Router) {
 			r.Get("/", a.list)
 			r.Post("/", a.create)
@@ -105,9 +155,16 @@ func New(mgr *sandbox.Manager, opts Options, logger zerolog.Logger) http.Handler
 				r.Get("/ports", a.listPorts)
 				r.Post("/ports", a.recordPort)
 				r.Post("/preview-token", a.previewToken)
+				r.Post("/preview", a.allocatePreview)
+				r.Get("/preview", a.getPreview)
+				r.Delete("/preview", a.releasePreview)
 				r.Post("/share-link", a.shareLink)
 				r.Post("/screenshot", a.screenshot)
 				r.Post("/apply-patch", a.applyPatch)
+				// Scale-ready lifecycle endpoints.
+				r.Post("/archive", a.archiveWorkspace)
+				r.Post("/restore", a.restoreWorkspace)
+				r.Get("/locator", a.locateWorkspace)
 			})
 		})
 	})
@@ -171,8 +228,15 @@ func (a *API) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var body struct {
-		UserID    string `json:"userId"`
-		ProjectID string `json:"projectId"`
+		UserID               string `json:"userId"`
+		ProjectID            string `json:"projectId"`
+		TenantID             string `json:"tenantId"`
+		ExecutionID          string `json:"executionId"`
+		WorkspaceID          string `json:"workspaceId"`
+		CPU                  int    `json:"cpu"`
+		MemMB                int    `json:"memMB"`
+		EstimatedDurationSec int    `json:"estimatedDurationSec"`
+		RuntimeClass         string `json:"runtimeClass"`
 	}
 	_ = json.NewDecoder(r.Body).Decode(&body)
 	if uid := userIDFromCtx(r); uid != "" {
@@ -180,11 +244,109 @@ func (a *API) create(w http.ResponseWriter, r *http.Request) {
 	} else if body.UserID == "" {
 		body.UserID = "demo"
 	}
-	ws, err := a.mgr.Create(r.Context(), sandbox.CreateOpts{UserID: body.UserID, ProjectID: body.ProjectID})
+	// Tenant + execution context flows via headers when the body did not
+	// carry them — the orchestrator's runtime client sets the headers
+	// uniformly across every endpoint it dials so callers don't have to
+	// re-shape every JSON body.
+	tenantID := strings.TrimSpace(body.TenantID)
+	if tenantID == "" {
+		tenantID = strings.TrimSpace(r.Header.Get("X-Ironflyer-Tenant-ID"))
+	}
+	executionID := strings.TrimSpace(body.ExecutionID)
+	if executionID == "" {
+		executionID = strings.TrimSpace(r.Header.Get("X-Ironflyer-Execution-ID"))
+	}
+	// WorkspaceID is allocator-scoped: the quota lease is keyed on it.
+	// We let the orchestrator pre-mint one so the lease ID matches the
+	// sandbox ID exactly; if absent we synthesize a stable id from the
+	// (tenant, execution) pair so Release later finds the right hold.
+	allocWorkspaceID := strings.TrimSpace(body.WorkspaceID)
+	if allocWorkspaceID == "" {
+		allocWorkspaceID = strings.TrimSpace(r.Header.Get("X-Ironflyer-Workspace-ID"))
+	}
+	if allocWorkspaceID == "" {
+		// Best-effort fallback: use the execution ID as the lease key
+		// so the orchestrator's Release path (which knows execution_id
+		// but not the sandbox ID we mint below) still resolves.
+		allocWorkspaceID = executionID
+	}
+
+	estCost := estCostFromHeader(r)
+	ctx, alloc, err := a.allocateForCreate(r, tenantID, executionID, allocWorkspaceID,
+		body.RuntimeClass, body.CPU, body.MemMB, body.EstimatedDurationSec, estCost)
 	if err != nil {
+		writeAllocatorError(w, alloc, err)
+		return
+	}
+	if !alloc.Allow {
+		writeAllocatorError(w, alloc, nil)
+		return
+	}
+
+	ws, err := a.mgr.Create(ctx, sandbox.CreateOpts{UserID: body.UserID, ProjectID: body.ProjectID})
+	if err != nil {
+		// Roll back the allocator hold so we don't leak quota when the
+		// driver fails partway through container start.
+		a.releaseAllocation(ctx, allocRecord{
+			TenantID:    tenantID,
+			ExecutionID: executionID,
+			WorkspaceID: allocWorkspaceID,
+			LeaseID:     alloc.LeaseID,
+		})
 		writeJSON(w, http.StatusInternalServerError, errJSON(err.Error()))
 		return
 	}
+	// Track the allocation under BOTH the sandbox-minted ID and the
+	// caller-supplied lease key so the destroy path resolves regardless
+	// of which identifier it has on hand.
+	rec := allocRecord{
+		TenantID:    tenantID,
+		ExecutionID: executionID,
+		WorkspaceID: allocWorkspaceID,
+		LeaseID:     alloc.LeaseID,
+		Source:      alloc.Source,
+	}
+	a.allocs.put(allocRecord{
+		TenantID:    tenantID,
+		ExecutionID: executionID,
+		WorkspaceID: ws.ID, // sandbox-minted id is what destroy/archive get
+		LeaseID:     alloc.LeaseID,
+		Source:      alloc.Source,
+	})
+	if allocWorkspaceID != "" && allocWorkspaceID != ws.ID {
+		a.allocs.put(rec)
+	}
+
+	// Persist the workspace row + claim ownership on this pod.
+	a.recordWorkspace(ctx, ws, ws.Root)
+	a.logger.Info().
+		Str("workspace", ws.ID).
+		Str("tenant", tenantID).
+		Str("execution", executionID).
+		Str("source", alloc.Source).
+		Str("runtime_class", alloc.RuntimeClass).
+		Str("lease", alloc.LeaseID).
+		Msg("allocator admitted workspace")
+	// Auto-allocate a live preview binding so the studio iframe has a
+	// URL immediately — no waiting for the user to click Publish. Port
+	// hint comes from the orchestrator via the X-Ironflyer-Preview-Port
+	// header (set per-blueprint); default 3000 covers Next.js / most
+	// Node web servers. Failure is logged Warn but never blocks the
+	// workspace create.
+	previewPort := 3000
+	if hint := strings.TrimSpace(r.Header.Get("X-Ironflyer-Preview-Port")); hint != "" {
+		if n, err := strconv.Atoi(hint); err == nil && sandbox.PreviewPortAllowed(n) {
+			previewPort = n
+		}
+	}
+	if binding, err := a.mgr.AllocatePreview(ctx, ws.ID, previewPort); err != nil {
+		a.logger.Warn().Err(err).Str("workspace", ws.ID).Int("port", previewPort).
+			Msg("auto-allocate preview failed")
+	} else {
+		a.previews.put(binding)
+		ws.PreviewURL = binding.URL
+	}
+
 	// Kick off an opportunistic dependency install in the background. The
 	// HTTP response returns immediately — the user sees the workspace come
 	// up — but by the time they navigate to the IDE / Preview tab, `npm
@@ -193,7 +355,23 @@ func (a *API) create(w http.ResponseWriter, r *http.Request) {
 	// command first." Errors are logged but never surfaced; the next
 	// build/test gate will catch a broken install anyway.
 	go a.runAutoBuild(ws)
-	writeJSON(w, http.StatusCreated, ws)
+	// Surface allocator metadata in the response so the orchestrator can
+	// log source / runtime class without a second round trip.
+	writeJSON(w, http.StatusCreated, map[string]any{
+		"id":              ws.ID,
+		"userId":          ws.UserID,
+		"projectId":       ws.ProjectID,
+		"status":          ws.Status,
+		"driver":          ws.Driver,
+		"root":            ws.Root,
+		"previewUrl":      ws.PreviewURL,
+		"ideUrl":          ws.IDEURL,
+		"createdAt":       ws.CreatedAt,
+		"updatedAt":       ws.UpdatedAt,
+		"allocatorSource": alloc.Source,
+		"runtimeClass":    alloc.RuntimeClass,
+		"leaseId":         alloc.LeaseID,
+	})
 }
 
 // runAutoBuild detects the workspace's manifest files and runs the
@@ -270,12 +448,37 @@ func (a *API) get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) destroy(w http.ResponseWriter, r *http.Request) {
-	if _, ok := a.requireWorkspace(w, r, chi.URLParam(r, "id")); !ok {
+	id := chi.URLParam(r, "id")
+	if _, ok := a.requireWorkspace(w, r, id); !ok {
 		return
 	}
-	if err := a.mgr.Destroy(r.Context(), chi.URLParam(r, "id")); err != nil {
+	if err := a.mgr.Destroy(r.Context(), id); err != nil {
 		writeJSON(w, http.StatusNotFound, errJSON(err.Error()))
 		return
+	}
+	// Hand the warm-pool lease back and drop the quota hold. Release is
+	// idempotent so an unknown id (legacy workspaces created before this
+	// wiring) just no-ops without surfacing an error to the caller.
+	if rec, ok := a.allocs.get(id); ok {
+		a.releaseAllocation(r.Context(), rec)
+		a.allocs.drop(id)
+		// The allocator hold may have been keyed under the
+		// orchestrator-supplied WorkspaceID rather than the sandbox-
+		// minted id; drop both index entries so the tracker doesn't
+		// leak duplicate rows.
+		if rec.WorkspaceID != "" && rec.WorkspaceID != id {
+			a.allocs.drop(rec.WorkspaceID)
+		}
+	}
+	// Release any preview lease so the external port is reclaimed
+	// and the cached binding doesn't outlive the workspace.
+	_ = a.mgr.ReleasePreview(r.Context(), id)
+	a.previews.drop(id)
+	if a.lc.Store != nil {
+		_ = a.lc.Store.Delete(r.Context(), id)
+	}
+	if a.lc.Registry != nil {
+		a.lc.Registry.Release(r.Context(), id)
 	}
 	w.WriteHeader(http.StatusNoContent)
 }
@@ -426,6 +629,20 @@ func (a *API) terminal(w http.ResponseWriter, r *http.Request) {
 	defer session.Close()
 
 	ctx := r.Context()
+	// PTY sessions cannot migrate mid-stream — when this pod begins
+	// graceful shutdown, push a single shutdown_imminent frame so the
+	// client knows to reconnect. The next websocket open lands on
+	// whichever pod the LB picks, which will reattach to the EFS-backed
+	// workspace and start a fresh PTY (the user's shell state inside
+	// the workspace persists; only the in-progress terminal session is
+	// lost — Mosh/SSH-reconnect UX).
+	if a.lc.Registry != nil {
+		go func() {
+			<-ctx.Done()
+			_ = c.Write(context.Background(), websocket.MessageText,
+				[]byte(`{"type":"pty.shutdown_imminent","reason":"pod-shutdown"}`))
+		}()
+	}
 
 	go func() {
 		buf := make([]byte, 4096)

@@ -1,0 +1,2669 @@
+openapi: 3.1.0
+info:
+  title: Ironflyer Orchestrator API
+  version: $BUILD_VERSION
+  description: |
+    The Ironflyer orchestrator HTTP + SSE API. Powers every Ironflyer client
+    surface — the dashboard (web), the VSCode extension, the MCP integration,
+    and any downstream SDK. The orchestrator is the source of truth for
+    projects, gates, patches, budget, audit, memory, telemetry, deploys,
+    realtime collaboration, custom domains, and the GitHub App pipeline.
+
+    Streaming endpoints use Server-Sent Events (`text/event-stream`). The
+    WebSocket endpoint (`/projects/{id}/collab/ws`) handles realtime
+    presence + cursor + chat broadcast. Mutating endpoints are protected by
+    a global rate limiter; signup/login and chat have tighter buckets.
+
+    Bearer JWT in `Authorization: Bearer <token>` is the canonical auth for
+    every protected endpoint. SSE / WebSocket endpoints also accept a
+    `?token=<jwt>` query parameter as the fallback when the EventSource /
+    WebSocket constructor cannot set headers.
+
+  contact:
+    name: Ironflyer
+    url: https://ironflyer.dev
+  license:
+    name: Proprietary
+
+servers:
+  - url: https://api.ironflyer.dev
+    description: Production
+  - url: http://localhost:8080
+    description: Local dev
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Auth
+    description: Signup, login, OAuth (GitHub), self lookup.
+  - name: Projects
+    description: Project lifecycle, file tree, gates, snapshot, graph, search.
+  - name: Patches
+    description: Propose, apply, rollback patches.
+  - name: Gates
+    description: Read gate verdicts per project.
+  - name: Budget
+    description: Plans, rates, vault, per-user spend, Stripe checkout.
+  - name: Audit
+    description: Hash-chained audit log + CSV/PDF exports.
+  - name: Memory
+    description: Persistent project / execution / user / business memory.
+  - name: Notifications
+    description: Per-user notification preferences.
+  - name: Webhooks
+    description: Outbound webhook subscriptions.
+  - name: Integrations
+    description: GitHub OAuth + GitHub repo metadata, Figma import.
+  - name: Status
+    description: Health, readiness, version, providers health, uptime.
+  - name: Telemetry
+    description: Agent call feed, live cost SSE, bandit ranking.
+  - name: Affiliates
+    description: Referral program (signup, stats, payouts).
+  - name: Domains
+    description: Custom domains per project.
+  - name: ShareLinks
+    description: Public, expiring snapshot links.
+  - name: Chats
+    description: Per-project chat threads + fork.
+  - name: Collab
+    description: Realtime presence + collaborators.
+  - name: Completions
+    description: Cursor-style inline ghost-text completions.
+  - name: GitHubApp
+    description: GitHub App webhook + admin.
+  - name: Imports
+    description: Import an external GitHub repo into Ironflyer.
+  - name: MCP
+    description: Model Context Protocol JSON-RPC endpoint.
+  - name: Admin
+    description: Operator-only endpoints (affiliate payouts, etc.).
+  - name: Public
+    description: Unauthenticated documentation, status, share resolution.
+
+paths:
+  # ───────────────────────────────────── Public ─────────────────────────────────
+  /health:
+    get:
+      tags: [Status]
+      summary: Legacy minimal health check
+      security: []
+      responses:
+        '200':
+          description: Always ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  service: { type: string, example: ironflyer-orchestrator }
+                  version: { type: string }
+
+  /healthz:
+    get:
+      tags: [Status]
+      summary: Health snapshot with downstream probes
+      security: []
+      responses:
+        '200': { $ref: '#/components/responses/HealthSnapshot' }
+
+  /livez:
+    get:
+      tags: [Status]
+      summary: Liveness probe (no downstream calls)
+      security: []
+      responses:
+        '200':
+          description: alive
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: alive }
+                  uptime: { type: string, example: 1h2m3s }
+
+  /readyz:
+    get:
+      tags: [Status]
+      summary: Readiness probe (probes Projects, Providers, Audit, Memory)
+      security: []
+      responses:
+        '200': { $ref: '#/components/responses/Ready' }
+        '503': { $ref: '#/components/responses/NotReady' }
+
+  /version:
+    get:
+      tags: [Status]
+      summary: Build metadata stamped at link time
+      security: []
+      responses:
+        '200':
+          description: Build identity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version: { type: string }
+                  commit: { type: string }
+                  buildTime: { type: string }
+                  goVersion: { type: string }
+
+  /providers/health:
+    get:
+      tags: [Status]
+      summary: Probe every registered AI provider in parallel
+      security: []
+      responses:
+        '200':
+          description: Per-provider status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  providers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name: { type: string }
+                        status: { type: string, enum: [ok, down, unknown] }
+                        latencyMs: { type: integer, format: int64 }
+                        detail: { type: string }
+                  checkedAt: { type: string, format: date-time }
+
+  /uptime/24h:
+    get:
+      tags: [Status]
+      summary: Per-minute uptime buckets for the last 24 hours
+      security: []
+      responses:
+        '200':
+          description: 1440 buckets, 0/1
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  buckets:
+                    type: array
+                    items: { type: integer, enum: [0, 1] }
+                    minItems: 1440
+                    maxItems: 1440
+                  interval: { type: string, example: minute }
+                  count: { type: integer, example: 1440 }
+                  asOf: { type: string, format: date-time }
+
+  /metrics:
+    get:
+      tags: [Status]
+      summary: Prometheus metrics
+      security: []
+      responses:
+        '200':
+          description: Prometheus exposition format
+          content:
+            text/plain: {}
+
+  /leads/enterprise:
+    post:
+      tags: [Public]
+      summary: Capture an enterprise lead
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EnterpriseLeadRequest' }
+      responses:
+        '201':
+          description: Lead created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EnterpriseLeadResponse' }
+        '400': { $ref: '#/components/responses/Error400' }
+
+  /shared/{slug}:
+    get:
+      tags: [ShareLinks, Public]
+      summary: Resolve a public share slug to a read-only project snapshot
+      security: []
+      parameters:
+        - { in: path, name: slug, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: Frozen project snapshot
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SharedSnapshot' }
+        '404': { $ref: '#/components/responses/Error404' }
+        '410': { $ref: '#/components/responses/Error410' }
+
+  /r/{code}:
+    get:
+      tags: [Affiliates, Public]
+      summary: Resolve an affiliate referral code (drops cookie, 302)
+      security: []
+      parameters:
+        - { in: path, name: code, required: true, schema: { type: string } }
+      responses:
+        '302':
+          description: Redirect to home, sets iron_ref cookie
+
+  # ───────────────────────────────────── Auth ───────────────────────────────────
+  /auth/signup:
+    post:
+      tags: [Auth]
+      summary: Sign up with email + password
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SignupRequest' }
+      responses:
+        '201':
+          description: User + JWT
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthResponse' }
+        '400': { $ref: '#/components/responses/Error400' }
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login with email + password
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200':
+          description: User + JWT
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthResponse' }
+        '401': { $ref: '#/components/responses/Error401' }
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Return the authenticated user record
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '401': { $ref: '#/components/responses/Error401' }
+
+  /auth/github/login/start:
+    get:
+      tags: [Auth]
+      summary: Begin GitHub OAuth login flow (302 redirect)
+      security: []
+      responses:
+        '302': { description: Redirect to GitHub }
+
+  /auth/github/start:
+    get:
+      tags: [Auth]
+      summary: Begin GitHub OAuth link flow (returns authUrl or redirects)
+      parameters:
+        - { in: query, name: redirect, schema: { type: string, enum: ["true"] } }
+      responses:
+        '200':
+          description: authUrl + state
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authUrl: { type: string, format: uri }
+                  state: { type: string }
+        '302': { description: When redirect=true }
+
+  /auth/github/callback:
+    get:
+      tags: [Auth]
+      summary: GitHub OAuth redirect target (302 to post-login URL)
+      security: []
+      parameters:
+        - { in: query, name: code, schema: { type: string } }
+        - { in: query, name: state, schema: { type: string } }
+        - { in: query, name: error, schema: { type: string } }
+      responses:
+        '302': { description: Redirect to post-login URL (carries token in fragment on login flow) }
+
+  # ─────────────────────────────────── Integrations: GitHub ────────────────────
+  /integrations/github/me:
+    get:
+      tags: [Integrations]
+      summary: GitHub link status for the authenticated user
+      responses:
+        '200':
+          description: Status
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GitHubStatus' }
+        '503': { $ref: '#/components/responses/Error503' }
+
+  /integrations/github/repos:
+    get:
+      tags: [Integrations]
+      summary: List the user's accessible GitHub repos
+      responses:
+        '200':
+          description: Repo list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/GitHubRepo' }
+
+  /integrations/github:
+    delete:
+      tags: [Integrations]
+      summary: Disconnect GitHub for the authenticated user
+      responses:
+        '204': { description: Disconnected }
+
+  # ─────────────────────────────────── GitHub App ───────────────────────────────
+  /github/app/installations:
+    get:
+      tags: [GitHubApp]
+      summary: List GitHub App installations
+      responses:
+        '200':
+          description: Installations + install URL
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  installUrl: { type: string }
+                  slug: { type: string }
+                  installations:
+                    type: array
+                    items: { type: object, additionalProperties: true }
+
+  /github/app/reviews:
+    get:
+      tags: [GitHubApp]
+      summary: List recent PR reviews the GitHub App posted
+      parameters:
+        - { in: query, name: limit, schema: { type: integer, minimum: 1, maximum: 500, default: 50 } }
+      responses:
+        '200':
+          description: Reviews
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { type: object, additionalProperties: true }
+                  count: { type: integer }
+
+  /webhooks/github:
+    post:
+      tags: [GitHubApp]
+      summary: GitHub App webhook receiver (signature-verified)
+      security: []
+      parameters:
+        - { in: header, name: X-Hub-Signature-256, required: true, schema: { type: string } }
+        - { in: header, name: X-GitHub-Event, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: ping pong }
+        '202': { description: PR review queued }
+        '204': { description: Event ignored }
+        '401': { description: Invalid signature }
+        '503': { description: PR runner not ready }
+
+  # ─────────────────────────────────── Projects ─────────────────────────────────
+  /projects:
+    get:
+      tags: [Projects]
+      summary: List projects accessible to the caller
+      responses:
+        '200':
+          description: Project list (public + owned)
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Project' }
+    post:
+      tags: [Projects]
+      summary: Create a project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateProjectRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Project' }
+        '400': { $ref: '#/components/responses/Error400' }
+        '409': { $ref: '#/components/responses/Error409' }
+
+  /projects/{id}:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    get:
+      tags: [Projects]
+      summary: Get one project
+      responses:
+        '200':
+          description: Project
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Project' }
+        '404': { $ref: '#/components/responses/Error404' }
+    delete:
+      tags: [Projects]
+      summary: Delete a project the caller owns
+      responses:
+        '204': { description: Deleted }
+        '401': { $ref: '#/components/responses/Error401' }
+        '404': { $ref: '#/components/responses/Error404' }
+
+  /projects/{id}/files:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    get:
+      tags: [Projects]
+      summary: List the project's tracked files
+      responses:
+        '200':
+          description: File nodes
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/FileNode' }
+
+  /projects/{id}/graph:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    get:
+      tags: [Projects]
+      summary: Derived dependency graph for the project's files
+      responses:
+        '200':
+          description: Graph
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProjectGraph' }
+
+  /projects/{id}/gates:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    get:
+      tags: [Gates]
+      summary: List gate verdicts
+      parameters:
+        - { in: query, name: sub, schema: { type: string }, description: Subproject id to scope verdicts to. }
+      responses:
+        '200':
+          description: Per-gate states
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/GateState' }
+        '404': { $ref: '#/components/responses/Error404' }
+
+  /projects/{id}/snapshot:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    get:
+      tags: [Projects]
+      summary: Unified observability bundle (gates, patches, memory, audit, telemetry, graph, visual targets)
+      responses:
+        '200':
+          description: Snapshot
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProjectSnapshot' }
+
+  /projects/{id}/run:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    post:
+      tags: [Projects]
+      summary: Run the finisher pipeline against the project
+      responses:
+        '200':
+          description: Finisher report
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FinisherReport' }
+        '500': { $ref: '#/components/responses/Error500' }
+
+  /projects/{id}/stream:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    get:
+      tags: [Projects]
+      summary: Subscribe to live finisher events (SSE)
+      description: |
+        Server-Sent Events stream. Events use the `execution` channel
+        carrying a JSON Event payload. Heartbeats are sent every 15s as
+        SSE comments (`: ping`).
+      parameters:
+        - { in: query, name: token, schema: { type: string }, description: JWT fallback for EventSource. }
+      responses:
+        '200':
+          description: SSE stream
+          content:
+            text/event-stream:
+              schema: { type: string }
+
+  /projects/{id}/prompt:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    post:
+      tags: [Projects]
+      summary: Run the Planner agent against a prompt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [prompt]
+              properties:
+                prompt: { type: string }
+      responses:
+        '200':
+          description: Planner result
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '400': { $ref: '#/components/responses/Error400' }
+
+  /projects/{id}/chat:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    post:
+      tags: [Projects]
+      summary: Stream a chat turn against an agent (SSE)
+      description: |
+        SSE response. Events: `turn`, `start`, `text`, `thinking`,
+        `tool_use`, `done`, `error`. Body cap is 8 MiB to allow
+        inline base64 image attachments.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ChatRequest' }
+      responses:
+        '200':
+          description: SSE
+          content:
+            text/event-stream:
+              schema: { type: string }
+        '400': { $ref: '#/components/responses/Error400' }
+
+  /projects/{id}/brainstorm:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    post:
+      tags: [Projects]
+      summary: Run the brainstorm strategist + runner
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [goal]
+              properties:
+                goal: { type: string }
+                role: { type: string }
+      responses:
+        '200':
+          description: Plan + outcome
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  plan: { type: object, additionalProperties: true }
+                  outcome: { type: object, additionalProperties: true }
+
+  /projects/{id}/patches:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    get:
+      tags: [Patches]
+      summary: List patches for the project
+      responses:
+        '200':
+          description: Patches
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Patch' }
+    post:
+      tags: [Patches]
+      summary: Propose a patch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Patch' }
+      responses:
+        '201':
+          description: Proposed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Patch' }
+        '400': { $ref: '#/components/responses/Error400' }
+
+  /patches/{patchId}/apply:
+    parameters:
+      - { in: path, name: patchId, required: true, schema: { type: string } }
+    post:
+      tags: [Patches]
+      summary: Apply a previously proposed patch
+      responses:
+        '200':
+          description: Applied patch
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Patch' }
+        '404': { $ref: '#/components/responses/Error404' }
+
+  /patches/{patchId}/rollback:
+    parameters:
+      - { in: path, name: patchId, required: true, schema: { type: string } }
+    post:
+      tags: [Patches]
+      summary: Roll back to the snapshot taken before this patch was applied
+      responses:
+        '200':
+          description: Restored snapshot metadata
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '404': { $ref: '#/components/responses/Error404' }
+        '409': { $ref: '#/components/responses/Error409' }
+
+  /projects/{id}/visual-edit:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    post:
+      tags: [Projects]
+      summary: Click-to-edit a UI element; returns a Patch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/VisualEditRequest' }
+      responses:
+        '201':
+          description: Proposed Patch
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Patch' }
+        '400': { $ref: '#/components/responses/Error400' }
+        '502': { $ref: '#/components/responses/Error502' }
+
+  /projects/{id}/visual-targets:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    get:
+      tags: [Projects]
+      summary: List pixel-perfect visual targets
+      responses:
+        '200':
+          description: Targets
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  targets:
+                    type: array
+                    items: { $ref: '#/components/schemas/VisualTarget' }
+                  count: { type: integer }
+    post:
+      tags: [Projects]
+      summary: Upload a reference screenshot the UXGate diffs against
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AddVisualTargetRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  target: { $ref: '#/components/schemas/VisualTarget' }
+                  count: { type: integer }
+
+  /projects/{id}/visual-targets/{targetId}:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+      - { in: path, name: targetId, required: true, schema: { type: string } }
+    delete:
+      tags: [Projects]
+      summary: Remove a visual target
+      responses:
+        '200': { description: Removed }
+        '404': { $ref: '#/components/responses/Error404' }
+
+  /projects/{id}/subprojects:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    get:
+      tags: [Projects]
+      summary: List subprojects (multi-service layouts)
+      responses:
+        '200':
+          description: Subprojects
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  subprojects:
+                    type: array
+                    items: { $ref: '#/components/schemas/Subproject' }
+                  count: { type: integer }
+    post:
+      tags: [Projects]
+      summary: Register a new subproject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AddSubprojectRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  subproject: { $ref: '#/components/schemas/Subproject' }
+                  count: { type: integer }
+
+  /projects/{id}/subprojects/{subId}:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+      - { in: path, name: subId, required: true, schema: { type: string } }
+    delete:
+      tags: [Projects]
+      summary: Remove a subproject
+      responses:
+        '200': { description: Removed }
+        '404': { $ref: '#/components/responses/Error404' }
+
+  /projects/{id}/search:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    get:
+      tags: [Projects]
+      summary: Search the project's code via the BM25 retriever
+      parameters:
+        - { in: query, name: q, required: true, schema: { type: string } }
+        - { in: query, name: k, schema: { type: integer, default: 8, maximum: 32 } }
+        - { in: query, name: max_kb, schema: { type: integer, default: 8 } }
+      responses:
+        '200':
+          description: Hits
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SearchHits' }
+        '400': { $ref: '#/components/responses/Error400' }
+
+  /projects/{id}/connect-github:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    post:
+      tags: [Projects, Integrations]
+      summary: Bind a repo to the project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ConnectGitHubRequest' }
+      responses:
+        '200':
+          description: Updated project
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Project' }
+    delete:
+      tags: [Projects, Integrations]
+      summary: Unbind the repo
+      responses:
+        '200':
+          description: Updated project
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Project' }
+
+  /projects/{id}/clone-into-workspace:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    post:
+      tags: [Projects, Integrations]
+      summary: Ask the workspace runtime to git-clone the linked repo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [workspaceId]
+              properties:
+                workspaceId: { type: string }
+                ref: { type: string }
+                subdir: { type: string }
+      responses:
+        '200':
+          description: Runtime response forwarded as-is
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+
+  /projects/{id}/figma-import:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    post:
+      tags: [Projects, Integrations]
+      summary: Import a Figma file into the user's workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fileKey, workspaceId]
+              properties:
+                fileKey: { type: string }
+                workspaceId: { type: string }
+      responses:
+        '200':
+          description: Figma import result
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '503': { $ref: '#/components/responses/Error503' }
+
+  /projects/{id}/share-link:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    post:
+      tags: [ShareLinks]
+      summary: Mint a new public share link
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ttlHours: { type: integer, minimum: 1, default: 168, maximum: 8760 }
+      responses:
+        '201':
+          description: Share link
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ShareLink' }
+
+  /projects/{id}/share-links:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    get:
+      tags: [ShareLinks]
+      summary: List share links the owner has minted
+      responses:
+        '200':
+          description: Links
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  links:
+                    type: array
+                    items: { $ref: '#/components/schemas/ShareLink' }
+                  count: { type: integer }
+
+  /projects/{id}/share-links/{linkId}:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+      - { in: path, name: linkId, required: true, schema: { type: string } }
+    delete:
+      tags: [ShareLinks]
+      summary: Revoke a share link
+      responses:
+        '200': { description: Revoked }
+        '404': { $ref: '#/components/responses/Error404' }
+
+  # ─────────────────────────────────── Chats (per project) ─────────────────────
+  /projects/{id}/chats:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    get:
+      tags: [Chats]
+      summary: List chats for the caller in this project
+      responses:
+        '200':
+          description: Chats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  chats:
+                    type: array
+                    items: { $ref: '#/components/schemas/Chat' }
+                  count: { type: integer }
+    post:
+      tags: [Chats]
+      summary: Create a chat
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Chat' }
+
+  /projects/{id}/chats/{chatId}:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+      - { in: path, name: chatId, required: true, schema: { type: string } }
+    get:
+      tags: [Chats]
+      summary: Get one chat with its messages
+      responses:
+        '200':
+          description: Chat
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  chat: { $ref: '#/components/schemas/Chat' }
+                  messages:
+                    type: array
+                    items: { $ref: '#/components/schemas/ChatMessage' }
+
+  /projects/{id}/chats/{chatId}/messages:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+      - { in: path, name: chatId, required: true, schema: { type: string } }
+    post:
+      tags: [Chats]
+      summary: Append a chat message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [role, text]
+              properties:
+                role: { type: string, enum: [user, assistant] }
+                text: { type: string }
+                agent: { type: string }
+      responses:
+        '201':
+          description: Message
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ChatMessage' }
+
+  /projects/{id}/chats/{chatId}/fork:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+      - { in: path, name: chatId, required: true, schema: { type: string } }
+    post:
+      tags: [Chats]
+      summary: Fork the chat at a message into a new chat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message_id]
+              properties:
+                message_id: { type: string }
+                title: { type: string }
+      responses:
+        '201':
+          description: Forked chat
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Chat' }
+
+  # ─────────────────────────────────── Collab ──────────────────────────────────
+  /projects/{id}/collab/ws:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    get:
+      tags: [Collab]
+      summary: Upgrade to WebSocket for realtime collab
+      description: |
+        WebSocket endpoint — issue an HTTP/1.1 Upgrade request. Messages are
+        JSON; presence, cursor, and chat broadcast events flow on the same
+        channel. Accepts `?token=<jwt>` query for browser WebSocket clients.
+      parameters:
+        - { in: query, name: token, schema: { type: string } }
+      responses:
+        '101': { description: Switching protocols }
+
+  /projects/{id}/collab/presence:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    get:
+      tags: [Collab]
+      summary: Snapshot of who is currently connected
+      responses:
+        '200':
+          description: Presence roster
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  presence:
+                    type: array
+                    items: { type: object, additionalProperties: true }
+                  count: { type: integer }
+
+  /projects/{id}/collaborators:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    get:
+      tags: [Collab]
+      summary: List collaborators on the project
+      responses:
+        '200':
+          description: Collaborators
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  collaborators:
+                    type: array
+                    items: { $ref: '#/components/schemas/Collaborator' }
+                  count: { type: integer }
+    post:
+      tags: [Collab]
+      summary: Invite a collaborator by email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, format: email }
+      responses:
+        '201':
+          description: Invite created (may be pending until signup)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Collaborator' }
+        '403': { $ref: '#/components/responses/Error403' }
+
+  /projects/{id}/collaborators/{userId}:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+      - { in: path, name: userId, required: true, schema: { type: string } }
+    delete:
+      tags: [Collab]
+      summary: Remove a collaborator
+      responses:
+        '200': { description: Removed }
+        '404': { $ref: '#/components/responses/Error404' }
+        '403': { $ref: '#/components/responses/Error403' }
+
+  # ─────────────────────────────────── Agents ──────────────────────────────────
+  /agents:
+    get:
+      tags: [Projects]
+      summary: List the agent catalogue (roles + prompts + capabilities)
+      responses:
+        '200':
+          description: Agents
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Agent' }
+
+  # ─────────────────────────────────── Budget ──────────────────────────────────
+  /budget/plans:
+    get:
+      tags: [Budget]
+      summary: List subscription plans
+      security: []
+      responses:
+        '200':
+          description: Plans
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Plan' }
+
+  /budget/rates:
+    get:
+      tags: [Budget]
+      summary: List the live rate sheet (per-model token costs)
+      security: []
+      responses:
+        '200':
+          description: Rates
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: object, additionalProperties: true }
+
+  /budget/vault:
+    get:
+      tags: [Budget]
+      summary: Global vault snapshot (revenue, provider cost, margin)
+      security: []
+      responses:
+        '200':
+          description: Vault
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+
+  /budget/users/me:
+    get:
+      tags: [Budget]
+      summary: Authenticated user's spend + plan tier
+      responses:
+        '200':
+          description: User budget
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UserBudget' }
+
+  /budget/vault/me:
+    get:
+      tags: [Budget]
+      summary: User's vault snapshot (last 30 ledger entries + plan + global snapshot)
+      responses:
+        '200':
+          description: User vault
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+
+  /budget/checkout:
+    post:
+      tags: [Budget]
+      summary: Create a Stripe Checkout Session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tier]
+              properties:
+                tier: { type: string }
+      responses:
+        '200':
+          description: Stripe redirect URL
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url: { type: string, format: uri }
+        '503': { $ref: '#/components/responses/Error503' }
+
+  /budget/webhook:
+    post:
+      tags: [Budget]
+      summary: Stripe webhook receiver (signature-verified)
+      security: []
+      parameters:
+        - { in: header, name: Stripe-Signature, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: true }
+      responses:
+        '200': { description: Accepted }
+        '400': { description: Invalid signature }
+
+  # ─────────────────────────────────── Dashboard ───────────────────────────────
+  /projects/bulk-delete:
+    post:
+      tags: [Projects]
+      summary: Bulk-delete the caller's projects (optional ids filter)
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ids:
+                  type: array
+                  items: { type: string }
+      responses:
+        '200':
+          description: Deleted ids
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted: { type: array, items: { type: string } }
+                  count: { type: integer }
+
+  /account/delete:
+    post:
+      tags: [Auth]
+      summary: Delete the user's account + every owned project
+      responses:
+        '204': { description: Deleted }
+
+  # ─────────────────────────────────── Telemetry ───────────────────────────────
+  /telemetry/agents:
+    get:
+      tags: [Telemetry]
+      summary: Recent agent telemetry calls
+      parameters:
+        - { in: query, name: limit, schema: { type: integer, default: 100, maximum: 1000 } }
+        - { in: query, name: role, schema: { type: string } }
+        - { in: query, name: provider, schema: { type: string } }
+        - { in: query, name: model, schema: { type: string } }
+      responses:
+        '200':
+          description: Calls
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  calls:
+                    type: array
+                    items: { $ref: '#/components/schemas/AgentCall' }
+                  count: { type: integer }
+
+  /telemetry/cost/stream:
+    get:
+      tags: [Telemetry]
+      summary: Per-user live cost SSE feed
+      parameters:
+        - { in: query, name: token, schema: { type: string } }
+      responses:
+        '200':
+          description: SSE
+          content:
+            text/event-stream:
+              schema: { type: string }
+        '501': { description: Live feed not supported by configured sink }
+
+  /telemetry/bandit:
+    get:
+      tags: [Telemetry]
+      summary: Per-capability provider leaderboard
+      parameters:
+        - { in: query, name: lookback, schema: { type: integer, default: 512, maximum: 4096 } }
+      responses:
+        '200':
+          description: Leaderboard
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BanditRanking' }
+
+  # ─────────────────────────────────── Memory ──────────────────────────────────
+  /memory:
+    get:
+      tags: [Memory]
+      summary: Query memory records
+      parameters:
+        - { in: query, name: kind, schema: { type: string, enum: [project, execution, user, business] } }
+        - { in: query, name: projectId, schema: { type: string } }
+        - { in: query, name: userId, schema: { type: string } }
+        - { in: query, name: storyId, schema: { type: string } }
+        - { in: query, name: gateName, schema: { type: string } }
+        - { in: query, name: tag, schema: { type: string } }
+        - { in: query, name: q, schema: { type: string } }
+        - { in: query, name: limit, schema: { type: integer, default: 20, maximum: 200 } }
+        - { in: query, name: federated, schema: { type: string, enum: ["true", "false"] } }
+      responses:
+        '200':
+          description: Records
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  records:
+                    type: array
+                    items: { $ref: '#/components/schemas/MemoryRecord' }
+                  count: { type: integer }
+    post:
+      tags: [Memory]
+      summary: Persist a memory record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MemoryRecord' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MemoryRecord' }
+
+  /memory/{id}:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    delete:
+      tags: [Memory]
+      summary: Delete a memory record (idempotent)
+      responses:
+        '204': { description: Deleted or no-op }
+
+  /me/memory-federation:
+    get:
+      tags: [Memory]
+      summary: List the caller's federated projects + projects available to federate
+      responses:
+        '200':
+          description: Federation
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FederationDTO' }
+
+  /me/memory-federation/{projectId}:
+    parameters:
+      - { in: path, name: projectId, required: true, schema: { type: string } }
+    post:
+      tags: [Memory]
+      summary: Federate a project into the caller's pool
+      responses:
+        '200':
+          description: Federation membership
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+    delete:
+      tags: [Memory]
+      summary: Remove a project from the caller's federation pool
+      responses:
+        '204': { description: Removed }
+
+  # ─────────────────────────────────── Audit ───────────────────────────────────
+  /audit:
+    get:
+      tags: [Audit]
+      summary: Query the immutable audit log
+      parameters:
+        - { in: query, name: projectId, schema: { type: string } }
+        - { in: query, name: userId, schema: { type: string } }
+        - { in: query, name: action, schema: { type: string } }
+        - { in: query, name: outcome, schema: { type: string, enum: [success, failure, blocked] } }
+        - { in: query, name: since, schema: { type: string, format: date-time } }
+        - { in: query, name: until, schema: { type: string, format: date-time } }
+        - { in: query, name: limit, schema: { type: integer, default: 100, maximum: 1000 } }
+      responses:
+        '200':
+          description: Entries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  entries:
+                    type: array
+                    items: { $ref: '#/components/schemas/AuditEntry' }
+                  count: { type: integer }
+
+  /audit/verify:
+    get:
+      tags: [Audit]
+      summary: Walk the hash chain; returns intact + firstBadIndex
+      responses:
+        '200':
+          description: Chain status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  intact: { type: boolean }
+                  firstBadIndex: { type: integer }
+
+  /audit/export.csv:
+    get:
+      tags: [Audit]
+      summary: Stream the audit log as CSV
+      parameters:
+        - { in: query, name: project, schema: { type: string } }
+        - { in: query, name: from, schema: { type: string, format: date-time } }
+        - { in: query, name: to, schema: { type: string, format: date-time } }
+      responses:
+        '200':
+          description: CSV
+          content:
+            text/csv: {}
+
+  /audit/export.pdf:
+    get:
+      tags: [Audit]
+      summary: Stream the audit log as PDF
+      parameters:
+        - { in: query, name: project, schema: { type: string } }
+        - { in: query, name: from, schema: { type: string, format: date-time } }
+        - { in: query, name: to, schema: { type: string, format: date-time } }
+      responses:
+        '200':
+          description: PDF
+          content:
+            application/pdf: {}
+
+  # ─────────────────────────────────── Webhooks ────────────────────────────────
+  /webhooks:
+    get:
+      tags: [Webhooks]
+      summary: List the caller's webhook subscriptions
+      responses:
+        '200':
+          description: Subscriptions
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/WebhookSubscription' }
+    post:
+      tags: [Webhooks]
+      summary: Create a webhook subscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url]
+              properties:
+                url: { type: string, format: uri }
+                events:
+                  type: array
+                  items: { type: string }
+                projectId: { type: string }
+                secret: { type: string }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WebhookSubscription' }
+
+  /webhooks/{id}:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    delete:
+      tags: [Webhooks]
+      summary: Delete a webhook subscription
+      responses:
+        '204': { description: Deleted }
+        '404': { $ref: '#/components/responses/Error404' }
+
+  /webhooks/{id}/test:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    post:
+      tags: [Webhooks]
+      summary: Fire a synthetic webhook_test event
+      responses:
+        '202':
+          description: Queued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  queued: { type: boolean }
+                  id: { type: string }
+        '404': { $ref: '#/components/responses/Error404' }
+
+  # ─────────────────────────────────── Notifications ───────────────────────────
+  /notifications/preferences:
+    get:
+      tags: [Notifications]
+      summary: Get the caller's notification rule
+      responses:
+        '200':
+          description: Rule
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NotificationRule' }
+    put:
+      tags: [Notifications]
+      summary: Upsert the caller's notification rule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NotificationRule' }
+      responses:
+        '200':
+          description: Stored rule
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NotificationRule' }
+
+  # ─────────────────────────────────── Imports ─────────────────────────────────
+  /imports:
+    post:
+      tags: [Imports]
+      summary: Import an external GitHub repo
+      description: |
+        Content-negotiated: when `Accept: text/event-stream` is present the
+        response is an SSE feed of pipeline stages (import_started, cloning,
+        cloned, detecting_stack, stack_detected, ready, failed, warning).
+        Otherwise the response is a single ImportResult JSON object.
+      parameters:
+        - { in: header, name: Accept, schema: { type: string }, example: text/event-stream }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ImportRequest' }
+      responses:
+        '200':
+          description: Import result (JSON mode)
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+            text/event-stream:
+              schema: { type: string }
+        '503': { $ref: '#/components/responses/Error503' }
+
+  /imports/{projectId}/status:
+    parameters:
+      - { in: path, name: projectId, required: true, schema: { type: string } }
+    get:
+      tags: [Imports]
+      summary: Poll an in-progress import
+      responses:
+        '200':
+          description: Status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  projectId: { type: string }
+                  status: { type: string }
+                  stack: { $ref: '#/components/schemas/StackDecision' }
+                  files:
+                    type: array
+                    items: { $ref: '#/components/schemas/FileNode' }
+                  github: { $ref: '#/components/schemas/GitHubLink' }
+                  updatedAt: { type: string, format: date-time }
+
+  # ─────────────────────────────────── Completions ─────────────────────────────
+  /completions/inline:
+    post:
+      tags: [Completions]
+      summary: Stream a middle-fill-in inline completion (SSE)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/InlineCompletionRequest' }
+      responses:
+        '200':
+          description: SSE
+          content:
+            text/event-stream:
+              schema: { type: string }
+        '204': { description: No suggestion (timeout, budget, or empty) }
+        '400': { $ref: '#/components/responses/Error400' }
+
+  /completions/inline/accept:
+    post:
+      tags: [Completions]
+      summary: Record an inline completion accept for metrics
+      responses:
+        '204': { description: Recorded }
+
+  # ─────────────────────────────────── Deploy ──────────────────────────────────
+  /projects/{id}/deploy:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    post:
+      tags: [Projects]
+      summary: Start a deploy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DeployStartRequest' }
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deploymentId: { type: string }
+                  streamURL: { type: string }
+        '412': { description: Provider token not configured }
+
+  /projects/{id}/deploy/plan:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    get:
+      tags: [Projects]
+      summary: Inspect the planned deploy artifacts + provider availability
+      responses:
+        '200':
+          description: Plan
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+
+  /projects/{id}/deployments:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    get:
+      tags: [Projects]
+      summary: List past deployments for the caller
+      responses:
+        '200':
+          description: Deployments
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/DeploymentRecord' }
+
+  /deployments/{deploymentId}/stream:
+    parameters:
+      - { in: path, name: deploymentId, required: true, schema: { type: string } }
+    get:
+      tags: [Projects]
+      summary: Subscribe to a deployment's event stream (SSE)
+      parameters:
+        - { in: query, name: token, schema: { type: string } }
+      responses:
+        '200':
+          description: SSE
+          content:
+            text/event-stream:
+              schema: { type: string }
+        '404': { $ref: '#/components/responses/Error404' }
+
+  /projects/{id}/export/zip:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    post:
+      tags: [Projects]
+      summary: Stream the project's source as a ZIP attachment
+      responses:
+        '200':
+          description: ZIP
+          content:
+            application/zip: {}
+
+  /projects/{id}/export/github:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string } }
+    post:
+      tags: [Projects, Integrations]
+      summary: Push the project's source to a new GitHub repo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                repoName: { type: string }
+                description: { type: string }
+                private: { type: boolean }
+      responses:
+        '201':
+          description: GitHub repo details
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        '503': { $ref: '#/components/responses/Error503' }
+
+  # ─────────────────────────────────── MCP ─────────────────────────────────────
+  /mcp:
+    get:
+      tags: [MCP]
+      summary: MCP transport probe (returns 405; clients must POST)
+      responses:
+        '405': { description: Method Not Allowed }
+    post:
+      tags: [MCP]
+      summary: MCP JSON-RPC endpoint
+      description: |
+        Implements the MCP Streamable HTTP transport: `initialize`,
+        `tools/list`, `tools/call`, `resources/list`, `resources/read`,
+        plus `notifications/initialized` and `ping`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MCPRequest' }
+      responses:
+        '200':
+          description: JSON-RPC response
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MCPResponse' }
+        '202': { description: Notification accepted }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Authorization header with `Bearer <jwt>`. The JWT is HS256-signed
+        with the secret from IRONFLYER_JWT_SECRET. Use POST /auth/login or
+        POST /auth/signup to obtain a token; tokens default to a 30-day
+        expiry.
+    queryToken:
+      type: apiKey
+      in: query
+      name: token
+      description: |
+        Fallback for SSE / WebSocket clients (EventSource, browser
+        WebSocket) that cannot set the Authorization header. Carries the
+        same JWT.
+
+  responses:
+    HealthSnapshot:
+      description: Health snapshot
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status: { type: string, enum: [ok, degraded] }
+              services:
+                type: object
+                additionalProperties: { type: boolean }
+              version: { type: string }
+              uptime: { type: string }
+    Ready:
+      description: Ready
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status: { type: string, example: ready }
+              checks:
+                type: object
+                additionalProperties: { type: string }
+              uptime: { type: string }
+    NotReady:
+      description: Not ready
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status: { type: string, example: not_ready }
+              checks:
+                type: object
+                additionalProperties: { type: string }
+              failed:
+                type: array
+                items: { type: string }
+    Error400:
+      description: Bad request
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Error401:
+      description: Unauthenticated
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Error403:
+      description: Forbidden
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Error404:
+      description: Not found
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Error409:
+      description: Conflict
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Error410:
+      description: Gone (expired)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Error500:
+      description: Internal error
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Error502:
+      description: Bad gateway
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Error503:
+      description: Dependency disabled or unavailable
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string, example: invalid JSON }
+
+    # ─────── Auth / User
+    SignupRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        name: { type: string }
+        password: { type: string, minLength: 8 }
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+
+    AuthResponse:
+      type: object
+      properties:
+        user: { $ref: '#/components/schemas/User' }
+        token: { type: string, description: JWT }
+
+    User:
+      type: object
+      properties:
+        id: { type: string }
+        email: { type: string, format: email }
+        name: { type: string }
+        plan: { type: string, example: pro }
+        orgId: { type: string }
+        createdAt: { type: string, format: date-time }
+        telemetryOptOut: { type: boolean }
+
+    # ─────── Project domain
+    Project:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        description: { type: string }
+        status: { type: string, example: draft }
+        ownerId: { type: string, description: "Empty means public." }
+        federated: { type: boolean }
+        spec: { $ref: '#/components/schemas/ProductSpec' }
+        files:
+          type: array
+          items: { $ref: '#/components/schemas/FileNode' }
+        artifacts:
+          type: object
+          additionalProperties: true
+        gates:
+          type: object
+          additionalProperties: { $ref: '#/components/schemas/GateState' }
+        events:
+          type: array
+          items: { $ref: '#/components/schemas/Event' }
+        github: { $ref: '#/components/schemas/GitHubLink' }
+        visualTargets:
+          type: array
+          items: { $ref: '#/components/schemas/VisualTarget' }
+        subprojects:
+          type: array
+          items: { $ref: '#/components/schemas/Subproject' }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    CreateProjectRequest:
+      type: object
+      properties:
+        id: { type: string, description: "Optional; derived from name if omitted." }
+        name: { type: string }
+        description: { type: string }
+        idea: { type: string }
+
+    FileNode:
+      type: object
+      properties:
+        path: { type: string }
+        type: { type: string, enum: [file, dir] }
+        size: { type: integer }
+        content: { type: string }
+
+    ProductSpec:
+      type: object
+      properties:
+        idea: { type: string }
+        userStories:
+          type: array
+          items: { $ref: '#/components/schemas/UserStory' }
+        dataModel:
+          type: array
+          items:
+            type: object
+            properties:
+              name: { type: string }
+              fields:
+                type: array
+                items: { type: string }
+        stack: { $ref: '#/components/schemas/StackDecision' }
+
+    UserStory:
+      type: object
+      properties:
+        id: { type: string }
+        as: { type: string }
+        iWant: { type: string }
+        soThat: { type: string }
+        acceptance:
+          type: array
+          items: { type: string }
+
+    StackDecision:
+      type: object
+      properties:
+        frontend: { type: string }
+        backend: { type: string }
+        storage: { type: string }
+        auth: { type: string }
+
+    GateName:
+      type: string
+      enum: [spec, ux, arch, code, lint, test, security, budget, deploy]
+
+    GateStatus:
+      type: string
+      enum: [pending, running, passed, failed, blocked, repaired]
+
+    Severity:
+      type: string
+      enum: [info, warning, error, critical]
+
+    Issue:
+      type: object
+      properties:
+        gate: { $ref: '#/components/schemas/GateName' }
+        severity: { $ref: '#/components/schemas/Severity' }
+        message: { type: string }
+        hint: { type: string }
+        path: { type: string }
+
+    GateState:
+      type: object
+      properties:
+        name: { $ref: '#/components/schemas/GateName' }
+        status: { $ref: '#/components/schemas/GateStatus' }
+        issues:
+          type: array
+          items: { $ref: '#/components/schemas/Issue' }
+        updatedAt: { type: string, format: date-time }
+
+    Event:
+      type: object
+      properties:
+        id: { type: string }
+        step: { type: string }
+        agent: { type: string }
+        gate: { $ref: '#/components/schemas/GateName' }
+        message: { type: string }
+        status: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    GitHubLink:
+      type: object
+      properties:
+        owner: { type: string }
+        repo: { type: string }
+        fullName: { type: string }
+        defaultBranch: { type: string }
+        htmlUrl: { type: string }
+
+    Subproject:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        path: { type: string }
+        stack: { $ref: '#/components/schemas/StackDecision' }
+        role: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    AddSubprojectRequest:
+      type: object
+      required: [name, path]
+      properties:
+        name: { type: string }
+        path: { type: string }
+        role: { type: string }
+        stack: { $ref: '#/components/schemas/StackDecision' }
+
+    VisualTarget:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        routeHint: { type: string }
+        viewportW: { type: integer }
+        viewportH: { type: integer }
+        imagePngBase64: { type: string }
+        tolerance: { type: number, format: float }
+
+    AddVisualTargetRequest:
+      type: object
+      required: [imagePngBase64]
+      properties:
+        name: { type: string }
+        routeHint: { type: string }
+        viewportW: { type: integer, default: 1280 }
+        viewportH: { type: integer, default: 800 }
+        imagePngBase64: { type: string }
+        tolerance: { type: number, format: float, default: 0.02 }
+
+    ProjectGraph:
+      type: object
+      properties:
+        nodes:
+          type: array
+          items: { type: object, additionalProperties: true }
+        edges:
+          type: array
+          items: { type: object, additionalProperties: true }
+
+    ProjectSnapshot:
+      type: object
+      properties:
+        project: { $ref: '#/components/schemas/Project' }
+        gates:
+          type: array
+          items: { $ref: '#/components/schemas/GateState' }
+        patches:
+          type: array
+          items: { $ref: '#/components/schemas/Patch' }
+        memory:
+          type: object
+          properties:
+            byKind:
+              type: object
+              additionalProperties:
+                type: array
+                items: { $ref: '#/components/schemas/MemoryRecord' }
+        audit:
+          type: object
+          properties:
+            recent:
+              type: array
+              items: { $ref: '#/components/schemas/AuditEntry' }
+            verifyResult:
+              type: object
+              properties:
+                intact: { type: boolean }
+                firstBadIndex: { type: integer }
+        telemetry:
+          type: array
+          items: { $ref: '#/components/schemas/AgentCall' }
+        graph:
+          type: object
+          properties:
+            nodes: { type: integer }
+            edges: { type: integer }
+            languages:
+              type: object
+              additionalProperties: { type: integer }
+        visualTargets:
+          type: array
+          items: { type: object, additionalProperties: true }
+
+    FinisherReport:
+      type: object
+      additionalProperties: true
+
+    # ─────── Patches
+    PatchOp:
+      type: string
+      enum: [create, update, delete, replace, insert_after, symbol]
+
+    PatchStatus:
+      type: string
+      enum: [proposed, validated, applied, rejected, rolled-back]
+
+    SymbolRef:
+      type: object
+      properties:
+        kind: { type: string }
+        receiver: { type: string }
+        name: { type: string }
+
+    FileChange:
+      type: object
+      required: [op, path]
+      properties:
+        op: { $ref: '#/components/schemas/PatchOp' }
+        path: { type: string }
+        content: { type: string }
+        anchor: { type: string }
+        replacement: { type: string }
+        symbol: { $ref: '#/components/schemas/SymbolRef' }
+        symbolAction:
+          type: string
+          enum: [replace_body, replace_signature, insert_after, delete]
+        newSource: { type: string }
+        diff: { type: string }
+
+    Patch:
+      type: object
+      properties:
+        id: { type: string }
+        projectId: { type: string }
+        author: { type: string }
+        title: { type: string }
+        summary: { type: string }
+        changes:
+          type: array
+          items: { $ref: '#/components/schemas/FileChange' }
+        issues:
+          type: array
+          items: { $ref: '#/components/schemas/Issue' }
+        status: { $ref: '#/components/schemas/PatchStatus' }
+        createdAt: { type: string, format: date-time }
+        appliedAt: { type: string, format: date-time }
+
+    # ─────── Chat
+    ChatAttachment:
+      type: object
+      properties:
+        mediaType: { type: string, enum: [image/png, image/jpeg, image/webp, image/gif] }
+        base64: { type: string }
+
+    ChatRequest:
+      type: object
+      required: [prompt]
+      properties:
+        prompt: { type: string }
+        role: { type: string, description: "Agent role; defaults to planner." }
+        effort: { type: string, enum: [economy, lite, power] }
+        attachments:
+          type: array
+          items: { $ref: '#/components/schemas/ChatAttachment' }
+
+    Chat:
+      type: object
+      properties:
+        id: { type: string }
+        projectId: { type: string }
+        ownerId: { type: string }
+        title: { type: string }
+        parentChatId: { type: string }
+        forkedAtMessageId: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    ChatMessage:
+      type: object
+      properties:
+        id: { type: string }
+        chatId: { type: string }
+        role: { type: string, enum: [user, assistant] }
+        text: { type: string }
+        agent: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    # ─────── Visual edit / search
+    VisualEditRequest:
+      type: object
+      required: [selector, instruction]
+      properties:
+        selector: { type: string }
+        instruction: { type: string }
+        screenshot: { type: string }
+        screenshotMediaType: { type: string, enum: [image/png, image/jpeg, image/webp] }
+        path: { type: string }
+
+    SearchHits:
+      type: object
+      properties:
+        hits:
+          type: array
+          items:
+            type: object
+            properties:
+              path: { type: string }
+              startLine: { type: integer }
+              endLine: { type: integer }
+              symbols:
+                type: array
+                items: { type: string }
+              score: { type: number }
+              text: { type: string }
+
+    ConnectGitHubRequest:
+      type: object
+      properties:
+        owner: { type: string }
+        repo: { type: string }
+        fullName: { type: string }
+        defaultBranch: { type: string }
+        htmlUrl: { type: string }
+
+    # ─────── GitHub integration
+    GitHubStatus:
+      type: object
+      additionalProperties: true
+      properties:
+        connected: { type: boolean }
+        login: { type: string }
+        avatarUrl: { type: string }
+        scopes:
+          type: array
+          items: { type: string }
+
+    GitHubRepo:
+      type: object
+      additionalProperties: true
+      properties:
+        owner: { type: string }
+        name: { type: string }
+        fullName: { type: string }
+        defaultBranch: { type: string }
+        private: { type: boolean }
+        htmlUrl: { type: string }
+
+    # ─────── Share links
+    ShareLink:
+      type: object
+      properties:
+        id: { type: string }
+        slug: { type: string }
+        projectId: { type: string }
+        ownerId: { type: string }
+        expiresAt: { type: string, format: date-time }
+        createdAt: { type: string, format: date-time }
+        url: { type: string }
+
+    SharedSnapshot:
+      type: object
+      properties:
+        project: { type: object, additionalProperties: true }
+        gates:
+          type: array
+          items: { $ref: '#/components/schemas/GateState' }
+        files:
+          type: array
+          items:
+            type: object
+            properties:
+              path: { type: string }
+              type: { type: string }
+              size: { type: integer }
+        expiresAt: { type: string, format: date-time }
+
+    # ─────── Memory
+    MemoryKind:
+      type: string
+      enum: [project, execution, user, business]
+
+    MemoryRecord:
+      type: object
+      required: [kind, title, body]
+      properties:
+        id: { type: string }
+        kind: { $ref: '#/components/schemas/MemoryKind' }
+        projectId: { type: string }
+        userId: { type: string }
+        storyId: { type: string }
+        gateName: { type: string }
+        title: { type: string }
+        body: { type: string }
+        tags:
+          type: array
+          items: { type: string }
+        confidence: { type: number, format: float, minimum: 0, maximum: 1 }
+        createdAt: { type: string, format: date-time }
+
+    FederationDTO:
+      type: object
+      properties:
+        userId: { type: string }
+        members:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        projects:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              name: { type: string }
+              description: { type: string }
+              federated: { type: boolean }
+        notice: { type: string }
+
+    # ─────── Audit
+    AuditEntry:
+      type: object
+      properties:
+        id: { type: string }
+        action: { type: string }
+        outcome: { type: string, enum: [success, failure, blocked] }
+        userId: { type: string }
+        projectId: { type: string }
+        gateName: { type: string }
+        summary: { type: string }
+        attrs:
+          type: object
+          additionalProperties: true
+        contentHash: { type: string }
+        prevHash: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    # ─────── Webhooks
+    WebhookSubscription:
+      type: object
+      properties:
+        id: { type: string }
+        userId: { type: string }
+        url: { type: string, format: uri }
+        events:
+          type: array
+          items: { type: string }
+        projectId: { type: string }
+        secret: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    # ─────── Notifications
+    NotificationRule:
+      type: object
+      properties:
+        userId: { type: string }
+        email: { type: string, format: email }
+        slackWebhookUrl: { type: string }
+        events:
+          type: array
+          items: { type: string }
+        gates:
+          type: array
+          items: { $ref: '#/components/schemas/GateName' }
+        notifyOnSuccess: { type: boolean }
+        notifyOnFailure: { type: boolean }
+      additionalProperties: true
+
+    # ─────── Imports
+    ImportRequest:
+      type: object
+      required: [repoUrl]
+      properties:
+        repoUrl: { type: string }
+        branch: { type: string }
+        subdir: { type: string }
+        makePublic: { type: boolean }
+
+    # ─────── Inline completions
+    InlineCompletionRequest:
+      type: object
+      properties:
+        prefix: { type: string }
+        suffix: { type: string }
+        language: { type: string }
+        filename: { type: string }
+        maxTokens: { type: integer, default: 256, maximum: 256 }
+        requestId: { type: string }
+
+    # ─────── Telemetry / Bandit
+    AgentCall:
+      type: object
+      properties:
+        id: { type: string }
+        role: { type: string }
+        provider: { type: string }
+        model: { type: string }
+        capabilities:
+          type: array
+          items: { type: string }
+        usage:
+          type: object
+          additionalProperties: true
+        costUsd: { type: number }
+        durationMs: { type: integer }
+        userId: { type: string }
+        projectId: { type: string }
+        startedAt: { type: string, format: date-time }
+        finishedAt: { type: string, format: date-time }
+        error: { type: string }
+
+    BanditRanking:
+      type: object
+      properties:
+        capabilities:
+          type: array
+          items:
+            type: object
+            properties:
+              capability: { type: string }
+              total: { type: integer }
+              winners:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    provider: { type: string }
+                    model: { type: string }
+                    share: { type: number }
+                    meanReward: { type: number }
+                    avgCostUSD: { type: number }
+                    calls: { type: integer }
+                    errors: { type: integer }
+                    lastUsed: { type: string, format: date-time }
+                    isLeader: { type: boolean }
+        lookback: { type: integer }
+        sampled: { type: integer }
+        strategy: { type: string }
+        lastConfidence: { type: number }
+
+    # ─────── Budget
+    Plan:
+      type: object
+      additionalProperties: true
+      properties:
+        tier: { type: string, example: pro }
+        priceUsd: { type: number }
+        currency: { type: string, example: usd }
+        capUsd: { type: number, description: "Monthly cap on provider spend." }
+        features:
+          type: array
+          items: { type: string }
+
+    UserBudget:
+      type: object
+      properties:
+        userId: { type: string }
+        email: { type: string }
+        tier: { type: string }
+        spent: { type: number }
+        entries:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+
+    # ─────── Deploy
+    DeployStartRequest:
+      type: object
+      required: [provider]
+      properties:
+        provider: { type: string, enum: [fly, railway] }
+        region: { type: string }
+        env:
+          type: object
+          additionalProperties: { type: string }
+
+    DeploymentRecord:
+      type: object
+      properties:
+        id: { type: string }
+        projectId: { type: string }
+        userId: { type: string }
+        provider: { type: string }
+        region: { type: string }
+        status: { type: string, enum: [running, deployed, failed] }
+        url: { type: string }
+        error: { type: string }
+        artifacts:
+          type: array
+          items: { type: object, additionalProperties: true }
+        createdAt: { type: string, format: date-time }
+        finishedAt: { type: string, format: date-time }
+
+    # ─────── Leads
+    EnterpriseLeadRequest:
+      type: object
+      required: [email, company]
+      properties:
+        name: { type: string }
+        email: { type: string, format: email }
+        company: { type: string }
+        teamSize: { type: string }
+        useCase: { type: string }
+        budget: { type: string }
+        timeline: { type: string }
+        source: { type: string }
+
+    EnterpriseLeadResponse:
+      type: object
+      properties:
+        id: { type: string }
+        status: { type: string, example: received }
+        createdAt: { type: string, format: date-time }
+
+    # ─────── Collab
+    Collaborator:
+      type: object
+      properties:
+        id: { type: string }
+        projectId: { type: string }
+        userId: { type: string }
+        email: { type: string }
+        invitedBy: { type: string }
+        status: { type: string, enum: [pending, joined] }
+        createdAt: { type: string, format: date-time }
+
+    # ─────── Agent catalogue
+    Agent:
+      type: object
+      properties:
+        role: { type: string }
+        system: { type: string }
+        capabilities:
+          type: array
+          items: { type: string }
+        enableThinking: { type: boolean }
+
+    # ─────── MCP
+    MCPRequest:
+      type: object
+      required: [jsonrpc, method]
+      properties:
+        jsonrpc: { type: string, enum: ["2.0"] }
+        id:
+          oneOf:
+            - { type: string }
+            - { type: integer }
+            - { type: "null" }
+        method: { type: string }
+        params:
+          type: object
+          additionalProperties: true
+
+    MCPResponse:
+      type: object
+      properties:
+        jsonrpc: { type: string, enum: ["2.0"] }
+        id:
+          oneOf:
+            - { type: string }
+            - { type: integer }
+            - { type: "null" }
+        result:
+          type: object
+          additionalProperties: true
+        error:
+          type: object
+          properties:
+            code: { type: integer }
+            message: { type: string }
+            data:
+              oneOf:
+                - { type: object, additionalProperties: true }
+                - { type: array, items: {} }
+                - { type: string }
+                - { type: "null" }

@@ -1,0 +1,67 @@
+# V22 Customer Wow Loop — Agent 34. One read-only endpoint that
+# bundles preview URL + changed files + gate report + security report
+# + cost report + next-best-action for a finished execution. Backed
+# by `internal/wowloop/`; the resolver is wowloop.resolver.go and the
+# concrete Builder is wired by the V22 integration agent.
+#
+# `DateTime` is declared in zbase.graphql.
+
+extend type Query {
+  executionSupportBundle(executionID: ID!): SupportBundle!
+}
+
+type SupportBundle {
+  executionID: ID!
+  tenantID: ID!
+  status: String!
+  previewURL: String
+  productionURL: String
+  changedFiles: [String!]!
+  patchCount: Int!
+  gateReport: GateReport!
+  securityReport: SupportSecurityReport!
+  costReport: CostReport!
+  nextBestAction: NextAction!
+  generatedAt: DateTime!
+}
+
+type GateReport {
+  stages: [GateStage!]!
+  completionScore: Float!
+}
+
+type GateStage {
+  name: String!
+  status: String!
+  issuesCount: Int!
+}
+
+type SupportSecurityReport {
+  findings: [SupportSecurityFinding!]!
+  passRate: Float!
+  blockedDeploy: Boolean!
+}
+
+type SupportSecurityFinding {
+  severity: String!
+  ruleID: String!
+  path: String!
+  line: Int!
+  summary: String!
+}
+
+type CostReport {
+  revenueUSD: Float!
+  providerCostUSD: Float!
+  sandboxCostUSD: Float!
+  storageCostUSD: Float!
+  deploymentCostUSD: Float!
+  grossMarginPct: Float!
+}
+
+type NextAction {
+  kind: String!
+  title: String!
+  reason: String!
+  cta: String
+}

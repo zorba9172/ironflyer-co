@@ -1,0 +1,16 @@
+# genqlient config for the Ironflyer CLI.
+#
+# This file is consumed by `go run github.com/Khan/genqlient` (invoked from
+# this directory). It loads the orchestrator's authoritative schema, parses
+# operations.graphql, and writes generated.go in this package.
+schema:
+  - ../../../orchestrator/internal/graph/schema/*.graphql
+operations:
+  - operations.graphql
+generated: generated.go
+package: gql
+bindings:
+  DateTime: { type: time.Time }
+  Decimal:  { type: github.com/shopspring/decimal.Decimal }
+  JSON:     { type: encoding/json.RawMessage }
+  Bytes:    { type: "[]byte" }

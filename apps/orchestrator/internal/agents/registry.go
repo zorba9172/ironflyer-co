@@ -34,12 +34,6 @@ const (
 	// patch in the project's existing migration toolchain instead of
 	// letting the DB drift behind freshly generated types.
 	RoleMigrator Role = "migrator"
-	// RoleFigmaTranslator turns a structured Figma extract (design
-	// tokens + component inventory + per-component screenshots) into a
-	// Coder-shaped patch that materialises the design pixel-perfect in
-	// the project's existing stack. Powers the premium Figma → code
-	// tier — see internal/figma for the extraction pipeline.
-	RoleFigmaTranslator Role = "figma-translator"
 )
 
 type Task struct {
@@ -83,7 +77,7 @@ type Agent struct {
 
 type Registry struct {
 	mu         sync.RWMutex
-	router     *providers.Router
+	streamer   Streamer
 	agents     map[Role]Agent
 	mcpClients *providers.MCPClientRegistry
 	// builtinTools is the slice of in-process tools (e.g. generate_image)
@@ -94,8 +88,16 @@ type Registry struct {
 	builtinCalls map[string]BuiltinToolFunc
 }
 
-func NewRegistry(r *providers.Router) *Registry {
-	return &Registry{router: r, agents: make(map[Role]Agent)}
+// Streamer is the only model-call surface agents may use. In production
+// this is providers.BillingGuard, not providers.Router directly, so every
+// token crosses budget admission, ProfitGuard, failover charging, telemetry,
+// and ledger attribution before it reaches a model.
+type Streamer interface {
+	CompleteStreamWithFailover(ctx context.Context, req providers.Request) (<-chan providers.Delta, error)
+}
+
+func NewRegistry(s Streamer) *Registry {
+	return &Registry{streamer: s, agents: make(map[Role]Agent)}
 }
 
 func (r *Registry) Register(a Agent) {
@@ -159,7 +161,10 @@ func (r *Registry) RunStream(ctx context.Context, task Task) (<-chan providers.D
 			}
 		}
 	}
-	return r.router.CompleteStream(ctx, req)
+	if r.streamer == nil {
+		return nil, errors.New("agents: streamer not configured")
+	}
+	return r.streamer.CompleteStreamWithFailover(ctx, req)
 }
 
 // containsCap is a local helper duplicated from the providers package
@@ -229,7 +234,10 @@ func (r *Registry) Run(ctx context.Context, task Task) (Result, error) {
 			}
 		}
 
-		ch, err := r.router.CompleteStream(ctx, req)
+		if r.streamer == nil {
+			return Result{}, errors.New("agents: streamer not configured")
+		}
+		ch, err := r.streamer.CompleteStreamWithFailover(ctx, req)
 		if err != nil {
 			return Result{}, err
 		}

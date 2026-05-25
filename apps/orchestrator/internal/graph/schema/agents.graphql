@@ -1,0 +1,80 @@
+# Agent catalogue + telemetry + live cost stream. Maps onto
+# agents.Registry, providers.MemorySink, and the bandit.
+#
+# V22 keeps the cost-stream + agent + bandit-ranking surfaces because
+# they're load-bearing for the wallet/profit-guard agents. Provider
+# health probes are deferred.
+
+type Agent {
+  role: String!
+  system: String
+  capabilities: [String!]!
+  enableThinking: Boolean!
+}
+
+type AgentCall {
+  id: ID!
+  ts: DateTime!
+  role: String
+  provider: String!
+  model: String
+  promptTokens: Int!
+  completionTokens: Int!
+  cacheReadTokens: Int!
+  cacheWriteTokens: Int!
+  costUsd: Decimal!
+  durationMs: Int!
+  error: String
+  capabilities: [String!]
+  userId: ID
+  projectId: ID
+}
+
+type BanditWinner {
+  provider: String!
+  model: String
+  share: Float!
+  meanReward: Float!
+  avgCostUsd: Float!
+  calls: Int!
+  errors: Int!
+  lastUsed: DateTime
+  isLeader: Boolean!
+}
+
+type BanditCapability {
+  capability: String!
+  total: Int!
+  winners: [BanditWinner!]!
+}
+
+type BanditRanking {
+  capabilities: [BanditCapability!]!
+  lookback: Int!
+  sampled: Int!
+  strategy: String!
+  lastConfidence: Float
+}
+
+# Cost stream delta. Per-execution cost telemetry for the wallet
+# dashboards built by the V22 agents.
+type CostDelta {
+  ts: DateTime!
+  usdSpent: Decimal!
+  model: String
+  provider: String
+  agent: String
+  durationMs: Int
+}
+
+extend type Query {
+  agents: [Agent!]!
+  # `modelName` (not `model`) so gqlgen's Go parameter name doesn't
+  # shadow the model package import in the resolver file.
+  agentTelemetry(limit: Int, role: String, provider: String, modelName: String): [AgentCall!]!
+  banditRanking(lookback: Int): BanditRanking!
+}
+
+extend type Subscription {
+  costStream: CostDelta!
+}

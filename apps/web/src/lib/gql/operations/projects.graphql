@@ -1,0 +1,76 @@
+# Project surface — projects(list) for the studio sidebar + recents,
+# project(id) for the studio header / canonical lookup, projectFiles
+# for the CodePane viewer. The studio surface used to pull these via
+# inline gql wrappers; codegen-driven hooks replace them so the
+# components import typed selectors instead.
+#
+# Mutations expose the CRUD + finisher controls the orchestrator
+# already implements (internal/graph/resolver/projects.resolver.go).
+
+fragment ProjectCore on Project {
+  id
+  name
+  description
+  status
+  ownerId
+  isPublic
+  idea
+  createdAt
+  updatedAt
+}
+
+query Projects($limit: Int, $offset: Int) {
+  projects(limit: $limit, offset: $offset) {
+    ...ProjectCore
+  }
+}
+
+query Project($id: ID!) {
+  project(id: $id) {
+    ...ProjectCore
+  }
+}
+
+query ProjectFiles($id: ID!) {
+  projectFiles(id: $id) {
+    path
+    content
+    size
+    language
+    updatedAt
+  }
+}
+
+mutation CreateProject($input: CreateProjectInput!) {
+  createProject(input: $input) {
+    ...ProjectCore
+  }
+}
+
+mutation UpdateProject($id: ID!, $input: UpdateProjectInput!) {
+  updateProject(id: $id, input: $input) {
+    ...ProjectCore
+  }
+}
+
+mutation DeleteProject($id: ID!) {
+  deleteProject(id: $id) {
+    ok
+    message
+  }
+}
+
+mutation BulkDeleteProjects($ids: [ID!]!) {
+  bulkDeleteProjects(ids: $ids) {
+    ok
+    message
+  }
+}
+
+mutation RunFinisher($id: ID!) {
+  runFinisher(id: $id)
+}
+
+mutation PromptPlan($id: ID!, $prompt: String!) {
+  promptPlan(id: $id, prompt: $prompt)
+}

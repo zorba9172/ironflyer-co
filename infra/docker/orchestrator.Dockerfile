@@ -13,7 +13,10 @@ RUN apk add --no-cache git
 COPY apps/orchestrator/go.mod apps/orchestrator/go.sum* ./
 RUN go mod download || true
 COPY apps/orchestrator/ ./
-RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags='-s -w' \
+# Production builds opt in to the tree-sitter AST adapters so symbol-level
+# patches resolve through real parsers instead of the no-op fallback. The
+# `treesitter` tag is documented in docs/PATCHES.md.
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -tags treesitter -ldflags='-s -w' \
     -o /out/orchestrator ./cmd/orchestrator
 
 FROM alpine:3.20
@@ -29,6 +32,6 @@ COPY --from=build /out/orchestrator /usr/local/bin/orchestrator
 COPY --chown=iron:iron templates/ /app/templates/
 ENV IRONFLYER_SCAFFOLD_ROOT=/app/templates
 EXPOSE 8080
-HEALTHCHECK --interval=15s --timeout=3s --start-period=10s --retries=3 \
-    CMD curl -fsS http://127.0.0.1:8080/healthz || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+    CMD curl -fsS http://127.0.0.1:8080/livez || exit 1
 ENTRYPOINT ["/usr/local/bin/orchestrator"]

@@ -43,9 +43,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/shopspring/decimal"
+
 	"ironflyer/apps/orchestrator/internal/agents"
 	"ironflyer/apps/orchestrator/internal/domain"
+	"ironflyer/apps/orchestrator/internal/execution"
 	"ironflyer/apps/orchestrator/internal/patch"
+	"ironflyer/apps/orchestrator/internal/profitguardctx"
+	"ironflyer/apps/orchestrator/internal/repair"
 )
 
 // RecoveryConfig tunes the auto-recovery loop. Zero-valued fields fall back
@@ -136,8 +141,156 @@ func (r *RecoveryEngine) Recover(
 		return false, nil
 	}
 
+	// V22 learning: at the start of recovery, check the repair genome
+	// for a known fix recipe matching the failure signature. If we
+	// have one, surface a structured "recipe_hit" event so the
+	// dashboard's repair_genome_hits counter increments. This v1
+	// implementation does not (yet) auto-apply the recipe — the Coder
+	// still runs — but the lookup itself bumps Hits/LastHitAt on the
+	// recipe row so dashboard "reuse pressure" is honest.
+	failureBlob := joinIssues(failure.Issues)
+	if r.engine.learning != nil && failureBlob != "" {
+		if recipe, hit, err := r.engine.learning.LookupRecipe(ctx, failureBlob); err == nil && hit {
+			r.emit(projectID, domain.Event{
+				ID: newEventID(), Step: StepRecovery, Gate: failure.Gate,
+				Status:    StatusRunning,
+				Message:   fmt.Sprintf("recovery_recipe_hit gate=%s category=%s hits=%d", failure.Gate, recipe.Category, recipe.Hits),
+				CreatedAt: time.Now().UTC(),
+			})
+			// A55 agent reasoning — recovery recipe matched.
+			emitExecutionEvent(ctx, r.engine.executionService, execution.EventAgentStageActionV1, map[string]any{
+				"stage":      string(failure.Gate),
+				"agent_role": gateToAgent(failure.Gate),
+				"action":     "repair_lookup",
+				"target":     repair.FailureSignature(failureBlob),
+				"recipe_id":  recipe.ID,
+				"hits":       recipe.Hits,
+				"message":    "Repair recipe matched (" + recipe.Category + ", " + fmt.Sprintf("%d prior hits", recipe.Hits) + ")",
+			})
+			// Wow-loop event ring: emit recovery.recipe_hit.v1 so the
+			// executionSupportBundle repair panel can flag the gate
+			// stage as "the genome saw this failure before". The
+			// hit itself does not imply success — auto-apply may still
+			// fall through to the standard Coder retry path; the
+			// recipe_applied.v1 event below is what marks "repaired".
+			emitExecutionEvent(ctx, r.engine.executionService, execution.EventRecoveryHitV1, map[string]any{
+				"failure_signature": repair.FailureSignature(failureBlob),
+				"gate":              string(failure.Gate),
+				"recipe_id":         recipe.ID,
+				"category":          recipe.Category,
+				"hit_count":         recipe.Hits,
+				"occurred_at":       time.Now().UTC().Format(time.RFC3339Nano),
+			})
+			// V22 auto-apply: if the recipe carries a literal
+			// `changes` array (recorded by a prior OnRetrySuccess),
+			// try to replay it through the standard patch lifecycle
+			// BEFORE burning the Coder budget on a fresh
+			// reasoning round. On success the gate is repaired,
+			// MarkSuccess is bumped, and the loop short-circuits.
+			// On failure we fall through to the standard recovery
+			// path so the system still gets a chance to recover.
+			signature := repair.FailureSignature(failureBlob)
+			// A55 agent reasoning — about to attempt auto-apply.
+			emitExecutionEvent(ctx, r.engine.executionService, execution.EventAgentStageActionV1, map[string]any{
+				"stage":      string(failure.Gate),
+				"agent_role": gateToAgent(failure.Gate),
+				"action":     "repair_apply",
+				"recipe_id":  recipe.ID,
+				"message":    "Replaying repair recipe for " + string(failure.Gate),
+			})
+			if applied, ok, applyErr := r.applyRecipePatch(ctx, projectID, workspaceID, bearer, recipe); ok {
+				emitExecutionEvent(ctx, r.engine.executionService, execution.EventAgentStageResultV1, map[string]any{
+					"stage":      string(failure.Gate),
+					"agent_role": gateToAgent(failure.Gate),
+					"action":     "repair_apply",
+					"success":    true,
+					"patch_id":   applied.ID,
+					"summary":    "Recipe applied; " + string(failure.Gate) + " repaired",
+				})
+				_ = r.engine.learning.Genome.MarkSuccess(ctx, signature)
+				r.engine.setGate(projectID, gate.Name(), domain.GateState{
+					Name:      gate.Name(),
+					Status:    domain.GateStatusRepaired,
+					UpdatedAt: time.Now().UTC(),
+				})
+				r.engine.recordGateOutcome(ctx, gate.Name(), true, 0)
+				report.PatchIDs = append(report.PatchIDs, applied.ID)
+				r.emit(projectID, domain.Event{
+					ID: newEventID(), Step: StepRecovery, Gate: failure.Gate,
+					Status:    StatusDone,
+					Message:   fmt.Sprintf("recovery_recipe_applied gate=%s patch=%s", failure.Gate, applied.ID),
+					CreatedAt: time.Now().UTC(),
+				})
+				// Wow-loop event ring: emit recovery.recipe_applied.v1
+				// so the executionSupportBundle repair panel can flag
+				// this gate stage as "repaired" rather than "failed".
+				// Also emit a patch.applied.v1 row for the auto-applied
+				// recipe so the "what changed" panel includes it — the
+				// recipe replay lands files exactly like the Coder loop
+				// would, just without the Coder cost.
+				appliedPaths := make([]string, 0, len(applied.Changes))
+				for _, c := range applied.Changes {
+					appliedPaths = append(appliedPaths, c.Path)
+				}
+				emitExecutionEvent(ctx, r.engine.executionService, execution.EventRecoveryApplyV1, map[string]any{
+					"failure_signature": signature,
+					"gate":              string(failure.Gate),
+					"recipe_id":         recipe.ID,
+					"patch_id":          applied.ID,
+					"success":           true,
+					"occurred_at":       time.Now().UTC().Format(time.RFC3339Nano),
+				})
+				emitExecutionEvent(ctx, r.engine.executionService, execution.EventPatchAppliedV1, map[string]any{
+					"patch_id":       applied.ID,
+					"affected_paths": appliedPaths,
+					"source":         "recovery_recipe",
+					"recipe_id":      recipe.ID,
+					"applied_at":     time.Now().UTC().Format(time.RFC3339Nano),
+				})
+				return true, nil
+			} else if applyErr != nil {
+				emitExecutionEvent(ctx, r.engine.executionService, execution.EventAgentStageResultV1, map[string]any{
+					"stage":      string(failure.Gate),
+					"agent_role": gateToAgent(failure.Gate),
+					"action":     "repair_apply",
+					"success":    false,
+					"error":      applyErr.Error(),
+				})
+				r.emit(projectID, domain.Event{
+					ID: newEventID(), Step: StepRecovery, Gate: failure.Gate,
+					Status:    StatusFailed,
+					Message:   fmt.Sprintf("recovery_recipe_apply_failed gate=%s reason=%s", failure.Gate, applyErr.Error()),
+					CreatedAt: time.Now().UTC(),
+				})
+			}
+		}
+	}
+
 	var spentUSD float64
 	for attempt := 1; attempt <= r.cfg.MaxAttempts; attempt++ {
+		// V22 ProfitGuard BeforeRetry hook for the recovery loop. This
+		// covers every gate that drives through recovery: Reviewer,
+		// Test, Build, Security, Deploy. The Coder retry hook lives in
+		// loop.go (Agent 8). Nil-safe — without the hook the loop
+		// behaves exactly as before.
+		if r.engine.profitGuard != nil {
+			if execID, ok := profitguardctx.ExecutionID(ctx); ok {
+				stage := strings.ToLower(string(failure.Gate))
+				if stage == "" {
+					stage = "recovery"
+				}
+				allow, reason := r.engine.profitGuard.BeforeRetry(ctx, execID, stage, attempt, spentUSD)
+				if !allow {
+					r.emit(projectID, domain.Event{
+						ID: newEventID(), Step: StepRecovery, Gate: failure.Gate,
+						Status:    StatusFailed,
+						Message:   fmt.Sprintf("profitguard_stop attempt=%d gate=%s reason=%s", attempt, failure.Gate, reason),
+						CreatedAt: time.Now().UTC(),
+					})
+					return false, nil
+				}
+			}
+		}
 		if err := ctx.Err(); err != nil {
 			return false, err
 		}
@@ -290,12 +443,63 @@ func (r *RecoveryEngine) Recover(
 				Status:    domain.GateStatusRepaired,
 				UpdatedAt: time.Now().UTC(),
 			})
+			// V22 completion scoring — recovery just flipped this
+			// gate from failed→passed; mirror it through the scorer
+			// so the absolute completion_score moves up immediately.
+			r.engine.recordGateOutcome(ctx, gate.Name(), true, 0)
 			r.emit(projectID, domain.Event{
 				ID: newEventID(), Step: StepRecovery, Gate: failure.Gate, Agent: string(agents.RoleCoder),
 				Status:    StatusDone,
 				Message:   fmt.Sprintf("recovery_done attempt=%d gate=%s", attempt, failure.Gate),
 				CreatedAt: time.Now().UTC(),
 			})
+			// V22 learning: record the (failure → fix) shape so the
+			// next occurrence of the same failure class can short-
+			// circuit. The "fix" is a coarse digest of the patch we
+			// just landed — concrete enough to act on, small enough
+			// to keep the genome row tight.
+			if r.engine.learning != nil {
+				execID, _ := profitguardctx.ExecutionID(ctx)
+				// Capture the literal FileChanges that fixed this
+				// failure class so a future Lookup hit can replay
+				// them via applyRecipePatch (closing the recipe →
+				// applied → MarkSuccess loop).
+				changesBlob := make([]map[string]any, 0, len(applied.Changes))
+				for _, c := range applied.Changes {
+					changesBlob = append(changesBlob, map[string]any{
+						"op":          string(c.Op),
+						"path":        c.Path,
+						"content":     c.Content,
+						"anchor":      c.Anchor,
+						"replacement": c.Replacement,
+					})
+				}
+				fix := map[string]any{
+					"patch_title":   applied.Title,
+					"patch_summary": applied.Summary,
+					"patch_id":      applied.ID,
+					"gate":          string(failure.Gate),
+					"attempt":       attempt,
+					"changes":       changesBlob,
+				}
+				r.engine.learning.OnRetrySuccess(ctx, execID, string(failure.Gate), failureBlob, fix)
+
+				// Also record the applied patch shape against the
+				// (gate + last patch id) intent so future runs with
+				// the same recovery intent see it as a candidate.
+				intent := IntentForGateStory(string(failure.Gate), failure.LastPatchID, applied.Title)
+				paths := make([]string, 0, len(applied.Changes))
+				for _, c := range applied.Changes {
+					paths = append(paths, c.Path)
+				}
+				patchBlob := map[string]any{
+					"title":   applied.Title,
+					"summary": applied.Summary,
+					"id":      applied.ID,
+				}
+				cost := decimal.NewFromFloat(spentUSD)
+				r.engine.learning.OnPatchApplied(ctx, execID, intent, patchBlob, paths, cost)
+			}
 			return true, nil
 		}
 
@@ -426,6 +630,87 @@ func (r *RecoveryEngine) lastPatchSummary(id string) (string, bool) {
 		return "", false
 	}
 	return string(raw), true
+}
+
+// applyRecipePatch attempts to replay the FileChanges baked into a
+// repair recipe via the standard patch lifecycle. Returns
+// (applied, true, nil) on a clean apply; (zero, false, nil) when
+// the recipe has no replayable shape (e.g. a legacy row recorded
+// before the `changes` field was added, or the genome row carries
+// only a free-form note); (zero, false, err) when the patch
+// engine rejected the recipe at Propose/Apply time.
+//
+// On a successful apply we also push the patch through the runtime
+// applier (if wired) so the user's sandbox sees the new bytes.
+func (r *RecoveryEngine) applyRecipePatch(
+	ctx context.Context,
+	projectID, workspaceID, bearer string,
+	recipe repair.Recipe,
+) (patch.Patch, bool, error) {
+	if r == nil || r.engine == nil || r.engine.patches == nil {
+		return patch.Patch{}, false, nil
+	}
+	rawChanges, ok := recipe.Fix["changes"].([]any)
+	if !ok || len(rawChanges) == 0 {
+		// Legacy recipe row (no embedded changes) — caller falls
+		// through to the standard recovery loop.
+		return patch.Patch{}, false, nil
+	}
+	built := patch.Patch{
+		ProjectID: projectID,
+		Author:    string(agents.RoleCoder) + "/recipe",
+		Title:     stringFromFix(recipe.Fix, "patch_title", "auto-recipe"),
+		Summary:   stringFromFix(recipe.Fix, "patch_summary", "Auto-applied repair recipe replay"),
+	}
+	for _, raw := range rawChanges {
+		m, ok := raw.(map[string]any)
+		if !ok {
+			continue
+		}
+		built.Changes = append(built.Changes, patch.FileChange{
+			Op:          patch.Op(strings.ToLower(strings.TrimSpace(stringFromFix(m, "op", "")))),
+			Path:        strings.TrimPrefix(stringFromFix(m, "path", ""), "/"),
+			Content:     stringFromFix(m, "content", ""),
+			Anchor:      stringFromFix(m, "anchor", ""),
+			Replacement: stringFromFix(m, "replacement", ""),
+		})
+	}
+	if len(built.Changes) == 0 {
+		return patch.Patch{}, false, nil
+	}
+	if violations := r.engine.enforcePatchBounds(built); len(violations) > 0 {
+		return patch.Patch{}, false, errors.New("recipe patch violated bounds")
+	}
+	proposed, err := r.engine.patches.Propose(built)
+	if err != nil {
+		return patch.Patch{}, false, err
+	}
+	if proposed.Status == patch.StatusRejected {
+		return patch.Patch{}, false, errors.New("recipe patch rejected by validator")
+	}
+	applied, err := r.engine.patches.Apply(proposed.ID)
+	if err != nil {
+		return patch.Patch{}, false, err
+	}
+	if workspaceID != "" && r.engine.applier != nil {
+		// Best-effort sandbox apply — drift is detected by the gate
+		// the caller re-runs anyway.
+		_ = r.engine.applier.Apply(ctx, bearer, workspaceID, applied)
+	}
+	return applied, true, nil
+}
+
+// stringFromFix safely extracts a string-valued key from a recipe
+// fix map (or any map[string]any). Returns the supplied default
+// when the key is missing or carries a non-string value.
+func stringFromFix(m map[string]any, key, fallback string) string {
+	if m == nil {
+		return fallback
+	}
+	if v, ok := m[key].(string); ok && v != "" {
+		return v
+	}
+	return fallback
 }
 
 // tailLines returns the last n newline-delimited lines of s. Trailing

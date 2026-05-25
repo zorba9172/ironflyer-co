@@ -1,0 +1,20 @@
+Expo expects a PNG at ./assets/icon.png (and optionally
+./assets/splash.png, ./assets/adaptive-icon.png, ./assets/favicon.png)
+once you wire concrete app art.
+
+This blueprint deliberately ships *no* binary assets — generated
+templates are byte-perfect text files only. Before running `expo
+prebuild` or submitting to a store, drop a 1024x1024 PNG named
+`icon.png` into this directory and (optionally) declare it in
+`app.json` under `expo.icon`. Until then, Expo falls back to its
+built-in placeholder icon, which is fine for `expo start`, web
+preview, and typecheck.
+
+To generate a starter icon locally:
+
+    npx @expo/cli install expo-asset
+    npx expo-doctor
+
+Or use any 1024x1024 PNG you own. Do NOT commit large binaries
+through the Ironflyer patch engine — store them via the artifact
+upload path instead.

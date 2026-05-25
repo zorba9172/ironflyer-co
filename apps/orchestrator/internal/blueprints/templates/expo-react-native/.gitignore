@@ -1,0 +1,23 @@
+node_modules/
+.expo/
+.expo-shared/
+dist/
+web-build/
+.env
+.env.local
+
+# native
+ios/Pods/
+android/.gradle/
+android/build/
+android/app/build/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# misc
+.DS_Store
+npm-debug.*
+yarn-error.log

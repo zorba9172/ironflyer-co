@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "billing.ledger.v1",
+  "type": "object",
+  "required": ["event_id", "tenant_id", "occurred_at", "entry_type", "direction", "amount_usd"],
+  "properties": {
+    "event_id": {"type": "string"},
+    "tenant_id": {"type": "string"},
+    "occurred_at": {"type": "string", "format": "date-time"},
+    "execution_id": {"type": ["string", "null"]},
+    "entry_type": {"type": "string"},
+    "direction": {"type": "string", "enum": ["debit", "credit"]},
+    "amount_usd": {"type": "string"},
+    "provider": {"type": ["string", "null"]},
+    "metadata": {"type": "object"}
+  }
+}

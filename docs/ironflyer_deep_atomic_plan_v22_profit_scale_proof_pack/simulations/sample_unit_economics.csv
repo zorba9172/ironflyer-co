@@ -1,0 +1,4 @@
+scenario,paying_users,executions_per_user_month,avg_charge,avg_cost,refund_rate,monthly_executions,net_revenue,platform_cost,gross_profit,gross_margin
+base,500,4,18,6.3,0.05,2000,34200,12600,21600,0.6316
+bad,500,4,18,15,0.12,2000,31680,30000,1680,0.053
+strong,2000,5,22,5.5,0.03,10000,213400,55000,158400,0.742

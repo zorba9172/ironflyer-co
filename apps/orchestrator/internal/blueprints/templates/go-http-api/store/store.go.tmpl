@@ -1,0 +1,108 @@
+// Package store is the Postgres-backed persistence layer for the
+// go-http-api blueprint. Operates on a single `items` table — apply
+// the SQL in db/0001_init.sql (or use Goose / Atlas / etc.) before
+// running the service.
+package store
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"time"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+// Item is the JSON-friendly representation of one row in `items`.
+type Item struct {
+	ID        string    `json:"id"`
+	Title     string    `json:"title"`
+	Body      string    `json:"body,omitempty"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// Store wraps a pgx pool with the small set of queries the blueprint
+// needs. Close() should be called from main() on shutdown.
+type Store struct {
+	pool *pgxpool.Pool
+}
+
+// Open dials Postgres at databaseURL. Returns a Store ready to use.
+func Open(ctx context.Context, databaseURL string) (*Store, error) {
+	if databaseURL == "" {
+		return nil, errors.New("DATABASE_URL is empty")
+	}
+	pool, err := pgxpool.New(ctx, databaseURL)
+	if err != nil {
+		return nil, fmt.Errorf("pgxpool: %w", err)
+	}
+	if err := pool.Ping(ctx); err != nil {
+		pool.Close()
+		return nil, fmt.Errorf("ping: %w", err)
+	}
+	return &Store{pool: pool}, nil
+}
+
+// Close releases the underlying pool. Safe to call on a nil receiver.
+func (s *Store) Close() {
+	if s == nil || s.pool == nil {
+		return
+	}
+	s.pool.Close()
+}
+
+// List returns every item ordered by created_at DESC.
+func (s *Store) List(ctx context.Context) ([]Item, error) {
+	rows, err := s.pool.Query(ctx,
+		`SELECT id, title, COALESCE(body, ''), created_at
+         FROM items ORDER BY created_at DESC`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := []Item{}
+	for rows.Next() {
+		var it Item
+		if err := rows.Scan(&it.ID, &it.Title, &it.Body, &it.CreatedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, it)
+	}
+	return out, rows.Err()
+}
+
+// Create inserts a new item and returns the stored representation.
+func (s *Store) Create(ctx context.Context, in Item) (Item, error) {
+	row := s.pool.QueryRow(ctx,
+		`INSERT INTO items(title, body) VALUES ($1, NULLIF($2, ''))
+         RETURNING id, title, COALESCE(body, ''), created_at`,
+		in.Title, in.Body)
+	var out Item
+	if err := row.Scan(&out.ID, &out.Title, &out.Body, &out.CreatedAt); err != nil {
+		return Item{}, err
+	}
+	return out, nil
+}
+
+// Get fetches one item by id. Returns pgx.ErrNoRows when missing so
+// the handler can map to a 404.
+func (s *Store) Get(ctx context.Context, id string) (Item, error) {
+	row := s.pool.QueryRow(ctx,
+		`SELECT id, title, COALESCE(body, ''), created_at
+         FROM items WHERE id = $1`, id)
+	var it Item
+	if err := row.Scan(&it.ID, &it.Title, &it.Body, &it.CreatedAt); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return Item{}, err
+		}
+		return Item{}, err
+	}
+	return it, nil
+}
+
+// Delete removes one item by id. No error if the row is already gone.
+func (s *Store) Delete(ctx context.Context, id string) error {
+	_, err := s.pool.Exec(ctx, `DELETE FROM items WHERE id = $1`, id)
+	return err
+}

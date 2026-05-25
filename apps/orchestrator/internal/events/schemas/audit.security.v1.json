@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "audit.security.v1",
+  "type": "object",
+  "required": ["event_id", "tenant_id", "occurred_at", "action", "actor"],
+  "properties": {
+    "event_id": {"type": "string"},
+    "tenant_id": {"type": "string"},
+    "occurred_at": {"type": "string", "format": "date-time"},
+    "action": {"type": "string"},
+    "actor": {"type": "string"},
+    "subject": {"type": ["string", "null"]},
+    "outcome": {"type": ["string", "null"]},
+    "ip": {"type": ["string", "null"]},
+    "user_agent": {"type": ["string", "null"]},
+    "metadata": {"type": "object"}
+  }
+}

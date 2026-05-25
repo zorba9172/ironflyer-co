@@ -1,0 +1,118 @@
+{{- if .Values.redpanda.enabled -}}
+# Redpanda StatefulSet — single broker (or N when replicationFactor > 1).
+#
+# This is intentionally minimal. Production deploys should use the
+# upstream Redpanda Operator (which manages rolling upgrades, broker
+# decommission, TLS rotation, and SASL/ACLs). The chart here ships a
+# self-contained broker so KEDA + outbox publishers can stand up against
+# a real Kafka API without an extra operator dependency.
+#
+# Brokers per ARCHITECTURE_EVENTS.md form the durable backbone for
+# committed domain facts. They are never the source of truth (Postgres
+# owns that) but they must survive pod restarts and support replay.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redpanda
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: redpanda
+spec:
+  serviceName: redpanda
+  replicas: {{ .Values.redpanda.replicationFactor | default 1 }}
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: redpanda
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: redpanda
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      # Redpanda image runs as uid 101 (`redpanda`); satisfies PSS restricted.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
+        fsGroup: 101
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 90
+      containers:
+        - name: redpanda
+          image: {{ .Values.redpanda.image | quote }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          command:
+            - /usr/bin/rpk
+            - redpanda
+            - start
+            - --smp=1
+            - --memory=1G
+            - --reserve-memory=0M
+            - --overprovisioned
+            - --node-id=$(POD_ORDINAL)
+            - --check=false
+            - --kafka-addr=PLAINTEXT://0.0.0.0:9092
+            - --advertise-kafka-addr=PLAINTEXT://$(POD_NAME).redpanda:9092
+            - --rpc-addr=0.0.0.0:33145
+            - --advertise-rpc-addr=$(POD_NAME).redpanda:33145
+            - --default-log-level=info
+            - --set
+            - redpanda.auto_create_topics_enabled=true
+            - --set
+            - redpanda.default_topic_partitions={{ .Values.redpanda.partitions | default 12 }}
+            - --set
+            - redpanda.default_topic_replications={{ .Values.redpanda.replicationFactor | default 1 }}
+          env:
+            - name: POD_NAME
+              valueFrom: { fieldRef: { fieldPath: metadata.name } }
+            # POD_ORDINAL is the trailing -N from the StatefulSet pod name;
+            # rpk reads $(POD_ORDINAL) from the start command via shell
+            # expansion when the container's entrypoint is shell-wrapped.
+            # For minimalism we fix node-id=0 when replicationFactor=1.
+            - name: POD_ORDINAL
+              value: "0"
+          ports:
+            - { name: kafka,     containerPort: 9092 }
+            - { name: admin,     containerPort: 9644 }
+            - { name: rpc,       containerPort: 33145 }
+          readinessProbe:
+            httpGet:
+              path: /v1/status/ready
+              port: admin
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /v1/status/ready
+              port: admin
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            requests: { cpu: "500m", memory: "1Gi" }
+            limits:   { cpu: "2",    memory: "2Gi" }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - { name: data, mountPath: /var/lib/redpanda/data }
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels:
+          {{- include "ironflyer.labels" . | nindent 10 }}
+          app.kubernetes.io/name: redpanda
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        {{- if .Values.redpanda.storageClass }}
+        storageClassName: {{ .Values.redpanda.storageClass | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.redpanda.storageSize | quote }}
+{{- end }}

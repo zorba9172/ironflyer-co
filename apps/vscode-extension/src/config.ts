@@ -10,6 +10,9 @@ export interface Config {
   webUrl: string;
   defaultProject: string;
   previewViewport: ViewportPreset;
+  completionsEnabled: boolean;
+  completionsDebounceMs: number;
+  completionsMaxLines: number;
 }
 
 export function readConfig(): Config {
@@ -25,6 +28,13 @@ export function readConfig(): Config {
     webUrl: trimSlash(cfg.get<string>('webUrl', 'http://localhost:3000')),
     defaultProject: (cfg.get<string>('defaultProject', '') ?? '').trim(),
     previewViewport: (cfg.get<ViewportPreset>('preview.defaultViewport', 'responsive') ?? 'responsive'),
+    completionsEnabled: cfg.get<boolean>('completions.enabled', true),
+    // Debounce floor at 50ms — anything lower trashes the keystroke
+    // loop without giving the orchestrator a chance to deduplicate.
+    completionsDebounceMs: Math.max(50, cfg.get<number>('completions.debounceMs', 250)),
+    // Clamp the line cap so a misconfiguration can't request a 9k-token
+    // multi-page completion.
+    completionsMaxLines: Math.max(1, Math.min(40, cfg.get<number>('completions.maxLines', 6))),
   };
 }
 

@@ -1,24 +1,83 @@
 {
   "name": "@ironflyer/sdk",
   "version": "0.1.0",
-  "description": "TypeScript SDK for the Ironflyer AI Product Finisher orchestrator + workspace runtime.",
+  "description": "Official TypeScript SDK for the Ironflyer AI Product Finisher — projects, finisher gates, patches, workspaces, deploys, chat, budget, and real-time subscriptions over the orchestrator's GraphQL API.",
+  "license": "MIT",
+  "author": "Ironflyer",
+  "homepage": "https://github.com/ironflyer/ironflyer#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ironflyer/ironflyer.git",
+    "directory": "packages/sdk"
+  },
+  "bugs": {
+    "url": "https://github.com/ironflyer/ironflyer/issues"
+  },
+  "keywords": [
+    "ironflyer",
+    "ai",
+    "code-generation",
+    "graphql",
+    "graphql-ws",
+    "subscriptions",
+    "sdk",
+    "client",
+    "typescript",
+    "deploy",
+    "workspaces"
+  ],
   "type": "module",
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.js"
     }
   },
-  "files": ["dist", "src", "README.md"],
-  "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "check": "tsc -p tsconfig.json --noEmit"
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=18"
   },
-  "license": "UNLICENSED",
-  "private": true,
+  "sideEffects": false,
+  "scripts": {
+    "codegen": "graphql-codegen --config codegen.yml",
+    "build": "tsup",
+    "check": "tsc --noEmit",
+    "prepublishOnly": "npm run codegen && npm run build"
+  },
+  "peerDependencies": {
+    "graphql": "^16.0.0 || ^17.0.0"
+  },
+  "peerDependenciesMeta": {
+    "ws": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "graphql-request": "^7.1.2",
+    "graphql-ws": "^5.16.0"
+  },
   "devDependencies": {
-    "typescript": "^5.4.0"
+    "@graphql-codegen/cli": "^5.0.3",
+    "@graphql-codegen/typescript": "^4.1.2",
+    "@graphql-codegen/typescript-graphql-request": "^6.2.0",
+    "@graphql-codegen/typescript-operations": "^4.4.0",
+    "graphql": "^16.9.0",
+    "tsup": "^8.3.5",
+    "typescript": "^5.5.4",
+    "ws": "^8.18.0",
+    "@types/ws": "^8.5.13"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

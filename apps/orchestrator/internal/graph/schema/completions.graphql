@@ -1,0 +1,70 @@
+# Cursor-style inline completions. Maps onto the inlineCompletion +
+# inlineAccept handlers in internal/httpapi/inline_handlers.go.
+
+type InlineCompletion {
+  requestId: ID!
+  text: String!
+  provider: String!
+  model: String!
+  cursor: Int!
+  startedAt: DateTime!
+  finishedAt: DateTime
+  accepted: Boolean!
+}
+
+input InlineInput {
+  requestId: ID
+  language: String
+  path: String
+  prefix: String!
+  suffix: String
+  cursor: Int
+  workspaceId: ID
+  projectId: ID
+  effort: String
+}
+
+union InlineDelta =
+    InlineStartDelta
+  | InlineTextDelta
+  | InlineDoneDelta
+  | InlineCancelledDelta
+  | InlineErrorDelta
+
+type InlineStartDelta {
+  requestId: ID!
+  provider: String!
+  model: String!
+}
+
+type InlineTextDelta {
+  requestId: ID!
+  text: String!
+}
+
+type InlineDoneDelta {
+  requestId: ID!
+  provider: String
+  model: String
+  usage: JSON
+}
+
+type InlineCancelledDelta {
+  requestId: ID!
+  reason: String
+}
+
+type InlineErrorDelta {
+  requestId: ID
+  code: String!
+  message: String!
+}
+
+extend type Mutation {
+  acceptInlineCompletion(requestId: ID!): OperationResult!
+}
+
+extend type Subscription {
+  # Replaces POST /completions/inline SSE.
+  inlineCompletion(input: InlineInput!): InlineDelta!
+}

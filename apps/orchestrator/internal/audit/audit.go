@@ -25,6 +25,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"os"
 	"sort"
 	"strings"
 	"sync"
@@ -32,6 +33,26 @@ import (
 
 	"github.com/google/uuid"
 )
+
+// stampRegion writes the orchestrator's data-residency region into
+// e.Attrs["region"] so the audit chain proves where each action was
+// processed. Sourced from IRONFLYER_DATA_RESIDENCY, which the Helm
+// chart wires from .Values.region (see docs/MULTI_REGION.md). Called
+// exactly once per Record to keep the audit row tamper-evident: the
+// region is part of the hashed content.
+func stampRegion(e *Entry) {
+	region := strings.TrimSpace(os.Getenv("IRONFLYER_DATA_RESIDENCY"))
+	if region == "" {
+		region = "unknown"
+	}
+	if e.Attrs == nil {
+		e.Attrs = map[string]any{}
+	}
+	// Don't overwrite a caller-supplied region (test harnesses pre-set it).
+	if _, ok := e.Attrs["region"]; !ok {
+		e.Attrs["region"] = region
+	}
+}
 
 // Action is the canonical action vocabulary. We keep this list short
 // on purpose — every event in the system must classify into one of
@@ -48,6 +69,49 @@ const (
 	ActionExec            Action = "workspace.exec"
 	ActionDeploy          Action = "deploy"
 	ActionMemoryRecord    Action = "memory.record"
+	// Billing — Stripe metered + invoice events. metered_usage_reported
+	// is written every successful flush of the MeteredReporter so the
+	// audit log shows the billing chain end-to-end (call -> ledger ->
+	// Stripe). metered_invoice_created mirrors Stripe's invoice.created
+	// webhook so a customer can replay exactly when each bill landed.
+	ActionMeteredUsageReported Action = "metered_usage_reported"
+	ActionMeteredInvoiceCreated Action = "metered_invoice_created"
+	ActionPaymentFailed         Action = "payment.failed"
+	// ActionProviderRegistered is emitted once per known LLM provider
+	// at orchestrator startup so the audit chain proves which backends
+	// were online in which environment. Attrs carry {provider, model,
+	// enabled}; outcome is OutcomeSuccess when registered or
+	// OutcomeBlocked when gated off due to missing creds.
+	ActionProviderRegistered Action = "provider.registered"
+
+	// Auth lifecycle events (commercial table-stakes). Every entry is
+	// hash-chained against the prior so a compliance auditor can prove
+	// no link in the chain was excised.
+	ActionAuthSignupCompleted        Action = "auth.signup.completed"
+	ActionAuthEmailVerified          Action = "auth.email.verified"
+	ActionAuthPasswordResetRequested Action = "auth.password.reset_requested"
+	ActionAuthPasswordResetCompleted Action = "auth.password.reset_completed"
+	ActionAuthMfaEnrolled            Action = "auth.mfa.enrolled"
+	ActionAuthMfaConfirmed           Action = "auth.mfa.confirmed"
+	ActionAuthMfaDisabled            Action = "auth.mfa.disabled"
+	ActionAuthMfaRecoveryUsed        Action = "auth.mfa.recovery_used"
+	ActionAuthSessionRevoked         Action = "auth.session.revoked"
+	ActionAuthEmailChangeRequested   Action = "auth.email.change_requested"
+	ActionAuthEmailChangeCompleted   Action = "auth.email.change_completed"
+
+	// Billing commercial surface (Round 14). The finance audit trail
+	// answers "why was this user charged $X" by walking the hash-chained
+	// log filtered by userID. Each dunning transition lands one entry so
+	// the cadence is replayable end-to-end.
+	ActionBillingCheckoutStarted     Action = "billing.checkout.started"
+	ActionBillingCheckoutCompleted   Action = "billing.checkout.completed"
+	ActionBillingSubscriptionCancel  Action = "billing.subscription.cancelled"
+	ActionBillingPortalSession       Action = "billing.portal.session"
+	ActionBillingRefundIssued        Action = "billing.refund.issued"
+	ActionBillingDunningEntered      Action = "billing.dunning.entered"
+	ActionBillingDunningCleared      Action = "billing.dunning.cleared"
+	ActionBillingDunningPaused       Action = "billing.dunning.paused"
+	ActionBillingInvoicesListed      Action = "billing.invoices.listed"
 )
 
 // Outcome is the coarse status of an action. Always one of these so
@@ -135,6 +199,7 @@ func (m *MemoryStore) Record(_ context.Context, e Entry) (Entry, error) {
 	if e.CreatedAt.IsZero() {
 		e.CreatedAt = time.Now().UTC()
 	}
+	stampRegion(&e)
 	e.PrevHash = m.lastHash
 	e.ContentHash = hashEntry(e)
 

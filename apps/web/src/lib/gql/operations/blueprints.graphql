@@ -1,0 +1,59 @@
+# Blueprint catalogue + per-blueprint stats. Read-only; new blueprints
+# arrive as code, never as runtime writes. Consumed by /blueprints
+# (A47) and the Blueprint Profit Dashboard (A50).
+
+query Blueprints {
+  blueprints {
+    id
+    name
+    description
+    category
+    costPriorUSD
+    expectedTimeToPreviewSec
+    supportedGates
+    fileCount
+  }
+}
+
+query Blueprint($id: String!) {
+  blueprint(id: $id) {
+    id
+    name
+    description
+    category
+    costPriorUSD
+    expectedTimeToPreviewSec
+    supportedGates
+    fileCount
+  }
+}
+
+query BlueprintStats($id: String!) {
+  blueprintStats(id: $id) {
+    blueprintID
+    executions
+    previewSuccess
+    refunds
+    repairCount
+    avgRevenueUSD
+    avgCostUSD
+    grossMarginPct
+    avgCompletionScore
+    avgTimeToPreviewSec
+  }
+}
+
+query BlueprintRanking($byMetric: String, $limit: Int) {
+  blueprintRanking(byMetric: $byMetric, limit: $limit) {
+    blueprintID
+    executions
+    previewSuccess
+    refunds
+    repairCount
+    avgRevenueUSD
+    avgCostUSD
+    grossMarginPct
+    avgCompletionScore
+    avgTimeToPreviewSec
+  }
+}

@@ -1,0 +1,37 @@
+# Per-execution ledger + tenant-wide rollup queries. Powers the
+# execution detail Ledger tab (chronological audit trail of money
+# movements for one run) and could be used in future profit dashboards.
+
+fragment LedgerEntryCore on WalletLedgerEntry {
+  id
+  tenantID
+  executionID
+  entryType
+  direction
+  amountUSD
+  provider
+  billable
+  marginRelevant
+  metadata
+  createdAt
+}
+
+query ExecutionLedger($executionID: ID!, $limit: Int, $offset: Int) {
+  executionLedger(executionID: $executionID, limit: $limit, offset: $offset) {
+    ...LedgerEntryCore
+  }
+}
+
+query LedgerRollup($since: DateTime!, $until: DateTime!) {
+  ledgerRollup(since: $since, until: $until) {
+    revenueUSD
+    providerCostUSD
+    sandboxCostUSD
+    storageCostUSD
+    deploymentCostUSD
+    premiumReasoningCostUSD
+    refundsUSD
+    platformMarginUSD
+    grossMarginPct
+  }
+}

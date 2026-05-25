@@ -79,12 +79,12 @@ func (g *GeminiProvider) Capabilities() []Capability {
 	}
 }
 
-// pickModel applies the cost-aware tier policy. CapCheap wins outright;
-// thinking/reasoning promotes to the power model; otherwise the base model
-// stands.
+// pickModel applies the cost-aware tier policy. cheap/fast/inline win
+// outright (mapped to gemini-2.5-flash); quality/thinking/reasoning
+// promote to the pro model; otherwise the base model stands.
 func (g *GeminiProvider) pickModel(req Request) string {
 	for _, c := range req.Capabilities {
-		if c == CapCheap {
+		if c == CapCheap || c == CapFast || c == CapInline {
 			return g.cheapModel
 		}
 	}
@@ -92,7 +92,7 @@ func (g *GeminiProvider) pickModel(req Request) string {
 		return g.powerModel
 	}
 	for _, c := range req.Capabilities {
-		if c == CapThinking || c == CapReasoning {
+		if c == CapQuality || c == CapThinking || c == CapReasoning {
 			return g.powerModel
 		}
 	}

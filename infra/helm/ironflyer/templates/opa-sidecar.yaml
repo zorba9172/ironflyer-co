@@ -1,0 +1,171 @@
+{{- if .Values.opa.enabled -}}
+# OPA (Open Policy Agent) sidecar topology.
+#
+# Per ARCHITECTURE_POLICY_SECURITY.md § OPA / Cedar Decision, OPA is the
+# runtime PDP for V22. The product target is a sidecar container running
+# alongside every orchestrator pod so resolvers and runtime callers query
+# `localhost:8181/v1/data/...` with sub-millisecond latency.
+#
+# COMPROMISE: this chart does not in-place patch the orchestrator
+# Deployment template to inject the sidecar container. That would entail
+# editing `templates/orchestrator.yaml`, which is owned by a different
+# track. Instead we emit:
+#   1. A ConfigMap with minimal default Rego bundles (deny-by-default +
+#      tenant isolation). Operators copy real bundles from the
+#      orchestrator image's `internal/policy/bundles/` into a bundle
+#      server (HTTP or OCI) and set `opa.bundleEndpoint`.
+#   2. A standalone OPA Deployment + Service the orchestrator can call
+#      over the cluster network at `http://opa:8181`. This is slower than
+#      a true sidecar but ships the policy plane today without touching
+#      the orchestrator template.
+#
+# When the orchestrator template grows an `opa.enabled` conditional
+# sidecar block (V22 acceptance checklist item), the standalone
+# Deployment below can be retired or kept as a fallback PDP.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opa-bundles-default
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: opa
+    app.kubernetes.io/component: policy-bundles
+data:
+  # Minimal deny-by-default root. Production must override via
+  # `opa.bundleEndpoint` (HTTP bundle server) or by mounting the real
+  # bundles from the orchestrator image at /policies.
+  default.rego: |
+    package ironflyer
+    default allow = false
+  # Tenant isolation primitive — every PEP envelope carries
+  # principal.tenant_id and resource.tenant_id (see
+  # ARCHITECTURE_POLICY_SECURITY.md § Policy Input Contract).
+  tenant_isolation.rego: |
+    package ironflyer.tenant
+    default allow = false
+    allow {
+      input.principal.tenant_id == input.resource.tenant_id
+    }
+  # Deny cross-tenant unless the caller is a platform operator with a
+  # break-glass approval attached.
+  cross_tenant.rego: |
+    package ironflyer.cross_tenant
+    default allow = false
+    allow {
+      input.principal.kind == "platform_operator"
+      input.context.break_glass_approval_id
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opa-config
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: opa
+    app.kubernetes.io/component: policy-config
+data:
+  config.yaml: |
+    decision_logs:
+      console: true
+    {{- if .Values.opa.bundleEndpoint }}
+    services:
+      bundle_server:
+        url: {{ .Values.opa.bundleEndpoint | quote }}
+    bundles:
+      ironflyer:
+        service: bundle_server
+        resource: "/bundles/ironflyer.tar.gz"
+        polling:
+          min_delay_seconds: 60
+          max_delay_seconds: 300
+    {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opa
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: opa
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: opa
+  ports:
+    - name: http
+      port: 8181
+      targetPort: 8181
+    - name: diagnostic
+      port: 8282
+      targetPort: 8282
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opa
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: opa
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: opa
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: opa
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      securityContext:
+        {{- include "ironflyer.podSecurityContext" . | nindent 8 }}
+      containers:
+        - name: opa
+          image: {{ .Values.opa.image | quote }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          args:
+            - "run"
+            - "--server"
+            - "--addr=0.0.0.0:8181"
+            - "--diagnostic-addr=0.0.0.0:8282"
+            - "--log-level=info"
+            - "--log-format=json"
+            - "--config-file=/config/config.yaml"
+            {{- if not .Values.opa.bundleEndpoint }}
+            # No remote bundle server configured — load the inline default
+            # bundle from the ConfigMap mount. Operators should replace
+            # this with a real bundle server in production.
+            - "/policies"
+            {{- end }}
+          ports:
+            - { name: http, containerPort: 8181 }
+            - { name: diagnostic, containerPort: 8282 }
+          readinessProbe:
+            httpGet:
+              path: /health?bundles
+              port: 8282
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8282
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests: { cpu: "50m", memory: "64Mi" }
+            limits:   { cpu: "500m", memory: "256Mi" }
+          securityContext:
+            {{- include "ironflyer.containerSecurityContext" . | nindent 12 }}
+          volumeMounts:
+            - { name: config, mountPath: /config }
+            - { name: policies, mountPath: /policies }
+      volumes:
+        - name: config
+          configMap:
+            name: opa-config
+        - name: policies
+          configMap:
+            name: opa-bundles-default
+{{- end }}

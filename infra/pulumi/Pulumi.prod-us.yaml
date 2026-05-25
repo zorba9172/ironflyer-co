@@ -1,0 +1,22 @@
+config:
+  aws:region: us-east-1
+  infra:vpcCidr: 10.40.0.0/16
+  infra:singleNatGateway: "false"
+  infra:k8sVersion: "1.30"
+  infra:publicApiCidrs:
+    - 0.0.0.0/0
+  infra:orchestratorInstanceType: m6i.xlarge
+  infra:runtimeInstanceType: m6i.xlarge
+  infra:useKarpenter: "false"
+  infra:rootDomain: ironflyer.dev
+  infra:regionSubdomain: us
+  infra:webSpaBucketName: ""
+  infra:allowlistedIps: ""
+  infra:dataStackName: ""
+  ironflyer:vercelEnabled: "true"
+  ironflyer:vercelTeamId: ironflyer
+  ironflyer:vercelDomain: app.us.ironflyer.dev
+  ironflyer:vercelBranch: main
+  ironflyer:vercelFramework: nextjs
+  ironflyer:vercelGitRepoOwner: ironflyer
+  ironflyer:vercelGitRepoName: ironflyer-copilot

@@ -1,0 +1,56 @@
+# Auth operations consumed by AuthProvider (src/lib/auth.tsx) and the
+# (auth) routes that A47 will build.
+
+query CurrentUser {
+  me {
+    id
+    email
+    name
+    plan
+    orgId
+    telemetryOptOut
+    emailVerifiedAt
+    createdAt
+  }
+}
+
+mutation SignIn($input: SignInInput!) {
+  signIn(input: $input) {
+    token
+    expiresAt
+    user {
+      id
+      email
+      name
+      plan
+      orgId
+      telemetryOptOut
+      emailVerifiedAt
+      createdAt
+    }
+  }
+}
+
+mutation SignUp($input: SignUpInput!) {
+  signUp(input: $input) {
+    token
+    expiresAt
+    user {
+      id
+      email
+      name
+      plan
+      orgId
+      telemetryOptOut
+      emailVerifiedAt
+      createdAt
+    }
+  }
+}
+
+mutation SignOut {
+  signOut {
+    ok
+    message
+  }
+}

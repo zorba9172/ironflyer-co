@@ -1,0 +1,75 @@
+{{- if .Values.migrate.enabled -}}
+{{- /*
+Pre-install / pre-upgrade migration Job.
+
+Runs the orchestrator's `migrate up` CLI against POSTGRES_URL BEFORE
+the orchestrator Deployment rolls. Helm marks the release failed if
+this Job fails — which is exactly what we want: a schema-change
+regression must not silently start serving traffic.
+
+The same image as the orchestrator ships the standalone `migrate`
+binary at /app/migrate. Override .Values.migrate.image.* to deviate
+from the orchestrator image (e.g. for a hotfix that splits binaries).
+
+Idempotency is delegated to goose's `goose_db_version` ledger — re-runs
+on already-applied versions are no-ops.
+*/ -}}
+{{- $imgRepo := default (index .Values.images "orchestrator" "repository" | default "ironflyer-orchestrator") .Values.migrate.image.repository -}}
+{{- $imgTag  := default .Values.imageTag .Values.migrate.image.tag -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "ironflyer.fullname" . }}-migrate
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: migrate
+    app.kubernetes.io/component: schema-migrator
+  annotations:
+    # pre-install + pre-upgrade ⇒ runs before the orchestrator Deployment
+    # is created or rolled. before-hook-creation deletes the previous
+    # Job (Kubernetes Jobs are immutable, so re-applies need a fresh
+    # object). hook-succeeded keeps a failed Job around for `kubectl
+    # logs` forensics.
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: {{ .Values.migrate.backoffLimit | default 1 }}
+  activeDeadlineSeconds: {{ .Values.migrate.activeDeadlineSeconds | default 300 }}
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels:
+        {{- include "ironflyer.labels" . | nindent 8 }}
+        app.kubernetes.io/name: migrate
+        app.kubernetes.io/component: schema-migrator
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ include "ironflyer.serviceAccountName" (dict "name" "orchestrator" "Values" .Values "Release" .Release "Chart" .Chart) }}
+      {{- $pc := include "ironflyer.priorityClassName" . }}
+      {{- if $pc }}
+      priorityClassName: {{ $pc }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: {{ .Values.securityContext.runAsNonRoot }}
+        runAsUser: {{ .Values.securityContext.runAsUser }}
+      containers:
+        - name: migrate
+          image: "{{ .Values.imageRegistry }}/{{ $imgRepo }}:{{ $imgTag }}"
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          command: ["/app/migrate"]
+          args: ["up"]
+          env:
+            - name: POSTGRES_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ironflyer.postgresSecretName" . }}
+                  key: POSTGRES_URL
+          resources:
+            {{- toYaml .Values.migrate.resources | nindent 12 }}
+          securityContext:
+            readOnlyRootFilesystem: {{ .Values.securityContext.readOnlyRootFilesystem }}
+            allowPrivilegeEscalation: {{ .Values.securityContext.allowPrivilegeEscalation }}
+            capabilities:
+              drop: ["ALL"]
+{{- end }}

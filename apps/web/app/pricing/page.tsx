@@ -1,16 +1,13 @@
-import type { Metadata } from 'next';
-import { PricingPage } from '../marketing';
+// app/pricing/page.tsx — public marketing route.
 
-export const metadata: Metadata = {
-  title: 'Pricing — Ironflyer',
+import { PricingPage } from "../../src/components/PricingPage";
+
+export const metadata = {
+  title: "Pricing — Ironflyer",
   description:
-    'Flat subscription, no credit packs, live margin. Calculate your AI cost, see what the budget gate does, compare Starter / Pro / Team / Enterprise.',
-  openGraph: {
-    title: 'Pricing — Ironflyer',
-    description: 'Flat subscription, transparent provider cost, live margin. No credit packs.',
-  },
+    "Wallet, not subscription. Pay only for finished runs against an honest provider rate sheet.",
 };
 
-export default function Pricing() {
+export default function Page() {
   return <PricingPage />;
 }

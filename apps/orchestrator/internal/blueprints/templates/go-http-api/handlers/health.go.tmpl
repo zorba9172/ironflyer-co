@@ -1,0 +1,28 @@
+// Package handlers groups the HTTP handler factories for the
+// go-http-api blueprint. Handlers receive their dependencies as
+// arguments so the package stays free of global state.
+package handlers
+
+import (
+	"encoding/json"
+	"net/http"
+	"time"
+)
+
+// Health is the liveness probe. It always returns 200 with a small
+// JSON payload so load balancers and uptime checks have a stable
+// shape to assert against.
+func Health(w http.ResponseWriter, _ *http.Request) {
+	writeJSON(w, http.StatusOK, map[string]any{
+		"status": "ok",
+		"time":   time.Now().UTC().Format(time.RFC3339),
+	})
+}
+
+// writeJSON is the single response encoder used by every handler so
+// content-type and error paths stay consistent.
+func writeJSON(w http.ResponseWriter, status int, body any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(body)
+}

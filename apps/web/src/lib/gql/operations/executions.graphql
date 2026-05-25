@@ -1,0 +1,77 @@
+# Execution surface — the paid finisher run is the V22 economic atom.
+# Consumed by /executions, /execute, /execution/[id] (A48).
+
+fragment ExecutionCore on Execution {
+  id
+  tenantID
+  projectID
+  blueprintID
+  workspaceID
+  status
+  budgetUSD
+  reservedUSD
+  spentUSD
+  refundedUSD
+  revenueUSD
+  providerCostUSD
+  sandboxCostUSD
+  storageCostUSD
+  deploymentCostUSD
+  completionScore
+  grossMarginPct
+  expectedCompletionDelta
+  riskScore
+  stopLossUSD
+  promptSummary
+  failureReason
+  metadata
+  createdAt
+  admittedAt
+  startedAt
+  endedAt
+}
+
+query Executions($limit: Int, $offset: Int) {
+  executions(limit: $limit, offset: $offset) {
+    ...ExecutionCore
+  }
+}
+
+query ProjectExecutions($projectId: ID!, $limit: Int, $offset: Int) {
+  projectExecutions(projectId: $projectId, limit: $limit, offset: $offset) {
+    ...ExecutionCore
+  }
+}
+
+query Execution($id: ID!) {
+  execution(id: $id) {
+    ...ExecutionCore
+  }
+}
+
+mutation CreatePaidExecution($input: CreatePaidExecutionInput!) {
+  createPaidExecution(input: $input) {
+    ...ExecutionCore
+  }
+}
+
+mutation StopExecution($id: ID!, $reason: String!) {
+  stopExecution(id: $id, reason: $reason) {
+    ...ExecutionCore
+  }
+}
+
+mutation RefundExecution($id: ID!, $amountUSD: Float, $reason: String) {
+  refundExecution(id: $id, amountUSD: $amountUSD, reason: $reason) {
+    ...ExecutionCore
+  }
+}
+
+subscription ExecutionFeed($id: ID!) {
+  executionFeed(id: $id) {
+    executionID
+    eventType
+    payload
+    createdAt
+  }
+}

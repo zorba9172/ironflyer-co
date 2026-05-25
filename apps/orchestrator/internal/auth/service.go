@@ -95,8 +95,27 @@ func (s *Service) GetByID(ctx context.Context, id string) (User, error) {
 	return s.store.GetByID(ctx, id)
 }
 
+// GetByIDs batches a user lookup by id. The graph/loaders package
+// invokes this through the wider auth.UserStore contract so resolvers
+// can use the dataloader-backed *Loaders.UserByID without each call
+// site having to know which backend is live.
+func (s *Service) GetByIDs(ctx context.Context, ids []string) (map[string]User, error) {
+	return s.store.GetByIDs(ctx, ids)
+}
+
+// UserStore returns the underlying persistence layer. Reserved for
+// per-request infrastructure (dataloaders, admin tooling) that needs
+// direct access to batch APIs the Service does not yet wrap.
+func (s *Service) UserStore() UserStore { return s.store }
+
 func (s *Service) SetPlan(ctx context.Context, id, plan string) error {
 	return s.store.SetPlan(ctx, id, plan)
+}
+
+// SetTelemetryOptOut persists the per-user telemetry opt-out flag.
+// Resolvers call this when the user flips the privacy toggle.
+func (s *Service) SetTelemetryOptOut(ctx context.Context, id string, opt bool) error {
+	return s.store.SetTelemetryOptOut(ctx, id, opt)
 }
 
 // Delete removes a user record. Tokens issued before deletion remain
@@ -117,6 +136,22 @@ func (s *Service) IssueToken(u User) (string, error) {
 // EnsureUserByEmail.
 func (s *Service) EnsureUserByID(ctx context.Context, id string) (User, error) {
 	return s.store.GetByID(ctx, id)
+}
+
+// LookupByEmail is a read-only convenience for non-auth call sites
+// (collab invites, admin tooling) that need to map an email to a user.
+// Returns ErrUserNotFound when no row matches. The password hash is
+// deliberately dropped — only the auth package itself ever reads it.
+func (s *Service) LookupByEmail(ctx context.Context, email string) (User, bool, error) {
+	email = strings.ToLower(strings.TrimSpace(email))
+	if email == "" {
+		return User{}, false, errors.New("email required")
+	}
+	u, _, err := s.store.GetByEmail(ctx, email)
+	if err != nil {
+		return User{}, false, err
+	}
+	return u, true, nil
 }
 
 // EnsureUserByEmail finds or creates a user identified by email — used by
@@ -146,6 +181,21 @@ type claims struct {
 }
 
 func (s *Service) issueToken(u User) (string, error) {
+	tok, _, err := s.IssueTokenWithJTI(u, NewJTI(), 0)
+	return tok, err
+}
+
+// IssueTokenWithJTI mints a JWT stamped with the supplied jti claim so
+// the sessions table can key off it for revocation. When jti is empty
+// a fresh one is generated. When ttl is zero the service's default ttl
+// is used.
+func (s *Service) IssueTokenWithJTI(u User, jti string, ttl time.Duration) (string, string, error) {
+	if jti == "" {
+		jti = NewJTI()
+	}
+	if ttl <= 0 {
+		ttl = s.ttl
+	}
 	now := time.Now()
 	c := claims{
 		Email: u.Email, Plan: u.Plan,
@@ -153,8 +203,26 @@ func (s *Service) issueToken(u User) (string, error) {
 			Subject:   u.ID,
 			Issuer:    s.issuer,
 			IssuedAt:  jwt.NewNumericDate(now),
-			ExpiresAt: jwt.NewNumericDate(now.Add(s.ttl)),
+			ExpiresAt: jwt.NewNumericDate(now.Add(ttl)),
+			ID:        jti,
 		},
 	}
-	return jwt.NewWithClaims(jwt.SigningMethodHS256, c).SignedString(s.signingKey)
+	tok, err := jwt.NewWithClaims(jwt.SigningMethodHS256, c).SignedString(s.signingKey)
+	return tok, jti, err
+}
+
+// SigningKey exposes the HS256 key so the sessions middleware can
+// re-parse a JWT to extract its jti claim without re-running the full
+// Service.Verify lookup chain.
+func (s *Service) SigningKey() []byte { return s.signingKey }
+
+// TTL exposes the default token lifetime so the sessions writer can
+// compute the row's expires_at without reparsing the JWT.
+func (s *Service) TTL() time.Duration { return s.ttl }
+
+// compareBcryptHash is exposed inside the auth package so the email-
+// change flow can re-verify a user's password without dragging the
+// resolver into the bcrypt package directly.
+func compareBcryptHash(hash, plain string) error {
+	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(plain))
 }

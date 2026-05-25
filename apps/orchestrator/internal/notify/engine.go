@@ -9,11 +9,13 @@ import (
 	"ironflyer/apps/orchestrator/internal/domain"
 	"ironflyer/apps/orchestrator/internal/finisher"
 	"ironflyer/apps/orchestrator/internal/store"
-	"ironflyer/apps/orchestrator/internal/webhooks"
 )
 
-// Engine listens to finisher events and routes them to the right user
-// channels — email and/or webhooks — based on the user's NotificationRule.
+// Engine listens to finisher events and routes them to the user's email
+// channel based on the user's NotificationRule. The webhook fan-out has
+// been removed in V22 alongside the rest of the legacy webhooks
+// package; email remains the single transactional channel until a V22
+// agent introduces ledger/wallet notifications.
 //
 // The engine owns no state of its own beyond cached subscriptions; the
 // per-project goroutine pool exits when Stop is called or the parent
@@ -22,7 +24,6 @@ type Engine struct {
 	projects     store.Store
 	prefs        PrefsStore
 	sender       EmailSender
-	dispatcher   *webhooks.Dispatcher
 	logger       zerolog.Logger
 	dashboardURL string
 
@@ -30,20 +31,63 @@ type Engine struct {
 	cancels map[string]context.CancelFunc // projectID → cancel for its subscription goroutine
 }
 
+// projectDeleteRegistrar is the optional capability the engine looks for on
+// the project store: when the store implements it, the engine registers
+// RemoveProject so per-project subscriptions get torn down the moment a
+// project is deleted. Implemented by store.MemoryStore and store.SurrealStore
+// — kept here as a local interface so notify doesn't have to grow its store
+// import surface and so other store backends can opt in without code churn.
+type projectDeleteRegistrar interface {
+	RegisterDeleteHook(fn func(projectID string))
+}
+
 // NewEngine constructs an engine. Pass a NoopSender when no email provider
-// is configured; pass nil for the dispatcher to disable webhook fan-out.
-func NewEngine(projects store.Store, prefs PrefsStore, sender EmailSender, dispatcher *webhooks.Dispatcher, logger zerolog.Logger) *Engine {
+// is configured.
+//
+// If the supplied project store implements RegisterDeleteHook, the engine
+// auto-registers RemoveProject so the per-project cancels map cannot leak
+// past a project deletion. Callers can also drive RemoveProject directly.
+func NewEngine(projects store.Store, prefs PrefsStore, sender EmailSender, logger zerolog.Logger) *Engine {
 	if sender == nil {
 		sender = NewNoopSender(logger)
 	}
-	return &Engine{
-		projects:   projects,
-		prefs:      prefs,
-		sender:     sender,
-		dispatcher: dispatcher,
-		logger:     logger,
-		cancels:    make(map[string]context.CancelFunc),
+	e := &Engine{
+		projects: projects,
+		prefs:    prefs,
+		sender:   sender,
+		logger:   logger,
+		cancels:  make(map[string]context.CancelFunc),
 	}
+	if reg, ok := projects.(projectDeleteRegistrar); ok {
+		reg.RegisterDeleteHook(e.RemoveProject)
+	}
+	return e
+}
+
+// RemoveProject tears down the per-project subscription goroutine and clears
+// the map entry so the cancels map cannot grow without bound across the
+// lifetime of the process. Safe to call for unknown project IDs (no-op) and
+// safe to call concurrently with SubscribeProject — both serialize on e.mu.
+func (e *Engine) RemoveProject(projectID string) {
+	e.mu.Lock()
+	cancel, ok := e.cancels[projectID]
+	if ok {
+		delete(e.cancels, projectID)
+	}
+	e.mu.Unlock()
+	if ok {
+		cancel()
+	}
+}
+
+// dropCancel deletes the cancels entry once a subscription goroutine exits
+// for any reason (orchestrator closed the channel, ctx cancelled, etc.). It
+// is deliberately tolerant of the entry already being gone — RemoveProject
+// may have removed it just before the goroutine noticed.
+func (e *Engine) dropCancel(projectID string) {
+	e.mu.Lock()
+	delete(e.cancels, projectID)
+	e.mu.Unlock()
 }
 
 // WithDashboardURL configures the absolute URL used by email CTAs. Returns
@@ -64,8 +108,8 @@ func (e *Engine) SubscribeAll(ctx context.Context, orchestrator *finisher.Engine
 }
 
 // SubscribeProject attaches a goroutine that drains finisher events for one
-// project and translates them into emails + webhooks. Calling more than once
-// for the same project is a no-op.
+// project and translates them into emails. Calling more than once for the
+// same project is a no-op.
 func (e *Engine) SubscribeProject(ctx context.Context, orchestrator *finisher.Engine, projectID string) {
 	e.mu.Lock()
 	if _, ok := e.cancels[projectID]; ok {
@@ -79,6 +123,7 @@ func (e *Engine) SubscribeProject(ctx context.Context, orchestrator *finisher.En
 	ch, unsub := orchestrator.Subscribe(projectID)
 	go func() {
 		defer unsub()
+		defer e.dropCancel(projectID)
 		for {
 			select {
 			case <-subCtx.Done():
@@ -124,11 +169,6 @@ func (e *Engine) handle(ctx context.Context, projectID string, evt domain.Event)
 
 	topic, content, ok := e.classify(evt, proj.Name, proj.ID)
 	if !ok {
-		// Still fan out webhooks for every event the user opted into — they
-		// may want every step, not only the milestone ones.
-		if rule.ChannelWebhook && e.dispatcher != nil {
-			e.dispatcher.Dispatch(ctx, ownerID, projectID, evt)
-		}
 		return
 	}
 
@@ -141,13 +181,10 @@ func (e *Engine) handle(ctx context.Context, projectID string, evt domain.Event)
 			e.logger.Warn().Err(err).Str("to", rule.Email).Str("topic", string(topic)).Msg("notify: email send failed")
 		}
 	}
-	if rule.ChannelWebhook && e.dispatcher != nil {
-		e.dispatcher.Dispatch(ctx, ownerID, projectID, evt)
-	}
 }
 
 // topic is the closed set of notification categories the rule engine knows
-// how to filter on. Anything outside the set falls through to webhooks only.
+// how to filter on.
 type topic string
 
 const (
@@ -208,22 +245,4 @@ func (e *Engine) EmitBudgetWarning(ctx context.Context, userID, projectName stri
 	if err := e.sender.Send(ctx, rule.Email, c.Subject, c.HTMLBody, c.TextBody); err != nil {
 		e.logger.Warn().Err(err).Str("user", userID).Msg("notify: budget warning email failed")
 	}
-}
-
-// WebhookDisabled satisfies the webhooks.FailureNotifier interface so the
-// dispatcher can call back into the notify engine when it auto-disables a
-// subscription. Implemented here so dispatcher → notify is a one-way
-// dependency (notify imports webhooks, never the other direction).
-func (e *Engine) WebhookDisabled(ctx context.Context, userID, webhookURL string, failures int) {
-	rule, err := e.prefs.Get(ctx, userID)
-	if err != nil || !rule.ChannelEmail || rule.Email == "" {
-		return
-	}
-	c := renderWebhookDisabled(webhookURL, e.dashboardURL, failures)
-	if err := e.sender.Send(ctx, rule.Email, c.Subject, c.HTMLBody, c.TextBody); err != nil {
-		e.logger.Warn().Err(err).Str("user", userID).Msg("notify: webhook-disabled email failed")
-	}
-	// Touch LastSentAt-like field by keeping the rule updated; cheap idempotent write.
-	rule.UserID = userID
-	_ = e.prefs.Set(ctx, rule)
 }

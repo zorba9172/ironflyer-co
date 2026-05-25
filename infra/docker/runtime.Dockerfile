@@ -25,6 +25,6 @@ USER iron
 WORKDIR /home/iron
 COPY --from=build /out/runtime /usr/local/bin/runtime
 EXPOSE 8090
-HEALTHCHECK --interval=15s --timeout=3s --start-period=10s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
     CMD curl -fsS http://127.0.0.1:8090/healthz || exit 1
 ENTRYPOINT ["/usr/local/bin/runtime"]

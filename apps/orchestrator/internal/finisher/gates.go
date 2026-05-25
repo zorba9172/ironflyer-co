@@ -61,7 +61,7 @@ type SpecGate struct{}
 
 func (SpecGate) Name() domain.GateName    { return domain.GateSpec }
 func (SpecGate) RepairAgent() agents.Role { return agents.RolePlanner }
-func (SpecGate) Check(_ context.Context, env *GateEnv) []domain.Issue {
+func (SpecGate) Check(ctx context.Context, env *GateEnv) []domain.Issue {
 	p := env.Project
 	var issues []domain.Issue
 	if strings.TrimSpace(p.Spec.Idea) == "" {
@@ -78,6 +78,10 @@ func (SpecGate) Check(_ context.Context, env *GateEnv) []domain.Issue {
 	if len(p.Spec.DataModel) == 0 {
 		issues = append(issues, domain.Issue{Gate: domain.GateSpec, Severity: domain.SeverityWarning, Message: "data model not sketched"})
 	}
+	// Acceptance criteria validation — for each criterion, verify the
+	// workspace contains code that plausibly addresses it. Unaddressed
+	// criteria fail; addressed-but-untested criteria warn.
+	issues = append(issues, validateAcceptanceCriteria(ctx, env)...)
 	return issues
 }
 
@@ -301,7 +305,19 @@ func runOneVisualTarget(ctx context.Context, env *GateEnv, target domain.VisualT
 		}}
 	}
 	if diff.DiffRatio <= tol && !diff.SizeMismatch {
-		return nil // matched within tolerance
+		// Within the official tolerance but check for >5% structural drift
+		// — a target that's "passing" yet drifted half a percent past the
+		// 5% structural-drift mark deserves a warn so the dashboard chip
+		// stays honest. Below 5%, return nil (clean).
+		if diff.DiffRatio > 0.05 {
+			return []domain.Issue{{
+				Gate: domain.GateUX, Severity: domain.SeverityWarning,
+				Message: "visual target '" + visualTargetLabel(target) +
+					"' drifted >5% (within tolerance but worth a review)",
+				Hint: visualDiffHint(target, diff, tol),
+			}}
+		}
+		return nil // matched within tolerance and below the structural-drift threshold
 	}
 	// Encode a structured hint the Coder repair prompt can read.
 	hint := visualDiffHint(target, diff, tol)
@@ -350,11 +366,50 @@ func visualDiffHint(t domain.VisualTarget, d VisualDiffResult, tol float64) stri
 	b.WriteString(formatRatio(d.DiffRatio))
 	b.WriteString(" tolerance=")
 	b.WriteString(formatRatio(tol))
+	b.WriteString(" within_tolerance=")
+	if d.DiffRatio <= tol && !d.SizeMismatch {
+		b.WriteString("true")
+	} else {
+		b.WriteString("false")
+	}
 	b.WriteString(" mean_delta=")
 	b.WriteString(formatRatio(d.MeanColorDelta))
 	b.WriteString(" phash_distance=")
 	b.WriteString(itoaPositive(d.PerceptualHashDistance))
 	return b.String()
+}
+
+// VisualReport is the structured per-target diff summary surfaced
+// alongside the gate's []Issue output. Callers (GraphQL resolvers, the
+// dashboard) consume this to draw the visual drift panel without
+// re-parsing the Issue.Hint string. One report per VisualTarget.
+type VisualReport struct {
+	TargetID         string  `json:"targetId"`
+	Label            string  `json:"label,omitempty"`
+	Route            string  `json:"route,omitempty"`
+	Ratio            float64 `json:"ratio"`
+	MeanDelta        float64 `json:"meanDelta"`
+	PHashDist        int     `json:"phashDist"`
+	WithinTolerance  bool    `json:"withinTolerance"`
+	SizeMismatch     bool    `json:"sizeMismatch,omitempty"`
+	StructuralDrift  bool    `json:"structuralDrift,omitempty"` // ratio > 0.05
+}
+
+// VisualReportFor returns a structured VisualReport for one target/diff
+// pair so callers can render the per-target chip without parsing the
+// free-form hint. Pure function; no runtime calls.
+func VisualReportFor(t domain.VisualTarget, d VisualDiffResult, tol float64) VisualReport {
+	return VisualReport{
+		TargetID:        t.ID,
+		Label:           visualTargetLabel(t),
+		Route:           t.RouteHint,
+		Ratio:           d.DiffRatio,
+		MeanDelta:       d.MeanColorDelta,
+		PHashDist:       d.PerceptualHashDistance,
+		WithinTolerance: !d.SizeMismatch && d.DiffRatio <= tol,
+		SizeMismatch:    d.SizeMismatch,
+		StructuralDrift: d.DiffRatio > 0.05,
+	}
 }
 
 // formatRatio renders 0..1 as e.g. "0.034". Two-decimal precision is
@@ -529,44 +584,6 @@ func (TestGate) Check(ctx context.Context, env *GateEnv) []domain.Issue {
 	return []domain.Issue{{Gate: domain.GateTest, Severity: domain.SeverityError, Message: "no tests detected"}}
 }
 
-func runTests(ctx context.Context, env *GateEnv) []domain.Issue {
-	cmd, label, ok := detectTestCommand(env.Project)
-	if !ok {
-		return []domain.Issue{{
-			Gate: domain.GateTest, Severity: domain.SeverityWarning,
-			Message: "test gate has runtime but no known test command for this stack",
-		}}
-	}
-	res, err := env.Runtime.Exec(ctx, env.UserBearer, env.WorkspaceID, runtime.ExecOpts{
-		Shell: cmd, TimeoutSeconds: 180,
-	})
-	if err != nil {
-		return []domain.Issue{{Gate: domain.GateTest, Severity: domain.SeverityError, Message: "exec: " + err.Error(), Hint: label}}
-	}
-	if res.TimedOut {
-		return []domain.Issue{{Gate: domain.GateTest, Severity: domain.SeverityCritical, Message: "tests timed out after 180s", Hint: label}}
-	}
-	if res.ExitCode != 0 {
-		return []domain.Issue{{
-			Gate: domain.GateTest, Severity: domain.SeverityError,
-			Message: "tests failed (exit " + itoaPositive(res.ExitCode) + ")",
-			Hint:    label + " — " + tail(res.Stdout+res.Stderr, 800),
-		}}
-	}
-	return nil
-}
-
-func detectTestCommand(p *domain.Project) (string, string, bool) {
-	backend := strings.ToLower(p.Spec.Stack.Backend)
-	switch {
-	case strings.Contains(backend, "go") || hasFile(p, "go.mod"):
-		return "go test ./...", "go test", true
-	case hasFile(p, "package.json"):
-		return "npm test --silent --if-present", "npm test", true
-	}
-	return "", "", false
-}
-
 // LintGate runs language-appropriate linters (go vet, npm run lint) inside
 // the bound workspace and surfaces non-zero exits as Issues. Without a
 // runtime the gate passes silently — lint is not load-bearing enough to
@@ -671,6 +688,11 @@ func (SecurityGate) Check(ctx context.Context, env *GateEnv) []domain.Issue {
 		// skipped when the corresponding binary isn't installed on the
 		// workspace image.
 		issues = append(issues, runSecurityScanners(ctx, env)...)
+		// Production-grade secret detection (trufflehog / gitleaks) — runs
+		// in addition to the regex pass above. Either binary is sufficient;
+		// both run when both are installed so workspaces that lack one tool
+		// degrade silently rather than losing coverage.
+		issues = append(issues, runSecretDetectionScanners(ctx, env)...)
 	}
 	return issues
 }

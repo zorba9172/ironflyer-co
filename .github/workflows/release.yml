@@ -1,0 +1,199 @@
+name: Release
+
+# Cuts a full Ironflyer release on a `v*` tag:
+#   1. Cross-compile the CLI for linux/darwin/windows × amd64/arm64.
+#   2. Package the Helm chart at the same version.
+#   3. Export the GraphQL schema as a build artifact.
+#   4. Generate a changelog from PR titles since the previous tag.
+#   5. Create the GitHub release with everything attached.
+#
+# The Docker workflow runs in parallel (tag trigger) and tags the images with
+# the same vX.Y.Z, so by the time this workflow finishes the release page
+# points to consistent artifacts.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to assemble (e.g. v1.4.0)'
+        required: true
+
+permissions:
+  contents: write
+
+env:
+  GO_VERSION: '1.25'
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Cross-compile the CLI. The Makefile under apps/cli has a build target, but
+  # we drive `go build` directly here so the matrix is the source of truth for
+  # which binaries we ship.
+  # ---------------------------------------------------------------------------
+  cli:
+    name: CLI ${{ matrix.os }}/${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: linux,   arch: amd64 }
+          - { os: linux,   arch: arm64 }
+          - { os: darwin,  arch: amd64 }
+          - { os: darwin,  arch: arm64 }
+          - { os: windows, arch: amd64 }
+          - { os: windows, arch: arm64 }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: apps/cli/go.sum
+      - name: Resolve version
+        id: ver
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          fi
+      - name: go build
+        working-directory: apps/cli
+        env:
+          GOOS: ${{ matrix.os }}
+          GOARCH: ${{ matrix.arch }}
+          CGO_ENABLED: '0'
+        # -trimpath + -ldflags '-s -w' makes the binary reproducible-ish and
+        # smaller. The version is stamped via the well-known main.version var.
+        run: |
+          set -euo pipefail
+          out="ironflyer-${{ steps.ver.outputs.tag }}-${{ matrix.os }}-${{ matrix.arch }}"
+          if [ "${{ matrix.os }}" = "windows" ]; then out="$out.exe"; fi
+          mkdir -p dist
+          go build -trimpath \
+            -ldflags "-s -w -X main.version=${{ steps.ver.outputs.tag }}" \
+            -o "dist/$out" ./cmd/ironflyer
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cli-${{ matrix.os }}-${{ matrix.arch }}
+          path: apps/cli/dist/*
+
+  # ---------------------------------------------------------------------------
+  # Package the Helm chart at the app version so `helm install ironflyer
+  # --version vX.Y.Z` lines up with the image tag.
+  # ---------------------------------------------------------------------------
+  chart:
+    name: Helm chart
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.15.3
+      - id: ver
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            v="${{ github.event.inputs.tag }}"
+          else
+            v="${GITHUB_REF_NAME}"
+          fi
+          # The chart version must be SemVer 2 — strip the leading v if present.
+          echo "tag=$v"                  >> "$GITHUB_OUTPUT"
+          echo "version=${v#v}"          >> "$GITHUB_OUTPUT"
+      - run: |
+          mkdir -p dist
+          helm package infra/helm/ironflyer \
+            --version "${{ steps.ver.outputs.version }}" \
+            --app-version "${{ steps.ver.outputs.version }}" \
+            --destination dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: helm-chart
+          path: dist/ironflyer-*.tgz
+
+  # ---------------------------------------------------------------------------
+  # Snapshot the API schemas so consumers can pin to a release. The GraphQL SDL
+  # is the source of truth; we also publish the legacy OpenAPI doc until its
+  # 2026-08-01 sunset.
+  # ---------------------------------------------------------------------------
+  schemas:
+    name: API schemas
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Gather schemas
+        run: |
+          set -euo pipefail
+          mkdir -p dist/schemas
+          # GraphQL SDL — single concatenated file for easy consumption.
+          find apps/orchestrator/internal/graph/schema -name '*.graphql' -print0 \
+            | xargs -0 cat > dist/schemas/schema.graphql || true
+          # OpenAPI snapshot, if the orchestrator ships one in-repo.
+          if [ -f apps/orchestrator/openapi.yaml ]; then
+            cp apps/orchestrator/openapi.yaml dist/schemas/openapi.yaml
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: api-schemas
+          path: dist/schemas/*
+
+  # ---------------------------------------------------------------------------
+  # Final release job: gather all artifacts, build a changelog from PRs merged
+  # since the last tag, and publish the GitHub release.
+  # ---------------------------------------------------------------------------
+  publish:
+    name: Publish GitHub release
+    needs: [cli, chart, schemas]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Required so the changelog action can walk history.
+
+      - name: Resolve tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "name=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Build changelog
+        id: changelog
+        uses: mikepenz/release-changelog-builder-action@v5
+        with:
+          toTag: ${{ steps.tag.outputs.name }}
+          configurationJson: |
+            {
+              "categories": [
+                { "title": "## Features",   "labels": ["feature", "feat", "enhancement"] },
+                { "title": "## Fixes",      "labels": ["fix", "bug"] },
+                { "title": "## Infra/CI",   "labels": ["infra", "ci", "ops"] },
+                { "title": "## Docs",       "labels": ["docs", "documentation"] },
+                { "title": "## Other",      "labels": [] }
+              ],
+              "template": "#{{CHANGELOG}}\n\n---\nFull diff: #{{RELEASE_DIFF}}"
+            }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.name }}
+          name: Ironflyer ${{ steps.tag.outputs.name }}
+          body: ${{ steps.changelog.outputs.changelog }}
+          fail_on_unmatched_files: false
+          files: |
+            dist/**/ironflyer-*
+            dist/**/schema.graphql
+            dist/**/openapi.yaml

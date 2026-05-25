@@ -1,0 +1,79 @@
+name: ironflyer-do
+runtime: go
+description: |
+  Ironflyer DigitalOcean infrastructure.
+
+  Provisions a DO VPC + DOKS (Kubernetes) cluster with built-in
+  cluster-autoscaler, the managed Postgres / Redis / Spaces data layer,
+  and the Cloudflare/Vercel/ingress-nginx/cert-manager edge layer.
+  The data + edge layers are owned by sibling packages
+  (`data/` and `edge/`) and consume the compute outputs through their
+  `Inputs` struct contracts. Mirrors the AWS Pulumi project under
+  `infra/pulumi/` — pick whichever cloud the operator wants.
+
+config:
+  pulumi:tags:
+    value:
+      pulumi:template: ""
+  ironflyer:region:
+    description: DigitalOcean region slug (nyc3, ams3, sgp1, fra1, ...).
+  ironflyer:doksNodeSize:
+    description: DO droplet slug for the DOKS system node pool.
+    default: s-2vcpu-4gb
+  ironflyer:doksNodeCount:
+    description: Desired/minimum node count for the system pool.
+    default: "2"
+  ironflyer:doksMaxNodes:
+    description: Max node count when the built-in autoscaler scales up.
+    default: "6"
+  ironflyer:doksRuntimeNodeSize:
+    description: DO droplet slug for the runtime workload node pool.
+    default: s-4vcpu-8gb
+  ironflyer:doksRuntimeNodeCount:
+    description: Desired/minimum node count for the runtime pool.
+    default: "1"
+  ironflyer:doksRuntimeMaxNodes:
+    description: Max node count for the runtime pool.
+    default: "8"
+  ironflyer:k8sVersion:
+    description: DOKS Kubernetes version (e.g. 1.30.6-do.0).
+    default: 1.30.6-do.0
+  ironflyer:postgresSize:
+    description: DO managed Postgres size slug.
+    default: db-s-1vcpu-1gb
+  ironflyer:postgresVersion:
+    description: Managed Postgres major version.
+    default: "16"
+  ironflyer:redisSize:
+    description: DO managed Redis size slug.
+    default: db-s-1vcpu-1gb
+  ironflyer:redisVersion:
+    description: Managed Redis major version.
+    default: "7"
+  ironflyer:enableHA:
+    description: Provision DOKS + databases in highly-available mode.
+    default: "false"
+  ironflyer:vercelEnabled:
+    description: Provision the Vercel-hosted Ironflyer dashboard for this stack.
+    default: "false"
+  ironflyer:vercelDomain:
+    description: Public hostname for the dashboard (e.g. app.ironflyer.dev).
+    default: ""
+  ironflyer:rootDomain:
+    description: Root DNS domain managed by Cloudflare for this stack.
+    default: ironflyer.dev
+  ironflyer:spacesRegion:
+    description: DO Spaces region (defaults to ironflyer:region when blank).
+    default: ""
+  digitalocean:token:
+    description: DigitalOcean API token (set via `pulumi config set --secret digitalocean:token <token>`).
+    secret: true
+  cloudflare:apiToken:
+    description: Cloudflare API token with Zone + DNS edit (set via `pulumi config set --secret cloudflare:apiToken <token>`).
+    secret: true
+  vercel:apiToken:
+    description: Vercel API token (set via `pulumi config set --secret vercel:apiToken <token>`).
+    secret: true
+  ironflyer:postgresPassword:
+    description: Master password for the application Postgres user (set via `pulumi config set --secret ironflyer:postgresPassword <pw>`).
+    secret: true

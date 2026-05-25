@@ -1,0 +1,81 @@
+# Studio entrypoint operations — the natural-language → ready-execution
+# surface that A47 wires into the chat-driven home page. The mutations
+# return the full StudioBootstrap envelope so the studio screen (A48)
+# can route into the new project, subscribe to the execution feed, and
+# render the parsed-idea panel + cost estimate without a second round
+# trip.
+
+mutation DescribeIdea($input: DescribeIdeaInput!) {
+  describeIdea(input: $input) {
+    project {
+      id
+      name
+      idea
+      description
+      status
+      ownerId
+      isPublic
+      createdAt
+      updatedAt
+    }
+    execution {
+      id
+      status
+      budgetUSD
+      reservedUSD
+      spentUSD
+      stopLossUSD
+      promptSummary
+      createdAt
+      admittedAt
+      startedAt
+    }
+    idea {
+      title
+      summary
+      blueprintID
+      blueprintReason
+      suggestedBudgetUSD
+      tags
+      stopLossUSD
+      confidence
+    }
+    costEstimate {
+      lowUSD
+      medianUSD
+      highUSD
+      p95USD
+      confidence
+      basedOnRuns
+      caveat
+    }
+  }
+}
+
+mutation RefineIdea($executionID: ID!, $message: String!) {
+  refineIdea(executionID: $executionID, message: $message) {
+    project {
+      id
+      name
+    }
+    execution {
+      id
+      status
+      spentUSD
+      reservedUSD
+    }
+    idea {
+      title
+      summary
+      blueprintID
+      blueprintReason
+      confidence
+    }
+    costEstimate {
+      medianUSD
+      lowUSD
+      highUSD
+      confidence
+    }
+  }
+}

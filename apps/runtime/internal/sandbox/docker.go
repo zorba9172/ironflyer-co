@@ -6,8 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -18,14 +21,37 @@ import (
 // the CLI is widely available on dev machines and the contract is stable.
 //
 // Each workspace = one container running code-server (default image
-// `codercom/code-server:latest`) with a named volume mounted at /home/coder.
+// `codercom/code-server:latest`) with a host-path mount at /home/coder.
+// In production the host path is on EFS (mounted at
+// `${RUNTIME_EFS_MOUNT}/<workspaceID>`), which lets any runtime pod
+// pick up an existing workspace's files without a per-pod volume.
 type DockerDriver struct {
 	Image       string
 	HostPortLow int
+
+	// EFSRoot is the host-side parent directory used for every workspace
+	// bind mount. Empty means "use Docker named volumes" (legacy path).
+	EFSRoot string
+	// FallbackRoot is the per-pod local directory used when EFSRoot is
+	// configured but not actually mounted/writable (dev mode).
+	FallbackRoot string
+
+	// snapshotShim is the transport injected by WithSnapshotShim and
+	// used by RestoreFromSnapshot / Checkpoint. Nil means "no remote
+	// snapshot storage configured" — both methods become no-ops.
+	snapshotShim SnapshotShim
 }
 
 func NewDockerDriver(image string) *DockerDriver {
 	return &DockerDriver{Image: image, HostPortLow: 18000}
+}
+
+// WithEFS configures the bind-mount roots. Returns the driver so this
+// can be chained with the existing constructor.
+func (d *DockerDriver) WithEFS(efsRoot, fallbackRoot string) *DockerDriver {
+	d.EFSRoot = efsRoot
+	d.FallbackRoot = fallbackRoot
+	return d
 }
 
 func (d *DockerDriver) Name() string { return "docker" }
@@ -33,16 +59,30 @@ func (d *DockerDriver) Name() string { return "docker" }
 func (d *DockerDriver) Create(ctx context.Context, opts CreateOpts) (Workspace, error) {
 	id := "ws-" + uuid.NewString()[:8]
 	name := "ironflyer-" + id
-	volume := "ironflyer-vol-" + id
 
-	if out, err := d.run(ctx, "volume", "create", volume); err != nil {
-		return Workspace{}, fmt.Errorf("create volume: %w (%s)", err, out)
+	// Resolve the bind-mount source. EFS path = production multi-pod
+	// scale path; named volume = legacy single-pod path. We pick the
+	// EFS layout whenever EFSRoot is configured because the runtime
+	// pod's filesystem itself is read-only in prod.
+	var mountSpec string
+	if d.EFSRoot != "" {
+		path, _, err := resolveEFSMount(d.EFSRoot, d.FallbackRoot, id)
+		if err != nil {
+			return Workspace{}, fmt.Errorf("efs mount: %w", err)
+		}
+		mountSpec = path + ":/home/coder"
+	} else {
+		volume := "ironflyer-vol-" + id
+		if out, err := d.run(ctx, "volume", "create", volume); err != nil {
+			return Workspace{}, fmt.Errorf("create volume: %w (%s)", err, out)
+		}
+		mountSpec = volume + ":/home/coder"
 	}
 	// Pick a host port — naive: random by container ID. Improved later.
 	hostPort := d.pickPort(id)
 	args := []string{
 		"run", "-d", "--name", name,
-		"-v", volume + ":/home/coder",
+		"-v", mountSpec,
 		"-p", fmt.Sprintf("%d:8080", hostPort),
 		"-e", "PASSWORD=ironflyer-dev",
 		d.Image,
@@ -66,7 +106,17 @@ func (d *DockerDriver) Create(ctx context.Context, opts CreateOpts) (Workspace, 
 
 func (d *DockerDriver) Destroy(ctx context.Context, ws Workspace) error {
 	_, _ = d.run(ctx, "rm", "-f", ws.Root)
-	_, _ = d.run(ctx, "volume", "rm", "ironflyer-vol-"+ws.ID)
+	if d.EFSRoot == "" {
+		_, _ = d.run(ctx, "volume", "rm", "ironflyer-vol-"+ws.ID)
+	} else {
+		// EFS path: remove the bind-mount directory so a recreated
+		// workspace with the same ID starts clean. Best-effort; the
+		// archive scanner is the system of record for cold storage.
+		_ = os.RemoveAll(filepath.Join(d.EFSRoot, ws.ID))
+		if d.FallbackRoot != "" {
+			_ = os.RemoveAll(filepath.Join(d.FallbackRoot, ws.ID))
+		}
+	}
 	return nil
 }
 
@@ -167,6 +217,51 @@ func (d *DockerDriver) run(ctx context.Context, args ...string) (string, error) 
 
 func (d *DockerDriver) runRaw(ctx context.Context, args ...string) ([]byte, error) {
 	return exec.CommandContext(ctx, "docker", args...).Output()
+}
+
+// resolveEFSMount picks the host-side bind-mount path for a workspace.
+// Production deployments mount EFS at efsRoot and that's where files
+// live; if EFS isn't actually writable (dev/test without the volume)
+// we fall back to a per-pod local directory. Mirrors the helper in
+// internal/drivers/docker/efs.go but stays in this package to keep
+// driver creation a closed system with no cross-package dependency.
+func resolveEFSMount(efsRoot, fallbackRoot, id string) (string, bool, error) {
+	if efsRoot == "" {
+		efsRoot = "/var/lib/ironflyer/workspaces"
+	}
+	if efsUsable(efsRoot) {
+		path := filepath.Join(efsRoot, id)
+		if err := os.MkdirAll(path, 0o755); err == nil {
+			return path, true, nil
+		}
+	}
+	if fallbackRoot == "" {
+		fallbackRoot = "/tmp/ironflyer-workspaces"
+	}
+	path := filepath.Join(fallbackRoot, id)
+	if err := os.MkdirAll(path, 0o755); err != nil {
+		return "", false, err
+	}
+	return path, false, nil
+}
+
+func efsUsable(root string) bool {
+	if root == "" {
+		return false
+	}
+	if info, err := os.Stat(root); err != nil || !info.IsDir() {
+		if err := os.MkdirAll(root, 0o755); err != nil {
+			return false
+		}
+	}
+	sentinel := filepath.Join(root, ".ironflyer-write-check")
+	f, err := os.Create(sentinel)
+	if err != nil {
+		return false
+	}
+	_ = f.Close()
+	_ = os.Remove(sentinel)
+	return true
 }
 
 func (d *DockerDriver) pickPort(id string) int {
@@ -330,6 +425,194 @@ func (d *DockerDriver) PreviewTarget(ctx context.Context, ws Workspace, port int
 		return "", errors.New("container has no IP address")
 	}
 	return fmt.Sprintf("%s:%d", ip, port), nil
+}
+
+// RestoreFromSnapshot pulls the tar.zst at snapshotURI and unpacks it
+// into workspaceDir. workspaceDir is the host-side path the docker
+// driver bind-mounts into the container (EFS in prod, FallbackRoot in
+// dev). When snapshotURI is empty the call is a no-op so a fresh
+// workspace path stays cheap.
+//
+// The actual transport is delegated to the snapshots.Manager via the
+// shellOut shim below — Docker driver does not own a second S3
+// client. The integration agent injects the shim during wireup.
+func (d *DockerDriver) RestoreFromSnapshot(ctx context.Context, snapshotURI, workspaceDir string) error {
+	if snapshotURI == "" {
+		return nil
+	}
+	if err := os.MkdirAll(workspaceDir, 0o755); err != nil {
+		return fmt.Errorf("docker restore: workspace dir: %w", err)
+	}
+	shim := snapshotShimFor(d)
+	if shim == nil {
+		// No transport wired (dev mode). Surface as a soft success so
+		// the allocator can still proceed; the workspace stays empty.
+		return nil
+	}
+	return shim.Restore(ctx, snapshotURI, workspaceDir)
+}
+
+// Checkpoint tars+zstds workspaceDir and uploads it to destSnapshotURI.
+// Empty destSnapshotURI is a no-op. Like RestoreFromSnapshot, the
+// transport is delegated to the snapshot shim wired at startup.
+func (d *DockerDriver) Checkpoint(ctx context.Context, workspaceDir, destSnapshotURI string) error {
+	if destSnapshotURI == "" {
+		return nil
+	}
+	info, err := os.Stat(workspaceDir)
+	if err != nil {
+		return fmt.Errorf("docker checkpoint: stat: %w", err)
+	}
+	if !info.IsDir() {
+		return fmt.Errorf("docker checkpoint: %q is not a directory", workspaceDir)
+	}
+	shim := snapshotShimFor(d)
+	if shim == nil {
+		return nil
+	}
+	return shim.Checkpoint(ctx, workspaceDir, destSnapshotURI)
+}
+
+// SnapshotShim is the transport surface RestoreFromSnapshot and
+// Checkpoint dial. The wireup agent supplies one (typically a thin
+// adapter over snapshots.Manager). Kept here as an interface so the
+// driver does not depend on the snapshots package directly and avoids
+// an import cycle.
+type SnapshotShim interface {
+	Restore(ctx context.Context, snapshotURI, destDir string) error
+	Checkpoint(ctx context.Context, srcDir, destSnapshotURI string) error
+}
+
+// WithSnapshotShim wires a transport for snapshot restore/checkpoint.
+// Calling this is idempotent.
+func (d *DockerDriver) WithSnapshotShim(s SnapshotShim) *DockerDriver {
+	d.snapshotShim = s
+	return d
+}
+
+// snapshotShimFor returns the configured shim or nil.
+func snapshotShimFor(d *DockerDriver) SnapshotShim { return d.snapshotShim }
+
+// -------------------------------------------------------------------
+// Preview port allocation.
+//
+// The Docker driver took a deliberate v1 shortcut: rather than recreate
+// the container with a new `-p host:container` mapping (which would
+// require stop/rm/run and lose any in-memory state), we lean on the
+// existing reverse-proxy in apps/runtime/internal/preview. The proxy
+// already dials `<container_ip>:<port>` via PreviewTarget — preview
+// allocation becomes a bookkeeping operation: pick a stable external
+// port number, remember the workspace→port binding, and hand the
+// caller a URL whose host segment is the runtime's public host.
+//
+// External ports are advisory metadata for dashboards; the actual
+// traffic flows through the runtime's preview prefix and never binds
+// to the host. This keeps Docker workspaces hot-recreate-free and
+// matches what production gVisor/Kata sandboxes will need: a single
+// public host name + signed preview tokens, never per-tenant port
+// exposure on the host firewall.
+// -------------------------------------------------------------------
+
+var (
+	previewBindingsMu sync.Mutex
+	previewBindings   = map[string]PreviewBinding{}
+	previewUsedPorts  = map[int]string{} // external port → workspaceID
+)
+
+// AllocatePreviewPort assigns a workspace dev-server port and returns
+// a URL that points at the runtime's preview reverse proxy. Idempotent
+// on workspaceID — repeat calls extend the existing lease.
+func (d *DockerDriver) AllocatePreviewPort(_ context.Context, workspaceID string, internalPort int) (PreviewBinding, error) {
+	if workspaceID == "" {
+		return PreviewBinding{}, errors.New("workspaceID required")
+	}
+	if !PreviewPortAllowed(internalPort) {
+		return PreviewBinding{}, fmt.Errorf("internal port %d not on safelist", internalPort)
+	}
+	now := time.Now().UTC()
+	previewBindingsMu.Lock()
+	defer previewBindingsMu.Unlock()
+	if existing, ok := previewBindings[workspaceID]; ok {
+		existing.InternalPort = internalPort
+		existing.ExpiresAt = now.Add(PreviewLeaseDuration)
+		previewBindings[workspaceID] = existing
+		return existing, nil
+	}
+	port, err := pickPreviewExternalPort(workspaceID)
+	if err != nil {
+		return PreviewBinding{}, err
+	}
+	binding := PreviewBinding{
+		WorkspaceID:  workspaceID,
+		InternalPort: internalPort,
+		ExternalPort: port,
+		URL:          buildPreviewURL(workspaceID, internalPort),
+		ExpiresAt:    now.Add(PreviewLeaseDuration),
+	}
+	previewBindings[workspaceID] = binding
+	previewUsedPorts[port] = workspaceID
+	return binding, nil
+}
+
+// ReleasePreviewPort frees the binding's external port slot.
+func (d *DockerDriver) ReleasePreviewPort(_ context.Context, workspaceID string) error {
+	if workspaceID == "" {
+		return nil
+	}
+	previewBindingsMu.Lock()
+	defer previewBindingsMu.Unlock()
+	b, ok := previewBindings[workspaceID]
+	if !ok {
+		return nil
+	}
+	delete(previewBindings, workspaceID)
+	if previewUsedPorts[b.ExternalPort] == workspaceID {
+		delete(previewUsedPorts, b.ExternalPort)
+	}
+	return nil
+}
+
+// pickPreviewExternalPort picks an unused advisory port in [18000,
+// 18999]. Caller must hold previewBindingsMu.
+func pickPreviewExternalPort(seed string) (int, error) {
+	const lo, hi = 18000, 18999
+	// Hash the seed for a stable first guess so the same workspace
+	// trends to the same port across restarts (helps dashboards).
+	start := lo
+	if seed != "" {
+		h := 0
+		for _, c := range seed {
+			h = (h*31 + int(c)) % (hi - lo + 1)
+		}
+		start = lo + h
+	}
+	for i := 0; i < (hi-lo+1); i++ {
+		p := lo + ((start - lo + i) % (hi - lo + 1))
+		if _, taken := previewUsedPorts[p]; !taken {
+			return p, nil
+		}
+	}
+	return 0, errors.New("no preview port available in [18000,18999]")
+}
+
+// buildPreviewURL renders the URL the iframe loads. Host comes from
+// IRONFLYER_RUNTIME_PUBLIC_HOST (default "localhost"); the path
+// follows the reverse-proxy prefix convention used by
+// internal/preview so the same iframe URL works whether the runtime
+// is bound to localhost or a public hostname.
+func buildPreviewURL(workspaceID string, internalPort int) string {
+	host := strings.TrimSpace(os.Getenv("IRONFLYER_RUNTIME_PUBLIC_HOST"))
+	if host == "" {
+		host = "localhost:8090"
+	}
+	scheme := "http"
+	if strings.HasPrefix(host, "https://") {
+		scheme = "https"
+		host = strings.TrimPrefix(host, "https://")
+	} else if strings.HasPrefix(host, "http://") {
+		host = strings.TrimPrefix(host, "http://")
+	}
+	return fmt.Sprintf("%s://%s/preview/%s/%d/", scheme, host, workspaceID, internalPort)
 }
 
 var _ Driver = (*DockerDriver)(nil)

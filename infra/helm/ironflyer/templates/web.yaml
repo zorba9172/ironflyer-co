@@ -59,6 +59,21 @@ spec:
             - { name: http, containerPort: 3000 }
           envFrom:
             - configMapRef: { name: web-config }
+          env:
+            # Web talks to Postgres only through the orchestrator HTTP API
+            # today, but exposing the DSN here via secretKeyRef means any
+            # future server action / migration / admin job inherits the
+            # same Secret-backed wiring without re-templating chrome.
+            - name: POSTGRES_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ironflyer.postgresSecretName" . }}
+                  key: POSTGRES_URL
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ironflyer.postgresSecretName" . }}
+                  key: postgres-password
           startupProbe:
             httpGet: { path: /, port: http }
             periodSeconds: 5
@@ -83,6 +98,8 @@ spec:
             readOnlyRootFilesystem: {{ .Values.web.readOnlyRootFilesystem }}
             capabilities:
               drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
           lifecycle:
             preStop:
               exec:

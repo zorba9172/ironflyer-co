@@ -36,6 +36,38 @@ jobs:
         working-directory: apps/${{ matrix.module }}
         run: go build ./...
 
+      # Post-build smoke for the orchestrator: boot the binary against an
+      # in-process Memory store and hit scripts/smoke.sh. Runs only on the
+      # orchestrator matrix leg — runtime has its own probes elsewhere.
+      - name: smoke (orchestrator)
+        if: matrix.module == 'orchestrator'
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The smoke script falls back to python3 websockets for the
+          # subscription section; install once so we exercise the WS path
+          # in CI instead of warn-skipping.
+          python3 -m pip install --quiet websockets || true
+          # Boot the orchestrator in the background. AuthOptional keeps
+          # the smoke runs simple — auth-gated sections warn-skip when
+          # SMOKE_BEARER is unset, which is exactly the dev path.
+          (cd apps/orchestrator && \
+             IRONFLYER_AUTH_OPTIONAL=true \
+             IRONFLYER_DB_DRIVER=memory \
+             IRONFLYER_ADDR=:8080 \
+             go run ./cmd/orchestrator >/tmp/orchestrator.log 2>&1 &)
+          # Wait up to 30s for /livez to come up.
+          for _ in $(seq 1 30); do
+            if curl -fsS http://localhost:8080/livez >/dev/null 2>&1; then
+              break
+            fi
+            sleep 1
+          done
+          IRONFLYER_API_URL=http://localhost:8080 ./scripts/smoke.sh
+      - name: smoke logs (on failure)
+        if: matrix.module == 'orchestrator' && failure()
+        run: tail -200 /tmp/orchestrator.log || true
+
   web:
     name: Web typecheck + build
     runs-on: ubuntu-latest
@@ -70,6 +102,33 @@ jobs:
       - name: typecheck
         working-directory: packages/sdk
         run: tsc -p tsconfig.json --noEmit
+
+  pulumi-build:
+    # Fast feedback that the Pulumi Go programs still compile. This does NOT
+    # run `pulumi preview` or touch any cloud — the dedicated pulumi.yml
+    # workflow owns deploys. Catching a typo in `infra/pulumi/main.go` here
+    # is far cheaper than discovering it during a tag-driven prod up.
+    name: Pulumi go build (${{ matrix.project }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [pulumi, pulumi-data]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache-dependency-path: infra/${{ matrix.project }}/go.sum
+      - name: go mod download
+        working-directory: infra/${{ matrix.project }}
+        run: go mod download
+      - name: go vet
+        working-directory: infra/${{ matrix.project }}
+        run: go vet ./...
+      - name: go build
+        working-directory: infra/${{ matrix.project }}
+        run: go build ./...
 
   vscode-extension:
     name: VSCode extension build + package

@@ -1,0 +1,28 @@
+# V22 cost forecast — Agent 34. Lets the user ask "what would this
+# cost?" before any wallet hold lands. Backed by
+# `internal/forecast/`; the resolver is forecast.resolver.go and the
+# concrete Forecaster is wired by the V22 integration agent.
+#
+# `JSON` is declared in zbase.graphql.
+
+extend type Query {
+  estimateExecutionCost(input: EstimateInput!): CostEstimate!
+}
+
+input EstimateInput {
+  blueprintID: String
+  capabilities: [String!]
+  estimatedDurationSec: Int
+  promptSummary: String
+}
+
+type CostEstimate {
+  lowUSD: Float!
+  medianUSD: Float!
+  highUSD: Float!
+  p95USD: Float!
+  breakdown: JSON!
+  confidence: Float!
+  basedOnRuns: Int!
+  caveat: String
+}

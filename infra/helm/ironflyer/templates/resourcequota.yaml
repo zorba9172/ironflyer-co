@@ -1,0 +1,23 @@
+{{- /*
+ResourceQuota — namespace-level cap on what every Ironflyer workload in
+this release can collectively request. Defense-in-depth against a
+runaway HPA, a misconfigured workload that pins CPU, or an attacker
+that lands code execution and tries to schedule a swarm of pods. Tune
+.Values.quota.* per cluster size.
+*/ -}}
+{{- if .Values.quota.enabled -}}
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: {{ include "ironflyer.fullname" . }}-quota
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+spec:
+  hard:
+    requests.cpu: {{ .Values.quota.cpu | quote }}
+    requests.memory: {{ .Values.quota.memory | quote }}
+    limits.cpu: {{ .Values.quota.cpu | quote }}
+    limits.memory: {{ .Values.quota.memory | quote }}
+    pods: {{ .Values.quota.pods | quote }}
+    persistentvolumeclaims: {{ .Values.quota.persistentvolumeclaims | quote }}
+{{- end }}

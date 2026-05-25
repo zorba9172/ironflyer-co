@@ -9,13 +9,21 @@ import (
 )
 
 // AnthropicProvider is Claude on steroids:
-//  - Streaming SSE → Delta channel
-//  - Prompt caching for system + project context (ephemeral cache markers)
-//  - Extended thinking for reasoning-heavy tasks (planner/architect/security)
-//  - Tool use passthrough
-//  - Cost-aware tiering: CapCheap → Haiku, CapThinking/CapReasoning → Opus,
-//    default → Sonnet. The configured base Model is used when no
-//    capability hint applies, so operators retain full override control.
+//   - Streaming SSE → Delta channel
+//   - Prompt caching for system + project context (ephemeral cache markers)
+//     PLUS rolling cache breakpoints on the last few turns of the
+//     conversation, which roughly halves cost on multi-turn tool-use loops
+//     where the system + recent history is stable across iterations.
+//   - Extended thinking for reasoning-heavy tasks (planner/architect/security)
+//   - Tool use: when a ToolDispatcher is attached to the request context
+//     via WithToolDispatcher, the provider runs the canonical Anthropic
+//     Messages API multi-turn loop natively (append assistant message
+//     verbatim, send tool_result blocks back, loop). Without a dispatcher
+//     the provider falls back to single-turn emission of DeltaToolUse so
+//     legacy callers keep working.
+//   - Cost-aware tiering: CapCheap → Haiku, CapThinking/CapReasoning → Opus,
+//     default → Sonnet. The configured base Model is used when no
+//     capability hint applies, so operators retain full override control.
 type AnthropicProvider struct {
 	client         anthropic.Client
 	model          anthropic.Model
@@ -32,19 +40,48 @@ type AnthropicOpts struct {
 	ThinkingBudget int64  // tokens budget for extended thinking; 0 = default
 }
 
+// anthropicCapabilityDefaults is the capability → model id table the
+// provider consults when the caller doesn't pin an explicit override.
+// Operators wire env defaults via AnthropicOpts; this table is the
+// fallback when both env AND request capability hints are silent.
+//
+//	CapQuality / CapThinking / CapReasoning → Opus 4.7 (deepest reasoning)
+//	CapCheap / CapFast / CapInline           → Haiku 4.5 (fast + cheap)
+//	general / CapCode / CapJSON / CapVision  → Sonnet 4.6 (balanced)
+//
+// Centralising this table keeps the model defaults in one place — when
+// Anthropic ships the next tier we update one map.
+var anthropicCapabilityDefaults = map[Capability]string{
+	CapQuality:   "claude-opus-4-7",
+	CapThinking:  "claude-opus-4-7",
+	CapReasoning: "claude-opus-4-7",
+	CapCheap:     "claude-haiku-4-5-20251001",
+	CapFast:      "claude-haiku-4-5-20251001",
+	CapInline:    "claude-haiku-4-5-20251001",
+}
+
 func NewAnthropicProvider(opts AnthropicOpts) *AnthropicProvider {
-	client := anthropic.NewClient(option.WithAPIKey(opts.APIKey))
+	// anthropic-beta: prompt-caching-2024-07-31 unlocks cache_control
+	// breakpoints on system blocks AND assistant/user message turns.
+	// Setting it once at client construction means every request — including
+	// each iteration of the native multi-turn loop — benefits without
+	// per-call boilerplate.
+	client := anthropic.NewClient(
+		option.WithAPIKey(opts.APIKey),
+		option.WithHeader("anthropic-beta", "prompt-caching-2024-07-31"),
+	)
 	model := anthropic.Model(opts.Model)
 	if model == "" {
+		// General-purpose default — balanced cost vs quality.
 		model = anthropic.Model("claude-sonnet-4-6")
 	}
 	cheap := anthropic.Model(opts.CheapModel)
 	if cheap == "" {
-		cheap = anthropic.Model("claude-haiku-4-5-20251001")
+		cheap = anthropic.Model(anthropicCapabilityDefaults[CapCheap])
 	}
 	power := anthropic.Model(opts.PowerModel)
 	if power == "" {
-		power = anthropic.Model("claude-opus-4-7")
+		power = anthropic.Model(anthropicCapabilityDefaults[CapQuality])
 	}
 	budget := opts.ThinkingBudget
 	if budget == 0 {
@@ -64,16 +101,21 @@ func NewAnthropicProvider(opts AnthropicOpts) *AnthropicProvider {
 // the larger model meaningfully changes output quality. Anything else
 // uses the configured base model.
 func (a *AnthropicProvider) pickModel(req Request) anthropic.Model {
+	// Cheap/fast/inline win outright — these are explicit cost signals;
+	// we'd rather pay Haiku rates for a Critic verdict than burn Opus
+	// on a Cursor-style ghost-text completion.
 	for _, c := range req.Capabilities {
-		if c == CapCheap {
+		if c == CapCheap || c == CapFast || c == CapInline {
 			return a.cheapModel
 		}
 	}
 	if req.EnableThinking {
 		return a.powerModel
 	}
+	// Quality / thinking / reasoning promote to Opus — these are the
+	// tasks where the larger model meaningfully changes output quality.
 	for _, c := range req.Capabilities {
-		if c == CapThinking || c == CapReasoning {
+		if c == CapQuality || c == CapThinking || c == CapReasoning {
 			return a.powerModel
 		}
 	}
@@ -86,6 +128,11 @@ func (a *AnthropicProvider) Capabilities() []Capability {
 	return []Capability{
 		CapReasoning, CapCode, CapJSON, CapVision,
 		CapThinking, CapTools, CapCache,
+		// CapInline — Haiku is a strong, cheap, low-latency fit for
+		// Cursor-style middle-fill-in completions; advertising it here
+		// lets the router score Anthropic above text-only fallbacks
+		// when the caller asks for inline completions.
+		CapInline,
 	}
 }
 
@@ -101,122 +148,275 @@ func (a *AnthropicProvider) CompleteStream(ctx context.Context, req Request) (<-
 	}
 
 	model := a.pickModel(req)
-	params := anthropic.MessageNewParams{
-		Model:     model,
-		MaxTokens: maxTokens,
-		System:    systemBlocks,
-		Messages:  messages,
-	}
-	if req.EnableThinking {
-		budget := a.thinkingBudget
-		if req.ThinkingBudget > 0 {
-			budget = int64(req.ThinkingBudget)
-		}
-		params.Thinking = anthropic.ThinkingConfigParamOfEnabled(budget)
-	}
-	// Tools passthrough (lightweight subset — custom tools only).
-	if len(req.Tools) > 0 {
-		tools := make([]anthropic.ToolUnionParam, 0, len(req.Tools))
-		for _, t := range req.Tools {
-			tools = append(tools, anthropic.ToolUnionParam{
-				OfTool: &anthropic.ToolParam{
-					Name:        t.Name,
-					Description: anthropic.String(t.Description),
-					InputSchema: anthropic.ToolInputSchemaParam{
-						Properties: t.InputSchema,
-					},
-				},
-			})
-		}
-		params.Tools = tools
-	}
+	tools := buildAnthropicTools(req)
+	dispatcher := toolDispatcherFromContext(ctx)
 
 	go func() {
 		defer close(out)
 		out <- Delta{Type: DeltaStart, Provider: a.Name(), Model: string(model)}
 
-		stream := a.client.Messages.NewStreaming(ctx, params)
+		// Running totals across every iteration of the multi-turn loop.
+		// We emit a single DeltaDone at the end so BillingGuard charges
+		// the full provider spend in one ledger entry; intermediate
+		// turns accumulate here without flushing.
 		var (
-			inputTokens, outputTokens             int
-			cacheReadTokens, cacheCreationTokens  int
-			pendingToolUse                        *ToolUseDelta
+			totalInput, totalOutput          int
+			totalCacheRead, totalCacheCreate int
 		)
 
-		for stream.Next() {
-			event := stream.Current()
-			switch ev := event.AsAny().(type) {
+		// Trace of every tool call we dispatched, used in the structured
+		// error surfaced when the iteration cap fires.
+		var trace []toolUseTrace
 
-			case anthropic.MessageStartEvent:
-				if ev.Message.Usage.InputTokens > 0 {
-					inputTokens = int(ev.Message.Usage.InputTokens)
-				}
-				if ev.Message.Usage.CacheReadInputTokens > 0 {
-					cacheReadTokens = int(ev.Message.Usage.CacheReadInputTokens)
-				}
-				if ev.Message.Usage.CacheCreationInputTokens > 0 {
-					cacheCreationTokens = int(ev.Message.Usage.CacheCreationInputTokens)
-				}
-
-			case anthropic.ContentBlockStartEvent:
-				if ev.ContentBlock.Type == "tool_use" {
-					pendingToolUse = &ToolUseDelta{
-						ID:    ev.ContentBlock.ID,
-						Name:  ev.ContentBlock.Name,
-						Input: map[string]any{},
-					}
-				}
-
-			case anthropic.ContentBlockDeltaEvent:
-				switch ev.Delta.Type {
-				case "text_delta":
-					if ev.Delta.Text != "" {
-						out <- Delta{Type: DeltaText, Text: ev.Delta.Text}
-					}
-				case "thinking_delta":
-					if ev.Delta.Thinking != "" {
-						out <- Delta{Type: DeltaThinking, Text: ev.Delta.Thinking}
-					}
-				case "input_json_delta":
-					// Tool input arrives as JSON deltas; we forward the
-					// raw partial JSON so the UI can render progress.
-					if pendingToolUse != nil && ev.Delta.PartialJSON != "" {
-						out <- Delta{Type: DeltaToolUse, ToolUse: &ToolUseDelta{
-							ID: pendingToolUse.ID, Name: pendingToolUse.Name,
-							Input: map[string]any{"_partial": ev.Delta.PartialJSON},
-						}}
-					}
-				}
-
-			case anthropic.ContentBlockStopEvent:
-				pendingToolUse = nil
-
-			case anthropic.MessageDeltaEvent:
-				if ev.Usage.OutputTokens > 0 {
-					outputTokens = int(ev.Usage.OutputTokens)
-				}
-
-			case anthropic.MessageStopEvent:
-				// final
+		for iter := 0; iter < maxToolIterations; iter++ {
+			params := anthropic.MessageNewParams{
+				Model:     model,
+				MaxTokens: maxTokens,
+				System:    systemBlocks,
+				Messages:  messages,
 			}
-		}
-		if err := stream.Err(); err != nil {
-			out <- Delta{Type: DeltaError, Err: fmt.Errorf("anthropic stream: %w", err)}
-			return
+			if req.EnableThinking {
+				budget := a.thinkingBudget
+				if req.ThinkingBudget > 0 {
+					budget = int64(req.ThinkingBudget)
+				}
+				params.Thinking = anthropic.ThinkingConfigParamOfEnabled(budget)
+			}
+			if len(tools) > 0 {
+				params.Tools = tools
+			}
+
+			turn, err := a.runStreamTurn(ctx, params, out)
+			if err != nil {
+				out <- Delta{Type: DeltaError, Err: fmt.Errorf("anthropic stream: %w", err)}
+				return
+			}
+			totalInput += turn.inputTokens
+			totalOutput += turn.outputTokens
+			totalCacheRead += turn.cacheReadTokens
+			totalCacheCreate += turn.cacheCreationTokens
+
+			// Multi-turn only activates when (a) the model wants to call
+			// a tool AND (b) the caller wired a dispatcher into the
+			// context. Otherwise we stop here — same shape as the legacy
+			// behavior, with DeltaToolUse already emitted by runStreamTurn.
+			if turn.stopReason != anthropic.StopReasonToolUse || len(turn.toolUses) == 0 {
+				break
+			}
+			if dispatcher == nil {
+				// Legacy single-turn path: caller will re-prompt with
+				// its own synthetic "tool results" message. We've
+				// already streamed the tool_use deltas to them.
+				break
+			}
+
+			// Canonical multi-turn: append the assistant message
+			// verbatim (text + tool_use blocks the model emitted) and
+			// build the next user message as an array of tool_result
+			// blocks — one per tool the assistant requested.
+			messages = append(messages, anthropic.NewAssistantMessage(turn.assistantBlocks...))
+
+			toolResults := make([]anthropic.ContentBlockParamUnion, 0, len(turn.toolUses))
+			for _, tu := range turn.toolUses {
+				args := joinPartialJSON(tu.fragments)
+				body, derr := dispatcher(ctx, tu.id, tu.name, args)
+				te := toolUseTrace{Round: iter, ID: tu.id, Name: tu.name, Args: args}
+				isError := false
+				if derr != nil {
+					body = derr.Error()
+					isError = true
+					te.Err = derr.Error()
+				}
+				body = truncateToolResult(body)
+				trace = append(trace, te)
+				block := anthropic.NewToolResultBlock(tu.id, body, isError)
+				toolResults = append(toolResults, block)
+			}
+			messages = append(messages, anthropic.NewUserMessage(toolResults...))
+
+			// Apply rolling cache breakpoints to the new tail so the
+			// next round amortizes the now-larger conversation prefix.
+			messages = applyMessageCacheBreakpoints(messages)
+
+			// Loop-cap guard: if the *next* iter would exceed the cap,
+			// emit the structured error rather than silently dropping
+			// the partially-finished work.
+			if iter+1 >= maxToolIterations {
+				out <- Delta{Type: DeltaError, Err: &toolLoopError{
+					Iterations: iter + 1,
+					Trace:      trace,
+				}}
+				return
+			}
 		}
 
 		out <- Delta{
 			Type: DeltaDone, Provider: a.Name(), Model: string(model),
 			Usage: &Usage{
-				InputTokens:         inputTokens,
-				OutputTokens:        outputTokens,
-				CacheReadTokens:     cacheReadTokens,
-				CacheCreationTokens: cacheCreationTokens,
-				CostUSD:             estimateCost(string(model), inputTokens, outputTokens, cacheReadTokens, cacheCreationTokens),
+				InputTokens:         totalInput,
+				OutputTokens:        totalOutput,
+				CacheReadTokens:     totalCacheRead,
+				CacheCreationTokens: totalCacheCreate,
+				CostUSD:             estimateCost(string(model), totalInput, totalOutput, totalCacheRead, totalCacheCreate),
 			},
 		}
 	}()
 
 	return out, nil
+}
+
+// streamTurn captures the per-iteration accumulators of a single SSE
+// stream. The provider's main loop consumes these to build the next
+// request and decide whether to loop again.
+type streamTurn struct {
+	inputTokens, outputTokens            int
+	cacheReadTokens, cacheCreationTokens int
+	stopReason                           anthropic.StopReason
+	toolUses                             []pendingTool
+	assistantBlocks                      []anthropic.ContentBlockParamUnion
+}
+
+type pendingTool struct {
+	id        string
+	name      string
+	fragments []string
+}
+
+// runStreamTurn drives one SSE stream from the Messages API to completion.
+// Text and thinking deltas are forwarded to `out` immediately so the UI
+// stays responsive; tool_use blocks are accumulated for the caller to
+// dispatch (and also emitted as DeltaToolUse for legacy single-turn
+// consumers that read the channel directly). The returned streamTurn
+// captures everything the multi-turn loop needs to build its next
+// request.
+func (a *AnthropicProvider) runStreamTurn(ctx context.Context, params anthropic.MessageNewParams, out chan<- Delta) (streamTurn, error) {
+	stream := a.client.Messages.NewStreaming(ctx, params)
+	var turn streamTurn
+
+	// Per-index accumulators. Anthropic streams each content block under
+	// an `index` integer; we use it to thread text fragments and
+	// input_json_delta fragments back to the right block.
+	type blockAcc struct {
+		kind     string // "text" | "tool_use" | "thinking" | other
+		text     string
+		thinking string
+		// tool_use only
+		id       string
+		name     string
+		fragJSON []string
+	}
+	blocks := map[int64]*blockAcc{}
+
+	for stream.Next() {
+		event := stream.Current()
+		switch ev := event.AsAny().(type) {
+
+		case anthropic.MessageStartEvent:
+			if ev.Message.Usage.InputTokens > 0 {
+				turn.inputTokens = int(ev.Message.Usage.InputTokens)
+			}
+			if ev.Message.Usage.CacheReadInputTokens > 0 {
+				turn.cacheReadTokens = int(ev.Message.Usage.CacheReadInputTokens)
+			}
+			if ev.Message.Usage.CacheCreationInputTokens > 0 {
+				turn.cacheCreationTokens = int(ev.Message.Usage.CacheCreationInputTokens)
+			}
+
+		case anthropic.ContentBlockStartEvent:
+			acc := &blockAcc{kind: ev.ContentBlock.Type}
+			if ev.ContentBlock.Type == "tool_use" {
+				acc.id = ev.ContentBlock.ID
+				acc.name = ev.ContentBlock.Name
+			}
+			blocks[ev.Index] = acc
+
+		case anthropic.ContentBlockDeltaEvent:
+			acc := blocks[ev.Index]
+			switch ev.Delta.Type {
+			case "text_delta":
+				if ev.Delta.Text != "" {
+					if acc != nil {
+						acc.text += ev.Delta.Text
+					}
+					out <- Delta{Type: DeltaText, Text: ev.Delta.Text}
+				}
+			case "thinking_delta":
+				if ev.Delta.Thinking != "" {
+					if acc != nil {
+						acc.thinking += ev.Delta.Thinking
+					}
+					out <- Delta{Type: DeltaThinking, Text: ev.Delta.Thinking}
+				}
+			case "input_json_delta":
+				if acc != nil && ev.Delta.PartialJSON != "" {
+					acc.fragJSON = append(acc.fragJSON, ev.Delta.PartialJSON)
+					out <- Delta{Type: DeltaToolUse, ToolUse: &ToolUseDelta{
+						ID: acc.id, Name: acc.name,
+						Input: map[string]any{"_partial": ev.Delta.PartialJSON},
+					}}
+				}
+			}
+
+		case anthropic.ContentBlockStopEvent:
+			acc := blocks[ev.Index]
+			if acc == nil {
+				continue
+			}
+			switch acc.kind {
+			case "text":
+				if acc.text != "" {
+					turn.assistantBlocks = append(turn.assistantBlocks, anthropic.NewTextBlock(acc.text))
+				}
+			case "tool_use":
+				args := joinPartialJSON(acc.fragJSON)
+				turn.toolUses = append(turn.toolUses, pendingTool{
+					id: acc.id, name: acc.name, fragments: acc.fragJSON,
+				})
+				turn.assistantBlocks = append(turn.assistantBlocks, anthropic.NewToolUseBlock(acc.id, args, acc.name))
+			}
+			// Thinking blocks are not echoed back on the next turn: the
+			// API recomputes them per request and including stale
+			// thinking confuses the model.
+
+		case anthropic.MessageDeltaEvent:
+			if ev.Usage.OutputTokens > 0 {
+				turn.outputTokens = int(ev.Usage.OutputTokens)
+			}
+			if ev.Delta.StopReason != "" {
+				turn.stopReason = ev.Delta.StopReason
+			}
+
+		case anthropic.MessageStopEvent:
+			// final — no-op
+		}
+	}
+	if err := stream.Err(); err != nil {
+		return turn, err
+	}
+	return turn, nil
+}
+
+// buildAnthropicTools converts the provider-neutral ToolSpec slice into
+// the SDK's tagged union, skipping the empty case so we don't even send
+// a tools field on text-only calls (which would otherwise cost a few
+// extra prefill tokens).
+func buildAnthropicTools(req Request) []anthropic.ToolUnionParam {
+	if len(req.Tools) == 0 {
+		return nil
+	}
+	tools := make([]anthropic.ToolUnionParam, 0, len(req.Tools))
+	for _, t := range req.Tools {
+		tools = append(tools, anthropic.ToolUnionParam{
+			OfTool: &anthropic.ToolParam{
+				Name:        t.Name,
+				Description: anthropic.String(t.Description),
+				InputSchema: anthropic.ToolInputSchemaParam{
+					Properties: t.InputSchema,
+				},
+			},
+		})
+	}
+	return tools
 }
 
 // buildSystemBlocks creates the system prompt as cache-marked text blocks.
@@ -263,6 +463,52 @@ func buildMessages(req Request) []anthropic.MessageParam {
 	}
 	blocks = append(blocks, anthropic.NewTextBlock(req.Prompt))
 	return []anthropic.MessageParam{anthropic.NewUserMessage(blocks...)}
+}
+
+// applyMessageCacheBreakpoints stamps an ephemeral cache_control marker on
+// the last text block of the final message. Anthropic allows up to 4
+// cache breakpoints total per request: two are spent on the system blocks
+// (system instructions + project context), leaving room here to cache the
+// growing conversation prefix. We refresh the breakpoint each round so it
+// always sits on the most recent turn — that way the next iteration
+// reads from cache for everything up to and including the round we just
+// finished, paying full price only for the newest user/tool_result.
+//
+// We only mark text and tool_result blocks (the bulky ones); image blocks
+// already cache fine on their own and tool_use blocks are typically tiny.
+func applyMessageCacheBreakpoints(messages []anthropic.MessageParam) []anthropic.MessageParam {
+	if len(messages) == 0 {
+		return messages
+	}
+	// First clear any cache_control we previously stamped on prior
+	// messages — Anthropic caps the request at 4 breakpoints total, so
+	// rolling the marker forward each round (instead of accumulating
+	// stale ones) keeps us under the limit no matter how long the
+	// conversation grows.
+	var zero anthropic.CacheControlEphemeralParam
+	for i := range messages {
+		for j := range messages[i].Content {
+			if t := messages[i].Content[j].OfText; t != nil {
+				t.CacheControl = zero
+			}
+			if r := messages[i].Content[j].OfToolResult; r != nil {
+				r.CacheControl = zero
+			}
+		}
+	}
+	// Stamp the last cacheable block of the last message.
+	last := &messages[len(messages)-1]
+	for j := len(last.Content) - 1; j >= 0; j-- {
+		if t := last.Content[j].OfText; t != nil {
+			t.CacheControl = anthropic.CacheControlEphemeralParam{}
+			return messages
+		}
+		if r := last.Content[j].OfToolResult; r != nil {
+			r.CacheControl = anthropic.CacheControlEphemeralParam{}
+			return messages
+		}
+	}
+	return messages
 }
 
 // estimateCost rough-bills tokens based on published Anthropic pricing tiers.

@@ -16,7 +16,7 @@ func NewMockProvider(name string) *MockProvider { return &MockProvider{name: nam
 func (m *MockProvider) Name() string { return m.name }
 
 func (m *MockProvider) Capabilities() []Capability {
-	return []Capability{CapReasoning, CapCode, CapJSON, CapCheap, CapFast, CapPrivate}
+	return []Capability{CapReasoning, CapCode, CapJSON, CapCheap, CapFast, CapPrivate, CapInline}
 }
 
 func (m *MockProvider) CompleteStream(ctx context.Context, req Request) (<-chan Delta, error) {

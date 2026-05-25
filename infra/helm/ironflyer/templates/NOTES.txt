@@ -1,0 +1,85 @@
+Ironflyer {{ .Chart.AppVersion }} — release {{ .Release.Name }} installed in
+namespace {{ .Release.Namespace }}.
+
+Public URL:
+  https://{{ .Values.host }}
+
+Services in this release:
+  - orchestrator (Go finisher engine, port 8080)
+  - runtime      (Go workspace sandbox, port 8090)
+  - web          (Next.js 15 dashboard, port 3000)
+{{- if .Values.postgres.enabled }}
+  - postgres     (in-cluster StatefulSet — disable for managed Postgres)
+{{- end }}
+
+────────────────────────────────────────────────────────────────────────────
+SECURITY — Postgres credentials
+────────────────────────────────────────────────────────────────────────────
+
+{{- if .Values.postgres.existingSecret }}
+
+This release reads Postgres credentials from the EXTERNAL Secret:
+
+    {{ .Values.postgres.existingSecret }}
+
+The chart did NOT mint a Secret. That Secret MUST expose:
+  - postgres-password
+  - POSTGRES_URL   (postgres://user:pass@host:5432/db?sslmode=...)
+{{- if .Values.postgres.enabled }}
+  - POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
+    (consumed by the in-cluster postgres:16-alpine StatefulSet)
+{{- end }}
+
+Rotate by updating that Secret out-of-band, then triggering a rollout:
+    kubectl -n {{ .Release.Namespace }} rollout restart deploy/orchestrator deploy/web
+{{- if .Values.postgres.enabled }}
+    kubectl -n {{ .Release.Namespace }} rollout restart statefulset/postgres
+{{- end }}
+
+{{- else }}
+
+This release minted a chart-managed Secret:
+
+    {{ include "ironflyer.postgresSecretName" . }}
+
+Keys exposed:
+  - postgres-password
+  - POSTGRES_URL   (full DSN)
+{{- if .Values.postgres.enabled }}
+  - POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
+{{- end }}
+
+The orchestrator, web, and runtime Deployments pull POSTGRES_URL /
+POSTGRES_PASSWORD via `valueFrom.secretKeyRef`. The DSN is NEVER written
+to any ConfigMap.
+
+Rotate by upgrading with a new password:
+    helm upgrade {{ .Release.Name }} . \
+      --reuse-values --set postgres.password='<new-strong-secret>'
+
+For production we recommend switching to an external-managed Secret:
+    helm upgrade {{ .Release.Name }} . \
+      --reuse-values \
+      --set postgres.password='' \
+      --set postgres.existingSecret='ironflyer-pg-external'
+
+{{- end }}
+
+{{- if and (not .Values.postgres.existingSecret) (not .Values.postgres.password) }}
+
+⚠  postgres.password is EMPTY. Helm should have already failed during
+   rendering; if you are seeing this, you ran `--dry-run --disable-openapi-validation`
+   or similar. Do NOT proceed to install — set a password first.
+{{- end }}
+
+────────────────────────────────────────────────────────────────────────────
+Verify the install
+────────────────────────────────────────────────────────────────────────────
+
+  kubectl -n {{ .Release.Namespace }} get pods -l app.kubernetes.io/part-of=ironflyer
+  kubectl -n {{ .Release.Namespace }} logs deploy/orchestrator --tail=50
+
+Smoke test (from outside the cluster):
+  curl -fsS https://{{ .Values.host }}/readyz
+
+See DEPLOY.md in the repo for the end-to-end runbook.

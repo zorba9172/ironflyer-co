@@ -1,0 +1,77 @@
+name: ironflyer-infra
+runtime: go
+description: |
+  Ironflyer compute + edge infrastructure (AWS).
+  Provisions VPC, EKS (with IRSA, addons, Helm-installed controllers),
+  Route53 zones, ACM certs, CloudFront, and WAFv2. The data layer
+  (RDS Postgres, ElastiCache, S3 buckets, KMS, EFS) is owned by a
+  sibling Pulumi project; this stack publishes outputs (vpcId,
+  privateSubnetIds, dbSubnetGroupId, eksClusterName, oidcProviderArn,
+  hostedZoneId, certArn) that the data project consumes via
+  StackReference.
+
+config:
+  aws:region:
+    description: AWS region for the regional resources.
+  infra:vpcCidr:
+    description: CIDR block for the VPC (default 10.0.0.0/16).
+    default: 10.0.0.0/16
+  infra:singleNatGateway:
+    description: Use a single NAT gateway (cheaper, lower HA). Recommended for dev only.
+    default: false
+  infra:k8sVersion:
+    description: Kubernetes version for the EKS control plane.
+    default: "1.30"
+  infra:publicApiCidrs:
+    description: CIDRs allowed to reach the EKS public API endpoint.
+    default: ["0.0.0.0/0"]
+  infra:orchestratorInstanceType:
+    description: EC2 instance type for the orchestrator node group.
+    default: m6i.large
+  infra:runtimeInstanceType:
+    description: EC2 instance type for the runtime node group.
+    default: m6i.xlarge
+  infra:useKarpenter:
+    description: Install Karpenter for advanced autoscaling.
+    default: false
+  infra:rootDomain:
+    description: Root DNS domain for this environment.
+  infra:regionSubdomain:
+    description: Per-region subdomain prefix (e.g. eu, us, il). Empty for non-prod.
+    default: ""
+  infra:webSpaBucketName:
+    description: Bucket name for the web SPA (owned by the data Pulumi project).
+    default: ""
+  infra:allowlistedIps:
+    description: IPs allowed past the WAF rate-limit (CSV).
+    default: ""
+  infra:dataStackName:
+    description: Optional fully-qualified data Pulumi stack name (org/project/stack) to read web SPA bucket from.
+    default: ""
+  ironflyer:vercelEnabled:
+    description: Provision the Vercel-hosted Ironflyer dashboard for this stack.
+    default: "false"
+  ironflyer:vercelTeamId:
+    description: Vercel team slug or ID under which the dashboard project lives.
+    default: ""
+  ironflyer:vercelDomain:
+    description: Public hostname for the dashboard (e.g. app.eu.ironflyer.dev).
+    default: ""
+  ironflyer:vercelBranch:
+    description: Git branch Vercel treats as production for this stack.
+    default: main
+  ironflyer:vercelFramework:
+    description: Vercel framework preset for the dashboard.
+    default: nextjs
+  ironflyer:vercelGitRepoOwner:
+    description: GitHub org/owner that owns the dashboard repo (empty disables git binding).
+    default: ""
+  ironflyer:vercelGitRepoName:
+    description: GitHub repo name for the dashboard (empty disables git binding).
+    default: ""
+  ironflyer:vercelSentryDsn:
+    description: Override for the dashboard's NEXT_PUBLIC_SENTRY_DSN. When empty, the data-layer Sentry secret ARN is used.
+    default: ""
+  vercel:apiToken:
+    description: Vercel API token (set via `pulumi config set --secret vercel:apiToken <token>`).
+    secret: true

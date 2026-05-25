@@ -51,6 +51,21 @@ type Config struct {
 
 	// PreviewTokenTTL is the lifetime of a freshly minted preview token.
 	PreviewTokenTTL time.Duration `env:"IRONFLYER_RUNTIME_PREVIEW_TOKEN_TTL" envDefault:"30m"`
+
+	// EFSMount is the parent directory bind-mounted into every Docker
+	// workspace container. In production this is an EFS-backed
+	// PersistentVolume so any runtime pod can serve any workspace.
+	EFSMount string `env:"RUNTIME_EFS_MOUNT" envDefault:"/var/lib/ironflyer/workspaces"`
+
+	// IdleArchiveAfter is how long a workspace must sit untouched
+	// before the archival scanner ships it to S3.
+	IdleArchiveAfter time.Duration `env:"WORKSPACE_IDLE_ARCHIVE_AFTER" envDefault:"30m"`
+
+	// ArchiveConcurrency is the per-pod cap on simultaneous archive
+	// (and restore) operations. The S3 SDK does its own per-call
+	// multipart parallelism; this knob bounds how many workspaces are
+	// in-flight at once.
+	ArchiveConcurrency int `env:"WORKSPACE_ARCHIVE_CONCURRENCY" envDefault:"4"`
 }
 
 func Load() (Config, error) {

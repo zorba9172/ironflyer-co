@@ -1,0 +1,60 @@
+{{- if .Values.keda.enabled -}}
+# KEDA ScaledObject — runtime allocator paid execution queue.
+#
+# Drives runtime Deployment replicas from Redpanda consumer-group lag on
+# the execution lifecycle topic (filtered by the runtime allocator's
+# consumer group). Per ARCHITECTURE_RUNTIME_SCALE.md § Kubernetes Scaling,
+# the allocator must scale from paid execution queue pressure, not raw
+# HTTP traffic.
+#
+# Today we trigger on the execution lifecycle topic with the runtime
+# allocator's distinct consumer group; V22 will likely add a dedicated
+# `paid_queue_depth` metric (exposed through the orchestrator's
+# Prometheus surface), at which point a second `prometheus` trigger can
+# layer on here without changing the scale target.
+#
+# Allocator workers can legitimately scale to zero in idle regions (see
+# RUNTIME_SCALE.md § Scale-to-zero rules); set `minReplicaCount: 0` here
+# when the region's warm-pool floor is also zero.
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: runtime-allocator-paid-queue
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: runtime
+    app.kubernetes.io/component: keda-scaler
+    ironflyer.io/workerGroupHint: paid-execution-allocator
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: runtime
+  pollingInterval: 10
+  cooldownPeriod: 300
+  minReplicaCount: 1
+  maxReplicaCount: 30
+  fallback:
+    failureThreshold: 3
+    replicas: 1
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        # Be aggressive on the way up — paid executions are holding budget.
+        scaleUp:
+          stabilizationWindowSeconds: 30
+        # Be conservative on the way down — never drop a node with live
+        # sandbox leases attached (RUNTIME_SCALE.md § Scale-to-zero).
+        scaleDown:
+          stabilizationWindowSeconds: 600
+  triggers:
+    - type: kafka
+      metadata:
+        bootstrapServers: {{ .Values.keda.kafkaBootstrapServers | quote }}
+        consumerGroup: "ironflyer-runtime-allocator"
+        topic: "ifly.prod.execution.lifecycle.v1"
+        lagThreshold: "25"
+        activationLagThreshold: "5"
+        offsetResetPolicy: latest
+        allowIdleConsumers: "false"
+{{- end }}

@@ -1,0 +1,77 @@
+# Budget + billing domain. Maps onto budget.Billing / budget.StripeService
+# / budget.Ledger / budget.Vault.
+#
+# V22 trims this surface to the plan catalogue, the rate sheet, the
+# vault snapshot, the user's per-period summary, and Stripe checkout.
+# Dunning, refunds, billing-portal, and subscription cancellation are
+# the wallet/ledger agents' territory or deferred.
+
+type Plan {
+  tier: String!
+  name: String!
+  priceUsd: Decimal!
+  costCapUsd: Decimal!
+  description: String
+  features: [String!]!
+  stripePriceId: String
+}
+
+type Rate {
+  provider: String!
+  model: String!
+  promptPerMTok: Decimal!
+  completionPerMTok: Decimal!
+}
+
+type LedgerEntry {
+  id: ID!
+  userId: ID!
+  projectId: ID
+  provider: String
+  model: String
+  promptTokens: Int!
+  completionTokens: Int!
+  costUsd: Decimal!
+  revenueUsd: Decimal!
+  ts: DateTime!
+  agent: String
+  durationMs: Int
+}
+
+type VaultSnapshot {
+  revenueUsd: Decimal!
+  providerCostUsd: Decimal!
+  marginUsd: Decimal!
+  entries: Int!
+  asOf: DateTime!
+}
+
+type BudgetSummary {
+  userId: ID!
+  email: String!
+  tier: String!
+  spentUsd: Decimal!
+  entries: [LedgerEntry!]!
+}
+
+type StripeCheckoutSession {
+  sessionId: String!
+  url: String!
+}
+
+input StartCheckoutInput {
+  tier: String!
+  successUrl: String
+  cancelUrl: String
+}
+
+extend type Query {
+  plans: [Plan!]!
+  rates: [Rate!]!
+  vault: VaultSnapshot!
+  myBudget: BudgetSummary!
+}
+
+extend type Mutation {
+  startCheckout(input: StartCheckoutInput!): StripeCheckoutSession!
+}

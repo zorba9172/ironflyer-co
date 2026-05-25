@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "profitguard.decisions.v1",
+  "type": "object",
+  "required": ["event_id", "tenant_id", "occurred_at", "execution_id", "enforcement_point", "decision"],
+  "properties": {
+    "event_id": {"type": "string"},
+    "tenant_id": {"type": "string"},
+    "occurred_at": {"type": "string", "format": "date-time"},
+    "execution_id": {"type": "string"},
+    "enforcement_point": {"type": "string"},
+    "decision": {"type": "string", "enum": ["allow", "block", "downgrade", "defer"]},
+    "reason": {"type": ["string", "null"]},
+    "expected_margin_usd": {"type": ["string", "null"]},
+    "metadata": {"type": "object"}
+  }
+}

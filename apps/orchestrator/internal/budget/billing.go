@@ -20,6 +20,14 @@ type Billing struct {
 	Optimizer *Optimizer
 	Enforcer  *Enforcer
 
+	// Metered is the Stripe usage-record reporter. Optional — when nil or
+	// disabled, Charge stays a pure-ledger operation and no overage is sent
+	// upstream. Wired in cmd/orchestrator/main.go once Stripe + plan
+	// metered price IDs are loaded.
+	Metered  *MeteredReporter
+	SubItems SubscriptionItemStore
+	PayFlags PaymentFlagStore
+
 	mu       sync.RWMutex
 	userPlan map[string]PlanTier
 }
@@ -75,6 +83,38 @@ func (b *Billing) PlanFor(userID string) PlanTier {
 	return TierFree
 }
 
+// PlanByTier returns the Plan whose Tier matches t, or false. Plan
+// definitions are loaded once at startup so this is a cheap slice
+// scan; the GraphQL dataloader uses it to batch User.plan projection
+// lookups.
+func (b *Billing) PlanByTier(t PlanTier) (Plan, bool) {
+	if b == nil {
+		return Plan{}, false
+	}
+	for _, p := range b.Plans {
+		if p.Tier == t {
+			return p, true
+		}
+	}
+	return Plan{}, false
+}
+
+// PlansByTiers batch-fetches plans by tier id. Tiers without a
+// matching Plan are omitted from the result so the dataloader can
+// surface that absence per key.
+func (b *Billing) PlansByTiers(tiers []PlanTier) map[PlanTier]Plan {
+	out := make(map[PlanTier]Plan, len(tiers))
+	if b == nil {
+		return out
+	}
+	for _, t := range tiers {
+		if p, ok := b.PlanByTier(t); ok {
+			out[t] = p
+		}
+	}
+	return out
+}
+
 // Admit asks the enforcer whether a call can proceed and which provider/model
 // to use.
 func (b *Billing) Admit(ctx context.Context, userID string, required []string, estInTok, estOutTok int) Decision {
@@ -102,6 +142,28 @@ func (b *Billing) Charge(ctx context.Context, userID, projectID, provider, model
 			Amount: cost.Neg(),
 			Note:   provider + "/" + model,
 		})
+	}
+	// Forward the cost to the metered reporter so users on paid plans pay
+	// per-call for spend above their CostCapUSD. Skip when:
+	//   * Free tier — HardStop already blocked the call before we got here,
+	//     so anything that landed in the ledger was on a paid plan, but
+	//     defensive guard avoids surprising the user if HardStop is ever
+	//     loosened.
+	//   * Reporter disabled (self-hosted / IRONFLYER_METERED_DISABLED).
+	//   * No subscription item known for the user — webhook hasn't fired yet.
+	if b.Metered != nil && b.Metered.Enabled() && cost.IsPositive() {
+		tier := b.PlanFor(userID)
+		if tier != TierFree {
+			b.Metered.Record(ctx, MeteredEvent{
+				UserID:    userID,
+				ProjectID: projectID,
+				Model:     model,
+				InTokens:  inTok,
+				OutTokens: outTok,
+				CostUSD:   cost,
+				At:        entry.CreatedAt,
+			})
+		}
 	}
 	return entry
 }

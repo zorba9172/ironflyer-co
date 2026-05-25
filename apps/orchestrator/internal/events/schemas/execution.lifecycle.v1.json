@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "execution.lifecycle.v1",
+  "type": "object",
+  "required": ["event_id", "tenant_id", "occurred_at", "execution_id"],
+  "properties": {
+    "event_id": {"type": "string"},
+    "tenant_id": {"type": "string"},
+    "occurred_at": {"type": "string", "format": "date-time"},
+    "execution_id": {"type": "string"},
+    "phase": {"type": ["string", "null"]},
+    "status": {"type": ["string", "null"]},
+    "reason": {"type": ["string", "null"]},
+    "metadata": {"type": "object"}
+  }
+}

@@ -1,0 +1,18 @@
+config:
+  ironflyer:region: nyc3
+  ironflyer:doksNodeSize: s-2vcpu-4gb
+  ironflyer:doksNodeCount: "3"
+  ironflyer:doksMaxNodes: "6"
+  ironflyer:doksRuntimeNodeSize: s-4vcpu-8gb
+  ironflyer:doksRuntimeNodeCount: "2"
+  ironflyer:doksRuntimeMaxNodes: "6"
+  ironflyer:k8sVersion: 1.30.6-do.0
+  ironflyer:postgresSize: db-s-2vcpu-4gb
+  ironflyer:postgresVersion: "16"
+  ironflyer:redisSize: db-s-1vcpu-2gb
+  ironflyer:redisVersion: "7"
+  ironflyer:enableHA: "false"
+  ironflyer:vercelEnabled: "true"
+  ironflyer:vercelDomain: app.staging.ironflyer.dev
+  ironflyer:rootDomain: staging.ironflyer.dev
+  ironflyer:spacesRegion: nyc3

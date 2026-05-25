@@ -1,0 +1,37 @@
+# V22 blueprints (Agent 6) — read-only catalogue + per-blueprint
+# stats. Mutations are deliberately absent: blueprints are loaded
+# from the built-in registry at process start; new blueprints land
+# as code, not as runtime writes. Stats are written by the execution
+# commit flow (Agent 4) via blueprints.StatsService.RecordRun and
+# exposed here for the Blueprint Profit Dashboard.
+
+extend type Query {
+  blueprints: [Blueprint!]!
+  blueprint(id: String!): Blueprint
+  blueprintStats(id: String!): BlueprintStats
+  blueprintRanking(byMetric: String = "gross_margin_pct", limit: Int = 10): [BlueprintStats!]!
+}
+
+type Blueprint {
+  id: String!
+  name: String!
+  description: String!
+  category: String!
+  costPriorUSD: Float!
+  expectedTimeToPreviewSec: Int!
+  supportedGates: [String!]!
+  fileCount: Int!
+}
+
+type BlueprintStats {
+  blueprintID: String!
+  executions: Int!
+  previewSuccess: Int!
+  refunds: Int!
+  repairCount: Int!
+  avgRevenueUSD: Float!
+  avgCostUSD: Float!
+  grossMarginPct: Float!
+  avgCompletionScore: Float!
+  avgTimeToPreviewSec: Float!
+}

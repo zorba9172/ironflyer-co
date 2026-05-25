@@ -1,0 +1,67 @@
+# Studio entrypoint — the natural-language → ready-execution surface.
+#
+# describeIdea is the missing entrypoint after Foundation deleted the
+# brainstorm package: a user types "build me a CRM for my landscape
+# business", the orchestrator extracts a spec, picks a blueprint,
+# creates the project, places the wallet hold, admits + starts the
+# execution, and returns the IDs the frontend uses to route into the
+# live studio.
+#
+# refineIdea appends a "studio.refine.v1" event into the running
+# execution so the finisher can pick up the new instruction without
+# tearing down and re-admitting.
+
+extend type Mutation {
+  # describeIdea is the vibe-builder entrypoint. The resolver:
+  #   1. validates the auth context + the user's wallet balance,
+  #   2. asks the ideaparser (LLM or rules) for a structured Idea,
+  #   3. forecasts the cost via the existing Forecaster,
+  #   4. creates the project + the paid execution,
+  #   5. places the wallet hold (law 1),
+  #   6. admits + starts the execution.
+  # On wallet shortfall the resolver returns INSUFFICIENT_FUNDS with
+  # a topUpURL extension — no project or execution is created.
+  describeIdea(input: DescribeIdeaInput!): StudioBootstrap!
+
+  # refineIdea records a user follow-up against a running execution
+  # without restarting admission. The finisher loop consumes the
+  # studio.refine.v1 event and folds the new instruction into the
+  # next iteration. Returns the latest StudioBootstrap snapshot so
+  # the client can re-render the cost estimate + execution status.
+  refineIdea(executionID: ID!, message: String!): StudioBootstrap!
+}
+
+input DescribeIdeaInput {
+  # text is the user's natural-language prompt. Required, non-empty.
+  text: String!
+  # budgetUSDOverride lets a power-user pin the wallet hold instead
+  # of accepting the parser's suggestion. Clamped to wallet balance.
+  budgetUSDOverride: Float
+  # startImmediately controls whether the resolver kicks the
+  # finisher worker after admission. Defaults to true — the user
+  # expects "describe → live preview" without extra clicks.
+  startImmediately: Boolean = true
+}
+
+# StudioBootstrap is the single payload the studio screen needs to
+# render: the project to route into, the execution to subscribe to,
+# the parsed idea (so the UI can show "why this blueprint" + tags),
+# and the pre-flight cost estimate.
+type StudioBootstrap {
+  project: Project!
+  execution: Execution!
+  idea: ParsedIdea!
+  costEstimate: CostEstimate!
+}
+
+# ParsedIdea is the structured plan the ideaparser returned.
+type ParsedIdea {
+  title: String!
+  summary: String!
+  blueprintID: String!
+  blueprintReason: String!
+  suggestedBudgetUSD: Float!
+  tags: [String!]!
+  stopLossUSD: Float!
+  confidence: Float!
+}

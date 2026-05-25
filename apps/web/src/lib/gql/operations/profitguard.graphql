@@ -1,0 +1,21 @@
+# ProfitGuard decision trail for one execution. Each decision is a
+# read-only record of an enforcement-point firing — pause / degrade /
+# kill_branch / proceed, with the reasoning the guard used.
+
+query ProfitGuardDecisions($executionID: ID, $limit: Int) {
+  profitGuardDecisions(executionID: $executionID, limit: $limit) {
+    id
+    executionID
+    enforcementPoint
+    decision
+    reason
+    spentUSD
+    reservedUSD
+    estimatedStepCostUSD
+    expectedCompletionDelta
+    expectedMarginPct
+    riskScore
+    recommendedProvider
+    createdAt
+  }
+}

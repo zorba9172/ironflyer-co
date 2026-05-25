@@ -1,0 +1,203 @@
+# Patch lifecycle domain. Maps onto patch.Engine in internal/patch/.
+
+enum PatchStatus {
+  PROPOSED
+  APPROVED
+  APPLIED
+  REJECTED
+  ROLLED_BACK
+  # CONFLICTED — Apply detected a concurrent edit between Propose and
+  # Apply; the 3-way merger emitted conflict markers and the patch is
+  # waiting on human resolution. The UI renders a 3-way diff using the
+  # `conflict` field on Patch.
+  CONFLICTED
+}
+
+enum PatchStageStatus {
+  OPEN
+  REVIEWED
+  APPLIED
+  REJECTED
+}
+
+enum SymbolAction {
+  RENAME
+  REPLACE_BODY
+  INSERT_AFTER
+  DELETE_SYMBOL
+}
+
+enum SymbolKind {
+  FUNCTION
+  METHOD
+  CLASS
+  STRUCT
+  INTERFACE
+  TYPE
+  VAR
+  CONST
+}
+
+enum PatchChangeOp {
+  CREATE
+  REPLACE
+  DELETE
+  INSERT_BEFORE
+  INSERT_AFTER
+  ANCHOR_REPLACE
+  SYMBOL_REPLACE
+}
+
+type Patch {
+  id: ID!
+  projectId: ID!
+  title: String
+  summary: String
+  author: String
+  status: PatchStatus!
+  createdAt: DateTime!
+  appliedAt: DateTime
+  changes: [PatchChange!]!
+}
+
+# PatchChange is the discriminated union of all supported file-edit
+# operations. We keep it as a single object with optional fields rather
+# than a true GraphQL union because the patch.FileChange Go shape is
+# itself a tagged struct; clients dispatch on `op`.
+type PatchChange {
+  op: PatchChangeOp!
+  path: String!
+  content: String
+  anchor: String
+  replacement: String
+  symbol: String
+}
+
+# PatchOp is the union of anchor-based vs symbol-based change payloads.
+# Resolvers may choose to project the unified PatchChange shape into one
+# of these for richer typing on the wire.
+union PatchOp = PatchAnchorOp | PatchSymbolOp
+
+type PatchAnchorOp {
+  path: String!
+  anchor: String!
+  replacement: String!
+}
+
+type PatchSymbolOp {
+  path: String!
+  symbol: String!
+  replacement: String!
+}
+
+input ProposePatchInput {
+  projectId: ID!
+  title: String
+  summary: String
+  author: String
+  changes: [PatchChangeInput!]!
+}
+
+input PatchChangeInput {
+  op: PatchChangeOp!
+  path: String!
+  content: String
+  anchor: String
+  replacement: String
+  symbol: String
+}
+
+extend type Query {
+  patches(projectId: ID!): [Patch!]!
+  patch(id: ID!): Patch
+  patchSnapshots(projectId: ID!): JSON
+  # Stage queries. `stages` lists every stage for a project, newest
+  # first; `stage` fetches one by ID.
+  stages(projectId: ID!): [PatchStage!]!
+  stage(id: ID!): PatchStage
+}
+
+extend type Mutation {
+  proposePatch(input: ProposePatchInput!): Patch!
+  applyPatch(patchId: ID!): Patch!
+  rollbackPatch(patchId: ID!): JSON!
+  # Symbol-level (AST) patch propose. Drops a SymbolPatchInput into the
+  # engine's usual lifecycle — validate, snapshot, apply, gates.
+  proposeSymbolPatch(input: SymbolPatchInput!): Patch!
+  # Workspace-wide rename. Returns the proposed Patch (which the
+  # caller can then `applyPatch` to land the change).
+  renameSymbol(input: RenameSymbolInput!): Patch!
+  # Stage CRUD. createStage groups existing patches; applyStage
+  # applies all atomically (rolling back on failure); rejectStage
+  # marks the bundle rejected without touching the patches.
+  createStage(input: CreateStageInput!): PatchStage!
+  applyStage(stageId: ID!): JSON!
+  rejectStage(stageId: ID!, reason: String): PatchStage!
+}
+
+# PatchStage groups multiple patches into one review unit.
+type PatchStage {
+  id: ID!
+  projectId: ID!
+  name: String!
+  description: String
+  patchIds: [ID!]!
+  status: PatchStageStatus!
+  rejectionReason: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+input CreateStageInput {
+  projectId: ID!
+  name: String!
+  description: String
+  patchIds: [ID!]!
+}
+
+# SymbolPatchInput is the AST-style patch payload — the engine resolves
+# the named symbol via tree-sitter and rewrites the file.
+input SymbolPatchInput {
+  projectId: ID!
+  path: String!
+  title: String
+  summary: String
+  author: String
+  kind: SymbolKind!
+  name: String!
+  receiver: String
+  action: SymbolAction!
+  newBody: String
+  newDecl: String
+  newName: String
+}
+
+# RenameSymbolInput drives the workspace-wide rename path.
+input RenameSymbolInput {
+  projectId: ID!
+  kind: SymbolKind
+  oldName: String!
+  newName: String!
+}
+
+# PatchConflict is the 3-way diff payload the UI renders when Apply
+# emits conflict markers. Base is the body at Propose-time; Ours is
+# the current body (user edits); Theirs is what the AI wanted to
+# produce; Markers is the merged body with `<<<<<<<` / `=======` /
+# `>>>>>>>` blocks for the unresolved hunks.
+type PatchConflict {
+  path: String!
+  base: String!
+  ours: String!
+  theirs: String!
+  markers: String!
+}
+
+# Extend Patch with the staging + conflict fields. `stageId` is the
+# stage this patch was bundled into; `conflict` is populated when the
+# patch landed in CONFLICTED status.
+extend type Patch {
+  stageId: ID
+  stage: PatchStage
+  conflicts: [PatchConflict!]
+}

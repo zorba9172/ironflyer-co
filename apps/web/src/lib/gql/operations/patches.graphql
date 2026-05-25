@@ -1,0 +1,44 @@
+# Patch surface — the Studio Patches tab + CodePane "last touched"
+# attribution flow through these operations so the components import
+# typed selectors instead of carrying inline gql.
+
+fragment PatchChangeCore on PatchChange {
+  op
+  path
+  anchor
+  replacement
+  symbol
+  content
+}
+
+fragment PatchCore on Patch {
+  id
+  projectId
+  title
+  summary
+  author
+  status
+  createdAt
+  appliedAt
+  changes {
+    ...PatchChangeCore
+  }
+}
+
+query Patches($projectId: ID!) {
+  patches(projectId: $projectId) {
+    ...PatchCore
+  }
+}
+
+mutation ApplyPatch($id: ID!) {
+  applyPatch(patchId: $id) {
+    id
+    status
+    appliedAt
+  }
+}
+
+mutation RollbackPatch($id: ID!) {
+  rollbackPatch(patchId: $id)
+}

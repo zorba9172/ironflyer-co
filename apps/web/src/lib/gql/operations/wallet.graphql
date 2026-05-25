@@ -1,0 +1,32 @@
+# Wallet operations — surfaces the prepaid credit balance and the
+# Stripe Checkout entrypoint. Consumed by the Nav wallet chip and the
+# /wallet page (A47).
+
+query Wallet {
+  wallet {
+    tenantID
+    balanceUSD
+    holdUSD
+    availableUSD
+    lifetimeTopUpUSD
+    lifetimeSpendUSD
+    updatedAt
+  }
+}
+
+query WalletTopUps($limit: Int) {
+  walletTopUps(limit: $limit) {
+    id
+    amountUSD
+    status
+    createdAt
+    completedAt
+  }
+}
+
+mutation WalletCreateTopUp($amountUSD: Float!) {
+  walletCreateTopUp(amountUSD: $amountUSD) {
+    url
+    sessionID
+  }
+}

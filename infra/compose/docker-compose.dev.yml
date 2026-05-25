@@ -35,6 +35,56 @@ services:
       timeout: 3s
       retries: 10
 
+  redpanda:
+    image: redpandadata/redpanda:v24.3.7
+    command:
+      - redpanda
+      - start
+      - --overprovisioned
+      - --smp
+      - "1"
+      - --memory
+      - 1G
+      - --reserve-memory
+      - 0M
+      - --node-id
+      - "0"
+      - --check=false
+      - --kafka-addr
+      - PLAINTEXT://0.0.0.0:9092,OUTSIDE://0.0.0.0:19092
+      - --advertise-kafka-addr
+      - PLAINTEXT://redpanda:9092,OUTSIDE://localhost:19092
+    ports:
+      - "19092:19092"
+      - "9644:9644"
+    volumes:
+      - redpanda-data:/var/lib/redpanda/data
+    healthcheck:
+      test: ["CMD-SHELL", "rpk cluster health | grep -E 'Healthy:.+true'"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.12-alpine
+    environment:
+      CLICKHOUSE_DB: ironflyer
+      CLICKHOUSE_USER: ironflyer
+      CLICKHOUSE_PASSWORD: ironflyer
+    ports:
+      - "8123:8123"
+      - "9002:9000"
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+      - ../clickhouse:/docker-entrypoint-initdb.d:ro
+    depends_on:
+      redpanda: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8123/ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
   # SurrealDB — multi-model (document + graph + relational) store for the
   # project knowledge graph. Live-query support gives us streaming UI updates
   # straight from the DB. Default endpoint: ws://localhost:8000/rpc
@@ -123,6 +173,25 @@ services:
       - codeserver-data:/home/coder/project
     command: ["--auth", "password", "--bind-addr", "0.0.0.0:8080", "/home/coder/project"]
 
+  # Stripe CLI — opt in with `--profile stripe` to forward webhook events
+  # into the local orchestrator. Requires STRIPE_DEVICE_NAME +
+  # STRIPE_API_KEY (restricted key with checkout + webhook scopes) in your
+  # .env so the CLI can authenticate without an interactive `stripe login`
+  # the first time. On first use: `docker compose run stripe login`.
+  stripe:
+    profiles: ["stripe"]
+    image: stripe/stripe-cli:latest
+    command:
+      - listen
+      - --forward-to
+      - http://host.docker.internal:8080/budget/webhook
+      - --skip-verify
+    environment:
+      STRIPE_API_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_DEVICE_NAME: ironflyer-local
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
   # ---------------------------------------------------------------------
   # App services — opt in with `--profile apps`. Templates bind-mounted so
   # `templates/` edits land in the orchestrator container without rebuild.
@@ -139,6 +208,7 @@ services:
       IRONFLYER_LOG_FORMAT: console
       IRONFLYER_LOG_LEVEL: info
       IRONFLYER_DB_DRIVER: hybrid
+      IRONFLYER_EXECUTOR: temporal
       POSTGRES_URL: postgres://ironflyer:ironflyer@postgres:5432/ironflyer?sslmode=disable
       SURREAL_URL: ws://surrealdb:8000/rpc
       IRONFLYER_RUNTIME_URL: http://runtime:8090
@@ -147,6 +217,7 @@ services:
       IRONFLYER_TEMPORAL_HOST: temporal:7233
       IRONFLYER_TEMPORAL_NAMESPACE: default
       IRONFLYER_TEMPORAL_TASK_QUEUE: ironflyer-finisher
+      REDPANDA_BROKERS: redpanda:9092
     ports:
       - "8080:8080"
     volumes:
@@ -156,6 +227,7 @@ services:
       postgres: { condition: service_healthy }
       surrealdb: { condition: service_started }
       temporal:  { condition: service_started }
+      redpanda: { condition: service_healthy }
 
   runtime:
     profiles: ["apps"]
@@ -196,6 +268,8 @@ services:
 volumes:
   postgres-data:
   redis-data:
+  redpanda-data:
+  clickhouse-data:
   minio-data:
   codeserver-data:
   surreal-data:

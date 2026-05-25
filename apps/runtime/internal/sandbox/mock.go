@@ -337,6 +337,22 @@ func (c *capBuffer) String() string { return string(c.buf) }
 // The mock target is started lazily on first call and reused across all
 // workspaces — different workspace IDs simply see the same canned page
 // with their ID interpolated into the response.
+// RestoreFromSnapshot is a no-op in the mock driver — the snapshot
+// plane is the canonical store, but local mock workspaces seed
+// themselves with a README and never restore from S3. The signature
+// is implemented so production allocators can call the same method on
+// every driver.
+func (m *MockDriver) RestoreFromSnapshot(_ context.Context, _ string, _ string) error {
+	return nil
+}
+
+// Checkpoint is a no-op in the mock driver. The snapshots.Manager
+// owns the canonical tar.zst lifecycle; the mock backend has no
+// persistent compute to flush.
+func (m *MockDriver) Checkpoint(_ context.Context, _ string, _ string) error {
+	return nil
+}
+
 func (m *MockDriver) PreviewTarget(_ context.Context, ws Workspace, port int) (string, error) {
 	host, err := startMockPreviewServer()
 	if err != nil {
@@ -395,6 +411,27 @@ border-radius:4px}</style></head><body>
 <p>Start a real dev server with <code>npm run dev</code> inside a Docker workspace
 to see your own UI here.</p>
 </body></html>`
+
+// AllocatePreviewPort for the mock driver returns a stable URL
+// derived from the workspace ID. There is no real dev server — the
+// URL is purely a placeholder so the studio iframe can render
+// something while the operator is in dev mode without Docker.
+func (m *MockDriver) AllocatePreviewPort(_ context.Context, workspaceID string, internalPort int) (PreviewBinding, error) {
+	if !PreviewPortAllowed(internalPort) {
+		return PreviewBinding{}, errors.New("internal port not on safelist")
+	}
+	return PreviewBinding{
+		WorkspaceID:  workspaceID,
+		InternalPort: internalPort,
+		ExternalPort: internalPort,
+		URL:          "http://mock-runtime/preview/" + workspaceID + "/",
+		ExpiresAt:    time.Now().Add(PreviewLeaseDuration).UTC(),
+	}, nil
+}
+
+// ReleasePreviewPort is a no-op for the mock driver — bindings are
+// derived from the workspace ID and never consume real resources.
+func (m *MockDriver) ReleasePreviewPort(_ context.Context, _ string) error { return nil }
 
 // Ensure interfaces are satisfied at compile time.
 var (

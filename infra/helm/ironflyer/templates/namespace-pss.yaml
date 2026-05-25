@@ -1,0 +1,27 @@
+{{- /*
+Pod Security Standards — label the release namespace at the `restricted`
+level. Enforces the strictest built-in admission baseline: no privileged
+pods, no hostNetwork/hostPID/hostIPC, no host paths, drop ALL caps,
+runAsNonRoot required, RuntimeDefault seccomp, etc.
+
+We skip the relabel when `.Values.namespaceOverride` is set — that signals
+the operator owns the namespace lifecycle and we shouldn't mutate labels
+out from under them (their cluster policy engine may already enforce a
+different level).
+
+This resource is `helm.sh/resource-policy: keep` so a `helm uninstall`
+doesn't tear down namespace-level security posture by accident.
+*/ -}}
+{{- if and .Values.podSecurity.enabled (not .Values.namespaceOverride) -}}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Release.Namespace }}
+  annotations:
+    helm.sh/resource-policy: keep
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+    pod-security.kubernetes.io/enforce: {{ .Values.podSecurity.level | quote }}
+    pod-security.kubernetes.io/audit: {{ .Values.podSecurity.level | quote }}
+    pod-security.kubernetes.io/warn: {{ .Values.podSecurity.level | quote }}
+{{- end }}

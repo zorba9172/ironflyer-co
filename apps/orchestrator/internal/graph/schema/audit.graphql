@@ -1,0 +1,59 @@
+# Immutable hash-chained audit log. Maps onto audit.Store /
+# audit.Query in internal/audit/.
+
+enum AuditOutcome {
+  SUCCESS
+  FAILURE
+  BLOCKED
+  SKIPPED
+}
+
+type AuditEntry {
+  id: ID!
+  ts: DateTime!
+  userId: ID
+  projectId: ID
+  action: String!
+  outcome: AuditOutcome!
+  hash: String!
+  prevHash: String
+  # Forward-compat envelope: the original Attrs map, preserved so
+  # clients written against the legacy JSON shape keep working.
+  payload: JSON
+  # Flattened fields projected from audit.Entry (internal/audit/audit.go).
+  # `actor` mirrors userId, `resource` is a coarse projectId/gate/role
+  # bundle, and `ok` mirrors outcome == SUCCESS so dashboards don't have
+  # to parse the enum.
+  actor: String
+  resource: String
+  storyId: String
+  gateName: String
+  agentRole: String
+  summary: String
+  inputHash: String
+  outputHash: String
+  ok: Boolean!
+}
+
+type AuditVerifyResult {
+  intact: Boolean!
+  firstBadIndex: Int!
+}
+
+input AuditQueryInput {
+  userId: ID
+  projectId: ID
+  action: String
+  outcome: AuditOutcome
+  since: DateTime
+  until: DateTime
+  limit: Int
+}
+
+extend type Query {
+  audit(query: AuditQueryInput): [AuditEntry!]!
+  verifyAudit: AuditVerifyResult!
+  # CSV / PDF exports are returned as signed URLs the client follows.
+  auditExportCsvUrl(query: AuditQueryInput): String!
+  auditExportPdfUrl(query: AuditQueryInput): String!
+}

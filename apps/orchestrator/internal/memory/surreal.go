@@ -235,19 +235,103 @@ func (s *SurrealStore) Query(ctx context.Context, q Query) ([]Record, error) {
 	if err != nil {
 		return nil, fmt.Errorf("memory surreal query: %w", err)
 	}
-	if res == nil || len(*res) == 0 {
-		return nil, nil
+	out := make([]Record, 0, limit)
+	if res != nil && len(*res) > 0 {
+		for _, row := range (*res)[0].Result {
+			out = append(out, row.toRecord())
+		}
 	}
-	rows := (*res)[0].Result
-	out := make([]Record, 0, len(rows))
-	for _, row := range rows {
-		out = append(out, row.toRecord())
+
+	// Federated pass — same-user records from any of q.FederatedProjectIDs
+	// (excluding the local q.ProjectID). Owner isolation is enforced via
+	// the userId clause; without a non-empty UserID we refuse to widen.
+	if q.IncludeFederated && q.UserID != "" && len(q.FederatedProjectIDs) > 0 {
+		fedCap := q.FederatedLimit
+		if fedCap <= 0 {
+			fedCap = 5
+		}
+		// Strip the local project id from the federation set.
+		fedIDs := make([]string, 0, len(q.FederatedProjectIDs))
+		for _, pid := range q.FederatedProjectIDs {
+			if pid == "" || pid == q.ProjectID {
+				continue
+			}
+			fedIDs = append(fedIDs, pid)
+		}
+		if len(fedIDs) > 0 {
+			fedVars := map[string]any{
+				"userId":   q.UserID,
+				"fedProjs": fedIDs,
+			}
+			fedWhere := []string{
+				"userId = $userId",
+				"projectId IN $fedProjs",
+			}
+			if q.Kind != "" {
+				fedWhere = append(fedWhere, "kind = $kind")
+				fedVars["kind"] = string(q.Kind)
+			}
+			if q.StoryID != "" {
+				fedWhere = append(fedWhere, "storyId = $storyId")
+				fedVars["storyId"] = q.StoryID
+			}
+			if q.GateName != "" {
+				fedWhere = append(fedWhere, "gateName = $gateName")
+				fedVars["gateName"] = q.GateName
+			}
+			if q.Tag != "" {
+				fedWhere = append(fedWhere, "tags CONTAINS $tag")
+				fedVars["tag"] = q.Tag
+			}
+			if q.Substring != "" {
+				fedWhere = append(fedWhere,
+					"(string::lowercase(title) CONTAINS $needle OR string::lowercase(body) CONTAINS $needle)")
+				fedVars["needle"] = strings.ToLower(q.Substring)
+			}
+			fedSQL := "SELECT * FROM memory_record WHERE " +
+				strings.Join(fedWhere, " AND ") +
+				" ORDER BY createdAt DESC LIMIT " + fmt.Sprintf("%d", fedCap)
+			fedRes, err := surrealdb.Query[[]memoryRow](ctx, s.db, fedSQL, fedVars)
+			if err == nil && fedRes != nil && len(*fedRes) > 0 {
+				fedRows := (*fedRes)[0].Result
+				fedRecords := make([]Record, 0, len(fedRows))
+				for _, row := range fedRows {
+					fedRecords = append(fedRecords, row.toRecord())
+				}
+				fedRecords = AnnotateFederatedRecords(fedRecords, q.ProjectID)
+				out = append(out, fedRecords...)
+			}
+		}
+	}
+
+	if len(out) == 0 {
+		return nil, nil
 	}
 	return out, nil
 }
 
+// GetByID returns the record with the supplied id, or ErrNotFound when
+// nothing matches. Used by the HTTP layer to verify ownership before
+// Delete (see TENANT ISOLATION INVARIANT on memory.Store).
+func (s *SurrealStore) GetByID(ctx context.Context, id string) (Record, error) {
+	res, err := surrealdb.Query[[]memoryRow](ctx, s.db,
+		"SELECT * FROM type::record('memory_record', $id) LIMIT 1",
+		map[string]any{"id": id})
+	if err != nil {
+		return Record{}, fmt.Errorf("memory surreal get: %w", err)
+	}
+	if res == nil || len(*res) == 0 || len((*res)[0].Result) == 0 {
+		return Record{}, ErrNotFound
+	}
+	return (*res)[0].Result[0].toRecord(), nil
+}
+
 // Delete removes a record by id. Idempotent — deleting an unknown id
 // returns nil so the HTTP layer can map DELETE to 204 unconditionally.
+//
+// TENANT ISOLATION: ownership is NOT enforced here. Callers must
+// GetByID first and verify the resulting record's owner with
+// auth.EnsureOwnerString.
 func (s *SurrealStore) Delete(ctx context.Context, id string) error {
 	res, err := surrealdb.Query[any](ctx, s.db,
 		"DELETE type::record('memory_record', $id)",
@@ -266,3 +350,30 @@ func (s *SurrealStore) Delete(ctx context.Context, id string) error {
 }
 
 var _ Store = (*SurrealStore)(nil)
+
+// RawQuery is an escape hatch for callers (currently the memorygraph
+// package) that need to issue ad-hoc SurrealQL against the same
+// connection without copying the schema-aware shape helpers above.
+// It returns one map per row across every statement's first result
+// page so the caller does not need to import surreal-internal types.
+//
+// This is intentionally narrow: no streaming, no per-statement
+// segmentation, no type coercion. Callers MUST scope by tenantId in
+// the query body — the helper does not enforce isolation.
+func (s *SurrealStore) RawQuery(ctx context.Context, surql string, vars map[string]any) ([]map[string]any, error) {
+	res, err := surrealdb.Query[[]map[string]any](ctx, s.db, surql, vars)
+	if err != nil {
+		return nil, fmt.Errorf("memory surreal raw query: %w", err)
+	}
+	if res == nil {
+		return nil, nil
+	}
+	var out []map[string]any
+	for _, qr := range *res {
+		if qr.Status != "OK" {
+			return nil, fmt.Errorf("memory surreal raw query status: %s", qr.Status)
+		}
+		out = append(out, qr.Result...)
+	}
+	return out, nil
+}

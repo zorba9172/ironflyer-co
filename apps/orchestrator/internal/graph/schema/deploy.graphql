@@ -1,0 +1,95 @@
+# V22 Deploy plane (Wave 2 / Trust).
+#
+# Plan → BuildPreview → RequestApproval → Decide → Promote |
+# Rollback | Cancel. Production promotes MUST pass the
+# BeforeVercelDeploy ProfitGuard check AND carry a decided-approved
+# DeployApproval row (or an explicit auto-deploy policy obligation
+# wired by the integration agent).
+#
+# Read-only queries surface the deploy row, recent deploys for the
+# tenant, and the operator's pending-approval inbox. deployFeed is a
+# per-deploy event stream backed by the deploy_events table.
+
+extend type Query {
+  deploy(id: ID!): Deploy
+  deploys(limit: Int = 50, offset: Int = 0): [Deploy!]!
+  pendingDeployApprovals: [DeployApproval!]!
+}
+
+extend type Mutation {
+  planDeploy(input: PlanDeployInput!): Deploy!
+  buildDeployPreview(deployID: ID!): Deploy!
+  requestDeployApproval(deployID: ID!, expiresInMinutes: Int = 30): DeployApproval!
+  decideDeployApproval(approvalID: ID!, approve: Boolean!, note: String): DeployApproval!
+  promoteDeploy(deployID: ID!): Deploy!
+  rollbackDeploy(deployID: ID!, reason: String!): Deploy!
+  cancelDeploy(deployID: ID!, reason: String!): Deploy!
+}
+
+extend type Subscription {
+  deployFeed(id: ID!): DeployEvent!
+}
+
+input PlanDeployInput {
+  projectID: ID!
+  executionID: ID
+  blueprintID: String
+  target: String!
+  environment: String!
+  artifactRef: String!
+  diffHash: String!
+  metadata: JSON
+}
+
+# Deploy is the GraphQL projection of one `deploys` row. Money fields
+# are Float USD for client convenience; the durable source of truth is
+# decimal.Decimal in deploy.Service.
+type Deploy {
+  id: ID!
+  tenantID: ID!
+  projectID: ID!
+  executionID: ID
+  blueprintID: String
+  target: String!
+  environment: String!
+  status: String!
+  providerDeploymentID: String
+  previewURL: String
+  productionURL: String
+  diffHash: String
+  artifactHash: String
+  gateSummary: JSON!
+  costUSD: Float!
+  createdAt: DateTime!
+  previewReadyAt: DateTime
+  promotedAt: DateTime
+  rolledBackAt: DateTime
+}
+
+# DeployApproval is the GraphQL projection of one `deploy_approvals`
+# row. status moves pending → approved | rejected | expired |
+# withdrawn; decidedAt is non-null after a terminal transition.
+type DeployApproval {
+  id: ID!
+  deployID: ID!
+  tenantID: ID!
+  status: String!
+  diffHash: String!
+  artifactHash: String!
+  gateSummary: JSON!
+  costImpactUSD: Float!
+  expiresAt: DateTime!
+  decisionNote: String
+  requestedAt: DateTime!
+  decidedAt: DateTime
+}
+
+# DeployEvent mirrors one row from deploy_events flattened for the
+# subscription stream. eventType values are the deploy package's
+# Event* constants; payload is event-type-specific JSON.
+type DeployEvent {
+  deployID: ID!
+  eventType: String!
+  payload: JSON!
+  createdAt: DateTime!
+}

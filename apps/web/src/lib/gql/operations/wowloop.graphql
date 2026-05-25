@@ -1,0 +1,50 @@
+# Customer Wow Loop — one read-only bundle of preview URL, changed
+# files, gate verdicts, security report, cost report, and the
+# next-best-action for a finished execution. Consumed by the success
+# panel on /execution/[id] (A48).
+
+query ExecutionSupportBundle($executionID: ID!) {
+  executionSupportBundle(executionID: $executionID) {
+    executionID
+    tenantID
+    status
+    previewURL
+    productionURL
+    changedFiles
+    patchCount
+    gateReport {
+      completionScore
+      stages {
+        name
+        status
+        issuesCount
+      }
+    }
+    securityReport {
+      passRate
+      blockedDeploy
+      findings {
+        severity
+        ruleID
+        path
+        line
+        summary
+      }
+    }
+    costReport {
+      revenueUSD
+      providerCostUSD
+      sandboxCostUSD
+      storageCostUSD
+      deploymentCostUSD
+      grossMarginPct
+    }
+    nextBestAction {
+      kind
+      title
+      reason
+      cta
+    }
+    generatedAt
+  }
+}

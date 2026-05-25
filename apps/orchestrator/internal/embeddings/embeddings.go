@@ -20,10 +20,14 @@ import (
 	"time"
 )
 
-// DefaultModel is the HuggingFace model id used when callers do not pick
-// one. BAAI/bge-small-en-v1.5 is 384-dim, fast, and good enough for the
-// English + Hebrew code+prose mix we retrieve over.
-const DefaultModel = "BAAI/bge-small-en-v1.5"
+// DefaultModel is the HuggingFace model id used when callers do not
+// pick one. BAAI/bge-m3 is multilingual (English + Hebrew + 100+ langs),
+// dense + sparse + ColBERT-style retrieval, and currently the strongest
+// open-weights embedding for code+prose retrieval. It's larger than the
+// prior bge-small default (1024-dim vs 384-dim) — operators who need
+// the smaller footprint can pin BAAI/bge-small-en-v1.5 via the
+// HF_EMBEDDINGS_MODEL env var.
+const DefaultModel = "BAAI/bge-m3"
 
 // DefaultBaseURL is the HuggingFace inference API root. Models are
 // addressed by appending the model id to this base URL.
@@ -39,11 +43,12 @@ type Embedder interface {
 }
 
 // HuggingFaceEmbedder uses HF's feature-extraction inference endpoint.
-// Default model "BAAI/bge-small-en-v1.5" (384-dim, multilingual-good
-// enough for English+Hebrew code+prose retrieval).
+// Default model "BAAI/bge-m3" — multilingual (English + Hebrew + 100+
+// langs), strong on code+prose retrieval. Set HF_EMBEDDINGS_MODEL on
+// the orchestrator to pin a different id.
 type HuggingFaceEmbedder struct {
 	APIKey  string
-	Model   string // default "BAAI/bge-small-en-v1.5"
+	Model   string // default DefaultModel ("BAAI/bge-m3")
 	BaseURL string // default "https://api-inference.huggingface.co/models/"
 	HTTP    *http.Client
 

@@ -12,7 +12,12 @@ import (
 )
 
 // BootstrapPostgres creates the ledger + vault tables if they don't exist.
-// Idempotent. Run on startup.
+//
+// Deprecated: schema for this package now lives in
+// apps/orchestrator/migrations/00001_init_budget.sql. New schema changes
+// MUST land as a numbered goose migration in that directory — not inline
+// here. This function is retained only as a fallback for callers that
+// don't yet route through the goose runner.
 const bootstrapSQL = `
 CREATE TABLE IF NOT EXISTS budget_ledger (
     id            UUID        PRIMARY KEY,

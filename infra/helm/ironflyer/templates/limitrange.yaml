@@ -1,0 +1,24 @@
+{{- /*
+LimitRange — default Pod resources for any container in the namespace
+that ships without an explicit `resources:` block. Every Ironflyer
+container sets its own requests/limits, but third-party admission
+controllers, init containers added by mutating webhooks, and any
+debug pods inherit these. Keeps the ResourceQuota predictable.
+*/ -}}
+{{- if .Values.quota.enabled -}}
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: {{ include "ironflyer.fullname" . }}-limits
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+spec:
+  limits:
+    - type: Container
+      defaultRequest:
+        cpu: {{ .Values.quota.limitRange.defaultRequest.cpu | quote }}
+        memory: {{ .Values.quota.limitRange.defaultRequest.memory | quote }}
+      default:
+        cpu: {{ .Values.quota.limitRange.default.cpu | quote }}
+        memory: {{ .Values.quota.limitRange.default.memory | quote }}
+{{- end }}

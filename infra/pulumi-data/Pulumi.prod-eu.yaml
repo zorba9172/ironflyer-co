@@ -1,0 +1,7 @@
+config:
+  aws:region: eu-west-1
+  data:computeStack: ""
+  data:replicaRegion: us-east-1
+  data:eso.install: "true"
+  data:kubeconfig: ""
+  data:enableCrossRegionReplication: "true"

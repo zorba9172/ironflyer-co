@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "execution.steps.v1",
+  "type": "object",
+  "required": ["event_id", "tenant_id", "occurred_at", "execution_id", "step"],
+  "properties": {
+    "event_id": {"type": "string"},
+    "tenant_id": {"type": "string"},
+    "occurred_at": {"type": "string", "format": "date-time"},
+    "execution_id": {"type": "string"},
+    "step": {"type": "string"},
+    "status": {"type": ["string", "null"]},
+    "duration_ms": {"type": ["integer", "null"]},
+    "cost_usd": {"type": ["string", "null"]},
+    "tokens_in": {"type": ["integer", "null"]},
+    "tokens_out": {"type": ["integer", "null"]},
+    "metadata": {"type": "object"}
+  }
+}

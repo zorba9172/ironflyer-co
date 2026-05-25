@@ -20,6 +20,30 @@ type SurrealStore struct {
 	mu  sync.Mutex
 	db  *surrealdb.DB
 	ctx context.Context
+
+	hookMu      sync.RWMutex
+	deleteHooks []func(projectID string)
+}
+
+// RegisterDeleteHook mirrors MemoryStore.RegisterDeleteHook so notify and
+// other per-project caches drop their state when a project is deleted —
+// regardless of which storage driver the orchestrator is configured with.
+func (s *SurrealStore) RegisterDeleteHook(fn func(projectID string)) {
+	if fn == nil {
+		return
+	}
+	s.hookMu.Lock()
+	s.deleteHooks = append(s.deleteHooks, fn)
+	s.hookMu.Unlock()
+}
+
+func (s *SurrealStore) fireDeleteHooks(id string) {
+	s.hookMu.RLock()
+	hooks := append([]func(string){}, s.deleteHooks...)
+	s.hookMu.RUnlock()
+	for _, fn := range hooks {
+		fn(id)
+	}
 }
 
 type SurrealOpts struct {
@@ -127,6 +151,34 @@ func (s *SurrealStore) List() []domain.Project {
 	return out
 }
 
+// ListByOwner returns projects accessible to ownerID (owner-owned
+// plus public seeds) paginated by limit/offset. Surreal is the
+// dev-only backend, so we filter in Go after a single full scan
+// rather than push the OR-predicate down — keeps the query simple
+// and matches MemoryStore semantics exactly.
+func (s *SurrealStore) ListByOwner(_ context.Context, ownerID string, limit, offset int) ([]domain.Project, error) {
+	if offset < 0 {
+		offset = 0
+	}
+	all := s.List()
+	out := make([]domain.Project, 0)
+	skipped := 0
+	for _, p := range all {
+		if !p.IsAccessibleBy(ownerID) {
+			continue
+		}
+		if skipped < offset {
+			skipped++
+			continue
+		}
+		out = append(out, p)
+		if limit > 0 && len(out) >= limit {
+			break
+		}
+	}
+	return out, nil
+}
+
 func (s *SurrealStore) Get(id string) (domain.Project, error) {
 	rows, err := surrealdb.Query[[]projectRow](s.ctx, s.db,
 		"SELECT data FROM type::record('project', $id)",
@@ -138,6 +190,25 @@ func (s *SurrealStore) Get(id string) (domain.Project, error) {
 		return domain.Project{}, ErrNotFound
 	}
 	return (*rows)[0].Result[0].Data, nil
+}
+
+// GetByIDs is the SurrealDB analogue of MemoryStore.GetByIDs. The query
+// layer doesn't expose a clean IN-list for record IDs, so we loop here —
+// Surreal is the dev-only backend and the call count stays bounded by
+// the dataloader batch size.
+func (s *SurrealStore) GetByIDs(_ context.Context, ids []string) (map[string]domain.Project, error) {
+	out := make(map[string]domain.Project, len(ids))
+	for _, id := range ids {
+		p, err := s.Get(id)
+		if err != nil {
+			if errors.Is(err, ErrNotFound) {
+				continue
+			}
+			return nil, err
+		}
+		out[id] = p
+	}
+	return out, nil
 }
 
 func (s *SurrealStore) Create(p domain.Project) (domain.Project, error) {
@@ -191,23 +262,28 @@ func (s *SurrealStore) Update(id string, fn func(*domain.Project)) (domain.Proje
 	return p, nil
 }
 
-// Delete removes a project document from SurrealDB.
+// Delete removes a project document from SurrealDB. After a successful
+// removal any RegisterDeleteHook callbacks fire outside the store mutex so
+// subsystems can release per-project caches.
 func (s *SurrealStore) Delete(id string) error {
 	s.mu.Lock()
-	defer s.mu.Unlock()
 	res, err := surrealdb.Query[any](s.ctx, s.db,
 		"DELETE type::record('project', $id)",
 		map[string]any{"id": id})
 	if err != nil {
+		s.mu.Unlock()
 		return fmt.Errorf("surreal delete: %w", err)
 	}
 	if res != nil {
 		for _, r := range *res {
 			if r.Status != "OK" {
+				s.mu.Unlock()
 				return fmt.Errorf("surreal delete status: %s", r.Status)
 			}
 		}
 	}
+	s.mu.Unlock()
+	s.fireDeleteHooks(id)
 	return nil
 }
 

@@ -8,6 +8,8 @@ import (
 	"errors"
 	"strings"
 	"sync"
+
+	"github.com/rs/zerolog"
 )
 
 type Capability string
@@ -32,6 +34,17 @@ const (
 	// different patches; the winner is the one that started talking first,
 	// not necessarily the better one).
 	CapSpeculative Capability = "speculative"
+	// CapInline tags low-latency middle-fill-in code completions
+	// (Cursor-style ghost-text). Bandit treats it as its own capability
+	// set so a Haiku/4o-mini that wins on `inline_completion` reward
+	// keeps winning, regardless of how it ranks on long-form `code` /
+	// `reasoning` calls.
+	CapInline Capability = "inline_completion"
+	// CapQuality requests the highest-quality (most expensive) tier the
+	// provider exposes. Use sparingly — architecture passes, security
+	// review, hardest reasoning calls. Per-provider pickModel maps this
+	// to Opus 4.7 / Gemini 2.5 Pro / o3, paid accordingly.
+	CapQuality Capability = "quality"
 )
 
 type Request struct {
@@ -65,6 +78,15 @@ type Request struct {
 	// before they will honour these; the router skips vision-bearing calls
 	// to text-only providers in the failover chain.
 	Attachments []Attachment
+
+	// PreferredProvider names a specific provider the caller wants to
+	// honour for this call. Set by ProfitGuard's SwitchProvider verdict
+	// (see guard.go) so the next call lands on the recommended cheaper
+	// provider regardless of the bandit's incumbent. Empty means "let
+	// the router pick normally". If the named provider is unknown or
+	// cannot honour the requested capabilities, the router logs a Warn
+	// and falls back to the capability-scored pick.
+	PreferredProvider string
 }
 
 // Attachment is one user-supplied image attached to the prompt. MediaType
@@ -138,9 +160,36 @@ type Router struct {
 	mu        sync.RWMutex
 	providers []Provider
 	bandit    *Bandit
+
+	// Failover wiring. Optional — zero values keep the existing
+	// best-effort fallback in runFallbackChain working unchanged.
+	logger           zerolog.Logger
+	hasLogger        bool
+	tel              TelemetrySink
+	failoverDepth    int
+	hasFailoverDepth bool
+
+	// Per-provider circuit breakers. Lazily constructed on first
+	// observation of a provider name so the router with N enabled
+	// providers gets N breakers. nil-safe: when no logger has been
+	// attached the registry still functions (just doesn't log state
+	// transitions). See breaker.go.
+	breakers *breakerRegistry
 }
 
 func NewRouter() *Router { return &Router{} }
+
+// breakerFor returns the per-provider circuit breaker, constructing
+// the registry + the entry lazily on first call. Concurrency-safe.
+func (r *Router) breakerFor(name string) *ProviderBreaker {
+	r.mu.Lock()
+	if r.breakers == nil {
+		r.breakers = newBreakerRegistry(r.logger, r.hasLogger)
+	}
+	reg := r.breakers
+	r.mu.Unlock()
+	return reg.breakerFor(name)
+}
 
 // WithBandit attaches a UCB1 bandit that re-ranks PickChain output using
 // historical telemetry. Pass nil to disable. Returns the router so it
@@ -158,6 +207,20 @@ func (r *Router) Register(p Provider) {
 	r.providers = append(r.providers, p)
 }
 
+// AllProviders returns a stable snapshot of every registered provider
+// in registration order. Used by the operational /providers/health
+// probe so the status page can ping each configured provider directly
+// rather than going through the BillingGuard (which would charge the
+// caller for the ping). The returned slice is a fresh copy — mutating
+// it does not affect the router's internal state.
+func (r *Router) AllProviders() []Provider {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	out := make([]Provider, len(r.providers))
+	copy(out, r.providers)
+	return out
+}
+
 // Pick returns the provider with the most capability-tag overlap. Providers
 // supporting "private" are preferred when CapPrivate is requested.
 func (r *Router) Pick(caps []Capability) (Provider, error) {
@@ -166,6 +229,24 @@ func (r *Router) Pick(caps []Capability) (Provider, error) {
 		return nil, errors.New("no providers registered")
 	}
 	return chain[0], nil
+}
+
+// PickByName returns the registered provider with the given Name(),
+// or (nil, false) when no such provider exists. Used by ProfitGuard's
+// SwitchProvider verdict to honour the recommended provider when its
+// capabilities cover the request — see Router.CompleteStream / guard.go.
+func (r *Router) PickByName(name string) (Provider, bool) {
+	if name == "" {
+		return nil, false
+	}
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	for _, p := range r.providers {
+		if p.Name() == name {
+			return p, true
+		}
+	}
+	return nil, false
 }
 
 // PickChain returns providers ranked by capability-tag overlap (best
@@ -234,6 +315,24 @@ func (r *Router) CompleteStream(ctx context.Context, req Request) (<-chan Delta,
 	chain := r.PickChain(caps)
 	if len(chain) == 0 {
 		return nil, errors.New("no providers registered")
+	}
+	// Honour PreferredProvider (set by ProfitGuard's SwitchProvider
+	// verdict) when the named provider exists AND covers the request's
+	// capability tags. If it cannot, log Warn and fall back to the
+	// capability-scored chain unchanged.
+	if name := req.PreferredProvider; name != "" {
+		if p, ok := r.PickByName(name); ok {
+			if score(p.Capabilities(), caps) >= len(caps) || len(caps) == 0 {
+				chain = hoistProvider(chain, p)
+			} else if r.hasLogger {
+				r.logger.Warn().Str("preferred_provider", name).
+					Strs("capabilities", capStrings(caps)).
+					Msg("router: preferred provider lacks required capabilities; falling back to chain")
+			}
+		} else if r.hasLogger {
+			r.logger.Warn().Str("preferred_provider", name).
+				Msg("router: preferred provider not registered; falling back to chain")
+		}
 	}
 	// Drop providers that can't honour vision when attachments are present.
 	if len(req.Attachments) > 0 {
@@ -456,6 +555,33 @@ func stripCap(caps []Capability, drop Capability) []Capability {
 		if c != drop {
 			out = append(out, c)
 		}
+	}
+	return out
+}
+
+// hoistProvider returns a copy of `chain` with `target` moved to the
+// head. If target is not already in the chain it is prepended. Used to
+// honour PreferredProvider without losing the rest of the fallback
+// candidates (so a transient error on the preferred pick still rolls
+// over to the bandit's runners-up).
+func hoistProvider(chain []Provider, target Provider) []Provider {
+	out := make([]Provider, 0, len(chain)+1)
+	out = append(out, target)
+	for _, p := range chain {
+		if p == target || p.Name() == target.Name() {
+			continue
+		}
+		out = append(out, p)
+	}
+	return out
+}
+
+// capStrings converts []Capability to []string. Used for log/telemetry
+// formatting where we don't want to leak the Capability newtype.
+func capStrings(caps []Capability) []string {
+	out := make([]string, len(caps))
+	for i, c := range caps {
+		out[i] = string(c)
 	}
 	return out
 }

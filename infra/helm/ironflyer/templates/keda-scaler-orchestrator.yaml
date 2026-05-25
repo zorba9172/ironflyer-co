@@ -1,0 +1,49 @@
+{{- if .Values.keda.enabled -}}
+# KEDA ScaledObject — orchestrator execution lag.
+#
+# Drives orchestrator Deployment replicas from Redpanda consumer-group lag
+# on the execution lifecycle topic. This is the V22 "scale by economic
+# queue pressure" signal — when paid executions back up on the
+# `ifly.<env>.execution.lifecycle.v1` topic, replicas rise; when the
+# consumer group is caught up, replicas drop back to the floor.
+#
+# Requires KEDA installed in-cluster (see README § KEDA).
+# Off by default — opt in via `--set keda.enabled=true`.
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: orchestrator-execution-lag
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: orchestrator
+    app.kubernetes.io/component: keda-scaler
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: orchestrator
+  pollingInterval: 10
+  cooldownPeriod: 300
+  minReplicaCount: 1
+  maxReplicaCount: 20
+  fallback:
+    failureThreshold: 3
+    replicas: 2
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 300
+        scaleUp:
+          stabilizationWindowSeconds: 60
+  triggers:
+    - type: kafka
+      metadata:
+        bootstrapServers: {{ .Values.keda.kafkaBootstrapServers | quote }}
+        consumerGroup: "ironflyer-orchestrator"
+        topic: "ifly.prod.execution.lifecycle.v1"
+        lagThreshold: "100"
+        activationLagThreshold: "10"
+        offsetResetPolicy: latest
+        allowIdleConsumers: "false"
+{{- end }}

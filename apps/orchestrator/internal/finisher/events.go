@@ -15,16 +15,25 @@ package finisher
 // form  "<code>: <human reason>"  so a UI can dispatch on the prefix without
 // regex-parsing the free-form tail. Codes are kept stable; see ErrorCode*.
 const (
-	StepPlanner       = "planner"
-	StepArchitect     = "architect"
-	StepUXer          = "uxer"
-	StepCoder         = "coder"
-	StepReviewer      = "reviewer"
+	StepPlanner   = "planner"
+	StepArchitect = "architect"
+	StepUXer      = "uxer"
+	StepCoder     = "coder"
+	StepReviewer  = "reviewer"
 	// StepCritic is the cheap-judge stage that runs between a successful
 	// Coder patch and the more expensive Reviewer simulation. We give it
 	// its own Step name so the UI can lane it separately (and the human
 	// can see "the cheap pre-check caught it" instead of "the reviewer").
 	StepCritic = "critic"
+	// StepCriticPartial is the live-critique sibling step emitted by the
+	// parallel critic while the Coder is still streaming. Payload is
+	// JSON-encoded into Event.Message of the form:
+	//   "critic_partial {\"concern\":\"…\",\"severity\":\"info|warning|blocker\",\"snippet\":\"…\"}"
+	// so the dashboard can render the live chip without a schema change to
+	// domain.Event. The terminal sibling event is `critic_voted` (emitted
+	// today by runCritic via the existing StepCritic step) carrying the
+	// canonical N-of-N voting share.
+	StepCriticPartial = "critic_partial"
 	StepGate          = "gate"
 	StepPatch         = "patch"
 	StepRun           = "run"
@@ -71,6 +80,10 @@ const (
 	// ErrRecoveryBudget is emitted when the per-gate recovery cost cap is
 	// crossed mid-loop; the loop stops early without declaring exhaustion.
 	ErrRecoveryBudget ErrorCode = "recovery_budget"
+	// ErrThrottled is emitted when a Run() call is rejected because the
+	// global or per-user concurrency cap is saturated. Callers should
+	// retry after backoff; HTTP layer surfaces this as 429.
+	ErrThrottled ErrorCode = "throttled"
 )
 
 // fmtErr renders a code+reason into the single Message slot — keeping the

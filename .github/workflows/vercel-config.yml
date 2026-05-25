@@ -1,0 +1,130 @@
+name: Vercel env sync
+
+# Vercel handles its own build + deploy for apps/web through the Vercel GitHub
+# integration — we don't run `vercel deploy` here. What we DO own is the bridge
+# between Pulumi outputs (orchestrator URL, GraphQL endpoint, region tags) and
+# the Vercel project's environment variables. This workflow runs after a
+# successful production Pulumi deploy and upserts the relevant NEXT_PUBLIC_*
+# vars via the Vercel REST API so the next dashboard rebuild picks them up.
+
+on:
+  workflow_run:
+    workflows: ['Pulumi']
+    types: [completed]
+    branches-ignore: []
+  workflow_dispatch:
+    inputs:
+      stack:
+        description: 'Pulumi stack name to read outputs from (prod-eu | prod-us | prod-il)'
+        required: true
+        default: prod-eu
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  PULUMI_VERSION: 3.130.0
+  GO_VERSION: '1.25'
+
+jobs:
+  sync:
+    name: Sync Vercel env from Pulumi outputs
+    runs-on: ubuntu-latest
+    # Only fire on a successful Pulumi run, and only when that run came from a
+    # production tag (otherwise we'd overwrite Vercel prod env from a dev preview).
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       startsWith(github.event.workflow_run.head_branch, 'pulumi-prod-'))
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: infra/pulumi/go.sum
+
+      - name: Resolve stack
+        id: stack
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            stack="${{ github.event.inputs.stack }}"
+          else
+            # head_branch on workflow_run holds the originating tag name.
+            ref="${{ github.event.workflow_run.head_branch }}"
+            case "$ref" in
+              pulumi-prod-eu-*) stack=prod-eu ;;
+              pulumi-prod-us-*) stack=prod-us ;;
+              pulumi-prod-il-*) stack=prod-il ;;
+              *) echo "Cannot infer stack from $ref"; exit 1 ;;
+            esac
+          fi
+          echo "stack=$stack" >> "$GITHUB_OUTPUT"
+
+      - name: Install Pulumi CLI
+        # Installs the CLI without running a stack op — we drive `pulumi stack
+        # output` ourselves in the next step.
+        uses: pulumi/setup-pulumi@v2
+        with:
+          pulumi-version: ${{ env.PULUMI_VERSION }}
+
+      - name: Read Pulumi outputs
+        id: outputs
+        working-directory: infra/pulumi
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          pulumi stack select "${{ steps.stack.outputs.stack }}"
+          api_url=$(pulumi stack output orchestratorPublicUrl 2>/dev/null || echo "")
+          gql_url=$(pulumi stack output graphqlPublicUrl 2>/dev/null || echo "$api_url/graphql")
+          region=$(pulumi stack output regionSubdomain 2>/dev/null || echo "")
+          echo "api_url=$api_url"  >> "$GITHUB_OUTPUT"
+          echo "gql_url=$gql_url"  >> "$GITHUB_OUTPUT"
+          echo "region=$region"    >> "$GITHUB_OUTPUT"
+
+      - name: Upsert Vercel environment variables
+        env:
+          VERCEL_API_TOKEN: ${{ secrets.VERCEL_API_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+          API_URL: ${{ steps.outputs.outputs.api_url }}
+          GQL_URL: ${{ steps.outputs.outputs.gql_url }}
+          REGION: ${{ steps.outputs.outputs.region }}
+        # The Vercel REST API rejects duplicate envs on create, so we DELETE-
+        # then-POST for each key. `target=production` only — preview envs
+        # remain managed in the Vercel UI.
+        run: |
+          set -euo pipefail
+          base="https://api.vercel.com"
+          team_qs=""
+          if [ -n "${VERCEL_TEAM_ID:-}" ]; then team_qs="?teamId=${VERCEL_TEAM_ID}"; fi
+
+          upsert() {
+            local key="$1" value="$2"
+            if [ -z "$value" ]; then
+              echo "skip $key (empty)"; return 0
+            fi
+            # Delete any existing prod-scoped entry — best-effort.
+            existing=$(curl -fsS -H "Authorization: Bearer ${VERCEL_API_TOKEN}" \
+              "${base}/v9/projects/${VERCEL_PROJECT_ID}/env${team_qs}" \
+              | jq -r --arg k "$key" '.envs[] | select(.key==$k and (.target|index("production"))) | .id')
+            for id in $existing; do
+              curl -fsS -X DELETE -H "Authorization: Bearer ${VERCEL_API_TOKEN}" \
+                "${base}/v9/projects/${VERCEL_PROJECT_ID}/env/${id}${team_qs}" >/dev/null
+            done
+            # Create the fresh value targeted at production only.
+            curl -fsS -X POST \
+              -H "Authorization: Bearer ${VERCEL_API_TOKEN}" \
+              -H "Content-Type: application/json" \
+              "${base}/v10/projects/${VERCEL_PROJECT_ID}/env${team_qs}" \
+              -d "$(jq -n --arg k "$key" --arg v "$value" \
+                    '{key:$k,value:$v,type:"plain",target:["production"]}')" >/dev/null
+            echo "upserted $key"
+          }
+
+          upsert NEXT_PUBLIC_IRONFLYER_API_URL     "${API_URL}"
+          upsert NEXT_PUBLIC_IRONFLYER_GRAPHQL_URL "${GQL_URL}"
+          upsert NEXT_PUBLIC_IRONFLYER_REGION      "${REGION}"

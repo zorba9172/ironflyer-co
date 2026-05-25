@@ -24,6 +24,8 @@ package finisher
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net/url"
@@ -33,6 +35,18 @@ import (
 
 	"ironflyer/apps/orchestrator/internal/domain"
 )
+
+// randHex returns a random hex string of the requested byte length. Used
+// for per-project Postgres role passwords. Inlined here after the
+// supabase_provisioner.go (its original home) was removed in the V22
+// scaffolder purge.
+func randHex(n int) (string, error) {
+	buf := make([]byte, n)
+	if _, err := rand.Read(buf); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(buf), nil
+}
 
 // SharedPostgresProvisioner implements DBProvisioner against a single
 // admin Postgres connection. The AdminDSN must point to a user with
