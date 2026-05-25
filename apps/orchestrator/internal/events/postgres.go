@@ -2,6 +2,7 @@ package events
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -160,14 +161,21 @@ type eventScanner interface {
 
 func scanEvent(row eventScanner, out *Event) error {
 	var payload, headers []byte
+	// last_error / locked_by are nullable text in event_outbox; Event
+	// keeps them as plain strings (empty == none). Use sql.NullString
+	// to bridge the gap so a NULL row doesn't blow up the scan.
+	var lastError sql.NullString
+	var lockedBy sql.NullString
 	if err := row.Scan(
 		&out.ID, &out.Topic, &out.Key, &out.Type, &out.Version,
 		&payload, &headers, &out.Attempts, &out.CreatedAt,
-		&out.PublishedAt, &out.LastError, &out.LockedUntil,
-		&out.LockedBy, &out.NextAttempt,
+		&out.PublishedAt, &lastError, &out.LockedUntil,
+		&lockedBy, &out.NextAttempt,
 	); err != nil {
 		return err
 	}
+	out.LastError = lastError.String
+	out.LockedBy = lockedBy.String
 	out.RawPayload = append(out.RawPayload[:0], payload...)
 	out.RawHeaders = append(out.RawHeaders[:0], headers...)
 	if len(payload) > 0 {

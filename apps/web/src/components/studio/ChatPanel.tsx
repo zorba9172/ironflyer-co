@@ -155,6 +155,48 @@ export function ChatPanel({
         userInitials={userInitials}
         onRetry={onRetry}
       />
+      {pending && (
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{
+            alignItems: "center",
+            borderTop: `1px solid ${tokens.color.border.subtle}`,
+            color: tokens.color.text.secondary,
+            px: 2,
+            py: 0.85,
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              gap: 0.35,
+              "& span": {
+                animation: "ironflyerTyping 1.1s ease-in-out infinite",
+                bgcolor: tokens.color.accent.violet,
+                borderRadius: "50%",
+                height: 4,
+                opacity: 0.45,
+                width: 4,
+              },
+              "& span:nth-of-type(2)": { animationDelay: "140ms" },
+              "& span:nth-of-type(3)": { animationDelay: "280ms" },
+              "@keyframes ironflyerTyping": {
+                "0%, 80%, 100%": { opacity: 0.28, transform: "translateY(0)" },
+                "40%": { opacity: 1, transform: "translateY(-2px)" },
+              },
+            }}
+            aria-hidden
+          >
+            <span />
+            <span />
+            <span />
+          </Box>
+          <Typography sx={{ fontSize: 12.5 }}>
+            Ironflyer is checking the build and writing back...
+          </Typography>
+        </Stack>
+      )}
       <SuggestionsRow status={status} onPick={onSend} disabled={pending} />
       <ChatComposer
         onSend={onSend}

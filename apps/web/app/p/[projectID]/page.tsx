@@ -55,6 +55,7 @@ import {
   useChatStore,
 } from "../../../src/lib/stores/chatStore";
 import { tokens } from "../../../src/theme";
+import type { StudioAttachment } from "../../../src/components/studio/types";
 
 // Heavy panes lazy-load. They share the same fallback so the shell
 // keeps a consistent loading skin while their JS chunk lands.
@@ -192,7 +193,7 @@ function ProjectStudioInner() {
   // 4. refineIdea on chat send.
   const [refineIdea, refineState] = useRefineIdeaMutation();
   const onSend = useCallback(
-    async (text: string) => {
+    async (text: string, attachments?: StudioAttachment[]) => {
       if (!executionID) {
         appendLocal(
           executionID,
@@ -202,7 +203,7 @@ function ProjectStudioInner() {
         );
         return;
       }
-      appendLocal(executionID, makeUserMessage(text));
+      appendLocal(executionID, makeUserMessage(text, attachments));
       try {
         await refineIdea({
           variables: { executionID, message: text },

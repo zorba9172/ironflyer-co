@@ -47,6 +47,17 @@ func Optional(svc *Service) func(http.Handler) http.Handler {
 			if tok := extractToken(r); tok != "" {
 				if u, err := svc.Verify(r.Context(), tok); err == nil {
 					r = r.WithContext(WithUser(r.Context(), u))
+				} else if r.URL.Path == "/graphql" || r.URL.Path == "/graphql/" {
+					// Surface verification errors on the /graphql plane
+					// only — every authenticated GraphQL call that
+					// silently degrades to anonymous lands as a
+					// confusing POLICY_DENY in logs. The header lets
+					// the operator immediately see "wrong JWT secret"
+					// or "user row missing" without enabling debug
+					// logging. Removed from prod via a build tag in a
+					// follow-up; for now it's information that costs
+					// nothing.
+					w.Header().Set("X-Ironflyer-Auth-Optional-Error", err.Error())
 				}
 			}
 			next.ServeHTTP(w, r)

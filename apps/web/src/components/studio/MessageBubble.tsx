@@ -22,6 +22,7 @@
 import {
   CachedRounded,
   CheckCircleRounded,
+  DescriptionRounded,
   ErrorRounded,
   ExpandLessRounded,
   ExpandMoreRounded,
@@ -41,7 +42,7 @@ import {
 import { memo, useState } from "react";
 import { relativeTime } from "../../lib/relativeTime";
 import { tokens } from "../../theme";
-import type { StudioMessage } from "./types";
+import type { StudioAttachment, StudioMessage } from "./types";
 
 export interface MessageBubbleProps {
   message: StudioMessage;
@@ -57,6 +58,67 @@ function initials(name: string | null | undefined): string {
     .slice(0, 2)
     .map((p) => p[0].toUpperCase())
     .join("");
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
+function AttachmentPreview({ item }: { item: StudioAttachment }) {
+  return (
+    <Box
+      sx={{
+        border: `1px solid ${tokens.color.border.subtle}`,
+        borderRadius: 1,
+        bgcolor: `${tokens.color.bg.inset}d6`,
+        overflow: "hidden",
+        maxWidth: "100%",
+      }}
+    >
+      {item.previewUrl ? (
+        <Box
+          component="img"
+          src={item.previewUrl}
+          alt={item.name}
+          sx={{
+            display: "block",
+            height: 110,
+            maxWidth: "100%",
+            objectFit: "cover",
+            width: 180,
+          }}
+        />
+      ) : null}
+      <Stack
+        direction="row"
+        spacing={0.75}
+        sx={{ alignItems: "center", minWidth: 0, px: 0.9, py: 0.7 }}
+      >
+        <DescriptionRounded sx={{ color: tokens.color.text.secondary, fontSize: 16 }} />
+        <Box sx={{ minWidth: 0 }}>
+          <Typography sx={{ color: tokens.color.text.primary, fontSize: 11.5, fontWeight: 800, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 160 }}>
+            {item.name}
+          </Typography>
+          <Typography sx={{ color: tokens.color.text.muted, fontFamily: tokens.font.mono, fontSize: 10 }}>
+            {item.kind} · {formatBytes(item.size)}
+          </Typography>
+        </Box>
+      </Stack>
+    </Box>
+  );
+}
+
+function AttachmentStrip({ attachments }: { attachments?: StudioAttachment[] }) {
+  if (!attachments || attachments.length === 0) return null;
+  return (
+    <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mt: 1 }}>
+      {attachments.map((item) => (
+        <AttachmentPreview key={item.id} item={item} />
+      ))}
+    </Stack>
+  );
 }
 
 // AgentRow — the shared visual for agent_progress / agent_action /
@@ -283,6 +345,7 @@ function MessageBubbleImpl({ message, userInitials, onRetry }: MessageBubbleProp
           }}
         >
           {message.body}
+          <AttachmentStrip attachments={message.attachments} />
           <Typography
             component="div"
             sx={{
@@ -500,6 +563,7 @@ function MessageBubbleImpl({ message, userInitials, onRetry }: MessageBubbleProp
         >
           {message.body}
         </Typography>
+        <AttachmentStrip attachments={message.attachments} />
       </Box>
     </Stack>
   );

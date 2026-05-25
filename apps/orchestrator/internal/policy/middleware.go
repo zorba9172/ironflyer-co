@@ -9,6 +9,19 @@ import (
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
+// publicOps are auth-adjacent operations the PEP must skip because the
+// caller has no principal yet — these are how a user gets a principal
+// in the first place. Keep this set tight; anything else MUST flow
+// through the policy layer.
+var publicOps = map[string]struct{}{
+	"signUp":                   {},
+	"signIn":                   {},
+	"verifyEmail":              {},
+	"resendVerificationEmail":  {},
+	"requestPasswordReset":     {},
+	"resetPassword":            {},
+}
+
 // GraphQLOperationMiddleware returns a gqlgen OperationMiddleware that
 // runs the PEP against every operation. Install it on the server:
 //
@@ -17,8 +30,9 @@ import (
 // The middleware:
 //   - Computes action = "graphql.<opType>.<opName>" (e.g.
 //     "graphql.mutation.startDeploy").
-//   - Skips operations the bundle explicitly allowlists (no-op for
-//     introspection and __schema; those have their own gates).
+//   - Skips introspection (queries on __schema / __type) and the
+//     auth-adjacent public ops above; everything else flows through
+//     the PEP.
 //   - On deny, returns a single redacted GraphQL error citing the
 //     decision_id. The Reason is NOT leaked to the client — it can
 //     contain internal policy detail.
@@ -31,6 +45,11 @@ func GraphQLOperationMiddleware(pep *PEP) graphql.OperationMiddleware {
 		// own DisableIntrospection flag).
 		if opType == "query" && (opName == "" || strings.HasPrefix(opName, "__")) {
 			return next(ctx)
+		}
+		if opType == "mutation" {
+			if _, ok := publicOps[opName]; ok {
+				return next(ctx)
+			}
 		}
 
 		action := "graphql." + opType + "." + opName
