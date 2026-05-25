@@ -284,7 +284,7 @@ func (p *PostgresService) ListByTenant(ctx context.Context, tenantID uuid.UUID, 
 
 	sql := `
 SELECT id, tenant_id, execution_id, entry_type, direction, amount_usd,
-       provider, billable, margin_relevant, metadata, created_at
+       provider, billable, margin_relevant, metadata, COALESCE(op_key, ''), created_at
 FROM ledger_entries
 WHERE ` + strings.Join(clauses, " AND ") + `
 ORDER BY created_at DESC`
@@ -310,7 +310,7 @@ ORDER BY created_at DESC`
 func (p *PostgresService) ListByExecution(ctx context.Context, executionID uuid.UUID) ([]Entry, error) {
 	const sql = `
 SELECT id, tenant_id, execution_id, entry_type, direction, amount_usd,
-       provider, billable, margin_relevant, metadata, created_at
+       provider, billable, margin_relevant, metadata, COALESCE(op_key, ''), created_at
 FROM ledger_entries
 WHERE execution_id = $1
 ORDER BY created_at ASC`

@@ -216,6 +216,31 @@ func (s *Service) IssueTokenWithJTI(u User, jti string, ttl time.Duration) (stri
 // Service.Verify lookup chain.
 func (s *Service) SigningKey() []byte { return s.signingKey }
 
+// VerifyWithJTI is Verify plus the parsed jti claim. The middleware
+// stamps the jti on the request context so revokeSession /
+// revokeAllOtherSessions resolvers can target the caller's own row.
+// Returns ("", err) when the token does not parse / does not validate.
+func (s *Service) VerifyWithJTI(ctx context.Context, tokenStr string) (User, string, error) {
+	token, err := jwt.ParseWithClaims(tokenStr, &claims{}, func(t *jwt.Token) (any, error) {
+		if t.Method.Alg() != jwt.SigningMethodHS256.Alg() {
+			return nil, errors.New("unexpected signing method")
+		}
+		return s.signingKey, nil
+	})
+	if err != nil {
+		return User{}, "", err
+	}
+	c, ok := token.Claims.(*claims)
+	if !ok || !token.Valid {
+		return User{}, "", errors.New("invalid token")
+	}
+	u, err := s.store.GetByID(ctx, c.Subject)
+	if err != nil {
+		return User{}, "", err
+	}
+	return u, c.ID, nil
+}
+
 // TTL exposes the default token lifetime so the sessions writer can
 // compute the row's expires_at without reparsing the JWT.
 func (s *Service) TTL() time.Duration { return s.ttl }

@@ -12,10 +12,14 @@ FROM golang:1.25-alpine AS build
 WORKDIR /src
 RUN apk add --no-cache git
 COPY apps/runtime/go.mod apps/runtime/go.sum ./
-RUN go mod download
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    go mod download
 COPY apps/runtime/ ./
-RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags='-s -w' \
-    -o /out/runtime ./cmd/runtime
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags='-s -w' \
+      -o /out/runtime ./cmd/runtime
 
 # Final image keeps `git` (for workspace clones) and `curl` (for HEALTHCHECK).
 FROM alpine:3.20

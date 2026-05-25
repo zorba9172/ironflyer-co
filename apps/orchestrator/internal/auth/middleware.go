@@ -13,9 +13,35 @@
 package auth
 
 import (
+	"context"
 	"net/http"
 	"strings"
 )
+
+// jtiCtxKeyType is the per-request key for the bearer token's jti claim.
+// Resolvers that mutate the session registry (revokeSession,
+// revokeAllOtherSessions, mySessions' "current" flag) call JTIFromContext
+// to find out which session row belongs to the caller.
+type jtiCtxKeyType struct{}
+
+var jtiCtxKey = jtiCtxKeyType{}
+
+// WithJTI attaches the bearer token's jti to the request context.
+func WithJTI(ctx context.Context, jti string) context.Context {
+	if jti == "" {
+		return ctx
+	}
+	return context.WithValue(ctx, jtiCtxKey, jti)
+}
+
+// JTIFromContext returns the bearer token's jti, or "" when the
+// request was not authenticated or the token carried no jti.
+func JTIFromContext(ctx context.Context) string {
+	if v, ok := ctx.Value(jtiCtxKey).(string); ok {
+		return v
+	}
+	return ""
+}
 
 // Middleware extracts the bearer token (header or `token` query param so the
 // SSE EventSource — which can't set headers — still authenticates), verifies
@@ -28,12 +54,14 @@ func Middleware(svc *Service) func(http.Handler) http.Handler {
 				writeAuthError(w, "missing token")
 				return
 			}
-			u, err := svc.Verify(r.Context(), tok)
+			u, jti, err := svc.VerifyWithJTI(r.Context(), tok)
 			if err != nil {
 				writeAuthError(w, "invalid token")
 				return
 			}
-			next.ServeHTTP(w, r.WithContext(WithUser(r.Context(), u)))
+			ctx := WithUser(r.Context(), u)
+			ctx = WithJTI(ctx, jti)
+			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }
@@ -45,8 +73,10 @@ func Optional(svc *Service) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if tok := extractToken(r); tok != "" {
-				if u, err := svc.Verify(r.Context(), tok); err == nil {
-					r = r.WithContext(WithUser(r.Context(), u))
+				if u, jti, err := svc.VerifyWithJTI(r.Context(), tok); err == nil {
+					ctx := WithUser(r.Context(), u)
+					ctx = WithJTI(ctx, jti)
+					r = r.WithContext(ctx)
 				} else if r.URL.Path == "/graphql" || r.URL.Path == "/graphql/" {
 					// Surface verification errors on the /graphql plane
 					// only — every authenticated GraphQL call that

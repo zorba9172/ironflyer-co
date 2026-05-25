@@ -1,9 +1,12 @@
 -- Ironflyer analytics plane — fact tables and materialized views.
 --
 -- Each raw_* table feeds one or more fact_* tables through a
--- materialized view. Fact tables use ReplacingMergeTree(event_id) so
--- duplicate consumer deliveries collapse on merge. TTL is 18 months —
--- the analytical hot window for cost/margin trends.
+-- materialized view. Fact tables use ReplacingMergeTree (no version
+-- column) so duplicate consumer deliveries collapse on merge — the
+-- dedup key is the ORDER BY tuple, and "newest insert wins" is the
+-- right policy when the same event is reprojected. event_id is UUID
+-- and therefore cannot serve as the explicit version column.
+-- TTL is 18 months — the analytical hot window for cost/margin trends.
 --
 -- Payload field names follow the V22 taxonomy from
 -- apps/orchestrator/internal/outboxhooks/outboxhooks.go and
@@ -35,7 +38,7 @@ CREATE TABLE IF NOT EXISTS fact_execution_costs
     provider     LowCardinality(String),
     occurred_at  DateTime64(3, 'UTC')
 )
-ENGINE = ReplacingMergeTree(event_id)
+ENGINE = ReplacingMergeTree
 ORDER BY (tenant_id, execution_id, cost_type, occurred_at)
 PARTITION BY toYYYYMM(occurred_at)
 TTL toDateTime(occurred_at) + INTERVAL 18 MONTH
@@ -99,7 +102,7 @@ CREATE TABLE IF NOT EXISTS fact_execution_completion
     queue_wait_sec    Float64,
     occurred_at       DateTime64(3, 'UTC')
 )
-ENGINE = ReplacingMergeTree(event_id)
+ENGINE = ReplacingMergeTree
 ORDER BY (tenant_id, execution_id, occurred_at)
 PARTITION BY toYYYYMM(occurred_at)
 TTL toDateTime(occurred_at) + INTERVAL 18 MONTH
@@ -162,7 +165,7 @@ CREATE TABLE IF NOT EXISTS fact_provider_usage
     latency_ms    UInt64,
     occurred_at   DateTime64(3, 'UTC')
 )
-ENGINE = ReplacingMergeTree(event_id)
+ENGINE = ReplacingMergeTree
 ORDER BY (tenant_id, provider, model, occurred_at)
 PARTITION BY toYYYYMM(occurred_at)
 TTL toDateTime(occurred_at) + INTERVAL 18 MONTH
@@ -229,7 +232,7 @@ CREATE TABLE IF NOT EXISTS fact_gate_outcomes
     duration_ms   UInt64,
     occurred_at   DateTime64(3, 'UTC')
 )
-ENGINE = ReplacingMergeTree(event_id)
+ENGINE = ReplacingMergeTree
 ORDER BY (tenant_id, gate_name, occurred_at)
 PARTITION BY toYYYYMM(occurred_at)
 TTL toDateTime(occurred_at) + INTERVAL 18 MONTH
@@ -280,7 +283,7 @@ CREATE TABLE IF NOT EXISTS fact_blueprint_runs
     refunded          UInt8,
     occurred_at       DateTime64(3, 'UTC')
 )
-ENGINE = ReplacingMergeTree(event_id)
+ENGINE = ReplacingMergeTree
 ORDER BY (tenant_id, blueprint_id, execution_id, occurred_at)
 PARTITION BY toYYYYMM(occurred_at)
 TTL toDateTime(occurred_at) + INTERVAL 18 MONTH
@@ -331,7 +334,7 @@ CREATE TABLE IF NOT EXISTS fact_runtime_minutes
     cost_usd      Decimal64(6),
     occurred_at   DateTime64(3, 'UTC')
 )
-ENGINE = ReplacingMergeTree(event_id)
+ENGINE = ReplacingMergeTree
 ORDER BY (tenant_id, workspace_id, occurred_at)
 PARTITION BY toYYYYMM(occurred_at)
 TTL toDateTime(occurred_at) + INTERVAL 18 MONTH
@@ -376,7 +379,7 @@ CREATE TABLE IF NOT EXISTS fact_deploys
     cost_usd     Decimal64(6),
     occurred_at  DateTime64(3, 'UTC')
 )
-ENGINE = ReplacingMergeTree(event_id)
+ENGINE = ReplacingMergeTree
 ORDER BY (tenant_id, deploy_id, occurred_at)
 PARTITION BY toYYYYMM(occurred_at)
 TTL toDateTime(occurred_at) + INTERVAL 18 MONTH
@@ -429,7 +432,7 @@ CREATE TABLE IF NOT EXISTS fact_security_findings
     rule        LowCardinality(String),
     occurred_at DateTime64(3, 'UTC')
 )
-ENGINE = ReplacingMergeTree(event_id)
+ENGINE = ReplacingMergeTree
 ORDER BY (tenant_id, severity, occurred_at)
 PARTITION BY toYYYYMM(occurred_at)
 TTL toDateTime(occurred_at) + INTERVAL 18 MONTH
@@ -467,7 +470,7 @@ CREATE TABLE IF NOT EXISTS fact_wallet_topups
     payment_ref   String,
     occurred_at   DateTime64(3, 'UTC')
 )
-ENGINE = ReplacingMergeTree(event_id)
+ENGINE = ReplacingMergeTree
 ORDER BY (tenant_id, occurred_at, topup_id)
 PARTITION BY toYYYYMM(occurred_at)
 TTL toDateTime(occurred_at) + INTERVAL 18 MONTH
@@ -514,7 +517,7 @@ CREATE TABLE IF NOT EXISTS fact_refunds
     reason        LowCardinality(String),
     occurred_at   DateTime64(3, 'UTC')
 )
-ENGINE = ReplacingMergeTree(event_id)
+ENGINE = ReplacingMergeTree
 ORDER BY (tenant_id, occurred_at, refund_id)
 PARTITION BY toYYYYMM(occurred_at)
 TTL toDateTime(occurred_at) + INTERVAL 18 MONTH

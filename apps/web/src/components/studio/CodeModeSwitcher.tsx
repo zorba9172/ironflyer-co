@@ -2,8 +2,8 @@
 
 // CodeModeSwitcher — wraps the Code pane and lets the operator flip
 // between the lightweight Monaco preview (fast, read-only, shows the
-// finisher's writes inline) and the full openvscode-server IDE (heavy,
-// real terminal, real debugger, extensions). The choice is persisted
+// finisher's writes inline) and the slim openvscode-server IDE (real
+// terminal/debugger with IronFlyer chrome trimmed down). The choice is persisted
 // in the workbench layout state so it survives reloads.
 //
 // The switcher header is intentionally slim so it doesn't eat the
@@ -47,7 +47,7 @@ const SEGMENTS: SegmentDef[] = [
     key: "ide",
     label: "IDE",
     icon: CodeRounded,
-    hint: "Full openvscode-server: terminal, extensions, debugger",
+    hint: "Slim openvscode-server: terminal, debugger, focused code chrome",
   },
 ];
 
@@ -145,7 +145,7 @@ export function CodeModeSwitcher({
           }}
         >
           {mode === "ide"
-            ? "Full VS Code · openvscode-server"
+            ? "Slim VS Code · openvscode-server"
             : "Read-only · Monaco preview"}
         </Typography>
       </Stack>

@@ -59,17 +59,24 @@ func BuildClickHouse(ctx context.Context, cfg clickhouse.Config, pool *pgxpool.P
 	}
 
 	if brokers := strings.TrimSpace(redpandaBrokers); brokers != "" {
+		// Subscribe to the topics the outbox publisher actually emits
+		// to. Producers route through events.TopicFor(env, ...) which
+		// derives the env prefix from IRONFLYER_ENV (default "dev").
+		// The TopicExecutionLifecycle-style constants are pinned to
+		// "prod" so they're stable symbols — using them verbatim would
+		// strand a dev/staging cluster on an empty subscription.
+		env := events.CurrentEnv()
 		topics := []string{
-			events.TopicExecutionLifecycle,
-			events.TopicExecutionSteps,
-			events.TopicGatesResults,
-			events.TopicPatchesLifecycle,
-			events.TopicBillingLedger,
-			events.TopicProfitGuardDecisions,
-			events.TopicDeployLifecycle,
+			events.TopicFor(env, "execution", "lifecycle", 1),
+			events.TopicFor(env, "execution", "steps", 1),
+			events.TopicFor(env, "gates", "results", 1),
+			events.TopicFor(env, "patches", "lifecycle", 1),
+			events.TopicFor(env, "billing", "ledger", 1),
+			events.TopicFor(env, "profitguard", "decisions", 1),
+			events.TopicFor(env, "deploy", "lifecycle", 1),
 		}
 		res.Consumer = clickhouse.NewConsumer(client, strings.Split(brokers, ","), topics, "", log.With().Str("svc", "clickhouse-consumer").Logger())
-		log.Info().Msg("clickhouse: Redpanda consumer enabled")
+		log.Info().Str("env", env).Strs("topics", topics).Msg("clickhouse: Redpanda consumer enabled")
 	} else if cfg.IngestFromOutbox && pool != nil {
 		res.Ingester = clickhouse.NewOutboxIngester(client, pool, log.With().Str("svc", "clickhouse-ingester").Logger())
 		log.Info().Msg("clickhouse: outbox ingester enabled (no Redpanda)")

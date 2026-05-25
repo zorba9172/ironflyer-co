@@ -118,6 +118,8 @@ func (b *DefaultBuilder) Build(ctx context.Context, executionID string) (Support
 
 	nbInput := nextActionInput{
 		Status:            exec.Status,
+		ExecutionID:       exec.ID,
+		PreviewURL:        previewURL,
 		HasPreview:        previewURL != "",
 		HasProduction:     deploy.ProductionURL != "",
 		HasSecurityIssue:  len(findings) > 0,

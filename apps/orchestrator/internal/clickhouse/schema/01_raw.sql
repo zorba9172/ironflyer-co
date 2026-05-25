@@ -2,8 +2,14 @@
 --
 -- These tables receive the parsed event envelope plus a raw JSON
 -- payload string for every domain event flowing through Redpanda.
--- ReplacingMergeTree(event_id) makes duplicate delivery a no-op so
--- consumers stay strictly at-least-once with no double-counting.
+-- ReplacingMergeTree (no version column) makes duplicate delivery a
+-- no-op so consumers stay strictly at-least-once with no double-
+-- counting — the dedup key is the ORDER BY tuple
+-- (tenant_id, occurred_at, event_id), and the most-recently-inserted
+-- duplicate wins on merge. event_id is UUID so it cannot serve as the
+-- explicit version column (ClickHouse demands an integer/Date for
+-- that), and "newest insert wins" is the right policy for a
+-- Redpanda redelivery anyway.
 -- Partition by month and TTL at 90 days — long-term truth lives in
 -- Postgres and S3, ClickHouse is the hot analytics window.
 
@@ -20,7 +26,7 @@ CREATE TABLE IF NOT EXISTS raw_execution_events
     idempotency_key String,
     payload         String
 )
-ENGINE = ReplacingMergeTree(event_id)
+ENGINE = ReplacingMergeTree
 ORDER BY (tenant_id, occurred_at, event_id)
 PARTITION BY toYYYYMM(occurred_at)
 TTL toDateTime(occurred_at) + INTERVAL 90 DAY
@@ -39,7 +45,7 @@ CREATE TABLE IF NOT EXISTS raw_ledger_events
     idempotency_key String,
     payload         String
 )
-ENGINE = ReplacingMergeTree(event_id)
+ENGINE = ReplacingMergeTree
 ORDER BY (tenant_id, occurred_at, event_id)
 PARTITION BY toYYYYMM(occurred_at)
 TTL toDateTime(occurred_at) + INTERVAL 90 DAY
@@ -58,7 +64,7 @@ CREATE TABLE IF NOT EXISTS raw_agent_events
     idempotency_key String,
     payload         String
 )
-ENGINE = ReplacingMergeTree(event_id)
+ENGINE = ReplacingMergeTree
 ORDER BY (tenant_id, occurred_at, event_id)
 PARTITION BY toYYYYMM(occurred_at)
 TTL toDateTime(occurred_at) + INTERVAL 90 DAY
@@ -77,7 +83,7 @@ CREATE TABLE IF NOT EXISTS raw_gate_events
     idempotency_key String,
     payload         String
 )
-ENGINE = ReplacingMergeTree(event_id)
+ENGINE = ReplacingMergeTree
 ORDER BY (tenant_id, occurred_at, event_id)
 PARTITION BY toYYYYMM(occurred_at)
 TTL toDateTime(occurred_at) + INTERVAL 90 DAY
@@ -96,7 +102,7 @@ CREATE TABLE IF NOT EXISTS raw_runtime_events
     idempotency_key String,
     payload         String
 )
-ENGINE = ReplacingMergeTree(event_id)
+ENGINE = ReplacingMergeTree
 ORDER BY (tenant_id, occurred_at, event_id)
 PARTITION BY toYYYYMM(occurred_at)
 TTL toDateTime(occurred_at) + INTERVAL 90 DAY
@@ -115,7 +121,7 @@ CREATE TABLE IF NOT EXISTS raw_deploy_events
     idempotency_key String,
     payload         String
 )
-ENGINE = ReplacingMergeTree(event_id)
+ENGINE = ReplacingMergeTree
 ORDER BY (tenant_id, occurred_at, event_id)
 PARTITION BY toYYYYMM(occurred_at)
 TTL toDateTime(occurred_at) + INTERVAL 90 DAY
@@ -134,7 +140,7 @@ CREATE TABLE IF NOT EXISTS raw_security_events
     idempotency_key String,
     payload         String
 )
-ENGINE = ReplacingMergeTree(event_id)
+ENGINE = ReplacingMergeTree
 ORDER BY (tenant_id, occurred_at, event_id)
 PARTITION BY toYYYYMM(occurred_at)
 TTL toDateTime(occurred_at) + INTERVAL 90 DAY

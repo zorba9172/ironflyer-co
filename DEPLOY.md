@@ -8,23 +8,29 @@ both production-grade:
 | Cloud           | Pulumi program       | Substrate                                                                                                                                  | Cold-start runbook                                                                                  |
 | --------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
 | AWS             | `infra/pulumi/`      | VPC + EKS + Aurora Postgres + ElastiCache Redis + S3 + Route53 + ACM + CloudFront + WAFv2 + Vercel edge                                    | [`docs/RUNBOOKS/cold-start.md`](docs/RUNBOOKS/cold-start.md)                                        |
-| DigitalOcean    | `infra/pulumi-do/`   | VPC + DOKS + Managed Postgres + Valkey (managed Redis) + Spaces + Cloudflare DNS/WAF + cert-manager + sealed-secrets + ingress-nginx + Vercel | [`docs/RUNBOOKS/cold-start-do.md`](docs/RUNBOOKS/cold-start-do.md)                                  |
+| DigitalOcean    | `infra/pulumi-do/`   | VPC + DOKS + Managed Postgres + Valkey (managed Redis) + Spaces + Cloudflare DNS/WAF + cert-manager + sealed-secrets + ingress-nginx + Vercel | follows the same Pulumi shape — config → `pulumi up` → smoke (see [`docs/RUNBOOKS/cold-start.md`](docs/RUNBOOKS/cold-start.md) §1–§7) |
 
 The narrative below walks the **AWS path** in detail. The DO path is
-the same shape end-to-end (Pulumi config → `pulumi up` → smoke);
-follow the DO cold-start runbook for the per-step checklist. Both
-paths read `RESEND_API_KEY` for transactional email — verify the
-production domain at Resend first
-([`docs/RESEND_SETUP.md`](docs/RESEND_SETUP.md)) regardless of cloud.
+the same shape end-to-end (Pulumi config → `pulumi up` → smoke).
+Both paths read `RESEND_API_KEY` for transactional email — verify the
+production domain at Resend before traffic flows regardless of cloud.
 
 The application is layered on top via the **Helm chart** that the
 Pulumi program installs as a Kubernetes resource — identical chart,
 identical values surface, on both clouds.
 
-If you're paging in mid-incident, you probably want one of the focused
-runbooks under [`docs/RUNBOOKS/`](docs/RUNBOOKS/) — see
-[`docs/OPERATIONS.md`](docs/OPERATIONS.md) for the full index. This
-document is the **first install** + **happy-path upgrade/rollback**
+If you're paging in mid-incident, jump straight to the focused
+runbooks under [`docs/RUNBOOKS/`](docs/RUNBOOKS/):
+
+- [`cold-start.md`](docs/RUNBOOKS/cold-start.md) — first install / fresh boot
+- [`upgrade.md`](docs/RUNBOOKS/upgrade.md) — rolling upgrade
+- [`rollback.md`](docs/RUNBOOKS/rollback.md) — rollback
+- [`region-failover.md`](docs/RUNBOOKS/region-failover.md) — region failover
+- [`cost-spike.md`](docs/RUNBOOKS/cost-spike.md) — provider cost spike
+- [`workspace-saturation.md`](docs/RUNBOOKS/workspace-saturation.md) — sandbox saturation
+- [`graphql-incident.md`](docs/RUNBOOKS/graphql-incident.md) — GraphQL surface broken
+
+This document is the **first install** + **happy-path upgrade/rollback**
 guide.
 
 ## TL;DR
@@ -90,7 +96,6 @@ separate `helm install` step in steady state. Pulumi owns the release.
 > data-only managed-service path: it provisions RDS + Redis + S3 without
 > EKS for operators who want to bring their own compute. The main
 > [`infra/pulumi/`](infra/pulumi/) program is what this guide uses.
-> Background: [`docs/INFRA_PULUMI.md`](docs/INFRA_PULUMI.md).
 
 ## 3. Stack outputs you'll consume
 
@@ -107,10 +112,9 @@ After `pulumi up`, `pulumi stack output` exposes:
 
 ## 4. Cold-start install
 
-The full checklist version of this section — with sign-off boxes — lives
-at [`docs/RUNBOOKS/cold-start.md`](docs/RUNBOOKS/cold-start.md). Use
-that one when you're doing the install for real; the section below is
-the narrative.
+The narrative walkthrough is below. The short, verified-against-the-
+live-stack version for first install + daily ops lives at
+[`docs/RUNBOOKS/cold-start.md`](docs/RUNBOOKS/cold-start.md).
 
 ```bash
 # 1. Auth Pulumi (managed backend or self-hosted).
@@ -252,36 +256,39 @@ GraphQL env knobs that govern the surface (all optional):
 | `GRAPHQL_APQ_LOCKED` | `false` *(planned)* | Reject non-registered hashes. |
 | `GRAPHQL_QUERY_CACHE_SIZE` | `1000` | LRU size for parsed query documents. |
 
-Full reference: [`docs/GRAPHQL.md`](docs/GRAPHQL.md). REST → GraphQL
-migration map and codegen recipes: [`docs/GRAPHQL_MIGRATION.md`](docs/GRAPHQL_MIGRATION.md).
+For deeper GraphQL ops (incident triage, subscription handshakes, APQ
+locking) see [`docs/RUNBOOKS/graphql-incident.md`](docs/RUNBOOKS/graphql-incident.md).
+The schema itself is the single source of truth — see
+`apps/orchestrator/internal/graph/schema/*.graphql`.
 
 ## 6. Smoke
 
-[`scripts/smoke.sh`](scripts/smoke.sh) exercises the GraphQL surface
-end-to-end plus the REST-forever exception list. Run it after every
-`pulumi up`:
+There are two smoke scripts. Run both after every `pulumi up`.
 
 ```bash
+# Canonical V22 paid-execution contract — signUp → wallet → paid
+# execution → executionFeed → wallet/ledger/execution/profitDashboard.
+# Exits 0 on the happy path (PASS-WITH-WARN is also exit 0; the warn
+# is the documented ledger row-scan mismatch).
+IRONFLYER_API_URL=https://api.ironflyer.dev bash scripts/v22_smoke.sh
+
+# Broader smoke — infra probes + GraphQL handshake + sample reads +
+# subscription handshake + REST deprecation banner. Auth-gated
+# sections warn-skip when SMOKE_BEARER is unset.
 IRONFLYER_API_URL=https://api.ironflyer.dev \
-SMOKE_BEARER=$(./scripts/issue-smoke-jwt.sh) \
-  ./scripts/smoke.sh
+SMOKE_BEARER=<operator-jwt> \
+  bash scripts/smoke.sh
 ```
 
-`SMOKE_BEARER` should be a JWT for a smoke-test user with read access.
-Without it, the script warn-skips the auth-gated sections (`me`,
-`agentTelemetry`, `verifyAudit`). Hard failures exit non-zero; an audit
-chain reporting `chainValid: false` is logged as a P1 alert rather than
-a smoke fail so the script stays usable while the chain is repaired —
-see [`docs/RUNBOOKS/audit-chain-break.md`](docs/RUNBOOKS/audit-chain-break.md).
-
-Smoke sections, in order:
-
-1. Infra probes — `/livez`, `/readyz`, `/version`, `/metrics`.
-2. GraphQL handshake — `POST /graphql { __typename }` and `query Me`.
-3. Sample reads — `plans`, `services`, `agentTelemetry(limit: 5)`.
-4. Sample mutation — `mutation { verifyAudit { ok chainValid } }`.
-5. Subscription smoke — `wss?://api/graphql` with `graphql-transport-ws`.
-6. REST deprecation banner — confirms `Deprecation: true` + `Sunset` headers.
+`v22_smoke.sh` is the deploy gate. `smoke.sh` is the broader
+operability gate; some of its sections (e.g. `plans`,
+`providersHealth`, `verifyAudit`, `/projects`) require optional V22
+stores or REST surfaces that are not present on every build — those
+sections may report `FAIL` against a dev box without those stores
+wired. Treat `v22_smoke.sh` PASS as the hard prod gate; treat
+`smoke.sh` failures as triage data for the gap, not a deploy block,
+unless the failing surface is in scope for the stack you just
+shipped.
 
 Also gate every deploy on [`scripts/verify-headers.sh`](scripts/verify-headers.sh)
 which checks HSTS / CSP / X-Frame-Options / X-Content-Type-Options /
@@ -309,15 +316,11 @@ kubectl -n ironflyer rollout status deploy/runtime
 kubectl -n ironflyer rollout status deploy/web
 
 # 4. Smoke.
-IRONFLYER_API_URL=https://api.ironflyer.dev \
-SMOKE_BEARER=$(./scripts/issue-smoke-jwt.sh) \
-  ./scripts/smoke.sh
+IRONFLYER_API_URL=https://api.ironflyer.dev bash scripts/v22_smoke.sh
 ```
 
 Canary first: bump the tag on `staging`, soak for 30 minutes against
-real traffic, then promote to `prod-eu` → `prod-us` → `prod-il`. The
-multi-region promotion order is documented in
-[`docs/MULTI_REGION.md`](docs/MULTI_REGION.md).
+real traffic, then promote to `prod-eu` → `prod-us` → `prod-il`.
 
 ## 8. Rollback
 
@@ -342,19 +345,25 @@ pulumi up
 ```
 
 Data caveat: Aurora and S3 are stateful. Reverting a Pulumi version
-that touches `data/` is *not* automatically reversible — for schema
-changes, see [`docs/MIGRATIONS.md`](docs/MIGRATIONS.md). PITR + logical
-restore live in [`docs/DR_RUNBOOK.md`](docs/DR_RUNBOOK.md).
+that touches `data/` is *not* automatically reversible. Schema
+migrations are managed by the `apps/orchestrator/cmd/migrate` (goose-
+backed) binary; rolling them back is the `migrate down` path and
+should be done **after** the application is back on the previous tag.
 
 ## 9. Cross-references
 
-- [`docs/OPERATIONS.md`](docs/OPERATIONS.md) — the operator's flat index.
-- [`docs/DR_RUNBOOK.md`](docs/DR_RUNBOOK.md) — disaster recovery, PITR.
-- [`docs/MULTI_REGION.md`](docs/MULTI_REGION.md) — the EU/US/IL story.
-- [`docs/SCALE.md`](docs/SCALE.md) — Redis bus, HPA, S3 snapshot lag, GraphQL subscription scale.
-- [`docs/GRAPHQL.md`](docs/GRAPHQL.md) — schema overview.
-- [`docs/GRAPHQL_MIGRATION.md`](docs/GRAPHQL_MIGRATION.md) — REST → GraphQL recipes.
-- [`docs/MIGRATIONS.md`](docs/MIGRATIONS.md) — goose schema migrations.
-- [`docs/INFRA_PULUMI.md`](docs/INFRA_PULUMI.md) — Pulumi program layout.
-- [`infra/pulumi/README.md`](infra/pulumi/README.md) — cross-stack output contract.
-- [`.github/workflows/ci.yml`](.github/workflows/ci.yml) — image build pipeline.
+- [`docs/RUNBOOKS/`](docs/RUNBOOKS/) — focused incident runbooks (cold-
+  start, upgrade, rollback, region-failover, cost-spike,
+  workspace-saturation, graphql-incident).
+- [`ARCHITECTURE.md`](ARCHITECTURE.md) — V22 locked spec.
+- [`QUICKSTART.md`](QUICKSTART.md) — fastest dev path from clone to
+  paid execution.
+- [`docs/V22_PLAN.md`](docs/V22_PLAN.md) — implementation contract.
+- [`docs/PROJECT_CLOSEOUT_PLAN.md`](docs/PROJECT_CLOSEOUT_PLAN.md) —
+  Definition of Done + verified state.
+- `apps/orchestrator/internal/graph/schema/*.graphql` — GraphQL schema,
+  single source of truth.
+- [`infra/pulumi/README.md`](infra/pulumi/README.md) — cross-stack
+  output contract.
+- [`.github/workflows/ci.yml`](.github/workflows/ci.yml) — image build
+  pipeline.

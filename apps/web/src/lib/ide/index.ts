@@ -18,13 +18,14 @@
 // production behind a real reverse proxy; leave at
 // http://localhost:3030/ide in dev.
 //
-// Today the workspace folder is always /home/workspace. Per-project
-// sandboxes are on the roadmap — the helper accepts a projectID and
-// forwards it as a query parameter for forward compatibility.
+// The Studio sync route mirrors projectFiles into
+// /home/workspace/projects/<projectID> before the iframe loads. In
+// production this same contract should point at a runtime-owned signed
+// workspace path instead of the local dev bind mount.
 
 export const OPENVSCODE_DEFAULT_PORT = 3030;
 export const OPENVSCODE_DEFAULT_URL = `http://localhost:${OPENVSCODE_DEFAULT_PORT}/ide`;
-export const OPENVSCODE_WORKSPACE_FOLDER = "/home/workspace";
+export const OPENVSCODE_WORKSPACE_ROOT = "/home/workspace/projects";
 
 // resolveOpenvscodeBase — returns the configured base URL with no
 // trailing slash. Defaults to the direct dev URL so the iframe works
@@ -41,11 +42,16 @@ export function resolveOpenvscodeBase(): string {
 export function getOpenvscodeUrl(projectID?: string): string {
   const base = resolveOpenvscodeBase();
   const params = new URLSearchParams();
-  params.set("folder", OPENVSCODE_WORKSPACE_FOLDER);
-  if (projectID && projectID.trim()) {
-    // NOTE: openvscode does not yet read this — the parameter is wired
-    // through so the Go side can opt in without a client change.
-    params.set("projectID", projectID.trim());
-  }
+  params.set("folder", getOpenvscodeFolder(projectID));
+  if (projectID && projectID.trim()) params.set("projectID", projectID.trim());
   return `${base}/?${params.toString()}`;
+}
+
+export function getOpenvscodeFolder(projectID?: string): string {
+  const folder = projectID?.trim() ? projectFolderName(projectID) : "project";
+  return `${OPENVSCODE_WORKSPACE_ROOT}/${folder}`;
+}
+
+export function projectFolderName(projectID: string): string {
+  return projectID.replace(/[^a-zA-Z0-9._-]+/g, "-").slice(0, 80) || "project";
 }

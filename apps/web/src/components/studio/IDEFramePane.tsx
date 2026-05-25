@@ -1,9 +1,9 @@
 "use client";
 
-// IDEFramePane — embeds openvscode-server (a full browser VS Code)
-// inside the studio Code pane. The operator gets extensions, a real
-// terminal, source control, and the debugger without leaving the
-// workbench shell.
+// IDEFramePane — embeds the slim IronFlyer openvscode-server profile
+// inside the studio Code pane. The operator gets a real terminal,
+// debugger, source control, and extension host without the default
+// VS Code chrome taking over the workspace.
 //
 // Mechanics:
 //   • The iframe src is built by `getOpenvscodeUrl` so the URL is
@@ -21,7 +21,11 @@
 // "Open IDE in new tab" CTA instead, gated by the same
 // `getOpenvscodeUrl` so the URL stays consistent.
 
-import { OpenInNewRounded, RefreshRounded } from "@mui/icons-material";
+import {
+  CloudSyncRounded,
+  OpenInNewRounded,
+  RefreshRounded,
+} from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -34,7 +38,8 @@ import {
 } from "@mui/material";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { tokens } from "../../theme";
-import { getOpenvscodeUrl } from "../../lib/ide";
+import { getOpenvscodeFolder, getOpenvscodeUrl } from "../../lib/ide";
+import { useProjectFilesQuery } from "../../lib/gql/__generated__";
 
 const LOAD_TIMEOUT_MS = 6000;
 
@@ -43,21 +48,77 @@ export interface IDEFramePaneProps {
 }
 
 type FrameStatus = "loading" | "ready" | "failed";
+type SyncStatus = "idle" | "syncing" | "ready" | "failed";
 
 export function IDEFramePane({ projectID }: IDEFramePaneProps) {
   const muiTheme = useTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down("md"));
 
   const url = useMemo(() => getOpenvscodeUrl(projectID), [projectID]);
+  const folder = useMemo(() => getOpenvscodeFolder(projectID), [projectID]);
+  const filesQuery = useProjectFilesQuery({
+    variables: { id: projectID },
+    skip: !projectID || isMobile,
+    fetchPolicy: "cache-and-network",
+  });
 
   // `nonce` doubles as React's key on the iframe so a retry forces a
   // full remount (and a fresh load timer).
   const [nonce, setNonce] = useState(0);
   const [status, setStatus] = useState<FrameStatus>("loading");
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>("idle");
+  const [syncMeta, setSyncMeta] = useState<{ written: number; skipped: number } | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    if (isMobile || !projectID || !filesQuery.data) return;
+    const projectFiles = filesQuery.data.projectFiles;
+    let alive = true;
+    const sync = async () => {
+      setSyncStatus("syncing");
+      setSyncError(null);
+      try {
+        const res = await fetch("/api/ide/sync", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            projectID,
+            files: projectFiles.map((file) => ({
+              path: file.path,
+              content: file.content,
+            })),
+          }),
+        });
+        const payload = (await res.json().catch(() => ({}))) as {
+          written?: number;
+          skipped?: number;
+          error?: string;
+        };
+        if (!res.ok) {
+          throw new Error(payload.error || `sync failed (${res.status})`);
+        }
+        if (!alive) return;
+        setSyncMeta({
+          written: payload.written ?? 0,
+          skipped: payload.skipped ?? 0,
+        });
+        setSyncStatus("ready");
+      } catch (e) {
+        if (!alive) return;
+        setSyncError(e instanceof Error ? e.message : "sync failed");
+        setSyncStatus("failed");
+      }
+    };
+    void sync();
+    return () => {
+      alive = false;
+    };
+  }, [filesQuery.data, isMobile, projectID, nonce]);
+
+  useEffect(() => {
     if (isMobile) return;
+    if (syncStatus !== "ready" && syncStatus !== "failed") return;
     setStatus("loading");
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
@@ -69,7 +130,7 @@ export function IDEFramePane({ projectID }: IDEFramePaneProps) {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [nonce, url, isMobile]);
+  }, [nonce, url, isMobile, syncStatus]);
 
   const onLoad = useCallback(() => {
     setStatus("ready");
@@ -134,8 +195,32 @@ export function IDEFramePane({ projectID }: IDEFramePaneProps) {
             whiteSpace: "nowrap",
           }}
         >
-          openvscode · {url.replace(/^https?:\/\//, "")}
+          openvscode · {folder}
         </Typography>
+        <Tooltip title={syncTooltip(syncStatus, syncMeta, syncError)} arrow>
+          <Stack
+            direction="row"
+            spacing={0.5}
+            sx={{
+              alignItems: "center",
+              color:
+                syncStatus === "failed"
+                  ? tokens.color.accent.warning
+                  : syncStatus === "ready"
+                    ? tokens.color.accent.success
+                    : tokens.color.text.muted,
+              fontFamily: tokens.font.mono,
+              fontSize: 10.5,
+              letterSpacing: 0.4,
+              textTransform: "uppercase",
+            }}
+          >
+            <CloudSyncRounded sx={{ fontSize: 14 }} />
+            <Box component="span" sx={{ display: { xs: "none", lg: "inline" } }}>
+              {syncLabel(syncStatus, syncMeta)}
+            </Box>
+          </Stack>
+        </Tooltip>
         <Tooltip title="Reload IDE" arrow>
           <IconButton
             size="small"
@@ -172,11 +257,13 @@ export function IDEFramePane({ projectID }: IDEFramePaneProps) {
           position: "relative",
         }}
       >
-        {status === "failed" ? (
+        {syncStatus === "syncing" || syncStatus === "idle" || filesQuery.loading ? (
+          <IDESkeleton label="Syncing project files…" />
+        ) : status === "failed" ? (
           <IDEFallback url={url} onRetry={onRetry} onOpen={openInNewTab} />
         ) : (
           <>
-            {status === "loading" ? <IDESkeleton /> : null}
+            {status === "loading" ? <IDESkeleton label="Loading slim IDE…" /> : null}
             <Box
               key={nonce}
               component="iframe"
@@ -208,7 +295,7 @@ export function IDEFramePane({ projectID }: IDEFramePaneProps) {
 
 // IDESkeleton — token-driven shimmer that covers the iframe surface
 // until `load` fires (or the timeout flips to `failed`).
-function IDESkeleton() {
+function IDESkeleton({ label = "Loading IDE…" }: { label?: string }) {
   return (
     <Box
       role="status"
@@ -261,7 +348,7 @@ function IDESkeleton() {
           textTransform: "uppercase",
         }}
       >
-        Loading IDE…
+        {label}
       </Typography>
       <Box
         component="style"
@@ -274,6 +361,29 @@ function IDESkeleton() {
       />
     </Box>
   );
+}
+
+function syncLabel(
+  status: SyncStatus,
+  meta: { written: number; skipped: number } | null,
+): string {
+  if (status === "ready" && meta) return `synced ${meta.written}`;
+  if (status === "failed") return "sync failed";
+  if (status === "syncing") return "syncing";
+  return "sync queued";
+}
+
+function syncTooltip(
+  status: SyncStatus,
+  meta: { written: number; skipped: number } | null,
+  error: string | null,
+): string {
+  if (status === "ready" && meta) {
+    return `${meta.written} files synced${meta.skipped ? `, ${meta.skipped} skipped` : ""}`;
+  }
+  if (status === "failed") return error || "Project sync failed";
+  if (status === "syncing") return "Writing the Monaco project snapshot into the IDE workspace";
+  return "Waiting for project files";
 }
 
 // IDEFallback — token-driven panel surfaced when the iframe never

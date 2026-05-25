@@ -17,8 +17,10 @@ package graph
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"time"
@@ -133,7 +135,18 @@ func Handler(cfg Config) http.Handler {
 	_ = graphql.OperationContext{} // keep graphql import referenced for older toolchains
 
 	srv.SetRecoverFunc(func(ctx context.Context, err any) error {
-		cfg.Logger.Error().Interface("panic", err).Msg("graphql: panic in resolver")
+		// Render the panic value as a readable string and capture the
+		// stacktrace so the operator can see exactly which resolver
+		// blew up. zerolog's Interface() serialises empty for a typed
+		// error / runtime panic struct, which is why the original
+		// "panic={}" log lines were useless during the V22 studio
+		// debugging session.
+		stack := debug.Stack()
+		cfg.Logger.Error().
+			Str("panic_value", fmt.Sprintf("%+v", err)).
+			Str("panic_type", fmt.Sprintf("%T", err)).
+			Str("stack", string(stack)).
+			Msg("graphql: panic in resolver")
 		return gqlerror.Errorf("internal server error")
 	})
 	srv.SetErrorPresenter(func(ctx context.Context, err error) *gqlerror.Error {

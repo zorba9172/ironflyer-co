@@ -27,10 +27,12 @@ cp .env.example .env
 
 ## 2. Start infrastructure
 
+The default profile brings up the **lean** stack — only what the
+orchestrator + runtime hard-require (~300 MB combined RAM):
+
 ```bash
 docker compose -f infra/compose/docker-compose.dev.yml up -d
-# Brings up: postgres, redis, redpanda, clickhouse, surrealdb,
-#            minio, temporal (+ ui on :8233), codeserver.
+# Brings up the lean default: postgres (pgvector), redis, surrealdb, minio.
 ```
 
 Wait for healthchecks to settle (~30s on a warm machine):
@@ -39,22 +41,36 @@ Wait for healthchecks to settle (~30s on a warm machine):
 docker compose -f infra/compose/docker-compose.dev.yml ps
 ```
 
-Optional add-ons:
-- `--profile stripe` — runs `stripe listen` against
+`surrealdb` reports `unhealthy` in `docker compose ps` because its
+bundled healthcheck queries an endpoint that returns 404 — the RPC at
+`ws://localhost:8000/rpc` is live. Treat that as cosmetic.
+
+Optional profiles (opt-in, not part of the lean default):
+
+- `--profile analytics` — `redpanda` + `clickhouse` (~1.3 GB). Needed
+  for the analytics pipeline; the orchestrator degrades gracefully
+  when `REDPANDA_BROKERS` / `CLICKHOUSE_URL` are unset.
+- `--profile temporal` — `temporal` + `temporal-ui` (~768 MB; UI on
+  `:8233`). Needed for durable-workflow paths in production mode.
+- `--profile ide` — `openvscode-server` (~1 GB; on `:3030`). The
+  in-browser VS Code surface for the cloud IDE.
+- `--profile stripe` — `stripe listen` forwarding to
   `host.docker.internal:8080/budget/webhook` (requires
   `STRIPE_SECRET_KEY` in `.env`).
-- `--profile apps` — also builds + runs orchestrator/runtime/web
-  containers (slower iteration; usually better to keep them on the
-  host).
+- `--profile apps` — also builds + runs orchestrator/runtime/web in
+  containers (slower iteration; usually better to keep them on host).
+- `--profile full` — everything above.
 
 ## 3. Run database migrations
 
 The orchestrator auto-applies migrations on boot, but you can also
-run them explicitly:
+run them explicitly. `POSTGRES_URL` is required by the migrate
+binary:
 
 ```bash
 cd apps/orchestrator
-go run ./cmd/migrate up
+POSTGRES_URL="postgres://ironflyer:ironflyer@localhost:5432/ironflyer?sslmode=disable" \
+  go run ./cmd/migrate up
 ```
 
 ## 4. Start the orchestrator

@@ -107,14 +107,17 @@ REST is reserved for k8s probes (`/healthz`, `/livez`, `/readyz`,
 
 ## Operations
 
-Everything operational — install, upgrade, rollback, runbooks, SLOs,
-DR, scale, multi-region — lives behind a single index:
+First install + happy-path upgrade/rollback: [`DEPLOY.md`](DEPLOY.md).
 
-**[`docs/OPERATIONS.md`](docs/OPERATIONS.md)** — the page operators
-bookmark.
+Focused incident runbooks (each one re-verified against the live stack):
 
-If you're installing for the first time, start at
-[`DEPLOY.md`](DEPLOY.md).
+- [Cold start](docs/RUNBOOKS/cold-start.md)
+- [Upgrade](docs/RUNBOOKS/upgrade.md)
+- [Rollback](docs/RUNBOOKS/rollback.md)
+- [Region failover](docs/RUNBOOKS/region-failover.md)
+- [Cost spike](docs/RUNBOOKS/cost-spike.md)
+- [Workspace saturation](docs/RUNBOOKS/workspace-saturation.md)
+- [GraphQL incident](docs/RUNBOOKS/graphql-incident.md)
 
 ## Architecture Closeout
 

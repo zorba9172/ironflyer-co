@@ -7,14 +7,16 @@ import "github.com/shopspring/decimal"
 // heuristic stays a pure function of its inputs and can be reviewed
 // in isolation.
 type nextActionInput struct {
-	Status             string
-	HasPreview         bool
-	HasProduction      bool
-	HasSecurityIssue   bool
-	SecurityBlocks     bool
-	WalletBalanceUSD   decimal.Decimal
-	WalletHoldsActive  bool
-	PatchCount         int
+	Status            string
+	ExecutionID       string
+	PreviewURL        string
+	HasPreview        bool
+	HasProduction     bool
+	HasSecurityIssue  bool
+	SecurityBlocks    bool
+	WalletBalanceUSD  decimal.Decimal
+	WalletHoldsActive bool
+	PatchCount        int
 }
 
 // lowBalanceThreshold is the wallet floor below which the heuristic
@@ -38,48 +40,62 @@ var lowBalanceThreshold = decimal.NewFromFloat(5.0)
 //   5        | holds released AND balance < threshold   | top_up
 //   6        | otherwise                                | review_patch
 func decideNextAction(in nextActionInput) NextAction {
+	execPath := ""
+	if in.ExecutionID != "" {
+		execPath = "/app/executions/" + in.ExecutionID
+	}
 	switch {
 	case in.Status == "failed" && in.HasSecurityIssue:
 		return NextAction{
 			Kind:   "fix_security_finding",
 			Title:  "Fix the blocking security finding",
 			Reason: "Execution failed and the security gate raised a finding that needs a patch before the next run.",
-			CTA:    "graphql:patches?executionID",
+			CTA:    ctaOr(execPath+"#security", "/app/executions"),
 		}
 	case in.SecurityBlocks:
 		return NextAction{
 			Kind:   "fix_security_finding",
 			Title:  "Resolve the security finding blocking deploy",
 			Reason: "The security gate flagged a high/critical finding that is keeping the deploy gate red.",
-			CTA:    "graphql:patches?executionID",
+			CTA:    ctaOr(execPath+"#security", "/app/executions"),
 		}
 	case in.Status == "succeeded" && !in.HasPreview:
 		return NextAction{
 			Kind:   "deploy",
 			Title:  "Ship the preview deploy",
 			Reason: "The execution finished cleanly but no preview is live yet — promote it so you can share it.",
-			CTA:    "graphql:planPreviewDeploy?executionID",
+			CTA:    ctaOr(execPath+"#deploy", "/app/executions"),
 		}
 	case in.Status == "succeeded" && in.HasPreview && !in.HasProduction:
 		return NextAction{
 			Kind:   "share_preview",
 			Title:  "Share the preview URL",
 			Reason: "Preview is live. Share the link with reviewers or promote it to production.",
-			CTA:    "url:preview",
+			CTA:    ctaOr(in.PreviewURL, execPath),
 		}
 	case !in.WalletHoldsActive && in.WalletBalanceUSD.LessThan(lowBalanceThreshold):
 		return NextAction{
 			Kind:   "top_up",
 			Title:  "Top up your wallet",
 			Reason: "The wallet hold released but the remaining balance is below the safe floor for the next execution.",
-			CTA:    "url:/app/wallet",
+			CTA:    "/app/wallet",
 		}
 	default:
 		return NextAction{
 			Kind:   "review_patch",
 			Title:  "Review the patches that landed",
 			Reason: "Walk through the applied patches to confirm intent before kicking off the next iteration.",
-			CTA:    "graphql:patches?executionID",
+			CTA:    ctaOr(execPath+"#patches", "/app/executions"),
 		}
 	}
+}
+
+// ctaOr returns primary when non-empty, else fallback. Keeps the
+// heuristic table readable while letting each branch degrade
+// gracefully when the execution id is missing.
+func ctaOr(primary, fallback string) string {
+	if primary != "" && primary != "#security" && primary != "#deploy" && primary != "#patches" {
+		return primary
+	}
+	return fallback
 }

@@ -34,8 +34,8 @@ export type WorkbenchDockTab = "patches" | "logs" | "changes";
 
 // Code-pane rendering mode. `monaco` is the lightweight read-only file
 // viewer the studio has shipped with since day one; `ide` swaps in a
-// full openvscode-server iframe so the operator gets extensions, a
-// terminal, source control and the debugger inside the same workbench
+// slim openvscode-server iframe so the operator gets a terminal,
+// source control and the debugger inside the same workbench
 // shell. The choice persists alongside the rest of the layout state.
 export type WorkbenchCodeMode = "monaco" | "ide";
 

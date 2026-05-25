@@ -243,3 +243,38 @@ Ironflyer is closed for commercial launch when:
 - GraphQL is hardened for production
 - one synthetic paid execution passes in CI/CD
 - operators can deploy, rollback, restore, and explain costs
+
+### DoD verification — actual state vs reality (2026-05-26)
+
+Each DoD line item re-checked against the live dev stack
+(orchestrator `:8080`, runtime `:8090`, web `:3000`, lean compose:
+postgres + redis + surrealdb + minio).
+
+| # | DoD item | Status | Verified by / specific gap |
+| - | --- | --- | --- |
+| 1 | User can top up, run, stop, refund, and inspect an execution | partial | `v22_smoke.sh` walks signUp → wallet → createPaidExecution → wallet hold → execution read → profitDashboard read; **stop** path exists as `stopExecution` mutation but is not exercised by the smoke; **refund** flow is not in V22 GraphQL — gap. |
+| 2 | Every cost lands in the ledger | partial | Postgres `ledger_entries` table is populated by BillingGuard; `ledger` GraphQL query currently fails with `number of field descriptions must equal number of destinations, got 11 and 12` (known V22 row-scan mismatch in `apps/orchestrator/internal/ledger/postgres.go`). Writes work; the read path needs the rebuild noted in the v22 smoke output. |
+| 3 | Every execution emits events into Redpanda | ✗ | Redpanda is opt-in (`--profile analytics`) and is **not** running in the lean default. Outbox publisher exists but is not wired into the lean dev boot. |
+| 4 | ClickHouse dashboards show margin in near real time | ✗ | ClickHouse is opt-in (`--profile analytics`) and not running by default. `profitDashboard` GraphQL query is served from the orchestrator's in-process aggregator, not ClickHouse. |
+| 5 | SurrealDB improves reuse/retrieval without owning durable truth | partial | SurrealDB container is up (reports `unhealthy` cosmetically due to bundled healthcheck probing a 404 endpoint; RPC at `ws://localhost:8000/rpc` is live). Memory backend is selected via `IRONFLYER_MEMORY_BACKEND`; default in dev is `memory`. SurrealDB is wired but not the default. |
+| 6 | Temporal can resume interrupted workflows | ✗ | Temporal is opt-in (`--profile temporal`) and not running by default. Execution lifecycle in the running orchestrator is in-process, not Temporal-backed. |
+| 7 | Runtime workers scale by demand and shrink when idle | ✗ | Runtime is single-process (mock driver by default). HPA/KEDA scaling is a prod-only path via Helm; not exercised in dev and not yet wired against topic lag. |
+| 8 | GraphQL is hardened for production | partial | CSRF / persisted-query / rate-limit middleware chain exists and mounts on `/graphql` when `IRONFLYER_PROD=true`; depth + complexity caps still marked *planned* in `DEPLOY.md §5`. Live in dev: introspection on, CSRF off, APQ unlocked. |
+| 9 | One synthetic paid execution passes in CI/CD | ✓ | `scripts/v22_smoke.sh` exits 0 (`PASS-WITH-WARN` — the warn is the ledger row-scan gap above). It walks signUp → wallet → createPaidExecution → wallet hold (law 1) → executionFeed handshake → reads. |
+| 10 | Operators can deploy, rollback, restore, and explain costs | partial | Deploy + rollback runbooks exist (`docs/RUNBOOKS/upgrade.md`, `rollback.md`) and the cold-start runbook is verified. Restore (PITR) and cost-explain paths exist as `cost-spike.md` runbook + `profitDashboard` GraphQL, but a single end-to-end DR walkthrough is not yet pinned. |
+
+### Operability surface (verified 2026-05-26)
+
+| Surface | Verified | Notes |
+| --- | --- | --- |
+| `docker compose -f infra/compose/docker-compose.dev.yml up -d` | ✓ | Lean default boots postgres, redis, surrealdb, minio. surrealdb cosmetic-unhealthy as documented. |
+| `apps/orchestrator: go build ./...` | ✓ | exits 0. |
+| `apps/orchestrator: go vet ./...` | ✓ | exits 0. |
+| `apps/orchestrator: go run ./cmd/migrate up` (with `POSTGRES_URL`) | ✓ | `goose: no migrations to run. current version: 41`. |
+| `apps/runtime: go build ./...` + `go vet ./...` | ✓ | both exit 0. |
+| `apps/web: npm run codegen` | ✓ | regenerates `src/lib/gql/__generated__.ts`. |
+| `apps/web: npm run dev` | ✓ | web responds 200 at `http://localhost:3000/`. |
+| `scripts/v22_smoke.sh` | ✓ | exits 0 with `PASS-WITH-WARN` (documented ledger read gap). |
+| `scripts/smoke.sh` | ✗ | exits non-zero in lean dev: `GET /projects` 404 (REST route removed), `plans` / `providersHealth` 422 (V22 stores not wired in lean default), `verifyAudit` 422 without operator JWT. Treat as a smoke-script-vs-lean-stack mismatch, not a regression. |
+| `GET /` banner | ✓ | returns `{"contract":"docs/V22_PLAN.md","graphql":"/graphql","sandbox":"/graphql/sandbox","service":"ironflyer-orchestrator","version":"dev"}`. |
+| `GET /openapi.yaml` and `GET /docs` | ✗ (by design) | Both 404. There is no OpenAPI surface — GraphQL is the API of record (`CLAUDE.md` REST exception list). Docs no longer reference these as "legacy" — they were never wired. |

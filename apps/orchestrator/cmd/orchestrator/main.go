@@ -1018,7 +1018,7 @@ func main() {
 
 	// ---------------- Dashboards (ClickHouse when enabled, PG fallback) ----
 	dashboardSvc := &dashboards.Service{
-		Ledger:    adapters.LedgerAdapter{Svc: ledgerSvc},
+		Ledger:    adapters.LedgerAdapter{Svc: ledgerSvc, Pool: pgPool},
 		Exec:      adapters.ExecutionAdapter{Svc: execSvc, Pool: pgPool},
 		Blueprint: adapters.BlueprintAdapter{Svc: blueprintStats},
 		Scale:     adapters.ScaleAdapter{},

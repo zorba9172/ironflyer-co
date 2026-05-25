@@ -1,8 +1,8 @@
 # Ironflyer-branded code-server.
 #
 # Extends the upstream codercom/code-server image with:
-#   - IronFlyer dark-violet theme baked into the default User settings.json
-#   - Pre-installed extensions (Go, Prettier, ESLint, GitLens, EditorConfig)
+#   - IronFlyer slim cloud-IDE theme baked into the default User settings.json
+#   - Pre-installed essentials only (Go, Prettier, ESLint, EditorConfig)
 #   - A branded welcome page available at /home/coder/.config/welcome.html
 #   - Sensible defaults: telemetry off, updates off, format on save
 #
@@ -20,6 +20,7 @@ FROM codercom/code-server:latest
 USER root
 RUN mkdir -p /home/coder/.local/share/code-server/User /home/coder/.config
 COPY infra/docker/ironflyer-code/settings.json /home/coder/.local/share/code-server/User/settings.json
+COPY infra/docker/ironflyer-code/keybindings.json /home/coder/.local/share/code-server/User/keybindings.json
 COPY infra/docker/ironflyer-code/welcome.html /home/coder/.config/welcome.html
 RUN chown -R coder:coder /home/coder/.local /home/coder/.config
 
@@ -61,13 +62,15 @@ ENV PATH=/usr/local/go/bin:/usr/local/bin:${PATH}
 USER coder
 WORKDIR /home/coder
 
-# Pre-install extensions. `|| true` keeps the build resilient when an
-# extension is temporarily missing from the Open VSX registry.
+# Pre-install only the extensions that affect generated-code correctness.
+# GitLens and other heavy navigation extensions are intentionally left out:
+# the Studio shell already owns project history, patches, and agent context.
+# `|| true` keeps the build resilient when an extension is temporarily
+# missing from the Open VSX registry.
 RUN code-server --install-extension golang.go \
  && code-server --install-extension esbenp.prettier-vscode \
  && code-server --install-extension dbaeumer.vscode-eslint \
  && code-server --install-extension editorconfig.editorconfig \
- && code-server --install-extension eamodio.gitlens \
  || true
 
 # Default landing — code-server reads $PASSWORD or hashed-password from config.

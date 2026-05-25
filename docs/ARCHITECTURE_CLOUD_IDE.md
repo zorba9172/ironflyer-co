@@ -26,6 +26,7 @@ The Studio surface must match `design-reference/2026-05-25-private-ironflyer/`:
 - `/p/[projectID]` is the live execution workspace.
 - The cloud IDE appears as an IDE action or tab in the Studio shell, using the execution/workspace identity.
 - The embedded or launched IDE uses the same IronFlyer dark-violet/coral design language. No lime-first legacy theme.
+- The IDE image ships a slim profile: hidden activity bar, compact tabs/status bar, no welcome walkthroughs, no extension recommendations, telemetry and updates off, and watcher/search excludes for heavy generated folders.
 - Preview, files, code, patches, deploy, wallet, ledger, ProfitGuard, and support bundle remain connected to the same execution.
 
 ## Runtime Contract

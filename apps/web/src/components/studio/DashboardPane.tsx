@@ -6,13 +6,20 @@
 // entries) and a profit summary card.
 
 import {
+  ChatBubbleOutlineRounded,
+  ChevronLeftRounded,
+  ChevronRightRounded,
+  DifferenceRounded,
+} from "@mui/icons-material";
+import {
   Box,
+  Button,
   Card,
   Divider,
   Stack,
   Typography,
 } from "@mui/material";
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import { LoadingPanel } from "../cockpit/LoadingPanel";
 import { MetricCard } from "../cockpit/MetricCard";
 import { MoneyChip } from "../cockpit/MoneyChip";
@@ -29,11 +36,26 @@ import type { StudioMessage } from "./types";
 export interface DashboardPaneProps {
   execution: ExecutionCoreFragment;
   messages: StudioMessage[];
+  leftRailOpen?: boolean;
+  chatOpen?: boolean;
+  dockOpen?: boolean;
+  onToggleLeftRail?: () => void;
+  onToggleChat?: () => void;
+  onToggleDock?: () => void;
 }
 
 const TERMINAL = new Set(["succeeded", "failed", "stopped", "killed", "refunded"]);
 
-export function DashboardPane({ execution, messages }: DashboardPaneProps) {
+export function DashboardPane({
+  execution,
+  messages,
+  leftRailOpen,
+  chatOpen,
+  dockOpen,
+  onToggleLeftRail,
+  onToggleChat,
+  onToggleDock,
+}: DashboardPaneProps) {
   const isTerminal = TERMINAL.has(execution.status);
   const query = useExecutionSupportBundleQuery({
     variables: { executionID: execution.id },
@@ -91,6 +113,45 @@ export function DashboardPane({ execution, messages }: DashboardPaneProps) {
           </Typography>
           <StatusBadge status={execution.status} />
           <Box sx={{ flex: 1 }} />
+          <Stack
+            direction="row"
+            spacing={0.75}
+            sx={{
+              alignItems: "center",
+              display: { xs: "none", md: "flex" },
+            }}
+          >
+            {onToggleLeftRail ? (
+              <DashboardToggleButton
+                active={leftRailOpen !== false}
+                icon={
+                  leftRailOpen === false ? (
+                    <ChevronRightRounded sx={{ fontSize: 16 }} />
+                  ) : (
+                    <ChevronLeftRounded sx={{ fontSize: 16 }} />
+                  )
+                }
+                label={leftRailOpen === false ? "Expand sidebar" : "Collapse sidebar"}
+                onClick={onToggleLeftRail}
+              />
+            ) : null}
+            {onToggleChat ? (
+              <DashboardToggleButton
+                active={chatOpen !== false}
+                icon={<ChatBubbleOutlineRounded sx={{ fontSize: 16 }} />}
+                label={chatOpen === false ? "Open chat" : "Hide chat"}
+                onClick={onToggleChat}
+              />
+            ) : null}
+            {onToggleDock ? (
+              <DashboardToggleButton
+                active={dockOpen === true}
+                icon={<DifferenceRounded sx={{ fontSize: 16 }} />}
+                label={dockOpen ? "Hide dock" : "Open dock"}
+                onClick={onToggleDock}
+              />
+            ) : null}
+          </Stack>
           <Typography
             sx={{
               color: tokens.color.text.muted,
@@ -355,6 +416,44 @@ export function DashboardPane({ execution, messages }: DashboardPaneProps) {
         </Card>
       </Stack>
     </Box>
+  );
+}
+
+function DashboardToggleButton({
+  active,
+  icon,
+  label,
+  onClick,
+}: {
+  active: boolean;
+  icon: ReactNode;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <Button
+      size="small"
+      onClick={onClick}
+      startIcon={icon}
+      sx={{
+        border: `1px solid ${active ? tokens.color.border.strong : tokens.color.border.subtle}`,
+        bgcolor: active ? `${tokens.color.accent.purple}1f` : tokens.color.bg.surfaceRaised,
+        color: active ? tokens.color.text.primary : tokens.color.text.secondary,
+        fontSize: 11.5,
+        fontWeight: 800,
+        minHeight: 30,
+        px: 1,
+        whiteSpace: "nowrap",
+        "& .MuiButton-startIcon": { mr: 0.5 },
+        "&:hover": {
+          bgcolor: tokens.color.bg.surfaceHover,
+          borderColor: tokens.color.border.accent,
+          color: tokens.color.text.primary,
+        },
+      }}
+    >
+      {label}
+    </Button>
   );
 }
 

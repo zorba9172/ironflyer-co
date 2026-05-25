@@ -18,7 +18,7 @@
 
 import { Box } from "@mui/material";
 import Editor, { type OnMount } from "@monaco-editor/react";
-import { useCallback } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { tokens } from "../../theme";
 
 // IRONFLYER_THEME — maps our token palette into Monaco's rules array.
@@ -37,6 +37,10 @@ export interface MonacoFileViewProps {
   readOnly?: boolean;
   // Wrap long lines like VS Code's "View → Word Wrap".
   wordWrap?: boolean;
+  // Optional minimap toggle. Kept off by default for dense Studio panes.
+  minimap?: boolean;
+  // Show a compact VS Code-style status strip under the editor.
+  showStatusBar?: boolean;
   // Optional save handler — when supplied, Ctrl/Cmd+S triggers it.
   onSave?: (next: string) => void;
   onChange?: (next: string) => void;
@@ -45,16 +49,41 @@ export interface MonacoFileViewProps {
   height?: string | number;
 }
 
+interface MonacoStatus {
+  line: number;
+  column: number;
+  selectedChars: number;
+  selectedLines: number;
+  lines: number;
+  chars: number;
+  loadMs: number | null;
+}
+
 export function MonacoFileView({
   value,
   language,
   path,
   readOnly = true,
   wordWrap = false,
+  minimap = false,
+  showStatusBar = true,
   onSave,
   onChange,
   height = "100%",
 }: MonacoFileViewProps) {
+  const mountStartedAt = useRef<number>(
+    typeof performance !== "undefined" ? performance.now() : Date.now(),
+  );
+  const [status, setStatus] = useState<MonacoStatus>(() => ({
+    line: 1,
+    column: 1,
+    selectedChars: 0,
+    selectedLines: 0,
+    lines: value.split(/\r\n|\r|\n/).length,
+    chars: value.length,
+    loadMs: null,
+  }));
+
   const onMount: OnMount = useCallback(
     (editor, monaco) => {
       if (!themeRegistered) {
@@ -107,14 +136,98 @@ export function MonacoFileView({
           onSave(editor.getValue());
         });
       }
+
+      editor.addAction({
+        id: "ironflyer.format-document",
+        label: "IronFlyer: Format Document",
+        keybindings: [monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyF],
+        run: async () => {
+          await editor.getAction("editor.action.formatDocument")?.run();
+        },
+      });
+      editor.addAction({
+        id: "ironflyer.copy-path",
+        label: "IronFlyer: Copy File Path",
+        run: async () => {
+          if (!path || typeof navigator === "undefined") return;
+          await navigator.clipboard.writeText(path).catch(() => undefined);
+        },
+      });
+      editor.addAction({
+        id: "ironflyer.toggle-minimap",
+        label: "IronFlyer: Toggle Minimap",
+        run: () => {
+          const current = editor.getRawOptions().minimap?.enabled ?? false;
+          editor.updateOptions({ minimap: { enabled: !current } });
+        },
+      });
+
+      const updateStatus = () => {
+        const model = editor.getModel();
+        if (!model) return;
+        const pos = editor.getPosition();
+        const selection = editor.getSelection();
+        const selectedText =
+          selection && !selection.isEmpty()
+            ? model.getValueInRange(selection)
+            : "";
+        setStatus({
+          line: pos?.lineNumber ?? 1,
+          column: pos?.column ?? 1,
+          selectedChars: selectedText.length,
+          selectedLines:
+            selection && !selection.isEmpty()
+              ? Math.abs(selection.endLineNumber - selection.startLineNumber) + 1
+              : 0,
+          lines: model.getLineCount(),
+          chars: model.getValueLength(),
+          loadMs: Math.max(
+            0,
+            Math.round(
+              (typeof performance !== "undefined" ? performance.now() : Date.now()) -
+                mountStartedAt.current,
+            ),
+          ),
+        });
+      };
+      const disposables = [
+        editor.onDidChangeCursorPosition(updateStatus),
+        editor.onDidChangeCursorSelection(updateStatus),
+        editor.onDidChangeModelContent(updateStatus),
+      ];
+      updateStatus();
+      editor.onDidDispose(() => {
+        disposables.forEach((d) => d.dispose());
+      });
     },
-    [onSave],
+    [onSave, path],
   );
+
+  const statusText = useMemo(() => {
+    const bits = [
+      `Ln ${status.line}`,
+      `Col ${status.column}`,
+      `${status.lines} lines`,
+      `${status.chars.toLocaleString()} chars`,
+    ];
+    if (status.selectedChars > 0) {
+      bits.splice(
+        2,
+        0,
+        `${status.selectedChars.toLocaleString()} selected`,
+        `${status.selectedLines} sel lines`,
+      );
+    }
+    if (status.loadMs != null) bits.push(`${status.loadMs} ms`);
+    return bits.join(" · ");
+  }, [status]);
 
   return (
     <Box
       sx={{
         bgcolor: tokens.color.bg.inset,
+        display: "flex",
+        flexDirection: "column",
         flex: 1,
         height,
         minHeight: 0,
@@ -135,13 +248,42 @@ export function MonacoFileView({
           fontFamily: tokens.font.mono,
           fontSize: 13,
           lineHeight: 1.6,
-          minimap: { enabled: false },
+          minimap: { enabled: minimap },
           smoothScrolling: true,
           scrollBeyondLastLine: false,
           renderLineHighlight: "line",
           wordWrap: wordWrap ? "on" : "off",
           tabSize: 2,
           insertSpaces: true,
+          autoClosingBrackets: "always",
+          autoClosingQuotes: "always",
+          autoIndent: "advanced",
+          codeLens: true,
+          colorDecorators: true,
+          dragAndDrop: true,
+          find: { addExtraSpaceOnTop: false, autoFindInSelection: "multiline" },
+          folding: true,
+          formatOnPaste: !readOnly,
+          formatOnType: !readOnly,
+          inlayHints: { enabled: "onUnlessPressed" },
+          linkedEditing: true,
+          links: true,
+          matchBrackets: "always",
+          occurrencesHighlight: "singleFile",
+          parameterHints: { enabled: true },
+          quickSuggestions: !readOnly,
+          renderFinalNewline: "on",
+          renderWhitespace: "selection",
+          selectionHighlight: true,
+          showFoldingControls: "mouseover",
+          snippetSuggestions: "inline",
+          stickyScroll: { enabled: true },
+          suggest: {
+            preview: true,
+            showInlineDetails: true,
+            showStatusBar: true,
+            snippetsPreventQuickSuggestions: false,
+          },
           padding: { top: 12, bottom: 16 },
           guides: {
             indentation: true,
@@ -166,6 +308,36 @@ export function MonacoFileView({
             : {}),
         }}
       />
+      {showStatusBar ? (
+        <Box
+          sx={{
+            alignItems: "center",
+            borderTop: `1px solid ${tokens.color.border.subtle}`,
+            color: tokens.color.text.muted,
+            display: "flex",
+            flex: "0 0 auto",
+            fontFamily: tokens.font.mono,
+            fontSize: 10.5,
+            gap: 1,
+            height: 24,
+            minWidth: 0,
+            overflow: "hidden",
+            px: 1.25,
+            whiteSpace: "nowrap",
+          }}
+        >
+          <Box
+            component="span"
+            sx={{
+              minWidth: 0,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {statusText}
+          </Box>
+        </Box>
+      ) : null}
     </Box>
   );
 }

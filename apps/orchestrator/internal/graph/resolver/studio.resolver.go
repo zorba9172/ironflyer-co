@@ -213,6 +213,11 @@ func (r *mutationResolver) DescribeIdea(ctx context.Context, input model.Describ
 		_ = r.ExecutionSvc.Fail(ctx, exec.ID, "admit_failed")
 		return nil, fmt.Errorf("execution admit: %w", err)
 	}
+	// Stamp reserved_usd so the settler can release the wallet hold on
+	// close. Without it the tenant-wide hold leaks on every paid run.
+	if err := r.ExecutionSvc.Reserve(ctx, exec.ID, budget); err != nil {
+		r.Logger.Warn().Err(err).Str("execution_id", exec.ID).Msg("studio: execution.Reserve failed; hold may leak on close")
+	}
 	if startNow {
 		if err := r.ExecutionSvc.Start(ctx, exec.ID); err != nil {
 			r.Logger.Warn().Err(err).Str("execution_id", exec.ID).Msg("studio: execution.Start failed after admit")

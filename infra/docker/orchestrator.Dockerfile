@@ -1,23 +1,33 @@
 # syntax=docker/dockerfile:1.7
 #
-# Orchestrator image. Multi-stage: alpine + Go build, distroless-style
-# minimal runtime (still alpine for /healthz curl + zoneinfo). Runs as a
-# non-root user.
+# Orchestrator image. Multi-stage: alpine + Go build, alpine runtime
+# (small + has curl for healthcheck). Runs as a non-root user.
 #
 # Templates are baked into the image at /app/templates so the scaffold
 # step works without a sidecar PVC; dev iterations can still bind-mount
 # the repo's templates/ via docker-compose.dev.yml.
+#
+# CGO is required because the production build opts in to the
+# tree-sitter AST adapters (`-tags treesitter`). The smacker/go-tree-sitter
+# Go bindings ship the per-grammar C code inline and compile it via cgo,
+# so we need gcc + musl-dev in the build stage. The `treesitter` tag is
+# documented in docs/PATCHES.md.
 FROM golang:1.25-alpine AS build
 WORKDIR /src
-RUN apk add --no-cache git
-COPY apps/orchestrator/go.mod apps/orchestrator/go.sum* ./
-RUN go mod download || true
+RUN apk add --no-cache git gcc g++ musl-dev
+COPY apps/orchestrator/go.mod apps/orchestrator/go.sum ./
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    go mod download
 COPY apps/orchestrator/ ./
 # Production builds opt in to the tree-sitter AST adapters so symbol-level
 # patches resolve through real parsers instead of the no-op fallback. The
-# `treesitter` tag is documented in docs/PATCHES.md.
-RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -tags treesitter -ldflags='-s -w' \
-    -o /out/orchestrator ./cmd/orchestrator
+# tree-sitter Go bindings require CGO, so CGO_ENABLED=1 is mandatory here.
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    CGO_ENABLED=1 GOOS=linux go build -trimpath -tags treesitter \
+      -ldflags='-s -w -linkmode external -extldflags "-static"' \
+      -o /out/orchestrator ./cmd/orchestrator
 
 FROM alpine:3.20
 RUN apk add --no-cache ca-certificates curl tzdata \

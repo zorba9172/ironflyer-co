@@ -10,13 +10,16 @@ import (
 	"errors"
 	"ironflyer/apps/orchestrator/internal/auth"
 	"ironflyer/apps/orchestrator/internal/graph/model"
+	"strings"
 	"time"
 
 	"github.com/shopspring/decimal"
+	"golang.org/x/crypto/bcrypt"
 )
 
-// SignUp resolves the signUp mutation. Creates a new user + issues a
-// JWT in one call.
+// SignUp resolves the signUp mutation. Creates a new user, issues a
+// stateful JWT (jti row in the sessions table), seeds the verification
+// token + email, and returns the canonical Session envelope.
 func (r *mutationResolver) SignUp(ctx context.Context, input model.SignUpInput) (*model.Session, error) {
 	if r.Auth == nil {
 		return nil, gqlNotConfigured("auth")
@@ -25,7 +28,7 @@ func (r *mutationResolver) SignUp(ctx context.Context, input model.SignUpInput) 
 	if input.Name != nil {
 		name = *input.Name
 	}
-	u, token, err := r.Auth.Signup(ctx, auth.SignupInput{
+	u, _, err := r.Auth.Signup(ctx, auth.SignupInput{
 		Email:    input.Email,
 		Name:     name,
 		Password: input.Password,
@@ -33,90 +36,309 @@ func (r *mutationResolver) SignUp(ctx context.Context, input model.SignUpInput) 
 	if err != nil {
 		return nil, err
 	}
+	sess, err := r.issueAndPersistSession(ctx, u)
+	if err != nil {
+		return nil, err
+	}
+	// Seed verification token + welcome / verify email when wired.
+	if r.Verifications != nil {
+		plain, hash, ierr := auth.NewVerificationToken()
+		if ierr == nil {
+			expires := time.Now().UTC().Add(auth.VerificationTTL)
+			_ = r.Verifications.Insert(ctx, hash, u.ID, auth.VerificationSignup, "", expires)
+			if r.Email != nil {
+				_ = auth.SendEmail(ctx, r.Email, u.Email, auth.EmailVerification, auth.EmailContext{
+					UserName: displayName(u), UserEmail: u.Email, VerifyURL: r.verifyURL(plain),
+				})
+			}
+			// Dev convenience: also write the plaintext token to the
+			// operator log so a smoke flow can call verifyEmail without
+			// a real SMTP / Resend provider. Strictly Env=="dev".
+			if r.DevEnv == "dev" {
+				r.Logger.Warn().Str("user_id", u.ID).Str("kind", "signup").
+					Str("verify_token", plain).Msg("auth: dev-mode verification token (no SMTP needed)")
+			}
+		}
+	}
 	// Dev convenience: pre-fund the new wallet so describeIdea runs
 	// without Stripe being wired. Strictly Env=="dev" + seed > 0.
 	if r.DevEnv == "dev" && r.DevWalletSeedUSD > 0 && r.WalletSvc != nil {
 		amt := decimal.NewFromFloat(r.DevWalletSeedUSD)
 		_ = r.WalletSvc.TopUp(ctx, u.ID, amt, "dev-seed-"+u.ID)
 	}
-	exp := time.Now().Add(r.Auth.TTL()).UTC()
-	return &model.Session{
-		User:      *toModelUser(u),
-		Token:     token,
-		ExpiresAt: &exp,
-	}, nil
+	return sess, nil
 }
 
 // SignIn resolves the signIn mutation. Verifies password + issues a
-// JWT. Returns ErrBadPassword as a typed GraphQL error so the client
-// can render a friendly message.
+// stateful JWT. Returns a friendly error on bad credentials.
 func (r *mutationResolver) SignIn(ctx context.Context, input model.SignInInput) (*model.Session, error) {
 	if r.Auth == nil {
 		return nil, gqlNotConfigured("auth")
 	}
-	u, token, err := r.Auth.Login(ctx, input.Email, input.Password)
+	u, _, err := r.Auth.Login(ctx, input.Email, input.Password)
 	if err != nil {
 		if errors.Is(err, auth.ErrBadPassword) {
 			return nil, errors.New("invalid email or password")
 		}
 		return nil, err
 	}
-	exp := time.Now().Add(r.Auth.TTL()).UTC()
-	return &model.Session{
-		User:      *toModelUser(u),
-		Token:     token,
-		ExpiresAt: &exp,
-	}, nil
+	return r.issueAndPersistSession(ctx, u)
 }
 
-// SignOut is a no-op in the V22 minimal auth (stateless JWT). The
-// client is responsible for dropping its token. Returning ok=true is
-// the canonical "signed out" response so the SPA can update its UI.
+// SignOut revokes the caller's session row (when wired) and tells the
+// client to drop its token. Stateless when no session store exists.
 func (r *mutationResolver) SignOut(ctx context.Context) (*model.OperationResult, error) {
+	if r.Sessions != nil {
+		if jti := auth.JTIFromContext(ctx); jti != "" {
+			_ = r.Sessions.Revoke(ctx, jti)
+			if r.SessionCache != nil {
+				r.SessionCache.MarkRevoked(ctx, jti)
+			}
+		}
+	}
 	msg := "signed out"
 	return &model.OperationResult{Ok: true, Message: &msg}, nil
 }
 
-// VerifyEmail is the resolver for the verifyEmail field.
+// VerifyEmail consumes the verification token, flips
+// users.email_verified_at, and returns a fresh signed-in session.
 func (r *mutationResolver) VerifyEmail(ctx context.Context, token string) (*model.Session, error) {
-	return nil, gqlNotConfigured("email_verification")
+	if r.Auth == nil || r.Verifications == nil || r.EmailVerifier == nil {
+		return nil, gqlNotConfigured("email_verification")
+	}
+	rec, err := r.Verifications.Consume(ctx, auth.HashTokenForResolver(token))
+	if err != nil {
+		return nil, errors.New("invalid or expired verification link")
+	}
+	if rec.Kind != auth.VerificationSignup {
+		return nil, errors.New("invalid verification token kind")
+	}
+	now := time.Now().UTC()
+	if err := r.EmailVerifier.MarkEmailVerified(ctx, rec.UserID, now); err != nil {
+		return nil, err
+	}
+	u, err := r.Auth.GetByID(ctx, rec.UserID)
+	if err != nil {
+		return nil, err
+	}
+	return r.issueAndPersistSession(ctx, u)
 }
 
-// ResendVerificationEmail is the resolver for the resendVerificationEmail field.
+// ResendVerificationEmail mints a fresh verification token (throttled
+// to ~1 / minute / user) and ships the email. Returns ok=true even when
+// the user is already verified so the client behaves the same way.
 func (r *mutationResolver) ResendVerificationEmail(ctx context.Context) (*model.OperationResult, error) {
-	return nil, gqlNotConfigured("email_verification")
-}
-
-// RequestPasswordReset is the resolver for the requestPasswordReset field.
-func (r *mutationResolver) RequestPasswordReset(ctx context.Context, email string) (*model.OperationResult, error) {
-	// Always-OK probe-safe response (don't leak existence).
-	msg := "if an account with that email exists, you'll receive a reset link"
+	if r.Auth == nil || r.Verifications == nil {
+		return nil, gqlNotConfigured("email_verification")
+	}
+	u, err := currentUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if u.EmailVerifiedAt != nil && !u.EmailVerifiedAt.IsZero() {
+		msg := "email already verified"
+		return &model.OperationResult{Ok: true, Message: &msg}, nil
+	}
+	if r.ResendVerificationLimiter != nil {
+		if ok, _ := r.ResendVerificationLimiter.Allow("resend:" + u.ID); !ok {
+			return nil, errors.New("please wait a minute before requesting another verification email")
+		}
+	}
+	plain, hash, err := auth.NewVerificationToken()
+	if err != nil {
+		return nil, err
+	}
+	expires := time.Now().UTC().Add(auth.VerificationTTL)
+	if err := r.Verifications.Insert(ctx, hash, u.ID, auth.VerificationSignup, "", expires); err != nil {
+		return nil, err
+	}
+	if r.Email != nil {
+		_ = auth.SendEmail(ctx, r.Email, u.Email, auth.EmailVerification, auth.EmailContext{
+			UserName: displayName(u), UserEmail: u.Email, VerifyURL: r.verifyURL(plain),
+		})
+	}
+	if r.DevEnv == "dev" {
+		r.Logger.Warn().Str("user_id", u.ID).Str("kind", "resend").
+			Str("verify_token", plain).Msg("auth: dev-mode verification token (no SMTP needed)")
+	}
+	msg := "verification email sent"
 	return &model.OperationResult{Ok: true, Message: &msg}, nil
 }
 
-// ResetPassword is the resolver for the resetPassword field.
+// RequestPasswordReset is always-OK probe-safe: on a real user, it
+// mints + stores a reset token and ships the email. On an unknown
+// email, it returns ok=true so the response shape doesn't leak account
+// existence.
+func (r *mutationResolver) RequestPasswordReset(ctx context.Context, email string) (*model.OperationResult, error) {
+	msg := "if an account with that email exists, you'll receive a reset link"
+	if r.Auth == nil || r.PasswordResets == nil {
+		// Probe-safe even when the surface is unwired.
+		return &model.OperationResult{Ok: true, Message: &msg}, nil
+	}
+	email = strings.ToLower(strings.TrimSpace(email))
+	if email == "" || !strings.Contains(email, "@") {
+		return &model.OperationResult{Ok: true, Message: &msg}, nil
+	}
+	if r.PasswordResetEmailLimiter != nil {
+		if ok, _ := r.PasswordResetEmailLimiter.Allow("pwreset:email:" + email); !ok {
+			// Still probe-safe — silently absorb the rate-limit.
+			return &model.OperationResult{Ok: true, Message: &msg}, nil
+		}
+	}
+	u, found, err := r.Auth.LookupByEmail(ctx, email)
+	if err != nil || !found {
+		return &model.OperationResult{Ok: true, Message: &msg}, nil
+	}
+	plain, hash, err := auth.NewVerificationToken()
+	if err != nil {
+		return &model.OperationResult{Ok: true, Message: &msg}, nil
+	}
+	expires := time.Now().UTC().Add(auth.PasswordResetTTL)
+	if err := r.PasswordResets.Insert(ctx, hash, u.ID, expires); err != nil {
+		return &model.OperationResult{Ok: true, Message: &msg}, nil
+	}
+	if r.Email != nil {
+		_ = auth.SendEmail(ctx, r.Email, u.Email, auth.EmailPasswordReset, auth.EmailContext{
+			UserName: displayName(u), UserEmail: u.Email, ResetURL: r.resetURL(plain),
+		})
+	}
+	if r.DevEnv == "dev" {
+		r.Logger.Warn().Str("user_id", u.ID).Str("kind", "password_reset").
+			Str("reset_token", plain).Msg("auth: dev-mode reset token (no SMTP needed)")
+	}
+	return &model.OperationResult{Ok: true, Message: &msg}, nil
+}
+
+// ResetPassword consumes the reset token, rotates the bcrypt hash,
+// revokes every existing session for the user, and issues a fresh one.
 func (r *mutationResolver) ResetPassword(ctx context.Context, token string, newPassword string) (*model.Session, error) {
-	return nil, gqlNotConfigured("password_reset")
+	if r.Auth == nil || r.PasswordResets == nil || r.PasswordRotator == nil {
+		return nil, gqlNotConfigured("password_reset")
+	}
+	if len(newPassword) < 8 {
+		return nil, errors.New("password must be at least 8 characters")
+	}
+	rec, err := r.PasswordResets.Consume(ctx, auth.HashTokenForResolver(token))
+	if err != nil {
+		return nil, errors.New("invalid or expired reset link")
+	}
+	hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+	if err := r.PasswordRotator.SetPasswordHash(ctx, rec.UserID, string(hash)); err != nil {
+		return nil, err
+	}
+	if r.Sessions != nil {
+		_ = r.Sessions.RevokeAllForUser(ctx, rec.UserID)
+	}
+	u, err := r.Auth.GetByID(ctx, rec.UserID)
+	if err != nil {
+		return nil, err
+	}
+	return r.issueAndPersistSession(ctx, u)
 }
 
-// RevokeSession is the resolver for the revokeSession field.
+// RevokeSession marks a single session row as revoked. Caller must
+// own the row — we 404-equivalent (generic "not found") on any other
+// user's jti so the surface can't be used to probe foreign sessions.
 func (r *mutationResolver) RevokeSession(ctx context.Context, jti string) (*model.OperationResult, error) {
-	return nil, gqlNotConfigured("sessions")
+	if r.Sessions == nil {
+		return nil, gqlNotConfigured("sessions")
+	}
+	u, err := currentUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	sess, err := r.Sessions.Get(ctx, jti)
+	if err != nil || sess.UserID != u.ID {
+		return nil, errors.New("session not found")
+	}
+	if err := r.Sessions.Revoke(ctx, jti); err != nil {
+		return nil, err
+	}
+	if r.SessionCache != nil {
+		r.SessionCache.MarkRevoked(ctx, jti)
+	}
+	msg := "session revoked"
+	return &model.OperationResult{Ok: true, Message: &msg}, nil
 }
 
-// RevokeAllOtherSessions is the resolver for the revokeAllOtherSessions field.
+// RevokeAllOtherSessions revokes every active session for the caller
+// EXCEPT the one whose jti currently authenticates the request.
 func (r *mutationResolver) RevokeAllOtherSessions(ctx context.Context) (*model.OperationResult, error) {
-	return nil, gqlNotConfigured("sessions")
+	if r.Sessions == nil {
+		return nil, gqlNotConfigured("sessions")
+	}
+	u, err := currentUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	keep := auth.JTIFromContext(ctx)
+	if err := r.Sessions.RevokeAllExcept(ctx, u.ID, keep); err != nil {
+		return nil, err
+	}
+	msg := "other sessions revoked"
+	return &model.OperationResult{Ok: true, Message: &msg}, nil
 }
 
-// RequestEmailChange is the resolver for the requestEmailChange field.
+// RequestEmailChange validates the current password and issues a
+// change-verification token to the NEW address. Returns ok=true even
+// on background failures so the surface is probe-resistant.
 func (r *mutationResolver) RequestEmailChange(ctx context.Context, input model.EmailChangeInput) (*model.OperationResult, error) {
-	return nil, gqlNotConfigured("email_change")
+	if r.Auth == nil || r.Verifications == nil {
+		return nil, gqlNotConfigured("email_change")
+	}
+	u, err := currentUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	req, err := auth.RequestEmailChange(ctx, r.Auth.UserStore(), r.Verifications, u.ID, input.NewEmail, input.CurrentPassword, 0)
+	if err != nil {
+		if errors.Is(err, auth.ErrEmailChangeInvalidPassword) {
+			return nil, errors.New("current password is incorrect")
+		}
+		return nil, err
+	}
+	if r.Email != nil {
+		_ = auth.SendEmail(ctx, r.Email, req.NewEmail, auth.EmailEmailChange, auth.EmailContext{
+			UserName:  displayName(u),
+			UserEmail: u.Email,
+			NewEmail:  req.NewEmail,
+			VerifyURL: r.verifyURL(req.PlainToken),
+		})
+	}
+	if r.DevEnv == "dev" {
+		r.Logger.Warn().Str("user_id", u.ID).Str("kind", "email_change").
+			Str("new_email", req.NewEmail).
+			Str("verify_token", req.PlainToken).
+			Msg("auth: dev-mode email-change token (no SMTP needed)")
+	}
+	msg := "verification email sent to the new address"
+	return &model.OperationResult{Ok: true, Message: &msg}, nil
 }
 
-// ConfirmEmailChange is the resolver for the confirmEmailChange field.
+// ConfirmEmailChange consumes the change token, flips the user's
+// primary email, and revokes every existing session.
 func (r *mutationResolver) ConfirmEmailChange(ctx context.Context, token string) (*model.OperationResult, error) {
-	return nil, gqlNotConfigured("email_change")
+	if r.Auth == nil || r.Verifications == nil || r.EmailChanger == nil {
+		return nil, gqlNotConfigured("email_change")
+	}
+	rec, err := r.Verifications.Consume(ctx, auth.HashTokenForResolver(token))
+	if err != nil {
+		return nil, errors.New("invalid or expired confirmation link")
+	}
+	if rec.Kind != auth.VerificationEmailChange || rec.NewEmail == "" {
+		return nil, errors.New("invalid confirmation token kind")
+	}
+	if err := r.EmailChanger.SetEmail(ctx, rec.UserID, rec.NewEmail); err != nil {
+		return nil, err
+	}
+	if r.Sessions != nil {
+		_ = r.Sessions.RevokeAllForUser(ctx, rec.UserID)
+	}
+	msg := "email changed; please sign in again"
+	return &model.OperationResult{Ok: true, Message: &msg}, nil
 }
 
 // SetTelemetryPreference flips the telemetry opt-out on the current
@@ -157,21 +379,45 @@ func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
 	return toModelUser(u), nil
 }
 
-// MySessions returns the list of active sessions for the caller. In
-// V22 minimal there is no session store wired, so we return a single
-// synthetic row for the current bearer token so the UI's "active
-// sessions" panel still has something to render.
+// MySessions returns every active session for the caller. The row
+// whose jti matches the request's bearer token is flagged
+// current=true so the UI can disable its own revoke button. Falls
+// back to a synthetic single-row view when no session store is wired.
 func (r *queryResolver) MySessions(ctx context.Context) ([]model.Session, error) {
 	u, err := currentUser(ctx)
 	if err != nil {
 		return nil, err
 	}
-	current := true
-	return []model.Session{
-		{
-			User:    *toModelUser(u),
-			Token:   "",
-			Current: &current,
-		},
-	}, nil
+	if r.Sessions == nil {
+		current := true
+		return []model.Session{
+			{User: *toModelUser(u), Token: "", Current: &current},
+		}, nil
+	}
+	rows, err := r.Sessions.List(ctx, u.ID)
+	if err != nil {
+		return nil, err
+	}
+	callerJTI := auth.JTIFromContext(ctx)
+	out := make([]model.Session, 0, len(rows))
+	mu := toModelUser(u)
+	for _, s := range rows {
+		jti := s.JTI
+		ip := s.IPAddress
+		ua := s.UserAgent
+		lastSeen := s.LastSeenAt
+		expires := s.ExpiresAt
+		isCurrent := s.JTI == callerJTI
+		out = append(out, model.Session{
+			User:       *mu,
+			Token:      "",
+			Jti:        &jti,
+			IPAddress:  &ip,
+			UserAgent:  &ua,
+			LastSeenAt: &lastSeen,
+			ExpiresAt:  &expires,
+			Current:    &isCurrent,
+		})
+	}
+	return out, nil
 }

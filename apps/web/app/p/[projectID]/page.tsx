@@ -436,7 +436,18 @@ function ProjectStudioInner() {
           workspaceID={workspaceID}
         />
       }
-      dashboardSlot={<DashboardPane execution={execution} messages={messages} />}
+      dashboardSlot={
+        <DashboardPane
+          execution={execution}
+          messages={messages}
+          leftRailOpen={layout.leftOpen}
+          chatOpen={layout.rightOpen}
+          dockOpen={layout.dockOpen}
+          onToggleLeftRail={layout.toggleLeft}
+          onToggleChat={layout.toggleRight}
+          onToggleDock={layout.toggleDock}
+        />
+      }
       chatSlot={
         <ChatPanel
           messages={messages}

@@ -1,0 +1,3 @@
+# Empty dynamic-config overrides for the Temporal dev server. Server
+# defaults apply when no entries are set. Add per-namespace knobs here
+# only if a workflow actively needs to override the dev defaults.

@@ -103,7 +103,13 @@ services:
     mem_limit: 1g
     cpus: 1.0
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8123/ping"]
+      # Use 127.0.0.1 explicitly — BusyBox wget in the Alpine CH image
+      # resolves "localhost" to ::1 first, and the IPv6 listen on :8123
+      # fails inside the container (the CH log warns
+      # "Listen [::]:8123 failed: Address family for hostname not
+      # supported"), so the healthcheck stays "unhealthy" even though
+      # the v4 listener is up and curl from outside works.
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8123/ping || exit 1"]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -167,7 +173,13 @@ services:
       POSTGRES_USER: ironflyer
       POSTGRES_PWD: ironflyer
       POSTGRES_SEEDS: postgres
-      DYNAMIC_CONFIG_FILE_PATH: config/dynamicconfig/development-sql.yaml
+      # The auto-setup image ships its own dynamicconfig under
+      # /etc/temporal/config/dynamicconfig/docker.yaml; pointing at a
+      # nonexistent path made the server crash on boot. Mount our own
+      # empty file so server-defaults apply and the container stays up.
+      DYNAMIC_CONFIG_FILE_PATH: /etc/temporal/config/dynamicconfig/development-sql.yaml
+    volumes:
+      - ./temporal/dynamicconfig:/etc/temporal/config/dynamicconfig:ro
     ports:
       - "7233:7233"
     depends_on:
@@ -189,10 +201,10 @@ services:
   # Two browser-IDE options. Pick one with `--profile ide`; both share
   # the workspace volume so a user's project is reachable from either.
   #
-  # openvscode-server (preferred): Microsoft's upstream port of VS Code
-  # to the browser. Lighter image, faster boot, marketplace works out of
-  # the box. Far beyond a Monaco textarea — full VS Code: extensions,
-  # debugger, terminal, source control, settings sync.
+  # openvscode-server (preferred): upstream VS Code in the browser, wrapped
+  # in a slim IronFlyer profile. The custom image keeps the real terminal,
+  # debugger and extension host, while hiding noisy workbench chrome and
+  # disabling recommendations/telemetry/update churn.
   #
   # Served at /ide so the Next.js dev server can same-origin-proxy it
   # at apps/web /ide/* → http://openvscode:3000/ide/*. Same-origin
@@ -202,16 +214,20 @@ services:
   #   Proxy : http://localhost:3017/ide/?folder=/home/workspace
   openvscode:
     profiles: ["ide", "full"]
-    image: gitpod/openvscode-server:latest
+    build:
+      context: ../..
+      dockerfile: infra/docker/ironflyer-openvscode.Dockerfile
+    image: ironflyer/openvscode:dev
     environment:
       OPENVSCODE_SERVER_ROOT: /home/.openvscode-server
     ports:
       - "3030:3000"
     volumes:
       - workspace-data:/home/workspace
+      # Studio sync writes project snapshots here so the IDE opens the
+      # same files Monaco shows, scoped by projectID.
+      - ../../.ironflyer/ide-sync/projects:/home/workspace/projects
     command:
-      - --host
-      - 0.0.0.0
       - --without-connection-token
       - --server-base-path
       - /ide
@@ -220,14 +236,11 @@ services:
     cpus: 1.5
 
   # code-server (legacy): Coder's downstream fork, Ironflyer-branded build.
-  # Requires `docker build -f infra/docker/ironflyer-code.Dockerfile .`
-  # before first up. Kept for parity with the older runtime adapter.
+  # Build the image via `scripts/build-docker.sh` (tags ironflyer/code:dev)
+  # before bringing this profile up.
   codeserver:
     profiles: ["ide-legacy", "full"]
-    image: ironflyer/ironflyer-code:dev
-    build:
-      context: ../..
-      dockerfile: infra/docker/ironflyer-code.Dockerfile
+    image: ironflyer/code:dev
     environment:
       PASSWORD: ironflyer-dev
     ports:
@@ -258,48 +271,71 @@ services:
       - "host.docker.internal:host-gateway"
 
   # ---------------------------------------------------------------------
-  # App services — opt in with `--profile apps`. Templates bind-mounted so
-  # `templates/` edits land in the orchestrator container without rebuild.
+  # App services — opt in with `--profile apps`. These reference PREBUILT
+  # images (no `build:` block): run `scripts/build-docker.sh` first so the
+  # ironflyer/{orchestrator,runtime,web}:dev tags exist locally.
+  #
+  # Host ports are overrideable via env so this profile can run alongside
+  # apps-on-host without colliding. Defaults bump them off the canonical
+  # ports the host orchestrator/runtime/web already use:
+  #
+  #   ORCHESTRATOR_HOST_PORT  default 8081  (host orchestrator runs on 8080)
+  #   RUNTIME_HOST_PORT       default 8091  (host runtime runs on 8090)
+  #   WEB_HOST_PORT           default 3001  (host web runs on 3000)
+  #
+  # Bring up with:
+  #   docker compose -f infra/compose/docker-compose.dev.yml \
+  #     --profile apps up -d
   # ---------------------------------------------------------------------
   orchestrator:
     profiles: ["apps"]
     image: ironflyer/orchestrator:dev
-    build:
-      context: ../..
-      dockerfile: infra/docker/orchestrator.Dockerfile
+    # env_file is loaded BEFORE the explicit environment: block, so values
+    # under `environment:` always win — the file is the place to drop
+    # secrets (API keys, OAuth tokens) without committing them. Missing
+    # file is a hard error in compose v2 unless `required: false`.
+    env_file:
+      - path: ../../.env.local
+        required: false
     environment:
       IRONFLYER_ADDR: ":8080"
       IRONFLYER_ENV: dev
       IRONFLYER_LOG_FORMAT: console
       IRONFLYER_LOG_LEVEL: info
       IRONFLYER_DB_DRIVER: hybrid
-      IRONFLYER_EXECUTOR: temporal
+      IRONFLYER_EXECUTOR: embedded
       POSTGRES_URL: postgres://ironflyer:ironflyer@postgres:5432/ironflyer?sslmode=disable
       SURREAL_URL: ws://surrealdb:8000/rpc
       IRONFLYER_RUNTIME_URL: http://runtime:8090
       IRONFLYER_SCAFFOLD_ROOT: /app/templates
-      # Temporal worker auto-starts when IRONFLYER_TEMPORAL_HOST is set.
-      IRONFLYER_TEMPORAL_HOST: temporal:7233
-      IRONFLYER_TEMPORAL_NAMESPACE: default
-      IRONFLYER_TEMPORAL_TASK_QUEUE: ironflyer-finisher
-      REDPANDA_BROKERS: redpanda:9092
+      # Dev convenience: every signUp gets a $50 wallet credit so the paid
+      # execution loop is reachable without configuring Stripe. Disable in
+      # any non-dev environment.
+      IRONFLYER_DEV_WALLET_SEED_USD: "50"
+      IRONFLYER_JWT_SECRET: "${IRONFLYER_JWT_SECRET:-dev-secret-change-me-please-32chars-minimum-for-hs256}"
+      IRONFLYER_JWT_ISSUER: ironflyer-dev
+      REDIS_URL: redis://redis:6379/0
+      # Analytics plane (--profile analytics). When the redpanda +
+      # clickhouse containers are up these wire the orchestrator's
+      # event publisher and the Redpanda→ClickHouse ingester. The
+      # publisher gracefully degrades when REDPANDA_BROKERS is unset.
+      REDPANDA_BROKERS: "${REDPANDA_BROKERS:-redpanda:9092}"
+      IRONFLYER_CLICKHOUSE_HOSTS: "${IRONFLYER_CLICKHOUSE_HOSTS:-clickhouse:9000}"
+      IRONFLYER_CLICKHOUSE_DATABASE: ironflyer
+      IRONFLYER_CLICKHOUSE_USERNAME: ironflyer
+      IRONFLYER_CLICKHOUSE_PASSWORD: ironflyer
     ports:
-      - "8080:8080"
+      - "${ORCHESTRATOR_HOST_PORT:-8081}:8080"
     volumes:
       # Bind-mount the repo templates/ so dev edits show up without rebuilding.
       - ../../templates:/app/templates:ro
     depends_on:
       postgres: { condition: service_healthy }
       surrealdb: { condition: service_started }
-      temporal:  { condition: service_started }
-      redpanda: { condition: service_healthy }
 
   runtime:
     profiles: ["apps"]
     image: ironflyer/runtime:dev
-    build:
-      context: ../..
-      dockerfile: infra/docker/runtime.Dockerfile
     environment:
       IRONFLYER_RUNTIME_ADDR: ":8090"
       # Switch to "docker" to use the host's docker.sock (mounted below).
@@ -307,7 +343,7 @@ services:
       IRONFLYER_RUNTIME_WORKSPACE_DIR: /workspaces
       IRONFLYER_LOG_FORMAT: console
     ports:
-      - "8090:8090"
+      - "${RUNTIME_HOST_PORT:-8091}:8090"
     volumes:
       - runtime-workspaces:/workspaces
       # Uncomment to enable the Docker driver (sibling-container model).
@@ -317,18 +353,63 @@ services:
   web:
     profiles: ["apps"]
     image: ironflyer/web:dev
-    build:
-      context: ../..
-      dockerfile: infra/docker/web.Dockerfile
     environment:
       NODE_ENV: production
       ORCHESTRATOR_URL: http://orchestrator:8080
       RUNTIME_URL: http://runtime:8090
     ports:
-      - "3000:3000"
+      - "${WEB_HOST_PORT:-3001}:3000"
     depends_on:
       - orchestrator
       - runtime
+
+  # ---------------------------------------------------------------------
+  # Temporal-mode orchestrator — opt in with `--profile temporal-orch`.
+  # This is a SECOND orchestrator container that runs alongside the
+  # default embedded-executor orchestrator (--profile apps). It points
+  # at the Temporal frontend brought up by --profile temporal and
+  # registers the finisher worker on the ironflyer-finisher task
+  # queue. Bring it up with both profiles selected:
+  #
+  #   docker compose -f infra/compose/docker-compose.dev.yml \
+  #     --profile temporal --profile temporal-orch up -d
+  #
+  # Host port defaults to 8082 so it never collides with the embedded
+  # apps-profile orchestrator on 8081 or the host orchestrator on 8080.
+  # Shares postgres + the wallet seed env so scripts/v22_smoke.sh runs
+  # against it without extra setup.
+  # ---------------------------------------------------------------------
+  orchestrator-temporal:
+    profiles: ["temporal-orch"]
+    image: ironflyer/orchestrator:dev
+    env_file:
+      - path: ../../.env.local
+        required: false
+    environment:
+      IRONFLYER_ADDR: ":8080"
+      IRONFLYER_ENV: dev
+      IRONFLYER_LOG_FORMAT: console
+      IRONFLYER_LOG_LEVEL: info
+      IRONFLYER_DB_DRIVER: hybrid
+      IRONFLYER_EXECUTOR: temporal
+      IRONFLYER_TEMPORAL_HOST: temporal:7233
+      IRONFLYER_TEMPORAL_NAMESPACE: default
+      IRONFLYER_TEMPORAL_TASK_QUEUE: ironflyer-finisher
+      POSTGRES_URL: postgres://ironflyer:ironflyer@postgres:5432/ironflyer?sslmode=disable
+      SURREAL_URL: ws://surrealdb:8000/rpc
+      IRONFLYER_RUNTIME_URL: http://runtime:8090
+      IRONFLYER_SCAFFOLD_ROOT: /app/templates
+      IRONFLYER_DEV_WALLET_SEED_USD: "50"
+      IRONFLYER_JWT_SECRET: "${IRONFLYER_JWT_SECRET:-dev-secret-change-me-please-32chars-minimum-for-hs256}"
+      IRONFLYER_JWT_ISSUER: ironflyer-dev
+      REDIS_URL: redis://redis:6379/0
+    ports:
+      - "${ORCHESTRATOR_TEMPORAL_HOST_PORT:-8082}:8080"
+    volumes:
+      - ../../templates:/app/templates:ro
+    depends_on:
+      postgres: { condition: service_healthy }
+      surrealdb: { condition: service_started }
 
 volumes:
   postgres-data:

@@ -8,10 +8,13 @@ package resolver
 import (
 	"context"
 	"encoding/json"
+	"ironflyer/apps/orchestrator/internal/domain"
 	"ironflyer/apps/orchestrator/internal/execution"
 	"ironflyer/apps/orchestrator/internal/graph/model"
 	"ironflyer/apps/orchestrator/internal/ledger"
 	"ironflyer/apps/orchestrator/internal/wallet"
+	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
@@ -44,12 +47,51 @@ func (r *mutationResolver) CreatePaidExecution(ctx context.Context, input model.
 		return nil, err
 	}
 
+	// If the caller passed a blueprintID but no projectID, materialise a
+	// project from the blueprint so the finisher has a workspace to
+	// drive. Mirrors describeIdea's project-create step. The customer
+	// promise of `createPaidExecution` is "I paid → finish my product";
+	// without a project the engine has nothing to act on and the
+	// execution stays admitted forever.
+	autoProjectID := ""
+	if (input.ProjectID == nil || strings.TrimSpace(*input.ProjectID) == "") && input.BlueprintID != nil && strings.TrimSpace(*input.BlueprintID) != "" && r.Projects != nil {
+		bpID := strings.TrimSpace(*input.BlueprintID)
+		title := "Execution " + time.Now().UTC().Format("2006-01-02 15:04")
+		idea := ""
+		if input.PromptSummary != nil {
+			idea = strings.TrimSpace(*input.PromptSummary)
+		}
+		if idea == "" {
+			idea = "Synthesised from blueprint " + bpID
+		}
+		now := time.Now().UTC()
+		project, perr := r.Projects.Create(domain.Project{
+			ID:          uuid.NewString(),
+			Name:        title,
+			Description: idea,
+			Status:      "ready",
+			OwnerID:     u.ID,
+			Spec:        domain.ProductSpec{Idea: idea},
+			Files:       []domain.FileNode{},
+			Gates:       map[domain.GateName]domain.GateState{},
+			CreatedAt:   now,
+			UpdatedAt:   now,
+		})
+		if perr != nil {
+			_ = r.WalletSvc.Release(ctx, tenant, budgetDec)
+			return nil, perr
+		}
+		autoProjectID = project.ID
+	}
+
 	createIn := execution.CreateInput{
 		TenantID:  tenant,
 		BudgetUSD: budgetDec,
 	}
-	if input.ProjectID != nil {
+	if input.ProjectID != nil && strings.TrimSpace(*input.ProjectID) != "" {
 		createIn.ProjectID = *input.ProjectID
+	} else if autoProjectID != "" {
+		createIn.ProjectID = autoProjectID
 	}
 	if input.BlueprintID != nil {
 		createIn.BlueprintID = *input.BlueprintID
@@ -77,6 +119,35 @@ func (r *mutationResolver) CreatePaidExecution(ctx context.Context, input model.
 	if err := r.ExecutionSvc.Admit(ctx, exec.ID); err != nil {
 		_ = r.WalletSvc.Release(ctx, tenant, budgetDec)
 		return nil, err
+	}
+
+	// Stamp reserved_usd on the execution row so the settler can compute
+	// release = reserved - spent when the execution closes. Without this
+	// the wallet's tenant-wide hold leaks on every paid execution: the
+	// settler's release math reads exec.ReservedUSD (always 0) instead
+	// of the actual wallet hold and never calls Wallet.Release.
+	if err := r.ExecutionSvc.Reserve(ctx, exec.ID, budgetDec); err != nil {
+		r.Logger.Warn().Err(err).Str("execution_id", exec.ID).Msg("createPaidExecution: execution.Reserve failed; hold may leak on close")
+	}
+
+	// V22 customer promise: a paid execution must actually run, not just
+	// admit. Start the FSM and fire-and-forget the finisher engine so
+	// the wow-loop output materialises (preview URL, changed files, gate
+	// + security + cost reports, next best action). Errors are logged
+	// but do not fail the resolver — the hold + admit already succeeded
+	// and the user's money is reserved; the engine surfaces failure
+	// through the executionFeed subscription.
+	if err := r.ExecutionSvc.Start(ctx, exec.ID); err != nil {
+		r.Logger.Warn().Err(err).Str("execution_id", exec.ID).Msg("createPaidExecution: execution.Start failed after admit")
+	}
+	if r.Engine != nil && createIn.ProjectID != "" {
+		go func(projID, execID string) {
+			bgCtx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+			defer cancel()
+			if _, runErr := r.Engine.Run(bgCtx, projID); runErr != nil {
+				r.Logger.Warn().Err(runErr).Str("project_id", projID).Str("execution_id", execID).Msg("createPaidExecution: finisher run failed")
+			}
+		}(createIn.ProjectID, exec.ID)
 	}
 
 	// Record the reservation in the ledger so the per-execution

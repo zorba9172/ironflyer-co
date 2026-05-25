@@ -24,13 +24,16 @@
 // pane can ship without touching the codegen pipeline.
 
 import {
+  ArchiveRounded,
   ArticleOutlined,
   ContentCopyRounded,
   DownloadRounded,
   FolderOutlined,
   InfoOutlined,
+  MapRounded,
   OpenInNewRounded,
   RefreshRounded,
+  WrapTextRounded,
 } from "@mui/icons-material";
 import {
   Box,
@@ -40,6 +43,7 @@ import {
   Typography,
 } from "@mui/material";
 import dynamic from "next/dynamic";
+import JSZip from "jszip";
 import { useEffect, useMemo, useState } from "react";
 import { LoadingPanel } from "../cockpit/LoadingPanel";
 import {
@@ -128,6 +132,63 @@ function formatBytes(n: number | null): string {
   if (n < 1024) return `${n} B`;
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
   return `${(n / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+function safeZipName(projectID: string): string {
+  const base = projectID.trim() || "project";
+  return `${base.replace(/[^a-zA-Z0-9._-]+/g, "-").slice(0, 48)}.zip`;
+}
+
+async function downloadProjectZip(projectID: string, files: ProjectFile[]): Promise<void> {
+  const zip = new JSZip();
+  const skipped: string[] = [];
+
+  zip.file(
+    ".ironflyer-export.json",
+    JSON.stringify(
+      {
+        projectID,
+        exportedAt: new Date().toISOString(),
+        fileCount: files.length,
+      },
+      null,
+      2,
+    ),
+  );
+
+  for (const file of files) {
+    if (file.content == null) {
+      skipped.push(file.path);
+      continue;
+    }
+    zip.file(file.path, file.content);
+  }
+
+  if (skipped.length > 0) {
+    zip.file(
+      ".ironflyer-skipped-files.txt",
+      [
+        "These files were present in the project listing but had no text payload in GraphQL.",
+        "Use the full IDE/runtime export path for binary payloads.",
+        "",
+        ...skipped,
+      ].join("\n"),
+    );
+  }
+
+  const blob = await zip.generateAsync({
+    compression: "DEFLATE",
+    compressionOptions: { level: 6 },
+    type: "blob",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = safeZipName(projectID);
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 // languageFromPath — quick file-extension → display label. The
@@ -324,6 +385,10 @@ export function CodePane({ projectID, executionID, executionStatus }: CodePanePr
   const tree = useMemo(() => buildTree(files.map((f) => f.path)), [files]);
 
   const [selected, setSelected] = useState<string | null>(null);
+  const [wordWrap, setWordWrap] = useState(false);
+  const [minimap, setMinimap] = useState(false);
+  const [exportingZip, setExportingZip] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   // Auto-pick the first changed file (or first file overall) when the
   // pane opens so the right column is never blank.
@@ -336,6 +401,19 @@ export function CodePane({ projectID, executionID, executionStatus }: CodePanePr
 
   const selectedFile = files.find((f) => f.path === selected) ?? null;
   const selectedPatch = selected ? patchByPath.get(selected) ?? null : null;
+
+  const onDownloadZip = async () => {
+    if (typeof window === "undefined" || files.length === 0 || exportingZip) return;
+    setExportError(null);
+    setExportingZip(true);
+    try {
+      await downloadProjectZip(projectID, files);
+    } catch (e) {
+      setExportError(e instanceof Error ? e.message : "Could not create ZIP");
+    } finally {
+      setExportingZip(false);
+    }
+  };
 
   if (filesQuery.loading && files.length === 0) {
     return <LoadingPanel label="Loading project files…" minHeight="100%" />;
@@ -385,6 +463,19 @@ export function CodePane({ projectID, executionID, executionStatus }: CodePanePr
           >
             {files.length}
           </Typography>
+          <Tooltip title="Download project ZIP" arrow>
+            <span>
+              <IconButton
+                size="small"
+                onClick={() => void onDownloadZip()}
+                disabled={files.length === 0 || exportingZip}
+                sx={{ color: tokens.color.text.secondary, p: 0.25 }}
+                aria-label="Download project ZIP"
+              >
+                <ArchiveRounded sx={{ fontSize: 14 }} />
+              </IconButton>
+            </span>
+          </Tooltip>
           <Tooltip title="Refresh" arrow>
             <IconButton
               size="small"
@@ -401,6 +492,19 @@ export function CodePane({ projectID, executionID, executionStatus }: CodePanePr
           </Tooltip>
         </Stack>
         <Box sx={{ flex: 1, overflowY: "auto", py: 0.5 }}>
+          {exportError ? (
+            <Typography
+              sx={{
+                color: tokens.color.accent.warning,
+                fontFamily: tokens.font.mono,
+                fontSize: 11,
+                px: 1.5,
+                py: 0.75,
+              }}
+            >
+              ZIP failed: {exportError}
+            </Typography>
+          ) : null}
           {files.length === 0 ? (
             <Typography
               sx={{
@@ -436,6 +540,10 @@ export function CodePane({ projectID, executionID, executionStatus }: CodePanePr
             file={selectedFile}
             changed={changed.has(selectedFile.path)}
             patch={selectedPatch}
+            wordWrap={wordWrap}
+            minimap={minimap}
+            onToggleWordWrap={() => setWordWrap((v) => !v)}
+            onToggleMinimap={() => setMinimap((v) => !v)}
           />
         ) : (
           <Stack
@@ -462,10 +570,18 @@ function FileViewer({
   file,
   changed,
   patch,
+  wordWrap,
+  minimap,
+  onToggleWordWrap,
+  onToggleMinimap,
 }: {
   file: ProjectFile;
   changed: boolean;
   patch: PatchLite | null;
+  wordWrap: boolean;
+  minimap: boolean;
+  onToggleWordWrap: () => void;
+  onToggleMinimap: () => void;
 }) {
   const language = file.language?.trim() || languageFromPath(file.path);
 
@@ -570,6 +686,34 @@ function FileViewer({
         >
           {language} · {formatBytes(file.size)}
         </Typography>
+        <Tooltip title={wordWrap ? "Disable word wrap" : "Enable word wrap"} arrow>
+          <IconButton
+            size="small"
+            onClick={onToggleWordWrap}
+            sx={{
+              bgcolor: wordWrap ? `${tokens.color.accent.violet}22` : "transparent",
+              color: wordWrap ? tokens.color.accent.violet : tokens.color.text.secondary,
+              p: 0.25,
+            }}
+            aria-label="Toggle word wrap"
+          >
+            <WrapTextRounded sx={{ fontSize: 14 }} />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title={minimap ? "Hide minimap" : "Show minimap"} arrow>
+          <IconButton
+            size="small"
+            onClick={onToggleMinimap}
+            sx={{
+              bgcolor: minimap ? `${tokens.color.accent.violet}22` : "transparent",
+              color: minimap ? tokens.color.accent.violet : tokens.color.text.secondary,
+              p: 0.25,
+            }}
+            aria-label="Toggle minimap"
+          >
+            <MapRounded sx={{ fontSize: 14 }} />
+          </IconButton>
+        </Tooltip>
         <Tooltip title="Copy path" arrow>
           <IconButton
             size="small"
@@ -652,6 +796,8 @@ function FileViewer({
             language={language}
             path={file.path}
             readOnly
+            wordWrap={wordWrap}
+            minimap={minimap}
           />
         )}
       </Box>
@@ -688,4 +834,3 @@ function DiffBanner() {
     </Stack>
   );
 }
-

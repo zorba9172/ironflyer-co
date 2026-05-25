@@ -23,32 +23,95 @@ import (
 // LedgerAdapter implements dashboards.LedgerSource over ledger.Service.
 //
 // The dashboards aggregate across every tenant (operator view) — the
-// underlying ledger.Service is per-tenant, so this adapter uses a
-// "platform" tenant when the call is global. V1 reports an empty
-// rollup for tenant-less calls; TODO(scale) make the ledger service
-// support a multi-tenant rollup directly.
+// underlying ledger.Service is per-tenant, so this adapter falls back
+// to a direct cross-tenant SQL rollup against the ledger_entries table
+// when a pgxpool.Pool is wired. When only the in-memory ledger service
+// is wired (no Pool) the methods return empty maps so the in-memory
+// backend path keeps rendering "warming up" instead of erroring.
 type LedgerAdapter struct {
-	Svc ledger.Service
+	Svc  ledger.Service
+	Pool *pgxpool.Pool
 }
 
-// SumByType returns a per-entry-type sum across the configured
-// PlatformTenant. v1: returns empty when no service is wired.
+// SumByType returns a per-entry-type sum across every tenant in
+// [since, until). When a pgxpool is wired this runs a single grouped
+// query against ledger_entries; without a pool the result is empty.
 func (a LedgerAdapter) SumByType(ctx context.Context, since, until time.Time, types []string) (map[string]decimal.Decimal, error) {
 	out := map[string]decimal.Decimal{}
-	if a.Svc == nil {
+	if a.Pool == nil {
 		return out, nil
 	}
-	// TODO(scale): aggregate over every tenant instead of skipping
-	// when there is no platform tenant id wired. v1 returns zeros.
-	return out, nil
+	clauses := []string{"1=1"}
+	args := []any{}
+	if !since.IsZero() {
+		args = append(args, since.UTC())
+		clauses = append(clauses, "created_at >= $"+strconv.Itoa(len(args)))
+	}
+	if !until.IsZero() {
+		args = append(args, until.UTC())
+		clauses = append(clauses, "created_at < $"+strconv.Itoa(len(args)))
+	}
+	if len(types) > 0 {
+		args = append(args, types)
+		clauses = append(clauses, "entry_type = ANY($"+strconv.Itoa(len(args))+")")
+	}
+	sql := `SELECT entry_type, COALESCE(SUM(amount_usd), 0) FROM ledger_entries WHERE ` +
+		joinAnd(clauses) + ` GROUP BY entry_type`
+	rows, err := a.Pool.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var (
+			t   string
+			amt decimal.Decimal
+		)
+		if err := rows.Scan(&t, &amt); err != nil {
+			return nil, err
+		}
+		out[t] = amt
+	}
+	return out, rows.Err()
 }
 
-// RecentEntries returns the empty slice in v1.
+// RecentEntries returns the latest N ledger entries across every
+// tenant. Empty when no pool is wired.
 func (a LedgerAdapter) RecentEntries(ctx context.Context, limit int) ([]dashboards.LedgerSummary, error) {
-	// TODO(scale): expose a cross-tenant "recent" query on
-	// ledger.Service; v1 returns nothing so the operator widget
-	// renders an empty state.
-	return []dashboards.LedgerSummary{}, nil
+	if a.Pool == nil || limit <= 0 {
+		return []dashboards.LedgerSummary{}, nil
+	}
+	const sql = `
+SELECT id, tenant_id, COALESCE(execution_id::text, ''), entry_type, direction, amount_usd, created_at
+FROM ledger_entries
+ORDER BY created_at DESC
+LIMIT $1`
+	rows, err := a.Pool.Query(ctx, sql, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := make([]dashboards.LedgerSummary, 0, limit)
+	for rows.Next() {
+		var s dashboards.LedgerSummary
+		if err := rows.Scan(&s.ID, &s.TenantID, &s.ExecutionID, &s.EntryType, &s.Direction, &s.AmountUSD, &s.CreatedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, s)
+	}
+	return out, rows.Err()
+}
+
+// joinAnd joins SQL clauses with AND.
+func joinAnd(clauses []string) string {
+	out := ""
+	for i, c := range clauses {
+		if i > 0 {
+			out += " AND "
+		}
+		out += c
+	}
+	return out
 }
 
 // ExecutionAdapter implements dashboards.ExecutionSource over the
@@ -64,11 +127,43 @@ type ExecutionAdapter struct {
 	Pool *pgxpool.Pool
 }
 
-// CountsByStatus returns the per-status count in [since, until). v1:
-// the execution service does not expose a cross-tenant query so this
-// returns an empty map; the dashboard renders a "warming up" state.
+// CountsByStatus returns the per-status count in [since, until)
+// across every tenant. When a pgxpool is wired this is a single
+// grouped query against the executions table; without a pool the
+// result is empty.
 func (a ExecutionAdapter) CountsByStatus(ctx context.Context, since, until time.Time) (map[string]int, error) {
-	return map[string]int{}, nil
+	out := map[string]int{}
+	if a.Pool == nil {
+		return out, nil
+	}
+	clauses := []string{"1=1"}
+	args := []any{}
+	if !since.IsZero() {
+		args = append(args, since.UTC())
+		clauses = append(clauses, "created_at >= $"+strconv.Itoa(len(args)))
+	}
+	if !until.IsZero() {
+		args = append(args, until.UTC())
+		clauses = append(clauses, "created_at < $"+strconv.Itoa(len(args)))
+	}
+	sql := `SELECT status::text, COUNT(*) FROM executions WHERE ` +
+		joinAnd(clauses) + ` GROUP BY status`
+	rows, err := a.Pool.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var (
+			s string
+			n int
+		)
+		if err := rows.Scan(&s, &n); err != nil {
+			return nil, err
+		}
+		out[s] = n
+	}
+	return out, rows.Err()
 }
 
 // CountsByCohort rolls up the executions table into one row per
