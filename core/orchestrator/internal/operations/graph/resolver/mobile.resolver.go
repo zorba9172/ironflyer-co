@@ -10,6 +10,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"ironflyer/core/orchestrator/internal/business/profitguard"
 	"ironflyer/core/orchestrator/internal/operations/graph/model"
 	"ironflyer/core/orchestrator/internal/operations/mobile/eas"
 	"strings"
@@ -32,6 +33,11 @@ func (r *mutationResolver) MobileTriggerBuild(ctx context.Context, input model.M
 	platform := strings.ToLower(strings.TrimSpace(input.Platform))
 	if platform != "ios" && platform != "android" {
 		return nil, fmt.Errorf("mobile: invalid platform %q (want ios|android)", input.Platform)
+	}
+	// V22 BeforeMobileBuild — refuse the EAS build trigger when
+	// ProfitGuard says the margin floor is breached.
+	if err := r.gateMobileExternalCall(ctx, project, profitguard.BeforeMobileBuild, "mobileTriggerBuild:"+platform); err != nil {
+		return nil, err
 	}
 	easProjectID := mobileEASProjectID(project)
 	if easProjectID == "" {
@@ -95,6 +101,12 @@ func (r *mutationResolver) MobileSubmitToStore(ctx context.Context, input model.
 		return nil, errors.New("mobile: project has no EAS project id (set MobileStack.EAS.ProjectID)")
 	}
 	platform := strings.ToLower(strings.TrimSpace(input.Platform))
+	// V22 BeforeMobileBuild — the store-submission step is on the same
+	// ProfitGuard envelope as the build trigger; EAS bills credits for
+	// submissions just like for builds.
+	if err := r.gateMobileExternalCall(ctx, project, profitguard.BeforeMobileBuild, "mobileSubmitToStore:"+platform); err != nil {
+		return nil, err
+	}
 	opts := eas.StoreSubmitOpts{
 		Platform:  platform,
 		ProjectID: easProjectID,
@@ -128,8 +140,13 @@ func (r *mutationResolver) MobileSubmitToStore(ctx context.Context, input model.
 
 // MobilePublishUpdate is the resolver for the mobilePublishUpdate field.
 func (r *mutationResolver) MobilePublishUpdate(ctx context.Context, input model.MobilePublishUpdateInput) (*model.MobileUpdate, error) {
-	client, _, err := r.mobileClientForProject(ctx, input.ProjectID)
+	client, project, err := r.mobileClientForProject(ctx, input.ProjectID)
 	if err != nil {
+		return nil, err
+	}
+	// V22 BeforeMobileBuild — OTA publish bills EAS Update credits;
+	// gate on the same enforcement point as builds + submissions.
+	if err := r.gateMobileExternalCall(ctx, project, profitguard.BeforeMobileBuild, "mobilePublishUpdate"); err != nil {
 		return nil, err
 	}
 	branch := strDeref(input.Branch)

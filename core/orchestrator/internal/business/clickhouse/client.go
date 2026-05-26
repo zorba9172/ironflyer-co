@@ -45,8 +45,18 @@ func NewClient(cfg Config, log zerolog.Logger) (*Client, error) {
 			Password: cfg.Password,
 		},
 		DialTimeout: time.Duration(cfg.DialTimeoutMS) * time.Millisecond,
+		// Async insert is the high-throughput knob ClickHouse exposes for
+		// streaming pipelines: the server batches in-flight rows up to
+		// the table's async_insert_max_data_size / async_insert_busy_timeout
+		// before flushing to the on-disk part. wait_for_async_insert=0
+		// means the client returns the moment the row is in the in-memory
+		// buffer; combined with ReplacingMergeTree dedup this is safe
+		// because crash-on-flush is recoverable from the outbox.
 		Settings: ch.Settings{
-			"max_execution_time": 60,
+			"max_execution_time":       60,
+			"async_insert":             1,
+			"wait_for_async_insert":    0,
+			"async_insert_busy_timeout_ms": 1000,
 		},
 		// Native protocol negotiates LZ4 when both sides advertise it.
 		Compression: &ch.Compression{Method: ch.CompressionLZ4},

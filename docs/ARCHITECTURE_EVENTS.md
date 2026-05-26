@@ -323,3 +323,29 @@ state. Object storage owns large artifacts and snapshots.
 - Every DLQ event is observable and replayable by an operator.
 - No large blobs, secrets, or live websocket byte streams are placed in
   Redpanda.
+
+## Current state (2026-05-26 audit)
+
+End-to-end outbox path verified:
+
+- Writer: `outboxhooks.WriteEventInTx` writes the row inside the
+  caller's `pgx.Tx`, validating topic + schema before insert
+  (`core/orchestrator/internal/business/outboxhooks/outboxhooks.go`).
+- Claim: `PostgresOutbox.Claim` uses
+  `FOR UPDATE SKIP LOCKED` with a worker lease, incrementing attempts
+  atomically (`internal/operations/events/postgres.go`).
+- Publish: `PublisherDaemon.drainOnce` calls `pub.Publish` first, then
+  `MarkPublished` only after the broker ack; failures schedule
+  exponential backoff via `MarkFailed`
+  (`internal/operations/events/publisher.go`). RequiredAcks=All on
+  the Kafka writer (`redpanda.go`).
+- DLQ: per-source DLQ topics are pre-created at boot via
+  `EnsureDLQTopics`; exhausted retries emit one `dlq.v1` record and
+  the dead row is retained on `mark_failed dead=true`.
+- Consumer: ClickHouse consumer reads from the configured topic set
+  and commits offsets only after INSERT success
+  (`internal/business/clickhouse/consumer.go`). Idempotency is
+  ReplacingMergeTree dedup keyed on `event_id`.
+- MemoryGraph: writer is registered as an Observer on the publisher
+  daemon and projects every successfully-published event into the
+  knowledge graph (`internal/operations/wireup/memorygraph.go`).

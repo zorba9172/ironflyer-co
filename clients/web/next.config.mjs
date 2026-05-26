@@ -6,6 +6,26 @@ const nextConfig = {
     formats: ["image/avif", "image/webp"]
   },
 
+  // Cold-start optimization: deep-link the MUI / icon / chart imports so
+  // tree shaking lands one named export per module instead of pulling the
+  // whole barrel. Next 15 supports this for any package listed below.
+  // optimizeCss inlines critical CSS at build so first paint doesn't wait
+  // on a network round-trip for the stylesheet.
+  experimental: {
+    optimizeCss: true,
+    optimizePackageImports: [
+      "@mui/material",
+      "@mui/icons-material",
+      "@mui/lab",
+      "@mui/x-charts",
+      "@mui/x-data-grid",
+      "echarts",
+      "echarts-for-react",
+      "@xyflow/react",
+      "lodash"
+    ]
+  },
+
   allowedDevOrigins: ["127.0.0.1", "localhost", "192.168.1.227"],
 
   // Production same-origin proxy for openvscode-server. In production

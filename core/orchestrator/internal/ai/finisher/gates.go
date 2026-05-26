@@ -6,8 +6,9 @@ import (
 	"strings"
 
 	"ironflyer/core/orchestrator/internal/ai/agents"
-	"ironflyer/core/orchestrator/internal/operations/appsec"
 	"ironflyer/core/orchestrator/internal/ai/domain"
+	"ironflyer/core/orchestrator/internal/operations/appsec"
+	"ironflyer/core/orchestrator/internal/operations/arch"
 	"ironflyer/core/orchestrator/internal/operations/runtime"
 )
 
@@ -33,6 +34,44 @@ type GateEnv struct {
 	// to the IRONFLYER_LIGHTHOUSE_TARGET_URL env var when this field is
 	// empty, so self-hosted operators can wire one without a deploy store.
 	DeployURL string
+	// MobileBuildHook is the V22 ProfitGuard seam for the
+	// BeforeMobileBuild enforcement point. The MobileBuildGate consults
+	// it once per (kind, target) before kicking the platform build
+	// inside the runtime. Nil-safe: when not wired the build runs
+	// unguarded (the historical behaviour). Implementations return a
+	// profitguard.Action wire string — Stop / KillBranch / PauseForBudget
+	// short-circuit the build and surface a degraded issue.
+	MobileBuildHook MobileBuildHook
+	// Preflight is the Reuse-First decision the Coder / Architect
+	// agent emitted BEFORE proposing the patch attached to this gate
+	// run. Nil means "no preflight was performed" — the
+	// ReuseCheckGate turns that into a warn-severity finding (or
+	// fails the patch when the decision is malformed). Populated by
+	// the agent loop via agents.WithPreflightDecision on the per-
+	// call context; the Engine projects it onto GateEnv before each
+	// gate Check. See docs/ANTI_BLOAT_ENGINE.md.
+	Preflight *agents.PreflightDecision
+	// PatchPaths are the file paths affected by the patch currently
+	// under review. The ArchBoundaryGate / DepGraphGate use them as
+	// the surface for layering validation; other gates may use them
+	// to scope evidence reports. Empty when no specific patch is in
+	// scope (e.g. periodic re-runs).
+	PatchPaths []string
+	// Manifest is the parsed `.ironflyer/architecture.json` loaded at
+	// startup by the orchestrator. Nil disables the DepGraph /
+	// ArchBoundary gates (they degrade to a SeverityInfo "manifest
+	// not loaded" rather than fail).
+	Manifest *arch.Manifest
+}
+
+// MobileBuildHook is the BeforeMobileBuild ProfitGuard seam consumed by
+// the MobileBuildGate. action mirrors profitguard.Action wire values
+// ("continue", "stop", "kill_branch", "pause_for_budget", "degrade",
+// "switch_provider", "reuse_blueprint", "reuse_repair"). Errors are
+// permissive — the gate falls back to running the build (fail-open)
+// so a flaky audit chain does not block legitimate work.
+type MobileBuildHook interface {
+	BeforeMobileBuild(ctx context.Context, projectID, kind, target string) (action, reason string, err error)
 }
 
 // BudgetSnapshot is the projected billing posture for a project at gate
@@ -916,7 +955,7 @@ func itoaPositive(n int) string {
 // exists after Deploy, and the PSI call is wasted spend if an earlier
 // gate is going to roll the project back anyway.
 func DefaultGates() []Gate {
-	return []Gate{
+	base := []Gate{
 		SpecGate{}, UXGate{}, ArchGate{},
 		CodeGate{}, LintGate{}, TestGate{},
 		SecurityGate{}, BudgetGate{}, MobileBuildGate{},
@@ -926,4 +965,10 @@ func DefaultGates() []Gate {
 		PushCredentialsGate{}, DeployGate{},
 		LighthouseGate{},
 	}
+	// Anti-Bloat lane (playbook §8.7, docs/ANTI_BLOAT_ENGINE.md).
+	// Reuse + layering gates run BEFORE the code lane in a future
+	// rev; for MVP we append after Lighthouse so existing flows
+	// keep their gate ordering. Re-ordering is a follow-up that
+	// touches the Engine's gate dispatcher.
+	return append(base, AntiBloatGates()...)
 }

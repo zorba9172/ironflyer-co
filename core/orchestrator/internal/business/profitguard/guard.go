@@ -30,9 +30,48 @@ func New(policy Policy, store DecisionStore) Guard {
 	return &guard{policy: policy, store: store}
 }
 
+// NewWithAuditSink constructs a Guard that, in addition to persisting
+// every decision to `store`, also forwards each Record call to the
+// supplied AuditSink. The sink lands one structured audit row per
+// ProfitGuard verdict (decision, tenant_id, execution_id, est_cost,
+// model, verdict_reason — see AuditSink doc) so the user-facing audit
+// chain reflects every gate verdict the orchestrator emits.
+//
+// Passing nil for sink falls back to the New behaviour. Passing nil
+// for store keeps the per-row Postgres / memory persistence off but
+// still lets the audit sink see every Decide call — useful for
+// operator dashboards that listen on the audit chain alone.
+func NewWithAuditSink(policy Policy, store DecisionStore, sink AuditSink) Guard {
+	return &guard{policy: policy, store: store, audit: sink}
+}
+
+// AuditSink is the per-Record fan-out hook. Implementations stamp a
+// canonical audit row (audit.RecordProfitGuardDecision style) so the
+// hash-chained audit log surfaces every ProfitGuard verdict alongside
+// the durable profit_guard_decisions table. The sink must be best-
+// effort — returning a non-nil error MUST NOT fail the Record path
+// (Guard.Record swallows audit errors so a flaky audit chain cannot
+// block legitimate work).
+type AuditSink interface {
+	OnDecision(ctx context.Context, row RecordedDecision) error
+}
+
+// AuditSinkFunc adapts a plain function to AuditSink so callers can
+// wire a closure without declaring a new type.
+type AuditSinkFunc func(ctx context.Context, row RecordedDecision) error
+
+// OnDecision satisfies AuditSink.
+func (f AuditSinkFunc) OnDecision(ctx context.Context, row RecordedDecision) error {
+	if f == nil {
+		return nil
+	}
+	return f(ctx, row)
+}
+
 type guard struct {
 	policy Policy
 	store  DecisionStore
+	audit  AuditSink
 }
 
 // Decide implements the V22 ProfitGuard policy. The algorithm is
@@ -202,11 +241,13 @@ func (g *guard) Decide(_ context.Context, point EnforcementPoint, state ExecStat
 // Record persists one decision row to the configured store. A nil
 // store is intentionally a no-op so simulators / smoke runs can use
 // Decide without wiring a backend. Metrics tick regardless.
+//
+// When an AuditSink is wired (NewWithAuditSink), Record also fans the
+// row out to the audit chain. Audit errors are intentionally swallowed
+// — the hash-chained audit log is best-effort relative to the durable
+// profit_guard_decisions table.
 func (g *guard) Record(ctx context.Context, executionID string, point EnforcementPoint, decision Decision, state ExecState) error {
 	observeDecision(point, decision.Action)
-	if g.store == nil {
-		return nil
-	}
 	row := RecordedDecision{
 		ExecutionID:             executionID,
 		EnforcementPoint:        point,
@@ -226,6 +267,24 @@ func (g *guard) Record(ctx context.Context, executionID string, point Enforcemen
 	if state.RiskScore > 0 {
 		r := state.RiskScore
 		row.RiskScore = &r
+	}
+	// Best-effort audit emission so the user-facing audit chain mirrors
+	// every ProfitGuard verdict alongside the durable decisions table.
+	// We fan out BEFORE the store insert so an audit-only deployment
+	// (nil store) still receives the row.
+	if g.audit != nil {
+		// Stamp the tenant on the row so the audit sink can index by
+		// tenant_id without a follow-up lookup.
+		if row.Metadata == nil {
+			row.Metadata = map[string]any{}
+		}
+		if _, has := row.Metadata["tenant_id"]; !has && state.TenantID != "" {
+			row.Metadata["tenant_id"] = state.TenantID
+		}
+		_ = g.audit.OnDecision(ctx, row)
+	}
+	if g.store == nil {
+		return nil
 	}
 	return g.store.Record(ctx, row)
 }

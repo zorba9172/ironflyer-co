@@ -99,7 +99,13 @@ func Handler(cfg Config) http.Handler {
 	srv.AddTransport(transport.POST{})
 	srv.AddTransport(transport.MultipartForm{})
 
-	srv.SetQueryCache(lru.New[*ast.QueryDocument](envInt("GRAPHQL_QUERY_CACHE_LRU", 1000)))
+	// Query parse cache. Default 5000: a single user touches ~30-60 unique
+	// query documents in steady state (dashboard, projects list, settings,
+	// execution feed); 5000 covers ~80-150 concurrent users without
+	// eviction churn. The original default was 100 — laughably small for
+	// 40K users, and even 1000 forced LRU evictions on the dashboard
+	// hot-path during morning login waves.
+	srv.SetQueryCache(lru.New[*ast.QueryDocument](envInt("GRAPHQL_QUERY_CACHE_LRU", 5000)))
 
 	// V22 hardening — per-extension logger. The depth + complexity
 	// extensions log every reject at WARN with the operation name +
@@ -174,8 +180,13 @@ func Handler(cfg Config) http.Handler {
 			Msg("graphql: APQ locked mode wired")
 		srv.Use(gqlhardening.NewLockedAPQ(registry, &gqlLogger, gqlhardening.OperatorCheck(cfg.IsOperator)))
 	} else {
+		// APQ hash cache. Default 5000: matches GRAPHQL_QUERY_CACHE_LRU so
+		// every parsed document has a matching APQ slot. With 40K users
+		// the previous 1000-slot default forced LRU evictions on the
+		// per-route hash hot-path during login storms, defeating the
+		// point of APQ (the client then has to send the full query).
 		srv.Use(extension.AutomaticPersistedQuery{
-			Cache: lru.New[string](envInt("GRAPHQL_APQ_LRU", 1000)),
+			Cache: lru.New[string](envInt("GRAPHQL_APQ_LRU", 5000)),
 		})
 	}
 

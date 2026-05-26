@@ -173,3 +173,34 @@ SurrealDB is the canonical V22 backend for AI memory graph behavior. Any
 in-process memory or pgvector mode is a development or compatibility fallback
 for simple memory search; it is not the architectural owner for graph
 relations, repair-genome context, or hybrid retrieval.
+
+## Current state (2026-05-26 audit)
+
+- `internal/ai/memory/surreal.go` is the production `memory.Store`
+  backend: persistent records over a SurrealDB connection,
+  `memory_record` table with indexes on `(kind, projectId)`, `userId`,
+  and `createdAt`. Federation reads are scoped by `userId` so a
+  misconfigured federation set cannot leak across tenants.
+- `internal/ai/memorygraph/surreal.go` is the SurrealGraph
+  implementation of the `Graph` contract (nodes + edges + retrieval).
+  `internal/ai/memorygraph/memory.go` is the in-process fallback used
+  in dev / cold-boot — it loses every record on restart.
+- Wireup picks `SurrealGraph` when `surrealDB != nil`; otherwise it
+  falls back to the in-process MemoryGraph
+  (`internal/operations/wireup/memorygraph.go`). The writer attaches
+  as an Observer on the outbox publisher daemon so graph projection
+  fan-out rides the same flow as Redpanda fan-out.
+- Production default: `values-prod.yaml` now sets
+  `IRONFLYER_MEMORY_BACKEND=surreal` plus `SURREAL_URL`, `SURREAL_NS`,
+  `SURREAL_DB`, and `SURREAL_USER` so the SurrealDB pod is the active
+  memory backend out of the box. `SURREAL_PASS` is expected to come
+  from the `orchestrator-secrets` external Secret like every other
+  credential.
+- Honest gap: the publisher Observer translates every published event
+  into `memorygraph.Event{Kind, Payload}`, but per-event projection
+  rules (which nodes/edges to upsert per `event_type`) are still
+  scoped to the execution / patch / gate / deploy lifecycle. Project
+  knowledge graph and repair-genome projections from
+  `memory.indexing.v1` need explicit projection routines in the
+  Writer — until then those edges land in the graph as generic
+  events without strong typing.

@@ -16,6 +16,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
+	"golang.org/x/sync/errgroup"
 
 	"ironflyer/core/runtime/internal/customer/auth"
 	"ironflyer/core/runtime/internal/operations/config"
@@ -55,44 +56,76 @@ func main() {
 	logger.Info().Int("gomaxprocs", goruntime.GOMAXPROCS(0)).Int("numcpu", goruntime.NumCPU()).
 		Msg("Go runtime: GOMAXPROCS active")
 
-	// ---------------- Sentry (optional) ------------------------------------
-	dsn := strings.TrimSpace(os.Getenv("RUNTIME_SENTRY_DSN"))
-	if dsn == "" {
-		dsn = os.Getenv("SENTRY_DSN")
-	}
-	sentryEnv := strings.TrimSpace(os.Getenv("IRONFLYER_ENV"))
-	if sentryEnv == "" {
-		sentryEnv = "development"
-	}
-	sentryFlush, err := sentryext.Init(sentryext.Opts{
-		DSN:              dsn,
-		Environment:      sentryEnv,
-		Release:          strings.TrimSpace(os.Getenv("IRONFLYER_VERSION")),
-		TracesSampleRate: sentryext.FloatFromEnv("SENTRY_TRACES_SAMPLE", 0.05),
-		ServerName:       "ironflyer-runtime",
-	})
-	if err != nil {
-		logger.Warn().Err(err).Msg("sentry init failed; continuing without exception reporting")
-	} else if dsn != "" {
-		logger.Info().Str("env", sentryEnv).Msg("Sentry initialised")
-	}
-	defer sentryFlush()
-
-	// ---------------- V22 Wave-2: runtime scale plane --------------------
-	// snapshots.S3Manager / quota / warmpool / allocator / runtimeclass —
-	// see ARCHITECTURE_RUNTIME_SCALE.md. Wired here so the docker driver
-	// below can lean on the SnapshotShim adapter for cross-pod restore.
+	// ---------------- Parallel init of independent subsystems --------------
+	// Cold-start optimization: Sentry, the scale plane (S3 snapshots), and
+	// Postgres dial are entirely independent. Booting them in parallel via
+	// errgroup turns the cold-start wait from SUM(t_each) into MAX(t_each).
+	// The downstream wiring (driver, archiver, allocator) still waits for
+	// all legs to finish because the docker driver and HTTP API depend on
+	// the scale plane result.
+	bootStart := time.Now()
 	bgCtxScale, bgCancelScale := context.WithCancel(context.Background())
 	defer bgCancelScale()
-	scaleRes, scaleErr := wireup.BuildScale(bgCtxScale, snapshots.Config{
-		Bucket:    strings.TrimSpace(os.Getenv("WORKSPACE_BUCKET")),
-		Region:    strings.TrimSpace(os.Getenv("AWS_REGION")),
-		Endpoint:  strings.TrimSpace(os.Getenv("WORKSPACE_S3_ENDPOINT")),
-		Prefix:    "snapshots",
-		Retention: 5,
-		KMSKeyID:  strings.TrimSpace(os.Getenv("WORKSPACE_KMS_KEY_ID")),
-		Excludes:  snapshots.LoadExcludesFromEnv(),
-	}, logger)
+	var (
+		sentryFlush func()
+		scaleRes    wireup.ScaleResult
+		scaleErr    error
+	)
+	bootGroup, bootCtx := errgroup.WithContext(context.Background())
+
+	bootGroup.Go(func() error {
+		start := time.Now()
+		dsn := strings.TrimSpace(os.Getenv("RUNTIME_SENTRY_DSN"))
+		if dsn == "" {
+			dsn = os.Getenv("SENTRY_DSN")
+		}
+		sentryEnv := strings.TrimSpace(os.Getenv("IRONFLYER_ENV"))
+		if sentryEnv == "" {
+			sentryEnv = "development"
+		}
+		flush, ierr := sentryext.Init(sentryext.Opts{
+			DSN:              dsn,
+			Environment:      sentryEnv,
+			Release:          strings.TrimSpace(os.Getenv("IRONFLYER_VERSION")),
+			TracesSampleRate: sentryext.FloatFromEnv("SENTRY_TRACES_SAMPLE", 0.05),
+			ServerName:       "ironflyer-runtime",
+		})
+		if ierr != nil {
+			logger.Warn().Err(ierr).Msg("sentry init failed; continuing without exception reporting")
+		} else if dsn != "" {
+			logger.Info().Str("env", sentryEnv).Dur("took", time.Since(start)).Msg("Sentry initialised")
+		}
+		sentryFlush = flush
+		return nil
+	})
+
+	bootGroup.Go(func() error {
+		start := time.Now()
+		// V22 Wave-2 runtime scale plane: snapshots.S3Manager / quota /
+		// warmpool / allocator / runtimeclass. The docker driver below
+		// dials into the SnapshotShim adapter for cross-pod restore.
+		scaleRes, scaleErr = wireup.BuildScale(bgCtxScale, snapshots.Config{
+			Bucket:    strings.TrimSpace(os.Getenv("WORKSPACE_BUCKET")),
+			Region:    strings.TrimSpace(os.Getenv("AWS_REGION")),
+			Endpoint:  strings.TrimSpace(os.Getenv("WORKSPACE_S3_ENDPOINT")),
+			Prefix:    "snapshots",
+			Retention: 5,
+			KMSKeyID:  strings.TrimSpace(os.Getenv("WORKSPACE_KMS_KEY_ID")),
+			Excludes:  snapshots.LoadExcludesFromEnv(),
+		}, logger)
+		logger.Info().Dur("took", time.Since(start)).Msg("scale plane init complete")
+		return nil
+	})
+	_ = bootCtx
+	if err := bootGroup.Wait(); err != nil {
+		logger.Fatal().Err(err).Msg("runtime parallel init failed")
+	}
+	logger.Info().Dur("took", time.Since(bootStart)).Msg("runtime parallel init complete")
+	defer func() {
+		if sentryFlush != nil {
+			sentryFlush()
+		}
+	}()
 	if scaleErr != nil {
 		logger.Warn().Err(scaleErr).Msg("runtime scale plane disabled (boot error)")
 	}

@@ -74,6 +74,57 @@ const (
 	// fails the build when react-native-bundle-visualizer isn't
 	// installed; emits a SeverityInfo nudge instead.
 	GateMobileBundleAnalyzer GateName = "mobile_bundle_analyzer"
+
+	// --- Anti-Bloat lane (playbook §8.7) ----------------------------
+	// The next ten gates implement the Anti-Bloat Engine: reuse
+	// enforcement, dedup, dead-code, complexity, layering, bundle
+	// weight, memory leaks, perf budgets, and vulnerability scanning.
+	// See docs/ANTI_BLOAT_ENGINE.md for the design + wire-up notes.
+
+	// GateReuseCheck enforces the Reuse-First Preflight. Returns a
+	// high-severity finding when a patch is proposed WITHOUT an
+	// attached PreflightDecision, or when the decision is
+	// `new` without a Justification. This is the structural
+	// differentiator vs Lovable / Bolt / v0 / Cursor — those tools
+	// write new code every time; Ironflyer refuses.
+	GateReuseCheck GateName = "reuse_check"
+	// GateDedup wraps jscpd / dupl reports. The gate consumes the
+	// JSON report path from IRONFLYER_DEDUP_REPORT_PATH; when unset,
+	// the gate emits a SeverityInfo "tool not installed" rather than
+	// blocking — bootstrapped operators don't get punished for
+	// missing toolchain.
+	GateDedup GateName = "dedup"
+	// GateDeadcode wraps knip / ts-prune / unparam reports. Reads
+	// IRONFLYER_DEADCODE_REPORT_PATH; same evidence-stub semantics
+	// as GateDedup when unset.
+	GateDeadcode GateName = "deadcode"
+	// GateComplexity wraps gocognit / sonarjs reports. Reads
+	// IRONFLYER_COMPLEXITY_REPORT_PATH; same evidence-stub semantics.
+	GateComplexity GateName = "complexity"
+	// GateDepGraph runs operations/arch.Manifest.Validate on every
+	// package affected by the patch. Functional from day 1 — no
+	// external tool required. A layering violation is a Critical
+	// finding that BLOCKS the patch.
+	GateDepGraph GateName = "dep_graph"
+	// GateArchBoundary is the same enforcement as GateDepGraph but
+	// emitted under a different name so dashboards can show the
+	// two views (graph-level cycles vs single-edge layering). For
+	// MVP both gates share the Manifest.Validate implementation;
+	// the cycle detector ships as a follow-up.
+	GateArchBoundary GateName = "arch_boundary"
+	// GateBundleSize wraps size-limit / @next/bundle-analyzer output.
+	// Reads IRONFLYER_BUNDLE_REPORT_PATH; evidence-stub when unset.
+	GateBundleSize GateName = "bundle_size"
+	// GateMemLeak wraps goleak / heap-diff smoke evidence. Reads
+	// IRONFLYER_MEMLEAK_REPORT_PATH; evidence-stub when unset.
+	GateMemLeak GateName = "mem_leak"
+	// GatePerfBudget wraps hyperfine / Lighthouse / Web Vitals
+	// budgets. Reads IRONFLYER_PERF_REPORT_PATH; evidence-stub when
+	// unset.
+	GatePerfBudget GateName = "perf_budget"
+	// GateVulnScan wraps govulncheck / npm audit reports. Reads
+	// IRONFLYER_VULN_REPORT_PATH; evidence-stub when unset.
+	GateVulnScan GateName = "vuln_scan"
 )
 
 func AllGates() []GateName {
@@ -88,6 +139,10 @@ func AllGates() []GateName {
 		GateMobileBundleAnalyzer,
 		GateDeploy,
 		GateLighthouse,
+		// Anti-Bloat lane — playbook §8.7.
+		GateReuseCheck, GateDedup, GateDeadcode, GateComplexity,
+		GateDepGraph, GateArchBoundary, GateBundleSize,
+		GateMemLeak, GatePerfBudget, GateVulnScan,
 	}
 }
 

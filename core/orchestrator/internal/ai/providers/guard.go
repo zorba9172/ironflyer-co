@@ -336,6 +336,49 @@ func (g *BillingGuard) CompleteStreamWithFailover(ctx context.Context, req Reque
 	if estOut == 0 {
 		estOut = 2048
 	}
+
+	// V22 prompt-cap guard — defense-in-depth shield 0. Same contract
+	// as CompleteStream: refuse a runaway prompt before paying the
+	// Admit / ProfitGuard / provider round-trip on it.
+	if err := budget.DefaultPromptCap().CheckPromptCap(estIn, estOut); err != nil {
+		g.logger.Warn().
+			Err(err).
+			Str("user_id", userID).
+			Int("est_input_tokens", estIn).
+			Int("est_output_tokens", estOut).
+			Msg("billing-guard: prompt over single-call cap, refused (failover)")
+		span.RecordError(err)
+		span.End()
+		return nil, err
+	}
+
+	// V22 ProfitGuard hook — BeforeModelCall + BeforePremiumReasoning.
+	// Mirrors CompleteStream so the failover-hardened path enjoys the
+	// same economic gate. Without this hook the agents path (which is
+	// driven through CompleteStreamWithFailover by agents.Registry)
+	// would bypass ProfitGuard entirely — the single largest hole in
+	// V22 coverage prior to this fix.
+	if g.pg != nil && g.pgStateFunc != nil {
+		if execID, ok := profitguardctx.ExecutionID(ctx); ok {
+			if state, err := g.pgStateFunc(ctx, execID, req); err == nil {
+				if abort, newReq := g.applyDecision(ctx, span, execID, profitguard.BeforeModelCall, state, req); abort != nil {
+					return nil, abort
+				} else {
+					req = newReq
+				}
+				if requiresPremiumReasoning(req.Capabilities) {
+					if state2, err2 := g.pgStateFunc(ctx, execID, req); err2 == nil {
+						if abort, newReq := g.applyDecision(ctx, span, execID, profitguard.BeforePremiumReasoning, state2, req); abort != nil {
+							return nil, abort
+						} else {
+							req = newReq
+						}
+					}
+				}
+			}
+		}
+	}
+
 	decision := g.billing.Admit(ctx, userID, required, estIn, estOut)
 	if !decision.Admit {
 		err := errors.New("budget: " + decision.Reason)

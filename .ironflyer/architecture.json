@@ -1,0 +1,70 @@
+{
+  "$comment": "Ironflyer Architecture Manifest — see docs/ANTI_BLOAT_ENGINE.md and docs/FIGMA_TO_PRODUCT_UNIFIED_PLAYBOOK_2026-05-26.md §8.9. The five-domain layout corresponds to the canonical Ironflyer module map in docs/ARCHITECTURE_DOMAIN_MODULES.md. Layering is enforced by operations/arch.Manifest.Validate against import paths under core/orchestrator/internal/<layer>/* and core/runtime/internal/<layer>/*.",
+  "layers": [
+    "domain",
+    "business",
+    "ai",
+    "operations",
+    "customer",
+    "suppliers",
+    "interface"
+  ],
+  "rules": [
+    { "from": "domain",     "to": "business",   "allow": false },
+    { "from": "domain",     "to": "ai",         "allow": false },
+    { "from": "domain",     "to": "operations", "allow": false },
+    { "from": "domain",     "to": "customer",   "allow": false },
+    { "from": "domain",     "to": "suppliers",  "allow": false },
+    { "from": "domain",     "to": "interface",  "allow": false },
+
+    { "from": "business",   "to": "operations", "allow": false },
+    { "from": "business",   "to": "interface",  "allow": false },
+    { "from": "business",   "to": "suppliers",  "allow": false },
+    { "from": "business",   "to": "domain",     "allow": true },
+    { "from": "business",   "to": "ai",         "allow": true },
+
+    { "from": "ai",         "to": "interface",  "allow": false },
+    { "from": "ai",         "to": "domain",     "allow": true },
+    { "from": "ai",         "to": "business",   "allow": true },
+    { "from": "ai",         "to": "operations", "allow": true },
+
+    { "from": "operations", "to": "interface",  "allow": false },
+    { "from": "operations", "to": "business",   "allow": true },
+    { "from": "operations", "to": "ai",         "allow": true },
+    { "from": "operations", "to": "domain",     "allow": true },
+    { "from": "operations", "to": "suppliers",  "allow": true },
+
+    { "from": "customer",   "to": "domain",     "allow": true },
+    { "from": "customer",   "to": "business",   "allow": true },
+    { "from": "customer",   "to": "operations", "allow": true },
+    { "from": "customer",   "to": "interface",  "allow": false },
+
+    { "from": "suppliers",  "to": "domain",     "allow": true },
+    { "from": "suppliers",  "to": "operations", "allow": true },
+    { "from": "suppliers",  "to": "business",   "allow": false },
+    { "from": "suppliers",  "to": "interface",  "allow": false },
+
+    { "from": "interface",  "to": "domain",     "allow": true },
+    { "from": "interface",  "to": "business",   "allow": true },
+    { "from": "interface",  "to": "ai",         "allow": true },
+    { "from": "interface",  "to": "operations", "allow": true },
+    { "from": "interface",  "to": "customer",   "allow": true },
+    { "from": "interface",  "to": "suppliers",  "allow": true }
+  ],
+  "cycles": "deny",
+  "owners": {
+    "wallet":          ["business/wallet"],
+    "ledger":          ["business/ledger"],
+    "profitguard":     ["business/profitguard", "business/profitguardctx"],
+    "execution":       ["business/execution"],
+    "finisher":        ["ai/finisher", "business/wowloop"],
+    "atlas":           ["ai/atlas"],
+    "manifest":        ["operations/arch"],
+    "memory":          ["ai/memory", "ai/memorygraph"],
+    "embeddings":      ["ai/embeddings"],
+    "patch":           ["operations/patch"],
+    "deploy":          ["operations/deploy"],
+    "graph":           ["operations/graph"],
+    "audit":           ["operations/audit", "operations/auditexport"]
+  }
+}

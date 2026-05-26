@@ -15,10 +15,54 @@ import (
 	"github.com/google/uuid"
 
 	"ironflyer/core/orchestrator/internal/ai/domain"
+	"ironflyer/core/orchestrator/internal/business/profitguard"
+	"ironflyer/core/orchestrator/internal/business/profitguardbridge"
+	"ironflyer/core/orchestrator/internal/business/profitguardctx"
 	"ironflyer/core/orchestrator/internal/operations/graph/model"
 	"ironflyer/core/orchestrator/internal/operations/mobile/eas"
 	"ironflyer/core/orchestrator/internal/operations/store"
 )
+
+// gateMobileExternalCall consults ProfitGuard before an EAS / Appetize /
+// BrowserStack external API call (build trigger, store submission, OTA
+// publish, device-cloud session). Returns nil to let the call proceed
+// and a typed error to short-circuit it. nil-safe end to end — without
+// a wired Guard / ExecutionSvc / executionID-on-ctx, the resolver runs
+// unchanged (legacy behaviour).
+//
+// The point argument is the canonical profitguard.EnforcementPoint —
+// BeforeMobileBuild for build triggers and store submissions.
+func (r *Resolver) gateMobileExternalCall(ctx context.Context, p domain.Project, point profitguard.EnforcementPoint, action string) error {
+	if r == nil || r.ProfitGuard == nil || r.ExecutionSvc == nil {
+		return nil
+	}
+	execID, ok := profitguardctx.ExecutionID(ctx)
+	if !ok || execID == "" {
+		return nil
+	}
+	in, err := profitguardbridge.SnapshotFor(ctx, r.ExecutionSvc, execID, profitguardbridge.BridgeDeps{}, profitguardbridge.BridgeFlags{}, nil, nil)
+	if err != nil {
+		// Snapshot unavailable — fail open so resolvers don't break on
+		// missing execution rows. The BillingGuard / engine path remains
+		// the harder economic stop.
+		return nil
+	}
+	dec, err := r.ProfitGuard.Decide(ctx, point, in)
+	if err != nil {
+		return nil
+	}
+	if dec.Metadata == nil {
+		dec.Metadata = map[string]any{}
+	}
+	dec.Metadata["resolver_action"] = action
+	dec.Metadata["project_id"] = p.ID
+	_ = r.ProfitGuard.Record(ctx, execID, point, dec, in)
+	switch dec.Action {
+	case profitguard.Stop, profitguard.KillBranch, profitguard.PauseForBudget:
+		return fmt.Errorf("profitguard: %s blocked %s: %s", dec.Action, action, dec.Reason)
+	}
+	return nil
+}
 
 // mobileClientForProject resolves the per-project EAS bearer, enforces
 // ownership against the authenticated user, and returns a Client ready

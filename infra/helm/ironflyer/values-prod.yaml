@@ -107,6 +107,16 @@ orchestrator:
     # don't go through Redpanda yet (core/orchestrator/internal/
     # clickhouse/ingest.go). Safe to leave on alongside the publisher.
     IRONFLYER_CLICKHOUSE_INGEST_FROM_OUTBOX: "true"
+    # Memory backend — SurrealDB is the Pro-tier production default per
+    # V22 (core/orchestrator/internal/ai/memory/surreal.go). The Helm
+    # chart already provisions SurrealDB; without this flag the
+    # orchestrator falls back to the in-process ring buffer and the
+    # knowledge graph loses every record on restart.
+    IRONFLYER_MEMORY_BACKEND: "surreal"
+    SURREAL_URL: "ws://surrealdb:8000/rpc"
+    SURREAL_NS: "ironflyer"
+    SURREAL_DB: "main"
+    SURREAL_USER: "root"
 
 runtime:
   enabled: true

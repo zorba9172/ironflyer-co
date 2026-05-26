@@ -425,11 +425,23 @@ func infoPlistConflictChecks(p *domain.Project, m domain.MobileStack) []domain.I
 // runMobileBuilds executes the platform-appropriate debug build for each
 // effective target. iOS targets that require a Mac without a Mac pool emit
 // a SeverityInfo "deferred to EAS cloud" issue and don't run.
+//
+// V22: each (kind, target) pair is gated by GateEnv.MobileBuildHook
+// before the runtime command runs. Stop / KillBranch / PauseForBudget
+// verdicts surface a degraded issue and skip the build — gradlew /
+// xcodebuild / eas build never start, so the wallet never sees the
+// minute charge. Nil-safe (legacy behaviour) and fail-open on hook
+// errors so a flaky audit chain does not block legitimate builds.
 func runMobileBuilds(ctx context.Context, env *GateEnv, m domain.MobileStack, macPool bool) []domain.Issue {
 	var issues []domain.Issue
+	kind := string(m.Kind)
 	for _, t := range m.EffectiveTargets() {
 		switch t {
 		case domain.MobileTargetAndroid:
+			if blocked, gateIssue := guardMobileBuild(ctx, env, kind, string(t)); blocked {
+				issues = append(issues, gateIssue)
+				continue
+			}
 			issues = append(issues, runMobileAndroidBuild(ctx, env, m)...)
 		case domain.MobileTargetIOS:
 			if !macPool {
@@ -440,10 +452,39 @@ func runMobileBuilds(ctx context.Context, env *GateEnv, m domain.MobileStack, ma
 				})
 				continue
 			}
+			if blocked, gateIssue := guardMobileBuild(ctx, env, kind, string(t)); blocked {
+				issues = append(issues, gateIssue)
+				continue
+			}
 			issues = append(issues, runMobileIOSBuild(ctx, env, m)...)
 		}
 	}
 	return issues
+}
+
+// guardMobileBuild consults env.MobileBuildHook for one (kind, target)
+// pair. Returns (true, issue) when ProfitGuard wants the build skipped;
+// (false, _) when the build may proceed. Nil-safe and fail-open.
+func guardMobileBuild(ctx context.Context, env *GateEnv, kind, target string) (bool, domain.Issue) {
+	if env == nil || env.MobileBuildHook == nil || env.Project == nil {
+		return false, domain.Issue{}
+	}
+	action, reason, err := env.MobileBuildHook.BeforeMobileBuild(ctx, env.Project.ID, kind, target)
+	if err != nil {
+		// Fail-open: hook plumbing failure must not block legitimate work.
+		return false, domain.Issue{}
+	}
+	switch action {
+	case "stop", "kill_branch", "pause_for_budget":
+		return true, domain.Issue{
+			Gate:     domain.GateMobileBuild,
+			Severity: domain.SeverityError,
+			Message:  "mobile build halted by ProfitGuard (" + action + ")",
+			Hint:     "top up the wallet or wait for the margin floor to recover — verdict: " + reason,
+		}
+	default:
+		return false, domain.Issue{}
+	}
 }
 
 // runMobileAndroidBuild picks the right android command for the project's

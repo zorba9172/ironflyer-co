@@ -183,3 +183,33 @@ ClickHouse.
 5. Move dashboard resolvers from Postgres aggregation to ClickHouse.
 6. Add provider/gate/blueprint rollups.
 7. Add correction-window jobs and replay runbook.
+
+## Current state (2026-05-26 audit)
+
+- The canonical cost fact table is `fact_execution_costs`, not the
+  legacy `profit_projection` name that some smoke steps once
+  referenced. Schema files live under
+  `core/orchestrator/internal/business/clickhouse/schema/`
+  (01_raw / 02_facts / 03_rollups / 04_correction).
+- The Redpanda → ClickHouse consumer subscribes to every domain stream
+  that `tableForTopic()` maps to a `raw_*` table:
+  `execution.lifecycle`, `execution.steps`, `gates.results`,
+  `patches.lifecycle`, `billing.ledger`, `profitguard.decisions`,
+  `deploy.lifecycle`, `audit.security`, `memory.indexing`,
+  `runtime.lifecycle`. See `internal/operations/wireup/clickhouse.go`.
+- The consumer uses one precompiled `INSERT INTO raw_<domain>_events`
+  per table (no fmt.Sprintf) and the client enables server-side async
+  insert (`async_insert=1, wait_for_async_insert=0,
+  async_insert_busy_timeout_ms=1000`) so high-throughput writes batch
+  on the ClickHouse side without per-row round-trip overhead. See
+  `internal/business/clickhouse/{client.go, consumer.go}`.
+- Dashboard reads are wired through the ClickHouse adapters
+  (`LedgerSource`, `ExecutionSource`, `BlueprintSource`, `ScaleSource`
+  in `internal/business/clickhouse/adapters.go`). The Postgres adapter
+  stack remains as the fallback when `IRONFLYER_CLICKHOUSE_HOSTS` is
+  empty.
+- Honest gap: no `dim_tenant` / `dim_provider` tables exist yet. All
+  joins use the raw string columns (`tenant_id`, `provider`) which is
+  acceptable at current row counts but should evolve into proper dim
+  tables when per-tenant attributes (plan, region) need to surface on
+  the operator dashboard.

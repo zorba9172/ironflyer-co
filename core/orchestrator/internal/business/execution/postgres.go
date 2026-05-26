@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -469,6 +468,42 @@ func (p *Postgres) Reserve(ctx context.Context, id string, amount decimal.Decima
 	return nil
 }
 
+// addCostQueries holds one precompiled UPDATE per executions cost
+// column. The clauses are static strings so pgx's auto-prepare cache
+// reuses the parsed plan across calls — fmt.Sprintf'ing the column
+// name on every AddCost defeats that cache and burns extra round
+// trips at the bench's hot path (40K-user planning target).
+var addCostQueries = map[string]string{
+	"provider_cost_usd": `UPDATE executions SET
+            provider_cost_usd = provider_cost_usd + $2,
+            spent_usd = spent_usd + $2,
+            gross_margin_pct = CASE WHEN revenue_usd > 0
+                THEN (revenue_usd - (spent_usd + $2)) / revenue_usd * 100
+                ELSE NULL END
+        WHERE id = $1`,
+	"sandbox_cost_usd": `UPDATE executions SET
+            sandbox_cost_usd = sandbox_cost_usd + $2,
+            spent_usd = spent_usd + $2,
+            gross_margin_pct = CASE WHEN revenue_usd > 0
+                THEN (revenue_usd - (spent_usd + $2)) / revenue_usd * 100
+                ELSE NULL END
+        WHERE id = $1`,
+	"storage_cost_usd": `UPDATE executions SET
+            storage_cost_usd = storage_cost_usd + $2,
+            spent_usd = spent_usd + $2,
+            gross_margin_pct = CASE WHEN revenue_usd > 0
+                THEN (revenue_usd - (spent_usd + $2)) / revenue_usd * 100
+                ELSE NULL END
+        WHERE id = $1`,
+	"deployment_cost_usd": `UPDATE executions SET
+            deployment_cost_usd = deployment_cost_usd + $2,
+            spent_usd = spent_usd + $2,
+            gross_margin_pct = CASE WHEN revenue_usd > 0
+                THEN (revenue_usd - (spent_usd + $2)) / revenue_usd * 100
+                ELSE NULL END
+        WHERE id = $1`,
+}
+
 func (p *Postgres) AddCost(ctx context.Context, id string, kind CostKind, amount decimal.Decimal, provider string) error {
 	if !amount.IsPositive() {
 		return ErrInvalidAmount
@@ -477,15 +512,13 @@ func (p *Postgres) AddCost(ctx context.Context, id string, kind CostKind, amount
 	if col == "" {
 		return ErrInvalidAmount
 	}
-	// Build the UPDATE dynamically — `col` is from a closed enum
-	// (columnForCost), so there is no SQL-injection surface.
-	sql := fmt.Sprintf(`UPDATE executions SET
-            %s = %s + $2,
-            spent_usd = spent_usd + $2,
-            gross_margin_pct = CASE WHEN revenue_usd > 0
-                THEN (revenue_usd - (spent_usd + $2)) / revenue_usd * 100
-                ELSE NULL END
-        WHERE id = $1`, col, col)
+	// Static UPDATE per closed-enum column — keeps pgx auto-prepare
+	// happy. CostPremiumReasoning lands on provider_cost_usd via
+	// columnForCost (no dedicated DB column).
+	sql, ok := addCostQueries[col]
+	if !ok {
+		return ErrInvalidAmount
+	}
 	if err := p.txMutate(ctx, id, true, sql, id, amount.String()); err != nil {
 		return err
 	}

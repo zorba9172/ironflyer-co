@@ -246,19 +246,45 @@ func decodeEnvelope(msg kafka.Message) (rawEnvelope, string, error) {
 	return env, string(payloadBytes), nil
 }
 
-// insertRaw runs the single-row INSERT for one envelope. ClickHouse's
-// native Exec supports parameterised inserts so we avoid the
-// PrepareBatch boilerplate at the cost of a network round-trip per
-// row. The consumer batches at the kafka-go fetch layer; if INSERT
-// throughput becomes the bottleneck this path can be rewritten to
-// batch by topic with PrepareBatch.
-func insertRaw(ctx context.Context, c *Client, table string, env rawEnvelope, payload string) error {
-	query := fmt.Sprintf(
-		`INSERT INTO %s
+// rawInsertQueries holds the one INSERT statement per raw_* table. The
+// statements are constant strings (no fmt.Sprintf at hot-path) so the
+// clickhouse-go v2 driver can cache the parsed plan instead of
+// re-tokenising on every event. Adding a new raw_* table is a
+// one-line append here.
+var rawInsertQueries = map[string]string{
+	"raw_execution_events": `INSERT INTO raw_execution_events
 		 (event_id, event_type, event_version, tenant_id, execution_id, occurred_at, producer, trace_id, idempotency_key, payload)
 		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		table,
-	)
+	"raw_ledger_events": `INSERT INTO raw_ledger_events
+		 (event_id, event_type, event_version, tenant_id, execution_id, occurred_at, producer, trace_id, idempotency_key, payload)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+	"raw_agent_events": `INSERT INTO raw_agent_events
+		 (event_id, event_type, event_version, tenant_id, execution_id, occurred_at, producer, trace_id, idempotency_key, payload)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+	"raw_gate_events": `INSERT INTO raw_gate_events
+		 (event_id, event_type, event_version, tenant_id, execution_id, occurred_at, producer, trace_id, idempotency_key, payload)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+	"raw_runtime_events": `INSERT INTO raw_runtime_events
+		 (event_id, event_type, event_version, tenant_id, execution_id, occurred_at, producer, trace_id, idempotency_key, payload)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+	"raw_deploy_events": `INSERT INTO raw_deploy_events
+		 (event_id, event_type, event_version, tenant_id, execution_id, occurred_at, producer, trace_id, idempotency_key, payload)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+	"raw_security_events": `INSERT INTO raw_security_events
+		 (event_id, event_type, event_version, tenant_id, execution_id, occurred_at, producer, trace_id, idempotency_key, payload)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+}
+
+// insertRaw runs the single-row INSERT for one envelope using a
+// precompiled per-table query (see rawInsertQueries). Server-side
+// async_insert (configured on the client) batches the in-flight rows
+// so this single-row path keeps the kafka-go fetch loop simple while
+// ClickHouse coalesces writes on its side.
+func insertRaw(ctx context.Context, c *Client, table string, env rawEnvelope, payload string) error {
+	query, ok := rawInsertQueries[table]
+	if !ok {
+		return fmt.Errorf("clickhouse: no insert query registered for table %q", table)
+	}
 	return c.Exec(ctx, query,
 		env.EventID,
 		env.EventType,

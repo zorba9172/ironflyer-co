@@ -66,6 +66,10 @@ func BuildClickHouse(ctx context.Context, cfg clickhouse.Config, pool *pgxpool.P
 		// "prod" so they're stable symbols — using them verbatim would
 		// strand a dev/staging cluster on an empty subscription.
 		env := events.CurrentEnv()
+		// Subscribe to every domain stream that tableForTopic() maps to
+		// a raw_* table. Missing a topic here means the consumer would
+		// silently skip events whose raw projection actually exists,
+		// breaking the audit / memory / runtime dashboards.
 		topics := []string{
 			events.TopicFor(env, "execution", "lifecycle", 1),
 			events.TopicFor(env, "execution", "steps", 1),
@@ -74,6 +78,9 @@ func BuildClickHouse(ctx context.Context, cfg clickhouse.Config, pool *pgxpool.P
 			events.TopicFor(env, "billing", "ledger", 1),
 			events.TopicFor(env, "profitguard", "decisions", 1),
 			events.TopicFor(env, "deploy", "lifecycle", 1),
+			events.TopicFor(env, "audit", "security", 1),
+			events.TopicFor(env, "memory", "indexing", 1),
+			events.TopicFor(env, "runtime", "lifecycle", 1),
 		}
 		res.Consumer = clickhouse.NewConsumer(client, strings.Split(brokers, ","), topics, "", log.With().Str("svc", "clickhouse-consumer").Logger())
 		log.Info().Str("env", env).Strs("topics", topics).Msg("clickhouse: Redpanda consumer enabled")

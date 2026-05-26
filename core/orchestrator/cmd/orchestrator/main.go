@@ -25,11 +25,14 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
 	surrealdb "github.com/surrealdb/surrealdb.go"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"ironflyer/core/orchestrator/internal/operations/abuse"
 	"ironflyer/core/orchestrator/internal/ai/agents"
+	"ironflyer/core/orchestrator/internal/ai/atlas"
+	"ironflyer/core/orchestrator/internal/operations/arch"
 	"ironflyer/core/orchestrator/internal/operations/audit"
 	"ironflyer/core/orchestrator/internal/operations/auditexport"
 	"ironflyer/core/orchestrator/internal/customer/auth"
@@ -142,47 +145,140 @@ func main() {
 	ctx, cancelMain := context.WithCancel(context.Background())
 	defer cancelMain()
 
-	// ---------------- Sentry (optional) ------------------------------------
-	// Sentry handles exceptions + HTTP panics (OTel handles spans). DSN
-	// resolves from SENTRY_DSN_ORCHESTRATOR, falling back to SENTRY_DSN
-	// so a single shared DSN env works for monorepo deployments.
-	sentryDSN := strings.TrimSpace(os.Getenv("SENTRY_DSN_ORCHESTRATOR"))
-	if sentryDSN == "" {
-		sentryDSN = strings.TrimSpace(os.Getenv("SENTRY_DSN"))
-	}
-	sentryEnvName := strings.TrimSpace(os.Getenv("IRONFLYER_ENV"))
-	if sentryEnvName == "" {
-		sentryEnvName = "development"
-	}
-	sentryFlush, err := sentryext.Init(sentryext.Opts{
-		DSN:              sentryDSN,
-		Environment:      sentryEnvName,
-		Release:          strings.TrimSpace(os.Getenv("IRONFLYER_VERSION")),
-		TracesSampleRate: sentryext.FloatFromEnv("SENTRY_TRACES_SAMPLE", 0.05),
-		ServerName:       "ironflyer-orchestrator",
-	})
-	if err != nil {
-		logger.Warn().Err(err).Msg("sentry init failed; continuing without exception reporting")
-	} else if sentryDSN != "" {
-		logger.Info().Str("env", sentryEnvName).Msg("Sentry initialised")
-	}
-	defer sentryFlush()
+	// ---------------- Parallel init of independent subsystems --------------
+	// Cold-start optimization: Sentry, OTel, Postgres, Redis, and Surreal
+	// have no startup-time dependencies on each other. Booting them in
+	// parallel via errgroup turns the cold-start wait from the SUM of each
+	// init duration into MAX(each). The migrations step still waits on
+	// pgPool because migrations are a hard precondition for stores that
+	// build on Postgres. Each leg logs its own duration so the operator
+	// can see where boot time actually goes.
+	bootStart := time.Now()
+	var (
+		sentryFlush     func()
+		tracingShutdown func(context.Context) error
+		pgPool          *pgxpool.Pool
+		surrealDB       *surrealdb.DB
+		redisClient     *redisbus.Client
+	)
+	bootGroup, bootCtx := errgroup.WithContext(ctx)
 
-	// ---------------- OpenTelemetry tracing (optional) ---------------------
-	tracingShutdown, err := tracing.Init(ctx, tracing.Opts{
-		Exporter:       cfg.OTelExporter,
-		Endpoint:       cfg.OTelEndpoint,
-		Insecure:       cfg.OTelInsecure,
-		ServiceName:    "ironflyer-orchestrator",
-		ServiceVersion: "1.0",
-		SampleRatio:    cfg.OTelSampleRatio,
-		Headers:        parseOTelHeaders(cfg.OTelHeaders),
+	// Sentry.
+	bootGroup.Go(func() error {
+		start := time.Now()
+		sentryDSN := strings.TrimSpace(os.Getenv("SENTRY_DSN_ORCHESTRATOR"))
+		if sentryDSN == "" {
+			sentryDSN = strings.TrimSpace(os.Getenv("SENTRY_DSN"))
+		}
+		sentryEnvName := strings.TrimSpace(os.Getenv("IRONFLYER_ENV"))
+		if sentryEnvName == "" {
+			sentryEnvName = "development"
+		}
+		flush, ierr := sentryext.Init(sentryext.Opts{
+			DSN:              sentryDSN,
+			Environment:      sentryEnvName,
+			Release:          strings.TrimSpace(os.Getenv("IRONFLYER_VERSION")),
+			TracesSampleRate: sentryext.FloatFromEnv("SENTRY_TRACES_SAMPLE", 0.05),
+			ServerName:       "ironflyer-orchestrator",
+		})
+		if ierr != nil {
+			logger.Warn().Err(ierr).Msg("sentry init failed; continuing without exception reporting")
+		} else if sentryDSN != "" {
+			logger.Info().Str("env", sentryEnvName).Dur("took", time.Since(start)).Msg("Sentry initialised")
+		}
+		sentryFlush = flush
+		return nil
 	})
-	if err != nil {
-		logger.Warn().Err(err).Msg("tracing init failed; continuing without OTel")
-	} else if cfg.OTelExporter != "none" && cfg.OTelExporter != "" {
-		logger.Info().Str("exporter", cfg.OTelExporter).Msg("OTel tracing initialised")
+
+	// OpenTelemetry.
+	bootGroup.Go(func() error {
+		start := time.Now()
+		sh, ierr := tracing.Init(bootCtx, tracing.Opts{
+			Exporter:       cfg.OTelExporter,
+			Endpoint:       cfg.OTelEndpoint,
+			Insecure:       cfg.OTelInsecure,
+			ServiceName:    "ironflyer-orchestrator",
+			ServiceVersion: "1.0",
+			SampleRatio:    cfg.OTelSampleRatio,
+			Headers:        parseOTelHeaders(cfg.OTelHeaders),
+		})
+		if ierr != nil {
+			logger.Warn().Err(ierr).Msg("tracing init failed; continuing without OTel")
+		} else if cfg.OTelExporter != "none" && cfg.OTelExporter != "" {
+			logger.Info().Str("exporter", cfg.OTelExporter).Dur("took", time.Since(start)).
+				Msg("OTel tracing initialised")
+		}
+		tracingShutdown = sh
+		return nil
+	})
+
+	// Postgres pool. ParseConfig + NewWithConfig are non-blocking under
+	// pgx v5 (idle conns are created in a background goroutine); the Ping
+	// roundtrip is the only blocking call. IRONFLYER_PG_LAZY=true skips
+	// the Ping so first-request lazy-loads when boot speed is paramount.
+	if cfg.UsePostgres() {
+		bootGroup.Go(func() error {
+			start := time.Now()
+			p, ierr := connectPostgresTuned(bootCtx, cfg.PostgresURL, logger)
+			if ierr != nil {
+				return ierr
+			}
+			pgPool = p
+			logger.Info().Dur("took", time.Since(start)).Msg("postgres pool ready (parallel)")
+			return nil
+		})
 	}
+
+	// SurrealDB project + memory store (only when configured).
+	if cfg.UseSurreal() {
+		bootGroup.Go(func() error {
+			start := time.Now()
+			db, ierr := store.ConnectSurreal(bootCtx, store.SurrealOpts{
+				URL: cfg.SurrealURL, Namespace: cfg.SurrealNS, Database: cfg.SurrealDB,
+				User: cfg.SurrealUser, Pass: cfg.SurrealPass,
+			})
+			if ierr != nil {
+				return ierr
+			}
+			if ierr := store.BootstrapSurreal(bootCtx, db); ierr != nil {
+				return ierr
+			}
+			surrealDB = db
+			logger.Info().Str("url", cfg.SurrealURL).Dur("took", time.Since(start)).
+				Msg("SurrealDB connected (parallel)")
+			return nil
+		})
+	}
+
+	// Redis (optional, multi-pod coordination).
+	if cfg.RedisEnabled {
+		bootGroup.Go(func() error {
+			start := time.Now()
+			rc, ierr := redisbus.New(cfg.RedisAddr, cfg.RedisPassword, cfg.RedisDB)
+			if ierr != nil {
+				return ierr
+			}
+			if !envBoolTrue("IRONFLYER_REDIS_LAZY") {
+				if ierr := rc.Ping(bootCtx); ierr != nil {
+					return ierr
+				}
+			}
+			redisClient = rc
+			logger.Info().Str("addr", cfg.RedisAddr).Dur("took", time.Since(start)).
+				Msg("Redis ready (parallel)")
+			return nil
+		})
+	}
+
+	if err := bootGroup.Wait(); err != nil {
+		logger.Fatal().Err(err).Msg("parallel init failed")
+	}
+	logger.Info().Dur("took", time.Since(bootStart)).Msg("parallel init complete")
+	defer func() {
+		if sentryFlush != nil {
+			sentryFlush()
+		}
+	}()
 	defer func() {
 		if tracingShutdown != nil {
 			shCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -191,22 +287,21 @@ func main() {
 		}
 	}()
 
-	// ---------------- Postgres pool (shared by budget + auth) ---------------
-	var pgPool *pgxpool.Pool
-	if cfg.UsePostgres() {
-		p, err := connectPostgresTuned(ctx, cfg.PostgresURL, logger)
-		if err != nil {
-			logger.Fatal().Err(err).Msg("connect postgres")
-		}
-		pgPool = p
-	}
-
 	// ---------------- Schema migrations (goose) -----------------------------
-	if err := migrate.RunPool(ctx, pgPool, migrations.FS); err != nil {
-		logger.Fatal().Err(err).Msg("apply schema migrations")
-	}
-	if pgPool != nil {
-		logger.Info().Msg("schema migrations applied")
+	// IRONFLYER_SKIP_MIGRATE=true: operators that run migrations through a
+	// dedicated helm pre-install hook (infra/helm/ironflyer/templates/
+	// migrate-job.yaml) skip the in-process check to shave several
+	// hundred ms off cold start.
+	if envBoolTrue("IRONFLYER_SKIP_MIGRATE") {
+		logger.Info().Msg("schema migrations skipped (IRONFLYER_SKIP_MIGRATE=true)")
+	} else {
+		migStart := time.Now()
+		if err := migrate.RunPool(ctx, pgPool, migrations.FS); err != nil {
+			logger.Fatal().Err(err).Msg("apply schema migrations")
+		}
+		if pgPool != nil {
+			logger.Info().Dur("took", time.Since(migStart)).Msg("schema migrations applied")
+		}
 	}
 
 	// ---------------- Durable event outbox / Redpanda publisher ------------
@@ -276,25 +371,15 @@ func main() {
 	outboxhooks.SetRegistry(schemaReg)
 
 	// ---------------- Project store (in-memory or SurrealDB) ----------------
+	// surrealDB is dialed during the parallel boot block above; we only
+	// derive the store + seed here so the rest of the wiring stays linear.
 	var projects store.Store
-	var surrealDB *surrealdb.DB
-	if cfg.UseSurreal() {
-		db, err := store.ConnectSurreal(ctx, store.SurrealOpts{
-			URL: cfg.SurrealURL, Namespace: cfg.SurrealNS, Database: cfg.SurrealDB,
-			User: cfg.SurrealUser, Pass: cfg.SurrealPass,
-		})
-		if err != nil {
-			logger.Fatal().Err(err).Msg("connect surrealdb")
-		}
-		if err := store.BootstrapSurreal(ctx, db); err != nil {
-			logger.Fatal().Err(err).Msg("bootstrap surreal schema")
-		}
-		ss := store.NewSurrealStore(ctx, db)
+	if cfg.UseSurreal() && surrealDB != nil {
+		ss := store.NewSurrealStore(ctx, surrealDB)
 		if err := ss.Seed(); err != nil {
 			logger.Warn().Err(err).Msg("surreal seed failed (continuing)")
 		}
 		projects = ss
-		surrealDB = db
 		logger.Info().Str("url", cfg.SurrealURL).Str("ns", cfg.SurrealNS).
 			Str("db", cfg.SurrealDB).Msg("SurrealDB store enabled")
 	} else {
@@ -394,16 +479,10 @@ func main() {
 	}
 
 	// ---------------- Redis (optional, multi-pod coordination) -------------
-	var redisClient *redisbus.Client
-	if cfg.RedisEnabled {
-		rc, err := redisbus.New(cfg.RedisAddr, cfg.RedisPassword, cfg.RedisDB)
-		if err != nil {
-			logger.Fatal().Err(err).Msg("connect redis")
-		}
-		if err := rc.Ping(ctx); err != nil {
-			logger.Fatal().Err(err).Msg("ping redis")
-		}
-		redisClient = rc
+	// Redis is dialed during the parallel boot block above; the variable
+	// is hoisted there so the rest of the wiring (event bus, rate limit,
+	// finisher) reads it directly without a second connect.
+	if cfg.RedisEnabled && redisClient != nil {
 		logger.Info().Str("addr", cfg.RedisAddr).Msg("Redis enabled (distributed locks + rate limit)")
 	}
 
@@ -550,6 +629,28 @@ func main() {
 		auditStore = audit.NewMemoryStore(16 * 1024)
 		logger.Info().Msg("Audit store: in-process hash chain")
 	}
+
+	// ---------------- Anti-Bloat Engine wiring ----------------------------
+	// architecture.json + Capability Atlas. See
+	// docs/ANTI_BLOAT_ENGINE.md. Both degrade to "dark" if the
+	// manifest is missing or the embedder is offline — the gate
+	// stubs surface the degraded state in the dashboard.
+	archManifest, archErr := arch.Load(strings.TrimSpace(os.Getenv("IRONFLYER_ARCHITECTURE_MANIFEST")))
+	if archErr != nil {
+		logger.Warn().Err(archErr).Msg("arch manifest: not loaded (dep_graph / arch_boundary gates will degrade)")
+	} else {
+		logger.Info().Int("layers", len(archManifest.Layers)).Int("rules", len(archManifest.Rules)).Msg("arch manifest loaded")
+	}
+	var atlasStore atlas.Store
+	if memoryStore != nil {
+		atlasStore = atlas.NewMemoryBackedStore(memoryStore, "", "")
+		logger.Info().Msg("capability atlas: memory-backed (wraps configured memory.Store)")
+	} else {
+		atlasStore = atlas.NewMemoryStore(16 * 1024)
+		logger.Info().Msg("capability atlas: in-process (no memory.Store wired)")
+	}
+	_ = atlasStore // wired by the agent loop / preflight in the follow-up PR
+	_ = archManifest
 
 	// ---------------- Agents registry + patches + finisher ----------------
 	registry := agents.NewRegistry(guard)
@@ -1477,11 +1578,20 @@ func connectPostgresTuned(ctx context.Context, url string, logger zerolog.Logger
 	if err != nil {
 		return nil, err
 	}
-	pingCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	defer cancel()
-	if err := pool.Ping(pingCtx); err != nil {
-		pool.Close()
-		return nil, err
+	// pgxpool.NewWithConfig is already lazy: idle resources are created
+	// in a background goroutine, so cold start does not wait on TCP +
+	// TLS + auth. The Ping below is the one blocking roundtrip. When
+	// IRONFLYER_PG_LAZY=true we skip the Ping so the first request
+	// pays the connect cost instead of blocking boot — useful in
+	// preview / autoscale scenarios where the boot SLO is tighter than
+	// the first-request SLO.
+	if !envBoolTrue("IRONFLYER_PG_LAZY") {
+		pingCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		defer cancel()
+		if err := pool.Ping(pingCtx); err != nil {
+			pool.Close()
+			return nil, err
+		}
 	}
 	logger.Info().
 		Int32("max_conns", cfg.MaxConns).
@@ -1489,6 +1599,7 @@ func connectPostgresTuned(ctx context.Context, url string, logger zerolog.Logger
 		Dur("max_conn_lifetime", cfg.MaxConnLifetime).
 		Dur("max_conn_idle", cfg.MaxConnIdleTime).
 		Dur("health_check_period", cfg.HealthCheckPeriod).
+		Bool("lazy", envBoolTrue("IRONFLYER_PG_LAZY")).
 		Msg("postgres pool ready")
 	return pool, nil
 }
@@ -1503,6 +1614,16 @@ func intEnv(name string, def int) int {
 		return def
 	}
 	return n
+}
+
+// envBoolTrue returns true when the env var is set to a truthy value
+// (1 / true / on / yes). Used by the cold-start short-circuits.
+func envBoolTrue(name string) bool {
+	switch strings.ToLower(strings.TrimSpace(os.Getenv(name))) {
+	case "1", "true", "on", "yes":
+		return true
+	}
+	return false
 }
 
 func durationEnv(name string, def time.Duration) time.Duration {

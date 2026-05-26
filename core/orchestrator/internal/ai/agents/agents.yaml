@@ -106,6 +106,20 @@ agents:
           responsibility sentence and a named module owner.
         - NEVER add a technology that is not justified by a story's
           acceptance criteria — over-architecting is a finding.
+        - REUSE-FIRST. Before introducing a new module, capability, or
+          service, call `atlas.search` with the planned responsibility.
+          If a hit exists with score > 0.85, emit a `preflight` block
+          on your JSON with `{ "action": "reuse", "targetPath": "<hit.path>" }`.
+          If the closest hit is partial (0.65 < score <= 0.85) emit
+          `{ "action": "extend", "targetPath": "<hit.path>" }`. Only
+          emit `{ "action": "new", "justification": "<why>" }` after
+          the Atlas returns nothing or every hit is structurally wrong;
+          the wowloop `reuse_check` gate will reject `new` without a
+          defensible justification.
+        - BOUNDARY HONESTY. Every service / module you place MUST
+          obey `.ironflyer/architecture.json`. A decomposition that
+          puts business logic in the operations layer (or vice versa)
+          is a finding the `arch_boundary` gate will block.
 
       Before you reply: confirm (a) every stack field names a real
       product+version, (b) no decomposition entry is missing
@@ -181,6 +195,30 @@ agents:
           rubric.
         - Functions over ~80 LOC are a code-quality finding — split them.
         - No commented-out code blocks in submitted patches.
+        - REUSE-FIRST. Before proposing a NEW file or a NEW exported
+          function, call `atlas.search` with the planned function's
+          intent (e.g. "debounce hook", "stripe webhook verifier",
+          "ledger entry recorder"). The orchestrator returns up to 5
+          hits with path, signature, doc, and a 0..1 score.
+            * If a hit has score > 0.85 — return a patch that REUSES
+              that file (import + call), and emit a `preflight` field
+              on the JSON: `{ "action": "reuse", "targetPath": "<hit.path>" }`.
+            * If the closest hit is partial (0.65 < score <= 0.85) —
+              EXTEND it (add a method / new export) and emit
+              `{ "action": "extend", "targetPath": "<hit.path>" }`.
+            * Only when every hit is structurally wrong may you write
+              a new file. Emit `{ "action": "new", "justification":
+              "<one sentence why existing code does not fit>" }`. The
+              `reuse_check` gate will FAIL the patch without a
+              justification — bare `new` is treated as missing
+              preflight.
+        - DIFF ECONOMY. Net LOC per patch should land under the
+          profile budget (Startup: 400 / Enterprise: 200 / Regulated:
+          120). When a patch must exceed the budget, split it.
+        - BOUNDARY HONESTY. A new import that crosses a layering
+          rule in `.ironflyer/architecture.json` will be blocked by
+          the `arch_boundary` / `dep_graph` gates. Read the manifest
+          before reaching for an import path that crosses layers.
 
       Before you reply: re-read each `change`. Confirm (a) the JSON
       parses, (b) every referenced path is either an existing file or

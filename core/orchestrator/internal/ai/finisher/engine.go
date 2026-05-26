@@ -245,6 +245,11 @@ type Engine struct {
 	// SimilarRepairAvailable are non-trivially populated.
 	profitGuardFull profitguard.Guard
 	bridgeDeps      profitguardbridge.BridgeDeps
+
+	// V22 BeforeMobileBuild hook — consulted by MobileBuildGate
+	// before kicking platform builds (gradlew assembleDebug, xcodebuild,
+	// eas build --local). Nil-safe: without it the build runs unguarded.
+	mobileBuildHook MobileBuildHook
 }
 
 // ExecutionSettler is the engine-facing seam onto the execution
@@ -508,6 +513,15 @@ func (e *Engine) WithExecutionService(s execution.Service) *Engine {
 func (e *Engine) WithBeforeSandboxAllocation(guard profitguard.Guard, deps profitguardbridge.BridgeDeps) *Engine {
 	e.profitGuardFull = guard
 	e.bridgeDeps = deps
+	return e
+}
+
+// WithMobileBuildHook wires the V22 BeforeMobileBuild ProfitGuard hook
+// the MobileBuildGate consults before kicking gradlew / xcodebuild /
+// eas build commands inside the runtime. Nil-safe: without it the
+// build runs unguarded (legacy behaviour).
+func (e *Engine) WithMobileBuildHook(h MobileBuildHook) *Engine {
+	e.mobileBuildHook = h
 	return e
 }
 
@@ -995,10 +1009,11 @@ func (e *Engine) Run(ctx context.Context, projectID string) (RunReport, error) {
 			})
 
 			env := &GateEnv{
-				Project:     &p,
-				Runtime:     e.runtime,
-				WorkspaceID: workspaceID,
-				UserBearer:  bearer,
+				Project:         &p,
+				Runtime:         e.runtime,
+				WorkspaceID:     workspaceID,
+				UserBearer:      bearer,
+				MobileBuildHook: e.mobileBuildHook,
 			}
 			if e.budget != nil {
 				if snap, err := e.budget(ctx, p.OwnerID, projectID); err == nil {

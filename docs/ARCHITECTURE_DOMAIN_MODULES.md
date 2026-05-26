@@ -54,7 +54,9 @@ Anything that moves money against a tenant lives here.
 Owns: model orchestration, prompts, retrieval, memory, completion
 scoring, patch authoring, and gate-driven repair.
 
-- `ai/agents` — YAML-driven role registry (Planner, Architect, Critic, Coder, …) with capability + thinking flags.
+- `ai/agents` — YAML-driven role registry (Planner, Architect, Critic, Coder, …) with capability + thinking flags. Includes the `PreflightDecision` contract the coder/architect agents emit before patches land (Anti-Bloat Engine, see `docs/ANTI_BLOAT_ENGINE.md`).
+- `ai/atlas` — Capability Atlas: live index of every reusable Go func / TS hook / React component / blueprint with embeddings, surfaced via `atlas.Search` to the Reuse-First Preflight gate. In-process + pgvector + surreal backends; the latter two reuse the existing `ai/memory` store so no second vector DB is needed.
+- `ai/refactor` *(reserved)* — Refactor Proposer (playbook §8.6); needs `ts-morph` / `comby` codemod tooling and ships as a follow-up package.
 - `ai/providers` — Anthropic / OpenAI / Gemini / HuggingFace / DeepSeek / Vercel AI Gateway routers + quality registry.
 - `ai/completion` — per-execution completion scorer (latest-pass-by-gate) and per-dollar value tracking.
 - `ai/embeddings` — embedder client + LRU cache; ONNX-capable build tag for local inference.
@@ -74,6 +76,7 @@ deploys, runtime glue, observability, policy, secrets, configuration,
 admission, and the workspace runtime itself.
 
 ### Orchestrator-side — `core/orchestrator/internal/operations/`
+- `operations/arch` — Architecture Manifest reader: parses `.ironflyer/architecture.json` and exposes `Manifest.Validate(pkg, importPath)` for the `dep_graph` + `arch_boundary` Anti-Bloat gates.
 - `operations/patch` — patch lifecycle engine: validate → preview → apply → snapshot → verify → rollback. AI never writes files directly.
 - `operations/deploy` — provider-agnostic deploy adapter contract (Vercel today) with approvals, domains, sweeper.
 - `operations/runtime` — bridge from finisher to the runtime service: applies patches via the File API.
