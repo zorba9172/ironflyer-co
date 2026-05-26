@@ -210,6 +210,16 @@ type BudgetSummary struct {
 	Entries  []LedgerEntry `json:"entries"`
 }
 
+type ChannelPref struct {
+	Email bool `json:"email"`
+	InApp bool `json:"inApp"`
+}
+
+type ChannelPrefInput struct {
+	Email bool `json:"email"`
+	InApp bool `json:"inApp"`
+}
+
 type Cohort struct {
 	Month                 time.Time `json:"month"`
 	NewPayingUsers        int       `json:"newPayingUsers"`
@@ -765,6 +775,36 @@ type NextAction struct {
 	Title  string  `json:"title"`
 	Reason string  `json:"reason"`
 	Cta    *string `json:"cta,omitempty"`
+}
+
+type Notification struct {
+	ID        string     `json:"id"`
+	Kind      string     `json:"kind"`
+	Title     string     `json:"title"`
+	Body      string     `json:"body"`
+	Link      *string    `json:"link,omitempty"`
+	Severity  string     `json:"severity"`
+	ReadAt    *time.Time `json:"readAt,omitempty"`
+	CreatedAt time.Time  `json:"createdAt"`
+}
+
+type NotificationPreferences struct {
+	UserID          string      `json:"userId"`
+	PauseAll        bool        `json:"pauseAll"`
+	OnRunComplete   ChannelPref `json:"onRunComplete"`
+	OnGateFailed    ChannelPref `json:"onGateFailed"`
+	OnDeployDone    ChannelPref `json:"onDeployDone"`
+	OnBudgetWarning ChannelPref `json:"onBudgetWarning"`
+	OnReceipt       ChannelPref `json:"onReceipt"`
+}
+
+type NotificationPreferencesInput struct {
+	PauseAll        *bool             `json:"pauseAll,omitempty"`
+	OnRunComplete   *ChannelPrefInput `json:"onRunComplete,omitempty"`
+	OnGateFailed    *ChannelPrefInput `json:"onGateFailed,omitempty"`
+	OnDeployDone    *ChannelPrefInput `json:"onDeployDone,omitempty"`
+	OnBudgetWarning *ChannelPrefInput `json:"onBudgetWarning,omitempty"`
+	OnReceipt       *ChannelPrefInput `json:"onReceipt,omitempty"`
 }
 
 type OperationResult struct {

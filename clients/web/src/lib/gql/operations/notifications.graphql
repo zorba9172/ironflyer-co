@@ -1,0 +1,91 @@
+query Notifications($unreadOnly: Boolean) {
+  notifications(unreadOnly: $unreadOnly) {
+    id
+    kind
+    title
+    body
+    link
+    severity
+    readAt
+    createdAt
+  }
+  unreadNotificationCount
+}
+
+query NotificationPreferences {
+  notificationPreferences {
+    userId
+    pauseAll
+    onRunComplete {
+      email
+      inApp
+    }
+    onGateFailed {
+      email
+      inApp
+    }
+    onDeployDone {
+      email
+      inApp
+    }
+    onBudgetWarning {
+      email
+      inApp
+    }
+    onReceipt {
+      email
+      inApp
+    }
+  }
+}
+
+mutation MarkNotificationRead($id: ID!) {
+  markNotificationRead(id: $id) {
+    id
+    readAt
+  }
+}
+
+mutation MarkAllNotificationsRead {
+  markAllNotificationsRead
+}
+
+mutation UpdateNotificationPreferences($input: NotificationPreferencesInput!) {
+  updateNotificationPreferences(input: $input) {
+    userId
+    pauseAll
+    onRunComplete {
+      email
+      inApp
+    }
+    onGateFailed {
+      email
+      inApp
+    }
+    onDeployDone {
+      email
+      inApp
+    }
+    onBudgetWarning {
+      email
+      inApp
+    }
+    onReceipt {
+      email
+      inApp
+    }
+  }
+}
+
+subscription NotificationStream {
+  notificationStream {
+    id
+    kind
+    title
+    body
+    link
+    severity
+    readAt
+    createdAt
+  }
+}

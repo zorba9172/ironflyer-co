@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"ironflyer/core/orchestrator/internal/customer/auth"
+	"ironflyer/core/orchestrator/internal/customer/notify"
 	"ironflyer/core/orchestrator/internal/operations/graph/model"
 	"strings"
 	"time"
@@ -39,6 +40,19 @@ func (r *mutationResolver) SignUp(ctx context.Context, input model.SignUpInput) 
 	sess, err := r.issueAndPersistSession(ctx, u)
 	if err != nil {
 		return nil, err
+	}
+	// Welcome email fires BEFORE verification (separate concern): the
+	// user gets one onboarding "your workspace is ready" and one
+	// "confirm your email" — they're independent UX surfaces and
+	// shipping welcome only after verification would silently drop it
+	// for users who never click the verify link.
+	if r.Notifier != nil {
+		if err := r.Notifier.Dispatch(ctx, u.ID, u.Email, notify.KindWelcome, notify.WelcomePayload{
+			Name:  displayName(u),
+			Email: u.Email,
+		}); err != nil {
+			r.Logger.Warn().Err(err).Str("user_id", u.ID).Msg("auth: welcome email dispatch failed")
+		}
 	}
 	// Seed verification token + welcome / verify email when wired.
 	if r.Verifications != nil {
@@ -211,9 +225,18 @@ func (r *mutationResolver) RequestPasswordReset(ctx context.Context, email strin
 	if err := r.PasswordResets.Insert(ctx, hash, u.ID, expires); err != nil {
 		return &model.OperationResult{Ok: true, Message: &msg}, nil
 	}
-	if r.Email != nil {
+	resetURL := r.resetURL(plain)
+	if r.Notifier != nil {
+		if err := r.Notifier.Dispatch(ctx, u.ID, u.Email, notify.KindPasswordReset, notify.PasswordResetPayload{
+			Name:     displayName(u),
+			ResetURL: resetURL,
+			TTL:      auth.PasswordResetTTL,
+		}); err != nil {
+			r.Logger.Warn().Err(err).Str("user_id", u.ID).Msg("auth: password reset email dispatch failed")
+		}
+	} else if r.Email != nil {
 		_ = auth.SendEmail(ctx, r.Email, u.Email, auth.EmailPasswordReset, auth.EmailContext{
-			UserName: displayName(u), UserEmail: u.Email, ResetURL: r.resetURL(plain),
+			UserName: displayName(u), UserEmail: u.Email, ResetURL: resetURL,
 		})
 	}
 	if r.DevEnv == "dev" {

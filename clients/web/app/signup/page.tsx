@@ -57,7 +57,7 @@ function SignUpPageInner() {
       switchPrompt="Already have an account?"
       switchAction="Sign in"
     >
-      <SignUpForm onSuccess={() => router.replace(redirect)} />
+      <SignUpForm onSuccess={() => router.replace(redirect)} returnTo={redirect} />
     </AuthShell>
   );
 }

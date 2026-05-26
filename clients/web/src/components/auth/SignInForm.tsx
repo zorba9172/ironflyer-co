@@ -20,13 +20,15 @@ import { useState, type FormEvent } from "react";
 import { useAuth } from "../../lib/auth";
 import { tokens } from "../../theme";
 import { ErrorPanel } from "../cockpit/ErrorPanel";
+import { SocialLoginButtons } from "./SocialLoginButtons";
 
 export interface SignInFormProps {
   onSuccess: () => void;
   initialEmail?: string;
+  returnTo?: string;
 }
 
-export function SignInForm({ onSuccess, initialEmail = "" }: SignInFormProps) {
+export function SignInForm({ onSuccess, initialEmail = "", returnTo = "/" }: SignInFormProps) {
   const { signIn } = useAuth();
 
   const [email, setEmail] = useState(initialEmail);
@@ -56,6 +58,7 @@ export function SignInForm({ onSuccess, initialEmail = "" }: SignInFormProps) {
   return (
     <Box component="form" onSubmit={handleSubmit}>
       <Stack spacing={2}>
+        <SocialLoginButtons returnTo={returnTo} disabled={submitting} />
         <Field
           label="Email"
           type="email"

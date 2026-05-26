@@ -150,6 +150,10 @@ func postJSON(ctx context.Context, cfg senderConfig, url string, body any, heade
 // returns the best-fit sender. Unknown / blank provider yields a Noop so
 // the orchestrator never refuses to start on a misconfiguration.
 func SenderFromEnv(provider, apiKey, from string, logger zerolog.Logger) EmailSender {
+	return senderFromProvider(provider, apiKey, from, logger)
+}
+
+func senderFromProvider(provider, apiKey, from string, logger zerolog.Logger) EmailSender {
 	switch provider {
 	case "resend":
 		if apiKey == "" || from == "" {
@@ -166,4 +170,73 @@ func SenderFromEnv(provider, apiKey, from string, logger zerolog.Logger) EmailSe
 	default:
 		return NewNoopSender(logger)
 	}
+}
+
+// FailoverSender wraps a primary + secondary EmailSender. Send tries
+// primary first; on error it logs Warn and tries secondary. If both
+// fail, the secondary's error is returned so the worker schedules a
+// retry. Each leg uses an independent per-provider timeout.
+type FailoverSender struct {
+	primary     EmailSender
+	secondary   EmailSender
+	primaryName string
+	secondName  string
+	timeout     time.Duration
+	logger      zerolog.Logger
+}
+
+// NewFailoverSender constructs a FailoverSender. primaryName /
+// secondName are surfaced in logs so operators see which leg failed.
+func NewFailoverSender(primary, secondary EmailSender, primaryName, secondaryName string, timeout time.Duration, logger zerolog.Logger) *FailoverSender {
+	if timeout <= 0 {
+		timeout = 5 * time.Second
+	}
+	return &FailoverSender{
+		primary:     primary,
+		secondary:   secondary,
+		primaryName: primaryName,
+		secondName:  secondaryName,
+		timeout:     timeout,
+		logger:      logger,
+	}
+}
+
+// Send delivers via primary; on error falls back to secondary.
+func (f *FailoverSender) Send(ctx context.Context, to, subject, htmlBody, textBody string) error {
+	primCtx, primCancel := context.WithTimeout(ctx, f.timeout)
+	primErr := f.primary.Send(primCtx, to, subject, htmlBody, textBody)
+	primCancel()
+	if primErr == nil {
+		return nil
+	}
+	f.logger.Warn().Err(primErr).Str("provider", f.primaryName).
+		Msg("notify: email primary failed, falling back to secondary")
+	secCtx, secCancel := context.WithTimeout(ctx, f.timeout)
+	defer secCancel()
+	if err := f.secondary.Send(secCtx, to, subject, htmlBody, textBody); err != nil {
+		f.logger.Warn().Err(err).Str("provider", f.secondName).
+			Msg("notify: email secondary also failed")
+		return err
+	}
+	return nil
+}
+
+// BuildSenderWithFailover applies IRONFLYER_EMAIL_FAILOVER semantics.
+// When failover is enabled and both providers are configured, returns
+// a FailoverSender; otherwise returns the single-provider sender.
+func BuildSenderWithFailover(provider, apiKey, from, secondaryProvider, secondaryAPIKey string, failover bool, logger zerolog.Logger) EmailSender {
+	primary := senderFromProvider(provider, apiKey, from, logger)
+	if !failover || secondaryProvider == "" || secondaryAPIKey == "" {
+		return primary
+	}
+	secondary := senderFromProvider(secondaryProvider, secondaryAPIKey, from, logger)
+	if _, ok := primary.(*NoopSender); ok {
+		return secondary
+	}
+	if _, ok := secondary.(*NoopSender); ok {
+		return primary
+	}
+	logger.Info().Str("primary", provider).Str("secondary", secondaryProvider).
+		Msg("notify: email failover enabled (primary → secondary)")
+	return NewFailoverSender(primary, secondary, provider, secondaryProvider, 5*time.Second, logger)
 }

@@ -20,13 +20,15 @@ import { useState, type FormEvent } from "react";
 import { useAuth } from "../../lib/auth";
 import { tokens } from "../../theme";
 import { ErrorPanel } from "../cockpit/ErrorPanel";
+import { SocialLoginButtons } from "./SocialLoginButtons";
 
 export interface SignUpFormProps {
   onSuccess: () => void;
   initialEmail?: string;
+  returnTo?: string;
 }
 
-export function SignUpForm({ onSuccess, initialEmail = "" }: SignUpFormProps) {
+export function SignUpForm({ onSuccess, initialEmail = "", returnTo = "/" }: SignUpFormProps) {
   const { signUp } = useAuth();
 
   const [name, setName] = useState("");
@@ -63,6 +65,7 @@ export function SignUpForm({ onSuccess, initialEmail = "" }: SignUpFormProps) {
   return (
     <Box component="form" onSubmit={handleSubmit}>
       <Stack spacing={2}>
+        <SocialLoginButtons returnTo={returnTo} disabled={submitting} />
         <Field
           label="What should we call you? (optional)"
           autoComplete="name"

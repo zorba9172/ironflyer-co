@@ -55,7 +55,7 @@ function LoginPageInner() {
       switchPrompt="New here?"
       switchAction="Create an account"
     >
-      <SignInForm onSuccess={() => router.replace(redirect)} />
+      <SignInForm onSuccess={() => router.replace(redirect)} returnTo={redirect} />
     </AuthShell>
   );
 }

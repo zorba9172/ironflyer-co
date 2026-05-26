@@ -7,7 +7,7 @@ import type { CodegenConfig } from "@graphql-codegen/cli";
 // hooks. Re-run with `npm run codegen` whenever a schema file or an
 // operation document changes.
 const config: CodegenConfig = {
-  schema: "../orchestrator/internal/graph/schema/*.graphql",
+  schema: "../../core/orchestrator/internal/operations/graph/schema/*.graphql",
   documents: "src/lib/gql/operations/**/*.graphql",
   ignoreNoDocuments: true,
   generates: {

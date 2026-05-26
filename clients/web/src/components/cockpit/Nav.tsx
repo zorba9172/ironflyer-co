@@ -45,6 +45,7 @@ import { useWalletBalance } from "../../lib/hooks";
 import { formatMoney } from "../../lib/format";
 import { tokens } from "../../theme";
 import { BrandLogo } from "../BrandLogo";
+import { NotificationsBell } from "./NotificationsBell";
 
 interface NavLink {
   label: string;
@@ -332,13 +333,15 @@ export function Nav() {
           </Tooltip>
         )}
 
+        {authenticated && <NotificationsBell />}
+
         {authenticated && (
           <>
             <Tooltip title="Recent executions" arrow>
               <IconButton
                 size="small"
                 onClick={(e) => setNotifAnchor(e.currentTarget)}
-                aria-label="Notifications"
+                aria-label="Recent executions"
                 sx={{
                   color: tokens.color.text.secondary,
                   border: `1px solid ${tokens.color.border.subtle}`,

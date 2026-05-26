@@ -86,6 +86,23 @@ type Resolver struct {
 	// notification preference resolvers (added under a later agent).
 	NotifyPrefs notify.PrefsStore
 
+	// NotifyStore persists the durable in-app notifications surfaced
+	// by the bell. Nil-safe — resolvers return gqlNotConfigured when
+	// the store was not wired (dev boots without Postgres still get
+	// the in-memory implementation, so this is rarely nil in practice).
+	NotifyStore notify.NotificationStore
+
+	// NotifyHub fan-outs newly-delivered in-app notifications to
+	// connected GraphQL subscribers. Nil-safe — when nil the
+	// notificationStream resolver returns gqlNotConfigured.
+	NotifyHub *notify.SubscriptionHub
+
+	// Notifier is the customer-lifecycle email dispatcher (welcome,
+	// password reset, receipt). Distinct from the finisher Engine
+	// already wired through the API. Nil-safe at the resolver layer —
+	// every call site checks for nil before invoking Dispatch.
+	Notifier *notify.Dispatcher
+
 	// Auth commercial table-stakes used by verifyEmail / resetPassword
 	// / sessions resolvers. Each store is nil-safe at the resolver
 	// layer so a partial orchestrator config still boots.

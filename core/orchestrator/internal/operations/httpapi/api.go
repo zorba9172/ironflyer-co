@@ -122,9 +122,19 @@ type Deps struct {
 	Telemetry providers.TelemetrySink
 	Bus       *bus.Multiplexer
 
-	// Notifications (email only in V22).
+	// Notifications (email + in-app outbox).
 	NotifyPrefs notify.PrefsStore
 	Notify      *notify.Engine
+	// Notifier is the customer-lifecycle + finisher-event dispatcher.
+	// Every Kind flows through the outbox before the worker fans out
+	// to email + in-app. Nil-safe — call sites guard before Dispatch.
+	Notifier *notify.Dispatcher
+	// NotifyStore persists durable in-app notification rows surfaced
+	// by the bell. Nil-safe at the resolver layer.
+	NotifyStore notify.NotificationStore
+	// NotifyHub is the in-process pub/sub the notificationStream
+	// GraphQL subscription consumes. Nil-safe.
+	NotifyHub *notify.SubscriptionHub
 
 	// Runtime workspace client (for legacy hand-off; the resolver does
 	// not yet expose workspace operations in V22).
@@ -400,6 +410,9 @@ func (a *API) newResolver() *resolver.Resolver {
 		Stripe:                    a.d.Stripe,
 		AuditStore:                a.d.Audit,
 		NotifyPrefs:               a.d.NotifyPrefs,
+		Notifier:                  a.d.Notifier,
+		NotifyStore:               a.d.NotifyStore,
+		NotifyHub:                 a.d.NotifyHub,
 		Verifications:             a.d.Verifications,
 		PasswordResets:            a.d.PasswordResets,
 		Sessions:                  a.d.Sessions,
@@ -605,6 +618,10 @@ func (a *API) stripeWebhook(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 			return
 		}
+		// Receipt email — fire after the wallet credit landed. We do
+		// not fail the webhook on a notifier outage (legal-relevant
+		// but not synchronously required).
+		a.sendTopUpReceipt(r.Context(), body)
 		writeJSON(w, http.StatusOK, map[string]string{"received": "wallet_topup"})
 		return
 	}
@@ -682,6 +699,87 @@ func peekStripePurpose(body []byte) string {
 		return ""
 	}
 	return peek.Data.Object.Metadata["purpose"]
+}
+
+// sendTopUpReceipt fires the receipt email after a wallet top-up
+// settles. The Stripe-Signature was already verified inside
+// HandleWebhook, so re-parsing the same body for the receipt fields
+// is safe. Errors are warning-logged and swallowed — the webhook
+// response must not depend on the notifier being live.
+func (a *API) sendTopUpReceipt(ctx context.Context, body []byte) {
+	if a.d.Notifier == nil {
+		a.d.Logger.Warn().Msg("wallet webhook: receipt skipped — notifier not configured")
+		return
+	}
+	if a.d.Auth == nil {
+		return
+	}
+	var peek struct {
+		Data struct {
+			Object struct {
+				ID                string         `json:"id"`
+				ClientReferenceID string         `json:"client_reference_id"`
+				Currency          string         `json:"currency"`
+				AmountTotal       int64          `json:"amount_total"`
+				Metadata          map[string]any `json:"metadata"`
+				CustomerDetails   struct {
+					Email string `json:"email"`
+					Name  string `json:"name"`
+				} `json:"customer_details"`
+			} `json:"object"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(body, &peek); err != nil {
+		a.d.Logger.Warn().Err(err).Msg("wallet webhook: receipt parse failed")
+		return
+	}
+	obj := peek.Data.Object
+	userID := obj.ClientReferenceID
+	if userID == "" {
+		if v, ok := obj.Metadata["tenant_id"].(string); ok {
+			userID = v
+		}
+	}
+	if userID == "" {
+		return
+	}
+	currency := obj.Currency
+	if currency == "" {
+		currency = "usd"
+	}
+	amountCents := int(obj.AmountTotal)
+	if amountCents == 0 {
+		if v, ok := obj.Metadata["amount_usd"].(string); ok {
+			if d, err := strconv.ParseFloat(v, 64); err == nil {
+				amountCents = int(d * 100)
+				if currency == "" {
+					currency = "usd"
+				}
+			}
+		}
+	}
+	email := obj.CustomerDetails.Email
+	name := obj.CustomerDetails.Name
+	if email == "" {
+		u, err := a.d.Auth.GetByID(ctx, userID)
+		if err != nil {
+			a.d.Logger.Warn().Err(err).Str("user_id", userID).Msg("wallet webhook: receipt user lookup failed")
+			return
+		}
+		email = u.Email
+		if name == "" {
+			name = u.Name
+		}
+	}
+	if err := a.d.Notifier.Dispatch(ctx, userID, email, notify.KindReceipt, notify.ReceiptPayload{
+		Name:            name,
+		Currency:        currency,
+		AmountCents:     amountCents,
+		TransactionID:   obj.ID,
+		StripeSessionID: obj.ID,
+	}); err != nil {
+		a.d.Logger.Warn().Err(err).Str("user_id", userID).Msg("wallet webhook: receipt dispatch failed")
+	}
 }
 
 // ------------- helpers ------------------------------------------------

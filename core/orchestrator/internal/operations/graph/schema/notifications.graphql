@@ -1,0 +1,13 @@
+# Notifications — durable in-app bell + per-user channel preferences.
+# Mirrors the notify package's NotificationStore + PrefsStore behind a
+# typed GraphQL surface. Every resolver requires the authenticated user;
+# users only ever see their own rows.
+
+type Notification { id: ID!  kind: String!  title: String!  body: String!  link: String  severity: String!  readAt: DateTime  createdAt: DateTime! }
+type ChannelPref { email: Boolean!  inApp: Boolean! }
+type NotificationPreferences { userId: ID!  pauseAll: Boolean!  onRunComplete: ChannelPref!  onGateFailed: ChannelPref!  onDeployDone: ChannelPref!  onBudgetWarning: ChannelPref!  onReceipt: ChannelPref! }
+input ChannelPrefInput { email: Boolean!  inApp: Boolean! }
+input NotificationPreferencesInput { pauseAll: Boolean  onRunComplete: ChannelPrefInput  onGateFailed: ChannelPrefInput  onDeployDone: ChannelPrefInput  onBudgetWarning: ChannelPrefInput  onReceipt: ChannelPrefInput }
+extend type Query { notifications(unreadOnly: Boolean): [Notification!]!  unreadNotificationCount: Int!  notificationPreferences: NotificationPreferences! }
+extend type Mutation { markNotificationRead(id: ID!): Notification!  markAllNotificationsRead: Int!  updateNotificationPreferences(input: NotificationPreferencesInput!): NotificationPreferences! }
+extend type Subscription { notificationStream: Notification! }

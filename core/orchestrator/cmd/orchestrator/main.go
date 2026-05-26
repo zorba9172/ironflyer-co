@@ -911,13 +911,35 @@ func main() {
 		logger.Info().Msg("patch staging store: in-memory (no Postgres)")
 	}
 
-	// ---------------- Notifications (email only in V22) -------------------
+	// ---------------- Notifications (email + in-app outbox) ---------------
 	prefsStore := notify.NewMemoryPrefsStore()
-	emailSender := notify.SenderFromEnv(cfg.EmailProvider, cfg.EmailAPIKey, cfg.EmailFromAddress, logger)
-	notifyEngine := notify.NewEngine(projects, prefsStore, emailSender, logger).
-		WithDashboardURL(cfg.DashboardURL)
+	emailSender := notify.BuildSenderWithFailover(
+		cfg.EmailProvider, cfg.EmailAPIKey, cfg.EmailFromAddress,
+		strings.TrimSpace(os.Getenv("IRONFLYER_EMAIL_SECONDARY_PROVIDER")),
+		strings.TrimSpace(os.Getenv("IRONFLYER_EMAIL_SECONDARY_API_KEY")),
+		envBoolTrue("IRONFLYER_EMAIL_FAILOVER"),
+		logger,
+	)
+	var notifyStore notify.NotificationStore
+	var notifyOutbox notify.OutboxStore
+	if pgPool != nil {
+		notifyStore = notify.NewPostgresNotificationStore(pgPool)
+		notifyOutbox = notify.NewPostgresOutboxStore(pgPool)
+		logger.Info().Msg("notify: Postgres in-app + outbox stores enabled")
+	} else {
+		notifyStore = notify.NewMemoryNotificationStore()
+		notifyOutbox = notify.NewMemoryOutboxStore()
+		logger.Info().Msg("notify: memory in-app + outbox stores enabled")
+	}
+	notifyHub := notify.NewSubscriptionHub()
+	notifyDispatcher := notify.NewDispatcher(emailSender, prefsStore, cfg.DashboardURL, cfg.EmailFromAddress, logger).
+		WithOutbox(notifyOutbox)
+	notifyEngine := notify.NewEngine(projects, prefsStore, notifyDispatcher, logger)
 	notifyEngine.SubscribeAll(ctx, engine)
-	logger.Info().Str("email_provider", cfg.EmailProvider).Msg("notification pipeline online (email)")
+	notifyWorker := notify.NewWorker(notifyStore, notifyOutbox, emailSender, prefsStore, notifyHub,
+		notify.WorkerOpts{From: cfg.EmailFromAddress, DashboardURL: cfg.DashboardURL}, logger)
+	go notifyWorker.Run(ctx)
+	logger.Info().Str("email_provider", cfg.EmailProvider).Msg("notification pipeline online (email + in-app outbox)")
 
 	// ---------------- Auth commercial backings ----------------------------
 	var (
@@ -1647,7 +1669,7 @@ func main() {
 		logger.Warn().Msg("EAS_TOKEN unset — mobile resolvers will fall back to per-project secrets only")
 	}
 
-	oauthHandler := buildOAuthHandler(cfg, authSvc, sessionStore, logger)
+	oauthHandler := buildOAuthHandler(cfg, authSvc, sessionStore, notifyDispatcher, logger)
 	if oauthHandler != nil {
 		logger.Info().Bool("github", cfg.GitHubClientID != "").
 			Bool("google", cfg.GoogleClientID != "").
@@ -1667,6 +1689,9 @@ func main() {
 		Bus:                       eventBus,
 		NotifyPrefs:               prefsStore,
 		Notify:                    notifyEngine,
+		Notifier:                  notifyDispatcher,
+		NotifyStore:               notifyStore,
+		NotifyHub:                 notifyHub,
 		RuntimeURL:                cfg.RuntimeURL,
 		PublicBaseURL:             cfg.PublicBaseURL,
 		Version:                   buildVersion,
@@ -2416,7 +2441,7 @@ func buildDeviceCloudManager(logger zerolog.Logger, ledgerSvc ledger.Service) *d
 // buildOAuthHandler assembles the social-login Handler from cfg. The
 // state-signing secret + at least one provider client_id must be set
 // or it returns nil and main.go skips route registration entirely.
-func buildOAuthHandler(cfg config.Config, authSvc *auth.Service, sessions auth.SessionStore, logger zerolog.Logger) *oauth.Handler {
+func buildOAuthHandler(cfg config.Config, authSvc *auth.Service, sessions auth.SessionStore, notifier *notify.Dispatcher, logger zerolog.Logger) *oauth.Handler {
 	if authSvc == nil || !cfg.HasOAuthProvider() {
 		return nil
 	}
@@ -2451,6 +2476,7 @@ func buildOAuthHandler(cfg config.Config, authSvc *auth.Service, sessions auth.S
 		StateSecret:         []byte(cfg.OAuthStateSecret),
 		Logger:              logger.With().Str("component", "oauth").Logger(),
 		DefaultPostLoginURL: postLogin,
+		Notifier:            notifier,
 	})
 }
 

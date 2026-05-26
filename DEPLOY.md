@@ -19,6 +19,13 @@ The application is layered on top via the **Helm chart** that the
 Pulumi program installs as a Kubernetes resource — identical chart,
 identical values surface, on both clouds.
 
+**Production security hardening** — before any prod deploy, work through
+[`docs/SECURITY_HARDENING_2026-05-26.md`](docs/SECURITY_HARDENING_2026-05-26.md) §6
+(the env-var checklist). The orchestrator now fails-fast at startup when
+`IRONFLYER_ENV=prod` and any of `IRONFLYER_JWT_SECRET`,
+`IRONFLYER_CORS_ORIGINS`, or `IRONFLYER_METRICS_TOKEN` is missing or
+unsafe.
+
 If you're paging in mid-incident, jump straight to the focused
 runbooks under [`docs/RUNBOOKS/`](docs/RUNBOOKS/):
 

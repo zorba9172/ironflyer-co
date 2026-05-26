@@ -54,7 +54,15 @@ declare -a MAPPING=(
     "PADDLE_PRICE_TEAM:ironflyer:paddlePriceTeam"
     "PADDLE_PRICE_ENTERPRISE:ironflyer:paddlePriceEnterprise"
 
-    # §3 stripe
+    # §3 lemonsqueezy
+    "LEMONSQUEEZY_API_KEY:ironflyer:lemonsqueezyApiKey"
+    "LEMONSQUEEZY_STORE_ID:ironflyer:lemonsqueezyStoreId"
+    "LEMONSQUEEZY_WEBHOOK_SECRET:ironflyer:lemonsqueezyWebhookSecret"
+    "LEMONSQUEEZY_VARIANT_PRO:ironflyer:lemonsqueezyVariantPro"
+    "LEMONSQUEEZY_VARIANT_TEAM:ironflyer:lemonsqueezyVariantTeam"
+    "LEMONSQUEEZY_VARIANT_ENTERPRISE:ironflyer:lemonsqueezyVariantEnterprise"
+
+    # §4 stripe
     "STRIPE_SECRET_KEY:ironflyer:stripeSecretKey"
     "STRIPE_WEBHOOK_SECRET:ironflyer:stripeWebhookSecret"
     "STRIPE_PRICE_PRO:ironflyer:stripePricePro"

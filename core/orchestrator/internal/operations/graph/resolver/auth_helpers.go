@@ -99,11 +99,12 @@ func (r *Resolver) verifyURL(token string) string {
 }
 
 // resetURL builds the externally-visible URL the password-reset email
-// embeds.
+// embeds. Points at the Next.js page actually shipped under
+// clients/web/app/login/reset/page.tsx.
 func (r *Resolver) resetURL(token string) string {
 	base := strings.TrimRight(r.WebBaseURL, "/")
 	if base == "" {
 		base = "http://localhost:3000"
 	}
-	return base + "/auth/reset?token=" + token
+	return base + "/login/reset?token=" + token
 }

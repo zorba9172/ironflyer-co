@@ -145,6 +145,88 @@ func (r *queryResolver) BlueprintDashboard(ctx context.Context) (*model.Blueprin
 	return &model.BlueprintDashboard{Blueprints: out}, nil
 }
 
-// HealthDashboard lives in health.resolver.go — it composes Atlas
-// stats + arch manifest + audit / ledger sentinels into the cockpit
-// HealthMetrics shape.
+// HealthDashboard is the resolver for the healthDashboard field. It
+// composes Capability Atlas Stats, the architecture manifest, and the
+// configured Anti-Bloat report files into a single HealthMetrics
+// payload. The resolver requires an authenticated caller — Code
+// Health is operator-facing today and never carries cross-tenant
+// signal.
+func (r *queryResolver) HealthDashboard(ctx context.Context) (*model.HealthMetrics, error) {
+	if _, err := currentUser(ctx); err != nil {
+		return nil, err
+	}
+
+	out := &model.HealthMetrics{
+		ReuseRate:            -1,
+		DedupRate:            -1,
+		DeadCodeCount:        -1,
+		DependencyCycles:     -1,
+		ComplexityHistogram:  []model.ComplexityBucket{},
+		DuplicationByDir:     []model.DirDup{},
+		BundleByRoute:        []model.RouteBundle{},
+		AtlasCapabilityCount: 0,
+		LocPerCapability:     0,
+		Architecture:         model.Architecture{Layers: []string{}, Rules: []model.ArchRule{}, Cycles: ""},
+	}
+
+	// Atlas snapshot — counts + last-indexed timestamp.
+	if r.AtlasStore != nil {
+		if stats, err := r.AtlasStore.Stats(ctx); err == nil {
+			out.AtlasCapabilityCount = stats.Total
+			if !stats.LastIndexed.IsZero() {
+				t := stats.LastIndexed
+				out.LastIndexedAt = &t
+			}
+		}
+	}
+
+	// Architecture manifest projection — empty layers means the
+	// manifest was missing at boot.
+	if len(r.ArchManifest.Layers) > 0 {
+		layers := make([]string, len(r.ArchManifest.Layers))
+		copy(layers, r.ArchManifest.Layers)
+		out.Architecture.Layers = layers
+	}
+	if len(r.ArchManifest.Rules) > 0 {
+		rules := make([]model.ArchRule, 0, len(r.ArchManifest.Rules))
+		for _, rl := range r.ArchManifest.Rules {
+			rules = append(rules, model.ArchRule{From: rl.From, To: rl.To, Allow: rl.Allow})
+		}
+		out.Architecture.Rules = rules
+	}
+	if r.ArchManifest.Cycles != "" {
+		out.Architecture.Cycles = r.ArchManifest.Cycles
+	}
+
+	// Anti-Bloat report projections — each file is optional. Parse
+	// failures degrade silently to the sentinel shape rather than
+	// surfacing an error to the cockpit.
+	if path := r.HealthReportPaths.Dedup; path != "" {
+		if rate, dirs, ok := readDedupReport(path); ok {
+			out.DedupRate = rate
+			out.DuplicationByDir = dirs
+		}
+	}
+	if path := r.HealthReportPaths.Deadcode; path != "" {
+		if n, ok := readDeadcodeReport(path); ok {
+			out.DeadCodeCount = n
+		}
+	}
+	if path := r.HealthReportPaths.Complexity; path != "" {
+		if hist, ok := readComplexityReport(path); ok {
+			out.ComplexityHistogram = hist
+		}
+	}
+	if path := r.HealthReportPaths.DepCycle; path != "" {
+		if cycles, ok := readDepCycleReport(path); ok {
+			out.DependencyCycles = cycles
+		}
+	}
+	if path := r.HealthReportPaths.Bundle; path != "" {
+		if routes, ok := readBundleReport(path); ok {
+			out.BundleByRoute = routes
+		}
+	}
+
+	return out, nil
+}

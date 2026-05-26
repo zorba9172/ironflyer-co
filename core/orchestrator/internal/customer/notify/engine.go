@@ -11,52 +11,41 @@ import (
 	"ironflyer/core/orchestrator/internal/operations/store"
 )
 
-// Engine listens to finisher events and routes them to the user's email
-// channel based on the user's NotificationRule. The webhook fan-out has
-// been removed in V22 alongside the rest of the legacy webhooks
-// package; email remains the single transactional channel until a V22
-// agent introduces ledger/wallet notifications.
-//
-// The engine owns no state of its own beyond cached subscriptions; the
-// per-project goroutine pool exits when Stop is called or the parent
-// context is cancelled.
+// Engine is a thin adapter from finisher events to the Dispatcher. It
+// owns per-project subscription goroutines so the Dispatcher receives a
+// typed payload for each milestone event (run complete, gate failed,
+// deploy done). All persistence (outbox, in-app, email) flows through
+// the Dispatcher and the Worker.
 type Engine struct {
-	projects     store.Store
-	prefs        PrefsStore
-	sender       EmailSender
-	logger       zerolog.Logger
-	dashboardURL string
+	projects   store.Store
+	dispatcher *Dispatcher
+	prefs      PrefsStore
+	logger     zerolog.Logger
 
 	mu      sync.Mutex
-	cancels map[string]context.CancelFunc // projectID → cancel for its subscription goroutine
+	cancels map[string]context.CancelFunc
 }
 
-// projectDeleteRegistrar is the optional capability the engine looks for on
-// the project store: when the store implements it, the engine registers
-// RemoveProject so per-project subscriptions get torn down the moment a
-// project is deleted. Implemented by store.MemoryStore and store.SurrealStore
-// — kept here as a local interface so notify doesn't have to grow its store
-// import surface and so other store backends can opt in without code churn.
+// projectDeleteRegistrar is the optional capability the engine looks for
+// on the project store: when the store implements it, the engine
+// registers RemoveProject so per-project subscriptions get torn down
+// the moment a project is deleted.
 type projectDeleteRegistrar interface {
 	RegisterDeleteHook(fn func(projectID string))
 }
 
-// NewEngine constructs an engine. Pass a NoopSender when no email provider
-// is configured.
-//
-// If the supplied project store implements RegisterDeleteHook, the engine
-// auto-registers RemoveProject so the per-project cancels map cannot leak
-// past a project deletion. Callers can also drive RemoveProject directly.
-func NewEngine(projects store.Store, prefs PrefsStore, sender EmailSender, logger zerolog.Logger) *Engine {
-	if sender == nil {
-		sender = NewNoopSender(logger)
-	}
+// NewEngine constructs an engine. dispatcher may be nil — the engine
+// degrades to a logging no-op and warns at boot.
+func NewEngine(projects store.Store, prefs PrefsStore, dispatcher *Dispatcher, logger zerolog.Logger) *Engine {
 	e := &Engine{
-		projects: projects,
-		prefs:    prefs,
-		sender:   sender,
-		logger:   logger,
-		cancels:  make(map[string]context.CancelFunc),
+		projects:   projects,
+		prefs:      prefs,
+		dispatcher: dispatcher,
+		logger:     logger,
+		cancels:    make(map[string]context.CancelFunc),
+	}
+	if dispatcher == nil {
+		logger.Warn().Msg("notify: engine constructed without dispatcher — finisher events will no-op")
 	}
 	if reg, ok := projects.(projectDeleteRegistrar); ok {
 		reg.RegisterDeleteHook(e.RemoveProject)
@@ -64,10 +53,7 @@ func NewEngine(projects store.Store, prefs PrefsStore, sender EmailSender, logge
 	return e
 }
 
-// RemoveProject tears down the per-project subscription goroutine and clears
-// the map entry so the cancels map cannot grow without bound across the
-// lifetime of the process. Safe to call for unknown project IDs (no-op) and
-// safe to call concurrently with SubscribeProject — both serialize on e.mu.
+// RemoveProject tears down the per-project subscription goroutine.
 func (e *Engine) RemoveProject(projectID string) {
 	e.mu.Lock()
 	cancel, ok := e.cancels[projectID]
@@ -80,36 +66,21 @@ func (e *Engine) RemoveProject(projectID string) {
 	}
 }
 
-// dropCancel deletes the cancels entry once a subscription goroutine exits
-// for any reason (orchestrator closed the channel, ctx cancelled, etc.). It
-// is deliberately tolerant of the entry already being gone — RemoveProject
-// may have removed it just before the goroutine noticed.
 func (e *Engine) dropCancel(projectID string) {
 	e.mu.Lock()
 	delete(e.cancels, projectID)
 	e.mu.Unlock()
 }
 
-// WithDashboardURL configures the absolute URL used by email CTAs. Returns
-// the engine for chained configuration during startup.
-func (e *Engine) WithDashboardURL(url string) *Engine {
-	e.dashboardURL = url
-	return e
-}
-
-// SubscribeAll wires the engine to every currently-known project. Call this
-// from main.go after constructing the orchestrator engine. New projects
-// created later will be picked up by SubscribeProject when the relevant
-// HTTP handler invokes it (left to the wire layer to call).
+// SubscribeAll wires the engine to every currently-known project.
 func (e *Engine) SubscribeAll(ctx context.Context, orchestrator *finisher.Engine) {
 	for _, p := range e.projects.List() {
 		e.SubscribeProject(ctx, orchestrator, p.ID)
 	}
 }
 
-// SubscribeProject attaches a goroutine that drains finisher events for one
-// project and translates them into emails. Calling more than once for the
-// same project is a no-op.
+// SubscribeProject attaches a goroutine that drains finisher events for
+// one project. Calling more than once for the same project is a no-op.
 func (e *Engine) SubscribeProject(ctx context.Context, orchestrator *finisher.Engine, projectID string) {
 	e.mu.Lock()
 	if _, ok := e.cancels[projectID]; ok {
@@ -138,8 +109,7 @@ func (e *Engine) SubscribeProject(ctx context.Context, orchestrator *finisher.En
 	}()
 }
 
-// Stop cancels every active project subscription and waits for the goroutines
-// to drain. Safe to call multiple times.
+// Stop cancels every active project subscription.
 func (e *Engine) Stop() {
 	e.mu.Lock()
 	defer e.mu.Unlock()
@@ -149,100 +119,67 @@ func (e *Engine) Stop() {
 	e.cancels = make(map[string]context.CancelFunc)
 }
 
-// handle dispatches a single event. It loads the project (to recover the
-// owner ID + name) and the owner's preferences, then routes per channel.
+// handle classifies the event and dispatches the matching Kind.
 func (e *Engine) handle(ctx context.Context, projectID string, evt domain.Event) {
+	if e.dispatcher == nil {
+		return
+	}
 	proj, err := e.projects.Get(projectID)
-	if err != nil {
+	if err != nil || proj.OwnerID == "" {
 		return
 	}
-	ownerID := proj.OwnerID
-	if ownerID == "" {
-		// Public seed project — nobody to notify.
-		return
-	}
-	rule, err := e.prefs.Get(ctx, ownerID)
-	if err != nil {
-		e.logger.Debug().Err(err).Str("user", ownerID).Msg("notify: prefs lookup failed")
-		return
-	}
+	ownerEmail := e.lookupEmail(ctx, proj.OwnerID)
 
-	topic, content, ok := e.classify(evt, proj.Name, proj.ID)
-	if !ok {
-		return
-	}
-
-	if !topicEnabled(rule, topic) {
-		return
-	}
-
-	if rule.ChannelEmail && rule.Email != "" {
-		if err := e.sender.Send(ctx, rule.Email, content.Subject, content.HTMLBody, content.TextBody); err != nil {
-			e.logger.Warn().Err(err).Str("to", rule.Email).Str("topic", string(topic)).Msg("notify: email send failed")
-		}
-	}
-}
-
-// topic is the closed set of notification categories the rule engine knows
-// how to filter on.
-type topic string
-
-const (
-	topicRunComplete   topic = "run_complete"
-	topicGateFailed    topic = "gate_failed"
-	topicDeployDone    topic = "deploy_done"
-	topicBudgetWarning topic = "budget_warning"
-)
-
-// classify inspects an event and returns its topic + rendered content. The
-// boolean is false when the event doesn't map to a milestone we email about.
-func (e *Engine) classify(evt domain.Event, projectName, projectID string) (topic, EmailContent, bool) {
 	switch evt.Step {
 	case finisher.StepRun:
 		if evt.Status == finisher.StatusDone {
-			return topicRunComplete, renderRunComplete(projectName, projectID, e.dashboardURL), true
+			_ = e.dispatcher.Dispatch(ctx, proj.OwnerID, ownerEmail, KindRunComplete, RunCompletePayload{
+				ProjectName: proj.Name,
+				ProjectID:   proj.ID,
+			})
 		}
 	case finisher.StepGate:
 		if evt.Status == finisher.StatusFailed {
-			gate := string(evt.Gate)
-			if gate == string(domain.GateDeploy) {
-				return topicGateFailed, renderGateFailed(projectName, projectID, gate, evt.Message, e.dashboardURL), true
-			}
-			return topicGateFailed, renderGateFailed(projectName, projectID, gate, evt.Message, e.dashboardURL), true
+			_ = e.dispatcher.Dispatch(ctx, proj.OwnerID, ownerEmail, KindGateFailed, GateFailedPayload{
+				ProjectName: proj.Name,
+				ProjectID:   proj.ID,
+				GateName:    string(evt.Gate),
+				Reason:      evt.Message,
+			})
+			return
 		}
 		if evt.Status == finisher.StatusDone && evt.Gate == domain.GateDeploy {
-			return topicDeployDone, renderDeployDone(projectName, projectID, e.dashboardURL), true
+			_ = e.dispatcher.Dispatch(ctx, proj.OwnerID, ownerEmail, KindDeployDone, DeployDonePayload{
+				ProjectName: proj.Name,
+				ProjectID:   proj.ID,
+			})
 		}
 	}
-	return "", EmailContent{}, false
 }
 
-// topicEnabled honours the per-topic toggles on the rule. Channel toggles
-// are checked separately by the caller.
-func topicEnabled(rule NotificationRule, t topic) bool {
-	switch t {
-	case topicRunComplete:
-		return rule.OnRunComplete
-	case topicGateFailed:
-		return rule.OnGateFailed
-	case topicDeployDone:
-		return rule.OnDeployDone
-	case topicBudgetWarning:
-		return rule.OnBudgetWarning
+// lookupEmail returns the user's preferred contact email from the
+// PrefsStore. Empty string when not wired or not on file.
+func (e *Engine) lookupEmail(ctx context.Context, userID string) string {
+	if e.prefs == nil {
+		return ""
 	}
-	return false
+	rule, err := e.prefs.Get(ctx, userID)
+	if err != nil {
+		return ""
+	}
+	return rule.Email
 }
 
-// EmitBudgetWarning is the entry point billing code calls when a user is
-// nearing their cap. It sidesteps the SSE path because budget warnings
-// aren't project-scoped events.
-func (e *Engine) EmitBudgetWarning(ctx context.Context, userID, projectName string) {
-	rule, err := e.prefs.Get(ctx, userID)
-	if err != nil || !rule.OnBudgetWarning || !rule.ChannelEmail || rule.Email == "" {
+// EmitBudgetWarning is the entry point billing code calls when a user
+// is nearing their cap. Routes through the Dispatcher so the rule
+// engine + outbox stay consistent.
+func (e *Engine) EmitBudgetWarning(ctx context.Context, userID, projectID, projectName string) {
+	if e.dispatcher == nil {
 		return
 	}
-	c := renderBudgetWarning(projectName, e.dashboardURL)
-	if err := e.sender.Send(ctx, rule.Email, c.Subject, c.HTMLBody, c.TextBody); err != nil {
-		e.logger.Warn().Err(err).Str("user", userID).Msg("notify: budget warning email failed")
-	}
+	email := e.lookupEmail(ctx, userID)
+	_ = e.dispatcher.Dispatch(ctx, userID, email, KindBudgetWarning, BudgetWarningPayload{
+		ProjectName: projectName,
+		ProjectID:   projectID,
+	})
 }
