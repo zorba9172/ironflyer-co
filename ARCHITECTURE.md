@@ -198,6 +198,20 @@ executions can reuse a known-good patch instead of regenerating it.
 - **pgvector** — optional development/compatibility fallback for simple
   semantic search; not the canonical V22 memory graph.
 
+## Learning Plane
+
+Every execution emits typed `OutcomeEvent`s (execution_complete,
+gate_outcome, patch_applied, repair_triggered, provider_chosen,
+blueprint_used, profitguard_decision, completion_score) through the
+Postgres outbox → Redpanda → ClickHouse `fact_outcome_events` path.
+A hourly Pattern Miner (`internal/ai/learning`) projects per-tenant
+provider / blueprint / gate statistics; the Strategy Adapter
+rewrites bandit priors, blueprint priors, and ProfitGuard floors so
+the next execution starts smarter. Closure Intelligence (Scope ×
+Quality × Integration × Margin) is the single operator-readable
+score. Full contract:
+[`docs/FEEDBACK_BRAIN.md`](docs/FEEDBACK_BRAIN.md).
+
 ## Observability
 
 - OpenTelemetry traces across all Go services.

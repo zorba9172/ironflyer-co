@@ -45,6 +45,7 @@ import (
 	"ironflyer/core/orchestrator/internal/operations/diagnostics"
 	"ironflyer/core/orchestrator/internal/business/execution"
 	"ironflyer/core/orchestrator/internal/ai/finisher"
+	"ironflyer/core/orchestrator/internal/ai/learning"
 	"ironflyer/core/orchestrator/internal/business/forecast"
 	"ironflyer/core/orchestrator/internal/operations/gqlhardening"
 	graphpkg "ironflyer/core/orchestrator/internal/operations/graph"
@@ -245,6 +246,14 @@ type Deps struct {
 	AtlasStore        atlas.Store
 	ArchManifest      arch.Manifest
 	HealthReportPaths resolver.HealthReportPaths
+
+	// Feedback Brain — learning store + publisher. Both nil-safe at
+	// the resolver layer: when LearningStore is nil the
+	// learningDashboard query returns an empty snapshot; when
+	// LearningPublisher is nil the global publisher fallback (set via
+	// learning.SetGlobal at boot) is used.
+	LearningStore     learning.Store
+	LearningPublisher *learning.Publisher
 }
 
 // API is the HTTP layer entry point. It assembles the chi router from
@@ -472,6 +481,10 @@ func (a *API) newResolver() *resolver.Resolver {
 		AtlasStore:        a.d.AtlasStore,
 		ArchManifest:      a.d.ArchManifest,
 		HealthReportPaths: a.d.HealthReportPaths,
+
+		// Feedback Brain — learning store + publisher.
+		LearningStore:     a.d.LearningStore,
+		LearningPublisher: a.d.LearningPublisher,
 	}
 }
 

@@ -19,7 +19,7 @@ import { Box } from "@mui/material";
 import { useEffect, useRef } from "react";
 
 import * as echarts from "echarts/core";
-import { BarChart, LineChart } from "echarts/charts";
+import { BarChart, LineChart, ScatterChart } from "echarts/charts";
 import {
   GridComponent,
   TooltipComponent,
@@ -38,6 +38,7 @@ function ensureRegistered() {
   echarts.use([
     BarChart,
     LineChart,
+    ScatterChart,
     GridComponent,
     TooltipComponent,
     LegendComponent,

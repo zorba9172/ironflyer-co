@@ -36,6 +36,7 @@ import (
 	"ironflyer/core/orchestrator/internal/ai/completion"
 	"ironflyer/core/orchestrator/internal/ai/embeddings"
 	"ironflyer/core/orchestrator/internal/ai/finisher"
+	"ironflyer/core/orchestrator/internal/ai/learning"
 	"ironflyer/core/orchestrator/internal/ai/memory"
 	"ironflyer/core/orchestrator/internal/ai/refactor"
 	"ironflyer/core/orchestrator/internal/business/blueprints"
@@ -1108,6 +1109,34 @@ func main() {
 		logger.Info().Msg("V22 execution: in-memory backend")
 	}
 
+	// Low-balance watcher: wrap the wallet so every Debit that crosses
+	// the configured threshold fires KindLowBalance. Per-user same-day
+	// idempotency on the dispatched payload prevents spam.
+	walletSvc = notify.NewLowBalanceWalletService(
+		walletSvc,
+		notifyDispatcher,
+		func(ctx context.Context, tenant string) (string, string) {
+			if userStore == nil {
+				return tenant, ""
+			}
+			u, err := userStore.GetByID(ctx, tenant)
+			if err != nil {
+				return tenant, ""
+			}
+			return u.ID, u.Email
+		},
+		cfg.WalletLowBalanceThresholdCents,
+		"USD",
+		logger,
+	)
+	logger.Info().Int("threshold_cents", cfg.WalletLowBalanceThresholdCents).Msg("V22 wallet: low-balance watcher armed")
+
+	// Weekly digest runner: ships KindWeeklyDigest at Sunday 09:00 UTC
+	// for every user with WeeklyDigest=true.
+	digestRunner := notify.NewDigestRunner(prefsStore, execSvc, ledgerSvc, notifyDispatcher, logger)
+	go digestRunner.Run(ctx)
+	logger.Info().Msg("notify: weekly digest runner scheduled (Sunday 09:00 UTC, opt-in)")
+
 	// ProfitGuard policy + audit store.
 	var guardStore profitguard.DecisionStore
 	if pgPool != nil {
@@ -1433,6 +1462,42 @@ func main() {
 			return err
 		})
 	}
+
+	// ---------------- V22 Wave-3: Feedback Brain --------------------------
+	// Learning publisher + store + miner. The publisher writes
+	// OutcomeEvents to the same Postgres outbox the rest of V22 uses;
+	// the store reads them back from ClickHouse (when wired) and from
+	// an in-process projection (always). The miner runs every hour and
+	// converts recent outcomes into PatternObservations that the
+	// strategy adapter feeds back into the bandit + blueprint weights.
+	learningLog := logger.With().Str("component", "learning").Logger()
+	var learnPubOutbox events.Outbox
+	if eventOutbox != nil {
+		learnPubOutbox = eventOutbox
+	}
+	learningPublisher := learning.NewPublisher(learnPubOutbox, learningLog)
+	learning.SetGlobal(learningPublisher)
+	var learningStore learning.Store
+	if chRes.Client != nil {
+		learningStore = learning.NewClickHouseStore(chRes.Client, learningLog)
+		learningLog.Info().Msg("learning store: ClickHouse backend wired")
+	} else {
+		memStore := learning.NewMemoryStore()
+		learningPublisher.SetObserver(memStore.Observe)
+		learningStore = memStore
+		learningLog.Info().Msg("learning store: memory backend wired (ClickHouse not configured)")
+	}
+	learningMiner := learning.NewMiner(learningStore, learningPublisher, time.Hour, learningLog)
+	superviseDaemon(ctx, logger, "learning-miner", func(runCtx context.Context) error {
+		runCtx, span := tracing.StartSpan(runCtx, "learning.miner.daemon")
+		defer span.End()
+		err := learningMiner.Run(runCtx)
+		if err != nil && !errors.Is(err, context.Canceled) {
+			span.RecordError(err)
+		}
+		return err
+	})
+	learningLog.Info().Msg("Feedback Brain online (publisher + store + miner)")
 
 	// ---------------- V22 Wave-2: deploy plane -----------------------------
 	bridgeDeps := profitguardbridge.BridgeDeps{Registry: blueprintsReg, Genome: repairGenome}
@@ -1760,6 +1825,10 @@ func main() {
 		// even when no provider credentials exist at boot; providers
 		// register lazily on first request through the resolver.
 		DeviceCloud: buildDeviceCloudManager(logger, ledgerSvc),
+
+		// Feedback Brain — learning surface for dashboards + miner.
+		LearningStore:     learningStore,
+		LearningPublisher: learningPublisher,
 	})
 
 	server := &http.Server{

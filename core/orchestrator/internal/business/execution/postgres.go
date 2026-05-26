@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/shopspring/decimal"
 
+	"ironflyer/core/orchestrator/internal/ai/learning"
 	"ironflyer/core/orchestrator/internal/operations/logctx"
 	"ironflyer/core/orchestrator/internal/operations/metrics"
 )
@@ -370,6 +371,7 @@ func (p *Postgres) Succeed(ctx context.Context, id string) error {
 	}
 	metrics.ObserveExecutionCompleted("success")
 	p.recordAndEmit(ctx, id, EventSucceeded, nil)
+	p.publishTerminal(ctx, id, "succeeded", true, "")
 	return nil
 }
 
@@ -382,6 +384,7 @@ func (p *Postgres) Fail(ctx context.Context, id, reason string) error {
 	}
 	metrics.ObserveExecutionCompleted(classifyTerminalOutcome("failure", reason))
 	p.recordAndEmit(ctx, id, EventFailed, mustJSON(map[string]string{"reason": reason}))
+	p.publishTerminal(ctx, id, "failed", false, reason)
 	return nil
 }
 
@@ -394,6 +397,7 @@ func (p *Postgres) Stop(ctx context.Context, id, reason string) error {
 	}
 	metrics.ObserveExecutionCompleted(classifyTerminalOutcome("failure", reason))
 	p.recordAndEmit(ctx, id, EventStopped, mustJSON(map[string]string{"reason": reason}))
+	p.publishTerminal(ctx, id, "stopped", false, reason)
 	return nil
 }
 
@@ -406,7 +410,45 @@ func (p *Postgres) Kill(ctx context.Context, id, reason string) error {
 	}
 	metrics.ObserveExecutionCompleted(classifyTerminalOutcome("killed", reason))
 	p.recordAndEmit(ctx, id, EventKilled, mustJSON(map[string]string{"reason": reason}))
+	p.publishTerminal(ctx, id, "killed", false, reason)
 	return nil
+}
+
+// publishTerminal mirrors the Memory.publishTerminal helper — emits a
+// KindExecutionComplete OutcomeEvent so the Feedback Brain miner can
+// learn from terminal transitions. Best-effort; never blocks.
+func (p *Postgres) publishTerminal(ctx context.Context, id, finalStatus string, success bool, reason string) {
+	row, err := p.Get(ctx, id)
+	if err != nil {
+		return
+	}
+	cost := learning.DecimalPtr(row.SpentUSD)
+	margin := row.RevenueUSD.Sub(row.SpentUSD)
+	marginPtr := learning.DecimalPtr(margin)
+	var marginPct float64
+	rev, _ := row.RevenueUSD.Float64()
+	spent, _ := row.SpentUSD.Float64()
+	if rev > 0 {
+		marginPct = (rev - spent) / rev * 100
+	}
+	learning.Publish(ctx, learning.OutcomeEvent{
+		ExecutionID: id,
+		TenantID:    row.TenantID,
+		Kind:        learning.KindExecutionComplete,
+		Attributes: map[string]any{
+			"final_status":     finalStatus,
+			"blueprint_id":     row.BlueprintID,
+			"completion_score": row.CompletionScore,
+			"reason":           reason,
+			"margin_pct":       marginPct,
+		},
+		Success:   learning.BoolPtr(success),
+		CostUSD:   cost,
+		MarginUSD: marginPtr,
+		Tags: map[string]string{
+			"blueprint_id": row.BlueprintID,
+		},
+	})
 }
 
 func (p *Postgres) Refund(ctx context.Context, id string, amount decimal.Decimal) error {
@@ -585,6 +627,20 @@ func (p *Postgres) SetCompletionScore(ctx context.Context, id string, score floa
 		"current":  score,
 		"delta":    score - prev,
 	}))
+	// Feedback Brain: surface the new completion score so the miner and
+	// closure-score calculator can read it without scanning Postgres.
+	if row, getErr := p.Get(ctx, id); getErr == nil {
+		learning.Publish(ctx, learning.OutcomeEvent{
+			ExecutionID: id,
+			TenantID:    row.TenantID,
+			Kind:        learning.KindCompletionScore,
+			Attributes: map[string]any{
+				"score":    score,
+				"previous": prev,
+				"delta":    score - prev,
+			},
+		})
+	}
 	return nil
 }
 

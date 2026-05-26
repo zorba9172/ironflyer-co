@@ -110,6 +110,7 @@ func (r *mutationResolver) SignIn(ctx context.Context, input model.SignInInput) 
 		}
 		return nil, err
 	}
+	r.maybeDispatchNewDeviceLogin(ctx, u)
 	return r.issueAndPersistSession(ctx, u)
 }
 

@@ -120,6 +120,7 @@ func (s *PostgresStatsService) RecordRun(ctx context.Context, o RunOutcome) erro
 	if err := tx.Commit(ctx); err != nil {
 		return fmt.Errorf("blueprints: commit: %w", err)
 	}
+	publishBlueprintOutcome(ctx, o)
 	return nil
 }
 

@@ -13,6 +13,11 @@ import "@fontsource/geist-mono/700.css";
 import type { Metadata, Viewport } from "next";
 import { tokens } from "../../../packages/design-tokens";
 import type { ReactNode } from "react";
+import { ContentsquareScript } from "../src/components/analytics/Contentsquare";
+import {
+  GoogleTagManagerNoscript,
+  GoogleTagManagerScript,
+} from "../src/components/analytics/GoogleTagManager";
 import { CockpitFrame } from "../src/components/cockpit";
 import { Providers } from "./providers";
 
@@ -39,9 +44,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
+        <GoogleTagManagerNoscript />
         <Providers>
           <CockpitFrame>{children}</CockpitFrame>
         </Providers>
+        <GoogleTagManagerScript />
+        <ContentsquareScript />
       </body>
     </html>
   );

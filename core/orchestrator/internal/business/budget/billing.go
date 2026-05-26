@@ -6,6 +6,7 @@ import (
 
 	"github.com/shopspring/decimal"
 
+	"ironflyer/core/orchestrator/internal/ai/learning"
 	"ironflyer/core/orchestrator/internal/operations/metrics"
 )
 
@@ -205,6 +206,24 @@ func (b *Billing) Charge(ctx context.Context, userID, projectID, provider, model
 		costF, _ := cost.Float64()
 		metrics.ObserveProviderCost(provider, costF)
 		metrics.ObserveCharge(provider, model, costF)
+		// Feedback Brain: surface the provider choice + cost so the
+		// miner can compute realised margin per provider and feed the
+		// bandit a Bayesian prior.
+		learning.Publish(ctx, learning.OutcomeEvent{
+			Kind: learning.KindProviderChosen,
+			Attributes: map[string]any{
+				"provider":     provider,
+				"model":        model,
+				"input_tokens": inTok,
+				"output_tokens": outTok,
+			},
+			CostUSD: learning.DecimalPtr(cost),
+			Success: learning.BoolPtr(true),
+			Tags: map[string]string{
+				"provider": provider,
+				"model":    model,
+			},
+		})
 	}
 	// Forward the cost to the metered reporter so users on paid plans pay
 	// per-call for spend above their CostCapUSD. Skip when:

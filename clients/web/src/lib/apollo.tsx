@@ -231,6 +231,53 @@ function buildCache(): InMemoryCache {
       LedgerEntry: { keyFields: ["id"] },
       GateVerdict: { keyFields: ["executionID", "name"] },
       ProjectFile: { keyFields: ["path"] },
+      // Notification is normalized by id so a single mutation update
+      // (e.g. markNotificationRead) flows through to every list that
+      // currently holds the entity — bell + future inbox surfaces.
+      Notification: { keyFields: ["id"] },
+      Query: {
+        fields: {
+          // Notifications list merge — incoming items are deduped by
+          // id against existing references, new items prepend, and
+          // the union is sorted descending by createdAt so the bell
+          // and any future paginated inbox surface a stable visual
+          // order regardless of whether the data arrived from the
+          // initial query, a refetch, or a subscription push.
+          //
+          // We compare by __ref because once `Notification` has its
+          // own keyFields the cache stores list members as references
+          // ({ __ref: "Notification:<id>" }) rather than inlined
+          // objects. Apollo invokes `read` after `merge`, and any
+          // resolver consuming the field receives the deduped,
+          // sorted list with full normalized fields read-through.
+          notifications: {
+            keyArgs: ["unreadOnly"],
+            merge(
+              existing: ReadonlyArray<{ __ref?: string }> = [],
+              incoming: ReadonlyArray<{ __ref?: string }> = [],
+              { readField },
+            ) {
+              const byRef = new Map<string, { __ref?: string }>();
+              for (const ref of incoming) {
+                const key = ref.__ref ?? JSON.stringify(ref);
+                byRef.set(key, ref);
+              }
+              for (const ref of existing) {
+                const key = ref.__ref ?? JSON.stringify(ref);
+                if (!byRef.has(key)) byRef.set(key, ref);
+              }
+              const merged = Array.from(byRef.values());
+              merged.sort((a, b) => {
+                const aT = (readField("createdAt", a) as string | undefined) ?? "";
+                const bT = (readField("createdAt", b) as string | undefined) ?? "";
+                if (aT === bT) return 0;
+                return aT < bT ? 1 : -1;
+              });
+              return merged;
+            },
+          },
+        },
+      },
     },
   });
 }

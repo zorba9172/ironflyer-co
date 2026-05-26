@@ -124,3 +124,47 @@ type ArchRule {
   to: String!
   allow: Boolean!
 }
+
+# LearningDashboard surfaces the Feedback Brain's high-level signals:
+# how many outcomes flowed today / all-time, how confident the bandit
+# is, which gates are failing, which blueprints succeed, and what
+# weaknesses the pattern miner surfaced. Resolver-tolerant: when
+# ClickHouse / mining have not landed any rows the resolver returns
+# zero counts + empty arrays so the dashboard renders empty states.
+type LearningDashboard {
+  outcomeEventsToday: Int!
+  outcomeEventsAllTime: Int!
+  reuseRateLast7d: Float!
+  repairRecipeHitsLast7d: Int!
+  banditConfidence: Float!
+  averageCompletionScore: Float!
+  averageMarginPctLast7d: Float!
+  gateFailureRates: [GateFailureRate!]!
+  blueprintSuccessRates: [BlueprintSuccessRate!]!
+  weaknesses: [Weakness!]!
+  lastIndexedAt: DateTime
+}
+
+type GateFailureRate {
+  gate: String!
+  failureRate: Float!
+  sampleSize: Int!
+}
+
+type BlueprintSuccessRate {
+  blueprintID: String!
+  blueprintName: String!
+  successRate: Float!
+  avgMargin: Float!
+}
+
+type Weakness {
+  dimension: String!
+  description: String!
+  severity: String!
+  suggestedAction: String!
+}
+
+extend type Query {
+  learningDashboard: LearningDashboard!
+}

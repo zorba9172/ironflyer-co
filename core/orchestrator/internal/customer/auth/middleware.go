@@ -43,6 +43,41 @@ func JTIFromContext(ctx context.Context) string {
 	return ""
 }
 
+// requestInfoCtxKeyType is the per-request key for the (IP, UA) pair
+// every authenticated path can read. SignIn / oauth-callback / MFA
+// enrollment use it to dispatch the NewDeviceLogin notification on the
+// matching trigger without having to thread the raw *http.Request all
+// the way down to the resolver.
+type requestInfoCtxKeyType struct{}
+
+var requestInfoCtxKey = requestInfoCtxKeyType{}
+
+// RequestInfo carries the per-request IP + UserAgent. Empty fields are
+// legal — callers must accept partial values (X-Forwarded-For is the
+// industry-standard proxy header but local dev may not set it).
+type RequestInfo struct {
+	IPAddress string
+	UserAgent string
+}
+
+// WithRequestInfo attaches a RequestInfo to the context. Empty pairs
+// are ignored so call sites do not need to branch.
+func WithRequestInfo(ctx context.Context, info RequestInfo) context.Context {
+	if info.IPAddress == "" && info.UserAgent == "" {
+		return ctx
+	}
+	return context.WithValue(ctx, requestInfoCtxKey, info)
+}
+
+// RequestInfoFromContext returns the stamped (IP, UA) pair, or the zero
+// value when nothing was attached.
+func RequestInfoFromContext(ctx context.Context) RequestInfo {
+	if v, ok := ctx.Value(requestInfoCtxKey).(RequestInfo); ok {
+		return v
+	}
+	return RequestInfo{}
+}
+
 // bearerCtxKeyType is the per-request key for the raw bearer token.
 // Long-lived background work (e.g. the finisher Engine.Run goroutine
 // kicked from describeIdea) needs to re-present the user's JWT to the
@@ -90,6 +125,7 @@ func Middleware(svc *Service) func(http.Handler) http.Handler {
 			ctx := WithUser(r.Context(), u)
 			ctx = WithJTI(ctx, jti)
 			ctx = WithBearer(ctx, tok)
+			ctx = WithRequestInfo(ctx, RequestInfo{IPAddress: extractClientIP(r), UserAgent: r.UserAgent()})
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
@@ -101,11 +137,19 @@ func Middleware(svc *Service) func(http.Handler) http.Handler {
 func Optional(svc *Service) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Stamp RequestInfo unconditionally so anonymous resolvers
+			// (signIn, signUp, oauth-callback) can still read the
+			// caller's (IP, UA) pair for new-device detection.
+			r = r.WithContext(WithRequestInfo(r.Context(), RequestInfo{
+				IPAddress: extractClientIP(r),
+				UserAgent: r.UserAgent(),
+			}))
 			if tok := extractToken(r); tok != "" {
 				if u, jti, err := svc.VerifyWithJTI(r.Context(), tok); err == nil {
 					ctx := WithUser(r.Context(), u)
 					ctx = WithJTI(ctx, jti)
 					ctx = WithBearer(ctx, tok)
+					ctx = WithRequestInfo(ctx, RequestInfo{IPAddress: extractClientIP(r), UserAgent: r.UserAgent()})
 					r = r.WithContext(ctx)
 				} else if r.URL.Path == "/graphql" || r.URL.Path == "/graphql/" {
 					// Surface verification errors on the /graphql plane
@@ -123,6 +167,41 @@ func Optional(svc *Service) func(http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 		})
 	}
+}
+
+// RequestInfoMiddleware stamps every incoming request with a
+// RequestInfo carrying the client IP and User-Agent. Mounted ahead of
+// the auth middleware so /graphql handlers (signIn / signUp / oauth
+// callback) can read the pair even before authentication runs.
+func RequestInfoMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := WithRequestInfo(r.Context(), RequestInfo{
+			IPAddress: extractClientIP(r),
+			UserAgent: r.UserAgent(),
+		})
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+// extractClientIP walks the standard proxy headers, falling back to
+// the raw RemoteAddr. Matches the behaviour of the oauth handler's
+// clientIP — kept here so every auth-aware path resolves the IP the
+// same way.
+func extractClientIP(r *http.Request) string {
+	if v := r.Header.Get("X-Forwarded-For"); v != "" {
+		if i := strings.IndexByte(v, ','); i > 0 {
+			return strings.TrimSpace(v[:i])
+		}
+		return strings.TrimSpace(v)
+	}
+	if v := r.Header.Get("X-Real-Ip"); v != "" {
+		return v
+	}
+	host := r.RemoteAddr
+	if i := strings.LastIndexByte(host, ':'); i > 0 {
+		host = host[:i]
+	}
+	return host
 }
 
 func extractToken(r *http.Request) string {

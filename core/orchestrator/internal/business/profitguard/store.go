@@ -13,6 +13,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/shopspring/decimal"
 
+	"ironflyer/core/orchestrator/internal/ai/learning"
 	"ironflyer/core/orchestrator/internal/business/outboxhooks"
 )
 
@@ -226,6 +227,20 @@ func (s *PostgresStore) Record(ctx context.Context, d RecordedDecision) error {
 	)
 	if err := outboxhooks.WriteEventInTx(ctx, tx, evt); err != nil {
 		return fmt.Errorf("profitguard: enqueue event: %w", err)
+	}
+	// Feedback Brain: emit alongside the audit row inside the same tx.
+	learnEvt := learning.OutcomeEvent{
+		ExecutionID: d.ExecutionID,
+		Kind:        learning.KindProfitGuardDecision,
+		Attributes: map[string]any{
+			"enforcement_point": string(d.EnforcementPoint),
+			"decision":          string(d.Decision),
+			"reason":            d.Reason,
+		},
+		Success: learning.BoolPtr(string(d.Decision) == "allow"),
+	}
+	if err := learning.PublishInTx(ctx, tx, learnEvt); err != nil {
+		return fmt.Errorf("profitguard: enqueue learning event: %w", err)
 	}
 	if err := tx.Commit(ctx); err != nil {
 		return fmt.Errorf("profitguard: commit: %w", err)

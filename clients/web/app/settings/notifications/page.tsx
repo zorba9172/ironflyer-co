@@ -93,6 +93,7 @@ const TOPICS: TopicDef[] = [
 
 type DraftPrefs = {
   pauseAll: boolean;
+  weeklyDigest: boolean;
   onRunComplete: { email: boolean; inApp: boolean };
   onGateFailed: { email: boolean; inApp: boolean };
   onDeployDone: { email: boolean; inApp: boolean };
@@ -103,6 +104,10 @@ type DraftPrefs = {
 function fromServer(p: NotificationPreferences): DraftPrefs {
   return {
     pauseAll: p.pauseAll,
+    // Opt-in default. The orchestrator may not yet return the field
+    // (rolling deploy) — coerce to a boolean so the switch never
+    // renders against `undefined`.
+    weeklyDigest: Boolean(p.weeklyDigest),
     onRunComplete: { email: p.onRunComplete.email, inApp: p.onRunComplete.inApp },
     onGateFailed: { email: p.onGateFailed.email, inApp: p.onGateFailed.inApp },
     onDeployDone: { email: p.onDeployDone.email, inApp: p.onDeployDone.inApp },
@@ -117,8 +122,9 @@ function fromServer(p: NotificationPreferences): DraftPrefs {
 function equalDraft(a: DraftPrefs, b: DraftPrefs): boolean {
   return (
     a.pauseAll === b.pauseAll &&
+    a.weeklyDigest === b.weeklyDigest &&
     (Object.keys(a) as Array<keyof DraftPrefs>).every((k) => {
-      if (k === "pauseAll") return true;
+      if (k === "pauseAll" || k === "weeklyDigest") return true;
       const av = a[k] as { email: boolean; inApp: boolean };
       const bv = b[k] as { email: boolean; inApp: boolean };
       return av.email === bv.email && av.inApp === bv.inApp;
@@ -166,6 +172,7 @@ function NotificationsSettingsView() {
     if (!draft || !seed) return;
     const input: NotificationPreferencesInput = {
       pauseAll: draft.pauseAll,
+      weeklyDigest: draft.weeklyDigest,
       onRunComplete: draft.onRunComplete,
       onGateFailed: draft.onGateFailed,
       onDeployDone: draft.onDeployDone,
@@ -261,6 +268,58 @@ function NotificationsSettingsView() {
                 checked={draft.pauseAll}
                 onChange={(_, next) => setDraft({ ...draft, pauseAll: next })}
                 color="primary"
+              />
+            </Stack>
+          </Card>
+
+          <Card sx={{ p: { xs: 2.5, md: 3 } }}>
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={2}
+              alignItems={{ sm: "center" }}
+              justifyContent="space-between"
+            >
+              <Box sx={{ minWidth: 0, flex: 1 }}>
+                <Typography
+                  sx={{
+                    fontSize: 16,
+                    fontWeight: 800,
+                    color: tokens.color.text.primary,
+                  }}
+                >
+                  Weekly digest
+                </Typography>
+                <Typography
+                  sx={{
+                    mt: 0.5,
+                    fontSize: 13,
+                    color: tokens.color.text.secondary,
+                    maxWidth: 520,
+                  }}
+                >
+                  A weekly summary of runs, gates, deploys, and spend —
+                  delivered Sunday mornings.
+                </Typography>
+                {draft.weeklyDigest && draft.pauseAll ? (
+                  <Typography
+                    sx={{
+                      mt: 1,
+                      fontSize: 12,
+                      color: tokens.color.text.muted,
+                      fontStyle: "italic",
+                    }}
+                  >
+                    Currently paused. Resume notifications to receive the digest.
+                  </Typography>
+                ) : null}
+              </Box>
+              <Switch
+                checked={draft.weeklyDigest}
+                onChange={(_, next) =>
+                  setDraft({ ...draft, weeklyDigest: next })
+                }
+                color="primary"
+                inputProps={{ "aria-label": "Send me a weekly digest" }}
               />
             </Stack>
           </Card>

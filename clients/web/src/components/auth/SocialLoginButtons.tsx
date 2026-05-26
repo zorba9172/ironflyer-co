@@ -5,7 +5,7 @@
 // browser navigations across origin, so next/link is the wrong tool;
 // we use window.location.assign).
 //
-// Flow: click → /auth/{provider}/start?redirect=<same-origin-path>
+// Flow: click → /auth/{provider}/start?redirect=/auth/callback?next=<path>
 // → provider consent → orchestrator callback → 302 back to
 // /auth/callback#token=<jwt>&expiresAt=<rfc3339>&next=<path>.
 
@@ -32,7 +32,8 @@ function apiBase(): string {
 function startOAuth(provider: "google" | "github", returnTo: string): void {
   const safeReturn =
     returnTo.startsWith("/") && !returnTo.startsWith("//") ? returnTo : "/";
-  const url = `${apiBase()}/auth/${provider}/start?redirect=${encodeURIComponent(safeReturn)}`;
+  const callback = `/auth/callback?next=${encodeURIComponent(safeReturn)}`;
+  const url = `${apiBase()}/auth/${provider}/start?redirect=${encodeURIComponent(callback)}`;
   window.location.assign(url);
 }
 
@@ -104,7 +105,7 @@ function OrDivider() {
       <Typography
         sx={{
           fontSize: 11,
-          letterSpacing: "0.08em",
+          letterSpacing: 0,
           textTransform: "uppercase",
           color: tokens.color.text.muted,
         }}

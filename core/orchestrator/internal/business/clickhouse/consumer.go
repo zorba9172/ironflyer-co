@@ -273,6 +273,9 @@ var rawInsertQueries = map[string]string{
 	"raw_security_events": `INSERT INTO raw_security_events
 		 (event_id, event_type, event_version, tenant_id, execution_id, occurred_at, producer, trace_id, idempotency_key, payload)
 		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+	"raw_learning_events": `INSERT INTO raw_learning_events
+		 (event_id, event_type, event_version, tenant_id, execution_id, occurred_at, producer, trace_id, idempotency_key, payload)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 }
 
 // insertRaw runs the single-row INSERT for one envelope using a
@@ -348,6 +351,8 @@ func tableForTopic(topic string) (string, bool) {
 		return "raw_agent_events", true
 	case "runtime":
 		return "raw_runtime_events", true
+	case "learning":
+		return "raw_learning_events", true
 	default:
 		return "", false
 	}

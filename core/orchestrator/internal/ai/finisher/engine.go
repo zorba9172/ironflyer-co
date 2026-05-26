@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"ironflyer/core/orchestrator/internal/ai/agents"
+	"ironflyer/core/orchestrator/internal/ai/learning"
 	"ironflyer/core/orchestrator/internal/ai/refactor"
 	"ironflyer/core/orchestrator/internal/operations/arch"
 	"ironflyer/core/orchestrator/internal/operations/audit"
@@ -632,6 +633,21 @@ func (e *Engine) recordGateOutcome(ctx context.Context, gateName domain.GateName
 		"status":       gateStatusFromPassed(passed, issueCount),
 		"issues_count": issueCount,
 		"occurred_at":  time.Now().UTC().Format(time.RFC3339Nano),
+	})
+	// Feedback Brain: surface the gate verdict as an OutcomeEvent so
+	// the miner can compute per-gate failure rates over time.
+	verdict := "pass"
+	if !passed {
+		verdict = "fail"
+	}
+	learning.Publish(ctx, learning.OutcomeEvent{
+		Kind: learning.KindGateOutcome,
+		Attributes: map[string]any{
+			"gate":    string(gateName),
+			"verdict": verdict,
+			"issues":  issueCount,
+		},
+		Success: learning.BoolPtr(passed),
 	})
 	// QualitySink fan-out — independent of the completion scorer leg so
 	// a bandit-only deployment still gets the gate-pass EMA. A31 threads

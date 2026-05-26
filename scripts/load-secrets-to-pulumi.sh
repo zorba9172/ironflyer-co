@@ -78,19 +78,25 @@ declare -a MAPPING=(
     "HUGGINGFACE_API_KEY:ironflyer:hfApiKey"
     "DEEPSEEK_API_KEY:ironflyer:deepseekApiKey"
     "VERCEL_AI_GATEWAY_TOKEN:ironflyer:vercelAiGatewayToken"
+    "CONTEXT7_API_KEY:ironflyer:context7ApiKey"
+    "CONTEXT7_BASE_URL:ironflyer:context7BaseUrl"
 
     # §5 observability
     "SENTRY_DSN_ORCHESTRATOR:ironflyer:sentryDsnOrchestrator"
     "SENTRY_DSN_WEB:ironflyer:sentryDsnWeb"
     "NEXT_PUBLIC_SENTRY_DSN:ironflyer:nextPublicSentryDsn"
+    "SENTRY_DSN_VSCODE_EXTENSION:ironflyer:sentryDsnVscodeExtension"
+    "NEXT_PUBLIC_GTM_ID:ironflyer:nextPublicGtmId"
+    "NEXT_PUBLIC_CONTENTSQUARE_ID:ironflyer:nextPublicContentsquareId"
     "SENTRY_ORG:ironflyer:sentryOrg"
     "SENTRY_PROJECT:ironflyer:sentryProject"
     "SENTRY_AUTH_TOKEN:ironflyer:sentryAuthToken"
     "DATADOG_API_KEY:ironflyer:datadogApiKey"
 
     # §6 github
-    "GITHUB_CLIENT_ID:ironflyer:githubClientID"
-    "GITHUB_CLIENT_SECRET:ironflyer:githubClientSecret"
+    "GITHUB_APP_ID:ironflyer:githubAppID"
+    "GITHUB_APP_CLIENT_ID:ironflyer:githubAppClientID"
+    "GITHUB_APP_CLIENT_SECRET:ironflyer:githubAppClientSecret"
     "GITHUB_APP_WEBHOOK_SECRET:ironflyer:githubAppWebhookSecret"
 
     # §7 email
@@ -103,6 +109,7 @@ declare -a MAPPING=(
     # §9 cloud
     "DIGITALOCEAN_TOKEN:ironflyer:digitalOceanToken"
     "CLOUDFLARE_API_TOKEN:ironflyer:cloudflareApiToken"
+    "CLOUDFLARE_ACCOUNT_ID:ironflyer:cloudflareAccountId"
     "CLOUDFLARE_ZONE_ID:ironflyer:cloudflareZoneId"
 )
 

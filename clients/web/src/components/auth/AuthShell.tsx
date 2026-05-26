@@ -51,17 +51,17 @@ const PROOF_POINTS: Array<{
   {
     icon: <BoltOutlined sx={{ fontSize: 18 }} />,
     title: "Prompt to product",
-    body: "Start from natural language and return to the same Studio workspace every time.",
+    body: "Your latest prompt and generated workspace are ready after sign-in.",
   },
   {
     icon: <ShieldOutlined sx={{ fontSize: 18 }} />,
     title: "Built-in auth and roles",
-    body: "Projects, access, approvals and launch flow stay connected to the account.",
+    body: "Projects, access and approvals stay tied to the account.",
   },
   {
     icon: <TimelineOutlined sx={{ fontSize: 18 }} />,
     title: "Preview and deploy",
-    body: "Generated code, live previews and deploy checkpoints are waiting after sign-in.",
+    body: "Previews and deploy checkpoints continue in the same lane.",
   },
 ];
 
@@ -74,7 +74,7 @@ export function AuthShell(props: AuthShellProps) {
         position: "fixed",
         inset: 0,
         display: "grid",
-        gridTemplateColumns: { xs: "1fr", lg: "minmax(0, 1.05fr) minmax(0, 1fr)" },
+        gridTemplateColumns: { xs: "1fr", lg: "minmax(420px, 0.9fr) minmax(0, 1.1fr)" },
         bgcolor: tokens.color.bg.base,
         color: tokens.color.text.primary,
         overflowY: "auto",
@@ -87,13 +87,14 @@ export function AuthShell(props: AuthShellProps) {
           position: "relative",
           display: { xs: "none", lg: "flex" },
           flexDirection: "column",
-          justifyContent: "space-between",
-          px: { lg: 6, xl: 8 },
-          py: { lg: 5, xl: 6 },
+          gap: { lg: 3, xl: 4 },
+          px: { lg: 5, xl: 7 },
+          py: { lg: 3.5, xl: 5 },
           bgcolor: tokens.color.bg.surface,
           borderRight: `1px solid ${tokens.color.border.subtle}`,
           overflow: "hidden",
-          minHeight: "100vh",
+          height: "100dvh",
+          minHeight: 0,
         }}
       >
         {/* violet wash glow — token-derived alpha, never raw rgba */}
@@ -128,7 +129,17 @@ export function AuthShell(props: AuthShellProps) {
           </Button>
         </Stack>
 
-        <Stack spacing={5} sx={{ position: "relative", zIndex: 1, maxWidth: 520 }}>
+        <Stack
+          spacing={{ lg: 3, xl: 3.5 }}
+          sx={{
+            position: "relative",
+            zIndex: 1,
+            maxWidth: 500,
+            flex: 1,
+            minHeight: 0,
+            justifyContent: "center",
+          }}
+        >
           <Box>
             <Box
               sx={{
@@ -144,24 +155,24 @@ export function AuthShell(props: AuthShellProps) {
                 fontFamily: tokens.font.mono,
                 fontSize: 11,
                 fontWeight: 700,
-                letterSpacing: 1.2,
+                letterSpacing: 0,
                 textTransform: "uppercase",
               }}
             >
-              AI app builder
+              Workspace sign-in
             </Box>
             <Typography
               component="h1"
               sx={{
-                mt: 3,
-                fontSize: { lg: 40, xl: 48 },
+                mt: 2.4,
+                fontSize: { lg: 34, xl: 42 },
                 fontWeight: 800,
-                lineHeight: 1.04,
-                letterSpacing: -0.5,
+                lineHeight: 1.06,
+                letterSpacing: 0,
                 color: tokens.color.text.primary,
               }}
             >
-              Continue your build,{" "}
+              Continue where{" "}
               <Box
                 component="span"
                 sx={{
@@ -170,21 +181,20 @@ export function AuthShell(props: AuthShellProps) {
                   WebkitTextFillColor: "transparent",
                 }}
               >
-                exactly where you left it.
+                your build left off.
               </Box>
             </Typography>
             <Typography
               sx={{
-                mt: 2,
+                mt: 1.6,
                 fontSize: 15,
-                lineHeight: 1.55,
+                lineHeight: 1.5,
                 color: tokens.color.text.secondary,
-                maxWidth: 460,
+                maxWidth: 430,
               }}
             >
-              IronFlyer keeps the account experience inside the product:
-              prompt, plan, code, preview, templates and deploy all return to
-              the same workspace.
+              Prompt, plan, code, preview, templates and deploy stay attached
+              to the same IronFlyer Studio workspace.
             </Typography>
           </Box>
 
@@ -197,8 +207,12 @@ export function AuthShell(props: AuthShellProps) {
           sx={{
             position: "relative",
             zIndex: 1,
-            pt: 3,
+            mt: "auto",
+            pt: 2,
             borderTop: `1px solid ${tokens.color.border.subtle}`,
+            "@media (max-height: 760px)": {
+              display: "none",
+            },
           }}
         >
           <ProofStat label="Plan status" value="Live" />
@@ -263,7 +277,7 @@ export function AuthShell(props: AuthShellProps) {
                     fontSize: { xs: 26, sm: 30 },
                     fontWeight: 800,
                     lineHeight: 1.15,
-                    letterSpacing: -0.4,
+                    letterSpacing: 0,
                     color: tokens.color.text.primary,
                   }}
                 >
@@ -335,7 +349,9 @@ function StudioAuthPreview() {
         borderRadius: `${tokens.radius.sm}px`,
         border: `1px solid ${tokens.color.border.strong}`,
         bgcolor: `${tokens.color.bg.inset}b8`,
-        p: 1.6,
+        p: { lg: 1.35, xl: 1.6 },
+        maxHeight: { lg: 330, xl: 380 },
+        overflow: "hidden",
       }}
     >
       <Stack direction="row" alignItems="center" spacing={1}>
@@ -346,15 +362,22 @@ function StudioAuthPreview() {
           Live
         </Box>
       </Stack>
-      <Box sx={{ display: "grid", gridTemplateColumns: "minmax(0,.95fr) minmax(0,1.05fr)", gap: 1.2, mt: 1.4 }}>
-        <Box sx={{ p: 1.2, borderRadius: `${tokens.radius.sm}px`, border: `1px solid ${tokens.color.border.subtle}`, bgcolor: tokens.color.bg.inset }}>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "minmax(0, 1.1fr) minmax(0, .9fr)",
+          gap: 1.1,
+          mt: 1.2,
+        }}
+      >
+        <Box sx={{ p: 1.15, borderRadius: `${tokens.radius.sm}px`, border: `1px solid ${tokens.color.border.subtle}`, bgcolor: tokens.color.bg.inset }}>
           <Stack direction="row" spacing={0.7} alignItems="center">
             <CodeRounded sx={{ color: tokens.color.accent.violet, fontSize: 15 }} />
             <Typography sx={{ color: tokens.color.text.muted, fontSize: 10.5, fontFamily: tokens.font.mono }}>
               App.tsx
             </Typography>
           </Stack>
-          <Box component="pre" sx={{ m: 0, mt: 1, color: tokens.color.accent.violet, fontFamily: tokens.font.mono, fontSize: 10.5, lineHeight: 1.65, whiteSpace: "pre-wrap" }}>
+          <Box component="pre" sx={{ m: 0, mt: 0.8, color: tokens.color.accent.violet, fontFamily: tokens.font.mono, fontSize: 10.5, lineHeight: 1.55, whiteSpace: "pre-wrap" }}>
 {`return (
   <Portal>
     <Preview />
@@ -362,27 +385,37 @@ function StudioAuthPreview() {
 )`}
           </Box>
         </Box>
-        <Box sx={{ p: 1.2, borderRadius: `${tokens.radius.sm}px`, border: `1px solid ${tokens.color.border.subtle}`, bgcolor: `${tokens.color.text.primary}09` }}>
+        <Box sx={{ p: 1.15, borderRadius: `${tokens.radius.sm}px`, border: `1px solid ${tokens.color.border.subtle}`, bgcolor: `${tokens.color.text.primary}09` }}>
           {[
-            [<DataObjectRounded key="data" />, "Data models ready"],
-            [<ShieldOutlined key="roles" />, "Roles mapped"],
-            [<RocketLaunchRounded key="deploy" />, "Deploy preview"],
+            [<DataObjectRounded key="data" />, "Models"],
+            [<ShieldOutlined key="roles" />, "Roles"],
+            [<RocketLaunchRounded key="deploy" />, "Deploy"],
           ].map(([icon, label]) => (
-            <Stack key={String(label)} direction="row" spacing={0.8} alignItems="center" sx={{ py: 0.45 }}>
+            <Stack key={String(label)} direction="row" spacing={0.8} alignItems="center" sx={{ py: 0.35 }}>
               <Box sx={{ color: tokens.color.accent.violet, "& svg": { fontSize: 15 } }}>{icon}</Box>
               <Typography sx={{ fontSize: 12.5, fontWeight: 800 }}>{label}</Typography>
             </Stack>
           ))}
         </Box>
       </Box>
-      <Stack spacing={2.2} sx={{ mt: 2 }}>
+      <Stack spacing={1.15} sx={{ mt: 1.4 }}>
         {PROOF_POINTS.map((p) => (
-          <Stack key={p.title} direction="row" spacing={1.4} alignItems="flex-start">
+          <Stack
+            key={p.title}
+            direction="row"
+            spacing={1.1}
+            alignItems="flex-start"
+            sx={{
+              "@media (max-height: 720px)": {
+                alignItems: "center",
+              },
+            }}
+          >
             <Box
               sx={{
                 flexShrink: 0,
-                width: 30,
-                height: 30,
+                width: 26,
+                height: 26,
                 borderRadius: `${tokens.radius.sm}px`,
                 bgcolor: tokens.color.bg.surfaceRaised,
                 border: `1px solid ${tokens.color.border.subtle}`,
@@ -394,10 +427,20 @@ function StudioAuthPreview() {
               {p.icon}
             </Box>
             <Box>
-              <Typography sx={{ fontWeight: 800, fontSize: 13.5, color: tokens.color.text.primary }}>
+              <Typography sx={{ fontWeight: 800, fontSize: 12.8, color: tokens.color.text.primary }}>
                 {p.title}
               </Typography>
-              <Typography sx={{ mt: 0.25, fontSize: 12.5, lineHeight: 1.45, color: tokens.color.text.secondary }}>
+              <Typography
+                sx={{
+                  mt: 0.15,
+                  fontSize: 11.8,
+                  lineHeight: 1.35,
+                  color: tokens.color.text.secondary,
+                  "@media (max-height: 720px)": {
+                    display: "none",
+                  },
+                }}
+              >
                 {p.body}
               </Typography>
             </Box>
@@ -428,7 +471,7 @@ function ProofStat({ label, value }: { label: string; value: string }) {
           fontSize: 11,
           fontFamily: tokens.font.mono,
           fontWeight: 600,
-          letterSpacing: 1.1,
+          letterSpacing: 0,
           textTransform: "uppercase",
           color: tokens.color.text.muted,
         }}

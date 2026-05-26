@@ -44,6 +44,7 @@ export interface NotificationPreferences {
   __typename?: "NotificationPreferences";
   userId: string;
   pauseAll: boolean;
+  weeklyDigest: boolean;
   onRunComplete: ChannelPref;
   onGateFailed: ChannelPref;
   onDeployDone: ChannelPref;
@@ -58,6 +59,7 @@ export interface ChannelPrefInput {
 
 export interface NotificationPreferencesInput {
   pauseAll?: boolean;
+  weeklyDigest?: boolean;
   onRunComplete?: ChannelPrefInput;
   onGateFailed?: ChannelPrefInput;
   onDeployDone?: ChannelPrefInput;
@@ -152,6 +154,7 @@ export const NotificationPreferencesDocument: DocumentNode = gql`
     notificationPreferences {
       userId
       pauseAll
+      weeklyDigest
       onRunComplete {
         email
         inApp
@@ -198,6 +201,7 @@ export const UpdateNotificationPreferencesDocument: DocumentNode = gql`
     updateNotificationPreferences(input: $input) {
       userId
       pauseAll
+      weeklyDigest
       onRunComplete {
         email
         inApp
@@ -258,6 +262,7 @@ export function isSchemaMissing(err: unknown): boolean {
   return (
     msg.includes("Cannot query field") ||
     msg.includes("Unknown type \"NotificationPreferencesInput\"") ||
+    msg.includes("Unknown field \"weeklyDigest\"") ||
     msg.includes("notifications") && msg.includes("not defined") ||
     msg.includes("notificationStream")
   );

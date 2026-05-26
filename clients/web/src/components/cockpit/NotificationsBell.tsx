@@ -23,7 +23,14 @@
 // ship.
 
 import { useApolloClient, useMutation, useQuery, useSubscription } from "@apollo/client";
-import { NotificationsOutlined } from "@mui/icons-material";
+import {
+  AccountBalanceWalletOutlined,
+  DeviceUnknownOutlined,
+  InsightsOutlined,
+  NotificationsOutlined,
+  ShieldOutlined,
+} from "@mui/icons-material";
+import type { SvgIconComponent } from "@mui/icons-material";
 import {
   Badge,
   Box,
@@ -75,6 +82,37 @@ function severityColor(severity: string): string {
       return tokens.color.brand.mint;
     default:
       return tokens.color.accent.violet;
+  }
+}
+
+// Map the orchestrator notification `kind` string to a small icon +
+// accent color so operators can scan the new lifecycle events at a
+// glance. Existing kinds fall through to `null`, preserving the
+// severity-dot treatment from P1.
+//
+// All colors are sourced from `tokens.color.*`. The icon is rendered
+// only when present; when absent the row keeps the original severity
+// dot. This keeps the row layout compact and avoids regressing list
+// density for the original event vocabulary.
+interface KindGlyph {
+  Icon: SvgIconComponent;
+  color: string;
+}
+function kindGlyph(kind: string): KindGlyph | null {
+  switch (kind) {
+    case "mfa_enabled":
+      return { Icon: ShieldOutlined, color: tokens.color.brand.mint };
+    case "new_device_login":
+      return { Icon: DeviceUnknownOutlined, color: tokens.color.accent.coral };
+    case "low_balance":
+      return {
+        Icon: AccountBalanceWalletOutlined,
+        color: tokens.color.accent.coral,
+      };
+    case "weekly_digest":
+      return { Icon: InsightsOutlined, color: tokens.color.accent.violet };
+    default:
+      return null;
   }
 }
 
@@ -170,25 +208,33 @@ export function NotificationsBell() {
     onData: ({ data, client }) => {
       const next = data.data?.notificationStream;
       if (!next) return;
-      // 1) Prepend to cache (dedupe by id — the initial query may have
-      // raced and already delivered this notification).
+      // The Query.notifications typePolicy in apollo.tsx merges
+      // incoming refs against existing ones (key = Notification:<id>)
+      // and re-sorts by createdAt desc, so we can write the single
+      // new entry and let the cache dedupe + order. The unread count
+      // is a sibling scalar on the same query — we bump it only when
+      // (a) the existing query is in cache (otherwise the upcoming
+      // initial fetch will deliver the authoritative count) and (b)
+      // the notification we just received is genuinely new (not a
+      // late echo of an entry already in the list).
       client.cache.updateQuery<NotificationsQuery, NotificationsQueryVariables>(
         { query: NotificationsDocument, variables: { unreadOnly: false } },
         (existing) => {
-          const list = existing?.notifications ?? [];
-          if (list.some((n) => n.id === next.id)) {
-            return existing ?? undefined;
-          }
-          const wasUnread = !next.readAt;
+          if (!existing) return existing ?? undefined;
+          const alreadyHave = existing.notifications.some((n) => n.id === next.id);
+          const wasUnread = !next.readAt && !alreadyHave;
           return {
             __typename: "Query",
-            notifications: [next, ...list],
+            // Prepend; merge() will dedupe + sort.
+            notifications: alreadyHave
+              ? existing.notifications
+              : [next, ...existing.notifications],
             unreadNotificationCount:
-              (existing?.unreadNotificationCount ?? 0) + (wasUnread ? 1 : 0),
+              existing.unreadNotificationCount + (wasUnread ? 1 : 0),
           };
         },
       );
-      // 2) Queue toast.
+      // Queue toast.
       toastQueueRef.current.push(next);
       void drainQueue();
     },
@@ -422,6 +468,7 @@ export function NotificationsBell() {
             notifications.map((n) => {
               const unread = !n.readAt;
               const dotColor = severityColor(n.severity);
+              const glyph = kindGlyph(n.kind);
               const bg = unread
                 ? `${tokens.color.accent.violet}11`
                 : "transparent";
@@ -465,17 +512,33 @@ export function NotificationsBell() {
                     "&:last-of-type": { borderBottom: "none" },
                   }}
                 >
-                  <Box
-                    aria-hidden
-                    sx={{
-                      width: 4,
-                      height: 4,
-                      mt: 1,
-                      borderRadius: tokens.radius.pill,
-                      bgcolor: dotColor,
-                      flexShrink: 0,
-                    }}
-                  />
+                  {glyph ? (
+                    <Box
+                      aria-hidden
+                      sx={{
+                        mt: 0.25,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                        color: glyph.color,
+                      }}
+                    >
+                      <glyph.Icon sx={{ fontSize: 16 }} />
+                    </Box>
+                  ) : (
+                    <Box
+                      aria-hidden
+                      sx={{
+                        width: 4,
+                        height: 4,
+                        mt: 1,
+                        borderRadius: tokens.radius.pill,
+                        bgcolor: dotColor,
+                        flexShrink: 0,
+                      }}
+                    />
+                  )}
                   <Box sx={{ minWidth: 0, flex: 1 }}>
                     <Typography
                       sx={{

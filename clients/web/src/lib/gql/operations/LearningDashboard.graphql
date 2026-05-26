@@ -1,0 +1,29 @@
+query LearningDashboard {
+  learningDashboard {
+    outcomeEventsToday
+    outcomeEventsAllTime
+    reuseRateLast7d
+    repairRecipeHitsLast7d
+    banditConfidence
+    averageCompletionScore
+    averageMarginPctLast7d
+    gateFailureRates {
+      gate
+      failureRate
+      sampleSize
+    }
+    blueprintSuccessRates {
+      blueprintID
+      blueprintName
+      successRate
+      avgMargin
+    }
+    weaknesses {
+      dimension
+      description
+      severity
+      suggestedAction
+    }
+    lastIndexedAt
+  }
+}

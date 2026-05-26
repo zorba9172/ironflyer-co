@@ -16,6 +16,7 @@ import (
 	"ironflyer/core/orchestrator/internal/ai/atlas"
 	"ironflyer/core/orchestrator/internal/ai/domain"
 	"ironflyer/core/orchestrator/internal/ai/embeddings"
+	"ironflyer/core/orchestrator/internal/ai/learning"
 	"ironflyer/core/orchestrator/internal/operations/metrics"
 	"ironflyer/core/orchestrator/internal/business/profitguardctx"
 	"ironflyer/core/orchestrator/internal/operations/store"
@@ -447,6 +448,24 @@ func (e *Engine) ProposeCtx(ctx context.Context, p Patch) (Patch, error) {
 	if cb != nil {
 		cb(stored)
 	}
+	// Feedback Brain: surface a patch_applied OutcomeEvent so the
+	// miner can grow patch-reuse + scope metrics.
+	paths := make([]string, 0, len(p.Changes))
+	for _, c := range p.Changes {
+		paths = append(paths, c.Path)
+	}
+	learning.Publish(ctx, learning.OutcomeEvent{
+		Kind: learning.KindPatchApplied,
+		Attributes: map[string]any{
+			"patch_id":   p.ID,
+			"project_id": p.ProjectID,
+			"summary":    p.Summary,
+			"paths":      paths,
+			"changes":    len(p.Changes),
+			"reused":     false,
+		},
+		Success: learning.BoolPtr(len(p.Issues) == 0),
+	})
 	return p, nil
 }
 

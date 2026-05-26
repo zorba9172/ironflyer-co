@@ -189,6 +189,13 @@ type ComplexityRoot struct {
 		RepairCount         func(childComplexity int) int
 	}
 
+	BlueprintSuccessRate struct {
+		AvgMargin     func(childComplexity int) int
+		BlueprintID   func(childComplexity int) int
+		BlueprintName func(childComplexity int) int
+		SuccessRate   func(childComplexity int) int
+	}
+
 	BrokenAuditLink struct {
 		ActualPrevHash   func(childComplexity int) int
 		AtEntryID        func(childComplexity int) int
@@ -431,6 +438,12 @@ type ComplexityRoot struct {
 		Payload     func(childComplexity int) int
 	}
 
+	GateFailureRate struct {
+		FailureRate func(childComplexity int) int
+		Gate        func(childComplexity int) int
+		SampleSize  func(childComplexity int) int
+	}
+
 	GateIssue struct {
 		Line     func(childComplexity int) int
 		Message  func(childComplexity int) int
@@ -538,6 +551,20 @@ type ComplexityRoot struct {
 	InlineTextDelta struct {
 		RequestID func(childComplexity int) int
 		Text      func(childComplexity int) int
+	}
+
+	LearningDashboard struct {
+		AverageCompletionScore func(childComplexity int) int
+		AverageMarginPctLast7d func(childComplexity int) int
+		BanditConfidence       func(childComplexity int) int
+		BlueprintSuccessRates  func(childComplexity int) int
+		GateFailureRates       func(childComplexity int) int
+		LastIndexedAt          func(childComplexity int) int
+		OutcomeEventsAllTime   func(childComplexity int) int
+		OutcomeEventsToday     func(childComplexity int) int
+		RepairRecipeHitsLast7d func(childComplexity int) int
+		ReuseRateLast7d        func(childComplexity int) int
+		Weaknesses             func(childComplexity int) int
 	}
 
 	LedgerEntry struct {
@@ -715,6 +742,7 @@ type ComplexityRoot struct {
 		OnRunComplete   func(childComplexity int) int
 		PauseAll        func(childComplexity int) int
 		UserID          func(childComplexity int) int
+		WeeklyDigest    func(childComplexity int) int
 	}
 
 	OperationResult struct {
@@ -910,6 +938,7 @@ type ComplexityRoot struct {
 		Gate                     func(childComplexity int, projectID string, gate string) int
 		Gates                    func(childComplexity int, projectID string, sub *string) int
 		HealthDashboard          func(childComplexity int) int
+		LearningDashboard        func(childComplexity int) int
 		Ledger                   func(childComplexity int, filter *model.LedgerFilter) int
 		LedgerRollup             func(childComplexity int, since time.Time, until time.Time) int
 		Me                       func(childComplexity int) int
@@ -1148,6 +1177,13 @@ type ComplexityRoot struct {
 		ID          func(childComplexity int) int
 		Status      func(childComplexity int) int
 	}
+
+	Weakness struct {
+		Description     func(childComplexity int) int
+		Dimension       func(childComplexity int) int
+		Severity        func(childComplexity int) int
+		SuggestedAction func(childComplexity int) int
+	}
 }
 
 type MutationResolver interface {
@@ -1240,6 +1276,7 @@ type QueryResolver interface {
 	CohortDashboard(ctx context.Context, sinceMonth time.Time) (*model.CohortDashboard, error)
 	BlueprintDashboard(ctx context.Context) (*model.BlueprintDashboard, error)
 	HealthDashboard(ctx context.Context) (*model.HealthMetrics, error)
+	LearningDashboard(ctx context.Context) (*model.LearningDashboard, error)
 	Deploy(ctx context.Context, id string) (*model.Deploy, error)
 	Deploys(ctx context.Context, limit *int, offset *int) ([]model.Deploy, error)
 	PendingDeployApprovals(ctx context.Context) ([]model.DeployApproval, error)
@@ -1929,6 +1966,31 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.BlueprintStats.RepairCount(childComplexity), true
+
+	case "BlueprintSuccessRate.avgMargin":
+		if e.ComplexityRoot.BlueprintSuccessRate.AvgMargin == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BlueprintSuccessRate.AvgMargin(childComplexity), true
+	case "BlueprintSuccessRate.blueprintID":
+		if e.ComplexityRoot.BlueprintSuccessRate.BlueprintID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BlueprintSuccessRate.BlueprintID(childComplexity), true
+	case "BlueprintSuccessRate.blueprintName":
+		if e.ComplexityRoot.BlueprintSuccessRate.BlueprintName == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BlueprintSuccessRate.BlueprintName(childComplexity), true
+	case "BlueprintSuccessRate.successRate":
+		if e.ComplexityRoot.BlueprintSuccessRate.SuccessRate == nil {
+			break
+		}
+
+		return e.ComplexityRoot.BlueprintSuccessRate.SuccessRate(childComplexity), true
 
 	case "BrokenAuditLink.actualPrevHash":
 		if e.ComplexityRoot.BrokenAuditLink.ActualPrevHash == nil {
@@ -3008,6 +3070,25 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.ExecutionEvent.Payload(childComplexity), true
 
+	case "GateFailureRate.failureRate":
+		if e.ComplexityRoot.GateFailureRate.FailureRate == nil {
+			break
+		}
+
+		return e.ComplexityRoot.GateFailureRate.FailureRate(childComplexity), true
+	case "GateFailureRate.gate":
+		if e.ComplexityRoot.GateFailureRate.Gate == nil {
+			break
+		}
+
+		return e.ComplexityRoot.GateFailureRate.Gate(childComplexity), true
+	case "GateFailureRate.sampleSize":
+		if e.ComplexityRoot.GateFailureRate.SampleSize == nil {
+			break
+		}
+
+		return e.ComplexityRoot.GateFailureRate.SampleSize(childComplexity), true
+
 	case "GateIssue.line":
 		if e.ComplexityRoot.GateIssue.Line == nil {
 			break
@@ -3406,6 +3487,73 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.InlineTextDelta.Text(childComplexity), true
+
+	case "LearningDashboard.averageCompletionScore":
+		if e.ComplexityRoot.LearningDashboard.AverageCompletionScore == nil {
+			break
+		}
+
+		return e.ComplexityRoot.LearningDashboard.AverageCompletionScore(childComplexity), true
+	case "LearningDashboard.averageMarginPctLast7d":
+		if e.ComplexityRoot.LearningDashboard.AverageMarginPctLast7d == nil {
+			break
+		}
+
+		return e.ComplexityRoot.LearningDashboard.AverageMarginPctLast7d(childComplexity), true
+	case "LearningDashboard.banditConfidence":
+		if e.ComplexityRoot.LearningDashboard.BanditConfidence == nil {
+			break
+		}
+
+		return e.ComplexityRoot.LearningDashboard.BanditConfidence(childComplexity), true
+	case "LearningDashboard.blueprintSuccessRates":
+		if e.ComplexityRoot.LearningDashboard.BlueprintSuccessRates == nil {
+			break
+		}
+
+		return e.ComplexityRoot.LearningDashboard.BlueprintSuccessRates(childComplexity), true
+	case "LearningDashboard.gateFailureRates":
+		if e.ComplexityRoot.LearningDashboard.GateFailureRates == nil {
+			break
+		}
+
+		return e.ComplexityRoot.LearningDashboard.GateFailureRates(childComplexity), true
+	case "LearningDashboard.lastIndexedAt":
+		if e.ComplexityRoot.LearningDashboard.LastIndexedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.LearningDashboard.LastIndexedAt(childComplexity), true
+	case "LearningDashboard.outcomeEventsAllTime":
+		if e.ComplexityRoot.LearningDashboard.OutcomeEventsAllTime == nil {
+			break
+		}
+
+		return e.ComplexityRoot.LearningDashboard.OutcomeEventsAllTime(childComplexity), true
+	case "LearningDashboard.outcomeEventsToday":
+		if e.ComplexityRoot.LearningDashboard.OutcomeEventsToday == nil {
+			break
+		}
+
+		return e.ComplexityRoot.LearningDashboard.OutcomeEventsToday(childComplexity), true
+	case "LearningDashboard.repairRecipeHitsLast7d":
+		if e.ComplexityRoot.LearningDashboard.RepairRecipeHitsLast7d == nil {
+			break
+		}
+
+		return e.ComplexityRoot.LearningDashboard.RepairRecipeHitsLast7d(childComplexity), true
+	case "LearningDashboard.reuseRateLast7d":
+		if e.ComplexityRoot.LearningDashboard.ReuseRateLast7d == nil {
+			break
+		}
+
+		return e.ComplexityRoot.LearningDashboard.ReuseRateLast7d(childComplexity), true
+	case "LearningDashboard.weaknesses":
+		if e.ComplexityRoot.LearningDashboard.Weaknesses == nil {
+			break
+		}
+
+		return e.ComplexityRoot.LearningDashboard.Weaknesses(childComplexity), true
 
 	case "LedgerEntry.agent":
 		if e.ComplexityRoot.LedgerEntry.Agent == nil {
@@ -4578,6 +4726,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.NotificationPreferences.UserID(childComplexity), true
+	case "NotificationPreferences.weeklyDigest":
+		if e.ComplexityRoot.NotificationPreferences.WeeklyDigest == nil {
+			break
+		}
+
+		return e.ComplexityRoot.NotificationPreferences.WeeklyDigest(childComplexity), true
 
 	case "OperationResult.message":
 		if e.ComplexityRoot.OperationResult.Message == nil {
@@ -5563,6 +5717,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.Query.HealthDashboard(childComplexity), true
 
+	case "Query.learningDashboard":
+		if e.ComplexityRoot.Query.LearningDashboard == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Query.LearningDashboard(childComplexity), true
 	case "Query.ledger":
 		if e.ComplexityRoot.Query.Ledger == nil {
 			break
@@ -6740,6 +6900,31 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.WalletTopUp.Status(childComplexity), true
 
+	case "Weakness.description":
+		if e.ComplexityRoot.Weakness.Description == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Weakness.Description(childComplexity), true
+	case "Weakness.dimension":
+		if e.ComplexityRoot.Weakness.Dimension == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Weakness.Dimension(childComplexity), true
+	case "Weakness.severity":
+		if e.ComplexityRoot.Weakness.Severity == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Weakness.Severity(childComplexity), true
+	case "Weakness.suggestedAction":
+		if e.ComplexityRoot.Weakness.SuggestedAction == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Weakness.SuggestedAction(childComplexity), true
+
 	}
 	return 0, false
 }
@@ -7583,6 +7768,50 @@ type ArchRule {
   to: String!
   allow: Boolean!
 }
+
+# LearningDashboard surfaces the Feedback Brain's high-level signals:
+# how many outcomes flowed today / all-time, how confident the bandit
+# is, which gates are failing, which blueprints succeed, and what
+# weaknesses the pattern miner surfaced. Resolver-tolerant: when
+# ClickHouse / mining have not landed any rows the resolver returns
+# zero counts + empty arrays so the dashboard renders empty states.
+type LearningDashboard {
+  outcomeEventsToday: Int!
+  outcomeEventsAllTime: Int!
+  reuseRateLast7d: Float!
+  repairRecipeHitsLast7d: Int!
+  banditConfidence: Float!
+  averageCompletionScore: Float!
+  averageMarginPctLast7d: Float!
+  gateFailureRates: [GateFailureRate!]!
+  blueprintSuccessRates: [BlueprintSuccessRate!]!
+  weaknesses: [Weakness!]!
+  lastIndexedAt: DateTime
+}
+
+type GateFailureRate {
+  gate: String!
+  failureRate: Float!
+  sampleSize: Int!
+}
+
+type BlueprintSuccessRate {
+  blueprintID: String!
+  blueprintName: String!
+  successRate: Float!
+  avgMargin: Float!
+}
+
+type Weakness {
+  dimension: String!
+  description: String!
+  severity: String!
+  suggestedAction: String!
+}
+
+extend type Query {
+  learningDashboard: LearningDashboard!
+}
 `, BuiltIn: false},
 	{Name: "../schema/deploy.graphql", Input: `# V22 Deploy plane (Wave 2 / Trust).
 #
@@ -8288,9 +8517,9 @@ input MobilePublishUpdateInput {
 
 type Notification { id: ID!  kind: String!  title: String!  body: String!  link: String  severity: String!  readAt: DateTime  createdAt: DateTime! }
 type ChannelPref { email: Boolean!  inApp: Boolean! }
-type NotificationPreferences { userId: ID!  pauseAll: Boolean!  onRunComplete: ChannelPref!  onGateFailed: ChannelPref!  onDeployDone: ChannelPref!  onBudgetWarning: ChannelPref!  onReceipt: ChannelPref! }
+type NotificationPreferences { userId: ID!  pauseAll: Boolean!  onRunComplete: ChannelPref!  onGateFailed: ChannelPref!  onDeployDone: ChannelPref!  onBudgetWarning: ChannelPref!  onReceipt: ChannelPref!  weeklyDigest: Boolean! }
 input ChannelPrefInput { email: Boolean!  inApp: Boolean! }
-input NotificationPreferencesInput { pauseAll: Boolean  onRunComplete: ChannelPrefInput  onGateFailed: ChannelPrefInput  onDeployDone: ChannelPrefInput  onBudgetWarning: ChannelPrefInput  onReceipt: ChannelPrefInput }
+input NotificationPreferencesInput { pauseAll: Boolean  onRunComplete: ChannelPrefInput  onGateFailed: ChannelPrefInput  onDeployDone: ChannelPrefInput  onBudgetWarning: ChannelPrefInput  onReceipt: ChannelPrefInput  weeklyDigest: Boolean }
 extend type Query { notifications(unreadOnly: Boolean): [Notification!]!  unreadNotificationCount: Int!  notificationPreferences: NotificationPreferences! }
 extend type Mutation { markNotificationRead(id: ID!): Notification!  markAllNotificationsRead: Int!  updateNotificationPreferences(input: NotificationPreferencesInput!): NotificationPreferences! }
 extend type Subscription { notificationStream: Notification! }
@@ -9347,6 +9576,20 @@ func (ec *executionContext) childFields_BlueprintStats(ctx context.Context, fiel
 	return nil, fmt.Errorf("no field named %q was found under type BlueprintStats", field.Name)
 }
 
+func (ec *executionContext) childFields_BlueprintSuccessRate(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "blueprintID":
+		return ec.fieldContext_BlueprintSuccessRate_blueprintID(ctx, field)
+	case "blueprintName":
+		return ec.fieldContext_BlueprintSuccessRate_blueprintName(ctx, field)
+	case "successRate":
+		return ec.fieldContext_BlueprintSuccessRate_successRate(ctx, field)
+	case "avgMargin":
+		return ec.fieldContext_BlueprintSuccessRate_avgMargin(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type BlueprintSuccessRate", field.Name)
+}
+
 func (ec *executionContext) childFields_BrokenAuditLink(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 	switch field.Name {
 	case "atEntryID":
@@ -9831,6 +10074,18 @@ func (ec *executionContext) childFields_ExecutionEvent(ctx context.Context, fiel
 	return nil, fmt.Errorf("no field named %q was found under type ExecutionEvent", field.Name)
 }
 
+func (ec *executionContext) childFields_GateFailureRate(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "gate":
+		return ec.fieldContext_GateFailureRate_gate(ctx, field)
+	case "failureRate":
+		return ec.fieldContext_GateFailureRate_failureRate(ctx, field)
+	case "sampleSize":
+		return ec.fieldContext_GateFailureRate_sampleSize(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type GateFailureRate", field.Name)
+}
+
 func (ec *executionContext) childFields_GateIssue(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 	switch field.Name {
 	case "path":
@@ -9955,6 +10210,34 @@ func (ec *executionContext) childFields_HeartbeatEvent(ctx context.Context, fiel
 		return ec.fieldContext_HeartbeatEvent_message(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type HeartbeatEvent", field.Name)
+}
+
+func (ec *executionContext) childFields_LearningDashboard(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "outcomeEventsToday":
+		return ec.fieldContext_LearningDashboard_outcomeEventsToday(ctx, field)
+	case "outcomeEventsAllTime":
+		return ec.fieldContext_LearningDashboard_outcomeEventsAllTime(ctx, field)
+	case "reuseRateLast7d":
+		return ec.fieldContext_LearningDashboard_reuseRateLast7d(ctx, field)
+	case "repairRecipeHitsLast7d":
+		return ec.fieldContext_LearningDashboard_repairRecipeHitsLast7d(ctx, field)
+	case "banditConfidence":
+		return ec.fieldContext_LearningDashboard_banditConfidence(ctx, field)
+	case "averageCompletionScore":
+		return ec.fieldContext_LearningDashboard_averageCompletionScore(ctx, field)
+	case "averageMarginPctLast7d":
+		return ec.fieldContext_LearningDashboard_averageMarginPctLast7d(ctx, field)
+	case "gateFailureRates":
+		return ec.fieldContext_LearningDashboard_gateFailureRates(ctx, field)
+	case "blueprintSuccessRates":
+		return ec.fieldContext_LearningDashboard_blueprintSuccessRates(ctx, field)
+	case "weaknesses":
+		return ec.fieldContext_LearningDashboard_weaknesses(ctx, field)
+	case "lastIndexedAt":
+		return ec.fieldContext_LearningDashboard_lastIndexedAt(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type LearningDashboard", field.Name)
 }
 
 func (ec *executionContext) childFields_LedgerEntry(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
@@ -10179,6 +10462,8 @@ func (ec *executionContext) childFields_NotificationPreferences(ctx context.Cont
 		return ec.fieldContext_NotificationPreferences_onBudgetWarning(ctx, field)
 	case "onReceipt":
 		return ec.fieldContext_NotificationPreferences_onReceipt(ctx, field)
+	case "weeklyDigest":
+		return ec.fieldContext_NotificationPreferences_weeklyDigest(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type NotificationPreferences", field.Name)
 }
@@ -10797,6 +11082,20 @@ func (ec *executionContext) childFields_WalletTopUp(ctx context.Context, field g
 		return ec.fieldContext_WalletTopUp_completedAt(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type WalletTopUp", field.Name)
+}
+
+func (ec *executionContext) childFields_Weakness(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "dimension":
+		return ec.fieldContext_Weakness_dimension(ctx, field)
+	case "description":
+		return ec.fieldContext_Weakness_description(ctx, field)
+	case "severity":
+		return ec.fieldContext_Weakness_severity(ctx, field)
+	case "suggestedAction":
+		return ec.fieldContext_Weakness_suggestedAction(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type Weakness", field.Name)
 }
 
 func (ec *executionContext) childFields___Directive(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
@@ -15197,6 +15496,98 @@ func (ec *executionContext) fieldContext_BlueprintStats_avgTimeToPreviewSec(_ co
 	return graphql.NewScalarFieldContext("BlueprintStats", field, false, false, errors.New("field of type Float does not have child fields"))
 }
 
+func (ec *executionContext) _BlueprintSuccessRate_blueprintID(ctx context.Context, field graphql.CollectedField, obj *model.BlueprintSuccessRate) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_BlueprintSuccessRate_blueprintID(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.BlueprintID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_BlueprintSuccessRate_blueprintID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("BlueprintSuccessRate", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _BlueprintSuccessRate_blueprintName(ctx context.Context, field graphql.CollectedField, obj *model.BlueprintSuccessRate) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_BlueprintSuccessRate_blueprintName(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.BlueprintName, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_BlueprintSuccessRate_blueprintName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("BlueprintSuccessRate", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _BlueprintSuccessRate_successRate(ctx context.Context, field graphql.CollectedField, obj *model.BlueprintSuccessRate) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_BlueprintSuccessRate_successRate(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.SuccessRate, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_BlueprintSuccessRate_successRate(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("BlueprintSuccessRate", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _BlueprintSuccessRate_avgMargin(ctx context.Context, field graphql.CollectedField, obj *model.BlueprintSuccessRate) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_BlueprintSuccessRate_avgMargin(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.AvgMargin, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_BlueprintSuccessRate_avgMargin(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("BlueprintSuccessRate", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
 func (ec *executionContext) _BrokenAuditLink_atEntryID(ctx context.Context, field graphql.CollectedField, obj *model.BrokenAuditLink) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -19272,6 +19663,75 @@ func (ec *executionContext) fieldContext_ExecutionEvent_createdAt(_ context.Cont
 	return graphql.NewScalarFieldContext("ExecutionEvent", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
+func (ec *executionContext) _GateFailureRate_gate(ctx context.Context, field graphql.CollectedField, obj *model.GateFailureRate) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_GateFailureRate_gate(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Gate, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_GateFailureRate_gate(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("GateFailureRate", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _GateFailureRate_failureRate(ctx context.Context, field graphql.CollectedField, obj *model.GateFailureRate) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_GateFailureRate_failureRate(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.FailureRate, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_GateFailureRate_failureRate(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("GateFailureRate", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _GateFailureRate_sampleSize(ctx context.Context, field graphql.CollectedField, obj *model.GateFailureRate) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_GateFailureRate_sampleSize(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.SampleSize, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int) graphql.Marshaler {
+			return ec.marshalNInt2int(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_GateFailureRate_sampleSize(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("GateFailureRate", field, false, false, errors.New("field of type Int does not have child fields"))
+}
+
 func (ec *executionContext) _GateIssue_path(ctx context.Context, field graphql.CollectedField, obj *model.GateIssue) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -20805,6 +21265,286 @@ func (ec *executionContext) _InlineTextDelta_text(ctx context.Context, field gra
 }
 func (ec *executionContext) fieldContext_InlineTextDelta_text(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("InlineTextDelta", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _LearningDashboard_outcomeEventsToday(ctx context.Context, field graphql.CollectedField, obj *model.LearningDashboard) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_LearningDashboard_outcomeEventsToday(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutcomeEventsToday, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int) graphql.Marshaler {
+			return ec.marshalNInt2int(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_LearningDashboard_outcomeEventsToday(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("LearningDashboard", field, false, false, errors.New("field of type Int does not have child fields"))
+}
+
+func (ec *executionContext) _LearningDashboard_outcomeEventsAllTime(ctx context.Context, field graphql.CollectedField, obj *model.LearningDashboard) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_LearningDashboard_outcomeEventsAllTime(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OutcomeEventsAllTime, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int) graphql.Marshaler {
+			return ec.marshalNInt2int(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_LearningDashboard_outcomeEventsAllTime(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("LearningDashboard", field, false, false, errors.New("field of type Int does not have child fields"))
+}
+
+func (ec *executionContext) _LearningDashboard_reuseRateLast7d(ctx context.Context, field graphql.CollectedField, obj *model.LearningDashboard) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_LearningDashboard_reuseRateLast7d(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ReuseRateLast7d, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_LearningDashboard_reuseRateLast7d(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("LearningDashboard", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _LearningDashboard_repairRecipeHitsLast7d(ctx context.Context, field graphql.CollectedField, obj *model.LearningDashboard) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_LearningDashboard_repairRecipeHitsLast7d(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.RepairRecipeHitsLast7d, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int) graphql.Marshaler {
+			return ec.marshalNInt2int(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_LearningDashboard_repairRecipeHitsLast7d(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("LearningDashboard", field, false, false, errors.New("field of type Int does not have child fields"))
+}
+
+func (ec *executionContext) _LearningDashboard_banditConfidence(ctx context.Context, field graphql.CollectedField, obj *model.LearningDashboard) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_LearningDashboard_banditConfidence(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.BanditConfidence, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_LearningDashboard_banditConfidence(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("LearningDashboard", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _LearningDashboard_averageCompletionScore(ctx context.Context, field graphql.CollectedField, obj *model.LearningDashboard) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_LearningDashboard_averageCompletionScore(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.AverageCompletionScore, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_LearningDashboard_averageCompletionScore(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("LearningDashboard", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _LearningDashboard_averageMarginPctLast7d(ctx context.Context, field graphql.CollectedField, obj *model.LearningDashboard) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_LearningDashboard_averageMarginPctLast7d(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.AverageMarginPctLast7d, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_LearningDashboard_averageMarginPctLast7d(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("LearningDashboard", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _LearningDashboard_gateFailureRates(ctx context.Context, field graphql.CollectedField, obj *model.LearningDashboard) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_LearningDashboard_gateFailureRates(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.GateFailureRates, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []model.GateFailureRate) graphql.Marshaler {
+			return ec.marshalNGateFailureRate2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGateFailureRateᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_LearningDashboard_gateFailureRates(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LearningDashboard",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_GateFailureRate(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LearningDashboard_blueprintSuccessRates(ctx context.Context, field graphql.CollectedField, obj *model.LearningDashboard) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_LearningDashboard_blueprintSuccessRates(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.BlueprintSuccessRates, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []model.BlueprintSuccessRate) graphql.Marshaler {
+			return ec.marshalNBlueprintSuccessRate2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBlueprintSuccessRateᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_LearningDashboard_blueprintSuccessRates(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LearningDashboard",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_BlueprintSuccessRate(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LearningDashboard_weaknesses(ctx context.Context, field graphql.CollectedField, obj *model.LearningDashboard) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_LearningDashboard_weaknesses(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Weaknesses, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []model.Weakness) graphql.Marshaler {
+			return ec.marshalNWeakness2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐWeaknessᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_LearningDashboard_weaknesses(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LearningDashboard",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Weakness(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LearningDashboard_lastIndexedAt(ctx context.Context, field graphql.CollectedField, obj *model.LearningDashboard) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_LearningDashboard_lastIndexedAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.LastIndexedAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *time.Time) graphql.Marshaler {
+			return ec.marshalODateTime2ᚖtimeᚐTime(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_LearningDashboard_lastIndexedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("LearningDashboard", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _LedgerEntry_id(ctx context.Context, field graphql.CollectedField, obj *model.LedgerEntry) (ret graphql.Marshaler) {
@@ -25436,6 +26176,29 @@ func (ec *executionContext) fieldContext_NotificationPreferences_onReceipt(_ con
 	return fc, nil
 }
 
+func (ec *executionContext) _NotificationPreferences_weeklyDigest(ctx context.Context, field graphql.CollectedField, obj *model.NotificationPreferences) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_NotificationPreferences_weeklyDigest(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.WeeklyDigest, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v bool) graphql.Marshaler {
+			return ec.marshalNBoolean2bool(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_NotificationPreferences_weeklyDigest(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("NotificationPreferences", field, false, false, errors.New("field of type Boolean does not have child fields"))
+}
+
 func (ec *executionContext) _OperationResult_ok(ctx context.Context, field graphql.CollectedField, obj *model.OperationResult) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -29042,6 +29805,38 @@ func (ec *executionContext) fieldContext_Query_healthDashboard(_ context.Context
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return ec.childFields_HealthMetrics(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_learningDashboard(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Query_learningDashboard(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Query().LearningDashboard(ctx)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.LearningDashboard) graphql.Marshaler {
+			return ec.marshalNLearningDashboard2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐLearningDashboard(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Query_learningDashboard(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_LearningDashboard(ctx, field)
 		},
 	}
 	return fc, nil
@@ -34065,6 +34860,98 @@ func (ec *executionContext) fieldContext_WalletTopUp_completedAt(_ context.Conte
 	return graphql.NewScalarFieldContext("WalletTopUp", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
+func (ec *executionContext) _Weakness_dimension(ctx context.Context, field graphql.CollectedField, obj *model.Weakness) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Weakness_dimension(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Dimension, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Weakness_dimension(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Weakness", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _Weakness_description(ctx context.Context, field graphql.CollectedField, obj *model.Weakness) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Weakness_description(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Description, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Weakness_description(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Weakness", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _Weakness_severity(ctx context.Context, field graphql.CollectedField, obj *model.Weakness) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Weakness_severity(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Severity, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Weakness_severity(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Weakness", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _Weakness_suggestedAction(ctx context.Context, field graphql.CollectedField, obj *model.Weakness) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Weakness_suggestedAction(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.SuggestedAction, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Weakness_suggestedAction(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Weakness", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -36239,7 +37126,7 @@ func (ec *executionContext) unmarshalInputNotificationPreferencesInput(ctx conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"pauseAll", "onRunComplete", "onGateFailed", "onDeployDone", "onBudgetWarning", "onReceipt"}
+	fieldsInOrder := [...]string{"pauseAll", "onRunComplete", "onGateFailed", "onDeployDone", "onBudgetWarning", "onReceipt", "weeklyDigest"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -36288,6 +37175,13 @@ func (ec *executionContext) unmarshalInputNotificationPreferencesInput(ctx conte
 				return it, err
 			}
 			it.OnReceipt = data
+		case "weeklyDigest":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("weeklyDigest"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.WeeklyDigest = data
 		}
 	}
 	return it, nil
@@ -38225,6 +39119,60 @@ func (ec *executionContext) _BlueprintStats(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var blueprintSuccessRateImplementors = []string{"BlueprintSuccessRate"}
+
+func (ec *executionContext) _BlueprintSuccessRate(ctx context.Context, sel ast.SelectionSet, obj *model.BlueprintSuccessRate) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, blueprintSuccessRateImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("BlueprintSuccessRate")
+		case "blueprintID":
+			out.Values[i] = ec._BlueprintSuccessRate_blueprintID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "blueprintName":
+			out.Values[i] = ec._BlueprintSuccessRate_blueprintName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "successRate":
+			out.Values[i] = ec._BlueprintSuccessRate_successRate(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "avgMargin":
+			out.Values[i] = ec._BlueprintSuccessRate_avgMargin(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var brokenAuditLinkImplementors = []string{"BrokenAuditLink"}
 
 func (ec *executionContext) _BrokenAuditLink(ctx context.Context, sel ast.SelectionSet, obj *model.BrokenAuditLink) graphql.Marshaler {
@@ -39736,6 +40684,55 @@ func (ec *executionContext) _ExecutionEvent(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var gateFailureRateImplementors = []string{"GateFailureRate"}
+
+func (ec *executionContext) _GateFailureRate(ctx context.Context, sel ast.SelectionSet, obj *model.GateFailureRate) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, gateFailureRateImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("GateFailureRate")
+		case "gate":
+			out.Values[i] = ec._GateFailureRate_gate(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "failureRate":
+			out.Values[i] = ec._GateFailureRate_failureRate(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "sampleSize":
+			out.Values[i] = ec._GateFailureRate_sampleSize(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var gateIssueImplementors = []string{"GateIssue"}
 
 func (ec *executionContext) _GateIssue(ctx context.Context, sel ast.SelectionSet, obj *model.GateIssue) graphql.Marshaler {
@@ -40492,6 +41489,92 @@ func (ec *executionContext) _InlineTextDelta(ctx context.Context, sel ast.Select
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var learningDashboardImplementors = []string{"LearningDashboard"}
+
+func (ec *executionContext) _LearningDashboard(ctx context.Context, sel ast.SelectionSet, obj *model.LearningDashboard) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, learningDashboardImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("LearningDashboard")
+		case "outcomeEventsToday":
+			out.Values[i] = ec._LearningDashboard_outcomeEventsToday(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "outcomeEventsAllTime":
+			out.Values[i] = ec._LearningDashboard_outcomeEventsAllTime(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "reuseRateLast7d":
+			out.Values[i] = ec._LearningDashboard_reuseRateLast7d(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "repairRecipeHitsLast7d":
+			out.Values[i] = ec._LearningDashboard_repairRecipeHitsLast7d(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "banditConfidence":
+			out.Values[i] = ec._LearningDashboard_banditConfidence(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "averageCompletionScore":
+			out.Values[i] = ec._LearningDashboard_averageCompletionScore(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "averageMarginPctLast7d":
+			out.Values[i] = ec._LearningDashboard_averageMarginPctLast7d(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "gateFailureRates":
+			out.Values[i] = ec._LearningDashboard_gateFailureRates(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "blueprintSuccessRates":
+			out.Values[i] = ec._LearningDashboard_blueprintSuccessRates(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "weaknesses":
+			out.Values[i] = ec._LearningDashboard_weaknesses(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "lastIndexedAt":
+			out.Values[i] = ec._LearningDashboard_lastIndexedAt(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -41598,6 +42681,11 @@ func (ec *executionContext) _NotificationPreferences(ctx context.Context, sel as
 			}
 		case "onReceipt":
 			out.Values[i] = ec._NotificationPreferences_onReceipt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "weeklyDigest":
+			out.Values[i] = ec._NotificationPreferences_weeklyDigest(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -43256,6 +44344,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_healthDashboard(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "learningDashboard":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_learningDashboard(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -45530,6 +46640,60 @@ func (ec *executionContext) _WalletTopUp(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
+var weaknessImplementors = []string{"Weakness"}
+
+func (ec *executionContext) _Weakness(ctx context.Context, sel ast.SelectionSet, obj *model.Weakness) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, weaknessImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Weakness")
+		case "dimension":
+			out.Values[i] = ec._Weakness_dimension(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "description":
+			out.Values[i] = ec._Weakness_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "severity":
+			out.Values[i] = ec._Weakness_severity(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "suggestedAction":
+			out.Values[i] = ec._Weakness_suggestedAction(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var __DirectiveImplementors = []string{"__Directive"}
 
 func (ec *executionContext) ___Directive(ctx context.Context, sel ast.SelectionSet, obj *introspection.Directive) graphql.Marshaler {
@@ -46147,6 +47311,26 @@ func (ec *executionContext) marshalNBlueprintStats2ᚕironflyerᚋcoreᚋorchest
 	return ret
 }
 
+func (ec *executionContext) marshalNBlueprintSuccessRate2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBlueprintSuccessRate(ctx context.Context, sel ast.SelectionSet, v model.BlueprintSuccessRate) graphql.Marshaler {
+	return ec._BlueprintSuccessRate(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNBlueprintSuccessRate2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBlueprintSuccessRateᚄ(ctx context.Context, sel ast.SelectionSet, v []model.BlueprintSuccessRate) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNBlueprintSuccessRate2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBlueprintSuccessRate(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v any) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -46645,6 +47829,26 @@ func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.S
 	return graphql.WrapContextMarshaler(ctx, res)
 }
 
+func (ec *executionContext) marshalNGateFailureRate2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGateFailureRate(ctx context.Context, sel ast.SelectionSet, v model.GateFailureRate) graphql.Marshaler {
+	return ec._GateFailureRate(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNGateFailureRate2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGateFailureRateᚄ(ctx context.Context, sel ast.SelectionSet, v []model.GateFailureRate) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNGateFailureRate2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGateFailureRate(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) marshalNGateIssue2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGateIssue(ctx context.Context, sel ast.SelectionSet, v model.GateIssue) graphql.Marshaler {
 	return ec._GateIssue(ctx, sel, &v)
 }
@@ -46887,6 +48091,20 @@ func (ec *executionContext) marshalNJSON2ironflyerᚋcoreᚋorchestratorᚋinter
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) marshalNLearningDashboard2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐLearningDashboard(ctx context.Context, sel ast.SelectionSet, v model.LearningDashboard) graphql.Marshaler {
+	return ec._LearningDashboard(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNLearningDashboard2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐLearningDashboard(ctx context.Context, sel ast.SelectionSet, v *model.LearningDashboard) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._LearningDashboard(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNLedgerEntry2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐLedgerEntry(ctx context.Context, sel ast.SelectionSet, v model.LedgerEntry) graphql.Marshaler {
@@ -47808,6 +49026,26 @@ func (ec *executionContext) marshalNWalletTopUp2ᚕironflyerᚋcoreᚋorchestrat
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
 		return ec.marshalNWalletTopUp2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐWalletTopUp(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNWeakness2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐWeakness(ctx context.Context, sel ast.SelectionSet, v model.Weakness) graphql.Marshaler {
+	return ec._Weakness(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNWeakness2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐWeaknessᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Weakness) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNWeakness2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐWeakness(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {

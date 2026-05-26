@@ -89,6 +89,11 @@ const COCKPIT_LINKS: NavLink[] = [
     match: (p) => p.startsWith("/cockpit/health"),
   },
   {
+    label: "Learning",
+    href: "/cockpit/learning",
+    match: (p) => p.startsWith("/cockpit/learning"),
+  },
+  {
     label: "Operator",
     href: "/operator",
     match: (p) => p.startsWith("/operator"),

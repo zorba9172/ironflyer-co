@@ -116,6 +116,13 @@ agents:
           the Atlas returns nothing or every hit is structurally wrong;
           the wowloop `reuse_check` gate will reject `new` without a
           defensible justification.
+        - LEARN-FROM-FAILURE. Before committing to a plan, call
+          `learning.weaknesses` to read the Feedback Brain's current
+          top gaps (gates that fail too often, blueprints that
+          under-perform, repair-recipe misses). Avoid the gate paths
+          flagged as "high" severity and prefer blueprints with proven
+          success rates — patterns that already failed for this
+          tenant should not be silently retried.
         - BOUNDARY HONESTY. Every service / module you place MUST
           obey `.ironflyer/architecture.json`. A decomposition that
           puts business logic in the operations layer (or vice versa)
@@ -215,6 +222,12 @@ agents:
         - DIFF ECONOMY. Net LOC per patch should land under the
           profile budget (Startup: 400 / Enterprise: 200 / Regulated:
           120). When a patch must exceed the budget, split it.
+        - LEARN-FROM-FAILURE. Before composing a patch, call
+          `learning.weaknesses` to read the Feedback Brain's current
+          top gaps. If the patch would touch a gate or blueprint
+          flagged as a known weakness, add an explicit mitigation
+          comment in your output that explains how the change
+          addresses (rather than retries) the failure pattern.
         - BOUNDARY HONESTY. A new import that crosses a layering
           rule in `.ironflyer/architecture.json` will be blocked by
           the `arch_boundary` / `dep_graph` gates. Read the manifest

@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
+
+	"ironflyer/core/orchestrator/internal/ai/learning"
 )
 
 // MemoryStatsService is the in-process StatsService used in dev
@@ -43,13 +45,11 @@ func NewMemoryStatsService() *MemoryStatsService {
 // RecordRun appends to the audit list and updates the rollup row.
 // Both updates happen under the same mutex, so a concurrent Get
 // either sees both writes or neither.
-func (s *MemoryStatsService) RecordRun(_ context.Context, o RunOutcome) error {
+func (s *MemoryStatsService) RecordRun(ctx context.Context, o RunOutcome) error {
 	if err := validateOutcome(o); err != nil {
 		return err
 	}
 	s.mu.Lock()
-	defer s.mu.Unlock()
-
 	s.runs = append(s.runs, o)
 
 	row, ok := s.rows[o.BlueprintID]
@@ -75,7 +75,40 @@ func (s *MemoryStatsService) RecordRun(_ context.Context, o RunOutcome) error {
 		row.timeToPreviewCount++
 	}
 	row.updatedAt = time.Now().UTC()
+	s.mu.Unlock()
+	publishBlueprintOutcome(ctx, o)
 	return nil
+}
+
+// publishBlueprintOutcome surfaces one run as a KindBlueprintUsed
+// OutcomeEvent. Best-effort; the global publisher is nil-safe.
+func publishBlueprintOutcome(ctx context.Context, o RunOutcome) {
+	margin := o.RevenueUSD.Sub(o.CostUSD)
+	var marginPct float64
+	rev, _ := o.RevenueUSD.Float64()
+	cost, _ := o.CostUSD.Float64()
+	if rev > 0 {
+		marginPct = (rev - cost) / rev * 100
+	}
+	learning.Publish(ctx, learning.OutcomeEvent{
+		ExecutionID: o.ExecutionID.String(),
+		TenantID:    o.TenantID.String(),
+		Kind:        learning.KindBlueprintUsed,
+		Attributes: map[string]any{
+			"blueprint_id":     o.BlueprintID,
+			"preview_success":  o.PreviewSuccess,
+			"repaired":         o.Repaired,
+			"refunded":         o.Refunded,
+			"completion_score": o.CompletionScore,
+			"margin_pct":       marginPct,
+		},
+		Success:   learning.BoolPtr(o.PreviewSuccess && !o.Refunded),
+		CostUSD:   learning.DecimalPtr(o.CostUSD),
+		MarginUSD: learning.DecimalPtr(margin),
+		Tags: map[string]string{
+			"blueprint_id": o.BlueprintID,
+		},
+	})
 }
 
 // Get assembles Stats from the rollup row, or returns ErrNoStats.

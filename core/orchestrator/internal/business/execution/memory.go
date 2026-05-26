@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
+	"ironflyer/core/orchestrator/internal/ai/learning"
 	"ironflyer/core/orchestrator/internal/operations/metrics"
 )
 
@@ -222,6 +223,7 @@ func (m *Memory) Succeed(ctx context.Context, id string) error {
 	}
 	metrics.ObserveExecutionCompleted("success")
 	m.emit(id, EventSucceeded, nil)
+	m.publishTerminal(ctx, id, "succeeded", true, "")
 	return nil
 }
 
@@ -235,6 +237,7 @@ func (m *Memory) Fail(ctx context.Context, id, reason string) error {
 	}
 	metrics.ObserveExecutionCompleted(classifyTerminalOutcome("failure", reason))
 	m.emit(id, EventFailed, mustJSON(map[string]string{"reason": reason}))
+	m.publishTerminal(ctx, id, "failed", false, reason)
 	return nil
 }
 
@@ -248,6 +251,7 @@ func (m *Memory) Stop(ctx context.Context, id, reason string) error {
 	}
 	metrics.ObserveExecutionCompleted(classifyTerminalOutcome("failure", reason))
 	m.emit(id, EventStopped, mustJSON(map[string]string{"reason": reason}))
+	m.publishTerminal(ctx, id, "stopped", false, reason)
 	return nil
 }
 
@@ -261,7 +265,47 @@ func (m *Memory) Kill(ctx context.Context, id, reason string) error {
 	}
 	metrics.ObserveExecutionCompleted(classifyTerminalOutcome("killed", reason))
 	m.emit(id, EventKilled, mustJSON(map[string]string{"reason": reason}))
+	m.publishTerminal(ctx, id, "killed", false, reason)
 	return nil
+}
+
+// publishTerminal emits a KindExecutionComplete OutcomeEvent so the
+// Feedback Brain miner can learn from every terminal transition.
+// Best-effort: missing globals or marshal errors are silently dropped
+// so the FSM step stays a single read of (status, ended_at).
+func (m *Memory) publishTerminal(ctx context.Context, id, finalStatus string, success bool, reason string) {
+	row, err := m.Get(ctx, id)
+	if err != nil {
+		return
+	}
+	cost := learning.DecimalPtr(row.SpentUSD)
+	var marginPct float64
+	rev, _ := row.RevenueUSD.Float64()
+	spent, _ := row.SpentUSD.Float64()
+	if rev > 0 {
+		marginPct = (rev - spent) / rev * 100
+	}
+	margin := row.RevenueUSD.Sub(row.SpentUSD)
+	marginPtr := learning.DecimalPtr(margin)
+	attrs := map[string]any{
+		"final_status":     finalStatus,
+		"blueprint_id":     row.BlueprintID,
+		"completion_score": row.CompletionScore,
+		"reason":           reason,
+		"margin_pct":       marginPct,
+	}
+	learning.Publish(ctx, learning.OutcomeEvent{
+		ExecutionID: id,
+		TenantID:    row.TenantID,
+		Kind:        learning.KindExecutionComplete,
+		Attributes:  attrs,
+		Success:     learning.BoolPtr(success),
+		CostUSD:     cost,
+		MarginUSD:   marginPtr,
+		Tags: map[string]string{
+			"blueprint_id": row.BlueprintID,
+		},
+	})
 }
 
 // classifyTerminalOutcome maps a Fail/Stop/Kill reason string to the

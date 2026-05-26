@@ -74,6 +74,12 @@ Context for an incoming operator. The recent commit wave (see
 - **Cold-start parallelism + lazy modes** — daemons start in
   parallel groups, heavy subsystems (ClickHouse, Temporal) lazy-
   init on first use.
+- **Feedback Brain MVP** — OutcomeEvent stream + ClickHouse facts
+  + Pattern Miner + Closure Intelligence + Weakness identification.
+  Web dashboard at `/cockpit/learning` with 6 panels (LearningPulse,
+  BanditConfidence, GateFailureRate, BlueprintSuccess, Weaknesses,
+  LearningRecap). Anti-Bloat moat made measurable. See
+  [`docs/FEEDBACK_BRAIN.md`](FEEDBACK_BRAIN.md).
 
 If any of the above is unclear, re-read
 `docs/PROJECT_CLOSEOUT_PLAN.md` before continuing.
@@ -135,8 +141,7 @@ Required keys (set each with `pulumi config set --secret`):
 | `ironflyer:githubAppPrivateKey` | `cat ironflyer-app.pem` |
 | `ironflyer:githubAppWebhookSecret` | GitHub App webhook secret |
 | `ironflyer:resendApiKey` | Resend transactional email (`re_...`) |
-| `ironflyer:sentryDsnOrchestrator` | Sentry Go project DSN |
-| `ironflyer:sentryDsnWeb` | Sentry Next.js project DSN |
+| `ironflyer:glitchtipDatabaseUrl` | Managed-Postgres DSN for the `glitchtip` database (see step 5) |
 | `ironflyer:superuserEmail` | initial admin user |
 | `ironflyer:superuserPassword` | initial admin password (rotate after first login) |
 
@@ -188,16 +193,55 @@ curl -sS https://api.stripe.com/v1/balance \
 A non-error response means the key is alive. If you see
 `Invalid API Key`, it is a test key.
 
-### 5. Sentry org + projects
+### 5. GlitchTip — self-hosted Sentry-compatible error tracker
 
-- Create projects:
-  - `ironflyer-orchestrator` (Go)
-  - `ironflyer-web` (Next.js)
-  - `ironflyer-vscode-extension` (Node)
-- Copy each DSN into the matching Pulumi secret.
-- Configure release tracking against the `IMAGE_TAG` Pulumi sets
-  on rollouts (so source maps + Go symbol uploads tie to the
-  same release).
+Ironflyer ships its own error tracker inside the Helm chart instead
+of paying for Sentry SaaS. The DSN format is wire-identical, so the
+`@sentry/*` and `sentry-go` SDKs we already use point at GlitchTip
+without a single code change. Full runbook:
+[`docs/OBSERVABILITY_GLITCHTIP.md`](OBSERVABILITY_GLITCHTIP.md).
+
+Two pieces happen here in the preflight; the rest happens AFTER the
+first `pulumi up` because the GlitchTip URL only exists post-deploy.
+
+Now (preflight):
+
+- Pre-create the `glitchtip` Postgres database + role on the managed
+  DO Postgres cluster (see `OBSERVABILITY_GLITCHTIP.md § Database
+  bootstrap`) and capture the DSN.
+- Stash the DSN in Pulumi config so the Helm release picks it up:
+
+  ```bash
+  pulumi config set --secret ironflyer:glitchtipDatabaseUrl \
+    "postgres://glitchtip:<pw>@<managed-host>:25060/glitchtip?sslmode=require"
+  ```
+
+After `pulumi up` (deferred to §2c § post-deploy):
+
+- Visit <https://errors.ironflyer.ai>, sign up the first user
+  (becomes superuser on a fresh install).
+- Create the `ironflyer` organization, then create three projects:
+  `orchestrator` (Go), `web` (JavaScript / Next.js),
+  `vscode-extension` (Node).
+- Copy each DSN into `.env.production.local`:
+
+  ```bash
+  SENTRY_DSN_ORCHESTRATOR=https://<key>@errors.ironflyer.ai/<id>
+  SENTRY_DSN_WEB=https://<key>@errors.ironflyer.ai/<id>
+  NEXT_PUBLIC_SENTRY_DSN=https://<key>@errors.ironflyer.ai/<id>
+  SENTRY_DSN_VSCODE_EXTENSION=https://<key>@errors.ironflyer.ai/<id>
+  ```
+
+- Re-run the secrets loader + redeploy:
+
+  ```bash
+  bash scripts/load-secrets-to-pulumi.sh prod-ams3
+  pulumi up
+  ```
+
+- Flip `glitchtip.enableUserRegistration: false` in
+  `infra/helm/ironflyer/values-prod.yaml` and re-run `helm upgrade`
+  to lock signups now that the admin exists.
 
 ### 6. GitHub App
 

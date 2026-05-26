@@ -16,6 +16,7 @@ query NotificationPreferences {
   notificationPreferences {
     userId
     pauseAll
+    weeklyDigest
     onRunComplete {
       email
       inApp
@@ -54,6 +55,7 @@ mutation UpdateNotificationPreferences($input: NotificationPreferencesInput!) {
   updateNotificationPreferences(input: $input) {
     userId
     pauseAll
+    weeklyDigest
     onRunComplete {
       email
       inApp

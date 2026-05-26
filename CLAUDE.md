@@ -110,6 +110,12 @@ alongside the existing exception list above and document it here.
   `revenue − providerCost = margin` at the platform aggregate level.
 - **Per-user isolation.** Workspaces, projects, wallets, tokens —
   every store has an owner check.
+- **Every business event that materially changes state should emit an
+  `OutcomeEvent`** via `learning.Publish(...)`. The system uses these
+  to evolve its own strategy via the Pattern Miner (Feedback Brain).
+  New mutating endpoints/resolvers should add the emission as part
+  of the change. Source of truth for the contract:
+  [`docs/FEEDBACK_BRAIN.md`](docs/FEEDBACK_BRAIN.md).
 
 ## Language, brand voice, and market position
 

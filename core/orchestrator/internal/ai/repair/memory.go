@@ -8,6 +8,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
+
+	"ironflyer/core/orchestrator/internal/ai/learning"
 )
 
 // MemoryGenome is the in-memory Genome implementation. State is kept
@@ -42,16 +44,29 @@ func (g *MemoryGenome) Record(_ context.Context, sig, category string, fix map[s
 }
 
 // Lookup returns the recipe and increments Hits / LastHitAt on match.
-func (g *MemoryGenome) Lookup(_ context.Context, sig string) (Recipe, bool, error) {
+func (g *MemoryGenome) Lookup(ctx context.Context, sig string) (Recipe, bool, error) {
 	g.mu.Lock()
-	defer g.mu.Unlock()
 	r, ok := g.bySig[sig]
 	if !ok {
+		g.mu.Unlock()
 		return Recipe{}, false, nil
 	}
 	r.Hits++
 	r.LastHitAt = time.Now().UTC()
-	return *r, true, nil
+	out := *r
+	g.mu.Unlock()
+	// Feedback Brain: a recipe match means we reused a learned fix.
+	learning.Publish(ctx, learning.OutcomeEvent{
+		Kind:       learning.KindRepairTriggered,
+		Attributes: map[string]any{
+			"signature": sig,
+			"category":  out.Category,
+			"hits":      out.Hits,
+			"reused":    true,
+		},
+		Success: learning.BoolPtr(true),
+	})
+	return out, true, nil
 }
 
 // MarkSuccess increments the Successes counter for the signature.

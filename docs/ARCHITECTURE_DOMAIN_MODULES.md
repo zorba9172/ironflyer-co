@@ -68,6 +68,7 @@ scoring, patch authoring, and gate-driven repair.
 - `ai/scaffold` — StackSpec → starter template → patch.Patch through the standard apply pipeline.
 - `ai/repair` — repair genome: failure signature → fix recipe with hits/successes and patch memory.
 - `ai/domain` — canonical artifact + gate name constants the finisher pipeline and gates agree on.
+- `ai/learning` — Feedback Brain: OutcomeEvent stream, Pattern Miner, Strategy Adapter, Closure Score, Weakness identification. See [`docs/FEEDBACK_BRAIN.md`](FEEDBACK_BRAIN.md).
 
 ## 3. Operations
 

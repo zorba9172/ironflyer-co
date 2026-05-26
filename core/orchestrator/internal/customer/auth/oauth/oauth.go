@@ -177,6 +177,29 @@ func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
 			h.logger.Warn().Err(derr).Str("provider", name).Str("user_id", u.ID).Msg("oauth: welcome email dispatch failed")
 		}
 	}
+	if !isNew && h.notifier != nil && h.sessions != nil {
+		ip := clientIP(r)
+		ua := r.UserAgent()
+		if prior, perr := h.sessions.List(r.Context(), u.ID); perr == nil && len(prior) > 0 {
+			last := prior[0]
+			if oauthIsNewDevice(last.IPAddress, last.UserAgent, ip, ua) {
+				displayName := u.Name
+				if strings.TrimSpace(displayName) == "" {
+					if i := strings.IndexByte(u.Email, '@'); i > 0 {
+						displayName = u.Email[:i]
+					}
+				}
+				if derr := h.notifier.Dispatch(r.Context(), u.ID, u.Email, notify.KindNewDeviceLogin, notify.NewDeviceLoginPayload{
+					Name:       displayName,
+					IPAddress:  ip,
+					UserAgent:  ua,
+					LoggedInAt: time.Now().UTC(),
+				}); derr != nil {
+					h.logger.Warn().Err(derr).Str("provider", name).Str("user_id", u.ID).Msg("oauth: new-device dispatch failed")
+				}
+			}
+		}
+	}
 	jti := auth.NewJTI()
 	token, _, err := h.auth.IssueTokenWithJTI(u, jti, 0)
 	if err != nil {
@@ -221,8 +244,12 @@ func (h *Handler) redirectTarget(r *http.Request) string {
 		return candidate
 	}
 	if u, err := url.Parse(base); err == nil {
-		u.Path = candidate
-		u.RawQuery = ""
+		target, terr := url.Parse(candidate)
+		if terr != nil || target.IsAbs() || target.Host != "" || !strings.HasPrefix(target.Path, "/") {
+			return h.defaultPostLoginURL
+		}
+		u.Path = target.Path
+		u.RawQuery = target.RawQuery
 		u.Fragment = ""
 		return u.String()
 	}
@@ -279,6 +306,25 @@ func buildRedirect(returnTo, token string, exp time.Time) string {
 		returnTo = returnTo[:idx]
 	}
 	return returnTo + frag
+}
+
+// oauthIsNewDevice mirrors resolver.isNewDevice — kept private to this
+// package so the oauth handler doesn't import a graph-resolver helper.
+func oauthIsNewDevice(priorIP, priorUA, ip, ua string) bool {
+	if strings.TrimSpace(ip) == "" && strings.TrimSpace(ua) == "" {
+		return false
+	}
+	if priorIP != ip {
+		return true
+	}
+	return oauthUAPrefix(priorUA) != oauthUAPrefix(ua)
+}
+
+func oauthUAPrefix(ua string) string {
+	if len(ua) <= 30 {
+		return ua
+	}
+	return ua[:30]
 }
 
 func clientIP(r *http.Request) string {

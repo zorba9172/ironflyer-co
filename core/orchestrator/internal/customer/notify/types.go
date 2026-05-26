@@ -31,6 +31,9 @@ type NotificationRule struct {
 	OnDeployDone    ChannelPref `json:"onDeployDone"`
 	OnBudgetWarning ChannelPref `json:"onBudgetWarning"`
 	OnReceipt       ChannelPref `json:"onReceipt"`
+	// WeeklyDigest is the opt-in toggle for KindWeeklyDigest. Default
+	// false — only users who explicitly enable it get the Sunday digest.
+	WeeklyDigest bool `json:"weeklyDigest"`
 }
 
 // DefaultRule returns the opt-in baseline: every topic enabled on both

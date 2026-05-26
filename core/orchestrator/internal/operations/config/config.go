@@ -279,6 +279,12 @@ type Config struct {
 	// Defaults to the dev web origin.
 	DashboardURL string `env:"IRONFLYER_DASHBOARD_URL" envDefault:"http://localhost:3000"`
 
+	// WalletLowBalanceThresholdCents is the per-user wallet balance
+	// (in cents) below which the notify.LowBalance alert fires once per
+	// day per user. Default 500 ($5.00). Setting this to 0 disables the
+	// alert by falling back to the package default.
+	WalletLowBalanceThresholdCents int `env:"IRONFLYER_WALLET_LOW_BALANCE_THRESHOLD_CENTS" envDefault:"500"`
+
 	// -------------------- DB provisioner (optional) -----------------------
 	// DBProvisioner selects which backend the finisher's DB step calls
 	// when a project needs a database. "none" (default) skips provisioning;

@@ -11,6 +11,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/shopspring/decimal"
+
+	"ironflyer/core/orchestrator/internal/ai/learning"
 )
 
 // PostgresGenome is the Postgres-backed Genome implementation. It
@@ -60,6 +62,18 @@ func (g *PostgresGenome) Lookup(ctx context.Context, sig string) (Recipe, bool, 
 		}
 		return Recipe{}, false, err
 	}
+	// Feedback Brain: a recipe hit means we reused a learned fix —
+	// publish so the miner can grow our reuse-rate metric.
+	learning.Publish(ctx, learning.OutcomeEvent{
+		Kind: learning.KindRepairTriggered,
+		Attributes: map[string]any{
+			"signature": sig,
+			"category":  r.Category,
+			"hits":      r.Hits,
+			"reused":    true,
+		},
+		Success: learning.BoolPtr(true),
+	})
 	return r, true, nil
 }
 

@@ -196,6 +196,13 @@ type BlueprintStats struct {
 	AvgTimeToPreviewSec float64 `json:"avgTimeToPreviewSec"`
 }
 
+type BlueprintSuccessRate struct {
+	BlueprintID   string  `json:"blueprintID"`
+	BlueprintName string  `json:"blueprintName"`
+	SuccessRate   float64 `json:"successRate"`
+	AvgMargin     float64 `json:"avgMargin"`
+}
+
 type BrokenAuditLink struct {
 	AtEntryID        string `json:"atEntryID"`
 	ExpectedPrevHash string `json:"expectedPrevHash"`
@@ -503,6 +510,12 @@ type ExecutionEvent struct {
 	CreatedAt   time.Time `json:"createdAt"`
 }
 
+type GateFailureRate struct {
+	Gate        string  `json:"gate"`
+	FailureRate float64 `json:"failureRate"`
+	SampleSize  int     `json:"sampleSize"`
+}
+
 type GateIssue struct {
 	Path     *string `json:"path,omitempty"`
 	Line     *int    `json:"line,omitempty"`
@@ -641,6 +654,20 @@ type InlineTextDelta struct {
 }
 
 func (InlineTextDelta) IsInlineDelta() {}
+
+type LearningDashboard struct {
+	OutcomeEventsToday     int                    `json:"outcomeEventsToday"`
+	OutcomeEventsAllTime   int                    `json:"outcomeEventsAllTime"`
+	ReuseRateLast7d        float64                `json:"reuseRateLast7d"`
+	RepairRecipeHitsLast7d int                    `json:"repairRecipeHitsLast7d"`
+	BanditConfidence       float64                `json:"banditConfidence"`
+	AverageCompletionScore float64                `json:"averageCompletionScore"`
+	AverageMarginPctLast7d float64                `json:"averageMarginPctLast7d"`
+	GateFailureRates       []GateFailureRate      `json:"gateFailureRates"`
+	BlueprintSuccessRates  []BlueprintSuccessRate `json:"blueprintSuccessRates"`
+	Weaknesses             []Weakness             `json:"weaknesses"`
+	LastIndexedAt          *time.Time             `json:"lastIndexedAt,omitempty"`
+}
 
 type LedgerEntry struct {
 	ID               string    `json:"id"`
@@ -796,6 +823,7 @@ type NotificationPreferences struct {
 	OnDeployDone    ChannelPref `json:"onDeployDone"`
 	OnBudgetWarning ChannelPref `json:"onBudgetWarning"`
 	OnReceipt       ChannelPref `json:"onReceipt"`
+	WeeklyDigest    bool        `json:"weeklyDigest"`
 }
 
 type NotificationPreferencesInput struct {
@@ -805,6 +833,7 @@ type NotificationPreferencesInput struct {
 	OnDeployDone    *ChannelPrefInput `json:"onDeployDone,omitempty"`
 	OnBudgetWarning *ChannelPrefInput `json:"onBudgetWarning,omitempty"`
 	OnReceipt       *ChannelPrefInput `json:"onReceipt,omitempty"`
+	WeeklyDigest    *bool             `json:"weeklyDigest,omitempty"`
 }
 
 type OperationResult struct {
@@ -1279,6 +1308,13 @@ type WalletTopUp struct {
 	Status      string     `json:"status"`
 	CreatedAt   time.Time  `json:"createdAt"`
 	CompletedAt *time.Time `json:"completedAt,omitempty"`
+}
+
+type Weakness struct {
+	Dimension       string `json:"dimension"`
+	Description     string `json:"description"`
+	Severity        string `json:"severity"`
+	SuggestedAction string `json:"suggestedAction"`
 }
 
 type WriteProjectFileInput struct {

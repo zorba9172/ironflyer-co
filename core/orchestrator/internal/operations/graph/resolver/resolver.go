@@ -29,6 +29,7 @@ import (
 	"ironflyer/core/orchestrator/internal/ai/finisher"
 	"ironflyer/core/orchestrator/internal/business/forecast"
 	"ironflyer/core/orchestrator/internal/ai/ideaparser"
+	"ironflyer/core/orchestrator/internal/ai/learning"
 	"ironflyer/core/orchestrator/internal/business/ledger"
 	"ironflyer/core/orchestrator/internal/ai/memorygraph"
 	"ironflyer/core/orchestrator/internal/operations/mobile/appetize"
@@ -239,6 +240,13 @@ type Resolver struct {
 	// values so the cockpit panels render their "report not wired"
 	// empty states without surfacing an error.
 	HealthReportPaths HealthReportPaths
+
+	// LearningStore + LearningPublisher are the Feedback Brain
+	// dashboard inputs. Nil-safe at the resolver layer — when nil
+	// the learningDashboard resolver returns a zero-value snapshot
+	// so the panel still renders.
+	LearningStore     learning.Store
+	LearningPublisher *learning.Publisher
 }
 
 // HealthReportPaths captures the file paths the resolver consults to

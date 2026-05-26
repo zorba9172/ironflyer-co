@@ -230,3 +230,63 @@ func (r *queryResolver) HealthDashboard(ctx context.Context) (*model.HealthMetri
 
 	return out, nil
 }
+
+// LearningDashboard is the resolver for the learningDashboard field.
+//
+// Per-tenant view: the resolver derives the caller's tenant id from
+// the authenticated user and passes it through the learning store.
+// When LearningStore is not wired the resolver still returns a well-
+// formed empty snapshot so the dashboard panel can render its
+// "Feedback Brain bootstrapping" empty state.
+func (r *queryResolver) LearningDashboard(ctx context.Context) (*model.LearningDashboard, error) {
+	u, err := currentUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	tenantID := tenantFor(u)
+	out := &model.LearningDashboard{
+		GateFailureRates:      []model.GateFailureRate{},
+		BlueprintSuccessRates: []model.BlueprintSuccessRate{},
+		Weaknesses:            []model.Weakness{},
+	}
+	if r.LearningStore == nil {
+		return out, nil
+	}
+	snap, err := r.LearningStore.Snapshot(ctx, tenantID)
+	if err != nil {
+		return out, nil
+	}
+	out.OutcomeEventsToday = snap.OutcomeEventsToday
+	out.OutcomeEventsAllTime = snap.OutcomeEventsAllTime
+	out.ReuseRateLast7d = snap.ReuseRateLast7d
+	out.RepairRecipeHitsLast7d = snap.RepairRecipeHitsLast7d
+	out.BanditConfidence = snap.BanditConfidence
+	out.AverageCompletionScore = snap.AverageCompletionScore
+	out.AverageMarginPctLast7d = snap.AverageMarginPctLast7d
+	out.LastIndexedAt = snap.LastIndexedAt
+	for gate, rate := range snap.GateFailureRateLast7d {
+		out.GateFailureRates = append(out.GateFailureRates, model.GateFailureRate{
+			Gate:        gate,
+			FailureRate: rate,
+			SampleSize:  0,
+		})
+	}
+	for bp, rate := range snap.BlueprintSuccessRate {
+		out.BlueprintSuccessRates = append(out.BlueprintSuccessRates, model.BlueprintSuccessRate{
+			BlueprintID:   bp,
+			BlueprintName: bp,
+			SuccessRate:   rate,
+			AvgMargin:     0,
+		})
+	}
+	weaknesses, _ := r.LearningStore.WeaknessTop(ctx, tenantID, 5)
+	for _, w := range weaknesses {
+		out.Weaknesses = append(out.Weaknesses, model.Weakness{
+			Dimension:       w.Dimension,
+			Description:     w.Description,
+			Severity:        w.Severity,
+			SuggestedAction: w.SuggestedAction,
+		})
+	}
+	return out, nil
+}

@@ -2,6 +2,8 @@ package notify
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -24,7 +26,52 @@ const (
 	KindGateFailed    Kind = "gate_failed"
 	KindDeployDone    Kind = "deploy_done"
 	KindBudgetWarning Kind = "budget_warning"
+	KindMFAEnabled    Kind = "mfa_enabled"
+	KindNewDeviceLogin Kind = "new_device_login"
+	KindLowBalance    Kind = "low_balance"
+	KindWeeklyDigest  Kind = "weekly_digest"
 )
+
+// MFAEnabledPayload is the data bag for KindMFAEnabled.
+type MFAEnabledPayload struct {
+	Name       string    `json:"name,omitempty"`
+	EnrolledAt time.Time `json:"enrolledAt"`
+}
+
+// NewDeviceLoginPayload is the data bag for KindNewDeviceLogin.
+type NewDeviceLoginPayload struct {
+	Name       string    `json:"name,omitempty"`
+	IPAddress  string    `json:"ipAddress,omitempty"`
+	UserAgent  string    `json:"userAgent,omitempty"`
+	Location   string    `json:"location,omitempty"`
+	LoggedInAt time.Time `json:"loggedInAt"`
+}
+
+// LowBalancePayload is the data bag for KindLowBalance.
+type LowBalancePayload struct {
+	Name           string `json:"name,omitempty"`
+	Currency       string `json:"currency"`
+	BalanceCents   int    `json:"balanceCents"`
+	ThresholdCents int    `json:"thresholdCents"`
+}
+
+// WeeklyDigestCounts is the metric bag for KindWeeklyDigest.
+type WeeklyDigestCounts struct {
+	Runs       int    `json:"runs"`
+	Gates      int    `json:"gates"`
+	Deploys    int    `json:"deploys"`
+	Refusals   int    `json:"refusals"`
+	SpendCents int    `json:"spendCents"`
+	Currency   string `json:"currency"`
+}
+
+// WeeklyDigestPayload is the data bag for KindWeeklyDigest.
+type WeeklyDigestPayload struct {
+	Name         string             `json:"name,omitempty"`
+	PeriodLabel  string             `json:"periodLabel"`
+	Counts       WeeklyDigestCounts `json:"counts"`
+	DashboardURL string             `json:"dashboardUrl,omitempty"`
+}
 
 // WelcomePayload is the data bag for KindWelcome.
 type WelcomePayload struct {
@@ -85,9 +132,12 @@ type BudgetWarningPayload struct {
 // PrefsStore.PauseAll. Welcome, PasswordReset, and Receipt cannot be
 // silenced.
 var alwaysSendKinds = map[Kind]bool{
-	KindWelcome:       true,
-	KindPasswordReset: true,
-	KindReceipt:       true,
+	KindWelcome:        true,
+	KindPasswordReset:  true,
+	KindReceipt:        true,
+	KindMFAEnabled:     true,
+	KindNewDeviceLogin: true,
+	KindLowBalance:     true,
 }
 
 // Dispatcher is the single entry point for every notification. It
@@ -216,12 +266,23 @@ func (d *Dispatcher) resolveChannels(ctx context.Context, userID string, kind Ki
 	if kind == KindWelcome || kind == KindPasswordReset {
 		return true, true
 	}
+	// Security + financial: cannot be silenced by prefs at all. Both
+	// channels always.
+	if kind == KindMFAEnabled || kind == KindNewDeviceLogin || kind == KindLowBalance {
+		return true, true
+	}
 	if d.prefs == nil {
+		if kind == KindWeeklyDigest {
+			return false, false
+		}
 		return true, true
 	}
 	rule, err := d.prefs.Get(ctx, userID)
 	if err != nil {
 		d.logger.Debug().Err(err).Str("user", userID).Msg("notify: prefs lookup failed")
+		if kind == KindWeeklyDigest {
+			return false, false
+		}
 		return true, true
 	}
 	if rule.PauseAll && !alwaysSendKinds[kind] {
@@ -238,6 +299,11 @@ func (d *Dispatcher) resolveChannels(ctx context.Context, userID string, kind Ki
 		return rule.OnDeployDone.Email, rule.OnDeployDone.InApp
 	case KindBudgetWarning:
 		return rule.OnBudgetWarning.Email, rule.OnBudgetWarning.InApp
+	case KindWeeklyDigest:
+		if !rule.WeeklyDigest {
+			return false, false
+		}
+		return true, true
 	}
 	return true, true
 }
@@ -315,6 +381,40 @@ func payloadRefID(kind Kind, payload any) (string, error) {
 			return "", fmt.Errorf("notify: kind=%s expected BudgetWarningPayload, got %T", kind, payload)
 		}
 		return p.ProjectID + ":" + time.Now().UTC().Format("20060102"), nil
+	case KindMFAEnabled:
+		p, ok := payload.(MFAEnabledPayload)
+		if !ok {
+			return "", fmt.Errorf("notify: kind=%s expected MFAEnabledPayload, got %T", kind, payload)
+		}
+		at := p.EnrolledAt
+		if at.IsZero() {
+			at = time.Now().UTC()
+		}
+		return fmt.Sprintf("%d", at.Unix()), nil
+	case KindNewDeviceLogin:
+		p, ok := payload.(NewDeviceLoginPayload)
+		if !ok {
+			return "", fmt.Errorf("notify: kind=%s expected NewDeviceLoginPayload, got %T", kind, payload)
+		}
+		day := p.LoggedInAt
+		if day.IsZero() {
+			day = time.Now().UTC()
+		}
+		sum := sha256.Sum256([]byte(p.IPAddress + "|" + p.UserAgent + "|" + day.UTC().Format("20060102")))
+		return hex.EncodeToString(sum[:])[:16], nil
+	case KindLowBalance:
+		_, ok := payload.(LowBalancePayload)
+		if !ok {
+			return "", fmt.Errorf("notify: kind=%s expected LowBalancePayload, got %T", kind, payload)
+		}
+		return time.Now().UTC().Format("20060102"), nil
+	case KindWeeklyDigest:
+		_, ok := payload.(WeeklyDigestPayload)
+		if !ok {
+			return "", fmt.Errorf("notify: kind=%s expected WeeklyDigestPayload, got %T", kind, payload)
+		}
+		y, w := time.Now().UTC().ISOWeek()
+		return fmt.Sprintf("%04d-%02d", y, w), nil
 	}
 	return "", fmt.Errorf("notify: unknown kind %q", kind)
 }
@@ -369,6 +469,30 @@ func renderEmail(kind Kind, raw []byte, dashboardURL string) (EmailContent, erro
 			return EmailContent{}, err
 		}
 		return renderBudgetWarning(p.ProjectName, dashboardURL), nil
+	case KindMFAEnabled:
+		var p MFAEnabledPayload
+		if err := json.Unmarshal(raw, &p); err != nil {
+			return EmailContent{}, err
+		}
+		return renderMFAEnabled(p.Name, p.EnrolledAt, dashboardURL), nil
+	case KindNewDeviceLogin:
+		var p NewDeviceLoginPayload
+		if err := json.Unmarshal(raw, &p); err != nil {
+			return EmailContent{}, err
+		}
+		return renderNewDeviceLogin(p.Name, p.IPAddress, p.UserAgent, p.Location, p.LoggedInAt, dashboardURL), nil
+	case KindLowBalance:
+		var p LowBalancePayload
+		if err := json.Unmarshal(raw, &p); err != nil {
+			return EmailContent{}, err
+		}
+		return renderLowBalance(p.Name, p.Currency, p.BalanceCents, p.ThresholdCents, dashboardURL), nil
+	case KindWeeklyDigest:
+		var p WeeklyDigestPayload
+		if err := json.Unmarshal(raw, &p); err != nil {
+			return EmailContent{}, err
+		}
+		return renderWeeklyDigest(p.Name, p.PeriodLabel, p.Counts, dashboardURL), nil
 	}
 	return EmailContent{}, fmt.Errorf("notify: render unknown kind %q", kind)
 }
@@ -465,6 +589,68 @@ func renderInApp(kind Kind, raw []byte, dashboardURL string) (Notification, erro
 			Body:     "Usage for " + p.ProjectName + " is approaching the plan cap.",
 			Link:     dashboardURL,
 			Severity: "warning",
+		}, nil
+	case KindMFAEnabled:
+		var p MFAEnabledPayload
+		if err := json.Unmarshal(raw, &p); err != nil {
+			return Notification{}, err
+		}
+		_ = p
+		return Notification{
+			Kind:     string(kind),
+			Title:    "Two-factor authentication enabled",
+			Body:     "MFA is now active on your Ironflyer account. If this wasn't you, reset your password and revoke all sessions.",
+			Link:     securityLink(dashboardURL),
+			Severity: "info",
+		}, nil
+	case KindNewDeviceLogin:
+		var p NewDeviceLoginPayload
+		if err := json.Unmarshal(raw, &p); err != nil {
+			return Notification{}, err
+		}
+		where := p.Location
+		if where == "" {
+			where = p.IPAddress
+		}
+		title := "New sign-in"
+		if where != "" {
+			title = "New sign-in from " + where
+		}
+		body := "A new device just signed in to your account."
+		if p.UserAgent != "" {
+			body += " Device: " + truncateUA(p.UserAgent, 80) + "."
+		}
+		body += " If this wasn't you, change your password and revoke all sessions."
+		return Notification{
+			Kind:     string(kind),
+			Title:    title,
+			Body:     body,
+			Link:     securityLink(dashboardURL),
+			Severity: "warning",
+		}, nil
+	case KindLowBalance:
+		var p LowBalancePayload
+		if err := json.Unmarshal(raw, &p); err != nil {
+			return Notification{}, err
+		}
+		return Notification{
+			Kind:     string(kind),
+			Title:    "Wallet balance below " + formatMoney(p.Currency, p.ThresholdCents),
+			Body:     "Your wallet balance is " + formatMoney(p.Currency, p.BalanceCents) + ". Paid executions refuse with 402 once the balance hits zero.",
+			Link:     walletLink(dashboardURL),
+			Severity: "warning",
+		}, nil
+	case KindWeeklyDigest:
+		var p WeeklyDigestPayload
+		if err := json.Unmarshal(raw, &p); err != nil {
+			return Notification{}, err
+		}
+		return Notification{
+			Kind:     string(kind),
+			Title:    "Your Ironflyer week",
+			Body:     fmt.Sprintf("%d runs, %d deploys, %d gates failed, %d refusals.", p.Counts.Runs, p.Counts.Deploys, p.Counts.Gates, p.Counts.Refusals),
+			Link:     dashboardURL,
+			Severity: "info",
 		}, nil
 	}
 	return Notification{}, fmt.Errorf("notify: in-app render unknown kind %q", kind)
