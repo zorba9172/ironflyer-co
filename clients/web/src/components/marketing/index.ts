@@ -18,3 +18,6 @@ export type {
 } from "./ComparisonTable";
 export { CtaBand } from "./CtaBand";
 export type { CtaBandProps } from "./CtaBand";
+export { BrandBackdrop } from "./BrandBackdrop";
+export { ProductTheater } from "./ProductTheater";
+export { LanguageSwitcher } from "./LanguageSwitcher";

@@ -10,6 +10,8 @@ import { Box, Button, Stack, Typography } from "@mui/material";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { tokens } from "../../theme";
+import { BrandBackdrop } from "./BrandBackdrop";
+import { ProductTheater } from "./ProductTheater";
 
 export interface MarketingHeroProps {
   eyebrow?: string;
@@ -19,6 +21,7 @@ export interface MarketingHeroProps {
   secondary?: { href: string; label: string };
   proofChips?: string[];
   aside?: ReactNode;
+  accentText?: string;
 }
 
 export function MarketingHero({
@@ -29,37 +32,34 @@ export function MarketingHero({
   secondary,
   proofChips,
   aside,
+  accentText,
 }: MarketingHeroProps) {
+  const visual = aside ?? <ProductTheater />;
+
   return (
     <Box
       component="section"
       sx={{
         position: "relative",
-        py: { xs: 8, md: 14 },
+        px: { xs: 2, md: 4 },
+        py: { xs: 8, md: 12 },
         overflow: "hidden",
+        minHeight: { md: "calc(100vh - 70px)" },
+        display: "grid",
+        alignItems: "center",
       }}
     >
-      <Box
-        aria-hidden
-        sx={{
-          position: "absolute",
-          inset: 0,
-          background: `radial-gradient(circle at 78% 8%, ${tokens.color.accent.violet}26, transparent 38%), radial-gradient(circle at 8% 92%, ${tokens.color.accent.coral}1a, transparent 42%)`,
-          pointerEvents: "none",
-        }}
-      />
+      <BrandBackdrop />
       <Box
         sx={{
           position: "relative",
-          maxWidth: 1180,
+          maxWidth: 1280,
           mx: "auto",
           width: "100%",
           minWidth: 0,
           display: "grid",
           gap: { xs: 4, md: 6 },
-          gridTemplateColumns: aside
-            ? { xs: "1fr", md: "minmax(0, 1.1fr) minmax(0, 0.9fr)" }
-            : "1fr",
+          gridTemplateColumns: { xs: "1fr", lg: "minmax(0, 0.95fr) minmax(420px, 0.85fr)" },
           alignItems: "center",
         }}
       >
@@ -105,12 +105,24 @@ export function MarketingHero({
             sx={{
               fontSize: { xs: 38, md: 60 },
               fontWeight: 900,
-              letterSpacing: -1,
+              letterSpacing: 0,
               lineHeight: 1.04,
               color: tokens.color.text.primary,
             }}
           >
-            {title}
+            {title}{" "}
+            {accentText && (
+              <Box
+                component="span"
+                sx={{
+                  backgroundImage: `linear-gradient(100deg, ${tokens.color.accent.coral}, ${tokens.color.brand.magenta} 50%, ${tokens.color.accent.violet})`,
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                }}
+              >
+                {accentText}
+              </Box>
+            )}
           </Typography>
           <Typography
             sx={{
@@ -182,7 +194,7 @@ export function MarketingHero({
             </Stack>
           )}
         </Stack>
-        {aside && <Box sx={{ minWidth: 0 }}>{aside}</Box>}
+        <Box sx={{ minWidth: 0 }}>{visual}</Box>
       </Box>
     </Box>
   );

@@ -188,6 +188,17 @@ The **design reference** lives in three canonical places:
   override `background:` on a primary CTA.
 - The home page is the reference-conformance flagship. Any hex/rgba
   inline there is a bug.
+- **Prompt-first home law:** on `/`, the natural-language project
+  composer must remain at the top of the first viewport, immediately
+  after the global navigation and before hero sales copy or decorative
+  media. Do not move it lower, hide it behind a CTA, or replace it
+  with a static product preview. The product promise is that a visitor
+  can start building within seconds.
+- **2026-05-27 public marketing texture:** public pages inherit the
+  near-black cosmic texture, violet orbital glow, compact builder
+  previews, and recurring 3D geometric/planetary accents from the
+  owner-supplied reference. Inner marketing routes must feel like the
+  same world as Home, not flat standalone pages.
 - If a new shade is needed, add it to `packages/design-tokens`
   first, then use it. Do not invent inline.
 - AI agents, hooks, and humans alike: this rule does not bend. If

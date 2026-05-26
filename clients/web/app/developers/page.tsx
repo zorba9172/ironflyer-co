@@ -20,6 +20,7 @@ import type { ReactNode } from "react";
 import { tokens } from "../../../../packages/design-tokens";
 import { MarketingHero } from "../../src/components/marketing/MarketingHero";
 import { MarketingSection } from "../../src/components/marketing/MarketingSection";
+import { getRequestContent } from "../../src/lib/i18n/request";
 
 export const metadata: Metadata = {
   title: "Developers — Ironflyer",
@@ -120,16 +121,20 @@ const REST_EXCEPTIONS = [
   { name: "POST /executions/{id}/chat/stream", body: "AI streaming (per-chunk SSE; gqlgen overhead is wrong here)." },
 ];
 
-export default function DevelopersPage() {
+export default async function DevelopersPage() {
+  const { pages } = await getRequestContent();
+  const hero = pages.developers;
+
   return (
     <Box>
       <MarketingHero
-        eyebrow="developers"
-        title="GraphQL is the API. Sandbox is the docs."
-        subhead="One endpoint, one schema, one live playground. Streaming chat lives on SSE, the runtime owns its own REST surface, and everything else is GraphQL."
-        primary={{ href: "/settings", label: "Get an API key" }}
-        secondary={{ href: "#quickstart", label: "Read the quickstart" }}
-        proofChips={["POST /graphql", "Apollo Sandbox at /graphql/sandbox", "Operator banner at GET /"]}
+        eyebrow={hero.eyebrow}
+        title={hero.title}
+        accentText={hero.titleAccent}
+        subhead={hero.subhead}
+        primary={{ href: "/settings", label: hero.primary }}
+        secondary={{ href: "#quickstart", label: hero.secondary }}
+        proofChips={hero.proofChips}
       />
 
       <MarketingSection id="quickstart" eyebrow="quickstart" title="Your first query.">

@@ -885,7 +885,10 @@ function componentToneColor(tone: ComponentSignal["tone"]): string {
     case "data":
       return tokens.color.accent.sky;
     case "deploy":
-      return tokens.color.accent.lime;
+      // Mint, not lime — "deploy" is a live/success semantic and the
+      // constitution bans lime-first identity (see CLAUDE.md "No
+      // lime-first identity" + memory/feedback_no_lime_first.md).
+      return tokens.color.accent.success;
     case "security":
       return tokens.color.accent.yellow;
     case "primary":

@@ -2,6 +2,8 @@
 
 Last locked: 2026-05-25
 
+Prompt-first amendment locked: 2026-05-27
+
 This document codifies the private dark IronFlyer screenshots supplied on 2026-05-25 as the mandatory visual reference for `clients/web`. Use it as the source of truth before changing web UI, CSS, theme tokens, layout primitives, or component density.
 
 ## Source Of Truth
@@ -23,6 +25,18 @@ The canonical folder is the stable pointer all docs and implementation work must
 The required route set is: `/`, `/product`, `/solutions`, `/resources`, `/enterprise`, `/login`, `/signup`, `/dashboard`, `/projects`, `/templates`, `/pricing`, `/studio`, `/studio/demo`, `/p/demo`, `/executions`, `/execution/demo`, `/execution/demo/security`, `/deploy`, `/deploy/demo`, `/wallet`, and `/wallet/topup`.
 
 If any local screenshot bundle, implementation detail, theme comment, token name, generated asset, or existing page disagrees with the private screenshots, the private screenshots win. Future dated screenshot bundles do not supersede this baseline unless this document records product-owner approval and a new rebaseline.
+
+## 2026-05-27 Marketing Texture Amendment
+
+The product owner supplied a new dark marketing reference on 2026-05-27 for the public website system. It preserves the locked palette and density, but clarifies the marketing texture: near-black base, purple cosmic field, subtle star/noise texture, orbital/planetary accents, small 3D geometric elements, compact builder-preview panels, trusted-logo strip, flow panel, feature grid, template rail, testimonial band, pricing cards, FAQ/code panel, and final CTA/footer.
+
+This amendment applies to `/` and to public inner marketing routes (`/product`, `/solutions`, `/mobile`, `/security`, `/developers`, `/enterprise`, `/pricing`, `/templates`, `/resources`, `/showcase`, `/blog`, `/changelog`) as a shared visual language. Inner pages must continue the same texture and 3D motif instead of reverting to flat dark cards.
+
+## Prompt-First Home Law
+
+The Home route is a product entry surface, not a passive landing page. The natural-language prompt composer is locked to the top of the first viewport, immediately after the global navigation and before any hero sales copy or decorative media.
+
+Do not move the Home prompt below the headline, below a product preview, into a modal, into a later section, or behind a CTA. A first-time visitor must be able to start a project within seconds without scrolling. The composer may be visually integrated with the 2026-05-27 texture, but the interaction model and HeroPromptInput affordances from the last committed prompt design are the baseline.
 
 ## Locked Reference Contract
 

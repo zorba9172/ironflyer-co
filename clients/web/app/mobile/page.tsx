@@ -11,6 +11,7 @@ import { Box, Button, Stack, Typography } from "@mui/material";
 import { tokens } from "../../../../packages/design-tokens";
 import { MarketingHero } from "../../src/components/marketing/MarketingHero";
 import { MarketingSection } from "../../src/components/marketing/MarketingSection";
+import { getRequestContent } from "../../src/lib/i18n/request";
 
 export const metadata: Metadata = {
   title: "Mobile — Ironflyer",
@@ -109,20 +110,20 @@ const TIER_COLOR: Record<Track["tier"], string> = {
   Pro: tokens.color.accent.violet,
 };
 
-export default function MobilePage() {
+export default async function MobilePage() {
+  const { pages } = await getRequestContent();
+  const hero = pages.mobile;
+
   return (
     <Box>
       <MarketingHero
-        eyebrow="mobile"
-        title="Ship real mobile apps end-to-end."
-        subhead="Expo, Android native, iOS native, Flutter — gated all the way. GateMobileBuild runs after Budget, before Deploy, and the artifact lands at a real path."
-        primary={{ href: "/signup", label: "Start a mobile build" }}
-        secondary={{ href: "/pricing", label: "Review pricing" }}
-        proofChips={[
-          "GateMobileBuild enforced",
-          "Per-minute ledger entries",
-          "Real EAS / gradlew / xcodebuild",
-        ]}
+        eyebrow={hero.eyebrow}
+        title={hero.title}
+        accentText={hero.titleAccent}
+        subhead={hero.subhead}
+        primary={{ href: "/signup", label: hero.primary }}
+        secondary={{ href: "/solutions", label: hero.secondary }}
+        proofChips={hero.proofChips}
       />
 
       <MarketingSection

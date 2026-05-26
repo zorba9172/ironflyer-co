@@ -49,7 +49,7 @@ export function MobilePreviewFrame({
       >
         <Box
           sx={{
-            bgcolor: tokens.color.accent.lime,
+            bgcolor: tokens.color.accent.success,
             borderRadius: "50%",
             height: 6,
             width: 6,

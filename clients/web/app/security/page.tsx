@@ -26,6 +26,7 @@ import type { ReactNode } from "react";
 import { tokens } from "../../../../packages/design-tokens";
 import { MarketingHero } from "../../src/components/marketing/MarketingHero";
 import { MarketingSection } from "../../src/components/marketing/MarketingSection";
+import { getRequestContent } from "../../src/lib/i18n/request";
 
 export const metadata: Metadata = {
   title: "Security — Ironflyer",
@@ -103,16 +104,20 @@ const NEVER_LIST = [
   "No skipping gates for paying customers. Gates block regardless of plan tier.",
 ];
 
-export default function SecurityPage() {
+export default async function SecurityPage() {
+  const { pages } = await getRequestContent();
+  const hero = pages.security;
+
   return (
     <Box>
       <MarketingHero
-        eyebrow="security"
-        title="Production-grade by default."
-        subhead="The V22 contract spells out how Ironflyer treats your code, your keys, and your data. Eight controls below, no asterisks."
-        primary={{ href: "/enterprise", label: "Talk to security" }}
-        secondary={{ href: "#disclosure", label: "Report a vulnerability" }}
-        proofChips={["OwnerID enforced", "Wallet hard-block", "Append-only ledger"]}
+        eyebrow={hero.eyebrow}
+        title={hero.title}
+        accentText={hero.titleAccent}
+        subhead={hero.subhead}
+        primary={{ href: "/enterprise", label: hero.primary }}
+        secondary={{ href: "/developers", label: hero.secondary }}
+        proofChips={hero.proofChips}
       />
 
       <MarketingSection

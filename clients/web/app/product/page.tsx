@@ -38,6 +38,7 @@ import {
   MarketingSection,
   MechanicCard,
 } from "../../src/components/marketing";
+import { getRequestContent } from "../../src/lib/i18n/request";
 
 export const metadata: Metadata = {
   title: "Product — Ironflyer",
@@ -179,20 +180,20 @@ const GATES: Gate[] = [
   },
 ];
 
-export default function ProductPage() {
+export default async function ProductPage() {
+  const { pages } = await getRequestContent();
+  const hero = pages.product;
+
   return (
     <Box sx={{ width: "100%", minWidth: 0 }}>
       <MarketingHero
-        eyebrow="product"
-        title="The production discipline AI app builders skip."
-        subhead="Gates that block, patches that can be reviewed, wallet enforced upfront, real Linux workspaces under every execution. Ironflyer is the finisher engine the prompt-to-app crowd left out."
-        primary={{ href: "/signup", label: "Start a project" }}
-        secondary={{ href: "/pricing", label: "See the wallet model" }}
-        proofChips={[
-          "12 default gates",
-          "patch.Engine.Propose only",
-          "Docker workspaces, not browser sandboxes",
-        ]}
+        eyebrow={hero.eyebrow}
+        title={hero.title}
+        accentText={hero.titleAccent}
+        subhead={hero.subhead}
+        primary={{ href: "/signup", label: hero.primary }}
+        secondary={{ href: "/pricing", label: hero.secondary }}
+        proofChips={hero.proofChips}
       />
 
       <MarketingSection

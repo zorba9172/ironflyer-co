@@ -42,9 +42,11 @@ import { useMemo, useState } from "react";
 import { useExecutionsQuery } from "../../lib/gql/__generated__";
 import { useAuth } from "../../lib/auth";
 import { useWalletBalance } from "../../lib/hooks";
+import { useI18n } from "../../lib/i18n/useI18n";
 import { formatMoney } from "../../lib/format";
 import { tokens } from "../../theme";
 import { BrandLogo } from "../BrandLogo";
+import { LanguageSwitcher } from "../marketing/LanguageSwitcher";
 import { NotificationsBell } from "./NotificationsBell";
 
 interface NavLink {
@@ -157,6 +159,7 @@ function isOperator(plan?: string | null): boolean {
 
 export function Nav() {
   const pathname = usePathname() || "/";
+  const { copy } = useI18n();
   const { user, authenticated, signOut } = useAuth();
   const operator = isOperator(user?.plan);
 
@@ -188,6 +191,11 @@ export function Nav() {
   const authReturn = pathname === "/" ? "/studio" : pathname;
   const loginHref = `/login?returnTo=${encodeURIComponent(authReturn)}`;
   const signupHref = `/signup?redirect=${encodeURIComponent(authReturn)}`;
+  const marketingLabel = (label: string) => {
+    if (cockpitMode) return label;
+    const key = label.toLowerCase() as keyof typeof copy.nav;
+    return copy.nav[key] ?? label;
+  };
 
   return (
     <AppBar
@@ -258,7 +266,7 @@ export function Nav() {
                   bgcolor: active ? `${tokens.color.accent.purple}24` : "transparent",
                 }}
               >
-                {l.label}
+                {marketingLabel(l.label)}
               </MenuItem>
             );
           })}
@@ -297,7 +305,7 @@ export function Nav() {
             } as const;
             const inner = (
               <Stack direction="row" sx={{ alignItems: "center", gap: 0.35 }}>
-                {l.label}
+                {marketingLabel(l.label)}
                 {hasMenuCaret && <ExpandMoreRounded sx={{ fontSize: 15 }} />}
               </Stack>
             );
@@ -370,6 +378,8 @@ export function Nav() {
         </Menu>
 
         <Box sx={{ flexGrow: 1 }} />
+
+        {!cockpitMode && <LanguageSwitcher />}
 
         {authenticated && (
           <Tooltip
@@ -626,7 +636,7 @@ export function Nav() {
                 whiteSpace: "nowrap",
               }}
             >
-              Log in
+              {copy.nav.login}
             </Button>
             <Button
               component={Link}
@@ -646,10 +656,10 @@ export function Nav() {
               }}
             >
               <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
-                Start a project
+                {copy.nav.startProject}
               </Box>
               <Box component="span" sx={{ display: { xs: "inline", sm: "none" } }}>
-                Start
+                {copy.nav.startShort}
               </Box>
             </Button>
           </Stack>

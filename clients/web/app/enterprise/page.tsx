@@ -33,6 +33,7 @@ import {
   MarketingSection,
   MechanicCard,
 } from "../../src/components/marketing";
+import { getRequestContent } from "../../src/lib/i18n/request";
 
 export const metadata: Metadata = {
   title: "Enterprise — Ironflyer",
@@ -185,16 +186,20 @@ const PROCUREMENT: Array<{ step: string; title: string; body: string; icon: Reac
   },
 ];
 
-export default function EnterprisePage() {
+export default async function EnterprisePage() {
+  const { pages } = await getRequestContent();
+  const hero = pages.enterprise;
+
   return (
     <Box sx={{ width: "100%", minWidth: 0 }}>
       <MarketingHero
-        eyebrow="enterprise"
-        title="Bring AI-built code under your existing controls."
-        subhead="Ironflyer is built for the security team that already exists. Per-tenant ledger, gate registry as the only path to prod, BYO keys, BYO storage, self-host the orchestrator if your policy says so."
-        primary={{ href: "mailto:founder@ironflyer.dev?subject=Enterprise%20intro", label: "Talk to founder" }}
-        secondary={{ href: "/product", label: "How the engine works" }}
-        proofChips={TRUST_CHIPS}
+        eyebrow={hero.eyebrow}
+        title={hero.title}
+        accentText={hero.titleAccent}
+        subhead={hero.subhead}
+        primary={{ href: "mailto:founder@ironflyer.dev?subject=Enterprise%20intro", label: hero.primary }}
+        secondary={{ href: "/product", label: hero.secondary }}
+        proofChips={hero.proofChips}
       />
 
       <MarketingSection

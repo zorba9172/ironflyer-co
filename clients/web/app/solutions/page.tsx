@@ -28,6 +28,7 @@ import {
   MarketingHero,
   MarketingSection,
 } from "../../src/components/marketing";
+import { getRequestContent } from "../../src/lib/i18n/request";
 
 export const metadata: Metadata = {
   title: "Solutions — Ironflyer",
@@ -181,20 +182,20 @@ const QUOTES: Array<{ quote: string; role: string }> = [
   },
 ];
 
-export default function SolutionsPage() {
+export default async function SolutionsPage() {
+  const { pages } = await getRequestContent();
+  const hero = pages.solutions;
+
   return (
     <Box sx={{ width: "100%", minWidth: 0 }}>
       <MarketingHero
-        eyebrow="solutions"
-        title="Pick your stack. Ship through the same gates."
-        subhead="Web, Expo, native Android, native iOS, internal tools, marketing sites — every solution lands in the same finisher engine. The gate verdicts, the ledger, the ProfitGuard reservation are identical."
-        primary={{ href: "/signup", label: "Start a project" }}
-        secondary={{ href: "/product", label: "How the engine works" }}
-        proofChips={[
-          "6 production stacks",
-          "1 gate chain",
-          "1 append-only ledger",
-        ]}
+        eyebrow={hero.eyebrow}
+        title={hero.title}
+        accentText={hero.titleAccent}
+        subhead={hero.subhead}
+        primary={{ href: "/signup", label: hero.primary }}
+        secondary={{ href: "/product", label: hero.secondary }}
+        proofChips={hero.proofChips}
       />
 
       <MarketingSection
