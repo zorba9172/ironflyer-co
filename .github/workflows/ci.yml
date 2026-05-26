@@ -6,6 +6,17 @@ on:
   pull_request:
     branches: [main]
 
+# Default to read-only across the workflow. Jobs that need to publish (images,
+# attestations) escalate via their own permissions block.
+permissions:
+  contents: read
+
+# Cancel superseded CI runs on the same ref. Stays per-ref so concurrent feature
+# branches don't trample each other.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NS: ${{ github.repository_owner }}
@@ -18,8 +29,8 @@ jobs:
       matrix:
         module: [orchestrator, runtime]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff  # v5
         with:
           go-version: '1.25'
           cache-dependency-path: apps/${{ matrix.module }}/go.sum
@@ -72,8 +83,8 @@ jobs:
     name: Web typecheck + build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
         with:
           node-version: '20'
           cache: 'npm'
@@ -94,8 +105,8 @@ jobs:
     name: SDK typecheck
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
         with: { node-version: '20' }
       - name: install typescript
         run: npm i -g typescript@5.6
@@ -115,8 +126,8 @@ jobs:
       matrix:
         project: [pulumi, pulumi-data]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff  # v5
         with:
           go-version: '1.25'
           cache-dependency-path: infra/${{ matrix.project }}/go.sum
@@ -130,12 +141,47 @@ jobs:
         working-directory: infra/${{ matrix.project }}
         run: go build ./...
 
+  lint-health:
+    # Anti-Bloat pre-deploy health pass. Runs govulncheck (Go vuln scan)
+    # + jscpd (TS dup detector) and uploads the JSON reports as build
+    # artifacts. INTENTIONALLY non-blocking for now — the team iterates
+    # on findings before flipping `continue-on-error: false`. Wire the
+    # gates by exporting the artifact paths to IRONFLYER_VULN_REPORT_PATH
+    # and IRONFLYER_DEDUP_REPORT_PATH on the orchestrator.
+    name: Lint-health (Anti-Bloat tools)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff  # v5
+        with:
+          go-version: '1.25'
+          cache-dependency-path: core/orchestrator/go.sum
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
+        with: { node-version: '20' }
+      - name: install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+      - name: govulncheck (orchestrator + runtime)
+        run: ./scripts/lint/run-govulncheck.sh
+        continue-on-error: true
+      - name: jscpd (clients/web)
+        run: ./scripts/lint/run-jscpd.sh
+        continue-on-error: true
+      - name: upload reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+        with:
+          name: lint-health-reports
+          path: tmp/reports/
+          if-no-files-found: warn
+          retention-days: 14
+
   vscode-extension:
     name: VSCode extension build + package
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
         with: { node-version: '20' }
       - name: install
         working-directory: clients/vscode-extension
@@ -155,15 +201,94 @@ jobs:
       - name: package (.vsix)
         working-directory: clients/vscode-extension
         run: npx --yes @vscode/vsce package --no-dependencies --out ironflyer.vsix
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
         with:
           name: ironflyer-vsix
           path: clients/vscode-extension/ironflyer.vsix
 
+  # ---------------------------------------------------------------------------
+  # Vulnerability scanning. Runs in parallel with the build legs — a finding
+  # fails the workflow so a vulnerable dep never ships unnoticed. This is the
+  # CVE/advisory equivalent of go vet: build-time signal, not a test suite.
+  # ---------------------------------------------------------------------------
+  govulncheck:
+    name: govulncheck (${{ matrix.module }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module: [orchestrator, runtime]
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff  # v5
+        with:
+          go-version: '1.25'
+          cache-dependency-path: core/${{ matrix.module }}/go.sum
+      - name: Install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+      - name: govulncheck ./...
+        working-directory: core/${{ matrix.module }}
+        # govulncheck exits non-zero when a known-affected symbol is reachable,
+        # which is the gate we want: fail the build on real findings.
+        run: govulncheck ./...
+
+  osv-scan:
+    name: osv-scanner (npm lockfiles)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
+        with: { node-version: '20' }
+      - name: Scan npm lockfiles for HIGH/CRITICAL advisories
+        shell: bash
+        run: |
+          set -euo pipefail
+          args=()
+          for lf in clients/web/package-lock.json \
+                    packages/sdk/package-lock.json \
+                    clients/vscode-extension/package-lock.json; do
+            if [ -f "$lf" ]; then
+              args+=(--lockfile="$lf")
+            else
+              echo "skip $lf (missing)"
+            fi
+          done
+          if [ ${#args[@]} -eq 0 ]; then
+            echo "no lockfiles found; nothing to scan"
+            exit 0
+          fi
+          # osv-scanner exits 1 on any vulnerability. We re-run with JSON
+          # output so we can filter to HIGH/CRITICAL only and fail solely on
+          # those — lower-severity advisories surface in the log without
+          # blocking the build.
+          set +e
+          npx --yes osv-scanner "${args[@]}"
+          rc=$?
+          set -e
+          if [ $rc -eq 0 ]; then
+            echo "no advisories"
+            exit 0
+          fi
+          npx --yes osv-scanner --format=json "${args[@]}" > osv.json || true
+          high_or_crit=$(jq '[.results[]?.packages[]?.vulnerabilities[]? |
+                              select((.database_specific.severity // "" |
+                                       ascii_upcase) as $s |
+                                       $s == "HIGH" or $s == "CRITICAL")] |
+                             length' osv.json 2>/dev/null || echo 0)
+          echo "HIGH/CRITICAL findings: $high_or_crit"
+          if [ "$high_or_crit" -gt 0 ]; then
+            jq '.results[]?.packages[]?.vulnerabilities[]? |
+                  select((.database_specific.severity // "" | ascii_upcase) as $s |
+                          $s == "HIGH" or $s == "CRITICAL") |
+                  {id: .id, summary: .summary, severity: .database_specific.severity}' osv.json
+            exit 1
+          fi
+          echo "no HIGH/CRITICAL findings (lower-severity advisories surfaced above)"
+
   images:
     name: Build + push images
     runs-on: ubuntu-latest
-    needs: [go, web, sdk, vscode-extension]
+    needs: [go, web, sdk, vscode-extension, govulncheck, osv-scan]
     # Only push images from the canonical main branch — PRs build but never push.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
@@ -177,22 +302,22 @@ jobs:
           - { image: web,             dockerfile: infra/docker/web.Dockerfile }
           - { image: code,            dockerfile: infra/docker/ironflyer-code.Dockerfile }
     steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f  # v3
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9  # v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051  # v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NS }}/ironflyer-${{ matrix.image }}
           tags: |
             type=sha,format=short
             type=ref,event=branch
             type=raw,value=latest,enable={{is_default_branch}}
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8  # v6
         with:
           context: .
           file: ${{ matrix.dockerfile }}

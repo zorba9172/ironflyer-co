@@ -23,6 +23,13 @@ permissions:
   contents: read
   id-token: write
 
+# Serialize Vercel env syncs per workflow_run / dispatch — overlapping runs
+# would race the DELETE-then-POST upsert flow and could leave the project
+# in a partial state.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.workflow_run.id || github.event.inputs.stack || github.ref }}
+  cancel-in-progress: true
+
 env:
   PULUMI_VERSION: 3.130.0
   GO_VERSION: '1.25'
@@ -38,9 +45,9 @@ jobs:
       (github.event.workflow_run.conclusion == 'success' &&
        startsWith(github.event.workflow_run.head_branch, 'pulumi-prod-'))
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff  # v5
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: infra/pulumi/go.sum
@@ -66,7 +73,7 @@ jobs:
       - name: Install Pulumi CLI
         # Installs the CLI without running a stack op — we drive `pulumi stack
         # output` ourselves in the next step.
-        uses: pulumi/setup-pulumi@v2
+        uses: pulumi/setup-pulumi@b374ceb6168550de27c6eba92e01c1a774040e11  # v2
         with:
           pulumi-version: ${{ env.PULUMI_VERSION }}
 

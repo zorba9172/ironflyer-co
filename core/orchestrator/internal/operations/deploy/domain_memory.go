@@ -17,6 +17,10 @@ type MemoryDomainService struct {
 	defaultProvider  string
 	defaultRegistrar string
 	purchasePolicy   DomainPurchasePolicy
+	// pg is the optional BeforeDomainPurchase guard. nil means
+	// "ProfitGuard not wired" — PurchaseDomain proceeds permissively.
+	// Wire via WithDomainProfitGuard at construction time.
+	pg ProfitGuardChecker
 
 	mu      sync.RWMutex
 	domains map[string]*Domain
@@ -122,6 +126,22 @@ func (s *MemoryDomainService) PurchaseDomain(ctx context.Context, in PurchaseDom
 	purchaseCtx := WithTenant(WithProject(ctx, in.ProjectID), in.TenantID)
 	avail, err := s.validateDomainPurchase(purchaseCtx, registrar, in)
 	if err != nil {
+		return Domain{}, err
+	}
+	// BeforeDomainPurchase ProfitGuard hook — refuse the registrar
+	// call when margin has collapsed (V22 deferred site, now closed).
+	// avail.PriceUSD has already been clamped by validateDomainPurchase
+	// against DomainPurchasePolicy.MaxPriceUSD ($75 default); this gate
+	// adds a tenant-level margin check before any wire money is spent.
+	if err := GuardDomainPurchase(purchaseCtx, s.pg, map[string]any{
+		"tenant_id":         in.TenantID,
+		"project_id":        in.ProjectID,
+		"domain":            normalizeHostname(in.Domain),
+		"registrar":         registrar.Name(),
+		"price_usd":         avail.PriceUSD.StringFixedBank(2),
+		"max_price_usd":     s.purchasePolicy.MaxPriceUSD.StringFixedBank(2),
+		"enforcement_point": "before_domain_purchase",
+	}); err != nil {
 		return Domain{}, err
 	}
 	if _, err := registrar.Purchase(purchaseCtx, in); err != nil {

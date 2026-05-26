@@ -3,6 +3,8 @@ package sandbox
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
@@ -80,11 +82,26 @@ func (d *DockerDriver) Create(ctx context.Context, opts CreateOpts) (Workspace, 
 	}
 	// Pick a host port — naive: random by container ID. Improved later.
 	hostPort := d.pickPort(id)
+	password, err := generateIDEPassword()
+	if err != nil {
+		return Workspace{}, fmt.Errorf("generate password: %w", err)
+	}
 	args := []string{
 		"run", "-d", "--name", name,
+		// Bind code-server to loopback only — the runtime reverse-proxy
+		// dials the container via PreviewTarget, never the host port,
+		// so leaving it on 0.0.0.0 would only invite public probes.
+		"-p", fmt.Sprintf("127.0.0.1:%d:8080", hostPort),
 		"-v", mountSpec,
-		"-p", fmt.Sprintf("%d:8080", hostPort),
-		"-e", "PASSWORD=ironflyer-dev",
+		"-e", "PASSWORD=" + password,
+		"--cap-drop=ALL",
+		"--security-opt=no-new-privileges:true",
+		"--pids-limit=512",
+		"--memory=2g",
+		"--cpus=2",
+		"--tmpfs", "/tmp:rw,size=512m,mode=1777",
+		"--tmpfs", "/run:rw,size=64m,mode=755",
+		"--restart=no",
 		d.Image,
 	}
 	if out, err := d.run(ctx, args...); err != nil {
@@ -93,15 +110,27 @@ func (d *DockerDriver) Create(ctx context.Context, opts CreateOpts) (Workspace, 
 
 	now := time.Now().UTC()
 	return Workspace{
-		ID:        id,
-		UserID:    opts.UserID,
-		ProjectID: opts.ProjectID,
-		Status:    StatusRunning,
-		Driver:    "docker",
-		Root:      name, // container name
-		IDEURL:    fmt.Sprintf("http://localhost:%d", hostPort),
-		CreatedAt: now, UpdatedAt: now,
+		ID:          id,
+		UserID:      opts.UserID,
+		ProjectID:   opts.ProjectID,
+		Status:      StatusRunning,
+		Driver:      "docker",
+		Root:        name, // container name
+		IDEURL:      fmt.Sprintf("http://127.0.0.1:%d", hostPort),
+		IDEPassword: password,
+		CreatedAt:   now, UpdatedAt: now,
 	}, nil
+}
+
+// generateIDEPassword mints a per-workspace code-server credential with 32
+// bytes of crypto entropy, base64-encoded so the value is shell-safe when
+// passed via `-e PASSWORD=…`.
+func generateIDEPassword() (string, error) {
+	buf := make([]byte, 32)
+	if _, err := rand.Read(buf); err != nil {
+		return "", err
+	}
+	return base64.RawURLEncoding.EncodeToString(buf), nil
 }
 
 func (d *DockerDriver) Destroy(ctx context.Context, ws Workspace) error {
@@ -122,10 +151,11 @@ func (d *DockerDriver) Destroy(ctx context.Context, ws Workspace) error {
 
 // File ops run inside the container via `docker exec`.
 func (d *DockerDriver) ReadFile(ctx context.Context, ws Workspace, p string) ([]byte, error) {
-	if err := validatePath(p); err != nil {
+	target, err := d.resolveInsideHome(ctx, ws, p)
+	if err != nil {
 		return nil, err
 	}
-	return d.runRaw(ctx, "exec", ws.Root, "cat", "/home/coder/"+strings.TrimPrefix(p, "/"))
+	return d.runRaw(ctx, "exec", ws.Root, "cat", target)
 }
 
 func (d *DockerDriver) WriteFile(ctx context.Context, ws Workspace, p string, data []byte) error {
@@ -133,6 +163,12 @@ func (d *DockerDriver) WriteFile(ctx context.Context, ws Workspace, p string, da
 		return err
 	}
 	target := "/home/coder/" + strings.TrimPrefix(p, "/")
+	// We refuse to overwrite an existing symlink — that's how a hostile
+	// blueprint would aim a writer at /etc/passwd. New files are fine
+	// because cat > redirect creates a regular file.
+	if existing, _ := d.resolveInContainer(ctx, ws, target); existing != "" && !strings.HasPrefix(existing, "/home/coder/") && existing != "/home/coder" {
+		return errors.New("path escape via symlink")
+	}
 	cmd := exec.CommandContext(ctx, "docker", "exec", "-i", ws.Root,
 		"sh", "-c", "mkdir -p \"$(dirname '"+shellEscape(target)+"')\" && cat > '"+shellEscape(target)+"'")
 	cmd.Stdin = bytes.NewReader(data)
@@ -144,11 +180,46 @@ func (d *DockerDriver) WriteFile(ctx context.Context, ws Workspace, p string, da
 }
 
 func (d *DockerDriver) DeleteFile(ctx context.Context, ws Workspace, p string) error {
-	if err := validatePath(p); err != nil {
+	target, err := d.resolveInsideHome(ctx, ws, p)
+	if err != nil {
 		return err
 	}
-	_, err := d.run(ctx, "exec", ws.Root, "rm", "-f", "/home/coder/"+strings.TrimPrefix(p, "/"))
+	_, err = d.run(ctx, "exec", ws.Root, "rm", "-f", target)
 	return err
+}
+
+// resolveInsideHome string-validates p, then asks the container to canonicalise
+// the path (resolving symlinks) and confirms the result still lives under
+// /home/coder. This closes the symlink-escape gap where a user could plant
+// /home/coder/etc -> /etc and read /etc/passwd via the file API.
+func (d *DockerDriver) resolveInsideHome(ctx context.Context, ws Workspace, p string) (string, error) {
+	if err := validatePath(p); err != nil {
+		return "", err
+	}
+	target := "/home/coder/" + strings.TrimPrefix(p, "/")
+	resolved, err := d.resolveInContainer(ctx, ws, target)
+	if err != nil {
+		return "", err
+	}
+	if resolved == "" {
+		return target, nil
+	}
+	if resolved != "/home/coder" && !strings.HasPrefix(resolved, "/home/coder/") {
+		return "", errors.New("path escape via symlink")
+	}
+	return resolved, nil
+}
+
+// resolveInContainer runs `readlink -m` in the container to canonicalise a
+// path. `-m` does not require the leaf to exist, which is what we want for
+// pre-write checks. Returns "" with no error when the resolver isn't
+// available (e.g. minimal base images without coreutils).
+func (d *DockerDriver) resolveInContainer(ctx context.Context, ws Workspace, target string) (string, error) {
+	out, err := d.runRaw(ctx, "exec", ws.Root, "readlink", "-m", "--", target)
+	if err != nil {
+		return "", nil
+	}
+	return strings.TrimSpace(string(out)), nil
 }
 
 func (d *DockerDriver) ListFiles(ctx context.Context, ws Workspace) ([]FileEntry, error) {
@@ -275,8 +346,16 @@ func (d *DockerDriver) pickPort(id string) int {
 }
 
 func validatePath(p string) error {
-	if strings.Contains(p, "..") {
-		return errors.New("path escape")
+	if p == "" {
+		return errors.New("empty path")
+	}
+	// Reject any segment that is literally "..". A substring check on ".."
+	// would block legitimate filenames like "foo..bar"; splitting on the
+	// slash is precise and matches how the path is later joined.
+	for _, seg := range strings.Split(p, "/") {
+		if seg == ".." {
+			return errors.New("path escape")
+		}
 	}
 	if strings.HasPrefix(p, "/") && !strings.HasPrefix(p, "/home/coder") {
 		return errors.New("absolute path not allowed")

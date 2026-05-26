@@ -85,6 +85,17 @@ const (
 	// BeforeExecutionAdmit — admission gate for a freshly created
 	// paid execution. Runs before the wallet hold is committed.
 	BeforeExecutionAdmit EnforcementPoint = "before_execution_admit"
+	// BeforeDomainPurchase — registrar Purchase() call. Already capped
+	// at $75 by DomainPurchasePolicy.MaxPriceUSD; this gate adds a
+	// margin-aware verdict so a domain buy doesn't push a tenant into
+	// negative margin. Verdict semantics for this point are strictly
+	// allow / refuse — a one-shot registrar purchase has no graceful
+	// downgrade path. Stop / KillBranch / PauseForBudget all translate
+	// to ErrProfitGuardBlocked on the call site; every other action
+	// (Continue, Degrade, SwitchProvider, ReuseBlueprint, ReuseRepair)
+	// is treated as "go ahead" because the price ceiling has already
+	// been clamped by the policy layer.
+	BeforeDomainPurchase EnforcementPoint = "before_domain_purchase"
 )
 
 // String makes EnforcementPoint satisfy fmt.Stringer.

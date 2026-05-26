@@ -3,9 +3,9 @@
 -- the hot-path queries in executions / execution_events / deploys /
 -- blueprint_runs were scanning around. Every CREATE is IF NOT EXISTS
 -- and CONCURRENTLY so production runs do not lock the underlying
--- tables. The whole migration runs outside a transaction
--- (`-- +goose NO TRANSACTION`) because Postgres rejects
--- CREATE INDEX CONCURRENTLY inside an explicit transaction block.
+-- tables. The whole migration runs outside a transaction (the directive
+-- on line 1) because Postgres rejects CREATE INDEX CONCURRENTLY inside
+-- an explicit transaction block.
 
 -- +goose Up
 

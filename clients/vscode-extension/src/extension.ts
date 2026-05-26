@@ -8,20 +8,17 @@
 
 import * as vscode from 'vscode';
 import { Auth } from './auth';
-import { consumeStudioHandoff } from './bootstrap';
 import { Api, ApiError, GateName, GateState, MemoryRecord } from './api';
 import { IronflyerUriHandler } from './uriHandler';
 import { ProjectsTree } from './projectsTree';
 import { StatusBar } from './statusBar';
-import { ChatPanel } from './chatPanel';
 import { PatchDiffProvider } from './diffProvider';
 import { PatchesTree } from './patchesTree';
 import { buildPatchUri, patchTabTitle } from './patchUri';
 import { GatesTree } from './gatesTree';
-import { IronflyerMemoryProvider, openMemoryRecord } from './memoryTree';
+import { IronflyerMemoryProvider } from './memoryTree';
 import { IronflyerAuditProvider } from './auditTree';
 import { IronflyerTelemetryProvider } from './telemetryTree';
-import { GraphView } from './graphView';
 import { ProjectStream } from './projectStream';
 import { throttleTrailing } from './throttle';
 import { ActiveProject } from './activeProject';
@@ -36,6 +33,14 @@ import {
   IronflyerInlineCompletionProvider,
   InlineCompletionsStatusBar,
 } from './inlineCompletions';
+
+// Heavy modules that aren't needed for activation are imported lazily
+// inside the command handler that needs them. Keeps cold-start parse
+// cost off the critical path.
+type ChatPanelMod = typeof import('./chatPanel');
+type GraphViewMod = typeof import('./graphView');
+type BootstrapMod = typeof import('./bootstrap');
+type MemoryTreeMod = typeof import('./memoryTree');
 
 export function activate(context: vscode.ExtensionContext): void {
   // Sentry — fail-soft. Returns false when ironflyer.sentryDsn is empty,
@@ -76,7 +81,12 @@ export function activate(context: vscode.ExtensionContext): void {
   // first context push would record "signed out" right before the
   // bootstrap step writes the token.
   void (async () => {
-    await consumeStudioHandoff(auth, api, activeProject);
+    try {
+      const { consumeStudioHandoff } = await import('./bootstrap') as BootstrapMod;
+      await consumeStudioHandoff(auth, api, activeProject);
+    } catch (err) {
+      log.warn('studio handoff failed', err);
+    }
     const t = await auth.getToken();
     void vscode.commands.executeCommand('setContext', 'ironflyer.signedIn', Boolean(t));
   })();
@@ -216,10 +226,12 @@ export function activate(context: vscode.ExtensionContext): void {
 
     vscode.commands.registerCommand('ironflyer.openMemoryRecord', async (record: MemoryRecord) => {
       if (!record) return;
+      const { openMemoryRecord } = await import('./memoryTree') as MemoryTreeMod;
       await openMemoryRecord(record);
     }),
 
-    vscode.commands.registerCommand('ironflyer.openDependencyGraph', () => {
+    vscode.commands.registerCommand('ironflyer.openDependencyGraph', async () => {
+      const { GraphView } = await import('./graphView') as GraphViewMod;
       GraphView.reveal(api, activeProject);
     }),
 
@@ -275,6 +287,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('ironflyer.openChat', async (arg: unknown) => {
       const project = await resolveProject(api, auth, arg);
       if (!project) return;
+      const { ChatPanel } = await import('./chatPanel') as ChatPanelMod;
       ChatPanel.reveal(api, context, project, {
         stream: projectStream,
         onProjectEvent: (projectId) => refreshProject(projectId),
@@ -306,6 +319,7 @@ export function activate(context: vscode.ExtensionContext): void {
         );
         tree.refresh();
         await activeProject.set({ id: project.id, name: project.name });
+        const { ChatPanel } = await import('./chatPanel') as ChatPanelMod;
         ChatPanel.reveal(api, context, project, {
           stream: projectStream,
           onProjectEvent: (projectId) => refreshProject(projectId),
@@ -482,6 +496,7 @@ export function activate(context: vscode.ExtensionContext): void {
           code: payload.diagnostic.code,
           snippet,
         });
+        const { ChatPanel } = await import('./chatPanel') as ChatPanelMod;
         const panel = ChatPanel.reveal(api, context, project, {
           stream: projectStream,
           onProjectEvent: (projectId) => refreshProject(projectId),

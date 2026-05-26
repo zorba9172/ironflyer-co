@@ -15,19 +15,32 @@ on:
         description: 'Chart version to publish (without the helm-v prefix), e.g. 0.2.1'
         required: true
 
+# Workflow default is read-only. The release job below escalates to write for
+# the chart push + GitHub release. No other job in this file needs more than
+# read.
 permissions:
-  contents: write
-  packages: write
+  contents: read
+
+# Chart pushes are tag-driven and cheap to redo, but two simultaneous publishes
+# to the same OCI tag would race; serialize per-ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   release:
     name: Lint + package + push chart
     runs-on: ubuntu-latest
+    # Needs contents:write to attach the .tgz to a GitHub release, and
+    # packages:write to push the chart to GHCR as an OCI artifact.
+    permissions:
+      contents: write
+      packages: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
 
       - name: Install Helm
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4  # v4
         with:
           version: v3.15.3
 
@@ -69,7 +82,7 @@ jobs:
             "oci://ghcr.io/${{ github.repository_owner }}/charts"
 
       - name: Upload chart artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
         with:
           name: ironflyer-helm-${{ steps.version.outputs.version }}
           path: dist/ironflyer-${{ steps.version.outputs.version }}.tgz
@@ -79,7 +92,7 @@ jobs:
         # the chart but does not cut a GH release (use the release.yml flow
         # for that if you want changelog + binaries).
         if: github.event_name == 'push'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65  # v2
         with:
           tag_name: ${{ github.ref_name }}
           name: Helm chart ${{ steps.version.outputs.version }}

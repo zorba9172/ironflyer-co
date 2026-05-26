@@ -11,9 +11,11 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	goruntime "runtime"
 	"runtime/debug"
 	"strconv"
@@ -66,6 +68,7 @@ import (
 
 	"ironflyer/core/orchestrator/internal/business/profitguard"
 	"ironflyer/core/orchestrator/internal/business/profitguardbridge"
+	"ironflyer/core/orchestrator/internal/business/profitguardctx"
 	"ironflyer/core/orchestrator/internal/ai/providers"
 	"ironflyer/core/orchestrator/internal/operations/ratelimit"
 	"ironflyer/core/orchestrator/internal/operations/redisbus"
@@ -107,6 +110,20 @@ func main() {
 	logger := buildLogger(cfg)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("config load failed")
+	}
+	if !cfg.IsProd() && len(cfg.CORSOrigins) == 0 {
+		logger.Warn().Str("env", cfg.Env).
+			Msg("CORS open-mode: any browser Origin is reflected — set IRONFLYER_CORS_ORIGINS before promoting to prod")
+	}
+	if !cfg.IsProd() && cfg.MetricsToken == "" {
+		logger.Warn().Str("env", cfg.Env).
+			Msg("/metrics is unauthenticated — set IRONFLYER_METRICS_TOKEN before promoting to prod")
+	}
+	if cfg.AuditRedact == "off" {
+		logger.Warn().Msg("audit PII redaction disabled via IRONFLYER_AUDIT_REDACT=off — raw emails, IPs, and provider keys may land in the audit chain")
+		audit.SetRedactionEnabled(false)
+	} else {
+		audit.SetRedactionEnabled(true)
 	}
 
 	// ---------------- Go runtime tuning -----------------------------------
@@ -469,12 +486,18 @@ func main() {
 
 	// ---------------- Superuser bootstrap (privileged backdoor) -----------
 	if cfg.SuperuserEmail != "" && cfg.SuperuserPassword != "" {
-		verifier, _ := userStore.(auth.EmailVerifier)
-		roleSetter, _ := userStore.(auth.RoleSetter)
-		if _, err := auth.EnsureSuperuser(ctx, authSvc, userStore, verifier, roleSetter,
-			cfg.SuperuserEmail, cfg.SuperuserPassword, logger); err != nil {
-			logger.Warn().Err(err).Str("email", cfg.SuperuserEmail).
-				Msg("superuser bootstrap failed (continuing)")
+		if cfg.IsProd() {
+			logger.Warn().
+				Str("ignored_env", "IRONFLYER_SUPERUSER_EMAIL,IRONFLYER_SUPERUSER_PASSWORD").
+				Msg("superuser env bootstrap is disabled in prod; promote users via the operator console")
+		} else {
+			verifier, _ := userStore.(auth.EmailVerifier)
+			roleSetter, _ := userStore.(auth.RoleSetter)
+			if _, err := auth.EnsureSuperuser(ctx, authSvc, userStore, verifier, roleSetter,
+				cfg.SuperuserEmail, cfg.SuperuserPassword, logger); err != nil {
+				logger.Warn().Err(err).Str("email", cfg.SuperuserEmail).
+					Msg("superuser bootstrap failed (continuing)")
+			}
 		}
 	}
 
@@ -651,6 +674,82 @@ func main() {
 	}
 	_ = atlasStore // wired by the agent loop / preflight in the follow-up PR
 	_ = archManifest
+
+	// ---------------- Capability Atlas first-index daemon ----------------
+	// V22 closure: the Atlas package existed but was never populated.
+	// Boot wires one IndexRepo pass at startup, then re-indexes every
+	// IRONFLYER_ATLAS_REINDEX_INTERVAL (default 6h). Opt-out via
+	// IRONFLYER_ATLAS_DISABLED=true so dev iteration isn't slowed.
+	// The Indexer is the canonical producer; failures log at WARN
+	// only — Atlas is a quality-of-life feature, never load-bearing.
+	if !envBool(os.Getenv("IRONFLYER_ATLAS_DISABLED")) {
+		reindexInterval := 6 * time.Hour
+		if v := strings.TrimSpace(os.Getenv("IRONFLYER_ATLAS_REINDEX_INTERVAL")); v != "" {
+			if parsed, perr := time.ParseDuration(v); perr == nil && parsed > 0 {
+				reindexInterval = parsed
+			}
+		}
+		// Roots: index our actual source — core/ + clients/. Default
+		// override via IRONFLYER_ATLAS_ROOT (single dir, legacy) /
+		// IRONFLYER_ATLAS_ROOTS (comma-separated).
+		repoRoot := strings.TrimSpace(os.Getenv("IRONFLYER_REPO_ROOT"))
+		if repoRoot == "" {
+			if cwd, werr := os.Getwd(); werr == nil {
+				// Climb until we see a directory containing core/ AND
+				// clients/, capped at 6 levels so a misconfigured CWD
+				// can't walk to /.
+				repoRoot = findRepoRoot(cwd, 6)
+			}
+		}
+		var atlasRoots []string
+		if v := strings.TrimSpace(os.Getenv("IRONFLYER_ATLAS_ROOTS")); v != "" {
+			for _, p := range strings.Split(v, ",") {
+				if p = strings.TrimSpace(p); p != "" {
+					atlasRoots = append(atlasRoots, p)
+				}
+			}
+		} else if repoRoot != "" {
+			atlasRoots = []string{
+				filepath.Join(repoRoot, "core"),
+				filepath.Join(repoRoot, "clients"),
+			}
+		}
+		atlasIndexer := &atlas.Indexer{
+			Store: atlasStore,
+			Root:  repoRoot,
+			Roots: atlasRoots,
+		}
+		superviseDaemon(ctx, logger, "atlas-indexer", func(runCtx context.Context) error {
+			runIndex := func() {
+				started := time.Now()
+				stats, err := atlasIndexer.IndexRepo(runCtx)
+				if err != nil {
+					logger.Warn().Err(err).Dur("elapsed", time.Since(started)).Msg("atlas: index failed (non-fatal)")
+					return
+				}
+				logger.Info().
+					Int("total", stats.Total).
+					Interface("by_kind", stats.ByKind).
+					Int("with_embedding", stats.WithEmbedding).
+					Dur("elapsed", time.Since(started)).
+					Strs("roots", atlasRoots).
+					Msg("atlas indexed")
+			}
+			runIndex()
+			ticker := time.NewTicker(reindexInterval)
+			defer ticker.Stop()
+			for {
+				select {
+				case <-runCtx.Done():
+					return runCtx.Err()
+				case <-ticker.C:
+					runIndex()
+				}
+			}
+		})
+	} else {
+		logger.Info().Msg("atlas: IRONFLYER_ATLAS_DISABLED=true — skipping boot index")
+	}
 
 	// ---------------- Agents registry + patches + finisher ----------------
 	registry := agents.NewRegistry(guard)
@@ -960,6 +1059,27 @@ func main() {
 	//     consults the policy; a stop verdict short-circuits the retry
 	//     budget without making any more agent calls.
 	snapshotFn := func(ctx context.Context, executionID string, req providers.Request) (profitguard.ExecState, error) {
+		// Pre-execution synthetic context (V22 deferred site closed):
+		// callers like ideaparser.describeIdea run BEFORE any paid
+		// execution exists, so there is no execution row to read. The
+		// resolver stamps the ctx with a synthetic id of the form
+		// "pre_execution:<tenant>" so attribution stays distinct from
+		// "no_execution" and the BillingGuard still gets a Decide.
+		// The synthetic state uses a small standalone cost band — the
+		// idea-parsing call is bounded by budget.DefaultPromptCap and
+		// must not consume an execution's wallet hold.
+		if strings.HasPrefix(executionID, "pre_execution:") {
+			tenant := strings.TrimPrefix(executionID, "pre_execution:")
+			return profitguard.ExecState{
+				ExecutionID:              executionID,
+				TenantID:                 tenant,
+				UserBudgetUSD:            decimal.NewFromFloat(0.10),
+				EstimatedNextStepCostUSD: decimal.NewFromFloat(0.01),
+				EstimatedPlatformCostUSD: decimal.NewFromFloat(0.01),
+				StopLossUSD:              decimal.NewFromFloat(0.10),
+				CurrentProvider:          req.PreferredProvider,
+			}, nil
+		}
 		state, err := execSvc.GetState(ctx, executionID)
 		if err != nil {
 			return profitguard.ExecState{}, err
@@ -1280,6 +1400,9 @@ func main() {
 	}
 	abuseEngine := abuse.NewEngine(abuse.LoadConfig(), abuseStore)
 	hardeningCfg := gqlhardening.Load()
+	if cfg.IsProd() {
+		hardeningCfg.ProdMode = true
+	}
 	baseLimiter := ratelimit.New(hardeningCfg.BaseRatePerSecond, hardeningCfg.BaseBurst)
 	gqlLimiter := gqlhardening.NewLimiter(baseLimiter, abuseEngine)
 	var persistedStore gqlhardening.Store
@@ -1407,7 +1530,38 @@ func main() {
 		easPoller *eas.Poller
 	)
 	if tok := strings.TrimSpace(os.Getenv("EAS_TOKEN")); tok != "" {
-		easClient = eas.New(tok, eas.WithLogger(logger.With().Str("component", "eas").Logger()))
+		// EAS retry-loop ProfitGuard hook (closes the V22 deferred site
+		// at eas/client.go:299). The outer BeforeMobileBuild envelope
+		// already gates each build; this hook adds a per-attempt cost
+		// cap so a single rate-limited or 5xx-burst request cannot
+		// burn 3 extra EAS minutes after margin has already collapsed.
+		easRetryGuard := func(rctx context.Context, _, _ string, _ int) error {
+			execID, ok := profitguardctx.ExecutionID(rctx)
+			if !ok || execSvc == nil {
+				// Pre-execution or unattributed call — let the outer
+				// envelope decide; the retry budget is bounded.
+				return nil
+			}
+			state, err := execSvc.GetState(rctx, execID)
+			if err != nil {
+				return nil
+			}
+			in := profitguardbridge.StateToGuardInput(state, nil, profitguardbridge.BridgeFlags{})
+			dec, derr := profitGuard.Decide(rctx, profitguard.BeforeRetryLoop, in)
+			if derr != nil {
+				return nil
+			}
+			_ = profitGuard.Record(rctx, execID, profitguard.BeforeRetryLoop, dec, in)
+			switch dec.Action {
+			case profitguard.Stop, profitguard.KillBranch, profitguard.PauseForBudget:
+				return fmt.Errorf("%s: %s", dec.Action, dec.Reason)
+			}
+			return nil
+		}
+		easClient = eas.New(tok,
+			eas.WithLogger(logger.With().Str("component", "eas").Logger()),
+			eas.WithRetryGuard(easRetryGuard),
+		)
 		easPoller = eas.NewPoller(easClient, ledgerSvc,
 			eas.WithPollerLogger(logger.With().Str("component", "eas-poller").Logger()),
 		)
@@ -1429,6 +1583,9 @@ func main() {
 		Billing: billing, Stripe: stripeSvc, Paddle: paddleSvc, Guard: guard,
 		Auth: authSvc, AuthOptional: cfg.AuthOptional,
 		AllowedOrigins: cfg.CORSOrigins,
+		ProdMode:       cfg.IsProd(),
+		CSPOverride:    cfg.CSP,
+		MetricsToken:   cfg.MetricsToken,
 		Memory:         memoryStore, Audit: auditStore, Telemetry: telemetrySink,
 		Bus:                       eventBus,
 		NotifyPrefs:               prefsStore,
@@ -2202,6 +2359,41 @@ func superviseDaemon(ctx context.Context, logger zerolog.Logger, name string, fn
 			logger.Warn().Str("daemon", name).Err(err).Msg("daemon exited with error")
 		}
 	}()
+}
+
+// envBool parses a permissive truthy string ("1", "true", "yes", "on")
+// case-insensitive; anything else (including the empty string) is
+// false. Used for opt-in / opt-out env switches that don't need the
+// stricter strconv.ParseBool error semantics.
+func envBool(v string) bool {
+	switch strings.ToLower(strings.TrimSpace(v)) {
+	case "1", "true", "yes", "on":
+		return true
+	}
+	return false
+}
+
+// findRepoRoot climbs from start up to maxLevels parents looking for
+// a directory that contains BOTH core/ and clients/ subdirs — the
+// canonical Ironflyer monorepo shape. Returns "" if not found inside
+// the cap (caller falls back to indexing nothing rather than walking /).
+func findRepoRoot(start string, maxLevels int) string {
+	dir := start
+	for i := 0; i <= maxLevels; i++ {
+		core := filepath.Join(dir, "core")
+		clients := filepath.Join(dir, "clients")
+		if ci, err := os.Stat(core); err == nil && ci.IsDir() {
+			if li, err := os.Stat(clients); err == nil && li.IsDir() {
+				return dir
+			}
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return ""
+		}
+		dir = parent
+	}
+	return ""
 }
 
 func buildLogger(cfg config.Config) zerolog.Logger {

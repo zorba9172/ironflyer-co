@@ -27,12 +27,19 @@ import (
 type Indexer struct {
 	Store Store
 	Embed embeddings.Embedder
-	Root  string
+	// Root is the legacy single walk target. When Roots is set, Root is
+	// used only as a relative-path base for emitted Capability rows.
+	Root string
+	// Roots is the V22 boot-indexer entrypoint: every listed directory
+	// gets a full WalkDir pass and capabilities are aggregated into one
+	// BatchIndex call. Empty Roots falls back to walking Root alone.
+	Roots []string
 	// MaxFiles caps the walk so a runaway repo or accidental symlink
 	// can't pin the indexer. Zero means no cap.
 	MaxFiles int
 	// SkipDirs lists directory names to prune on the walk. Defaults to
-	// node_modules, .git, dist, build, .next, vendor, tmp, .ironflyer.
+	// node_modules, .git, dist, build, .next, vendor, tmp, .ironflyer,
+	// test-results, playwright-report, design-handoff-screenshots.
 	SkipDirs []string
 }
 
@@ -44,14 +51,18 @@ func defaultSkip() map[string]struct{} {
 		"node_modules": {}, ".git": {}, "dist": {}, "build": {},
 		".next": {}, "vendor": {}, "tmp": {}, ".ironflyer": {},
 		".turbo": {}, ".cache": {}, "out": {}, "coverage": {},
+		// Atlas walks our own source — never index Playwright output,
+		// design handoff scratch, or local screenshot caches.
+		"test-results": {}, "playwright-report": {},
+		"design-handoff-screenshots": {},
+		".pnpm-store":                {}, "target": {},
 	}
 }
 
-// IndexRepo walks Root and emits one Capability per exported symbol.
-// Returns aggregate Stats after the walk completes. Errors from
-// individual files are logged via the Store's error channel (when
-// available) — a single malformed file should never abort the whole
-// walk.
+// IndexRepo walks Root (or each entry in Roots when set) and emits
+// one Capability per exported symbol. Returns aggregate Stats after
+// the walk completes. Errors from individual files are silenced —
+// a single malformed file should never abort the whole walk.
 func (i *Indexer) IndexRepo(ctx context.Context) (Stats, error) {
 	if i.Store == nil {
 		return Stats{}, ErrNotFound // re-using; caller wires a real store
@@ -59,32 +70,55 @@ func (i *Indexer) IndexRepo(ctx context.Context) (Stats, error) {
 	skip := i.skipSet()
 	caps := make([]Capability, 0, 1024)
 	var visited int
-	walkFn := func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
+
+	walk := func(root string) error {
+		if strings.TrimSpace(root) == "" {
 			return nil
 		}
-		if d.IsDir() {
-			if _, drop := skip[d.Name()]; drop {
-				return filepath.SkipDir
+		walkFn := func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return nil
+			}
+			if d.IsDir() {
+				if _, drop := skip[d.Name()]; drop {
+					return filepath.SkipDir
+				}
+				return nil
+			}
+			if i.MaxFiles > 0 && visited >= i.MaxFiles {
+				return filepath.SkipAll
+			}
+			visited++
+			// Path emitted on the Capability stays relative to the
+			// caller-supplied Root (i.Root) so downstream consumers
+			// can resolve paths the same way regardless of whether
+			// the indexer walked one root or many.
+			base := i.Root
+			if base == "" {
+				base = root
+			}
+			rel, _ := filepath.Rel(base, path)
+			switch {
+			case strings.HasSuffix(path, ".go"):
+				caps = append(caps, indexGoFile(path, rel)...)
+			case strings.HasSuffix(path, ".ts") || strings.HasSuffix(path, ".tsx"):
+				caps = append(caps, indexTSFile(path, rel)...)
 			}
 			return nil
 		}
-		if i.MaxFiles > 0 && visited >= i.MaxFiles {
-			return filepath.SkipAll
-		}
-		visited++
-		rel, _ := filepath.Rel(i.Root, path)
-		switch {
-		case strings.HasSuffix(path, ".go"):
-			caps = append(caps, indexGoFile(path, rel)...)
-		case strings.HasSuffix(path, ".ts") || strings.HasSuffix(path, ".tsx"):
-			caps = append(caps, indexTSFile(path, rel)...)
-		}
-		return nil
+		return filepath.WalkDir(root, walkFn)
 	}
-	if err := filepath.WalkDir(i.Root, walkFn); err != nil {
-		return Stats{}, err
+
+	roots := i.Roots
+	if len(roots) == 0 {
+		roots = []string{i.Root}
 	}
+	for _, r := range roots {
+		if err := walk(r); err != nil {
+			return Stats{}, err
+		}
+	}
+
 	// Embed lazily — the embed call is the expensive bit; we keep it
 	// out of the hot walk path so a slow HF endpoint doesn't blow up
 	// the indexer's cycle time.

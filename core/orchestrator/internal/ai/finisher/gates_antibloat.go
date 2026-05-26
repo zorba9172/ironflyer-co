@@ -35,11 +35,21 @@ import (
 	"context"
 	"encoding/json"
 	"os"
+	"strconv"
 	"strings"
 
 	"ironflyer/core/orchestrator/internal/ai/agents"
 	"ironflyer/core/orchestrator/internal/ai/domain"
 )
+
+// fmtFloat renders a duplication percentage in a stable 2-decimal form
+// without bringing in fmt for a single call site. Used by the dedup
+// and vuln gates to format summary issue messages.
+func fmtFloat(v float64) string {
+	return strconv.FormatFloat(v, 'f', 2, 64)
+}
+
+func fmtInt(n int) string { return strconv.Itoa(n) }
 
 // ---- reuse_check ----------------------------------------------------
 
@@ -257,20 +267,116 @@ func parseEvidenceReport(gate domain.GateName, defaultSeverity domain.Severity, 
 	return out
 }
 
-// DedupGate consumes jscpd / dupl JSON. Wire it by exporting the
-// report path:
+// DedupGate consumes jscpd JSON (the canonical cross-file copy/paste
+// detector). Wire it by running scripts/lint/run-jscpd.sh and
+// exporting the normalized report path:
 //
-//	IRONFLYER_DEDUP_REPORT_PATH=./reports/jscpd.json npx jscpd \
-//	    --reporters json --output ./reports clients/web/src
+//	./scripts/lint/run-jscpd.sh
+//	export IRONFLYER_DEDUP_REPORT_PATH=tmp/reports/jscpd-<ts>.json
+//
+// The script writes a `{ summary: { duplicationPct, budgetPct,
+// cloneCount }, findings: [...] }` document. When `duplicationPct >
+// budgetPct` we surface a SeverityError verdict scoped to the overall
+// summary AND emit per-clone Warnings; when within budget we emit a
+// single SeverityInfo "dup within budget" finding. When the report is
+// shaped like a generic `{ findings: [...] }` (e.g. a hand-written
+// JSON), we fall back to the evidenceGate parser.
 type DedupGate struct{}
 
 func (DedupGate) Name() domain.GateName    { return domain.GateDedup }
 func (DedupGate) RepairAgent() agents.Role { return agents.RoleCoder }
 func (DedupGate) Check(ctx context.Context, env *GateEnv) []domain.Issue {
-	return evidenceGate{
-		name: domain.GateDedup, envVar: "IRONFLYER_DEDUP_REPORT_PATH",
-		repairAgent: agents.RoleCoder, severity: domain.SeverityWarning,
-	}.Check(ctx, env)
+	path := strings.TrimSpace(os.Getenv("IRONFLYER_DEDUP_REPORT_PATH"))
+	if path == "" {
+		return []domain.Issue{{
+			Gate:     domain.GateDedup,
+			Severity: domain.SeverityInfo,
+			Message:  "dedup tool not installed — run scripts/lint/run-jscpd.sh and export IRONFLYER_DEDUP_REPORT_PATH",
+			Hint:     "see docs/ANTI_BLOAT_ENGINE.md§\"Tool wire-up\" + docs/CLOSEOUT_CHECKLIST.md",
+		}}
+	}
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return []domain.Issue{{
+			Gate:     domain.GateDedup,
+			Severity: domain.SeverityWarning,
+			Message:  "dedup report missing at " + path + ": " + err.Error(),
+			Hint:     "re-run scripts/lint/run-jscpd.sh or unset IRONFLYER_DEDUP_REPORT_PATH",
+		}}
+	}
+	return parseDedupReport(raw)
+}
+
+// dedupReport is the jscpd-normalized shape emitted by
+// scripts/lint/run-jscpd.sh.
+type dedupReport struct {
+	Summary struct {
+		DuplicationPct float64 `json:"duplicationPct"`
+		BudgetPct      float64 `json:"budgetPct"`
+		CloneCount     int     `json:"cloneCount"`
+	} `json:"summary"`
+	Findings []genericFinding `json:"findings,omitempty"`
+}
+
+func parseDedupReport(raw []byte) []domain.Issue {
+	var r dedupReport
+	if err := json.Unmarshal(raw, &r); err != nil {
+		return []domain.Issue{{
+			Gate:     domain.GateDedup,
+			Severity: domain.SeverityWarning,
+			Message:  "dedup report parse error: " + err.Error(),
+			Hint:     "scripts/lint/run-jscpd.sh writes { summary, findings }; re-run it",
+		}}
+	}
+	// No summary AND no findings → degrade to evidence parser (the
+	// report may be a plain {findings:[]} document).
+	if r.Summary.BudgetPct == 0 && r.Summary.DuplicationPct == 0 && len(r.Findings) == 0 {
+		return parseEvidenceReport(domain.GateDedup, domain.SeverityWarning, raw)
+	}
+	budget := r.Summary.BudgetPct
+	if budget == 0 {
+		budget = 2.0 // playbook §8.5 default
+	}
+	exceeded := r.Summary.DuplicationPct > budget
+	out := make([]domain.Issue, 0, len(r.Findings)+1)
+	if exceeded {
+		out = append(out, domain.Issue{
+			Gate:     domain.GateDedup,
+			Severity: domain.SeverityError,
+			Message: "dedup over budget: " +
+				fmtFloat(r.Summary.DuplicationPct) + "% > " +
+				fmtFloat(budget) + "% across " +
+				fmtInt(r.Summary.CloneCount) + " clone groups",
+			Hint: "refactor duplicates into shared modules; the gate is the Anti-Bloat lane's dup signal",
+		})
+	} else {
+		out = append(out, domain.Issue{
+			Gate:     domain.GateDedup,
+			Severity: domain.SeverityInfo,
+			Message: "dedup within budget: " +
+				fmtFloat(r.Summary.DuplicationPct) + "% ≤ " +
+				fmtFloat(budget) + "% across " +
+				fmtInt(r.Summary.CloneCount) + " clone groups",
+		})
+	}
+	for _, f := range r.Findings {
+		// Skip the synthetic overall-summary finding emitted by the
+		// driver (it shares the summary message we already produced).
+		if strings.HasPrefix(f.Message, "overall duplication ") {
+			continue
+		}
+		sev := domain.SeverityWarning
+		if exceeded {
+			sev = domain.SeverityError
+		}
+		out = append(out, domain.Issue{
+			Gate:     domain.GateDedup,
+			Severity: sev,
+			Message:  f.Message,
+			Path:     f.Path,
+		})
+	}
+	return out
 }
 
 // DeadcodeGate consumes knip / ts-prune / unparam reports.
@@ -334,16 +440,114 @@ func (PerfBudgetGate) Check(ctx context.Context, env *GateEnv) []domain.Issue {
 	}.Check(ctx, env)
 }
 
-// VulnScanGate consumes govulncheck / npm audit reports.
+// VulnScanGate consumes govulncheck JSON. Wire it by running
+// scripts/lint/run-govulncheck.sh and exporting the normalized
+// report path:
+//
+//	./scripts/lint/run-govulncheck.sh
+//	export IRONFLYER_VULN_REPORT_PATH=tmp/reports/govulncheck-<ts>.json
+//
+// The driver emits `{ findings: [ { path, message, severity } ] }`.
+// We map severity strings to the gate-runner severity so the engine's
+// Critical-blocks-apply rule kicks in correctly: high+critical →
+// SeverityCritical (BLOCKS deploy), medium → SeverityWarning, low →
+// SeverityInfo. Unknown severities default to SeverityWarning rather
+// than SeverityCritical so a malformed osv entry doesn't accidentally
+// block a deploy.
 type VulnScanGate struct{}
 
 func (VulnScanGate) Name() domain.GateName    { return domain.GateVulnScan }
 func (VulnScanGate) RepairAgent() agents.Role { return agents.RoleSecurity }
-func (VulnScanGate) Check(ctx context.Context, env *GateEnv) []domain.Issue {
-	return evidenceGate{
-		name: domain.GateVulnScan, envVar: "IRONFLYER_VULN_REPORT_PATH",
-		repairAgent: agents.RoleSecurity, severity: domain.SeverityCritical,
-	}.Check(ctx, env)
+func (VulnScanGate) Check(_ context.Context, env *GateEnv) []domain.Issue {
+	path := strings.TrimSpace(os.Getenv("IRONFLYER_VULN_REPORT_PATH"))
+	if path == "" {
+		return []domain.Issue{{
+			Gate:     domain.GateVulnScan,
+			Severity: domain.SeverityInfo,
+			Message:  "vuln_scan tool not installed — run scripts/lint/run-govulncheck.sh and export IRONFLYER_VULN_REPORT_PATH",
+			Hint:     "see docs/ANTI_BLOAT_ENGINE.md§\"Tool wire-up\" + docs/CLOSEOUT_CHECKLIST.md",
+		}}
+	}
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return []domain.Issue{{
+			Gate:     domain.GateVulnScan,
+			Severity: domain.SeverityWarning,
+			Message:  "vuln_scan report missing at " + path + ": " + err.Error(),
+			Hint:     "re-run scripts/lint/run-govulncheck.sh or unset IRONFLYER_VULN_REPORT_PATH",
+		}}
+	}
+	return parseVulnReport(raw)
+}
+
+// parseVulnReport reads a govulncheck-normalized report and projects
+// findings into orchestrator gate issues. high/critical findings BLOCK
+// (SeverityCritical); medium → Warning; low → Info. A clean report
+// (zero findings) emits a single SeverityInfo "no known vulnerabilities".
+func parseVulnReport(raw []byte) []domain.Issue {
+	if len(raw) == 0 {
+		return nil
+	}
+	var r evidenceReport
+	if err := json.Unmarshal(raw, &r); err != nil {
+		return []domain.Issue{{
+			Gate:     domain.GateVulnScan,
+			Severity: domain.SeverityWarning,
+			Message:  "vuln_scan report parse error: " + err.Error(),
+			Hint:     "scripts/lint/run-govulncheck.sh writes { findings:[...] }; re-run it",
+		}}
+	}
+	findings := r.Findings
+	if len(findings) == 0 {
+		findings = r.Issues
+	}
+	if len(findings) == 0 {
+		return []domain.Issue{{
+			Gate:     domain.GateVulnScan,
+			Severity: domain.SeverityInfo,
+			Message:  "vuln_scan: no known vulnerabilities",
+		}}
+	}
+	var critical, medium, low int
+	out := make([]domain.Issue, 0, len(findings)+1)
+	for _, f := range findings {
+		sev := domain.SeverityWarning
+		switch strings.ToLower(strings.TrimSpace(f.Severity)) {
+		case "critical", "high":
+			sev = domain.SeverityCritical
+			critical++
+		case "medium", "warning", "warn":
+			sev = domain.SeverityWarning
+			medium++
+		case "low", "info":
+			sev = domain.SeverityInfo
+			low++
+		default:
+			medium++
+		}
+		out = append(out, domain.Issue{
+			Gate:     domain.GateVulnScan,
+			Severity: sev,
+			Message:  f.Message,
+			Path:     f.Path,
+		})
+	}
+	// Lead with a summary issue so the dashboard renders the verdict
+	// at the top of the gate panel without scrolling through every
+	// finding.
+	summarySev := domain.SeverityInfo
+	if critical > 0 {
+		summarySev = domain.SeverityCritical
+	} else if medium > 0 {
+		summarySev = domain.SeverityWarning
+	}
+	summary := domain.Issue{
+		Gate:     domain.GateVulnScan,
+		Severity: summarySev,
+		Message: "vuln_scan: " + fmtInt(critical) + " high/critical, " +
+			fmtInt(medium) + " medium, " + fmtInt(low) + " low",
+	}
+	return append([]domain.Issue{summary}, out...)
 }
 
 // AntiBloatGates returns the ordered Anti-Bloat lane registration.

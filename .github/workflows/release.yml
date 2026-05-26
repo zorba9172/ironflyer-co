@@ -21,8 +21,18 @@ on:
         description: 'Release tag to assemble (e.g. v1.4.0)'
         required: true
 
+# Default to read-only across the workflow. The `publish` job below escalates
+# to contents:write so it can attach binaries to the GitHub release. The matrix
+# build jobs only need read.
 permissions:
-  contents: write
+  contents: read
+
+# Releases are not idempotent — never cancel an in-flight release. Two release
+# tags on the same ref would already be blocked by Git, so per-ref grouping is
+# safe.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 env:
   GO_VERSION: '1.25'
@@ -47,8 +57,8 @@ jobs:
           - { os: windows, arch: amd64 }
           - { os: windows, arch: arm64 }
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff  # v5
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: core/cli/go.sum
@@ -76,7 +86,7 @@ jobs:
           go build -trimpath \
             -ldflags "-s -w -X main.version=${{ steps.ver.outputs.tag }}" \
             -o "dist/$out" ./cmd/ironflyer
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
         with:
           name: cli-${{ matrix.os }}-${{ matrix.arch }}
           path: core/cli/dist/*
@@ -89,8 +99,8 @@ jobs:
     name: Helm chart
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: azure/setup-helm@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4  # v4
         with:
           version: v3.15.3
       - id: ver
@@ -109,7 +119,7 @@ jobs:
             --version "${{ steps.ver.outputs.version }}" \
             --app-version "${{ steps.ver.outputs.version }}" \
             --destination dist
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
         with:
           name: helm-chart
           path: dist/ironflyer-*.tgz
@@ -123,7 +133,7 @@ jobs:
     name: API schemas
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
       - name: Gather schemas
         run: |
           set -euo pipefail
@@ -135,7 +145,7 @@ jobs:
           if [ -f core/orchestrator/openapi.yaml ]; then
             cp core/orchestrator/openapi.yaml dist/schemas/openapi.yaml
           fi
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
         with:
           name: api-schemas
           path: dist/schemas/*
@@ -148,8 +158,12 @@ jobs:
     name: Publish GitHub release
     needs: [cli, chart, schemas]
     runs-on: ubuntu-latest
+    # Only this job needs to attach binaries to the release; the upstream
+    # matrix jobs run with the workflow-level read-only default.
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
         with:
           fetch-depth: 0  # Required so the changelog action can walk history.
 
@@ -162,14 +176,14 @@ jobs:
             echo "name=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4
         with:
           path: dist
           merge-multiple: true
 
       - name: Build changelog
         id: changelog
-        uses: mikepenz/release-changelog-builder-action@v5
+        uses: mikepenz/release-changelog-builder-action@c9dc8369bccbc41e0ac887f8fd674f5925d315f7  # v5
         with:
           toTag: ${{ steps.tag.outputs.name }}
           configurationJson: |
@@ -187,7 +201,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65  # v2
         with:
           tag_name: ${{ steps.tag.outputs.name }}
           name: Ironflyer ${{ steps.tag.outputs.name }}

@@ -33,6 +33,10 @@ type Workspace struct {
 	Root       string    `json:"root"`              // path on host (mock) or container ID (docker)
 	PreviewURL string    `json:"previewUrl,omitempty"`
 	IDEURL     string    `json:"ideUrl,omitempty"`  // code-server URL
+	// IDEPassword is the random per-workspace credential code-server boots
+	// with. Surfaced so the orchestrator can wrap it in a signed preview
+	// token; never log this value or echo it in error messages.
+	IDEPassword string    `json:"idePassword,omitempty"`
 	CreatedAt  time.Time `json:"createdAt"`
 	UpdatedAt  time.Time `json:"updatedAt"`
 }

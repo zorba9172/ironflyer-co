@@ -103,7 +103,15 @@ func (r *mutationResolver) DescribeIdea(ctx context.Context, input model.Describ
 				maxBud = cap
 			}
 		}
-		idea, perr := r.IdeaParser.Parse(ctx, ideaparser.ParseInput{
+		// V22 deferred site closed: stamp a synthetic pre-execution
+		// context so the router's BeforeModelCall ProfitGuard hook
+		// has a typed attribution. The snapshot func recognises the
+		// "pre_execution:" prefix and synthesises a small standalone
+		// cost band — the idea-parsing call is bounded by
+		// budget.DefaultPromptCap and must not consume any execution's
+		// wallet hold.
+		parseCtx := profitguardctx.WithExecution(ctx, "pre_execution:"+tenant, tenant)
+		idea, perr := r.IdeaParser.Parse(parseCtx, ideaparser.ParseInput{
 			Text:         text,
 			TenantID:     tenant,
 			UserID:       u.ID,

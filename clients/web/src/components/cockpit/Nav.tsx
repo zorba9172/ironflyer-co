@@ -83,6 +83,11 @@ const COCKPIT_LINKS: NavLink[] = [
   { label: "Wallet", href: "/wallet", match: (p) => p.startsWith("/wallet") },
   { label: "Deploy", href: "/deploy", match: (p) => p.startsWith("/deploy") },
   {
+    label: "Health",
+    href: "/cockpit/health",
+    match: (p) => p.startsWith("/cockpit/health"),
+  },
+  {
     label: "Operator",
     href: "/operator",
     match: (p) => p.startsWith("/operator"),
@@ -99,6 +104,7 @@ const COCKPIT_ROUTE_PREFIXES = [
   "/deploy",
   "/settings",
   "/operator",
+  "/cockpit/",
   "/p/",
 ];
 

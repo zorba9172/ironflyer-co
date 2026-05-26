@@ -42,7 +42,7 @@ is what makes the layer cheap enough to run on every step.
 | `BeforeSandboxAllocation`     | `runtime/internal/operations/allocator.Allocate`                       | ✅              | runtime admission funnel checks WithProfitGuard ctx |
 | `BeforeRetryLoop`             | `finisher.Engine.runCoderRetryLoop`                                    | ✅              | ProfitGuardHook.BeforeRetry |
 | `BeforeRetryLoop`             | `finisher.recovery.runRecoveryLoop`                                    | ✅              | one Decide per attempt |
-| `BeforeRetryLoop`             | EAS retry loop (`eas/client.go`)                                       | ⚠️ deferred    | tight transient-error retry, max 3, bounded cost per attempt |
+| `BeforeRetryLoop`             | EAS retry loop (`eas/client.go`)                                       | ✅ (V22 close)  | RetryGuard option installed in `cmd/orchestrator/main.go`; consults `BeforeRetryLoop` Decide before each retry attempt and aborts the loop when margin has collapsed |
 | `BeforeMobileBuild`           | `finisher.MobileBuildGate.runMobileBuilds` (V22 fix)                   | ✅              | per (kind, target); Stop/Kill skips gradlew/xcodebuild |
 | `BeforeMobileBuild`           | GraphQL `mobileTriggerBuild` resolver (V22 fix)                        | ✅              | EAS build trigger |
 | `BeforeMobileBuild`           | GraphQL `mobileSubmitToStore` resolver (V22 fix)                       | ✅              | EAS store submission |
@@ -53,6 +53,9 @@ is what makes the layer cheap enough to run on every step.
 | `BeforeArtifactStore`         | `patch.Engine.applyToWorkspace` (artifacts > 1 MiB)                    | ✅              | ArtifactStoreHookAdapter |
 | `BeforeLongVerification`      | `finisher.Engine.runReviewer` (when est > 60s)                         | ✅              | LongVerificationHookAdapter |
 | `BeforeExecutionAdmit`        | execution lifecycle admit                                              | ✅              | wallet hold + admit gate |
+| `BeforeDomainPurchase`        | `deploy.MemoryDomainService.PurchaseDomain` (V22 close)                | ✅              | `GuardDomainPurchase`; allow/refuse only (no graceful downgrade for a one-shot registrar call) |
+| `BeforeDomainPurchase`        | `deploy.PostgresDomainService.PurchaseDomain` (V22 close)              | ✅              | same hook, Postgres-backed path |
+| `BeforeModelCall` (pre-exec)  | `ideaparser.LLMParser.parseViaLLM` via `studio.DescribeIdea` (V22 close) | ✅            | resolver stamps `profitguardctx.WithExecution(ctx, "pre_execution:<tenant>", tenant)`; `snapshotFn` recognises the prefix and synthesises a standalone cost band so the unmetered call is gated without breaking attribution |
 
 ### Sandbox specifics — Mac pool refusal
 
@@ -106,28 +109,35 @@ auditSink := wireup.NewProfitGuardAuditSink(auditStore)
 profitGuard := profitguard.NewWithAuditSink(policy, pgStore, auditSink)
 ```
 
-## Open gaps (honestly deferred)
+## Closed gaps (V22 closure pass)
 
-- **EAS client transient-error retry loop** (`eas/client.go:299`).
-  Bounded at 3 retries per call, each retry only repeats the same HTTP
-  request (no fresh provider tokens). Per-step cost cap means a single
-  rate-limited request cannot exceed the workload budget. Adding a
-  per-iteration Decide would require threading a guard into the HTTP
-  client; the cost/benefit favours leaving this loop ungated and
-  relying on the surrounding `BeforeMobileBuild` envelope to refuse
-  the outer build.
-- **Domain registrar purchase** (`deploy.domain_purchase.go`). Capped
-  at $75 by `DomainPurchasePolicy.MaxPriceUSD`. Not on the
-  EnforcementPoint enumeration. If we expand to bulk domain seizures
-  we should add `BeforeDomainPurchase` to `profitguard.types.go` and
-  gate `MemoryDomainService.PurchaseDomain` /
-  `PostgresDomainService.PurchaseDomain` accordingly.
-- **`ideaparser.LLMParser.Parse`** — calls `router.Complete` directly
-  rather than going through `BillingGuard`. This is an unmetered
-  internal call invoked once per `describeIdea` GraphQL mutation
-  (token-cap-bounded by `budget.DefaultPromptCap`) and its tenant /
-  executionID are not yet on ctx at that call site. Listed for a
-  future pass that threads ProfitGuard through the parser.
+- **EAS client transient-error retry loop** (`eas/client.go`). Closed:
+  added `RetryGuard` option to the EAS client (`WithRetryGuard`) and
+  wired a `BeforeRetryLoop` Decide closure in `cmd/orchestrator/main.go`
+  that aborts the retry early when the per-attempt verdict goes to
+  `Stop` / `KillBranch` / `PauseForBudget`. The outer
+  `BeforeMobileBuild` envelope still gates the build itself.
+- **Domain registrar purchase** (`deploy/domain_purchase.go`). Closed:
+  added `BeforeDomainPurchase` to the `profitguard.EnforcementPoint`
+  enumeration and `deploy.GuardDomainPurchase` helper. Both
+  `MemoryDomainService.PurchaseDomain` and
+  `PostgresDomainService.PurchaseDomain` now call the guard with the
+  registrar's quoted price and the policy ceiling in the snapshot
+  before the wire Purchase call lands. Verdict semantics: allow /
+  refuse only — there is no graceful downgrade for a one-shot
+  registrar purchase, so `Continue` / `Degrade` / `SwitchProvider` /
+  `ReuseBlueprint` / `ReuseRepair` all mean "go ahead" and only the
+  three hard-stop verdicts block the call.
+- **`ideaparser.LLMParser.Parse`** — closed: the `DescribeIdea`
+  resolver stamps `profitguardctx.WithExecution(ctx,
+  "pre_execution:<tenant>", tenant)` before calling `IdeaParser.Parse`.
+  The orchestrator's `snapshotFn` recognises the prefix and
+  synthesises a standalone cost band (UserBudget $0.10, StopLoss
+  $0.10) so the unmetered pre-execution call gets a typed Decide /
+  Record without breaking attribution against a real execution row.
+
+## Standing notes (no fix required)
+
 - **Haiku-tier model calls.** Per cost policy, Haiku 4.5 is "cheap" —
   the BeforeModelCall hook still fires for it, but the margin floor
   for `standard_web` (45%) treats it as a freely-billable tier. No

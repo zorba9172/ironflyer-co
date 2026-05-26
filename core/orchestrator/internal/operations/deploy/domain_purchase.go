@@ -15,6 +15,15 @@ func WithDomainPurchasePolicy(policy DomainPurchasePolicy) DomainServiceOption {
 	}
 }
 
+// WithDomainProfitGuard installs the BeforeDomainPurchase guard hook.
+// nil pg is legal (matches the dev / boot-time path where ProfitGuard
+// is not yet wired) — GuardDomainPurchase no-ops in that case.
+func WithDomainProfitGuard(pg ProfitGuardChecker) DomainServiceOption {
+	return func(s *MemoryDomainService) {
+		s.pg = pg
+	}
+}
+
 func normalizeDomainPurchasePolicy(policy DomainPurchasePolicy) DomainPurchasePolicy {
 	if policy.MaxPriceUSD.LessThanOrEqual(decimal.Zero) {
 		policy.MaxPriceUSD = decimal.NewFromInt(75)

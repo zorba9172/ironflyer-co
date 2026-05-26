@@ -96,6 +96,18 @@ type Deps struct {
 	// IRONFLYER_CORS_ORIGINS env var.
 	AllowedOrigins []string
 
+	// ProdMode mirrors cfg.Env == "prod". Used by the security-headers
+	// middleware (HSTS, strict CSP) and the metrics auth check.
+	ProdMode bool
+
+	// CSPOverride replaces the default Content-Security-Policy when set.
+	// Sourced from IRONFLYER_CSP.
+	CSPOverride string
+
+	// MetricsToken protects /metrics. Empty disables auth (dev/staging
+	// only — main.go fails fast in prod when unset).
+	MetricsToken string
+
 	// Memory + audit + telemetry.
 	Memory    memory.Store
 	Audit     audit.Store
@@ -238,13 +250,20 @@ func New(d Deps) http.Handler {
 	// Access-Control-Allow-Credentials:true is valid; `*` is not
 	// allowed with credentials) and allow the headers the SPA sends.
 	r.Use(corsMiddleware(a.d.AllowedOrigins))
+	r.Use(securityHeadersMiddleware(SecurityHeadersOptions{
+		ProdMode:    a.d.ProdMode,
+		CSPOverride: a.d.CSPOverride,
+	}))
 
 	// Public infra endpoints — NEVER authenticated.
 	r.Get("/healthz", a.healthz)
 	r.Get("/livez", a.livez)
 	r.Get("/readyz", a.readyz)
 	r.Get("/version", a.version)
-	r.Method(http.MethodGet, "/metrics", metrics.Handler())
+	// /metrics is Prometheus scrape. Protected with a bearer token when
+	// IRONFLYER_METRICS_TOKEN is set; main.go fails fast in prod when
+	// the token is unset.
+	r.Method(http.MethodGet, "/metrics", metricsAuth(a.d.MetricsToken, metrics.Handler()))
 
 	// Stripe webhook — third-party callback, signature-verified inline.
 	r.Post("/budget/webhook", a.stripeWebhook)

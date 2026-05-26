@@ -2,6 +2,10 @@
 // can read what the extension is doing from View → Output → "Ironflyer".
 // The channel is created lazily on first write so we don't pollute the
 // Output dropdown for users who never hit an error path.
+//
+// `log.debug` is gated on the `ironflyer.debug` workspace setting so the
+// channel stays quiet by default but operators can flip the switch when
+// they need a trace without rebuilding the extension.
 
 import * as vscode from 'vscode';
 
@@ -31,7 +35,19 @@ function format(level: string, msg: string, err?: unknown): string {
   return out;
 }
 
+function debugEnabled(): boolean {
+  try {
+    return vscode.workspace.getConfiguration('ironflyer').get<boolean>('debug', false);
+  } catch {
+    return false;
+  }
+}
+
 export const log = {
+  debug(msg: string, err?: unknown): void {
+    if (!debugEnabled()) return;
+    ensure().appendLine(format('DEBUG', msg, err));
+  },
   info(msg: string, err?: unknown): void { ensure().appendLine(format('INFO ', msg, err)); },
   warn(msg: string, err?: unknown): void { ensure().appendLine(format('WARN ', msg, err)); },
   error(msg: string, err?: unknown): void { ensure().appendLine(format('ERROR', msg, err)); },

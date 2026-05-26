@@ -53,6 +53,19 @@ func (s *PostgresDomainService) PurchaseDomain(ctx context.Context, in PurchaseD
 	if err != nil {
 		return Domain{}, err
 	}
+	// BeforeDomainPurchase ProfitGuard hook — refuse the registrar
+	// call when margin has collapsed (V22 deferred site, now closed).
+	if err := GuardDomainPurchase(purchaseCtx, s.core.pg, map[string]any{
+		"tenant_id":         in.TenantID,
+		"project_id":        in.ProjectID,
+		"domain":            normalizeHostname(in.Domain),
+		"registrar":         registrar.Name(),
+		"price_usd":         avail.PriceUSD.StringFixedBank(2),
+		"max_price_usd":     s.core.purchasePolicy.MaxPriceUSD.StringFixedBank(2),
+		"enforcement_point": "before_domain_purchase",
+	}); err != nil {
+		return Domain{}, err
+	}
 	if _, err := registrar.Purchase(purchaseCtx, in); err != nil {
 		return Domain{}, err
 	}

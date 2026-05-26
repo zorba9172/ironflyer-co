@@ -49,6 +49,13 @@ permissions:
   # Required for aws-actions/configure-aws-credentials OIDC role assumption.
   id-token: write
 
+# Never run two Pulumi ops against the same ref concurrently. Cancel in
+# progress on PR previews (the latest diff wins) but DO NOT cancel a tag-
+# driven `up` mid-flight — that would leave cloud resources half-applied.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 env:
   PULUMI_VERSION: 3.130.0
   GO_VERSION: '1.25'
@@ -116,19 +123,19 @@ jobs:
     env:
       PULUMI_STACK_NAME: ${{ needs.resolve.outputs.stack }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff  # v5
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: infra/pulumi-data/go.sum
 
       - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a  # v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ needs.resolve.outputs.aws_region }}
 
-      - uses: pulumi/actions@v5
+      - uses: pulumi/actions@cd99a7f8865434dd3532b586a26f9ebea596894f  # v5
         with:
           command: ${{ needs.resolve.outputs.command }}
           stack-name: ${{ needs.resolve.outputs.stack }}
@@ -148,19 +155,19 @@ jobs:
     env:
       PULUMI_STACK_NAME: ${{ needs.resolve.outputs.stack }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff  # v5
         with:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: infra/pulumi/go.sum
 
       - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a  # v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ needs.resolve.outputs.aws_region }}
 
-      - uses: pulumi/actions@v5
+      - uses: pulumi/actions@cd99a7f8865434dd3532b586a26f9ebea596894f  # v5
         with:
           command: ${{ needs.resolve.outputs.command }}
           stack-name: ${{ needs.resolve.outputs.stack }}

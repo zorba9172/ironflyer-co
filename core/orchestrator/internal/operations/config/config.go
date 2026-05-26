@@ -352,7 +352,27 @@ type Config struct {
 	EventPumpInterval    time.Duration `env:"IRONFLYER_EVENT_PUMP_INTERVAL" envDefault:"1s"`
 	EventPumpLease       time.Duration `env:"IRONFLYER_EVENT_PUMP_LEASE" envDefault:"30s"`
 	EventPumpMaxAttempts int           `env:"IRONFLYER_EVENT_PUMP_MAX_ATTEMPTS" envDefault:"10"`
+
+	// MetricsToken protects the /metrics scrape endpoint. When set, a
+	// scraper MUST present `Authorization: Bearer <token>`; the compare
+	// is constant-time. In prod this MUST be set or the orchestrator
+	// refuses to boot; in dev/staging an unset token leaves /metrics
+	// open with a startup warning.
+	MetricsToken string `env:"IRONFLYER_METRICS_TOKEN"`
+
+	// CSP overrides the orchestrator's default Content-Security-Policy
+	// header. Empty selects a conservative default (self-only sources)
+	// in prod and a more permissive policy in dev/staging that admits
+	// the Apollo Sandbox CDN.
+	CSP string `env:"IRONFLYER_CSP"`
+
+	// AuditRedact toggles PII redaction on audit entries (emails, IPs,
+	// provider API keys). Default "on"; "off" disables redaction and
+	// logs a warning at startup so operators see the choice in the log.
+	AuditRedact string `env:"IRONFLYER_AUDIT_REDACT" envDefault:"on" validate:"oneof=on off"`
 }
+
+func (c Config) IsProd() bool { return c.Env == "prod" }
 
 func (c Config) UsePostgres() bool {
 	return c.DBDriver == "postgres" || c.DBDriver == "hybrid"
@@ -368,6 +388,17 @@ func Load() (Config, error) {
 	}
 	if err := validator.New().Struct(c); err != nil {
 		return c, fmt.Errorf("config validate: %w", err)
+	}
+	if c.IsProd() {
+		if c.JWTSecret == "" || c.JWTSecret == "dev-secret-change-me" || len(c.JWTSecret) < 32 {
+			return c, fmt.Errorf("IRONFLYER_JWT_SECRET must be set to a non-default value of at least 32 bytes when IRONFLYER_ENV=prod")
+		}
+		if c.CORSOrigins == nil || len(c.CORSOrigins) == 0 {
+			return c, fmt.Errorf("IRONFLYER_CORS_ORIGINS must list explicit origins when IRONFLYER_ENV=prod (open-mode CORS is refused in production)")
+		}
+		if c.MetricsToken == "" {
+			return c, fmt.Errorf("IRONFLYER_METRICS_TOKEN must be set when IRONFLYER_ENV=prod (open /metrics is refused in production)")
+		}
 	}
 	return c, nil
 }

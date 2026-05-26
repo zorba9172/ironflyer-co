@@ -5,7 +5,12 @@ src/**
 .eslintrc*
 esbuild.js
 tsconfig.json
+codegen.yml
+vitest.config.ts
 **/*.map
 **/*.ts
+**/*.test.*
+**/*.spec.*
 node_modules/**
 out/**
+*.vsix

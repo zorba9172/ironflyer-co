@@ -35,6 +35,24 @@ const maxRetries = 3
 // misbehaving upstream cannot flood the operator log.
 const maxErrorBodyBytes = 2048
 
+// RetryGuard, when set, is consulted before each retry attempt of the
+// inner do() loop. The contract is simple: returning a non-nil error
+// aborts the retry early — the caller surfaces the returned error in
+// place of the retry. This is the V22 ProfitGuard hook for the EAS
+// transient-error retry loop: a per-attempt cost cap that aborts the
+// retry when the outer build envelope reports margin has collapsed.
+//
+// Implementations MUST be cheap (this fires on every 5xx/429/network
+// failure inside the retry loop) and MUST NOT block on I/O — wire a
+// snapshot of profitguard state, not a fresh DB read. See the
+// ProfitGuard coverage doc (docs/ARCHITECTURE_PROFITGUARD.md) for the
+// canonical wiring pattern.
+//
+// The nextAttempt argument is the 1-indexed retry attempt about to be
+// taken (so the very first retry passes nextAttempt=1; attempt=0 — the
+// original call — never invokes RetryGuard).
+type RetryGuard func(ctx context.Context, method, path string, nextAttempt int) error
+
 // Client is the typed REST client for the EAS API. Constructed once
 // at orchestrator startup; safe for concurrent use.
 type Client struct {
@@ -42,6 +60,7 @@ type Client struct {
 	httpClient *http.Client
 	token      string
 	logger     zerolog.Logger
+	retryGuard RetryGuard
 }
 
 // Option configures Client at construction time.
@@ -57,6 +76,20 @@ func WithHTTPClient(h *http.Client) Option { return func(c *Client) { c.httpClie
 
 // WithLogger swaps the default zerolog logger.
 func WithLogger(l zerolog.Logger) Option { return func(c *Client) { c.logger = l } }
+
+// WithRetryGuard installs a per-attempt cost-cap hook. The hook is
+// consulted before each retry attempt of the inner HTTP do() loop —
+// returning a non-nil error aborts the retry and surfaces the guard's
+// reason instead of burning another EAS minute on a doomed retry.
+//
+// This is the V22 ProfitGuard closure for the EAS transient-error
+// retry path. The orchestrator wires a closure that checks the current
+// ProfitGuard verdict for the active execution; if the verdict is no
+// longer Continue, the retry aborts. The outer BeforeMobileBuild
+// envelope still gates the build itself — RetryGuard exists to keep
+// a single rate-limited or 5xx-burst request from burning the inner
+// budget cap.
+func WithRetryGuard(g RetryGuard) Option { return func(c *Client) { c.retryGuard = g } }
 
 // New builds a Client. token may be empty when the orchestrator boots
 // without an EAS_TOKEN — every wire call then short-circuits with
@@ -322,6 +355,9 @@ func (c *Client) do(ctx context.Context, method, path string, body any, out any)
 			lastErr = err
 			// Network errors are retried.
 			if attempt < maxRetries && !errors.Is(err, context.Canceled) && !errors.Is(err, context.DeadlineExceeded) {
+				if guardErr := c.checkRetryGuard(ctx, method, path, attempt+1); guardErr != nil {
+					return guardErr
+				}
 				if !sleepBackoff(ctx, attempt, 0) {
 					return ctx.Err()
 				}
@@ -343,6 +379,9 @@ func (c *Client) do(ctx context.Context, method, path string, body any, out any)
 				Dur("retry_after", retryAfter).
 				Msg("eas: rate limited")
 			if attempt < maxRetries {
+				if guardErr := c.checkRetryGuard(ctx, method, path, attempt+1); guardErr != nil {
+					return guardErr
+				}
 				if !sleepBackoff(ctx, attempt, retryAfter) {
 					return ctx.Err()
 				}
@@ -363,6 +402,9 @@ func (c *Client) do(ctx context.Context, method, path string, body any, out any)
 				Msg("eas: server error (will retry)")
 			lastErr = fmt.Errorf("server error (status %d): %s", resp.StatusCode, body)
 			if attempt < maxRetries {
+				if guardErr := c.checkRetryGuard(ctx, method, path, attempt+1); guardErr != nil {
+					return guardErr
+				}
 				if !sleepBackoff(ctx, attempt, 0) {
 					return ctx.Err()
 				}
@@ -414,6 +456,28 @@ func (c *Client) do(ctx context.Context, method, path string, body any, out any)
 		lastErr = fmt.Errorf("exhausted retries (last status %d)", lastCode)
 	}
 	return lastErr
+}
+
+// checkRetryGuard consults the installed RetryGuard (if any) and
+// returns its verdict. A nil guard returns nil (the original
+// retry-everything behaviour). A non-nil error short-circuits the
+// retry loop with the guard's reason; callers MUST surface this error
+// in place of the next attempt — burning another EAS minute would
+// defeat the cost cap.
+func (c *Client) checkRetryGuard(ctx context.Context, method, path string, nextAttempt int) error {
+	if c == nil || c.retryGuard == nil {
+		return nil
+	}
+	if err := c.retryGuard(ctx, method, path, nextAttempt); err != nil {
+		c.logger.Warn().
+			Str("method", method).
+			Str("path", path).
+			Int("next_attempt", nextAttempt).
+			Err(err).
+			Msg("eas: retry aborted by ProfitGuard")
+		return fmt.Errorf("eas: retry %d aborted by ProfitGuard: %w", nextAttempt, err)
+	}
+	return nil
 }
 
 // sleepBackoff sleeps with exponential backoff (200ms * 2^attempt)

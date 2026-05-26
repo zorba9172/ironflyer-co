@@ -126,10 +126,26 @@ func BuildDeployDomainService(d DeployDeps) deploy.DomainService {
 		RequireRegistrantContact: cfg.RequireDomainRegistrantContact,
 	}
 
-	if d.Pool != nil {
-		return deploy.NewPostgresDomainService(d.Pool, providers, registrars, cfg.DefaultDomainProvider, cfg.DefaultRegistrar, deploy.WithDomainPurchasePolicy(purchasePolicy))
+	// BeforeDomainPurchase guard — same checker shape as deploy.GuardDeploy.
+	// Reuses the existing profitGuardCheckerAdapter so registrar Purchase
+	// calls go through the canonical Decide+Record audit fan-out.
+	guardChecker := &profitGuardCheckerAdapter{
+		guard:      d.Guard,
+		exec:       d.ExecSvc,
+		bridgeDeps: d.BridgeDeps,
+		logger:     d.Logger,
 	}
-	return deploy.NewMemoryDomainService(providers, registrars, cfg.DefaultDomainProvider, cfg.DefaultRegistrar, deploy.WithDomainPurchasePolicy(purchasePolicy))
+
+	if d.Pool != nil {
+		return deploy.NewPostgresDomainService(d.Pool, providers, registrars, cfg.DefaultDomainProvider, cfg.DefaultRegistrar,
+			deploy.WithDomainPurchasePolicy(purchasePolicy),
+			deploy.WithDomainProfitGuard(guardChecker),
+		)
+	}
+	return deploy.NewMemoryDomainService(providers, registrars, cfg.DefaultDomainProvider, cfg.DefaultRegistrar,
+		deploy.WithDomainPurchasePolicy(purchasePolicy),
+		deploy.WithDomainProfitGuard(guardChecker),
+	)
 }
 
 // deploySecretResolverAdapter satisfies deploy.SecretResolver by

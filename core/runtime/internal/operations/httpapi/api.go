@@ -375,6 +375,7 @@ func (a *API) create(w http.ResponseWriter, r *http.Request) {
 		"root":            ws.Root,
 		"previewUrl":      ws.PreviewURL,
 		"ideUrl":          ws.IDEURL,
+		"idePassword":     ws.IDEPassword,
 		"createdAt":       ws.CreatedAt,
 		"updatedAt":       ws.UpdatedAt,
 		"allocatorSource": alloc.Source,

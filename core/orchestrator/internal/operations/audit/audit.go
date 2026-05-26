@@ -200,6 +200,7 @@ func (m *MemoryStore) Record(_ context.Context, e Entry) (Entry, error) {
 		e.CreatedAt = time.Now().UTC()
 	}
 	stampRegion(&e)
+	redactEntry(&e)
 	e.PrevHash = m.lastHash
 	e.ContentHash = hashEntry(e)
 

@@ -162,6 +162,7 @@ func (s *SurrealStore) Record(ctx context.Context, e Entry) (Entry, error) {
 	if e.CreatedAt.IsZero() {
 		e.CreatedAt = time.Now().UTC()
 	}
+	redactEntry(&e)
 	e.PrevHash = s.lastHash
 	e.ContentHash = hashEntry(e)
 

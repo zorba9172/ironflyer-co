@@ -65,13 +65,49 @@ func GuardDeploy(ctx context.Context, pg ProfitGuardChecker, snapshot map[string
 	return nil
 }
 
+// GuardDomainPurchase is the BeforeDomainPurchase enforcement helper
+// called by both MemoryDomainService.PurchaseDomain and
+// PostgresDomainService.PurchaseDomain before the registrar's
+// Purchase() wire call goes out.
+//
+// Verdict semantics are deliberately allow-or-refuse: a registrar
+// purchase is a one-shot, non-degradable operation. The
+// DomainPurchasePolicy.MaxPriceUSD layer already clamps the price
+// ceiling at $75 (deploy.normalizeDomainPurchasePolicy), so this gate
+// exists to refuse the call when margin has collapsed at the tenant
+// level — never to swap to a cheaper TLD or otherwise mutate the
+// request.
+//
+// Stop / KillBranch / PauseForBudget map to ErrProfitGuardBlocked so
+// the resolver surfaces the verdict verbatim. nil pg short-circuits
+// to nil (permissive) so the dev path is unaffected when ProfitGuard
+// is not yet wired. snapshot may be nil; the checker synthesises a
+// safe default when it is.
+func GuardDomainPurchase(ctx context.Context, pg ProfitGuardChecker, snapshot map[string]any) error {
+	if pg == nil {
+		return nil
+	}
+	action, reason, err := pg.Decide(ctx, string(pointBeforeDomainPurchase), snapshot)
+	if err != nil {
+		return fmt.Errorf("%w: profit guard decide: %v", ErrProfitGuardBlocked, err)
+	}
+	switch action {
+	case actionStop, actionKillBranch, actionPauseForBudget:
+		return fmt.Errorf("%w: %s: %s", ErrProfitGuardBlocked, action, reason)
+	}
+	return nil
+}
+
 // Local copies of the profitguard wire constants. We deliberately
 // don't import internal/profitguard here — the local mirrors keep
 // the package cycle-free and let the integration agent satisfy
 // ProfitGuardChecker with whatever shape it prefers.
 const (
-	pointBeforeVercelDeploy = "before_vercel_deploy"
+	pointBeforeVercelDeploy   = "before_vercel_deploy"
+	pointBeforeDomainPurchase = "before_domain_purchase"
+)
 
+const (
 	actionContinue       = "continue"
 	actionDegrade        = "degrade"
 	actionPauseForBudget = "pause_for_budget"
