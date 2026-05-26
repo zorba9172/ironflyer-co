@@ -313,32 +313,37 @@ func main() {
 	defer func() { _ = eventBus.Close() }()
 
 	// ---------------- Providers + Guard + Agents ----------------------------
+	// Mock is only registered when no real provider is configured. This keeps
+	// dev usable on a bare clone while making sure that as soon as a real
+	// key is set the chat never silently falls back to "[mock] ..." output.
 	router := providers.NewRouter()
-	router.Register(providers.NewMockProvider("mock"))
+	realProviders := 0
 
 	if cfg.AnthropicAPIKey != "" {
 		router.Register(providers.NewAnthropicProvider(providers.AnthropicOpts{
 			APIKey: cfg.AnthropicAPIKey, Model: cfg.AnthropicModel,
 		}))
 		logger.Info().Str("model", cfg.AnthropicModel).Msg("Anthropic provider registered")
-	} else {
-		logger.Warn().Msg("ANTHROPIC_API_KEY not set — running on mock provider only")
+		realProviders++
 	}
 	if cfg.OpenAIAPIKey != "" {
 		router.Register(providers.NewOpenAIProvider(providers.OpenAIOpts{
 			APIKey: cfg.OpenAIAPIKey, Model: cfg.OpenAIModel,
 		}))
 		logger.Info().Str("model", cfg.OpenAIModel).Msg("OpenAI provider registered")
+		realProviders++
 	}
 	if cfg.GeminiAPIKey != "" {
 		router.Register(providers.NewGeminiProvider(providers.GeminiOpts{
 			APIKey: cfg.GeminiAPIKey, Model: cfg.GeminiModel,
 		}))
 		logger.Info().Str("model", cfg.GeminiModel).Msg("Gemini provider registered")
+		realProviders++
 	}
 	if cfg.HFAPIKey != "" {
 		router.Register(providers.NewHuggingFaceProvider(providers.HuggingFaceOpts{APIKey: cfg.HFAPIKey}))
 		logger.Info().Msg("HuggingFace provider registered")
+		realProviders++
 	}
 	if vp := providers.NewVercelAIGatewayProvider(providers.VercelAIGatewayOpts{
 		Token:   cfg.VercelAIGatewayToken,
@@ -348,6 +353,7 @@ func main() {
 		router.Register(vp)
 		logger.Info().Str("model", cfg.VercelAIGatewayModel).Str("url", cfg.VercelAIGatewayURL).
 			Msg("Vercel AI Gateway provider registered")
+		realProviders++
 	}
 	if cfg.DeepSeekEnabled && cfg.DeepSeekAPIKey != "" {
 		ds, err := providers.NewDeepSeek(providers.DeepSeekConfig{
@@ -364,7 +370,15 @@ func main() {
 		} else {
 			router.Register(ds)
 			logger.Info().Msg("deepseek: enabled")
+			realProviders++
 		}
+	}
+
+	if realProviders == 0 {
+		router.Register(providers.NewMockProvider("mock"))
+		logger.Warn().Msg("no real LLM provider configured — registered mock provider (chat will return `[mock] ...`); set ANTHROPIC_API_KEY (or another provider key) to enable real responses")
+	} else {
+		logger.Info().Int("count", realProviders).Msg("real LLM providers active; mock provider disabled")
 	}
 
 	telemetrySink := providers.NewMemorySink(2048).WithBus(eventBus)
