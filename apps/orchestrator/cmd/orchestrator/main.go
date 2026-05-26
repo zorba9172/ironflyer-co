@@ -959,7 +959,12 @@ func main() {
 		ExecSvc:    execSvc,
 		BridgeDeps: bridgeDeps,
 	})
-	logger.Info().Msg("V22 deploy plane wired (vercel + noop targets)")
+	deployDomainSvc := wireup.BuildDeployDomainService(wireup.DeployDeps{
+		Pool:       pgPool,
+		Logger:     logger.With().Str("svc", "deploy-domain").Logger(),
+		SecretsBrk: secretsRes.Broker,
+	})
+	logger.Info().Msg("V22 deploy plane wired (deploy + domains + registrar adapters)")
 
 	// Approval-expiry sweeper: flips pending approvals past ExpiresAt to
 	// the expired terminal state so the deployFeed subscription emits a
@@ -1121,7 +1126,7 @@ func main() {
 		Billing: billing, Stripe: stripeSvc, Guard: guard,
 		Auth: authSvc, AuthOptional: cfg.AuthOptional,
 		AllowedOrigins: cfg.CORSOrigins,
-		Memory: memoryStore, Audit: auditStore, Telemetry: telemetrySink,
+		Memory:         memoryStore, Audit: auditStore, Telemetry: telemetrySink,
 		Bus:                       eventBus,
 		NotifyPrefs:               prefsStore,
 		Notify:                    notifyEngine,
@@ -1165,6 +1170,7 @@ func main() {
 
 		// V22 Wave-2.
 		Deploy:         deploySvc,
+		DeployDomains:  deployDomainSvc,
 		Hardening:      &hardeningCfg,
 		PolicyPEP:      policyPEP,
 		PersistedStore: persistedStore,
@@ -1771,15 +1777,34 @@ type runtimePreviewAdapter struct {
 	bearer string
 }
 
-func (a *runtimePreviewAdapter) PreviewURL(ctx context.Context, projectID string) (string, error) {
-	if a == nil || a.client == nil || !a.client.Enabled() || projectID == "" {
+func (a *runtimePreviewAdapter) PreviewURL(ctx context.Context, idOrWorkspace string) (string, error) {
+	if a == nil || a.client == nil || !a.client.Enabled() || idOrWorkspace == "" {
 		return "", nil
 	}
-	ws, err := a.client.FindWorkspaceForProject(ctx, a.bearer, projectID)
+	// Prefer the caller's JWT (graphql request ctx carries it via the
+	// auth middleware) over the static service bearer: the runtime's
+	// owner check is per-user, so calling with the wrong bearer 404s.
+	// Falls back to the service bearer for non-request paths (the
+	// finisher kick goroutine doesn't go through here).
+	bearer := auth.BearerFromContext(ctx)
+	if bearer == "" {
+		bearer = a.bearer
+	}
+	// A63 + workspace-auto-allocation: the wow loop now stamps
+	// ExecutionSnapshot.WorkspaceID = execution.workspaceID when set
+	// (real `ws-...` id) and falls back to projectID only for legacy
+	// rows. Try the workspace id path first — it's the cheap one
+	// (no list scan) and is the right shape for everything written
+	// since finisher/engine.go's auto-CreateWorkspace landed. If that
+	// 404s, treat the argument as a projectID and walk the list.
+	if strings.HasPrefix(idOrWorkspace, "ws-") {
+		return a.client.PreviewURL(ctx, bearer, idOrWorkspace)
+	}
+	ws, err := a.client.FindWorkspaceForProject(ctx, bearer, idOrWorkspace)
 	if err != nil || ws.ID == "" {
 		return "", nil
 	}
-	return a.client.PreviewURL(ctx, a.bearer, ws.ID)
+	return a.client.PreviewURL(ctx, bearer, ws.ID)
 }
 
 func buildLogger(cfg config.Config) zerolog.Logger {

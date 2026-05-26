@@ -809,10 +809,47 @@ func (e *Engine) Run(ctx context.Context, projectID string) (RunReport, error) {
 	// Resolve a workspace for this project once per Run — if the runtime is
 	// configured and the user has a running workspace bound to projectID we'll
 	// surface it through GateEnv so build/test gates can execute commands.
+	// When no workspace exists yet, auto-provision one so a freshly described
+	// idea (describeIdea path) actually gets a sandbox to write into instead
+	// of running every gate against an empty in-memory project. The user's
+	// bearer is required either way because the runtime's owner check keys
+	// off it; without a bearer we still degrade to the in-memory path.
 	var workspaceID string
 	if e.runtime.Enabled() && bearer != "" {
+		lg := logctx.From(ctx)
 		if ws, err := e.runtime.FindWorkspaceForProject(ctx, bearer, projectID); err == nil {
 			workspaceID = ws.ID
+			lg.Info().Str("workspace_id", workspaceID).Msg("engine: reused existing workspace")
+		} else {
+			lg.Info().Err(err).Msg("engine: no existing workspace; provisioning a new one")
+			provCtx, provCancel := context.WithTimeout(ctx, 30*time.Second)
+			ws, createErr := e.runtime.CreateWorkspace(provCtx, bearer, projectID, "")
+			provCancel()
+			if createErr != nil {
+				lg.Warn().Err(createErr).Msg("engine: CreateWorkspace failed; pipeline will run in-memory only (no build/test/deploy)")
+			} else {
+				workspaceID = ws.ID
+				lg.Info().Str("workspace_id", workspaceID).Msg("engine: provisioned new workspace")
+			}
+		}
+		// Ask the runtime to bind a preview port to the workspace. This is
+		// idempotent and 0 internal-port lets the runtime pick the dev
+		// server's default (vite=5173, next=3000, ...). Without this the
+		// wow-loop bundle's previewURL stays empty even after the coder
+		// has finished writing files — the studio iframe has nothing to
+		// load. Best-effort: a failure is logged but does not abort the
+		// run (a stale preview from a previous run still works, and the
+		// deploy gate will surface a structured error if no URL ever
+		// lands).
+		if workspaceID != "" {
+			previewCtx, previewCancel := context.WithTimeout(ctx, 10*time.Second)
+			binding, previewErr := e.runtime.AllocatePreview(previewCtx, bearer, workspaceID, 0)
+			previewCancel()
+			if previewErr != nil {
+				lg.Warn().Err(previewErr).Str("workspace_id", workspaceID).Msg("engine: AllocatePreview failed; iframe will stay empty until next run")
+			} else if binding.URL != "" {
+				lg.Info().Str("workspace_id", workspaceID).Str("preview_url", binding.URL).Int("port", binding.ExternalPort).Msg("engine: preview URL allocated")
+			}
 		}
 	}
 	// Stamp the resolved workspace ID onto the context so any agent Run

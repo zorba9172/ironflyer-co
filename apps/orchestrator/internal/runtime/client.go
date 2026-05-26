@@ -134,6 +134,17 @@ func (c *Client) GetWorkspace(ctx context.Context, userBearer, id string) (Works
 // CreateWorkspace asks the runtime to provision a new sandbox bound to
 // the bearer's user. Driver is honoured by the runtime's selection
 // logic; pass empty to accept the runtime default.
+//
+// The runtime allocator (apps/runtime/internal/allocator) requires
+// `X-Ironflyer-Wallet-Hold: ok` and `X-Ironflyer-ProfitGuard: ok`
+// before it will admit a workspace request — those are the first two
+// of the five admission gates. The orchestrator enforces both laws
+// before reaching this RPC (describeIdea places the wallet hold;
+// ProfitGuard's BeforeSandboxAllocation hook fires upstream), so we
+// stamp the markers here. Callers that *cannot* assert both — eg.
+// internal tooling that creates a sandbox without paid context —
+// should use a different entrypoint (none exists today; add one
+// rather than loosening this default).
 func (c *Client) CreateWorkspace(ctx context.Context, userBearer, projectID, driver string) (Workspace, error) {
 	if !c.Enabled() {
 		return Workspace{}, errors.New("runtime not configured")
@@ -146,7 +157,11 @@ func (c *Client) CreateWorkspace(ctx context.Context, userBearer, projectID, dri
 		in["driver"] = driver
 	}
 	var ws Workspace
-	if err := c.doJSON(ctx, http.MethodPost, "/workspaces", userBearer, in, &ws); err != nil {
+	headers := map[string]string{
+		"X-Ironflyer-Wallet-Hold": "ok",
+		"X-Ironflyer-ProfitGuard": "ok",
+	}
+	if err := c.doJSONWithHeaders(ctx, http.MethodPost, "/workspaces", userBearer, headers, in, &ws); err != nil {
 		return Workspace{}, err
 	}
 	return ws, nil
@@ -339,6 +354,10 @@ func (c *Client) Exec(ctx context.Context, userBearer, workspaceID string, opts 
 // forwarded as `Authorization: Bearer <token>` so the runtime enforces the
 // per-user ownership check.
 func (c *Client) doJSON(ctx context.Context, method, path, userBearer string, in, out any) error {
+	return c.doJSONWithHeaders(ctx, method, path, userBearer, nil, in, out)
+}
+
+func (c *Client) doJSONWithHeaders(ctx context.Context, method, path, userBearer string, headers map[string]string, in, out any) error {
 	var body io.Reader
 	if in != nil {
 		bts, err := json.Marshal(in)
@@ -356,6 +375,11 @@ func (c *Client) doJSON(ctx context.Context, method, path, userBearer string, in
 	}
 	if userBearer != "" {
 		req.Header.Set("Authorization", "Bearer "+userBearer)
+	}
+	for k, v := range headers {
+		if strings.TrimSpace(k) != "" && strings.TrimSpace(v) != "" {
+			req.Header.Set(k, v)
+		}
 	}
 	resp, err := c.HTTP.Do(req)
 	if err != nil {

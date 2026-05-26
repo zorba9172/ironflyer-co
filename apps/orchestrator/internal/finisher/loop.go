@@ -60,8 +60,8 @@ type longVerifyState struct {
 }
 
 var (
-	longVerifyMu      sync.RWMutex
-	longVerifyStates  = map[*Engine]*longVerifyState{}
+	longVerifyMu     sync.RWMutex
+	longVerifyStates = map[*Engine]*longVerifyState{}
 )
 
 // getLongVerifyState returns the per-engine state, creating an empty
@@ -293,7 +293,7 @@ const plannerInstruction = `You are producing the canonical plan for an Ironflye
 Rules:
 - 3-7 user stories. Each story MUST have at least 2 acceptance criteria.
 - Story IDs are stable: US-1, US-2, ... in declaration order.
-- File list is the minimum set the Coder needs to ship the MVP.
+- File list is the focused set the Coder needs to ship the production slice.
 - Output nothing but the JSON object.`
 
 func (e *Engine) runPlanner(ctx context.Context, projectID string, report *RunReport) error {
@@ -311,7 +311,7 @@ func (e *Engine) runPlanner(ctx context.Context, projectID string, report *RunRe
 		goal = strings.TrimSpace(p.Description)
 	}
 	if goal == "" {
-		goal = "Build a working MVP for: " + p.Name
+		goal = "Build a production-ready product for: " + p.Name
 	}
 
 	// Memory grounding — feed prior project decisions, specs, and
