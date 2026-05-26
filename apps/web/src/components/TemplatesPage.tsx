@@ -23,14 +23,12 @@ import {
   TollOutlined,
 } from "@mui/icons-material";
 import {
-  Alert,
   Box,
   Button,
   Card,
   Chip,
   CircularProgress,
   Skeleton,
-  Snackbar,
   Stack,
   Typography,
 } from "@mui/material";
@@ -38,6 +36,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../lib/auth";
 import { extractErrorMessage } from "../lib/errors";
+import * as swal from "../lib/swal";
 import { formatMoney, formatNumber } from "../lib/format";
 import {
   useBlueprintRankingQuery,
@@ -80,7 +79,6 @@ export function TemplatesPage() {
   const [describeIdea, describeIdeaM] = useDescribeIdeaMutation();
 
   const [activeCategory, setActiveCategory] = useState<string>(ALL_CATEGORIES);
-  const [snack, setSnack] = useState<string | null>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);
 
   const blueprints = blueprintsQ.data?.blueprints ?? [];
@@ -106,7 +104,6 @@ export function TemplatesPage() {
 
   const handleUse = useCallback(
     async (bp: Blueprint) => {
-      setSnack(null);
       setPendingId(bp.id);
       try {
         const res = await describeIdea({
@@ -133,7 +130,7 @@ export function TemplatesPage() {
         if (executionID) qs.set("executionID", executionID);
         router.push(`/p/${encodeURIComponent(projectID)}?${qs.toString()}`);
       } catch (err) {
-        setSnack(extractErrorMessage(err));
+        void swal.error("Template launch failed", extractErrorMessage(err));
         setPendingId(null);
       }
     },
@@ -226,16 +223,6 @@ export function TemplatesPage() {
         )}
       </Stack>
 
-      <Snackbar
-        open={!!snack}
-        autoHideDuration={6000}
-        onClose={() => setSnack(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert severity="error" variant="filled" onClose={() => setSnack(null)}>
-          {snack}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 }

@@ -1,24 +1,17 @@
 "use client";
 
-// RefundExecutionDialog — issues a wallet credit-back for a terminal
-// execution. Leaving amount blank refunds the unused reserve (the
-// server-side default).
+// RefundExecutionDialog — wallet credit-back for a terminal execution.
+//
+// Backed by sweetalert2. Two-field form (amount, reason) rendered as
+// custom HTML inside the popup; preConfirm() validates the amount and
+// triggers the refund mutation so the popup can show inline errors
+// without leaving its lifecycle. Public API matches the legacy
+// MUI Dialog so existing call sites keep working.
 
-import {
-  Button,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
-import { useState } from "react";
+import { useEffect, useRef } from "react";
 import { extractErrorMessage } from "../../lib/errors";
 import { useRefundExecutionMutation } from "../../lib/gql/__generated__";
-import { tokens } from "../../theme";
+import * as swal from "../../lib/swal";
 
 export interface RefundExecutionDialogProps {
   open: boolean;
@@ -35,91 +28,79 @@ export function RefundExecutionDialog({
   onClose,
   onRefunded,
 }: RefundExecutionDialogProps) {
-  const [amount, setAmount] = useState<string>("");
-  const [reason, setReason] = useState<string>("Customer support refund");
-  const [error, setError] = useState<string | null>(null);
-  const [refund, { loading }] = useRefundExecutionMutation();
+  const [refund] = useRefundExecutionMutation();
+  const firedFor = useRef<string | null>(null);
 
-  const handleRefund = async () => {
-    setError(null);
-    const trimmed = amount.trim();
-    let amountUSD: number | undefined;
-    if (trimmed) {
-      const n = Number(trimmed);
-      if (!Number.isFinite(n) || n <= 0) {
-        setError("Refund amount must be a positive number.");
-        return;
-      }
-      amountUSD = n;
+  useEffect(() => {
+    if (!open) {
+      firedFor.current = null;
+      return;
     }
-    try {
-      await refund({
-        variables: {
-          id: executionID,
-          amountUSD,
-          reason: reason.trim() || undefined,
+    if (firedFor.current === executionID) return;
+    firedFor.current = executionID;
+
+    const unusedLabel = unusedReserveUSD.toFixed(2);
+
+    void (async () => {
+      const res = await swal.fire({
+        icon: "question",
+        title: "Refund execution",
+        html:
+          `<div style="text-align:left;font-size:13px;line-height:1.45;">` +
+          `Issues a wallet credit-back tied to this execution. Leaving the ` +
+          `amount blank refunds the unused reserve (≈ $${unusedLabel}).` +
+          `</div>` +
+          `<div style="display:flex;flex-direction:column;gap:10px;margin-top:14px;">` +
+          `<input id="swal-refund-amount" class="swal2-input" type="number" step="0.01" min="0" ` +
+          `placeholder="unused reserve ≈ $${unusedLabel}" style="margin:0;" />` +
+          `<input id="swal-refund-reason" class="swal2-input" type="text" ` +
+          `value="Customer support refund" placeholder="Reason" style="margin:0;" />` +
+          `</div>`,
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: "Issue refund",
+        cancelButtonText: "Cancel",
+        showLoaderOnConfirm: true,
+        preConfirm: async () => {
+          const root = swal.Swal.getHtmlContainer();
+          if (!root) return false;
+          const amountEl = root.querySelector<HTMLInputElement>(
+            "#swal-refund-amount",
+          );
+          const reasonEl = root.querySelector<HTMLInputElement>(
+            "#swal-refund-reason",
+          );
+          const amountStr = amountEl?.value.trim() ?? "";
+          let amountUSD: number | undefined;
+          if (amountStr) {
+            const n = Number(amountStr);
+            if (!Number.isFinite(n) || n <= 0) {
+              swal.Swal.showValidationMessage(
+                "Refund amount must be a positive number.",
+              );
+              return false;
+            }
+            amountUSD = n;
+          }
+          const reason = reasonEl?.value.trim() || undefined;
+          try {
+            await refund({
+              variables: { id: executionID, amountUSD, reason },
+            });
+            return true;
+          } catch (e) {
+            swal.Swal.showValidationMessage(extractErrorMessage(e));
+            return false;
+          }
         },
       });
-      onRefunded?.();
-      onClose();
-    } catch (e) {
-      setError(extractErrorMessage(e));
-    }
-  };
 
-  return (
-    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
-      <DialogTitle sx={{ fontWeight: 800 }}>Refund execution</DialogTitle>
-      <DialogContent>
-        <Typography sx={{ color: tokens.color.text.secondary, fontSize: 13.5, mb: 2 }}>
-          Issues a wallet credit-back tied to this execution. Leaving the
-          amount blank refunds the unused reserve
-          {` (≈ $${unusedReserveUSD.toFixed(2)})`}.
-        </Typography>
-        <Stack spacing={1.5}>
-          <TextField
-            autoFocus
-            fullWidth
-            size="small"
-            label="Amount (USD)"
-            type="number"
-            inputProps={{ step: "0.01", min: 0 }}
-            placeholder={`unused reserve ≈ $${unusedReserveUSD.toFixed(2)}`}
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-          />
-          <TextField
-            fullWidth
-            size="small"
-            label="Reason"
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-          />
-        </Stack>
-        {error && (
-          <Typography sx={{ mt: 1.5, color: tokens.color.accent.danger, fontSize: 12.5 }}>
-            {error}
-          </Typography>
-        )}
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} variant="text" sx={{ color: tokens.color.text.secondary }}>
-          Cancel
-        </Button>
-        <Button
-          onClick={handleRefund}
-          disabled={loading}
-          variant="contained"
-          color="primary"
-          startIcon={
-            loading ? (
-              <CircularProgress size={14} thickness={6} sx={{ color: tokens.color.text.inverse }} />
-            ) : null
-          }
-        >
-          Issue refund
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
+      if (res.isConfirmed) {
+        onRefunded?.();
+      }
+      onClose();
+    })();
+  }, [open, executionID, unusedReserveUSD, refund, onRefunded, onClose]);
+
+  return null;
 }

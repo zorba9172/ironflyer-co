@@ -8,15 +8,41 @@ package resolver
 import (
 	"context"
 	"ironflyer/apps/orchestrator/internal/graph/model"
+	"ironflyer/apps/orchestrator/internal/operator"
 	"time"
+
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
+// gqlForbiddenOperator is the typed GraphQL error returned when a
+// non-operator caller asks for the platform-wide Scale dashboard.
+// Lifted into a helper so the rule is one line at every operator-only
+// resolver.
+func gqlForbiddenOperator() *gqlerror.Error {
+	return &gqlerror.Error{
+		Message: "operator role required",
+		Extensions: map[string]any{
+			"code": "FORBIDDEN",
+		},
+	}
+}
+
 // ProfitDashboard is the resolver for the profitDashboard field.
+//
+// Per-tenant view (bug #16 fix): the resolver derives the caller's
+// tenant id from the authenticated user and passes it through the
+// Service so the underlying adapter scopes WHERE tenant_id = $1.
+// Unauthenticated callers get UNAUTHENTICATED — never platform-wide
+// numbers.
 func (r *queryResolver) ProfitDashboard(ctx context.Context, since time.Time, until time.Time) (*model.ProfitDashboard, error) {
 	if r.Dashboards == nil {
 		return nil, gqlNotConfigured("dashboards")
 	}
-	d, err := r.Dashboards.Profit(ctx, since, until)
+	u, err := currentUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	d, err := r.Dashboards.Profit(ctx, tenantFor(u), since, until)
 	if err != nil {
 		return nil, err
 	}
@@ -37,9 +63,19 @@ func (r *queryResolver) ProfitDashboard(ctx context.Context, since time.Time, un
 }
 
 // ScaleDashboard is the resolver for the scaleDashboard field.
+//
+// Operator-only: scale data is platform-wide (queue depth, sandbox
+// capacity, utilization across all pools) and has no per-tenant
+// meaning. Non-operator callers get FORBIDDEN.
 func (r *queryResolver) ScaleDashboard(ctx context.Context) (*model.ScaleDashboard, error) {
 	if r.Dashboards == nil {
 		return nil, gqlNotConfigured("dashboards")
+	}
+	if _, err := currentUser(ctx); err != nil {
+		return nil, err
+	}
+	if !operator.IsOperator(ctx) {
+		return nil, gqlForbiddenOperator()
 	}
 	d, err := r.Dashboards.ScaleDashboard(ctx)
 	if err != nil {
@@ -56,11 +92,19 @@ func (r *queryResolver) ScaleDashboard(ctx context.Context) (*model.ScaleDashboa
 }
 
 // CohortDashboard is the resolver for the cohortDashboard field.
+//
+// Per-tenant view: cohort rows are built only from the caller's own
+// executions (bug #16 fix). Unauthenticated callers get
+// UNAUTHENTICATED — never platform-wide cohorts.
 func (r *queryResolver) CohortDashboard(ctx context.Context, sinceMonth time.Time) (*model.CohortDashboard, error) {
 	if r.Dashboards == nil {
 		return nil, gqlNotConfigured("dashboards")
 	}
-	d, err := r.Dashboards.Cohort(ctx, sinceMonth)
+	u, err := currentUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	d, err := r.Dashboards.Cohort(ctx, tenantFor(u), sinceMonth)
 	if err != nil {
 		return nil, err
 	}
@@ -83,11 +127,19 @@ func (r *queryResolver) CohortDashboard(ctx context.Context, sinceMonth time.Tim
 }
 
 // BlueprintDashboard is the resolver for the blueprintDashboard field.
+//
+// Per-tenant view: blueprint stats are rolled up only from the
+// caller's own blueprint_runs (bug #16 fix). The platform-wide
+// rollup never reaches a signed-in customer's dashboard.
 func (r *queryResolver) BlueprintDashboard(ctx context.Context) (*model.BlueprintDashboard, error) {
 	if r.Dashboards == nil {
 		return nil, gqlNotConfigured("dashboards")
 	}
-	d, err := r.Dashboards.BlueprintDashboard(ctx)
+	u, err := currentUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	d, err := r.Dashboards.BlueprintDashboard(ctx, tenantFor(u))
 	if err != nil {
 		return nil, err
 	}

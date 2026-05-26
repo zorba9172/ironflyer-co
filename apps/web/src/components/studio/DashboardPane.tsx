@@ -6,20 +6,27 @@
 // entries) and a profit summary card.
 
 import {
+  AccountTreeRounded,
+  AutorenewRounded,
+  BoltRounded,
+  CheckCircleOutlineRounded,
   ChatBubbleOutlineRounded,
   ChevronLeftRounded,
   ChevronRightRounded,
   DifferenceRounded,
+  WarningAmberRounded,
 } from "@mui/icons-material";
 import {
   Box,
   Button,
   Card,
   Divider,
+  LinearProgress,
   Stack,
   Typography,
 } from "@mui/material";
-import { useMemo, type ReactNode } from "react";
+import { gql, useApolloClient } from "@apollo/client";
+import { useMemo, useState, type ReactNode } from "react";
 import { CostBreakdownBar } from "../charts/CostBreakdownBar";
 import { LoadingPanel } from "../cockpit/LoadingPanel";
 import { MetricCard } from "../cockpit/MetricCard";
@@ -27,13 +34,17 @@ import { MoneyChip } from "../cockpit/MoneyChip";
 import { StatusBadge } from "../cockpit/StatusBadge";
 import { relativeTime } from "../../lib/relativeTime";
 import {
+  useRunFinisherMutation,
   useExecutionSupportBundleQuery,
   type ExecutionCoreFragment,
 } from "../../lib/gql/__generated__";
+import { extractErrorMessage } from "../../lib/errors";
+import { pushToast } from "../../lib/stores/uiStore";
 import { tokens } from "../../theme";
 import type { StudioMessage } from "./types";
 
 export interface DashboardPaneProps {
+  projectID: string;
   execution: ExecutionCoreFragment;
   messages: StudioMessage[];
   leftRailOpen?: boolean;
@@ -42,11 +53,38 @@ export interface DashboardPaneProps {
   onToggleLeftRail?: () => void;
   onToggleChat?: () => void;
   onToggleDock?: () => void;
+  onRequestAreaClose?: (message: string) => Promise<void>;
 }
 
 const TERMINAL = new Set(["succeeded", "failed", "stopped", "killed", "refunded"]);
 
+const RERUN_GATE_MUTATION = gql`
+  mutation DashboardRerunGate($input: RerunGateInput!) {
+    rerunGate(input: $input) {
+      gate
+      status
+      durationMs
+      issues {
+        message
+      }
+    }
+  }
+`;
+
+type AreaHealth = "working" | "open" | "closed";
+
+interface LiveArea {
+  key: string;
+  label: string;
+  status: AreaHealth;
+  openIssues: number;
+  active: boolean;
+  gateName?: string;
+  hint?: string;
+}
+
 export function DashboardPane({
+  projectID,
   execution,
   messages,
   leftRailOpen,
@@ -55,8 +93,12 @@ export function DashboardPane({
   onToggleLeftRail,
   onToggleChat,
   onToggleDock,
+  onRequestAreaClose,
 }: DashboardPaneProps) {
   const isTerminal = TERMINAL.has(execution.status);
+  const client = useApolloClient();
+  const [runFinisher, runFinisherState] = useRunFinisherMutation();
+  const [activeAreaAction, setActiveAreaAction] = useState<string | null>(null);
   const query = useExecutionSupportBundleQuery({
     variables: { executionID: execution.id },
     pollInterval: isTerminal ? 0 : 5000,
@@ -84,6 +126,65 @@ export function DashboardPane({
       ),
     [messages],
   );
+
+  const liveAreas = useMemo(() => buildLiveAreas(gates, messages), [gates, messages]);
+  const activeArea = liveAreas.find((a) => a.active) ?? null;
+  const openAreaCount = liveAreas.filter((a) => a.status === "open").length;
+  const closedAreaCount = liveAreas.filter((a) => a.status === "closed").length;
+
+  const handleRunFinisher = async () => {
+    if (!projectID || runFinisherState.loading) return;
+    try {
+      await runFinisher({ variables: { id: projectID } });
+      pushToast({
+        message: "Finisher loop restarted for this project.",
+        severity: "success",
+      });
+      await query.refetch();
+    } catch (e) {
+      pushToast({ message: extractErrorMessage(e), severity: "error" });
+    }
+  };
+
+  const handleAreaClose = async (area: LiveArea) => {
+    if (!projectID || activeAreaAction) return;
+    setActiveAreaAction(area.key);
+    try {
+      if (area.gateName) {
+        await client.mutate({
+          mutation: RERUN_GATE_MUTATION,
+          variables: {
+            input: {
+              projectId: projectID,
+              gate: area.gateName,
+            },
+          },
+        });
+        pushToast({
+          message: `Gate rerun started: ${area.label}`,
+          severity: "success",
+        });
+      } else if (onRequestAreaClose) {
+        await onRequestAreaClose(
+          `Close area ${area.label}. Resolve all open issues, rerun checks, and report what is still not closed.`,
+        );
+        pushToast({
+          message: `Close request sent for ${area.label}.`,
+          severity: "info",
+        });
+      } else {
+        pushToast({
+          message: `No direct action is available for ${area.label}.`,
+          severity: "warning",
+        });
+      }
+      await query.refetch();
+    } catch (e) {
+      pushToast({ message: extractErrorMessage(e), severity: "error" });
+    } finally {
+      setActiveAreaAction(null);
+    }
+  };
 
   if (!bundle && query.loading) {
     return <LoadingPanel label="Loading support bundle…" minHeight="100%" />;
@@ -208,6 +309,171 @@ export function DashboardPane({
             accent={margin !== null && margin >= 0.2 ? "lime" : "coral"}
           />
         </Box>
+
+        <Card sx={{ p: 2 }}>
+          <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+            <AccountTreeRounded sx={{ color: tokens.color.accent.violet, fontSize: 18 }} />
+            <Typography
+              variant="overline"
+              sx={{ color: tokens.color.text.secondary, letterSpacing: 0.7 }}
+            >
+              Workflow + Finisher Loop Live
+            </Typography>
+            <Box sx={{ flex: 1 }} />
+            <Button
+              size="small"
+              onClick={handleRunFinisher}
+              disabled={runFinisherState.loading || !projectID}
+              startIcon={<AutorenewRounded sx={{ fontSize: 15 }} />}
+              sx={{
+                border: `1px solid ${tokens.color.border.subtle}`,
+                bgcolor: tokens.color.bg.surfaceRaised,
+                color: tokens.color.text.secondary,
+                fontSize: 11,
+                fontWeight: 800,
+                minHeight: 28,
+                px: 1,
+                textTransform: "none",
+                "&:hover": {
+                  bgcolor: tokens.color.bg.surfaceHover,
+                  borderColor: tokens.color.border.accent,
+                  color: tokens.color.text.primary,
+                },
+              }}
+            >
+              Run finisher
+            </Button>
+          </Stack>
+
+          <Box
+            sx={{
+              display: "grid",
+              gap: 1,
+              gridTemplateColumns: { xs: "1fr", md: "repeat(3, 1fr)" },
+              mb: 1.5,
+            }}
+          >
+            <MiniHealthCard
+              label="Active now"
+              value={activeArea?.label ?? "Waiting"}
+              tone={activeArea ? "accent" : "muted"}
+            />
+            <MiniHealthCard
+              label="Open areas"
+              value={String(openAreaCount)}
+              tone={openAreaCount > 0 ? "danger" : "accent"}
+            />
+            <MiniHealthCard
+              label="Closed areas"
+              value={String(closedAreaCount)}
+              tone="accent"
+            />
+          </Box>
+
+          {activeAreaAction ? (
+            <LinearProgress
+              sx={{
+                mb: 1.25,
+                bgcolor: `${tokens.color.accent.violet}1f`,
+                "& .MuiLinearProgress-bar": { backgroundColor: tokens.color.accent.violet },
+              }}
+            />
+          ) : null}
+
+          {liveAreas.length === 0 ? (
+            <Typography sx={{ color: tokens.color.text.muted, fontSize: 13 }}>
+              Waiting for the first workflow event.
+            </Typography>
+          ) : (
+            <Stack spacing={0.7}>
+              {liveAreas.map((area) => {
+                const busy = activeAreaAction === area.key;
+                return (
+                  <Stack
+                    key={area.key}
+                    direction="row"
+                    spacing={1}
+                    alignItems="center"
+                    sx={{
+                      border: `1px solid ${tokens.color.border.subtle}`,
+                      bgcolor: tokens.color.bg.inset,
+                      borderRadius: 1,
+                      px: 1,
+                      py: 0.8,
+                    }}
+                  >
+                    <AreaIcon status={area.status} active={area.active} />
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography
+                        sx={{
+                          color: tokens.color.text.primary,
+                          fontFamily: tokens.font.mono,
+                          fontSize: 12,
+                          fontWeight: 700,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {area.label}
+                      </Typography>
+                      <Stack direction="row" spacing={0.8} alignItems="center" sx={{ mt: 0.2 }}>
+                        <StatusBadge status={area.status} uppercase={false} />
+                        <Typography
+                          sx={{
+                            color: tokens.color.text.muted,
+                            fontFamily: tokens.font.mono,
+                            fontSize: 10.5,
+                            letterSpacing: 0.3,
+                          }}
+                        >
+                          {area.openIssues} open
+                        </Typography>
+                        {area.hint ? (
+                          <Typography
+                            sx={{
+                              color: tokens.color.text.muted,
+                              fontSize: 10.5,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {area.hint}
+                          </Typography>
+                        ) : null}
+                      </Stack>
+                    </Box>
+                    <Button
+                      size="small"
+                      onClick={() => void handleAreaClose(area)}
+                      disabled={busy || activeAreaAction !== null || !projectID}
+                      startIcon={<BoltRounded sx={{ fontSize: 14 }} />}
+                      sx={{
+                        border: `1px solid ${tokens.color.border.subtle}`,
+                        bgcolor: tokens.color.bg.surfaceRaised,
+                        color: tokens.color.text.secondary,
+                        fontSize: 11,
+                        fontWeight: 800,
+                        minHeight: 27,
+                        px: 1,
+                        textTransform: "none",
+                        whiteSpace: "nowrap",
+                        "&:hover": {
+                          bgcolor: tokens.color.bg.surfaceHover,
+                          borderColor: tokens.color.border.accent,
+                          color: tokens.color.text.primary,
+                        },
+                      }}
+                    >
+                      {area.status === "closed" ? "Re-check" : "Close area"}
+                    </Button>
+                  </Stack>
+                );
+              })}
+            </Stack>
+          )}
+        </Card>
 
         <Card sx={{ p: 2 }}>
           <Stack
@@ -420,6 +686,175 @@ export function DashboardPane({
       </Stack>
     </Box>
   );
+}
+
+function buildLiveAreas(
+  gates: Array<{ name: string; status: string; issuesCount: number }>,
+  messages: StudioMessage[],
+): LiveArea[] {
+  const byKey = new Map<string, LiveArea>();
+
+  for (const gate of gates) {
+    const key = normalizeAreaKey(gate.name);
+    const status = gateStatusToHealth(gate.status, gate.issuesCount);
+    byKey.set(key, {
+      key,
+      label: gate.name,
+      status,
+      openIssues: Math.max(0, gate.issuesCount),
+      active: status === "working",
+      gateName: gate.name,
+      hint: "gate",
+    });
+  }
+
+  for (const m of messages) {
+    if (
+      (m.role !== "agent_progress" && m.role !== "agent_action" && m.role !== "agent_result") ||
+      !m.stage
+    ) {
+      continue;
+    }
+    const key = normalizeAreaKey(m.stage);
+    const prev = byKey.get(key);
+    const stageLabel = prettifyStage(m.stage);
+    const stageOpenIssues = prev?.openIssues ?? 0;
+
+    let status: AreaHealth = prev?.status ?? "open";
+    if (m.inProgress) {
+      status = "working";
+    } else if (m.role === "agent_result" && m.success === true && stageOpenIssues === 0) {
+      status = "closed";
+    } else if (m.role === "agent_result" && m.success === false) {
+      status = "open";
+    }
+
+    byKey.set(key, {
+      key,
+      label: prev?.label ?? stageLabel,
+      status,
+      openIssues: stageOpenIssues,
+      active: m.inProgress === true,
+      gateName: prev?.gateName,
+      hint: m.role === "agent_action" ? "finisher" : prev?.hint,
+    });
+  }
+
+  return Array.from(byKey.values()).sort((a, b) => {
+    const scoreA = areaPriority(a);
+    const scoreB = areaPriority(b);
+    if (scoreA !== scoreB) return scoreA - scoreB;
+    return a.label.localeCompare(b.label);
+  });
+}
+
+function normalizeAreaKey(raw: string): string {
+  return raw.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_");
+}
+
+function prettifyStage(stage: string): string {
+  const raw = stage.trim();
+  if (!raw) return "area";
+  return raw
+    .replace(/[._-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .replace(/^\w/, (c) => c.toUpperCase());
+}
+
+function gateStatusToHealth(status: string, issuesCount: number): AreaHealth {
+  const s = status.toLowerCase();
+  if (s === "running" || s === "pending") return "working";
+  if (s === "pass" || s === "passed" || s === "ok") {
+    return issuesCount > 0 ? "open" : "closed";
+  }
+  if (s === "fail" || s === "failed" || s === "blocked" || s === "warn") {
+    return "open";
+  }
+  return issuesCount > 0 ? "open" : "working";
+}
+
+function areaPriority(area: LiveArea): number {
+  if (area.active) return 0;
+  if (area.status === "working") return 1;
+  if (area.status === "open") return 2;
+  return 3;
+}
+
+function MiniHealthCard({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone: "accent" | "danger" | "muted";
+}) {
+  const fg =
+    tone === "accent"
+      ? tokens.color.accent.success
+      : tone === "danger"
+        ? tokens.color.accent.danger
+        : tokens.color.text.secondary;
+  const bg =
+    tone === "accent"
+      ? `${tokens.color.accent.success}1a`
+      : tone === "danger"
+        ? `${tokens.color.accent.danger}1a`
+        : tokens.color.bg.inset;
+
+  return (
+    <Box
+      sx={{
+        border: `1px solid ${tokens.color.border.subtle}`,
+        bgcolor: bg,
+        borderRadius: 1,
+        px: 1,
+        py: 0.85,
+      }}
+    >
+      <Typography
+        sx={{
+          color: tokens.color.text.muted,
+          fontFamily: tokens.font.mono,
+          fontSize: 10,
+          letterSpacing: 0.4,
+          textTransform: "uppercase",
+        }}
+      >
+        {label}
+      </Typography>
+      <Typography
+        sx={{
+          color: fg,
+          fontSize: 12.5,
+          fontWeight: 800,
+          lineHeight: 1.3,
+          mt: 0.25,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {value}
+      </Typography>
+    </Box>
+  );
+}
+
+function AreaIcon({
+  status,
+  active,
+}: {
+  status: AreaHealth;
+  active: boolean;
+}) {
+  if (active || status === "working") {
+    return <AutorenewRounded sx={{ color: tokens.color.accent.violet, fontSize: 17 }} />;
+  }
+  if (status === "closed") {
+    return <CheckCircleOutlineRounded sx={{ color: tokens.color.accent.success, fontSize: 17 }} />;
+  }
+  return <WarningAmberRounded sx={{ color: tokens.color.accent.warning, fontSize: 17 }} />;
 }
 
 function DashboardToggleButton({

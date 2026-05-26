@@ -1,5 +1,5 @@
 import { createRequire } from "node:module";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const require = createRequire(path.resolve("apps/web/package.json"));
@@ -9,6 +9,8 @@ const BASE_URL = process.env.SCREENSHOT_BASE_URL || "http://127.0.0.1:3004";
 const OUT_ROOT =
   process.env.SCREENSHOT_OUT ||
   path.resolve("design-handoff-screenshots", "ironflyer-app-2026-05-26");
+const ONLY_FAILED = process.env.SCREENSHOT_ONLY_FAILED === "1";
+const NAV_TIMEOUT_MS = Number(process.env.SCREENSHOT_NAV_TIMEOUT_MS || 60000);
 
 const now = "2026-05-26T09:00:00.000Z";
 const userID = "user-design";
@@ -633,7 +635,11 @@ async function captureOne(browser, viewport, routeInfo) {
   let title = "";
   let error = null;
   try {
-    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 20000 });
+    try {
+      await page.goto(url, { waitUntil: "domcontentloaded", timeout: NAV_TIMEOUT_MS });
+    } catch {
+      await page.goto(url, { waitUntil: "commit", timeout: 15000 });
+    }
     await waitForSettled(page);
     finalUrl = page.url();
     title = await page.title().catch(() => "");
@@ -714,18 +720,41 @@ async function main() {
     await mkdir(path.join(OUT_ROOT, viewport.name), { recursive: true });
   }
 
+  let previousManifest = null;
+  if (ONLY_FAILED) {
+    previousManifest = JSON.parse(
+      await readFile(path.join(OUT_ROOT, "manifest.json"), "utf8"),
+    );
+  }
+
+  const pairs = ONLY_FAILED
+    ? previousManifest.errors.map((item) => ({
+        viewport: viewports.find((v) => v.name === item.viewport),
+        routeInfo: routes.find((r) => r.path === item.route),
+      })).filter((item) => item.viewport && item.routeInfo)
+    : viewports.flatMap((viewport) =>
+        routes.map((routeInfo) => ({ viewport, routeInfo })),
+      );
+
   const browser = await chromium.launch({ headless: true });
   const results = [];
   try {
-    for (const viewport of viewports) {
-      for (const routeInfo of routes) {
-        process.stdout.write(`capture ${viewport.name} ${routeInfo.path}\n`);
-        results.push(await captureOne(browser, viewport, routeInfo));
-      }
+    for (const { viewport, routeInfo } of pairs) {
+      process.stdout.write(`capture ${viewport.name} ${routeInfo.path}\n`);
+      results.push(await captureOne(browser, viewport, routeInfo));
     }
   } finally {
     await browser.close();
   }
+
+  const mergedResults = previousManifest
+    ? previousManifest.results.map((old) => {
+        const next = results.find(
+          (item) => item.viewport === old.viewport && item.route === old.route,
+        );
+        return next ?? old;
+      })
+    : results;
 
   const manifest = {
     capturedAt: new Date().toISOString(),
@@ -733,12 +762,12 @@ async function main() {
     output: OUT_ROOT,
     viewports,
     routes,
-    results,
-    errors: results.filter((r) => r.status !== "ok"),
-    unknownOperations: [...new Set(results.flatMap((r) => r.unknownOperations))],
+    results: mergedResults,
+    errors: mergedResults.filter((r) => r.status !== "ok"),
+    unknownOperations: [...new Set(mergedResults.flatMap((r) => r.unknownOperations))],
   };
   await writeFile(path.join(OUT_ROOT, "manifest.json"), JSON.stringify(manifest, null, 2));
-  await writeFile(path.join(OUT_ROOT, "index.html"), htmlIndex(results));
+  await writeFile(path.join(OUT_ROOT, "index.html"), htmlIndex(mergedResults));
 
   const failed = manifest.errors.length;
   const unknown = manifest.unknownOperations.length;

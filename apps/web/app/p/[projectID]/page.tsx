@@ -448,6 +448,7 @@ function ProjectStudioInner() {
       }
       dashboardSlot={
         <DashboardPane
+          projectID={projectID}
           execution={execution}
           messages={messages}
           leftRailOpen={layout.leftOpen}
@@ -456,6 +457,12 @@ function ProjectStudioInner() {
           onToggleLeftRail={layout.toggleLeft}
           onToggleChat={layout.toggleRight}
           onToggleDock={layout.toggleDock}
+          onRequestAreaClose={async (message: string) => {
+            await onSend(`Finisher area close request: ${message}`);
+            if (!layout.rightOpen) {
+              layout.toggleRight();
+            }
+          }}
         />
       }
       chatSlot={

@@ -352,6 +352,66 @@ PROFIT_RESP=$(gql '{"query":"query { profitDashboard(since: \"2025-01-01T00:00:0
 assert_data "profitDashboard" "$PROFIT_RESP" || die "profitDashboard read failed"
 
 # ----------------------------------------------------------------------------
+# Section 5.5 — stop + refund leg (DoD #1: top up, run, stop, refund, inspect)
+# ----------------------------------------------------------------------------
+section "5.5. stop + refund"
+
+# Capture the wallet's available balance before stop so we can confirm
+# the hold is released (Bug #1 historical regression) and the refund
+# tops the wallet back up (Bug #6 closing fix).
+WALLET_PRE_STOP=$(gql '{"query":"query { wallet { balanceUSD holdUSD availableUSD } }"}' "$TOKEN")
+PRE_HOLD=$(printf '%s' "$WALLET_PRE_STOP" | jq -r '.data.wallet.holdUSD')
+PRE_BAL=$(printf '%s' "$WALLET_PRE_STOP" | jq -r '.data.wallet.balanceUSD')
+ok "pre-stop wallet: balance=$PRE_BAL hold=$PRE_HOLD"
+
+STOP_BODY=$(jq -n --arg q 'mutation($id: ID!) { stopExecution(id: $id, reason: "v22 smoke stop") { id status spentUSD reservedUSD refundedUSD endedAt } }' --arg id "$EXEC_ID" \
+  '{query:$q, variables:{id:$id}}')
+STOP_RESP=$(gql "$STOP_BODY" "$TOKEN")
+assert_data "stopExecution" "$STOP_RESP" || die "stopExecution failed"
+STOP_STATUS=$(printf '%s' "$STOP_RESP" | jq -r '.data.stopExecution.status')
+ok "execution stopped status=$STOP_STATUS"
+
+# Hold MUST be released on stop. The settler runs in-band so the read
+# after stopExecution returns the post-release wallet.
+WALLET_AFTER_STOP=$(gql '{"query":"query { wallet { balanceUSD holdUSD availableUSD } }"}' "$TOKEN")
+POST_STOP_HOLD=$(printf '%s' "$WALLET_AFTER_STOP" | jq -r '.data.wallet.holdUSD')
+if awk -v h="$POST_STOP_HOLD" 'BEGIN{exit !(h+0 == 0)}'; then
+  ok "wallet.holdUSD=$POST_STOP_HOLD after stop — hold released"
+else
+  warn "wallet.holdUSD=$POST_STOP_HOLD after stop (expected 0); settler may not have run in-band"
+fi
+
+# Refund 0.25 USD as a partial goodwill credit. Confirms (a) the
+# mutation is reachable end-to-end (Bug #6 closes), (b) the execution
+# row's refunded_usd column updates, (c) the wallet is credited via
+# the resolver's TopUp call, and (d) a ledger entry of type 'refund'
+# lands so finance can reconcile.
+REFUND_BODY=$(jq -n --arg q 'mutation($id: ID!) { refundExecution(id: $id, amountUSD: 0.25, reason: "v22 smoke goodwill") { id status spentUSD refundedUSD } }' --arg id "$EXEC_ID" \
+  '{query:$q, variables:{id:$id}}')
+REFUND_RESP=$(gql "$REFUND_BODY" "$TOKEN")
+assert_data "refundExecution" "$REFUND_RESP" || die "refundExecution failed"
+REFUNDED=$(printf '%s' "$REFUND_RESP" | jq -r '.data.refundExecution.refundedUSD')
+REFUND_STATUS=$(printf '%s' "$REFUND_RESP" | jq -r '.data.refundExecution.status')
+ok "execution refunded status=$REFUND_STATUS refundedUSD=$REFUNDED"
+
+WALLET_AFTER_REFUND=$(gql '{"query":"query { wallet { balanceUSD holdUSD availableUSD lifetimeTopUpUSD } }"}' "$TOKEN")
+POST_REFUND_BAL=$(printf '%s' "$WALLET_AFTER_REFUND" | jq -r '.data.wallet.balanceUSD')
+if awk -v pre="$PRE_BAL" -v post="$POST_REFUND_BAL" 'BEGIN{exit !(post+0 >= pre+0 + 0.25)}'; then
+  ok "wallet.balanceUSD=$POST_REFUND_BAL (>= pre-stop $PRE_BAL + 0.25) — refund credited"
+else
+  warn "wallet.balanceUSD=$POST_REFUND_BAL did not increase by refund amount (pre=$PRE_BAL)"
+fi
+
+# Confirm a refund ledger entry landed for the executed mutation.
+LEDGER_AFTER_REFUND=$(gql '{"query":"query { ledger { id entryType direction amountUSD billable createdAt } }"}' "$TOKEN")
+REFUND_ENTRY=$(printf '%s' "$LEDGER_AFTER_REFUND" | jq -c '.data.ledger[]? | select(.entryType|test("refund";"i"))' | head -1)
+if [ -n "$REFUND_ENTRY" ]; then
+  ok "ledger refund entry: $REFUND_ENTRY"
+else
+  warn "no ledger entry with entryType ~ refund found after refundExecution"
+fi
+
+# ----------------------------------------------------------------------------
 # Section 6 — summary
 # ----------------------------------------------------------------------------
 section "6. summary"

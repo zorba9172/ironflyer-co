@@ -161,6 +161,13 @@ export function fire(opts: SwalOptions) {
   return SwalIron.fire(opts);
 }
 
+// merge — type-friendly merge that preserves SweetAlertOptions'
+// discriminated union (the `input` field type narrows the rest of
+// the option shape, so a naive spread breaks the overload).
+function merge(base: SwalOptions, opts?: Partial<SwalOptions>): SwalOptions {
+  return Object.assign({}, base, opts ?? {}) as SwalOptions;
+}
+
 // confirm — yes/no prompt; resolves with `true` on confirm.
 export async function confirm(
   title: string,
@@ -168,15 +175,19 @@ export async function confirm(
   opts?: Partial<SwalOptions>,
 ): Promise<boolean> {
   ensureThemeStyles();
-  const res = await SwalIron.fire({
-    icon: "question",
-    title,
-    text: body,
-    showCancelButton: true,
-    confirmButtonText: "Confirm",
-    cancelButtonText: "Cancel",
-    ...opts,
-  });
+  const res = await SwalIron.fire(
+    merge(
+      {
+        icon: "question",
+        title,
+        text: body,
+        showCancelButton: true,
+        confirmButtonText: "Confirm",
+        cancelButtonText: "Cancel",
+      },
+      opts,
+    ),
+  );
   return res.isConfirmed === true;
 }
 
@@ -188,16 +199,20 @@ export async function confirmDanger(
   opts?: Partial<SwalOptions>,
 ): Promise<boolean> {
   ensureThemeStyles();
-  const res = await SwalIron.fire({
-    icon: "warning",
-    title,
-    text: body,
-    showCancelButton: true,
-    confirmButtonText: opts?.confirmButtonText ?? "Delete",
-    cancelButtonText: "Cancel",
-    confirmButtonColor: tokens.color.accent.danger,
-    ...opts,
-  });
+  const res = await SwalIron.fire(
+    merge(
+      {
+        icon: "warning",
+        title,
+        text: body,
+        showCancelButton: true,
+        confirmButtonText: opts?.confirmButtonText ?? "Delete",
+        cancelButtonText: "Cancel",
+        confirmButtonColor: tokens.color.accent.danger,
+      },
+      opts,
+    ),
+  );
   return res.isConfirmed === true;
 }
 
@@ -205,39 +220,41 @@ export async function confirmDanger(
 // user must acknowledge (auth lost, wallet shortfall, etc.).
 export function error(title: string, body?: string, opts?: Partial<SwalOptions>) {
   ensureThemeStyles();
-  return SwalIron.fire({
-    icon: "error",
-    title,
-    text: body,
-    confirmButtonText: "Got it",
-    ...opts,
-  });
+  return SwalIron.fire(
+    merge(
+      { icon: "error", title, text: body, confirmButtonText: "Got it" },
+      opts,
+    ),
+  );
 }
 
 // success — short confirmation popup. Auto-closes after 2s by default.
 export function success(title: string, body?: string, opts?: Partial<SwalOptions>) {
   ensureThemeStyles();
-  return SwalIron.fire({
-    icon: "success",
-    title,
-    text: body,
-    showConfirmButton: false,
-    timer: 2000,
-    timerProgressBar: true,
-    ...opts,
-  });
+  return SwalIron.fire(
+    merge(
+      {
+        icon: "success",
+        title,
+        text: body,
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+      },
+      opts,
+    ),
+  );
 }
 
 // info — neutral popup; useful for explainers.
 export function info(title: string, body?: string, opts?: Partial<SwalOptions>) {
   ensureThemeStyles();
-  return SwalIron.fire({
-    icon: "info",
-    title,
-    text: body,
-    confirmButtonText: "OK",
-    ...opts,
-  });
+  return SwalIron.fire(
+    merge(
+      { icon: "info", title, text: body, confirmButtonText: "OK" },
+      opts,
+    ),
+  );
 }
 
 // toast — non-blocking toast in the top-right. Replaces the
@@ -248,20 +265,24 @@ export function toast(
   opts?: Partial<SwalOptions>,
 ) {
   ensureThemeStyles();
-  return SwalIron.fire({
-    toast: true,
-    position: "top-end",
-    showConfirmButton: false,
-    timer: 3500,
-    timerProgressBar: true,
-    icon,
-    title: message,
-    didOpen: (el) => {
-      el.addEventListener("mouseenter", SwalIron.stopTimer);
-      el.addEventListener("mouseleave", SwalIron.resumeTimer);
-    },
-    ...opts,
-  });
+  return SwalIron.fire(
+    merge(
+      {
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3500,
+        timerProgressBar: true,
+        icon,
+        title: message,
+        didOpen: (el) => {
+          el.addEventListener("mouseenter", SwalIron.stopTimer);
+          el.addEventListener("mouseleave", SwalIron.resumeTimer);
+        },
+      },
+      opts,
+    ),
+  );
 }
 
 // prompt — single-line text input.
@@ -271,15 +292,19 @@ export async function prompt(
   opts?: Partial<SwalOptions>,
 ): Promise<string | null> {
   ensureThemeStyles();
-  const res = await SwalIron.fire({
-    title,
-    input: "text",
-    inputPlaceholder: placeholder,
-    showCancelButton: true,
-    confirmButtonText: "OK",
-    cancelButtonText: "Cancel",
-    ...opts,
-  });
+  const res = await SwalIron.fire(
+    merge(
+      {
+        title,
+        input: "text",
+        inputPlaceholder: placeholder,
+        showCancelButton: true,
+        confirmButtonText: "OK",
+        cancelButtonText: "Cancel",
+      },
+      opts,
+    ),
+  );
   if (res.isConfirmed) return (res.value as string) ?? "";
   return null;
 }

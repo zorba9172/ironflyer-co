@@ -6,8 +6,10 @@ package adapters
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -33,9 +35,13 @@ type LedgerAdapter struct {
 	Pool *pgxpool.Pool
 }
 
-// SumByType returns a per-entry-type sum across every tenant in
-// [since, until). When a pgxpool is wired this runs a single grouped
-// query against ledger_entries; without a pool the result is empty.
+// SumByType returns a per-entry-type sum in [since, until). When
+// dashboards.TenantFromContext(ctx) is non-empty the rollup is
+// strictly scoped by `tenant_id = $1` so a paying customer never sees
+// platform-wide revenue. When empty (operator-only Scale path) the
+// roll-up still runs cross-tenant. When a pgxpool is wired this runs
+// a single grouped query against ledger_entries; without a pool the
+// result is empty.
 func (a LedgerAdapter) SumByType(ctx context.Context, since, until time.Time, types []string) (map[string]decimal.Decimal, error) {
 	out := map[string]decimal.Decimal{}
 	if a.Pool == nil {
@@ -43,6 +49,14 @@ func (a LedgerAdapter) SumByType(ctx context.Context, since, until time.Time, ty
 	}
 	clauses := []string{"1=1"}
 	args := []any{}
+	if tenantID := dashboards.TenantFromContext(ctx); tenantID != "" {
+		tid, err := uuid.Parse(tenantID)
+		if err != nil {
+			return nil, fmt.Errorf("ledger sum by type: invalid tenant id %q: %w", tenantID, err)
+		}
+		args = append(args, tid)
+		clauses = append(clauses, "tenant_id = $"+strconv.Itoa(len(args)))
+	}
 	if !since.IsZero() {
 		args = append(args, since.UTC())
 		clauses = append(clauses, "created_at >= $"+strconv.Itoa(len(args)))
@@ -127,8 +141,10 @@ type ExecutionAdapter struct {
 	Pool *pgxpool.Pool
 }
 
-// CountsByStatus returns the per-status count in [since, until)
-// across every tenant. When a pgxpool is wired this is a single
+// CountsByStatus returns the per-status count in [since, until).
+// When dashboards.TenantFromContext(ctx) is non-empty the count is
+// scoped by `tenant_id = $1`; otherwise it stays cross-tenant for the
+// operator-only Scale path. When a pgxpool is wired this is a single
 // grouped query against the executions table; without a pool the
 // result is empty.
 func (a ExecutionAdapter) CountsByStatus(ctx context.Context, since, until time.Time) (map[string]int, error) {
@@ -138,6 +154,14 @@ func (a ExecutionAdapter) CountsByStatus(ctx context.Context, since, until time.
 	}
 	clauses := []string{"1=1"}
 	args := []any{}
+	if tenantID := dashboards.TenantFromContext(ctx); tenantID != "" {
+		tid, err := uuid.Parse(tenantID)
+		if err != nil {
+			return nil, fmt.Errorf("execution counts by status: invalid tenant id %q: %w", tenantID, err)
+		}
+		args = append(args, tid)
+		clauses = append(clauses, "tenant_id = $"+strconv.Itoa(len(args)))
+	}
 	if !since.IsZero() {
 		args = append(args, since.UTC())
 		clauses = append(clauses, "created_at >= $"+strconv.Itoa(len(args)))
@@ -194,13 +218,27 @@ func (a ExecutionAdapter) CountsByCohort(ctx context.Context, sinceCohortMonth t
 	if a.Pool == nil {
 		return []dashboards.Cohort{}, nil
 	}
-	const cohortSQL = `
+	// Per-tenant scoping: every CTE must filter on tenant_id so the
+	// cohort row a customer sees is built only from their own runs.
+	// When TenantFromContext is empty (operator path) the dashboard
+	// keeps its cross-tenant behaviour for the platform view.
+	tenantClause := ""
+	args := []any{sinceCohortMonth.UTC()}
+	if tenantID := dashboards.TenantFromContext(ctx); tenantID != "" {
+		tid, err := uuid.Parse(tenantID)
+		if err != nil {
+			return nil, fmt.Errorf("execution cohort: invalid tenant id %q: %w", tenantID, err)
+		}
+		args = append(args, tid)
+		tenantClause = " AND tenant_id = $2"
+	}
+	cohortSQL := `
 WITH first_paid AS (
     SELECT tenant_id,
            MIN(created_at) AS first_at,
            DATE_TRUNC('month', MIN(created_at)) AS cohort_month
     FROM executions
-    WHERE status NOT IN ('created', 'admitted')
+    WHERE status NOT IN ('created', 'admitted')` + tenantClause + `
     GROUP BY tenant_id
 ),
 cohort_runs AS (
@@ -215,7 +253,7 @@ cohort_runs AS (
            fp.first_at
     FROM executions e
     JOIN first_paid fp ON fp.tenant_id = e.tenant_id
-    WHERE e.status NOT IN ('created', 'admitted')
+    WHERE e.status NOT IN ('created', 'admitted')` + strings.Replace(tenantClause, "tenant_id", "e.tenant_id", 1) + `
 ),
 tenant_counts AS (
     SELECT tenant_id,
@@ -251,7 +289,7 @@ WHERE fp.cohort_month >= DATE_TRUNC('month', $1::timestamptz)
 GROUP BY fp.cohort_month
 ORDER BY fp.cohort_month`
 
-	rows, err := a.Pool.Query(ctx, cohortSQL, sinceCohortMonth.UTC())
+	rows, err := a.Pool.Query(ctx, cohortSQL, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -310,13 +348,35 @@ func (a ExecutionAdapter) AverageQueueWaitSec(ctx context.Context, since time.Ti
 }
 
 // BlueprintAdapter implements dashboards.BlueprintSource over the
-// blueprints.StatsService.
+// blueprints.StatsService AND, when a per-tenant scope is in flight,
+// over the raw blueprint_runs table via the optional pgxpool.
+//
+// The blueprints.StatsService.All() roll-up is platform-wide (one row
+// per blueprint id, summed across every tenant) — surfacing it to a
+// signed-in customer would replay bug #16. When TenantFromContext is
+// non-empty and Pool is wired, AllStats re-derives per-blueprint
+// counts/sums from blueprint_runs WHERE tenant_id = $1; otherwise it
+// falls back to the platform-wide rollup (operator path) or to the
+// in-memory Svc (when no Pool is wired).
 type BlueprintAdapter struct {
-	Svc blueprints.StatsService
+	Svc  blueprints.StatsService
+	Pool *pgxpool.Pool
 }
 
-// AllStats returns every recorded blueprint's rolled-up stats.
+// AllStats returns the recorded blueprint stats, scoped to the
+// caller's tenant when dashboards.TenantFromContext(ctx) is set.
 func (a BlueprintAdapter) AllStats(ctx context.Context) ([]dashboards.BlueprintStats, error) {
+	if tenantID := dashboards.TenantFromContext(ctx); tenantID != "" {
+		if a.Pool == nil {
+			// Per-tenant view requires the SQL-backed runs table. With
+			// only the in-memory Svc (no Pool) the StatsService rollup
+			// would be cross-tenant, which we MUST NOT surface. Return
+			// empty so a tenant on the memory backend sees a clean
+			// dashboard rather than another tenant's numbers.
+			return []dashboards.BlueprintStats{}, nil
+		}
+		return a.allStatsForTenant(ctx, tenantID)
+	}
 	if a.Svc == nil {
 		return []dashboards.BlueprintStats{}, nil
 	}
@@ -339,6 +399,66 @@ func (a BlueprintAdapter) AllStats(ctx context.Context) ([]dashboards.BlueprintS
 		})
 	}
 	return out, nil
+}
+
+// allStatsForTenant rolls up blueprint_runs for one tenant — the
+// per-tenant equivalent of blueprints.StatsService.All(). Repair
+// count is approximated as `repaired = true` count; preview success
+// is the count of rows with preview_success = true; refunds counts
+// rows with refunded = true. Averages divide by the per-tenant
+// execution count for that blueprint.
+func (a BlueprintAdapter) allStatsForTenant(ctx context.Context, tenantID string) ([]dashboards.BlueprintStats, error) {
+	tid, err := uuid.Parse(tenantID)
+	if err != nil {
+		return nil, fmt.Errorf("blueprint all stats: invalid tenant id %q: %w", tenantID, err)
+	}
+	const q = `
+SELECT blueprint_id,
+       COUNT(*)                                                                                    AS executions,
+       COUNT(*) FILTER (WHERE preview_success)                                                     AS preview_success,
+       COUNT(*) FILTER (WHERE refunded)                                                            AS refunds,
+       COUNT(*) FILTER (WHERE repaired)                                                            AS repair_count,
+       COALESCE(SUM(revenue_usd) / NULLIF(COUNT(*), 0), 0)                                         AS avg_revenue,
+       COALESCE(SUM(cost_usd)    / NULLIF(COUNT(*), 0), 0)                                         AS avg_cost,
+       COALESCE((SUM(revenue_usd) - SUM(cost_usd)) / NULLIF(SUM(revenue_usd), 0) * 100, 0)::float8 AS gross_margin_pct,
+       COALESCE(SUM(completion_score) / NULLIF(COUNT(*), 0), 0)::float8                            AS avg_completion
+FROM blueprint_runs
+WHERE tenant_id = $1
+GROUP BY blueprint_id
+ORDER BY executions DESC`
+	rows, err := a.Pool.Query(ctx, q, tid)
+	if err != nil {
+		return nil, fmt.Errorf("blueprint all stats (tenant): %w", err)
+	}
+	defer rows.Close()
+	out := make([]dashboards.BlueprintStats, 0)
+	for rows.Next() {
+		var (
+			s              dashboards.BlueprintStats
+			execs          int64
+			previewSuccess int64
+			refunds        int64
+			repairs        int64
+			avgRev         decimal.Decimal
+			avgCost        decimal.Decimal
+			marginPct      float64
+			avgCompletion  float64
+		)
+		if err := rows.Scan(&s.BlueprintID, &execs, &previewSuccess, &refunds, &repairs,
+			&avgRev, &avgCost, &marginPct, &avgCompletion); err != nil {
+			return nil, err
+		}
+		s.Executions = int(execs)
+		s.PreviewSuccess = int(previewSuccess)
+		s.Refunds = int(refunds)
+		s.RepairCount = int(repairs)
+		s.AvgRevenueUSD = floatOf(avgRev)
+		s.AvgCostUSD = floatOf(avgCost)
+		s.GrossMarginPct = marginPct
+		s.AvgCompletionScore = avgCompletion
+		out = append(out, s)
+	}
+	return out, rows.Err()
 }
 
 // ScaleAdapter is the static-side ScaleSource. ActiveExecutions /
@@ -378,6 +498,3 @@ func floatOf(d decimal.Decimal) float64 {
 	return f
 }
 
-// _ keeps the uuid import referenced; future tenant-aware rollup
-// signatures will accept a uuid.UUID.
-var _ = uuid.Nil

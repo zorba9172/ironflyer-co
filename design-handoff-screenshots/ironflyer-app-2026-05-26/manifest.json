@@ -1,0 +1,1075 @@
+{
+  "capturedAt": "2026-05-26T00:33:24.275Z",
+  "baseUrl": "http://127.0.0.1:3004",
+  "output": "/Users/moshemoran/workspace/ironflyer-copilot/ironflyer/design-handoff-screenshots/ironflyer-app-2026-05-26",
+  "viewports": [
+    {
+      "name": "desktop-1440",
+      "width": 1440,
+      "height": 1100
+    },
+    {
+      "name": "mobile-390",
+      "width": 390,
+      "height": 844
+    }
+  ],
+  "routes": [
+    {
+      "slug": "00-home",
+      "path": "/"
+    },
+    {
+      "slug": "01-product",
+      "path": "/product"
+    },
+    {
+      "slug": "02-solutions",
+      "path": "/solutions"
+    },
+    {
+      "slug": "03-resources",
+      "path": "/resources"
+    },
+    {
+      "slug": "04-enterprise",
+      "path": "/enterprise"
+    },
+    {
+      "slug": "05-login",
+      "path": "/login"
+    },
+    {
+      "slug": "06-signup",
+      "path": "/signup"
+    },
+    {
+      "slug": "07-login-reset",
+      "path": "/login/reset"
+    },
+    {
+      "slug": "08-dashboard",
+      "path": "/dashboard"
+    },
+    {
+      "slug": "09-projects",
+      "path": "/projects"
+    },
+    {
+      "slug": "10-templates",
+      "path": "/templates"
+    },
+    {
+      "slug": "11-pricing",
+      "path": "/pricing"
+    },
+    {
+      "slug": "12-studio",
+      "path": "/studio"
+    },
+    {
+      "slug": "13-studio-demo",
+      "path": "/studio/demo"
+    },
+    {
+      "slug": "14-project-workbench",
+      "path": "/p/demo?executionID=demo"
+    },
+    {
+      "slug": "15-executions",
+      "path": "/executions"
+    },
+    {
+      "slug": "16-execution-index",
+      "path": "/execution"
+    },
+    {
+      "slug": "17-execution-detail",
+      "path": "/execution/demo"
+    },
+    {
+      "slug": "18-execution-security",
+      "path": "/execution/demo/security"
+    },
+    {
+      "slug": "19-deploy",
+      "path": "/deploy"
+    },
+    {
+      "slug": "20-deploy-demo",
+      "path": "/deploy/demo"
+    },
+    {
+      "slug": "21-wallet",
+      "path": "/wallet"
+    },
+    {
+      "slug": "22-wallet-topup",
+      "path": "/wallet/topup"
+    },
+    {
+      "slug": "23-settings",
+      "path": "/settings"
+    },
+    {
+      "slug": "24-operator",
+      "path": "/operator"
+    }
+  ],
+  "results": [
+    {
+      "status": "ok",
+      "route": "/",
+      "slug": "00-home",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "desktop-1440/00-home-home.png",
+      "url": "http://127.0.0.1:3004/",
+      "finalUrl": "http://127.0.0.1:3004/",
+      "title": "Ironflyer — Profitable Completed Execution",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/product",
+      "slug": "01-product",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "desktop-1440/01-product-product.png",
+      "url": "http://127.0.0.1:3004/product",
+      "finalUrl": "http://127.0.0.1:3004/product",
+      "title": "Product - IronFlyer",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/solutions",
+      "slug": "02-solutions",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "desktop-1440/02-solutions-solutions.png",
+      "url": "http://127.0.0.1:3004/solutions",
+      "finalUrl": "http://127.0.0.1:3004/solutions",
+      "title": "Solutions - IronFlyer",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/resources",
+      "slug": "03-resources",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "desktop-1440/03-resources-resources.png",
+      "url": "http://127.0.0.1:3004/resources",
+      "finalUrl": "http://127.0.0.1:3004/resources",
+      "title": "Resources - IronFlyer",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/enterprise",
+      "slug": "04-enterprise",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "desktop-1440/04-enterprise-enterprise.png",
+      "url": "http://127.0.0.1:3004/enterprise",
+      "finalUrl": "http://127.0.0.1:3004/enterprise",
+      "title": "Enterprise - IronFlyer",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/login",
+      "slug": "05-login",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "desktop-1440/05-login-login.png",
+      "url": "http://127.0.0.1:3004/login",
+      "finalUrl": "http://127.0.0.1:3004/login",
+      "title": "Ironflyer — Profitable Completed Execution",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/signup",
+      "slug": "06-signup",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "desktop-1440/06-signup-signup.png",
+      "url": "http://127.0.0.1:3004/signup",
+      "finalUrl": "http://127.0.0.1:3004/signup",
+      "title": "Ironflyer — Profitable Completed Execution",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/login/reset",
+      "slug": "07-login-reset",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "desktop-1440/07-login-reset-login__reset.png",
+      "url": "http://127.0.0.1:3004/login/reset",
+      "finalUrl": "http://127.0.0.1:3004/login/reset",
+      "title": "Ironflyer — Profitable Completed Execution",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/dashboard",
+      "slug": "08-dashboard",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "desktop-1440/08-dashboard-dashboard.png",
+      "url": "http://127.0.0.1:3004/dashboard",
+      "finalUrl": "http://127.0.0.1:3004/dashboard",
+      "title": "Ironflyer — Profitable Completed Execution",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/projects",
+      "slug": "09-projects",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "desktop-1440/09-projects-projects.png",
+      "url": "http://127.0.0.1:3004/projects",
+      "finalUrl": "http://127.0.0.1:3004/projects",
+      "title": "Ironflyer — Profitable Completed Execution",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/templates",
+      "slug": "10-templates",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "desktop-1440/10-templates-templates.png",
+      "url": "http://127.0.0.1:3004/templates",
+      "finalUrl": "http://127.0.0.1:3004/templates",
+      "title": "Ironflyer — Profitable Completed Execution",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/pricing",
+      "slug": "11-pricing",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "desktop-1440/11-pricing-pricing.png",
+      "url": "http://127.0.0.1:3004/pricing",
+      "finalUrl": "http://127.0.0.1:3004/pricing",
+      "title": "Pricing — Ironflyer",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/studio",
+      "slug": "12-studio",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "desktop-1440/12-studio-studio.png",
+      "url": "http://127.0.0.1:3004/studio",
+      "finalUrl": "http://127.0.0.1:3004/studio",
+      "title": "Ironflyer — Profitable Completed Execution",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/studio/demo",
+      "slug": "13-studio-demo",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "desktop-1440/13-studio-demo-studio__demo.png",
+      "url": "http://127.0.0.1:3004/studio/demo",
+      "finalUrl": "http://127.0.0.1:3004/studio/demo",
+      "title": "",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/p/demo?executionID=demo",
+      "slug": "14-project-workbench",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "desktop-1440/14-project-workbench-p__demo-executionID-demo.png",
+      "url": "http://127.0.0.1:3004/p/demo?executionID=demo",
+      "finalUrl": "http://127.0.0.1:3004/p/demo?executionID=demo",
+      "title": "",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/executions",
+      "slug": "15-executions",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "desktop-1440/15-executions-executions.png",
+      "url": "http://127.0.0.1:3004/executions",
+      "finalUrl": "http://127.0.0.1:3004/executions",
+      "title": "Ironflyer — Profitable Completed Execution",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/execution",
+      "slug": "16-execution-index",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "desktop-1440/16-execution-index-execution.png",
+      "url": "http://127.0.0.1:3004/execution",
+      "finalUrl": "http://127.0.0.1:3004/execution",
+      "title": "Ironflyer — Profitable Completed Execution",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/execution/demo",
+      "slug": "17-execution-detail",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "desktop-1440/17-execution-detail-execution__demo.png",
+      "url": "http://127.0.0.1:3004/execution/demo",
+      "finalUrl": "http://127.0.0.1:3004/execution/demo",
+      "title": "",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/execution/demo/security",
+      "slug": "18-execution-security",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "desktop-1440/18-execution-security-execution__demo__security.png",
+      "url": "http://127.0.0.1:3004/execution/demo/security",
+      "finalUrl": "http://127.0.0.1:3004/execution/demo/security",
+      "title": "",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/deploy",
+      "slug": "19-deploy",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "desktop-1440/19-deploy-deploy.png",
+      "url": "http://127.0.0.1:3004/deploy",
+      "finalUrl": "http://127.0.0.1:3004/deploy",
+      "title": "Ironflyer — Profitable Completed Execution",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/deploy/demo",
+      "slug": "20-deploy-demo",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "desktop-1440/20-deploy-demo-deploy__demo.png",
+      "url": "http://127.0.0.1:3004/deploy/demo",
+      "finalUrl": "http://127.0.0.1:3004/deploy/demo",
+      "title": "",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/wallet",
+      "slug": "21-wallet",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "desktop-1440/21-wallet-wallet.png",
+      "url": "http://127.0.0.1:3004/wallet",
+      "finalUrl": "http://127.0.0.1:3004/wallet",
+      "title": "Ironflyer — Profitable Completed Execution",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/wallet/topup",
+      "slug": "22-wallet-topup",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "desktop-1440/22-wallet-topup-wallet__topup.png",
+      "url": "http://127.0.0.1:3004/wallet/topup",
+      "finalUrl": "http://127.0.0.1:3004/wallet/topup",
+      "title": "Ironflyer — Profitable Completed Execution",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/settings",
+      "slug": "23-settings",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "desktop-1440/23-settings-settings.png",
+      "url": "http://127.0.0.1:3004/settings",
+      "finalUrl": "http://127.0.0.1:3004/settings",
+      "title": "Ironflyer — Profitable Completed Execution",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/operator",
+      "slug": "24-operator",
+      "viewport": "desktop-1440",
+      "width": 1440,
+      "height": 1100,
+      "file": "desktop-1440/24-operator-operator.png",
+      "url": "http://127.0.0.1:3004/operator",
+      "finalUrl": "http://127.0.0.1:3004/operator",
+      "title": "Ironflyer — Profitable Completed Execution",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/",
+      "slug": "00-home",
+      "viewport": "mobile-390",
+      "width": 390,
+      "height": 844,
+      "file": "mobile-390/00-home-home.png",
+      "url": "http://127.0.0.1:3004/",
+      "finalUrl": "http://127.0.0.1:3004/",
+      "title": "Ironflyer — Profitable Completed Execution",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/product",
+      "slug": "01-product",
+      "viewport": "mobile-390",
+      "width": 390,
+      "height": 844,
+      "file": "mobile-390/01-product-product.png",
+      "url": "http://127.0.0.1:3004/product",
+      "finalUrl": "http://127.0.0.1:3004/product",
+      "title": "Product - IronFlyer",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/solutions",
+      "slug": "02-solutions",
+      "viewport": "mobile-390",
+      "width": 390,
+      "height": 844,
+      "file": "mobile-390/02-solutions-solutions.png",
+      "url": "http://127.0.0.1:3004/solutions",
+      "finalUrl": "http://127.0.0.1:3004/solutions",
+      "title": "Solutions - IronFlyer",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/resources",
+      "slug": "03-resources",
+      "viewport": "mobile-390",
+      "width": 390,
+      "height": 844,
+      "file": "mobile-390/03-resources-resources.png",
+      "url": "http://127.0.0.1:3004/resources",
+      "finalUrl": "http://127.0.0.1:3004/resources",
+      "title": "Resources - IronFlyer",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/enterprise",
+      "slug": "04-enterprise",
+      "viewport": "mobile-390",
+      "width": 390,
+      "height": 844,
+      "file": "mobile-390/04-enterprise-enterprise.png",
+      "url": "http://127.0.0.1:3004/enterprise",
+      "finalUrl": "http://127.0.0.1:3004/enterprise",
+      "title": "Enterprise - IronFlyer",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/login",
+      "slug": "05-login",
+      "viewport": "mobile-390",
+      "width": 390,
+      "height": 844,
+      "file": "mobile-390/05-login-login.png",
+      "url": "http://127.0.0.1:3004/login",
+      "finalUrl": "http://127.0.0.1:3004/login",
+      "title": "Ironflyer — Profitable Completed Execution",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/signup",
+      "slug": "06-signup",
+      "viewport": "mobile-390",
+      "width": 390,
+      "height": 844,
+      "file": "mobile-390/06-signup-signup.png",
+      "url": "http://127.0.0.1:3004/signup",
+      "finalUrl": "http://127.0.0.1:3004/signup",
+      "title": "Ironflyer — Profitable Completed Execution",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/login/reset",
+      "slug": "07-login-reset",
+      "viewport": "mobile-390",
+      "width": 390,
+      "height": 844,
+      "file": "mobile-390/07-login-reset-login__reset.png",
+      "url": "http://127.0.0.1:3004/login/reset",
+      "finalUrl": "http://127.0.0.1:3004/login/reset",
+      "title": "Ironflyer — Profitable Completed Execution",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/dashboard",
+      "slug": "08-dashboard",
+      "viewport": "mobile-390",
+      "width": 390,
+      "height": 844,
+      "file": "mobile-390/08-dashboard-dashboard.png",
+      "url": "http://127.0.0.1:3004/dashboard",
+      "finalUrl": "http://127.0.0.1:3004/dashboard",
+      "title": "Ironflyer — Profitable Completed Execution",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/projects",
+      "slug": "09-projects",
+      "viewport": "mobile-390",
+      "width": 390,
+      "height": 844,
+      "file": "mobile-390/09-projects-projects.png",
+      "url": "http://127.0.0.1:3004/projects",
+      "finalUrl": "http://127.0.0.1:3004/projects",
+      "title": "Ironflyer — Profitable Completed Execution",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/templates",
+      "slug": "10-templates",
+      "viewport": "mobile-390",
+      "width": 390,
+      "height": 844,
+      "file": "mobile-390/10-templates-templates.png",
+      "url": "http://127.0.0.1:3004/templates",
+      "finalUrl": "http://127.0.0.1:3004/templates",
+      "title": "Ironflyer — Profitable Completed Execution",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/pricing",
+      "slug": "11-pricing",
+      "viewport": "mobile-390",
+      "width": 390,
+      "height": 844,
+      "file": "mobile-390/11-pricing-pricing.png",
+      "url": "http://127.0.0.1:3004/pricing",
+      "finalUrl": "http://127.0.0.1:3004/pricing",
+      "title": "Pricing — Ironflyer",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/studio",
+      "slug": "12-studio",
+      "viewport": "mobile-390",
+      "width": 390,
+      "height": 844,
+      "file": "mobile-390/12-studio-studio.png",
+      "url": "http://127.0.0.1:3004/studio",
+      "finalUrl": "http://127.0.0.1:3004/studio",
+      "title": "Ironflyer — Profitable Completed Execution",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/studio/demo",
+      "slug": "13-studio-demo",
+      "viewport": "mobile-390",
+      "width": 390,
+      "height": 844,
+      "file": "mobile-390/13-studio-demo-studio__demo.png",
+      "url": "http://127.0.0.1:3004/studio/demo",
+      "finalUrl": "http://127.0.0.1:3004/studio/demo",
+      "title": "",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/p/demo?executionID=demo",
+      "slug": "14-project-workbench",
+      "viewport": "mobile-390",
+      "width": 390,
+      "height": 844,
+      "file": "mobile-390/14-project-workbench-p__demo-executionID-demo.png",
+      "url": "http://127.0.0.1:3004/p/demo?executionID=demo",
+      "finalUrl": "http://127.0.0.1:3004/p/demo?executionID=demo",
+      "title": "",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/executions",
+      "slug": "15-executions",
+      "viewport": "mobile-390",
+      "width": 390,
+      "height": 844,
+      "file": "mobile-390/15-executions-executions.png",
+      "url": "http://127.0.0.1:3004/executions",
+      "finalUrl": "http://127.0.0.1:3004/executions",
+      "title": "Ironflyer — Profitable Completed Execution",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/execution",
+      "slug": "16-execution-index",
+      "viewport": "mobile-390",
+      "width": 390,
+      "height": 844,
+      "file": "mobile-390/16-execution-index-execution.png",
+      "url": "http://127.0.0.1:3004/execution",
+      "finalUrl": "http://127.0.0.1:3004/execution",
+      "title": "Ironflyer — Profitable Completed Execution",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/execution/demo",
+      "slug": "17-execution-detail",
+      "viewport": "mobile-390",
+      "width": 390,
+      "height": 844,
+      "file": "mobile-390/17-execution-detail-execution__demo.png",
+      "url": "http://127.0.0.1:3004/execution/demo",
+      "finalUrl": "http://127.0.0.1:3004/execution/demo",
+      "title": "",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/execution/demo/security",
+      "slug": "18-execution-security",
+      "viewport": "mobile-390",
+      "width": 390,
+      "height": 844,
+      "file": "mobile-390/18-execution-security-execution__demo__security.png",
+      "url": "http://127.0.0.1:3004/execution/demo/security",
+      "finalUrl": "http://127.0.0.1:3004/execution/demo/security",
+      "title": "",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/deploy",
+      "slug": "19-deploy",
+      "viewport": "mobile-390",
+      "width": 390,
+      "height": 844,
+      "file": "mobile-390/19-deploy-deploy.png",
+      "url": "http://127.0.0.1:3004/deploy",
+      "finalUrl": "http://127.0.0.1:3004/deploy",
+      "title": "Ironflyer — Profitable Completed Execution",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/deploy/demo",
+      "slug": "20-deploy-demo",
+      "viewport": "mobile-390",
+      "width": 390,
+      "height": 844,
+      "file": "mobile-390/20-deploy-demo-deploy__demo.png",
+      "url": "http://127.0.0.1:3004/deploy/demo",
+      "finalUrl": "http://127.0.0.1:3004/deploy/demo",
+      "title": "",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/wallet",
+      "slug": "21-wallet",
+      "viewport": "mobile-390",
+      "width": 390,
+      "height": 844,
+      "file": "mobile-390/21-wallet-wallet.png",
+      "url": "http://127.0.0.1:3004/wallet",
+      "finalUrl": "http://127.0.0.1:3004/wallet",
+      "title": "Ironflyer — Profitable Completed Execution",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/wallet/topup",
+      "slug": "22-wallet-topup",
+      "viewport": "mobile-390",
+      "width": 390,
+      "height": 844,
+      "file": "mobile-390/22-wallet-topup-wallet__topup.png",
+      "url": "http://127.0.0.1:3004/wallet/topup",
+      "finalUrl": "http://127.0.0.1:3004/wallet/topup",
+      "title": "Ironflyer — Profitable Completed Execution",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/settings",
+      "slug": "23-settings",
+      "viewport": "mobile-390",
+      "width": 390,
+      "height": 844,
+      "file": "mobile-390/23-settings-settings.png",
+      "url": "http://127.0.0.1:3004/settings",
+      "finalUrl": "http://127.0.0.1:3004/settings",
+      "title": "Ironflyer — Profitable Completed Execution",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    },
+    {
+      "status": "ok",
+      "route": "/operator",
+      "slug": "24-operator",
+      "viewport": "mobile-390",
+      "width": 390,
+      "height": 844,
+      "file": "mobile-390/24-operator-operator.png",
+      "url": "http://127.0.0.1:3004/operator",
+      "finalUrl": "http://127.0.0.1:3004/operator",
+      "title": "Ironflyer — Profitable Completed Execution",
+      "unknownOperations": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "error": null
+    }
+  ],
+  "errors": [],
+  "unknownOperations": []
+}

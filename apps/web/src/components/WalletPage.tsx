@@ -16,13 +16,11 @@ import {
   RefreshRounded,
 } from "@mui/icons-material";
 import {
-  Alert,
   Box,
   Card,
   CircularProgress,
   IconButton,
   Skeleton,
-  Snackbar,
   Stack,
   Tooltip,
   Typography,
@@ -114,7 +112,6 @@ export function WalletPage() {
   const [createTopUp, createTopUpM] = useWalletCreateTopUpMutation();
 
   const [topUpError, setTopUpError] = useState<string | null>(null);
-  const [snack, setSnack] = useState<string | null>(null);
   const [pendingAmount, setPendingAmount] = useState<number | null>(null);
 
   const handleTopUp = useCallback(
@@ -409,16 +406,6 @@ export function WalletPage() {
         />
       </Stack>
 
-      <Snackbar
-        open={!!snack}
-        autoHideDuration={5000}
-        onClose={() => setSnack(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert severity="info" variant="filled" onClose={() => setSnack(null)}>
-          {snack}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 }
