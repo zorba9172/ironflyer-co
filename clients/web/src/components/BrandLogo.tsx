@@ -1,7 +1,9 @@
-"use client";
-
 // IronFlyer wordmark. Real inline SVG matching the private handoff:
 // three forward gradient strokes and a crisp wordmark.
+//
+// Pure presentation — no hooks, refs, state, or browser APIs — so the
+// component renders as a React Server Component and ships zero JS for
+// the brand mark itself. (next/link works in RSC.)
 
 import { Box, Stack, Typography } from "@mui/material";
 import Link from "next/link";

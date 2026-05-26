@@ -1,6 +1,6 @@
-"use client";
-
 // StatusBadge — colour-coded pill for execution / deploy / approval
+// (No hooks / refs / events / browser APIs — renders as an RSC.)
+//
 // statuses. The status vocabulary mirrors the orchestrator's domain
 // constants:
 //   execution: created | admitted | running | succeeded | failed |

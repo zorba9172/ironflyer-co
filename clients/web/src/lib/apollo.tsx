@@ -211,6 +211,12 @@ function buildLink(): ApolloLink {
 
 function buildCache(): InMemoryCache {
   return new InMemoryCache({
+    // typePolicies — every entity that recurs across queries gets an
+    // explicit keyFields so Apollo can dedupe it instead of treating
+    // two query responses as independent objects. Without these
+    // mappings the cache fragments and re-renders multiply when the
+    // same Execution / Patch / Deploy / Project surfaces in multiple
+    // panes (cockpit + studio + dashboard).
     typePolicies: {
       User: { keyFields: ["id"] },
       Wallet: { keyFields: ["tenantID"] },
@@ -220,6 +226,11 @@ function buildCache(): InMemoryCache {
       Blueprint: { keyFields: ["id"] },
       BlueprintStats: { keyFields: ["blueprintID"] },
       DashboardBlueprintStats: { keyFields: ["blueprintID"] },
+      Project: { keyFields: ["id"] },
+      Patch: { keyFields: ["id"] },
+      LedgerEntry: { keyFields: ["id"] },
+      GateVerdict: { keyFields: ["executionID", "name"] },
+      ProjectFile: { keyFields: ["path"] },
     },
   });
 }
@@ -231,7 +242,17 @@ export function createApolloClient(): ApolloClient<unknown> {
     link: buildLink(),
     cache: buildCache(),
     defaultOptions: {
-      watchQuery: { fetchPolicy: "cache-and-network", errorPolicy: "all" },
+      // After the first network hit each watchQuery demotes itself to
+      // cache-first so remounts (route changes, suspense replays,
+      // accordion open/close on dashboards) hit the cache instead of
+      // firing a redundant /graphql round trip. Individual hooks can
+      // still override per-call via `nextFetchPolicy: "cache-and-network"`
+      // when they want continuous freshness.
+      watchQuery: {
+        fetchPolicy: "cache-and-network",
+        nextFetchPolicy: "cache-first",
+        errorPolicy: "all",
+      },
       query: { fetchPolicy: "network-only", errorPolicy: "all" },
       mutate: { errorPolicy: "all" },
     },
@@ -256,5 +277,14 @@ export function ApolloProvider({ children }: { children: ReactNode }) {
   return <ApolloLibProvider client={client}>{children}</ApolloLibProvider>;
 }
 
-// Convenience re-export when a non-React module needs the client.
-export const apolloClient: ApolloClient<unknown> = getApolloClient();
+// Convenience accessor for non-React call sites that need a client.
+// The previous module-scoped `apolloClient` constant eagerly created
+// an ApolloClient at import time, which on the server runs once per
+// build module reload (and during streaming SSR, per request payload).
+// Lazy access via `getApolloClient()` is cheap on the client (the
+// singleton is cached after the first call) and avoids server work
+// entirely when a module imports the symbol just to call .clearStore()
+// inside an effect that never runs server-side.
+//
+// New call sites: prefer `useApolloClient()` from `@apollo/client`
+// inside React; reach for `getApolloClient()` only from non-React code.

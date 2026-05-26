@@ -1,6 +1,6 @@
-"use client";
-
 // MetricCard — single headline KPI tile used across dashboards.
+// (Pure presentation; renders as an RSC. The dashboard wraps a
+// boatload of these — moving them server-side trims meaningful JS.)
 // Optional trend chip ("+12.4%" / "-3.1pp") with directional colour.
 
 import {

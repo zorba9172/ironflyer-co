@@ -39,6 +39,21 @@ type Config struct {
 	ComplexityLimit int
 	ProdMode        bool
 
+	// APQLocked, when true, locks the Automatic Persisted Query cache
+	// to the startup-seeded registry — clients may only execute
+	// pre-registered query hashes. Raw queries and unknown hashes
+	// return PERSISTED_QUERY_NOT_REGISTERED. See DEPLOY.md §5
+	// (GRAPHQL_APQ_LOCKED).
+	APQLocked bool
+
+	// APQRegistryDir is the on-disk source for the locked-mode
+	// persisted-query registry. The directory is walked at startup and
+	// every .graphql / .gql file is parsed; each named operation is
+	// hashed (sha256 of the canonical query text) and pre-loaded into
+	// the APQ cache. Empty means "use the wired-in client gql dir"
+	// (clients/web/src/lib/gql/operations).
+	APQRegistryDir string
+
 	WSOrigins  []string
 	CSRFHeader string
 	CSRFCookie string
@@ -51,9 +66,12 @@ type Config struct {
 }
 
 // Defaults returns the production-safe Config without reading env.
+// MaxDepth tracks the documented default in DEPLOY.md §5 (15) so the
+// orchestrator's wired-in cap matches what operators read from the
+// runbook. ComplexityLimit (1000) likewise mirrors DEPLOY.md §5.
 func Defaults() Config {
 	return Config{
-		MaxDepth:          10,
+		MaxDepth:          15,
 		ComplexityLimit:   1000,
 		ProdMode:          false,
 		WSOrigins:         nil,
@@ -65,6 +83,12 @@ func Defaults() Config {
 }
 
 // Load reads IRONFLYER_GQL_* env vars and overlays them onto Defaults.
+//
+// The DEPLOY.md §5 knobs (GRAPHQL_DEPTH_LIMIT, GRAPHQL_COMPLEXITY_LIMIT,
+// GRAPHQL_APQ_LOCKED, GRAPHQL_APQ_REGISTRY_DIR) take precedence over
+// the legacy IRONFLYER_GQL_* names — operators following the runbook
+// see the documented surface, the legacy names stay live for older
+// deployments.
 func Load() Config {
 	c := Defaults()
 	if v := env.Int("IRONFLYER_GQL_MAX_DEPTH", 0); v > 0 {
@@ -72,6 +96,18 @@ func Load() Config {
 	}
 	if v := env.Int("IRONFLYER_GQL_COMPLEXITY_LIMIT", 0); v > 0 {
 		c.ComplexityLimit = v
+	}
+	if v := env.Int("GRAPHQL_DEPTH_LIMIT", 0); v > 0 {
+		c.MaxDepth = v
+	}
+	if v := env.Int("GRAPHQL_COMPLEXITY_LIMIT", 0); v > 0 {
+		c.ComplexityLimit = v
+	}
+	if env.Bool("GRAPHQL_APQ_LOCKED", false) {
+		c.APQLocked = true
+	}
+	if v := env.String("GRAPHQL_APQ_REGISTRY_DIR", ""); v != "" {
+		c.APQRegistryDir = v
 	}
 	if env.Bool("IRONFLYER_GQL_PROD", false) {
 		c.ProdMode = true

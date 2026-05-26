@@ -45,7 +45,10 @@ import {
   Typography,
 } from "@mui/material";
 import dynamic from "next/dynamic";
-import JSZip from "jszip";
+// JSZip is ~30 KB gzip; importing it eagerly here ships the deflate
+// machinery into every cold load of the studio Code tab even though
+// it only runs when the operator clicks "Download project ZIP". The
+// import is deferred to `downloadProjectZip()` below.
 import { useEffect, useMemo, useState } from "react";
 import { LoadingPanel } from "../cockpit/LoadingPanel";
 import {
@@ -157,6 +160,10 @@ function safeZipName(projectID: string): string {
 }
 
 async function downloadProjectZip(projectID: string, files: ProjectFile[]): Promise<void> {
+  // Dynamic import — keeps the ~30 KB jszip chunk out of the cold
+  // studio bundle. The browser only fetches it the first time the
+  // operator clicks the export button.
+  const { default: JSZip } = await import("jszip");
   const zip = new JSZip();
   const skipped: string[] = [];
 

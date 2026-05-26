@@ -1,6 +1,7 @@
-"use client";
-
 // CostBreakdownBar — horizontal stacked bar of how an execution's
+// (Pure SVG/MUI presentation — no hooks or events; renders as an RSC.
+// The studio Dashboard pane wraps several of these per execution, so
+// keeping them server-side trims meaningful JS off the studio bundle.)
 // reserved budget is being consumed.
 //
 // Five segments, left → right:

@@ -1,6 +1,5 @@
-"use client";
-
 // MoneyChip — compact $X.YZ pill used in tables, headers, feed events.
+// (Pure presentation; renders as an RSC.)
 // Defaults to neutral; pass color="positive" / "negative" / "warning"
 // to signal margin / spend / refund context.
 

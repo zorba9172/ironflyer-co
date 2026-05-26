@@ -244,16 +244,35 @@ APQ runs with an in-memory LRU; once your client registry is populated,
 set `GRAPHQL_APQ_LOCKED=true` so ad-hoc queries from production clients
 start erroring as designed.
 
+**Operator workflow — adding a new query to the locked allowlist:**
+
+1. Add or edit the operation under `GRAPHQL_APQ_REGISTRY_DIR` (default
+   `clients/web/src/lib/gql/operations/<surface>.graphql`). Every named
+   `query`, `mutation`, or `subscription` is registered at startup.
+2. Re-deploy the orchestrator. The boot log line
+   `graphql: APQ locked mode wired` reports `registry_size` so you can
+   see the new shape was picked up.
+3. Clients that compute the hash from the canonical operation text
+   (Apollo persisted-query link, codegen) now hit the registry on the
+   first request. Clients that send a raw query receive
+   `PERSISTED_QUERY_REQUIRED`; clients that send an unknown hash
+   receive `PERSISTED_QUERY_NOT_REGISTERED` (and MUST NOT fall back to
+   sending the full query — locked mode rejects that too).
+4. Operators (per the `IsOperator` predicate wired in `main.go`) bypass
+   the lock, so Sandbox + the CLI still ship ad-hoc queries through
+   `/graphql` without registration.
+
 GraphQL env knobs that govern the surface (all optional):
 
 | Variable | Default | What it does |
 | --- | --- | --- |
 | `GRAPHQL_TRACING` | `off` | Apollo tracing extension. Verbose — flip on while debugging. |
-| `GRAPHQL_COMPLEXITY_LIMIT` | `1000` *(planned)* | Hard cap on operation complexity. |
-| `GRAPHQL_DEPTH_LIMIT` | `15` *(planned)* | Hard cap on selection-set depth. |
+| `GRAPHQL_COMPLEXITY_LIMIT` | `1000` | Hard cap on operation complexity. Rejects with `OPERATION_TOO_COMPLEX` and a WARN log carrying the operation name + measured score. |
+| `GRAPHQL_DEPTH_LIMIT` | `15` | Hard cap on selection-set depth. Rejects with `OPERATION_TOO_DEEP` and a WARN log carrying the operation name + measured depth. |
 | `GRAPHQL_INTROSPECTION` | `on` | Set `off` once clients are on a generated SDK. |
-| `GRAPHQL_APQ_LRU_SIZE` | `100` | In-memory APQ LRU. Raise on APQ miss-rate. |
-| `GRAPHQL_APQ_LOCKED` | `false` *(planned)* | Reject non-registered hashes. |
+| `GRAPHQL_APQ_LRU_SIZE` | `100` | In-memory APQ LRU. Raise on APQ miss-rate. Ignored when `GRAPHQL_APQ_LOCKED=true`. |
+| `GRAPHQL_APQ_LOCKED` | `false` | When `true`, the APQ surface only serves hashes seeded at startup from `GRAPHQL_APQ_REGISTRY_DIR`. Raw queries return `PERSISTED_QUERY_REQUIRED`; unknown hashes return `PERSISTED_QUERY_NOT_REGISTERED`. Operators (per `IsOperator`) bypass the lock so Sandbox / CLI keep working. |
+| `GRAPHQL_APQ_REGISTRY_DIR` | `clients/web/src/lib/gql/operations` | Directory scanned at startup; every `.graphql` / `.gql` file is parsed and each named operation is hashed + registered. Drop a new query into this tree, re-deploy, and the hash becomes live. |
 | `GRAPHQL_QUERY_CACHE_SIZE` | `1000` | LRU size for parsed query documents. |
 
 For deeper GraphQL ops (incident triage, subscription handshakes, APQ

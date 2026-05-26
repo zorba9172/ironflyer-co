@@ -1,6 +1,6 @@
-"use client";
-
 // CohortTable — sticky-header table of monthly cohort rollups. Used by
+// (Pure presentation; no hooks or events — renders as an RSC.)
+//
 // the operator dashboard. Pure presentation; the parent owns the
 // query.
 

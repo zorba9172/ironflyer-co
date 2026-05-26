@@ -1,6 +1,7 @@
-"use client";
-
 // PageHeader — title + optional eyebrow + optional breadcrumb + CTA.
+// (Pure presentation; renders as an RSC. `actions` is a ReactNode so a
+// page can still pass a client-only <Button onClick> inside without
+// forcing the header itself into the client bundle.)
 // Used at the top of every cockpit page so spacing and typography stay
 // consistent across A47–A50 surfaces.
 

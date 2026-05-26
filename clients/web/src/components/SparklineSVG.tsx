@@ -1,6 +1,8 @@
-"use client";
-
 // SparklineSVG — dependency-free inline SVG sparkline.
+//
+// Pure presentation — no hooks/state/refs/browser APIs — so the
+// component renders as an RSC and ships zero JS for inline strips
+// that are static for the lifetime of the parent render.
 //
 // Reserved for the smallest inline strips (list rows, badges) where a
 // full echarts canvas would be overkill. Dashboards use the

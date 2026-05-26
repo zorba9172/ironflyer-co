@@ -1,6 +1,6 @@
-"use client";
-
 // LoadingPanel — centred spinner with an optional caption. Used inside
+// (Pure presentation; renders as an RSC.)
+//
 // page bodies while the first paint of data is in-flight. Avoid using
 // for tiny ranges of UI (use <Skeleton /> directly) — this panel is
 // shaped for "the whole tab is waiting".

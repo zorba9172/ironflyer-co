@@ -6,9 +6,10 @@ import "@fontsource/inter/900.css";
 import "@fontsource/geist-mono/400.css";
 import "@fontsource/geist-mono/500.css";
 import "@fontsource/geist-mono/700.css";
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
+// swiper/css was imported here when the marketing carousel used Swiper.
+// The Swiper rail was removed and no component now imports `swiper/*`
+// (grep -rn "from 'swiper" returns nothing), so the global CSS payload
+// would otherwise ship dead bytes on every route.
 import type { Metadata, Viewport } from "next";
 import { tokens } from "../../../packages/design-tokens";
 import type { ReactNode } from "react";

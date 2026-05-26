@@ -6,6 +6,7 @@ import (
 	"github.com/99designs/gqlgen/complexity"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/errcode"
+	"github.com/rs/zerolog"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
@@ -17,7 +18,10 @@ import (
 // "list everything" attempt without tripping the limit.
 const DefaultComplexityLimit = 1000
 
-const errComplexityLimit = "COMPLEXITY_LIMIT_EXCEEDED"
+// errComplexityLimit is the GraphQL error extension code returned when
+// an operation exceeds the configured complexity. The wire code is
+// OPERATION_TOO_COMPLEX per the V22 hardening contract (DEPLOY.md §5).
+const errComplexityLimit = "OPERATION_TOO_COMPLEX"
 
 // FieldCostMap maps "Type.Field" (e.g. "Query.dashboards") → per-field
 // extra cost. The cost is *added* on top of gqlgen's base complexity
@@ -31,16 +35,21 @@ type FieldCostMap map[string]int
 // number comes from gqlgen's calculator (the same one
 // extension.FixedComplexityLimit uses); per-field extra costs are
 // layered on top via the FieldCostMap.
-func ComplexityExtension(limit int, costs FieldCostMap) graphql.HandlerExtension {
+//
+// logger is optional — when non-nil, every reject is logged at WARN
+// with the operation name + computed complexity score so operators
+// can tune the limit against real traffic.
+func ComplexityExtension(limit int, costs FieldCostMap, logger *zerolog.Logger) graphql.HandlerExtension {
 	if limit <= 0 {
 		limit = DefaultComplexityLimit
 	}
-	return &complexityExt{max: limit, costs: costs}
+	return &complexityExt{max: limit, costs: costs, logger: logger}
 }
 
 type complexityExt struct {
-	max   int
-	costs FieldCostMap
+	max    int
+	costs  FieldCostMap
+	logger *zerolog.Logger
 
 	es graphql.ExecutableSchema
 }
@@ -84,6 +93,14 @@ func (c *complexityExt) MutateOperationContext(ctx context.Context, opCtx *graph
 			opName = "anonymous"
 		}
 		complexityRejects.WithLabelValues(opName).Inc()
+		if c.logger != nil {
+			c.logger.Warn().
+				Str("operation", opName).
+				Int("complexity", calc).
+				Int("limit", c.max).
+				Str("code", errComplexityLimit).
+				Msg("graphql: rejected operation exceeding complexity limit")
+		}
 		err := gqlerror.Errorf("operation has complexity %d, which exceeds the limit of %d", calc, c.max)
 		errcode.Set(err, errComplexityLimit)
 		return err

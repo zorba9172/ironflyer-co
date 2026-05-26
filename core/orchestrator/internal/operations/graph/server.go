@@ -101,6 +101,12 @@ func Handler(cfg Config) http.Handler {
 
 	srv.SetQueryCache(lru.New[*ast.QueryDocument](envInt("GRAPHQL_QUERY_CACHE_LRU", 1000)))
 
+	// V22 hardening — per-extension logger. The depth + complexity
+	// extensions log every reject at WARN with the operation name +
+	// measured metric so operators can tune the caps against real
+	// traffic before they bite a legitimate dashboard query.
+	gqlLogger := cfg.Logger.With().Str("subsystem", "graphql.hardening").Logger()
+
 	// V22 Wave-2 hardening law #8: depth + complexity caps are
 	// ALWAYS-ON, regardless of prod vs dev. They are cheap, protect the
 	// dev surface from the same fragment-cycle / quadratic-blowup DoS
@@ -118,6 +124,23 @@ func Handler(cfg Config) http.Handler {
 	if hardening.ComplexityLimit <= 0 {
 		hardening.ComplexityLimit = gqlhardening.Defaults().ComplexityLimit
 	}
+	// DEPLOY.md §5 documents these three knobs directly on the
+	// GRAPHQL_* prefix; honor them here even when the caller passes a
+	// Hardening config that predates the env contract (gqlhardening.Load
+	// already covers the same vars but a caller may build a Config
+	// manually).
+	if v := envInt("GRAPHQL_DEPTH_LIMIT", 0); v > 0 {
+		hardening.MaxDepth = v
+	}
+	if v := envInt("GRAPHQL_COMPLEXITY_LIMIT", 0); v > 0 {
+		hardening.ComplexityLimit = v
+	}
+	if envBool("GRAPHQL_APQ_LOCKED") {
+		hardening.APQLocked = true
+	}
+	if v := strings.TrimSpace(os.Getenv("GRAPHQL_APQ_REGISTRY_DIR")); v != "" {
+		hardening.APQRegistryDir = v
+	}
 
 	// Introspection: ON in dev (web codegen needs it), OFF in prod
 	// unless the operator explicitly flips GRAPHQL_INTROSPECTION=on.
@@ -126,17 +149,43 @@ func Handler(cfg Config) http.Handler {
 	if !hardening.ProdMode || envBool("GRAPHQL_INTROSPECTION") {
 		srv.Use(extension.Introspection{})
 	}
-	srv.Use(extension.AutomaticPersistedQuery{
-		Cache: lru.New[string](envInt("GRAPHQL_APQ_LRU", 1000)),
-	})
+
+	// APQ wiring — when GRAPHQL_APQ_LOCKED=true the upstream
+	// AutomaticPersistedQuery extension is replaced by gqlhardening's
+	// LockedAPQ, which serves only pre-registered hashes from the
+	// startup-seeded registry. Operators (per cfg.IsOperator) bypass
+	// the lock so Sandbox / CLI still ship ad-hoc queries through the
+	// surface.
+	if hardening.APQLocked {
+		registry := gqlhardening.NewRegistryCache(true)
+		regDir := hardening.APQRegistryDir
+		if regDir == "" {
+			regDir = "clients/web/src/lib/gql/operations"
+		}
+		seeded, err := gqlhardening.SeedRegistryFromDir(registry, regDir, &gqlLogger)
+		if err != nil {
+			cfg.Logger.Warn().Err(err).Str("dir", regDir).Msg("graphql: APQ registry seed failed — locked mode will reject ALL requests")
+		}
+		cfg.Logger.Info().
+			Bool("locked", true).
+			Str("dir", regDir).
+			Int("seeded", seeded).
+			Int("registry_size", registry.Len()).
+			Msg("graphql: APQ locked mode wired")
+		srv.Use(gqlhardening.NewLockedAPQ(registry, &gqlLogger, gqlhardening.OperatorCheck(cfg.IsOperator)))
+	} else {
+		srv.Use(extension.AutomaticPersistedQuery{
+			Cache: lru.New[string](envInt("GRAPHQL_APQ_LRU", 1000)),
+		})
+	}
 
 	// V22 hardening extensions — depth + complexity + introspection
 	// gate + redacted error presenter. Depth and complexity ALWAYS
 	// mount; the introspection gate is a no-op in dev and the redacted
 	// presenter is overwritten below by the dev-friendly presenter when
 	// we're not in prod mode.
-	srv.Use(gqlhardening.DepthExtension(hardening.MaxDepth))
-	srv.Use(gqlhardening.ComplexityExtension(hardening.ComplexityLimit, nil))
+	srv.Use(gqlhardening.DepthExtension(hardening.MaxDepth, &gqlLogger))
+	srv.Use(gqlhardening.ComplexityExtension(hardening.ComplexityLimit, nil, &gqlLogger))
 	srv.Use(gqlhardening.IntrospectionGate(hardening.ProdMode, cfg.IsOperator))
 	if hardening.ProdMode {
 		srv.SetErrorPresenter(gqlhardening.RedactedErrorPresenter(hardening.ProdMode))

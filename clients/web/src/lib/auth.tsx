@@ -23,8 +23,8 @@ import {
   type ReactNode,
 } from "react";
 import {
-  apolloClient,
   clearToken,
+  getApolloClient,
   getToken,
   registerUnauthorizedHandler,
   setToken,
@@ -90,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     registerUnauthorizedHandler(() => {
       clearToken();
       setHasToken(false);
-      void apolloClient.clearStore().catch(() => undefined);
+      void getApolloClient().clearStore().catch(() => undefined);
       if (typeof window === "undefined") return;
       const path = window.location.pathname;
       if (path.startsWith("/login") || path.startsWith("/signup")) return;

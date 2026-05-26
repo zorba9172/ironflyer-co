@@ -1,6 +1,6 @@
-"use client";
-
 // AuthShell — Base44-style split auth layout.
+// (Pure presentation; renders as an RSC. The children slot (the form
+// itself) is a client component, but the chrome around it is static.)
 //
 //   ┌─────────────────────────┬──────────────────────────┐
 //   │ BRAND PANEL              │ FORM PANEL                │
