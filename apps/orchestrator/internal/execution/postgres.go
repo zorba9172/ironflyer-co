@@ -266,6 +266,15 @@ func (p *Postgres) ListByTenantAndProject(ctx context.Context, tenant, projectID
 // It opens a tx, locks the row, validates the FSM, runs the
 // caller-supplied UPDATE, then commits.
 func (p *Postgres) txTransition(ctx context.Context, id string, to Status, updateSQL string, args ...any) error {
+	// Empty IDs cannot match any row; short-circuit before Postgres
+	// rejects the `WHERE id = ''` lookup as "invalid input syntax for
+	// type uuid: \"\"" (SQLSTATE 22P02). The historical crash here
+	// pointed at a caller invoking Admit/Start/Stop before Create's
+	// RETURNING id had been read. Treat it as ErrNotFound so the
+	// caller surfaces the correct GraphQL error.
+	if id == "" {
+		return ErrNotFound
+	}
 	tx, err := p.pool.Begin(ctx)
 	if err != nil {
 		return logPGErr(ctx, "tx_begin", id, err)
@@ -410,6 +419,9 @@ func (p *Postgres) Refund(ctx context.Context, id string, amount decimal.Decimal
 // status. It locks the row, refuses to proceed if the execution is
 // already terminal, runs the UPDATE, then commits.
 func (p *Postgres) txMutate(ctx context.Context, id string, allowSucceeded bool, updateSQL string, args ...any) error {
+	if id == "" {
+		return ErrNotFound
+	}
 	tx, err := p.pool.Begin(ctx)
 	if err != nil {
 		return err

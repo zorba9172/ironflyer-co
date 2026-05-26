@@ -989,10 +989,30 @@ func main() {
 	} else {
 		persistedStore = gqlhardening.NewMemoryStore()
 	}
-	logger.Info().Bool("prod", hardeningCfg.ProdMode).
-		Int("max_depth", hardeningCfg.MaxDepth).
-		Int("complexity_limit", hardeningCfg.ComplexityLimit).
-		Msg("V22 GraphQL hardening enabled")
+	// V22 Wave-2 hardening profile banner. Depth + complexity caps are
+	// ALWAYS-ON; everything else gates on hardeningCfg.ProdMode so an
+	// operator can audit at a glance which production gates actually
+	// mounted on this boot without grepping source.
+	introspectionOn := !hardeningCfg.ProdMode || strings.EqualFold(strings.TrimSpace(os.Getenv("GRAPHQL_INTROSPECTION")), "on") ||
+		strings.EqualFold(strings.TrimSpace(os.Getenv("GRAPHQL_INTROSPECTION")), "true") ||
+		strings.EqualFold(strings.TrimSpace(os.Getenv("GRAPHQL_INTROSPECTION")), "1")
+	persistedCount := 0
+	if persistedStore != nil {
+		if n, err := persistedStore.Count(context.Background()); err == nil {
+			persistedCount = n
+		}
+	}
+	logger.Info().
+		Bool("prod", hardeningCfg.ProdMode).
+		Int("depth", hardeningCfg.MaxDepth).
+		Int("complexity", hardeningCfg.ComplexityLimit).
+		Bool("apq", true).
+		Bool("apq_locked", hardeningCfg.ProdMode).
+		Bool("csrf", hardeningCfg.ProdMode).
+		Bool("introspection", introspectionOn).
+		Bool("error_masking", hardeningCfg.ProdMode).
+		Int("persisted_queries", persistedCount).
+		Msg("V22 GraphQL hardening profile")
 
 	// ---------------- V22 Wave-2: temporal idempotent ports ----------------
 	// The existing temporalworker.Start call (above) wires the

@@ -114,3 +114,33 @@ type ScaleSource interface {
 	WorkerUtilizationPct(ctx context.Context) (float64, error)
 	SandboxCapacity(ctx context.Context) (int, error)
 }
+
+// tenantCtxKey is the unexported key used to carry the caller's
+// tenant id through the dashboards read layer without changing the
+// existing source interfaces (the ClickHouse + memory adapters live
+// in sibling packages and pin the interface shape with compile-time
+// guards).
+//
+// Adapters that can scope by tenant (the Postgres ledger / execution
+// / blueprint adapters) MUST honour TenantFromContext for every
+// per-tenant dashboard (Profit, Cohort, Blueprint). When the value
+// is the empty string the call is operator-wide (Scale dashboard);
+// per-tenant Service methods refuse to run with an empty tenant so
+// a missing context value never silently leaks cross-tenant rows.
+type tenantCtxKeyType struct{}
+
+var tenantCtxKey = tenantCtxKeyType{}
+
+// WithTenant returns a new context carrying tenantID. Service.Profit /
+// Cohort / BlueprintDashboard set this before delegating to the
+// builders; adapters read it to apply WHERE tenant_id = $1.
+func WithTenant(ctx context.Context, tenantID string) context.Context {
+	return context.WithValue(ctx, tenantCtxKey, tenantID)
+}
+
+// TenantFromContext returns the tenant id previously stored via
+// WithTenant, or "" when the call is operator-wide / unscoped.
+func TenantFromContext(ctx context.Context) string {
+	v, _ := ctx.Value(tenantCtxKey).(string)
+	return v
+}

@@ -116,6 +116,14 @@ func (r *mutationResolver) CreatePaidExecution(ctx context.Context, input model.
 		_ = r.WalletSvc.Release(ctx, tenant, budgetDec)
 		return nil, err
 	}
+	// Defensive: Create must always return an ID. If it doesn't, abort
+	// before we try to Admit/Start with an empty UUID and crash the
+	// Postgres FSM in tx_select_for_update (Bug #7).
+	if strings.TrimSpace(exec.ID) == "" {
+		_ = r.WalletSvc.Release(ctx, tenant, budgetDec)
+		r.Logger.Error().Msg("createPaidExecution: execution.Create returned empty ID")
+		return nil, gqlNotConfigured("execution")
+	}
 	if err := r.ExecutionSvc.Admit(ctx, exec.ID); err != nil {
 		_ = r.WalletSvc.Release(ctx, tenant, budgetDec)
 		return nil, err

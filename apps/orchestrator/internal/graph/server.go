@@ -100,30 +100,45 @@ func Handler(cfg Config) http.Handler {
 
 	srv.SetQueryCache(lru.New[*ast.QueryDocument](envInt("GRAPHQL_QUERY_CACHE_LRU", 1000)))
 
-	if graphEnv() != "prod" || envBool("GRAPHQL_INTROSPECTION") {
-		srv.Use(extension.Introspection{})
+	// V22 Wave-2 hardening law #8: depth + complexity caps are
+	// ALWAYS-ON, regardless of prod vs dev. They are cheap, protect the
+	// dev surface from the same fragment-cycle / quadratic-blowup DoS
+	// patterns that hit prod, and let dev tooling fail fast on shapes
+	// that would later trip the production gate. When the caller does
+	// not supply a Hardening config we fall back to the package
+	// defaults so the caps still mount.
+	hardening := gqlhardening.Defaults()
+	if cfg.Hardening != nil {
+		hardening = *cfg.Hardening
 	}
-	if limit := envInt("GRAPHQL_COMPLEXITY_LIMIT", 500); limit > 0 {
-		srv.Use(extension.FixedComplexityLimit(limit))
+	if hardening.MaxDepth <= 0 {
+		hardening.MaxDepth = gqlhardening.Defaults().MaxDepth
+	}
+	if hardening.ComplexityLimit <= 0 {
+		hardening.ComplexityLimit = gqlhardening.Defaults().ComplexityLimit
+	}
+
+	// Introspection: ON in dev (web codegen needs it), OFF in prod
+	// unless the operator explicitly flips GRAPHQL_INTROSPECTION=on.
+	// The decision is gated on hardening.ProdMode so the toggle stays
+	// aligned with the rest of the hardening profile.
+	if !hardening.ProdMode || envBool("GRAPHQL_INTROSPECTION") {
+		srv.Use(extension.Introspection{})
 	}
 	srv.Use(extension.AutomaticPersistedQuery{
 		Cache: lru.New[string](envInt("GRAPHQL_APQ_LRU", 1000)),
 	})
 
-	// V22 hardening: depth + complexity + introspection gate + redacted
-	// error presenter. The middleware order matters — the extensions
-	// run inside the gqlgen handler; CSRF / persisted-queries /
-	// rate-limit run outside in api.go.
-	if cfg.Hardening != nil {
-		h := *cfg.Hardening
-		if h.MaxDepth > 0 {
-			srv.Use(gqlhardening.DepthExtension(h.MaxDepth))
-		}
-		if h.ComplexityLimit > 0 {
-			srv.Use(gqlhardening.ComplexityExtension(h.ComplexityLimit, nil))
-		}
-		srv.Use(gqlhardening.IntrospectionGate(h.ProdMode, cfg.IsOperator))
-		srv.SetErrorPresenter(gqlhardening.RedactedErrorPresenter(h.ProdMode))
+	// V22 hardening extensions — depth + complexity + introspection
+	// gate + redacted error presenter. Depth and complexity ALWAYS
+	// mount; the introspection gate is a no-op in dev and the redacted
+	// presenter is overwritten below by the dev-friendly presenter when
+	// we're not in prod mode.
+	srv.Use(gqlhardening.DepthExtension(hardening.MaxDepth))
+	srv.Use(gqlhardening.ComplexityExtension(hardening.ComplexityLimit, nil))
+	srv.Use(gqlhardening.IntrospectionGate(hardening.ProdMode, cfg.IsOperator))
+	if hardening.ProdMode {
+		srv.SetErrorPresenter(gqlhardening.RedactedErrorPresenter(hardening.ProdMode))
 	}
 	if cfg.PolicyPEP != nil {
 		srv.AroundOperations(policy.GraphQLOperationMiddleware(cfg.PolicyPEP))
@@ -149,17 +164,20 @@ func Handler(cfg Config) http.Handler {
 			Msg("graphql: panic in resolver")
 		return gqlerror.Errorf("internal server error")
 	})
-	srv.SetErrorPresenter(func(ctx context.Context, err error) *gqlerror.Error {
-		var gqlErr *gqlerror.Error
-		if errors.As(err, &gqlErr) {
-			return gqlErr
-		}
-		cfg.Logger.Warn().Err(err).Msg("graphql: resolver error")
-		if graphEnv() != "prod" || envBool("GRAPHQL_ERROR_DETAILS") {
+	// In prod we already mounted the redacted presenter above. Keep the
+	// dev-friendly presenter (logs + full error string back to the
+	// client) only when we are not in prod, so the operator sees real
+	// errors during local development and the prod surface stays masked.
+	if !hardening.ProdMode {
+		srv.SetErrorPresenter(func(ctx context.Context, err error) *gqlerror.Error {
+			var gqlErr *gqlerror.Error
+			if errors.As(err, &gqlErr) {
+				return gqlErr
+			}
+			cfg.Logger.Warn().Err(err).Msg("graphql: resolver error")
 			return &gqlerror.Error{Message: err.Error()}
-		}
-		return &gqlerror.Error{Message: "internal server error"}
-	})
+		})
+	}
 
 	return srv
 }

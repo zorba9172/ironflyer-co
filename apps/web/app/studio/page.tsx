@@ -43,6 +43,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, type ChangeEvent } from "react";
 import { tokens } from "../../../../packages/design-tokens";
 import { extractErrorMessage } from "../../src/lib/errors";
+import * as swal from "../../src/lib/swal";
 import {
   useDescribeIdeaMutation,
   useProjectsQuery,
@@ -128,13 +129,20 @@ export default function StudioIndexPage() {
       }
       const project = result.data?.describeIdea.project;
       const execution = result.data?.describeIdea.execution;
-      if (!project?.id) throw new Error("Studio did not return a project id.");
+      if (!project?.id) {
+        const debugDump = JSON.stringify(result.data ?? null).slice(0, 240);
+        throw new Error(
+          `Studio did not return a project id.\nResponse: ${debugDump}`,
+        );
+      }
       const params = new URLSearchParams({ autorun: "1", tab: "preview" });
       if (execution?.id) params.set("executionID", execution.id);
       void projectsQuery.refetch().catch(() => undefined);
       router.push(`/p/${encodeURIComponent(project.id)}?${params.toString()}`);
     } catch (err) {
-      setError(extractErrorMessage(err));
+      const message = extractErrorMessage(err);
+      setError(message);
+      void swal.error("Could not generate", message);
     }
   };
 

@@ -53,7 +53,7 @@ import {
   type HeroPromptInputHandle,
   type HeroPromptSubmitPayload,
 } from "../src/components/home/HeroPromptInput";
-import { IdeaSubmitDialog } from "../src/components/home/IdeaSubmitDialog";
+import * as swal from "../src/lib/swal";
 import { RecentsGrid } from "../src/components/home/RecentsGrid";
 import { TemplatesGalleryPreview } from "../src/components/home/TemplatesGalleryPreview";
 import { useAuth } from "../src/lib/auth";
@@ -88,15 +88,6 @@ function HomeInner() {
   const [budgetUSD, setBudgetUSD] = useState<number | null>(null);
   const [planFirst, setPlanFirst] = useState(false);
 
-  const [dialog, setDialog] = useState<
-    | null
-    | {
-        variant: "topup" | "error";
-        message: string;
-        shortfallUSD?: number | null;
-        topUpURL?: string | null;
-      }
-  >(null);
   const [welcomeOpen, setWelcomeOpen] = useState(false);
 
   // ── Restore pending prompt after sign-up ────────────────────────────
@@ -189,10 +180,17 @@ function HomeInner() {
               "Studio rejected the request.",
           );
         }
-        const project = result.data?.describeIdea.project;
-        const execution = result.data?.describeIdea.execution;
+        const project = result.data?.describeIdea?.project;
+        const execution = result.data?.describeIdea?.execution;
         if (!project?.id) {
-          throw new Error("Studio did not return a project id.");
+          // The resolver always populates project on success; landing
+          // here usually means the server responded with errors that
+          // were stripped above OR the network proxy returned an empty
+          // body. Surface the raw response so the operator can debug.
+          const debugDump = JSON.stringify(result.data ?? null).slice(0, 240);
+          throw new Error(
+            `Studio did not return a project id.\nResponse: ${debugDump}`,
+          );
         }
         // Clear pending prompt — it's now a live execution.
         try {
@@ -211,10 +209,19 @@ function HomeInner() {
         const isFunds = /payment.required|insufficient|wallet|top.?up|budget/i.test(
           message,
         );
-        setDialog({
-          variant: isFunds ? "topup" : "error",
-          message,
-        });
+        if (isFunds) {
+          const res = await swal.fire({
+            icon: "warning",
+            title: "Top up your wallet to launch",
+            text: message,
+            showCancelButton: true,
+            confirmButtonText: "Open wallet",
+            cancelButtonText: "Close",
+          });
+          if (res.isConfirmed) router.push("/wallet");
+        } else {
+          await swal.error("Could not start the build", message);
+        }
       }
     },
     [authenticated, describeIdea, router],
@@ -259,15 +266,6 @@ function HomeInner() {
       <PricingTeaser />
 
       <Footer />
-
-      <IdeaSubmitDialog
-        open={!!dialog}
-        onClose={() => setDialog(null)}
-        variant={dialog?.variant ?? "error"}
-        message={dialog?.message ?? ""}
-        shortfallUSD={dialog?.shortfallUSD ?? null}
-        topUpURL={dialog?.topUpURL ?? null}
-      />
     </Box>
   );
 }

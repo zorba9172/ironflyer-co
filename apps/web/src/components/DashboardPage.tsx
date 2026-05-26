@@ -32,7 +32,6 @@ import {
   WorkspacesOutlined,
 } from "@mui/icons-material";
 import {
-  Alert,
   Box,
   Button,
   Card,
@@ -40,13 +39,13 @@ import {
   CircularProgress,
   IconButton,
   Skeleton,
-  Snackbar,
   Stack,
   Switch,
   TextField,
   Tooltip,
   Typography,
 } from "@mui/material";
+import * as swal from "../lib/swal";
 import { useRouter } from "next/navigation";
 import {
   useCallback,
@@ -357,7 +356,6 @@ export function DashboardPage() {
 
   // ----- selection / bulk delete -----
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [globalSnack, setGlobalSnack] = useState<string | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const projects = useMemo(() => {
@@ -387,14 +385,15 @@ export function DashboardPage() {
     if (selected.size === 0) return;
     try {
       await bulkDelete({ variables: { ids: Array.from(selected) } });
-      setGlobalSnack(
+      void swal.toast(
         `Deleted ${selected.size} project${selected.size === 1 ? "" : "s"}.`,
+        "success",
       );
       clearSelection();
       setConfirmingDelete(false);
       await apollo.refetchQueries({ include: [DASHBOARD_PROJECTS] });
     } catch (err) {
-      setGlobalSnack(extractErrorMessage(err));
+      void swal.error("Delete failed", extractErrorMessage(err));
       setConfirmingDelete(false);
     }
   }, [apollo, bulkDelete, selected]);
@@ -607,20 +606,6 @@ export function DashboardPage() {
         busy={bulkDeleteM.loading}
       />
 
-      <Snackbar
-        open={!!globalSnack}
-        autoHideDuration={5000}
-        onClose={() => setGlobalSnack(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert
-          severity="info"
-          variant="filled"
-          onClose={() => setGlobalSnack(null)}
-        >
-          {globalSnack}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 }

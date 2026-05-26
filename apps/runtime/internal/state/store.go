@@ -478,7 +478,7 @@ func (p *PostgresStore) Reap(ctx context.Context, staleAfter time.Duration) ([]s
          WHERE current_pod_id IS NOT NULL
            AND current_pod_id <> ''
            AND (last_heartbeat_at IS NULL
-                OR last_heartbeat_at < now() - ($1 || ' seconds')::interval)
+                OR last_heartbeat_at < now() - make_interval(secs => $1::int))
         RETURNING id
     `, secs)
 	if err != nil {

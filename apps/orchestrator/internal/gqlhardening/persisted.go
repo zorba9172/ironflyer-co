@@ -24,6 +24,12 @@ type Store interface {
 	Get(ctx context.Context, hash string) (query string, found bool, err error)
 	Register(ctx context.Context, hash, query, opName, byTenant string) error
 	Touch(ctx context.Context, hash string) error
+	// Count returns the number of registered (active) persisted queries
+	// in the store. Used by the startup hardening banner so an operator
+	// can see at a glance how locked-down the APQ surface is. Best
+	// effort: implementations may return 0, nil when a count is
+	// expensive or unavailable.
+	Count(ctx context.Context) (int, error)
 }
 
 // OperatorCheck reports whether the request's principal is an operator
@@ -84,6 +90,12 @@ func (m *MemoryStore) Register(_ context.Context, hash, query, opName, byTenant 
 		created: time.Now(),
 	}
 	return nil
+}
+
+func (m *MemoryStore) Count(_ context.Context) (int, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return len(m.entries), nil
 }
 
 func (m *MemoryStore) Touch(_ context.Context, hash string) error {
@@ -154,6 +166,20 @@ func (p *PostgresStore) Register(ctx context.Context, hash, query, opName, byTen
 		hash, query, opArg, tenantArg,
 	)
 	return err
+}
+
+func (p *PostgresStore) Count(ctx context.Context) (int, error) {
+	if p == nil || p.pool == nil {
+		return 0, nil
+	}
+	var n int
+	err := p.pool.QueryRow(ctx,
+		`SELECT count(*) FROM persisted_queries WHERE active = true`,
+	).Scan(&n)
+	if err != nil {
+		return 0, err
+	}
+	return n, nil
 }
 
 func (p *PostgresStore) Touch(ctx context.Context, hash string) error {
