@@ -25,7 +25,7 @@ export const metadata: Metadata = {
       "A paid AI execution engine with gates that block, reviewable patches, live cost visibility, and prepaid wallet enforcement.",
     type: "website",
   },
-  icons: { icon: "/favicon.svg" },
+  icons: { icon: "/brand/ironflyer-logo.svg" },
 };
 
 export const viewport: Viewport = {

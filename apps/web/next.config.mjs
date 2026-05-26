@@ -4,6 +4,8 @@ const nextConfig = {
     formats: ["image/avif", "image/webp"]
   },
 
+  allowedDevOrigins: ["127.0.0.1", "localhost", "192.168.1.227"],
+
   // Production same-origin proxy for openvscode-server. In production
   // we want /ide/* to flow through the web origin so cookies, clipboard,
   // popups, and X-Frame-Options are friction-free. This rewrite handles
