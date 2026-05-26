@@ -14,6 +14,7 @@ import (
 	"ironflyer/apps/orchestrator/internal/agents"
 	"ironflyer/apps/orchestrator/internal/domain"
 	"ironflyer/apps/orchestrator/internal/execution"
+	"ironflyer/apps/orchestrator/internal/logctx"
 	"ironflyer/apps/orchestrator/internal/patch"
 	"ironflyer/apps/orchestrator/internal/profitguardctx"
 	"ironflyer/apps/orchestrator/internal/retriever"
@@ -326,15 +327,29 @@ func (e *Engine) runPlanner(ctx context.Context, projectID string, report *RunRe
 		UserBearer:  bearerFromCtx(ctx),
 		WorkspaceID: workspaceIDFromCtx(ctx),
 	}
+	lg := logctx.From(ctx).With().Str("agent", "planner").Str("project_id", projectID).Logger()
+	lg.Info().Int("prompt_chars", len(task.Goal)+len(task.Context)).Msg("planner: dispatching")
 	res, err := e.registry.Run(ctx, task)
 	if err != nil {
+		lg.Warn().Err(err).Msg("planner: agent dispatch failed")
 		e.emitProviderErr(projectID, StepPlanner, agents.RolePlanner, err)
 		return err
 	}
 	report.AgentRuns = append(report.AgentRuns, res)
+	lg.Info().
+		Str("provider", res.Provider).
+		Int("tokens", res.Tokens).
+		Float64("cost_usd", res.CostUSD).
+		Int("output_chars", len(res.Output)).
+		Msg("planner: agent response")
 
 	var plan plannerOutput
 	if err := unmarshalJSONFromText(res.Output, &plan); err != nil {
+		preview := res.Output
+		if len(preview) > 400 {
+			preview = preview[:400]
+		}
+		lg.Warn().Err(err).Str("output_preview", preview).Msg("planner: JSON parse failed")
 		e.emit(projectID, domain.Event{
 			ID: newEventID(), Step: StepPlanner, Agent: string(agents.RolePlanner),
 			Status:    StatusFailed,
@@ -344,6 +359,11 @@ func (e *Engine) runPlanner(ctx context.Context, projectID string, report *RunRe
 		return err
 	}
 	if len(plan.UserStories) == 0 {
+		preview := res.Output
+		if len(preview) > 400 {
+			preview = preview[:400]
+		}
+		lg.Warn().Str("output_preview", preview).Msg("planner: zero user stories")
 		e.emit(projectID, domain.Event{
 			ID: newEventID(), Step: StepPlanner, Agent: string(agents.RolePlanner),
 			Status:    StatusFailed,
@@ -352,6 +372,7 @@ func (e *Engine) runPlanner(ctx context.Context, projectID string, report *RunRe
 		})
 		return errors.New("planner: no stories")
 	}
+	lg.Info().Int("stories", len(plan.UserStories)).Int("data_entities", len(plan.DataModel)).Msg("planner: plan accepted")
 
 	// Persist the plan onto the Project. We update Spec for downstream gates,
 	// stash the raw JSON in a well-known file so other agents can re-read the

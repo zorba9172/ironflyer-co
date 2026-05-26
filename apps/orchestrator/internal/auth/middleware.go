@@ -43,6 +43,34 @@ func JTIFromContext(ctx context.Context) string {
 	return ""
 }
 
+// bearerCtxKeyType is the per-request key for the raw bearer token.
+// Long-lived background work (e.g. the finisher Engine.Run goroutine
+// kicked from describeIdea) needs to re-present the user's JWT to the
+// workspace runtime to allocate a sandbox; the runtime enforces owner
+// checks via the same JWT. Resolvers stamp this on the bg context
+// alongside finisher.WithBearer so downstream gate code can read it
+// via bearerFromCtx without re-parsing the Authorization header.
+type bearerCtxKeyType struct{}
+
+var bearerCtxKey = bearerCtxKeyType{}
+
+// WithBearer attaches the raw JWT to the request context. Empty
+// tokens are ignored so callers don't have to branch.
+func WithBearer(ctx context.Context, token string) context.Context {
+	if token == "" {
+		return ctx
+	}
+	return context.WithValue(ctx, bearerCtxKey, token)
+}
+
+// BearerFromContext returns the raw JWT, or "" when none is attached.
+func BearerFromContext(ctx context.Context) string {
+	if v, ok := ctx.Value(bearerCtxKey).(string); ok {
+		return v
+	}
+	return ""
+}
+
 // Middleware extracts the bearer token (header or `token` query param so the
 // SSE EventSource — which can't set headers — still authenticates), verifies
 // it, and attaches the User to context. Unauthenticated requests are 401.
@@ -61,6 +89,7 @@ func Middleware(svc *Service) func(http.Handler) http.Handler {
 			}
 			ctx := WithUser(r.Context(), u)
 			ctx = WithJTI(ctx, jti)
+			ctx = WithBearer(ctx, tok)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
@@ -76,6 +105,7 @@ func Optional(svc *Service) func(http.Handler) http.Handler {
 				if u, jti, err := svc.VerifyWithJTI(r.Context(), tok); err == nil {
 					ctx := WithUser(r.Context(), u)
 					ctx = WithJTI(ctx, jti)
+					ctx = WithBearer(ctx, tok)
 					r = r.WithContext(ctx)
 				} else if r.URL.Path == "/graphql" || r.URL.Path == "/graphql/" {
 					// Surface verification errors on the /graphql plane

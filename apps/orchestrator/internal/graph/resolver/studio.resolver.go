@@ -10,8 +10,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"ironflyer/apps/orchestrator/internal/auth"
 	"ironflyer/apps/orchestrator/internal/domain"
 	"ironflyer/apps/orchestrator/internal/execution"
+	"ironflyer/apps/orchestrator/internal/finisher"
 	"ironflyer/apps/orchestrator/internal/graph/model"
 	"ironflyer/apps/orchestrator/internal/ideaparser"
 	"ironflyer/apps/orchestrator/internal/logctx"
@@ -241,14 +243,22 @@ func (r *mutationResolver) DescribeIdea(ctx context.Context, input model.Describ
 			Str("execution_id", exec.ID).
 			Str("tenant_id", tenant).
 			Logger()
-		go func(projID, execID string) {
+		// Capture the caller's raw JWT BEFORE forking — the bg ctx
+		// loses every request value, and the finisher's runtime client
+		// re-presents this token to allocate the user's workspace
+		// sandbox. Without it, FindWorkspaceForProject always returns
+		// "", the Coder cannot land patches on a real filesystem, and
+		// the deploy gate never sees a preview to ship.
+		bearer := auth.BearerFromContext(ctx)
+		go func(projID, execID, bearer string) {
 			bgCtx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 			defer cancel()
 			bgCtx = logctx.ContextWithLogger(bgCtx, runLogger)
 			bgCtx = logctx.WithTenantID(bgCtx, tenant)
 			bgCtx = logctx.WithExecutionID(bgCtx, execID)
 			bgCtx = profitguardctx.WithExecution(bgCtx, execID, tenant)
-			runLogger.Info().Msg("studio: finisher run kicked off")
+			bgCtx = finisher.WithBearer(bgCtx, bearer)
+			runLogger.Info().Bool("has_bearer", bearer != "").Msg("studio: finisher run kicked off")
 			started := time.Now()
 			report, runErr := r.Engine.Run(bgCtx, projID)
 			elapsed := time.Since(started)
@@ -261,7 +271,7 @@ func (r *mutationResolver) DescribeIdea(ctx context.Context, input model.Describ
 				Int("iterations", report.Iterations).
 				Bool("completed", report.Completed).
 				Msg("studio: finisher run done")
-		}(project.ID, exec.ID)
+		}(project.ID, exec.ID, bearer)
 	}
 
 	// Refresh execution so admitted_at / started_at land.
@@ -347,14 +357,16 @@ func (r *mutationResolver) RefineIdea(ctx context.Context, executionID string, m
 			Str("tenant_id", tenant).
 			Str("trigger", "refine").
 			Logger()
-		go func(projID, execID string) {
+		bearer := auth.BearerFromContext(ctx)
+		go func(projID, execID, bearer string) {
 			bgCtx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 			defer cancel()
 			bgCtx = logctx.ContextWithLogger(bgCtx, runLogger)
 			bgCtx = logctx.WithTenantID(bgCtx, tenant)
 			bgCtx = logctx.WithExecutionID(bgCtx, execID)
 			bgCtx = profitguardctx.WithExecution(bgCtx, execID, tenant)
-			runLogger.Info().Msg("studio: finisher rerun kicked off")
+			bgCtx = finisher.WithBearer(bgCtx, bearer)
+			runLogger.Info().Bool("has_bearer", bearer != "").Msg("studio: finisher rerun kicked off")
 			started := time.Now()
 			report, runErr := r.Engine.Run(bgCtx, projID)
 			elapsed := time.Since(started)
@@ -367,7 +379,7 @@ func (r *mutationResolver) RefineIdea(ctx context.Context, executionID string, m
 				Int("iterations", report.Iterations).
 				Bool("completed", report.Completed).
 				Msg("studio: finisher rerun done")
-		}(exec.ProjectID, executionID)
+		}(exec.ProjectID, executionID, bearer)
 	}
 
 	refreshed, _ := r.ExecutionSvc.Get(ctx, executionID)
