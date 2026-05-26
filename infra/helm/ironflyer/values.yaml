@@ -527,6 +527,87 @@ redpanda:
     enabled: false
     image: docker.redpanda.com/redpandadata/console:v2.7.2
 
+# GlitchTip — self-hosted, Sentry-wire-compatible error tracker.
+# The Sentry SDKs already wired into orchestrator/web/vscode-extension
+# point at SENTRY_DSN_* values; GlitchTip's DSNs are drop-in compatible
+# (same `https://<key>@<host>/<project_id>` shape), so swapping the DSN
+# is the entire migration — no code changes.
+#
+# Defaults to OFF; production overlay flips on. When enabled the chart
+# provisions:
+#   - glitchtip-web Deployment + Service + Ingress (errors.<domain>)
+#   - glitchtip-worker Deployment (Celery)
+#   - glitchtip-migrate Job (helm hook pre-install/pre-upgrade)
+#   - glitchtip-redis Deployment + Service (dedicated Celery backend)
+#   - glitchtip-secrets Secret (SECRET_KEY, DATABASE_URL, REDIS_URL)
+#   - HPA min 1 / max 3 (internal ops tool, low traffic)
+#
+# Database: shares the orchestrator's Postgres host but in a separate
+# logical database (`glitchtip`). For in-cluster Postgres the DATABASE_URL
+# is derived from .Values.postgres.*. For managed Postgres set
+# `glitchtip.databaseUrlOverride` to the full DSN (with the `glitchtip`
+# database name) — the chart will refuse to render otherwise.
+#
+# First-deploy operator flow (see docs/OBSERVABILITY_GLITCHTIP.md):
+#   1. helm upgrade with glitchtip.enableUserRegistration=true.
+#   2. Visit https://errors.<domain>, create the admin user.
+#   3. Create one project per service (orchestrator / web / vscode).
+#   4. Copy each DSN into .env.production.local as
+#      SENTRY_DSN_ORCHESTRATOR / SENTRY_DSN_WEB / SENTRY_DSN_VSCODE_EXTENSION.
+#   5. Re-run scripts/load-secrets-to-pulumi.sh.
+#   6. helm upgrade with glitchtip.enableUserRegistration=false to lock
+#      registration once the admin exists.
+glitchtip:
+  enabled: false
+  image:
+    repository: glitchtip/glitchtip
+    tag: v4.1
+    pullPolicy: IfNotPresent
+  # Public hostname. Empty => derived as `errors.<.Values.host>`.
+  domain: ""
+  # Logical database name inside the shared Postgres. The operator must
+  # `CREATE DATABASE glitchtip` once before the migrate Job runs (the
+  # in-cluster Postgres bootstrap only creates `.Values.postgres.database`).
+  database: "glitchtip"
+  replicas:
+    web: 1
+    worker: 1
+  resources:
+    web:
+      requests: { cpu: "100m", memory: "256Mi" }
+      limits:   { cpu: "500m", memory: "512Mi" }
+    worker:
+      requests: { cpu: "100m", memory: "256Mi" }
+      limits:   { cpu: "500m", memory: "512Mi" }
+  autoscaling:
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 70
+  # Celery concurrency: "min,max" autoscale window for the worker.
+  celeryAutoscale: "1,3"
+  # Optional override for the Django SECRET_KEY. Empty => derived
+  # deterministically from the release name (rotates on full reinstall).
+  # Set to a randomly generated value via --set-string when you need
+  # cross-reinstall session continuity.
+  secretKeyOverride: ""
+  # Optional override of the full DATABASE_URL. REQUIRED when
+  # postgres.enabled=false (managed Postgres). Must point at the
+  # `glitchtip` database, e.g.
+  #   postgres://glitchtip:<pw>@managed-host:25060/glitchtip?sslmode=require
+  databaseUrlOverride: ""
+  # Optional override of the Redis URL. Default points at the in-chart
+  # glitchtip-redis Service.
+  redisUrlOverride: ""
+  # Outbound email driver. When set, GlitchTip sends digest + invite
+  # emails. Format: smtp://user:pass@host:port (URL-encode special chars).
+  emailUrl: ""
+  defaultFromEmail: ""
+  # Open signup. Keep TRUE for the first deploy so the operator can
+  # create the admin user; flip to FALSE on the next helm upgrade to
+  # harden the install (matches the runbook in
+  # docs/OBSERVABILITY_GLITCHTIP.md).
+  enableUserRegistration: true
+
 # Image overrides — only set the keys you want to deviate from the global
 # imageTag / imageRegistry.
 images:

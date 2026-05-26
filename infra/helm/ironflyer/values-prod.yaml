@@ -202,3 +202,20 @@ opa:
 auditVerify:
   enabled: true
   schedule: "0 * * * *"
+
+# GlitchTip — production-default. The DSNs the orchestrator/web/vscode
+# services consume point at https://errors.ironflyer.ai (provisioned by
+# this chart). databaseUrlOverride MUST be set per-stack to the managed
+# Postgres DSN with `/glitchtip` as the database — see
+# docs/OBSERVABILITY_GLITCHTIP.md § Database bootstrap.
+glitchtip:
+  enabled: true
+  domain: errors.ironflyer.ai
+  # On the very first deploy, leave this TRUE so the operator can sign
+  # up the admin account. Flip to FALSE in the next helm upgrade once
+  # the admin user exists.
+  enableUserRegistration: true
+  # REQUIRED in prod (postgres.enabled=false). Set via:
+  #   --set-string glitchtip.databaseUrlOverride="$GLITCHTIP_DATABASE_URL"
+  # Format: postgres://glitchtip:<pw>@<managed-host>:25060/glitchtip?sslmode=require
+  databaseUrlOverride: ""

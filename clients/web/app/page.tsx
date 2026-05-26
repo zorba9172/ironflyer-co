@@ -56,6 +56,11 @@ import {
 import * as swal from "../src/lib/swal";
 import { RecentsGrid } from "../src/components/home/RecentsGrid";
 import { TemplatesGalleryPreview } from "../src/components/home/TemplatesGalleryPreview";
+import { MechanicsBlock } from "../src/components/home/MechanicsBlock";
+import { ComparisonTable } from "../src/components/home/ComparisonTable";
+import { SocialProofStrip } from "../src/components/home/SocialProofStrip";
+import { HomeFAQ } from "../src/components/home/HomeFAQ";
+import { FinalCTABand } from "../src/components/home/FinalCTABand";
 import { useAuth } from "../src/lib/auth";
 import { extractErrorMessage } from "../src/lib/errors";
 import { formatMoney } from "../src/lib/format";
@@ -264,6 +269,16 @@ function HomeInner() {
       <HowItWorks />
 
       <PricingTeaser />
+
+      <MechanicsBlock />
+
+      <ComparisonTable />
+
+      <SocialProofStrip />
+
+      <HomeFAQ />
+
+      <FinalCTABand />
 
       <Footer />
     </Box>

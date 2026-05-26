@@ -49,11 +49,14 @@ core/cli/cli
 # kept locally for design reference but not tracked.
 assets/market/
 
-# Env / secrets
+# Env / secrets — never commit
 .env
 .env.local
 .env.*.local
 .ironflyer/ide-sync/
+*.pem
+*.key
+*-private-key*
 
 # OS / IDE
 .DS_Store

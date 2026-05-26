@@ -168,3 +168,16 @@ func appHostname(cfg *compute.Config) string {
 	}
 	return "app." + root
 }
+
+// errorsHostname is the GlitchTip (self-hosted, Sentry-wire-compatible
+// error tracker) hostname. The Helm chart's templates/glitchtip.yaml
+// provisions a matching Ingress on this hostname so SENTRY_DSN_* values
+// the orchestrator + web + vscode-extension consume can point at our
+// own error store instead of Sentry SaaS.
+func errorsHostname(cfg *compute.Config) string {
+	root := rootDomain(cfg)
+	if root == "" {
+		return ""
+	}
+	return "errors." + root
+}

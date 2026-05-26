@@ -1,0 +1,448 @@
+{{- if .Values.glitchtip.enabled -}}
+{{- /*
+GlitchTip — self-hosted, Sentry-wire-compatible error tracker.
+
+We deploy GlitchTip alongside the orchestrator so the SENTRY_DSN_*
+env vars our services already consume point at our own Postgres-backed
+error store instead of Sentry SaaS. The DSN format is identical to
+Sentry's; the @sentry/* SDKs do not know (and do not care) that the
+upstream is GlitchTip.
+
+Topology:
+  - glitchtip-redis        Deployment + Service — dedicated Redis 7
+                            for Celery broker + result backend (kept
+                            separate from any future application Redis
+                            so a flush here cannot wipe app state).
+  - glitchtip-migrate      Job — runs `./manage.py migrate` as a
+                            Helm pre-install/pre-upgrade hook so the
+                            Django schema is always at the deployed
+                            release before the web/worker pods come up.
+  - glitchtip-web          Deployment — Django WSGI server on :8000.
+                            Internal-only Service on :80; reach it via
+                            the Ingress at https://errors.<host>.
+  - glitchtip-worker       Deployment — Celery worker (no exposed port).
+  - glitchtip              Service (ClusterIP) — fronts glitchtip-web.
+  - glitchtip Ingress      cert-manager-managed TLS on
+                            errors.<.Values.glitchtip.domain>.
+  - glitchtip HPA          min 1 / max 3. Low-traffic internal tool.
+
+DATABASE_URL strategy:
+  GlitchTip lives in its own logical database (`glitchtip`) on the
+  same Postgres the orchestrator uses, with the same credentials.
+  In dev (in-cluster Postgres) we construct the DSN from
+  `.Values.postgres.*` because the chart already mints the password.
+  In prod (managed Postgres, `postgres.enabled: false`) the operator
+  brings their own DSN via `.Values.glitchtip.databaseUrlOverride`,
+  which MUST be set when in-cluster Postgres is off.
+
+Secrets:
+  `glitchtip-secrets` is minted here from the Helm release name as
+  a deterministic SECRET_KEY seed. To rotate, force a fresh secret
+  via `.Values.glitchtip.secretKeyOverride` and re-helm-upgrade.
+*/ -}}
+{{- $gt := .Values.glitchtip -}}
+{{- $domain := default (printf "errors.%s" .Values.host) $gt.domain -}}
+{{- /* SECRET_KEY: explicit override > deterministic derivation. */ -}}
+{{- $secretKey := default (printf "%s-%s-glitchtip-key" .Release.Name .Release.Namespace | sha256sum) $gt.secretKeyOverride -}}
+{{- /* DATABASE_URL: explicit override > derived from .Values.postgres */ -}}
+{{- $dbUrl := "" -}}
+{{- if $gt.databaseUrlOverride -}}
+{{- $dbUrl = $gt.databaseUrlOverride -}}
+{{- else if .Values.postgres.enabled -}}
+{{- $pw := required "glitchtip: postgres.password (or glitchtip.databaseUrlOverride) is required to derive DATABASE_URL" .Values.postgres.password -}}
+{{- $host := default "postgres" .Values.postgres.host -}}
+{{- $port := default 5432 .Values.postgres.port -}}
+{{- $sslmode := default "disable" .Values.postgres.sslmode -}}
+{{- $dbUrl = printf "postgres://%s:%s@%s:%v/%s?sslmode=%s" .Values.postgres.user $pw $host $port (default "glitchtip" $gt.database) $sslmode -}}
+{{- else -}}
+{{- fail "glitchtip.enabled=true requires either postgres.enabled=true OR glitchtip.databaseUrlOverride to be set with a managed Postgres DSN pointing at a `glitchtip` database." -}}
+{{- end -}}
+{{- $redisUrl := default (printf "redis://glitchtip-redis:6379/0") $gt.redisUrlOverride -}}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: glitchtip-secrets
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: glitchtip
+  annotations:
+    # Bind the secret lifecycle to the release so a `helm uninstall`
+    # cleans up the SECRET_KEY (rotating on reinstall is intentional —
+    # GlitchTip's sessions / signed URLs get invalidated, which is the
+    # right blast radius for a wiped install).
+    helm.sh/resource-policy: keep
+type: Opaque
+stringData:
+  SECRET_KEY: {{ $secretKey | quote }}
+  DATABASE_URL: {{ $dbUrl | quote }}
+  REDIS_URL: {{ $redisUrl | quote }}
+  {{- with $gt.emailUrl }}
+  EMAIL_URL: {{ . | quote }}
+  {{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: glitchtip-config
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: glitchtip
+data:
+  PORT: "8000"
+  GLITCHTIP_DOMAIN: {{ printf "https://%s" $domain | quote }}
+  # Disable Sentry's own telemetry to GlitchTip — we don't ship our
+  # error counts back to the GlitchTip project.
+  GLITCHTIP_INSTANCE_NAME: {{ printf "ironflyer-%s" .Values.region | quote }}
+  CELERY_WORKER_AUTOSCALE: {{ default "1,3" $gt.celeryAutoscale | quote }}
+  ENABLE_USER_REGISTRATION: {{ ternary "True" "False" $gt.enableUserRegistration | quote }}
+  ENABLE_OBSERVABILITY_API: "True"
+  {{- with $gt.defaultFromEmail }}
+  DEFAULT_FROM_EMAIL: {{ . | quote }}
+  {{- end }}
+---
+# ---------------------------------------------------------------------
+# Dedicated Redis for GlitchTip (Celery broker + result backend).
+# Keeps the GlitchTip Celery queue isolated from any future application
+# Redis so a FLUSHALL here cannot wipe app state.
+# ---------------------------------------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: glitchtip-redis
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: glitchtip-redis
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "ironflyer.selectorLabels" (dict "name" "glitchtip-redis" "release" .Release.Name) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "ironflyer.labels" . | nindent 8 }}
+        {{- include "ironflyer.selectorLabels" (dict "name" "glitchtip-redis" "release" .Release.Name) | nindent 8 }}
+    spec:
+      {{- $pc := include "ironflyer.priorityClassName" . }}
+      {{- if $pc }}
+      priorityClassName: {{ $pc }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          args: ["redis-server", "--save", "", "--appendonly", "no", "--maxmemory", "128mb", "--maxmemory-policy", "allkeys-lru"]
+          ports:
+            - { name: redis, containerPort: 6379 }
+          readinessProbe:
+            tcpSocket: { port: redis }
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          resources:
+            requests: { cpu: "50m",  memory: "64Mi" }
+            limits:   { cpu: "200m", memory: "256Mi" }
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 999
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - { name: data, mountPath: /data }
+      volumes:
+        - name: data
+          emptyDir: { sizeLimit: 256Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: glitchtip-redis
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: glitchtip-redis
+spec:
+  selector:
+    {{- include "ironflyer.selectorLabels" (dict "name" "glitchtip-redis" "release" .Release.Name) | nindent 4 }}
+  ports:
+    - { name: redis, port: 6379, targetPort: redis }
+---
+# ---------------------------------------------------------------------
+# Migration Job — runs `./manage.py migrate` as a pre-install /
+# pre-upgrade Helm hook. Keeps the Django schema at the deployed
+# release before the web + worker pods accept traffic.
+# ---------------------------------------------------------------------
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: glitchtip-migrate
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: glitchtip-migrate
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 2
+  activeDeadlineSeconds: 600
+  template:
+    metadata:
+      labels:
+        {{- include "ironflyer.labels" . | nindent 8 }}
+        app.kubernetes.io/name: glitchtip-migrate
+    spec:
+      restartPolicy: OnFailure
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: migrate
+          image: "{{ $gt.image.repository }}:{{ $gt.image.tag }}"
+          imagePullPolicy: {{ $gt.image.pullPolicy | default .Values.imagePullPolicy }}
+          command: ["./manage.py", "migrate", "--noinput"]
+          envFrom:
+            - configMapRef: { name: glitchtip-config }
+            - secretRef:    { name: glitchtip-secrets }
+          resources:
+            requests: { cpu: "100m", memory: "256Mi" }
+            limits:   { cpu: "1",    memory: "512Mi" }
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: glitchtip-web
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: glitchtip-web
+spec:
+  replicas: {{ default 1 $gt.replicas.web }}
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      {{- include "ironflyer.selectorLabels" (dict "name" "glitchtip-web" "release" .Release.Name) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "ironflyer.labels" . | nindent 8 }}
+        {{- include "ironflyer.selectorLabels" (dict "name" "glitchtip-web" "release" .Release.Name) | nindent 8 }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/glitchtip.yaml") . | sha256sum }}
+    spec:
+      {{- $pc := include "ironflyer.priorityClassName" . }}
+      {{- if $pc }}
+      priorityClassName: {{ $pc }}
+      {{- end }}
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      {{- include "ironflyer.spread" (dict "name" "glitchtip-web") | nindent 6 }}
+      containers:
+        - name: web
+          image: "{{ $gt.image.repository }}:{{ $gt.image.tag }}"
+          imagePullPolicy: {{ $gt.image.pullPolicy | default .Values.imagePullPolicy }}
+          ports:
+            - { name: http, containerPort: 8000 }
+          envFrom:
+            - configMapRef: { name: glitchtip-config }
+            - secretRef:    { name: glitchtip-secrets }
+          readinessProbe:
+            httpGet: { path: /api/0/, port: http }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet: { path: /api/0/, port: http }
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            failureThreshold: 5
+            timeoutSeconds: 5
+          resources:
+            {{- toYaml $gt.resources.web | nindent 12 }}
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+            # GlitchTip's image needs a writable filesystem for
+            # static-file collection + tmp upload buffering; this
+            # workload opts out of the chart-wide read-only-rootfs
+            # default. tmp + uploads are mounted as emptyDir below to
+            # keep the writable surface bounded.
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - { name: tmp,     mountPath: /tmp }
+            - { name: uploads, mountPath: /code/uploads }
+      volumes:
+        - name: tmp
+          emptyDir: { sizeLimit: 64Mi }
+        - name: uploads
+          emptyDir: { sizeLimit: 512Mi }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: glitchtip-worker
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: glitchtip-worker
+spec:
+  replicas: {{ default 1 $gt.replicas.worker }}
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      {{- include "ironflyer.selectorLabels" (dict "name" "glitchtip-worker" "release" .Release.Name) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "ironflyer.labels" . | nindent 8 }}
+        {{- include "ironflyer.selectorLabels" (dict "name" "glitchtip-worker" "release" .Release.Name) | nindent 8 }}
+    spec:
+      {{- $pc := include "ironflyer.priorityClassName" . }}
+      {{- if $pc }}
+      priorityClassName: {{ $pc }}
+      {{- end }}
+      terminationGracePeriodSeconds: 60
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: worker
+          image: "{{ $gt.image.repository }}:{{ $gt.image.tag }}"
+          imagePullPolicy: {{ $gt.image.pullPolicy | default .Values.imagePullPolicy }}
+          command: ["./bin/run-celery-with-beat.sh"]
+          envFrom:
+            - configMapRef: { name: glitchtip-config }
+            - secretRef:    { name: glitchtip-secrets }
+          resources:
+            {{- toYaml $gt.resources.worker | nindent 12 }}
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+      volumes:
+        - name: tmp
+          emptyDir: { sizeLimit: 64Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: glitchtip
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: glitchtip-web
+spec:
+  selector:
+    {{- include "ironflyer.selectorLabels" (dict "name" "glitchtip-web" "release" .Release.Name) | nindent 4 }}
+  ports:
+    - { name: http, port: 80, targetPort: http }
+---
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: glitchtip
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: glitchtip-web
+  annotations:
+    # GlitchTip's envelope endpoint accepts large bodies (stack
+    # traces + source-map artifacts). 20m matches the orchestrator
+    # ingress ceiling; bump if you ship full source maps.
+    nginx.ingress.kubernetes.io/proxy-body-size: "20m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+    {{- if .Values.ingress.certManager.enabled }}
+    cert-manager.io/cluster-issuer: {{ .Values.ingress.certManager.clusterIssuer | quote }}
+    {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ $domain }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: glitchtip, port: { number: 80 } }
+  tls:
+    - hosts: [{{ $domain | quote }}]
+      secretName: glitchtip-tls
+{{- end }}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: glitchtip-web
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: glitchtip-web
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: glitchtip-web
+  minReplicas: {{ default 1 $gt.autoscaling.minReplicas }}
+  maxReplicas: {{ default 3 $gt.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ default 70 $gt.autoscaling.targetCPUUtilizationPercentage }}
+{{- end }}

@@ -101,6 +101,25 @@ func newCloudflare(ctx *pulumi.Context, in Inputs, lbIP pulumi.StringOutput) err
 		}
 	}
 
+	// errors.<root> — self-hosted GlitchTip (Sentry-wire-compatible).
+	// Backed by the same DOKS ingress LB as api.<root>; the chart's
+	// templates/glitchtip.yaml Ingress matches on this hostname.
+	// Proxied through Cloudflare so the GlitchTip envelope endpoint
+	// inherits the same WAF + DDoS shield as the rest of the stack.
+	if errorsHost := errorsHostname(cfg); errorsHost != "" {
+		if _, err := cloudflare.NewRecord(ctx, "errors-a", &cloudflare.RecordArgs{
+			ZoneId:  zoneID,
+			Name:    pulumi.String(errorsHost),
+			Type:    pulumi.String("A"),
+			Value:   lbIP,
+			Ttl:     pulumi.Int(1),
+			Proxied: pulumi.Bool(true),
+			Comment: pulumi.String("ironflyer GlitchTip error tracker (" + cfg.Stack + ")"),
+		}, provOpt); err != nil {
+			return err
+		}
+	}
+
 	if appHost := appHostname(cfg); appHost != "" && cfg.VercelEnabled {
 		if _, err := cloudflare.NewRecord(ctx, "app-cname", &cloudflare.RecordArgs{
 			ZoneId:  zoneID,
