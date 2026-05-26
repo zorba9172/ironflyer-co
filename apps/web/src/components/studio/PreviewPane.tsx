@@ -52,17 +52,26 @@ export function PreviewPane({ executionID, executionStatus }: PreviewPaneProps) 
     return {
       total: stages.length,
       passed,
-      name: next?.name ?? (stages.length > 0 ? stages[stages.length - 1].name : "Planning"),
+      next,
+      name: next?.name ?? (stages.length > 0 ? stages[stages.length - 1].name : null),
       status: next?.status ?? "complete",
     };
   }, [bundle]);
 
   if (!previewURL) {
-    const label = currentGate
-      ? `Building preview… gate ${currentGate.passed + 1} of ${currentGate.total} (${currentGate.name})`
-      : query.loading
-      ? "Bootstrapping support bundle…"
-      : "Waiting for the first preview build";
+    let label: string;
+    if (!currentGate) {
+      label = query.loading ? "Bootstrapping support bundle…" : "Waiting for the first preview build";
+    } else if (currentGate.total === 0) {
+      // Planner hasn't produced any gate stages yet — avoid the nonsensical
+      // "gate 1 of 0" rendering.
+      label = "Planning… waiting for the first gate to publish";
+    } else if (!currentGate.next) {
+      // All gates passed but no preview URL has landed yet.
+      label = `Finalising preview… ${currentGate.passed} of ${currentGate.total} gates passed`;
+    } else {
+      label = `Building preview… gate ${currentGate.passed + 1} of ${currentGate.total} (${currentGate.name})`;
+    }
     return (
       <Box
         sx={{
