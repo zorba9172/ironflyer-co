@@ -60,8 +60,8 @@ func parsePackageLockComponents(path, body string) []Component {
 	if err := json.Unmarshal([]byte(body), &doc); err != nil {
 		return nil
 	}
-	seen := map[string]bool{}
-	var out []Component
+	seen := make(map[string]bool, len(doc.Packages)+len(doc.Dependencies))
+	out := make([]Component, 0, len(doc.Packages)+len(doc.Dependencies))
 	for pkgPath, pkg := range doc.Packages {
 		if !strings.HasPrefix(pkgPath, "node_modules/") || pkg.Version == "" {
 			continue

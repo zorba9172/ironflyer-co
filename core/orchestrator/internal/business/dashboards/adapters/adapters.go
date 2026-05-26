@@ -118,14 +118,7 @@ LIMIT $1`
 
 // joinAnd joins SQL clauses with AND.
 func joinAnd(clauses []string) string {
-	out := ""
-	for i, c := range clauses {
-		if i > 0 {
-			out += " AND "
-		}
-		out += c
-	}
-	return out
+	return strings.Join(clauses, " AND ")
 }
 
 // ExecutionAdapter implements dashboards.ExecutionSource over the

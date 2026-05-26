@@ -66,7 +66,10 @@ func (s *service) PendingApprovals(ctx context.Context, tenantID string) ([]depl
 	if err != nil {
 		return nil, err
 	}
-	var out []deploy.Approval
+	// Most tenants have zero or one pending approvals; preallocating to
+	// len(tenants) is a tight upper bound on the common case and removes
+	// the slice-growth doublings inside the loop.
+	out := make([]deploy.Approval, 0, len(tenants))
 	for _, t := range tenants {
 		rows, err := s.d.Deploy.PendingApprovals(ctx, t)
 		if err != nil {

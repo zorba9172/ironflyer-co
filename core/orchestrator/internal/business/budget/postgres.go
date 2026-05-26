@@ -105,7 +105,7 @@ func (l *PostgresLedger) EntriesByUser(ctx context.Context, userID string) ([]Le
 		return nil, err
 	}
 	defer rows.Close()
-	var out []LedgerEntry
+	out := make([]LedgerEntry, 0, 500)
 	for rows.Next() {
 		var e LedgerEntry
 		var cost string

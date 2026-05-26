@@ -22,6 +22,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -220,11 +221,16 @@ func (s *SurrealStore) Query(ctx context.Context, q Query) ([]Entry, error) {
 		vars["until"] = models.CustomDateTime{Time: q.Until}
 	}
 
-	sql := "SELECT payload FROM audit_entry"
+	var sqlBuf strings.Builder
+	sqlBuf.Grow(96)
+	sqlBuf.WriteString("SELECT payload FROM audit_entry")
 	if len(where) > 0 {
-		sql += " WHERE " + strings.Join(where, " AND ")
+		sqlBuf.WriteString(" WHERE ")
+		sqlBuf.WriteString(strings.Join(where, " AND "))
 	}
-	sql += " ORDER BY createdAt DESC LIMIT " + fmt.Sprintf("%d", limit)
+	sqlBuf.WriteString(" ORDER BY createdAt DESC LIMIT ")
+	sqlBuf.WriteString(strconv.Itoa(limit))
+	sql := sqlBuf.String()
 
 	res, err := surrealdb.Query[[]auditRow](ctx, s.db, sql, vars)
 	if err != nil {

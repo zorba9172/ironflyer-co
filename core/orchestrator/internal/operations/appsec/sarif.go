@@ -54,9 +54,9 @@ type SARIFRegion struct {
 }
 
 func ToSARIF(result Result) SARIFReport {
-	rulesSeen := map[string]bool{}
-	var rules []SARIFRule
-	var results []SARIFResult
+	rulesSeen := make(map[string]bool, len(result.Findings))
+	rules := make([]SARIFRule, 0, len(result.Findings))
+	results := make([]SARIFResult, 0, len(result.Findings))
 	for _, f := range result.Findings {
 		if !rulesSeen[f.RuleID] {
 			rulesSeen[f.RuleID] = true

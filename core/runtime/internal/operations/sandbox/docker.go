@@ -157,8 +157,10 @@ func (d *DockerDriver) ListFiles(ctx context.Context, ws Workspace) ([]FileEntry
 	if err != nil {
 		return nil, err
 	}
-	var entries []FileEntry
-	for _, line := range strings.Split(string(out), "\n") {
+	// Each entry is one newline-delimited line; size hint avoids growth doublings.
+	lines := strings.Split(string(out), "\n")
+	entries := make([]FileEntry, 0, len(lines))
+	for _, line := range lines {
 		parts := strings.SplitN(line, "\t", 3)
 		if len(parts) < 3 || parts[2] == "" {
 			continue

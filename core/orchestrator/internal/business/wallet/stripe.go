@@ -241,7 +241,8 @@ type stripeEvent struct {
 // equal at least one of the v1 entries.
 func verifyStripeSignature(rawBody []byte, header, secret string, tolerance time.Duration) (stripeEvent, error) {
 	var ts string
-	var sigs []string
+	// Stripe currently rotates at most a handful of v1 entries per header.
+	sigs := make([]string, 0, 2)
 	for _, part := range strings.Split(header, ",") {
 		kv := strings.SplitN(strings.TrimSpace(part), "=", 2)
 		if len(kv) != 2 {

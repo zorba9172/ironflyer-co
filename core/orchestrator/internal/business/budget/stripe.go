@@ -523,7 +523,7 @@ func (s *StripeService) VerifyWebhook(payload []byte, sigHeader string, toleranc
 		return StripeEvent{}, errors.New("stripe webhook secret not configured")
 	}
 	var ts string
-	var sigs []string
+	sigs := make([]string, 0, 2)
 	for _, part := range strings.Split(sigHeader, ",") {
 		kv := strings.SplitN(strings.TrimSpace(part), "=", 2)
 		if len(kv) != 2 {

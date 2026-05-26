@@ -352,7 +352,9 @@ func splitKeepEOL(s string) []string {
 	if s == "" {
 		return nil
 	}
-	var out []string
+	// Preallocate to the exact line count to avoid the slice-growth
+	// doublings on large source files.
+	out := make([]string, 0, strings.Count(s, "\n")+1)
 	for {
 		idx := strings.IndexByte(s, '\n')
 		if idx < 0 {

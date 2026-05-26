@@ -75,8 +75,9 @@ func (o *Optimizer) Pick(required []string, plan Plan, estInTok, estOutTok int) 
 // aggressive small-call shortcut. Pure function of the rate sheet
 // snapshot and the supplied filters — no env reads here.
 func pickRaw(o *Optimizer, required []string, allow, block map[string]bool, estInTok, estOutTok int) (CallEstimate, bool) {
-	var candidates []CallEstimate
-	for _, r := range o.Rates.All() {
+	rates := o.Rates.All()
+	candidates := make([]CallEstimate, 0, len(rates))
+	for _, r := range rates {
 		if len(allow) > 0 && !allow[r.Provider] {
 			continue
 		}

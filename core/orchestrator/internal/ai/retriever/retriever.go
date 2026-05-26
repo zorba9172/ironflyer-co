@@ -267,10 +267,12 @@ func chunkFile(path, content string, opts Options) []Chunk {
 		return nil
 	}
 	lines := strings.Split(content, "\n")
-	var chunks []Chunk
+	// Worst case: one chunk per MaxChunkLines block.
+	chunkCap := len(lines)/opts.MaxChunkLines + 1
+	chunks := make([]Chunk, 0, chunkCap)
 	// initial chunk starting at line 1
 	cur := Chunk{Path: path, StartLine: 1}
-	var curLines []string
+	curLines := make([]string, 0, opts.MaxChunkLines)
 	flush := func(endLine int) {
 		if len(curLines) == 0 {
 			return
@@ -282,14 +284,14 @@ func chunkFile(path, content string, opts Options) []Chunk {
 			prev.EndLine = endLine
 			prev.Text += "\n" + strings.Join(curLines, "\n")
 			prev.Symbols = dedupe(append(prev.Symbols, cur.Symbols...))
-			curLines = nil
+			curLines = curLines[:0]
 			cur = Chunk{Path: path, StartLine: endLine + 1}
 			return
 		}
 		cur.EndLine = endLine
 		cur.Text = strings.Join(curLines, "\n")
 		chunks = append(chunks, cur)
-		curLines = nil
+		curLines = curLines[:0]
 		cur = Chunk{Path: path, StartLine: endLine + 1}
 	}
 	for idx, line := range lines {
@@ -391,7 +393,9 @@ func tokenize(s string) []string {
 	if s == "" {
 		return nil
 	}
-	var raw []string
+	// Worst-case one token per ~4 bytes; this trades a tiny over-allocation
+	// for skipping the growth-doubling cycle on long source files.
+	raw := make([]string, 0, len(s)/4+1)
 	cur := make([]rune, 0, 32)
 	emit := func() {
 		if len(cur) > 0 {

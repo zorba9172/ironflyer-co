@@ -17,6 +17,7 @@
 package httpapi
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -24,6 +25,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -33,6 +35,16 @@ import (
 	"ironflyer/core/orchestrator/internal/ai/providers"
 	"ironflyer/core/orchestrator/internal/operations/sentryext"
 )
+
+// sseFrameBufPool reuses the per-frame scratch buffer used by writeSSE.
+// Every SSE frame (delta, thinking, tool_call) goes through this pool so
+// the hot path stops allocating a fresh json.Marshal []byte + Sprintf
+// string for every assistant token.
+var sseFrameBufPool = sync.Pool{
+	New: func() any {
+		return new(bytes.Buffer)
+	},
+}
 
 // chatStreamRequest is the POST body for /executions/{id}/chat/stream.
 // Both fields are optional — `message` defaults to the execution's
@@ -264,16 +276,36 @@ func (a *API) chatStream(w http.ResponseWriter, r *http.Request) {
 // writeSSE emits one Server-Sent-Events frame and flushes immediately
 // so the client sees the chunk on the wire without buffering. Frames
 // follow the spec: `event: <type>\ndata: <json>\n\n`.
+//
+// The scratch buffer is pooled because chat streams emit one frame per
+// assistant token. With Sonnet/Haiku that's 30–80 frames per second per
+// active subscriber, so a per-frame []byte allocation showed up in pprof.
 func writeSSE(w http.ResponseWriter, flusher http.Flusher, event string, payload any) {
-	data, err := json.Marshal(payload)
-	if err != nil {
-		// Best-effort — fall back to an error payload that is
-		// guaranteed to marshal.
-		data = []byte(fmt.Sprintf(`{"code":"INTERNAL","message":%q}`, err.Error()))
-		event = "error"
+	bb := sseFrameBufPool.Get().(*bytes.Buffer)
+	bb.Reset()
+
+	bb.WriteString("event: ")
+	bb.WriteString(event)
+	bb.WriteString("\ndata: ")
+	if err := json.NewEncoder(bb).Encode(payload); err != nil {
+		// Reset and emit a fallback error frame that is guaranteed to
+		// marshal — match the legacy behavior.
+		bb.Reset()
+		fmt.Fprintf(bb, "event: error\ndata: {\"code\":\"INTERNAL\",\"message\":%q}\n\n", err.Error())
+	} else {
+		// json.Encoder appends a trailing newline that completes the
+		// `data:` line; we still need the blank line that terminates an
+		// SSE frame.
+		bb.WriteByte('\n')
 	}
-	_, _ = fmt.Fprintf(w, "event: %s\ndata: %s\n\n", event, data)
+	_, _ = w.Write(bb.Bytes())
 	flusher.Flush()
+
+	// Reclaim the buffer, capped to keep one runaway payload from
+	// anchoring a huge allocation in the pool forever.
+	if bb.Cap() <= 64<<10 {
+		sseFrameBufPool.Put(bb)
+	}
 }
 
 // classifyErrorCode picks a short error code for the SSE `error`

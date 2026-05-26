@@ -97,7 +97,9 @@ func (m *MockDriver) DeleteFile(_ context.Context, ws Workspace, p string) error
 }
 
 func (m *MockDriver) ListFiles(_ context.Context, ws Workspace) ([]FileEntry, error) {
-	var entries []FileEntry
+	// Most workspaces have at least dozens of files; preallocate to keep
+	// the slice-growth doublings off the file-listing critical path.
+	entries := make([]FileEntry, 0, 64)
 	err := filepath.WalkDir(ws.Root, func(p string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err

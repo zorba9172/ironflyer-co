@@ -107,7 +107,7 @@ func (g *PostgresGenome) Top(ctx context.Context, limit int) ([]Recipe, error) {
 		return nil, fmt.Errorf("repair: top: %w", err)
 	}
 	defer rows.Close()
-	var out []Recipe
+	out := make([]Recipe, 0, limit)
 	for rows.Next() {
 		r, err := scanRecipe(rows)
 		if err != nil {

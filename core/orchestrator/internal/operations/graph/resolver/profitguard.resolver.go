@@ -28,6 +28,7 @@ func (r *queryResolver) ProfitGuardDecisions(ctx context.Context, executionID *s
 		if err != nil {
 			return nil, err
 		}
+		rows = make([]model.ProfitGuardDecision, 0, len(records))
 		for _, rec := range records {
 			d := model.ProfitGuardDecision{
 				ID:                      itoaInt64(rec.ID),
@@ -55,6 +56,7 @@ func (r *queryResolver) ProfitGuardDecisions(ctx context.Context, executionID *s
 	if err != nil {
 		return nil, err
 	}
+	rows = make([]model.ProfitGuardDecision, 0, len(records))
 	for _, rec := range records {
 		d := model.ProfitGuardDecision{
 			ID:                      itoaInt64(rec.ID),

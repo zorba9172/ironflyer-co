@@ -652,7 +652,7 @@ func (p *Postgres) LatestSecurityFindings(ctx context.Context, executionID strin
 		return nil, err
 	}
 	defer rows.Close()
-	out := make([]map[string]any, 0)
+	out := make([]map[string]any, 0, 500)
 	for rows.Next() {
 		var raw []byte
 		if err := rows.Scan(&raw); err != nil {

@@ -453,7 +453,7 @@ func buildAnthropicTools(req Request) []anthropic.ToolUnionParam {
 // The system instructions and the (typically large) project context are
 // flagged as ephemeral cache breakpoints so subsequent calls amortize cost.
 func buildSystemBlocks(req Request) []anthropic.TextBlockParam {
-	var blocks []anthropic.TextBlockParam
+	blocks := make([]anthropic.TextBlockParam, 0, 2)
 	if req.System != "" {
 		blocks = append(blocks, anthropic.TextBlockParam{
 			Text:         req.System,

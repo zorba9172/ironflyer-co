@@ -397,7 +397,7 @@ func (p *PostgresStore) List(ctx context.Context, ownerID string) ([]Record, err
 		return nil, err
 	}
 	defer rows.Close()
-	var out []Record
+	out := make([]Record, 0, 500)
 	for rows.Next() {
 		r, err := scanRecord(rows)
 		if err != nil {

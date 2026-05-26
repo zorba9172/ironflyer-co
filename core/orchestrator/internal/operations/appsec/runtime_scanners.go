@@ -231,13 +231,19 @@ func parseGovulncheckOutput(toolID, cwd, stdout string) []Finding {
 			continue
 		}
 		t := doc.Finding.Trace[0]
-		msg := doc.Finding.OSV
+		var msgBuf strings.Builder
+		msgBuf.Grow(len(doc.Finding.OSV) + len(t.Module) + len(doc.Finding.FixedVersion) + 16)
+		msgBuf.WriteString(doc.Finding.OSV)
 		if t.Module != "" {
-			msg += " in " + t.Module
+			msgBuf.WriteString(" in ")
+			msgBuf.WriteString(t.Module)
 		}
 		if doc.Finding.FixedVersion != "" {
-			msg += " (fixed in " + doc.Finding.FixedVersion + ")"
+			msgBuf.WriteString(" (fixed in ")
+			msgBuf.WriteString(doc.Finding.FixedVersion)
+			msgBuf.WriteByte(')')
 		}
+		msg := msgBuf.String()
 		path := t.Package
 		if cwd != "" && cwd != "." && path != "" {
 			path = cwd + "/" + path
@@ -378,10 +384,15 @@ func parseNpmAuditOutput(toolID, lockPath, stdout string) []Finding {
 		if sev == "critical" {
 			mapped = SeverityCritical
 		}
-		msg := "npm advisory: " + name
+		var msgBuf strings.Builder
+		msgBuf.Grow(len("npm advisory: ") + len(name) + 1 + len(v.Range))
+		msgBuf.WriteString("npm advisory: ")
+		msgBuf.WriteString(name)
 		if v.Range != "" {
-			msg += " " + v.Range
+			msgBuf.WriteByte(' ')
+			msgBuf.WriteString(v.Range)
 		}
+		msg := msgBuf.String()
 		out = append(out, Finding{
 			Tool:        toolID,
 			Category:    CategoryDeps,
