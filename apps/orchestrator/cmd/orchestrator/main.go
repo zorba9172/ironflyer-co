@@ -87,7 +87,11 @@ var (
 var _ = metrics.Handler
 
 func main() {
-	_ = godotenv.Load(".env", ".env.local")
+	// godotenv.Load short-circuits on the first missing file when called
+	// variadically, so call once per path. .env.local wins because it is
+	// loaded first (godotenv never overwrites already-set env vars).
+	_ = godotenv.Load(".env.local")
+	_ = godotenv.Load(".env")
 
 	cfg, err := config.Load()
 	logger := buildLogger(cfg)
