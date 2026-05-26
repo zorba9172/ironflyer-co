@@ -14,6 +14,8 @@ import (
 	"ironflyer/apps/orchestrator/internal/execution"
 	"ironflyer/apps/orchestrator/internal/graph/model"
 	"ironflyer/apps/orchestrator/internal/ideaparser"
+	"ironflyer/apps/orchestrator/internal/logctx"
+	"ironflyer/apps/orchestrator/internal/profitguardctx"
 	"ironflyer/apps/orchestrator/internal/wallet"
 	"strings"
 	"time"
@@ -225,14 +227,41 @@ func (r *mutationResolver) DescribeIdea(ctx context.Context, input model.Describ
 	}
 
 	// Optional finisher kick — best-effort, fire-and-forget.
+	// Stamps the orchestrator logger AND profitguardctx onto the
+	// background ctx. Without the logger the engine's emit-via-logctx
+	// trail is silently discarded; without profitguardctx the engine's
+	// emitExecutionEvent bridge cannot persist gate verdicts (the wow-
+	// loop bundle's gateReport.stages stays empty even while gates are
+	// firing in the log) and the BillingGuard's per-token cost
+	// attribution misses the tenant.
 	if startNow && r.Engine != nil {
-		go func(projID string) {
+		runLogger := r.Logger.With().
+			Str("subsystem", "studio.finisher").
+			Str("project_id", project.ID).
+			Str("execution_id", exec.ID).
+			Str("tenant_id", tenant).
+			Logger()
+		go func(projID, execID string) {
 			bgCtx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 			defer cancel()
-			if _, runErr := r.Engine.Run(bgCtx, projID); runErr != nil {
-				r.Logger.Warn().Err(runErr).Str("project_id", projID).Msg("studio: finisher run failed")
+			bgCtx = logctx.ContextWithLogger(bgCtx, runLogger)
+			bgCtx = logctx.WithTenantID(bgCtx, tenant)
+			bgCtx = logctx.WithExecutionID(bgCtx, execID)
+			bgCtx = profitguardctx.WithExecution(bgCtx, execID, tenant)
+			runLogger.Info().Msg("studio: finisher run kicked off")
+			started := time.Now()
+			report, runErr := r.Engine.Run(bgCtx, projID)
+			elapsed := time.Since(started)
+			if runErr != nil {
+				runLogger.Warn().Err(runErr).Dur("elapsed", elapsed).Msg("studio: finisher run failed")
+				return
 			}
-		}(project.ID)
+			runLogger.Info().
+				Dur("elapsed", elapsed).
+				Int("iterations", report.Iterations).
+				Bool("completed", report.Completed).
+				Msg("studio: finisher run done")
+		}(project.ID, exec.ID)
 	}
 
 	// Refresh execution so admitted_at / started_at land.
@@ -306,17 +335,39 @@ func (r *mutationResolver) RefineIdea(ctx context.Context, executionID string, m
 	}
 
 	// Best-effort kick the finisher again so the new instruction
-	// gets folded into the next iteration. Same pattern as
-	// describeIdea — fire-and-forget; the engine emits events on
-	// its own bus.
+	// gets folded into the next iteration. Same context stamping as
+	// describeIdea — without logctx + profitguardctx the rerun is
+	// invisible in the operator log and its gate verdicts never reach
+	// the wow-loop bundle.
 	if r.Engine != nil && exec.ProjectID != "" {
-		go func(projID string) {
+		runLogger := r.Logger.With().
+			Str("subsystem", "studio.finisher").
+			Str("project_id", exec.ProjectID).
+			Str("execution_id", executionID).
+			Str("tenant_id", tenant).
+			Str("trigger", "refine").
+			Logger()
+		go func(projID, execID string) {
 			bgCtx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 			defer cancel()
-			if _, runErr := r.Engine.Run(bgCtx, projID); runErr != nil {
-				r.Logger.Warn().Err(runErr).Str("project_id", projID).Msg("studio: finisher rerun (refine) failed")
+			bgCtx = logctx.ContextWithLogger(bgCtx, runLogger)
+			bgCtx = logctx.WithTenantID(bgCtx, tenant)
+			bgCtx = logctx.WithExecutionID(bgCtx, execID)
+			bgCtx = profitguardctx.WithExecution(bgCtx, execID, tenant)
+			runLogger.Info().Msg("studio: finisher rerun kicked off")
+			started := time.Now()
+			report, runErr := r.Engine.Run(bgCtx, projID)
+			elapsed := time.Since(started)
+			if runErr != nil {
+				runLogger.Warn().Err(runErr).Dur("elapsed", elapsed).Msg("studio: finisher rerun (refine) failed")
+				return
 			}
-		}(exec.ProjectID)
+			runLogger.Info().
+				Dur("elapsed", elapsed).
+				Int("iterations", report.Iterations).
+				Bool("completed", report.Completed).
+				Msg("studio: finisher rerun done")
+		}(exec.ProjectID, executionID)
 	}
 
 	refreshed, _ := r.ExecutionSvc.Get(ctx, executionID)
