@@ -144,3 +144,7 @@ func (r *queryResolver) BlueprintDashboard(ctx context.Context) (*model.Blueprin
 	}
 	return &model.BlueprintDashboard{Blueprints: out}, nil
 }
+
+// HealthDashboard lives in health.resolver.go — it composes Atlas
+// stats + arch manifest + audit / ledger sentinels into the cockpit
+// HealthMetrics shape.

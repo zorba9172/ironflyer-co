@@ -31,48 +31,50 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
-	"ironflyer/core/orchestrator/internal/operations/abuse"
 	"ironflyer/core/orchestrator/internal/ai/agents"
 	"ironflyer/core/orchestrator/internal/ai/atlas"
-	"ironflyer/core/orchestrator/internal/operations/arch"
-	"ironflyer/core/orchestrator/internal/operations/audit"
-	"ironflyer/core/orchestrator/internal/operations/auditexport"
-	"ironflyer/core/orchestrator/internal/customer/auth"
+	"ironflyer/core/orchestrator/internal/ai/completion"
+	"ironflyer/core/orchestrator/internal/ai/embeddings"
+	"ironflyer/core/orchestrator/internal/ai/finisher"
+	"ironflyer/core/orchestrator/internal/ai/memory"
+	"ironflyer/core/orchestrator/internal/ai/refactor"
 	"ironflyer/core/orchestrator/internal/business/blueprints"
 	"ironflyer/core/orchestrator/internal/business/budget"
 	"ironflyer/core/orchestrator/internal/business/budget/payments"
-	"ironflyer/core/orchestrator/internal/operations/bus"
 	"ironflyer/core/orchestrator/internal/business/clickhouse"
-	"ironflyer/core/orchestrator/internal/ai/completion"
-	"ironflyer/core/orchestrator/internal/operations/config"
 	"ironflyer/core/orchestrator/internal/business/dashboards"
 	"ironflyer/core/orchestrator/internal/business/dashboards/adapters"
+	"ironflyer/core/orchestrator/internal/business/execution"
+	"ironflyer/core/orchestrator/internal/business/ledger"
+	"ironflyer/core/orchestrator/internal/business/outboxhooks"
+	"ironflyer/core/orchestrator/internal/customer/auth"
+	"ironflyer/core/orchestrator/internal/customer/notify"
+	"ironflyer/core/orchestrator/internal/operations/abuse"
+	"ironflyer/core/orchestrator/internal/operations/arch"
+	"ironflyer/core/orchestrator/internal/operations/audit"
+	"ironflyer/core/orchestrator/internal/operations/auditexport"
+	"ironflyer/core/orchestrator/internal/operations/bus"
+	"ironflyer/core/orchestrator/internal/operations/config"
 	"ironflyer/core/orchestrator/internal/operations/deploy"
 	"ironflyer/core/orchestrator/internal/operations/diagnostics"
-	"ironflyer/core/orchestrator/internal/ai/embeddings"
 	"ironflyer/core/orchestrator/internal/operations/events"
-	"ironflyer/core/orchestrator/internal/business/execution"
-	"ironflyer/core/orchestrator/internal/ai/finisher"
 	"ironflyer/core/orchestrator/internal/operations/gqlhardening"
 	"ironflyer/core/orchestrator/internal/operations/httpapi"
-	"ironflyer/core/orchestrator/internal/business/ledger"
-	"ironflyer/core/orchestrator/internal/ai/memory"
 	"ironflyer/core/orchestrator/internal/operations/metrics"
 	"ironflyer/core/orchestrator/internal/operations/migrate"
 	"ironflyer/core/orchestrator/internal/operations/mobile/devicecloud"
 	"ironflyer/core/orchestrator/internal/operations/mobile/eas"
-	"ironflyer/core/orchestrator/internal/customer/notify"
-	"ironflyer/core/orchestrator/internal/business/outboxhooks"
 	"ironflyer/core/orchestrator/internal/operations/patch"
 	"ironflyer/core/orchestrator/internal/operations/policy"
 
+	"ironflyer/core/orchestrator/internal/ai/providers"
+	"ironflyer/core/orchestrator/internal/ai/repair"
 	"ironflyer/core/orchestrator/internal/business/profitguard"
 	"ironflyer/core/orchestrator/internal/business/profitguardbridge"
 	"ironflyer/core/orchestrator/internal/business/profitguardctx"
-	"ironflyer/core/orchestrator/internal/ai/providers"
+	"ironflyer/core/orchestrator/internal/business/wallet"
 	"ironflyer/core/orchestrator/internal/operations/ratelimit"
 	"ironflyer/core/orchestrator/internal/operations/redisbus"
-	"ironflyer/core/orchestrator/internal/ai/repair"
 	"ironflyer/core/orchestrator/internal/operations/runtime"
 	"ironflyer/core/orchestrator/internal/operations/secrets"
 	"ironflyer/core/orchestrator/internal/operations/sentryext"
@@ -80,7 +82,6 @@ import (
 	"ironflyer/core/orchestrator/internal/operations/store"
 	"ironflyer/core/orchestrator/internal/operations/temporalworker"
 	"ironflyer/core/orchestrator/internal/operations/tracing"
-	"ironflyer/core/orchestrator/internal/business/wallet"
 	"ironflyer/core/orchestrator/internal/operations/wireup"
 	"ironflyer/core/orchestrator/migrations"
 )
@@ -604,6 +605,19 @@ func main() {
 	providers.RegisterActiveBandit(bandit)
 	logger.Info().Str("strategy", banditStrategy.Name()).Msg("Router bandit enabled")
 	guard := providers.NewBillingGuard(router, billing).WithTelemetry(telemetrySink).WithLogger(logger)
+	if cfg.PromptGuardEnabled {
+		guard.WithPromptGuard(providers.NewPromptGuard(providers.PromptGuardConfig{
+			MaxUserCharsPerMessage: cfg.PromptGuardMaxUserChars,
+			MaxTotalRequestChars:   cfg.PromptGuardMaxTotalChars,
+			BlockMode:              cfg.PromptGuardBlock,
+		}, logger, nil))
+		logger.Info().Bool("block_mode", cfg.PromptGuardBlock).
+			Int("max_user_chars", cfg.PromptGuardMaxUserChars).
+			Int("max_total_chars", cfg.PromptGuardMaxTotalChars).
+			Msg("promptguard: enabled")
+	} else if cfg.IsProd() {
+		logger.Warn().Msg("promptguard: disabled in prod via IRONFLYER_PROMPTGUARD_ENABLED=false — defense-in-depth layer is off")
+	}
 
 	// ---------------- Memory + audit stores -------------------------------
 	var memoryStore memory.Store
@@ -672,8 +686,28 @@ func main() {
 		atlasStore = atlas.NewMemoryStore(16 * 1024)
 		logger.Info().Msg("capability atlas: in-process (no memory.Store wired)")
 	}
-	_ = atlasStore // wired by the agent loop / preflight in the follow-up PR
-	_ = archManifest
+	// Atlas-aware embedder for the patch engine's Reuse-First
+	// Preflight. Re-use the selectEmbedder path so the same model
+	// powers both memory rerank and Atlas search. Nil-safe; the
+	// patch engine's preflight degrades to a lexical search when the
+	// embedder is offline.
+	var atlasEmbed embeddings.Embedder
+	if e, _ := selectEmbedder(cfg, logger); e != nil {
+		atlasEmbed = embeddings.NewCachedEmbedder(e)
+	}
+
+	// Refactor Proposer (playbook §8.6). Anchored to the resolved
+	// repository root so target util paths land relative to the
+	// monorepo. Nil-safe: the DedupGate keeps working without it,
+	// just without the "and here's the fix" upgrade.
+	refactorRoot := strings.TrimSpace(os.Getenv("IRONFLYER_REPO_ROOT"))
+	if refactorRoot == "" {
+		if cwd, werr := os.Getwd(); werr == nil {
+			refactorRoot = findRepoRoot(cwd, 6)
+		}
+	}
+	refactorSvc := refactor.NewService(refactorRoot)
+	logger.Info().Str("root", refactorRoot).Msg("refactor proposer: ready")
 
 	// ---------------- Capability Atlas first-index daemon ----------------
 	// V22 closure: the Atlas package existed but was never populated.
@@ -757,6 +791,7 @@ func main() {
 
 	patches := patch.NewEngine(projects)
 	patches.
+		WithAtlas(atlasStore, atlasEmbed, 0).
 		WithOnProposed(func(p patch.Patch) {
 			_, _ = auditStore.Record(ctx, audit.Entry{
 				Action:    audit.ActionPatchProposed,
@@ -782,6 +817,37 @@ func main() {
 				ProjectID: p.ProjectID,
 				Summary:   "patch_rolled_back id=" + p.ID + " snapshot=" + snapID,
 			})
+		}).
+		WithOnPreflightDecision(func(p patch.Patch, d agents.PreflightDecision) {
+			attrs := map[string]any{
+				"action":    string(d.Action),
+				"query":     d.Query,
+				"hitCount":  len(d.AtlasHits),
+				"patchId":   p.ID,
+				"patchTitle": p.Title,
+			}
+			outcome := audit.OutcomeSuccess
+			if err := d.Validate(); err != nil {
+				outcome = audit.OutcomeBlocked
+				attrs["error"] = err.Error()
+			}
+			if len(d.AtlasHits) > 0 {
+				top := d.AtlasHits[0]
+				attrs["topPath"] = top.Capability.Path
+				attrs["topSymbol"] = top.Capability.Symbol
+				attrs["topScore"] = top.Score
+			}
+			if d.TargetPath != "" {
+				attrs["targetPath"] = d.TargetPath
+			}
+			_, _ = auditStore.Record(ctx, audit.Entry{
+				Action:    audit.ActionPreflightDecision,
+				Outcome:   outcome,
+				ProjectID: p.ProjectID,
+				Summary: "preflight_decision id=" + p.ID +
+					" action=" + string(d.Action),
+				Attrs: attrs,
+			})
 		})
 	runtimeClient := runtime.New(cfg.RuntimeURL)
 
@@ -790,6 +856,8 @@ func main() {
 		WithApplier(runtime.NewApplier(runtimeClient)).
 		WithRedis(redisClient).
 		WithBus(eventBus).
+		WithArchManifest(archManifestPtr(archManifest, archErr)).
+		WithRefactor(refactorSvc).
 		WithDBProvisioner(selectDBProvisioner(cfg, logger)).
 		WithAuthScaffolder(finisher.DefaultAuthScaffolder{}).
 		WithDomainScaffolders(
@@ -2371,6 +2439,19 @@ func envBool(v string) bool {
 		return true
 	}
 	return false
+}
+
+// archManifestPtr returns a pointer to the parsed manifest when Load
+// succeeded, or nil when the caller's load returned an error. We pass
+// nil to finisher.Engine.WithArchManifest so the DepGraph /
+// ArchBoundary gates degrade to SeverityInfo "manifest not loaded"
+// rather than panic on a zero-Layers struct.
+func archManifestPtr(m arch.Manifest, err error) *arch.Manifest {
+	if err != nil {
+		return nil
+	}
+	out := m
+	return &out
 }
 
 // findRepoRoot climbs from start up to maxLevels parents looking for

@@ -11,13 +11,13 @@ import (
 )
 
 type Config struct {
-	Addr      string `env:"IRONFLYER_ADDR" envDefault:":8080"`
+	Addr string `env:"IRONFLYER_ADDR" envDefault:":8080"`
 	// CORSOrigins is the comma-separated allowlist of browser origins
 	// the CORS middleware reflects into Access-Control-Allow-Origin.
 	// Empty = reflect any origin (dev convenience). Production MUST
 	// set this to the exact origin(s) of the web SPA.
 	CORSOrigins []string `env:"IRONFLYER_CORS_ORIGINS" envSeparator:"," envDefault:""`
-	Env       string `env:"IRONFLYER_ENV" envDefault:"dev" validate:"oneof=dev staging prod"`
+	Env         string   `env:"IRONFLYER_ENV" envDefault:"dev" validate:"oneof=dev staging prod"`
 
 	// DevWalletSeedUSD — dev-only convenience. When > 0 AND Env == "dev",
 	// the SignUp resolver credits the freshly-minted wallet with this
@@ -26,8 +26,8 @@ type Config struct {
 	// through Stripe. Ignored outside of dev (resolver-level gate on
 	// Env=="dev"). Default 50 so any dev orchestrator boots usable.
 	DevWalletSeedUSD float64 `env:"IRONFLYER_DEV_WALLET_SEED_USD" envDefault:"50"`
-	LogLevel  string `env:"IRONFLYER_LOG_LEVEL" envDefault:"info" validate:"oneof=debug info warn error"`
-	LogFormat string `env:"IRONFLYER_LOG_FORMAT" envDefault:"console" validate:"oneof=console json"`
+	LogLevel         string  `env:"IRONFLYER_LOG_LEVEL" envDefault:"info" validate:"oneof=debug info warn error"`
+	LogFormat        string  `env:"IRONFLYER_LOG_FORMAT" envDefault:"console" validate:"oneof=console json"`
 
 	// Executor: "embedded" runs the finisher in-process (good for local dev,
 	// no extra infra). "temporal" runs it as a Temporal Workflow (production).
@@ -370,6 +370,14 @@ type Config struct {
 	// provider API keys). Default "on"; "off" disables redaction and
 	// logs a warning at startup so operators see the choice in the log.
 	AuditRedact string `env:"IRONFLYER_AUDIT_REDACT" envDefault:"on" validate:"oneof=on off"`
+
+	// PromptGuard — defense-in-depth prompt-injection sanitizer. Runs on
+	// user-sourced text before it leaves Ironflyer to a provider. Disable
+	// in prod is loud (Warn at startup) but allowed for debugging.
+	PromptGuardEnabled       bool `env:"IRONFLYER_PROMPTGUARD_ENABLED"         envDefault:"true"`
+	PromptGuardBlock         bool `env:"IRONFLYER_PROMPTGUARD_BLOCK"           envDefault:"true"`
+	PromptGuardMaxUserChars  int  `env:"IRONFLYER_PROMPTGUARD_MAX_USER_CHARS"  envDefault:"100000"`
+	PromptGuardMaxTotalChars int  `env:"IRONFLYER_PROMPTGUARD_MAX_TOTAL_CHARS" envDefault:"400000"`
 }
 
 func (c Config) IsProd() bool { return c.Env == "prod" }

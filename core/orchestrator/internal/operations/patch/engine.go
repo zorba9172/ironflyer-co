@@ -12,7 +12,10 @@ import (
 	"sync"
 	"time"
 
+	"ironflyer/core/orchestrator/internal/ai/agents"
+	"ironflyer/core/orchestrator/internal/ai/atlas"
 	"ironflyer/core/orchestrator/internal/ai/domain"
+	"ironflyer/core/orchestrator/internal/ai/embeddings"
 	"ironflyer/core/orchestrator/internal/operations/metrics"
 	"ironflyer/core/orchestrator/internal/business/profitguardctx"
 	"ironflyer/core/orchestrator/internal/operations/store"
@@ -168,6 +171,13 @@ type Patch struct {
 	// Conflicts holds per-file 3-way merge results when Apply landed
 	// in StatusConflicted. Keyed by file path.
 	Conflicts map[string]PatchConflict `json:"conflicts,omitempty"`
+
+	// Preflight is the Reuse-First decision computed by Propose when
+	// the Capability Atlas is wired (see preflight.go). Nil means the
+	// patch had no OpCreate, the Atlas wasn't configured, or the
+	// search failed; non-nil means the finisher's reuse_check gate
+	// has a verdict to project onto GateEnv.Preflight.
+	Preflight *agents.PreflightDecision `json:"preflight,omitempty"`
 }
 
 // PatchConflict captures the three legs of a 3-way merge for the
@@ -209,6 +219,25 @@ type Engine struct {
 	// WithArtifactStoreHook.
 	artifactStoreHook       ArtifactStoreHook
 	artifactStoreThreshold  int64
+
+	// Anti-Bloat Reuse-First Preflight state (see preflight.go).
+	// Propose consults atlasStore on every OpCreate; a hit ≥
+	// preflightThreshold attaches a Warning issue and records a
+	// PreflightDecision in preflightByProject so the reuse_check gate
+	// reads the same verdict propose-time made. Wired at boot via
+	// WithAtlas; nil-safe (Propose silently skips the check when
+	// atlasStore is nil so dev / CLI flows still build patches).
+	atlasStore         atlas.Store
+	atlasEmbed         embeddings.Embedder
+	preflightThreshold float32
+	preflightMu        sync.RWMutex
+	preflightByProject map[string]agents.PreflightDecision
+
+	// onPreflightDecision is the boot-wired audit-chain emitter for
+	// preflight outcomes. Called from Propose AFTER the decision is
+	// computed; nil-safe. Keeping the callback narrow avoids a
+	// patch → audit import.
+	onPreflightDecision func(p Patch, d agents.PreflightDecision)
 }
 
 // ErrPatchBlocked is returned by Apply when an ArtifactStoreHook
@@ -296,6 +325,16 @@ func (e *Engine) WithOnRolledBack(fn func(p Patch, snapshotID string)) *Engine {
 	return e
 }
 
+// WithOnPreflightDecision registers a callback invoked AFTER the
+// Anti-Bloat Reuse-First Preflight produces a decision in Propose.
+// The host wires this to the audit chain so every "Atlas said reuse
+// X / new because Y" verdict lands as a `preflight.decision` entry,
+// next to the patch_proposed / patch_applied entries. nil disables.
+func (e *Engine) WithOnPreflightDecision(fn func(p Patch, d agents.PreflightDecision)) *Engine {
+	e.onPreflightDecision = fn
+	return e
+}
+
 // WithArtifactStoreHook wires the V22 ProfitGuard BeforeArtifactStore
 // hook. Apply consults the hook before persisting a patch whose total
 // content size exceeds the threshold; Stop / KillBranch verdicts cause
@@ -326,6 +365,18 @@ func (p Patch) EstimatedBytes() int64 {
 }
 
 func (e *Engine) Propose(p Patch) (Patch, error) {
+	return e.ProposeCtx(context.Background(), p)
+}
+
+// ProposeCtx is the ctx-aware variant of Propose. The Anti-Bloat
+// Reuse-First Preflight runs through here so an embedder with a real
+// timeout / cancel can honour the call's deadline. Existing callers
+// keep using Propose; the orchestrator's gate-aware paths pass a real
+// context through ProposeCtx so the Atlas search inherits it.
+func (e *Engine) ProposeCtx(ctx context.Context, p Patch) (Patch, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	if p.ProjectID == "" {
 		return Patch{}, errors.New("projectId required")
 	}
@@ -349,6 +400,23 @@ func (e *Engine) Propose(p Patch) (Patch, error) {
 	symIssues := resolveSymbolPatches(&proj, p.Changes)
 	issues := append([]domain.Issue{}, symIssues...)
 	issues = append(issues, e.Validate(p)...)
+	// Anti-Bloat Reuse-First Preflight. Runs only when the host wired
+	// an Atlas (boot path) and the patch creates a new file. The
+	// decision rides on the Patch so the reuse_check gate downstream
+	// can read the same verdict; the surfaced Issues land alongside
+	// validation findings so a high-confidence reuse hit becomes a
+	// reviewable Warning rather than a silent block. See preflight.go.
+	if e.atlasStore != nil {
+		decision, preflightIssues := e.preflightCheck(ctx, &p)
+		if decision != nil {
+			p.Preflight = decision
+			e.rememberPreflight(p.ProjectID, *decision)
+			if cb := e.onPreflightDecision; cb != nil {
+				cb(p, *decision)
+			}
+		}
+		issues = append(issues, preflightIssues...)
+	}
 	// Anchor checks are project-aware so they must run here, not in
 	// Validate (which is intentionally pure). Verify each OpReplace /
 	// OpInsertAfter anchor occurs exactly once in the target file. Less

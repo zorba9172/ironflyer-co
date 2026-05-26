@@ -67,6 +67,18 @@ type AppetizeUploadInput struct {
 	DeviceProfile *string `json:"deviceProfile,omitempty"`
 }
 
+type ArchRule struct {
+	From  string `json:"from"`
+	To    string `json:"to"`
+	Allow bool   `json:"allow"`
+}
+
+type Architecture struct {
+	Layers []string   `json:"layers"`
+	Rules  []ArchRule `json:"rules"`
+	Cycles string     `json:"cycles"`
+}
+
 type AuditChainProof struct {
 	WindowStart time.Time         `json:"windowStart"`
 	WindowEnd   time.Time         `json:"windowEnd"`
@@ -213,6 +225,11 @@ type Cohort struct {
 
 type CohortDashboard struct {
 	Cohorts []Cohort `json:"cohorts"`
+}
+
+type ComplexityBucket struct {
+	Range string `json:"range"`
+	Count int    `json:"count"`
 }
 
 type ConnectDeployDomainInput struct {
@@ -399,6 +416,12 @@ type DeviceCloudStartInput struct {
 	SessionLengthMinutes *int   `json:"sessionLengthMinutes,omitempty"`
 }
 
+type DirDup struct {
+	Directory string  `json:"directory"`
+	DupPct    float64 `json:"dupPct"`
+	Files     int     `json:"files"`
+}
+
 type DomainAvailability struct {
 	Domain       string    `json:"domain"`
 	Available    bool      `json:"available"`
@@ -526,6 +549,20 @@ type GqlError struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
 	Details JSON   `json:"details,omitempty"`
+}
+
+type HealthMetrics struct {
+	ReuseRate            float64            `json:"reuseRate"`
+	DedupRate            float64            `json:"dedupRate"`
+	DeadCodeCount        int                `json:"deadCodeCount"`
+	ComplexityHistogram  []ComplexityBucket `json:"complexityHistogram"`
+	DependencyCycles     int                `json:"dependencyCycles"`
+	LocPerCapability     float64            `json:"locPerCapability"`
+	AtlasCapabilityCount int                `json:"atlasCapabilityCount"`
+	LastIndexedAt        *time.Time         `json:"lastIndexedAt,omitempty"`
+	DuplicationByDir     []DirDup           `json:"duplicationByDir"`
+	BundleByRoute        []RouteBundle      `json:"bundleByRoute"`
+	Architecture         Architecture       `json:"architecture"`
 }
 
 type HeartbeatEvent struct {
@@ -969,6 +1006,12 @@ type ReserveDeploySubdomainInput struct {
 	Provider  *string `json:"provider,omitempty"`
 	Primary   *bool   `json:"primary,omitempty"`
 	Metadata  JSON    `json:"metadata,omitempty"`
+}
+
+type RouteBundle struct {
+	Route       string  `json:"route"`
+	TotalKb     float64 `json:"totalKB"`
+	FirstLoadKb float64 `json:"firstLoadKB"`
 }
 
 type RunDoneEvent struct {

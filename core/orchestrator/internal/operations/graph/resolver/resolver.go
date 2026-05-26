@@ -14,6 +14,8 @@ import (
 	"github.com/rs/zerolog"
 
 	"ironflyer/core/orchestrator/internal/ai/agents"
+	"ironflyer/core/orchestrator/internal/ai/atlas"
+	"ironflyer/core/orchestrator/internal/operations/arch"
 	"ironflyer/core/orchestrator/internal/operations/audit"
 	"ironflyer/core/orchestrator/internal/operations/auditexport"
 	"ironflyer/core/orchestrator/internal/customer/auth"
@@ -197,4 +199,40 @@ type Resolver struct {
 	// regardless of vendor. Nil-safe — when nil the resolver returns
 	// gqlNotConfigured("device cloud").
 	DeviceCloud *devicecloud.Manager
+
+	// ---------- Code Health Dashboard inputs ----------------------
+	// Atlas is the Capability Atlas the indexer populates at boot
+	// and on every reindex tick. HealthDashboard surfaces its Stats
+	// (total capabilities, last indexed time). Nil-safe — the
+	// resolver reports zero capabilities and a nil timestamp when
+	// the store was not wired.
+	AtlasStore atlas.Store
+	// ArchManifest is the parsed .ironflyer/architecture.json. The
+	// HealthDashboard projects its layers + rules + cycles policy
+	// onto the Architecture sub-shape. Zero value means the
+	// manifest was missing at boot; the resolver returns empty
+	// layers + rules so the panel can render its "manifest not
+	// wired" empty state.
+	ArchManifest arch.Manifest
+	// HealthReportPaths is the operator-configured map of Anti-Bloat
+	// report file paths (jscpd / knip / gocognit /
+	// dependency-cruiser / bundle-analyzer). Plumbed from main.go
+	// via the IRONFLYER_*_REPORT_PATH env vars; each field is
+	// optional. Missing files yield empty slices + sentinel zero
+	// values so the cockpit panels render their "report not wired"
+	// empty states without surfacing an error.
+	HealthReportPaths HealthReportPaths
+}
+
+// HealthReportPaths captures the file paths the resolver consults to
+// project the Anti-Bloat reports (jscpd / knip / gocognit /
+// dependency-cruiser / bundle-analyzer) into the HealthDashboard.
+// Every field is optional; the resolver tolerates missing files and
+// returns the empty / sentinel shape per health.go.
+type HealthReportPaths struct {
+	Dedup      string
+	Deadcode   string
+	Complexity string
+	DepCycle   string
+	Bundle     string
 }

@@ -79,6 +79,18 @@ type ComplexityRoot struct {
 		PublicKey func(childComplexity int) int
 	}
 
+	ArchRule struct {
+		Allow func(childComplexity int) int
+		From  func(childComplexity int) int
+		To    func(childComplexity int) int
+	}
+
+	Architecture struct {
+		Cycles func(childComplexity int) int
+		Layers func(childComplexity int) int
+		Rules  func(childComplexity int) int
+	}
+
 	AuditChainProof struct {
 		BrokenLinks func(childComplexity int) int
 		EndHash     func(childComplexity int) int
@@ -206,6 +218,11 @@ type ComplexityRoot struct {
 
 	CohortDashboard struct {
 		Cohorts func(childComplexity int) int
+	}
+
+	ComplexityBucket struct {
+		Count func(childComplexity int) int
+		Range func(childComplexity int) int
 	}
 
 	CostDelta struct {
@@ -344,6 +361,12 @@ type ComplexityRoot struct {
 		Status              func(childComplexity int) int
 	}
 
+	DirDup struct {
+		Directory func(childComplexity int) int
+		DupPct    func(childComplexity int) int
+		Files     func(childComplexity int) int
+	}
+
 	DomainAvailability struct {
 		Available    func(childComplexity int) int
 		CanPurchase  func(childComplexity int) int
@@ -451,6 +474,20 @@ type ComplexityRoot struct {
 		Code    func(childComplexity int) int
 		Details func(childComplexity int) int
 		Message func(childComplexity int) int
+	}
+
+	HealthMetrics struct {
+		Architecture         func(childComplexity int) int
+		AtlasCapabilityCount func(childComplexity int) int
+		BundleByRoute        func(childComplexity int) int
+		ComplexityHistogram  func(childComplexity int) int
+		DeadCodeCount        func(childComplexity int) int
+		DedupRate            func(childComplexity int) int
+		DependencyCycles     func(childComplexity int) int
+		DuplicationByDir     func(childComplexity int) int
+		LastIndexedAt        func(childComplexity int) int
+		LocPerCapability     func(childComplexity int) int
+		ReuseRate            func(childComplexity int) int
 	}
 
 	HeartbeatEvent struct {
@@ -843,6 +880,7 @@ type ComplexityRoot struct {
 		Executions               func(childComplexity int, limit *int, offset *int) int
 		Gate                     func(childComplexity int, projectID string, gate string) int
 		Gates                    func(childComplexity int, projectID string, sub *string) int
+		HealthDashboard          func(childComplexity int) int
 		Ledger                   func(childComplexity int, filter *model.LedgerFilter) int
 		LedgerRollup             func(childComplexity int, since time.Time, until time.Time) int
 		Me                       func(childComplexity int) int
@@ -887,6 +925,12 @@ type ComplexityRoot struct {
 		Model             func(childComplexity int) int
 		PromptPerMTok     func(childComplexity int) int
 		Provider          func(childComplexity int) int
+	}
+
+	RouteBundle struct {
+		FirstLoadKb func(childComplexity int) int
+		Route       func(childComplexity int) int
+		TotalKb     func(childComplexity int) int
 	}
 
 	RunDoneEvent struct {
@@ -1159,6 +1203,7 @@ type QueryResolver interface {
 	ScaleDashboard(ctx context.Context) (*model.ScaleDashboard, error)
 	CohortDashboard(ctx context.Context, sinceMonth time.Time) (*model.CohortDashboard, error)
 	BlueprintDashboard(ctx context.Context) (*model.BlueprintDashboard, error)
+	HealthDashboard(ctx context.Context) (*model.HealthMetrics, error)
 	Deploy(ctx context.Context, id string) (*model.Deploy, error)
 	Deploys(ctx context.Context, limit *int, offset *int) ([]model.Deploy, error)
 	PendingDeployApprovals(ctx context.Context) ([]model.DeployApproval, error)
@@ -1388,6 +1433,44 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.AppetizeApp.PublicKey(childComplexity), true
+
+	case "ArchRule.allow":
+		if e.ComplexityRoot.ArchRule.Allow == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ArchRule.Allow(childComplexity), true
+	case "ArchRule.from":
+		if e.ComplexityRoot.ArchRule.From == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ArchRule.From(childComplexity), true
+	case "ArchRule.to":
+		if e.ComplexityRoot.ArchRule.To == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ArchRule.To(childComplexity), true
+
+	case "Architecture.cycles":
+		if e.ComplexityRoot.Architecture.Cycles == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Architecture.Cycles(childComplexity), true
+	case "Architecture.layers":
+		if e.ComplexityRoot.Architecture.Layers == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Architecture.Layers(childComplexity), true
+	case "Architecture.rules":
+		if e.ComplexityRoot.Architecture.Rules == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Architecture.Rules(childComplexity), true
 
 	case "AuditChainProof.brokenLinks":
 		if e.ComplexityRoot.AuditChainProof.BrokenLinks == nil {
@@ -1924,6 +2007,19 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.CohortDashboard.Cohorts(childComplexity), true
+
+	case "ComplexityBucket.count":
+		if e.ComplexityRoot.ComplexityBucket.Count == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ComplexityBucket.Count(childComplexity), true
+	case "ComplexityBucket.range":
+		if e.ComplexityRoot.ComplexityBucket.Range == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ComplexityBucket.Range(childComplexity), true
 
 	case "CostDelta.agent":
 		if e.ComplexityRoot.CostDelta.Agent == nil {
@@ -2554,6 +2650,25 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.DeviceCloudSession.Status(childComplexity), true
 
+	case "DirDup.directory":
+		if e.ComplexityRoot.DirDup.Directory == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DirDup.Directory(childComplexity), true
+	case "DirDup.dupPct":
+		if e.ComplexityRoot.DirDup.DupPct == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DirDup.DupPct(childComplexity), true
+	case "DirDup.files":
+		if e.ComplexityRoot.DirDup.Files == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DirDup.Files(childComplexity), true
+
 	case "DomainAvailability.available":
 		if e.ComplexityRoot.DomainAvailability.Available == nil {
 			break
@@ -3020,6 +3135,73 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.GqlError.Message(childComplexity), true
+
+	case "HealthMetrics.architecture":
+		if e.ComplexityRoot.HealthMetrics.Architecture == nil {
+			break
+		}
+
+		return e.ComplexityRoot.HealthMetrics.Architecture(childComplexity), true
+	case "HealthMetrics.atlasCapabilityCount":
+		if e.ComplexityRoot.HealthMetrics.AtlasCapabilityCount == nil {
+			break
+		}
+
+		return e.ComplexityRoot.HealthMetrics.AtlasCapabilityCount(childComplexity), true
+	case "HealthMetrics.bundleByRoute":
+		if e.ComplexityRoot.HealthMetrics.BundleByRoute == nil {
+			break
+		}
+
+		return e.ComplexityRoot.HealthMetrics.BundleByRoute(childComplexity), true
+	case "HealthMetrics.complexityHistogram":
+		if e.ComplexityRoot.HealthMetrics.ComplexityHistogram == nil {
+			break
+		}
+
+		return e.ComplexityRoot.HealthMetrics.ComplexityHistogram(childComplexity), true
+	case "HealthMetrics.deadCodeCount":
+		if e.ComplexityRoot.HealthMetrics.DeadCodeCount == nil {
+			break
+		}
+
+		return e.ComplexityRoot.HealthMetrics.DeadCodeCount(childComplexity), true
+	case "HealthMetrics.dedupRate":
+		if e.ComplexityRoot.HealthMetrics.DedupRate == nil {
+			break
+		}
+
+		return e.ComplexityRoot.HealthMetrics.DedupRate(childComplexity), true
+	case "HealthMetrics.dependencyCycles":
+		if e.ComplexityRoot.HealthMetrics.DependencyCycles == nil {
+			break
+		}
+
+		return e.ComplexityRoot.HealthMetrics.DependencyCycles(childComplexity), true
+	case "HealthMetrics.duplicationByDir":
+		if e.ComplexityRoot.HealthMetrics.DuplicationByDir == nil {
+			break
+		}
+
+		return e.ComplexityRoot.HealthMetrics.DuplicationByDir(childComplexity), true
+	case "HealthMetrics.lastIndexedAt":
+		if e.ComplexityRoot.HealthMetrics.LastIndexedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.HealthMetrics.LastIndexedAt(childComplexity), true
+	case "HealthMetrics.locPerCapability":
+		if e.ComplexityRoot.HealthMetrics.LocPerCapability == nil {
+			break
+		}
+
+		return e.ComplexityRoot.HealthMetrics.LocPerCapability(childComplexity), true
+	case "HealthMetrics.reuseRate":
+		if e.ComplexityRoot.HealthMetrics.ReuseRate == nil {
+			break
+		}
+
+		return e.ComplexityRoot.HealthMetrics.ReuseRate(childComplexity), true
 
 	case "HeartbeatEvent.message":
 		if e.ComplexityRoot.HeartbeatEvent.Message == nil {
@@ -5201,6 +5383,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.Gates(childComplexity, args["projectId"].(string), args["sub"].(*string)), true
+	case "Query.healthDashboard":
+		if e.ComplexityRoot.Query.HealthDashboard == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Query.HealthDashboard(childComplexity), true
 
 	case "Query.ledger":
 		if e.ComplexityRoot.Query.Ledger == nil {
@@ -5564,6 +5752,25 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Rate.Provider(childComplexity), true
+
+	case "RouteBundle.firstLoadKB":
+		if e.ComplexityRoot.RouteBundle.FirstLoadKb == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RouteBundle.FirstLoadKb(childComplexity), true
+	case "RouteBundle.route":
+		if e.ComplexityRoot.RouteBundle.Route == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RouteBundle.Route(childComplexity), true
+	case "RouteBundle.totalKB":
+		if e.ComplexityRoot.RouteBundle.TotalKb == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RouteBundle.TotalKb(childComplexity), true
 
 	case "RunDoneEvent.ok":
 		if e.ComplexityRoot.RunDoneEvent.Ok == nil {
@@ -7058,6 +7265,11 @@ extend type Query {
   scaleDashboard: ScaleDashboard!
   cohortDashboard(sinceMonth: DateTime!): CohortDashboard!
   blueprintDashboard: BlueprintDashboard!
+  # Code Health Dashboard (playbook §8.11, docs/ANTI_BLOAT_ENGINE.md).
+  # Tolerant resolver: missing report files yield zero / empty values
+  # so the cockpit panels can render their empty / loading states
+  # without surfacing an error.
+  healthDashboard: HealthMetrics!
 }
 
 type ProfitDashboard {
@@ -7115,6 +7327,55 @@ type DashboardBlueprintStats {
   refunds: Int!
   repairCount: Int!
   avgCompletionScore: Float!
+}
+
+# HealthMetrics is the operator-facing Code Health snapshot. The shape
+# mirrors core/orchestrator/internal/business/dashboards/health.go and
+# extends it with the per-directory dup, per-route bundle, and
+# architecture projections the panels render. Resolver-tolerant:
+# missing reports yield zero values + empty arrays so the UI can
+# render its "tool not wired" empty states without crashing.
+type HealthMetrics {
+  reuseRate: Float!
+  dedupRate: Float!
+  deadCodeCount: Int!
+  complexityHistogram: [ComplexityBucket!]!
+  dependencyCycles: Int!
+  locPerCapability: Float!
+  atlasCapabilityCount: Int!
+  lastIndexedAt: DateTime
+  duplicationByDir: [DirDup!]!
+  bundleByRoute: [RouteBundle!]!
+  architecture: Architecture!
+}
+
+type ComplexityBucket {
+  range: String!
+  count: Int!
+}
+
+type DirDup {
+  directory: String!
+  dupPct: Float!
+  files: Int!
+}
+
+type RouteBundle {
+  route: String!
+  totalKB: Float!
+  firstLoadKB: Float!
+}
+
+type Architecture {
+  layers: [String!]!
+  rules: [ArchRule!]!
+  cycles: String!
+}
+
+type ArchRule {
+  from: String!
+  to: String!
+  allow: Boolean!
 }
 `, BuiltIn: false},
 	{Name: "../schema/deploy.graphql", Input: `# V22 Deploy plane (Wave 2 / Trust).
@@ -8646,6 +8907,30 @@ func (ec *executionContext) childFields_AppetizeApp(ctx context.Context, field g
 	return nil, fmt.Errorf("no field named %q was found under type AppetizeApp", field.Name)
 }
 
+func (ec *executionContext) childFields_ArchRule(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "from":
+		return ec.fieldContext_ArchRule_from(ctx, field)
+	case "to":
+		return ec.fieldContext_ArchRule_to(ctx, field)
+	case "allow":
+		return ec.fieldContext_ArchRule_allow(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type ArchRule", field.Name)
+}
+
+func (ec *executionContext) childFields_Architecture(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "layers":
+		return ec.fieldContext_Architecture_layers(ctx, field)
+	case "rules":
+		return ec.fieldContext_Architecture_rules(ctx, field)
+	case "cycles":
+		return ec.fieldContext_Architecture_cycles(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type Architecture", field.Name)
+}
+
 func (ec *executionContext) childFields_AuditChainProof(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 	switch field.Name {
 	case "windowStart":
@@ -8902,6 +9187,16 @@ func (ec *executionContext) childFields_CohortDashboard(ctx context.Context, fie
 		return ec.fieldContext_CohortDashboard_cohorts(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type CohortDashboard", field.Name)
+}
+
+func (ec *executionContext) childFields_ComplexityBucket(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "range":
+		return ec.fieldContext_ComplexityBucket_range(ctx, field)
+	case "count":
+		return ec.fieldContext_ComplexityBucket_count(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type ComplexityBucket", field.Name)
 }
 
 func (ec *executionContext) childFields_CostDelta(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
@@ -9176,6 +9471,18 @@ func (ec *executionContext) childFields_DeviceCloudSession(ctx context.Context, 
 	return nil, fmt.Errorf("no field named %q was found under type DeviceCloudSession", field.Name)
 }
 
+func (ec *executionContext) childFields_DirDup(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "directory":
+		return ec.fieldContext_DirDup_directory(ctx, field)
+	case "dupPct":
+		return ec.fieldContext_DirDup_dupPct(ctx, field)
+	case "files":
+		return ec.fieldContext_DirDup_files(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type DirDup", field.Name)
+}
+
 func (ec *executionContext) childFields_DomainAvailability(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 	switch field.Name {
 	case "domain":
@@ -9380,6 +9687,34 @@ func (ec *executionContext) childFields_GenerateMobileAssetsResult(ctx context.C
 		return ec.fieldContext_GenerateMobileAssetsResult_entries(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type GenerateMobileAssetsResult", field.Name)
+}
+
+func (ec *executionContext) childFields_HealthMetrics(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "reuseRate":
+		return ec.fieldContext_HealthMetrics_reuseRate(ctx, field)
+	case "dedupRate":
+		return ec.fieldContext_HealthMetrics_dedupRate(ctx, field)
+	case "deadCodeCount":
+		return ec.fieldContext_HealthMetrics_deadCodeCount(ctx, field)
+	case "complexityHistogram":
+		return ec.fieldContext_HealthMetrics_complexityHistogram(ctx, field)
+	case "dependencyCycles":
+		return ec.fieldContext_HealthMetrics_dependencyCycles(ctx, field)
+	case "locPerCapability":
+		return ec.fieldContext_HealthMetrics_locPerCapability(ctx, field)
+	case "atlasCapabilityCount":
+		return ec.fieldContext_HealthMetrics_atlasCapabilityCount(ctx, field)
+	case "lastIndexedAt":
+		return ec.fieldContext_HealthMetrics_lastIndexedAt(ctx, field)
+	case "duplicationByDir":
+		return ec.fieldContext_HealthMetrics_duplicationByDir(ctx, field)
+	case "bundleByRoute":
+		return ec.fieldContext_HealthMetrics_bundleByRoute(ctx, field)
+	case "architecture":
+		return ec.fieldContext_HealthMetrics_architecture(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type HealthMetrics", field.Name)
 }
 
 func (ec *executionContext) childFields_HeartbeatEvent(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
@@ -9882,6 +10217,18 @@ func (ec *executionContext) childFields_Rate(ctx context.Context, field graphql.
 	return nil, fmt.Errorf("no field named %q was found under type Rate", field.Name)
 }
 
+func (ec *executionContext) childFields_RouteBundle(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "route":
+		return ec.fieldContext_RouteBundle_route(ctx, field)
+	case "totalKB":
+		return ec.fieldContext_RouteBundle_totalKB(ctx, field)
+	case "firstLoadKB":
+		return ec.fieldContext_RouteBundle_firstLoadKB(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type RouteBundle", field.Name)
+}
+
 func (ec *executionContext) childFields_ScaleDashboard(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 	switch field.Name {
 	case "activeExecutions":
@@ -10343,7 +10690,7 @@ func (ec *executionContext) field_Mutation_appetizeUploadBuild_args(ctx context.
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
 		func(ctx context.Context, v any) (model.AppetizeUploadInput, error) {
-			return ec.unmarshalNAppetizeUploadInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAppetizeUploadInput(ctx, v)
+			return ec.unmarshalNAppetizeUploadInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAppetizeUploadInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -10463,7 +10810,7 @@ func (ec *executionContext) field_Mutation_connectDeployDomain_args(ctx context.
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
 		func(ctx context.Context, v any) (model.ConnectDeployDomainInput, error) {
-			return ec.unmarshalNConnectDeployDomainInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐConnectDeployDomainInput(ctx, v)
+			return ec.unmarshalNConnectDeployDomainInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐConnectDeployDomainInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -10477,7 +10824,7 @@ func (ec *executionContext) field_Mutation_createPaidExecution_args(ctx context.
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
 		func(ctx context.Context, v any) (model.CreatePaidExecutionInput, error) {
-			return ec.unmarshalNCreatePaidExecutionInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐCreatePaidExecutionInput(ctx, v)
+			return ec.unmarshalNCreatePaidExecutionInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCreatePaidExecutionInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -10491,7 +10838,7 @@ func (ec *executionContext) field_Mutation_createProject_args(ctx context.Contex
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
 		func(ctx context.Context, v any) (model.CreateProjectInput, error) {
-			return ec.unmarshalNCreateProjectInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐCreateProjectInput(ctx, v)
+			return ec.unmarshalNCreateProjectInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCreateProjectInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -10505,7 +10852,7 @@ func (ec *executionContext) field_Mutation_createStage_args(ctx context.Context,
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
 		func(ctx context.Context, v any) (model.CreateStageInput, error) {
-			return ec.unmarshalNCreateStageInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐCreateStageInput(ctx, v)
+			return ec.unmarshalNCreateStageInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCreateStageInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -10563,7 +10910,7 @@ func (ec *executionContext) field_Mutation_describeIdea_args(ctx context.Context
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
 		func(ctx context.Context, v any) (model.DescribeIdeaInput, error) {
-			return ec.unmarshalNDescribeIdeaInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDescribeIdeaInput(ctx, v)
+			return ec.unmarshalNDescribeIdeaInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDescribeIdeaInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -10599,7 +10946,7 @@ func (ec *executionContext) field_Mutation_deviceCloudStartSession_args(ctx cont
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
 		func(ctx context.Context, v any) (model.DeviceCloudStartInput, error) {
-			return ec.unmarshalNDeviceCloudStartInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeviceCloudStartInput(ctx, v)
+			return ec.unmarshalNDeviceCloudStartInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeviceCloudStartInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -10613,7 +10960,7 @@ func (ec *executionContext) field_Mutation_generateMobileAssets_args(ctx context
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
 		func(ctx context.Context, v any) (model.GenerateMobileAssetsInput, error) {
-			return ec.unmarshalNGenerateMobileAssetsInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGenerateMobileAssetsInput(ctx, v)
+			return ec.unmarshalNGenerateMobileAssetsInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGenerateMobileAssetsInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -10641,7 +10988,7 @@ func (ec *executionContext) field_Mutation_mobilePublishUpdate_args(ctx context.
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
 		func(ctx context.Context, v any) (model.MobilePublishUpdateInput, error) {
-			return ec.unmarshalNMobilePublishUpdateInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobilePublishUpdateInput(ctx, v)
+			return ec.unmarshalNMobilePublishUpdateInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMobilePublishUpdateInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -10655,7 +11002,7 @@ func (ec *executionContext) field_Mutation_mobileSubmitToStore_args(ctx context.
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
 		func(ctx context.Context, v any) (model.MobileSubmitInput, error) {
-			return ec.unmarshalNMobileSubmitInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileSubmitInput(ctx, v)
+			return ec.unmarshalNMobileSubmitInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMobileSubmitInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -10669,7 +11016,7 @@ func (ec *executionContext) field_Mutation_mobileTriggerBuild_args(ctx context.C
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
 		func(ctx context.Context, v any) (model.MobileTriggerBuildInput, error) {
-			return ec.unmarshalNMobileTriggerBuildInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileTriggerBuildInput(ctx, v)
+			return ec.unmarshalNMobileTriggerBuildInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMobileTriggerBuildInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -10683,7 +11030,7 @@ func (ec *executionContext) field_Mutation_planDeploy_args(ctx context.Context, 
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
 		func(ctx context.Context, v any) (model.PlanDeployInput, error) {
-			return ec.unmarshalNPlanDeployInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPlanDeployInput(ctx, v)
+			return ec.unmarshalNPlanDeployInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPlanDeployInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -10733,7 +11080,7 @@ func (ec *executionContext) field_Mutation_proposePatch_args(ctx context.Context
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
 		func(ctx context.Context, v any) (model.ProposePatchInput, error) {
-			return ec.unmarshalNProposePatchInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐProposePatchInput(ctx, v)
+			return ec.unmarshalNProposePatchInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐProposePatchInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -10747,7 +11094,7 @@ func (ec *executionContext) field_Mutation_proposeSymbolPatch_args(ctx context.C
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
 		func(ctx context.Context, v any) (model.SymbolPatchInput, error) {
-			return ec.unmarshalNSymbolPatchInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSymbolPatchInput(ctx, v)
+			return ec.unmarshalNSymbolPatchInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSymbolPatchInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -10761,7 +11108,7 @@ func (ec *executionContext) field_Mutation_purchaseDeployDomain_args(ctx context
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
 		func(ctx context.Context, v any) (model.PurchaseDeployDomainInput, error) {
-			return ec.unmarshalNPurchaseDeployDomainInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPurchaseDeployDomainInput(ctx, v)
+			return ec.unmarshalNPurchaseDeployDomainInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPurchaseDeployDomainInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -10849,7 +11196,7 @@ func (ec *executionContext) field_Mutation_renameSymbol_args(ctx context.Context
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
 		func(ctx context.Context, v any) (model.RenameSymbolInput, error) {
-			return ec.unmarshalNRenameSymbolInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐRenameSymbolInput(ctx, v)
+			return ec.unmarshalNRenameSymbolInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐRenameSymbolInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -10885,7 +11232,7 @@ func (ec *executionContext) field_Mutation_requestEmailChange_args(ctx context.C
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
 		func(ctx context.Context, v any) (model.EmailChangeInput, error) {
-			return ec.unmarshalNEmailChangeInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐEmailChangeInput(ctx, v)
+			return ec.unmarshalNEmailChangeInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐEmailChangeInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -10913,7 +11260,7 @@ func (ec *executionContext) field_Mutation_rerunGate_args(ctx context.Context, r
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
 		func(ctx context.Context, v any) (model.RerunGateInput, error) {
-			return ec.unmarshalNRerunGateInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐRerunGateInput(ctx, v)
+			return ec.unmarshalNRerunGateInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐRerunGateInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -10927,7 +11274,7 @@ func (ec *executionContext) field_Mutation_reserveDeploySubdomain_args(ctx conte
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
 		func(ctx context.Context, v any) (model.ReserveDeploySubdomainInput, error) {
-			return ec.unmarshalNReserveDeploySubdomainInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐReserveDeploySubdomainInput(ctx, v)
+			return ec.unmarshalNReserveDeploySubdomainInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐReserveDeploySubdomainInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -11041,7 +11388,7 @@ func (ec *executionContext) field_Mutation_setTelemetryPreference_args(ctx conte
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
 		func(ctx context.Context, v any) (model.TelemetryPreferenceInput, error) {
-			return ec.unmarshalNTelemetryPreferenceInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐTelemetryPreferenceInput(ctx, v)
+			return ec.unmarshalNTelemetryPreferenceInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐTelemetryPreferenceInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -11055,7 +11402,7 @@ func (ec *executionContext) field_Mutation_signIn_args(ctx context.Context, rawA
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
 		func(ctx context.Context, v any) (model.SignInInput, error) {
-			return ec.unmarshalNSignInInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSignInInput(ctx, v)
+			return ec.unmarshalNSignInInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSignInInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -11069,7 +11416,7 @@ func (ec *executionContext) field_Mutation_signUp_args(ctx context.Context, rawA
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
 		func(ctx context.Context, v any) (model.SignUpInput, error) {
-			return ec.unmarshalNSignUpInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSignUpInput(ctx, v)
+			return ec.unmarshalNSignUpInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSignUpInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -11083,7 +11430,7 @@ func (ec *executionContext) field_Mutation_startCheckout_args(ctx context.Contex
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
 		func(ctx context.Context, v any) (model.StartCheckoutInput, error) {
-			return ec.unmarshalNStartCheckoutInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐStartCheckoutInput(ctx, v)
+			return ec.unmarshalNStartCheckoutInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐStartCheckoutInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -11127,7 +11474,7 @@ func (ec *executionContext) field_Mutation_updateProject_args(ctx context.Contex
 	args["id"] = arg0
 	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "input",
 		func(ctx context.Context, v any) (model.UpdateProjectInput, error) {
-			return ec.unmarshalNUpdateProjectInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐUpdateProjectInput(ctx, v)
+			return ec.unmarshalNUpdateProjectInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐUpdateProjectInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -11177,7 +11524,7 @@ func (ec *executionContext) field_Mutation_writeProjectFiles_args(ctx context.Co
 	args["id"] = arg0
 	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "files",
 		func(ctx context.Context, v any) ([]model.WriteProjectFileInput, error) {
-			return ec.unmarshalNWriteProjectFileInput2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐWriteProjectFileInputᚄ(ctx, v)
+			return ec.unmarshalNWriteProjectFileInput2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐWriteProjectFileInputᚄ(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -11265,7 +11612,7 @@ func (ec *executionContext) field_Query_auditExportCsvUrl_args(ctx context.Conte
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "query",
 		func(ctx context.Context, v any) (*model.AuditQueryInput, error) {
-			return ec.unmarshalOAuditQueryInput2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAuditQueryInput(ctx, v)
+			return ec.unmarshalOAuditQueryInput2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAuditQueryInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -11279,7 +11626,7 @@ func (ec *executionContext) field_Query_auditExportPdfUrl_args(ctx context.Conte
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "query",
 		func(ctx context.Context, v any) (*model.AuditQueryInput, error) {
-			return ec.unmarshalOAuditQueryInput2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAuditQueryInput(ctx, v)
+			return ec.unmarshalOAuditQueryInput2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAuditQueryInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -11293,7 +11640,7 @@ func (ec *executionContext) field_Query_auditExportPreview_args(ctx context.Cont
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "filter",
 		func(ctx context.Context, v any) (model.AuditExportFilter, error) {
-			return ec.unmarshalNAuditExportFilter2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAuditExportFilter(ctx, v)
+			return ec.unmarshalNAuditExportFilter2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAuditExportFilter(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -11307,7 +11654,7 @@ func (ec *executionContext) field_Query_audit_args(ctx context.Context, rawArgs 
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "query",
 		func(ctx context.Context, v any) (*model.AuditQueryInput, error) {
-			return ec.unmarshalOAuditQueryInput2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAuditQueryInput(ctx, v)
+			return ec.unmarshalOAuditQueryInput2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAuditQueryInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -11485,7 +11832,7 @@ func (ec *executionContext) field_Query_estimateExecutionCost_args(ctx context.C
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
 		func(ctx context.Context, v any) (model.EstimateInput, error) {
-			return ec.unmarshalNEstimateInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐEstimateInput(ctx, v)
+			return ec.unmarshalNEstimateInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐEstimateInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -11659,7 +12006,7 @@ func (ec *executionContext) field_Query_ledger_args(ctx context.Context, rawArgs
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "filter",
 		func(ctx context.Context, v any) (*model.LedgerFilter, error) {
-			return ec.unmarshalOLedgerFilter2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐLedgerFilter(ctx, v)
+			return ec.unmarshalOLedgerFilter2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐLedgerFilter(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -12067,7 +12414,7 @@ func (ec *executionContext) field_Subscription_inlineCompletion_args(ctx context
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
 		func(ctx context.Context, v any) (model.InlineInput, error) {
-			return ec.unmarshalNInlineInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐInlineInput(ctx, v)
+			return ec.unmarshalNInlineInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐInlineInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -12572,7 +12919,7 @@ func (ec *executionContext) _AgentCall_costUsd(ctx context.Context, field graphq
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.Decimal) graphql.Marshaler {
-			return ec.marshalNDecimal2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDecimal(ctx, selections, v)
+			return ec.marshalNDecimal2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDecimal(ctx, selections, v)
 		},
 		true,
 		true,
@@ -12789,6 +13136,153 @@ func (ec *executionContext) fieldContext_AppetizeApp_createdAt(_ context.Context
 	return graphql.NewScalarFieldContext("AppetizeApp", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
+func (ec *executionContext) _ArchRule_from(ctx context.Context, field graphql.CollectedField, obj *model.ArchRule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_ArchRule_from(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.From, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_ArchRule_from(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("ArchRule", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _ArchRule_to(ctx context.Context, field graphql.CollectedField, obj *model.ArchRule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_ArchRule_to(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.To, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_ArchRule_to(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("ArchRule", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _ArchRule_allow(ctx context.Context, field graphql.CollectedField, obj *model.ArchRule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_ArchRule_allow(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Allow, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v bool) graphql.Marshaler {
+			return ec.marshalNBoolean2bool(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_ArchRule_allow(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("ArchRule", field, false, false, errors.New("field of type Boolean does not have child fields"))
+}
+
+func (ec *executionContext) _Architecture_layers(ctx context.Context, field graphql.CollectedField, obj *model.Architecture) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Architecture_layers(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Layers, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []string) graphql.Marshaler {
+			return ec.marshalNString2ᚕstringᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Architecture_layers(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Architecture", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _Architecture_rules(ctx context.Context, field graphql.CollectedField, obj *model.Architecture) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Architecture_rules(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Rules, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []model.ArchRule) graphql.Marshaler {
+			return ec.marshalNArchRule2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐArchRuleᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Architecture_rules(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Architecture",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_ArchRule(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Architecture_cycles(ctx context.Context, field graphql.CollectedField, obj *model.Architecture) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Architecture_cycles(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Cycles, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Architecture_cycles(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Architecture", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
 func (ec *executionContext) _AuditChainProof_windowStart(ctx context.Context, field graphql.CollectedField, obj *model.AuditChainProof) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -12940,7 +13434,7 @@ func (ec *executionContext) _AuditChainProof_brokenLinks(ctx context.Context, fi
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.BrokenAuditLink) graphql.Marshaler {
-			return ec.marshalNBrokenAuditLink2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBrokenAuditLinkᚄ(ctx, selections, v)
+			return ec.marshalNBrokenAuditLink2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBrokenAuditLinkᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -13087,7 +13581,7 @@ func (ec *executionContext) _AuditEntry_outcome(ctx context.Context, field graph
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.AuditOutcome) graphql.Marshaler {
-			return ec.marshalNAuditOutcome2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAuditOutcome(ctx, selections, v)
+			return ec.marshalNAuditOutcome2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAuditOutcome(ctx, selections, v)
 		},
 		true,
 		true,
@@ -13156,7 +13650,7 @@ func (ec *executionContext) _AuditEntry_payload(ctx context.Context, field graph
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.JSON) graphql.Marshaler {
-			return ec.marshalOJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, selections, v)
+			return ec.marshalOJSON2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐJSON(ctx, selections, v)
 		},
 		true,
 		false,
@@ -13593,7 +14087,7 @@ func (ec *executionContext) _BanditCapability_winners(ctx context.Context, field
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.BanditWinner) graphql.Marshaler {
-			return ec.marshalNBanditWinner2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBanditWinnerᚄ(ctx, selections, v)
+			return ec.marshalNBanditWinner2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBanditWinnerᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -13625,7 +14119,7 @@ func (ec *executionContext) _BanditRanking_capabilities(ctx context.Context, fie
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.BanditCapability) graphql.Marshaler {
-			return ec.marshalNBanditCapability2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBanditCapabilityᚄ(ctx, selections, v)
+			return ec.marshalNBanditCapability2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBanditCapabilityᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -14140,7 +14634,7 @@ func (ec *executionContext) _BlueprintDashboard_blueprints(ctx context.Context, 
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.DashboardBlueprintStats) graphql.Marshaler {
-			return ec.marshalNDashboardBlueprintStats2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDashboardBlueprintStatsᚄ(ctx, selections, v)
+			return ec.marshalNDashboardBlueprintStats2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDashboardBlueprintStatsᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -14540,7 +15034,7 @@ func (ec *executionContext) _BudgetSummary_spentUsd(ctx context.Context, field g
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.Decimal) graphql.Marshaler {
-			return ec.marshalNDecimal2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDecimal(ctx, selections, v)
+			return ec.marshalNDecimal2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDecimal(ctx, selections, v)
 		},
 		true,
 		true,
@@ -14563,7 +15057,7 @@ func (ec *executionContext) _BudgetSummary_entries(ctx context.Context, field gr
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.LedgerEntry) graphql.Marshaler {
-			return ec.marshalNLedgerEntry2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐLedgerEntryᚄ(ctx, selections, v)
+			return ec.marshalNLedgerEntry2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐLedgerEntryᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -14825,7 +15319,7 @@ func (ec *executionContext) _CohortDashboard_cohorts(ctx context.Context, field 
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.Cohort) graphql.Marshaler {
-			return ec.marshalNCohort2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐCohortᚄ(ctx, selections, v)
+			return ec.marshalNCohort2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCohortᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -14842,6 +15336,52 @@ func (ec *executionContext) fieldContext_CohortDashboard_cohorts(_ context.Conte
 		},
 	}
 	return fc, nil
+}
+
+func (ec *executionContext) _ComplexityBucket_range(ctx context.Context, field graphql.CollectedField, obj *model.ComplexityBucket) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_ComplexityBucket_range(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Range, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_ComplexityBucket_range(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("ComplexityBucket", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _ComplexityBucket_count(ctx context.Context, field graphql.CollectedField, obj *model.ComplexityBucket) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_ComplexityBucket_count(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Count, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int) graphql.Marshaler {
+			return ec.marshalNInt2int(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_ComplexityBucket_count(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("ComplexityBucket", field, false, false, errors.New("field of type Int does not have child fields"))
 }
 
 func (ec *executionContext) _CostDelta_ts(ctx context.Context, field graphql.CollectedField, obj *model.CostDelta) (ret graphql.Marshaler) {
@@ -14880,7 +15420,7 @@ func (ec *executionContext) _CostDelta_usdSpent(ctx context.Context, field graph
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.Decimal) graphql.Marshaler {
-			return ec.marshalNDecimal2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDecimal(ctx, selections, v)
+			return ec.marshalNDecimal2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDecimal(ctx, selections, v)
 		},
 		true,
 		true,
@@ -15087,7 +15627,7 @@ func (ec *executionContext) _CostEstimate_breakdown(ctx context.Context, field g
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.JSON) graphql.Marshaler {
-			return ec.marshalNJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, selections, v)
+			return ec.marshalNJSON2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐJSON(ctx, selections, v)
 		},
 		true,
 		true,
@@ -15915,7 +16455,7 @@ func (ec *executionContext) _Deploy_gateSummary(ctx context.Context, field graph
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.JSON) graphql.Marshaler {
-			return ec.marshalNJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, selections, v)
+			return ec.marshalNJSON2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐJSON(ctx, selections, v)
 		},
 		true,
 		true,
@@ -16191,7 +16731,7 @@ func (ec *executionContext) _DeployApproval_gateSummary(ctx context.Context, fie
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.JSON) graphql.Marshaler {
-			return ec.marshalNJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, selections, v)
+			return ec.marshalNJSON2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐJSON(ctx, selections, v)
 		},
 		true,
 		true,
@@ -16559,7 +17099,7 @@ func (ec *executionContext) _DeployDomain_dnsRecords(ctx context.Context, field 
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.DNSRecord) graphql.Marshaler {
-			return ec.marshalNDNSRecord2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDNSRecordᚄ(ctx, selections, v)
+			return ec.marshalNDNSRecord2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDNSRecordᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -16660,7 +17200,7 @@ func (ec *executionContext) _DeployDomain_metadata(ctx context.Context, field gr
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.JSON) graphql.Marshaler {
-			return ec.marshalNJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, selections, v)
+			return ec.marshalNJSON2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐJSON(ctx, selections, v)
 		},
 		true,
 		true,
@@ -16821,7 +17361,7 @@ func (ec *executionContext) _DeployEvent_payload(ctx context.Context, field grap
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.JSON) graphql.Marshaler {
-			return ec.marshalNJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, selections, v)
+			return ec.marshalNJSON2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐJSON(ctx, selections, v)
 		},
 		true,
 		true,
@@ -17220,6 +17760,75 @@ func (ec *executionContext) _DeviceCloudSession_billableMinutesUsed(ctx context.
 }
 func (ec *executionContext) fieldContext_DeviceCloudSession_billableMinutesUsed(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("DeviceCloudSession", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _DirDup_directory(ctx context.Context, field graphql.CollectedField, obj *model.DirDup) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DirDup_directory(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Directory, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DirDup_directory(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DirDup", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _DirDup_dupPct(ctx context.Context, field graphql.CollectedField, obj *model.DirDup) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DirDup_dupPct(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.DupPct, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DirDup_dupPct(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DirDup", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _DirDup_files(ctx context.Context, field graphql.CollectedField, obj *model.DirDup) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DirDup_files(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Files, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int) graphql.Marshaler {
+			return ec.marshalNInt2int(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DirDup_files(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DirDup", field, false, false, errors.New("field of type Int does not have child fields"))
 }
 
 func (ec *executionContext) _DomainAvailability_domain(ctx context.Context, field graphql.CollectedField, obj *model.DomainAvailability) (ret graphql.Marshaler) {
@@ -18109,7 +18718,7 @@ func (ec *executionContext) _Execution_metadata(ctx context.Context, field graph
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.JSON) graphql.Marshaler {
-			return ec.marshalNJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, selections, v)
+			return ec.marshalNJSON2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐJSON(ctx, selections, v)
 		},
 		true,
 		true,
@@ -18270,7 +18879,7 @@ func (ec *executionContext) _ExecutionEvent_payload(ctx context.Context, field g
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.JSON) graphql.Marshaler {
-			return ec.marshalNJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, selections, v)
+			return ec.marshalNJSON2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐJSON(ctx, selections, v)
 		},
 		true,
 		true,
@@ -18431,7 +19040,7 @@ func (ec *executionContext) _GateReport_stages(ctx context.Context, field graphq
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.GateStage) graphql.Marshaler {
-			return ec.marshalNGateStage2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGateStageᚄ(ctx, selections, v)
+			return ec.marshalNGateStage2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGateStageᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -18578,7 +19187,7 @@ func (ec *executionContext) _GateVerdict_status(ctx context.Context, field graph
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.GateStatus) graphql.Marshaler {
-			return ec.marshalNGateStatus2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGateStatus(ctx, selections, v)
+			return ec.marshalNGateStatus2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGateStatus(ctx, selections, v)
 		},
 		true,
 		true,
@@ -18601,7 +19210,7 @@ func (ec *executionContext) _GateVerdict_issues(ctx context.Context, field graph
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.GateIssue) graphql.Marshaler {
-			return ec.marshalNGateIssue2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGateIssueᚄ(ctx, selections, v)
+			return ec.marshalNGateIssue2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGateIssueᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -18909,7 +19518,7 @@ func (ec *executionContext) _GenerateMobileAssetsResult_entries(ctx context.Cont
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.GenerateMobileAssetEntry) graphql.Marshaler {
-			return ec.marshalNGenerateMobileAssetEntry2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGenerateMobileAssetEntryᚄ(ctx, selections, v)
+			return ec.marshalNGenerateMobileAssetEntry2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGenerateMobileAssetEntryᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -18987,7 +19596,7 @@ func (ec *executionContext) _GqlError_details(ctx context.Context, field graphql
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.JSON) graphql.Marshaler {
-			return ec.marshalOJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, selections, v)
+			return ec.marshalOJSON2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐJSON(ctx, selections, v)
 		},
 		true,
 		false,
@@ -18995,6 +19604,295 @@ func (ec *executionContext) _GqlError_details(ctx context.Context, field graphql
 }
 func (ec *executionContext) fieldContext_GqlError_details(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("GqlError", field, false, false, errors.New("field of type JSON does not have child fields"))
+}
+
+func (ec *executionContext) _HealthMetrics_reuseRate(ctx context.Context, field graphql.CollectedField, obj *model.HealthMetrics) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_HealthMetrics_reuseRate(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ReuseRate, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_HealthMetrics_reuseRate(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("HealthMetrics", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _HealthMetrics_dedupRate(ctx context.Context, field graphql.CollectedField, obj *model.HealthMetrics) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_HealthMetrics_dedupRate(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.DedupRate, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_HealthMetrics_dedupRate(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("HealthMetrics", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _HealthMetrics_deadCodeCount(ctx context.Context, field graphql.CollectedField, obj *model.HealthMetrics) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_HealthMetrics_deadCodeCount(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.DeadCodeCount, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int) graphql.Marshaler {
+			return ec.marshalNInt2int(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_HealthMetrics_deadCodeCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("HealthMetrics", field, false, false, errors.New("field of type Int does not have child fields"))
+}
+
+func (ec *executionContext) _HealthMetrics_complexityHistogram(ctx context.Context, field graphql.CollectedField, obj *model.HealthMetrics) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_HealthMetrics_complexityHistogram(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ComplexityHistogram, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []model.ComplexityBucket) graphql.Marshaler {
+			return ec.marshalNComplexityBucket2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐComplexityBucketᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_HealthMetrics_complexityHistogram(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HealthMetrics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_ComplexityBucket(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HealthMetrics_dependencyCycles(ctx context.Context, field graphql.CollectedField, obj *model.HealthMetrics) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_HealthMetrics_dependencyCycles(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.DependencyCycles, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int) graphql.Marshaler {
+			return ec.marshalNInt2int(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_HealthMetrics_dependencyCycles(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("HealthMetrics", field, false, false, errors.New("field of type Int does not have child fields"))
+}
+
+func (ec *executionContext) _HealthMetrics_locPerCapability(ctx context.Context, field graphql.CollectedField, obj *model.HealthMetrics) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_HealthMetrics_locPerCapability(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.LocPerCapability, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_HealthMetrics_locPerCapability(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("HealthMetrics", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _HealthMetrics_atlasCapabilityCount(ctx context.Context, field graphql.CollectedField, obj *model.HealthMetrics) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_HealthMetrics_atlasCapabilityCount(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.AtlasCapabilityCount, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int) graphql.Marshaler {
+			return ec.marshalNInt2int(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_HealthMetrics_atlasCapabilityCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("HealthMetrics", field, false, false, errors.New("field of type Int does not have child fields"))
+}
+
+func (ec *executionContext) _HealthMetrics_lastIndexedAt(ctx context.Context, field graphql.CollectedField, obj *model.HealthMetrics) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_HealthMetrics_lastIndexedAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.LastIndexedAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *time.Time) graphql.Marshaler {
+			return ec.marshalODateTime2ᚖtimeᚐTime(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_HealthMetrics_lastIndexedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("HealthMetrics", field, false, false, errors.New("field of type DateTime does not have child fields"))
+}
+
+func (ec *executionContext) _HealthMetrics_duplicationByDir(ctx context.Context, field graphql.CollectedField, obj *model.HealthMetrics) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_HealthMetrics_duplicationByDir(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.DuplicationByDir, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []model.DirDup) graphql.Marshaler {
+			return ec.marshalNDirDup2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDirDupᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_HealthMetrics_duplicationByDir(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HealthMetrics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_DirDup(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HealthMetrics_bundleByRoute(ctx context.Context, field graphql.CollectedField, obj *model.HealthMetrics) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_HealthMetrics_bundleByRoute(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.BundleByRoute, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []model.RouteBundle) graphql.Marshaler {
+			return ec.marshalNRouteBundle2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐRouteBundleᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_HealthMetrics_bundleByRoute(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HealthMetrics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_RouteBundle(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _HealthMetrics_architecture(ctx context.Context, field graphql.CollectedField, obj *model.HealthMetrics) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_HealthMetrics_architecture(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Architecture, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v model.Architecture) graphql.Marshaler {
+			return ec.marshalNArchitecture2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐArchitecture(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_HealthMetrics_architecture(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "HealthMetrics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Architecture(ctx, field)
+		},
+	}
+	return fc, nil
 }
 
 func (ec *executionContext) _HeartbeatEvent_ts(ctx context.Context, field graphql.CollectedField, obj *model.HeartbeatEvent) (ret graphql.Marshaler) {
@@ -19355,7 +20253,7 @@ func (ec *executionContext) _InlineDoneDelta_usage(ctx context.Context, field gr
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.JSON) graphql.Marshaler {
-			return ec.marshalOJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, selections, v)
+			return ec.marshalOJSON2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐJSON(ctx, selections, v)
 		},
 		true,
 		false,
@@ -19723,7 +20621,7 @@ func (ec *executionContext) _LedgerEntry_costUsd(ctx context.Context, field grap
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.Decimal) graphql.Marshaler {
-			return ec.marshalNDecimal2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDecimal(ctx, selections, v)
+			return ec.marshalNDecimal2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDecimal(ctx, selections, v)
 		},
 		true,
 		true,
@@ -19746,7 +20644,7 @@ func (ec *executionContext) _LedgerEntry_revenueUsd(ctx context.Context, field g
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.Decimal) graphql.Marshaler {
-			return ec.marshalNDecimal2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDecimal(ctx, selections, v)
+			return ec.marshalNDecimal2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDecimal(ctx, selections, v)
 		},
 		true,
 		true,
@@ -20183,7 +21081,7 @@ func (ec *executionContext) _LogEntry_fields(ctx context.Context, field graphql.
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.JSON) graphql.Marshaler {
-			return ec.marshalNJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, selections, v)
+			return ec.marshalNJSON2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐJSON(ctx, selections, v)
 		},
 		true,
 		true,
@@ -21127,7 +22025,7 @@ func (ec *executionContext) _Mutation_appetizeUploadBuild(ctx context.Context, f
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.AppetizeApp) graphql.Marshaler {
-			return ec.marshalNAppetizeApp2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAppetizeApp(ctx, selections, v)
+			return ec.marshalNAppetizeApp2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAppetizeApp(ctx, selections, v)
 		},
 		true,
 		true,
@@ -21215,7 +22113,7 @@ func (ec *executionContext) _Mutation_generateMobileAssets(ctx context.Context, 
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.GenerateMobileAssetsResult) graphql.Marshaler {
-			return ec.marshalNGenerateMobileAssetsResult2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGenerateMobileAssetsResult(ctx, selections, v)
+			return ec.marshalNGenerateMobileAssetsResult2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGenerateMobileAssetsResult(ctx, selections, v)
 		},
 		true,
 		true,
@@ -21259,7 +22157,7 @@ func (ec *executionContext) _Mutation_signUp(ctx context.Context, field graphql.
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.Session) graphql.Marshaler {
-			return ec.marshalNSession2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSession(ctx, selections, v)
+			return ec.marshalNSession2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSession(ctx, selections, v)
 		},
 		true,
 		true,
@@ -21303,7 +22201,7 @@ func (ec *executionContext) _Mutation_signIn(ctx context.Context, field graphql.
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.Session) graphql.Marshaler {
-			return ec.marshalNSession2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSession(ctx, selections, v)
+			return ec.marshalNSession2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSession(ctx, selections, v)
 		},
 		true,
 		true,
@@ -21346,7 +22244,7 @@ func (ec *executionContext) _Mutation_signOut(ctx context.Context, field graphql
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.OperationResult) graphql.Marshaler {
-			return ec.marshalNOperationResult2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐOperationResult(ctx, selections, v)
+			return ec.marshalNOperationResult2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐOperationResult(ctx, selections, v)
 		},
 		true,
 		true,
@@ -21379,7 +22277,7 @@ func (ec *executionContext) _Mutation_verifyEmail(ctx context.Context, field gra
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.Session) graphql.Marshaler {
-			return ec.marshalNSession2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSession(ctx, selections, v)
+			return ec.marshalNSession2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSession(ctx, selections, v)
 		},
 		true,
 		true,
@@ -21422,7 +22320,7 @@ func (ec *executionContext) _Mutation_resendVerificationEmail(ctx context.Contex
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.OperationResult) graphql.Marshaler {
-			return ec.marshalNOperationResult2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐOperationResult(ctx, selections, v)
+			return ec.marshalNOperationResult2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐOperationResult(ctx, selections, v)
 		},
 		true,
 		true,
@@ -21455,7 +22353,7 @@ func (ec *executionContext) _Mutation_requestPasswordReset(ctx context.Context, 
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.OperationResult) graphql.Marshaler {
-			return ec.marshalNOperationResult2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐOperationResult(ctx, selections, v)
+			return ec.marshalNOperationResult2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐOperationResult(ctx, selections, v)
 		},
 		true,
 		true,
@@ -21499,7 +22397,7 @@ func (ec *executionContext) _Mutation_resetPassword(ctx context.Context, field g
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.Session) graphql.Marshaler {
-			return ec.marshalNSession2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSession(ctx, selections, v)
+			return ec.marshalNSession2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSession(ctx, selections, v)
 		},
 		true,
 		true,
@@ -21543,7 +22441,7 @@ func (ec *executionContext) _Mutation_revokeSession(ctx context.Context, field g
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.OperationResult) graphql.Marshaler {
-			return ec.marshalNOperationResult2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐOperationResult(ctx, selections, v)
+			return ec.marshalNOperationResult2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐOperationResult(ctx, selections, v)
 		},
 		true,
 		true,
@@ -21586,7 +22484,7 @@ func (ec *executionContext) _Mutation_revokeAllOtherSessions(ctx context.Context
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.OperationResult) graphql.Marshaler {
-			return ec.marshalNOperationResult2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐOperationResult(ctx, selections, v)
+			return ec.marshalNOperationResult2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐOperationResult(ctx, selections, v)
 		},
 		true,
 		true,
@@ -21619,7 +22517,7 @@ func (ec *executionContext) _Mutation_requestEmailChange(ctx context.Context, fi
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.OperationResult) graphql.Marshaler {
-			return ec.marshalNOperationResult2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐOperationResult(ctx, selections, v)
+			return ec.marshalNOperationResult2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐOperationResult(ctx, selections, v)
 		},
 		true,
 		true,
@@ -21663,7 +22561,7 @@ func (ec *executionContext) _Mutation_confirmEmailChange(ctx context.Context, fi
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.OperationResult) graphql.Marshaler {
-			return ec.marshalNOperationResult2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐOperationResult(ctx, selections, v)
+			return ec.marshalNOperationResult2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐOperationResult(ctx, selections, v)
 		},
 		true,
 		true,
@@ -21707,7 +22605,7 @@ func (ec *executionContext) _Mutation_setTelemetryPreference(ctx context.Context
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.User) graphql.Marshaler {
-			return ec.marshalNUser2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐUser(ctx, selections, v)
+			return ec.marshalNUser2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐUser(ctx, selections, v)
 		},
 		true,
 		true,
@@ -21751,7 +22649,7 @@ func (ec *executionContext) _Mutation_startCheckout(ctx context.Context, field g
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.StripeCheckoutSession) graphql.Marshaler {
-			return ec.marshalNStripeCheckoutSession2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐStripeCheckoutSession(ctx, selections, v)
+			return ec.marshalNStripeCheckoutSession2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐStripeCheckoutSession(ctx, selections, v)
 		},
 		true,
 		true,
@@ -21795,7 +22693,7 @@ func (ec *executionContext) _Mutation_acceptInlineCompletion(ctx context.Context
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.OperationResult) graphql.Marshaler {
-			return ec.marshalNOperationResult2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐOperationResult(ctx, selections, v)
+			return ec.marshalNOperationResult2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐOperationResult(ctx, selections, v)
 		},
 		true,
 		true,
@@ -21839,7 +22737,7 @@ func (ec *executionContext) _Mutation_planDeploy(ctx context.Context, field grap
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.Deploy) graphql.Marshaler {
-			return ec.marshalNDeploy2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeploy(ctx, selections, v)
+			return ec.marshalNDeploy2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeploy(ctx, selections, v)
 		},
 		true,
 		true,
@@ -21883,7 +22781,7 @@ func (ec *executionContext) _Mutation_buildDeployPreview(ctx context.Context, fi
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.Deploy) graphql.Marshaler {
-			return ec.marshalNDeploy2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeploy(ctx, selections, v)
+			return ec.marshalNDeploy2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeploy(ctx, selections, v)
 		},
 		true,
 		true,
@@ -21927,7 +22825,7 @@ func (ec *executionContext) _Mutation_requestDeployApproval(ctx context.Context,
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.DeployApproval) graphql.Marshaler {
-			return ec.marshalNDeployApproval2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployApproval(ctx, selections, v)
+			return ec.marshalNDeployApproval2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeployApproval(ctx, selections, v)
 		},
 		true,
 		true,
@@ -21971,7 +22869,7 @@ func (ec *executionContext) _Mutation_decideDeployApproval(ctx context.Context, 
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.DeployApproval) graphql.Marshaler {
-			return ec.marshalNDeployApproval2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployApproval(ctx, selections, v)
+			return ec.marshalNDeployApproval2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeployApproval(ctx, selections, v)
 		},
 		true,
 		true,
@@ -22015,7 +22913,7 @@ func (ec *executionContext) _Mutation_promoteDeploy(ctx context.Context, field g
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.Deploy) graphql.Marshaler {
-			return ec.marshalNDeploy2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeploy(ctx, selections, v)
+			return ec.marshalNDeploy2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeploy(ctx, selections, v)
 		},
 		true,
 		true,
@@ -22059,7 +22957,7 @@ func (ec *executionContext) _Mutation_rollbackDeploy(ctx context.Context, field 
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.Deploy) graphql.Marshaler {
-			return ec.marshalNDeploy2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeploy(ctx, selections, v)
+			return ec.marshalNDeploy2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeploy(ctx, selections, v)
 		},
 		true,
 		true,
@@ -22103,7 +23001,7 @@ func (ec *executionContext) _Mutation_cancelDeploy(ctx context.Context, field gr
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.Deploy) graphql.Marshaler {
-			return ec.marshalNDeploy2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeploy(ctx, selections, v)
+			return ec.marshalNDeploy2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeploy(ctx, selections, v)
 		},
 		true,
 		true,
@@ -22147,7 +23045,7 @@ func (ec *executionContext) _Mutation_reserveDeploySubdomain(ctx context.Context
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.DeployDomain) graphql.Marshaler {
-			return ec.marshalNDeployDomain2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployDomain(ctx, selections, v)
+			return ec.marshalNDeployDomain2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeployDomain(ctx, selections, v)
 		},
 		true,
 		true,
@@ -22191,7 +23089,7 @@ func (ec *executionContext) _Mutation_connectDeployDomain(ctx context.Context, f
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.DeployDomain) graphql.Marshaler {
-			return ec.marshalNDeployDomain2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployDomain(ctx, selections, v)
+			return ec.marshalNDeployDomain2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeployDomain(ctx, selections, v)
 		},
 		true,
 		true,
@@ -22235,7 +23133,7 @@ func (ec *executionContext) _Mutation_checkDeployDomain(ctx context.Context, fie
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.DeployDomain) graphql.Marshaler {
-			return ec.marshalNDeployDomain2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployDomain(ctx, selections, v)
+			return ec.marshalNDeployDomain2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeployDomain(ctx, selections, v)
 		},
 		true,
 		true,
@@ -22279,7 +23177,7 @@ func (ec *executionContext) _Mutation_setPrimaryDeployDomain(ctx context.Context
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.DeployDomain) graphql.Marshaler {
-			return ec.marshalNDeployDomain2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployDomain(ctx, selections, v)
+			return ec.marshalNDeployDomain2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeployDomain(ctx, selections, v)
 		},
 		true,
 		true,
@@ -22323,7 +23221,7 @@ func (ec *executionContext) _Mutation_purchaseDeployDomain(ctx context.Context, 
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.DeployDomain) graphql.Marshaler {
-			return ec.marshalNDeployDomain2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployDomain(ctx, selections, v)
+			return ec.marshalNDeployDomain2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeployDomain(ctx, selections, v)
 		},
 		true,
 		true,
@@ -22367,7 +23265,7 @@ func (ec *executionContext) _Mutation_deviceCloudStartSession(ctx context.Contex
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.DeviceCloudSession) graphql.Marshaler {
-			return ec.marshalNDeviceCloudSession2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeviceCloudSession(ctx, selections, v)
+			return ec.marshalNDeviceCloudSession2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeviceCloudSession(ctx, selections, v)
 		},
 		true,
 		true,
@@ -22455,7 +23353,7 @@ func (ec *executionContext) _Mutation_createPaidExecution(ctx context.Context, f
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.Execution) graphql.Marshaler {
-			return ec.marshalNExecution2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐExecution(ctx, selections, v)
+			return ec.marshalNExecution2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐExecution(ctx, selections, v)
 		},
 		true,
 		true,
@@ -22499,7 +23397,7 @@ func (ec *executionContext) _Mutation_stopExecution(ctx context.Context, field g
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.Execution) graphql.Marshaler {
-			return ec.marshalNExecution2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐExecution(ctx, selections, v)
+			return ec.marshalNExecution2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐExecution(ctx, selections, v)
 		},
 		true,
 		true,
@@ -22543,7 +23441,7 @@ func (ec *executionContext) _Mutation_refundExecution(ctx context.Context, field
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.Execution) graphql.Marshaler {
-			return ec.marshalNExecution2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐExecution(ctx, selections, v)
+			return ec.marshalNExecution2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐExecution(ctx, selections, v)
 		},
 		true,
 		true,
@@ -22587,7 +23485,7 @@ func (ec *executionContext) _Mutation_rerunGate(ctx context.Context, field graph
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.GateVerdict) graphql.Marshaler {
-			return ec.marshalNGateVerdict2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGateVerdict(ctx, selections, v)
+			return ec.marshalNGateVerdict2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGateVerdict(ctx, selections, v)
 		},
 		true,
 		true,
@@ -22631,7 +23529,7 @@ func (ec *executionContext) _Mutation_mobileTriggerBuild(ctx context.Context, fi
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.MobileBuild) graphql.Marshaler {
-			return ec.marshalNMobileBuild2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileBuild(ctx, selections, v)
+			return ec.marshalNMobileBuild2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMobileBuild(ctx, selections, v)
 		},
 		true,
 		true,
@@ -22719,7 +23617,7 @@ func (ec *executionContext) _Mutation_mobileSubmitToStore(ctx context.Context, f
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.MobileSubmission) graphql.Marshaler {
-			return ec.marshalNMobileSubmission2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileSubmission(ctx, selections, v)
+			return ec.marshalNMobileSubmission2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMobileSubmission(ctx, selections, v)
 		},
 		true,
 		true,
@@ -22763,7 +23661,7 @@ func (ec *executionContext) _Mutation_mobilePublishUpdate(ctx context.Context, f
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.MobileUpdate) graphql.Marshaler {
-			return ec.marshalNMobileUpdate2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileUpdate(ctx, selections, v)
+			return ec.marshalNMobileUpdate2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMobileUpdate(ctx, selections, v)
 		},
 		true,
 		true,
@@ -22807,7 +23705,7 @@ func (ec *executionContext) _Mutation_proposePatch(ctx context.Context, field gr
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.Patch) graphql.Marshaler {
-			return ec.marshalNPatch2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatch(ctx, selections, v)
+			return ec.marshalNPatch2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatch(ctx, selections, v)
 		},
 		true,
 		true,
@@ -22851,7 +23749,7 @@ func (ec *executionContext) _Mutation_applyPatch(ctx context.Context, field grap
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.Patch) graphql.Marshaler {
-			return ec.marshalNPatch2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatch(ctx, selections, v)
+			return ec.marshalNPatch2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatch(ctx, selections, v)
 		},
 		true,
 		true,
@@ -22895,7 +23793,7 @@ func (ec *executionContext) _Mutation_rollbackPatch(ctx context.Context, field g
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.JSON) graphql.Marshaler {
-			return ec.marshalNJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, selections, v)
+			return ec.marshalNJSON2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐJSON(ctx, selections, v)
 		},
 		true,
 		true,
@@ -22939,7 +23837,7 @@ func (ec *executionContext) _Mutation_proposeSymbolPatch(ctx context.Context, fi
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.Patch) graphql.Marshaler {
-			return ec.marshalNPatch2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatch(ctx, selections, v)
+			return ec.marshalNPatch2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatch(ctx, selections, v)
 		},
 		true,
 		true,
@@ -22983,7 +23881,7 @@ func (ec *executionContext) _Mutation_renameSymbol(ctx context.Context, field gr
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.Patch) graphql.Marshaler {
-			return ec.marshalNPatch2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatch(ctx, selections, v)
+			return ec.marshalNPatch2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatch(ctx, selections, v)
 		},
 		true,
 		true,
@@ -23027,7 +23925,7 @@ func (ec *executionContext) _Mutation_createStage(ctx context.Context, field gra
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.PatchStage) graphql.Marshaler {
-			return ec.marshalNPatchStage2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchStage(ctx, selections, v)
+			return ec.marshalNPatchStage2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchStage(ctx, selections, v)
 		},
 		true,
 		true,
@@ -23071,7 +23969,7 @@ func (ec *executionContext) _Mutation_applyStage(ctx context.Context, field grap
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.JSON) graphql.Marshaler {
-			return ec.marshalNJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, selections, v)
+			return ec.marshalNJSON2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐJSON(ctx, selections, v)
 		},
 		true,
 		true,
@@ -23115,7 +24013,7 @@ func (ec *executionContext) _Mutation_rejectStage(ctx context.Context, field gra
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.PatchStage) graphql.Marshaler {
-			return ec.marshalNPatchStage2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchStage(ctx, selections, v)
+			return ec.marshalNPatchStage2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchStage(ctx, selections, v)
 		},
 		true,
 		true,
@@ -23159,7 +24057,7 @@ func (ec *executionContext) _Mutation_createProject(ctx context.Context, field g
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.Project) graphql.Marshaler {
-			return ec.marshalNProject2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐProject(ctx, selections, v)
+			return ec.marshalNProject2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐProject(ctx, selections, v)
 		},
 		true,
 		true,
@@ -23203,7 +24101,7 @@ func (ec *executionContext) _Mutation_updateProject(ctx context.Context, field g
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.Project) graphql.Marshaler {
-			return ec.marshalNProject2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐProject(ctx, selections, v)
+			return ec.marshalNProject2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐProject(ctx, selections, v)
 		},
 		true,
 		true,
@@ -23247,7 +24145,7 @@ func (ec *executionContext) _Mutation_deleteProject(ctx context.Context, field g
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.OperationResult) graphql.Marshaler {
-			return ec.marshalNOperationResult2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐOperationResult(ctx, selections, v)
+			return ec.marshalNOperationResult2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐOperationResult(ctx, selections, v)
 		},
 		true,
 		true,
@@ -23291,7 +24189,7 @@ func (ec *executionContext) _Mutation_bulkDeleteProjects(ctx context.Context, fi
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.OperationResult) graphql.Marshaler {
-			return ec.marshalNOperationResult2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐOperationResult(ctx, selections, v)
+			return ec.marshalNOperationResult2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐOperationResult(ctx, selections, v)
 		},
 		true,
 		true,
@@ -23335,7 +24233,7 @@ func (ec *executionContext) _Mutation_runFinisher(ctx context.Context, field gra
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.JSON) graphql.Marshaler {
-			return ec.marshalNJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, selections, v)
+			return ec.marshalNJSON2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐJSON(ctx, selections, v)
 		},
 		true,
 		true,
@@ -23379,7 +24277,7 @@ func (ec *executionContext) _Mutation_promptPlan(ctx context.Context, field grap
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.JSON) graphql.Marshaler {
-			return ec.marshalNJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, selections, v)
+			return ec.marshalNJSON2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐJSON(ctx, selections, v)
 		},
 		true,
 		true,
@@ -23423,7 +24321,7 @@ func (ec *executionContext) _Mutation_writeProjectFiles(ctx context.Context, fie
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.ProjectFile) graphql.Marshaler {
-			return ec.marshalNProjectFile2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐProjectFileᚄ(ctx, selections, v)
+			return ec.marshalNProjectFile2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐProjectFileᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -23467,7 +24365,7 @@ func (ec *executionContext) _Mutation_describeIdea(ctx context.Context, field gr
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.StudioBootstrap) graphql.Marshaler {
-			return ec.marshalNStudioBootstrap2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐStudioBootstrap(ctx, selections, v)
+			return ec.marshalNStudioBootstrap2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐStudioBootstrap(ctx, selections, v)
 		},
 		true,
 		true,
@@ -23511,7 +24409,7 @@ func (ec *executionContext) _Mutation_refineIdea(ctx context.Context, field grap
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.StudioBootstrap) graphql.Marshaler {
-			return ec.marshalNStudioBootstrap2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐStudioBootstrap(ctx, selections, v)
+			return ec.marshalNStudioBootstrap2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐStudioBootstrap(ctx, selections, v)
 		},
 		true,
 		true,
@@ -23555,7 +24453,7 @@ func (ec *executionContext) _Mutation_walletCreateTopUp(ctx context.Context, fie
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.WalletCheckoutSession) graphql.Marshaler {
-			return ec.marshalNWalletCheckoutSession2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐWalletCheckoutSession(ctx, selections, v)
+			return ec.marshalNWalletCheckoutSession2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐWalletCheckoutSession(ctx, selections, v)
 		},
 		true,
 		true,
@@ -24426,7 +25324,7 @@ func (ec *executionContext) _Patch_status(ctx context.Context, field graphql.Col
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.PatchStatus) graphql.Marshaler {
-			return ec.marshalNPatchStatus2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchStatus(ctx, selections, v)
+			return ec.marshalNPatchStatus2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchStatus(ctx, selections, v)
 		},
 		true,
 		true,
@@ -24495,7 +25393,7 @@ func (ec *executionContext) _Patch_changes(ctx context.Context, field graphql.Co
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.PatchChange) graphql.Marshaler {
-			return ec.marshalNPatchChange2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchChangeᚄ(ctx, selections, v)
+			return ec.marshalNPatchChange2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchChangeᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -24550,7 +25448,7 @@ func (ec *executionContext) _Patch_stage(ctx context.Context, field graphql.Coll
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.PatchStage) graphql.Marshaler {
-			return ec.marshalOPatchStage2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchStage(ctx, selections, v)
+			return ec.marshalOPatchStage2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchStage(ctx, selections, v)
 		},
 		true,
 		false,
@@ -24582,7 +25480,7 @@ func (ec *executionContext) _Patch_conflicts(ctx context.Context, field graphql.
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.PatchConflict) graphql.Marshaler {
-			return ec.marshalOPatchConflict2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchConflictᚄ(ctx, selections, v)
+			return ec.marshalOPatchConflict2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchConflictᚄ(ctx, selections, v)
 		},
 		true,
 		false,
@@ -24683,7 +25581,7 @@ func (ec *executionContext) _PatchChange_op(ctx context.Context, field graphql.C
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.PatchChangeOp) graphql.Marshaler {
-			return ec.marshalNPatchChangeOp2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchChangeOp(ctx, selections, v)
+			return ec.marshalNPatchChangeOp2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchChangeOp(ctx, selections, v)
 		},
 		true,
 		true,
@@ -25051,7 +25949,7 @@ func (ec *executionContext) _PatchStage_status(ctx context.Context, field graphq
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.PatchStageStatus) graphql.Marshaler {
-			return ec.marshalNPatchStageStatus2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchStageStatus(ctx, selections, v)
+			return ec.marshalNPatchStageStatus2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchStageStatus(ctx, selections, v)
 		},
 		true,
 		true,
@@ -25258,7 +26156,7 @@ func (ec *executionContext) _Plan_priceUsd(ctx context.Context, field graphql.Co
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.Decimal) graphql.Marshaler {
-			return ec.marshalNDecimal2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDecimal(ctx, selections, v)
+			return ec.marshalNDecimal2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDecimal(ctx, selections, v)
 		},
 		true,
 		true,
@@ -25281,7 +26179,7 @@ func (ec *executionContext) _Plan_costCapUsd(ctx context.Context, field graphql.
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.Decimal) graphql.Marshaler {
-			return ec.marshalNDecimal2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDecimal(ctx, selections, v)
+			return ec.marshalNDecimal2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDecimal(ctx, selections, v)
 		},
 		true,
 		true,
@@ -26109,7 +27007,7 @@ func (ec *executionContext) _Project_files(ctx context.Context, field graphql.Co
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.ProjectFile) graphql.Marshaler {
-			return ec.marshalNProjectFile2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐProjectFileᚄ(ctx, selections, v)
+			return ec.marshalNProjectFile2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐProjectFileᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -26141,7 +27039,7 @@ func (ec *executionContext) _Project_gates(ctx context.Context, field graphql.Co
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.GateVerdict) graphql.Marshaler {
-			return ec.marshalNGateVerdict2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGateVerdictᚄ(ctx, selections, v)
+			return ec.marshalNGateVerdict2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGateVerdictᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -26357,7 +27255,7 @@ func (ec *executionContext) _Query_version(ctx context.Context, field graphql.Co
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.VersionInfo) graphql.Marshaler {
-			return ec.marshalNVersionInfo2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐVersionInfo(ctx, selections, v)
+			return ec.marshalNVersionInfo2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐVersionInfo(ctx, selections, v)
 		},
 		true,
 		true,
@@ -26389,7 +27287,7 @@ func (ec *executionContext) _Query_agents(ctx context.Context, field graphql.Col
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.Agent) graphql.Marshaler {
-			return ec.marshalNAgent2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAgentᚄ(ctx, selections, v)
+			return ec.marshalNAgent2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAgentᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -26422,7 +27320,7 @@ func (ec *executionContext) _Query_agentTelemetry(ctx context.Context, field gra
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.AgentCall) graphql.Marshaler {
-			return ec.marshalNAgentCall2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAgentCallᚄ(ctx, selections, v)
+			return ec.marshalNAgentCall2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAgentCallᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -26466,7 +27364,7 @@ func (ec *executionContext) _Query_banditRanking(ctx context.Context, field grap
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.BanditRanking) graphql.Marshaler {
-			return ec.marshalNBanditRanking2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBanditRanking(ctx, selections, v)
+			return ec.marshalNBanditRanking2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBanditRanking(ctx, selections, v)
 		},
 		true,
 		true,
@@ -26510,7 +27408,7 @@ func (ec *executionContext) _Query_audit(ctx context.Context, field graphql.Coll
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.AuditEntry) graphql.Marshaler {
-			return ec.marshalNAuditEntry2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAuditEntryᚄ(ctx, selections, v)
+			return ec.marshalNAuditEntry2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAuditEntryᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -26553,7 +27451,7 @@ func (ec *executionContext) _Query_verifyAudit(ctx context.Context, field graphq
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.AuditVerifyResult) graphql.Marshaler {
-			return ec.marshalNAuditVerifyResult2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAuditVerifyResult(ctx, selections, v)
+			return ec.marshalNAuditVerifyResult2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAuditVerifyResult(ctx, selections, v)
 		},
 		true,
 		true,
@@ -26674,7 +27572,7 @@ func (ec *executionContext) _Query_auditExportPreview(ctx context.Context, field
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.AuditExportPreview) graphql.Marshaler {
-			return ec.marshalNAuditExportPreview2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAuditExportPreview(ctx, selections, v)
+			return ec.marshalNAuditExportPreview2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAuditExportPreview(ctx, selections, v)
 		},
 		true,
 		true,
@@ -26718,7 +27616,7 @@ func (ec *executionContext) _Query_auditChainProof(ctx context.Context, field gr
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.AuditChainProof) graphql.Marshaler {
-			return ec.marshalNAuditChainProof2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAuditChainProof(ctx, selections, v)
+			return ec.marshalNAuditChainProof2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAuditChainProof(ctx, selections, v)
 		},
 		true,
 		true,
@@ -26761,7 +27659,7 @@ func (ec *executionContext) _Query_me(ctx context.Context, field graphql.Collect
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.User) graphql.Marshaler {
-			return ec.marshalOUser2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐUser(ctx, selections, v)
+			return ec.marshalOUser2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐUser(ctx, selections, v)
 		},
 		true,
 		false,
@@ -26793,7 +27691,7 @@ func (ec *executionContext) _Query_mySessions(ctx context.Context, field graphql
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.Session) graphql.Marshaler {
-			return ec.marshalNSession2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSessionᚄ(ctx, selections, v)
+			return ec.marshalNSession2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSessionᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -26825,7 +27723,7 @@ func (ec *executionContext) _Query_blueprints(ctx context.Context, field graphql
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.Blueprint) graphql.Marshaler {
-			return ec.marshalNBlueprint2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBlueprintᚄ(ctx, selections, v)
+			return ec.marshalNBlueprint2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBlueprintᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -26858,7 +27756,7 @@ func (ec *executionContext) _Query_blueprint(ctx context.Context, field graphql.
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.Blueprint) graphql.Marshaler {
-			return ec.marshalOBlueprint2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBlueprint(ctx, selections, v)
+			return ec.marshalOBlueprint2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBlueprint(ctx, selections, v)
 		},
 		true,
 		false,
@@ -26902,7 +27800,7 @@ func (ec *executionContext) _Query_blueprintStats(ctx context.Context, field gra
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.BlueprintStats) graphql.Marshaler {
-			return ec.marshalOBlueprintStats2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBlueprintStats(ctx, selections, v)
+			return ec.marshalOBlueprintStats2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBlueprintStats(ctx, selections, v)
 		},
 		true,
 		false,
@@ -26946,7 +27844,7 @@ func (ec *executionContext) _Query_blueprintRanking(ctx context.Context, field g
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.BlueprintStats) graphql.Marshaler {
-			return ec.marshalNBlueprintStats2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBlueprintStatsᚄ(ctx, selections, v)
+			return ec.marshalNBlueprintStats2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBlueprintStatsᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -26989,7 +27887,7 @@ func (ec *executionContext) _Query_plans(ctx context.Context, field graphql.Coll
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.Plan) graphql.Marshaler {
-			return ec.marshalNPlan2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPlanᚄ(ctx, selections, v)
+			return ec.marshalNPlan2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPlanᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -27021,7 +27919,7 @@ func (ec *executionContext) _Query_rates(ctx context.Context, field graphql.Coll
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.Rate) graphql.Marshaler {
-			return ec.marshalNRate2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐRateᚄ(ctx, selections, v)
+			return ec.marshalNRate2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐRateᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -27053,7 +27951,7 @@ func (ec *executionContext) _Query_vault(ctx context.Context, field graphql.Coll
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.VaultSnapshot) graphql.Marshaler {
-			return ec.marshalNVaultSnapshot2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐVaultSnapshot(ctx, selections, v)
+			return ec.marshalNVaultSnapshot2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐVaultSnapshot(ctx, selections, v)
 		},
 		true,
 		true,
@@ -27085,7 +27983,7 @@ func (ec *executionContext) _Query_myBudget(ctx context.Context, field graphql.C
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.BudgetSummary) graphql.Marshaler {
-			return ec.marshalNBudgetSummary2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBudgetSummary(ctx, selections, v)
+			return ec.marshalNBudgetSummary2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBudgetSummary(ctx, selections, v)
 		},
 		true,
 		true,
@@ -27118,7 +28016,7 @@ func (ec *executionContext) _Query_profitDashboard(ctx context.Context, field gr
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.ProfitDashboard) graphql.Marshaler {
-			return ec.marshalNProfitDashboard2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐProfitDashboard(ctx, selections, v)
+			return ec.marshalNProfitDashboard2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐProfitDashboard(ctx, selections, v)
 		},
 		true,
 		true,
@@ -27161,7 +28059,7 @@ func (ec *executionContext) _Query_scaleDashboard(ctx context.Context, field gra
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.ScaleDashboard) graphql.Marshaler {
-			return ec.marshalNScaleDashboard2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐScaleDashboard(ctx, selections, v)
+			return ec.marshalNScaleDashboard2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐScaleDashboard(ctx, selections, v)
 		},
 		true,
 		true,
@@ -27194,7 +28092,7 @@ func (ec *executionContext) _Query_cohortDashboard(ctx context.Context, field gr
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.CohortDashboard) graphql.Marshaler {
-			return ec.marshalNCohortDashboard2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐCohortDashboard(ctx, selections, v)
+			return ec.marshalNCohortDashboard2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCohortDashboard(ctx, selections, v)
 		},
 		true,
 		true,
@@ -27237,7 +28135,7 @@ func (ec *executionContext) _Query_blueprintDashboard(ctx context.Context, field
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.BlueprintDashboard) graphql.Marshaler {
-			return ec.marshalNBlueprintDashboard2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBlueprintDashboard(ctx, selections, v)
+			return ec.marshalNBlueprintDashboard2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBlueprintDashboard(ctx, selections, v)
 		},
 		true,
 		true,
@@ -27251,6 +28149,38 @@ func (ec *executionContext) fieldContext_Query_blueprintDashboard(_ context.Cont
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return ec.childFields_BlueprintDashboard(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_healthDashboard(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Query_healthDashboard(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Query().HealthDashboard(ctx)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.HealthMetrics) graphql.Marshaler {
+			return ec.marshalNHealthMetrics2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐHealthMetrics(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Query_healthDashboard(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_HealthMetrics(ctx, field)
 		},
 	}
 	return fc, nil
@@ -27270,7 +28200,7 @@ func (ec *executionContext) _Query_deploy(ctx context.Context, field graphql.Col
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.Deploy) graphql.Marshaler {
-			return ec.marshalODeploy2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeploy(ctx, selections, v)
+			return ec.marshalODeploy2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeploy(ctx, selections, v)
 		},
 		true,
 		false,
@@ -27314,7 +28244,7 @@ func (ec *executionContext) _Query_deploys(ctx context.Context, field graphql.Co
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.Deploy) graphql.Marshaler {
-			return ec.marshalNDeploy2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployᚄ(ctx, selections, v)
+			return ec.marshalNDeploy2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeployᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -27357,7 +28287,7 @@ func (ec *executionContext) _Query_pendingDeployApprovals(ctx context.Context, f
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.DeployApproval) graphql.Marshaler {
-			return ec.marshalNDeployApproval2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployApprovalᚄ(ctx, selections, v)
+			return ec.marshalNDeployApproval2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeployApprovalᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -27390,7 +28320,7 @@ func (ec *executionContext) _Query_deployDomains(ctx context.Context, field grap
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.DeployDomain) graphql.Marshaler {
-			return ec.marshalNDeployDomain2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployDomainᚄ(ctx, selections, v)
+			return ec.marshalNDeployDomain2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeployDomainᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -27434,7 +28364,7 @@ func (ec *executionContext) _Query_domainAvailability(ctx context.Context, field
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.DomainAvailability) graphql.Marshaler {
-			return ec.marshalNDomainAvailability2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDomainAvailability(ctx, selections, v)
+			return ec.marshalNDomainAvailability2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDomainAvailability(ctx, selections, v)
 		},
 		true,
 		true,
@@ -27478,7 +28408,7 @@ func (ec *executionContext) _Query_deviceCloudDevices(ctx context.Context, field
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.DeviceCloudDevice) graphql.Marshaler {
-			return ec.marshalNDeviceCloudDevice2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeviceCloudDeviceᚄ(ctx, selections, v)
+			return ec.marshalNDeviceCloudDevice2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeviceCloudDeviceᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -27522,7 +28452,7 @@ func (ec *executionContext) _Query_recentErrors(ctx context.Context, field graph
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.ErrorAggregate) graphql.Marshaler {
-			return ec.marshalNErrorAggregate2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐErrorAggregateᚄ(ctx, selections, v)
+			return ec.marshalNErrorAggregate2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐErrorAggregateᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -27566,7 +28496,7 @@ func (ec *executionContext) _Query_recentLogs(ctx context.Context, field graphql
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.LogEntry) graphql.Marshaler {
-			return ec.marshalNLogEntry2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐLogEntryᚄ(ctx, selections, v)
+			return ec.marshalNLogEntry2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐLogEntryᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -27610,7 +28540,7 @@ func (ec *executionContext) _Query_execution(ctx context.Context, field graphql.
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.Execution) graphql.Marshaler {
-			return ec.marshalOExecution2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐExecution(ctx, selections, v)
+			return ec.marshalOExecution2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐExecution(ctx, selections, v)
 		},
 		true,
 		false,
@@ -27654,7 +28584,7 @@ func (ec *executionContext) _Query_executions(ctx context.Context, field graphql
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.Execution) graphql.Marshaler {
-			return ec.marshalNExecution2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐExecutionᚄ(ctx, selections, v)
+			return ec.marshalNExecution2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐExecutionᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -27698,7 +28628,7 @@ func (ec *executionContext) _Query_projectExecutions(ctx context.Context, field 
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.Execution) graphql.Marshaler {
-			return ec.marshalNExecution2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐExecutionᚄ(ctx, selections, v)
+			return ec.marshalNExecution2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐExecutionᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -27742,7 +28672,7 @@ func (ec *executionContext) _Query_estimateExecutionCost(ctx context.Context, fi
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.CostEstimate) graphql.Marshaler {
-			return ec.marshalNCostEstimate2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐCostEstimate(ctx, selections, v)
+			return ec.marshalNCostEstimate2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCostEstimate(ctx, selections, v)
 		},
 		true,
 		true,
@@ -27786,7 +28716,7 @@ func (ec *executionContext) _Query_gates(ctx context.Context, field graphql.Coll
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.GateVerdict) graphql.Marshaler {
-			return ec.marshalNGateVerdict2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGateVerdictᚄ(ctx, selections, v)
+			return ec.marshalNGateVerdict2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGateVerdictᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -27830,7 +28760,7 @@ func (ec *executionContext) _Query_gate(ctx context.Context, field graphql.Colle
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.GateVerdict) graphql.Marshaler {
-			return ec.marshalOGateVerdict2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGateVerdict(ctx, selections, v)
+			return ec.marshalOGateVerdict2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGateVerdict(ctx, selections, v)
 		},
 		true,
 		false,
@@ -27874,7 +28804,7 @@ func (ec *executionContext) _Query_ledger(ctx context.Context, field graphql.Col
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.WalletLedgerEntry) graphql.Marshaler {
-			return ec.marshalNWalletLedgerEntry2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐWalletLedgerEntryᚄ(ctx, selections, v)
+			return ec.marshalNWalletLedgerEntry2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐWalletLedgerEntryᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -27918,7 +28848,7 @@ func (ec *executionContext) _Query_ledgerRollup(ctx context.Context, field graph
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.LedgerRollup) graphql.Marshaler {
-			return ec.marshalNLedgerRollup2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐLedgerRollup(ctx, selections, v)
+			return ec.marshalNLedgerRollup2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐLedgerRollup(ctx, selections, v)
 		},
 		true,
 		true,
@@ -27962,7 +28892,7 @@ func (ec *executionContext) _Query_executionLedger(ctx context.Context, field gr
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.WalletLedgerEntry) graphql.Marshaler {
-			return ec.marshalNWalletLedgerEntry2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐWalletLedgerEntryᚄ(ctx, selections, v)
+			return ec.marshalNWalletLedgerEntry2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐWalletLedgerEntryᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -28005,7 +28935,7 @@ func (ec *executionContext) _Query_tenantProfitToday(ctx context.Context, field 
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.LedgerRollup) graphql.Marshaler {
-			return ec.marshalNLedgerRollup2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐLedgerRollup(ctx, selections, v)
+			return ec.marshalNLedgerRollup2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐLedgerRollup(ctx, selections, v)
 		},
 		true,
 		true,
@@ -28038,7 +28968,7 @@ func (ec *executionContext) _Query_mobileBuilds(ctx context.Context, field graph
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.MobileBuild) graphql.Marshaler {
-			return ec.marshalNMobileBuild2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileBuildᚄ(ctx, selections, v)
+			return ec.marshalNMobileBuild2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMobileBuildᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -28082,7 +29012,7 @@ func (ec *executionContext) _Query_mobileBuild(ctx context.Context, field graphq
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.MobileBuild) graphql.Marshaler {
-			return ec.marshalOMobileBuild2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileBuild(ctx, selections, v)
+			return ec.marshalOMobileBuild2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMobileBuild(ctx, selections, v)
 		},
 		true,
 		false,
@@ -28126,7 +29056,7 @@ func (ec *executionContext) _Query_mobileSubmissions(ctx context.Context, field 
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.MobileSubmission) graphql.Marshaler {
-			return ec.marshalNMobileSubmission2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileSubmissionᚄ(ctx, selections, v)
+			return ec.marshalNMobileSubmission2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMobileSubmissionᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -28170,7 +29100,7 @@ func (ec *executionContext) _Query_operatorPendingApprovals(ctx context.Context,
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.DeployApproval) graphql.Marshaler {
-			return ec.marshalNDeployApproval2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployApprovalᚄ(ctx, selections, v)
+			return ec.marshalNDeployApproval2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeployApprovalᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -28214,7 +29144,7 @@ func (ec *executionContext) _Query_operatorAbuseScore(ctx context.Context, field
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.AbuseScoreResult) graphql.Marshaler {
-			return ec.marshalNAbuseScoreResult2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAbuseScoreResult(ctx, selections, v)
+			return ec.marshalNAbuseScoreResult2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAbuseScoreResult(ctx, selections, v)
 		},
 		true,
 		true,
@@ -28257,7 +29187,7 @@ func (ec *executionContext) _Query_operatorScaleSnapshot(ctx context.Context, fi
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.OperatorScaleSnapshot) graphql.Marshaler {
-			return ec.marshalNOperatorScaleSnapshot2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐOperatorScaleSnapshot(ctx, selections, v)
+			return ec.marshalNOperatorScaleSnapshot2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐOperatorScaleSnapshot(ctx, selections, v)
 		},
 		true,
 		true,
@@ -28290,7 +29220,7 @@ func (ec *executionContext) _Query_operatorWalletSnapshot(ctx context.Context, f
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.OperatorWalletSnapshot) graphql.Marshaler {
-			return ec.marshalNOperatorWalletSnapshot2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐOperatorWalletSnapshot(ctx, selections, v)
+			return ec.marshalNOperatorWalletSnapshot2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐOperatorWalletSnapshot(ctx, selections, v)
 		},
 		true,
 		true,
@@ -28334,7 +29264,7 @@ func (ec *executionContext) _Query_operatorAuditCursor(ctx context.Context, fiel
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.OperatorAuditEntry) graphql.Marshaler {
-			return ec.marshalNOperatorAuditEntry2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐOperatorAuditEntryᚄ(ctx, selections, v)
+			return ec.marshalNOperatorAuditEntry2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐOperatorAuditEntryᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -28378,7 +29308,7 @@ func (ec *executionContext) _Query_patches(ctx context.Context, field graphql.Co
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.Patch) graphql.Marshaler {
-			return ec.marshalNPatch2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchᚄ(ctx, selections, v)
+			return ec.marshalNPatch2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -28422,7 +29352,7 @@ func (ec *executionContext) _Query_patch(ctx context.Context, field graphql.Coll
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.Patch) graphql.Marshaler {
-			return ec.marshalOPatch2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatch(ctx, selections, v)
+			return ec.marshalOPatch2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatch(ctx, selections, v)
 		},
 		true,
 		false,
@@ -28466,7 +29396,7 @@ func (ec *executionContext) _Query_patchSnapshots(ctx context.Context, field gra
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.JSON) graphql.Marshaler {
-			return ec.marshalOJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, selections, v)
+			return ec.marshalOJSON2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐJSON(ctx, selections, v)
 		},
 		true,
 		false,
@@ -28510,7 +29440,7 @@ func (ec *executionContext) _Query_stages(ctx context.Context, field graphql.Col
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.PatchStage) graphql.Marshaler {
-			return ec.marshalNPatchStage2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchStageᚄ(ctx, selections, v)
+			return ec.marshalNPatchStage2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchStageᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -28554,7 +29484,7 @@ func (ec *executionContext) _Query_stage(ctx context.Context, field graphql.Coll
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.PatchStage) graphql.Marshaler {
-			return ec.marshalOPatchStage2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchStage(ctx, selections, v)
+			return ec.marshalOPatchStage2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchStage(ctx, selections, v)
 		},
 		true,
 		false,
@@ -28598,7 +29528,7 @@ func (ec *executionContext) _Query_profitGuardDecisions(ctx context.Context, fie
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.ProfitGuardDecision) graphql.Marshaler {
-			return ec.marshalNProfitGuardDecision2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐProfitGuardDecisionᚄ(ctx, selections, v)
+			return ec.marshalNProfitGuardDecision2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐProfitGuardDecisionᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -28642,7 +29572,7 @@ func (ec *executionContext) _Query_projects(ctx context.Context, field graphql.C
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.Project) graphql.Marshaler {
-			return ec.marshalNProject2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐProjectᚄ(ctx, selections, v)
+			return ec.marshalNProject2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐProjectᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -28686,7 +29616,7 @@ func (ec *executionContext) _Query_project(ctx context.Context, field graphql.Co
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.Project) graphql.Marshaler {
-			return ec.marshalOProject2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐProject(ctx, selections, v)
+			return ec.marshalOProject2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐProject(ctx, selections, v)
 		},
 		true,
 		false,
@@ -28730,7 +29660,7 @@ func (ec *executionContext) _Query_projectFiles(ctx context.Context, field graph
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.ProjectFile) graphql.Marshaler {
-			return ec.marshalNProjectFile2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐProjectFileᚄ(ctx, selections, v)
+			return ec.marshalNProjectFile2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐProjectFileᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -28774,7 +29704,7 @@ func (ec *executionContext) _Query_executionSecurityReport(ctx context.Context, 
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.SecurityReport) graphql.Marshaler {
-			return ec.marshalNSecurityReport2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSecurityReport(ctx, selections, v)
+			return ec.marshalNSecurityReport2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSecurityReport(ctx, selections, v)
 		},
 		true,
 		true,
@@ -28817,7 +29747,7 @@ func (ec *executionContext) _Query_wallet(ctx context.Context, field graphql.Col
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.Wallet) graphql.Marshaler {
-			return ec.marshalNWallet2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐWallet(ctx, selections, v)
+			return ec.marshalNWallet2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐWallet(ctx, selections, v)
 		},
 		true,
 		true,
@@ -28850,7 +29780,7 @@ func (ec *executionContext) _Query_walletTopUps(ctx context.Context, field graph
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.WalletTopUp) graphql.Marshaler {
-			return ec.marshalNWalletTopUp2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐWalletTopUpᚄ(ctx, selections, v)
+			return ec.marshalNWalletTopUp2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐWalletTopUpᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -28894,7 +29824,7 @@ func (ec *executionContext) _Query_executionSupportBundle(ctx context.Context, f
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.SupportBundle) graphql.Marshaler {
-			return ec.marshalNSupportBundle2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSupportBundle(ctx, selections, v)
+			return ec.marshalNSupportBundle2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSupportBundle(ctx, selections, v)
 		},
 		true,
 		true,
@@ -29059,7 +29989,7 @@ func (ec *executionContext) _Rate_promptPerMTok(ctx context.Context, field graph
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.Decimal) graphql.Marshaler {
-			return ec.marshalNDecimal2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDecimal(ctx, selections, v)
+			return ec.marshalNDecimal2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDecimal(ctx, selections, v)
 		},
 		true,
 		true,
@@ -29082,7 +30012,7 @@ func (ec *executionContext) _Rate_completionPerMTok(ctx context.Context, field g
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.Decimal) graphql.Marshaler {
-			return ec.marshalNDecimal2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDecimal(ctx, selections, v)
+			return ec.marshalNDecimal2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDecimal(ctx, selections, v)
 		},
 		true,
 		true,
@@ -29090,6 +30020,75 @@ func (ec *executionContext) _Rate_completionPerMTok(ctx context.Context, field g
 }
 func (ec *executionContext) fieldContext_Rate_completionPerMTok(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("Rate", field, false, false, errors.New("field of type Decimal does not have child fields"))
+}
+
+func (ec *executionContext) _RouteBundle_route(ctx context.Context, field graphql.CollectedField, obj *model.RouteBundle) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_RouteBundle_route(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Route, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_RouteBundle_route(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("RouteBundle", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _RouteBundle_totalKB(ctx context.Context, field graphql.CollectedField, obj *model.RouteBundle) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_RouteBundle_totalKB(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.TotalKb, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_RouteBundle_totalKB(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("RouteBundle", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _RouteBundle_firstLoadKB(ctx context.Context, field graphql.CollectedField, obj *model.RouteBundle) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_RouteBundle_firstLoadKB(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.FirstLoadKb, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_RouteBundle_firstLoadKB(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("RouteBundle", field, false, false, errors.New("field of type Float does not have child fields"))
 }
 
 func (ec *executionContext) _RunDoneEvent_ts(ctx context.Context, field graphql.CollectedField, obj *model.RunDoneEvent) (ret graphql.Marshaler) {
@@ -29151,7 +30150,7 @@ func (ec *executionContext) _RunDoneEvent_summary(ctx context.Context, field gra
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.JSON) graphql.Marshaler {
-			return ec.marshalOJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, selections, v)
+			return ec.marshalOJSON2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐJSON(ctx, selections, v)
 		},
 		true,
 		false,
@@ -29266,7 +30265,7 @@ func (ec *executionContext) _RunExecutionEvent_payload(ctx context.Context, fiel
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.JSON) graphql.Marshaler {
-			return ec.marshalNJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, selections, v)
+			return ec.marshalNJSON2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐJSON(ctx, selections, v)
 		},
 		true,
 		true,
@@ -29611,7 +30610,7 @@ func (ec *executionContext) _SecurityReport_findings(ctx context.Context, field 
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.SecurityReportFinding) graphql.Marshaler {
-			return ec.marshalNSecurityReportFinding2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSecurityReportFindingᚄ(ctx, selections, v)
+			return ec.marshalNSecurityReportFinding2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSecurityReportFindingᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -29689,7 +30688,7 @@ func (ec *executionContext) _SecurityReport_owaspCoverage(ctx context.Context, f
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.JSON) graphql.Marshaler {
-			return ec.marshalNJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, selections, v)
+			return ec.marshalNJSON2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐJSON(ctx, selections, v)
 		},
 		true,
 		true,
@@ -29965,7 +30964,7 @@ func (ec *executionContext) _Session_user(ctx context.Context, field graphql.Col
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.User) graphql.Marshaler {
-			return ec.marshalNUser2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐUser(ctx, selections, v)
+			return ec.marshalNUser2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐUser(ctx, selections, v)
 		},
 		true,
 		true,
@@ -30204,7 +31203,7 @@ func (ec *executionContext) _StudioBootstrap_project(ctx context.Context, field 
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.Project) graphql.Marshaler {
-			return ec.marshalNProject2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐProject(ctx, selections, v)
+			return ec.marshalNProject2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐProject(ctx, selections, v)
 		},
 		true,
 		true,
@@ -30236,7 +31235,7 @@ func (ec *executionContext) _StudioBootstrap_execution(ctx context.Context, fiel
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.Execution) graphql.Marshaler {
-			return ec.marshalNExecution2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐExecution(ctx, selections, v)
+			return ec.marshalNExecution2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐExecution(ctx, selections, v)
 		},
 		true,
 		true,
@@ -30268,7 +31267,7 @@ func (ec *executionContext) _StudioBootstrap_idea(ctx context.Context, field gra
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.ParsedIdea) graphql.Marshaler {
-			return ec.marshalNParsedIdea2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐParsedIdea(ctx, selections, v)
+			return ec.marshalNParsedIdea2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐParsedIdea(ctx, selections, v)
 		},
 		true,
 		true,
@@ -30300,7 +31299,7 @@ func (ec *executionContext) _StudioBootstrap_costEstimate(ctx context.Context, f
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.CostEstimate) graphql.Marshaler {
-			return ec.marshalNCostEstimate2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐCostEstimate(ctx, selections, v)
+			return ec.marshalNCostEstimate2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCostEstimate(ctx, selections, v)
 		},
 		true,
 		true,
@@ -30332,7 +31331,7 @@ func (ec *executionContext) _Subscription__heartbeat(ctx context.Context, field 
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.HeartbeatEvent) graphql.Marshaler {
-			return ec.marshalNHeartbeatEvent2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐHeartbeatEvent(ctx, selections, v)
+			return ec.marshalNHeartbeatEvent2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐHeartbeatEvent(ctx, selections, v)
 		},
 		true,
 		true,
@@ -30364,7 +31363,7 @@ func (ec *executionContext) _Subscription_costStream(ctx context.Context, field 
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.CostDelta) graphql.Marshaler {
-			return ec.marshalNCostDelta2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐCostDelta(ctx, selections, v)
+			return ec.marshalNCostDelta2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCostDelta(ctx, selections, v)
 		},
 		true,
 		true,
@@ -30397,7 +31396,7 @@ func (ec *executionContext) _Subscription_inlineCompletion(ctx context.Context, 
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.InlineDelta) graphql.Marshaler {
-			return ec.marshalNInlineDelta2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐInlineDelta(ctx, selections, v)
+			return ec.marshalNInlineDelta2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐInlineDelta(ctx, selections, v)
 		},
 		true,
 		true,
@@ -30441,7 +31440,7 @@ func (ec *executionContext) _Subscription_deployFeed(ctx context.Context, field 
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.DeployEvent) graphql.Marshaler {
-			return ec.marshalNDeployEvent2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployEvent(ctx, selections, v)
+			return ec.marshalNDeployEvent2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeployEvent(ctx, selections, v)
 		},
 		true,
 		true,
@@ -30485,7 +31484,7 @@ func (ec *executionContext) _Subscription_executionFeed(ctx context.Context, fie
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.ExecutionEvent) graphql.Marshaler {
-			return ec.marshalNExecutionEvent2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐExecutionEvent(ctx, selections, v)
+			return ec.marshalNExecutionEvent2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐExecutionEvent(ctx, selections, v)
 		},
 		true,
 		true,
@@ -30529,7 +31528,7 @@ func (ec *executionContext) _Subscription_mobileBuildStatus(ctx context.Context,
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.MobileBuild) graphql.Marshaler {
-			return ec.marshalNMobileBuild2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileBuild(ctx, selections, v)
+			return ec.marshalNMobileBuild2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMobileBuild(ctx, selections, v)
 		},
 		true,
 		true,
@@ -30573,7 +31572,7 @@ func (ec *executionContext) _Subscription_runProject(ctx context.Context, field 
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.RunEvent) graphql.Marshaler {
-			return ec.marshalNRunEvent2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐRunEvent(ctx, selections, v)
+			return ec.marshalNRunEvent2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐRunEvent(ctx, selections, v)
 		},
 		true,
 		true,
@@ -30777,7 +31776,7 @@ func (ec *executionContext) _SupportBundle_gateReport(ctx context.Context, field
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.GateReport) graphql.Marshaler {
-			return ec.marshalNGateReport2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGateReport(ctx, selections, v)
+			return ec.marshalNGateReport2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGateReport(ctx, selections, v)
 		},
 		true,
 		true,
@@ -30809,7 +31808,7 @@ func (ec *executionContext) _SupportBundle_securityReport(ctx context.Context, f
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.SupportSecurityReport) graphql.Marshaler {
-			return ec.marshalNSupportSecurityReport2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSupportSecurityReport(ctx, selections, v)
+			return ec.marshalNSupportSecurityReport2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSupportSecurityReport(ctx, selections, v)
 		},
 		true,
 		true,
@@ -30841,7 +31840,7 @@ func (ec *executionContext) _SupportBundle_costReport(ctx context.Context, field
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.CostReport) graphql.Marshaler {
-			return ec.marshalNCostReport2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐCostReport(ctx, selections, v)
+			return ec.marshalNCostReport2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCostReport(ctx, selections, v)
 		},
 		true,
 		true,
@@ -30873,7 +31872,7 @@ func (ec *executionContext) _SupportBundle_nextBestAction(ctx context.Context, f
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.NextAction) graphql.Marshaler {
-			return ec.marshalNNextAction2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐNextAction(ctx, selections, v)
+			return ec.marshalNNextAction2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐNextAction(ctx, selections, v)
 		},
 		true,
 		true,
@@ -31043,7 +32042,7 @@ func (ec *executionContext) _SupportSecurityReport_findings(ctx context.Context,
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v []model.SupportSecurityFinding) graphql.Marshaler {
-			return ec.marshalNSupportSecurityFinding2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSupportSecurityFindingᚄ(ctx, selections, v)
+			return ec.marshalNSupportSecurityFinding2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSupportSecurityFindingᚄ(ctx, selections, v)
 		},
 		true,
 		true,
@@ -31305,7 +32304,7 @@ func (ec *executionContext) _VaultSnapshot_revenueUsd(ctx context.Context, field
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.Decimal) graphql.Marshaler {
-			return ec.marshalNDecimal2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDecimal(ctx, selections, v)
+			return ec.marshalNDecimal2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDecimal(ctx, selections, v)
 		},
 		true,
 		true,
@@ -31328,7 +32327,7 @@ func (ec *executionContext) _VaultSnapshot_providerCostUsd(ctx context.Context, 
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.Decimal) graphql.Marshaler {
-			return ec.marshalNDecimal2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDecimal(ctx, selections, v)
+			return ec.marshalNDecimal2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDecimal(ctx, selections, v)
 		},
 		true,
 		true,
@@ -31351,7 +32350,7 @@ func (ec *executionContext) _VaultSnapshot_marginUsd(ctx context.Context, field 
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.Decimal) graphql.Marshaler {
-			return ec.marshalNDecimal2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDecimal(ctx, selections, v)
+			return ec.marshalNDecimal2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDecimal(ctx, selections, v)
 		},
 		true,
 		true,
@@ -31926,7 +32925,7 @@ func (ec *executionContext) _WalletLedgerEntry_metadata(ctx context.Context, fie
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v model.JSON) graphql.Marshaler {
-			return ec.marshalNJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, selections, v)
+			return ec.marshalNJSON2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐJSON(ctx, selections, v)
 		},
 		true,
 		true,
@@ -33283,7 +34282,7 @@ func (ec *executionContext) unmarshalInputAuditQueryInput(ctx context.Context, o
 			it.Action = data
 		case "outcome":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("outcome"))
-			data, err := ec.unmarshalOAuditOutcome2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAuditOutcome(ctx, v)
+			data, err := ec.unmarshalOAuditOutcome2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAuditOutcome(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33376,7 +34375,7 @@ func (ec *executionContext) unmarshalInputConnectDeployDomainInput(ctx context.C
 			it.Primary = data
 		case "metadata":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metadata"))
-			data, err := ec.unmarshalOJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, v)
+			data, err := ec.unmarshalOJSON2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐJSON(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33441,7 +34440,7 @@ func (ec *executionContext) unmarshalInputCreatePaidExecutionInput(ctx context.C
 			it.PromptSummary = data
 		case "metadata":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metadata"))
-			data, err := ec.unmarshalOJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, v)
+			data, err := ec.unmarshalOJSON2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐJSON(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34032,7 +35031,7 @@ func (ec *executionContext) unmarshalInputMobilePublishUpdateInput(ctx context.C
 			it.RuntimeVersion = data
 		case "manifestExtra":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("manifestExtra"))
-			data, err := ec.unmarshalOJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, v)
+			data, err := ec.unmarshalOJSON2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐJSON(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34220,7 +35219,7 @@ func (ec *executionContext) unmarshalInputPatchChangeInput(ctx context.Context, 
 		switch k {
 		case "op":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("op"))
-			data, err := ec.unmarshalNPatchChangeOp2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchChangeOp(ctx, v)
+			data, err := ec.unmarshalNPatchChangeOp2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchChangeOp(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34334,7 +35333,7 @@ func (ec *executionContext) unmarshalInputPlanDeployInput(ctx context.Context, o
 			it.DiffHash = data
 		case "metadata":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metadata"))
-			data, err := ec.unmarshalOJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, v)
+			data, err := ec.unmarshalOJSON2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐJSON(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34392,7 +35391,7 @@ func (ec *executionContext) unmarshalInputProposePatchInput(ctx context.Context,
 			it.Author = data
 		case "changes":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("changes"))
-			data, err := ec.unmarshalNPatchChangeInput2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchChangeInputᚄ(ctx, v)
+			data, err := ec.unmarshalNPatchChangeInput2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchChangeInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34497,7 +35496,7 @@ func (ec *executionContext) unmarshalInputPurchaseDeployDomainInput(ctx context.
 			it.ExpectedPriceUsd = data
 		case "contact":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contact"))
-			data, err := ec.unmarshalOJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, v)
+			data, err := ec.unmarshalOJSON2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐJSON(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34511,7 +35510,7 @@ func (ec *executionContext) unmarshalInputPurchaseDeployDomainInput(ctx context.
 			it.Primary = data
 		case "metadata":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metadata"))
-			data, err := ec.unmarshalOJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, v)
+			data, err := ec.unmarshalOJSON2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐJSON(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34548,7 +35547,7 @@ func (ec *executionContext) unmarshalInputRenameSymbolInput(ctx context.Context,
 			it.ProjectID = data
 		case "kind":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("kind"))
-			data, err := ec.unmarshalOSymbolKind2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSymbolKind(ctx, v)
+			data, err := ec.unmarshalOSymbolKind2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSymbolKind(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34671,7 +35670,7 @@ func (ec *executionContext) unmarshalInputReserveDeploySubdomainInput(ctx contex
 			it.Primary = data
 		case "metadata":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metadata"))
-			data, err := ec.unmarshalOJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, v)
+			data, err := ec.unmarshalOJSON2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐJSON(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34861,7 +35860,7 @@ func (ec *executionContext) unmarshalInputSymbolPatchInput(ctx context.Context, 
 			it.Author = data
 		case "kind":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("kind"))
-			data, err := ec.unmarshalNSymbolKind2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSymbolKind(ctx, v)
+			data, err := ec.unmarshalNSymbolKind2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSymbolKind(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34882,7 +35881,7 @@ func (ec *executionContext) unmarshalInputSymbolPatchInput(ctx context.Context, 
 			it.Receiver = data
 		case "action":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("action"))
-			data, err := ec.unmarshalNSymbolAction2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSymbolAction(ctx, v)
+			data, err := ec.unmarshalNSymbolAction2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSymbolAction(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -35379,6 +36378,104 @@ func (ec *executionContext) _AppetizeApp(ctx context.Context, sel ast.SelectionS
 			}
 		case "createdAt":
 			out.Values[i] = ec._AppetizeApp_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var archRuleImplementors = []string{"ArchRule"}
+
+func (ec *executionContext) _ArchRule(ctx context.Context, sel ast.SelectionSet, obj *model.ArchRule) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, archRuleImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ArchRule")
+		case "from":
+			out.Values[i] = ec._ArchRule_from(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "to":
+			out.Values[i] = ec._ArchRule_to(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "allow":
+			out.Values[i] = ec._ArchRule_allow(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var architectureImplementors = []string{"Architecture"}
+
+func (ec *executionContext) _Architecture(ctx context.Context, sel ast.SelectionSet, obj *model.Architecture) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, architectureImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Architecture")
+		case "layers":
+			out.Values[i] = ec._Architecture_layers(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "rules":
+			out.Values[i] = ec._Architecture_rules(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "cycles":
+			out.Values[i] = ec._Architecture_cycles(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -36265,6 +37362,50 @@ func (ec *executionContext) _CohortDashboard(ctx context.Context, sel ast.Select
 	return out
 }
 
+var complexityBucketImplementors = []string{"ComplexityBucket"}
+
+func (ec *executionContext) _ComplexityBucket(ctx context.Context, sel ast.SelectionSet, obj *model.ComplexityBucket) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, complexityBucketImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ComplexityBucket")
+		case "range":
+			out.Values[i] = ec._ComplexityBucket_range(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "count":
+			out.Values[i] = ec._ComplexityBucket_count(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var costDeltaImplementors = []string{"CostDelta"}
 
 func (ec *executionContext) _CostDelta(ctx context.Context, sel ast.SelectionSet, obj *model.CostDelta) graphql.Marshaler {
@@ -37079,6 +38220,55 @@ func (ec *executionContext) _DeviceCloudSession(ctx context.Context, sel ast.Sel
 	return out
 }
 
+var dirDupImplementors = []string{"DirDup"}
+
+func (ec *executionContext) _DirDup(ctx context.Context, sel ast.SelectionSet, obj *model.DirDup) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, dirDupImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DirDup")
+		case "directory":
+			out.Values[i] = ec._DirDup_directory(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "dupPct":
+			out.Values[i] = ec._DirDup_dupPct(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "files":
+			out.Values[i] = ec._DirDup_files(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var domainAvailabilityImplementors = []string{"DomainAvailability"}
 
 func (ec *executionContext) _DomainAvailability(ctx context.Context, sel ast.SelectionSet, obj *model.DomainAvailability) graphql.Marshaler {
@@ -37741,6 +38931,92 @@ func (ec *executionContext) _GqlError(ctx context.Context, sel ast.SelectionSet,
 			}
 		case "details":
 			out.Values[i] = ec._GqlError_details(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var healthMetricsImplementors = []string{"HealthMetrics"}
+
+func (ec *executionContext) _HealthMetrics(ctx context.Context, sel ast.SelectionSet, obj *model.HealthMetrics) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, healthMetricsImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("HealthMetrics")
+		case "reuseRate":
+			out.Values[i] = ec._HealthMetrics_reuseRate(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "dedupRate":
+			out.Values[i] = ec._HealthMetrics_dedupRate(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deadCodeCount":
+			out.Values[i] = ec._HealthMetrics_deadCodeCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "complexityHistogram":
+			out.Values[i] = ec._HealthMetrics_complexityHistogram(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "dependencyCycles":
+			out.Values[i] = ec._HealthMetrics_dependencyCycles(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "locPerCapability":
+			out.Values[i] = ec._HealthMetrics_locPerCapability(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "atlasCapabilityCount":
+			out.Values[i] = ec._HealthMetrics_atlasCapabilityCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "lastIndexedAt":
+			out.Values[i] = ec._HealthMetrics_lastIndexedAt(ctx, field, obj)
+		case "duplicationByDir":
+			out.Values[i] = ec._HealthMetrics_duplicationByDir(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "bundleByRoute":
+			out.Values[i] = ec._HealthMetrics_bundleByRoute(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "architecture":
+			out.Values[i] = ec._HealthMetrics_architecture(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -40674,6 +41950,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "healthDashboard":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_healthDashboard(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "deploy":
 			field := field
 
@@ -41567,6 +42865,55 @@ func (ec *executionContext) _Rate(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "completionPerMTok":
 			out.Values[i] = ec._Rate_completionPerMTok(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var routeBundleImplementors = []string{"RouteBundle"}
+
+func (ec *executionContext) _RouteBundle(ctx context.Context, sel ast.SelectionSet, obj *model.RouteBundle) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, routeBundleImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RouteBundle")
+		case "route":
+			out.Values[i] = ec._RouteBundle_route(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "totalKB":
+			out.Values[i] = ec._RouteBundle_totalKB(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "firstLoadKB":
+			out.Values[i] = ec._RouteBundle_firstLoadKB(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -43154,11 +44501,11 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNAbuseScoreResult2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAbuseScoreResult(ctx context.Context, sel ast.SelectionSet, v model.AbuseScoreResult) graphql.Marshaler {
+func (ec *executionContext) marshalNAbuseScoreResult2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAbuseScoreResult(ctx context.Context, sel ast.SelectionSet, v model.AbuseScoreResult) graphql.Marshaler {
 	return ec._AbuseScoreResult(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAbuseScoreResult2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAbuseScoreResult(ctx context.Context, sel ast.SelectionSet, v *model.AbuseScoreResult) graphql.Marshaler {
+func (ec *executionContext) marshalNAbuseScoreResult2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAbuseScoreResult(ctx context.Context, sel ast.SelectionSet, v *model.AbuseScoreResult) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -43168,15 +44515,15 @@ func (ec *executionContext) marshalNAbuseScoreResult2ᚖironflyerᚋappsᚋorche
 	return ec._AbuseScoreResult(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNAgent2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAgent(ctx context.Context, sel ast.SelectionSet, v model.Agent) graphql.Marshaler {
+func (ec *executionContext) marshalNAgent2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAgent(ctx context.Context, sel ast.SelectionSet, v model.Agent) graphql.Marshaler {
 	return ec._Agent(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAgent2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAgentᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Agent) graphql.Marshaler {
+func (ec *executionContext) marshalNAgent2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAgentᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Agent) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNAgent2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAgent(ctx, sel, v[i])
+		return ec.marshalNAgent2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAgent(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -43188,15 +44535,15 @@ func (ec *executionContext) marshalNAgent2ᚕironflyerᚋappsᚋorchestratorᚋi
 	return ret
 }
 
-func (ec *executionContext) marshalNAgentCall2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAgentCall(ctx context.Context, sel ast.SelectionSet, v model.AgentCall) graphql.Marshaler {
+func (ec *executionContext) marshalNAgentCall2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAgentCall(ctx context.Context, sel ast.SelectionSet, v model.AgentCall) graphql.Marshaler {
 	return ec._AgentCall(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAgentCall2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAgentCallᚄ(ctx context.Context, sel ast.SelectionSet, v []model.AgentCall) graphql.Marshaler {
+func (ec *executionContext) marshalNAgentCall2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAgentCallᚄ(ctx context.Context, sel ast.SelectionSet, v []model.AgentCall) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNAgentCall2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAgentCall(ctx, sel, v[i])
+		return ec.marshalNAgentCall2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAgentCall(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -43208,11 +44555,11 @@ func (ec *executionContext) marshalNAgentCall2ᚕironflyerᚋappsᚋorchestrator
 	return ret
 }
 
-func (ec *executionContext) marshalNAppetizeApp2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAppetizeApp(ctx context.Context, sel ast.SelectionSet, v model.AppetizeApp) graphql.Marshaler {
+func (ec *executionContext) marshalNAppetizeApp2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAppetizeApp(ctx context.Context, sel ast.SelectionSet, v model.AppetizeApp) graphql.Marshaler {
 	return ec._AppetizeApp(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAppetizeApp2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAppetizeApp(ctx context.Context, sel ast.SelectionSet, v *model.AppetizeApp) graphql.Marshaler {
+func (ec *executionContext) marshalNAppetizeApp2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAppetizeApp(ctx context.Context, sel ast.SelectionSet, v *model.AppetizeApp) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -43222,16 +44569,40 @@ func (ec *executionContext) marshalNAppetizeApp2ᚖironflyerᚋappsᚋorchestrat
 	return ec._AppetizeApp(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNAppetizeUploadInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAppetizeUploadInput(ctx context.Context, v any) (model.AppetizeUploadInput, error) {
+func (ec *executionContext) unmarshalNAppetizeUploadInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAppetizeUploadInput(ctx context.Context, v any) (model.AppetizeUploadInput, error) {
 	res, err := ec.unmarshalInputAppetizeUploadInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNAuditChainProof2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAuditChainProof(ctx context.Context, sel ast.SelectionSet, v model.AuditChainProof) graphql.Marshaler {
+func (ec *executionContext) marshalNArchRule2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐArchRule(ctx context.Context, sel ast.SelectionSet, v model.ArchRule) graphql.Marshaler {
+	return ec._ArchRule(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNArchRule2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐArchRuleᚄ(ctx context.Context, sel ast.SelectionSet, v []model.ArchRule) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNArchRule2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐArchRule(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNArchitecture2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐArchitecture(ctx context.Context, sel ast.SelectionSet, v model.Architecture) graphql.Marshaler {
+	return ec._Architecture(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAuditChainProof2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAuditChainProof(ctx context.Context, sel ast.SelectionSet, v model.AuditChainProof) graphql.Marshaler {
 	return ec._AuditChainProof(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAuditChainProof2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAuditChainProof(ctx context.Context, sel ast.SelectionSet, v *model.AuditChainProof) graphql.Marshaler {
+func (ec *executionContext) marshalNAuditChainProof2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAuditChainProof(ctx context.Context, sel ast.SelectionSet, v *model.AuditChainProof) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -43241,15 +44612,15 @@ func (ec *executionContext) marshalNAuditChainProof2ᚖironflyerᚋappsᚋorches
 	return ec._AuditChainProof(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNAuditEntry2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAuditEntry(ctx context.Context, sel ast.SelectionSet, v model.AuditEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNAuditEntry2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAuditEntry(ctx context.Context, sel ast.SelectionSet, v model.AuditEntry) graphql.Marshaler {
 	return ec._AuditEntry(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAuditEntry2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAuditEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []model.AuditEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNAuditEntry2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAuditEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []model.AuditEntry) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNAuditEntry2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAuditEntry(ctx, sel, v[i])
+		return ec.marshalNAuditEntry2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAuditEntry(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -43261,16 +44632,16 @@ func (ec *executionContext) marshalNAuditEntry2ᚕironflyerᚋappsᚋorchestrato
 	return ret
 }
 
-func (ec *executionContext) unmarshalNAuditExportFilter2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAuditExportFilter(ctx context.Context, v any) (model.AuditExportFilter, error) {
+func (ec *executionContext) unmarshalNAuditExportFilter2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAuditExportFilter(ctx context.Context, v any) (model.AuditExportFilter, error) {
 	res, err := ec.unmarshalInputAuditExportFilter(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNAuditExportPreview2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAuditExportPreview(ctx context.Context, sel ast.SelectionSet, v model.AuditExportPreview) graphql.Marshaler {
+func (ec *executionContext) marshalNAuditExportPreview2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAuditExportPreview(ctx context.Context, sel ast.SelectionSet, v model.AuditExportPreview) graphql.Marshaler {
 	return ec._AuditExportPreview(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAuditExportPreview2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAuditExportPreview(ctx context.Context, sel ast.SelectionSet, v *model.AuditExportPreview) graphql.Marshaler {
+func (ec *executionContext) marshalNAuditExportPreview2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAuditExportPreview(ctx context.Context, sel ast.SelectionSet, v *model.AuditExportPreview) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -43280,21 +44651,21 @@ func (ec *executionContext) marshalNAuditExportPreview2ᚖironflyerᚋappsᚋorc
 	return ec._AuditExportPreview(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNAuditOutcome2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAuditOutcome(ctx context.Context, v any) (model.AuditOutcome, error) {
+func (ec *executionContext) unmarshalNAuditOutcome2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAuditOutcome(ctx context.Context, v any) (model.AuditOutcome, error) {
 	var res model.AuditOutcome
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNAuditOutcome2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAuditOutcome(ctx context.Context, sel ast.SelectionSet, v model.AuditOutcome) graphql.Marshaler {
+func (ec *executionContext) marshalNAuditOutcome2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAuditOutcome(ctx context.Context, sel ast.SelectionSet, v model.AuditOutcome) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNAuditVerifyResult2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAuditVerifyResult(ctx context.Context, sel ast.SelectionSet, v model.AuditVerifyResult) graphql.Marshaler {
+func (ec *executionContext) marshalNAuditVerifyResult2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAuditVerifyResult(ctx context.Context, sel ast.SelectionSet, v model.AuditVerifyResult) graphql.Marshaler {
 	return ec._AuditVerifyResult(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAuditVerifyResult2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAuditVerifyResult(ctx context.Context, sel ast.SelectionSet, v *model.AuditVerifyResult) graphql.Marshaler {
+func (ec *executionContext) marshalNAuditVerifyResult2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAuditVerifyResult(ctx context.Context, sel ast.SelectionSet, v *model.AuditVerifyResult) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -43304,15 +44675,15 @@ func (ec *executionContext) marshalNAuditVerifyResult2ᚖironflyerᚋappsᚋorch
 	return ec._AuditVerifyResult(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNBanditCapability2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBanditCapability(ctx context.Context, sel ast.SelectionSet, v model.BanditCapability) graphql.Marshaler {
+func (ec *executionContext) marshalNBanditCapability2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBanditCapability(ctx context.Context, sel ast.SelectionSet, v model.BanditCapability) graphql.Marshaler {
 	return ec._BanditCapability(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNBanditCapability2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBanditCapabilityᚄ(ctx context.Context, sel ast.SelectionSet, v []model.BanditCapability) graphql.Marshaler {
+func (ec *executionContext) marshalNBanditCapability2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBanditCapabilityᚄ(ctx context.Context, sel ast.SelectionSet, v []model.BanditCapability) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNBanditCapability2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBanditCapability(ctx, sel, v[i])
+		return ec.marshalNBanditCapability2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBanditCapability(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -43324,11 +44695,11 @@ func (ec *executionContext) marshalNBanditCapability2ᚕironflyerᚋappsᚋorche
 	return ret
 }
 
-func (ec *executionContext) marshalNBanditRanking2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBanditRanking(ctx context.Context, sel ast.SelectionSet, v model.BanditRanking) graphql.Marshaler {
+func (ec *executionContext) marshalNBanditRanking2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBanditRanking(ctx context.Context, sel ast.SelectionSet, v model.BanditRanking) graphql.Marshaler {
 	return ec._BanditRanking(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNBanditRanking2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBanditRanking(ctx context.Context, sel ast.SelectionSet, v *model.BanditRanking) graphql.Marshaler {
+func (ec *executionContext) marshalNBanditRanking2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBanditRanking(ctx context.Context, sel ast.SelectionSet, v *model.BanditRanking) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -43338,15 +44709,15 @@ func (ec *executionContext) marshalNBanditRanking2ᚖironflyerᚋappsᚋorchestr
 	return ec._BanditRanking(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNBanditWinner2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBanditWinner(ctx context.Context, sel ast.SelectionSet, v model.BanditWinner) graphql.Marshaler {
+func (ec *executionContext) marshalNBanditWinner2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBanditWinner(ctx context.Context, sel ast.SelectionSet, v model.BanditWinner) graphql.Marshaler {
 	return ec._BanditWinner(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNBanditWinner2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBanditWinnerᚄ(ctx context.Context, sel ast.SelectionSet, v []model.BanditWinner) graphql.Marshaler {
+func (ec *executionContext) marshalNBanditWinner2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBanditWinnerᚄ(ctx context.Context, sel ast.SelectionSet, v []model.BanditWinner) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNBanditWinner2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBanditWinner(ctx, sel, v[i])
+		return ec.marshalNBanditWinner2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBanditWinner(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -43358,15 +44729,15 @@ func (ec *executionContext) marshalNBanditWinner2ᚕironflyerᚋappsᚋorchestra
 	return ret
 }
 
-func (ec *executionContext) marshalNBlueprint2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBlueprint(ctx context.Context, sel ast.SelectionSet, v model.Blueprint) graphql.Marshaler {
+func (ec *executionContext) marshalNBlueprint2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBlueprint(ctx context.Context, sel ast.SelectionSet, v model.Blueprint) graphql.Marshaler {
 	return ec._Blueprint(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNBlueprint2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBlueprintᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Blueprint) graphql.Marshaler {
+func (ec *executionContext) marshalNBlueprint2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBlueprintᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Blueprint) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNBlueprint2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBlueprint(ctx, sel, v[i])
+		return ec.marshalNBlueprint2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBlueprint(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -43378,11 +44749,11 @@ func (ec *executionContext) marshalNBlueprint2ᚕironflyerᚋappsᚋorchestrator
 	return ret
 }
 
-func (ec *executionContext) marshalNBlueprintDashboard2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBlueprintDashboard(ctx context.Context, sel ast.SelectionSet, v model.BlueprintDashboard) graphql.Marshaler {
+func (ec *executionContext) marshalNBlueprintDashboard2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBlueprintDashboard(ctx context.Context, sel ast.SelectionSet, v model.BlueprintDashboard) graphql.Marshaler {
 	return ec._BlueprintDashboard(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNBlueprintDashboard2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBlueprintDashboard(ctx context.Context, sel ast.SelectionSet, v *model.BlueprintDashboard) graphql.Marshaler {
+func (ec *executionContext) marshalNBlueprintDashboard2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBlueprintDashboard(ctx context.Context, sel ast.SelectionSet, v *model.BlueprintDashboard) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -43392,15 +44763,15 @@ func (ec *executionContext) marshalNBlueprintDashboard2ᚖironflyerᚋappsᚋorc
 	return ec._BlueprintDashboard(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNBlueprintStats2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBlueprintStats(ctx context.Context, sel ast.SelectionSet, v model.BlueprintStats) graphql.Marshaler {
+func (ec *executionContext) marshalNBlueprintStats2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBlueprintStats(ctx context.Context, sel ast.SelectionSet, v model.BlueprintStats) graphql.Marshaler {
 	return ec._BlueprintStats(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNBlueprintStats2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBlueprintStatsᚄ(ctx context.Context, sel ast.SelectionSet, v []model.BlueprintStats) graphql.Marshaler {
+func (ec *executionContext) marshalNBlueprintStats2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBlueprintStatsᚄ(ctx context.Context, sel ast.SelectionSet, v []model.BlueprintStats) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNBlueprintStats2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBlueprintStats(ctx, sel, v[i])
+		return ec.marshalNBlueprintStats2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBlueprintStats(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -43428,15 +44799,15 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalNBrokenAuditLink2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBrokenAuditLink(ctx context.Context, sel ast.SelectionSet, v model.BrokenAuditLink) graphql.Marshaler {
+func (ec *executionContext) marshalNBrokenAuditLink2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBrokenAuditLink(ctx context.Context, sel ast.SelectionSet, v model.BrokenAuditLink) graphql.Marshaler {
 	return ec._BrokenAuditLink(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNBrokenAuditLink2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBrokenAuditLinkᚄ(ctx context.Context, sel ast.SelectionSet, v []model.BrokenAuditLink) graphql.Marshaler {
+func (ec *executionContext) marshalNBrokenAuditLink2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBrokenAuditLinkᚄ(ctx context.Context, sel ast.SelectionSet, v []model.BrokenAuditLink) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNBrokenAuditLink2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBrokenAuditLink(ctx, sel, v[i])
+		return ec.marshalNBrokenAuditLink2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBrokenAuditLink(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -43448,11 +44819,11 @@ func (ec *executionContext) marshalNBrokenAuditLink2ᚕironflyerᚋappsᚋorches
 	return ret
 }
 
-func (ec *executionContext) marshalNBudgetSummary2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBudgetSummary(ctx context.Context, sel ast.SelectionSet, v model.BudgetSummary) graphql.Marshaler {
+func (ec *executionContext) marshalNBudgetSummary2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBudgetSummary(ctx context.Context, sel ast.SelectionSet, v model.BudgetSummary) graphql.Marshaler {
 	return ec._BudgetSummary(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNBudgetSummary2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBudgetSummary(ctx context.Context, sel ast.SelectionSet, v *model.BudgetSummary) graphql.Marshaler {
+func (ec *executionContext) marshalNBudgetSummary2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBudgetSummary(ctx context.Context, sel ast.SelectionSet, v *model.BudgetSummary) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -43462,15 +44833,15 @@ func (ec *executionContext) marshalNBudgetSummary2ᚖironflyerᚋappsᚋorchestr
 	return ec._BudgetSummary(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCohort2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐCohort(ctx context.Context, sel ast.SelectionSet, v model.Cohort) graphql.Marshaler {
+func (ec *executionContext) marshalNCohort2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCohort(ctx context.Context, sel ast.SelectionSet, v model.Cohort) graphql.Marshaler {
 	return ec._Cohort(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCohort2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐCohortᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Cohort) graphql.Marshaler {
+func (ec *executionContext) marshalNCohort2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCohortᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Cohort) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNCohort2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐCohort(ctx, sel, v[i])
+		return ec.marshalNCohort2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCohort(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -43482,11 +44853,11 @@ func (ec *executionContext) marshalNCohort2ᚕironflyerᚋappsᚋorchestratorᚋ
 	return ret
 }
 
-func (ec *executionContext) marshalNCohortDashboard2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐCohortDashboard(ctx context.Context, sel ast.SelectionSet, v model.CohortDashboard) graphql.Marshaler {
+func (ec *executionContext) marshalNCohortDashboard2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCohortDashboard(ctx context.Context, sel ast.SelectionSet, v model.CohortDashboard) graphql.Marshaler {
 	return ec._CohortDashboard(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCohortDashboard2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐCohortDashboard(ctx context.Context, sel ast.SelectionSet, v *model.CohortDashboard) graphql.Marshaler {
+func (ec *executionContext) marshalNCohortDashboard2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCohortDashboard(ctx context.Context, sel ast.SelectionSet, v *model.CohortDashboard) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -43496,67 +44867,15 @@ func (ec *executionContext) marshalNCohortDashboard2ᚖironflyerᚋappsᚋorches
 	return ec._CohortDashboard(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNConnectDeployDomainInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐConnectDeployDomainInput(ctx context.Context, v any) (model.ConnectDeployDomainInput, error) {
-	res, err := ec.unmarshalInputConnectDeployDomainInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
+func (ec *executionContext) marshalNComplexityBucket2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐComplexityBucket(ctx context.Context, sel ast.SelectionSet, v model.ComplexityBucket) graphql.Marshaler {
+	return ec._ComplexityBucket(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCostDelta2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐCostDelta(ctx context.Context, sel ast.SelectionSet, v model.CostDelta) graphql.Marshaler {
-	return ec._CostDelta(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNCostDelta2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐCostDelta(ctx context.Context, sel ast.SelectionSet, v *model.CostDelta) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._CostDelta(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNCostEstimate2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐCostEstimate(ctx context.Context, sel ast.SelectionSet, v model.CostEstimate) graphql.Marshaler {
-	return ec._CostEstimate(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNCostEstimate2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐCostEstimate(ctx context.Context, sel ast.SelectionSet, v *model.CostEstimate) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._CostEstimate(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNCostReport2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐCostReport(ctx context.Context, sel ast.SelectionSet, v model.CostReport) graphql.Marshaler {
-	return ec._CostReport(ctx, sel, &v)
-}
-
-func (ec *executionContext) unmarshalNCreatePaidExecutionInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐCreatePaidExecutionInput(ctx context.Context, v any) (model.CreatePaidExecutionInput, error) {
-	res, err := ec.unmarshalInputCreatePaidExecutionInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNCreateProjectInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐCreateProjectInput(ctx context.Context, v any) (model.CreateProjectInput, error) {
-	res, err := ec.unmarshalInputCreateProjectInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNCreateStageInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐCreateStageInput(ctx context.Context, v any) (model.CreateStageInput, error) {
-	res, err := ec.unmarshalInputCreateStageInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNDNSRecord2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDNSRecord(ctx context.Context, sel ast.SelectionSet, v model.DNSRecord) graphql.Marshaler {
-	return ec._DNSRecord(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNDNSRecord2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDNSRecordᚄ(ctx context.Context, sel ast.SelectionSet, v []model.DNSRecord) graphql.Marshaler {
+func (ec *executionContext) marshalNComplexityBucket2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐComplexityBucketᚄ(ctx context.Context, sel ast.SelectionSet, v []model.ComplexityBucket) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNDNSRecord2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDNSRecord(ctx, sel, v[i])
+		return ec.marshalNComplexityBucket2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐComplexityBucket(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -43568,15 +44887,87 @@ func (ec *executionContext) marshalNDNSRecord2ᚕironflyerᚋappsᚋorchestrator
 	return ret
 }
 
-func (ec *executionContext) marshalNDashboardBlueprintStats2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDashboardBlueprintStats(ctx context.Context, sel ast.SelectionSet, v model.DashboardBlueprintStats) graphql.Marshaler {
-	return ec._DashboardBlueprintStats(ctx, sel, &v)
+func (ec *executionContext) unmarshalNConnectDeployDomainInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐConnectDeployDomainInput(ctx context.Context, v any) (model.ConnectDeployDomainInput, error) {
+	res, err := ec.unmarshalInputConnectDeployDomainInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNDashboardBlueprintStats2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDashboardBlueprintStatsᚄ(ctx context.Context, sel ast.SelectionSet, v []model.DashboardBlueprintStats) graphql.Marshaler {
+func (ec *executionContext) marshalNCostDelta2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCostDelta(ctx context.Context, sel ast.SelectionSet, v model.CostDelta) graphql.Marshaler {
+	return ec._CostDelta(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCostDelta2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCostDelta(ctx context.Context, sel ast.SelectionSet, v *model.CostDelta) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CostDelta(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNCostEstimate2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCostEstimate(ctx context.Context, sel ast.SelectionSet, v model.CostEstimate) graphql.Marshaler {
+	return ec._CostEstimate(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCostEstimate2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCostEstimate(ctx context.Context, sel ast.SelectionSet, v *model.CostEstimate) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CostEstimate(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNCostReport2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCostReport(ctx context.Context, sel ast.SelectionSet, v model.CostReport) graphql.Marshaler {
+	return ec._CostReport(ctx, sel, &v)
+}
+
+func (ec *executionContext) unmarshalNCreatePaidExecutionInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCreatePaidExecutionInput(ctx context.Context, v any) (model.CreatePaidExecutionInput, error) {
+	res, err := ec.unmarshalInputCreatePaidExecutionInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNCreateProjectInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCreateProjectInput(ctx context.Context, v any) (model.CreateProjectInput, error) {
+	res, err := ec.unmarshalInputCreateProjectInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNCreateStageInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCreateStageInput(ctx context.Context, v any) (model.CreateStageInput, error) {
+	res, err := ec.unmarshalInputCreateStageInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNDNSRecord2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDNSRecord(ctx context.Context, sel ast.SelectionSet, v model.DNSRecord) graphql.Marshaler {
+	return ec._DNSRecord(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDNSRecord2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDNSRecordᚄ(ctx context.Context, sel ast.SelectionSet, v []model.DNSRecord) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNDashboardBlueprintStats2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDashboardBlueprintStats(ctx, sel, v[i])
+		return ec.marshalNDNSRecord2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDNSRecord(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNDashboardBlueprintStats2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDashboardBlueprintStats(ctx context.Context, sel ast.SelectionSet, v model.DashboardBlueprintStats) graphql.Marshaler {
+	return ec._DashboardBlueprintStats(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDashboardBlueprintStats2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDashboardBlueprintStatsᚄ(ctx context.Context, sel ast.SelectionSet, v []model.DashboardBlueprintStats) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNDashboardBlueprintStats2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDashboardBlueprintStats(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -43604,25 +44995,25 @@ func (ec *executionContext) marshalNDateTime2timeᚐTime(ctx context.Context, se
 	return res
 }
 
-func (ec *executionContext) unmarshalNDecimal2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDecimal(ctx context.Context, v any) (model.Decimal, error) {
+func (ec *executionContext) unmarshalNDecimal2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDecimal(ctx context.Context, v any) (model.Decimal, error) {
 	var res model.Decimal
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNDecimal2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDecimal(ctx context.Context, sel ast.SelectionSet, v model.Decimal) graphql.Marshaler {
+func (ec *executionContext) marshalNDecimal2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDecimal(ctx context.Context, sel ast.SelectionSet, v model.Decimal) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNDeploy2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeploy(ctx context.Context, sel ast.SelectionSet, v model.Deploy) graphql.Marshaler {
+func (ec *executionContext) marshalNDeploy2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeploy(ctx context.Context, sel ast.SelectionSet, v model.Deploy) graphql.Marshaler {
 	return ec._Deploy(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNDeploy2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Deploy) graphql.Marshaler {
+func (ec *executionContext) marshalNDeploy2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeployᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Deploy) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNDeploy2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeploy(ctx, sel, v[i])
+		return ec.marshalNDeploy2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeploy(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -43634,7 +45025,7 @@ func (ec *executionContext) marshalNDeploy2ᚕironflyerᚋappsᚋorchestratorᚋ
 	return ret
 }
 
-func (ec *executionContext) marshalNDeploy2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeploy(ctx context.Context, sel ast.SelectionSet, v *model.Deploy) graphql.Marshaler {
+func (ec *executionContext) marshalNDeploy2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeploy(ctx context.Context, sel ast.SelectionSet, v *model.Deploy) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -43644,15 +45035,15 @@ func (ec *executionContext) marshalNDeploy2ᚖironflyerᚋappsᚋorchestratorᚋ
 	return ec._Deploy(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNDeployApproval2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployApproval(ctx context.Context, sel ast.SelectionSet, v model.DeployApproval) graphql.Marshaler {
+func (ec *executionContext) marshalNDeployApproval2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeployApproval(ctx context.Context, sel ast.SelectionSet, v model.DeployApproval) graphql.Marshaler {
 	return ec._DeployApproval(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNDeployApproval2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployApprovalᚄ(ctx context.Context, sel ast.SelectionSet, v []model.DeployApproval) graphql.Marshaler {
+func (ec *executionContext) marshalNDeployApproval2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeployApprovalᚄ(ctx context.Context, sel ast.SelectionSet, v []model.DeployApproval) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNDeployApproval2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployApproval(ctx, sel, v[i])
+		return ec.marshalNDeployApproval2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeployApproval(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -43664,7 +45055,7 @@ func (ec *executionContext) marshalNDeployApproval2ᚕironflyerᚋappsᚋorchest
 	return ret
 }
 
-func (ec *executionContext) marshalNDeployApproval2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployApproval(ctx context.Context, sel ast.SelectionSet, v *model.DeployApproval) graphql.Marshaler {
+func (ec *executionContext) marshalNDeployApproval2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeployApproval(ctx context.Context, sel ast.SelectionSet, v *model.DeployApproval) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -43674,15 +45065,15 @@ func (ec *executionContext) marshalNDeployApproval2ᚖironflyerᚋappsᚋorchest
 	return ec._DeployApproval(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNDeployDomain2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployDomain(ctx context.Context, sel ast.SelectionSet, v model.DeployDomain) graphql.Marshaler {
+func (ec *executionContext) marshalNDeployDomain2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeployDomain(ctx context.Context, sel ast.SelectionSet, v model.DeployDomain) graphql.Marshaler {
 	return ec._DeployDomain(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNDeployDomain2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployDomainᚄ(ctx context.Context, sel ast.SelectionSet, v []model.DeployDomain) graphql.Marshaler {
+func (ec *executionContext) marshalNDeployDomain2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeployDomainᚄ(ctx context.Context, sel ast.SelectionSet, v []model.DeployDomain) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNDeployDomain2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployDomain(ctx, sel, v[i])
+		return ec.marshalNDeployDomain2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeployDomain(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -43694,7 +45085,7 @@ func (ec *executionContext) marshalNDeployDomain2ᚕironflyerᚋappsᚋorchestra
 	return ret
 }
 
-func (ec *executionContext) marshalNDeployDomain2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployDomain(ctx context.Context, sel ast.SelectionSet, v *model.DeployDomain) graphql.Marshaler {
+func (ec *executionContext) marshalNDeployDomain2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeployDomain(ctx context.Context, sel ast.SelectionSet, v *model.DeployDomain) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -43704,11 +45095,11 @@ func (ec *executionContext) marshalNDeployDomain2ᚖironflyerᚋappsᚋorchestra
 	return ec._DeployDomain(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNDeployEvent2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployEvent(ctx context.Context, sel ast.SelectionSet, v model.DeployEvent) graphql.Marshaler {
+func (ec *executionContext) marshalNDeployEvent2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeployEvent(ctx context.Context, sel ast.SelectionSet, v model.DeployEvent) graphql.Marshaler {
 	return ec._DeployEvent(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNDeployEvent2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployEvent(ctx context.Context, sel ast.SelectionSet, v *model.DeployEvent) graphql.Marshaler {
+func (ec *executionContext) marshalNDeployEvent2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeployEvent(ctx context.Context, sel ast.SelectionSet, v *model.DeployEvent) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -43718,20 +45109,20 @@ func (ec *executionContext) marshalNDeployEvent2ᚖironflyerᚋappsᚋorchestrat
 	return ec._DeployEvent(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNDescribeIdeaInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDescribeIdeaInput(ctx context.Context, v any) (model.DescribeIdeaInput, error) {
+func (ec *executionContext) unmarshalNDescribeIdeaInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDescribeIdeaInput(ctx context.Context, v any) (model.DescribeIdeaInput, error) {
 	res, err := ec.unmarshalInputDescribeIdeaInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNDeviceCloudDevice2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeviceCloudDevice(ctx context.Context, sel ast.SelectionSet, v model.DeviceCloudDevice) graphql.Marshaler {
+func (ec *executionContext) marshalNDeviceCloudDevice2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeviceCloudDevice(ctx context.Context, sel ast.SelectionSet, v model.DeviceCloudDevice) graphql.Marshaler {
 	return ec._DeviceCloudDevice(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNDeviceCloudDevice2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeviceCloudDeviceᚄ(ctx context.Context, sel ast.SelectionSet, v []model.DeviceCloudDevice) graphql.Marshaler {
+func (ec *executionContext) marshalNDeviceCloudDevice2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeviceCloudDeviceᚄ(ctx context.Context, sel ast.SelectionSet, v []model.DeviceCloudDevice) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNDeviceCloudDevice2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeviceCloudDevice(ctx, sel, v[i])
+		return ec.marshalNDeviceCloudDevice2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeviceCloudDevice(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -43743,11 +45134,11 @@ func (ec *executionContext) marshalNDeviceCloudDevice2ᚕironflyerᚋappsᚋorch
 	return ret
 }
 
-func (ec *executionContext) marshalNDeviceCloudSession2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeviceCloudSession(ctx context.Context, sel ast.SelectionSet, v model.DeviceCloudSession) graphql.Marshaler {
+func (ec *executionContext) marshalNDeviceCloudSession2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeviceCloudSession(ctx context.Context, sel ast.SelectionSet, v model.DeviceCloudSession) graphql.Marshaler {
 	return ec._DeviceCloudSession(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNDeviceCloudSession2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeviceCloudSession(ctx context.Context, sel ast.SelectionSet, v *model.DeviceCloudSession) graphql.Marshaler {
+func (ec *executionContext) marshalNDeviceCloudSession2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeviceCloudSession(ctx context.Context, sel ast.SelectionSet, v *model.DeviceCloudSession) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -43757,16 +45148,36 @@ func (ec *executionContext) marshalNDeviceCloudSession2ᚖironflyerᚋappsᚋorc
 	return ec._DeviceCloudSession(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNDeviceCloudStartInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeviceCloudStartInput(ctx context.Context, v any) (model.DeviceCloudStartInput, error) {
+func (ec *executionContext) unmarshalNDeviceCloudStartInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeviceCloudStartInput(ctx context.Context, v any) (model.DeviceCloudStartInput, error) {
 	res, err := ec.unmarshalInputDeviceCloudStartInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNDomainAvailability2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDomainAvailability(ctx context.Context, sel ast.SelectionSet, v model.DomainAvailability) graphql.Marshaler {
+func (ec *executionContext) marshalNDirDup2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDirDup(ctx context.Context, sel ast.SelectionSet, v model.DirDup) graphql.Marshaler {
+	return ec._DirDup(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDirDup2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDirDupᚄ(ctx context.Context, sel ast.SelectionSet, v []model.DirDup) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNDirDup2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDirDup(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNDomainAvailability2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDomainAvailability(ctx context.Context, sel ast.SelectionSet, v model.DomainAvailability) graphql.Marshaler {
 	return ec._DomainAvailability(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNDomainAvailability2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDomainAvailability(ctx context.Context, sel ast.SelectionSet, v *model.DomainAvailability) graphql.Marshaler {
+func (ec *executionContext) marshalNDomainAvailability2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDomainAvailability(ctx context.Context, sel ast.SelectionSet, v *model.DomainAvailability) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -43776,20 +45187,20 @@ func (ec *executionContext) marshalNDomainAvailability2ᚖironflyerᚋappsᚋorc
 	return ec._DomainAvailability(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNEmailChangeInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐEmailChangeInput(ctx context.Context, v any) (model.EmailChangeInput, error) {
+func (ec *executionContext) unmarshalNEmailChangeInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐEmailChangeInput(ctx context.Context, v any) (model.EmailChangeInput, error) {
 	res, err := ec.unmarshalInputEmailChangeInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNErrorAggregate2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐErrorAggregate(ctx context.Context, sel ast.SelectionSet, v model.ErrorAggregate) graphql.Marshaler {
+func (ec *executionContext) marshalNErrorAggregate2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐErrorAggregate(ctx context.Context, sel ast.SelectionSet, v model.ErrorAggregate) graphql.Marshaler {
 	return ec._ErrorAggregate(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNErrorAggregate2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐErrorAggregateᚄ(ctx context.Context, sel ast.SelectionSet, v []model.ErrorAggregate) graphql.Marshaler {
+func (ec *executionContext) marshalNErrorAggregate2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐErrorAggregateᚄ(ctx context.Context, sel ast.SelectionSet, v []model.ErrorAggregate) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNErrorAggregate2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐErrorAggregate(ctx, sel, v[i])
+		return ec.marshalNErrorAggregate2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐErrorAggregate(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -43801,20 +45212,20 @@ func (ec *executionContext) marshalNErrorAggregate2ᚕironflyerᚋappsᚋorchest
 	return ret
 }
 
-func (ec *executionContext) unmarshalNEstimateInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐEstimateInput(ctx context.Context, v any) (model.EstimateInput, error) {
+func (ec *executionContext) unmarshalNEstimateInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐEstimateInput(ctx context.Context, v any) (model.EstimateInput, error) {
 	res, err := ec.unmarshalInputEstimateInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNExecution2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐExecution(ctx context.Context, sel ast.SelectionSet, v model.Execution) graphql.Marshaler {
+func (ec *executionContext) marshalNExecution2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐExecution(ctx context.Context, sel ast.SelectionSet, v model.Execution) graphql.Marshaler {
 	return ec._Execution(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNExecution2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐExecutionᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Execution) graphql.Marshaler {
+func (ec *executionContext) marshalNExecution2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐExecutionᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Execution) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNExecution2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐExecution(ctx, sel, v[i])
+		return ec.marshalNExecution2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐExecution(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -43826,7 +45237,7 @@ func (ec *executionContext) marshalNExecution2ᚕironflyerᚋappsᚋorchestrator
 	return ret
 }
 
-func (ec *executionContext) marshalNExecution2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐExecution(ctx context.Context, sel ast.SelectionSet, v *model.Execution) graphql.Marshaler {
+func (ec *executionContext) marshalNExecution2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐExecution(ctx context.Context, sel ast.SelectionSet, v *model.Execution) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -43836,11 +45247,11 @@ func (ec *executionContext) marshalNExecution2ᚖironflyerᚋappsᚋorchestrator
 	return ec._Execution(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNExecutionEvent2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐExecutionEvent(ctx context.Context, sel ast.SelectionSet, v model.ExecutionEvent) graphql.Marshaler {
+func (ec *executionContext) marshalNExecutionEvent2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐExecutionEvent(ctx context.Context, sel ast.SelectionSet, v model.ExecutionEvent) graphql.Marshaler {
 	return ec._ExecutionEvent(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNExecutionEvent2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐExecutionEvent(ctx context.Context, sel ast.SelectionSet, v *model.ExecutionEvent) graphql.Marshaler {
+func (ec *executionContext) marshalNExecutionEvent2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐExecutionEvent(ctx context.Context, sel ast.SelectionSet, v *model.ExecutionEvent) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -43866,15 +45277,15 @@ func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.S
 	return graphql.WrapContextMarshaler(ctx, res)
 }
 
-func (ec *executionContext) marshalNGateIssue2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGateIssue(ctx context.Context, sel ast.SelectionSet, v model.GateIssue) graphql.Marshaler {
+func (ec *executionContext) marshalNGateIssue2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGateIssue(ctx context.Context, sel ast.SelectionSet, v model.GateIssue) graphql.Marshaler {
 	return ec._GateIssue(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNGateIssue2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGateIssueᚄ(ctx context.Context, sel ast.SelectionSet, v []model.GateIssue) graphql.Marshaler {
+func (ec *executionContext) marshalNGateIssue2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGateIssueᚄ(ctx context.Context, sel ast.SelectionSet, v []model.GateIssue) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNGateIssue2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGateIssue(ctx, sel, v[i])
+		return ec.marshalNGateIssue2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGateIssue(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -43886,19 +45297,19 @@ func (ec *executionContext) marshalNGateIssue2ᚕironflyerᚋappsᚋorchestrator
 	return ret
 }
 
-func (ec *executionContext) marshalNGateReport2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGateReport(ctx context.Context, sel ast.SelectionSet, v model.GateReport) graphql.Marshaler {
+func (ec *executionContext) marshalNGateReport2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGateReport(ctx context.Context, sel ast.SelectionSet, v model.GateReport) graphql.Marshaler {
 	return ec._GateReport(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNGateStage2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGateStage(ctx context.Context, sel ast.SelectionSet, v model.GateStage) graphql.Marshaler {
+func (ec *executionContext) marshalNGateStage2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGateStage(ctx context.Context, sel ast.SelectionSet, v model.GateStage) graphql.Marshaler {
 	return ec._GateStage(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNGateStage2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGateStageᚄ(ctx context.Context, sel ast.SelectionSet, v []model.GateStage) graphql.Marshaler {
+func (ec *executionContext) marshalNGateStage2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGateStageᚄ(ctx context.Context, sel ast.SelectionSet, v []model.GateStage) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNGateStage2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGateStage(ctx, sel, v[i])
+		return ec.marshalNGateStage2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGateStage(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -43910,25 +45321,25 @@ func (ec *executionContext) marshalNGateStage2ᚕironflyerᚋappsᚋorchestrator
 	return ret
 }
 
-func (ec *executionContext) unmarshalNGateStatus2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGateStatus(ctx context.Context, v any) (model.GateStatus, error) {
+func (ec *executionContext) unmarshalNGateStatus2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGateStatus(ctx context.Context, v any) (model.GateStatus, error) {
 	var res model.GateStatus
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNGateStatus2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGateStatus(ctx context.Context, sel ast.SelectionSet, v model.GateStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNGateStatus2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGateStatus(ctx context.Context, sel ast.SelectionSet, v model.GateStatus) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNGateVerdict2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGateVerdict(ctx context.Context, sel ast.SelectionSet, v model.GateVerdict) graphql.Marshaler {
+func (ec *executionContext) marshalNGateVerdict2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGateVerdict(ctx context.Context, sel ast.SelectionSet, v model.GateVerdict) graphql.Marshaler {
 	return ec._GateVerdict(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNGateVerdict2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGateVerdictᚄ(ctx context.Context, sel ast.SelectionSet, v []model.GateVerdict) graphql.Marshaler {
+func (ec *executionContext) marshalNGateVerdict2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGateVerdictᚄ(ctx context.Context, sel ast.SelectionSet, v []model.GateVerdict) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNGateVerdict2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGateVerdict(ctx, sel, v[i])
+		return ec.marshalNGateVerdict2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGateVerdict(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -43940,7 +45351,7 @@ func (ec *executionContext) marshalNGateVerdict2ᚕironflyerᚋappsᚋorchestrat
 	return ret
 }
 
-func (ec *executionContext) marshalNGateVerdict2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGateVerdict(ctx context.Context, sel ast.SelectionSet, v *model.GateVerdict) graphql.Marshaler {
+func (ec *executionContext) marshalNGateVerdict2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGateVerdict(ctx context.Context, sel ast.SelectionSet, v *model.GateVerdict) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -43950,15 +45361,15 @@ func (ec *executionContext) marshalNGateVerdict2ᚖironflyerᚋappsᚋorchestrat
 	return ec._GateVerdict(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNGenerateMobileAssetEntry2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGenerateMobileAssetEntry(ctx context.Context, sel ast.SelectionSet, v model.GenerateMobileAssetEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNGenerateMobileAssetEntry2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGenerateMobileAssetEntry(ctx context.Context, sel ast.SelectionSet, v model.GenerateMobileAssetEntry) graphql.Marshaler {
 	return ec._GenerateMobileAssetEntry(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNGenerateMobileAssetEntry2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGenerateMobileAssetEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []model.GenerateMobileAssetEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNGenerateMobileAssetEntry2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGenerateMobileAssetEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []model.GenerateMobileAssetEntry) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNGenerateMobileAssetEntry2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGenerateMobileAssetEntry(ctx, sel, v[i])
+		return ec.marshalNGenerateMobileAssetEntry2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGenerateMobileAssetEntry(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -43970,16 +45381,16 @@ func (ec *executionContext) marshalNGenerateMobileAssetEntry2ᚕironflyerᚋapps
 	return ret
 }
 
-func (ec *executionContext) unmarshalNGenerateMobileAssetsInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGenerateMobileAssetsInput(ctx context.Context, v any) (model.GenerateMobileAssetsInput, error) {
+func (ec *executionContext) unmarshalNGenerateMobileAssetsInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGenerateMobileAssetsInput(ctx context.Context, v any) (model.GenerateMobileAssetsInput, error) {
 	res, err := ec.unmarshalInputGenerateMobileAssetsInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNGenerateMobileAssetsResult2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGenerateMobileAssetsResult(ctx context.Context, sel ast.SelectionSet, v model.GenerateMobileAssetsResult) graphql.Marshaler {
+func (ec *executionContext) marshalNGenerateMobileAssetsResult2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGenerateMobileAssetsResult(ctx context.Context, sel ast.SelectionSet, v model.GenerateMobileAssetsResult) graphql.Marshaler {
 	return ec._GenerateMobileAssetsResult(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNGenerateMobileAssetsResult2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGenerateMobileAssetsResult(ctx context.Context, sel ast.SelectionSet, v *model.GenerateMobileAssetsResult) graphql.Marshaler {
+func (ec *executionContext) marshalNGenerateMobileAssetsResult2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGenerateMobileAssetsResult(ctx context.Context, sel ast.SelectionSet, v *model.GenerateMobileAssetsResult) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -43989,11 +45400,25 @@ func (ec *executionContext) marshalNGenerateMobileAssetsResult2ᚖironflyerᚋap
 	return ec._GenerateMobileAssetsResult(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNHeartbeatEvent2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐHeartbeatEvent(ctx context.Context, sel ast.SelectionSet, v model.HeartbeatEvent) graphql.Marshaler {
+func (ec *executionContext) marshalNHealthMetrics2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐHealthMetrics(ctx context.Context, sel ast.SelectionSet, v model.HealthMetrics) graphql.Marshaler {
+	return ec._HealthMetrics(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNHealthMetrics2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐHealthMetrics(ctx context.Context, sel ast.SelectionSet, v *model.HealthMetrics) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._HealthMetrics(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNHeartbeatEvent2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐHeartbeatEvent(ctx context.Context, sel ast.SelectionSet, v model.HeartbeatEvent) graphql.Marshaler {
 	return ec._HeartbeatEvent(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNHeartbeatEvent2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐHeartbeatEvent(ctx context.Context, sel ast.SelectionSet, v *model.HeartbeatEvent) graphql.Marshaler {
+func (ec *executionContext) marshalNHeartbeatEvent2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐHeartbeatEvent(ctx context.Context, sel ast.SelectionSet, v *model.HeartbeatEvent) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -44049,7 +45474,7 @@ func (ec *executionContext) marshalNID2ᚕstringᚄ(ctx context.Context, sel ast
 	return ret
 }
 
-func (ec *executionContext) marshalNInlineDelta2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐInlineDelta(ctx context.Context, sel ast.SelectionSet, v model.InlineDelta) graphql.Marshaler {
+func (ec *executionContext) marshalNInlineDelta2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐInlineDelta(ctx context.Context, sel ast.SelectionSet, v model.InlineDelta) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -44059,7 +45484,7 @@ func (ec *executionContext) marshalNInlineDelta2ironflyerᚋappsᚋorchestrator�
 	return ec._InlineDelta(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNInlineInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐInlineInput(ctx context.Context, v any) (model.InlineInput, error) {
+func (ec *executionContext) unmarshalNInlineInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐInlineInput(ctx context.Context, v any) (model.InlineInput, error) {
 	res, err := ec.unmarshalInputInlineInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -44080,13 +45505,13 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) unmarshalNJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx context.Context, v any) (model.JSON, error) {
+func (ec *executionContext) unmarshalNJSON2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐJSON(ctx context.Context, v any) (model.JSON, error) {
 	var res model.JSON
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx context.Context, sel ast.SelectionSet, v model.JSON) graphql.Marshaler {
+func (ec *executionContext) marshalNJSON2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐJSON(ctx context.Context, sel ast.SelectionSet, v model.JSON) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -44096,15 +45521,15 @@ func (ec *executionContext) marshalNJSON2ironflyerᚋappsᚋorchestratorᚋinter
 	return v
 }
 
-func (ec *executionContext) marshalNLedgerEntry2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐLedgerEntry(ctx context.Context, sel ast.SelectionSet, v model.LedgerEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNLedgerEntry2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐLedgerEntry(ctx context.Context, sel ast.SelectionSet, v model.LedgerEntry) graphql.Marshaler {
 	return ec._LedgerEntry(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNLedgerEntry2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐLedgerEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []model.LedgerEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNLedgerEntry2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐLedgerEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []model.LedgerEntry) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNLedgerEntry2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐLedgerEntry(ctx, sel, v[i])
+		return ec.marshalNLedgerEntry2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐLedgerEntry(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -44116,11 +45541,11 @@ func (ec *executionContext) marshalNLedgerEntry2ᚕironflyerᚋappsᚋorchestrat
 	return ret
 }
 
-func (ec *executionContext) marshalNLedgerRollup2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐLedgerRollup(ctx context.Context, sel ast.SelectionSet, v model.LedgerRollup) graphql.Marshaler {
+func (ec *executionContext) marshalNLedgerRollup2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐLedgerRollup(ctx context.Context, sel ast.SelectionSet, v model.LedgerRollup) graphql.Marshaler {
 	return ec._LedgerRollup(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNLedgerRollup2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐLedgerRollup(ctx context.Context, sel ast.SelectionSet, v *model.LedgerRollup) graphql.Marshaler {
+func (ec *executionContext) marshalNLedgerRollup2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐLedgerRollup(ctx context.Context, sel ast.SelectionSet, v *model.LedgerRollup) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -44130,15 +45555,15 @@ func (ec *executionContext) marshalNLedgerRollup2ᚖironflyerᚋappsᚋorchestra
 	return ec._LedgerRollup(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNLogEntry2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐLogEntry(ctx context.Context, sel ast.SelectionSet, v model.LogEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNLogEntry2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐLogEntry(ctx context.Context, sel ast.SelectionSet, v model.LogEntry) graphql.Marshaler {
 	return ec._LogEntry(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNLogEntry2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐLogEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []model.LogEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNLogEntry2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐLogEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []model.LogEntry) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNLogEntry2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐLogEntry(ctx, sel, v[i])
+		return ec.marshalNLogEntry2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐLogEntry(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -44150,15 +45575,15 @@ func (ec *executionContext) marshalNLogEntry2ᚕironflyerᚋappsᚋorchestrator�
 	return ret
 }
 
-func (ec *executionContext) marshalNMobileBuild2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileBuild(ctx context.Context, sel ast.SelectionSet, v model.MobileBuild) graphql.Marshaler {
+func (ec *executionContext) marshalNMobileBuild2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMobileBuild(ctx context.Context, sel ast.SelectionSet, v model.MobileBuild) graphql.Marshaler {
 	return ec._MobileBuild(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNMobileBuild2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileBuildᚄ(ctx context.Context, sel ast.SelectionSet, v []model.MobileBuild) graphql.Marshaler {
+func (ec *executionContext) marshalNMobileBuild2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMobileBuildᚄ(ctx context.Context, sel ast.SelectionSet, v []model.MobileBuild) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNMobileBuild2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileBuild(ctx, sel, v[i])
+		return ec.marshalNMobileBuild2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMobileBuild(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -44170,7 +45595,7 @@ func (ec *executionContext) marshalNMobileBuild2ᚕironflyerᚋappsᚋorchestrat
 	return ret
 }
 
-func (ec *executionContext) marshalNMobileBuild2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileBuild(ctx context.Context, sel ast.SelectionSet, v *model.MobileBuild) graphql.Marshaler {
+func (ec *executionContext) marshalNMobileBuild2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMobileBuild(ctx context.Context, sel ast.SelectionSet, v *model.MobileBuild) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -44180,20 +45605,20 @@ func (ec *executionContext) marshalNMobileBuild2ᚖironflyerᚋappsᚋorchestrat
 	return ec._MobileBuild(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNMobilePublishUpdateInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobilePublishUpdateInput(ctx context.Context, v any) (model.MobilePublishUpdateInput, error) {
+func (ec *executionContext) unmarshalNMobilePublishUpdateInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMobilePublishUpdateInput(ctx context.Context, v any) (model.MobilePublishUpdateInput, error) {
 	res, err := ec.unmarshalInputMobilePublishUpdateInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNMobileSubmission2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileSubmission(ctx context.Context, sel ast.SelectionSet, v model.MobileSubmission) graphql.Marshaler {
+func (ec *executionContext) marshalNMobileSubmission2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMobileSubmission(ctx context.Context, sel ast.SelectionSet, v model.MobileSubmission) graphql.Marshaler {
 	return ec._MobileSubmission(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNMobileSubmission2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileSubmissionᚄ(ctx context.Context, sel ast.SelectionSet, v []model.MobileSubmission) graphql.Marshaler {
+func (ec *executionContext) marshalNMobileSubmission2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMobileSubmissionᚄ(ctx context.Context, sel ast.SelectionSet, v []model.MobileSubmission) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNMobileSubmission2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileSubmission(ctx, sel, v[i])
+		return ec.marshalNMobileSubmission2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMobileSubmission(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -44205,7 +45630,7 @@ func (ec *executionContext) marshalNMobileSubmission2ᚕironflyerᚋappsᚋorche
 	return ret
 }
 
-func (ec *executionContext) marshalNMobileSubmission2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileSubmission(ctx context.Context, sel ast.SelectionSet, v *model.MobileSubmission) graphql.Marshaler {
+func (ec *executionContext) marshalNMobileSubmission2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMobileSubmission(ctx context.Context, sel ast.SelectionSet, v *model.MobileSubmission) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -44215,21 +45640,21 @@ func (ec *executionContext) marshalNMobileSubmission2ᚖironflyerᚋappsᚋorche
 	return ec._MobileSubmission(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNMobileSubmitInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileSubmitInput(ctx context.Context, v any) (model.MobileSubmitInput, error) {
+func (ec *executionContext) unmarshalNMobileSubmitInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMobileSubmitInput(ctx context.Context, v any) (model.MobileSubmitInput, error) {
 	res, err := ec.unmarshalInputMobileSubmitInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNMobileTriggerBuildInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileTriggerBuildInput(ctx context.Context, v any) (model.MobileTriggerBuildInput, error) {
+func (ec *executionContext) unmarshalNMobileTriggerBuildInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMobileTriggerBuildInput(ctx context.Context, v any) (model.MobileTriggerBuildInput, error) {
 	res, err := ec.unmarshalInputMobileTriggerBuildInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNMobileUpdate2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileUpdate(ctx context.Context, sel ast.SelectionSet, v model.MobileUpdate) graphql.Marshaler {
+func (ec *executionContext) marshalNMobileUpdate2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMobileUpdate(ctx context.Context, sel ast.SelectionSet, v model.MobileUpdate) graphql.Marshaler {
 	return ec._MobileUpdate(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNMobileUpdate2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileUpdate(ctx context.Context, sel ast.SelectionSet, v *model.MobileUpdate) graphql.Marshaler {
+func (ec *executionContext) marshalNMobileUpdate2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMobileUpdate(ctx context.Context, sel ast.SelectionSet, v *model.MobileUpdate) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -44239,15 +45664,15 @@ func (ec *executionContext) marshalNMobileUpdate2ᚖironflyerᚋappsᚋorchestra
 	return ec._MobileUpdate(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNNextAction2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐNextAction(ctx context.Context, sel ast.SelectionSet, v model.NextAction) graphql.Marshaler {
+func (ec *executionContext) marshalNNextAction2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐNextAction(ctx context.Context, sel ast.SelectionSet, v model.NextAction) graphql.Marshaler {
 	return ec._NextAction(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNOperationResult2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐOperationResult(ctx context.Context, sel ast.SelectionSet, v model.OperationResult) graphql.Marshaler {
+func (ec *executionContext) marshalNOperationResult2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐOperationResult(ctx context.Context, sel ast.SelectionSet, v model.OperationResult) graphql.Marshaler {
 	return ec._OperationResult(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNOperationResult2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐOperationResult(ctx context.Context, sel ast.SelectionSet, v *model.OperationResult) graphql.Marshaler {
+func (ec *executionContext) marshalNOperationResult2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐOperationResult(ctx context.Context, sel ast.SelectionSet, v *model.OperationResult) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -44257,15 +45682,15 @@ func (ec *executionContext) marshalNOperationResult2ᚖironflyerᚋappsᚋorches
 	return ec._OperationResult(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNOperatorAuditEntry2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐOperatorAuditEntry(ctx context.Context, sel ast.SelectionSet, v model.OperatorAuditEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNOperatorAuditEntry2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐOperatorAuditEntry(ctx context.Context, sel ast.SelectionSet, v model.OperatorAuditEntry) graphql.Marshaler {
 	return ec._OperatorAuditEntry(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNOperatorAuditEntry2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐOperatorAuditEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []model.OperatorAuditEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNOperatorAuditEntry2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐOperatorAuditEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []model.OperatorAuditEntry) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNOperatorAuditEntry2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐOperatorAuditEntry(ctx, sel, v[i])
+		return ec.marshalNOperatorAuditEntry2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐOperatorAuditEntry(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -44277,11 +45702,11 @@ func (ec *executionContext) marshalNOperatorAuditEntry2ᚕironflyerᚋappsᚋorc
 	return ret
 }
 
-func (ec *executionContext) marshalNOperatorScaleSnapshot2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐOperatorScaleSnapshot(ctx context.Context, sel ast.SelectionSet, v model.OperatorScaleSnapshot) graphql.Marshaler {
+func (ec *executionContext) marshalNOperatorScaleSnapshot2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐOperatorScaleSnapshot(ctx context.Context, sel ast.SelectionSet, v model.OperatorScaleSnapshot) graphql.Marshaler {
 	return ec._OperatorScaleSnapshot(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNOperatorScaleSnapshot2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐOperatorScaleSnapshot(ctx context.Context, sel ast.SelectionSet, v *model.OperatorScaleSnapshot) graphql.Marshaler {
+func (ec *executionContext) marshalNOperatorScaleSnapshot2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐOperatorScaleSnapshot(ctx context.Context, sel ast.SelectionSet, v *model.OperatorScaleSnapshot) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -44291,11 +45716,11 @@ func (ec *executionContext) marshalNOperatorScaleSnapshot2ᚖironflyerᚋappsᚋ
 	return ec._OperatorScaleSnapshot(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNOperatorWalletSnapshot2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐOperatorWalletSnapshot(ctx context.Context, sel ast.SelectionSet, v model.OperatorWalletSnapshot) graphql.Marshaler {
+func (ec *executionContext) marshalNOperatorWalletSnapshot2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐOperatorWalletSnapshot(ctx context.Context, sel ast.SelectionSet, v model.OperatorWalletSnapshot) graphql.Marshaler {
 	return ec._OperatorWalletSnapshot(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNOperatorWalletSnapshot2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐOperatorWalletSnapshot(ctx context.Context, sel ast.SelectionSet, v *model.OperatorWalletSnapshot) graphql.Marshaler {
+func (ec *executionContext) marshalNOperatorWalletSnapshot2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐOperatorWalletSnapshot(ctx context.Context, sel ast.SelectionSet, v *model.OperatorWalletSnapshot) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -44305,19 +45730,19 @@ func (ec *executionContext) marshalNOperatorWalletSnapshot2ᚖironflyerᚋapps�
 	return ec._OperatorWalletSnapshot(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNParsedIdea2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐParsedIdea(ctx context.Context, sel ast.SelectionSet, v model.ParsedIdea) graphql.Marshaler {
+func (ec *executionContext) marshalNParsedIdea2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐParsedIdea(ctx context.Context, sel ast.SelectionSet, v model.ParsedIdea) graphql.Marshaler {
 	return ec._ParsedIdea(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNPatch2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatch(ctx context.Context, sel ast.SelectionSet, v model.Patch) graphql.Marshaler {
+func (ec *executionContext) marshalNPatch2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatch(ctx context.Context, sel ast.SelectionSet, v model.Patch) graphql.Marshaler {
 	return ec._Patch(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNPatch2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Patch) graphql.Marshaler {
+func (ec *executionContext) marshalNPatch2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Patch) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNPatch2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatch(ctx, sel, v[i])
+		return ec.marshalNPatch2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatch(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -44329,7 +45754,7 @@ func (ec *executionContext) marshalNPatch2ᚕironflyerᚋappsᚋorchestratorᚋi
 	return ret
 }
 
-func (ec *executionContext) marshalNPatch2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatch(ctx context.Context, sel ast.SelectionSet, v *model.Patch) graphql.Marshaler {
+func (ec *executionContext) marshalNPatch2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatch(ctx context.Context, sel ast.SelectionSet, v *model.Patch) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -44339,15 +45764,15 @@ func (ec *executionContext) marshalNPatch2ᚖironflyerᚋappsᚋorchestratorᚋi
 	return ec._Patch(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPatchChange2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchChange(ctx context.Context, sel ast.SelectionSet, v model.PatchChange) graphql.Marshaler {
+func (ec *executionContext) marshalNPatchChange2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchChange(ctx context.Context, sel ast.SelectionSet, v model.PatchChange) graphql.Marshaler {
 	return ec._PatchChange(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNPatchChange2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchChangeᚄ(ctx context.Context, sel ast.SelectionSet, v []model.PatchChange) graphql.Marshaler {
+func (ec *executionContext) marshalNPatchChange2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchChangeᚄ(ctx context.Context, sel ast.SelectionSet, v []model.PatchChange) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNPatchChange2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchChange(ctx, sel, v[i])
+		return ec.marshalNPatchChange2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchChange(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -44359,19 +45784,19 @@ func (ec *executionContext) marshalNPatchChange2ᚕironflyerᚋappsᚋorchestrat
 	return ret
 }
 
-func (ec *executionContext) unmarshalNPatchChangeInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchChangeInput(ctx context.Context, v any) (model.PatchChangeInput, error) {
+func (ec *executionContext) unmarshalNPatchChangeInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchChangeInput(ctx context.Context, v any) (model.PatchChangeInput, error) {
 	res, err := ec.unmarshalInputPatchChangeInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNPatchChangeInput2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchChangeInputᚄ(ctx context.Context, v any) ([]model.PatchChangeInput, error) {
+func (ec *executionContext) unmarshalNPatchChangeInput2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchChangeInputᚄ(ctx context.Context, v any) ([]model.PatchChangeInput, error) {
 	var vSlice []any
 	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]model.PatchChangeInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNPatchChangeInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchChangeInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNPatchChangeInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchChangeInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -44379,29 +45804,29 @@ func (ec *executionContext) unmarshalNPatchChangeInput2ᚕironflyerᚋappsᚋorc
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalNPatchChangeOp2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchChangeOp(ctx context.Context, v any) (model.PatchChangeOp, error) {
+func (ec *executionContext) unmarshalNPatchChangeOp2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchChangeOp(ctx context.Context, v any) (model.PatchChangeOp, error) {
 	var res model.PatchChangeOp
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNPatchChangeOp2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchChangeOp(ctx context.Context, sel ast.SelectionSet, v model.PatchChangeOp) graphql.Marshaler {
+func (ec *executionContext) marshalNPatchChangeOp2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchChangeOp(ctx context.Context, sel ast.SelectionSet, v model.PatchChangeOp) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNPatchConflict2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchConflict(ctx context.Context, sel ast.SelectionSet, v model.PatchConflict) graphql.Marshaler {
+func (ec *executionContext) marshalNPatchConflict2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchConflict(ctx context.Context, sel ast.SelectionSet, v model.PatchConflict) graphql.Marshaler {
 	return ec._PatchConflict(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNPatchStage2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchStage(ctx context.Context, sel ast.SelectionSet, v model.PatchStage) graphql.Marshaler {
+func (ec *executionContext) marshalNPatchStage2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchStage(ctx context.Context, sel ast.SelectionSet, v model.PatchStage) graphql.Marshaler {
 	return ec._PatchStage(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNPatchStage2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchStageᚄ(ctx context.Context, sel ast.SelectionSet, v []model.PatchStage) graphql.Marshaler {
+func (ec *executionContext) marshalNPatchStage2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchStageᚄ(ctx context.Context, sel ast.SelectionSet, v []model.PatchStage) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNPatchStage2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchStage(ctx, sel, v[i])
+		return ec.marshalNPatchStage2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchStage(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -44413,7 +45838,7 @@ func (ec *executionContext) marshalNPatchStage2ᚕironflyerᚋappsᚋorchestrato
 	return ret
 }
 
-func (ec *executionContext) marshalNPatchStage2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchStage(ctx context.Context, sel ast.SelectionSet, v *model.PatchStage) graphql.Marshaler {
+func (ec *executionContext) marshalNPatchStage2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchStage(ctx context.Context, sel ast.SelectionSet, v *model.PatchStage) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -44423,35 +45848,35 @@ func (ec *executionContext) marshalNPatchStage2ᚖironflyerᚋappsᚋorchestrato
 	return ec._PatchStage(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNPatchStageStatus2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchStageStatus(ctx context.Context, v any) (model.PatchStageStatus, error) {
+func (ec *executionContext) unmarshalNPatchStageStatus2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchStageStatus(ctx context.Context, v any) (model.PatchStageStatus, error) {
 	var res model.PatchStageStatus
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNPatchStageStatus2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchStageStatus(ctx context.Context, sel ast.SelectionSet, v model.PatchStageStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNPatchStageStatus2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchStageStatus(ctx context.Context, sel ast.SelectionSet, v model.PatchStageStatus) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalNPatchStatus2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchStatus(ctx context.Context, v any) (model.PatchStatus, error) {
+func (ec *executionContext) unmarshalNPatchStatus2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchStatus(ctx context.Context, v any) (model.PatchStatus, error) {
 	var res model.PatchStatus
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNPatchStatus2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchStatus(ctx context.Context, sel ast.SelectionSet, v model.PatchStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNPatchStatus2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchStatus(ctx context.Context, sel ast.SelectionSet, v model.PatchStatus) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNPlan2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPlan(ctx context.Context, sel ast.SelectionSet, v model.Plan) graphql.Marshaler {
+func (ec *executionContext) marshalNPlan2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPlan(ctx context.Context, sel ast.SelectionSet, v model.Plan) graphql.Marshaler {
 	return ec._Plan(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNPlan2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPlanᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Plan) graphql.Marshaler {
+func (ec *executionContext) marshalNPlan2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPlanᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Plan) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNPlan2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPlan(ctx, sel, v[i])
+		return ec.marshalNPlan2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPlan(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -44463,16 +45888,16 @@ func (ec *executionContext) marshalNPlan2ᚕironflyerᚋappsᚋorchestratorᚋin
 	return ret
 }
 
-func (ec *executionContext) unmarshalNPlanDeployInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPlanDeployInput(ctx context.Context, v any) (model.PlanDeployInput, error) {
+func (ec *executionContext) unmarshalNPlanDeployInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPlanDeployInput(ctx context.Context, v any) (model.PlanDeployInput, error) {
 	res, err := ec.unmarshalInputPlanDeployInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNProfitDashboard2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐProfitDashboard(ctx context.Context, sel ast.SelectionSet, v model.ProfitDashboard) graphql.Marshaler {
+func (ec *executionContext) marshalNProfitDashboard2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐProfitDashboard(ctx context.Context, sel ast.SelectionSet, v model.ProfitDashboard) graphql.Marshaler {
 	return ec._ProfitDashboard(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNProfitDashboard2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐProfitDashboard(ctx context.Context, sel ast.SelectionSet, v *model.ProfitDashboard) graphql.Marshaler {
+func (ec *executionContext) marshalNProfitDashboard2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐProfitDashboard(ctx context.Context, sel ast.SelectionSet, v *model.ProfitDashboard) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -44482,15 +45907,15 @@ func (ec *executionContext) marshalNProfitDashboard2ᚖironflyerᚋappsᚋorches
 	return ec._ProfitDashboard(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNProfitGuardDecision2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐProfitGuardDecision(ctx context.Context, sel ast.SelectionSet, v model.ProfitGuardDecision) graphql.Marshaler {
+func (ec *executionContext) marshalNProfitGuardDecision2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐProfitGuardDecision(ctx context.Context, sel ast.SelectionSet, v model.ProfitGuardDecision) graphql.Marshaler {
 	return ec._ProfitGuardDecision(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNProfitGuardDecision2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐProfitGuardDecisionᚄ(ctx context.Context, sel ast.SelectionSet, v []model.ProfitGuardDecision) graphql.Marshaler {
+func (ec *executionContext) marshalNProfitGuardDecision2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐProfitGuardDecisionᚄ(ctx context.Context, sel ast.SelectionSet, v []model.ProfitGuardDecision) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNProfitGuardDecision2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐProfitGuardDecision(ctx, sel, v[i])
+		return ec.marshalNProfitGuardDecision2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐProfitGuardDecision(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -44502,15 +45927,15 @@ func (ec *executionContext) marshalNProfitGuardDecision2ᚕironflyerᚋappsᚋor
 	return ret
 }
 
-func (ec *executionContext) marshalNProject2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐProject(ctx context.Context, sel ast.SelectionSet, v model.Project) graphql.Marshaler {
+func (ec *executionContext) marshalNProject2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐProject(ctx context.Context, sel ast.SelectionSet, v model.Project) graphql.Marshaler {
 	return ec._Project(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNProject2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐProjectᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Project) graphql.Marshaler {
+func (ec *executionContext) marshalNProject2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐProjectᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Project) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNProject2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐProject(ctx, sel, v[i])
+		return ec.marshalNProject2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐProject(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -44522,7 +45947,7 @@ func (ec *executionContext) marshalNProject2ᚕironflyerᚋappsᚋorchestrator�
 	return ret
 }
 
-func (ec *executionContext) marshalNProject2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐProject(ctx context.Context, sel ast.SelectionSet, v *model.Project) graphql.Marshaler {
+func (ec *executionContext) marshalNProject2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐProject(ctx context.Context, sel ast.SelectionSet, v *model.Project) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -44532,15 +45957,15 @@ func (ec *executionContext) marshalNProject2ᚖironflyerᚋappsᚋorchestrator�
 	return ec._Project(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNProjectFile2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐProjectFile(ctx context.Context, sel ast.SelectionSet, v model.ProjectFile) graphql.Marshaler {
+func (ec *executionContext) marshalNProjectFile2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐProjectFile(ctx context.Context, sel ast.SelectionSet, v model.ProjectFile) graphql.Marshaler {
 	return ec._ProjectFile(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNProjectFile2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐProjectFileᚄ(ctx context.Context, sel ast.SelectionSet, v []model.ProjectFile) graphql.Marshaler {
+func (ec *executionContext) marshalNProjectFile2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐProjectFileᚄ(ctx context.Context, sel ast.SelectionSet, v []model.ProjectFile) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNProjectFile2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐProjectFile(ctx, sel, v[i])
+		return ec.marshalNProjectFile2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐProjectFile(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -44552,25 +45977,25 @@ func (ec *executionContext) marshalNProjectFile2ᚕironflyerᚋappsᚋorchestrat
 	return ret
 }
 
-func (ec *executionContext) unmarshalNProposePatchInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐProposePatchInput(ctx context.Context, v any) (model.ProposePatchInput, error) {
+func (ec *executionContext) unmarshalNProposePatchInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐProposePatchInput(ctx context.Context, v any) (model.ProposePatchInput, error) {
 	res, err := ec.unmarshalInputProposePatchInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNPurchaseDeployDomainInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPurchaseDeployDomainInput(ctx context.Context, v any) (model.PurchaseDeployDomainInput, error) {
+func (ec *executionContext) unmarshalNPurchaseDeployDomainInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPurchaseDeployDomainInput(ctx context.Context, v any) (model.PurchaseDeployDomainInput, error) {
 	res, err := ec.unmarshalInputPurchaseDeployDomainInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNRate2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐRate(ctx context.Context, sel ast.SelectionSet, v model.Rate) graphql.Marshaler {
+func (ec *executionContext) marshalNRate2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐRate(ctx context.Context, sel ast.SelectionSet, v model.Rate) graphql.Marshaler {
 	return ec._Rate(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNRate2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐRateᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Rate) graphql.Marshaler {
+func (ec *executionContext) marshalNRate2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐRateᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Rate) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNRate2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐRate(ctx, sel, v[i])
+		return ec.marshalNRate2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐRate(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -44582,22 +46007,42 @@ func (ec *executionContext) marshalNRate2ᚕironflyerᚋappsᚋorchestratorᚋin
 	return ret
 }
 
-func (ec *executionContext) unmarshalNRenameSymbolInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐRenameSymbolInput(ctx context.Context, v any) (model.RenameSymbolInput, error) {
+func (ec *executionContext) unmarshalNRenameSymbolInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐRenameSymbolInput(ctx context.Context, v any) (model.RenameSymbolInput, error) {
 	res, err := ec.unmarshalInputRenameSymbolInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNRerunGateInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐRerunGateInput(ctx context.Context, v any) (model.RerunGateInput, error) {
+func (ec *executionContext) unmarshalNRerunGateInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐRerunGateInput(ctx context.Context, v any) (model.RerunGateInput, error) {
 	res, err := ec.unmarshalInputRerunGateInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNReserveDeploySubdomainInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐReserveDeploySubdomainInput(ctx context.Context, v any) (model.ReserveDeploySubdomainInput, error) {
+func (ec *executionContext) unmarshalNReserveDeploySubdomainInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐReserveDeploySubdomainInput(ctx context.Context, v any) (model.ReserveDeploySubdomainInput, error) {
 	res, err := ec.unmarshalInputReserveDeploySubdomainInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNRunEvent2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐRunEvent(ctx context.Context, sel ast.SelectionSet, v model.RunEvent) graphql.Marshaler {
+func (ec *executionContext) marshalNRouteBundle2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐRouteBundle(ctx context.Context, sel ast.SelectionSet, v model.RouteBundle) graphql.Marshaler {
+	return ec._RouteBundle(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNRouteBundle2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐRouteBundleᚄ(ctx context.Context, sel ast.SelectionSet, v []model.RouteBundle) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNRouteBundle2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐRouteBundle(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNRunEvent2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐRunEvent(ctx context.Context, sel ast.SelectionSet, v model.RunEvent) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -44607,11 +46052,11 @@ func (ec *executionContext) marshalNRunEvent2ironflyerᚋappsᚋorchestratorᚋi
 	return ec._RunEvent(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNScaleDashboard2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐScaleDashboard(ctx context.Context, sel ast.SelectionSet, v model.ScaleDashboard) graphql.Marshaler {
+func (ec *executionContext) marshalNScaleDashboard2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐScaleDashboard(ctx context.Context, sel ast.SelectionSet, v model.ScaleDashboard) graphql.Marshaler {
 	return ec._ScaleDashboard(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNScaleDashboard2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐScaleDashboard(ctx context.Context, sel ast.SelectionSet, v *model.ScaleDashboard) graphql.Marshaler {
+func (ec *executionContext) marshalNScaleDashboard2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐScaleDashboard(ctx context.Context, sel ast.SelectionSet, v *model.ScaleDashboard) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -44621,11 +46066,11 @@ func (ec *executionContext) marshalNScaleDashboard2ᚖironflyerᚋappsᚋorchest
 	return ec._ScaleDashboard(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNSecurityReport2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSecurityReport(ctx context.Context, sel ast.SelectionSet, v model.SecurityReport) graphql.Marshaler {
+func (ec *executionContext) marshalNSecurityReport2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSecurityReport(ctx context.Context, sel ast.SelectionSet, v model.SecurityReport) graphql.Marshaler {
 	return ec._SecurityReport(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSecurityReport2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSecurityReport(ctx context.Context, sel ast.SelectionSet, v *model.SecurityReport) graphql.Marshaler {
+func (ec *executionContext) marshalNSecurityReport2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSecurityReport(ctx context.Context, sel ast.SelectionSet, v *model.SecurityReport) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -44635,15 +46080,15 @@ func (ec *executionContext) marshalNSecurityReport2ᚖironflyerᚋappsᚋorchest
 	return ec._SecurityReport(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNSecurityReportFinding2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSecurityReportFinding(ctx context.Context, sel ast.SelectionSet, v model.SecurityReportFinding) graphql.Marshaler {
+func (ec *executionContext) marshalNSecurityReportFinding2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSecurityReportFinding(ctx context.Context, sel ast.SelectionSet, v model.SecurityReportFinding) graphql.Marshaler {
 	return ec._SecurityReportFinding(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSecurityReportFinding2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSecurityReportFindingᚄ(ctx context.Context, sel ast.SelectionSet, v []model.SecurityReportFinding) graphql.Marshaler {
+func (ec *executionContext) marshalNSecurityReportFinding2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSecurityReportFindingᚄ(ctx context.Context, sel ast.SelectionSet, v []model.SecurityReportFinding) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNSecurityReportFinding2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSecurityReportFinding(ctx, sel, v[i])
+		return ec.marshalNSecurityReportFinding2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSecurityReportFinding(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -44655,15 +46100,15 @@ func (ec *executionContext) marshalNSecurityReportFinding2ᚕironflyerᚋappsᚋ
 	return ret
 }
 
-func (ec *executionContext) marshalNSession2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v model.Session) graphql.Marshaler {
+func (ec *executionContext) marshalNSession2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v model.Session) graphql.Marshaler {
 	return ec._Session(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSession2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSessionᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Session) graphql.Marshaler {
+func (ec *executionContext) marshalNSession2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSessionᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Session) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNSession2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSession(ctx, sel, v[i])
+		return ec.marshalNSession2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSession(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -44675,7 +46120,7 @@ func (ec *executionContext) marshalNSession2ᚕironflyerᚋappsᚋorchestrator�
 	return ret
 }
 
-func (ec *executionContext) marshalNSession2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v *model.Session) graphql.Marshaler {
+func (ec *executionContext) marshalNSession2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v *model.Session) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -44685,17 +46130,17 @@ func (ec *executionContext) marshalNSession2ᚖironflyerᚋappsᚋorchestrator�
 	return ec._Session(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNSignInInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSignInInput(ctx context.Context, v any) (model.SignInInput, error) {
+func (ec *executionContext) unmarshalNSignInInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSignInInput(ctx context.Context, v any) (model.SignInInput, error) {
 	res, err := ec.unmarshalInputSignInInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNSignUpInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSignUpInput(ctx context.Context, v any) (model.SignUpInput, error) {
+func (ec *executionContext) unmarshalNSignUpInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSignUpInput(ctx context.Context, v any) (model.SignUpInput, error) {
 	res, err := ec.unmarshalInputSignUpInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNStartCheckoutInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐStartCheckoutInput(ctx context.Context, v any) (model.StartCheckoutInput, error) {
+func (ec *executionContext) unmarshalNStartCheckoutInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐStartCheckoutInput(ctx context.Context, v any) (model.StartCheckoutInput, error) {
 	res, err := ec.unmarshalInputStartCheckoutInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -44746,11 +46191,11 @@ func (ec *executionContext) marshalNString2ᚕstringᚄ(ctx context.Context, sel
 	return ret
 }
 
-func (ec *executionContext) marshalNStripeCheckoutSession2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐStripeCheckoutSession(ctx context.Context, sel ast.SelectionSet, v model.StripeCheckoutSession) graphql.Marshaler {
+func (ec *executionContext) marshalNStripeCheckoutSession2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐStripeCheckoutSession(ctx context.Context, sel ast.SelectionSet, v model.StripeCheckoutSession) graphql.Marshaler {
 	return ec._StripeCheckoutSession(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNStripeCheckoutSession2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐStripeCheckoutSession(ctx context.Context, sel ast.SelectionSet, v *model.StripeCheckoutSession) graphql.Marshaler {
+func (ec *executionContext) marshalNStripeCheckoutSession2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐStripeCheckoutSession(ctx context.Context, sel ast.SelectionSet, v *model.StripeCheckoutSession) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -44760,11 +46205,11 @@ func (ec *executionContext) marshalNStripeCheckoutSession2ᚖironflyerᚋappsᚋ
 	return ec._StripeCheckoutSession(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNStudioBootstrap2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐStudioBootstrap(ctx context.Context, sel ast.SelectionSet, v model.StudioBootstrap) graphql.Marshaler {
+func (ec *executionContext) marshalNStudioBootstrap2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐStudioBootstrap(ctx context.Context, sel ast.SelectionSet, v model.StudioBootstrap) graphql.Marshaler {
 	return ec._StudioBootstrap(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNStudioBootstrap2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐStudioBootstrap(ctx context.Context, sel ast.SelectionSet, v *model.StudioBootstrap) graphql.Marshaler {
+func (ec *executionContext) marshalNStudioBootstrap2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐStudioBootstrap(ctx context.Context, sel ast.SelectionSet, v *model.StudioBootstrap) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -44774,11 +46219,11 @@ func (ec *executionContext) marshalNStudioBootstrap2ᚖironflyerᚋappsᚋorches
 	return ec._StudioBootstrap(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNSupportBundle2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSupportBundle(ctx context.Context, sel ast.SelectionSet, v model.SupportBundle) graphql.Marshaler {
+func (ec *executionContext) marshalNSupportBundle2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSupportBundle(ctx context.Context, sel ast.SelectionSet, v model.SupportBundle) graphql.Marshaler {
 	return ec._SupportBundle(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSupportBundle2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSupportBundle(ctx context.Context, sel ast.SelectionSet, v *model.SupportBundle) graphql.Marshaler {
+func (ec *executionContext) marshalNSupportBundle2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSupportBundle(ctx context.Context, sel ast.SelectionSet, v *model.SupportBundle) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -44788,15 +46233,15 @@ func (ec *executionContext) marshalNSupportBundle2ᚖironflyerᚋappsᚋorchestr
 	return ec._SupportBundle(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNSupportSecurityFinding2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSupportSecurityFinding(ctx context.Context, sel ast.SelectionSet, v model.SupportSecurityFinding) graphql.Marshaler {
+func (ec *executionContext) marshalNSupportSecurityFinding2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSupportSecurityFinding(ctx context.Context, sel ast.SelectionSet, v model.SupportSecurityFinding) graphql.Marshaler {
 	return ec._SupportSecurityFinding(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSupportSecurityFinding2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSupportSecurityFindingᚄ(ctx context.Context, sel ast.SelectionSet, v []model.SupportSecurityFinding) graphql.Marshaler {
+func (ec *executionContext) marshalNSupportSecurityFinding2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSupportSecurityFindingᚄ(ctx context.Context, sel ast.SelectionSet, v []model.SupportSecurityFinding) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNSupportSecurityFinding2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSupportSecurityFinding(ctx, sel, v[i])
+		return ec.marshalNSupportSecurityFinding2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSupportSecurityFinding(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -44808,50 +46253,50 @@ func (ec *executionContext) marshalNSupportSecurityFinding2ᚕironflyerᚋapps�
 	return ret
 }
 
-func (ec *executionContext) marshalNSupportSecurityReport2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSupportSecurityReport(ctx context.Context, sel ast.SelectionSet, v model.SupportSecurityReport) graphql.Marshaler {
+func (ec *executionContext) marshalNSupportSecurityReport2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSupportSecurityReport(ctx context.Context, sel ast.SelectionSet, v model.SupportSecurityReport) graphql.Marshaler {
 	return ec._SupportSecurityReport(ctx, sel, &v)
 }
 
-func (ec *executionContext) unmarshalNSymbolAction2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSymbolAction(ctx context.Context, v any) (model.SymbolAction, error) {
+func (ec *executionContext) unmarshalNSymbolAction2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSymbolAction(ctx context.Context, v any) (model.SymbolAction, error) {
 	var res model.SymbolAction
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNSymbolAction2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSymbolAction(ctx context.Context, sel ast.SelectionSet, v model.SymbolAction) graphql.Marshaler {
+func (ec *executionContext) marshalNSymbolAction2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSymbolAction(ctx context.Context, sel ast.SelectionSet, v model.SymbolAction) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalNSymbolKind2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSymbolKind(ctx context.Context, v any) (model.SymbolKind, error) {
+func (ec *executionContext) unmarshalNSymbolKind2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSymbolKind(ctx context.Context, v any) (model.SymbolKind, error) {
 	var res model.SymbolKind
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNSymbolKind2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSymbolKind(ctx context.Context, sel ast.SelectionSet, v model.SymbolKind) graphql.Marshaler {
+func (ec *executionContext) marshalNSymbolKind2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSymbolKind(ctx context.Context, sel ast.SelectionSet, v model.SymbolKind) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalNSymbolPatchInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSymbolPatchInput(ctx context.Context, v any) (model.SymbolPatchInput, error) {
+func (ec *executionContext) unmarshalNSymbolPatchInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSymbolPatchInput(ctx context.Context, v any) (model.SymbolPatchInput, error) {
 	res, err := ec.unmarshalInputSymbolPatchInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNTelemetryPreferenceInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐTelemetryPreferenceInput(ctx context.Context, v any) (model.TelemetryPreferenceInput, error) {
+func (ec *executionContext) unmarshalNTelemetryPreferenceInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐTelemetryPreferenceInput(ctx context.Context, v any) (model.TelemetryPreferenceInput, error) {
 	res, err := ec.unmarshalInputTelemetryPreferenceInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNUpdateProjectInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐUpdateProjectInput(ctx context.Context, v any) (model.UpdateProjectInput, error) {
+func (ec *executionContext) unmarshalNUpdateProjectInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐUpdateProjectInput(ctx context.Context, v any) (model.UpdateProjectInput, error) {
 	res, err := ec.unmarshalInputUpdateProjectInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNUser2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {
 	return ec._User(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNUser2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -44861,11 +46306,11 @@ func (ec *executionContext) marshalNUser2ᚖironflyerᚋappsᚋorchestratorᚋin
 	return ec._User(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNVaultSnapshot2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐVaultSnapshot(ctx context.Context, sel ast.SelectionSet, v model.VaultSnapshot) graphql.Marshaler {
+func (ec *executionContext) marshalNVaultSnapshot2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐVaultSnapshot(ctx context.Context, sel ast.SelectionSet, v model.VaultSnapshot) graphql.Marshaler {
 	return ec._VaultSnapshot(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNVaultSnapshot2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐVaultSnapshot(ctx context.Context, sel ast.SelectionSet, v *model.VaultSnapshot) graphql.Marshaler {
+func (ec *executionContext) marshalNVaultSnapshot2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐVaultSnapshot(ctx context.Context, sel ast.SelectionSet, v *model.VaultSnapshot) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -44875,11 +46320,11 @@ func (ec *executionContext) marshalNVaultSnapshot2ᚖironflyerᚋappsᚋorchestr
 	return ec._VaultSnapshot(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNVersionInfo2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐVersionInfo(ctx context.Context, sel ast.SelectionSet, v model.VersionInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNVersionInfo2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐVersionInfo(ctx context.Context, sel ast.SelectionSet, v model.VersionInfo) graphql.Marshaler {
 	return ec._VersionInfo(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNVersionInfo2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐVersionInfo(ctx context.Context, sel ast.SelectionSet, v *model.VersionInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNVersionInfo2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐVersionInfo(ctx context.Context, sel ast.SelectionSet, v *model.VersionInfo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -44889,11 +46334,11 @@ func (ec *executionContext) marshalNVersionInfo2ᚖironflyerᚋappsᚋorchestrat
 	return ec._VersionInfo(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNWallet2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐWallet(ctx context.Context, sel ast.SelectionSet, v model.Wallet) graphql.Marshaler {
+func (ec *executionContext) marshalNWallet2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐWallet(ctx context.Context, sel ast.SelectionSet, v model.Wallet) graphql.Marshaler {
 	return ec._Wallet(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNWallet2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐWallet(ctx context.Context, sel ast.SelectionSet, v *model.Wallet) graphql.Marshaler {
+func (ec *executionContext) marshalNWallet2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐWallet(ctx context.Context, sel ast.SelectionSet, v *model.Wallet) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -44903,11 +46348,11 @@ func (ec *executionContext) marshalNWallet2ᚖironflyerᚋappsᚋorchestratorᚋ
 	return ec._Wallet(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNWalletCheckoutSession2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐWalletCheckoutSession(ctx context.Context, sel ast.SelectionSet, v model.WalletCheckoutSession) graphql.Marshaler {
+func (ec *executionContext) marshalNWalletCheckoutSession2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐWalletCheckoutSession(ctx context.Context, sel ast.SelectionSet, v model.WalletCheckoutSession) graphql.Marshaler {
 	return ec._WalletCheckoutSession(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNWalletCheckoutSession2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐWalletCheckoutSession(ctx context.Context, sel ast.SelectionSet, v *model.WalletCheckoutSession) graphql.Marshaler {
+func (ec *executionContext) marshalNWalletCheckoutSession2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐWalletCheckoutSession(ctx context.Context, sel ast.SelectionSet, v *model.WalletCheckoutSession) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -44917,15 +46362,15 @@ func (ec *executionContext) marshalNWalletCheckoutSession2ᚖironflyerᚋappsᚋ
 	return ec._WalletCheckoutSession(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNWalletLedgerEntry2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐWalletLedgerEntry(ctx context.Context, sel ast.SelectionSet, v model.WalletLedgerEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNWalletLedgerEntry2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐWalletLedgerEntry(ctx context.Context, sel ast.SelectionSet, v model.WalletLedgerEntry) graphql.Marshaler {
 	return ec._WalletLedgerEntry(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNWalletLedgerEntry2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐWalletLedgerEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []model.WalletLedgerEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNWalletLedgerEntry2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐWalletLedgerEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []model.WalletLedgerEntry) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNWalletLedgerEntry2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐWalletLedgerEntry(ctx, sel, v[i])
+		return ec.marshalNWalletLedgerEntry2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐWalletLedgerEntry(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -44937,15 +46382,15 @@ func (ec *executionContext) marshalNWalletLedgerEntry2ᚕironflyerᚋappsᚋorch
 	return ret
 }
 
-func (ec *executionContext) marshalNWalletTopUp2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐWalletTopUp(ctx context.Context, sel ast.SelectionSet, v model.WalletTopUp) graphql.Marshaler {
+func (ec *executionContext) marshalNWalletTopUp2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐWalletTopUp(ctx context.Context, sel ast.SelectionSet, v model.WalletTopUp) graphql.Marshaler {
 	return ec._WalletTopUp(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNWalletTopUp2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐWalletTopUpᚄ(ctx context.Context, sel ast.SelectionSet, v []model.WalletTopUp) graphql.Marshaler {
+func (ec *executionContext) marshalNWalletTopUp2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐWalletTopUpᚄ(ctx context.Context, sel ast.SelectionSet, v []model.WalletTopUp) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNWalletTopUp2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐWalletTopUp(ctx, sel, v[i])
+		return ec.marshalNWalletTopUp2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐWalletTopUp(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -44957,19 +46402,19 @@ func (ec *executionContext) marshalNWalletTopUp2ᚕironflyerᚋappsᚋorchestrat
 	return ret
 }
 
-func (ec *executionContext) unmarshalNWriteProjectFileInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐWriteProjectFileInput(ctx context.Context, v any) (model.WriteProjectFileInput, error) {
+func (ec *executionContext) unmarshalNWriteProjectFileInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐWriteProjectFileInput(ctx context.Context, v any) (model.WriteProjectFileInput, error) {
 	res, err := ec.unmarshalInputWriteProjectFileInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNWriteProjectFileInput2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐWriteProjectFileInputᚄ(ctx context.Context, v any) ([]model.WriteProjectFileInput, error) {
+func (ec *executionContext) unmarshalNWriteProjectFileInput2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐWriteProjectFileInputᚄ(ctx context.Context, v any) ([]model.WriteProjectFileInput, error) {
 	var vSlice []any
 	vSlice = graphql.CoerceList(v)
 	var err error
 	res := make([]model.WriteProjectFileInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNWriteProjectFileInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐWriteProjectFileInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNWriteProjectFileInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐWriteProjectFileInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -45118,7 +46563,7 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
-func (ec *executionContext) unmarshalOAuditOutcome2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAuditOutcome(ctx context.Context, v any) (*model.AuditOutcome, error) {
+func (ec *executionContext) unmarshalOAuditOutcome2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAuditOutcome(ctx context.Context, v any) (*model.AuditOutcome, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -45127,14 +46572,14 @@ func (ec *executionContext) unmarshalOAuditOutcome2ᚖironflyerᚋappsᚋorchest
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOAuditOutcome2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAuditOutcome(ctx context.Context, sel ast.SelectionSet, v *model.AuditOutcome) graphql.Marshaler {
+func (ec *executionContext) marshalOAuditOutcome2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAuditOutcome(ctx context.Context, sel ast.SelectionSet, v *model.AuditOutcome) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return v
 }
 
-func (ec *executionContext) unmarshalOAuditQueryInput2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAuditQueryInput(ctx context.Context, v any) (*model.AuditQueryInput, error) {
+func (ec *executionContext) unmarshalOAuditQueryInput2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAuditQueryInput(ctx context.Context, v any) (*model.AuditQueryInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -45142,14 +46587,14 @@ func (ec *executionContext) unmarshalOAuditQueryInput2ᚖironflyerᚋappsᚋorch
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOBlueprint2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBlueprint(ctx context.Context, sel ast.SelectionSet, v *model.Blueprint) graphql.Marshaler {
+func (ec *executionContext) marshalOBlueprint2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBlueprint(ctx context.Context, sel ast.SelectionSet, v *model.Blueprint) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Blueprint(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOBlueprintStats2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐBlueprintStats(ctx context.Context, sel ast.SelectionSet, v *model.BlueprintStats) graphql.Marshaler {
+func (ec *executionContext) marshalOBlueprintStats2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐBlueprintStats(ctx context.Context, sel ast.SelectionSet, v *model.BlueprintStats) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -45204,14 +46649,14 @@ func (ec *executionContext) marshalODateTime2ᚖtimeᚐTime(ctx context.Context,
 	return res
 }
 
-func (ec *executionContext) marshalODeploy2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeploy(ctx context.Context, sel ast.SelectionSet, v *model.Deploy) graphql.Marshaler {
+func (ec *executionContext) marshalODeploy2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDeploy(ctx context.Context, sel ast.SelectionSet, v *model.Deploy) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Deploy(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOExecution2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐExecution(ctx context.Context, sel ast.SelectionSet, v *model.Execution) graphql.Marshaler {
+func (ec *executionContext) marshalOExecution2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐExecution(ctx context.Context, sel ast.SelectionSet, v *model.Execution) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -45235,7 +46680,7 @@ func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel as
 	return graphql.WrapContextMarshaler(ctx, res)
 }
 
-func (ec *executionContext) marshalOGateVerdict2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGateVerdict(ctx context.Context, sel ast.SelectionSet, v *model.GateVerdict) graphql.Marshaler {
+func (ec *executionContext) marshalOGateVerdict2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGateVerdict(ctx context.Context, sel ast.SelectionSet, v *model.GateVerdict) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -45278,7 +46723,7 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return res
 }
 
-func (ec *executionContext) unmarshalOJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx context.Context, v any) (model.JSON, error) {
+func (ec *executionContext) unmarshalOJSON2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐJSON(ctx context.Context, v any) (model.JSON, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -45287,14 +46732,14 @@ func (ec *executionContext) unmarshalOJSON2ironflyerᚋappsᚋorchestratorᚋint
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx context.Context, sel ast.SelectionSet, v model.JSON) graphql.Marshaler {
+func (ec *executionContext) marshalOJSON2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐJSON(ctx context.Context, sel ast.SelectionSet, v model.JSON) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return v
 }
 
-func (ec *executionContext) unmarshalOLedgerFilter2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐLedgerFilter(ctx context.Context, v any) (*model.LedgerFilter, error) {
+func (ec *executionContext) unmarshalOLedgerFilter2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐLedgerFilter(ctx context.Context, v any) (*model.LedgerFilter, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -45302,28 +46747,28 @@ func (ec *executionContext) unmarshalOLedgerFilter2ᚖironflyerᚋappsᚋorchest
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOMobileBuild2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileBuild(ctx context.Context, sel ast.SelectionSet, v *model.MobileBuild) graphql.Marshaler {
+func (ec *executionContext) marshalOMobileBuild2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMobileBuild(ctx context.Context, sel ast.SelectionSet, v *model.MobileBuild) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._MobileBuild(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOPatch2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatch(ctx context.Context, sel ast.SelectionSet, v *model.Patch) graphql.Marshaler {
+func (ec *executionContext) marshalOPatch2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatch(ctx context.Context, sel ast.SelectionSet, v *model.Patch) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Patch(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOPatchConflict2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchConflictᚄ(ctx context.Context, sel ast.SelectionSet, v []model.PatchConflict) graphql.Marshaler {
+func (ec *executionContext) marshalOPatchConflict2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchConflictᚄ(ctx context.Context, sel ast.SelectionSet, v []model.PatchConflict) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
-		return ec.marshalNPatchConflict2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchConflict(ctx, sel, v[i])
+		return ec.marshalNPatchConflict2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchConflict(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {
@@ -45335,14 +46780,14 @@ func (ec *executionContext) marshalOPatchConflict2ᚕironflyerᚋappsᚋorchestr
 	return ret
 }
 
-func (ec *executionContext) marshalOPatchStage2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatchStage(ctx context.Context, sel ast.SelectionSet, v *model.PatchStage) graphql.Marshaler {
+func (ec *executionContext) marshalOPatchStage2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐPatchStage(ctx context.Context, sel ast.SelectionSet, v *model.PatchStage) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._PatchStage(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOProject2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐProject(ctx context.Context, sel ast.SelectionSet, v *model.Project) graphql.Marshaler {
+func (ec *executionContext) marshalOProject2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐProject(ctx context.Context, sel ast.SelectionSet, v *model.Project) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -45403,7 +46848,7 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) unmarshalOSymbolKind2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSymbolKind(ctx context.Context, v any) (*model.SymbolKind, error) {
+func (ec *executionContext) unmarshalOSymbolKind2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSymbolKind(ctx context.Context, v any) (*model.SymbolKind, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -45412,14 +46857,14 @@ func (ec *executionContext) unmarshalOSymbolKind2ᚖironflyerᚋappsᚋorchestra
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOSymbolKind2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSymbolKind(ctx context.Context, sel ast.SelectionSet, v *model.SymbolKind) graphql.Marshaler {
+func (ec *executionContext) marshalOSymbolKind2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSymbolKind(ctx context.Context, sel ast.SelectionSet, v *model.SymbolKind) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return v
 }
 
-func (ec *executionContext) marshalOUser2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
+func (ec *executionContext) marshalOUser2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

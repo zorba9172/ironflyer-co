@@ -12,6 +12,11 @@ extend type Query {
   scaleDashboard: ScaleDashboard!
   cohortDashboard(sinceMonth: DateTime!): CohortDashboard!
   blueprintDashboard: BlueprintDashboard!
+  # Code Health Dashboard (playbook §8.11, docs/ANTI_BLOAT_ENGINE.md).
+  # Tolerant resolver: missing report files yield zero / empty values
+  # so the cockpit panels can render their empty / loading states
+  # without surfacing an error.
+  healthDashboard: HealthMetrics!
 }
 
 type ProfitDashboard {
@@ -69,4 +74,53 @@ type DashboardBlueprintStats {
   refunds: Int!
   repairCount: Int!
   avgCompletionScore: Float!
+}
+
+# HealthMetrics is the operator-facing Code Health snapshot. The shape
+# mirrors core/orchestrator/internal/business/dashboards/health.go and
+# extends it with the per-directory dup, per-route bundle, and
+# architecture projections the panels render. Resolver-tolerant:
+# missing reports yield zero values + empty arrays so the UI can
+# render its "tool not wired" empty states without crashing.
+type HealthMetrics {
+  reuseRate: Float!
+  dedupRate: Float!
+  deadCodeCount: Int!
+  complexityHistogram: [ComplexityBucket!]!
+  dependencyCycles: Int!
+  locPerCapability: Float!
+  atlasCapabilityCount: Int!
+  lastIndexedAt: DateTime
+  duplicationByDir: [DirDup!]!
+  bundleByRoute: [RouteBundle!]!
+  architecture: Architecture!
+}
+
+type ComplexityBucket {
+  range: String!
+  count: Int!
+}
+
+type DirDup {
+  directory: String!
+  dupPct: Float!
+  files: Int!
+}
+
+type RouteBundle {
+  route: String!
+  totalKB: Float!
+  firstLoadKB: Float!
+}
+
+type Architecture {
+  layers: [String!]!
+  rules: [ArchRule!]!
+  cycles: String!
+}
+
+type ArchRule {
+  from: String!
+  to: String!
+  allow: Boolean!
 }

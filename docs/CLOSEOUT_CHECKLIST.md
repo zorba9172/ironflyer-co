@@ -358,15 +358,21 @@ launch on their own; each is the next reasonable improvement.
   `goleak`, `hyperfine`, `size-limit` are still evidence-stub
   gates: they go SeverityInfo "tool not installed" until the
   matching `scripts/lint/run-<tool>.sh` lands.
-- **Web bundle large PNGs** in `clients/web/public/brand/` —
-  ~5 MB of legacy unreferenced brand assets. They do not ship
-  to the runtime bundle (Next does not bundle unused public
-  assets into JS) but they bloat the docker image; sweep after
-  the first prod release.
-- **Mobile starters** at `templates/starters/{react-native-expo,
-  android-kotlin,ios-swift}` exist and compile but are not deeply
-  audited. The `mobile_build` gate proves the wiring; the
-  starters themselves want a content audit.
+- ~~**Web bundle large PNGs** in `clients/web/public/brand/`~~ —
+  Swept on 2026-05-26: 7 unreferenced files (ai-brain.jpg,
+  ai-hand.png, ai-team.png, hero-developer.png, human-ai.png,
+  ironflyer-cosmos.png, programming.png) deleted via `git rm`,
+  ~5.0 MB recovered. `ironflyer-logo.svg` is the only remaining
+  asset and is referenced from `clients/web/app/layout.tsx`.
+- ~~**Mobile starters** at `templates/starters/{react-native-expo,
+  android-kotlin,ios-swift}`~~ — Content-audited on 2026-05-26;
+  see [`docs/MOBILE_STARTERS_AUDIT_2026-05-26.md`](MOBILE_STARTERS_AUDIT_2026-05-26.md).
+  Versions are current (Expo SDK 53, AGP 8.7.2, Kotlin 2.0.21,
+  Android SDK 35, Swift 5.10). Trivial fix applied to the iOS
+  starter: added `Resources/PrivacyInfo.xcprivacy` (mandatory
+  since 2024-Q1) and wired it into `xcodegen.yml`. Deferred
+  follow-ups: `ITSAppUsesNonExemptEncryption` is an operator
+  decision; SDK version bumps are intentional.
 - **Capability Atlas search-hook** in the Coder agent is
   contractual today (the Preflight decision API ships, validation
   enforces a `reuse`/`extend`/`new` decision, and the indexer

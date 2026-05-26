@@ -12,9 +12,9 @@ import (
 
 	"ironflyer/core/orchestrator/internal/business/budget"
 	"ironflyer/core/orchestrator/internal/business/lastprovider"
-	"ironflyer/core/orchestrator/internal/operations/logctx"
 	"ironflyer/core/orchestrator/internal/business/profitguard"
 	"ironflyer/core/orchestrator/internal/business/profitguardctx"
+	"ironflyer/core/orchestrator/internal/operations/logctx"
 	"ironflyer/core/orchestrator/internal/operations/tracing"
 )
 
@@ -44,6 +44,8 @@ type BillingGuard struct {
 	// Degrade). Nil-safe — set via WithLogger.
 	logger    zerolog.Logger
 	hasLogger bool
+
+	promptGuard *PromptGuard
 }
 
 // WithLogger attaches a zerolog instance the guard uses to surface
@@ -74,6 +76,14 @@ func NewBillingGuard(r *Router, b *budget.Billing) *BillingGuard {
 	return &BillingGuard{router: r, billing: b}
 }
 
+// WithPromptGuard attaches the prompt-injection sanitizer. Pre-flight
+// refusal runs ahead of the budget Admit so a refused call costs the
+// caller nothing. Nil is allowed — guard short-circuits.
+func (g *BillingGuard) WithPromptGuard(p *PromptGuard) *BillingGuard {
+	g.promptGuard = p
+	return g
+}
+
 // WithProfitGuard wires the ProfitGuard enforcement hook. Returns the
 // guard so it chains with NewBillingGuard.
 func (g *BillingGuard) WithProfitGuard(pg profitguard.Guard, snapshot ProfitGuardStateFunc) *BillingGuard {
@@ -98,6 +108,17 @@ func (g *BillingGuard) CompleteStream(ctx context.Context, req Request) (<-chan 
 	userID := req.TenantID
 	if userID == "" {
 		userID = "anonymous"
+	}
+	if g.promptGuard != nil {
+		newReq, res, perr := g.promptGuard.InspectRequest(ctx, req)
+		if perr != nil {
+			return nil, perr
+		}
+		if res.Refused {
+			g.logger.Warn().Str("user_id", userID).Int("findings", len(res.Findings)).Msg("billing-guard: prompt refused by promptguard")
+			return nil, ErrPromptRefused
+		}
+		req = newReq
 	}
 	required := capsAsStrings(req.Capabilities)
 
@@ -323,6 +344,17 @@ func (g *BillingGuard) CompleteStreamWithFailover(ctx context.Context, req Reque
 	userID := req.TenantID
 	if userID == "" {
 		userID = "anonymous"
+	}
+	if g.promptGuard != nil {
+		newReq, res, perr := g.promptGuard.InspectRequest(ctx, req)
+		if perr != nil {
+			return nil, perr
+		}
+		if res.Refused {
+			g.logger.Warn().Str("user_id", userID).Int("findings", len(res.Findings)).Msg("billing-guard: prompt refused by promptguard (failover)")
+			return nil, ErrPromptRefused
+		}
+		req = newReq
 	}
 	required := capsAsStrings(req.Capabilities)
 

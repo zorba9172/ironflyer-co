@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"ironflyer/core/orchestrator/internal/ai/agents"
+	"ironflyer/core/orchestrator/internal/ai/refactor"
+	"ironflyer/core/orchestrator/internal/operations/arch"
 	"ironflyer/core/orchestrator/internal/operations/audit"
 	// Aliased to budgetpkg because a sibling file in this package
 	// (gates_mobile_size.go) defines a local `type budget struct` for
@@ -250,6 +252,14 @@ type Engine struct {
 	// before kicking platform builds (gradlew assembleDebug, xcodebuild,
 	// eas build --local). Nil-safe: without it the build runs unguarded.
 	mobileBuildHook MobileBuildHook
+
+	// Anti-Bloat Engine wireup (playbook §8.7). archManifest powers
+	// the DepGraph / ArchBoundary gates; refactor powers the Dedup
+	// gate's "and here's the fix" upgrade. Both are nil-safe; the
+	// relevant gates degrade to SeverityInfo "tool not wired" when
+	// unset. See docs/ANTI_BLOAT_ENGINE.md.
+	archManifest *arch.Manifest
+	refactor     *refactor.Service
 }
 
 // ExecutionSettler is the engine-facing seam onto the execution
@@ -302,6 +312,24 @@ func NewEngine(projects store.Store, registry *agents.Registry, patches *patch.E
 // WithRuntime attaches a workspace-runtime client so build/test gates can
 // execute commands inside the user's sandbox. Returns the engine for chained
 // configuration during startup.
+// WithArchManifest wires the parsed `.ironflyer/architecture.json`
+// manifest so the DepGraph / ArchBoundary gates can validate every
+// patch's paths against the declared layer set. Nil disables the
+// projection — the gates degrade to a SeverityInfo "manifest not
+// loaded" rather than block. See docs/ANTI_BLOAT_ENGINE.md.
+func (e *Engine) WithArchManifest(m *arch.Manifest) *Engine {
+	e.archManifest = m
+	return e
+}
+
+// WithRefactor wires the Anti-Bloat Refactor Proposer so the DedupGate
+// can attach extract-to-shared-util proposals to clone findings. Nil
+// disables the upgrade — the gate keeps surfacing findings verbatim.
+func (e *Engine) WithRefactor(s *refactor.Service) *Engine {
+	e.refactor = s
+	return e
+}
+
 func (e *Engine) WithRuntime(c *runtime.Client) *Engine {
 	e.runtime = c
 	return e
@@ -1014,10 +1042,24 @@ func (e *Engine) Run(ctx context.Context, projectID string) (RunReport, error) {
 				WorkspaceID:     workspaceID,
 				UserBearer:      bearer,
 				MobileBuildHook: e.mobileBuildHook,
+				Manifest:        e.archManifest,
+				Refactor:        e.refactor,
 			}
 			if e.budget != nil {
 				if snap, err := e.budget(ctx, p.OwnerID, projectID); err == nil {
 					env.Budget = snap
+				}
+			}
+			// Project the Anti-Bloat preflight decision onto env so the
+			// reuse_check gate reads the same verdict propose-time
+			// produced. Ctx-attached decisions win (agent loop set them
+			// explicitly); the patch engine's per-project cache is the
+			// mechanical fallback.
+			if d, ok := agents.PreflightDecisionFromContext(ctx); ok {
+				env.Preflight = &d
+			} else if e.patches != nil {
+				if d, ok := e.patches.PreflightFor(projectID); ok {
+					env.Preflight = &d
 				}
 			}
 			issues := runGateInstrumented(ctx, gate, env)
@@ -1537,10 +1579,22 @@ func (e *Engine) RunGate(ctx context.Context, projectID string, gateName string)
 		Runtime:     e.runtime,
 		WorkspaceID: workspaceID,
 		UserBearer:  bearer,
+		Manifest:    e.archManifest,
+		Refactor:    e.refactor,
 	}
 	if e.budget != nil {
 		if snap, err := e.budget(ctx, p.OwnerID, projectID); err == nil {
 			env.Budget = snap
+		}
+	}
+	// Anti-Bloat preflight projection (mirrors the Run loop). Ctx wins
+	// over the per-project cache so the agent loop can override an
+	// older mechanical decision for a single rerun.
+	if d, ok := agents.PreflightDecisionFromContext(ctx); ok {
+		env.Preflight = &d
+	} else if e.patches != nil {
+		if d, ok := e.patches.PreflightFor(projectID); ok {
+			env.Preflight = &d
 		}
 	}
 	issues := runGateInstrumented(ctx, gate, env)

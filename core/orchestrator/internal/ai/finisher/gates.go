@@ -7,6 +7,7 @@ import (
 
 	"ironflyer/core/orchestrator/internal/ai/agents"
 	"ironflyer/core/orchestrator/internal/ai/domain"
+	"ironflyer/core/orchestrator/internal/ai/refactor"
 	"ironflyer/core/orchestrator/internal/operations/appsec"
 	"ironflyer/core/orchestrator/internal/operations/arch"
 	"ironflyer/core/orchestrator/internal/operations/runtime"
@@ -62,6 +63,13 @@ type GateEnv struct {
 	// ArchBoundary gates (they degrade to a SeverityInfo "manifest
 	// not loaded" rather than fail).
 	Manifest *arch.Manifest
+	// Refactor is the Anti-Bloat Refactor Proposer (playbook §8.6).
+	// The DedupGate uses it to attach a Proposal to every clone
+	// finding so the operator review chain sees not just "you have
+	// duplicate code" but "here is the patch that extracts it".
+	// Nil-safe: when not wired the dedup gate keeps surfacing
+	// findings verbatim without the propose-it-for-me upgrade.
+	Refactor *refactor.Service
 }
 
 // MobileBuildHook is the BeforeMobileBuild ProfitGuard seam consumed by

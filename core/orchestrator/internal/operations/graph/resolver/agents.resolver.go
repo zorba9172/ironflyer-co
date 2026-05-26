@@ -7,8 +7,8 @@ package resolver
 
 import (
 	"context"
-	"ironflyer/core/orchestrator/internal/operations/graph/model"
 	"ironflyer/core/orchestrator/internal/ai/providers"
+	"ironflyer/core/orchestrator/internal/operations/graph/model"
 	"sort"
 	"strings"
 	"time"

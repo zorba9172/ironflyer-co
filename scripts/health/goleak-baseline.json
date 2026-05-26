@@ -1,0 +1,6 @@
+{
+  "_comment": "Steady-state goroutine baseline for an idle orchestrator. Used by scripts/lint/run-goleak-smoke.sh to detect goroutine leaks at smoke-time without depending on go.uber.org/goleak (banned per the no-tests rule). Operators re-baseline by running the smoke script against a fresh idle orchestrator and replacing 'goroutines' with the observed value.",
+  "goroutines": 75,
+  "tolerancePct": 50,
+  "toleranceAbsolute": 200
+}

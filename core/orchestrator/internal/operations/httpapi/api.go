@@ -19,6 +19,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"os"
 	"runtime"
 	"strconv"
 	"strings"
@@ -28,6 +29,8 @@ import (
 	"github.com/rs/zerolog"
 
 	"ironflyer/core/orchestrator/internal/ai/agents"
+	"ironflyer/core/orchestrator/internal/ai/atlas"
+	"ironflyer/core/orchestrator/internal/operations/arch"
 	"ironflyer/core/orchestrator/internal/operations/audit"
 	"ironflyer/core/orchestrator/internal/operations/auditexport"
 	"ironflyer/core/orchestrator/internal/customer/auth"
@@ -217,6 +220,16 @@ type Deps struct {
 	// when unwired the resolver returns NOT_CONFIGURED so the cockpit
 	// renders the provider chip disabled.
 	DeviceCloud *devicecloud.Manager
+
+	// ---------- Code Health Dashboard inputs ----------------------
+	// AtlasStore + ArchManifest + HealthReportPaths feed the
+	// `healthDashboard` GraphQL field. Every input is optional; the
+	// resolver renders sentinel zero / empty values so the cockpit
+	// panels can show their "tool not wired" state without surfacing
+	// an error to the operator.
+	AtlasStore        atlas.Store
+	ArchManifest      arch.Manifest
+	HealthReportPaths resolver.HealthReportPaths
 }
 
 // API is the HTTP layer entry point. It assembles the chi router from
@@ -264,6 +277,15 @@ func New(d Deps) http.Handler {
 	// IRONFLYER_METRICS_TOKEN is set; main.go fails fast in prod when
 	// the token is unset.
 	r.Method(http.MethodGet, "/metrics", metricsAuth(a.d.MetricsToken, metrics.Handler()))
+
+	// /debug/leak/snapshot — goroutine snapshot for the goleak smoke
+	// harness (scripts/lint/run-goleak-smoke.sh). Enabled only when
+	// IRONFLYER_LEAK_PROBE_TOKEN is set; absence makes the route 404
+	// so a prod pod never advertises its goroutine stack. REST
+	// exception alongside /metrics — same diagnostic class.
+	if leakTok := strings.TrimSpace(os.Getenv("IRONFLYER_LEAK_PROBE_TOKEN")); leakTok != "" {
+		r.Method(http.MethodGet, "/debug/leak/snapshot", leakProbeHandler(leakTok))
+	}
 
 	// Stripe webhook — third-party callback, signature-verified inline.
 	r.Post("/budget/webhook", a.stripeWebhook)
@@ -418,6 +440,11 @@ func (a *API) newResolver() *resolver.Resolver {
 
 		// Mobile (device cloud) — Pro-tier real-device sessions.
 		DeviceCloud: a.d.DeviceCloud,
+
+		// Code Health Dashboard inputs.
+		AtlasStore:        a.d.AtlasStore,
+		ArchManifest:      a.d.ArchManifest,
+		HealthReportPaths: a.d.HealthReportPaths,
 	}
 }
 

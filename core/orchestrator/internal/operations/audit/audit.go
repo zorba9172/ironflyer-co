@@ -64,6 +64,14 @@ const (
 	ActionPatchApplied    Action = "patch.applied"
 	ActionPatchRolledBack Action = "patch.rolled_back"
 	ActionGateVerdict     Action = "gate.verdict"
+	// ActionPreflightDecision lands one entry per Anti-Bloat Reuse-
+	// First Preflight verdict the patch engine produces (see
+	// patch/preflight.go + docs/ANTI_BLOAT_ENGINE.md§"Audit"). The
+	// `outcome` field reflects the decision: success = reuse / new
+	// with justification; failure = blocked when Validate() refuses
+	// the decision shape. Attrs carries `{action, query, topPath,
+	// topSymbol, score, hitCount}`.
+	ActionPreflightDecision Action = "preflight.decision"
 	ActionAgentDispatch   Action = "agent.dispatch"
 	ActionSecretWritten   Action = "secret.written"
 	ActionExec            Action = "workspace.exec"
