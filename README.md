@@ -32,7 +32,7 @@ prepaid wallet credits, with hard economic enforcement at every step.
   code-server based cloud IDE path.
 - **Next.js + MUI Studio cockpit** — wallet, execution, profit, scale,
   Studio, preview, deploy and cloud IDE entry points. Web UI changes
-  are governed by [`apps/web/DESIGN_REFERENCE.md`](apps/web/DESIGN_REFERENCE.md)
+  are governed by [`clients/web/DESIGN_REFERENCE.md`](clients/web/DESIGN_REFERENCE.md)
   and [`design-reference/2026-05-25-private-ironflyer/`](design-reference/2026-05-25-private-ironflyer/).
 - **VSCode extension** — thin client for chat + gates + patches.
 
@@ -43,15 +43,15 @@ prepaid wallet credits, with hard economic enforcement at every step.
 docker compose -f infra/compose/docker-compose.dev.yml up -d
 
 # 2. Run orchestrator (defaults to mock provider; export ANTHROPIC_API_KEY for real)
-cd apps/orchestrator && go run ./cmd/orchestrator
+cd core/orchestrator && go run ./cmd/orchestrator
 # → http://localhost:8080
 
 # 3. Run workspace runtime
-cd apps/runtime && go run ./cmd/runtime
+cd core/runtime && go run ./cmd/runtime
 # → http://localhost:8090
 
 # 4. Run web
-cd apps/web && npm install && npm run dev
+cd clients/web && npm install && npm run dev
 # → http://localhost:3000
 ```
 
@@ -74,11 +74,11 @@ the most common dev overrides are:
 
 | Path | Purpose |
 | --- | --- |
-| `apps/orchestrator` | Finisher engine + gates + wallet + ledger + ProfitGuard + auth |
-| `apps/runtime`      | Workspace runtime — sandboxes, File API, PTY WS |
-| `apps/web`          | Next.js + MUI dashboard (wallet, profit, scale views) |
-| `apps/cli`          | Operator CLI |
-| `apps/vscode-extension` | VSCode extension — thin client |
+| `core/orchestrator` | Finisher engine + gates + wallet + ledger + ProfitGuard + auth |
+| `core/runtime`      | Workspace runtime — sandboxes, File API, PTY WS |
+| `clients/web`          | Next.js + MUI dashboard (wallet, profit, scale views) |
+| `core/cli`          | Operator CLI |
+| `clients/vscode-extension` | VSCode extension — thin client |
 | `packages/design-tokens` | IronFlyer design tokens implementing the locked reference |
 | `packages/sdk`      | TypeScript client SDK |
 | `packages/agents`   | Agent prompts + JSON schemas (reserved) |
@@ -88,7 +88,7 @@ the most common dev overrides are:
 
 The orchestrator's API of record is **GraphQL**. The schema is the
 single source of truth — see
-`apps/orchestrator/internal/graph/schema/*.graphql`.
+`core/orchestrator/internal/operations/graph/schema/*.graphql`.
 
 | Surface                  | URL                       | Transport                   |
 | ------------------------ | ------------------------- | --------------------------- |

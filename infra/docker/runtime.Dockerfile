@@ -11,11 +11,11 @@
 FROM golang:1.25-alpine AS build
 WORKDIR /src
 RUN apk add --no-cache git
-COPY apps/runtime/go.mod apps/runtime/go.sum ./
+COPY core/runtime/go.mod core/runtime/go.sum ./
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
     go mod download
-COPY apps/runtime/ ./
+COPY core/runtime/ ./
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
     CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags='-s -w' \

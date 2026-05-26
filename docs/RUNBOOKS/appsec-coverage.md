@@ -16,14 +16,14 @@ If the answer is unclear, keep it out of the default path.
 
 ## Add A Native Rule
 
-1. Add rule code under `apps/orchestrator/internal/appsec`.
+1. Add rule code under `core/orchestrator/internal/operations/appsec`.
 2. Emit `Finding` with a stable `RuleID`.
 3. Set `Category`, `Severity`, `Path`, `Package`, `Summary`, `Remediation`.
 4. Add a test in `appsec_test.go`.
 5. Verify:
 
 ```bash
-cd apps/orchestrator
+cd core/orchestrator
 go test ./internal/appsec ./internal/finisher
 ```
 

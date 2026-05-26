@@ -22,12 +22,12 @@
 # ------------------------------ API surface ---------------------------------
 # GraphQL schema changes ship the public API contract — API owners must sign
 # off so we don't accidentally break the SDK or the dashboard.
-/apps/orchestrator/internal/graph/schema/  @api-owners
-/apps/orchestrator/internal/graph/         @api-owners
+/core/orchestrator/internal/graph/schema/  @api-owners
+/core/orchestrator/internal/graph/         @api-owners
 /packages/sdk/                             @api-owners
 
 # ------------------------------ security ------------------------------------
 # Authn/authz, owner checks, JWT signing — anything that gates access.
-/apps/orchestrator/internal/auth/                       @security
-/apps/orchestrator/internal/middleware/requireProject*  @security
-/apps/orchestrator/internal/budget/                     @security
+/core/orchestrator/internal/auth/                       @security
+/core/orchestrator/internal/middleware/requireProject*  @security
+/core/orchestrator/internal/budget/                     @security

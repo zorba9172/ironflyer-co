@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Take a screenshot of the contact sheet so we can verify the full
-// gallery view renders correctly. Output: apps/web/public/template-previews/contact-sheet.jpg.
+// gallery view renders correctly. Output: clients/web/public/template-previews/contact-sheet.jpg.
 
 import { writeFileSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';

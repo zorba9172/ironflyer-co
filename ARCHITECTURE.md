@@ -71,15 +71,17 @@ Execution.Commit:
 
 ```
 ironflyer/
-├── apps/
+├── core/
 │   ├── orchestrator/       Go — finisher + economic enforcement
 │   │                       (wallet, ledger, execution, profitguard,
 │   │                        blueprints, completion, repair)
 │   ├── runtime/            Go — workspace runtime (containers, FS, PTY)
+│   └── cli/                Go — operator CLI
+├── clients/
 │   ├── web/                Next.js + MUI dashboard (profit + scale +
 │   │                       cohort + blueprint dashboards)
-│   ├── cli/                Go — operator CLI
-│   └── vscode-extension/   TS — chat + gates + patches inside VSCode
+│   ├── vscode-extension/   TS — chat + gates + patches inside VSCode
+│   └── scrcpy-bridge/      scrcpy WebSocket bridge for mobile mirroring
 ├── packages/
 │   ├── design-tokens/      IronFlyer locked-reference tokens
 │   └── sdk/                Client SDK (TS)
@@ -90,8 +92,10 @@ ironflyer/
                             Full economic model + acceptance gates
 ```
 
-`apps/inference/` (ONNX private AI) and `apps/mobile/` (PWA shell)
+`core/inference/` (ONNX private AI) and `clients/mobile/` (PWA shell)
 have been retired for V22 — both are deferred to Milestone 3+.
+
+> Domain ownership view: [docs/ARCHITECTURE_DOMAIN_MODULES.md](docs/ARCHITECTURE_DOMAIN_MODULES.md).
 
 ## Core Loop (gates)
 

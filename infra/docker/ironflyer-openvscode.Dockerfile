@@ -27,12 +27,12 @@ WORKDIR /build
 
 # Layer the dependency install separately from the source copy so a
 # code-only change keeps the npm install cache warm across rebuilds.
-COPY apps/vscode-extension/package.json apps/vscode-extension/package-lock.json ./
+COPY clients/vscode-extension/package.json clients/vscode-extension/package-lock.json ./
 RUN npm ci
 
 # Now the source. esbuild bundles dependencies into dist/extension.js
 # and vsce wraps that + media/ + package.json into the .vsix.
-COPY apps/vscode-extension/ ./
+COPY clients/vscode-extension/ ./
 RUN npx vsce package --no-dependencies --out /build/ironflyer.vsix
 
 # -----------------------------------------------------------------------------

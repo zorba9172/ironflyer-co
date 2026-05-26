@@ -52,7 +52,7 @@ docker compose -f infra/compose/docker-compose.dev.yml --profile stripe up -d
 ## 3. Apply database migrations
 
 ```bash
-cd apps/orchestrator
+cd core/orchestrator
 POSTGRES_URL="postgres://ironflyer:ironflyer@localhost:5432/ironflyer?sslmode=disable" \
   go run ./cmd/migrate up
 ```
@@ -67,7 +67,7 @@ migrations applied
 ## 4. Build / vet the Go modules
 
 ```bash
-cd apps/orchestrator && go build ./... && go vet ./...
+cd core/orchestrator && go build ./... && go vet ./...
 cd ../runtime         && go build ./... && go vet ./...
 ```
 
@@ -77,13 +77,13 @@ Both modules MUST exit 0. If they don't, do not start the services.
 
 ```bash
 # orchestrator on :8080
-cd apps/orchestrator && go run ./cmd/orchestrator
+cd core/orchestrator && go run ./cmd/orchestrator
 
 # runtime on :8090
-cd apps/runtime && go run ./cmd/runtime
+cd core/runtime && go run ./cmd/runtime
 
 # web on :3000 (requires npm install + codegen once)
-cd apps/web && npm install && npm run codegen && npm run dev
+cd clients/web && npm install && npm run codegen && npm run dev
 ```
 
 The web codegen step pulls the schema from `http://localhost:8080/graphql`
@@ -131,7 +131,7 @@ Current verified behavior (2026-05-26):
 
 - `scripts/v22_smoke.sh` exits **0** with `PASS-WITH-WARN` — the warn is
   a known `ledger` GraphQL row-scan mismatch flagged in
-  `apps/orchestrator/internal/ledger/postgres.go`. The script itself
+  `core/orchestrator/internal/ledger/postgres.go`. The script itself
   exits 0 because the V22 economic contract (signUp → wallet → paid
   execution → wallet hold) all pass.
 - `scripts/smoke.sh` currently exits **non-zero** in dev because three
@@ -155,5 +155,50 @@ Current verified behavior (2026-05-26):
 - **`npm run codegen` fails with `ECONNREFUSED 127.0.0.1:8080`** — the
   orchestrator is not running. Boot it first.
 - **`v22_smoke.sh` reports the ledger scan warn** — fix lives in
-  `apps/orchestrator/internal/ledger/postgres.go`; restart the
+  `core/orchestrator/internal/ledger/postgres.go`; restart the
   orchestrator after `go build` to apply.
+
+## 9. Production domain — `ironflyer.ai` (DigitalOcean registrar)
+
+`ironflyer.ai` is registered at the DigitalOcean **registrar** but its
+authoritative DNS is **Cloudflare** (see `infra/pulumi-do/edge/cloudflare.go`
+— every Ironflyer stack uses Cloudflare for DNS + WAF; the DO DNS service
+is intentionally unused so the WAF + proxying are uniform across clouds).
+
+Before the first `pulumi up` against `prod-ams3` (or any prod stack that
+sets `ironflyer:rootDomain = ironflyer.ai`) the operator MUST delegate
+the zone to Cloudflare at the DigitalOcean registrar:
+
+1. In the Cloudflare dashboard, add the zone `ironflyer.ai`. Cloudflare
+   assigns four name servers (the exact hostnames are zone-specific;
+   typical pattern is `<word>.ns.cloudflare.com`). Capture all four.
+2. Sign in to the DigitalOcean control panel → **Networking →
+   Domains → ironflyer.ai → Manage Name Servers** (or use
+   `doctl domains records create` against the **registrar** product,
+   not the DNS product — the registrar API is under
+   `https://api.digitalocean.com/v2/registrar/...`).
+3. Replace the default DigitalOcean name servers
+   (`ns1.digitalocean.com`, `ns2.digitalocean.com`,
+   `ns3.digitalocean.com`) with the four Cloudflare NS hostnames from
+   step 1.
+4. Wait for propagation (typically 5–30 min; up to 48 h worst case).
+   Verify with:
+   ```bash
+   dig +short NS ironflyer.ai
+   # Expect four *.ns.cloudflare.com entries.
+   ```
+5. Once Cloudflare reports the zone as **Active**, run `pulumi up` in
+   `infra/pulumi-do/` against the `prod-ams3` stack. The Pulumi program
+   will create the `api.`, `runtime.`, `app.`, `docs.` records inside
+   the now-delegated zone.
+
+If the NS delegation is skipped, cert-manager's HTTP-01 ACME challenge
+will fail on the first ingress provisioning and the orchestrator API will
+not be reachable at `https://api.ironflyer.ai`.
+
+**Apex (`ironflyer.ai`) handling.** The bare apex is owned by the Vercel
+production project (`clients/web`); add `ironflyer.ai` as a production
+domain inside the Vercel project and accept the Vercel apex-record
+recommendation (A 76.76.21.21 or the apex-alias CNAME if Cloudflare
+flattening is on). The Pulumi program does not manage the apex record
+— it only manages the four subdomains listed above.

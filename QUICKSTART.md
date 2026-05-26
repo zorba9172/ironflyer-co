@@ -68,7 +68,7 @@ run them explicitly. `POSTGRES_URL` is required by the migrate
 binary:
 
 ```bash
-cd apps/orchestrator
+cd core/orchestrator
 POSTGRES_URL="postgres://ironflyer:ironflyer@localhost:5432/ironflyer?sslmode=disable" \
   go run ./cmd/migrate up
 ```
@@ -76,7 +76,7 @@ POSTGRES_URL="postgres://ironflyer:ironflyer@localhost:5432/ironflyer?sslmode=di
 ## 4. Start the orchestrator
 
 ```bash
-cd apps/orchestrator
+cd core/orchestrator
 go run ./cmd/orchestrator
 # Listens on :8080. Logs the boot summary — confirm:
 #   "V22 wallet: Postgres backend + durable outbox"
@@ -87,7 +87,7 @@ go run ./cmd/orchestrator
 ## 5. Start the runtime
 
 ```bash
-cd apps/runtime
+cd core/runtime
 go run ./cmd/runtime
 # Listens on :8090. Mock driver by default — set
 # IRONFLYER_RUNTIME_DRIVER=docker once you want real sandboxes.
@@ -96,7 +96,7 @@ go run ./cmd/runtime
 ## 6. Start the web cockpit
 
 ```bash
-cd apps/web
+cd clients/web
 npm install
 npm run codegen
 npm run dev
@@ -105,7 +105,7 @@ npm run dev
 
 Web and Studio UI work must follow the locked reference in
 `design-reference/2026-05-25-private-ironflyer/` and
-`apps/web/DESIGN_REFERENCE.md`. Do not use older local captures as a
+`clients/web/DESIGN_REFERENCE.md`. Do not use older local captures as a
 reason to drift from the private dark reference.
 
 ## 7. First execution — UI path
@@ -128,7 +128,7 @@ The smoke runner authenticates, walks the wallet → describeIdea →
 poll → support bundle flow, and exits non-zero on any failure.
 
 ```bash
-go run ./apps/orchestrator/cmd/ironflyer-smoke \
+go run ./core/orchestrator/cmd/ironflyer-smoke \
   -graphql=http://localhost:8080/graphql \
   -email=demo@ironflyer.dev \
   -password=demo1234 \

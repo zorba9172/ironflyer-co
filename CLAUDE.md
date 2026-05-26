@@ -41,38 +41,40 @@ runtime tick respects them.
 
 ```
 ironflyer/
-├── apps/
+├── core/
 │   ├── orchestrator/       Go — wallet, ledger, execution, ProfitGuard,
 │   │                       finisher engine, gates, providers, auth,
 │   │                       blueprints, repair, dashboards
 │   ├── runtime/            Go — per-user workspace sandboxes (mock/docker)
+│   └── cli/                Go — operator CLI
+├── clients/
 │   ├── web/                Next.js 15 + MUI 6 — marketing + dashboards
-│   ├── cli/                Go — operator CLI
-│   └── vscode-extension/   TS — chat + gates + patches inside VSCode
+│   ├── vscode-extension/   TS — chat + gates + patches inside VSCode
+│   └── scrcpy-bridge/      scrcpy WebSocket bridge for mobile mirroring
 ├── packages/
 │   ├── design-tokens/      IronFlyer locked-reference tokens
 │   ├── sdk/                @ironflyer/sdk — TS client for both APIs
 │   └── agents/             (reserved; canonical prompts live in
-│                           apps/orchestrator/internal/agents/agents.yaml)
+│                           core/orchestrator/internal/ai/agents/agents.yaml)
 ├── infra/                  docker-compose / Dockerfiles / k8s / helm
 ├── scripts/                smoke.sh — post-deploy verification
 └── DEPLOY.md               End-to-end production runbook
 ```
 
 Both Go modules use their own `go.mod`. Web is a single Next app under
-`apps/web`. The SDK + design tokens are imported from web via
+`clients/web`. The SDK + design tokens are imported from web via
 `../../../packages/*`.
 
 ## GraphQL only
 
 The orchestrator's API of record is **GraphQL**. The schema lives at
-`apps/orchestrator/internal/graph/schema/*.graphql`. The endpoint is
+`core/orchestrator/internal/operations/graph/schema/*.graphql`. The endpoint is
 `POST /graphql`, subscriptions arrive on the same path via
 `graphql-transport-ws`, and `GET /graphql/sandbox` renders Apollo
 Sandbox as live documentation.
 
 - **Never add a new REST endpoint.** Add a GraphQL operation instead.
-  Resolvers live in `apps/orchestrator/internal/graph/resolver/`.
+  Resolvers live in `core/orchestrator/internal/operations/graph/resolver/`.
 - **REST exception list — these stay REST forever, never wrapped by
   the deprecation middleware:**
   - Third-party callbacks: `POST /budget/webhook` (Stripe).
@@ -149,8 +151,8 @@ alongside the existing exception list above and document it here.
 ## Quality bar
 
 - `go build` and `go vet` MUST pass in both Go modules
-  (`apps/orchestrator`, `apps/runtime`).
-- `npx tsc --noEmit` MUST pass in `apps/web` and `packages/sdk`.
+  (`core/orchestrator`, `core/runtime`).
+- `npx tsc --noEmit` MUST pass in `clients/web` and `packages/sdk`.
 
 ### Constitutional rule: DESIGN REFERENCE IS LAW
 
@@ -158,8 +160,8 @@ The **design reference** lives in three canonical places:
 
 1. `design-reference/2026-05-25-private-ironflyer/` — the locked local
    folder for the private product-design reference.
-2. `apps/web/DESIGN_REFERENCE.md` — the governing no-drift law.
-3. `packages/design-tokens/index.ts` and `apps/web/src/theme/index.ts`
+2. `clients/web/DESIGN_REFERENCE.md` — the governing no-drift law.
+3. `packages/design-tokens/index.ts` and `clients/web/src/theme/index.ts`
    — implementation of that reference, not independent design sources.
 
 **Hard rules:**
@@ -186,7 +188,7 @@ The **design reference** lives in three canonical places:
   a sub-agent or auto-hook introduces a hardcoded color, revert
   before continuing.
 
-The boundary exception is `apps/web/src/theme/index.ts` itself —
+The boundary exception is `clients/web/src/theme/index.ts` itself —
 that's where token values get mapped to MUI palette properties, so
 hex literals are permitted there only when mapping a token.
 
@@ -196,14 +198,14 @@ documents:
 
 - `design-reference/2026-05-25-private-ironflyer/` — canonical local
   reference folder for the private Home and Studio handoff.
-- `apps/web/DESIGN_REFERENCE.md` — locked visual identity, density,
+- `clients/web/DESIGN_REFERENCE.md` — locked visual identity, density,
   responsiveness contract, screenshot baseline.
 - `design-handoff-screenshots/ironflyer-app-2026-05-25/` — the
   paired desktop + mobile screenshot set per route. When a captured
   screenshot exists for a route, the reference wins over the live
   page.
 - **`/login` and `/signup` are pinned to the Base44 split-layout
-  pattern** rendered by `apps/web/src/components/auth/AuthShell.tsx`:
+  pattern** rendered by `clients/web/src/components/auth/AuthShell.tsx`:
   left brand panel (gates pitch + proof points) on lg+, right form
   panel with title / form / switch link. The cockpit nav is
   suppressed on these routes; the AuthShell owns the full bleed.
@@ -258,7 +260,7 @@ that lives behind a toggle; it is not the default.
   never the landing pane. They are positioned as the "open the
   hood" path for professionals.
 - **Charts honor the locked palette.** Every chart pulls from
-  `chartPalette` in `apps/web/src/components/charts/EChart.tsx` and
+  `chartPalette` in `clients/web/src/components/charts/EChart.tsx` and
   `tokens.color.*`. No raw hex; no lime as a primary chart series.
 - **Heavy libraries lazy-load.** echarts, @xyflow/react, three.js
   and any future viz lib MUST be imported through `next/dynamic`
@@ -293,7 +295,7 @@ otherwise.
 - **Go**: zerolog for logs (`a.d.Logger.Info().Str("k", v).Msg(...)`).
   Errors propagate; only `Fatal()` at startup. No global state
   outside the metrics registry.
-- **TS**: server components by default in `apps/web`; only mark
+- **TS**: server components by default in `clients/web`; only mark
   `'use client'` when you reach for state, refs, or events.
 - **CSS**: MUI `sx` prop with the `tokens` from
   `packages/design-tokens`. Primary CTAs use the locked
@@ -328,7 +330,7 @@ at the expected path. `IRONFLYER_MAC_POOL_ENABLED=1` enables the iOS
 native path; absence forces a degraded SeverityInfo "deferred to EAS
 cloud" or SeverityWarning when no fallback exists.
 
-**Runtime:** `apps/runtime/internal/mobile/` owns per-workspace mobile
+**Runtime:** `core/runtime/internal/suppliers/mobile/` owns per-workspace mobile
 lifecycle — Metro server start/stop, Android emulator allocation
 (KVM passthrough required on the host), iOS xcodebuild dispatch.
 Routes live under `/v1/workspaces/{id}/mobile/...` on the runtime
@@ -350,10 +352,10 @@ colors in user-facing UI; no test files).
 
 **Ledger:** Mobile is metered separately so the cost panel can split
 build minutes from emulator minutes from Mac workspace minutes —
-see `apps/orchestrator/internal/ledger/mobile.go` (`EntryMobileBuildMin`,
+see `core/orchestrator/internal/business/ledger/mobile.go` (`EntryMobileBuildMin`,
 `EntryEmulatorMin`, `EntryMacWorkspaceMin`, `EntryEASBuildCredit`,
 `EntryAppetizeMin`). ProfitGuard reservation lives at
-`apps/orchestrator/internal/wireup/profitguard_mobile.go`. A
+`core/orchestrator/internal/operations/wireup/profitguard_mobile.go`. A
 follow-up migration must extend the `ledger_entries.entry_type`
 CHECK constraint to allow the new values (currently the in-memory
 backend accepts them; Postgres rejects them).
@@ -380,7 +382,7 @@ cost; ProfitGuard exists so that margin stays positive in steady state.
 ## Library choices
 
 Locked, additive when needed. Streaming-first provider implementations
-live in `apps/orchestrator/internal/providers/`:
+live in `core/orchestrator/internal/ai/providers/`:
 
 - **Anthropic** (default) — Claude 4.x family. Sonnet 4.6 for general
   work, Opus 4.7 for `quality`/`thinking`/`reasoning`, Haiku 4.5 for
@@ -393,11 +395,11 @@ live in `apps/orchestrator/internal/providers/`:
 - **Vercel AI Gateway** *(optional)* — OpenAI-compatible proxy across
   multiple vendors.
 
-Object-store: `apps/orchestrator/internal/storage/s3client.go`
+Object-store: `core/orchestrator/internal/operations/storage/s3client.go`
 centralises the S3-compatible client configuration. `S3_BACKEND=aws`
 (default) | `r2` (Cloudflare R2, zero egress) | `minio` (self-hosted).
 
-Memory store: `apps/orchestrator/internal/memory/` exposes a single
+Memory store: `core/orchestrator/internal/ai/memory/` exposes a single
 `Store` contract with three operator-selectable backends, chosen via
 `IRONFLYER_MEMORY_BACKEND=memory` (default, in-process ring buffer) |
 `surreal` (SurrealDB; requires `IRONFLYER_DB_DRIVER=surreal|hybrid`)

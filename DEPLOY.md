@@ -57,7 +57,7 @@ guide.
 | Stripe live keys | `/budget/checkout` + Stripe webhook | https://dashboard.stripe.com/ |
 | Anthropic API key | default provider | https://console.anthropic.com/ |
 | OpenAI / Gemini / HuggingFace / DeepSeek / Vercel AI Gateway | any subset of the additional providers you want enabled | each vendor's console |
-| Vercel API token | edge cache + preview deploys for `apps/web` | https://vercel.com/account/tokens |
+| Vercel API token | edge cache + preview deploys for `clients/web` | https://vercel.com/account/tokens |
 | Resend API key | transactional email (signup, password reset) | https://resend.com/api-keys |
 | Sentry DSN | error capture (Go + Next.js) | https://sentry.io/ |
 
@@ -159,7 +159,7 @@ Set secrets — every one of these is enumerated so nothing is implicit:
 | `ironflyer:hfApiKey` | HuggingFace | optional |
 | `ironflyer:deepseekApiKey` | DeepSeek | optional |
 | `ironflyer:vercelAiGatewayToken` | Vercel AI Gateway | optional |
-| `ironflyer:vercelApiToken` | Vercel project deploy | yes if `apps/web` deploys to Vercel |
+| `ironflyer:vercelApiToken` | Vercel project deploy | yes if `clients/web` deploys to Vercel |
 | `ironflyer:resendApiKey` | Resend transactional email | yes |
 | `ironflyer:sentryDsnOrchestrator` | Sentry Go project | yes |
 | `ironflyer:sentryDsnWeb` | Sentry Next.js project | yes |
@@ -259,7 +259,7 @@ GraphQL env knobs that govern the surface (all optional):
 For deeper GraphQL ops (incident triage, subscription handshakes, APQ
 locking) see [`docs/RUNBOOKS/graphql-incident.md`](docs/RUNBOOKS/graphql-incident.md).
 The schema itself is the single source of truth — see
-`apps/orchestrator/internal/graph/schema/*.graphql`.
+`core/orchestrator/internal/operations/graph/schema/*.graphql`.
 
 ## 6. Smoke
 
@@ -293,6 +293,51 @@ shipped.
 Also gate every deploy on [`scripts/verify-headers.sh`](scripts/verify-headers.sh)
 which checks HSTS / CSP / X-Frame-Options / X-Content-Type-Options /
 Referrer-Policy / Permissions-Policy on both surfaces.
+
+### 6.1 Analytics ingestion smoke (ClickHouse + Redpanda)
+
+Production stacks ship ClickHouse + Redpanda as defaults (see
+`infra/helm/ironflyer/values-prod.yaml`). After `v22_smoke.sh` passes
+— which drives one paid execution end-to-end — confirm the outbox →
+Redpanda → ClickHouse projection actually landed rows in the fact
+tables the consumer writes to (see
+`core/orchestrator/internal/business/clickhouse/schema/02_facts.sql`).
+A passing v22 smoke with empty fact tables means the publisher or
+the projection consumer is wedged.
+
+```bash
+# Exec into the in-cluster ClickHouse and count rows in the cost
+# fact table written by the orchestrator's clickhouse package
+# (core/orchestrator/internal/business/clickhouse/). Expect count ≥ 1
+# after v22_smoke has run.
+kubectl -n ironflyer exec -it clickhouse-0 -- \
+  clickhouse-client --database=ironflyer --query \
+  "SELECT count() FROM fact_execution_costs"
+
+# If the count is 0, drop into triage:
+#   1. kubectl -n ironflyer logs deploy/orchestrator | grep -i 'outbox\|publisher\|clickhouse'
+#   2. Confirm REDPANDA_BROKERS and IRONFLYER_CLICKHOUSE_HOSTS are set
+#      on the orchestrator pod env (`kubectl describe pod`).
+#   3. Check publisher lag from Redpanda:
+#      kubectl -n ironflyer exec redpanda-0 -- \
+#        rpk group describe outbox-publisher --brokers redpanda:9092
+#   4. See docs/RUNBOOKS/analytics-bringup.md for the full triage path.
+```
+
+> **Follow-up — `profit_projection` is aspirational.** A prior pass
+> wired this smoke step against a `profit_projection` table that does
+> not exist in the schema (`schema/01_raw.sql`, `schema/02_facts.sql`)
+> and has no producer in `clickhouse/consumer.go`. The closest live
+> equivalent is the per-day rollup at `correction.go::profitDailySQL`
+> (`rollup_profit_daily`), recomputed from `fact_execution_costs` +
+> `fact_execution_completion`. Until a dedicated `profit_projection`
+> materialised view + consumer hook lands, the smoke check uses
+> `fact_execution_costs` above so it actually verifies the live
+> pipeline instead of failing on a missing table.
+
+Treat this as a hard prod gate: profit dashboards are read off
+ClickHouse, so an empty fact table means operators are flying blind
+on margin even if every paid execution succeeded.
 
 ## 7. Upgrade (rolling)
 
@@ -346,7 +391,7 @@ pulumi up
 
 Data caveat: Aurora and S3 are stateful. Reverting a Pulumi version
 that touches `data/` is *not* automatically reversible. Schema
-migrations are managed by the `apps/orchestrator/cmd/migrate` (goose-
+migrations are managed by the `core/orchestrator/cmd/migrate` (goose-
 backed) binary; rolling them back is the `migrate down` path and
 should be done **after** the application is back on the previous tag.
 
@@ -361,7 +406,7 @@ should be done **after** the application is back on the previous tag.
 - [`docs/V22_PLAN.md`](docs/V22_PLAN.md) — implementation contract.
 - [`docs/PROJECT_CLOSEOUT_PLAN.md`](docs/PROJECT_CLOSEOUT_PLAN.md) —
   Definition of Done + verified state.
-- `apps/orchestrator/internal/graph/schema/*.graphql` — GraphQL schema,
+- `core/orchestrator/internal/operations/graph/schema/*.graphql` — GraphQL schema,
   single source of truth.
 - [`infra/pulumi/README.md`](infra/pulumi/README.md) — cross-stack
   output contract.

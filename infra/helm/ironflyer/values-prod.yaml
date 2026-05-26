@@ -1,0 +1,183 @@
+# Ironflyer Helm — production overlay.
+#
+# Apply on top of values.yaml:
+#
+#   helm upgrade --install ironflyer infra/helm/ironflyer \
+#     -n ironflyer --create-namespace \
+#     -f infra/helm/ironflyer/values.yaml \
+#     -f infra/helm/ironflyer/values-prod.yaml \
+#     --set postgres.password="$PG_PASSWORD" \
+#     --set-string orchestrator.secrets.data.IRONFLYER_JWT_SECRET="$JWT" \
+#     --set-string orchestrator.secrets.data.ANTHROPIC_API_KEY="$ANTHROPIC" \
+#     --set-string orchestrator.secrets.data.STRIPE_SECRET_KEY="$STRIPE"
+#
+# ============================================================================
+# Scale ceiling — cost leak protection
+# ============================================================================
+# These ceilings exist so a runaway workload cannot autoscale into
+# bankruptcy. Raising any ceiling requires a deliberate values change
+# (PR, review, deploy) — never an ad-hoc `kubectl edit hpa`.
+#
+# Sizing rationale (~40K active users, see docs/SCALE.md):
+#   - orchestrator: stateless GraphQL + finisher loop. CPU-bound during
+#     gate evaluation; SSE/WS subscribers keep replicas warm. min=3 so a
+#     rolling deploy never drops below 2 healthy, max=20 caps spend at
+#     ~$1.2k/mo of compute even if the HPA goes pathological.
+#   - web: Next.js SSR; cheap per-pod. min=2 for HA, max=30 to absorb
+#     marketing-page spikes without over-provisioning long-term.
+#   - runtime: per-workspace sandboxes; horizontal scaling needs the
+#     orchestrator-side tenant router (see docs/SCALE.md § Workspace
+#     portability). max=50 is the hard ceiling once routing is live;
+#     min=1 because each runtime pod is heavy and there's no value in
+#     idle capacity for a service that scales per workspace.
+#
+# Companion economic safety: profitguard (core/orchestrator/internal/
+# profitguard/) gates every expensive provider call with a PauseForBudget
+# action (profitguard/types.go) that halts an execution when
+# spent+reserved+estStep would exceed the wallet. The HPA ceilings here
+# are the cluster-level mirror of that per-execution pause: even with
+# profitguard fully engaged, a misconfigured KEDA scaler or a runaway
+# webhook flood must not allow Kubernetes to provision unbounded pods.
+# These two layers (profitguard pause + HPA ceiling) are the cost-leak
+# guardrails; do not weaken either without the other.
+# ============================================================================
+
+# Production region — set per stack (overrides values.yaml's "unknown").
+# Examples: "eu" for prod-ams3, "us" for prod-nyc3, "sgp" for prod-sgp1.
+region: "eu"
+requireRegion: true
+
+# Public hostname the ingress publishes everything under in prod.
+host: api.ironflyer.ai
+ingress:
+  enabled: true
+  className: nginx
+  tlsSecret: ironflyer-tls
+  certManager:
+    enabled: true
+    clusterIssuer: "letsencrypt-prod"
+
+orchestrator:
+  enabled: true
+  replicas: 3
+  resources:
+    requests: { cpu: "500m", memory: "512Mi" }
+    limits:   { cpu: "2",    memory: "2Gi" }
+  # HPA — hard ceiling. min ≥ 2 for HA; max 20 for ~40K users.
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 20
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  config:
+    IRONFLYER_ENV: "prod"
+    IRONFLYER_LOG_FORMAT: "json"
+    IRONFLYER_LOG_LEVEL: "info"
+    IRONFLYER_EXECUTOR: "embedded"
+    IRONFLYER_AUTH_OPTIONAL: "false"
+    IRONFLYER_DB_DRIVER: "postgres"
+    ANTHROPIC_MODEL: "claude-opus-4-7"
+    # Outbox publisher → Redpanda. Setting REDPANDA_BROKERS flips the
+    # in-process publisher from no-op to live; the orchestrator drains the
+    # postgres outbox into the Kafka-compatible topic set (see
+    # core/orchestrator/internal/events/publisher.go + redpanda.go).
+    REDPANDA_BROKERS: "redpanda:9092"
+    # ClickHouse analytics ingest. The orchestrator's clickhouse package
+    # (core/orchestrator/internal/clickhouse/) subscribes to the topics
+    # the outbox publisher emits and projects them into the analytics
+    # tables (profit projection, audit projection). Hosts is comma-
+    # separated host:port; database defaults to "ironflyer".
+    IRONFLYER_CLICKHOUSE_HOSTS: "clickhouse:9000"
+    IRONFLYER_CLICKHOUSE_DATABASE: "ironflyer"
+    IRONFLYER_CLICKHOUSE_USERNAME: "default"
+    IRONFLYER_CLICKHOUSE_COMPRESSION: "true"
+    # Direct outbox→ClickHouse fallback path for the projections that
+    # don't go through Redpanda yet (core/orchestrator/internal/
+    # clickhouse/ingest.go). Safe to leave on alongside the publisher.
+    IRONFLYER_CLICKHOUSE_INGEST_FROM_OUTBOX: "true"
+
+runtime:
+  enabled: true
+  driver: "docker"
+  # HPA — runtime scales per workspace, so min=1 is intentional; max=50
+  # is the hard ceiling once orchestrator-side workspace routing is live.
+  # Flip enabled=true only after that router lands (see values.yaml note).
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 50
+    targetCPUUtilizationPercentage: 60
+
+web:
+  enabled: true
+  replicas: 2
+  resources:
+    requests: { cpu: "200m", memory: "256Mi" }
+    limits:   { cpu: "1",    memory: "1Gi" }
+  # HPA — hard ceiling. min ≥ 2 for HA; max 30 absorbs marketing spikes.
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 30
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+# Managed Postgres lives outside the cluster in prod (DO Managed Postgres
+# wired by Pulumi). Disable the in-cluster Postgres and point at the
+# managed DSN via an external Secret named `orchestrator-secrets`.
+postgres:
+  enabled: false
+  host: ""               # set via --set or external secret
+  sslmode: "require"
+
+# WAL archiving via wal-g — pair with managed backups for tighter RPO.
+walg:
+  enabled: true
+  s3Uri: ""              # set per-stack via --set
+  existingSecret: "backup-s3"
+
+# Daily logical backup — production must always have this on.
+backup:
+  enabled: true
+  schedule: "0 3 * * *"
+  s3Uri: ""              # set per-stack via --set
+  s3SecretName: "backup-s3"
+  retentionDays: 30
+
+# KEDA — event-driven autoscaling from Redpanda lag. Production-default
+# now that Redpanda is on.
+keda:
+  enabled: true
+  kafkaBootstrapServers: "redpanda:9092"
+
+# Redpanda — durable event backbone. Production-default per the V22 plan
+# (analytics is no longer opt-in once we're in prod). For multi-broker
+# durability prefer the upstream Redpanda Operator; the single-broker
+# StatefulSet shipped here is the minimum viable prod path.
+redpanda:
+  enabled: true
+  image: docker.redpanda.com/redpandadata/redpanda:v24.3.1
+  storageSize: 100Gi
+  partitions: 12
+  replicationFactor: 1
+  schemaRegistry:
+    enabled: true
+    image: docker.redpanda.com/redpandadata/console:v2.7.2
+
+# ClickHouse — analytics store for profit projection + cost attribution
+# + audit projections. Production-default.
+clickhouse:
+  enabled: true
+  image: clickhouse/clickhouse-server:24.10
+  storageSize: 200Gi
+
+# OPA decision point — production-default.
+opa:
+  enabled: true
+  image: openpolicyagent/opa:latest-rootless
+
+# Audit-chain verification CronJob — production-default.
+auditVerify:
+  enabled: true
+  schedule: "0 * * * *"

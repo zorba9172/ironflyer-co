@@ -25,7 +25,7 @@ import (
 //	kubectl create secret generic stripe-secret --dry-run=client \
 //	        --from-literal=key=$STRIPE_KEY -o yaml | \
 //	  kubeseal --cert infra/sealed-secrets/pub-cert.<stack>.pem -o yaml \
-//	  > apps/orchestrator/k8s/sealed/stripe-secret.yaml
+//	  > core/orchestrator/k8s/sealed/stripe-secret.yaml
 //
 //	# 3. Commit the .yaml. ArgoCD/Helm/kubectl apply it; the controller
 //	#    decrypts and creates the matching `Secret` in-cluster.

@@ -15,11 +15,11 @@
 FROM golang:1.25-alpine AS build
 WORKDIR /src
 RUN apk add --no-cache git gcc g++ musl-dev
-COPY apps/orchestrator/go.mod apps/orchestrator/go.sum ./
+COPY core/orchestrator/go.mod core/orchestrator/go.sum ./
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
     go mod download
-COPY apps/orchestrator/ ./
+COPY core/orchestrator/ ./
 # Production builds opt in to the tree-sitter AST adapters so symbol-level
 # patches resolve through real parsers instead of the no-op fallback. The
 # tree-sitter Go bindings require CGO, so CGO_ENABLED=1 is mandatory here.

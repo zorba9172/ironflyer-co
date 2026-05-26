@@ -21,7 +21,7 @@ credentials, or orchestration source code.
 
 ## What Exists Now
 
-Backend package: `apps/orchestrator/internal/deploy`
+Backend package: `core/orchestrator/internal/operations/deploy`
 
 Added domain lifecycle primitives:
 
@@ -36,7 +36,7 @@ Added domain lifecycle primitives:
 
 Persistence:
 
-- Migration: `apps/orchestrator/migrations/00042_deploy_domains.sql`
+- Migration: `core/orchestrator/migrations/00042_deploy_domains.sql`
 - Table: `deploy_domains`
 - One project can have multiple domains.
 - A primary domain is tracked per project.

@@ -1,4 +1,30 @@
 # Ironflyer Helm values. Override per environment via -f values-prod.yaml.
+#
+# ============================================================================
+# Scale ceiling — cost leak protection
+# ============================================================================
+# These ceilings exist so a runaway workload cannot autoscale into
+# bankruptcy. Raising any ceiling here (orchestrator.autoscaling.maxReplicas,
+# web.autoscaling.maxReplicas, runtime.autoscaling.maxReplicas) requires a
+# deliberate values change — never an ad-hoc `kubectl edit hpa`.
+#
+# Production ceilings (sized for ~40K active users, see values-prod.yaml
+# and docs/SCALE.md):
+#   - orchestrator: min 3 / max 20 (CPU 70%, mem 80%)
+#   - web:          min 2 / max 30 (CPU 70%, mem 80%)
+#   - runtime:      min 1 / max 50 (CPU 60%, scales per workspace once
+#                   the orchestrator-side tenant router is live)
+#
+# Companion economic safety: profitguard (core/orchestrator/internal/
+# profitguard/) gates every expensive provider call with a PauseForBudget
+# action (profitguard/types.go) that halts execution when
+# spent+reserved+estStep would exceed the wallet. The HPA ceilings here
+# are the cluster-level mirror of that per-execution pause: even with
+# profitguard engaged, a misconfigured KEDA scaler or a runaway webhook
+# flood must not allow Kubernetes to provision unbounded pods. Both
+# layers (profitguard pause + HPA ceiling) are the cost-leak guardrails;
+# do not weaken either without the other.
+# ============================================================================
 
 # Container image registry + tag applied to every service. Override per
 # service inside `images.*` when you want them out of step.

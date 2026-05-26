@@ -216,7 +216,7 @@ mutation or wait for the embedded executor's tick.
    in its 14-day backfill window, and the cohort recompute fails with
    `Aggregate function minIf(...) is found inside another aggregate
    function`. Fix lives in
-   `apps/orchestrator/internal/clickhouse/correction.go` —
+   `core/orchestrator/internal/clickhouse/correction.go` —
    bind-arg count and a SELECT rewrite for the cohort rollup.
 
 2. **DLQ topic auto-create.** ~~The first publisher attempt against a

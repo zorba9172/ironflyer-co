@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Build a one-page contact sheet of all 150 templates at
-// apps/web/public/template-previews/index.html. Useful for QA, internal
+// clients/web/public/template-previews/index.html. Useful for QA, internal
 // reviews, and showing the full gallery at a glance.
 //
 // Usage: node scripts/templates/build-contact-sheet.mjs

@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 // Render every templates/sites/<cat>/<slug>/index.html to a JPEG preview
-// at apps/web/public/templates/<slug>.jpg, then rewrite each template.json
+// at clients/web/public/templates/<slug>.jpg, then rewrite each template.json
 // previewImage to point at /templates/<slug>.jpg (served by Next).
 //
 // Usage:
 //   node scripts/templates/screenshot.mjs               # all templates
 //   node scripts/templates/screenshot.mjs <slug-prefix> # subset
 //
-// Requires: playwright (apps/web devDep) + chromium installed via
+// Requires: playwright (clients/web devDep) + chromium installed via
 // `npx playwright install chromium`.
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, statSync } from 'node:fs';
@@ -17,7 +17,7 @@ import { createRequire } from 'node:module';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
-// Resolve playwright from apps/web/node_modules — the only place it's
+// Resolve playwright from clients/web/node_modules — the only place it's
 // installed in this monorepo. Use createRequire so this script can be
 // invoked from any cwd.
 const require = createRequire(join(REPO_ROOT, 'apps', 'web', 'package.json'));
@@ -99,7 +99,7 @@ async function shoot(browser, t) {
   if (t.meta.livePreview !== livePreview)   { t.meta.livePreview   = livePreview;   metaDirty = true; }
   if (metaDirty) writeFileSync(t.metaPath, JSON.stringify(t.meta, null, 2) + '\n', 'utf8');
 
-  // Publish the raw HTML to apps/web/public/template-previews/<slug>.html
+  // Publish the raw HTML to clients/web/public/template-previews/<slug>.html
   // so the gallery's "Live preview" CTA can open the real, fully-rendered
   // template in a new tab. Cheap to copy on every run; keeps source +
   // published copy in sync.

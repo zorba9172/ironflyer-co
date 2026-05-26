@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Copy every templates/sites/<cat>/<slug>/index.html into
-// apps/web/public/template-previews/<slug>.html so the gallery can open
+// clients/web/public/template-previews/<slug>.html so the gallery can open
 // each template as a live preview in a new tab. Also stamps each
 // template.json with `livePreview` pointing at the published URL.
 //

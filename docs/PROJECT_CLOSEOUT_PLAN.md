@@ -253,7 +253,7 @@ postgres + redis + surrealdb + minio).
 | # | DoD item | Status | Verified by / specific gap |
 | - | --- | --- | --- |
 | 1 | User can top up, run, stop, refund, and inspect an execution | partial | `v22_smoke.sh` walks signUp → wallet → createPaidExecution → wallet hold → execution read → profitDashboard read; **stop** path exists as `stopExecution` mutation but is not exercised by the smoke; **refund** flow is not in V22 GraphQL — gap. |
-| 2 | Every cost lands in the ledger | partial | Postgres `ledger_entries` table is populated by BillingGuard; `ledger` GraphQL query currently fails with `number of field descriptions must equal number of destinations, got 11 and 12` (known V22 row-scan mismatch in `apps/orchestrator/internal/ledger/postgres.go`). Writes work; the read path needs the rebuild noted in the v22 smoke output. |
+| 2 | Every cost lands in the ledger | partial | Postgres `ledger_entries` table is populated by BillingGuard; `ledger` GraphQL query currently fails with `number of field descriptions must equal number of destinations, got 11 and 12` (known V22 row-scan mismatch in `core/orchestrator/internal/ledger/postgres.go`). Writes work; the read path needs the rebuild noted in the v22 smoke output. |
 | 3 | Every execution emits events into Redpanda | ✗ | Redpanda is opt-in (`--profile analytics`) and is **not** running in the lean default. Outbox publisher exists but is not wired into the lean dev boot. |
 | 4 | ClickHouse dashboards show margin in near real time | ✗ | ClickHouse is opt-in (`--profile analytics`) and not running by default. `profitDashboard` GraphQL query is served from the orchestrator's in-process aggregator, not ClickHouse. |
 | 5 | SurrealDB improves reuse/retrieval without owning durable truth | partial | SurrealDB container is up (reports `unhealthy` cosmetically due to bundled healthcheck probing a 404 endpoint; RPC at `ws://localhost:8000/rpc` is live). Memory backend is selected via `IRONFLYER_MEMORY_BACKEND`; default in dev is `memory`. SurrealDB is wired but not the default. |
@@ -268,12 +268,12 @@ postgres + redis + surrealdb + minio).
 | Surface | Verified | Notes |
 | --- | --- | --- |
 | `docker compose -f infra/compose/docker-compose.dev.yml up -d` | ✓ | Lean default boots postgres, redis, surrealdb, minio. surrealdb cosmetic-unhealthy as documented. |
-| `apps/orchestrator: go build ./...` | ✓ | exits 0. |
-| `apps/orchestrator: go vet ./...` | ✓ | exits 0. |
-| `apps/orchestrator: go run ./cmd/migrate up` (with `POSTGRES_URL`) | ✓ | `goose: no migrations to run. current version: 41`. |
-| `apps/runtime: go build ./...` + `go vet ./...` | ✓ | both exit 0. |
-| `apps/web: npm run codegen` | ✓ | regenerates `src/lib/gql/__generated__.ts`. |
-| `apps/web: npm run dev` | ✓ | web responds 200 at `http://localhost:3000/`. |
+| `core/orchestrator: go build ./...` | ✓ | exits 0. |
+| `core/orchestrator: go vet ./...` | ✓ | exits 0. |
+| `core/orchestrator: go run ./cmd/migrate up` (with `POSTGRES_URL`) | ✓ | `goose: no migrations to run. current version: 41`. |
+| `core/runtime: go build ./...` + `go vet ./...` | ✓ | both exit 0. |
+| `clients/web: npm run codegen` | ✓ | regenerates `src/lib/gql/__generated__.ts`. |
+| `clients/web: npm run dev` | ✓ | web responds 200 at `http://localhost:3000/`. |
 | `scripts/v22_smoke.sh` | ✓ | exits 0 with `PASS-WITH-WARN` (documented ledger read gap). |
 | `scripts/smoke.sh` | ✗ | exits non-zero in lean dev: `GET /projects` 404 (REST route removed), `plans` / `providersHealth` 422 (V22 stores not wired in lean default), `verifyAudit` 422 without operator JWT. Treat as a smoke-script-vs-lean-stack mismatch, not a regression. |
 | `GET /` banner | ✓ | returns `{"contract":"docs/V22_PLAN.md","graphql":"/graphql","sandbox":"/graphql/sandbox","service":"ironflyer-orchestrator","version":"dev"}`. |

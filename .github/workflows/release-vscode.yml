@@ -1,7 +1,7 @@
 name: Release VSCode extension
 
 # Triggered by pushing a tag like `vscode-v0.1.0`. The tag must point to a
-# commit on main where apps/vscode-extension/package.json has the matching
+# commit on main where clients/vscode-extension/package.json has the matching
 # `version`. The job builds, packages, and (when secrets are present)
 # publishes to both the VS Marketplace and the Open VSX registry, then
 # attaches the .vsix to a GitHub Release.
@@ -27,11 +27,11 @@ jobs:
         with: { node-version: '20' }
 
       - name: Install
-        working-directory: apps/vscode-extension
+        working-directory: clients/vscode-extension
         run: npm install --no-audit --no-fund
 
       - name: Verify (typecheck + test + lint + build)
-        working-directory: apps/vscode-extension
+        working-directory: clients/vscode-extension
         run: |
           npm run typecheck
           npm test
@@ -39,25 +39,25 @@ jobs:
           npm run build
 
       - name: Package
-        working-directory: apps/vscode-extension
+        working-directory: clients/vscode-extension
         run: npx --yes @vscode/vsce package --no-dependencies --out ironflyer.vsix
 
       - name: Upload .vsix artifact
         uses: actions/upload-artifact@v4
         with:
           name: ironflyer-vsix
-          path: apps/vscode-extension/ironflyer.vsix
+          path: clients/vscode-extension/ironflyer.vsix
 
       - name: Publish to VS Marketplace
         if: ${{ startsWith(github.ref, 'refs/tags/vscode-v') && env.VSCE_PAT != '' && !inputs.dry_run }}
-        working-directory: apps/vscode-extension
+        working-directory: clients/vscode-extension
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
         run: npx --yes @vscode/vsce publish --no-dependencies --packagePath ironflyer.vsix
 
       - name: Publish to Open VSX
         if: ${{ startsWith(github.ref, 'refs/tags/vscode-v') && env.OVSX_PAT != '' && !inputs.dry_run }}
-        working-directory: apps/vscode-extension
+        working-directory: clients/vscode-extension
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
         run: npx --yes ovsx publish ironflyer.vsix
@@ -66,7 +66,7 @@ jobs:
         if: ${{ startsWith(github.ref, 'refs/tags/vscode-v') && !inputs.dry_run }}
         uses: softprops/action-gh-release@v2
         with:
-          files: apps/vscode-extension/ironflyer.vsix
+          files: clients/vscode-extension/ironflyer.vsix
           tag_name: ${{ github.ref_name }}
           name: VSCode extension ${{ github.ref_name }}
           generate_release_notes: true

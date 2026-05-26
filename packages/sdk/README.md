@@ -166,7 +166,7 @@ streaming subscriptions. See [`CHANGELOG.md`](./CHANGELOG.md) for the
 full list as of the current release.
 
 The complete GraphQL schema lives at
-[`apps/orchestrator/internal/graph/schema/*.graphql`](https://github.com/ironflyer/ironflyer/tree/main/apps/orchestrator/internal/graph/schema)
+[`core/orchestrator/internal/graph/schema/*.graphql`](https://github.com/ironflyer/ironflyer/tree/main/core/orchestrator/internal/graph/schema)
 and is browsable live at `${endpoint}/graphql/sandbox` (Apollo Sandbox).
 
 ## TypeScript

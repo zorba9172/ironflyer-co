@@ -6,8 +6,8 @@
 #
 # The web app imports tokens directly from packages/design-tokens via
 # relative paths (`../../../../packages/design-tokens`), so the build
-# context must include both `apps/web/` and `packages/`. We mirror the
-# repo layout inside the image: /app/apps/web + /app/packages.
+# context must include both `clients/web/` and `packages/`. We mirror the
+# repo layout inside the image: /app/clients/web + /app/packages.
 #
 # NEXT_PUBLIC_IRONFLYER_API_URL is read at build-time by Next.js and
 # baked into the client bundle. Override with --build-arg when building
@@ -15,13 +15,13 @@
 ARG NEXT_PUBLIC_IRONFLYER_API_URL=http://localhost:8080
 
 FROM node:20-alpine AS deps
-WORKDIR /app/apps/web
+WORKDIR /app/clients/web
 RUN apk add --no-cache libc6-compat
 # Copy package manifests first so npm ci can cache when only source
 # files change. The web package imports packages/design-tokens by
 # relative path; bring the package tree along so any postinstall /
 # resolution that walks up the tree succeeds.
-COPY apps/web/package.json apps/web/package-lock.json* ./
+COPY clients/web/package.json clients/web/package-lock.json* ./
 COPY packages/ /app/packages/
 RUN --mount=type=cache,target=/root/.npm \
     (npm ci --no-audit --no-fund --legacy-peer-deps \
@@ -31,10 +31,10 @@ FROM node:20-alpine AS build
 ARG NEXT_PUBLIC_IRONFLYER_API_URL
 ENV NEXT_TELEMETRY_DISABLED=1 \
     NEXT_PUBLIC_IRONFLYER_API_URL=${NEXT_PUBLIC_IRONFLYER_API_URL}
-WORKDIR /app/apps/web
+WORKDIR /app/clients/web
 COPY --from=deps /app/packages /app/packages
-COPY --from=deps /app/apps/web/node_modules ./node_modules
-COPY apps/web/ ./
+COPY --from=deps /app/clients/web/node_modules ./node_modules
+COPY clients/web/ ./
 # Generated GraphQL types are committed under src/lib/gql/__generated__.ts
 # so no codegen step is required during the image build. If a future
 # build expects fresh codegen, run `npm run codegen` here before build.
@@ -48,7 +48,7 @@ ENV NODE_ENV=production \
     PORT=3000 \
     HOSTNAME=0.0.0.0 \
     NEXT_PUBLIC_IRONFLYER_API_URL=${NEXT_PUBLIC_IRONFLYER_API_URL}
-WORKDIR /app/apps/web
+WORKDIR /app/clients/web
 RUN apk add --no-cache curl tini \
     && addgroup -g 10001 -S iron \
     && adduser -S -u 10001 -G iron iron
@@ -56,11 +56,11 @@ RUN apk add --no-cache curl tini \
 # rely on `output: 'standalone'` because next.config.mjs in this repo
 # does not enable it (config is owned by the web team, not infra).
 COPY --from=build --chown=iron:iron /app/packages /app/packages
-COPY --from=build --chown=iron:iron /app/apps/web/.next ./.next
-COPY --from=build --chown=iron:iron /app/apps/web/public ./public
-COPY --from=build --chown=iron:iron /app/apps/web/package.json ./package.json
-COPY --from=build --chown=iron:iron /app/apps/web/next.config.mjs ./next.config.mjs
-COPY --from=build --chown=iron:iron /app/apps/web/node_modules ./node_modules
+COPY --from=build --chown=iron:iron /app/clients/web/.next ./.next
+COPY --from=build --chown=iron:iron /app/clients/web/public ./public
+COPY --from=build --chown=iron:iron /app/clients/web/package.json ./package.json
+COPY --from=build --chown=iron:iron /app/clients/web/next.config.mjs ./next.config.mjs
+COPY --from=build --chown=iron:iron /app/clients/web/node_modules ./node_modules
 USER iron
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \

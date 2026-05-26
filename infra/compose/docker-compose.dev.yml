@@ -207,7 +207,7 @@ services:
   # disabling recommendations/telemetry/update churn.
   #
   # Served at /ide so the Next.js dev server can same-origin-proxy it
-  # at apps/web /ide/* → http://openvscode:3000/ide/*. Same-origin
+  # at clients/web /ide/* → http://openvscode:3000/ide/*. Same-origin
   # removes the iframe friction (CORS, X-Frame-Options, clipboard
   # grants, third-party cookie blocks). Dev intentionally has no nested
   # IDE login; Studio/session auth owns access to the containing app.

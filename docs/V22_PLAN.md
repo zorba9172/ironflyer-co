@@ -102,15 +102,21 @@ handlers, store wiring, migrations, env vars, CLAUDE.md mentions):
 ### Packages to create
 
 ```
-apps/orchestrator/internal/
-  wallet/            — Per-tenant prepaid balance + holds (top-up, reserve, release, debit)
-  ledger/            — Append-only ledger; debit/credit; reconcile; query
-  execution/         — Execution entity + FSM + cost attribution + completion score
-  profitguard/       — Decide(ctx, ExecState) → Decision; hooks for provider/runtime/finisher
-  blueprints/        — Data-driven blueprint registry (YAML + Go executor); per-blueprint stats
-  completion/        — Completion scorer (gate progress → score delta)
-  repair/            — Repair genome (failure_signature → fix recipe) + patch memory
+core/orchestrator/internal/
+  business/wallet/        — Per-tenant prepaid balance + holds (top-up, reserve, release, debit)
+  business/ledger/        — Append-only ledger; debit/credit; reconcile; query
+  business/execution/     — Execution entity + FSM + cost attribution + completion score
+  business/profitguard/   — Decide(ctx, ExecState) → Decision; hooks for provider/runtime/finisher
+  business/blueprints/    — Data-driven blueprint registry (YAML + Go executor); per-blueprint stats
+  ai/completion/          — Completion scorer (gate progress → score delta)
+  ai/repair/              — Repair genome (failure_signature → fix recipe) + patch memory
 ```
+
+> Historical note: the table below and the rest of this document still
+> reference the original flat `internal/<pkg>/` paths. Those packages
+> now live under the five-domain layout — see
+> [ARCHITECTURE_DOMAIN_MODULES.md](ARCHITECTURE_DOMAIN_MODULES.md) for
+> the current home of each package.
 
 ### Migrations to add
 
@@ -175,6 +181,6 @@ disjoint package paths so they cannot collide.
 - Web UI implementation was originally out of scope for this overhaul,
   but any follow-on web work is now bound to
   `design-reference/2026-05-25-private-ironflyer/` and
-  `apps/web/DESIGN_REFERENCE.md`.
+  `clients/web/DESIGN_REFERENCE.md`.
 - Tests (per repository policy)
 - VSCode extension changes beyond what GraphQL schema breakage requires

@@ -21,7 +21,7 @@ It must not scan:
 
 ## What Exists Now
 
-Package: `apps/orchestrator/internal/appsec`
+Package: `core/orchestrator/internal/appsec`
 
 Core:
 
@@ -42,7 +42,7 @@ Finisher integration:
 
 Dashboard intelligence:
 
-- `apps/web/src/lib/projectIntelligence.ts` derives a compact project profile
+- `clients/web/src/lib/projectIntelligence.ts` derives a compact project profile
   from project files.
 - `DashboardPane` shows stack, language percentages, and meaningful components
   without adding a noisy table.

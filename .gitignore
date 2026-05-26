@@ -4,21 +4,21 @@ node_modules/
 out/
 *.tsbuildinfo
 next-env.d.ts
-!apps/web/next-env.d.ts
+!clients/web/next-env.d.ts
 
 # Compiled SDK / package build outputs
 packages/*/dist/
 
 # Test artifacts
-apps/web/test-results/
-apps/web/screenshots/
-apps/web/tmp-screenshots/
+clients/web/test-results/
+clients/web/screenshots/
+clients/web/tmp-screenshots/
 playwright-report/
 coverage/
 
 # Local template scratchpad — third-party template packages staged for
 # inspection. NEVER commit; the repo curates a small subset under
-# apps/web/public/templates/ instead.
+# clients/web/public/templates/ instead.
 /templates/
 
 # Go
@@ -28,9 +28,9 @@ vendor/
 *.test
 *.out
 # Compiled Go service binaries (built next to main.go) — never commit.
-apps/orchestrator/orchestrator
-apps/runtime/runtime
-apps/cli/cli
+core/orchestrator/orchestrator
+core/runtime/runtime
+core/cli/cli
 
 # Third-party marketing asset packs (PSDs, MP4s, MOGRTs, huge PNGs) —
 # kept locally for design reference but not tracked.

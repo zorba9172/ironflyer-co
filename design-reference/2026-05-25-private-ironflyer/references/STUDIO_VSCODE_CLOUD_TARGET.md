@@ -122,7 +122,7 @@ Do not use `studio-entry-current-gap.png` as the target. That file is only an im
 - No replacing the interactive panels with one image.
 - No light theme.
 - No lime-first theme.
-- No custom palette additions without updating `apps/web/DESIGN_REFERENCE.md`.
+- No custom palette additions without updating `clients/web/DESIGN_REFERENCE.md`.
 - No page-level horizontal scroll.
 - No hiding the prompt panel on mobile; it stacks above code/preview.
 

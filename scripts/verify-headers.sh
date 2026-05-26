@@ -51,7 +51,7 @@ if [[ "${API_URL}" == https://* ]]; then
 fi
 
 # Web: hit the marketing root. Next.js sets headers via next.config.mjs
-# headers() — see apps/web/next.config.mjs.
+# headers() — see clients/web/next.config.mjs.
 echo "==> Web: ${WEB_URL}/"
 check "web" "${WEB_URL}/" "X-Content-Type-Options"
 check "web" "${WEB_URL}/" "X-Frame-Options"

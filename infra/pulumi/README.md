@@ -158,12 +158,12 @@ exclude egress and provider API spend.
 The Ironflyer **dashboard** is a Next.js 15 app that ships on Vercel.
 The split is intentional:
 
-- **Vercel** runs the customer-facing dashboard (`apps/web`) — fast
+- **Vercel** runs the customer-facing dashboard (`clients/web`) — fast
   global edge, automatic preview deployments, and a clean separation
   from the backend's runtime concerns.
 - **EKS** (provisioned by this Pulumi project + the `data/` package)
-  runs the **orchestrator** (`apps/orchestrator`), the **runtime**
-  workspace controller (`apps/runtime`), and every stateful piece
+  runs the **orchestrator** (`core/orchestrator`), the **runtime**
+  workspace controller (`core/runtime`), and every stateful piece
   (Postgres, Redis, SurrealDB, EFS).
 
 The dashboard talks to the orchestrator's public hostname over HTTPS

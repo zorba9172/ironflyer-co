@@ -1,0 +1,78 @@
+# V22 ledger (Agent 3) — append-only financial record exposed to
+# clients for the Profit dashboard, the per-execution timeline, and
+# the per-tenant rollup. The Go service surface lives in
+# core/orchestrator/internal/ledger; this schema file is the read-only
+# projection of that surface to GraphQL.
+#
+# Scalars: JSON and DateTime are already declared in zbase.graphql.
+# We deliberately use DateTime here (not "Time") to stay consistent
+# with the rest of the schema and with the gqlgen.yml scalar mapping
+# (DateTime → graphql.Time). All money values cross the wire as Float;
+# the storage and Go service layer keep them in shopspring/decimal.
+
+extend type Query {
+  # All ledger entries for the caller's tenant, filtered + paginated.
+  # Order is created_at DESC. Default limit is 100.
+  ledger(filter: LedgerFilter): [WalletLedgerEntry!]!
+
+  # Dashboard-ready rollup over a window. Computes gross-margin %
+  # using only money-in / money-out entries; reservation + release
+  # holds cancel out and are intentionally excluded.
+  ledgerRollup(since: DateTime!, until: DateTime!): LedgerRollup!
+
+  # Per-execution timeline, oldest-first — what operators want when
+  # they're auditing why an execution's margin came out the way it
+  # did. limit/offset paginate over the chronological feed; the
+  # default cap of 100 covers a normal finisher run.
+  executionLedger(
+    executionID: ID!
+    limit: Int = 100
+    offset: Int = 0
+  ): [WalletLedgerEntry!]!
+
+  # Today's profitability for the caller's tenant — revenue, cost
+  # breakdown, and gross margin from UTC midnight to now. The single
+  # query that answers "are we currently making money on this tenant
+  # today?" without the caller having to construct a DateTime range.
+  # Sums every typed cost (provider, sandbox, storage, deployment,
+  # mobile legs, premium reasoning) against revenue so a regression
+  # in any leg shows up immediately.
+  tenantProfitToday: LedgerRollup!
+}
+
+input LedgerFilter {
+  since: DateTime
+  until: DateTime
+  # Legal entry-type strings are validated server-side against the
+  # canonical set in core/orchestrator/internal/ledger/ledger.go.
+  types: [String!]
+  executionID: ID
+  limit:  Int = 100
+  offset: Int = 0
+}
+
+type WalletLedgerEntry {
+  id: ID!
+  tenantID: ID!
+  executionID: ID
+  entryType: String!
+  direction: String!
+  amountUSD: Float!
+  provider: String
+  billable: Boolean!
+  marginRelevant: Boolean!
+  metadata: JSON!
+  createdAt: DateTime!
+}
+
+type LedgerRollup {
+  revenueUSD: Float!
+  providerCostUSD: Float!
+  sandboxCostUSD: Float!
+  storageCostUSD: Float!
+  deploymentCostUSD: Float!
+  premiumReasoningCostUSD: Float!
+  refundsUSD: Float!
+  platformMarginUSD: Float!
+  grossMarginPct: Float!
+}

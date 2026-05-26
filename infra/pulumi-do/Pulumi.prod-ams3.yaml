@@ -13,6 +13,18 @@ config:
   ironflyer:redisVersion: "7"
   ironflyer:enableHA: "true"
   ironflyer:vercelEnabled: "true"
-  ironflyer:vercelDomain: app.eu.ironflyer.dev
-  ironflyer:rootDomain: ironflyer.dev
+  # Production domain registered at the DigitalOcean registrar; DNS is
+  # delegated to Cloudflare (see edge/cloudflare.go). The Pulumi program
+  # derives the per-service hostnames from rootDomain:
+  #   - app.ironflyer.ai     → Vercel (CNAME → cname.vercel-dns.com)
+  #   - api.ironflyer.ai     → ingress LB IP, proxied (orchestrator GraphQL)
+  #   - runtime.ironflyer.ai → ingress LB IP, proxied (workspace runtime)
+  #   - docs.ironflyer.ai    → Vercel (CNAME)
+  # The apex `ironflyer.ai` is owned by the Vercel project's domain config
+  # (vercelDomain = app.ironflyer.ai is the production deployment; the apex
+  # CNAME is wired inside the Vercel project, not by this Pulumi program).
+  # NS records to set at the DigitalOcean registrar are documented in
+  # docs/RUNBOOKS/cold-start.md § 9.
+  ironflyer:vercelDomain: app.ironflyer.ai
+  ironflyer:rootDomain: ironflyer.ai
   ironflyer:spacesRegion: ams3

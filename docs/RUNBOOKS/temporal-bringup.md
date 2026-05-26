@@ -229,7 +229,7 @@ docker compose -f infra/compose/docker-compose.dev.yml exec postgres \
 
 ## Known Go-level gap
 
-`apps/orchestrator/internal/graph/resolver/execution.resolver.go` →
+`core/orchestrator/internal/operations/graph/resolver/execution.resolver.go` →
 `CreatePaidExecution` fires the embedded `*finisher.Engine.Run` in a
 goroutine and never calls `client.ExecuteWorkflow` against Temporal,
 even when `IRONFLYER_EXECUTOR=temporal`. The Temporal worker is

@@ -30,8 +30,11 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: orchestrator
+  # Hard ceiling — cost leak protection. See values.yaml top-of-file banner.
+  # min ≥ 2 for HA so a rolling deploy never drops below 2 healthy.
+  # max 20 caps spend at ~40K-user steady state; raise only via PR.
   minReplicas: {{ .Values.orchestrator.autoscaling.minReplicas | default 3 }}
-  maxReplicas: {{ .Values.orchestrator.autoscaling.maxReplicas | default 30 }}
+  maxReplicas: {{ .Values.orchestrator.autoscaling.maxReplicas | default 20 }}
   metrics:
     - type: Resource
       resource:
@@ -61,8 +64,9 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: runtime
-  minReplicas: {{ .Values.runtime.autoscaling.minReplicas | default 2 }}
-  maxReplicas: {{ .Values.runtime.autoscaling.maxReplicas | default 20 }}
+  # Hard ceiling — cost leak protection. See values.yaml top-of-file banner.
+  minReplicas: {{ .Values.runtime.autoscaling.minReplicas | default 1 }}
+  maxReplicas: {{ .Values.runtime.autoscaling.maxReplicas | default 50 }}
   metrics:
     - type: Resource
       resource:
@@ -70,6 +74,12 @@ spec:
         target:
           type: Utilization
           averageUtilization: {{ .Values.runtime.autoscaling.targetCPUUtilizationPercentage | default 60 }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.runtime.autoscaling.targetMemoryUtilizationPercentage | default 80 }}
   {{- include "ironflyer.hpa.behavior" . }}
 ---
 {{- end }}
@@ -86,8 +96,10 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: web
+  # Hard ceiling — cost leak protection. See values.yaml top-of-file banner.
+  # min ≥ 2 for HA; max 30 absorbs marketing-page spikes without unbounded.
   minReplicas: {{ .Values.web.autoscaling.minReplicas | default 2 }}
-  maxReplicas: {{ .Values.web.autoscaling.maxReplicas | default 10 }}
+  maxReplicas: {{ .Values.web.autoscaling.maxReplicas | default 30 }}
   metrics:
     - type: Resource
       resource:

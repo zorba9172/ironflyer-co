@@ -29,7 +29,7 @@ env:
 
 jobs:
   # ---------------------------------------------------------------------------
-  # Cross-compile the CLI. The Makefile under apps/cli has a build target, but
+  # Cross-compile the CLI. The Makefile under core/cli has a build target, but
   # we drive `go build` directly here so the matrix is the source of truth for
   # which binaries we ship.
   # ---------------------------------------------------------------------------
@@ -51,7 +51,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: apps/cli/go.sum
+          cache-dependency-path: core/cli/go.sum
       - name: Resolve version
         id: ver
         run: |
@@ -61,7 +61,7 @@ jobs:
             echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
           fi
       - name: go build
-        working-directory: apps/cli
+        working-directory: core/cli
         env:
           GOOS: ${{ matrix.os }}
           GOARCH: ${{ matrix.arch }}
@@ -79,7 +79,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: cli-${{ matrix.os }}-${{ matrix.arch }}
-          path: apps/cli/dist/*
+          path: core/cli/dist/*
 
   # ---------------------------------------------------------------------------
   # Package the Helm chart at the app version so `helm install ironflyer
@@ -129,11 +129,11 @@ jobs:
           set -euo pipefail
           mkdir -p dist/schemas
           # GraphQL SDL — single concatenated file for easy consumption.
-          find apps/orchestrator/internal/graph/schema -name '*.graphql' -print0 \
+          find core/orchestrator/internal/graph/schema -name '*.graphql' -print0 \
             | xargs -0 cat > dist/schemas/schema.graphql || true
           # OpenAPI snapshot, if the orchestrator ships one in-repo.
-          if [ -f apps/orchestrator/openapi.yaml ]; then
-            cp apps/orchestrator/openapi.yaml dist/schemas/openapi.yaml
+          if [ -f core/orchestrator/openapi.yaml ]; then
+            cp core/orchestrator/openapi.yaml dist/schemas/openapi.yaml
           fi
       - uses: actions/upload-artifact@v4
         with:

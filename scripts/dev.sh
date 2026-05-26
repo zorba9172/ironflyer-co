@@ -71,13 +71,13 @@ if [ "$IN_DOCKER" -eq 0 ]; then
 Run the apps on the host (faster iteration):
 
   # orchestrator
-  (cd apps/orchestrator && go run ./cmd/orchestrator)
+  (cd core/orchestrator && go run ./cmd/orchestrator)
 
   # runtime
-  (cd apps/runtime && go run ./cmd/runtime)
+  (cd core/runtime && go run ./cmd/runtime)
 
   # web
-  (cd apps/web && npm install && npm run dev)
+  (cd clients/web && npm install && npm run dev)
 
 Browse:
   - web:           http://localhost:3000

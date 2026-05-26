@@ -9,7 +9,7 @@
 # the upstream schema changes.
 
 schema:
-  - "../../apps/orchestrator/internal/graph/schema/*.graphql"
+  - "../../core/orchestrator/internal/graph/schema/*.graphql"
 
 documents:
   - "src/operations.graphql"

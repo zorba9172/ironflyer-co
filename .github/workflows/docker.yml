@@ -19,9 +19,9 @@ on:
     branches: [main]
     paths:
       - 'infra/docker/**'
-      - 'apps/orchestrator/**'
-      - 'apps/runtime/**'
-      - 'apps/cli/**'
+      - 'core/orchestrator/**'
+      - 'core/runtime/**'
+      - 'core/cli/**'
       - '.github/workflows/docker.yml'
   workflow_dispatch:
 

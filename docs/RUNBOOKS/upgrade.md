@@ -11,7 +11,7 @@ restart.
 git pull --ff-only
 
 # 2. Rebuild + revet — must both exit 0.
-cd apps/orchestrator && go build ./... && go vet ./...
+cd core/orchestrator && go build ./... && go vet ./...
 cd ../runtime         && go build ./... && go vet ./...
 
 # 3. Apply migrations against the live DB.
@@ -65,7 +65,7 @@ Promote canary → staging → prod in order. Do **not** skip rings.
 ## Pre-flight checks
 
 1. `go build` + `go vet` both modules exit 0 against the new commit.
-2. `apps/web && npx tsc --noEmit` exits 0.
+2. `clients/web && npx tsc --noEmit` exits 0.
 3. `bash scripts/v22_smoke.sh` exits 0 against the previous-tagged
    stack (otherwise you're upgrading a broken baseline).
 4. Pulumi `preview` shows no surprising deletes (especially in the

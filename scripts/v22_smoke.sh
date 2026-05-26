@@ -334,7 +334,7 @@ if ! assert_data "ledger" "$LEDGER_RESP"; then
   LEDGER_ERR=$(printf '%s' "$LEDGER_RESP" | jq -r '.errors[0].message // ""')
   if printf '%s' "$LEDGER_ERR" | grep -q 'number of field descriptions must equal number of destinations'; then
     warn "ledger query hit the known V22 row-scan mismatch (postgres SELECT missing op_key)"
-    warn "  patch landed in apps/orchestrator/internal/ledger/postgres.go — restart orchestrator to apply"
+    warn "  patch landed in core/orchestrator/internal/ledger/postgres.go — restart orchestrator to apply"
     LEDGER_FAIL=1
   else
     die "ledger read failed: $LEDGER_ERR"

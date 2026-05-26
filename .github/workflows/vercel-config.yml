@@ -1,6 +1,6 @@
 name: Vercel env sync
 
-# Vercel handles its own build + deploy for apps/web through the Vercel GitHub
+# Vercel handles its own build + deploy for clients/web through the Vercel GitHub
 # integration — we don't run `vercel deploy` here. What we DO own is the bridge
 # between Pulumi outputs (orchestrator URL, GraphQL endpoint, region tags) and
 # the Vercel project's environment variables. This workflow runs after a

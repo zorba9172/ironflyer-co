@@ -1,7 +1,7 @@
 // Vercel surface for the Ironflyer dashboard.
 //
 // Vercel hosts the Ironflyer dashboard (Next.js) — the web frontend the
-// product agent is rebuilding under `apps/web`. The orchestrator runs on
+// product agent is rebuilding under `clients/web`. The orchestrator runs on
 // EKS (provisioned by the compute/ + data/ packages); the dashboard runs on
 // Vercel and is wired to the orchestrator's public API via env vars. A
 // Route53 CNAME (see `AddVercelCNAME`) attaches `app.<region>.ironflyer.dev`
