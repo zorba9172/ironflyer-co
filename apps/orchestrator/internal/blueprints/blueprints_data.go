@@ -27,8 +27,8 @@ var templatesFS embed.FS
 func builtInBlueprints() []Blueprint {
 	return []Blueprint{
 		{
-			ID:                       "nextjs-mvp",
-			Name:                     "Next.js 15 MVP",
+			ID:                       "nextjs-production",
+			Name:                     "Next.js 15 Production App",
 			Description:              "Next.js 15 App Router + MUI 6 + Prisma + Postgres. The default web-app blueprint: server components, MUI theming via AppRouterCacheProvider, and a Prisma schema with User + Item models ready to migrate. Use this when the spec asks for a full web app with persisted data.",
 			Category:                 "webapp",
 			CostPriorUSD:             decimal.RequireFromString("0.85"),
@@ -36,12 +36,12 @@ func builtInBlueprints() []Blueprint {
 			SupportedGates: []string{
 				"scaffold", "build", "typecheck",
 			},
-			Files: mustLoadFiles("templates/nextjs-mvp"),
+			Files: mustLoadFiles("templates/nextjs-production"),
 		},
 		{
 			ID:                       "go-http-api",
 			Name:                     "Go HTTP API",
-			Description:              "Go + chi + pgx HTTP service with a /healthz probe, an /items CRUD surface, a Postgres-backed store, and a distroless Dockerfile. The default backend-only blueprint — pair with static-landing or nextjs-mvp for a full stack.",
+			Description:              "Go + chi + pgx HTTP service with a /healthz probe, an /items CRUD surface, a Postgres-backed store, and a distroless Dockerfile. The default backend-only blueprint — pair with static-landing or nextjs-production for a full stack.",
 			Category:                 "api",
 			CostPriorUSD:             decimal.RequireFromString("0.55"),
 			ExpectedTimeToPreviewSec: 45,

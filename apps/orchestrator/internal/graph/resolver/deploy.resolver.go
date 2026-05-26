@@ -11,6 +11,8 @@ import (
 	"ironflyer/apps/orchestrator/internal/deploy"
 	"ironflyer/apps/orchestrator/internal/graph/model"
 	"time"
+
+	"github.com/shopspring/decimal"
 )
 
 // PlanDeploy is the resolver for the planDeploy field.
@@ -156,6 +158,134 @@ func (r *mutationResolver) CancelDeploy(ctx context.Context, deployID string, re
 	return deployToGraphQL(d), nil
 }
 
+// ReserveDeploySubdomain is the resolver for the reserveDeploySubdomain field.
+func (r *mutationResolver) ReserveDeploySubdomain(ctx context.Context, input model.ReserveDeploySubdomainInput) (*model.DeployDomain, error) {
+	if r.DeployDomainSvc == nil {
+		return nil, gqlNotConfigured("deploy domains")
+	}
+	u, err := currentUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	in := deploy.ReserveSubdomainInput{
+		TenantID:  tenantFor(u),
+		ProjectID: input.ProjectID,
+		Provider:  derefString(input.Provider),
+		Primary:   boolDefault(input.Primary, true),
+	}
+	if input.DeployID != nil {
+		in.DeployID = *input.DeployID
+	}
+	if input.Subdomain != nil {
+		in.Subdomain = *input.Subdomain
+	}
+	if input.Metadata != nil {
+		in.Metadata = map[string]any(input.Metadata)
+	}
+	d, err := r.DeployDomainSvc.ReserveSubdomain(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return deployDomainToGraphQL(d), nil
+}
+
+// ConnectDeployDomain is the resolver for the connectDeployDomain field.
+func (r *mutationResolver) ConnectDeployDomain(ctx context.Context, input model.ConnectDeployDomainInput) (*model.DeployDomain, error) {
+	if r.DeployDomainSvc == nil {
+		return nil, gqlNotConfigured("deploy domains")
+	}
+	u, err := currentUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	in := deploy.ConnectDomainInput{
+		TenantID:  tenantFor(u),
+		ProjectID: input.ProjectID,
+		Hostname:  input.Hostname,
+		Provider:  derefString(input.Provider),
+		Primary:   boolDefault(input.Primary, true),
+	}
+	if input.DeployID != nil {
+		in.DeployID = *input.DeployID
+	}
+	if input.Metadata != nil {
+		in.Metadata = map[string]any(input.Metadata)
+	}
+	d, err := r.DeployDomainSvc.ConnectDomain(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return deployDomainToGraphQL(d), nil
+}
+
+// CheckDeployDomain is the resolver for the checkDeployDomain field.
+func (r *mutationResolver) CheckDeployDomain(ctx context.Context, id string) (*model.DeployDomain, error) {
+	if r.DeployDomainSvc == nil {
+		return nil, gqlNotConfigured("deploy domains")
+	}
+	u, err := currentUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	d, err := r.DeployDomainSvc.CheckDomain(ctx, tenantFor(u), id)
+	if err != nil {
+		return nil, err
+	}
+	return deployDomainToGraphQL(d), nil
+}
+
+// SetPrimaryDeployDomain is the resolver for the setPrimaryDeployDomain field.
+func (r *mutationResolver) SetPrimaryDeployDomain(ctx context.Context, id string) (*model.DeployDomain, error) {
+	if r.DeployDomainSvc == nil {
+		return nil, gqlNotConfigured("deploy domains")
+	}
+	u, err := currentUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	d, err := r.DeployDomainSvc.SetPrimaryDomain(ctx, tenantFor(u), id)
+	if err != nil {
+		return nil, err
+	}
+	return deployDomainToGraphQL(d), nil
+}
+
+// PurchaseDeployDomain is the resolver for the purchaseDeployDomain field.
+func (r *mutationResolver) PurchaseDeployDomain(ctx context.Context, input model.PurchaseDeployDomainInput) (*model.DeployDomain, error) {
+	if r.DeployDomainSvc == nil {
+		return nil, gqlNotConfigured("deploy domains")
+	}
+	u, err := currentUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	in := deploy.PurchaseDomainInput{
+		TenantID:         tenantFor(u),
+		ProjectID:        input.ProjectID,
+		Domain:           input.Domain,
+		Provider:         derefString(input.Provider),
+		Registrar:        derefString(input.Registrar),
+		Years:            intDefault(input.Years, 1),
+		AutoRenew:        boolDefault(input.AutoRenew, true),
+		ExpectedPriceUSD: decimal.NewFromFloat(floatDefault(input.ExpectedPriceUsd, 0)),
+		Primary:          boolDefault(input.Primary, true),
+	}
+	if input.DeployID != nil {
+		in.DeployID = *input.DeployID
+	}
+	if input.Contact != nil {
+		in.Contact = jsonToStringMap(input.Contact)
+	}
+	if input.Metadata != nil {
+		in.Metadata = map[string]any(input.Metadata)
+	}
+	d, err := r.DeployDomainSvc.PurchaseDomain(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return deployDomainToGraphQL(d), nil
+}
+
 // Deploy is the resolver for the deploy field.
 func (r *queryResolver) Deploy(ctx context.Context, id string) (*model.Deploy, error) {
 	if r.DeploySvc == nil {
@@ -228,6 +358,45 @@ func (r *queryResolver) PendingDeployApprovals(ctx context.Context) ([]model.Dep
 		out = append(out, *approvalToGraphQL(rows[i]))
 	}
 	return out, nil
+}
+
+// DeployDomains is the resolver for the deployDomains field.
+func (r *queryResolver) DeployDomains(ctx context.Context, projectID string) ([]model.DeployDomain, error) {
+	if r.DeployDomainSvc == nil {
+		return nil, gqlNotConfigured("deploy domains")
+	}
+	u, err := currentUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := r.DeployDomainSvc.ListProjectDomains(ctx, tenantFor(u), projectID)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]model.DeployDomain, 0, len(rows))
+	for _, d := range rows {
+		out = append(out, *deployDomainToGraphQL(d))
+	}
+	return out, nil
+}
+
+// DomainAvailability is the resolver for the domainAvailability field.
+func (r *queryResolver) DomainAvailability(ctx context.Context, domain string, registrar *string) (*model.DomainAvailability, error) {
+	if r.DeployDomainSvc == nil {
+		return nil, gqlNotConfigured("deploy domains")
+	}
+	if _, err := currentUser(ctx); err != nil {
+		return nil, err
+	}
+	reg := "manual"
+	if registrar != nil && *registrar != "" {
+		reg = *registrar
+	}
+	got, err := r.DeployDomainSvc.DomainAvailability(ctx, reg, domain)
+	if err != nil {
+		return nil, err
+	}
+	return domainAvailabilityToGraphQL(got), nil
 }
 
 // DeployFeed is the resolver for the deployFeed field.

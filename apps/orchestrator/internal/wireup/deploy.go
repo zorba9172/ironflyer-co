@@ -9,6 +9,8 @@ package wireup
 import (
 	"context"
 	"net/http"
+	"os"
+	"strconv"
 	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -63,6 +65,71 @@ func BuildDeployService(d DeployDeps) deploy.Service {
 		return deploy.NewPostgresService(d.Pool, cfg, d.Logger, adapters, guardChecker)
 	}
 	return deploy.NewMemoryService(cfg, d.Logger, adapters, guardChecker)
+}
+
+// BuildDeployDomainService wires the customer-facing domain lifecycle:
+// instant *.ironflyer.app subdomains, third-party custom domains, DNS
+// verification, certificate status, and optional registrar purchase.
+func BuildDeployDomainService(d DeployDeps) deploy.DomainService {
+	cfg := deploy.DefaultConfig()
+	if v := strings.TrimSpace(os.Getenv("IRONFLYER_MANAGED_DOMAIN_BASE")); v != "" {
+		cfg.ManagedDomainBase = v
+	}
+	if v := strings.TrimSpace(os.Getenv("IRONFLYER_EDGE_DNS_TARGET")); v != "" {
+		cfg.EdgeDNSTarget = v
+	}
+	if v := strings.TrimSpace(os.Getenv("IRONFLYER_DOMAIN_PROVIDER")); v != "" {
+		cfg.DefaultDomainProvider = v
+	}
+	if v := strings.TrimSpace(os.Getenv("IRONFLYER_DOMAIN_REGISTRAR")); v != "" {
+		cfg.DefaultRegistrar = v
+	}
+	if v := strings.TrimSpace(os.Getenv("CLOUDFLARE_ACCOUNT_ID")); v != "" {
+		cfg.CloudflareAccountID = v
+	}
+	if v := strings.TrimSpace(os.Getenv("IRONFLYER_DOMAIN_PURCHASE_ENABLED")); v != "" {
+		if parsed, err := strconv.ParseBool(v); err == nil {
+			cfg.DomainPurchaseEnabled = parsed
+		}
+	}
+	if v := strings.TrimSpace(os.Getenv("IRONFLYER_DOMAIN_MAX_PURCHASE_USD")); v != "" {
+		if parsed, err := strconv.ParseFloat(v, 64); err == nil && parsed > 0 {
+			cfg.MaxDomainPurchaseUSD = parsed
+		}
+	}
+	if v := strings.TrimSpace(os.Getenv("IRONFLYER_DOMAIN_PRICE_TOLERANCE_PCT")); v != "" {
+		if parsed, err := strconv.ParseFloat(v, 64); err == nil && parsed >= 0 {
+			cfg.DomainPurchasePriceTolerancePct = parsed
+		}
+	}
+	if v := strings.TrimSpace(os.Getenv("IRONFLYER_DOMAIN_REQUIRE_CONTACT")); v != "" {
+		if parsed, err := strconv.ParseBool(v); err == nil {
+			cfg.RequireDomainRegistrantContact = parsed
+		}
+	}
+
+	providers := map[string]deploy.DomainProvider{
+		cfg.DefaultDomainProvider: deploy.NewStaticDomainProvider(cfg.DefaultDomainProvider, cfg.ManagedDomainBase, cfg.EdgeDNSTarget),
+		"ironflyer":               deploy.NewStaticDomainProvider("ironflyer", cfg.ManagedDomainBase, cfg.EdgeDNSTarget),
+	}
+	registrars := map[string]deploy.Registrar{
+		"manual": deploy.NewNoopRegistrar("manual"),
+	}
+	if d.SecretsBrk != nil && cfg.CloudflareAccountID != "" {
+		resolver := &deploySecretResolverAdapter{broker: d.SecretsBrk}
+		registrars["cloudflare"] = deploy.NewCloudflareRegistrar(resolver, http.DefaultClient, cfg.CloudflareAccountID, "", d.Logger)
+	}
+	purchasePolicy := deploy.DomainPurchasePolicy{
+		Enabled:                  cfg.DomainPurchaseEnabled,
+		MaxPriceUSD:              decimal.NewFromFloat(cfg.MaxDomainPurchaseUSD),
+		PriceTolerancePct:        decimal.NewFromFloat(cfg.DomainPurchasePriceTolerancePct),
+		RequireRegistrantContact: cfg.RequireDomainRegistrantContact,
+	}
+
+	if d.Pool != nil {
+		return deploy.NewPostgresDomainService(d.Pool, providers, registrars, cfg.DefaultDomainProvider, cfg.DefaultRegistrar, deploy.WithDomainPurchasePolicy(purchasePolicy))
+	}
+	return deploy.NewMemoryDomainService(providers, registrars, cfg.DefaultDomainProvider, cfg.DefaultRegistrar, deploy.WithDomainPurchasePolicy(purchasePolicy))
 }
 
 // deploySecretResolverAdapter satisfies deploy.SecretResolver by
@@ -132,8 +199,3 @@ func (a *profitGuardCheckerAdapter) Decide(ctx context.Context, point string, sn
 	_ = a.guard.Record(ctx, execID, profitguard.EnforcementPoint(point), dec, in)
 	return string(dec.Action), dec.Reason, nil
 }
-
-// _ keeps the decimal import referenced — deploy.PromoteResult / etc.
-// carry decimal.Decimal cost fields the integration layer may surface
-// in a future provider-attribution path.
-var _ = decimal.Zero

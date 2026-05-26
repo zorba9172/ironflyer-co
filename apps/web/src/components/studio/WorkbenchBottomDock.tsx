@@ -1,12 +1,14 @@
 "use client";
 
 // WorkbenchBottomDock — the collapsible drawer that sits along the
-// bottom of the workbench shell. It hosts three tabs:
+// bottom of the workbench shell. It hosts four tabs:
 //
 //   • Patches  — the live PatchesPane (proposals + rollbacks).
 //   • Logs     — a terminal-style transcript of the chat event stream.
 //   • Changes  — the list of files this execution wrote, sourced from
 //                executionSupportBundle.changedFiles.
+//   • Terminal — a real PTY shell inside the runtime workspace
+//                (xterm.js + WebSocket to apps/runtime).
 //
 // The dock is collapsed by default. A vertical drag handle on the top
 // edge lets the operator resize between MIN_DOCK_HEIGHT and
@@ -16,6 +18,7 @@ import {
   CloseRounded,
   DifferenceRounded,
   EditNoteRounded,
+  KeyboardCommandKeyRounded,
   TerminalRounded,
 } from "@mui/icons-material";
 import { Box, Stack, Tooltip, Typography } from "@mui/material";
@@ -37,6 +40,16 @@ const PatchesPane = dynamic(
   },
 );
 
+// TerminalPane brings the xterm.js bundle (~250KB). Defer until the
+// user actually opens the terminal tab.
+const TerminalPane = dynamic(
+  () => import("./TerminalPane").then((m) => m.TerminalPane),
+  {
+    ssr: false,
+    loading: () => <LoadingPanel label="Loading terminal" minHeight="100%" />,
+  },
+);
+
 export interface WorkbenchBottomDockProps {
   open: boolean;
   tab: WorkbenchDockTab;
@@ -44,6 +57,7 @@ export interface WorkbenchBottomDockProps {
   projectID: string;
   executionID: string;
   executionStatus: string;
+  workspaceID: string;
   messages: StudioMessage[];
   onTabChange: (next: WorkbenchDockTab) => void;
   onClose: () => void;
@@ -58,9 +72,14 @@ interface TabSpec {
 
 const TABS: TabSpec[] = [
   { key: "patches", label: "Patches", icon: DifferenceRounded },
-  { key: "logs", label: "Logs", icon: TerminalRounded },
+  { key: "logs", label: "Logs", icon: EditNoteRounded },
   { key: "changes", label: "Files changed", icon: EditNoteRounded },
+  { key: "terminal", label: "Terminal", icon: TerminalRounded },
 ];
+
+// Re-exported so the workbench shell can mention the icon in keybind
+// hints without importing the same icon twice.
+export { KeyboardCommandKeyRounded as DockShortcutIcon };
 
 export function WorkbenchBottomDock({
   open,
@@ -69,6 +88,7 @@ export function WorkbenchBottomDock({
   projectID,
   executionID,
   executionStatus,
+  workspaceID,
   messages,
   onTabChange,
   onClose,
@@ -231,6 +251,7 @@ export function WorkbenchBottomDock({
         {tab === "changes" ? (
           <ChangesTab executionID={executionID} executionStatus={executionStatus} />
         ) : null}
+        {tab === "terminal" ? <TerminalPane workspaceID={workspaceID} /> : null}
       </Box>
     </Box>
   );

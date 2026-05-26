@@ -14,6 +14,7 @@ import {
   ChevronLeftRounded,
   ChevronRightRounded,
   DifferenceRounded,
+  Inventory2Rounded,
   WarningAmberRounded,
 } from "@mui/icons-material";
 import {
@@ -25,7 +26,6 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { gql, useApolloClient } from "@apollo/client";
 import { useMemo, useState, type ReactNode } from "react";
 import { CostBreakdownBar } from "../charts/CostBreakdownBar";
 import { LoadingPanel } from "../cockpit/LoadingPanel";
@@ -34,11 +34,18 @@ import { MoneyChip } from "../cockpit/MoneyChip";
 import { StatusBadge } from "../cockpit/StatusBadge";
 import { relativeTime } from "../../lib/relativeTime";
 import {
+  useRerunGateMutation,
   useRunFinisherMutation,
   useExecutionSupportBundleQuery,
+  useProjectFilesQuery,
   type ExecutionCoreFragment,
 } from "../../lib/gql/__generated__";
 import { extractErrorMessage } from "../../lib/errors";
+import {
+  buildProjectIntelligence,
+  type ComponentSignal,
+  type TechSlice,
+} from "../../lib/projectIntelligence";
 import { pushToast } from "../../lib/stores/uiStore";
 import { tokens } from "../../theme";
 import type { StudioMessage } from "./types";
@@ -58,18 +65,6 @@ export interface DashboardPaneProps {
 
 const TERMINAL = new Set(["succeeded", "failed", "stopped", "killed", "refunded"]);
 
-const RERUN_GATE_MUTATION = gql`
-  mutation DashboardRerunGate($input: RerunGateInput!) {
-    rerunGate(input: $input) {
-      gate
-      status
-      durationMs
-      issues {
-        message
-      }
-    }
-  }
-`;
 
 type AreaHealth = "working" | "open" | "closed";
 
@@ -96,7 +91,7 @@ export function DashboardPane({
   onRequestAreaClose,
 }: DashboardPaneProps) {
   const isTerminal = TERMINAL.has(execution.status);
-  const client = useApolloClient();
+  const [rerunGate] = useRerunGateMutation();
   const [runFinisher, runFinisherState] = useRunFinisherMutation();
   const [activeAreaAction, setActiveAreaAction] = useState<string | null>(null);
   const query = useExecutionSupportBundleQuery({
@@ -104,7 +99,16 @@ export function DashboardPane({
     pollInterval: isTerminal ? 0 : 5000,
     fetchPolicy: "cache-and-network",
   });
+  const projectFilesQuery = useProjectFilesQuery({
+    variables: { id: projectID },
+    skip: !projectID,
+    fetchPolicy: "cache-and-network",
+  });
   const bundle = query.data?.executionSupportBundle;
+  const intelligence = useMemo(
+    () => buildProjectIntelligence(projectFilesQuery.data?.projectFiles ?? []),
+    [projectFilesQuery.data],
+  );
 
   const gates = bundle?.gateReport.stages ?? [];
   const passedCount = gates.filter(
@@ -151,8 +155,7 @@ export function DashboardPane({
     setActiveAreaAction(area.key);
     try {
       if (area.gateName) {
-        await client.mutate({
-          mutation: RERUN_GATE_MUTATION,
+        await rerunGate({
           variables: {
             input: {
               projectId: projectID,
@@ -309,6 +312,11 @@ export function DashboardPane({
             accent={margin !== null && margin >= 0.2 ? "lime" : "coral"}
           />
         </Box>
+
+        <ProjectIntelligenceCard
+          intelligence={intelligence}
+          loading={projectFilesQuery.loading && !projectFilesQuery.data}
+        />
 
         <Card sx={{ p: 2 }}>
           <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
@@ -686,6 +694,211 @@ export function DashboardPane({
       </Stack>
     </Box>
   );
+}
+
+function ProjectIntelligenceCard({
+  intelligence,
+  loading,
+}: {
+  intelligence: ReturnType<typeof buildProjectIntelligence>;
+  loading: boolean;
+}) {
+  const topLanguages = intelligence.languages.slice(0, 4);
+  const components = intelligence.components.slice(0, 7);
+  return (
+    <Card sx={{ p: 2 }}>
+      <Stack
+        direction={{ xs: "column", md: "row" }}
+        spacing={1.5}
+        sx={{ alignItems: { xs: "stretch", md: "center" } }}
+      >
+        <Stack spacing={0.35} sx={{ minWidth: { md: 190 } }}>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Inventory2Rounded sx={{ color: tokens.color.accent.sky, fontSize: 18 }} />
+            <Typography
+              variant="overline"
+              sx={{ color: tokens.color.text.secondary, lineHeight: 1.1 }}
+            >
+              Project intelligence
+            </Typography>
+          </Stack>
+          <Typography
+            sx={{
+              color: tokens.color.text.primary,
+              fontSize: 15,
+              fontWeight: 900,
+              lineHeight: 1.25,
+            }}
+          >
+            {loading ? "Reading project" : intelligence.primaryStack}
+          </Typography>
+          <Typography
+            sx={{
+              color: tokens.color.text.muted,
+              fontFamily: tokens.font.mono,
+              fontSize: 10.5,
+            }}
+          >
+            {intelligence.totalFiles} files · {formatBytes(intelligence.codeBytes)}
+          </Typography>
+        </Stack>
+
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          {topLanguages.length === 0 ? (
+            <Typography sx={{ color: tokens.color.text.muted, fontSize: 12.5 }}>
+              No source profile yet.
+            </Typography>
+          ) : (
+            <Stack spacing={0.8}>
+              <Stack direction="row" spacing={0.4} sx={{ height: 8, overflow: "hidden", borderRadius: 1 }}>
+                {topLanguages.map((lang) => (
+                  <Box
+                    key={lang.key}
+                    sx={{
+                      bgcolor: lang.color,
+                      flexBasis: `${Math.max(lang.percent, 4)}%`,
+                      minWidth: 10,
+                    }}
+                  />
+                ))}
+              </Stack>
+              <Stack direction="row" spacing={0.7} sx={{ flexWrap: "wrap", rowGap: 0.7 }}>
+                {topLanguages.map((lang) => (
+                  <TechPill key={lang.key} lang={lang} />
+                ))}
+              </Stack>
+            </Stack>
+          )}
+        </Box>
+
+        <Stack
+          direction="row"
+          spacing={0.6}
+          sx={{
+            flexWrap: "wrap",
+            justifyContent: { xs: "flex-start", md: "flex-end" },
+            maxWidth: { md: 360 },
+            rowGap: 0.6,
+          }}
+        >
+          {components.length === 0 ? (
+            <Typography sx={{ color: tokens.color.text.muted, fontSize: 12.5 }}>
+              Components will appear after files land.
+            </Typography>
+          ) : (
+            components.map((component) => (
+              <ComponentPill key={component.key} component={component} />
+            ))
+          )}
+        </Stack>
+      </Stack>
+      <Typography
+        sx={{
+          color: tokens.color.text.muted,
+          fontSize: 12,
+          lineHeight: 1.45,
+          mt: 1.25,
+        }}
+      >
+        {intelligence.insight}
+      </Typography>
+    </Card>
+  );
+}
+
+function TechPill({ lang }: { lang: TechSlice }) {
+  return (
+    <Stack
+      direction="row"
+      spacing={0.55}
+      alignItems="center"
+      sx={{
+        border: `1px solid ${tokens.color.border.subtle}`,
+        bgcolor: tokens.color.bg.inset,
+        borderRadius: 1,
+        minHeight: 26,
+        px: 0.75,
+      }}
+    >
+      <BadgeIcon label={lang.icon} color={lang.color} />
+      <Typography sx={{ color: tokens.color.text.primary, fontSize: 11.5, fontWeight: 800 }}>
+        {lang.label}
+      </Typography>
+      <Typography sx={{ color: tokens.color.text.muted, fontFamily: tokens.font.mono, fontSize: 10.5 }}>
+        {lang.percent}%
+      </Typography>
+    </Stack>
+  );
+}
+
+function ComponentPill({ component }: { component: ComponentSignal }) {
+  const color = componentToneColor(component.tone);
+  return (
+    <Stack
+      direction="row"
+      spacing={0.5}
+      alignItems="center"
+      sx={{
+        border: `1px solid ${tokens.color.border.subtle}`,
+        bgcolor: tokens.color.bg.surfaceRaised,
+        borderRadius: 1,
+        minHeight: 25,
+        px: 0.7,
+      }}
+    >
+      <BadgeIcon label={component.icon} color={color} />
+      <Typography sx={{ color: tokens.color.text.secondary, fontSize: 11.2, fontWeight: 800 }}>
+        {component.label}
+      </Typography>
+    </Stack>
+  );
+}
+
+function BadgeIcon({ label, color }: { label: string; color: string }) {
+  return (
+    <Box
+      aria-hidden
+      sx={{
+        alignItems: "center",
+        bgcolor: `${color}22`,
+        border: `1px solid ${color}66`,
+        borderRadius: 0.75,
+        color,
+        display: "inline-flex",
+        fontFamily: tokens.font.mono,
+        fontSize: 9,
+        fontWeight: 900,
+        height: 18,
+        justifyContent: "center",
+        lineHeight: 1,
+        minWidth: 18,
+        px: 0.35,
+      }}
+    >
+      {label}
+    </Box>
+  );
+}
+
+function componentToneColor(tone: ComponentSignal["tone"]): string {
+  switch (tone) {
+    case "data":
+      return tokens.color.accent.sky;
+    case "deploy":
+      return tokens.color.accent.lime;
+    case "security":
+      return tokens.color.accent.yellow;
+    case "primary":
+      return tokens.color.accent.violet;
+    default:
+      return tokens.color.text.muted;
+  }
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes}B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)}MB`;
 }
 
 function buildLiveAreas(

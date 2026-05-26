@@ -16,8 +16,14 @@ interface SyncFile {
 
 interface SyncBody {
   projectID?: unknown;
+  projectName?: unknown;
   files?: unknown;
 }
+
+// Bootstrap handoff TTL — short enough that a leaked file can't be
+// replayed long after the user closed the Studio tab, long enough
+// for the openvscode container to boot and our extension to read it.
+const AUTH_HANDOFF_TTL_MS = 60_000;
 
 interface SyncManifest {
   projectID: string;
@@ -26,7 +32,8 @@ interface SyncManifest {
 }
 
 export async function POST(req: NextRequest) {
-  if (!req.cookies.get("ironflyer_token")?.value) {
+  const cookieToken = req.cookies.get("ironflyer_token")?.value ?? "";
+  if (!cookieToken) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
@@ -42,6 +49,8 @@ export async function POST(req: NextRequest) {
   if (!projectID) {
     return NextResponse.json({ error: "missing projectID" }, { status: 400 });
   }
+  const projectName =
+    typeof body.projectName === "string" ? body.projectName.trim() : "";
   if (!Array.isArray(body.files)) {
     return NextResponse.json({ error: "files must be an array" }, { status: 400 });
   }
@@ -145,6 +154,20 @@ export async function POST(req: NextRequest) {
     "utf8",
   );
 
+  // Auth handoff: drop a single-use file the Ironflyer extension
+  // picks up on activation so the operator never has to do a manual
+  // sign-in inside the embedded IDE. The file's TTL is short
+  // (AUTH_HANDOFF_TTL_MS); the extension deletes it as soon as it
+  // reads it. The token is the operator's existing JWT — not a
+  // separately minted one — so revoking the session in the Studio
+  // also revokes the extension's access.
+  await writeHandoff(projectRoot, projectID, projectName, cookieToken);
+
+  // Auto-pin: a per-folder .vscode/settings.json so the moment
+  // openvscode opens this project folder, the extension knows which
+  // project to talk to and the window title shows the project name.
+  await writeWorkspaceSettings(projectRoot, projectID, projectName);
+
   return NextResponse.json({
     folder: `/home/workspace/projects/${projectFolderName(projectID)}`,
     written,
@@ -152,6 +175,59 @@ export async function POST(req: NextRequest) {
     preserved,
     removed,
   });
+}
+
+async function writeHandoff(
+  projectRoot: string,
+  projectID: string,
+  projectName: string,
+  token: string,
+): Promise<void> {
+  try {
+    const handoffDir = path.join(projectRoot, ".ironflyer");
+    await mkdir(handoffDir, { recursive: true });
+    const payload = {
+      token,
+      projectID,
+      projectName: projectName || undefined,
+      issuedAt: Date.now(),
+      expiresAt: Date.now() + AUTH_HANDOFF_TTL_MS,
+    };
+    // mode 0600 — only the file owner can read; the bind mount maps
+    // to the openvscode-server user inside the container.
+    await writeFile(
+      path.join(handoffDir, "auth.json"),
+      JSON.stringify(payload),
+      { encoding: "utf8", mode: 0o600 },
+    );
+  } catch (err) {
+    // Handoff is best-effort — failing here just means the operator
+    // sees the normal sign-in command instead of automatic auth.
+    console.warn("ide auth handoff write failed", err);
+  }
+}
+
+async function writeWorkspaceSettings(
+  projectRoot: string,
+  projectID: string,
+  projectName: string,
+): Promise<void> {
+  try {
+    const vscodeDir = path.join(projectRoot, ".vscode");
+    await mkdir(vscodeDir, { recursive: true });
+    const titleSuffix = projectName ? `${projectName} — ` : "";
+    const settings: Record<string, unknown> = {
+      "ironflyer.defaultProject": projectID,
+      "window.title": `${titleSuffix}Ironflyer Studio \${separator}\${activeEditorShort}`,
+    };
+    await writeFile(
+      path.join(vscodeDir, "settings.json"),
+      JSON.stringify(settings, null, 2),
+      "utf8",
+    );
+  } catch (err) {
+    console.warn("ide workspace settings write failed", err);
+  }
 }
 
 export async function GET(req: NextRequest) {

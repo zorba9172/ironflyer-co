@@ -42,6 +42,16 @@ type Policy struct {
 	DefaultMinimumMarginPct  float64
 	RiskCeilingDefault       float64
 	CompletionPerDollarFloor float64
+
+	// MaxNextStepUSDByWorkload — defense-in-depth supply cap. A single
+	// step whose EstimatedNextStepCostUSD exceeds the cap is rejected
+	// outright (Stop) BEFORE the margin check, because some workloads
+	// (Mac pool iOS builds at $0.018/min, premium reasoning chains)
+	// can rack up four-figure damage if a single step runs unbounded
+	// even when projected margin still pencils out. Zero / missing
+	// entry = no cap for that workload. Tune per-workload as the
+	// supply contracts change.
+	MaxNextStepUSDByWorkload map[string]float64
 }
 
 // DefaultPolicy returns the V22 launch policy.
@@ -75,7 +85,38 @@ func DefaultPolicy() Policy {
 		RiskCeilingDefault: 0.70,
 		// Completion-per-dollar floor — see comment above.
 		CompletionPerDollarFloor: 0.10,
+
+		// Supply-side per-step caps. Numbers chosen so a single step
+		// can't drain a meaningful fraction of the daily budget
+		// regardless of how plausible its margin looked:
+		//   mobile_build       $5  ≈ 4.6h on Mac pool ($0.018/min)
+		//                          or ~16 mins device-cloud minutes
+		//   premium_reasoning  $2  ≈ a single Opus 4.7 chain that
+		//                          ate ~13k input + ~25k output tokens
+		//   vercel_preview     $0.50  ≈ 50 invocations / 5 GB egress
+		//   sandbox_runtime    $3  ≈ 10h of $0.30/hr container
+		//   support_heavy      $1  ≈ caps support-mode unexpected spirals
+		MaxNextStepUSDByWorkload: map[string]float64{
+			WorkloadMobileBuild:      5.00,
+			WorkloadPremiumReasoning: 2.00,
+			WorkloadVercelPreview:    0.50,
+			WorkloadSandboxRuntime:   3.00,
+			WorkloadSupportHeavy:     1.00,
+		},
 	}
+}
+
+// maxNextStepFor resolves the supply-side per-step cap for a workload.
+// Zero means "no cap" — callers must check the result before applying.
+func (p Policy) maxNextStepFor(workload string) float64 {
+	if p.MaxNextStepUSDByWorkload == nil {
+		return 0
+	}
+	v, ok := p.MaxNextStepUSDByWorkload[workload]
+	if !ok || v <= 0 {
+		return 0
+	}
+	return v
 }
 
 // minimumMarginFor resolves the effective margin floor for the

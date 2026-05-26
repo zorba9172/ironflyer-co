@@ -1,0 +1,69 @@
+# Budget + billing operations. Backs PricingPage (plan catalogue,
+# rate sheet, Stripe checkout), WalletPage (per-user spend summary),
+# and DashboardPage (vault snapshot + per-user spend summary).
+#
+# Schema source: apps/orchestrator/internal/graph/schema/budget.graphql.
+
+fragment LedgerEntryRow on LedgerEntry {
+  id
+  projectId
+  provider
+  model
+  promptTokens
+  completionTokens
+  costUsd
+  revenueUsd
+  ts
+  agent
+  durationMs
+}
+
+query Plans {
+  plans {
+    tier
+    name
+    priceUsd
+    costCapUsd
+    description
+    features
+    stripePriceId
+  }
+}
+
+query Rates {
+  rates {
+    provider
+    model
+    promptPerMTok
+    completionPerMTok
+  }
+}
+
+query Vault {
+  vault {
+    revenueUsd
+    providerCostUsd
+    marginUsd
+    entries
+    asOf
+  }
+}
+
+query MyBudget {
+  myBudget {
+    userId
+    email
+    tier
+    spentUsd
+    entries {
+      ...LedgerEntryRow
+    }
+  }
+}
+
+mutation StartCheckout($input: StartCheckoutInput!) {
+  startCheckout(input: $input) {
+    sessionId
+    url
+  }
+}

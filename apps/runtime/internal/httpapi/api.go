@@ -21,6 +21,7 @@ import (
 
 	"ironflyer/apps/runtime/internal/allocator"
 	"ironflyer/apps/runtime/internal/auth"
+	"ironflyer/apps/runtime/internal/mobile"
 	"ironflyer/apps/runtime/internal/patcher"
 	"ironflyer/apps/runtime/internal/preview"
 	"ironflyer/apps/runtime/internal/quota"
@@ -168,6 +169,13 @@ func New(mgr *sandbox.Manager, opts Options, logger zerolog.Logger) http.Handler
 			})
 		})
 	})
+	// Mobile lifecycle routes (Expo dev server, Android emulator, native
+	// build dispatchers) live on the runtime alongside the existing
+	// /workspaces tree. We register them on the top-level router and
+	// pass auth.Middleware so the package can enforce per-user isolation
+	// without having to know how the runtime's auth verifier is wired.
+	mobileMgr := mobile.NewManager(mgr, logger)
+	mobile.RegisterRoutes(r, mobileMgr, auth.Middleware(a.verifier))
 	return r
 }
 

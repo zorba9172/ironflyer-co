@@ -6,7 +6,6 @@ package resolver
 
 import (
 	"context"
-	"errors"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/shopspring/decimal"
@@ -16,10 +15,18 @@ import (
 )
 
 // errUnauthenticated is returned by the helpers when no authenticated
-// user is on the context. Resolvers map this to a typed GraphQL error
-// with extension {"code":"UNAUTHENTICATED"} so clients can route to the
-// sign-in flow.
-var errUnauthenticated = errors.New("unauthenticated")
+// user is on the context. It carries extension {"code":"UNAUTHENTICATED"}
+// so the gqlgen error presenter passes the code through to clients,
+// which use it to flip cached tokens and route to the sign-in flow.
+// Why a typed *gqlerror.Error rather than errors.New: the web
+// errorLink (apps/web/src/lib/apollo.tsx) keys off extensions.code,
+// not the message, so a bare "unauthenticated" string left users
+// stranded on screens like Studio with "Could not generate" instead
+// of bouncing them to /login when their JWT expired.
+var errUnauthenticated = &gqlerror.Error{
+	Message:    "unauthenticated",
+	Extensions: map[string]any{"code": "UNAUTHENTICATED"},
+}
 
 // currentUser returns the authenticated user from ctx, or
 // errUnauthenticated if the resolver was reached without auth.

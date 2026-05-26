@@ -1,0 +1,111 @@
+# syntax=docker/dockerfile:1.7
+#
+# Ironflyer mobile-capable workspace image.
+#
+# This image extends the standard workspace runtime with everything an
+# Android-side build chain needs: JDK 17, Android SDK + platform-tools +
+# emulator, Node 22, Expo + EAS CLIs, and an optional Flutter SDK.
+#
+# iOS builds are NOT covered here — Apple's licence forbids running macOS
+# inside a Linux container. See infra/Dockerfile.mobile-runtime-mac.md for
+# how to provision a Mac mini host that the runtime can dispatch xcodebuild
+# work to.
+#
+# KVM: this image does NOT bind /dev/kvm; the host must pass it through
+# (`docker run --device /dev/kvm ...`). The healthcheck warns when KVM is
+# missing so operators notice before queueing a build.
+
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LANG=C.UTF-8 \
+    ANDROID_HOME=/opt/android-sdk \
+    JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+
+# Base toolchain. We pin nothing here because the image bakes a snapshot
+# of the upstream Ubuntu archive at build time; reproducibility comes from
+# the image digest, not from per-package version pinning.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        openjdk-17-jdk \
+        ca-certificates \
+        curl \
+        unzip \
+        zip \
+        git \
+        python3 \
+        python3-pip \
+        sudo \
+        wget \
+        lib32stdc++6 \
+        lib32z1 \
+        libgl1 \
+        libpulse0 \
+        libxcursor1 \
+        libxrandr2 \
+        libxss1 \
+        libnss3 \
+        libasound2t64 \
+        qemu-kvm \
+        bridge-utils \
+    && rm -rf /var/lib/apt/lists/*
+
+# Node 22 via NodeSource for Expo / EAS / Metro.
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+ && apt-get install -y --no-install-recommends nodejs \
+ && rm -rf /var/lib/apt/lists/*
+
+# Android SDK command-line tools. We download the pinned bundle, unpack
+# into the canonical layout sdkmanager expects, then accept licences and
+# install the platform packages we use across the build drivers.
+RUN mkdir -p ${ANDROID_HOME}/cmdline-tools \
+ && curl -fsSL -o /tmp/cmdline-tools.zip \
+        https://dl.google.com/android/repository/commandlinetools-linux-13114758_latest.zip \
+ && unzip -q /tmp/cmdline-tools.zip -d ${ANDROID_HOME}/cmdline-tools \
+ && mv ${ANDROID_HOME}/cmdline-tools/cmdline-tools ${ANDROID_HOME}/cmdline-tools/latest \
+ && rm /tmp/cmdline-tools.zip
+
+ENV PATH=${PATH}:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/emulator
+
+RUN yes | sdkmanager --licenses >/dev/null \
+ && sdkmanager \
+      "platform-tools" \
+      "platforms;android-35" \
+      "build-tools;35.0.0" \
+      "emulator" \
+      "system-images;android-34;google_apis;x86_64"
+
+# Optional Flutter SDK. Build with `--build-arg WITH_FLUTTER=1` to bundle.
+ARG WITH_FLUTTER=0
+ENV FLUTTER_HOME=/opt/flutter
+RUN if [ "${WITH_FLUTTER}" = "1" ]; then \
+        git clone --depth=1 -b stable https://github.com/flutter/flutter.git ${FLUTTER_HOME} \
+     && ${FLUTTER_HOME}/bin/flutter precache --android \
+     && ${FLUTTER_HOME}/bin/flutter config --no-analytics ; \
+    fi
+ENV PATH=${PATH}:/opt/flutter/bin
+
+# Expo CLI + EAS CLI. Globals end up in /usr/lib/node_modules so the
+# non-root user below can run them without npm-install per workspace.
+RUN npm install -g eas-cli@latest expo-cli@latest npm@latest
+
+# Non-root build user with passwordless sudo for the rare apt-get a
+# generated app might require (e.g. ndk side-loading).
+RUN useradd -m -s /bin/bash -u 10001 ironflyer \
+ && echo "ironflyer ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/ironflyer \
+ && chmod 0440 /etc/sudoers.d/ironflyer \
+ && mkdir -p /workspace \
+ && chown -R ironflyer:ironflyer /workspace ${ANDROID_HOME}
+
+USER ironflyer
+WORKDIR /workspace
+
+# Warn when /dev/kvm isn't passed through — the emulator falls back to
+# software rendering and a 60s boot becomes a 5-minute one. The runtime
+# manager's `StartAndroidEmulator` still works, just slowly.
+HEALTHCHECK --interval=60s --timeout=5s --start-period=10s --retries=2 \
+    CMD test -e /dev/kvm || (echo "WARN: /dev/kvm missing — emulator will be slow" >&2 ; exit 0)
+
+# Match the existing runtime convention: sleep so the orchestrator can
+# attach `docker exec` for every workspace operation. The runtime owns
+# process lifecycle; this image is a passive shell.
+ENTRYPOINT ["sleep", "infinity"]

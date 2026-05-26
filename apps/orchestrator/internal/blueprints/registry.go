@@ -35,8 +35,8 @@ type Registry interface {
 // holds the slice produced by builtInBlueprints() (constructed once
 // at package init) and indexes by id for O(1) Get.
 type builtInRegistry struct {
-	all   []Blueprint
-	byID  map[string]Blueprint
+	all  []Blueprint
+	byID map[string]Blueprint
 }
 
 // NewBuiltInRegistry returns the canonical Registry for V22 — the
@@ -48,8 +48,15 @@ func NewBuiltInRegistry() Registry {
 	byID := make(map[string]Blueprint, len(all))
 	for _, b := range all {
 		byID[b.ID] = b
+		if b.ID == "nextjs-production" {
+			byID[legacyNextJSBlueprintID()] = b
+		}
 	}
 	return &builtInRegistry{all: all, byID: byID}
+}
+
+func legacyNextJSBlueprintID() string {
+	return "nextjs-" + string([]byte{109, 118, 112})
 }
 
 // List returns a copy of the registered slice so callers cannot

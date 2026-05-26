@@ -1,0 +1,19 @@
+{
+  "name": "ironflyer-dark-theme",
+  "displayName": "Ironflyer Dark",
+  "description": "The Ironflyer brand color theme — violet glow, coral CTA, mint live signal.",
+  "publisher": "ironflyer",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Themes"],
+  "contributes": {
+    "themes": [
+      {
+        "label": "Ironflyer Dark",
+        "uiTheme": "vs-dark",
+        "path": "./themes/ironflyer-dark.json"
+      }
+    ]
+  }
+}

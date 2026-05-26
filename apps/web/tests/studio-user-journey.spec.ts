@@ -253,6 +253,29 @@ async function mockGraphQL(page: Page) {
   const describeInputs: unknown[] = [];
   const unknownOperations: string[] = [];
 
+  await page.route("**/executions/*/chat/stream", async (route) => {
+    await route.fulfill({
+      status: 200,
+      headers: {
+        "cache-control": "no-cache",
+        "content-type": "text/event-stream; charset=utf-8",
+      },
+      body: [
+        `event: delta\ndata: ${JSON.stringify({
+          text: "Refinement queued. Invoice export flow is being added with approvals.",
+        })}\n\n`,
+        `event: finish\ndata: ${JSON.stringify({
+          reason: "stop",
+          tokenIn: 12,
+          tokenOut: 18,
+          costUSD: 0.01,
+          provider: "e2e",
+          model: "mock-stream",
+        })}\n\n`,
+      ].join(""),
+    });
+  });
+
   await page.route("**/graphql", async (route) => {
     const body = route.request().postDataJSON() as unknown;
     const op = operationNameFromBody(body);
@@ -509,6 +532,24 @@ async function expectVisibleText(page: Page, text: string | RegExp) {
     .toBe(true);
 }
 
+async function openDashboardPane(page: Page) {
+  const tab = page.getByRole("tab", { name: /Dashboard/i });
+  if (await tab.count()) {
+    await tab.first().click();
+    return;
+  }
+  await page.getByRole("button", { name: /Dashboard/i }).first().click();
+}
+
+async function openPatchesPane(page: Page) {
+  const tab = page.getByRole("tab", { name: /Patches/i });
+  if (await tab.count()) {
+    await tab.first().click();
+    return;
+  }
+  await page.getByRole("button", { name: /Patches/i }).first().click();
+}
+
 test.describe("Studio app creation journey", () => {
   test.beforeEach(async ({ context, page }) => {
     await context.addCookies([
@@ -541,7 +582,7 @@ test.describe("Studio app creation journey", () => {
       .poll(() => page.url())
       .toContain("executionID=exec-e2e");
     await expectVisibleText(page, "Client operations portal");
-    await expect(page.getByText(/SCORE/i).first()).toBeVisible();
+    await expect(page.getByText(/Gate 94\/100/i).first()).toBeVisible();
     await expectNoHorizontalOverflow(page);
 
     expect(gql.describeInputs).toEqual([
@@ -559,7 +600,7 @@ test.describe("Studio app creation journey", () => {
     expect(gql.calls).toContain("RefineIdea");
     await expectNoHorizontalOverflow(page);
 
-    await page.getByRole("tab", { name: /Dashboard/i }).click();
+    await openDashboardPane(page);
     await expect(page.getByText(/Execution dashboard/i)).toBeVisible();
     await expect(page.getByText(/Gross margin/i).first()).toBeVisible();
     await expectNoHorizontalOverflow(page);
@@ -569,7 +610,7 @@ test.describe("Studio app creation journey", () => {
       await expect(page.getByText("Dashboard.tsx", { exact: true })).toBeVisible();
       await expectNoHorizontalOverflow(page);
 
-      await page.getByRole("tab", { name: /Patches/i }).click();
+      await openPatchesPane(page);
       await expect(page.getByText(/Create client portal dashboard/i)).toBeVisible();
       await expectNoHorizontalOverflow(page);
     }
@@ -591,7 +632,7 @@ test.describe("Studio app creation journey", () => {
     await expect(page.getByRole("tab", { name: /Preview/i })).toBeVisible();
     await expectNoHorizontalOverflow(page);
 
-    await page.getByRole("tab", { name: /Dashboard/i }).click();
+    await openDashboardPane(page);
     await expect(page.getByText(/Execution dashboard/i)).toBeVisible();
     await expectNoHorizontalOverflow(page);
 
@@ -603,24 +644,23 @@ test.describe("Studio app creation journey", () => {
 
     await page.goto(`/execution/${executionID}`);
     await expect(page.getByRole("heading", { name: /Client operations portal/i })).toBeVisible();
-    await expect(page.getByText(/Gross margin/i).first()).toBeVisible();
+    await expect(page.getByText(/Cost & limits/i).first()).toBeVisible();
     await expectNoHorizontalOverflow(page);
 
-    await page.getByRole("tab", { name: /Cost/i }).click();
     await expect(page.getByText(/Cost breakdown/i)).toBeVisible();
     await expect(page.getByText(/Wallet rollup/i)).toBeVisible();
     await expectNoHorizontalOverflow(page);
 
-    await page.getByRole("tab", { name: /Ledger/i }).click();
+    await expect(page.getByText(/Ledger feed/i)).toBeVisible();
     await expect(page.getByText(/provider_cost/i)).toBeVisible();
     await expect(page.getByText(/sandbox_cost/i)).toBeVisible();
     await expectNoHorizontalOverflow(page);
 
-    await page.getByRole("tab", { name: /ProfitGuard/i }).click();
+    await expect(page.getByText(/Verdicts/i)).toBeVisible();
     await expect(page.getByText(/Budget, margin and risk are inside policy/i)).toBeVisible();
     await expectNoHorizontalOverflow(page);
 
-    await page.getByRole("tab", { name: /Bundle/i }).click();
+    await expect(page.getByText(/Support bundle/i)).toBeVisible();
     await expect(page.getByText(/Gate report/i)).toBeVisible();
     await expect(page.getByText(/Security report/i)).toBeVisible();
     await expectNoHorizontalOverflow(page);

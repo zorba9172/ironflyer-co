@@ -24,6 +24,36 @@ type Rollup struct {
 	RefundsUSD              decimal.Decimal `json:"refundsUSD"`
 	PlatformMarginUSD       decimal.Decimal `json:"platformMarginUSD"`
 	GrossMarginPct          decimal.Decimal `json:"grossMarginPct"`
+
+	// Mobile-specific cost buckets. They surface separately on the
+	// cost-attribution dashboards so an operator can tell an Android
+	// build from a Mac-pool iOS run at a glance — instead of having
+	// every mobile minute lumped into "sandbox". MobileCostUSD is the
+	// aggregate of all five legs for the "Mobile" summary tile.
+	//
+	// TODO(graphql): the LedgerRollup type in
+	//   apps/orchestrator/internal/graph/schema/ledger.graphql
+	// and its resolver in
+	//   apps/orchestrator/internal/graph/resolver/ledger.resolver.go
+	// must be extended to expose these fields. Codegen is a separate
+	// ticket; until then these legs are computed but not wire-visible.
+	MobileBuildCostUSD     decimal.Decimal `json:"mobileBuildCostUSD"`
+	EmulatorCostUSD        decimal.Decimal `json:"emulatorCostUSD"`
+	MacWorkspaceCostUSD    decimal.Decimal `json:"macWorkspaceCostUSD"`
+	EASBuildCostUSD        decimal.Decimal `json:"easBuildCostUSD"`
+	AppetizeCostUSD        decimal.Decimal `json:"appetizeCostUSD"`
+	MobileCostUSD          decimal.Decimal `json:"mobileCostUSD"`
+}
+
+// mobileTotal sums the five mobile-cost legs on a Rollup. Exposed as
+// a helper so Build and TenantRollup share the math.
+func mobileTotal(r Rollup) decimal.Decimal {
+	return decimal.Zero.
+		Add(r.MobileBuildCostUSD).
+		Add(r.EmulatorCostUSD).
+		Add(r.MacWorkspaceCostUSD).
+		Add(r.EASBuildCostUSD).
+		Add(r.AppetizeCostUSD)
 }
 
 // Build aggregates a slice of entries into a Rollup. The function is
@@ -66,8 +96,19 @@ func Build(entries []Entry) Rollup {
 			r.RefundsUSD = r.RefundsUSD.Add(e.AmountUSD)
 		case EntryPlatformMargin:
 			r.PlatformMarginUSD = r.PlatformMarginUSD.Add(e.AmountUSD)
+		case EntryMobileBuildMin:
+			r.MobileBuildCostUSD = r.MobileBuildCostUSD.Add(e.AmountUSD)
+		case EntryEmulatorMin:
+			r.EmulatorCostUSD = r.EmulatorCostUSD.Add(e.AmountUSD)
+		case EntryMacWorkspaceMin:
+			r.MacWorkspaceCostUSD = r.MacWorkspaceCostUSD.Add(e.AmountUSD)
+		case EntryEASBuildCredit:
+			r.EASBuildCostUSD = r.EASBuildCostUSD.Add(e.AmountUSD)
+		case EntryAppetizeMin:
+			r.AppetizeCostUSD = r.AppetizeCostUSD.Add(e.AmountUSD)
 		}
 	}
+	r.MobileCostUSD = mobileTotal(r)
 
 	allCosts := decimal.Zero.
 		Add(r.ProviderCostUSD).
@@ -75,7 +116,8 @@ func Build(entries []Entry) Rollup {
 		Add(r.StorageCostUSD).
 		Add(r.DeploymentCostUSD).
 		Add(r.PremiumReasoningCostUSD).
-		Add(r.RefundsUSD)
+		Add(r.RefundsUSD).
+		Add(r.MobileCostUSD)
 
 	if r.RevenueUSD.IsZero() {
 		r.GrossMarginPct = decimal.Zero

@@ -40,7 +40,7 @@ import {
 } from "@mui/material";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, type ChangeEvent } from "react";
+import { useMemo, useState, type ChangeEvent, type ElementType } from "react";
 import { tokens } from "../../../../packages/design-tokens";
 import { extractErrorMessage } from "../../src/lib/errors";
 import * as swal from "../../src/lib/swal";
@@ -51,6 +51,7 @@ import {
 import { useAuth } from "../../src/lib/auth";
 
 type StudioMode = "preview" | "mobile" | "code";
+type RecentEntry = { id: string; name: string };
 
 const DEFAULT_PROMPT =
   "Build a client operations portal with projects, invoices, approvals, role-based access and team activity dashboard.";
@@ -271,10 +272,15 @@ function StudioRail({
     { label: "Integrations", icon: IntegrationInstructionsRounded, href: "/resources" },
     { label: "Studio", icon: HubRounded, href: "/studio", active: true },
   ];
-  const visibleRecents =
-    authenticated && recents.length > 0
-      ? recents.map((p) => p.name)
-      : ["MathQuest", "ClientFlow", "Fit booking", "InvoicePro", "TeamHub"];
+  // When authenticated, render the real recents list — or an honest
+  // empty state if the user has no projects yet. When unauthenticated,
+  // we show a demo set so the marketing surface still feels alive.
+  const isEmptyForAuthedUser = authenticated && recents.length === 0;
+  const visibleRecents: RecentEntry[] = authenticated
+    ? recents.map((p) => ({ id: p.id, name: p.name }))
+    : ["MathQuest", "ClientFlow", "Fit booking", "InvoicePro", "TeamHub"].map(
+        (name) => ({ id: name, name }),
+      );
 
   return (
     <Box
@@ -347,29 +353,72 @@ function StudioRail({
         Recents
       </Typography>
       <Stack spacing={0.45} sx={{ flex: 1, minHeight: 0, mt: 0.7, overflow: "auto" }}>
-        {visibleRecents.map((name) => (
+        {isEmptyForAuthedUser ? (
           <Box
-            key={name}
             sx={{
-              alignItems: "center",
-              border: name === "ClientFlow" ? `1px solid ${tokens.color.border.strong}` : "1px solid transparent",
+              border: `1px dashed ${tokens.color.border.subtle}`,
               borderRadius: `${tokens.radius.sm}px`,
-              bgcolor: name === "ClientFlow" ? `${tokens.color.accent.purple}24` : "transparent",
-              color: name === "ClientFlow" ? tokens.color.text.primary : tokens.color.text.secondary,
-              display: "flex",
-              fontSize: 13,
-              fontWeight: 700,
-              gap: 0.8,
-              px: 0.9,
-              py: 0.65,
+              color: tokens.color.text.muted,
+              fontSize: 12,
+              lineHeight: 1.5,
+              px: 1.1,
+              py: 1.4,
+              textAlign: "center",
             }}
           >
-            <StarRounded sx={{ color: tokens.color.accent.violet, fontSize: 15 }} />
-            <Box sx={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {name}
-            </Box>
+            No projects yet. Describe an app in the prompt area to create
+            your first build.
           </Box>
-        ))}
+        ) : (
+          visibleRecents.map((entry) => {
+            const isDemoFlow = !authenticated && entry.name === "ClientFlow";
+            const hover = isDemoFlow || authenticated;
+            const EntryComponent: ElementType = authenticated ? Link : "div";
+            return (
+              <Box
+                key={entry.id}
+                component={EntryComponent}
+                {...(authenticated ? { href: `/p/${encodeURIComponent(entry.id)}` } : {})}
+                sx={{
+                  alignItems: "center",
+                  border: isDemoFlow
+                    ? `1px solid ${tokens.color.border.strong}`
+                    : "1px solid transparent",
+                  borderRadius: `${tokens.radius.sm}px`,
+                  bgcolor: isDemoFlow ? `${tokens.color.accent.purple}24` : "transparent",
+                  color: isDemoFlow
+                    ? tokens.color.text.primary
+                    : tokens.color.text.secondary,
+                  cursor: hover ? "pointer" : "default",
+                  display: "flex",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  gap: 0.8,
+                  px: 0.9,
+                  py: 0.65,
+                  textDecoration: "none",
+                  "&:hover": hover
+                    ? {
+                        bgcolor: `${tokens.color.bg.surfaceHover}`,
+                        color: tokens.color.text.primary,
+                      }
+                    : undefined,
+                }}
+              >
+                <StarRounded sx={{ color: tokens.color.accent.violet, fontSize: 15 }} />
+                <Box
+                  sx={{
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {entry.name}
+                </Box>
+              </Box>
+            );
+          })
+        )}
       </Stack>
       <Box
         sx={{

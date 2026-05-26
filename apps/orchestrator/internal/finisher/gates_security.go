@@ -1,23 +1,7 @@
-// Package finisher — deepened Security gate plumbing.
-//
-// The base Security gate already chains regex secret detection +
-// semgrep + govulncheck + npm audit (see gates.go::SecurityGate and
-// security_scanners.go). This file adds two production-grade signals
-// on top:
-//
-//   - Secret detection via `trufflehog filesystem` or `gitleaks detect`
-//     — whichever binary the workspace image carries. Both emit JSONL
-//     findings we parse into typed Issues. The legacy regex pass stays
-//     as a safety net for sandbox images that ship neither tool.
-//   - LLM tiebreaker for medium/low static findings — the Security
-//     role re-reads the in-context code and decides "real" vs "false
-//     positive in this context". A confirmed real finding gets
-//     upgraded to fail-class severity; a false positive is downgraded
-//     to info so it doesn't drown the dashboard.
-//
-// Static-tool absence is silent (exit 127 → no findings). Operators
-// should bake semgrep + trufflehog (or gitleaks) into the workspace
-// image; see docs/SCALE.md for the recipe.
+// Package finisher contains the Security gate event bridge. The AppSec core
+// produces scanner findings; this file projects the gate's domain.Issue bag
+// into execution events so the existing securityreport builder can read a
+// stable, provider-agnostic feed.
 
 package finisher
 
@@ -29,7 +13,6 @@ import (
 
 	"ironflyer/apps/orchestrator/internal/domain"
 	"ironflyer/apps/orchestrator/internal/profitguardctx"
-	"ironflyer/apps/orchestrator/internal/runtime"
 )
 
 // SecurityFindingEventType is the event_type the engine publishes on
@@ -171,115 +154,6 @@ func splitPathLine(p string) (string, int) {
 		n = n*10 + int(r-'0')
 	}
 	return p[:idx], n
-}
-
-// runSecretDetectionScanners is invoked by SecurityGate.Check after the
-// in-memory regex pass + scanWorkspaceForSecrets. It tries trufflehog
-// first (more thorough, slightly slower) then gitleaks (lighter). Either
-// is sufficient; both run when both binaries exist.
-func runSecretDetectionScanners(ctx context.Context, env *GateEnv) []domain.Issue {
-	if !env.HasRuntime() {
-		return nil
-	}
-	var issues []domain.Issue
-	issues = append(issues, runTrufflehog(ctx, env)...)
-	issues = append(issues, runGitleaks(ctx, env)...)
-	return issues
-}
-
-// runTrufflehog executes `trufflehog filesystem --json --no-update .`
-// when the binary exists. Each verified finding becomes a critical
-// Issue; unverified findings become error-severity so the dashboard
-// still surfaces them but the gate doesn't necessarily fail.
-func runTrufflehog(ctx context.Context, env *GateEnv) []domain.Issue {
-	cmd := "command -v trufflehog >/dev/null 2>&1 && " +
-		"trufflehog filesystem --json --no-update " +
-		"--exclude-paths=<(printf 'node_modules\\n.git\\n') . 2>/dev/null || true"
-	res, err := env.Runtime.Exec(ctx, env.UserBearer, env.WorkspaceID, runtime.ExecOpts{
-		Shell: cmd, TimeoutSeconds: 180,
-	})
-	if err != nil || strings.TrimSpace(res.Stdout) == "" {
-		return nil
-	}
-	var out []domain.Issue
-	for _, line := range strings.Split(res.Stdout, "\n") {
-		line = strings.TrimSpace(line)
-		if line == "" || !strings.HasPrefix(line, "{") {
-			continue
-		}
-		var doc struct {
-			DetectorName string `json:"DetectorName"`
-			Verified     bool   `json:"Verified"`
-			Raw          string `json:"Raw"`
-			SourceMetadata struct {
-				Data struct {
-					Filesystem struct {
-						File string `json:"file"`
-						Line int    `json:"line,omitempty"`
-					} `json:"Filesystem"`
-				} `json:"Data"`
-			} `json:"SourceMetadata"`
-		}
-		if err := json.Unmarshal([]byte(line), &doc); err != nil {
-			continue
-		}
-		path := doc.SourceMetadata.Data.Filesystem.File
-		if doc.SourceMetadata.Data.Filesystem.Line > 0 {
-			path += ":" + itoaPositive(doc.SourceMetadata.Data.Filesystem.Line)
-		}
-		sev := domain.SeverityError
-		msg := "trufflehog: " + doc.DetectorName
-		if doc.Verified {
-			sev = domain.SeverityCritical
-			msg += " (verified live credential)"
-		}
-		out = append(out, domain.Issue{
-			Gate: domain.GateSecurity, Severity: sev,
-			Message: msg, Path: path,
-			Hint: "rotate the credential and remove it from history (git filter-repo / BFG)",
-		})
-	}
-	return out
-}
-
-// runGitleaks executes `gitleaks detect --no-banner --report-format json
-// --report-path /dev/stdout` when the binary exists. Each finding becomes a
-// critical Issue. We pass `--no-git` so the scan works on workspaces that
-// were created from a tarball rather than `git clone`.
-func runGitleaks(ctx context.Context, env *GateEnv) []domain.Issue {
-	cmd := "command -v gitleaks >/dev/null 2>&1 && " +
-		"gitleaks detect --no-git --no-banner --redact " +
-		"--report-format json --report-path /dev/stdout . 2>/dev/null || true"
-	res, err := env.Runtime.Exec(ctx, env.UserBearer, env.WorkspaceID, runtime.ExecOpts{
-		Shell: cmd, TimeoutSeconds: 120,
-	})
-	if err != nil || strings.TrimSpace(res.Stdout) == "" {
-		return nil
-	}
-	// gitleaks emits a JSON array.
-	var findings []struct {
-		Description string `json:"Description"`
-		File        string `json:"File"`
-		StartLine   int    `json:"StartLine"`
-		RuleID      string `json:"RuleID"`
-	}
-	if err := json.Unmarshal([]byte(res.Stdout), &findings); err != nil {
-		return nil
-	}
-	out := make([]domain.Issue, 0, len(findings))
-	for _, f := range findings {
-		path := f.File
-		if f.StartLine > 0 {
-			path += ":" + itoaPositive(f.StartLine)
-		}
-		out = append(out, domain.Issue{
-			Gate: domain.GateSecurity, Severity: domain.SeverityCritical,
-			Message: "gitleaks: " + f.RuleID + " — " + f.Description,
-			Path:    path,
-			Hint:    "remove the secret, rotate it upstream, and rewrite history",
-		})
-	}
-	return out
 }
 
 // summariseSecurityVerdict picks an overall verdict for the Security gate

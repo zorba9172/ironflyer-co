@@ -10,20 +10,49 @@
 // component is silent on a finished run.
 
 import { OpenInNewRounded, RefreshRounded } from "@mui/icons-material";
-import { Box, IconButton, Stack, Tooltip, Typography } from "@mui/material";
-import { useEffect, useMemo } from "react";
+import { Box, IconButton, Stack, Tab, Tabs, Tooltip, Typography } from "@mui/material";
+import { useEffect, useMemo, useState } from "react";
 import { LoadingPanel } from "../cockpit/LoadingPanel";
 import { useExecutionSupportBundleQuery } from "../../lib/gql/__generated__";
 import { tokens } from "../../theme";
+import { MobilePreviewPane } from "./mobile/MobilePreviewPane";
+import type {
+  MobileStackKind,
+  MobileStackTarget,
+} from "./mobile/MobileStackPicker";
 
 export interface PreviewPaneProps {
   executionID: string;
   executionStatus: string;
+  // Optional mobile context. When the project's spec exposes a
+  // non-"none" mobile kind, the pane shows a Web/Mobile toggle and
+  // can defer to <MobilePreviewPane />.
+  mobileKind?: MobileStackKind;
+  mobileTargets?: MobileStackTarget[];
+  workspaceId?: string;
+}
+
+type PreviewSurface = "web" | "mobile";
+
+function defaultSurface(mobileKind?: MobileStackKind): PreviewSurface {
+  if (mobileKind === "android-native") return "mobile";
+  if (mobileKind === "ios-native") return "mobile";
+  return "web";
 }
 
 const TERMINAL = new Set(["succeeded", "failed", "stopped", "killed", "refunded"]);
 
-export function PreviewPane({ executionID, executionStatus }: PreviewPaneProps) {
+export function PreviewPane({
+  executionID,
+  executionStatus,
+  mobileKind,
+  mobileTargets,
+  workspaceId,
+}: PreviewPaneProps) {
+  const mobileAvailable = Boolean(mobileKind && mobileKind !== "none");
+  const [surface, setSurface] = useState<PreviewSurface>(() =>
+    defaultSurface(mobileKind),
+  );
   const isTerminal = TERMINAL.has(executionStatus);
   const query = useExecutionSupportBundleQuery({
     variables: { executionID },
@@ -58,20 +87,76 @@ export function PreviewPane({ executionID, executionStatus }: PreviewPaneProps) 
     };
   }, [bundle]);
 
+  let loadingLabel: string | null = null;
   if (!previewURL) {
-    let label: string;
     if (!currentGate) {
-      label = query.loading ? "Bootstrapping support bundle…" : "Waiting for the first preview build";
+      loadingLabel = query.loading
+        ? "Bootstrapping support bundle…"
+        : "Waiting for the first preview build";
     } else if (currentGate.total === 0) {
       // Planner hasn't produced any gate stages yet — avoid the nonsensical
       // "gate 1 of 0" rendering.
-      label = "Planning… waiting for the first gate to publish";
+      loadingLabel = "Planning… waiting for the first gate to publish";
     } else if (!currentGate.next) {
       // All gates passed but no preview URL has landed yet.
-      label = `Finalising preview… ${currentGate.passed} of ${currentGate.total} gates passed`;
+      loadingLabel = `Finalising preview… ${currentGate.passed} of ${currentGate.total} gates passed`;
     } else {
-      label = `Building preview… gate ${currentGate.passed + 1} of ${currentGate.total} (${currentGate.name})`;
+      loadingLabel = `Building preview… gate ${currentGate.passed + 1} of ${currentGate.total} (${currentGate.name})`;
     }
+  }
+
+  const surfaceTabs = mobileAvailable ? (
+    <Tabs
+      value={surface}
+      onChange={(_, v: PreviewSurface) => setSurface(v)}
+      sx={{
+        bgcolor: tokens.color.bg.surface,
+        borderBottom: `1px solid ${tokens.color.border.subtle}`,
+        minHeight: 36,
+        px: 1,
+        "& .MuiTab-root": {
+          color: tokens.color.text.secondary,
+          fontSize: 12.5,
+          fontWeight: 600,
+          minHeight: 36,
+          px: 1.5,
+          textTransform: "none",
+        },
+        "& .Mui-selected": { color: tokens.color.text.primary },
+        "& .MuiTabs-indicator": {
+          backgroundColor: tokens.color.accent.violet,
+          height: 2,
+        },
+      }}
+    >
+      <Tab value="web" label="Web" />
+      <Tab value="mobile" label="Mobile" />
+    </Tabs>
+  ) : null;
+
+  if (mobileAvailable && surface === "mobile") {
+    return (
+      <Box
+        sx={{
+          bgcolor: tokens.color.bg.base,
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
+        }}
+      >
+        {surfaceTabs}
+        <Box sx={{ flex: 1, minHeight: 0 }}>
+          <MobilePreviewPane
+            workspaceId={workspaceId ?? ""}
+            mobileKind={mobileKind as MobileStackKind}
+            targets={mobileTargets}
+          />
+        </Box>
+      </Box>
+    );
+  }
+
+  if (!previewURL) {
     return (
       <Box
         sx={{
@@ -81,7 +166,8 @@ export function PreviewPane({ executionID, executionStatus }: PreviewPaneProps) 
           bgcolor: tokens.color.bg.base,
         }}
       >
-        <LoadingPanel label={label} minHeight="100%" />
+        {surfaceTabs}
+        <LoadingPanel label={loadingLabel ?? "Waiting for preview"} minHeight="100%" />
       </Box>
     );
   }
@@ -95,6 +181,7 @@ export function PreviewPane({ executionID, executionStatus }: PreviewPaneProps) 
         bgcolor: tokens.color.bg.inset,
       }}
     >
+      {surfaceTabs}
       <Stack
         direction="row"
         spacing={1}

@@ -3,10 +3,10 @@ package finisher
 import (
 	"context"
 	"encoding/json"
-	"regexp"
 	"strings"
 
 	"ironflyer/apps/orchestrator/internal/agents"
+	"ironflyer/apps/orchestrator/internal/appsec"
 	"ironflyer/apps/orchestrator/internal/domain"
 	"ironflyer/apps/orchestrator/internal/runtime"
 )
@@ -25,6 +25,14 @@ type GateEnv struct {
 	// start of this gate iteration. Set by the Engine when a BudgetSource is
 	// wired; nil otherwise. The Budget gate is the primary consumer.
 	Budget *BudgetSnapshot
+	// DeployURL is the publicly-reachable preview/production URL for the
+	// most recent successful deploy of this project. The LighthouseGate is
+	// the primary consumer — it forwards the URL to the PageSpeed Insights
+	// API. Empty when no deploy has produced a public URL yet (the gate
+	// degrades to a no-op rather than blocking). The gate also falls back
+	// to the IRONFLYER_LIGHTHOUSE_TARGET_URL env var when this field is
+	// empty, so self-hosted operators can wire one without a deploy store.
+	DeployURL string
 }
 
 // BudgetSnapshot is the projected billing posture for a project at gate
@@ -384,15 +392,15 @@ func visualDiffHint(t domain.VisualTarget, d VisualDiffResult, tol float64) stri
 // dashboard) consume this to draw the visual drift panel without
 // re-parsing the Issue.Hint string. One report per VisualTarget.
 type VisualReport struct {
-	TargetID         string  `json:"targetId"`
-	Label            string  `json:"label,omitempty"`
-	Route            string  `json:"route,omitempty"`
-	Ratio            float64 `json:"ratio"`
-	MeanDelta        float64 `json:"meanDelta"`
-	PHashDist        int     `json:"phashDist"`
-	WithinTolerance  bool    `json:"withinTolerance"`
-	SizeMismatch     bool    `json:"sizeMismatch,omitempty"`
-	StructuralDrift  bool    `json:"structuralDrift,omitempty"` // ratio > 0.05
+	TargetID        string  `json:"targetId"`
+	Label           string  `json:"label,omitempty"`
+	Route           string  `json:"route,omitempty"`
+	Ratio           float64 `json:"ratio"`
+	MeanDelta       float64 `json:"meanDelta"`
+	PHashDist       int     `json:"phashDist"`
+	WithinTolerance bool    `json:"withinTolerance"`
+	SizeMismatch    bool    `json:"sizeMismatch,omitempty"`
+	StructuralDrift bool    `json:"structuralDrift,omitempty"` // ratio > 0.05
 }
 
 // VisualReportFor returns a structured VisualReport for one target/diff
@@ -632,147 +640,70 @@ func detectLintCommand(p *domain.Project) (string, string, bool) {
 	return "", "", false
 }
 
-// SecretPattern is one regex + label used by the security scanner.
-type SecretPattern struct {
-	Name string
-	Re   *regexp.Regexp
-}
-
-// secretPatterns covers credentials that are unambiguous when matched: long
-// random strings with provider-specific prefixes or shapes. Generic
-// "password=…" heuristics live separately in suspiciousAssignments so they
-// can be downgraded to warnings.
-var secretPatterns = []SecretPattern{
-	{Name: "AWS access key", Re: regexp.MustCompile(`\bAKIA[0-9A-Z]{16}\b`)},
-	{Name: "AWS secret access key", Re: regexp.MustCompile(`(?i)aws(.{0,20})?(secret|access).{0,20}?['"]([0-9a-zA-Z/+=]{40})['"]`)},
-	{Name: "GitHub personal access token", Re: regexp.MustCompile(`\bghp_[0-9A-Za-z]{36}\b`)},
-	{Name: "GitHub OAuth token", Re: regexp.MustCompile(`\bgho_[0-9A-Za-z]{36}\b`)},
-	{Name: "GitHub fine-grained PAT", Re: regexp.MustCompile(`\bgithub_pat_[0-9A-Za-z_]{82}\b`)},
-	{Name: "Stripe secret key", Re: regexp.MustCompile(`\bsk_(live|test)_[0-9a-zA-Z]{20,}\b`)},
-	{Name: "Stripe restricted key", Re: regexp.MustCompile(`\brk_(live|test)_[0-9a-zA-Z]{20,}\b`)},
-	{Name: "OpenAI API key", Re: regexp.MustCompile(`\bsk-[A-Za-z0-9_-]{32,}\b`)},
-	{Name: "Anthropic API key", Re: regexp.MustCompile(`\bsk-ant-[A-Za-z0-9_-]{32,}\b`)},
-	{Name: "Google API key", Re: regexp.MustCompile(`\bAIza[0-9A-Za-z\-_]{35}\b`)},
-	{Name: "Slack token", Re: regexp.MustCompile(`\bxox[abprs]-[0-9A-Za-z-]{10,}\b`)},
-	{Name: "Private key block", Re: regexp.MustCompile(`-----BEGIN (RSA|EC|OPENSSH|PGP|DSA) PRIVATE KEY-----`)},
-	{Name: "JWT", Re: regexp.MustCompile(`\beyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b`)},
-	{Name: "URL with embedded credentials", Re: regexp.MustCompile(`\b(https?|postgres|mysql|mongodb|redis):\/\/[^\s:@/]+:[^\s:@/]+@`)},
-}
-
-// suspiciousAssignments matches things like `password = "literal"` — these
-// are likely accidents but include too many false positives (test fixtures,
-// docs) to be Critical without more context. We surface them as Warnings.
-var suspiciousAssignments = regexp.MustCompile(`(?im)^[^#/]*\b(password|passwd|api[_-]?key|secret|token)\s*[:=]\s*['"][^'"\s]{6,}['"]`)
-
-// SecurityGate scans both the in-memory file content and (when available)
-// the workspace filesystem for high-confidence credential patterns. The
-// in-memory pass covers AI-generated drafts before they ever touch disk;
-// the runtime pass catches anything that arrived via git clone.
+// SecurityGate delegates to the AppSec core. The gate stays intentionally
+// thin: appsec owns inventory, scanner orchestration, runtime adapters, and
+// risk policy; finisher only maps the resulting findings into domain issues
+// so the existing repair/reporting flow keeps working.
 type SecurityGate struct{}
 
 func (SecurityGate) Name() domain.GateName    { return domain.GateSecurity }
 func (SecurityGate) RepairAgent() agents.Role { return agents.RoleSecurity }
 func (SecurityGate) Check(ctx context.Context, env *GateEnv) []domain.Issue {
-	var issues []domain.Issue
-
-	for _, f := range env.Project.Files {
-		if shouldSkipForSecrets(f.Path) {
-			continue
-		}
-		issues = append(issues, scanForSecrets(f.Path, f.Content)...)
-	}
-
-	if env.HasRuntime() {
-		issues = append(issues, scanWorkspaceForSecrets(ctx, env)...)
-		// SAST + dependency CVE scanners. Each is a best-effort, gracefully
-		// skipped when the corresponding binary isn't installed on the
-		// workspace image.
-		issues = append(issues, runSecurityScanners(ctx, env)...)
-		// Production-grade secret detection (trufflehog / gitleaks) — runs
-		// in addition to the regex pass above. Either binary is sufficient;
-		// both run when both are installed so workspaces that lack one tool
-		// degrade silently rather than losing coverage.
-		issues = append(issues, runSecretDetectionScanners(ctx, env)...)
-	}
-	return issues
-}
-
-// scanForSecrets returns one Issue per pattern hit so the user sees what
-// kind of secret was detected. Each match is reported once per file even if
-// the regex matches multiple times — we don't want to drown the UI.
-func scanForSecrets(path, content string) []domain.Issue {
-	if content == "" {
+	if env == nil || env.Project == nil {
 		return nil
 	}
-	var out []domain.Issue
-	seen := map[string]bool{}
-	for _, p := range secretPatterns {
-		if p.Re.MatchString(content) && !seen[p.Name] {
-			seen[p.Name] = true
-			out = append(out, domain.Issue{
-				Gate: domain.GateSecurity, Severity: domain.SeverityCritical,
-				Message: "found " + p.Name, Path: path,
-				Hint: "remove the credential, rotate it upstream, and store the replacement outside source",
-			})
-		}
+	result := appsec.DefaultEngine().Scan(ctx, appSecTargetFromGateEnv(env))
+	return appSecFindingsToIssues(result.Findings)
+}
+
+func appSecTargetFromGateEnv(env *GateEnv) appsec.Target {
+	target := appsec.Target{
+		ProjectID: env.Project.ID,
+		Files:     make([]appsec.File, 0, len(env.Project.Files)),
 	}
-	if !seen["JWT"] && suspiciousAssignments.MatchString(content) {
+	for _, f := range env.Project.Files {
+		target.Files = append(target.Files, appsec.File{Path: f.Path, Content: f.Content})
+	}
+	if env.HasRuntime() {
+		target.Runtime = env.Runtime
+		target.WorkspaceID = env.WorkspaceID
+		target.UserBearer = env.UserBearer
+	}
+	return target
+}
+
+func appSecFindingsToIssues(findings []appsec.Finding) []domain.Issue {
+	out := make([]domain.Issue, 0, len(findings))
+	for _, f := range findings {
 		out = append(out, domain.Issue{
-			Gate: domain.GateSecurity, Severity: domain.SeverityWarning,
-			Message: "suspicious credential-shaped assignment", Path: path,
-			Hint: "verify this isn't a hardcoded secret",
+			Gate:     domain.GateSecurity,
+			Severity: appSecSeverityToDomain(f.Severity),
+			Message:  f.RuleID + ": " + f.Summary,
+			Hint:     f.Remediation,
+			Path:     pathWithLine(f.Path, f.Line),
 		})
 	}
 	return out
 }
 
-// scanWorkspaceForSecrets runs a single grep -RIl --binary-files=without-match
-// inside the workspace and re-scans the matched files via cat for full
-// pattern context. We grep on a coarse OR of high-signal substrings so the
-// process is cheap; precise classification happens in scanForSecrets.
-func scanWorkspaceForSecrets(ctx context.Context, env *GateEnv) []domain.Issue {
-	const coarse = `'AKIA[A-Z0-9]|ghp_|gho_|github_pat_|sk_live_|sk_test_|sk-ant-|BEGIN [A-Z]\+ PRIVATE KEY|eyJ[A-Za-z0-9_-]\{10,\}\.eyJ'`
-	listCmd := "grep -RIlE --binary-files=without-match --exclude-dir=.git --exclude-dir=node_modules " + coarse + " . 2>/dev/null | head -50"
-	res, err := env.Runtime.Exec(ctx, env.UserBearer, env.WorkspaceID, runtime.ExecOpts{
-		Shell: listCmd, TimeoutSeconds: 60,
-	})
-	if err != nil || res.ExitCode > 1 {
-		// Exit 1 from grep = "no matches", which is the happy path.
-		return nil
+func appSecSeverityToDomain(sev appsec.Severity) domain.Severity {
+	switch sev {
+	case appsec.SeverityCritical:
+		return domain.SeverityCritical
+	case appsec.SeverityHigh:
+		return domain.SeverityError
+	case appsec.SeverityMedium, appsec.SeverityLow:
+		return domain.SeverityWarning
+	default:
+		return domain.SeverityInfo
 	}
-	var issues []domain.Issue
-	for _, path := range strings.Split(strings.TrimSpace(res.Stdout), "\n") {
-		path = strings.TrimSpace(path)
-		if path == "" {
-			continue
-		}
-		// Pull file body via cat, capped at 256 KiB so a giant blob can't
-		// dominate the scan budget. Skip on read error.
-		body, err := env.Runtime.Exec(ctx, env.UserBearer, env.WorkspaceID, runtime.ExecOpts{
-			Shell: "head -c 262144 -- " + shellQuote(path), TimeoutSeconds: 20,
-		})
-		if err != nil || body.ExitCode != 0 {
-			continue
-		}
-		issues = append(issues, scanForSecrets(strings.TrimPrefix(path, "./"), body.Stdout)...)
-	}
-	return issues
 }
 
-// shouldSkipForSecrets prunes known-noisy paths. We never scan binary blobs,
-// lock files, or the .git directory — false positives there hide real hits
-// in the signal-rich files.
-func shouldSkipForSecrets(path string) bool {
-	low := strings.ToLower(path)
-	switch {
-	case strings.Contains(low, "/.git/"), strings.HasPrefix(low, ".git/"):
-		return true
-	case strings.Contains(low, "/node_modules/"), strings.HasPrefix(low, "node_modules/"):
-		return true
-	case strings.HasSuffix(low, ".lock"), strings.HasSuffix(low, "-lock.json"), strings.HasSuffix(low, "go.sum"):
-		return true
+func pathWithLine(path string, line int) string {
+	if line <= 0 || path == "" {
+		return path
 	}
-	return false
+	return path + ":" + itoaPositive(line)
 }
 
 // shellQuote wraps a path in single quotes for safe shell interpolation,
@@ -981,11 +912,18 @@ func itoaPositive(n int) string {
 
 // DefaultGates returns the ordered gate list. Lint runs after Code so a
 // failing build short-circuits the loop before linters complain about a
-// half-broken tree.
+// half-broken tree. Lighthouse runs LAST: a public preview URL only
+// exists after Deploy, and the PSI call is wasted spend if an earlier
+// gate is going to roll the project back anyway.
 func DefaultGates() []Gate {
 	return []Gate{
 		SpecGate{}, UXGate{}, ArchGate{},
 		CodeGate{}, LintGate{}, TestGate{},
-		SecurityGate{}, BudgetGate{}, DeployGate{},
+		SecurityGate{}, BudgetGate{}, MobileBuildGate{},
+		MobileExpoDoctorGate{},
+		MobileSizeBudgetGate{},
+		MobileSecurityGate{}, IOSPrivacyManifestGate{},
+		PushCredentialsGate{}, DeployGate{},
+		LighthouseGate{},
 	}
 }

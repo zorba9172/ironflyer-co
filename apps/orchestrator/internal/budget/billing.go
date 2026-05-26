@@ -30,12 +30,31 @@ type Billing struct {
 
 	mu       sync.RWMutex
 	userPlan map[string]PlanTier
+
+	// planChangeHooks fire after a plan transition lands. Wired by the
+	// orchestrator's wireup layer so we can land a typed
+	// EntryFreeToPaidConversion in the internal/ledger without this
+	// package taking a dependency on it. Empty slice = no-op (dev /
+	// tests). Read under mu.
+	planChangeHooks []PlanChangeHook
 }
+
+// PlanChangeHook receives every successful plan flip. previous is
+// the tier the user had before the call (TierFree on first signup);
+// next is what they have now. plan is the canonical Plan that was
+// assigned so subscribers can read the monthly price without a
+// secondary lookup.
+type PlanChangeHook func(ctx context.Context, userID string, previous, next PlanTier, plan Plan)
 
 // NewBilling builds a Billing facade with the supplied stores. Pass
 // MemoryLedger/MemoryVault for dev or Postgres variants for production.
 func NewBilling(ledger LedgerStore, vault VaultStore) *Billing {
 	rates := DefaultRateSheet()
+	// Apply env-declared volume discounts BEFORE the optimizer reads
+	// the rate sheet so cheaper-per-call ranking uses the negotiated
+	// price, not list. The discount map is returned for the wireup
+	// layer to log; nil-safe on the empty case.
+	_ = rates.ApplyVolumeDiscounts()
 	plans := DefaultPlans()
 	optim := NewOptimizer(rates)
 	enf := NewEnforcer(plans, ledger, optim)
@@ -53,9 +72,16 @@ func NewMemoryBilling() *Billing {
 }
 
 // AssignPlan sets a user's subscription. Also records the subscription
-// revenue movement in the Vault.
+// revenue movement in the Vault and fires every registered
+// PlanChangeHook so downstream subsystems (ledger conversion entries,
+// analytics, email triggers) can react without this package taking a
+// direct dependency on them.
 func (b *Billing) AssignPlan(ctx context.Context, userID string, tier PlanTier) Plan {
 	b.mu.Lock()
+	previous, hadPrevious := b.userPlan[userID]
+	if !hadPrevious {
+		previous = TierFree
+	}
 	b.userPlan[userID] = tier
 	var p Plan
 	for _, pp := range b.Plans {
@@ -64,6 +90,7 @@ func (b *Billing) AssignPlan(ctx context.Context, userID string, tier PlanTier) 
 			break
 		}
 	}
+	hooks := append([]PlanChangeHook(nil), b.planChangeHooks...)
 	b.mu.Unlock()
 	if p.MonthlyPrice.GreaterThan(decimal.Zero) {
 		_, _ = b.Vault.Record(ctx, VaultEntry{
@@ -71,7 +98,29 @@ func (b *Billing) AssignPlan(ctx context.Context, userID string, tier PlanTier) 
 			Amount: p.MonthlyPrice, Note: "subscription: " + p.Name,
 		})
 	}
+	if previous != tier {
+		for _, hook := range hooks {
+			func(h PlanChangeHook) {
+				defer func() { _ = recover() }()
+				h(ctx, userID, previous, tier, p)
+			}(hook)
+		}
+	}
 	return p
+}
+
+// RegisterPlanChangeHook adds a fire-and-forget callback invoked on
+// every plan flip. Hooks run synchronously inside AssignPlan after
+// the userPlan map is updated and (when applicable) the Vault entry
+// is recorded; a panic in a hook is recovered so one bad subscriber
+// can't break subscription updates for everyone else.
+func (b *Billing) RegisterPlanChangeHook(hook PlanChangeHook) {
+	if hook == nil {
+		return
+	}
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	b.planChangeHooks = append(b.planChangeHooks, hook)
 }
 
 func (b *Billing) PlanFor(userID string) PlanTier {

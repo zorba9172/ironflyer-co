@@ -27,6 +27,30 @@ type Config struct {
 	// the deploy_approvals table to flip expired rows. Zero disables
 	// the sweep; the integration agent decides whether to spawn one.
 	AutoExpireSweep time.Duration
+
+	// ManagedDomainBase is the suffix used for instant Ironflyer
+	// subdomains, e.g. project-slug.ironflyer.app.
+	ManagedDomainBase string
+
+	// EdgeDNSTarget is the DNS target custom domains should point at
+	// when the active provider is the built-in Ironflyer edge.
+	EdgeDNSTarget string
+
+	// DefaultDomainProvider/Registrar select the provider adapters for
+	// domain routing and purchase flows when GraphQL inputs omit them.
+	DefaultDomainProvider string
+	DefaultRegistrar      string
+
+	// CloudflareAccountID enables the Cloudflare Registrar API adapter
+	// when present together with a CLOUDFLARE_API_TOKEN secret.
+	CloudflareAccountID string
+
+	// Domain purchase is a real financial action. Keep it explicitly
+	// disabled unless an operator turns it on and caps spend.
+	DomainPurchaseEnabled           bool
+	MaxDomainPurchaseUSD            float64
+	DomainPurchasePriceTolerancePct float64
+	RequireDomainRegistrantContact  bool
 }
 
 // DefaultConfig returns Config with the V22 baseline values.
@@ -36,5 +60,14 @@ func DefaultConfig() Config {
 		VercelAPIBase:         "https://api.vercel.com",
 		SecretNameVercelToken: "VERCEL_TOKEN",
 		AutoExpireSweep:       0,
+		ManagedDomainBase:     "ironflyer.app",
+		EdgeDNSTarget:         "edge.ironflyer.app",
+		DefaultDomainProvider: "ironflyer",
+		DefaultRegistrar:      "manual",
+		MaxDomainPurchaseUSD:  75,
+
+		// A 10% tolerance covers registrar rounding/tax drift while
+		// still preventing surprise charges.
+		DomainPurchasePriceTolerancePct: 10,
 	}
 }

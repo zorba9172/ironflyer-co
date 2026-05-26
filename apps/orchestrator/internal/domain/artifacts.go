@@ -10,6 +10,27 @@ const (
 	ArtifactStack        = "stack"
 	ArtifactScreenMap    = "screen_map"
 	ArtifactDesignTokens = "design_tokens"
+	// ArtifactMobileBuild is the per-iteration mobile build report
+	// produced by MobileBuildGate. The document is a JSON array (one
+	// entry per built target) shaped like:
+	//   [{"platform":"android","profile":"debug",
+	//     "artifact_path":"android/.../app-debug.apk",
+	//     "size_bytes":12345678,
+	//     "completed_at":"2026-05-26T00:00:00Z"}]
+	// Downstream gates (MobileSize, MobileSecurity) read this to
+	// decide what to enforce without re-running the build.
+	ArtifactMobileBuild = "mobile_build"
+	// ArtifactBundleAnalysis is the per-iteration JS bundle analyzer
+	// report produced by BundleAnalyzerGate. The document is a JSON
+	// object shaped like:
+	//   {
+	//     "topPackages":[{"name":"moment","sizeBytes":234567,"severity":"warning"}],
+	//     "totalBytes": 1234567,
+	//     "generatedAt": "2026-05-26T00:00:00Z"
+	//   }
+	// The cockpit reads this directly to render the bundle-size chart;
+	// the gate's []Issue output drives the repair loop.
+	ArtifactBundleAnalysis = "bundle_analysis"
 )
 
 // GetArtifact returns the raw JSON document stored under name, if any. A

@@ -10,19 +10,85 @@ import (
 type GateName string
 
 const (
-	GateSpec     GateName = "spec"
-	GateUX       GateName = "ux"
-	GateArch     GateName = "arch"
-	GateCode     GateName = "code"
-	GateLint     GateName = "lint"
-	GateTest     GateName = "test"
-	GateSecurity GateName = "security"
-	GateBudget   GateName = "budget"
-	GateDeploy   GateName = "deploy"
+	GateSpec        GateName = "spec"
+	GateUX          GateName = "ux"
+	GateArch        GateName = "arch"
+	GateCode        GateName = "code"
+	GateLint        GateName = "lint"
+	GateTest        GateName = "test"
+	GateSecurity    GateName = "security"
+	GateBudget      GateName = "budget"
+	GateDeploy      GateName = "deploy"
+	// GateMobileBuild runs when the project's StackDecision.Mobile.Kind is
+	// non-empty. It validates the mobile manifest (Expo app.json, Android
+	// build.gradle, iOS Info.plist), signing setup, bundle identifier
+	// uniqueness, target-platform alignment, and — when a runtime is
+	// available — drives a real `eas build --local` / `gradle assembleDebug`
+	// / `xcodebuild build` to confirm the project actually compiles for the
+	// declared target. ProfitGuard meters this gate; large native builds are
+	// expensive and must respect the wallet contract before they spin up.
+	GateMobileBuild GateName = "mobile_build"
+	// GateMobileExpoDoctor runs `expo-doctor` (or its static fallback)
+	// for Expo / React Native bare projects so issues like
+	// mismatched-native-deps or missing Metro config land in the
+	// gate verdict before the build gate even tries to compile.
+	GateMobileExpoDoctor GateName = "mobile_expo_doctor"
+	// GateMobileSize enforces APK/AAB/IPA size budgets against the
+	// last mobile build artifact. Oversized binaries hurt install
+	// conversion (Android) or get rejected outright (iOS App Store).
+	GateMobileSize GateName = "mobile_size"
+	// GateMobileSecurity layers mobile-specific OWASP-MASVS-style
+	// checks (Android manifest hygiene, iOS Info.plist permission
+	// strings, hardcoded API keys in the JS bundle) on top of the
+	// generic SecurityGate.
+	GateMobileSecurity GateName = "mobile_security"
+	// GateIOSPrivacyManifest enforces the PrivacyInfo.xcprivacy
+	// manifest Apple requires for App Store submission since May
+	// 2024. Without it App Store Connect rejects the upload.
+	GateIOSPrivacyManifest GateName = "ios_privacy_manifest"
+	// GateMobilePushCredentials fires when the project uses push
+	// notifications (expo-notifications, @react-native-firebase/messaging,
+	// UNUserNotificationCenter, FirebaseMessaging, or firebase_messaging
+	// from Flutter) and validates that the credentials needed to ship
+	// push to a real device exist: APN .p8 + key ID + team ID for iOS;
+	// FCM service account + google-services.json + applicationId
+	// consistency for Android. Without this gate, push silently fails
+	// in production — competitors don't enforce it.
+	GateMobilePushCredentials GateName = "mobile_push_credentials"
+	// GateLighthouse audits a deployed web project against Google's
+	// PageSpeed Insights API (Lighthouse on Google infra) for
+	// Performance, Accessibility, SEO, and Best Practices. Runs after
+	// Deploy on projects with a public preview URL; stays dark on
+	// mobile-only or backend-only stacks. Performance and Accessibility
+	// failures are blocking (Coder repair); SEO and Best Practices warn.
+	// This gate is the brand-quality enforcer that separates Ironflyer's
+	// "production discipline" pitch from competitors who ship without
+	// measured live-runtime quality.
+	GateLighthouse GateName = "lighthouse"
+	// GateMobileBundleAnalyzer reads the JS bundle produced by the
+	// MobileBuildGate (or its source-map output) and flags packages
+	// over a per-package size budget. Common offenders (moment.js,
+	// full lodash, full icon libraries) trigger an opinionated Hint
+	// pointing at a lighter alternative so the repair Coder doesn't
+	// have to re-derive the well-known fixes. Pure analysis — never
+	// fails the build when react-native-bundle-visualizer isn't
+	// installed; emits a SeverityInfo nudge instead.
+	GateMobileBundleAnalyzer GateName = "mobile_bundle_analyzer"
 )
 
 func AllGates() []GateName {
-	return []GateName{GateSpec, GateUX, GateArch, GateCode, GateLint, GateTest, GateSecurity, GateBudget, GateDeploy}
+	return []GateName{
+		GateSpec, GateUX, GateArch,
+		GateCode, GateLint, GateTest,
+		GateSecurity, GateBudget,
+		GateMobileBuild,
+		GateMobileExpoDoctor, GateMobileSize,
+		GateMobileSecurity, GateIOSPrivacyManifest,
+		GateMobilePushCredentials,
+		GateMobileBundleAnalyzer,
+		GateDeploy,
+		GateLighthouse,
+	}
 }
 
 type GateStatus string
@@ -173,6 +239,188 @@ type StackDecision struct {
 	Backend  string `json:"backend"`
 	Storage  string `json:"storage"`
 	Auth     string `json:"auth"`
+	// Mobile is OPTIONAL. When zero-valued (Kind == ""), the project is
+	// web-only and the MobileBuildGate stays dark. When set, every gate
+	// that knows about mobile (Arch, MobileBuild, Deploy) applies the
+	// mobile contract to the relevant subproject(s).
+	Mobile MobileStack `json:"mobile,omitempty"`
+}
+
+// MobileKind enumerates the mobile stacks Ironflyer supports natively.
+// Adding a new value is a coordinated change: domain → finisher gates →
+// runtime mobile driver → starter template → web stack picker.
+type MobileKind string
+
+const (
+	// MobileKindNone is the zero value — project is web-only, no mobile
+	// gate runs. Equivalent to an empty MobileStack.
+	MobileKindNone MobileKind = ""
+	// MobileKindExpo is the recommended path: Expo Router + EAS Build,
+	// no Mac required for Android, EAS handles iOS signing in the cloud.
+	// Validated against template "react-native-expo".
+	MobileKindExpo MobileKind = "expo"
+	// MobileKindReactNativeBare is the ejected/bare React Native flow:
+	// the project owns its own ios/ and android/ directories. Native
+	// builds run via Gradle (Android) and xcodebuild (iOS Pro tier).
+	MobileKindReactNativeBare MobileKind = "react-native-bare"
+	// MobileKindAndroidNative is pure Kotlin + Jetpack Compose, built
+	// in a Linux container with the Android SDK + Gradle. No iOS path.
+	MobileKindAndroidNative MobileKind = "android-native"
+	// MobileKindIOSNative is pure Swift + SwiftUI, built on an actual
+	// Mac host (Scaleway / MacStadium / AWS mac instances) via the
+	// iOS Pro tier. Refuses to run without a wired mac pool.
+	MobileKindIOSNative MobileKind = "ios-native"
+	// MobileKindFlutter is Flutter + Dart, Android builds in Linux,
+	// iOS builds require the same Mac path as MobileKindIOSNative.
+	MobileKindFlutter MobileKind = "flutter"
+)
+
+// MobileTarget is one platform a mobile build must produce a binary for.
+type MobileTarget string
+
+const (
+	MobileTargetAndroid MobileTarget = "android"
+	MobileTargetIOS     MobileTarget = "ios"
+)
+
+// MobileStack declares everything the finisher + runtime need to drive a
+// mobile build without re-deriving config from raw files every gate
+// iteration. It is persisted as part of ProductSpec.Stack so a project
+// resumes cleanly across orchestrator restarts.
+type MobileStack struct {
+	// Kind selects the build pipeline. Empty = web-only project.
+	Kind MobileKind `json:"kind,omitempty"`
+	// Targets enumerates the platforms the project commits to producing
+	// builds for. Subset of {android, ios}. Empty defaults to both when
+	// Kind is set, except MobileKindAndroidNative (android only) and
+	// MobileKindIOSNative (ios only).
+	Targets []MobileTarget `json:"targets,omitempty"`
+	// AppID is the reverse-DNS bundle identifier (e.g.
+	// "com.acme.flightplan"). Validated against AppIDPattern. Mandatory
+	// when Kind != MobileKindNone.
+	AppID string `json:"appId,omitempty"`
+	// DisplayName is the human-readable app name shown on the home
+	// screen (e.g. "Flight Plan"). Defaults to Project.Name when empty.
+	DisplayName string `json:"displayName,omitempty"`
+	// Version is the user-facing semver (e.g. "1.0.0"). Defaults to
+	// "0.1.0" on first build.
+	Version string `json:"version,omitempty"`
+	// MinAndroidSDK is the android `minSdkVersion`. 0 → 24 (Android 7,
+	// the same floor Expo SDK 53 enforces).
+	MinAndroidSDK int `json:"minAndroidSdk,omitempty"`
+	// MinIOSVersion is the iOS deployment target. Empty → "15.1" (the
+	// same floor React Native 0.74+ ships with).
+	MinIOSVersion string `json:"minIosVersion,omitempty"`
+	// EAS holds Expo-specific configuration: project ID, build profiles
+	// (development / preview / production), submit credentials hint.
+	// Only meaningful when Kind == MobileKindExpo or MobileKindReactNativeBare.
+	EAS *EASConfig `json:"eas,omitempty"`
+	// Signing holds the keystore + provisioning-profile metadata. The
+	// finisher gate validates this exists; actual private-key material
+	// is stored in Project.Secrets (never serialised to JSON) and
+	// injected into the build sandbox at exec time.
+	Signing *MobileSigning `json:"signing,omitempty"`
+}
+
+// EASConfig is the Expo Application Services profile selection.
+type EASConfig struct {
+	// ProjectID is the Expo Project ID (UUID) issued by `eas init`.
+	ProjectID string `json:"projectId,omitempty"`
+	// Profile selects the EAS build profile (development | preview |
+	// production). Defaults to "preview" — internal-distribution builds
+	// without store submission.
+	Profile string `json:"profile,omitempty"`
+	// Channel is the EAS Update channel (e.g. "main", "staging"). Empty
+	// disables OTA updates.
+	Channel string `json:"channel,omitempty"`
+	// Owner is the Expo account/organisation slug. Empty = the EAS
+	// token's default owner.
+	Owner string `json:"owner,omitempty"`
+}
+
+// MobileSigning is the build-time signing configuration. The gate verifies
+// the secret keys named here EXIST in Project.Secrets — actual values are
+// never serialised through the API surface.
+type MobileSigning struct {
+	// AndroidKeystoreSecret is the Project.Secrets key that holds the
+	// base64-encoded keystore file. Empty disables Android release
+	// builds (debug builds still work).
+	AndroidKeystoreSecret string `json:"androidKeystoreSecret,omitempty"`
+	// AndroidKeyAlias is the key alias inside the keystore.
+	AndroidKeyAlias string `json:"androidKeyAlias,omitempty"`
+	// AndroidStorePasswordSecret is the Project.Secrets key holding the
+	// store password.
+	AndroidStorePasswordSecret string `json:"androidStorePasswordSecret,omitempty"`
+	// AndroidKeyPasswordSecret is the Project.Secrets key holding the
+	// per-key password (often the same as the store password).
+	AndroidKeyPasswordSecret string `json:"androidKeyPasswordSecret,omitempty"`
+	// IOSProvisioningProfileSecret is the Project.Secrets key holding
+	// the base64-encoded .mobileprovision file. Empty disables iOS
+	// release builds.
+	IOSProvisioningProfileSecret string `json:"iosProvisioningProfileSecret,omitempty"`
+	// IOSCertificateP12Secret is the Project.Secrets key holding the
+	// base64-encoded .p12 distribution certificate.
+	IOSCertificateP12Secret string `json:"iosCertificateP12Secret,omitempty"`
+	// IOSCertificatePasswordSecret is the Project.Secrets key holding
+	// the .p12 password.
+	IOSCertificatePasswordSecret string `json:"iosCertificatePasswordSecret,omitempty"`
+	// IOSTeamID is the Apple Developer team identifier (10-char
+	// alphanumeric). Stored in the clear — it is not a secret on its
+	// own.
+	IOSTeamID string `json:"iosTeamId,omitempty"`
+}
+
+// AppIDPattern is the reverse-DNS validator for MobileStack.AppID.
+// Two-or-more dot-separated segments, each starting with a letter,
+// containing only letters, digits, and underscores. This matches the
+// intersection of the Android `applicationId` rule and the iOS bundle
+// identifier rule — anything that passes here is legal on both stores.
+const AppIDPattern = `^[a-zA-Z][a-zA-Z0-9_]*(?:\.[a-zA-Z][a-zA-Z0-9_]*)+$`
+
+// IsMobile reports whether this StackDecision opts into mobile builds.
+// Equivalent to `s.Mobile.Kind != MobileKindNone` but reads cleaner at
+// call sites that don't want to import the constant.
+func (s StackDecision) IsMobile() bool {
+	return s.Mobile.Kind != MobileKindNone
+}
+
+// EffectiveTargets returns the platforms the gate should enforce a
+// passing build on, applying Kind-specific defaults when Targets is
+// empty. Returns nil for web-only stacks.
+func (m MobileStack) EffectiveTargets() []MobileTarget {
+	if m.Kind == MobileKindNone {
+		return nil
+	}
+	if len(m.Targets) > 0 {
+		return m.Targets
+	}
+	switch m.Kind {
+	case MobileKindAndroidNative:
+		return []MobileTarget{MobileTargetAndroid}
+	case MobileKindIOSNative:
+		return []MobileTarget{MobileTargetIOS}
+	default:
+		return []MobileTarget{MobileTargetAndroid, MobileTargetIOS}
+	}
+}
+
+// NeedsMacHost reports whether the project's iOS target forces the
+// mobile build gate onto the Pro tier (Mac pool). Used by ProfitGuard
+// to attach the macOS hourly cost to the reservation BEFORE the gate
+// actually allocates a workspace.
+func (m MobileStack) NeedsMacHost() bool {
+	for _, t := range m.EffectiveTargets() {
+		if t == MobileTargetIOS {
+			// Expo + EAS can build iOS in the EAS cloud — no Mac in our
+			// pool needed. Every other kind that touches iOS does need
+			// a Mac.
+			if m.Kind == MobileKindExpo {
+				return false
+			}
+			return true
+		}
+	}
+	return false
 }
 
 // VisualTarget is one reference screenshot the user wants the live

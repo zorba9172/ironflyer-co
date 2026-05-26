@@ -10,22 +10,7 @@ import (
 	"ironflyer/apps/orchestrator/internal/graph/model"
 	"ironflyer/apps/orchestrator/internal/operator"
 	"time"
-
-	"github.com/vektah/gqlparser/v2/gqlerror"
 )
-
-// gqlForbiddenOperator is the typed GraphQL error returned when a
-// non-operator caller asks for the platform-wide Scale dashboard.
-// Lifted into a helper so the rule is one line at every operator-only
-// resolver.
-func gqlForbiddenOperator() *gqlerror.Error {
-	return &gqlerror.Error{
-		Message: "operator role required",
-		Extensions: map[string]any{
-			"code": "FORBIDDEN",
-		},
-	}
-}
 
 // ProfitDashboard is the resolver for the profitDashboard field.
 //

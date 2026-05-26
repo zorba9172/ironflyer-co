@@ -17,7 +17,7 @@
 --                      rollup is ever corrupted.
 --
 -- IDs are text because the registry is built in code (NewBuiltInRegistry)
--- with stable string keys ("nextjs-mvp", "go-http-api", "static-landing");
+-- with stable string keys ("nextjs-production", "go-http-api", "static-landing");
 -- a UUID FK would force an additional bootstrap path with no value.
 -- tenant_id / execution_id are plain UUIDs (same convention as
 -- 00025_ledger.sql) — the executions table is owned by Agent 4 and we

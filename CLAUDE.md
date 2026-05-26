@@ -300,6 +300,75 @@ otherwise.
   coral-magenta-violet gradient through the theme. Do not revive the
   old lime-first identity.
 
+## Mobile support — Expo, Android native, iOS native, Flutter
+
+Ironflyer ships native mobile builds as a first-class surface, not a
+hybrid PWA wrap. The contract is the same as for web — gates block,
+patches review, ProfitGuard meters every minute — only the targets
+and the tooling differ.
+
+**Supported `StackDecision.Mobile.Kind` values:**
+- `expo` (recommended) — Expo Router + EAS Build. No Mac in our pool
+  required for iOS (EAS cloud handles signing).
+- `react-native-bare` — Ejected RN. Native folders on disk;
+  Android builds in Linux, iOS requires Mac pool.
+- `android-native` — Kotlin + Jetpack Compose. Linux sandbox only.
+- `ios-native` — Swift + SwiftUI. **Pro tier required** (mac pool;
+  Scaleway/MacStadium/AWS mac2.metal hosts).
+- `flutter` — Dart + Flutter. Android Linux-only; iOS needs Mac pool.
+
+**Gate:** `domain.GateMobileBuild` runs after Budget, before Deploy.
+It validates the manifest (Expo `app.json` / Android `build.gradle` /
+iOS `xcodegen.yml` + xcodeproj / Flutter `pubspec.yaml`), checks the
+reverse-DNS bundle id against `domain.AppIDPattern`, verifies signing
+secrets exist in `Project.Secrets` (never serialised), then — when a
+workspace runtime is attached — drives a real `gradlew assembleDebug`
+or `xcodebuild build` or `eas build` and confirms the artifact lands
+at the expected path. `IRONFLYER_MAC_POOL_ENABLED=1` enables the iOS
+native path; absence forces a degraded SeverityInfo "deferred to EAS
+cloud" or SeverityWarning when no fallback exists.
+
+**Runtime:** `apps/runtime/internal/mobile/` owns per-workspace mobile
+lifecycle — Metro server start/stop, Android emulator allocation
+(KVM passthrough required on the host), iOS xcodebuild dispatch.
+Routes live under `/v1/workspaces/{id}/mobile/...` on the runtime
+service (same auth + per-user isolation as the existing routes; the
+GraphQL-only rule applies to the **orchestrator**, not the runtime).
+
+**Image:** `infra/Dockerfile.mobile-runtime` adds Android SDK 35 +
+emulator + Expo/EAS CLIs + optional Flutter (`--build-arg
+WITH_FLUTTER=1`). Mac pool provisioning lives in
+`infra/Dockerfile.mobile-runtime-mac.md` (markdown, not a Dockerfile
+— macOS cannot be containerised).
+
+**Templates:** Real, runnable starters live at
+`templates/starters/react-native-expo/`,
+`templates/starters/android-kotlin/`,
+`templates/starters/ios-swift/`. Each one obeys the same constraints
+as the rest of the repo (English UI copy; design-token-derived
+colors in user-facing UI; no test files).
+
+**Ledger:** Mobile is metered separately so the cost panel can split
+build minutes from emulator minutes from Mac workspace minutes —
+see `apps/orchestrator/internal/ledger/mobile.go` (`EntryMobileBuildMin`,
+`EntryEmulatorMin`, `EntryMacWorkspaceMin`, `EntryEASBuildCredit`,
+`EntryAppetizeMin`). ProfitGuard reservation lives at
+`apps/orchestrator/internal/wireup/profitguard_mobile.go`. A
+follow-up migration must extend the `ledger_entries.entry_type`
+CHECK constraint to allow the new values (currently the in-memory
+backend accepts them; Postgres rejects them).
+
+**Agents:** Two new roles in `agents.yaml` — `mobile-coder` and
+`mobile-deployer`. The first owns Expo/RN/Kotlin/Swift/Flutter
+patches; the second owns `eas.json`, fastlane, and the mobile
+release GitHub Actions workflow.
+
+**Pricing tier boundary:** Expo + Android-native are Free tier
+eligible. iOS native (any `NeedsMacHost()` path) is Pro tier only —
+the cost floor on Apple-licensed hardware is ~$130–500/month per
+concurrent workspace and ProfitGuard refuses Mac allocations that
+would push the user's wallet negative.
+
 ## Pricing — V22 wallet model
 
 Pricing is a prepaid wallet topped up via Stripe Checkout. Every paid

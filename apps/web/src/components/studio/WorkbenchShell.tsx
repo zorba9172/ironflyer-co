@@ -384,6 +384,7 @@ export function WorkbenchShell(props: WorkbenchShellProps) {
                 projectID={projectID}
                 executionID={execution?.id ?? ""}
                 executionStatus={execution?.status ?? "idle"}
+                workspaceID={execution?.workspaceID ?? execution?.id ?? ""}
                 messages={messages}
                 onTabChange={setDockTab}
                 onClose={toggleDock}
@@ -561,7 +562,7 @@ function MobileWorkbench(props: MobileWorkbenchProps) {
     { key: "preview", label: "Preview", icon: RocketLaunchRounded },
     { key: "code", label: "Code", icon: CodeRounded },
     { key: "files", label: "Files", icon: FolderRounded },
-    { key: "dashboard", label: "Stats", icon: LayersRounded },
+    { key: "dashboard", label: "Dashboard", icon: LayersRounded },
   ];
 
   return (
@@ -736,6 +737,7 @@ function MobileWorkbench(props: MobileWorkbenchProps) {
           projectID={projectID}
           executionID={execution?.id ?? ""}
           executionStatus={execution?.status ?? "idle"}
+          workspaceID={execution?.workspaceID ?? execution?.id ?? ""}
           messages={messages}
           onTabChange={setDockTab}
           onClose={toggleDock}

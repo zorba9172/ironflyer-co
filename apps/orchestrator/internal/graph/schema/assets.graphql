@@ -1,0 +1,66 @@
+# Mobile asset generation surface — takes a single square logo PNG plus
+# colour choices and renders the full ~20-asset bundle every mobile app
+# needs (Android mipmaps + adaptive icon, iOS AppIcon.appiconset +
+# Contents.json + LaunchScreen.storyboard, Expo icon/splash/favicon).
+#
+# Persistence trade-off: we deliberately return the generated bundle
+# as a manifest (path + size + purpose, no binary blobs) so the GraphQL
+# response stays small and reviewable. The actual PNG bytes are written
+# to the workspace by a follow-up runtime call when persistence is
+# wired — sending base64 blobs through GraphQL responses is feasible
+# but rapidly turns into multi-MB payloads the moment a project ships
+# all three platforms at once.
+extend type Mutation {
+  generateMobileAssets(
+    input: GenerateMobileAssetsInput!
+  ): GenerateMobileAssetsResult!
+}
+
+input GenerateMobileAssetsInput {
+  # projectId scopes the generated bundle to a single project so the
+  # follow-up persistence step lands the bytes in the right tree.
+  projectId: String!
+
+  # logoPngBase64 is the source square logo. MUST be at least
+  # 1024x1024 — smaller logos produce visible aliasing at the larger
+  # marketing sizes. The base64 wrapper exists because GraphQL has no
+  # native Upload scalar in this schema; the frontend reads the file
+  # with FileReader and posts the base64 string.
+  logoPngBase64: String!
+
+  # backgroundColor is the hex (#rrggbb) used for the adaptive icon
+  # background tile and the splash canvas. Pulled from
+  # tokens.color.bg.base by default in the UI.
+  backgroundColor: String!
+
+  # splashForegroundColor optionally tints the splash-screen label.
+  # Defaults to white when omitted.
+  splashForegroundColor: String
+
+  # platforms is the set of platforms to render. Valid values:
+  # "android", "ios", "expo". An empty list means "all three".
+  platforms: [String!]!
+}
+
+type GenerateMobileAssetsResult {
+  # filesCount is the total number of assets emitted across every
+  # requested platform.
+  filesCount: Int!
+  # totalBytes is the sum of every entry's sizeBytes — useful for the
+  # UI to surface "1.4 MB generated" without iterating the list.
+  totalBytes: Int!
+  generatedAt: DateTime!
+  entries: [GenerateMobileAssetEntry!]!
+}
+
+type GenerateMobileAssetEntry {
+  # path is the project-relative path the asset will be written to
+  # once the persistence step is wired.
+  path: String!
+  width: Int!
+  height: Int!
+  sizeBytes: Int!
+  # purpose is a stable identifier the UI uses to group thumbnails
+  # ("icon-mdpi", "splash-2x", "appicon-1024", "adaptive-foreground"...)
+  purpose: String!
+}

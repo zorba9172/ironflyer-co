@@ -39,6 +39,7 @@ import {
   MenuItem,
   Select,
   Stack,
+  TextField,
   Tooltip,
   Typography,
 } from "@mui/material";
@@ -47,15 +48,22 @@ import { ApolloError } from "@apollo/client";
 import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import {
   useBuildDeployPreviewMutation,
+  useCheckDeployDomainMutation,
+  useConnectDeployDomainMutation,
   useDecideDeployApprovalMutation,
+  useDeployDomainsQuery,
   useDeployQuery,
+  useDomainAvailabilityLazyQuery,
   useEstimateExecutionCostQuery,
   useExecutionSupportBundleQuery,
   usePendingDeployApprovalsQuery,
   usePlanDeployMutation,
   usePromoteDeployMutation,
+  usePurchaseDeployDomainMutation,
+  useReserveDeploySubdomainMutation,
   type DeployCoreFragment,
   type DeployApprovalCoreFragment,
+  type DeployDomainCoreFragment,
   type ExecutionCoreFragment,
 } from "../../lib/gql/__generated__";
 import { extractErrorMessage, normalizeError } from "../../lib/errors";
@@ -630,7 +638,11 @@ export function PublishDialog({ open, onClose, execution, onPublished }: Publish
           )}
 
           {state.phase === "live" && (
-            <LiveBody productionURL={state.productionURL} deployID={state.deployID} />
+            <LiveBody
+              productionURL={state.productionURL}
+              deployID={state.deployID}
+              projectID={execution.projectID ?? ""}
+            />
           )}
 
           {state.phase === "failed" && errMsg && (
@@ -1007,9 +1019,11 @@ function ApproveBody(props: {
 function LiveBody({
   productionURL,
   deployID,
+  projectID,
 }: {
   productionURL: string | null;
   deployID: string | null;
+  projectID: string;
 }) {
   const [copied, setCopied] = useState(false);
   const onCopy = useCallback(async () => {
@@ -1106,6 +1120,10 @@ function LiveBody({
         </Box>
       )}
 
+      {deployID && projectID && (
+        <DomainManager projectID={projectID} deployID={deployID} />
+      )}
+
       {deployID && (
         <Stack direction="row" justifyContent="flex-start">
           <Button
@@ -1115,6 +1133,266 @@ function LiveBody({
           >
             View deploy details →
           </Button>
+        </Stack>
+      )}
+    </Stack>
+  );
+}
+
+function DomainManager({ projectID, deployID }: { projectID: string; deployID: string }) {
+  const [customHost, setCustomHost] = useState("");
+  const [purchaseHost, setPurchaseHost] = useState("");
+  const [message, setMessage] = useState<string | null>(null);
+  const [autoClaimAttempted, setAutoClaimAttempted] = useState(false);
+
+  const domainsQuery = useDeployDomainsQuery({
+    variables: { projectID },
+    skip: !projectID,
+    fetchPolicy: "cache-and-network",
+  });
+  const domains = domainsQuery.data?.deployDomains ?? [];
+  const managed = domains.find((d) => d.kind === "managed_subdomain") ?? null;
+  const primary = domains.find((d) => d.primary) ?? domains[0] ?? null;
+
+  const [reserveSubdomain, reserveState] = useReserveDeploySubdomainMutation();
+  const [connectDomain, connectState] = useConnectDeployDomainMutation();
+  const [checkDomain, checkState] = useCheckDeployDomainMutation();
+  const [checkAvailability, availabilityState] = useDomainAvailabilityLazyQuery();
+  const [purchaseDomain, purchaseState] = usePurchaseDeployDomainMutation();
+
+  useEffect(() => {
+    if (!projectID || !deployID || managed || reserveState.loading || domainsQuery.loading || autoClaimAttempted) return;
+    let cancelled = false;
+    const claim = async () => {
+      setAutoClaimAttempted(true);
+      try {
+        await reserveSubdomain({
+          variables: {
+            input: { projectID, deployID, provider: "ironflyer", primary: domains.length === 0 },
+          },
+        });
+        if (!cancelled) void domainsQuery.refetch();
+      } catch {
+        /* The production URL is already live; domain claim can be retried manually. */
+      }
+    };
+    void claim();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    projectID,
+    deployID,
+    managed,
+    reserveState.loading,
+    domainsQuery.loading,
+    domainsQuery.refetch,
+    reserveSubdomain,
+    domains.length,
+    autoClaimAttempted,
+  ]);
+
+  const connect = useCallback(async () => {
+    const host = customHost.trim().toLowerCase();
+    if (!host) return;
+    setMessage(null);
+    try {
+      await connectDomain({
+        variables: { input: { projectID, deployID, hostname: host, provider: "ironflyer", primary: true } },
+      });
+      setCustomHost("");
+      setMessage("DNS records are ready.");
+      setAutoClaimAttempted(true);
+      void domainsQuery.refetch();
+    } catch (err) {
+      setMessage(extractErrorMessage(err instanceof Error ? err : new Error(String(err))));
+    }
+  }, [connectDomain, customHost, deployID, domainsQuery, projectID]);
+
+  const refresh = useCallback(async (domain: DeployDomainCoreFragment) => {
+    setMessage(null);
+    try {
+      await checkDomain({ variables: { id: domain.id } });
+      void domainsQuery.refetch();
+    } catch (err) {
+      setMessage(extractErrorMessage(err instanceof Error ? err : new Error(String(err))));
+    }
+  }, [checkDomain, domainsQuery]);
+
+  const purchase = useCallback(async () => {
+    const domain = purchaseHost.trim().toLowerCase();
+    if (!domain) return;
+    setMessage(null);
+    try {
+      const avail = await checkAvailability({ variables: { domain, registrar: "cloudflare" } });
+      if (!avail.data?.domainAvailability.canPurchase) {
+        setMessage(avail.data?.domainAvailability.reason ?? "Domain purchase is not available from this workspace.");
+        return;
+      }
+      await purchaseDomain({
+        variables: {
+          input: {
+            projectID,
+            deployID,
+            domain,
+            provider: "ironflyer",
+            registrar: "cloudflare",
+            years: 1,
+            autoRenew: true,
+            expectedPriceUSD: avail.data.domainAvailability.priceUSD,
+            primary: true,
+          },
+        },
+      });
+      setPurchaseHost("");
+      setMessage("Purchase submitted; DNS verification is next.");
+      setAutoClaimAttempted(true);
+      void domainsQuery.refetch();
+    } catch (err) {
+      setMessage(extractErrorMessage(err instanceof Error ? err : new Error(String(err))));
+    }
+  }, [checkAvailability, deployID, domainsQuery, projectID, purchaseDomain, purchaseHost]);
+
+  return (
+    <Box
+      sx={{
+        bgcolor: tokens.color.bg.inset,
+        border: `1px solid ${tokens.color.border.subtle}`,
+        borderRadius: 1,
+        p: 1.25,
+      }}
+    >
+      <Stack spacing={1}>
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <Typography
+            sx={{
+              color: tokens.color.text.primary,
+              flex: 1,
+              fontSize: 13,
+              fontWeight: 800,
+            }}
+          >
+            Domains
+          </Typography>
+          {domainsQuery.loading && <CircularProgress size={14} thickness={5} />}
+        </Stack>
+
+        {primary ? (
+          <Stack spacing={0.75}>
+            {domains.map((domain) => (
+              <DomainRow
+                key={domain.id}
+                domain={domain}
+                onCheck={() => refresh(domain)}
+                checking={checkState.loading}
+              />
+            ))}
+          </Stack>
+        ) : (
+          <Typography sx={{ color: tokens.color.text.muted, fontSize: 12 }}>
+            Claiming your Ironflyer subdomain…
+          </Typography>
+        )}
+
+        <Divider sx={{ borderColor: tokens.color.border.subtle }} />
+
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+          <TextField
+            size="small"
+            label="Connect domain"
+            placeholder="www.example.com"
+            value={customHost}
+            onChange={(e) => setCustomHost(e.target.value)}
+            sx={domainTextFieldSx}
+          />
+          <Button onClick={connect} disabled={!customHost.trim() || connectState.loading} sx={ghostButtonSx}>
+            Connect
+          </Button>
+        </Stack>
+
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+          <TextField
+            size="small"
+            label="Buy domain"
+            placeholder="example.com"
+            value={purchaseHost}
+            onChange={(e) => setPurchaseHost(e.target.value)}
+            sx={domainTextFieldSx}
+          />
+          <Button
+            onClick={purchase}
+            disabled={!purchaseHost.trim() || availabilityState.loading || purchaseState.loading}
+            sx={ghostButtonSx}
+          >
+            Buy
+          </Button>
+        </Stack>
+
+        {message && (
+          <Typography sx={{ color: tokens.color.text.muted, fontSize: 11.5 }}>
+            {message}
+          </Typography>
+        )}
+      </Stack>
+    </Box>
+  );
+}
+
+function DomainRow({
+  domain,
+  onCheck,
+  checking,
+}: {
+  domain: DeployDomainCoreFragment;
+  onCheck: () => void;
+  checking: boolean;
+}) {
+  const tone =
+    domain.status === "live"
+      ? tokens.color.accent.success
+      : domain.status === "failed"
+        ? tokens.color.accent.danger
+        : tokens.color.accent.warning;
+  return (
+    <Stack spacing={0.4}>
+      <Stack direction="row" spacing={1} alignItems="center">
+        <Typography
+          sx={{
+            color: tokens.color.text.primary,
+            flex: 1,
+            fontFamily: tokens.font.mono,
+            fontSize: 12.5,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+          title={domain.hostname}
+        >
+          {domain.primary ? "★ " : ""}
+          {domain.hostname}
+        </Typography>
+        <Typography sx={{ color: tone, fontFamily: tokens.font.mono, fontSize: 10.5 }}>
+          {domain.status.replace(/_/g, " ")}
+        </Typography>
+        <Button size="small" onClick={onCheck} disabled={checking} sx={tinyGhostButtonSx}>
+          Check
+        </Button>
+      </Stack>
+      {domain.status !== "live" && domain.dnsRecords.length > 0 && (
+        <Stack spacing={0.25}>
+          {domain.dnsRecords.slice(0, 3).map((r, idx) => (
+            <Typography
+              key={`${domain.id}-${idx}`}
+              sx={{
+                color: tokens.color.text.muted,
+                fontFamily: tokens.font.mono,
+                fontSize: 10.5,
+                wordBreak: "break-all",
+              }}
+            >
+              {r.type} {r.name} → {r.value}
+            </Typography>
+          ))}
         </Stack>
       )}
     </Stack>
@@ -1366,6 +1644,45 @@ const ghostButtonSx = {
   px: 1.25,
   textTransform: "none" as const,
   "&:hover": { bgcolor: tokens.color.bg.surfaceHover, color: tokens.color.text.primary },
+};
+
+const tinyGhostButtonSx = {
+  ...ghostButtonSx,
+  fontSize: 11,
+  minHeight: 26,
+  minWidth: 0,
+  px: 0.9,
+};
+
+const domainTextFieldSx = {
+  flex: 1,
+  minWidth: 0,
+  "& .MuiInputBase-root": {
+    bgcolor: tokens.color.bg.surface,
+    color: tokens.color.text.primary,
+    fontFamily: tokens.font.mono,
+    fontSize: 12.5,
+  },
+  "& .MuiInputLabel-root": {
+    color: tokens.color.text.muted,
+    fontSize: 12,
+  },
+  "& .MuiInputLabel-root.Mui-focused": {
+    color: tokens.color.accent.violet,
+  },
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderColor: tokens.color.border.subtle,
+  },
+  "&:hover .MuiOutlinedInput-notchedOutline": {
+    borderColor: tokens.color.border.strong ?? tokens.color.border.subtle,
+  },
+  "& .Mui-focused .MuiOutlinedInput-notchedOutline": {
+    borderColor: tokens.color.accent.violet,
+  },
+  "& input::placeholder": {
+    color: tokens.color.text.muted,
+    opacity: 0.75,
+  },
 };
 
 function alertSx(tone: "warning" | "danger" | "success") {

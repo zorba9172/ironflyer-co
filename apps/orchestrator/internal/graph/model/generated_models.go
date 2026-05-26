@@ -54,6 +54,19 @@ type AgentCall struct {
 	ProjectID        *string   `json:"projectId,omitempty"`
 }
 
+type AppetizeApp struct {
+	PublicKey string    `json:"publicKey"`
+	EmbedURL  string    `json:"embedUrl"`
+	Platform  string    `json:"platform"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+type AppetizeUploadInput struct {
+	ProjectID     string  `json:"projectId"`
+	BuildID       string  `json:"buildId"`
+	DeviceProfile *string `json:"deviceProfile,omitempty"`
+}
+
 type AuditChainProof struct {
 	WindowStart time.Time         `json:"windowStart"`
 	WindowEnd   time.Time         `json:"windowEnd"`
@@ -202,6 +215,15 @@ type CohortDashboard struct {
 	Cohorts []Cohort `json:"cohorts"`
 }
 
+type ConnectDeployDomainInput struct {
+	ProjectID string  `json:"projectID"`
+	DeployID  *string `json:"deployID,omitempty"`
+	Hostname  string  `json:"hostname"`
+	Provider  *string `json:"provider,omitempty"`
+	Primary   *bool   `json:"primary,omitempty"`
+	Metadata  JSON    `json:"metadata,omitempty"`
+}
+
 type CostDelta struct {
 	Ts         time.Time `json:"ts"`
 	UsdSpent   Decimal   `json:"usdSpent"`
@@ -254,6 +276,13 @@ type CreateStageInput struct {
 	PatchIds    []string `json:"patchIds"`
 }
 
+type DNSRecord struct {
+	Type  string `json:"type"`
+	Name  string `json:"name"`
+	Value string `json:"value"`
+	TTL   *int   `json:"ttl,omitempty"`
+}
+
 type DashboardBlueprintStats struct {
 	BlueprintID        string  `json:"blueprintID"`
 	Executions         int     `json:"executions"`
@@ -303,6 +332,28 @@ type DeployApproval struct {
 	DecidedAt     *time.Time `json:"decidedAt,omitempty"`
 }
 
+type DeployDomain struct {
+	ID                 string      `json:"id"`
+	TenantID           string      `json:"tenantID"`
+	ProjectID          string      `json:"projectID"`
+	DeployID           *string     `json:"deployID,omitempty"`
+	Hostname           string      `json:"hostname"`
+	Kind               string      `json:"kind"`
+	Status             string      `json:"status"`
+	Provider           string      `json:"provider"`
+	Registrar          *string     `json:"registrar,omitempty"`
+	Primary            bool        `json:"primary"`
+	DNSRecords         []DNSRecord `json:"dnsRecords"`
+	VerificationStatus string      `json:"verificationStatus"`
+	CertificateStatus  string      `json:"certificateStatus"`
+	Instructions       string      `json:"instructions"`
+	Metadata           JSON        `json:"metadata"`
+	CreatedAt          time.Time   `json:"createdAt"`
+	UpdatedAt          time.Time   `json:"updatedAt"`
+	VerifiedAt         *time.Time  `json:"verifiedAt,omitempty"`
+	LiveAt             *time.Time  `json:"liveAt,omitempty"`
+}
+
 type DeployEvent struct {
 	DeployID  string    `json:"deployID"`
 	EventType string    `json:"eventType"`
@@ -315,6 +366,50 @@ type DescribeIdeaInput struct {
 	BudgetUSDOverride   *float64 `json:"budgetUSDOverride,omitempty"`
 	StartImmediately    *bool    `json:"startImmediately,omitempty"`
 	BlueprintIDOverride *string  `json:"blueprintIDOverride,omitempty"`
+}
+
+type DeviceCloudDevice struct {
+	ID           string  `json:"id"`
+	Provider     string  `json:"provider"`
+	Platform     string  `json:"platform"`
+	OsVersion    string  `json:"osVersion"`
+	Model        string  `json:"model"`
+	Manufacturer *string `json:"manufacturer,omitempty"`
+	Real         bool    `json:"real"`
+}
+
+type DeviceCloudSession struct {
+	ID                  string    `json:"id"`
+	Provider            string    `json:"provider"`
+	DeviceID            string    `json:"deviceId"`
+	Status              string    `json:"status"`
+	AppURL              *string   `json:"appUrl,omitempty"`
+	SessionURL          *string   `json:"sessionUrl,omitempty"`
+	StartedAt           time.Time `json:"startedAt"`
+	ExpiresAt           time.Time `json:"expiresAt"`
+	BillableMinutesUsed float64   `json:"billableMinutesUsed"`
+}
+
+type DeviceCloudStartInput struct {
+	ProjectID            string `json:"projectId"`
+	WorkspaceID          string `json:"workspaceId"`
+	Provider             string `json:"provider"`
+	DeviceID             string `json:"deviceId"`
+	AppURL               string `json:"appUrl"`
+	SessionLengthMinutes *int   `json:"sessionLengthMinutes,omitempty"`
+}
+
+type DomainAvailability struct {
+	Domain       string    `json:"domain"`
+	Available    bool      `json:"available"`
+	Registrar    string    `json:"registrar"`
+	PriceUsd     float64   `json:"priceUSD"`
+	Currency     string    `json:"currency"`
+	Premium      bool      `json:"premium"`
+	CanPurchase  bool      `json:"canPurchase"`
+	Reason       *string   `json:"reason,omitempty"`
+	CheckedAt    time.Time `json:"checkedAt"`
+	Requirements []string  `json:"requirements"`
 }
 
 type EmailChangeInput struct {
@@ -402,6 +497,29 @@ type GateVerdict struct {
 	FinishedAt *time.Time  `json:"finishedAt,omitempty"`
 	DurationMs *int        `json:"durationMs,omitempty"`
 	Notes      *string     `json:"notes,omitempty"`
+}
+
+type GenerateMobileAssetEntry struct {
+	Path      string `json:"path"`
+	Width     int    `json:"width"`
+	Height    int    `json:"height"`
+	SizeBytes int    `json:"sizeBytes"`
+	Purpose   string `json:"purpose"`
+}
+
+type GenerateMobileAssetsInput struct {
+	ProjectID             string   `json:"projectId"`
+	LogoPngBase64         string   `json:"logoPngBase64"`
+	BackgroundColor       string   `json:"backgroundColor"`
+	SplashForegroundColor *string  `json:"splashForegroundColor,omitempty"`
+	Platforms             []string `json:"platforms"`
+}
+
+type GenerateMobileAssetsResult struct {
+	FilesCount  int                        `json:"filesCount"`
+	TotalBytes  int                        `json:"totalBytes"`
+	GeneratedAt time.Time                  `json:"generatedAt"`
+	Entries     []GenerateMobileAssetEntry `json:"entries"`
 }
 
 type GqlError struct {
@@ -521,6 +639,85 @@ type LogEntry struct {
 	TenantID    *string   `json:"tenantID,omitempty"`
 	ExecutionID *string   `json:"executionID,omitempty"`
 	Fields      JSON      `json:"fields"`
+}
+
+type MobileBuild struct {
+	ID                string     `json:"id"`
+	ProjectID         string     `json:"projectId"`
+	Platform          string     `json:"platform"`
+	Profile           string     `json:"profile"`
+	Status            string     `json:"status"`
+	Distribution      *string    `json:"distribution,omitempty"`
+	ArtifactURL       *string    `json:"artifactUrl,omitempty"`
+	ArtifactSizeBytes *int       `json:"artifactSizeBytes,omitempty"`
+	LogURL            *string    `json:"logUrl,omitempty"`
+	AppVersion        *string    `json:"appVersion,omitempty"`
+	AppBuildVersion   *string    `json:"appBuildVersion,omitempty"`
+	SdkVersion        *string    `json:"sdkVersion,omitempty"`
+	Channel           *string    `json:"channel,omitempty"`
+	Initiator         *string    `json:"initiator,omitempty"`
+	ErrorMessage      *string    `json:"errorMessage,omitempty"`
+	CreatedAt         time.Time  `json:"createdAt"`
+	UpdatedAt         time.Time  `json:"updatedAt"`
+	CompletedAt       *time.Time `json:"completedAt,omitempty"`
+}
+
+type MobilePublishUpdateInput struct {
+	ProjectID      string  `json:"projectId"`
+	Channel        string  `json:"channel"`
+	Branch         *string `json:"branch,omitempty"`
+	Message        *string `json:"message,omitempty"`
+	RuntimeVersion string  `json:"runtimeVersion"`
+	ManifestExtra  JSON    `json:"manifestExtra,omitempty"`
+}
+
+type MobileSubmission struct {
+	ID           string     `json:"id"`
+	ProjectID    string     `json:"projectId"`
+	Platform     string     `json:"platform"`
+	Target       string     `json:"target"`
+	Status       string     `json:"status"`
+	BuildID      *string    `json:"buildId,omitempty"`
+	ArchiveURL   *string    `json:"archiveUrl,omitempty"`
+	LogURL       *string    `json:"logUrl,omitempty"`
+	ErrorMessage *string    `json:"errorMessage,omitempty"`
+	CreatedAt    time.Time  `json:"createdAt"`
+	UpdatedAt    time.Time  `json:"updatedAt"`
+	CompletedAt  *time.Time `json:"completedAt,omitempty"`
+}
+
+type MobileSubmitInput struct {
+	BuildID                  string  `json:"buildId"`
+	ProjectID                string  `json:"projectId"`
+	Platform                 string  `json:"platform"`
+	IosAppleID               *string `json:"iosAppleId,omitempty"`
+	IosAscAppID              *string `json:"iosAscAppId,omitempty"`
+	IosAppleTeamID           *string `json:"iosAppleTeamId,omitempty"`
+	IosSku                   *string `json:"iosSku,omitempty"`
+	IosCompanyName           *string `json:"iosCompanyName,omitempty"`
+	AndroidServiceAccountKey *string `json:"androidServiceAccountKey,omitempty"`
+	AndroidTrack             *string `json:"androidTrack,omitempty"`
+	AndroidReleaseStatus     *string `json:"androidReleaseStatus,omitempty"`
+}
+
+type MobileTriggerBuildInput struct {
+	ProjectID string  `json:"projectId"`
+	Platform  string  `json:"platform"`
+	Profile   *string `json:"profile,omitempty"`
+	Channel   *string `json:"channel,omitempty"`
+	Message   *string `json:"message,omitempty"`
+}
+
+type MobileUpdate struct {
+	ID             string    `json:"id"`
+	Branch         string    `json:"branch"`
+	Channel        string    `json:"channel"`
+	RuntimeVersion string    `json:"runtimeVersion"`
+	Platform       *string   `json:"platform,omitempty"`
+	Message        *string   `json:"message,omitempty"`
+	ManifestURL    *string   `json:"manifestUrl,omitempty"`
+	GroupID        *string   `json:"groupId,omitempty"`
+	CreatedAt      time.Time `json:"createdAt"`
 }
 
 type Mutation struct {
@@ -729,6 +926,20 @@ type ProposePatchInput struct {
 	Changes   []PatchChangeInput `json:"changes"`
 }
 
+type PurchaseDeployDomainInput struct {
+	ProjectID        string   `json:"projectID"`
+	DeployID         *string  `json:"deployID,omitempty"`
+	Domain           string   `json:"domain"`
+	Provider         *string  `json:"provider,omitempty"`
+	Registrar        *string  `json:"registrar,omitempty"`
+	Years            *int     `json:"years,omitempty"`
+	AutoRenew        *bool    `json:"autoRenew,omitempty"`
+	ExpectedPriceUsd *float64 `json:"expectedPriceUSD,omitempty"`
+	Contact          JSON     `json:"contact,omitempty"`
+	Primary          *bool    `json:"primary,omitempty"`
+	Metadata         JSON     `json:"metadata,omitempty"`
+}
+
 type Query struct {
 }
 
@@ -749,6 +960,15 @@ type RenameSymbolInput struct {
 type RerunGateInput struct {
 	ProjectID string `json:"projectId"`
 	Gate      string `json:"gate"`
+}
+
+type ReserveDeploySubdomainInput struct {
+	ProjectID string  `json:"projectID"`
+	DeployID  *string `json:"deployID,omitempty"`
+	Subdomain *string `json:"subdomain,omitempty"`
+	Provider  *string `json:"provider,omitempty"`
+	Primary   *bool   `json:"primary,omitempty"`
+	Metadata  JSON    `json:"metadata,omitempty"`
 }
 
 type RunDoneEvent struct {
@@ -976,6 +1196,11 @@ type WalletTopUp struct {
 	Status      string     `json:"status"`
 	CreatedAt   time.Time  `json:"createdAt"`
 	CompletedAt *time.Time `json:"completedAt,omitempty"`
+}
+
+type WriteProjectFileInput struct {
+	Path    string `json:"path"`
+	Content string `json:"content"`
 }
 
 type AuditOutcome string

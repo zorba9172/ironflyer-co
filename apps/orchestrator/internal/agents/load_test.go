@@ -16,6 +16,7 @@ func TestLoadDefaults_AllRolesPresent(t *testing.T) {
 		RolePlanner, RoleUXer, RoleArchitect, RoleCoder,
 		RoleReviewer, RoleTester, RoleSecurity, RoleDeployer,
 		RoleCritic, RoleMigrator, Role("figma-translator"),
+		Role("mobile-coder"), Role("mobile-deployer"),
 	}
 	if len(got) != len(want) {
 		t.Fatalf("expected %d agents, got %d", len(want), len(got))

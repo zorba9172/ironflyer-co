@@ -66,6 +66,15 @@ func (r *queryResolver) Ledger(ctx context.Context, filter *model.LedgerFilter) 
 }
 
 // LedgerRollup is the resolver for the ledgerRollup field.
+//
+// TODO(mobile-costs): the rollup computed by r.LedgerSvc.TenantRollup
+// now carries five mobile-cost legs (MobileBuildCostUSD,
+// EmulatorCostUSD, MacWorkspaceCostUSD, EASBuildCostUSD,
+// AppetizeCostUSD) plus a MobileCostUSD aggregate. These fields are
+// NOT yet wired into the GraphQL LedgerRollup type — extending
+// apps/orchestrator/internal/graph/schema/ledger.graphql and running
+// gqlgen is its own ticket. Until then the legs are computed inside
+// the orchestrator and visible via direct ledger access only.
 func (r *queryResolver) LedgerRollup(ctx context.Context, since time.Time, until time.Time) (*model.LedgerRollup, error) {
 	if r.LedgerSvc == nil {
 		return nil, gqlNotConfigured("ledger")
@@ -148,4 +157,42 @@ func (r *queryResolver) ExecutionLedger(ctx context.Context, executionID string,
 		end = len(rows)
 	}
 	return ledgerRowsToGraphQL(rows[off:end]), nil
+}
+
+// TenantProfitToday is the resolver for the tenantProfitToday field.
+//
+// Returns the same shape as LedgerRollup but pinned to today's UTC
+// window — answers "are we currently making money on this tenant?"
+// without forcing the caller to construct a DateTime range. The
+// projection mirrors LedgerRollup exactly; any divergence between
+// the two is a bug.
+func (r *queryResolver) TenantProfitToday(ctx context.Context) (*model.LedgerRollup, error) {
+	if r.LedgerSvc == nil {
+		return nil, gqlNotConfigured("ledger")
+	}
+	u, err := currentUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	tenantUUID, err := uuid.Parse(tenantFor(u))
+	if err != nil {
+		tenantUUID = uuid.NewSHA1(uuid.NameSpaceURL, []byte(tenantFor(u)))
+	}
+	now := time.Now().UTC()
+	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+	roll, err := r.LedgerSvc.TenantRollup(ctx, tenantUUID, startOfDay, now)
+	if err != nil {
+		return nil, err
+	}
+	return &model.LedgerRollup{
+		RevenueUsd:              floatOfDecimal(roll.RevenueUSD),
+		ProviderCostUsd:         floatOfDecimal(roll.ProviderCostUSD),
+		SandboxCostUsd:          floatOfDecimal(roll.SandboxCostUSD),
+		StorageCostUsd:          floatOfDecimal(roll.StorageCostUSD),
+		DeploymentCostUsd:       floatOfDecimal(roll.DeploymentCostUSD),
+		PremiumReasoningCostUsd: floatOfDecimal(roll.PremiumReasoningCostUSD),
+		RefundsUsd:              floatOfDecimal(roll.RefundsUSD),
+		PlatformMarginUsd:       floatOfDecimal(roll.PlatformMarginUSD),
+		GrossMarginPct:          floatOfDecimal(roll.GrossMarginPct),
+	}, nil
 }

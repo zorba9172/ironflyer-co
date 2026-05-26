@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 // CreateProject is the resolver for the createProject field.
@@ -175,6 +176,87 @@ func (r *mutationResolver) PromptPlan(ctx context.Context, id string, prompt str
 		return nil, err
 	}
 	return model.JSON{"project": projectToGraphQL(p)}, nil
+}
+
+// WriteProjectFiles is the resolver for the writeProjectFiles field.
+//
+// Replaces the project's Files slice with the supplied entries. Used by
+// the embedded openvscode IDE bidirectional sync: edits made by the
+// human operator inside the cloud editor are pushed back here so
+// Monaco + the finisher loop see the same state. AI-generated changes
+// still flow through patch.Engine.Propose; this is the operator
+// override path and intentionally bypasses the gate lifecycle.
+//
+// Guards: owner check (404-equivalent for non-owner), file count cap,
+// per-file size cap, total payload cap, path-traversal normalisation
+// (rejects `..`, absolute paths, empty paths, backslashes). These
+// mirror the limits in apps/web/app/api/ide/sync/route.ts so a direct
+// GraphQL caller can't bypass them.
+func (r *mutationResolver) WriteProjectFiles(ctx context.Context, id string, files []model.WriteProjectFileInput) ([]model.ProjectFile, error) {
+	const (
+		maxFiles      = 1000
+		maxFileBytes  = 2 * 1024 * 1024
+		maxTotalBytes = 25 * 1024 * 1024
+	)
+	if r.Resolver.Projects == nil {
+		return nil, gqlNotConfigured("projects")
+	}
+	u, err := currentUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if len(files) > maxFiles {
+		return nil, gqlerror.Errorf("writeProjectFiles: too many files (max %d)", maxFiles)
+	}
+	existing, err := r.Resolver.Projects.Get(id)
+	if err != nil {
+		if err == store.ErrNotFound {
+			return nil, err
+		}
+		return nil, err
+	}
+	if !existing.IsAccessibleBy(u.ID) {
+		return nil, errUnauthenticated
+	}
+	nextFiles := make([]domain.FileNode, 0, len(files))
+	totalBytes := 0
+	seen := make(map[string]struct{}, len(files))
+	for _, f := range files {
+		clean, ok := normalizeWritePath(f.Path)
+		if !ok {
+			return nil, gqlerror.Errorf("writeProjectFiles: illegal path %q", f.Path)
+		}
+		if _, dup := seen[clean]; dup {
+			return nil, gqlerror.Errorf("writeProjectFiles: duplicate path %q", clean)
+		}
+		seen[clean] = struct{}{}
+		bytes := len(f.Content)
+		if bytes > maxFileBytes {
+			return nil, gqlerror.Errorf("writeProjectFiles: %q exceeds per-file cap (%d > %d)", clean, bytes, maxFileBytes)
+		}
+		totalBytes += bytes
+		if totalBytes > maxTotalBytes {
+			return nil, gqlerror.Errorf("writeProjectFiles: payload exceeds total cap (%d > %d)", totalBytes, maxTotalBytes)
+		}
+		nextFiles = append(nextFiles, domain.FileNode{
+			Path:    clean,
+			Type:    "file",
+			Size:    bytes,
+			Content: f.Content,
+		})
+	}
+	p, err := r.Resolver.Projects.Update(id, func(p *domain.Project) {
+		p.Files = nextFiles
+		p.UpdatedAt = time.Now().UTC()
+	})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]model.ProjectFile, 0, len(p.Files))
+	for _, f := range p.Files {
+		out = append(out, fileToGraphQL(f))
+	}
+	return out, nil
 }
 
 // Projects is the resolver for the projects field. Owner-scoped: the

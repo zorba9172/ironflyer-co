@@ -1,0 +1,144 @@
+# Mobile build + submission + OTA update plane.
+#
+# Drives the orchestrator's real Expo Application Services (EAS)
+# integration. Mutations dispatch builds, cancel them, submit signed
+# artifacts to the App Store / Google Play, and publish OTA updates;
+# queries surface the build + submission history per project;
+# the mobileBuildStatus subscription streams status changes as the
+# EAS poller observes them.
+#
+# TODO: run gqlgen generate after edits — `go run github.com/99designs/gqlgen generate` from the orchestrator root.
+# The resolver implementations live in internal/graph/resolver/mobile.resolver.go.
+
+extend type Query {
+  # mobileBuilds returns the build history for a project, newest first.
+  # Resolver enforces project ownership before reaching EAS.
+  mobileBuilds(projectId: String!): [MobileBuild!]!
+
+  # mobileBuild fetches a single EAS build by id. Returns null when the
+  # caller has no access or the build is unknown.
+  mobileBuild(buildId: String!): MobileBuild
+
+  # mobileSubmissions returns the App Store / Play Store submission
+  # history for a project.
+  mobileSubmissions(projectId: String!): [MobileSubmission!]!
+}
+
+extend type Mutation {
+  # mobileTriggerBuild kicks off a new EAS build. The orchestrator
+  # passes the workspace bound to the request so artifacts and ledger
+  # entries land on the right project.
+  mobileTriggerBuild(input: MobileTriggerBuildInput!): MobileBuild!
+
+  # mobileCancelBuild stops an in-flight EAS build. Idempotent: a
+  # build that already completed returns true and a debug log line.
+  mobileCancelBuild(buildId: String!): Boolean!
+
+  # mobileSubmitToStore dispatches an existing build artifact to the
+  # App Store (iOS) or Google Play (Android).
+  mobileSubmitToStore(input: MobileSubmitInput!): MobileSubmission!
+
+  # mobilePublishUpdate publishes a new OTA update on the supplied
+  # channel + runtime version.
+  mobilePublishUpdate(input: MobilePublishUpdateInput!): MobileUpdate!
+}
+
+extend type Subscription {
+  # mobileBuildStatus streams build snapshots whenever the poller sees
+  # a status change for the named build. Closes on terminal status.
+  mobileBuildStatus(buildId: String!): MobileBuild!
+}
+
+# A MobileBuild mirrors the orchestrator-side eas.Build shape.
+type MobileBuild {
+  id: ID!
+  projectId: String!
+  platform: String!
+  profile: String!
+  status: String!
+  distribution: String
+  artifactUrl: String
+  artifactSizeBytes: Int
+  logUrl: String
+  appVersion: String
+  appBuildVersion: String
+  sdkVersion: String
+  channel: String
+  initiator: String
+  errorMessage: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  completedAt: DateTime
+}
+
+# A MobileSubmission mirrors eas.Submission. target is one of
+# ios-app-store | android-google-play.
+type MobileSubmission {
+  id: ID!
+  projectId: String!
+  platform: String!
+  target: String!
+  status: String!
+  buildId: String
+  archiveUrl: String
+  logUrl: String
+  errorMessage: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  completedAt: DateTime
+}
+
+# A MobileUpdate mirrors eas.Update.
+type MobileUpdate {
+  id: ID!
+  branch: String!
+  channel: String!
+  runtimeVersion: String!
+  platform: String
+  message: String
+  manifestUrl: String
+  groupId: String
+  createdAt: DateTime!
+}
+
+input MobileTriggerBuildInput {
+  projectId: String!
+  platform: String!
+  # profile is the eas.json build profile name (preview / production / ...).
+  profile: String
+  # channel forwarded to EAS so the build is associated with the
+  # right OTA update channel on success.
+  channel: String
+  # message is an operator-readable changelog hint surfaced in the
+  # dashboard timeline.
+  message: String
+}
+
+input MobileSubmitInput {
+  buildId: String!
+  projectId: String!
+  platform: String!
+  # iOS App Store Connect knobs. Required when platform == "ios".
+  iosAppleId: String
+  iosAscAppId: String
+  iosAppleTeamId: String
+  iosSku: String
+  iosCompanyName: String
+  # Google Play knobs. Required when platform == "android".
+  # androidServiceAccountKey is the base64-encoded JSON service-account
+  # key — the orchestrator decodes it once before forwarding to EAS.
+  androidServiceAccountKey: String
+  androidTrack: String
+  androidReleaseStatus: String
+}
+
+input MobilePublishUpdateInput {
+  projectId: String!
+  channel: String!
+  branch: String
+  message: String
+  runtimeVersion: String!
+  # manifestExtra is forwarded into the published manifest, e.g. for
+  # feature-flag overrides delivered alongside the OTA update.
+  manifestExtra: JSON
+}

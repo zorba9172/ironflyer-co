@@ -14,6 +14,8 @@ extend type Query {
   deploy(id: ID!): Deploy
   deploys(limit: Int = 50, offset: Int = 0): [Deploy!]!
   pendingDeployApprovals: [DeployApproval!]!
+  deployDomains(projectID: ID!): [DeployDomain!]!
+  domainAvailability(domain: String!, registrar: String = "manual"): DomainAvailability!
 }
 
 extend type Mutation {
@@ -24,6 +26,11 @@ extend type Mutation {
   promoteDeploy(deployID: ID!): Deploy!
   rollbackDeploy(deployID: ID!, reason: String!): Deploy!
   cancelDeploy(deployID: ID!, reason: String!): Deploy!
+  reserveDeploySubdomain(input: ReserveDeploySubdomainInput!): DeployDomain!
+  connectDeployDomain(input: ConnectDeployDomainInput!): DeployDomain!
+  checkDeployDomain(id: ID!): DeployDomain!
+  setPrimaryDeployDomain(id: ID!): DeployDomain!
+  purchaseDeployDomain(input: PurchaseDeployDomainInput!): DeployDomain!
 }
 
 extend type Subscription {
@@ -38,6 +45,38 @@ input PlanDeployInput {
   environment: String!
   artifactRef: String!
   diffHash: String!
+  metadata: JSON
+}
+
+input ReserveDeploySubdomainInput {
+  projectID: ID!
+  deployID: ID
+  subdomain: String
+  provider: String = "ironflyer"
+  primary: Boolean = true
+  metadata: JSON
+}
+
+input ConnectDeployDomainInput {
+  projectID: ID!
+  deployID: ID
+  hostname: String!
+  provider: String = "ironflyer"
+  primary: Boolean = true
+  metadata: JSON
+}
+
+input PurchaseDeployDomainInput {
+  projectID: ID!
+  deployID: ID
+  domain: String!
+  provider: String = "ironflyer"
+  registrar: String = "cloudflare"
+  years: Int = 1
+  autoRenew: Boolean = true
+  expectedPriceUSD: Float = 0
+  contact: JSON
+  primary: Boolean = true
   metadata: JSON
 }
 
@@ -92,4 +131,46 @@ type DeployEvent {
   eventType: String!
   payload: JSON!
   createdAt: DateTime!
+}
+
+type DNSRecord {
+  type: String!
+  name: String!
+  value: String!
+  ttl: Int
+}
+
+type DeployDomain {
+  id: ID!
+  tenantID: ID!
+  projectID: ID!
+  deployID: ID
+  hostname: String!
+  kind: String!
+  status: String!
+  provider: String!
+  registrar: String
+  primary: Boolean!
+  dnsRecords: [DNSRecord!]!
+  verificationStatus: String!
+  certificateStatus: String!
+  instructions: String!
+  metadata: JSON!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  verifiedAt: DateTime
+  liveAt: DateTime
+}
+
+type DomainAvailability {
+  domain: String!
+  available: Boolean!
+  registrar: String!
+  priceUSD: Float!
+  currency: String!
+  premium: Boolean!
+  canPurchase: Boolean!
+  reason: String
+  checkedAt: DateTime!
+  requirements: [String!]!
 }

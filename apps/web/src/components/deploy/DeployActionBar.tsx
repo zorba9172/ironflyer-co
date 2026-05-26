@@ -13,15 +13,16 @@
 //   live  | promoting                  → [Rollback]
 //   rolled_back | cancelled | failed   → (no buttons)
 //
-// `cancelDeploy` is defined in the GraphQL schema but the web SDK
-// does not yet expose a typed hook for it; we surface a disabled
-// "Cancel" affordance with a tooltip so the operator knows the
-// capability exists but is wired via the CLI for now.
+// `cancelDeploy` is wired live now (typed mutation from
+// operations/deploy.graphql). Cancels a deploy still in
+// planned/building/preview_ready/awaiting_approval states; resolvers
+// reject the call once the deploy promotes to live.
 
-import { Box, Button, CircularProgress, Stack, Tooltip, Typography } from "@mui/material";
+import { Box, Button, CircularProgress, Stack, Typography } from "@mui/material";
 import { useState } from "react";
 import { extractErrorMessage } from "../../lib/errors";
 import {
+  useCancelDeployMutation,
   usePromoteDeployMutation,
   useRequestDeployApprovalMutation,
   useRollbackDeployMutation,
@@ -53,6 +54,7 @@ export function DeployActionBar({
   const [requestApproval, { loading: requesting }] = useRequestDeployApprovalMutation();
   const [promote, { loading: promoting }] = usePromoteDeployMutation();
   const [rollback, { loading: rollingBack }] = useRollbackDeployMutation();
+  const [cancel, { loading: cancelling }] = useCancelDeployMutation();
 
   const status = deploy.status;
   const id = deploy.id;
@@ -162,7 +164,9 @@ export function DeployActionBar({
     );
   }
 
-  // Cancel — schema supports it but no typed hook is generated yet.
+  // Cancel — live cancel for any non-terminal state up through
+  // awaiting_approval. The resolver itself enforces the "no cancel
+  // after promote" rule.
   if (
     status === "planned" ||
     status === "building" ||
@@ -170,23 +174,31 @@ export function DeployActionBar({
     status === "awaiting_approval"
   ) {
     actions.push(
-      <Tooltip
+      <Button
         key="cancel"
-        title="Cancel is only available via the operator CLI in this build."
+        variant="outlined"
+        disabled={cancelling}
+        startIcon={cancelling ? <CircularProgress size={14} thickness={6} /> : null}
+        onClick={() =>
+          void withGuard(() =>
+            cancel({
+              variables: { deployID: id, reason: "Operator cancel" },
+              refetchQueries: ["Deploy", "PendingDeployApprovals"],
+            }),
+          )
+        }
+        sx={{
+          borderColor: tokens.color.border.strong,
+          color: tokens.color.text.secondary,
+          "&:hover": {
+            borderColor: tokens.color.accent.danger,
+            color: tokens.color.accent.danger,
+            bgcolor: `${tokens.color.accent.danger}10`,
+          },
+        }}
       >
-        <span>
-          <Button
-            variant="outlined"
-            disabled
-            sx={{
-              borderColor: tokens.color.border.strong,
-              color: tokens.color.text.muted,
-            }}
-          >
-            Cancel
-          </Button>
-        </span>
-      </Tooltip>,
+        Cancel
+      </Button>,
     );
   }
 

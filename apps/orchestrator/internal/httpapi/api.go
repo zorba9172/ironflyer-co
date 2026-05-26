@@ -50,6 +50,8 @@ import (
 	"ironflyer/apps/orchestrator/internal/memory"
 	"ironflyer/apps/orchestrator/internal/memorygraph"
 	"ironflyer/apps/orchestrator/internal/metrics"
+	"ironflyer/apps/orchestrator/internal/mobile/devicecloud"
+	"ironflyer/apps/orchestrator/internal/mobile/eas"
 	"ironflyer/apps/orchestrator/internal/notify"
 	"ironflyer/apps/orchestrator/internal/operator"
 	"ironflyer/apps/orchestrator/internal/patch"
@@ -163,6 +165,7 @@ type Deps struct {
 	// the API still boots without them; affected resolvers degrade to
 	// NOT_CONFIGURED.
 	Deploy         deploy.Service
+	DeployDomains  deploy.DomainService
 	Hardening      *gqlhardening.Config
 	PolicyPEP      *policy.PEP
 	PersistedStore gqlhardening.Store
@@ -187,6 +190,19 @@ type Deps struct {
 	// when nil the /admin/logs/tail endpoint returns 503 and the
 	// GraphQL recentErrors / recentLogs queries return empty lists.
 	Diagnostics *diagnostics.Service
+
+	// EAS is the Expo Application Services REST client used by the
+	// mobile resolvers. Nil when EAS_TOKEN is unset; affected resolvers
+	// degrade to NOT_CONFIGURED.
+	EAS *eas.Client
+
+	// EASPoller drives the background EAS build-status loop. nil-safe.
+	EASPoller *eas.Poller
+
+	// DeviceCloud is the Pro-tier real-device session manager. nil-safe —
+	// when unwired the resolver returns NOT_CONFIGURED so the cockpit
+	// renders the provider chip disabled.
+	DeviceCloud *devicecloud.Manager
 }
 
 // API is the HTTP layer entry point. It assembles the chi router from
@@ -352,6 +368,7 @@ func (a *API) newResolver() *resolver.Resolver {
 		PatchMemory:       a.d.PatchMemory,
 		Dashboards:        a.d.Dashboards,
 		DeploySvc:         a.d.Deploy,
+		DeployDomainSvc:   a.d.DeployDomains,
 		MemoryGraph:       a.d.MemoryGraph,
 
 		// V22 Wave-3 services.
@@ -364,6 +381,13 @@ func (a *API) newResolver() *resolver.Resolver {
 
 		// Diagnostics — operator-gated recentErrors / recentLogs.
 		Diagnostics: a.d.Diagnostics,
+
+		// Mobile (EAS) plane.
+		EAS:       a.d.EAS,
+		EASPoller: a.d.EASPoller,
+
+		// Mobile (device cloud) — Pro-tier real-device sessions.
+		DeviceCloud: a.d.DeviceCloud,
 	}
 }
 

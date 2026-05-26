@@ -1,0 +1,56 @@
+# devicecloud — Pro-tier real-device sessions surfaced through GraphQL.
+#
+# BrowserStack App Live + AWS Device Farm sit behind a single Manager;
+# this schema is the cockpit surface. deviceCloudDevices fans the
+# catalogue across every wired provider; the start/end mutations carry
+# the project + workspace IDs so the ledger entry tags spend correctly.
+
+extend type Query {
+  # deviceCloudDevices returns the union of every wired provider's
+  # device catalogue. platform is "android" or "ios"; "" returns all.
+  deviceCloudDevices(platform: String!): [DeviceCloudDevice!]!
+}
+
+extend type Mutation {
+  # deviceCloudStartSession boots an interactive real-device session
+  # against the chosen provider. Pro-tier gated: free-tier callers get
+  # an UPGRADE_REQUIRED extension instead of a created session.
+  deviceCloudStartSession(input: DeviceCloudStartInput!): DeviceCloudSession!
+
+  # deviceCloudEndSession tears down a running session and writes the
+  # reconciling ledger entry. provider must match the provider that
+  # started the session — sessionIDs are not globally unique across
+  # vendors.
+  deviceCloudEndSession(sessionId: String!, provider: String!): Boolean!
+}
+
+input DeviceCloudStartInput {
+  projectId: String!
+  workspaceId: String!
+  provider: String!
+  deviceId: String!
+  appUrl: String!
+  sessionLengthMinutes: Int
+}
+
+type DeviceCloudDevice {
+  id: String!
+  provider: String!
+  platform: String!
+  osVersion: String!
+  model: String!
+  manufacturer: String
+  real: Boolean!
+}
+
+type DeviceCloudSession {
+  id: String!
+  provider: String!
+  deviceId: String!
+  status: String!
+  appUrl: String
+  sessionUrl: String
+  startedAt: DateTime!
+  expiresAt: DateTime!
+  billableMinutesUsed: Float!
+}

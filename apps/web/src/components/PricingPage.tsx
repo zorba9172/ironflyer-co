@@ -6,12 +6,11 @@
 // for unauthenticated visitors it already renders Sign-in / Get-started
 // CTAs, so this page does not inline its own marketing header.
 //
-// GraphQL operations consumed:
-//   - query PricingPlans            (inline gql — `plans`)
-//   - query PricingRates            (inline gql — `rates`)
-//   - mutation PricingStartCheckout (inline gql — `startCheckout`)
+// GraphQL operations consumed (all from operations/budget.graphql via codegen):
+//   - query Plans
+//   - query Rates
+//   - mutation StartCheckout
 
-import { gql, useMutation, useQuery } from "@apollo/client";
 import { CheckRounded } from "@mui/icons-material";
 import {
   Box,
@@ -27,68 +26,21 @@ import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { useAuth } from "../lib/auth";
 import { extractErrorMessage } from "../lib/errors";
+import {
+  usePlansQuery,
+  useRatesQuery,
+  useStartCheckoutMutation,
+  type PlansQuery,
+  type RatesQuery,
+} from "../lib/gql/__generated__";
+
+// Locally-named aliases keep the rest of the file (fallback tables,
+// PlanCard prop type) self-documenting.
+type PricingPlansData = PlansQuery;
+type PricingRatesData = RatesQuery;
 import { formatMoney } from "../lib/format";
 import { tokens } from "../theme";
 import { ErrorPanel, PageHeader } from "./cockpit";
-
-interface PricingPlansData {
-  plans: Array<{
-    tier: string;
-    name: string;
-    priceUsd: string;
-    costCapUsd: string;
-    description: string | null;
-    features: string[];
-    stripePriceId: string | null;
-  }>;
-}
-const PRICING_PLANS = gql`
-  query PricingPlans {
-    plans {
-      tier
-      name
-      priceUsd
-      costCapUsd
-      description
-      features
-      stripePriceId
-    }
-  }
-`;
-
-interface PricingRatesData {
-  rates: Array<{
-    provider: string;
-    model: string;
-    promptPerMTok: string;
-    completionPerMTok: string;
-  }>;
-}
-const PRICING_RATES = gql`
-  query PricingRates {
-    rates {
-      provider
-      model
-      promptPerMTok
-      completionPerMTok
-    }
-  }
-`;
-
-interface PricingStartCheckoutData {
-  startCheckout: { sessionId: string; url: string };
-}
-interface PricingStartCheckoutVars {
-  input: { tier: string; successUrl?: string | null; cancelUrl?: string | null };
-}
-const PRICING_START_CHECKOUT = gql`
-  mutation PricingStartCheckout($input: StartCheckoutInput!) {
-    startCheckout(input: $input) {
-      sessionId
-      url
-    }
-  }
-`;
 
 const FAQ: Array<{ q: string; a: string }> = [
   {
@@ -170,18 +122,15 @@ const skelSx = {
 export function PricingPage() {
   const router = useRouter();
   const { authenticated } = useAuth();
-  const plansQ = useQuery<PricingPlansData>(PRICING_PLANS, {
+  const plansQ = usePlansQuery({
     skip: !authenticated,
     errorPolicy: "all",
   });
-  const ratesQ = useQuery<PricingRatesData>(PRICING_RATES, {
+  const ratesQ = useRatesQuery({
     skip: !authenticated,
     errorPolicy: "all",
   });
-  const [startCheckout, startCheckoutM] = useMutation<
-    PricingStartCheckoutData,
-    PricingStartCheckoutVars
-  >(PRICING_START_CHECKOUT);
+  const [startCheckout, startCheckoutM] = useStartCheckoutMutation();
 
   const [error, setError] = useState<string | null>(null);
   const [pendingTier, setPendingTier] = useState<string | null>(null);
@@ -344,7 +293,7 @@ export function PricingPage() {
                 },
               }}
             >
-              {plans.map((p) => (
+              {plans.map((p: PricingPlansData["plans"][number]) => (
                 <PlanCard
                   key={p.tier}
                   plan={p}
@@ -642,7 +591,7 @@ function PlanCard({
         </Typography>
       </Box>
       <Stack spacing={1} sx={{ flex: 1 }}>
-        {plan.features.map((f) => (
+        {plan.features.map((f: string) => (
           <Stack key={f} direction="row" alignItems="flex-start" spacing={1}>
             <CheckRounded
               sx={{

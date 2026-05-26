@@ -25,6 +25,7 @@ import {
   CloudSyncRounded,
   OpenInNewRounded,
   RefreshRounded,
+  SyncAltRounded,
 } from "@mui/icons-material";
 import {
   Box,
@@ -39,7 +40,8 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { tokens } from "../../theme";
 import { getOpenvscodeFolder, getOpenvscodeUrl } from "../../lib/ide";
-import { useProjectFilesQuery } from "../../lib/gql/__generated__";
+import { useProjectFilesQuery, useProjectQuery } from "../../lib/gql/__generated__";
+import { useIDEWriteBack, type WriteBackStatus } from "./useIDEWriteBack";
 
 const LOAD_TIMEOUT_MS = 6000;
 
@@ -68,6 +70,12 @@ export function IDEFramePane({ projectID }: IDEFramePaneProps) {
     skip: !projectID || isMobile,
     fetchPolicy: "cache-and-network",
   });
+  const projectQuery = useProjectQuery({
+    variables: { id: projectID },
+    skip: !projectID || isMobile,
+    fetchPolicy: "cache-first",
+  });
+  const projectName = projectQuery.data?.project?.name ?? "";
 
   // `nonce` doubles as React's key on the iframe so a retry forces a
   // full remount (and a fresh load timer).
@@ -94,6 +102,7 @@ export function IDEFramePane({ projectID }: IDEFramePaneProps) {
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
             projectID,
+            projectName,
             files: projectFiles.map((file) => ({
               path: file.path,
               content: file.content,
@@ -157,6 +166,24 @@ export function IDEFramePane({ projectID }: IDEFramePaneProps) {
       timerRef.current = null;
     }
   }, []);
+
+  // Bidirectional sync: once the iframe has loaded and the initial
+  // Monaco→IDE push finished, start polling the IDE workspace for
+  // operator edits and mirror them back into projectFiles.
+  const seedFiles = useMemo(
+    () =>
+      filesQuery.data?.projectFiles.map((f) => ({
+        path: f.path,
+        content: f.content ?? null,
+      })) ?? null,
+    [filesQuery.data],
+  );
+  const writeBack = useIDEWriteBack({
+    projectID,
+    enabled:
+      !isMobile && status === "ready" && syncStatus === "ready" && !!projectID,
+    seedFiles,
+  });
 
   const onRetry = useCallback(() => {
     setNonce((n) => n + 1);
@@ -240,6 +267,25 @@ export function IDEFramePane({ projectID }: IDEFramePaneProps) {
             </Box>
           </Stack>
         </Tooltip>
+        <Tooltip title={writeBackTooltip(writeBack.status, writeBack.pushedFileCount, writeBack.lastPushedAt, writeBack.lastError)} arrow>
+          <Stack
+            direction="row"
+            spacing={0.5}
+            sx={{
+              alignItems: "center",
+              color: writeBackColor(writeBack.status),
+              fontFamily: tokens.font.mono,
+              fontSize: 10.5,
+              letterSpacing: 0.4,
+              textTransform: "uppercase",
+            }}
+          >
+            <SyncAltRounded sx={{ fontSize: 14 }} />
+            <Box component="span" sx={{ display: { xs: "none", lg: "inline" } }}>
+              {writeBackLabel(writeBack.status, writeBack.pushedFileCount)}
+            </Box>
+          </Stack>
+        </Tooltip>
         <Tooltip title="Reload IDE" arrow>
           <IconButton
             size="small"
@@ -312,9 +358,12 @@ export function IDEFramePane({ projectID }: IDEFramePaneProps) {
   );
 }
 
-// IDESkeleton — token-driven shimmer that covers the iframe surface
-// until `load` fires (or the timeout flips to `failed`).
-function IDESkeleton({ label = "Loading IDE…" }: { label?: string }) {
+// IDESkeleton — token-driven loading panel that covers the iframe
+// surface until `load` fires (or the timeout flips to `failed`).
+// Branded as an Ironflyer mark + caption rather than a generic
+// shimmer — the moment between Studio and IDE should feel like the
+// same product, not a third-party tool warming up.
+function IDESkeleton({ label = "Loading Ironflyer IDE…" }: { label?: string }) {
   return (
     <Box
       role="status"
@@ -322,60 +371,81 @@ function IDESkeleton({ label = "Loading IDE…" }: { label?: string }) {
       sx={{
         position: "absolute",
         inset: 0,
-        bgcolor: tokens.color.bg.inset,
+        bgcolor: tokens.color.bg.base,
         display: "flex",
         flexDirection: "column",
-        gap: 1,
-        p: 2,
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 2,
+        p: 4,
         zIndex: 1,
+        backgroundImage: `radial-gradient(circle at 50% 38%, ${tokens.color.accent.purple}33, transparent 55%)`,
       }}
     >
-      <Stack direction="row" spacing={1}>
-        {Array.from({ length: 6 }).map((_, i) => (
-          <Box
-            key={i}
-            sx={{
-              flex: 1,
-              height: 18,
-              borderRadius: 0.5,
-              bgcolor: tokens.color.bg.surface,
-              backgroundImage: `linear-gradient(90deg, ${tokens.color.bg.surface} 0%, ${tokens.color.bg.surfaceHover} 50%, ${tokens.color.bg.surface} 100%)`,
-              backgroundSize: "200% 100%",
-              animation: `ironflyer-ide-shimmer ${tokens.motion.slow} ease-in-out infinite`,
-            }}
-          />
-        ))}
-      </Stack>
       <Box
         sx={{
-          flex: 1,
-          borderRadius: 1,
-          border: `1px solid ${tokens.color.border.subtle}`,
-          bgcolor: tokens.color.bg.surface,
-          backgroundImage: `linear-gradient(90deg, ${tokens.color.bg.surface} 0%, ${tokens.color.bg.surfaceHover} 50%, ${tokens.color.bg.surface} 100%)`,
-          backgroundSize: "200% 100%",
-          animation: `ironflyer-ide-shimmer ${tokens.motion.slow} ease-in-out infinite`,
+          position: "relative",
+          width: 56,
+          height: 56,
+          borderRadius: tokens.radius.sm / 4,
+          border: `1px solid ${tokens.color.border.strong}`,
+          background: `linear-gradient(135deg, ${tokens.color.accent.purple}, ${tokens.color.brand.magenta} 55%, ${tokens.color.accent.coral})`,
+          boxShadow: `0 0 32px ${tokens.color.accent.violet}55, inset 0 0 12px ${tokens.color.accent.coral}44`,
+          animation: `ironflyer-ide-pulse ${tokens.motion.slow} ease-in-out infinite`,
         }}
-      />
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 8,
+            borderRadius: 0.5,
+            border: `2px solid ${tokens.color.bg.base}`,
+            background: tokens.color.bg.base,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: tokens.color.text.primary,
+            fontFamily: tokens.font.mono,
+            fontSize: 16,
+            fontWeight: 800,
+            letterSpacing: 1,
+          }}
+        >
+          IF
+        </Box>
+      </Box>
       <Typography
         sx={{
-          color: tokens.color.text.muted,
+          color: tokens.color.text.primary,
           fontFamily: tokens.font.mono,
-          fontSize: 11,
-          letterSpacing: 0.6,
-          textAlign: "center",
+          fontSize: 12,
+          fontWeight: 700,
+          letterSpacing: 1.4,
           textTransform: "uppercase",
         }}
       >
         {label}
       </Typography>
+      <Typography
+        sx={{
+          color: tokens.color.text.muted,
+          fontFamily: tokens.font.mono,
+          fontSize: 10.5,
+          letterSpacing: 0.8,
+          maxWidth: 360,
+          textAlign: "center",
+          textTransform: "uppercase",
+        }}
+      >
+        gates · patches · live preview · wallet · workspace
+      </Typography>
       <Box
         component="style"
-        // Keyframes injected once so the shimmer plays without a
-        // global stylesheet contribution.
+        // Keyframes injected once so the pulse plays without a global
+        // stylesheet contribution.
         dangerouslySetInnerHTML={{
           __html:
-            "@keyframes ironflyer-ide-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }",
+            "@keyframes ironflyer-ide-pulse { 0%, 100% { transform: scale(1); opacity: 0.92; } 50% { transform: scale(1.06); opacity: 1; } }",
         }}
       />
     </Box>
@@ -414,6 +484,40 @@ function syncTooltip(
 
 function nowMs(): number {
   return typeof performance !== "undefined" ? performance.now() : Date.now();
+}
+
+function writeBackLabel(status: WriteBackStatus, count: number): string {
+  if (status === "synced") return `pushed ${count}`;
+  if (status === "pushing") return "pushing";
+  if (status === "watching") return "watching";
+  if (status === "failed") return "push failed";
+  return "writeback idle";
+}
+
+function writeBackTooltip(
+  status: WriteBackStatus,
+  count: number,
+  lastPushedAt: number | null,
+  error: string | null,
+): string {
+  if (status === "failed") return error || "IDE writeback failed";
+  if (status === "pushing") return "Mirroring IDE edits into projectFiles";
+  if (status === "synced") {
+    const stamp =
+      lastPushedAt != null
+        ? new Date(lastPushedAt).toLocaleTimeString()
+        : "just now";
+    return `${count} files pushed at ${stamp}`;
+  }
+  if (status === "watching") return "Polling IDE for operator edits";
+  return "Bidirectional sync inactive";
+}
+
+function writeBackColor(status: WriteBackStatus): string {
+  if (status === "failed") return tokens.color.accent.warning;
+  if (status === "synced") return tokens.color.accent.success;
+  if (status === "pushing") return tokens.color.accent.violet;
+  return tokens.color.text.muted;
 }
 
 // IDEFallback — token-driven panel surfaced when the iframe never

@@ -29,8 +29,10 @@ export type WorkbenchPrimary =
   | "files"
   | "dashboard";
 
-// Bottom dock tab.
-export type WorkbenchDockTab = "patches" | "logs" | "changes";
+// Bottom dock tab. "terminal" opens a real PTY into the workspace
+// (xterm.js + runtime WebSocket), matching VS Code's bottom panel
+// layout of Problems / Output / Terminal / Debug.
+export type WorkbenchDockTab = "patches" | "logs" | "changes" | "terminal";
 
 // Code-pane rendering mode. `monaco` is the lightweight read-only file
 // viewer the studio has shipped with since day one; `ide` swaps in a
@@ -88,7 +90,10 @@ function isValid(raw: unknown): raw is WorkbenchLayoutState {
     s.primary === "files" ||
     s.primary === "dashboard";
   const validDockTab =
-    s.dockTab === "patches" || s.dockTab === "logs" || s.dockTab === "changes";
+    s.dockTab === "patches" ||
+    s.dockTab === "logs" ||
+    s.dockTab === "changes" ||
+    s.dockTab === "terminal";
   // codeMode was added after the original schema shipped — accept a
   // missing or invalid value and fall through to the default so we
   // don't reject older persisted layouts.

@@ -29,6 +29,15 @@ extend type Query {
     limit: Int = 100
     offset: Int = 0
   ): [WalletLedgerEntry!]!
+
+  # Today's profitability for the caller's tenant — revenue, cost
+  # breakdown, and gross margin from UTC midnight to now. The single
+  # query that answers "are we currently making money on this tenant
+  # today?" without the caller having to construct a DateTime range.
+  # Sums every typed cost (provider, sandbox, storage, deployment,
+  # mobile legs, premium reasoning) against revenue so a regression
+  # in any leg shows up immediately.
+  tenantProfitToday: LedgerRollup!
 }
 
 input LedgerFilter {

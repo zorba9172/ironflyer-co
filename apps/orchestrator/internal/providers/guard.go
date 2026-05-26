@@ -116,6 +116,25 @@ func (g *BillingGuard) CompleteStream(ctx context.Context, req Request) (<-chan 
 		estOut = 2048
 	}
 
+	// V22 prompt-cap guard — defense-in-depth shield 0. Refuses any
+	// single call whose total estimated tokens would exceed the
+	// configured ceiling BEFORE we burn an Admit / ProfitGuard /
+	// provider round-trip on it. Catches the runaway prompt loop
+	// (full history fed back, then fed back again) at minimum cost.
+	// Env-driven; default cap is generous enough that healthy calls
+	// pass while pathological prompts trip on iteration 2-3.
+	if err := budget.DefaultPromptCap().CheckPromptCap(estIn, estOut); err != nil {
+		g.logger.Warn().
+			Err(err).
+			Str("user_id", userID).
+			Int("est_input_tokens", estIn).
+			Int("est_output_tokens", estOut).
+			Msg("billing-guard: prompt over single-call cap, refused")
+		span.RecordError(err)
+		span.End()
+		return nil, err
+	}
+
 	// V22 ProfitGuard hook — BeforeModelCall. Only fires for paid
 	// executions (those carrying an execution id on the context).
 	// Internal / unmetered call paths skip ProfitGuard entirely so

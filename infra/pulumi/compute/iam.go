@@ -269,7 +269,7 @@ func ExternalDNSPolicy(zoneID string) string {
 
 func clusterAutoscalerPolicy() string {
 	// Autoscaler's write actions are intentionally bounded by EC2-side
-	// conditions in the upstream docs; for an MVP we trust the
+	// conditions in the upstream docs; for production we trust the
 	// `aws:RequestTag` / cluster-tag filter at the API level. Resource is "*"
 	// only for read-only describe calls; write actions stay scoped to ASGs.
 	return `{

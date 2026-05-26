@@ -1,0 +1,37 @@
+# Gate verdict + rerun mutation. Powers DashboardPane (per-area
+# "rerun gate" affordance) and any future gate-verdict surface in the
+# studio. Schema source: apps/orchestrator/internal/graph/schema/gates.graphql.
+
+fragment GateVerdictCore on GateVerdict {
+  gate
+  status
+  startedAt
+  finishedAt
+  durationMs
+  notes
+  issues {
+    path
+    line
+    rule
+    severity
+    message
+  }
+}
+
+query ProjectGates($projectId: ID!, $sub: ID) {
+  gates(projectId: $projectId, sub: $sub) {
+    ...GateVerdictCore
+  }
+}
+
+query Gate($projectId: ID!, $gate: String!) {
+  gate(projectId: $projectId, gate: $gate) {
+    ...GateVerdictCore
+  }
+}
+
+mutation RerunGate($input: RerunGateInput!) {
+  rerunGate(input: $input) {
+    ...GateVerdictCore
+  }
+}

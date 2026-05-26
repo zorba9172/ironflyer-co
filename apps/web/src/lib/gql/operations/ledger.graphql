@@ -35,3 +35,20 @@ query LedgerRollup($since: DateTime!, $until: DateTime!) {
     grossMarginPct
   }
 }
+
+# Real-time today's profit (UTC midnight → now). Drives the
+# Dashboard "Profit today" tile that updates without the caller
+# having to construct a DateTime range. Same shape as ledgerRollup.
+query TenantProfitToday {
+  tenantProfitToday {
+    revenueUSD
+    providerCostUSD
+    sandboxCostUSD
+    storageCostUSD
+    deploymentCostUSD
+    premiumReasoningCostUSD
+    refundsUSD
+    platformMarginUSD
+    grossMarginPct
+  }
+}

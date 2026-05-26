@@ -56,6 +56,20 @@ export type AgentCall = {
   userId: Maybe<Scalars['ID']['output']>;
 };
 
+export type AppetizeApp = {
+  __typename?: 'AppetizeApp';
+  createdAt: Scalars['DateTime']['output'];
+  embedUrl: Scalars['String']['output'];
+  platform: Scalars['String']['output'];
+  publicKey: Scalars['String']['output'];
+};
+
+export type AppetizeUploadInput = {
+  buildId: Scalars['String']['input'];
+  deviceProfile?: InputMaybe<Scalars['String']['input']>;
+  projectId: Scalars['String']['input'];
+};
+
 export type AuditChainProof = {
   __typename?: 'AuditChainProof';
   brokenLinks: Array<BrokenAuditLink>;
@@ -225,6 +239,15 @@ export type CohortDashboard = {
   cohorts: Array<Cohort>;
 };
 
+export type ConnectDeployDomainInput = {
+  deployID?: InputMaybe<Scalars['ID']['input']>;
+  hostname: Scalars['String']['input'];
+  metadata?: InputMaybe<Scalars['JSON']['input']>;
+  primary?: InputMaybe<Scalars['Boolean']['input']>;
+  projectID: Scalars['ID']['input'];
+  provider?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type CostDelta = {
   __typename?: 'CostDelta';
   agent: Maybe<Scalars['String']['output']>;
@@ -280,6 +303,14 @@ export type CreateStageInput = {
   projectId: Scalars['ID']['input'];
 };
 
+export type DnsRecord = {
+  __typename?: 'DNSRecord';
+  name: Scalars['String']['output'];
+  ttl: Maybe<Scalars['Int']['output']>;
+  type: Scalars['String']['output'];
+  value: Scalars['String']['output'];
+};
+
 export type DashboardBlueprintStats = {
   __typename?: 'DashboardBlueprintStats';
   avgCompletionScore: Scalars['Float']['output'];
@@ -332,6 +363,29 @@ export type DeployApproval = {
   tenantID: Scalars['ID']['output'];
 };
 
+export type DeployDomain = {
+  __typename?: 'DeployDomain';
+  certificateStatus: Scalars['String']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  deployID: Maybe<Scalars['ID']['output']>;
+  dnsRecords: Array<DnsRecord>;
+  hostname: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  instructions: Scalars['String']['output'];
+  kind: Scalars['String']['output'];
+  liveAt: Maybe<Scalars['DateTime']['output']>;
+  metadata: Scalars['JSON']['output'];
+  primary: Scalars['Boolean']['output'];
+  projectID: Scalars['ID']['output'];
+  provider: Scalars['String']['output'];
+  registrar: Maybe<Scalars['String']['output']>;
+  status: Scalars['String']['output'];
+  tenantID: Scalars['ID']['output'];
+  updatedAt: Scalars['DateTime']['output'];
+  verificationStatus: Scalars['String']['output'];
+  verifiedAt: Maybe<Scalars['DateTime']['output']>;
+};
+
 export type DeployEvent = {
   __typename?: 'DeployEvent';
   createdAt: Scalars['DateTime']['output'];
@@ -345,6 +399,53 @@ export type DescribeIdeaInput = {
   budgetUSDOverride?: InputMaybe<Scalars['Float']['input']>;
   startImmediately?: InputMaybe<Scalars['Boolean']['input']>;
   text: Scalars['String']['input'];
+};
+
+export type DeviceCloudDevice = {
+  __typename?: 'DeviceCloudDevice';
+  id: Scalars['String']['output'];
+  manufacturer: Maybe<Scalars['String']['output']>;
+  model: Scalars['String']['output'];
+  osVersion: Scalars['String']['output'];
+  platform: Scalars['String']['output'];
+  provider: Scalars['String']['output'];
+  real: Scalars['Boolean']['output'];
+};
+
+export type DeviceCloudSession = {
+  __typename?: 'DeviceCloudSession';
+  appUrl: Maybe<Scalars['String']['output']>;
+  billableMinutesUsed: Scalars['Float']['output'];
+  deviceId: Scalars['String']['output'];
+  expiresAt: Scalars['DateTime']['output'];
+  id: Scalars['String']['output'];
+  provider: Scalars['String']['output'];
+  sessionUrl: Maybe<Scalars['String']['output']>;
+  startedAt: Scalars['DateTime']['output'];
+  status: Scalars['String']['output'];
+};
+
+export type DeviceCloudStartInput = {
+  appUrl: Scalars['String']['input'];
+  deviceId: Scalars['String']['input'];
+  projectId: Scalars['String']['input'];
+  provider: Scalars['String']['input'];
+  sessionLengthMinutes?: InputMaybe<Scalars['Int']['input']>;
+  workspaceId: Scalars['String']['input'];
+};
+
+export type DomainAvailability = {
+  __typename?: 'DomainAvailability';
+  available: Scalars['Boolean']['output'];
+  canPurchase: Scalars['Boolean']['output'];
+  checkedAt: Scalars['DateTime']['output'];
+  currency: Scalars['String']['output'];
+  domain: Scalars['String']['output'];
+  premium: Scalars['Boolean']['output'];
+  priceUSD: Scalars['Float']['output'];
+  reason: Maybe<Scalars['String']['output']>;
+  registrar: Scalars['String']['output'];
+  requirements: Array<Scalars['String']['output']>;
 };
 
 export type EmailChangeInput = {
@@ -449,6 +550,31 @@ export type GateVerdict = {
   notes: Maybe<Scalars['String']['output']>;
   startedAt: Maybe<Scalars['DateTime']['output']>;
   status: GateStatus;
+};
+
+export type GenerateMobileAssetEntry = {
+  __typename?: 'GenerateMobileAssetEntry';
+  height: Scalars['Int']['output'];
+  path: Scalars['String']['output'];
+  purpose: Scalars['String']['output'];
+  sizeBytes: Scalars['Int']['output'];
+  width: Scalars['Int']['output'];
+};
+
+export type GenerateMobileAssetsInput = {
+  backgroundColor: Scalars['String']['input'];
+  logoPngBase64: Scalars['String']['input'];
+  platforms: Array<Scalars['String']['input']>;
+  projectId: Scalars['String']['input'];
+  splashForegroundColor?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type GenerateMobileAssetsResult = {
+  __typename?: 'GenerateMobileAssetsResult';
+  entries: Array<GenerateMobileAssetEntry>;
+  filesCount: Scalars['Int']['output'];
+  generatedAt: Scalars['DateTime']['output'];
+  totalBytes: Scalars['Int']['output'];
 };
 
 export type GqlError = {
@@ -573,27 +699,121 @@ export type LogEntry = {
   time: Scalars['DateTime']['output'];
 };
 
+export type MobileBuild = {
+  __typename?: 'MobileBuild';
+  appBuildVersion: Maybe<Scalars['String']['output']>;
+  appVersion: Maybe<Scalars['String']['output']>;
+  artifactSizeBytes: Maybe<Scalars['Int']['output']>;
+  artifactUrl: Maybe<Scalars['String']['output']>;
+  channel: Maybe<Scalars['String']['output']>;
+  completedAt: Maybe<Scalars['DateTime']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  distribution: Maybe<Scalars['String']['output']>;
+  errorMessage: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  initiator: Maybe<Scalars['String']['output']>;
+  logUrl: Maybe<Scalars['String']['output']>;
+  platform: Scalars['String']['output'];
+  profile: Scalars['String']['output'];
+  projectId: Scalars['String']['output'];
+  sdkVersion: Maybe<Scalars['String']['output']>;
+  status: Scalars['String']['output'];
+  updatedAt: Scalars['DateTime']['output'];
+};
+
+export type MobilePublishUpdateInput = {
+  branch?: InputMaybe<Scalars['String']['input']>;
+  channel: Scalars['String']['input'];
+  manifestExtra?: InputMaybe<Scalars['JSON']['input']>;
+  message?: InputMaybe<Scalars['String']['input']>;
+  projectId: Scalars['String']['input'];
+  runtimeVersion: Scalars['String']['input'];
+};
+
+export type MobileSubmission = {
+  __typename?: 'MobileSubmission';
+  archiveUrl: Maybe<Scalars['String']['output']>;
+  buildId: Maybe<Scalars['String']['output']>;
+  completedAt: Maybe<Scalars['DateTime']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  errorMessage: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  logUrl: Maybe<Scalars['String']['output']>;
+  platform: Scalars['String']['output'];
+  projectId: Scalars['String']['output'];
+  status: Scalars['String']['output'];
+  target: Scalars['String']['output'];
+  updatedAt: Scalars['DateTime']['output'];
+};
+
+export type MobileSubmitInput = {
+  androidReleaseStatus?: InputMaybe<Scalars['String']['input']>;
+  androidServiceAccountKey?: InputMaybe<Scalars['String']['input']>;
+  androidTrack?: InputMaybe<Scalars['String']['input']>;
+  buildId: Scalars['String']['input'];
+  iosAppleId?: InputMaybe<Scalars['String']['input']>;
+  iosAppleTeamId?: InputMaybe<Scalars['String']['input']>;
+  iosAscAppId?: InputMaybe<Scalars['String']['input']>;
+  iosCompanyName?: InputMaybe<Scalars['String']['input']>;
+  iosSku?: InputMaybe<Scalars['String']['input']>;
+  platform: Scalars['String']['input'];
+  projectId: Scalars['String']['input'];
+};
+
+export type MobileTriggerBuildInput = {
+  channel?: InputMaybe<Scalars['String']['input']>;
+  message?: InputMaybe<Scalars['String']['input']>;
+  platform: Scalars['String']['input'];
+  profile?: InputMaybe<Scalars['String']['input']>;
+  projectId: Scalars['String']['input'];
+};
+
+export type MobileUpdate = {
+  __typename?: 'MobileUpdate';
+  branch: Scalars['String']['output'];
+  channel: Scalars['String']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  groupId: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  manifestUrl: Maybe<Scalars['String']['output']>;
+  message: Maybe<Scalars['String']['output']>;
+  platform: Maybe<Scalars['String']['output']>;
+  runtimeVersion: Scalars['String']['output'];
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   _empty: Maybe<Scalars['String']['output']>;
   acceptInlineCompletion: OperationResult;
+  appetizeDeleteApp: Scalars['Boolean']['output'];
+  appetizeUploadBuild: AppetizeApp;
   applyPatch: Patch;
   applyStage: Scalars['JSON']['output'];
   buildDeployPreview: Deploy;
   bulkDeleteProjects: OperationResult;
   cancelDeploy: Deploy;
+  checkDeployDomain: DeployDomain;
   confirmEmailChange: OperationResult;
+  connectDeployDomain: DeployDomain;
   createPaidExecution: Execution;
   createProject: Project;
   createStage: PatchStage;
   decideDeployApproval: DeployApproval;
   deleteProject: OperationResult;
   describeIdea: StudioBootstrap;
+  deviceCloudEndSession: Scalars['Boolean']['output'];
+  deviceCloudStartSession: DeviceCloudSession;
+  generateMobileAssets: GenerateMobileAssetsResult;
+  mobileCancelBuild: Scalars['Boolean']['output'];
+  mobilePublishUpdate: MobileUpdate;
+  mobileSubmitToStore: MobileSubmission;
+  mobileTriggerBuild: MobileBuild;
   planDeploy: Deploy;
   promoteDeploy: Deploy;
   promptPlan: Scalars['JSON']['output'];
   proposePatch: Patch;
   proposeSymbolPatch: Patch;
+  purchaseDeployDomain: DeployDomain;
   refineIdea: StudioBootstrap;
   refundExecution: Execution;
   rejectStage: PatchStage;
@@ -603,12 +823,14 @@ export type Mutation = {
   requestPasswordReset: OperationResult;
   rerunGate: GateVerdict;
   resendVerificationEmail: OperationResult;
+  reserveDeploySubdomain: DeployDomain;
   resetPassword: Session;
   revokeAllOtherSessions: OperationResult;
   revokeSession: OperationResult;
   rollbackDeploy: Deploy;
   rollbackPatch: Scalars['JSON']['output'];
   runFinisher: Scalars['JSON']['output'];
+  setPrimaryDeployDomain: DeployDomain;
   setTelemetryPreference: User;
   signIn: Session;
   signOut: OperationResult;
@@ -618,11 +840,22 @@ export type Mutation = {
   updateProject: Project;
   verifyEmail: Session;
   walletCreateTopUp: WalletCheckoutSession;
+  writeProjectFiles: Array<ProjectFile>;
 };
 
 
 export type MutationAcceptInlineCompletionArgs = {
   requestId: Scalars['ID']['input'];
+};
+
+
+export type MutationAppetizeDeleteAppArgs = {
+  publicKey: Scalars['String']['input'];
+};
+
+
+export type MutationAppetizeUploadBuildArgs = {
+  input: AppetizeUploadInput;
 };
 
 
@@ -652,8 +885,18 @@ export type MutationCancelDeployArgs = {
 };
 
 
+export type MutationCheckDeployDomainArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type MutationConfirmEmailChangeArgs = {
   token: Scalars['String']['input'];
+};
+
+
+export type MutationConnectDeployDomainArgs = {
+  input: ConnectDeployDomainInput;
 };
 
 
@@ -689,6 +932,42 @@ export type MutationDescribeIdeaArgs = {
 };
 
 
+export type MutationDeviceCloudEndSessionArgs = {
+  provider: Scalars['String']['input'];
+  sessionId: Scalars['String']['input'];
+};
+
+
+export type MutationDeviceCloudStartSessionArgs = {
+  input: DeviceCloudStartInput;
+};
+
+
+export type MutationGenerateMobileAssetsArgs = {
+  input: GenerateMobileAssetsInput;
+};
+
+
+export type MutationMobileCancelBuildArgs = {
+  buildId: Scalars['String']['input'];
+};
+
+
+export type MutationMobilePublishUpdateArgs = {
+  input: MobilePublishUpdateInput;
+};
+
+
+export type MutationMobileSubmitToStoreArgs = {
+  input: MobileSubmitInput;
+};
+
+
+export type MutationMobileTriggerBuildArgs = {
+  input: MobileTriggerBuildInput;
+};
+
+
 export type MutationPlanDeployArgs = {
   input: PlanDeployInput;
 };
@@ -712,6 +991,11 @@ export type MutationProposePatchArgs = {
 
 export type MutationProposeSymbolPatchArgs = {
   input: SymbolPatchInput;
+};
+
+
+export type MutationPurchaseDeployDomainArgs = {
+  input: PurchaseDeployDomainInput;
 };
 
 
@@ -760,6 +1044,11 @@ export type MutationRerunGateArgs = {
 };
 
 
+export type MutationReserveDeploySubdomainArgs = {
+  input: ReserveDeploySubdomainInput;
+};
+
+
 export type MutationResetPasswordArgs = {
   newPassword: Scalars['String']['input'];
   token: Scalars['String']['input'];
@@ -783,6 +1072,11 @@ export type MutationRollbackPatchArgs = {
 
 
 export type MutationRunFinisherArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationSetPrimaryDeployDomainArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -826,6 +1120,12 @@ export type MutationVerifyEmailArgs = {
 
 export type MutationWalletCreateTopUpArgs = {
   amountUSD: Scalars['Float']['input'];
+};
+
+
+export type MutationWriteProjectFilesArgs = {
+  files: Array<WriteProjectFileInput>;
+  id: Scalars['ID']['input'];
 };
 
 export type NextAction = {
@@ -1073,6 +1373,20 @@ export type ProposePatchInput = {
   title?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type PurchaseDeployDomainInput = {
+  autoRenew?: InputMaybe<Scalars['Boolean']['input']>;
+  contact?: InputMaybe<Scalars['JSON']['input']>;
+  deployID?: InputMaybe<Scalars['ID']['input']>;
+  domain: Scalars['String']['input'];
+  expectedPriceUSD?: InputMaybe<Scalars['Float']['input']>;
+  metadata?: InputMaybe<Scalars['JSON']['input']>;
+  primary?: InputMaybe<Scalars['Boolean']['input']>;
+  projectID: Scalars['ID']['input'];
+  provider?: InputMaybe<Scalars['String']['input']>;
+  registrar?: InputMaybe<Scalars['String']['input']>;
+  years?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export type Query = {
   __typename?: 'Query';
   agentTelemetry: Array<AgentCall>;
@@ -1090,7 +1404,10 @@ export type Query = {
   blueprints: Array<Blueprint>;
   cohortDashboard: CohortDashboard;
   deploy: Maybe<Deploy>;
+  deployDomains: Array<DeployDomain>;
   deploys: Array<Deploy>;
+  deviceCloudDevices: Array<DeviceCloudDevice>;
+  domainAvailability: DomainAvailability;
   estimateExecutionCost: CostEstimate;
   execution: Maybe<Execution>;
   executionLedger: Array<WalletLedgerEntry>;
@@ -1102,6 +1419,9 @@ export type Query = {
   ledger: Array<WalletLedgerEntry>;
   ledgerRollup: LedgerRollup;
   me: Maybe<User>;
+  mobileBuild: Maybe<MobileBuild>;
+  mobileBuilds: Array<MobileBuild>;
+  mobileSubmissions: Array<MobileSubmission>;
   myBudget: BudgetSummary;
   mySessions: Array<Session>;
   operatorAbuseScore: AbuseScoreResult;
@@ -1127,6 +1447,7 @@ export type Query = {
   scaleDashboard: ScaleDashboard;
   stage: Maybe<PatchStage>;
   stages: Array<PatchStage>;
+  tenantProfitToday: LedgerRollup;
   vault: VaultSnapshot;
   verifyAudit: AuditVerifyResult;
   version: VersionInfo;
@@ -1200,9 +1521,25 @@ export type QueryDeployArgs = {
 };
 
 
+export type QueryDeployDomainsArgs = {
+  projectID: Scalars['ID']['input'];
+};
+
+
 export type QueryDeploysArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryDeviceCloudDevicesArgs = {
+  platform: Scalars['String']['input'];
+};
+
+
+export type QueryDomainAvailabilityArgs = {
+  domain: Scalars['String']['input'];
+  registrar?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -1259,6 +1596,21 @@ export type QueryLedgerArgs = {
 export type QueryLedgerRollupArgs = {
   since: Scalars['DateTime']['input'];
   until: Scalars['DateTime']['input'];
+};
+
+
+export type QueryMobileBuildArgs = {
+  buildId: Scalars['String']['input'];
+};
+
+
+export type QueryMobileBuildsArgs = {
+  projectId: Scalars['String']['input'];
+};
+
+
+export type QueryMobileSubmissionsArgs = {
+  projectId: Scalars['String']['input'];
 };
 
 
@@ -1380,6 +1732,15 @@ export type RerunGateInput = {
   projectId: Scalars['ID']['input'];
 };
 
+export type ReserveDeploySubdomainInput = {
+  deployID?: InputMaybe<Scalars['ID']['input']>;
+  metadata?: InputMaybe<Scalars['JSON']['input']>;
+  primary?: InputMaybe<Scalars['Boolean']['input']>;
+  projectID: Scalars['ID']['input'];
+  provider?: InputMaybe<Scalars['String']['input']>;
+  subdomain?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type RunDoneEvent = {
   __typename?: 'RunDoneEvent';
   ok: Scalars['Boolean']['output'];
@@ -1497,6 +1858,7 @@ export type Subscription = {
   deployFeed: DeployEvent;
   executionFeed: ExecutionEvent;
   inlineCompletion: InlineDelta;
+  mobileBuildStatus: MobileBuild;
   runProject: RunEvent;
 };
 
@@ -1513,6 +1875,11 @@ export type SubscriptionExecutionFeedArgs = {
 
 export type SubscriptionInlineCompletionArgs = {
   input: InlineInput;
+};
+
+
+export type SubscriptionMobileBuildStatusArgs = {
+  buildId: Scalars['String']['input'];
 };
 
 
@@ -1666,6 +2033,18 @@ export type WalletTopUp = {
   status: Scalars['String']['output'];
 };
 
+export type WriteProjectFileInput = {
+  content: Scalars['String']['input'];
+  path: Scalars['String']['input'];
+};
+
+export type BanditRankingQueryVariables = Exact<{
+  lookback?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type BanditRankingQuery = { __typename?: 'Query', banditRanking: { __typename?: 'BanditRanking', lookback: number, strategy: string, capabilities: Array<{ __typename?: 'BanditCapability', capability: string, total: number, winners: Array<{ __typename?: 'BanditWinner', provider: string, model: string | null, share: number, meanReward: number, isLeader: boolean }> }> } };
+
 export type CurrentUserQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -1732,6 +2111,35 @@ export type BlueprintRankingQueryVariables = Exact<{
 
 export type BlueprintRankingQuery = { __typename?: 'Query', blueprintRanking: Array<{ __typename?: 'BlueprintStats', blueprintID: string, executions: number, previewSuccess: number, refunds: number, repairCount: number, avgRevenueUSD: number, avgCostUSD: number, grossMarginPct: number, avgCompletionScore: number, avgTimeToPreviewSec: number }> };
 
+export type LedgerEntryRowFragment = { __typename?: 'LedgerEntry', id: string, projectId: string | null, provider: string | null, model: string | null, promptTokens: number, completionTokens: number, costUsd: string, revenueUsd: string, ts: string, agent: string | null, durationMs: number | null };
+
+export type PlansQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type PlansQuery = { __typename?: 'Query', plans: Array<{ __typename?: 'Plan', tier: string, name: string, priceUsd: string, costCapUsd: string, description: string | null, features: Array<string>, stripePriceId: string | null }> };
+
+export type RatesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type RatesQuery = { __typename?: 'Query', rates: Array<{ __typename?: 'Rate', provider: string, model: string, promptPerMTok: string, completionPerMTok: string }> };
+
+export type VaultQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type VaultQuery = { __typename?: 'Query', vault: { __typename?: 'VaultSnapshot', revenueUsd: string, providerCostUsd: string, marginUsd: string, entries: number, asOf: string } };
+
+export type MyBudgetQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MyBudgetQuery = { __typename?: 'Query', myBudget: { __typename?: 'BudgetSummary', userId: string, email: string, tier: string, spentUsd: string, entries: Array<{ __typename?: 'LedgerEntry', id: string, projectId: string | null, provider: string | null, model: string | null, promptTokens: number, completionTokens: number, costUsd: string, revenueUsd: string, ts: string, agent: string | null, durationMs: number | null }> } };
+
+export type StartCheckoutMutationVariables = Exact<{
+  input: StartCheckoutInput;
+}>;
+
+
+export type StartCheckoutMutation = { __typename?: 'Mutation', startCheckout: { __typename?: 'StripeCheckoutSession', sessionId: string, url: string } };
+
 export type ProfitDashboardQueryVariables = Exact<{
   since: Scalars['DateTime']['input'];
   until: Scalars['DateTime']['input'];
@@ -1761,6 +2169,8 @@ export type DeployCoreFragment = { __typename?: 'Deploy', id: string, tenantID: 
 
 export type DeployApprovalCoreFragment = { __typename?: 'DeployApproval', id: string, deployID: string, tenantID: string, status: string, diffHash: string, artifactHash: string, gateSummary: unknown, costImpactUSD: number, expiresAt: string, decisionNote: string | null, requestedAt: string, decidedAt: string | null };
 
+export type DeployDomainCoreFragment = { __typename?: 'DeployDomain', id: string, tenantID: string, projectID: string, deployID: string | null, hostname: string, kind: string, status: string, provider: string, registrar: string | null, primary: boolean, verificationStatus: string, certificateStatus: string, instructions: string, metadata: unknown, createdAt: string, updatedAt: string, verifiedAt: string | null, liveAt: string | null, dnsRecords: Array<{ __typename?: 'DNSRecord', type: string, name: string, value: string, ttl: number | null }> };
+
 export type DeploysQueryVariables = Exact<{
   limit?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
@@ -1781,12 +2191,35 @@ export type PendingDeployApprovalsQueryVariables = Exact<{ [key: string]: never;
 
 export type PendingDeployApprovalsQuery = { __typename?: 'Query', pendingDeployApprovals: Array<{ __typename?: 'DeployApproval', id: string, deployID: string, tenantID: string, status: string, diffHash: string, artifactHash: string, gateSummary: unknown, costImpactUSD: number, expiresAt: string, decisionNote: string | null, requestedAt: string, decidedAt: string | null }> };
 
+export type DeployDomainsQueryVariables = Exact<{
+  projectID: Scalars['ID']['input'];
+}>;
+
+
+export type DeployDomainsQuery = { __typename?: 'Query', deployDomains: Array<{ __typename?: 'DeployDomain', id: string, tenantID: string, projectID: string, deployID: string | null, hostname: string, kind: string, status: string, provider: string, registrar: string | null, primary: boolean, verificationStatus: string, certificateStatus: string, instructions: string, metadata: unknown, createdAt: string, updatedAt: string, verifiedAt: string | null, liveAt: string | null, dnsRecords: Array<{ __typename?: 'DNSRecord', type: string, name: string, value: string, ttl: number | null }> }> };
+
+export type DomainAvailabilityQueryVariables = Exact<{
+  domain: Scalars['String']['input'];
+  registrar?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type DomainAvailabilityQuery = { __typename?: 'Query', domainAvailability: { __typename?: 'DomainAvailability', domain: string, available: boolean, registrar: string, priceUSD: number, currency: string, premium: boolean, canPurchase: boolean, reason: string | null, checkedAt: string, requirements: Array<string> } };
+
 export type PlanDeployMutationVariables = Exact<{
   input: PlanDeployInput;
 }>;
 
 
 export type PlanDeployMutation = { __typename?: 'Mutation', planDeploy: { __typename?: 'Deploy', id: string, tenantID: string, projectID: string, executionID: string | null, blueprintID: string | null, target: string, environment: string, status: string, providerDeploymentID: string | null, previewURL: string | null, productionURL: string | null, diffHash: string | null, artifactHash: string | null, gateSummary: unknown, costUSD: number, createdAt: string, previewReadyAt: string | null, promotedAt: string | null, rolledBackAt: string | null } };
+
+export type CancelDeployMutationVariables = Exact<{
+  deployID: Scalars['ID']['input'];
+  reason: Scalars['String']['input'];
+}>;
+
+
+export type CancelDeployMutation = { __typename?: 'Mutation', cancelDeploy: { __typename?: 'Deploy', id: string, tenantID: string, projectID: string, executionID: string | null, blueprintID: string | null, target: string, environment: string, status: string, providerDeploymentID: string | null, previewURL: string | null, productionURL: string | null, diffHash: string | null, artifactHash: string | null, gateSummary: unknown, costUSD: number, createdAt: string, previewReadyAt: string | null, promotedAt: string | null, rolledBackAt: string | null } };
 
 export type BuildDeployPreviewMutationVariables = Exact<{
   deployID: Scalars['ID']['input'];
@@ -1826,6 +2259,41 @@ export type RollbackDeployMutationVariables = Exact<{
 
 
 export type RollbackDeployMutation = { __typename?: 'Mutation', rollbackDeploy: { __typename?: 'Deploy', id: string, tenantID: string, projectID: string, executionID: string | null, blueprintID: string | null, target: string, environment: string, status: string, providerDeploymentID: string | null, previewURL: string | null, productionURL: string | null, diffHash: string | null, artifactHash: string | null, gateSummary: unknown, costUSD: number, createdAt: string, previewReadyAt: string | null, promotedAt: string | null, rolledBackAt: string | null } };
+
+export type ReserveDeploySubdomainMutationVariables = Exact<{
+  input: ReserveDeploySubdomainInput;
+}>;
+
+
+export type ReserveDeploySubdomainMutation = { __typename?: 'Mutation', reserveDeploySubdomain: { __typename?: 'DeployDomain', id: string, tenantID: string, projectID: string, deployID: string | null, hostname: string, kind: string, status: string, provider: string, registrar: string | null, primary: boolean, verificationStatus: string, certificateStatus: string, instructions: string, metadata: unknown, createdAt: string, updatedAt: string, verifiedAt: string | null, liveAt: string | null, dnsRecords: Array<{ __typename?: 'DNSRecord', type: string, name: string, value: string, ttl: number | null }> } };
+
+export type ConnectDeployDomainMutationVariables = Exact<{
+  input: ConnectDeployDomainInput;
+}>;
+
+
+export type ConnectDeployDomainMutation = { __typename?: 'Mutation', connectDeployDomain: { __typename?: 'DeployDomain', id: string, tenantID: string, projectID: string, deployID: string | null, hostname: string, kind: string, status: string, provider: string, registrar: string | null, primary: boolean, verificationStatus: string, certificateStatus: string, instructions: string, metadata: unknown, createdAt: string, updatedAt: string, verifiedAt: string | null, liveAt: string | null, dnsRecords: Array<{ __typename?: 'DNSRecord', type: string, name: string, value: string, ttl: number | null }> } };
+
+export type CheckDeployDomainMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type CheckDeployDomainMutation = { __typename?: 'Mutation', checkDeployDomain: { __typename?: 'DeployDomain', id: string, tenantID: string, projectID: string, deployID: string | null, hostname: string, kind: string, status: string, provider: string, registrar: string | null, primary: boolean, verificationStatus: string, certificateStatus: string, instructions: string, metadata: unknown, createdAt: string, updatedAt: string, verifiedAt: string | null, liveAt: string | null, dnsRecords: Array<{ __typename?: 'DNSRecord', type: string, name: string, value: string, ttl: number | null }> } };
+
+export type SetPrimaryDeployDomainMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type SetPrimaryDeployDomainMutation = { __typename?: 'Mutation', setPrimaryDeployDomain: { __typename?: 'DeployDomain', id: string, tenantID: string, projectID: string, deployID: string | null, hostname: string, kind: string, status: string, provider: string, registrar: string | null, primary: boolean, verificationStatus: string, certificateStatus: string, instructions: string, metadata: unknown, createdAt: string, updatedAt: string, verifiedAt: string | null, liveAt: string | null, dnsRecords: Array<{ __typename?: 'DNSRecord', type: string, name: string, value: string, ttl: number | null }> } };
+
+export type PurchaseDeployDomainMutationVariables = Exact<{
+  input: PurchaseDeployDomainInput;
+}>;
+
+
+export type PurchaseDeployDomainMutation = { __typename?: 'Mutation', purchaseDeployDomain: { __typename?: 'DeployDomain', id: string, tenantID: string, projectID: string, deployID: string | null, hostname: string, kind: string, status: string, provider: string, registrar: string | null, primary: boolean, verificationStatus: string, certificateStatus: string, instructions: string, metadata: unknown, createdAt: string, updatedAt: string, verifiedAt: string | null, liveAt: string | null, dnsRecords: Array<{ __typename?: 'DNSRecord', type: string, name: string, value: string, ttl: number | null }> } };
 
 export type DeployFeedSubscriptionVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -1898,6 +2366,31 @@ export type EstimateExecutionCostQueryVariables = Exact<{
 
 export type EstimateExecutionCostQuery = { __typename?: 'Query', estimateExecutionCost: { __typename?: 'CostEstimate', lowUSD: number, medianUSD: number, highUSD: number, p95USD: number, breakdown: unknown, confidence: number, basedOnRuns: number, caveat: string | null } };
 
+export type GateVerdictCoreFragment = { __typename?: 'GateVerdict', gate: string, status: GateStatus, startedAt: string | null, finishedAt: string | null, durationMs: number | null, notes: string | null, issues: Array<{ __typename?: 'GateIssue', path: string | null, line: number | null, rule: string | null, severity: string | null, message: string }> };
+
+export type ProjectGatesQueryVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+  sub?: InputMaybe<Scalars['ID']['input']>;
+}>;
+
+
+export type ProjectGatesQuery = { __typename?: 'Query', gates: Array<{ __typename?: 'GateVerdict', gate: string, status: GateStatus, startedAt: string | null, finishedAt: string | null, durationMs: number | null, notes: string | null, issues: Array<{ __typename?: 'GateIssue', path: string | null, line: number | null, rule: string | null, severity: string | null, message: string }> }> };
+
+export type GateQueryVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+  gate: Scalars['String']['input'];
+}>;
+
+
+export type GateQuery = { __typename?: 'Query', gate: { __typename?: 'GateVerdict', gate: string, status: GateStatus, startedAt: string | null, finishedAt: string | null, durationMs: number | null, notes: string | null, issues: Array<{ __typename?: 'GateIssue', path: string | null, line: number | null, rule: string | null, severity: string | null, message: string }> } | null };
+
+export type RerunGateMutationVariables = Exact<{
+  input: RerunGateInput;
+}>;
+
+
+export type RerunGateMutation = { __typename?: 'Mutation', rerunGate: { __typename?: 'GateVerdict', gate: string, status: GateStatus, startedAt: string | null, finishedAt: string | null, durationMs: number | null, notes: string | null, issues: Array<{ __typename?: 'GateIssue', path: string | null, line: number | null, rule: string | null, severity: string | null, message: string }> } };
+
 export type LedgerEntryCoreFragment = { __typename?: 'WalletLedgerEntry', id: string, tenantID: string, executionID: string | null, entryType: string, direction: string, amountUSD: number, provider: string | null, billable: boolean, marginRelevant: boolean, metadata: unknown, createdAt: string };
 
 export type ExecutionLedgerQueryVariables = Exact<{
@@ -1916,6 +2409,11 @@ export type LedgerRollupQueryVariables = Exact<{
 
 
 export type LedgerRollupQuery = { __typename?: 'Query', ledgerRollup: { __typename?: 'LedgerRollup', revenueUSD: number, providerCostUSD: number, sandboxCostUSD: number, storageCostUSD: number, deploymentCostUSD: number, premiumReasoningCostUSD: number, refundsUSD: number, platformMarginUSD: number, grossMarginPct: number } };
+
+export type TenantProfitTodayQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type TenantProfitTodayQuery = { __typename?: 'Query', tenantProfitToday: { __typename?: 'LedgerRollup', revenueUSD: number, providerCostUSD: number, sandboxCostUSD: number, storageCostUSD: number, deploymentCostUSD: number, premiumReasoningCostUSD: number, refundsUSD: number, platformMarginUSD: number, grossMarginPct: number } };
 
 export type OperatorPendingApprovalsQueryVariables = Exact<{
   tenantID?: InputMaybe<Scalars['ID']['input']>;
@@ -1995,6 +2493,11 @@ export type ProjectsQueryVariables = Exact<{
 
 export type ProjectsQuery = { __typename?: 'Query', projects: Array<{ __typename?: 'Project', id: string, name: string, description: string | null, status: string, ownerId: string, isPublic: boolean, idea: string | null, createdAt: string, updatedAt: string }> };
 
+export type DashboardProjectsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type DashboardProjectsQuery = { __typename?: 'Query', projects: Array<{ __typename?: 'Project', id: string, name: string, description: string | null, status: string, ownerId: string, isPublic: boolean, idea: string | null, createdAt: string, updatedAt: string, files: Array<{ __typename?: 'ProjectFile', path: string }> }> };
+
 export type ProjectQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
@@ -2053,6 +2556,14 @@ export type PromptPlanMutationVariables = Exact<{
 
 export type PromptPlanMutation = { __typename?: 'Mutation', promptPlan: unknown };
 
+export type WriteProjectFilesMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  files: Array<WriteProjectFileInput> | WriteProjectFileInput;
+}>;
+
+
+export type WriteProjectFilesMutation = { __typename?: 'Mutation', writeProjectFiles: Array<{ __typename?: 'ProjectFile', path: string, content: string | null, size: number | null, language: string | null, updatedAt: string | null }> };
+
 export type ExecutionSecurityReportQueryVariables = Exact<{
   executionID: Scalars['ID']['input'];
 }>;
@@ -2101,6 +2612,21 @@ export type ExecutionSupportBundleQueryVariables = Exact<{
 
 export type ExecutionSupportBundleQuery = { __typename?: 'Query', executionSupportBundle: { __typename?: 'SupportBundle', executionID: string, tenantID: string, status: string, previewURL: string | null, productionURL: string | null, changedFiles: Array<string>, patchCount: number, generatedAt: string, gateReport: { __typename?: 'GateReport', completionScore: number, stages: Array<{ __typename?: 'GateStage', name: string, status: string, issuesCount: number }> }, securityReport: { __typename?: 'SupportSecurityReport', passRate: number, blockedDeploy: boolean, findings: Array<{ __typename?: 'SupportSecurityFinding', severity: string, ruleID: string, path: string, line: number, summary: string }> }, costReport: { __typename?: 'CostReport', revenueUSD: number, providerCostUSD: number, sandboxCostUSD: number, storageCostUSD: number, deploymentCostUSD: number, grossMarginPct: number }, nextBestAction: { __typename?: 'NextAction', kind: string, title: string, reason: string, cta: string | null } } };
 
+export const LedgerEntryRowFragmentDoc = gql`
+    fragment LedgerEntryRow on LedgerEntry {
+  id
+  projectId
+  provider
+  model
+  promptTokens
+  completionTokens
+  costUsd
+  revenueUsd
+  ts
+  agent
+  durationMs
+}
+    `;
 export const DeployCoreFragmentDoc = gql`
     fragment DeployCore on Deploy {
   id
@@ -2140,6 +2666,34 @@ export const DeployApprovalCoreFragmentDoc = gql`
   decidedAt
 }
     `;
+export const DeployDomainCoreFragmentDoc = gql`
+    fragment DeployDomainCore on DeployDomain {
+  id
+  tenantID
+  projectID
+  deployID
+  hostname
+  kind
+  status
+  provider
+  registrar
+  primary
+  verificationStatus
+  certificateStatus
+  instructions
+  metadata
+  dnsRecords {
+    type
+    name
+    value
+    ttl
+  }
+  createdAt
+  updatedAt
+  verifiedAt
+  liveAt
+}
+    `;
 export const ExecutionCoreFragmentDoc = gql`
     fragment ExecutionCore on Execution {
   id
@@ -2169,6 +2723,23 @@ export const ExecutionCoreFragmentDoc = gql`
   admittedAt
   startedAt
   endedAt
+}
+    `;
+export const GateVerdictCoreFragmentDoc = gql`
+    fragment GateVerdictCore on GateVerdict {
+  gate
+  status
+  startedAt
+  finishedAt
+  durationMs
+  notes
+  issues {
+    path
+    line
+    rule
+    severity
+    message
+  }
 }
     `;
 export const LedgerEntryCoreFragmentDoc = gql`
@@ -2224,6 +2795,61 @@ export const ProjectCoreFragmentDoc = gql`
   updatedAt
 }
     `;
+export const BanditRankingDocument = gql`
+    query BanditRanking($lookback: Int) {
+  banditRanking(lookback: $lookback) {
+    lookback
+    strategy
+    capabilities {
+      capability
+      total
+      winners {
+        provider
+        model
+        share
+        meanReward
+        isLeader
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useBanditRankingQuery__
+ *
+ * To run a query within a React component, call `useBanditRankingQuery` and pass it any options that fit your needs.
+ * When your component renders, `useBanditRankingQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useBanditRankingQuery({
+ *   variables: {
+ *      lookback: // value for 'lookback'
+ *   },
+ * });
+ */
+export function useBanditRankingQuery(baseOptions?: Apollo.QueryHookOptions<BanditRankingQuery, BanditRankingQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<BanditRankingQuery, BanditRankingQueryVariables>(BanditRankingDocument, options);
+      }
+export function useBanditRankingLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<BanditRankingQuery, BanditRankingQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<BanditRankingQuery, BanditRankingQueryVariables>(BanditRankingDocument, options);
+        }
+// @ts-ignore
+export function useBanditRankingSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<BanditRankingQuery, BanditRankingQueryVariables>): Apollo.UseSuspenseQueryResult<BanditRankingQuery, BanditRankingQueryVariables>;
+export function useBanditRankingSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<BanditRankingQuery, BanditRankingQueryVariables>): Apollo.UseSuspenseQueryResult<BanditRankingQuery | undefined, BanditRankingQueryVariables>;
+export function useBanditRankingSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<BanditRankingQuery, BanditRankingQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<BanditRankingQuery, BanditRankingQueryVariables>(BanditRankingDocument, options);
+        }
+export type BanditRankingQueryHookResult = ReturnType<typeof useBanditRankingQuery>;
+export type BanditRankingLazyQueryHookResult = ReturnType<typeof useBanditRankingLazyQuery>;
+export type BanditRankingSuspenseQueryHookResult = ReturnType<typeof useBanditRankingSuspenseQuery>;
+export type BanditRankingQueryResult = Apollo.QueryResult<BanditRankingQuery, BanditRankingQueryVariables>;
 export const CurrentUserDocument = gql`
     query CurrentUser {
   me {
@@ -2677,6 +3303,227 @@ export type BlueprintRankingQueryHookResult = ReturnType<typeof useBlueprintRank
 export type BlueprintRankingLazyQueryHookResult = ReturnType<typeof useBlueprintRankingLazyQuery>;
 export type BlueprintRankingSuspenseQueryHookResult = ReturnType<typeof useBlueprintRankingSuspenseQuery>;
 export type BlueprintRankingQueryResult = Apollo.QueryResult<BlueprintRankingQuery, BlueprintRankingQueryVariables>;
+export const PlansDocument = gql`
+    query Plans {
+  plans {
+    tier
+    name
+    priceUsd
+    costCapUsd
+    description
+    features
+    stripePriceId
+  }
+}
+    `;
+
+/**
+ * __usePlansQuery__
+ *
+ * To run a query within a React component, call `usePlansQuery` and pass it any options that fit your needs.
+ * When your component renders, `usePlansQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePlansQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function usePlansQuery(baseOptions?: Apollo.QueryHookOptions<PlansQuery, PlansQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<PlansQuery, PlansQueryVariables>(PlansDocument, options);
+      }
+export function usePlansLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<PlansQuery, PlansQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<PlansQuery, PlansQueryVariables>(PlansDocument, options);
+        }
+// @ts-ignore
+export function usePlansSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<PlansQuery, PlansQueryVariables>): Apollo.UseSuspenseQueryResult<PlansQuery, PlansQueryVariables>;
+export function usePlansSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<PlansQuery, PlansQueryVariables>): Apollo.UseSuspenseQueryResult<PlansQuery | undefined, PlansQueryVariables>;
+export function usePlansSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<PlansQuery, PlansQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<PlansQuery, PlansQueryVariables>(PlansDocument, options);
+        }
+export type PlansQueryHookResult = ReturnType<typeof usePlansQuery>;
+export type PlansLazyQueryHookResult = ReturnType<typeof usePlansLazyQuery>;
+export type PlansSuspenseQueryHookResult = ReturnType<typeof usePlansSuspenseQuery>;
+export type PlansQueryResult = Apollo.QueryResult<PlansQuery, PlansQueryVariables>;
+export const RatesDocument = gql`
+    query Rates {
+  rates {
+    provider
+    model
+    promptPerMTok
+    completionPerMTok
+  }
+}
+    `;
+
+/**
+ * __useRatesQuery__
+ *
+ * To run a query within a React component, call `useRatesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useRatesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useRatesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useRatesQuery(baseOptions?: Apollo.QueryHookOptions<RatesQuery, RatesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<RatesQuery, RatesQueryVariables>(RatesDocument, options);
+      }
+export function useRatesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<RatesQuery, RatesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<RatesQuery, RatesQueryVariables>(RatesDocument, options);
+        }
+// @ts-ignore
+export function useRatesSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<RatesQuery, RatesQueryVariables>): Apollo.UseSuspenseQueryResult<RatesQuery, RatesQueryVariables>;
+export function useRatesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<RatesQuery, RatesQueryVariables>): Apollo.UseSuspenseQueryResult<RatesQuery | undefined, RatesQueryVariables>;
+export function useRatesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<RatesQuery, RatesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<RatesQuery, RatesQueryVariables>(RatesDocument, options);
+        }
+export type RatesQueryHookResult = ReturnType<typeof useRatesQuery>;
+export type RatesLazyQueryHookResult = ReturnType<typeof useRatesLazyQuery>;
+export type RatesSuspenseQueryHookResult = ReturnType<typeof useRatesSuspenseQuery>;
+export type RatesQueryResult = Apollo.QueryResult<RatesQuery, RatesQueryVariables>;
+export const VaultDocument = gql`
+    query Vault {
+  vault {
+    revenueUsd
+    providerCostUsd
+    marginUsd
+    entries
+    asOf
+  }
+}
+    `;
+
+/**
+ * __useVaultQuery__
+ *
+ * To run a query within a React component, call `useVaultQuery` and pass it any options that fit your needs.
+ * When your component renders, `useVaultQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useVaultQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useVaultQuery(baseOptions?: Apollo.QueryHookOptions<VaultQuery, VaultQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<VaultQuery, VaultQueryVariables>(VaultDocument, options);
+      }
+export function useVaultLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<VaultQuery, VaultQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<VaultQuery, VaultQueryVariables>(VaultDocument, options);
+        }
+// @ts-ignore
+export function useVaultSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<VaultQuery, VaultQueryVariables>): Apollo.UseSuspenseQueryResult<VaultQuery, VaultQueryVariables>;
+export function useVaultSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<VaultQuery, VaultQueryVariables>): Apollo.UseSuspenseQueryResult<VaultQuery | undefined, VaultQueryVariables>;
+export function useVaultSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<VaultQuery, VaultQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<VaultQuery, VaultQueryVariables>(VaultDocument, options);
+        }
+export type VaultQueryHookResult = ReturnType<typeof useVaultQuery>;
+export type VaultLazyQueryHookResult = ReturnType<typeof useVaultLazyQuery>;
+export type VaultSuspenseQueryHookResult = ReturnType<typeof useVaultSuspenseQuery>;
+export type VaultQueryResult = Apollo.QueryResult<VaultQuery, VaultQueryVariables>;
+export const MyBudgetDocument = gql`
+    query MyBudget {
+  myBudget {
+    userId
+    email
+    tier
+    spentUsd
+    entries {
+      ...LedgerEntryRow
+    }
+  }
+}
+    ${LedgerEntryRowFragmentDoc}`;
+
+/**
+ * __useMyBudgetQuery__
+ *
+ * To run a query within a React component, call `useMyBudgetQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMyBudgetQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMyBudgetQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useMyBudgetQuery(baseOptions?: Apollo.QueryHookOptions<MyBudgetQuery, MyBudgetQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MyBudgetQuery, MyBudgetQueryVariables>(MyBudgetDocument, options);
+      }
+export function useMyBudgetLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MyBudgetQuery, MyBudgetQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MyBudgetQuery, MyBudgetQueryVariables>(MyBudgetDocument, options);
+        }
+// @ts-ignore
+export function useMyBudgetSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MyBudgetQuery, MyBudgetQueryVariables>): Apollo.UseSuspenseQueryResult<MyBudgetQuery, MyBudgetQueryVariables>;
+export function useMyBudgetSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyBudgetQuery, MyBudgetQueryVariables>): Apollo.UseSuspenseQueryResult<MyBudgetQuery | undefined, MyBudgetQueryVariables>;
+export function useMyBudgetSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyBudgetQuery, MyBudgetQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MyBudgetQuery, MyBudgetQueryVariables>(MyBudgetDocument, options);
+        }
+export type MyBudgetQueryHookResult = ReturnType<typeof useMyBudgetQuery>;
+export type MyBudgetLazyQueryHookResult = ReturnType<typeof useMyBudgetLazyQuery>;
+export type MyBudgetSuspenseQueryHookResult = ReturnType<typeof useMyBudgetSuspenseQuery>;
+export type MyBudgetQueryResult = Apollo.QueryResult<MyBudgetQuery, MyBudgetQueryVariables>;
+export const StartCheckoutDocument = gql`
+    mutation StartCheckout($input: StartCheckoutInput!) {
+  startCheckout(input: $input) {
+    sessionId
+    url
+  }
+}
+    `;
+export type StartCheckoutMutationFn = Apollo.MutationFunction<StartCheckoutMutation, StartCheckoutMutationVariables>;
+
+/**
+ * __useStartCheckoutMutation__
+ *
+ * To run a mutation, you first call `useStartCheckoutMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useStartCheckoutMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [startCheckoutMutation, { data, loading, error }] = useStartCheckoutMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useStartCheckoutMutation(baseOptions?: Apollo.MutationHookOptions<StartCheckoutMutation, StartCheckoutMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<StartCheckoutMutation, StartCheckoutMutationVariables>(StartCheckoutDocument, options);
+      }
+export type StartCheckoutMutationHookResult = ReturnType<typeof useStartCheckoutMutation>;
+export type StartCheckoutMutationResult = Apollo.MutationResult<StartCheckoutMutation>;
+export type StartCheckoutMutationOptions = Apollo.BaseMutationOptions<StartCheckoutMutation, StartCheckoutMutationVariables>;
 export const ProfitDashboardDocument = gql`
     query ProfitDashboard($since: DateTime!, $until: DateTime!) {
   profitDashboard(since: $since, until: $until) {
@@ -3014,6 +3861,102 @@ export type PendingDeployApprovalsQueryHookResult = ReturnType<typeof usePending
 export type PendingDeployApprovalsLazyQueryHookResult = ReturnType<typeof usePendingDeployApprovalsLazyQuery>;
 export type PendingDeployApprovalsSuspenseQueryHookResult = ReturnType<typeof usePendingDeployApprovalsSuspenseQuery>;
 export type PendingDeployApprovalsQueryResult = Apollo.QueryResult<PendingDeployApprovalsQuery, PendingDeployApprovalsQueryVariables>;
+export const DeployDomainsDocument = gql`
+    query DeployDomains($projectID: ID!) {
+  deployDomains(projectID: $projectID) {
+    ...DeployDomainCore
+  }
+}
+    ${DeployDomainCoreFragmentDoc}`;
+
+/**
+ * __useDeployDomainsQuery__
+ *
+ * To run a query within a React component, call `useDeployDomainsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useDeployDomainsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useDeployDomainsQuery({
+ *   variables: {
+ *      projectID: // value for 'projectID'
+ *   },
+ * });
+ */
+export function useDeployDomainsQuery(baseOptions: Apollo.QueryHookOptions<DeployDomainsQuery, DeployDomainsQueryVariables> & ({ variables: DeployDomainsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<DeployDomainsQuery, DeployDomainsQueryVariables>(DeployDomainsDocument, options);
+      }
+export function useDeployDomainsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DeployDomainsQuery, DeployDomainsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<DeployDomainsQuery, DeployDomainsQueryVariables>(DeployDomainsDocument, options);
+        }
+// @ts-ignore
+export function useDeployDomainsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<DeployDomainsQuery, DeployDomainsQueryVariables>): Apollo.UseSuspenseQueryResult<DeployDomainsQuery, DeployDomainsQueryVariables>;
+export function useDeployDomainsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<DeployDomainsQuery, DeployDomainsQueryVariables>): Apollo.UseSuspenseQueryResult<DeployDomainsQuery | undefined, DeployDomainsQueryVariables>;
+export function useDeployDomainsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<DeployDomainsQuery, DeployDomainsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<DeployDomainsQuery, DeployDomainsQueryVariables>(DeployDomainsDocument, options);
+        }
+export type DeployDomainsQueryHookResult = ReturnType<typeof useDeployDomainsQuery>;
+export type DeployDomainsLazyQueryHookResult = ReturnType<typeof useDeployDomainsLazyQuery>;
+export type DeployDomainsSuspenseQueryHookResult = ReturnType<typeof useDeployDomainsSuspenseQuery>;
+export type DeployDomainsQueryResult = Apollo.QueryResult<DeployDomainsQuery, DeployDomainsQueryVariables>;
+export const DomainAvailabilityDocument = gql`
+    query DomainAvailability($domain: String!, $registrar: String) {
+  domainAvailability(domain: $domain, registrar: $registrar) {
+    domain
+    available
+    registrar
+    priceUSD
+    currency
+    premium
+    canPurchase
+    reason
+    checkedAt
+    requirements
+  }
+}
+    `;
+
+/**
+ * __useDomainAvailabilityQuery__
+ *
+ * To run a query within a React component, call `useDomainAvailabilityQuery` and pass it any options that fit your needs.
+ * When your component renders, `useDomainAvailabilityQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useDomainAvailabilityQuery({
+ *   variables: {
+ *      domain: // value for 'domain'
+ *      registrar: // value for 'registrar'
+ *   },
+ * });
+ */
+export function useDomainAvailabilityQuery(baseOptions: Apollo.QueryHookOptions<DomainAvailabilityQuery, DomainAvailabilityQueryVariables> & ({ variables: DomainAvailabilityQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<DomainAvailabilityQuery, DomainAvailabilityQueryVariables>(DomainAvailabilityDocument, options);
+      }
+export function useDomainAvailabilityLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DomainAvailabilityQuery, DomainAvailabilityQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<DomainAvailabilityQuery, DomainAvailabilityQueryVariables>(DomainAvailabilityDocument, options);
+        }
+// @ts-ignore
+export function useDomainAvailabilitySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<DomainAvailabilityQuery, DomainAvailabilityQueryVariables>): Apollo.UseSuspenseQueryResult<DomainAvailabilityQuery, DomainAvailabilityQueryVariables>;
+export function useDomainAvailabilitySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<DomainAvailabilityQuery, DomainAvailabilityQueryVariables>): Apollo.UseSuspenseQueryResult<DomainAvailabilityQuery | undefined, DomainAvailabilityQueryVariables>;
+export function useDomainAvailabilitySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<DomainAvailabilityQuery, DomainAvailabilityQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<DomainAvailabilityQuery, DomainAvailabilityQueryVariables>(DomainAvailabilityDocument, options);
+        }
+export type DomainAvailabilityQueryHookResult = ReturnType<typeof useDomainAvailabilityQuery>;
+export type DomainAvailabilityLazyQueryHookResult = ReturnType<typeof useDomainAvailabilityLazyQuery>;
+export type DomainAvailabilitySuspenseQueryHookResult = ReturnType<typeof useDomainAvailabilitySuspenseQuery>;
+export type DomainAvailabilityQueryResult = Apollo.QueryResult<DomainAvailabilityQuery, DomainAvailabilityQueryVariables>;
 export const PlanDeployDocument = gql`
     mutation PlanDeploy($input: PlanDeployInput!) {
   planDeploy(input: $input) {
@@ -3047,6 +3990,40 @@ export function usePlanDeployMutation(baseOptions?: Apollo.MutationHookOptions<P
 export type PlanDeployMutationHookResult = ReturnType<typeof usePlanDeployMutation>;
 export type PlanDeployMutationResult = Apollo.MutationResult<PlanDeployMutation>;
 export type PlanDeployMutationOptions = Apollo.BaseMutationOptions<PlanDeployMutation, PlanDeployMutationVariables>;
+export const CancelDeployDocument = gql`
+    mutation CancelDeploy($deployID: ID!, $reason: String!) {
+  cancelDeploy(deployID: $deployID, reason: $reason) {
+    ...DeployCore
+  }
+}
+    ${DeployCoreFragmentDoc}`;
+export type CancelDeployMutationFn = Apollo.MutationFunction<CancelDeployMutation, CancelDeployMutationVariables>;
+
+/**
+ * __useCancelDeployMutation__
+ *
+ * To run a mutation, you first call `useCancelDeployMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCancelDeployMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [cancelDeployMutation, { data, loading, error }] = useCancelDeployMutation({
+ *   variables: {
+ *      deployID: // value for 'deployID'
+ *      reason: // value for 'reason'
+ *   },
+ * });
+ */
+export function useCancelDeployMutation(baseOptions?: Apollo.MutationHookOptions<CancelDeployMutation, CancelDeployMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CancelDeployMutation, CancelDeployMutationVariables>(CancelDeployDocument, options);
+      }
+export type CancelDeployMutationHookResult = ReturnType<typeof useCancelDeployMutation>;
+export type CancelDeployMutationResult = Apollo.MutationResult<CancelDeployMutation>;
+export type CancelDeployMutationOptions = Apollo.BaseMutationOptions<CancelDeployMutation, CancelDeployMutationVariables>;
 export const BuildDeployPreviewDocument = gql`
     mutation BuildDeployPreview($deployID: ID!) {
   buildDeployPreview(deployID: $deployID) {
@@ -3216,6 +4193,171 @@ export function useRollbackDeployMutation(baseOptions?: Apollo.MutationHookOptio
 export type RollbackDeployMutationHookResult = ReturnType<typeof useRollbackDeployMutation>;
 export type RollbackDeployMutationResult = Apollo.MutationResult<RollbackDeployMutation>;
 export type RollbackDeployMutationOptions = Apollo.BaseMutationOptions<RollbackDeployMutation, RollbackDeployMutationVariables>;
+export const ReserveDeploySubdomainDocument = gql`
+    mutation ReserveDeploySubdomain($input: ReserveDeploySubdomainInput!) {
+  reserveDeploySubdomain(input: $input) {
+    ...DeployDomainCore
+  }
+}
+    ${DeployDomainCoreFragmentDoc}`;
+export type ReserveDeploySubdomainMutationFn = Apollo.MutationFunction<ReserveDeploySubdomainMutation, ReserveDeploySubdomainMutationVariables>;
+
+/**
+ * __useReserveDeploySubdomainMutation__
+ *
+ * To run a mutation, you first call `useReserveDeploySubdomainMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useReserveDeploySubdomainMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [reserveDeploySubdomainMutation, { data, loading, error }] = useReserveDeploySubdomainMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useReserveDeploySubdomainMutation(baseOptions?: Apollo.MutationHookOptions<ReserveDeploySubdomainMutation, ReserveDeploySubdomainMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ReserveDeploySubdomainMutation, ReserveDeploySubdomainMutationVariables>(ReserveDeploySubdomainDocument, options);
+      }
+export type ReserveDeploySubdomainMutationHookResult = ReturnType<typeof useReserveDeploySubdomainMutation>;
+export type ReserveDeploySubdomainMutationResult = Apollo.MutationResult<ReserveDeploySubdomainMutation>;
+export type ReserveDeploySubdomainMutationOptions = Apollo.BaseMutationOptions<ReserveDeploySubdomainMutation, ReserveDeploySubdomainMutationVariables>;
+export const ConnectDeployDomainDocument = gql`
+    mutation ConnectDeployDomain($input: ConnectDeployDomainInput!) {
+  connectDeployDomain(input: $input) {
+    ...DeployDomainCore
+  }
+}
+    ${DeployDomainCoreFragmentDoc}`;
+export type ConnectDeployDomainMutationFn = Apollo.MutationFunction<ConnectDeployDomainMutation, ConnectDeployDomainMutationVariables>;
+
+/**
+ * __useConnectDeployDomainMutation__
+ *
+ * To run a mutation, you first call `useConnectDeployDomainMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useConnectDeployDomainMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [connectDeployDomainMutation, { data, loading, error }] = useConnectDeployDomainMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useConnectDeployDomainMutation(baseOptions?: Apollo.MutationHookOptions<ConnectDeployDomainMutation, ConnectDeployDomainMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ConnectDeployDomainMutation, ConnectDeployDomainMutationVariables>(ConnectDeployDomainDocument, options);
+      }
+export type ConnectDeployDomainMutationHookResult = ReturnType<typeof useConnectDeployDomainMutation>;
+export type ConnectDeployDomainMutationResult = Apollo.MutationResult<ConnectDeployDomainMutation>;
+export type ConnectDeployDomainMutationOptions = Apollo.BaseMutationOptions<ConnectDeployDomainMutation, ConnectDeployDomainMutationVariables>;
+export const CheckDeployDomainDocument = gql`
+    mutation CheckDeployDomain($id: ID!) {
+  checkDeployDomain(id: $id) {
+    ...DeployDomainCore
+  }
+}
+    ${DeployDomainCoreFragmentDoc}`;
+export type CheckDeployDomainMutationFn = Apollo.MutationFunction<CheckDeployDomainMutation, CheckDeployDomainMutationVariables>;
+
+/**
+ * __useCheckDeployDomainMutation__
+ *
+ * To run a mutation, you first call `useCheckDeployDomainMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCheckDeployDomainMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [checkDeployDomainMutation, { data, loading, error }] = useCheckDeployDomainMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useCheckDeployDomainMutation(baseOptions?: Apollo.MutationHookOptions<CheckDeployDomainMutation, CheckDeployDomainMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CheckDeployDomainMutation, CheckDeployDomainMutationVariables>(CheckDeployDomainDocument, options);
+      }
+export type CheckDeployDomainMutationHookResult = ReturnType<typeof useCheckDeployDomainMutation>;
+export type CheckDeployDomainMutationResult = Apollo.MutationResult<CheckDeployDomainMutation>;
+export type CheckDeployDomainMutationOptions = Apollo.BaseMutationOptions<CheckDeployDomainMutation, CheckDeployDomainMutationVariables>;
+export const SetPrimaryDeployDomainDocument = gql`
+    mutation SetPrimaryDeployDomain($id: ID!) {
+  setPrimaryDeployDomain(id: $id) {
+    ...DeployDomainCore
+  }
+}
+    ${DeployDomainCoreFragmentDoc}`;
+export type SetPrimaryDeployDomainMutationFn = Apollo.MutationFunction<SetPrimaryDeployDomainMutation, SetPrimaryDeployDomainMutationVariables>;
+
+/**
+ * __useSetPrimaryDeployDomainMutation__
+ *
+ * To run a mutation, you first call `useSetPrimaryDeployDomainMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSetPrimaryDeployDomainMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [setPrimaryDeployDomainMutation, { data, loading, error }] = useSetPrimaryDeployDomainMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useSetPrimaryDeployDomainMutation(baseOptions?: Apollo.MutationHookOptions<SetPrimaryDeployDomainMutation, SetPrimaryDeployDomainMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SetPrimaryDeployDomainMutation, SetPrimaryDeployDomainMutationVariables>(SetPrimaryDeployDomainDocument, options);
+      }
+export type SetPrimaryDeployDomainMutationHookResult = ReturnType<typeof useSetPrimaryDeployDomainMutation>;
+export type SetPrimaryDeployDomainMutationResult = Apollo.MutationResult<SetPrimaryDeployDomainMutation>;
+export type SetPrimaryDeployDomainMutationOptions = Apollo.BaseMutationOptions<SetPrimaryDeployDomainMutation, SetPrimaryDeployDomainMutationVariables>;
+export const PurchaseDeployDomainDocument = gql`
+    mutation PurchaseDeployDomain($input: PurchaseDeployDomainInput!) {
+  purchaseDeployDomain(input: $input) {
+    ...DeployDomainCore
+  }
+}
+    ${DeployDomainCoreFragmentDoc}`;
+export type PurchaseDeployDomainMutationFn = Apollo.MutationFunction<PurchaseDeployDomainMutation, PurchaseDeployDomainMutationVariables>;
+
+/**
+ * __usePurchaseDeployDomainMutation__
+ *
+ * To run a mutation, you first call `usePurchaseDeployDomainMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePurchaseDeployDomainMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [purchaseDeployDomainMutation, { data, loading, error }] = usePurchaseDeployDomainMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function usePurchaseDeployDomainMutation(baseOptions?: Apollo.MutationHookOptions<PurchaseDeployDomainMutation, PurchaseDeployDomainMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<PurchaseDeployDomainMutation, PurchaseDeployDomainMutationVariables>(PurchaseDeployDomainDocument, options);
+      }
+export type PurchaseDeployDomainMutationHookResult = ReturnType<typeof usePurchaseDeployDomainMutation>;
+export type PurchaseDeployDomainMutationResult = Apollo.MutationResult<PurchaseDeployDomainMutation>;
+export type PurchaseDeployDomainMutationOptions = Apollo.BaseMutationOptions<PurchaseDeployDomainMutation, PurchaseDeployDomainMutationVariables>;
 export const DeployFeedDocument = gql`
     subscription DeployFeed($id: ID!) {
   deployFeed(id: $id) {
@@ -3566,6 +4708,127 @@ export type EstimateExecutionCostQueryHookResult = ReturnType<typeof useEstimate
 export type EstimateExecutionCostLazyQueryHookResult = ReturnType<typeof useEstimateExecutionCostLazyQuery>;
 export type EstimateExecutionCostSuspenseQueryHookResult = ReturnType<typeof useEstimateExecutionCostSuspenseQuery>;
 export type EstimateExecutionCostQueryResult = Apollo.QueryResult<EstimateExecutionCostQuery, EstimateExecutionCostQueryVariables>;
+export const ProjectGatesDocument = gql`
+    query ProjectGates($projectId: ID!, $sub: ID) {
+  gates(projectId: $projectId, sub: $sub) {
+    ...GateVerdictCore
+  }
+}
+    ${GateVerdictCoreFragmentDoc}`;
+
+/**
+ * __useProjectGatesQuery__
+ *
+ * To run a query within a React component, call `useProjectGatesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useProjectGatesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useProjectGatesQuery({
+ *   variables: {
+ *      projectId: // value for 'projectId'
+ *      sub: // value for 'sub'
+ *   },
+ * });
+ */
+export function useProjectGatesQuery(baseOptions: Apollo.QueryHookOptions<ProjectGatesQuery, ProjectGatesQueryVariables> & ({ variables: ProjectGatesQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ProjectGatesQuery, ProjectGatesQueryVariables>(ProjectGatesDocument, options);
+      }
+export function useProjectGatesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ProjectGatesQuery, ProjectGatesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ProjectGatesQuery, ProjectGatesQueryVariables>(ProjectGatesDocument, options);
+        }
+// @ts-ignore
+export function useProjectGatesSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ProjectGatesQuery, ProjectGatesQueryVariables>): Apollo.UseSuspenseQueryResult<ProjectGatesQuery, ProjectGatesQueryVariables>;
+export function useProjectGatesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ProjectGatesQuery, ProjectGatesQueryVariables>): Apollo.UseSuspenseQueryResult<ProjectGatesQuery | undefined, ProjectGatesQueryVariables>;
+export function useProjectGatesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ProjectGatesQuery, ProjectGatesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ProjectGatesQuery, ProjectGatesQueryVariables>(ProjectGatesDocument, options);
+        }
+export type ProjectGatesQueryHookResult = ReturnType<typeof useProjectGatesQuery>;
+export type ProjectGatesLazyQueryHookResult = ReturnType<typeof useProjectGatesLazyQuery>;
+export type ProjectGatesSuspenseQueryHookResult = ReturnType<typeof useProjectGatesSuspenseQuery>;
+export type ProjectGatesQueryResult = Apollo.QueryResult<ProjectGatesQuery, ProjectGatesQueryVariables>;
+export const GateDocument = gql`
+    query Gate($projectId: ID!, $gate: String!) {
+  gate(projectId: $projectId, gate: $gate) {
+    ...GateVerdictCore
+  }
+}
+    ${GateVerdictCoreFragmentDoc}`;
+
+/**
+ * __useGateQuery__
+ *
+ * To run a query within a React component, call `useGateQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGateQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGateQuery({
+ *   variables: {
+ *      projectId: // value for 'projectId'
+ *      gate: // value for 'gate'
+ *   },
+ * });
+ */
+export function useGateQuery(baseOptions: Apollo.QueryHookOptions<GateQuery, GateQueryVariables> & ({ variables: GateQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GateQuery, GateQueryVariables>(GateDocument, options);
+      }
+export function useGateLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GateQuery, GateQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GateQuery, GateQueryVariables>(GateDocument, options);
+        }
+// @ts-ignore
+export function useGateSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GateQuery, GateQueryVariables>): Apollo.UseSuspenseQueryResult<GateQuery, GateQueryVariables>;
+export function useGateSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GateQuery, GateQueryVariables>): Apollo.UseSuspenseQueryResult<GateQuery | undefined, GateQueryVariables>;
+export function useGateSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GateQuery, GateQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GateQuery, GateQueryVariables>(GateDocument, options);
+        }
+export type GateQueryHookResult = ReturnType<typeof useGateQuery>;
+export type GateLazyQueryHookResult = ReturnType<typeof useGateLazyQuery>;
+export type GateSuspenseQueryHookResult = ReturnType<typeof useGateSuspenseQuery>;
+export type GateQueryResult = Apollo.QueryResult<GateQuery, GateQueryVariables>;
+export const RerunGateDocument = gql`
+    mutation RerunGate($input: RerunGateInput!) {
+  rerunGate(input: $input) {
+    ...GateVerdictCore
+  }
+}
+    ${GateVerdictCoreFragmentDoc}`;
+export type RerunGateMutationFn = Apollo.MutationFunction<RerunGateMutation, RerunGateMutationVariables>;
+
+/**
+ * __useRerunGateMutation__
+ *
+ * To run a mutation, you first call `useRerunGateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRerunGateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [rerunGateMutation, { data, loading, error }] = useRerunGateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useRerunGateMutation(baseOptions?: Apollo.MutationHookOptions<RerunGateMutation, RerunGateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RerunGateMutation, RerunGateMutationVariables>(RerunGateDocument, options);
+      }
+export type RerunGateMutationHookResult = ReturnType<typeof useRerunGateMutation>;
+export type RerunGateMutationResult = Apollo.MutationResult<RerunGateMutation>;
+export type RerunGateMutationOptions = Apollo.BaseMutationOptions<RerunGateMutation, RerunGateMutationVariables>;
 export const ExecutionLedgerDocument = gql`
     query ExecutionLedger($executionID: ID!, $limit: Int, $offset: Int) {
   executionLedger(executionID: $executionID, limit: $limit, offset: $offset) {
@@ -3663,6 +4926,56 @@ export type LedgerRollupQueryHookResult = ReturnType<typeof useLedgerRollupQuery
 export type LedgerRollupLazyQueryHookResult = ReturnType<typeof useLedgerRollupLazyQuery>;
 export type LedgerRollupSuspenseQueryHookResult = ReturnType<typeof useLedgerRollupSuspenseQuery>;
 export type LedgerRollupQueryResult = Apollo.QueryResult<LedgerRollupQuery, LedgerRollupQueryVariables>;
+export const TenantProfitTodayDocument = gql`
+    query TenantProfitToday {
+  tenantProfitToday {
+    revenueUSD
+    providerCostUSD
+    sandboxCostUSD
+    storageCostUSD
+    deploymentCostUSD
+    premiumReasoningCostUSD
+    refundsUSD
+    platformMarginUSD
+    grossMarginPct
+  }
+}
+    `;
+
+/**
+ * __useTenantProfitTodayQuery__
+ *
+ * To run a query within a React component, call `useTenantProfitTodayQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTenantProfitTodayQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTenantProfitTodayQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useTenantProfitTodayQuery(baseOptions?: Apollo.QueryHookOptions<TenantProfitTodayQuery, TenantProfitTodayQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TenantProfitTodayQuery, TenantProfitTodayQueryVariables>(TenantProfitTodayDocument, options);
+      }
+export function useTenantProfitTodayLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TenantProfitTodayQuery, TenantProfitTodayQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TenantProfitTodayQuery, TenantProfitTodayQueryVariables>(TenantProfitTodayDocument, options);
+        }
+// @ts-ignore
+export function useTenantProfitTodaySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<TenantProfitTodayQuery, TenantProfitTodayQueryVariables>): Apollo.UseSuspenseQueryResult<TenantProfitTodayQuery, TenantProfitTodayQueryVariables>;
+export function useTenantProfitTodaySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<TenantProfitTodayQuery, TenantProfitTodayQueryVariables>): Apollo.UseSuspenseQueryResult<TenantProfitTodayQuery | undefined, TenantProfitTodayQueryVariables>;
+export function useTenantProfitTodaySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<TenantProfitTodayQuery, TenantProfitTodayQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<TenantProfitTodayQuery, TenantProfitTodayQueryVariables>(TenantProfitTodayDocument, options);
+        }
+export type TenantProfitTodayQueryHookResult = ReturnType<typeof useTenantProfitTodayQuery>;
+export type TenantProfitTodayLazyQueryHookResult = ReturnType<typeof useTenantProfitTodayLazyQuery>;
+export type TenantProfitTodaySuspenseQueryHookResult = ReturnType<typeof useTenantProfitTodaySuspenseQuery>;
+export type TenantProfitTodayQueryResult = Apollo.QueryResult<TenantProfitTodayQuery, TenantProfitTodayQueryVariables>;
 export const OperatorPendingApprovalsDocument = gql`
     query OperatorPendingApprovals($tenantID: ID) {
   operatorPendingApprovals(tenantID: $tenantID) {
@@ -4102,6 +5415,51 @@ export type ProjectsQueryHookResult = ReturnType<typeof useProjectsQuery>;
 export type ProjectsLazyQueryHookResult = ReturnType<typeof useProjectsLazyQuery>;
 export type ProjectsSuspenseQueryHookResult = ReturnType<typeof useProjectsSuspenseQuery>;
 export type ProjectsQueryResult = Apollo.QueryResult<ProjectsQuery, ProjectsQueryVariables>;
+export const DashboardProjectsDocument = gql`
+    query DashboardProjects {
+  projects {
+    ...ProjectCore
+    files {
+      path
+    }
+  }
+}
+    ${ProjectCoreFragmentDoc}`;
+
+/**
+ * __useDashboardProjectsQuery__
+ *
+ * To run a query within a React component, call `useDashboardProjectsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useDashboardProjectsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useDashboardProjectsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useDashboardProjectsQuery(baseOptions?: Apollo.QueryHookOptions<DashboardProjectsQuery, DashboardProjectsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<DashboardProjectsQuery, DashboardProjectsQueryVariables>(DashboardProjectsDocument, options);
+      }
+export function useDashboardProjectsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DashboardProjectsQuery, DashboardProjectsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<DashboardProjectsQuery, DashboardProjectsQueryVariables>(DashboardProjectsDocument, options);
+        }
+// @ts-ignore
+export function useDashboardProjectsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<DashboardProjectsQuery, DashboardProjectsQueryVariables>): Apollo.UseSuspenseQueryResult<DashboardProjectsQuery, DashboardProjectsQueryVariables>;
+export function useDashboardProjectsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<DashboardProjectsQuery, DashboardProjectsQueryVariables>): Apollo.UseSuspenseQueryResult<DashboardProjectsQuery | undefined, DashboardProjectsQueryVariables>;
+export function useDashboardProjectsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<DashboardProjectsQuery, DashboardProjectsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<DashboardProjectsQuery, DashboardProjectsQueryVariables>(DashboardProjectsDocument, options);
+        }
+export type DashboardProjectsQueryHookResult = ReturnType<typeof useDashboardProjectsQuery>;
+export type DashboardProjectsLazyQueryHookResult = ReturnType<typeof useDashboardProjectsLazyQuery>;
+export type DashboardProjectsSuspenseQueryHookResult = ReturnType<typeof useDashboardProjectsSuspenseQuery>;
+export type DashboardProjectsQueryResult = Apollo.QueryResult<DashboardProjectsQuery, DashboardProjectsQueryVariables>;
 export const ProjectDocument = gql`
     query Project($id: ID!) {
   project(id: $id) {
@@ -4390,6 +5748,44 @@ export function usePromptPlanMutation(baseOptions?: Apollo.MutationHookOptions<P
 export type PromptPlanMutationHookResult = ReturnType<typeof usePromptPlanMutation>;
 export type PromptPlanMutationResult = Apollo.MutationResult<PromptPlanMutation>;
 export type PromptPlanMutationOptions = Apollo.BaseMutationOptions<PromptPlanMutation, PromptPlanMutationVariables>;
+export const WriteProjectFilesDocument = gql`
+    mutation WriteProjectFiles($id: ID!, $files: [WriteProjectFileInput!]!) {
+  writeProjectFiles(id: $id, files: $files) {
+    path
+    content
+    size
+    language
+    updatedAt
+  }
+}
+    `;
+export type WriteProjectFilesMutationFn = Apollo.MutationFunction<WriteProjectFilesMutation, WriteProjectFilesMutationVariables>;
+
+/**
+ * __useWriteProjectFilesMutation__
+ *
+ * To run a mutation, you first call `useWriteProjectFilesMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useWriteProjectFilesMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [writeProjectFilesMutation, { data, loading, error }] = useWriteProjectFilesMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      files: // value for 'files'
+ *   },
+ * });
+ */
+export function useWriteProjectFilesMutation(baseOptions?: Apollo.MutationHookOptions<WriteProjectFilesMutation, WriteProjectFilesMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<WriteProjectFilesMutation, WriteProjectFilesMutationVariables>(WriteProjectFilesDocument, options);
+      }
+export type WriteProjectFilesMutationHookResult = ReturnType<typeof useWriteProjectFilesMutation>;
+export type WriteProjectFilesMutationResult = Apollo.MutationResult<WriteProjectFilesMutation>;
+export type WriteProjectFilesMutationOptions = Apollo.BaseMutationOptions<WriteProjectFilesMutation, WriteProjectFilesMutationVariables>;
 export const ExecutionSecurityReportDocument = gql`
     query ExecutionSecurityReport($executionID: ID!) {
   executionSecurityReport(executionID: $executionID) {

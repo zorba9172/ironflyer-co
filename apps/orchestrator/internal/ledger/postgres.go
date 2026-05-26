@@ -394,6 +394,12 @@ func (p *PostgresService) TenantRollup(ctx context.Context, tenantID uuid.UUID, 
 	r.PremiumReasoningCostUSD = sums[EntryPremiumReasoningCharge]
 	r.RefundsUSD = sums[EntryRefund]
 	r.PlatformMarginUSD = sums[EntryPlatformMargin]
+	r.MobileBuildCostUSD = sums[EntryMobileBuildMin]
+	r.EmulatorCostUSD = sums[EntryEmulatorMin]
+	r.MacWorkspaceCostUSD = sums[EntryMacWorkspaceMin]
+	r.EASBuildCostUSD = sums[EntryEASBuildCredit]
+	r.AppetizeCostUSD = sums[EntryAppetizeMin]
+	r.MobileCostUSD = mobileTotal(r)
 
 	allCosts := decimal.Zero.
 		Add(r.ProviderCostUSD).
@@ -401,7 +407,8 @@ func (p *PostgresService) TenantRollup(ctx context.Context, tenantID uuid.UUID, 
 		Add(r.StorageCostUSD).
 		Add(r.DeploymentCostUSD).
 		Add(r.PremiumReasoningCostUSD).
-		Add(r.RefundsUSD)
+		Add(r.RefundsUSD).
+		Add(r.MobileCostUSD)
 
 	if r.RevenueUSD.IsZero() {
 		r.GrossMarginPct = decimal.Zero

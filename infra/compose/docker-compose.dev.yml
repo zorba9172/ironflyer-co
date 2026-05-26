@@ -29,7 +29,7 @@ services:
       POSTGRES_PASSWORD: ironflyer
       POSTGRES_DB: ironflyer
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -41,7 +41,7 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -73,8 +73,8 @@ services:
       - --advertise-kafka-addr
       - PLAINTEXT://redpanda:9092,OUTSIDE://localhost:19092
     ports:
-      - "19092:19092"
-      - "9644:9644"
+      - "127.0.0.1:19092:19092"
+      - "127.0.0.1:9644:9644"
     volumes:
       - redpanda-data:/var/lib/redpanda/data
     mem_limit: 768m
@@ -93,8 +93,8 @@ services:
       CLICKHOUSE_USER: ironflyer
       CLICKHOUSE_PASSWORD: ironflyer
     ports:
-      - "8123:8123"
-      - "9002:9000"
+      - "127.0.0.1:8123:8123"
+      - "127.0.0.1:9002:9000"
     volumes:
       - clickhouse-data:/var/lib/clickhouse
       - ../clickhouse:/docker-entrypoint-initdb.d:ro
@@ -133,7 +133,7 @@ services:
       - root
       - memory
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     healthcheck:
       test: ["CMD-SHELL", "/surreal isready --conn http://localhost:8000 || exit 0"]
       interval: 5s
@@ -147,8 +147,8 @@ services:
       MINIO_ROOT_USER: ironflyer
       MINIO_ROOT_PASSWORD: ironflyer-dev
     ports:
-      - "9000:9000"   # S3 API
-      - "9001:9001"   # console
+      - "127.0.0.1:9000:9000"   # S3 API
+      - "127.0.0.1:9001:9001"   # console
     volumes:
       - minio-data:/data
     healthcheck:
@@ -181,7 +181,7 @@ services:
     volumes:
       - ./temporal/dynamicconfig:/etc/temporal/config/dynamicconfig:ro
     ports:
-      - "7233:7233"
+      - "127.0.0.1:7233:7233"
     depends_on:
       postgres:
         condition: service_healthy
@@ -193,7 +193,7 @@ services:
       TEMPORAL_ADDRESS: temporal:7233
       TEMPORAL_CORS_ORIGINS: http://localhost:3000
     ports:
-      - "8233:8080"
+      - "127.0.0.1:8233:8080"
     depends_on:
       - temporal
 
@@ -222,13 +222,26 @@ services:
     environment:
       OPENVSCODE_SERVER_ROOT: /home/.openvscode-server
     ports:
-      - "3030:3000"
+      - "127.0.0.1:3030:3000"
     volumes:
       - workspace-data:/home/workspace
       # Studio sync writes project snapshots here so the IDE opens the
       # same files Monaco shows, scoped by projectID.
       - ../../.ironflyer/ide-sync/projects:/home/workspace/projects
+    # The Ironflyer assistant extension inside the container talks to
+    # the host-side orchestrator + runtime + web URLs (3000/8080/8090
+    # run on the dev host, not inside this container). Docker for
+    # Mac/Windows ships host.docker.internal out of the box; Linux
+    # needs the explicit host-gateway mapping below.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     command:
+      # --without-connection-token is acceptable here ONLY because
+      # the host port is bound to 127.0.0.1 above. Without that
+      # loopback restriction this would let any process on the LAN
+      # open the IDE and run arbitrary commands. In production
+      # deployments add a connection token via env override or front
+      # this with an authenticated reverse proxy.
       - --without-connection-token
       - --server-base-path
       - /ide
@@ -243,7 +256,7 @@ services:
     profiles: ["ide-legacy", "full"]
     image: ironflyer/code:dev
     ports:
-      - "8443:8080"
+      - "127.0.0.1:8443:8080"
     volumes:
       - codeserver-data:/home/coder/project
     command: ["--auth", "none", "--bind-addr", "0.0.0.0:8080", "/home/coder/project"]

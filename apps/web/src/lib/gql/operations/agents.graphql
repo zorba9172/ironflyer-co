@@ -1,0 +1,21 @@
+# Agent ranking — read-only view of which provider/model combo is
+# currently winning the bandit for each capability. Used by the
+# operator dashboard's "Provider leaderboard" surface.
+
+query BanditRanking($lookback: Int) {
+  banditRanking(lookback: $lookback) {
+    lookback
+    strategy
+    capabilities {
+      capability
+      total
+      winners {
+        provider
+        model
+        share
+        meanReward
+        isLeader
+      }
+    }
+  }
+}

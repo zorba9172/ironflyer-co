@@ -1,0 +1,37 @@
+# Appetize.io integration — browser-embeddable iOS / Android
+# simulator. Lets Free-tier users preview an iOS build without a Mac
+# pool: the orchestrator uploads the artifact to Appetize, returns a
+# publicKey + iframe-ready embed URL.
+#
+# TODO(gqlgen): regenerate generated.go / generated_models.go after
+# editing this file. The resolver scaffold lives at
+# apps/orchestrator/internal/graph/resolver/appetize.resolver.go and
+# expects model.AppetizeApp / model.AppetizeUploadInput to be emitted
+# by gqlgen.
+
+extend type Mutation {
+  # appetizeUploadBuild streams the named EAS / local mobile build
+  # artifact up to Appetize and returns a session-ready embed URL.
+  appetizeUploadBuild(input: AppetizeUploadInput!): AppetizeApp!
+  # appetizeDeleteApp removes the Appetize app entry. Idempotent;
+  # 404 from upstream counts as success.
+  appetizeDeleteApp(publicKey: String!): Boolean!
+}
+
+type AppetizeApp {
+  publicKey: String!
+  embedUrl: String!
+  platform: String!
+  createdAt: DateTime!
+}
+
+input AppetizeUploadInput {
+  projectId: String!
+  # buildId references either an EAS build row or a local build
+  # artifact produced by MobileBuildGate (artifact key
+  # ArtifactMobileBuild).
+  buildId: String!
+  # deviceProfile picks the Appetize embed device (e.g.
+  # "iphone15pro", "pixel8"). Empty falls back to the platform default.
+  deviceProfile: String
+}

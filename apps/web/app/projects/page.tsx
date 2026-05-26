@@ -16,7 +16,7 @@
 // share the derived maps across every card — there is no per-card
 // recomputation.
 
-import { AddRounded, SearchRounded } from "@mui/icons-material";
+import { AddRounded, GitHub, SearchRounded } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -32,6 +32,7 @@ import {
   ErrorPanel,
   PageHeader,
 } from "../../src/components/cockpit";
+import { ImportFromGitHubDialog } from "../../src/components/projects/ImportFromGitHubDialog";
 import { ProjectsGrid } from "../../src/components/projects/ProjectsGrid";
 import type { ProjectCardData } from "../../src/components/projects/ProjectCard";
 import {
@@ -99,6 +100,7 @@ export default function ProjectsPage() {
 function ProjectsView() {
   const [filter, setFilter] = useState<ProjectFilter>("all");
   const [query, setQuery] = useState("");
+  const [importOpen, setImportOpen] = useState(false);
 
   const projectsQuery = useProjectsQuery({
     variables: { limit: 100, offset: 0 },
@@ -201,16 +203,37 @@ function ProjectsView() {
         title="Projects"
         description="Every paid execution lives inside a project. Pick one to jump back into its studio, or start a new build from the composer."
         actions={
-          <Button
-            component={Link}
-            href="/studio"
-            variant="contained"
-            color="primary"
-            startIcon={<AddRounded sx={{ fontSize: 18 }} />}
-          >
-            New project
-          </Button>
+          <Stack direction="row" spacing={1}>
+            <Button
+              onClick={() => setImportOpen(true)}
+              variant="outlined"
+              startIcon={<GitHub sx={{ fontSize: 16 }} />}
+              sx={{
+                borderColor: tokens.color.border.strong,
+                color: tokens.color.text.primary,
+                "&:hover": {
+                  borderColor: tokens.color.accent.violet,
+                  bgcolor: `${tokens.color.accent.violet}10`,
+                },
+              }}
+            >
+              Import repo
+            </Button>
+            <Button
+              component={Link}
+              href="/studio"
+              variant="contained"
+              color="primary"
+              startIcon={<AddRounded sx={{ fontSize: 18 }} />}
+            >
+              New project
+            </Button>
+          </Stack>
         }
+      />
+      <ImportFromGitHubDialog
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
       />
 
       <Stack

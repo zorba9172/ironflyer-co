@@ -64,7 +64,7 @@ type Idea struct {
 	// Summary is the 1-2 sentence product spec the finisher loop
 	// uses as the canonical idea description.
 	Summary string
-	// BlueprintID is one of the catalogue ids (e.g. "nextjs-mvp",
+	// BlueprintID is one of the catalogue ids (e.g. "nextjs-production",
 	// "static-landing"). Validated against the registry.
 	BlueprintID string
 	// BlueprintReason is the short ("because the user asked for

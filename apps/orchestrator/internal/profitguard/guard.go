@@ -87,6 +87,22 @@ func (g *guard) Decide(_ context.Context, point EnforcementPoint, state ExecStat
 		}, nil
 	}
 
+	// (2.5) Supply-side per-step cap. Defense in depth: even when
+	// margin still pencils out, refuse any single step whose
+	// projected cost blows past the workload's hard ceiling. Catches
+	// runaway Mac pool builds, Opus chains that estimate huge prompt
+	// budgets, and unbounded verification loops BEFORE the resource
+	// gets allocated — Stop here is cheaper than recovery later.
+	if cap := g.policy.maxNextStepFor(workloadFor(point)); cap > 0 {
+		if decimalToFloat(estStep) > cap {
+			return Decision{
+				Action: Stop,
+				Reason: fmt.Sprintf("supply_cap: est_step=$%s > workload_cap=$%.2f (%s)",
+					estStep.String(), cap, workloadFor(point)),
+			}, nil
+		}
+	}
+
 	// Compute expected margin against the user's budget as estimated
 	// revenue. We use UserBudgetUSD because that is what the user
 	// has authorised us to bill at execution commit; EstimatedPlatformCostUSD

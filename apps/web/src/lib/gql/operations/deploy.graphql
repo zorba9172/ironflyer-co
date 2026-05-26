@@ -38,6 +38,33 @@ fragment DeployApprovalCore on DeployApproval {
   decidedAt
 }
 
+fragment DeployDomainCore on DeployDomain {
+  id
+  tenantID
+  projectID
+  deployID
+  hostname
+  kind
+  status
+  provider
+  registrar
+  primary
+  verificationStatus
+  certificateStatus
+  instructions
+  metadata
+  dnsRecords {
+    type
+    name
+    value
+    ttl
+  }
+  createdAt
+  updatedAt
+  verifiedAt
+  liveAt
+}
+
 query Deploys($limit: Int, $offset: Int) {
   deploys(limit: $limit, offset: $offset) {
     ...DeployCore
@@ -56,8 +83,35 @@ query PendingDeployApprovals {
   }
 }
 
+query DeployDomains($projectID: ID!) {
+  deployDomains(projectID: $projectID) {
+    ...DeployDomainCore
+  }
+}
+
+query DomainAvailability($domain: String!, $registrar: String) {
+  domainAvailability(domain: $domain, registrar: $registrar) {
+    domain
+    available
+    registrar
+    priceUSD
+    currency
+    premium
+    canPurchase
+    reason
+    checkedAt
+    requirements
+  }
+}
+
 mutation PlanDeploy($input: PlanDeployInput!) {
   planDeploy(input: $input) {
+    ...DeployCore
+  }
+}
+
+mutation CancelDeploy($deployID: ID!, $reason: String!) {
+  cancelDeploy(deployID: $deployID, reason: $reason) {
     ...DeployCore
   }
 }
@@ -89,6 +143,36 @@ mutation PromoteDeploy($deployID: ID!) {
 mutation RollbackDeploy($deployID: ID!, $reason: String!) {
   rollbackDeploy(deployID: $deployID, reason: $reason) {
     ...DeployCore
+  }
+}
+
+mutation ReserveDeploySubdomain($input: ReserveDeploySubdomainInput!) {
+  reserveDeploySubdomain(input: $input) {
+    ...DeployDomainCore
+  }
+}
+
+mutation ConnectDeployDomain($input: ConnectDeployDomainInput!) {
+  connectDeployDomain(input: $input) {
+    ...DeployDomainCore
+  }
+}
+
+mutation CheckDeployDomain($id: ID!) {
+  checkDeployDomain(id: $id) {
+    ...DeployDomainCore
+  }
+}
+
+mutation SetPrimaryDeployDomain($id: ID!) {
+  setPrimaryDeployDomain(id: $id) {
+    ...DeployDomainCore
+  }
+}
+
+mutation PurchaseDeployDomain($input: PurchaseDeployDomainInput!) {
+  purchaseDeployDomain(input: $input) {
+    ...DeployDomainCore
   }
 }
 

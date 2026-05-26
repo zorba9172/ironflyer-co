@@ -29,6 +29,9 @@ import (
 	"ironflyer/apps/orchestrator/internal/ideaparser"
 	"ironflyer/apps/orchestrator/internal/ledger"
 	"ironflyer/apps/orchestrator/internal/memorygraph"
+	"ironflyer/apps/orchestrator/internal/mobile/appetize"
+	"ironflyer/apps/orchestrator/internal/mobile/devicecloud"
+	"ironflyer/apps/orchestrator/internal/mobile/eas"
 	"ironflyer/apps/orchestrator/internal/notify"
 	"ironflyer/apps/orchestrator/internal/operator"
 	"ironflyer/apps/orchestrator/internal/patch"
@@ -117,29 +120,35 @@ type Resolver struct {
 	// ---------- V22 service surface --------------------------------
 	// Each pointer is nil-safe — resolvers return gqlNotConfigured if
 	// the matching dependency was not wired by main.go.
-	WalletSvc            wallet.Service
-	WalletTopper         *wallet.Topper
-	LedgerSvc            ledger.Service
-	ExecutionSvc         execution.Service
-	ExecutionSettler     execution.Settler
-	ProfitGuard          profitguard.Guard
-	ProfitGuardStore     profitguard.DecisionStore
-	BlueprintsReg        blueprints.Registry
-	BlueprintStatsSvc    blueprints.StatsService
+	WalletSvc         wallet.Service
+	WalletTopper      *wallet.Topper
+	LedgerSvc         ledger.Service
+	ExecutionSvc      execution.Service
+	ExecutionSettler  execution.Settler
+	ProfitGuard       profitguard.Guard
+	ProfitGuardStore  profitguard.DecisionStore
+	BlueprintsReg     blueprints.Registry
+	BlueprintStatsSvc blueprints.StatsService
 	// IdeaParser (A54) — turns a free-text idea into a structured
 	// Idea (blueprint pick + suggested budget + tags) for the
 	// studio describeIdea entrypoint. Nil-safe at the resolver layer:
 	// the resolver falls back to the existing keyword heuristic when
 	// the parser was not wired.
-	IdeaParser           ideaparser.Parser
-	Completion           completion.Scorer
-	Repair               repair.Genome
-	PatchMemory          repair.Memory
-	Dashboards           *dashboards.Service
+	IdeaParser  ideaparser.Parser
+	Completion  completion.Scorer
+	Repair      repair.Genome
+	PatchMemory repair.Memory
+	Dashboards  *dashboards.Service
+
+	// Appetize is the Free-tier iOS preview façade. Nil-safe — the
+	// resolver returns gqlNotConfigured when the orchestrator was
+	// booted without an APPETIZE_TOKEN.
+	Appetize *appetize.Service
 
 	// Deploy plane — V22 Wave 2 (Trust). Plan → Preview → Approval →
 	// Promote/Rollback/Cancel. Nil-safe at the resolver layer.
-	DeploySvc deploy.Service
+	DeploySvc       deploy.Service
+	DeployDomainSvc deploy.DomainService
 
 	// MemoryGraph is the AI Memory Graph used by the finisher for
 	// IntentGateRepair traversal. The resolver only touches it for
@@ -162,4 +171,30 @@ type Resolver struct {
 	// queries. Nil-safe — resolvers return an empty list when the
 	// service was not wired (dev boots without the ring buffer).
 	Diagnostics *diagnostics.Service
+
+	// ---------- Mobile (EAS) -------------------------------------
+	// EAS is the typed REST client for Expo Application Services.
+	// Mobile resolvers (mobileTriggerBuild / mobileSubmitToStore /
+	// mobilePublishUpdate / mobileBuilds / mobileSubmissions) reach
+	// for it. Nil-safe — when nil the mobile resolvers return
+	// gqlNotConfigured("mobile"). The orchestrator constructs a
+	// global-token Client at boot; a per-project token (carried in
+	// Project.Secrets["EAS_TOKEN"]) overrides it for paid customers
+	// who run on their own Expo account.
+	EAS *eas.Client
+
+	// EASPoller drives the background EAS build-status loop. The
+	// mobile resolvers Track() new builds on it so the subscription
+	// fan-out (mobileBuildStatus) gets a snapshot per status change.
+	// Nil-safe — when nil the resolvers still respond to one-shot
+	// GetBuild calls but cannot stream the subscription.
+	EASPoller *eas.Poller
+
+	// ---------- Mobile (device cloud) ------------------------------
+	// DeviceCloud is the Pro-tier real-device session manager.
+	// BrowserStack App Live (interactive) + AWS Device Farm (batched)
+	// sit behind a single facade so the cockpit talks to one resolver
+	// regardless of vendor. Nil-safe — when nil the resolver returns
+	// gqlNotConfigured("device cloud").
+	DeviceCloud *devicecloud.Manager
 }

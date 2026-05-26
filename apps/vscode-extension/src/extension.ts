@@ -8,6 +8,7 @@
 
 import * as vscode from 'vscode';
 import { Auth } from './auth';
+import { consumeStudioHandoff } from './bootstrap';
 import { Api, ApiError, GateName, GateState, MemoryRecord } from './api';
 import { IronflyerUriHandler } from './uriHandler';
 import { ProjectsTree } from './projectsTree';
@@ -70,9 +71,15 @@ export function activate(context: vscode.ExtensionContext): void {
   }, 300);
 
   // Push initial signedIn context so viewsWelcome resolves correctly.
-  void auth.getToken().then((t) =>
-    vscode.commands.executeCommand('setContext', 'ironflyer.signedIn', Boolean(t)),
-  );
+  // We do this AFTER consumeStudioHandoff (below) gets a chance to
+  // populate SecretStorage from the Studio sync handoff, otherwise the
+  // first context push would record "signed out" right before the
+  // bootstrap step writes the token.
+  void (async () => {
+    await consumeStudioHandoff(auth, api, activeProject);
+    const t = await auth.getToken();
+    void vscode.commands.executeCommand('setContext', 'ironflyer.signedIn', Boolean(t));
+  })();
 
   // Auto-pin defaultProject from settings if nothing pinned yet.
   void (async () => {

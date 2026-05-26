@@ -13,6 +13,12 @@ import (
 
 	"ironflyer/apps/orchestrator/internal/agents"
 	"ironflyer/apps/orchestrator/internal/audit"
+	// Aliased to budgetpkg because a sibling file in this package
+	// (gates_mobile_size.go) defines a local `type budget struct` for
+	// mobile artifact size thresholds. Without the alias every file
+	// in the package would have to rename the local type, which is
+	// invasive across a parallel agent's mobile work.
+	budgetpkg "ironflyer/apps/orchestrator/internal/budget"
 	"ironflyer/apps/orchestrator/internal/bus"
 	"ironflyer/apps/orchestrator/internal/completion"
 	"ironflyer/apps/orchestrator/internal/domain"
@@ -911,7 +917,32 @@ func (e *Engine) Run(ctx context.Context, projectID string) (RunReport, error) {
 			report.FinishedAt = time.Now().UTC()
 			return report, nil
 		}
-		// Already emitted a structured event from inside runPipeline.
+		// Budget exhaustion is terminal — iterating gates without a
+		// plan just produces noise (4× iterations × ~7 gates of
+		// `gate verdict: failed` events because the gates have
+		// nothing to verify). Surface ProfitGuard-style 402 semantics
+		// and bail out of the iteration loop.
+		//
+		// We use errors.Is rather than string match so wrapped errors
+		// from the agent registry / billing guard still trip the
+		// short-circuit.
+		if errors.Is(err, budgetpkg.ErrOverBudget) {
+			e.emit(projectID, domain.Event{
+				ID: newEventID(), Step: StepRun, Status: StatusFailed,
+				Message: fmtErr(ErrCodeBudgetExhausted, "execution halted: wallet budget exhausted; top up to continue"),
+				CreatedAt: time.Now().UTC(),
+			})
+			if e.settler != nil {
+				if execID, ok := profitguardctx.ExecutionID(ctx); ok && execID != "" {
+					_ = e.settler.SettleFailed(ctx, execID, "budget_exhausted")
+				}
+			}
+			report.FinishedAt = time.Now().UTC()
+			return report, nil
+		}
+		// Other pipeline errors: structured event already emitted
+		// from inside runPipeline; fall through so the gate loop can
+		// still produce a partial report.
 	}
 
 	for i := 0; i < e.maxIterations; i++ {

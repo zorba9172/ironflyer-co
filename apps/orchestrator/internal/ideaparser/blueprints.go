@@ -16,12 +16,12 @@ import (
 //
 // Format (one row per blueprint, separated by blank lines):
 //
-//	- id: nextjs-mvp
-//	  name: Next.js 15 MVP
-//	  category: webapp
-//	  cost_prior_usd: 0.85
-//	  supported_gates: scaffold,build,typecheck
-//	  description: <one paragraph>
+//   - id: nextjs-production
+//     name: Next.js 15 Production App
+//     category: webapp
+//     cost_prior_usd: 0.85
+//     supported_gates: scaffold,build,typecheck
+//     description: <one paragraph>
 func catalogSummary(reg blueprints.Registry) string {
 	bps := reg.List()
 	sort.SliceStable(bps, func(i, j int) bool { return bps[i].ID < bps[j].ID })

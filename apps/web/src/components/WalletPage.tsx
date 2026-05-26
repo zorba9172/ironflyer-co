@@ -3,13 +3,12 @@
 // WalletPage — prepaid balance, Stripe top-up tiles, top-up history,
 // 7-day spend chart, and per-provider/model spend breakdown.
 //
-// GraphQL operations consumed:
-//   - query Wallet               (generated)
-//   - query WalletTopUps         (generated)
-//   - mutation WalletCreateTopUp (generated)
-//   - query WalletBudget         (inline gql — `myBudget`)
+// GraphQL operations consumed (all generated):
+//   - query Wallet
+//   - query WalletTopUps
+//   - mutation WalletCreateTopUp
+//   - query MyBudget (per-user spend rollup)
 
-import { gql, useQuery } from "@apollo/client";
 import {
   AccountBalanceWalletOutlined,
   LockOutlined,
@@ -31,6 +30,7 @@ import { useAuth } from "../lib/auth";
 import { extractErrorMessage } from "../lib/errors";
 import { formatDateTime, formatMoney, formatNumber } from "../lib/format";
 import {
+  useMyBudgetQuery,
   useWalletCreateTopUpMutation,
   useWalletQuery,
   useWalletTopUpsQuery,
@@ -56,37 +56,6 @@ const SpendBars = dynamic(
   { ssr: false, loading: () => <Box sx={{ height: 180 }} /> },
 );
 
-interface WalletBudgetData {
-  myBudget: {
-    spentUsd: string;
-    entries: Array<{
-      id: string;
-      provider: string | null;
-      model: string | null;
-      promptTokens: number;
-      completionTokens: number;
-      costUsd: string;
-      ts: string;
-    }>;
-  };
-}
-const WALLET_BUDGET = gql`
-  query WalletBudget {
-    myBudget {
-      spentUsd
-      entries {
-        id
-        provider
-        model
-        promptTokens
-        completionTokens
-        costUsd
-        ts
-      }
-    }
-  }
-`;
-
 const TOPUP_TIERS = [10, 25, 50, 100, 250, 500] as const;
 
 const skelSx = {
@@ -108,7 +77,7 @@ export function WalletPage() {
   const skip = !authenticated;
   const walletQ = useWalletQuery({ skip });
   const topUpsQ = useWalletTopUpsQuery({ skip, variables: { limit: 50 } });
-  const budgetQ = useQuery<WalletBudgetData>(WALLET_BUDGET, { skip });
+  const budgetQ = useMyBudgetQuery({ skip });
   const [createTopUp, createTopUpM] = useWalletCreateTopUpMutation();
 
   const [topUpError, setTopUpError] = useState<string | null>(null);

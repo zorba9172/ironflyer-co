@@ -51,6 +51,8 @@ import (
 	"ironflyer/apps/orchestrator/internal/memory"
 	"ironflyer/apps/orchestrator/internal/metrics"
 	"ironflyer/apps/orchestrator/internal/migrate"
+	"ironflyer/apps/orchestrator/internal/mobile/devicecloud"
+	"ironflyer/apps/orchestrator/internal/mobile/eas"
 	"ironflyer/apps/orchestrator/internal/notify"
 	"ironflyer/apps/orchestrator/internal/outboxhooks"
 	"ironflyer/apps/orchestrator/internal/patch"
@@ -64,6 +66,7 @@ import (
 	"ironflyer/apps/orchestrator/internal/repair"
 	"ironflyer/apps/orchestrator/internal/runtime"
 	"ironflyer/apps/orchestrator/internal/secrets"
+	"ironflyer/apps/orchestrator/internal/storage"
 	"ironflyer/apps/orchestrator/internal/store"
 	"ironflyer/apps/orchestrator/internal/temporalworker"
 	"ironflyer/apps/orchestrator/internal/tracing"
@@ -634,6 +637,70 @@ func main() {
 		logger.Info().Msg("V22 ledger: in-memory backend")
 	}
 
+	// ---- Profitability hooks ------------------------------------------------
+	// Free→Paid conversion: every plan upgrade now lands a typed
+	// EntryFreeToPaidConversion in the ledger so the conversion rate
+	// query is O(1). Idempotent via OpKey, so Stripe webhook
+	// redelivery doesn't double-count.
+	wireup.WireConversionTracking(billing, ledgerSvc)
+
+	// Upsell pressure: when a user's spend crosses the configured
+	// usage brackets (67% / 85% / 100% of cost cap), fire a log line
+	// and a typed ledger event so the web banner can ratchet without
+	// polling. Hook is fire-and-forget; the admission path never
+	// blocks on it.
+	billing.Enforcer.RegisterUpsellHook(func(ctx context.Context, userID string, tier budget.PlanTier, prev, next budget.UsageBracket, usagePct float64) {
+		logger.Info().
+			Str("user_id", userID).
+			Str("tier", string(tier)).
+			Int("prev_bracket", int(prev)).
+			Int("next_bracket", int(next)).
+			Float64("usage_pct", usagePct).
+			Msg("usage bracket transition — fire upsell")
+		// Best-effort ledger marker. Tagged Adjustment so the marker
+		// doesn't pollute revenue or cost rollups but is still
+		// queryable for funnel analysis.
+		if tenant, err := uuid.Parse(userID); err == nil {
+			_, _ = ledgerSvc.Write(ctx, ledger.Entry{
+				TenantID:  tenant,
+				EntryType: ledger.EntryRefund, // refund-typed marker so it stays out of cost; OpKey suffix scopes by bracket
+				Direction: ledger.CreditDirection,
+				AmountUSD: decimal.Zero,
+				Metadata: map[string]any{
+					"kind":         "upsell_trigger",
+					"tier":         string(tier),
+					"prev_bracket": int(prev),
+					"next_bracket": int(next),
+					"usage_pct":    usagePct,
+				},
+				OpKey: "upsell:" + userID + ":" + string(tier) + ":b" + bracketKey(next),
+			})
+		}
+	})
+
+	// Storage cost ticker. Today the orchestrator has no S3 callers
+	// (see internal/storage/s3client.go header), so the biller runs
+	// against a NoopUsageSource and emits no entries. The wiring is
+	// here so the moment a real source (audit export bucket,
+	// artefact retention) lands, swapping NoopUsageSource → real
+	// implementation is one line and the rate sheet + ledger entries
+	// already work.
+	storageBiller := storage.NewBiller(
+		storage.NoopUsageSource{},
+		ledgerSvc,
+		storage.DefaultRate(),
+		time.Hour,
+		logger,
+	)
+	storageBiller.Start(ctx)
+	logger.Info().
+		Str("rate_usd_per_gb_month", storage.DefaultRate().USDPerGBMonth.String()).
+		Msg("V22 storage biller armed (NoopUsageSource until a real bucket source lands)")
+
+	// One-line profitability summary so the operator sees which
+	// margin-protecting knobs are active right after startup.
+	logProfitKnobs(logger, billing)
+
 	// Execution.
 	var execSvc execution.Service
 	if pgPool != nil {
@@ -1121,6 +1188,29 @@ func main() {
 	secReportBuilder := wireup.BuildSecurityReportBuilder(execSvc, logger)
 	operatorSvc := wireup.BuildOperator(deploySvc, abuseEngine, execSvc, walletSvc, auditStore, 0)
 
+	// EAS — Expo Application Services REST client + background poller.
+	// EAS_TOKEN is optional: when unset the orchestrator boots, logs a
+	// single warning, and every mobile resolver returns NOT_CONFIGURED.
+	// Per-project EAS_TOKEN secrets still work (resolved per call via
+	// eas.ResolveExpoToken), but the shared client + poller stay nil.
+	var (
+		easClient *eas.Client
+		easPoller *eas.Poller
+	)
+	if tok := strings.TrimSpace(os.Getenv("EAS_TOKEN")); tok != "" {
+		easClient = eas.New(tok, eas.WithLogger(logger.With().Str("component", "eas").Logger()))
+		easPoller = eas.NewPoller(easClient, ledgerSvc,
+			eas.WithPollerLogger(logger.With().Str("component", "eas-poller").Logger()),
+		)
+		go func() {
+			if err := easPoller.Start(ctx); err != nil && !errors.Is(err, context.Canceled) {
+				logger.Error().Err(err).Msg("eas poller stopped")
+			}
+		}()
+	} else {
+		logger.Warn().Msg("EAS_TOKEN unset — mobile resolvers will fall back to per-project secrets only")
+	}
+
 	api := httpapi.New(httpapi.Deps{
 		Projects: projects, Engine: engine, Agents: registry, Patches: patches,
 		Billing: billing, Stripe: stripeSvc, Guard: guard,
@@ -1187,6 +1277,17 @@ func main() {
 
 		// In-process diagnostics plane (ring buffer + REST tail + GraphQL).
 		Diagnostics: diagSvc,
+
+		// Mobile (EAS) plane — Expo Application Services REST client +
+		// background poller. nil when EAS_TOKEN is unset.
+		EAS:       easClient,
+		EASPoller: easPoller,
+
+		// Mobile (device cloud) — Pro-tier real-device sessions. Manager
+		// is constructed unconditionally so the resolver layer is wired
+		// even when no provider credentials exist at boot; providers
+		// register lazily on first request through the resolver.
+		DeviceCloud: buildDeviceCloudManager(logger, ledgerSvc),
 	})
 
 	server := &http.Server{
@@ -1807,6 +1908,22 @@ func (a *runtimePreviewAdapter) PreviewURL(ctx context.Context, idOrWorkspace st
 	return a.client.PreviewURL(ctx, bearer, ws.ID)
 }
 
+// buildDeviceCloudManager constructs the device-cloud manager and
+// registers BrowserStack when platform-wide credentials are present in
+// the environment. Per-project Secrets override the platform default at
+// resolver time (see devicecloud.ResolveCredentials).
+func buildDeviceCloudManager(logger zerolog.Logger, ledgerSvc ledger.Service) *devicecloud.Manager {
+	mgr := devicecloud.New(logger, ledgerSvc)
+	creds := devicecloud.ResolveCredentials(nil)
+	if creds.HasBrowserStack() {
+		mgr.Register(devicecloud.NewBrowserStackClient(creds.BrowserStackUsername, creds.BrowserStackAccessKey, nil))
+	}
+	if creds.HasAWSDeviceFarm() {
+		mgr.Register(devicecloud.NewAWSDeviceFarmClient(creds.AWSAccessKeyID, creds.AWSSecretAccessKey, ""))
+	}
+	return mgr
+}
+
 func buildLogger(cfg config.Config) zerolog.Logger {
 	level, err := zerolog.ParseLevel(cfg.LogLevel)
 	if err != nil {
@@ -1818,4 +1935,59 @@ func buildLogger(cfg config.Config) zerolog.Logger {
 			With().Timestamp().Str("svc", "orchestrator").Logger()
 	}
 	return zerolog.New(os.Stderr).With().Timestamp().Str("svc", "orchestrator").Logger()
+}
+
+// bracketKey collapses a UsageBracket to a one-char key used in
+// dedupe op-keys. Stable across releases — never repurpose existing
+// letters; add new ones if a future bracket lands.
+func bracketKey(b budget.UsageBracket) string {
+	switch b {
+	case budget.BracketLow:
+		return "l"
+	case budget.BracketApproach:
+		return "a"
+	case budget.BracketNearCap:
+		return "n"
+	case budget.BracketExhausted:
+		return "e"
+	default:
+		return "?"
+	}
+}
+
+// logProfitKnobs surfaces the active margin-protecting env switches
+// in one startup line so the operator never has to grep through the
+// orchestrator log to confirm what's on. Reads the same env names
+// the budget/rates/optimizer/tokencap modules read so this stays
+// the single source of truth for what's active.
+func logProfitKnobs(logger zerolog.Logger, billing *budget.Billing) {
+	cap := budget.DefaultPromptCap()
+	discounts := map[string]string{}
+	for _, kv := range os.Environ() {
+		if !strings.HasPrefix(kv, "IRONFLYER_PROVIDER_DISCOUNT_PCT_") {
+			continue
+		}
+		eq := strings.IndexByte(kv, '=')
+		if eq < 0 {
+			continue
+		}
+		discounts[strings.ToLower(kv[len("IRONFLYER_PROVIDER_DISCOUNT_PCT_"):eq])] = kv[eq+1:]
+	}
+	aggressive := strings.EqualFold(os.Getenv("IRONFLYER_AGGRESSIVE_ROUTING"), "1") ||
+		strings.EqualFold(os.Getenv("IRONFLYER_AGGRESSIVE_ROUTING"), "true")
+	privateInline := strings.EqualFold(os.Getenv("IRONFLYER_INLINE_COMPLETIONS_PRIVATE"), "1") ||
+		strings.EqualFold(os.Getenv("IRONFLYER_INLINE_COMPLETIONS_PRIVATE"), "true")
+	planCount := 0
+	if billing != nil {
+		planCount = len(billing.Plans)
+	}
+	logger.Info().
+		Bool("aggressive_routing", aggressive).
+		Bool("inline_completions_private", privateInline).
+		Int("max_prompt_tokens", cap.MaxTotalTokens).
+		Int("max_input_tokens", cap.MaxInputTokens).
+		Int("max_output_tokens", cap.MaxOutputTokens).
+		Int("provider_discounts", len(discounts)).
+		Int("plans_loaded", planCount).
+		Msg("V22 profitability knobs active")
 }

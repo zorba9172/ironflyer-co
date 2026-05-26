@@ -46,6 +46,91 @@ const (
 	EntryPlatformMargin EntryType = "platform_margin"
 	// EntryPremiumReasoningCharge — premium model surcharge. Debit.
 	EntryPremiumReasoningCharge EntryType = "premium_reasoning_charge"
+
+	// Mobile-specific cost categories. ProfitGuard reserves against these
+	// before allocating the underlying resource so the wallet contract is
+	// preserved even for long-running native builds.
+	//
+	// NOTE: the Postgres CHECK constraint in migrations/00025_ledger.sql
+	// will reject these values until a follow-up migration extends the
+	// allow-list. The in-memory backend accepts them immediately so
+	// dev/local mode + simulators can exercise mobile cost flows today.
+
+	// EntryMobileBuildMin meters minutes spent producing a mobile build
+	// artifact (APK/AAB/IPA/.app) inside a Linux sandbox. Roughly mirrors
+	// the sandbox-minute cost but tagged separately so cost dashboards
+	// can show "Android build" vs "Web build". Debit.
+	EntryMobileBuildMin EntryType = "mobile_build_min"
+
+	// EntryEmulatorMin meters minutes the Android emulator has been
+	// running inside a sandbox. Higher unit cost than EntryMobileBuildMin
+	// because the emulator pins a vCPU + KVM passthrough for its entire
+	// lifetime. Debit.
+	EntryEmulatorMin EntryType = "emulator_min"
+
+	// EntryMacWorkspaceMin meters minutes consumed on a Mac pool host
+	// (Scaleway / MacStadium / AWS mac2.metal). This is the iOS Pro tier
+	// cost floor — every Apple-licensed second a workspace holds a Mac
+	// mini is billed here regardless of CPU utilisation, mirroring
+	// Apple's 24-hour minimum lease. Debit.
+	EntryMacWorkspaceMin EntryType = "mac_workspace_min"
+
+	// EntryEASBuildCredit meters one Expo Application Services build
+	// credit consumed via `eas build`. EAS bills in build minutes on its
+	// own side; we model each successful build as a fixed-cost credit
+	// here for simplicity, then reconcile against the EAS invoice
+	// nightly. Debit.
+	EntryEASBuildCredit EntryType = "eas_build_credit"
+
+	// EntryAppetizeMin meters minutes streamed via Appetize.io's iOS
+	// simulator-in-browser fallback (used when the project is iOS-bound
+	// but the user is on the free tier — no dedicated Mac workspace).
+	// Debit.
+	EntryAppetizeMin EntryType = "appetize_min"
+
+	// EntryDeviceCloudMin meters minutes consumed against a Pro-tier
+	// device-cloud provider (BrowserStack App Live today, AWS Device
+	// Farm tomorrow). Unit cost is the platform cost basis — we sell
+	// at a higher per-minute rate; the difference is the platform
+	// margin recorded at execution commit. Debit.
+	EntryDeviceCloudMin EntryType = "device_cloud_min"
+
+	// EntryFreeToPaidConversion records the moment a free-tier user
+	// upgrades to a paid plan. Amount = the first-month subscription
+	// price (the LTV starting point); Metadata carries `previous_tier`,
+	// `new_tier`, and `acquisition_cost_usd` when known. Credit.
+	//
+	// Why a dedicated ledger entry rather than a vault-only event:
+	// the wallet ledger is the auditable money trail. Without a typed
+	// conversion entry the dashboards can compute MRR but cannot
+	// compute the most important growth metric — Free→Paid conversion
+	// rate — without scraping subscription history. A typed entry
+	// lets `SELECT count(*) WHERE entry_type='free_to_paid_conversion'
+	// AND created_at > now()-interval '30 days'` answer it in O(1).
+	//
+	// NOTE: same Postgres CHECK constraint caveat as the mobile
+	// entries above — the in-memory ledger accepts this today; a
+	// follow-up migration extends the allow-list.
+	EntryFreeToPaidConversion EntryType = "free_to_paid_conversion"
+)
+
+// Category is an alias for EntryType used in mobile-cost call sites
+// where "category" reads more naturally than "entry type". The
+// underlying values are identical — Category and EntryType compare
+// equal — so existing callers do not need to change.
+type Category = EntryType
+
+// Mobile cost-category aliases. The Category* names mirror the
+// V22 mobile cost taxonomy described in the deep atomic plan and
+// keep the call site at, e.g., ledger.CategoryMobileBuildMin readable
+// without forcing callers to spell out the longer Entry* form.
+const (
+	CategoryMobileBuildMin   Category = EntryMobileBuildMin
+	CategoryEmulatorMin      Category = EntryEmulatorMin
+	CategoryMacWorkspaceMin  Category = EntryMacWorkspaceMin
+	CategoryEASBuildCredit   Category = EntryEASBuildCredit
+	CategoryAppetizeMin      Category = EntryAppetizeMin
+	CategoryDeviceCloudMin   Category = EntryDeviceCloudMin
 )
 
 // AllEntryTypes is the canonical set used by validation and by the
@@ -61,6 +146,12 @@ var AllEntryTypes = []EntryType{
 	EntryCreditRelease,
 	EntryPlatformMargin,
 	EntryPremiumReasoningCharge,
+	EntryMobileBuildMin,
+	EntryEmulatorMin,
+	EntryMacWorkspaceMin,
+	EntryEASBuildCredit,
+	EntryAppetizeMin,
+	EntryDeviceCloudMin,
 }
 
 // IsValid reports whether t is one of the canonical entry types.

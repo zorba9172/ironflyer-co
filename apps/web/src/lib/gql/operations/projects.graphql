@@ -25,6 +25,19 @@ query Projects($limit: Int, $offset: Int) {
   }
 }
 
+# DashboardProjects — same shape as Projects but also pulls each file's
+# path so the dashboard can show file-count tiles without a second
+# round-trip. The fields it selects beyond ProjectCore are limited to
+# `files.path` (just the path) to keep payload bounded.
+query DashboardProjects {
+  projects {
+    ...ProjectCore
+    files {
+      path
+    }
+  }
+}
+
 query Project($id: ID!) {
   project(id: $id) {
     ...ProjectCore
@@ -73,4 +86,14 @@ mutation RunFinisher($id: ID!) {
 
 mutation PromptPlan($id: ID!, $prompt: String!) {
   promptPlan(id: $id, prompt: $prompt)
+}
+
+mutation WriteProjectFiles($id: ID!, $files: [WriteProjectFileInput!]!) {
+  writeProjectFiles(id: $id, files: $files) {
+    path
+    content
+    size
+    language
+    updatedAt
+  }
 }

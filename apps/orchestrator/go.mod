@@ -5,6 +5,7 @@ go 1.25.7
 require (
 	github.com/99designs/gqlgen v0.17.90
 	github.com/ClickHouse/clickhouse-go/v2 v2.46.0
+	github.com/CycloneDX/cyclonedx-go v0.11.0
 	github.com/anthropics/anthropic-sdk-go v1.44.1
 	github.com/aws/aws-sdk-go-v2 v1.41.7
 	github.com/aws/aws-sdk-go-v2/config v1.32.18
@@ -22,6 +23,7 @@ require (
 	github.com/jackc/pgx/v5 v5.9.2
 	github.com/joho/godotenv v1.5.1
 	github.com/open-policy-agent/opa v1.16.2
+	github.com/package-url/packageurl-go v0.1.6
 	github.com/pgvector/pgvector-go v0.4.0
 	github.com/pressly/goose/v3 v3.27.1
 	github.com/prometheus/client_golang v1.23.2
@@ -162,6 +164,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
+	golang.org/x/image v0.41.0 // indirect
 	golang.org/x/mod v0.35.0 // indirect
 	golang.org/x/net v0.55.0 // indirect
 	golang.org/x/sys v0.45.0 // indirect

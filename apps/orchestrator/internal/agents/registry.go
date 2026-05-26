@@ -34,6 +34,19 @@ const (
 	// patch in the project's existing migration toolchain instead of
 	// letting the DB drift behind freshly generated types.
 	RoleMigrator Role = "migrator"
+	// RoleMobileCoder is the mobile specialist Coder. Handles Expo /
+	// React Native / Kotlin Compose / SwiftUI / Flutter patches with
+	// platform-specific gotchas the generic Coder is not trained on
+	// (Hermes vs JSC, Gradle plugin pinning, CocoaPods + Podfile.lock
+	// drift, ProGuard rules, Info.plist usage descriptions, Android
+	// permission declarations, app icon + splash screen requirements).
+	RoleMobileCoder Role = "mobile-coder"
+	// RoleMobileDeployer ships mobile binaries: EAS Build profiles, Play
+	// Store internal-track upload via fastlane, TestFlight via altool /
+	// xcrun, signing-config validation, App Store screenshots, OTA
+	// updates via EAS Update. It is NOT the generic Deployer — that one
+	// only knows Docker images.
+	RoleMobileDeployer Role = "mobile-deployer"
 )
 
 type Task struct {

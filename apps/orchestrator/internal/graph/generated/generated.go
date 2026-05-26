@@ -72,6 +72,13 @@ type ComplexityRoot struct {
 		UserID           func(childComplexity int) int
 	}
 
+	AppetizeApp struct {
+		CreatedAt func(childComplexity int) int
+		EmbedURL  func(childComplexity int) int
+		Platform  func(childComplexity int) int
+		PublicKey func(childComplexity int) int
+	}
+
 	AuditChainProof struct {
 		BrokenLinks func(childComplexity int) int
 		EndHash     func(childComplexity int) int
@@ -230,6 +237,13 @@ type ComplexityRoot struct {
 		StorageCostUsd    func(childComplexity int) int
 	}
 
+	DNSRecord struct {
+		Name  func(childComplexity int) int
+		TTL   func(childComplexity int) int
+		Type  func(childComplexity int) int
+		Value func(childComplexity int) int
+	}
+
 	DashboardBlueprintStats struct {
 		AvgCompletionScore func(childComplexity int) int
 		AvgCostUsd         func(childComplexity int) int
@@ -279,11 +293,68 @@ type ComplexityRoot struct {
 		TenantID      func(childComplexity int) int
 	}
 
+	DeployDomain struct {
+		CertificateStatus  func(childComplexity int) int
+		CreatedAt          func(childComplexity int) int
+		DNSRecords         func(childComplexity int) int
+		DeployID           func(childComplexity int) int
+		Hostname           func(childComplexity int) int
+		ID                 func(childComplexity int) int
+		Instructions       func(childComplexity int) int
+		Kind               func(childComplexity int) int
+		LiveAt             func(childComplexity int) int
+		Metadata           func(childComplexity int) int
+		Primary            func(childComplexity int) int
+		ProjectID          func(childComplexity int) int
+		Provider           func(childComplexity int) int
+		Registrar          func(childComplexity int) int
+		Status             func(childComplexity int) int
+		TenantID           func(childComplexity int) int
+		UpdatedAt          func(childComplexity int) int
+		VerificationStatus func(childComplexity int) int
+		VerifiedAt         func(childComplexity int) int
+	}
+
 	DeployEvent struct {
 		CreatedAt func(childComplexity int) int
 		DeployID  func(childComplexity int) int
 		EventType func(childComplexity int) int
 		Payload   func(childComplexity int) int
+	}
+
+	DeviceCloudDevice struct {
+		ID           func(childComplexity int) int
+		Manufacturer func(childComplexity int) int
+		Model        func(childComplexity int) int
+		OsVersion    func(childComplexity int) int
+		Platform     func(childComplexity int) int
+		Provider     func(childComplexity int) int
+		Real         func(childComplexity int) int
+	}
+
+	DeviceCloudSession struct {
+		AppURL              func(childComplexity int) int
+		BillableMinutesUsed func(childComplexity int) int
+		DeviceID            func(childComplexity int) int
+		ExpiresAt           func(childComplexity int) int
+		ID                  func(childComplexity int) int
+		Provider            func(childComplexity int) int
+		SessionURL          func(childComplexity int) int
+		StartedAt           func(childComplexity int) int
+		Status              func(childComplexity int) int
+	}
+
+	DomainAvailability struct {
+		Available    func(childComplexity int) int
+		CanPurchase  func(childComplexity int) int
+		CheckedAt    func(childComplexity int) int
+		Currency     func(childComplexity int) int
+		Domain       func(childComplexity int) int
+		Premium      func(childComplexity int) int
+		PriceUsd     func(childComplexity int) int
+		Reason       func(childComplexity int) int
+		Registrar    func(childComplexity int) int
+		Requirements func(childComplexity int) int
 	}
 
 	ErrorAggregate struct {
@@ -359,6 +430,21 @@ type ComplexityRoot struct {
 		Notes      func(childComplexity int) int
 		StartedAt  func(childComplexity int) int
 		Status     func(childComplexity int) int
+	}
+
+	GenerateMobileAssetEntry struct {
+		Height    func(childComplexity int) int
+		Path      func(childComplexity int) int
+		Purpose   func(childComplexity int) int
+		SizeBytes func(childComplexity int) int
+		Width     func(childComplexity int) int
+	}
+
+	GenerateMobileAssetsResult struct {
+		Entries     func(childComplexity int) int
+		FilesCount  func(childComplexity int) int
+		GeneratedAt func(childComplexity int) int
+		TotalBytes  func(childComplexity int) int
 	}
 
 	GqlError struct {
@@ -449,26 +535,86 @@ type ComplexityRoot struct {
 		Time        func(childComplexity int) int
 	}
 
+	MobileBuild struct {
+		AppBuildVersion   func(childComplexity int) int
+		AppVersion        func(childComplexity int) int
+		ArtifactSizeBytes func(childComplexity int) int
+		ArtifactURL       func(childComplexity int) int
+		Channel           func(childComplexity int) int
+		CompletedAt       func(childComplexity int) int
+		CreatedAt         func(childComplexity int) int
+		Distribution      func(childComplexity int) int
+		ErrorMessage      func(childComplexity int) int
+		ID                func(childComplexity int) int
+		Initiator         func(childComplexity int) int
+		LogURL            func(childComplexity int) int
+		Platform          func(childComplexity int) int
+		Profile           func(childComplexity int) int
+		ProjectID         func(childComplexity int) int
+		SdkVersion        func(childComplexity int) int
+		Status            func(childComplexity int) int
+		UpdatedAt         func(childComplexity int) int
+	}
+
+	MobileSubmission struct {
+		ArchiveURL   func(childComplexity int) int
+		BuildID      func(childComplexity int) int
+		CompletedAt  func(childComplexity int) int
+		CreatedAt    func(childComplexity int) int
+		ErrorMessage func(childComplexity int) int
+		ID           func(childComplexity int) int
+		LogURL       func(childComplexity int) int
+		Platform     func(childComplexity int) int
+		ProjectID    func(childComplexity int) int
+		Status       func(childComplexity int) int
+		Target       func(childComplexity int) int
+		UpdatedAt    func(childComplexity int) int
+	}
+
+	MobileUpdate struct {
+		Branch         func(childComplexity int) int
+		Channel        func(childComplexity int) int
+		CreatedAt      func(childComplexity int) int
+		GroupID        func(childComplexity int) int
+		ID             func(childComplexity int) int
+		ManifestURL    func(childComplexity int) int
+		Message        func(childComplexity int) int
+		Platform       func(childComplexity int) int
+		RuntimeVersion func(childComplexity int) int
+	}
+
 	Mutation struct {
 		AcceptInlineCompletion  func(childComplexity int, requestID string) int
+		AppetizeDeleteApp       func(childComplexity int, publicKey string) int
+		AppetizeUploadBuild     func(childComplexity int, input model.AppetizeUploadInput) int
 		ApplyPatch              func(childComplexity int, patchID string) int
 		ApplyStage              func(childComplexity int, stageID string) int
 		BuildDeployPreview      func(childComplexity int, deployID string) int
 		BulkDeleteProjects      func(childComplexity int, ids []string) int
 		CancelDeploy            func(childComplexity int, deployID string, reason string) int
+		CheckDeployDomain       func(childComplexity int, id string) int
 		ConfirmEmailChange      func(childComplexity int, token string) int
+		ConnectDeployDomain     func(childComplexity int, input model.ConnectDeployDomainInput) int
 		CreatePaidExecution     func(childComplexity int, input model.CreatePaidExecutionInput) int
 		CreateProject           func(childComplexity int, input model.CreateProjectInput) int
 		CreateStage             func(childComplexity int, input model.CreateStageInput) int
 		DecideDeployApproval    func(childComplexity int, approvalID string, approve bool, note *string) int
 		DeleteProject           func(childComplexity int, id string) int
 		DescribeIdea            func(childComplexity int, input model.DescribeIdeaInput) int
+		DeviceCloudEndSession   func(childComplexity int, sessionID string, provider string) int
+		DeviceCloudStartSession func(childComplexity int, input model.DeviceCloudStartInput) int
 		Empty                   func(childComplexity int) int
+		GenerateMobileAssets    func(childComplexity int, input model.GenerateMobileAssetsInput) int
+		MobileCancelBuild       func(childComplexity int, buildID string) int
+		MobilePublishUpdate     func(childComplexity int, input model.MobilePublishUpdateInput) int
+		MobileSubmitToStore     func(childComplexity int, input model.MobileSubmitInput) int
+		MobileTriggerBuild      func(childComplexity int, input model.MobileTriggerBuildInput) int
 		PlanDeploy              func(childComplexity int, input model.PlanDeployInput) int
 		PromoteDeploy           func(childComplexity int, deployID string) int
 		PromptPlan              func(childComplexity int, id string, prompt string) int
 		ProposePatch            func(childComplexity int, input model.ProposePatchInput) int
 		ProposeSymbolPatch      func(childComplexity int, input model.SymbolPatchInput) int
+		PurchaseDeployDomain    func(childComplexity int, input model.PurchaseDeployDomainInput) int
 		RefineIdea              func(childComplexity int, executionID string, message string) int
 		RefundExecution         func(childComplexity int, id string, amountUsd *float64, reason *string) int
 		RejectStage             func(childComplexity int, stageID string, reason *string) int
@@ -478,12 +624,14 @@ type ComplexityRoot struct {
 		RequestPasswordReset    func(childComplexity int, email string) int
 		RerunGate               func(childComplexity int, input model.RerunGateInput) int
 		ResendVerificationEmail func(childComplexity int) int
+		ReserveDeploySubdomain  func(childComplexity int, input model.ReserveDeploySubdomainInput) int
 		ResetPassword           func(childComplexity int, token string, newPassword string) int
 		RevokeAllOtherSessions  func(childComplexity int) int
 		RevokeSession           func(childComplexity int, jti string) int
 		RollbackDeploy          func(childComplexity int, deployID string, reason string) int
 		RollbackPatch           func(childComplexity int, patchID string) int
 		RunFinisher             func(childComplexity int, id string) int
+		SetPrimaryDeployDomain  func(childComplexity int, id string) int
 		SetTelemetryPreference  func(childComplexity int, input model.TelemetryPreferenceInput) int
 		SignIn                  func(childComplexity int, input model.SignInInput) int
 		SignOut                 func(childComplexity int) int
@@ -493,6 +641,7 @@ type ComplexityRoot struct {
 		UpdateProject           func(childComplexity int, id string, input model.UpdateProjectInput) int
 		VerifyEmail             func(childComplexity int, token string) int
 		WalletCreateTopUp       func(childComplexity int, amountUsd float64) int
+		WriteProjectFiles       func(childComplexity int, id string, files []model.WriteProjectFileInput) int
 	}
 
 	NextAction struct {
@@ -682,7 +831,10 @@ type ComplexityRoot struct {
 		Blueprints               func(childComplexity int) int
 		CohortDashboard          func(childComplexity int, sinceMonth time.Time) int
 		Deploy                   func(childComplexity int, id string) int
+		DeployDomains            func(childComplexity int, projectID string) int
 		Deploys                  func(childComplexity int, limit *int, offset *int) int
+		DeviceCloudDevices       func(childComplexity int, platform string) int
+		DomainAvailability       func(childComplexity int, domain string, registrar *string) int
 		EstimateExecutionCost    func(childComplexity int, input model.EstimateInput) int
 		Execution                func(childComplexity int, id string) int
 		ExecutionLedger          func(childComplexity int, executionID string, limit *int, offset *int) int
@@ -694,6 +846,9 @@ type ComplexityRoot struct {
 		Ledger                   func(childComplexity int, filter *model.LedgerFilter) int
 		LedgerRollup             func(childComplexity int, since time.Time, until time.Time) int
 		Me                       func(childComplexity int) int
+		MobileBuild              func(childComplexity int, buildID string) int
+		MobileBuilds             func(childComplexity int, projectID string) int
+		MobileSubmissions        func(childComplexity int, projectID string) int
 		MyBudget                 func(childComplexity int) int
 		MySessions               func(childComplexity int) int
 		OperatorAbuseScore       func(childComplexity int, tenantID string, userID string) int
@@ -719,6 +874,7 @@ type ComplexityRoot struct {
 		ScaleDashboard           func(childComplexity int) int
 		Stage                    func(childComplexity int, id string) int
 		Stages                   func(childComplexity int, projectID string) int
+		TenantProfitToday        func(childComplexity int) int
 		Vault                    func(childComplexity int) int
 		VerifyAudit              func(childComplexity int) int
 		Version                  func(childComplexity int) int
@@ -815,12 +971,13 @@ type ComplexityRoot struct {
 	}
 
 	Subscription struct {
-		CostStream       func(childComplexity int) int
-		DeployFeed       func(childComplexity int, id string) int
-		ExecutionFeed    func(childComplexity int, id string) int
-		Heartbeat        func(childComplexity int) int
-		InlineCompletion func(childComplexity int, input model.InlineInput) int
-		RunProject       func(childComplexity int, projectID string) int
+		CostStream        func(childComplexity int) int
+		DeployFeed        func(childComplexity int, id string) int
+		ExecutionFeed     func(childComplexity int, id string) int
+		Heartbeat         func(childComplexity int) int
+		InlineCompletion  func(childComplexity int, input model.InlineInput) int
+		MobileBuildStatus func(childComplexity int, buildID string) int
+		RunProject        func(childComplexity int, projectID string) int
 	}
 
 	SupportBundle struct {
@@ -918,6 +1075,9 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	Empty(ctx context.Context) (*string, error)
+	AppetizeUploadBuild(ctx context.Context, input model.AppetizeUploadInput) (*model.AppetizeApp, error)
+	AppetizeDeleteApp(ctx context.Context, publicKey string) (bool, error)
+	GenerateMobileAssets(ctx context.Context, input model.GenerateMobileAssetsInput) (*model.GenerateMobileAssetsResult, error)
 	SignUp(ctx context.Context, input model.SignUpInput) (*model.Session, error)
 	SignIn(ctx context.Context, input model.SignInInput) (*model.Session, error)
 	SignOut(ctx context.Context) (*model.OperationResult, error)
@@ -939,10 +1099,21 @@ type MutationResolver interface {
 	PromoteDeploy(ctx context.Context, deployID string) (*model.Deploy, error)
 	RollbackDeploy(ctx context.Context, deployID string, reason string) (*model.Deploy, error)
 	CancelDeploy(ctx context.Context, deployID string, reason string) (*model.Deploy, error)
+	ReserveDeploySubdomain(ctx context.Context, input model.ReserveDeploySubdomainInput) (*model.DeployDomain, error)
+	ConnectDeployDomain(ctx context.Context, input model.ConnectDeployDomainInput) (*model.DeployDomain, error)
+	CheckDeployDomain(ctx context.Context, id string) (*model.DeployDomain, error)
+	SetPrimaryDeployDomain(ctx context.Context, id string) (*model.DeployDomain, error)
+	PurchaseDeployDomain(ctx context.Context, input model.PurchaseDeployDomainInput) (*model.DeployDomain, error)
+	DeviceCloudStartSession(ctx context.Context, input model.DeviceCloudStartInput) (*model.DeviceCloudSession, error)
+	DeviceCloudEndSession(ctx context.Context, sessionID string, provider string) (bool, error)
 	CreatePaidExecution(ctx context.Context, input model.CreatePaidExecutionInput) (*model.Execution, error)
 	StopExecution(ctx context.Context, id string, reason string) (*model.Execution, error)
 	RefundExecution(ctx context.Context, id string, amountUsd *float64, reason *string) (*model.Execution, error)
 	RerunGate(ctx context.Context, input model.RerunGateInput) (*model.GateVerdict, error)
+	MobileTriggerBuild(ctx context.Context, input model.MobileTriggerBuildInput) (*model.MobileBuild, error)
+	MobileCancelBuild(ctx context.Context, buildID string) (bool, error)
+	MobileSubmitToStore(ctx context.Context, input model.MobileSubmitInput) (*model.MobileSubmission, error)
+	MobilePublishUpdate(ctx context.Context, input model.MobilePublishUpdateInput) (*model.MobileUpdate, error)
 	ProposePatch(ctx context.Context, input model.ProposePatchInput) (*model.Patch, error)
 	ApplyPatch(ctx context.Context, patchID string) (*model.Patch, error)
 	RollbackPatch(ctx context.Context, patchID string) (model.JSON, error)
@@ -957,6 +1128,7 @@ type MutationResolver interface {
 	BulkDeleteProjects(ctx context.Context, ids []string) (*model.OperationResult, error)
 	RunFinisher(ctx context.Context, id string) (model.JSON, error)
 	PromptPlan(ctx context.Context, id string, prompt string) (model.JSON, error)
+	WriteProjectFiles(ctx context.Context, id string, files []model.WriteProjectFileInput) ([]model.ProjectFile, error)
 	DescribeIdea(ctx context.Context, input model.DescribeIdeaInput) (*model.StudioBootstrap, error)
 	RefineIdea(ctx context.Context, executionID string, message string) (*model.StudioBootstrap, error)
 	WalletCreateTopUp(ctx context.Context, amountUsd float64) (*model.WalletCheckoutSession, error)
@@ -990,6 +1162,9 @@ type QueryResolver interface {
 	Deploy(ctx context.Context, id string) (*model.Deploy, error)
 	Deploys(ctx context.Context, limit *int, offset *int) ([]model.Deploy, error)
 	PendingDeployApprovals(ctx context.Context) ([]model.DeployApproval, error)
+	DeployDomains(ctx context.Context, projectID string) ([]model.DeployDomain, error)
+	DomainAvailability(ctx context.Context, domain string, registrar *string) (*model.DomainAvailability, error)
+	DeviceCloudDevices(ctx context.Context, platform string) ([]model.DeviceCloudDevice, error)
 	RecentErrors(ctx context.Context, limit *int) ([]model.ErrorAggregate, error)
 	RecentLogs(ctx context.Context, since *time.Time, limit *int, minLevel *string) ([]model.LogEntry, error)
 	Execution(ctx context.Context, id string) (*model.Execution, error)
@@ -1001,6 +1176,10 @@ type QueryResolver interface {
 	Ledger(ctx context.Context, filter *model.LedgerFilter) ([]model.WalletLedgerEntry, error)
 	LedgerRollup(ctx context.Context, since time.Time, until time.Time) (*model.LedgerRollup, error)
 	ExecutionLedger(ctx context.Context, executionID string, limit *int, offset *int) ([]model.WalletLedgerEntry, error)
+	TenantProfitToday(ctx context.Context) (*model.LedgerRollup, error)
+	MobileBuilds(ctx context.Context, projectID string) ([]model.MobileBuild, error)
+	MobileBuild(ctx context.Context, buildID string) (*model.MobileBuild, error)
+	MobileSubmissions(ctx context.Context, projectID string) ([]model.MobileSubmission, error)
 	OperatorPendingApprovals(ctx context.Context, tenantID *string) ([]model.DeployApproval, error)
 	OperatorAbuseScore(ctx context.Context, tenantID string, userID string) (*model.AbuseScoreResult, error)
 	OperatorScaleSnapshot(ctx context.Context) (*model.OperatorScaleSnapshot, error)
@@ -1026,6 +1205,7 @@ type SubscriptionResolver interface {
 	InlineCompletion(ctx context.Context, input model.InlineInput) (<-chan model.InlineDelta, error)
 	DeployFeed(ctx context.Context, id string) (<-chan *model.DeployEvent, error)
 	ExecutionFeed(ctx context.Context, id string) (<-chan *model.ExecutionEvent, error)
+	MobileBuildStatus(ctx context.Context, buildID string) (<-chan *model.MobileBuild, error)
 	RunProject(ctx context.Context, projectID string) (<-chan model.RunEvent, error)
 }
 
@@ -1183,6 +1363,31 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.AgentCall.UserID(childComplexity), true
+
+	case "AppetizeApp.createdAt":
+		if e.ComplexityRoot.AppetizeApp.CreatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AppetizeApp.CreatedAt(childComplexity), true
+	case "AppetizeApp.embedUrl":
+		if e.ComplexityRoot.AppetizeApp.EmbedURL == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AppetizeApp.EmbedURL(childComplexity), true
+	case "AppetizeApp.platform":
+		if e.ComplexityRoot.AppetizeApp.Platform == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AppetizeApp.Platform(childComplexity), true
+	case "AppetizeApp.publicKey":
+		if e.ComplexityRoot.AppetizeApp.PublicKey == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AppetizeApp.PublicKey(childComplexity), true
 
 	case "AuditChainProof.brokenLinks":
 		if e.ComplexityRoot.AuditChainProof.BrokenLinks == nil {
@@ -1843,6 +2048,31 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.CostReport.StorageCostUsd(childComplexity), true
 
+	case "DNSRecord.name":
+		if e.ComplexityRoot.DNSRecord.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DNSRecord.Name(childComplexity), true
+	case "DNSRecord.ttl":
+		if e.ComplexityRoot.DNSRecord.TTL == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DNSRecord.TTL(childComplexity), true
+	case "DNSRecord.type":
+		if e.ComplexityRoot.DNSRecord.Type == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DNSRecord.Type(childComplexity), true
+	case "DNSRecord.value":
+		if e.ComplexityRoot.DNSRecord.Value == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DNSRecord.Value(childComplexity), true
+
 	case "DashboardBlueprintStats.avgCompletionScore":
 		if e.ComplexityRoot.DashboardBlueprintStats.AvgCompletionScore == nil {
 			break
@@ -2086,6 +2316,121 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.DeployApproval.TenantID(childComplexity), true
 
+	case "DeployDomain.certificateStatus":
+		if e.ComplexityRoot.DeployDomain.CertificateStatus == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeployDomain.CertificateStatus(childComplexity), true
+	case "DeployDomain.createdAt":
+		if e.ComplexityRoot.DeployDomain.CreatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeployDomain.CreatedAt(childComplexity), true
+	case "DeployDomain.dnsRecords":
+		if e.ComplexityRoot.DeployDomain.DNSRecords == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeployDomain.DNSRecords(childComplexity), true
+	case "DeployDomain.deployID":
+		if e.ComplexityRoot.DeployDomain.DeployID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeployDomain.DeployID(childComplexity), true
+	case "DeployDomain.hostname":
+		if e.ComplexityRoot.DeployDomain.Hostname == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeployDomain.Hostname(childComplexity), true
+	case "DeployDomain.id":
+		if e.ComplexityRoot.DeployDomain.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeployDomain.ID(childComplexity), true
+	case "DeployDomain.instructions":
+		if e.ComplexityRoot.DeployDomain.Instructions == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeployDomain.Instructions(childComplexity), true
+	case "DeployDomain.kind":
+		if e.ComplexityRoot.DeployDomain.Kind == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeployDomain.Kind(childComplexity), true
+	case "DeployDomain.liveAt":
+		if e.ComplexityRoot.DeployDomain.LiveAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeployDomain.LiveAt(childComplexity), true
+	case "DeployDomain.metadata":
+		if e.ComplexityRoot.DeployDomain.Metadata == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeployDomain.Metadata(childComplexity), true
+	case "DeployDomain.primary":
+		if e.ComplexityRoot.DeployDomain.Primary == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeployDomain.Primary(childComplexity), true
+	case "DeployDomain.projectID":
+		if e.ComplexityRoot.DeployDomain.ProjectID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeployDomain.ProjectID(childComplexity), true
+	case "DeployDomain.provider":
+		if e.ComplexityRoot.DeployDomain.Provider == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeployDomain.Provider(childComplexity), true
+	case "DeployDomain.registrar":
+		if e.ComplexityRoot.DeployDomain.Registrar == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeployDomain.Registrar(childComplexity), true
+	case "DeployDomain.status":
+		if e.ComplexityRoot.DeployDomain.Status == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeployDomain.Status(childComplexity), true
+	case "DeployDomain.tenantID":
+		if e.ComplexityRoot.DeployDomain.TenantID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeployDomain.TenantID(childComplexity), true
+	case "DeployDomain.updatedAt":
+		if e.ComplexityRoot.DeployDomain.UpdatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeployDomain.UpdatedAt(childComplexity), true
+	case "DeployDomain.verificationStatus":
+		if e.ComplexityRoot.DeployDomain.VerificationStatus == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeployDomain.VerificationStatus(childComplexity), true
+	case "DeployDomain.verifiedAt":
+		if e.ComplexityRoot.DeployDomain.VerifiedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeployDomain.VerifiedAt(childComplexity), true
+
 	case "DeployEvent.createdAt":
 		if e.ComplexityRoot.DeployEvent.CreatedAt == nil {
 			break
@@ -2110,6 +2455,165 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.DeployEvent.Payload(childComplexity), true
+
+	case "DeviceCloudDevice.id":
+		if e.ComplexityRoot.DeviceCloudDevice.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeviceCloudDevice.ID(childComplexity), true
+	case "DeviceCloudDevice.manufacturer":
+		if e.ComplexityRoot.DeviceCloudDevice.Manufacturer == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeviceCloudDevice.Manufacturer(childComplexity), true
+	case "DeviceCloudDevice.model":
+		if e.ComplexityRoot.DeviceCloudDevice.Model == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeviceCloudDevice.Model(childComplexity), true
+	case "DeviceCloudDevice.osVersion":
+		if e.ComplexityRoot.DeviceCloudDevice.OsVersion == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeviceCloudDevice.OsVersion(childComplexity), true
+	case "DeviceCloudDevice.platform":
+		if e.ComplexityRoot.DeviceCloudDevice.Platform == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeviceCloudDevice.Platform(childComplexity), true
+	case "DeviceCloudDevice.provider":
+		if e.ComplexityRoot.DeviceCloudDevice.Provider == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeviceCloudDevice.Provider(childComplexity), true
+	case "DeviceCloudDevice.real":
+		if e.ComplexityRoot.DeviceCloudDevice.Real == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeviceCloudDevice.Real(childComplexity), true
+
+	case "DeviceCloudSession.appUrl":
+		if e.ComplexityRoot.DeviceCloudSession.AppURL == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeviceCloudSession.AppURL(childComplexity), true
+	case "DeviceCloudSession.billableMinutesUsed":
+		if e.ComplexityRoot.DeviceCloudSession.BillableMinutesUsed == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeviceCloudSession.BillableMinutesUsed(childComplexity), true
+	case "DeviceCloudSession.deviceId":
+		if e.ComplexityRoot.DeviceCloudSession.DeviceID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeviceCloudSession.DeviceID(childComplexity), true
+	case "DeviceCloudSession.expiresAt":
+		if e.ComplexityRoot.DeviceCloudSession.ExpiresAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeviceCloudSession.ExpiresAt(childComplexity), true
+	case "DeviceCloudSession.id":
+		if e.ComplexityRoot.DeviceCloudSession.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeviceCloudSession.ID(childComplexity), true
+	case "DeviceCloudSession.provider":
+		if e.ComplexityRoot.DeviceCloudSession.Provider == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeviceCloudSession.Provider(childComplexity), true
+	case "DeviceCloudSession.sessionUrl":
+		if e.ComplexityRoot.DeviceCloudSession.SessionURL == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeviceCloudSession.SessionURL(childComplexity), true
+	case "DeviceCloudSession.startedAt":
+		if e.ComplexityRoot.DeviceCloudSession.StartedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeviceCloudSession.StartedAt(childComplexity), true
+	case "DeviceCloudSession.status":
+		if e.ComplexityRoot.DeviceCloudSession.Status == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DeviceCloudSession.Status(childComplexity), true
+
+	case "DomainAvailability.available":
+		if e.ComplexityRoot.DomainAvailability.Available == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DomainAvailability.Available(childComplexity), true
+	case "DomainAvailability.canPurchase":
+		if e.ComplexityRoot.DomainAvailability.CanPurchase == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DomainAvailability.CanPurchase(childComplexity), true
+	case "DomainAvailability.checkedAt":
+		if e.ComplexityRoot.DomainAvailability.CheckedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DomainAvailability.CheckedAt(childComplexity), true
+	case "DomainAvailability.currency":
+		if e.ComplexityRoot.DomainAvailability.Currency == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DomainAvailability.Currency(childComplexity), true
+	case "DomainAvailability.domain":
+		if e.ComplexityRoot.DomainAvailability.Domain == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DomainAvailability.Domain(childComplexity), true
+	case "DomainAvailability.premium":
+		if e.ComplexityRoot.DomainAvailability.Premium == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DomainAvailability.Premium(childComplexity), true
+	case "DomainAvailability.priceUSD":
+		if e.ComplexityRoot.DomainAvailability.PriceUsd == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DomainAvailability.PriceUsd(childComplexity), true
+	case "DomainAvailability.reason":
+		if e.ComplexityRoot.DomainAvailability.Reason == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DomainAvailability.Reason(childComplexity), true
+	case "DomainAvailability.registrar":
+		if e.ComplexityRoot.DomainAvailability.Registrar == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DomainAvailability.Registrar(childComplexity), true
+	case "DomainAvailability.requirements":
+		if e.ComplexityRoot.DomainAvailability.Requirements == nil {
+			break
+		}
+
+		return e.ComplexityRoot.DomainAvailability.Requirements(childComplexity), true
 
 	case "ErrorAggregate.class":
 		if e.ComplexityRoot.ErrorAggregate.Class == nil {
@@ -2441,6 +2945,62 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.GateVerdict.Status(childComplexity), true
+
+	case "GenerateMobileAssetEntry.height":
+		if e.ComplexityRoot.GenerateMobileAssetEntry.Height == nil {
+			break
+		}
+
+		return e.ComplexityRoot.GenerateMobileAssetEntry.Height(childComplexity), true
+	case "GenerateMobileAssetEntry.path":
+		if e.ComplexityRoot.GenerateMobileAssetEntry.Path == nil {
+			break
+		}
+
+		return e.ComplexityRoot.GenerateMobileAssetEntry.Path(childComplexity), true
+	case "GenerateMobileAssetEntry.purpose":
+		if e.ComplexityRoot.GenerateMobileAssetEntry.Purpose == nil {
+			break
+		}
+
+		return e.ComplexityRoot.GenerateMobileAssetEntry.Purpose(childComplexity), true
+	case "GenerateMobileAssetEntry.sizeBytes":
+		if e.ComplexityRoot.GenerateMobileAssetEntry.SizeBytes == nil {
+			break
+		}
+
+		return e.ComplexityRoot.GenerateMobileAssetEntry.SizeBytes(childComplexity), true
+	case "GenerateMobileAssetEntry.width":
+		if e.ComplexityRoot.GenerateMobileAssetEntry.Width == nil {
+			break
+		}
+
+		return e.ComplexityRoot.GenerateMobileAssetEntry.Width(childComplexity), true
+
+	case "GenerateMobileAssetsResult.entries":
+		if e.ComplexityRoot.GenerateMobileAssetsResult.Entries == nil {
+			break
+		}
+
+		return e.ComplexityRoot.GenerateMobileAssetsResult.Entries(childComplexity), true
+	case "GenerateMobileAssetsResult.filesCount":
+		if e.ComplexityRoot.GenerateMobileAssetsResult.FilesCount == nil {
+			break
+		}
+
+		return e.ComplexityRoot.GenerateMobileAssetsResult.FilesCount(childComplexity), true
+	case "GenerateMobileAssetsResult.generatedAt":
+		if e.ComplexityRoot.GenerateMobileAssetsResult.GeneratedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.GenerateMobileAssetsResult.GeneratedAt(childComplexity), true
+	case "GenerateMobileAssetsResult.totalBytes":
+		if e.ComplexityRoot.GenerateMobileAssetsResult.TotalBytes == nil {
+			break
+		}
+
+		return e.ComplexityRoot.GenerateMobileAssetsResult.TotalBytes(childComplexity), true
 
 	case "GqlError.code":
 		if e.ComplexityRoot.GqlError.Code == nil {
@@ -2783,6 +3343,243 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.LogEntry.Time(childComplexity), true
 
+	case "MobileBuild.appBuildVersion":
+		if e.ComplexityRoot.MobileBuild.AppBuildVersion == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileBuild.AppBuildVersion(childComplexity), true
+	case "MobileBuild.appVersion":
+		if e.ComplexityRoot.MobileBuild.AppVersion == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileBuild.AppVersion(childComplexity), true
+	case "MobileBuild.artifactSizeBytes":
+		if e.ComplexityRoot.MobileBuild.ArtifactSizeBytes == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileBuild.ArtifactSizeBytes(childComplexity), true
+	case "MobileBuild.artifactUrl":
+		if e.ComplexityRoot.MobileBuild.ArtifactURL == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileBuild.ArtifactURL(childComplexity), true
+	case "MobileBuild.channel":
+		if e.ComplexityRoot.MobileBuild.Channel == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileBuild.Channel(childComplexity), true
+	case "MobileBuild.completedAt":
+		if e.ComplexityRoot.MobileBuild.CompletedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileBuild.CompletedAt(childComplexity), true
+	case "MobileBuild.createdAt":
+		if e.ComplexityRoot.MobileBuild.CreatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileBuild.CreatedAt(childComplexity), true
+	case "MobileBuild.distribution":
+		if e.ComplexityRoot.MobileBuild.Distribution == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileBuild.Distribution(childComplexity), true
+	case "MobileBuild.errorMessage":
+		if e.ComplexityRoot.MobileBuild.ErrorMessage == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileBuild.ErrorMessage(childComplexity), true
+	case "MobileBuild.id":
+		if e.ComplexityRoot.MobileBuild.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileBuild.ID(childComplexity), true
+	case "MobileBuild.initiator":
+		if e.ComplexityRoot.MobileBuild.Initiator == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileBuild.Initiator(childComplexity), true
+	case "MobileBuild.logUrl":
+		if e.ComplexityRoot.MobileBuild.LogURL == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileBuild.LogURL(childComplexity), true
+	case "MobileBuild.platform":
+		if e.ComplexityRoot.MobileBuild.Platform == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileBuild.Platform(childComplexity), true
+	case "MobileBuild.profile":
+		if e.ComplexityRoot.MobileBuild.Profile == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileBuild.Profile(childComplexity), true
+	case "MobileBuild.projectId":
+		if e.ComplexityRoot.MobileBuild.ProjectID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileBuild.ProjectID(childComplexity), true
+	case "MobileBuild.sdkVersion":
+		if e.ComplexityRoot.MobileBuild.SdkVersion == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileBuild.SdkVersion(childComplexity), true
+	case "MobileBuild.status":
+		if e.ComplexityRoot.MobileBuild.Status == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileBuild.Status(childComplexity), true
+	case "MobileBuild.updatedAt":
+		if e.ComplexityRoot.MobileBuild.UpdatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileBuild.UpdatedAt(childComplexity), true
+
+	case "MobileSubmission.archiveUrl":
+		if e.ComplexityRoot.MobileSubmission.ArchiveURL == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileSubmission.ArchiveURL(childComplexity), true
+	case "MobileSubmission.buildId":
+		if e.ComplexityRoot.MobileSubmission.BuildID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileSubmission.BuildID(childComplexity), true
+	case "MobileSubmission.completedAt":
+		if e.ComplexityRoot.MobileSubmission.CompletedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileSubmission.CompletedAt(childComplexity), true
+	case "MobileSubmission.createdAt":
+		if e.ComplexityRoot.MobileSubmission.CreatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileSubmission.CreatedAt(childComplexity), true
+	case "MobileSubmission.errorMessage":
+		if e.ComplexityRoot.MobileSubmission.ErrorMessage == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileSubmission.ErrorMessage(childComplexity), true
+	case "MobileSubmission.id":
+		if e.ComplexityRoot.MobileSubmission.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileSubmission.ID(childComplexity), true
+	case "MobileSubmission.logUrl":
+		if e.ComplexityRoot.MobileSubmission.LogURL == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileSubmission.LogURL(childComplexity), true
+	case "MobileSubmission.platform":
+		if e.ComplexityRoot.MobileSubmission.Platform == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileSubmission.Platform(childComplexity), true
+	case "MobileSubmission.projectId":
+		if e.ComplexityRoot.MobileSubmission.ProjectID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileSubmission.ProjectID(childComplexity), true
+	case "MobileSubmission.status":
+		if e.ComplexityRoot.MobileSubmission.Status == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileSubmission.Status(childComplexity), true
+	case "MobileSubmission.target":
+		if e.ComplexityRoot.MobileSubmission.Target == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileSubmission.Target(childComplexity), true
+	case "MobileSubmission.updatedAt":
+		if e.ComplexityRoot.MobileSubmission.UpdatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileSubmission.UpdatedAt(childComplexity), true
+
+	case "MobileUpdate.branch":
+		if e.ComplexityRoot.MobileUpdate.Branch == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileUpdate.Branch(childComplexity), true
+	case "MobileUpdate.channel":
+		if e.ComplexityRoot.MobileUpdate.Channel == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileUpdate.Channel(childComplexity), true
+	case "MobileUpdate.createdAt":
+		if e.ComplexityRoot.MobileUpdate.CreatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileUpdate.CreatedAt(childComplexity), true
+	case "MobileUpdate.groupId":
+		if e.ComplexityRoot.MobileUpdate.GroupID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileUpdate.GroupID(childComplexity), true
+	case "MobileUpdate.id":
+		if e.ComplexityRoot.MobileUpdate.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileUpdate.ID(childComplexity), true
+	case "MobileUpdate.manifestUrl":
+		if e.ComplexityRoot.MobileUpdate.ManifestURL == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileUpdate.ManifestURL(childComplexity), true
+	case "MobileUpdate.message":
+		if e.ComplexityRoot.MobileUpdate.Message == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileUpdate.Message(childComplexity), true
+	case "MobileUpdate.platform":
+		if e.ComplexityRoot.MobileUpdate.Platform == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileUpdate.Platform(childComplexity), true
+	case "MobileUpdate.runtimeVersion":
+		if e.ComplexityRoot.MobileUpdate.RuntimeVersion == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MobileUpdate.RuntimeVersion(childComplexity), true
+
 	case "Mutation.acceptInlineCompletion":
 		if e.ComplexityRoot.Mutation.AcceptInlineCompletion == nil {
 			break
@@ -2794,6 +3591,28 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.AcceptInlineCompletion(childComplexity, args["requestId"].(string)), true
+	case "Mutation.appetizeDeleteApp":
+		if e.ComplexityRoot.Mutation.AppetizeDeleteApp == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_appetizeDeleteApp_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.AppetizeDeleteApp(childComplexity, args["publicKey"].(string)), true
+	case "Mutation.appetizeUploadBuild":
+		if e.ComplexityRoot.Mutation.AppetizeUploadBuild == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_appetizeUploadBuild_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.AppetizeUploadBuild(childComplexity, args["input"].(model.AppetizeUploadInput)), true
 	case "Mutation.applyPatch":
 		if e.ComplexityRoot.Mutation.ApplyPatch == nil {
 			break
@@ -2849,6 +3668,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.CancelDeploy(childComplexity, args["deployID"].(string), args["reason"].(string)), true
+	case "Mutation.checkDeployDomain":
+		if e.ComplexityRoot.Mutation.CheckDeployDomain == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_checkDeployDomain_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.CheckDeployDomain(childComplexity, args["id"].(string)), true
 	case "Mutation.confirmEmailChange":
 		if e.ComplexityRoot.Mutation.ConfirmEmailChange == nil {
 			break
@@ -2860,6 +3690,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.ConfirmEmailChange(childComplexity, args["token"].(string)), true
+	case "Mutation.connectDeployDomain":
+		if e.ComplexityRoot.Mutation.ConnectDeployDomain == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_connectDeployDomain_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.ConnectDeployDomain(childComplexity, args["input"].(model.ConnectDeployDomainInput)), true
 	case "Mutation.createPaidExecution":
 		if e.ComplexityRoot.Mutation.CreatePaidExecution == nil {
 			break
@@ -2926,12 +3767,89 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.DescribeIdea(childComplexity, args["input"].(model.DescribeIdeaInput)), true
+	case "Mutation.deviceCloudEndSession":
+		if e.ComplexityRoot.Mutation.DeviceCloudEndSession == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deviceCloudEndSession_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.DeviceCloudEndSession(childComplexity, args["sessionId"].(string), args["provider"].(string)), true
+	case "Mutation.deviceCloudStartSession":
+		if e.ComplexityRoot.Mutation.DeviceCloudStartSession == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deviceCloudStartSession_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.DeviceCloudStartSession(childComplexity, args["input"].(model.DeviceCloudStartInput)), true
 	case "Mutation._empty":
 		if e.ComplexityRoot.Mutation.Empty == nil {
 			break
 		}
 
 		return e.ComplexityRoot.Mutation.Empty(childComplexity), true
+	case "Mutation.generateMobileAssets":
+		if e.ComplexityRoot.Mutation.GenerateMobileAssets == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_generateMobileAssets_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.GenerateMobileAssets(childComplexity, args["input"].(model.GenerateMobileAssetsInput)), true
+	case "Mutation.mobileCancelBuild":
+		if e.ComplexityRoot.Mutation.MobileCancelBuild == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_mobileCancelBuild_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.MobileCancelBuild(childComplexity, args["buildId"].(string)), true
+	case "Mutation.mobilePublishUpdate":
+		if e.ComplexityRoot.Mutation.MobilePublishUpdate == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_mobilePublishUpdate_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.MobilePublishUpdate(childComplexity, args["input"].(model.MobilePublishUpdateInput)), true
+	case "Mutation.mobileSubmitToStore":
+		if e.ComplexityRoot.Mutation.MobileSubmitToStore == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_mobileSubmitToStore_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.MobileSubmitToStore(childComplexity, args["input"].(model.MobileSubmitInput)), true
+	case "Mutation.mobileTriggerBuild":
+		if e.ComplexityRoot.Mutation.MobileTriggerBuild == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_mobileTriggerBuild_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.MobileTriggerBuild(childComplexity, args["input"].(model.MobileTriggerBuildInput)), true
 	case "Mutation.planDeploy":
 		if e.ComplexityRoot.Mutation.PlanDeploy == nil {
 			break
@@ -2987,6 +3905,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.ProposeSymbolPatch(childComplexity, args["input"].(model.SymbolPatchInput)), true
+	case "Mutation.purchaseDeployDomain":
+		if e.ComplexityRoot.Mutation.PurchaseDeployDomain == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_purchaseDeployDomain_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.PurchaseDeployDomain(childComplexity, args["input"].(model.PurchaseDeployDomainInput)), true
 	case "Mutation.refineIdea":
 		if e.ComplexityRoot.Mutation.RefineIdea == nil {
 			break
@@ -3081,6 +4010,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.ResendVerificationEmail(childComplexity), true
+	case "Mutation.reserveDeploySubdomain":
+		if e.ComplexityRoot.Mutation.ReserveDeploySubdomain == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_reserveDeploySubdomain_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.ReserveDeploySubdomain(childComplexity, args["input"].(model.ReserveDeploySubdomainInput)), true
 	case "Mutation.resetPassword":
 		if e.ComplexityRoot.Mutation.ResetPassword == nil {
 			break
@@ -3142,6 +4082,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.RunFinisher(childComplexity, args["id"].(string)), true
+	case "Mutation.setPrimaryDeployDomain":
+		if e.ComplexityRoot.Mutation.SetPrimaryDeployDomain == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_setPrimaryDeployDomain_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.SetPrimaryDeployDomain(childComplexity, args["id"].(string)), true
 	case "Mutation.setTelemetryPreference":
 		if e.ComplexityRoot.Mutation.SetTelemetryPreference == nil {
 			break
@@ -3236,6 +4187,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.WalletCreateTopUp(childComplexity, args["amountUSD"].(float64)), true
+	case "Mutation.writeProjectFiles":
+		if e.ComplexityRoot.Mutation.WriteProjectFiles == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_writeProjectFiles_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.WriteProjectFiles(childComplexity, args["id"].(string), args["files"].([]model.WriteProjectFileInput)), true
 
 	case "NextAction.cta":
 		if e.ComplexityRoot.NextAction.Cta == nil {
@@ -4107,6 +5069,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.Deploy(childComplexity, args["id"].(string)), true
+	case "Query.deployDomains":
+		if e.ComplexityRoot.Query.DeployDomains == nil {
+			break
+		}
+
+		args, err := ec.field_Query_deployDomains_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.DeployDomains(childComplexity, args["projectID"].(string)), true
 	case "Query.deploys":
 		if e.ComplexityRoot.Query.Deploys == nil {
 			break
@@ -4118,6 +5091,28 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.Deploys(childComplexity, args["limit"].(*int), args["offset"].(*int)), true
+	case "Query.deviceCloudDevices":
+		if e.ComplexityRoot.Query.DeviceCloudDevices == nil {
+			break
+		}
+
+		args, err := ec.field_Query_deviceCloudDevices_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.DeviceCloudDevices(childComplexity, args["platform"].(string)), true
+	case "Query.domainAvailability":
+		if e.ComplexityRoot.Query.DomainAvailability == nil {
+			break
+		}
+
+		args, err := ec.field_Query_domainAvailability_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.DomainAvailability(childComplexity, args["domain"].(string), args["registrar"].(*string)), true
 	case "Query.estimateExecutionCost":
 		if e.ComplexityRoot.Query.EstimateExecutionCost == nil {
 			break
@@ -4235,6 +5230,39 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.Me(childComplexity), true
+	case "Query.mobileBuild":
+		if e.ComplexityRoot.Query.MobileBuild == nil {
+			break
+		}
+
+		args, err := ec.field_Query_mobileBuild_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.MobileBuild(childComplexity, args["buildId"].(string)), true
+	case "Query.mobileBuilds":
+		if e.ComplexityRoot.Query.MobileBuilds == nil {
+			break
+		}
+
+		args, err := ec.field_Query_mobileBuilds_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.MobileBuilds(childComplexity, args["projectId"].(string)), true
+	case "Query.mobileSubmissions":
+		if e.ComplexityRoot.Query.MobileSubmissions == nil {
+			break
+		}
+
+		args, err := ec.field_Query_mobileSubmissions_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.MobileSubmissions(childComplexity, args["projectId"].(string)), true
 	case "Query.myBudget":
 		if e.ComplexityRoot.Query.MyBudget == nil {
 			break
@@ -4470,6 +5498,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.Stages(childComplexity, args["projectId"].(string)), true
+	case "Query.tenantProfitToday":
+		if e.ComplexityRoot.Query.TenantProfitToday == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Query.TenantProfitToday(childComplexity), true
 	case "Query.vault":
 		if e.ComplexityRoot.Query.Vault == nil {
 			break
@@ -4892,6 +5926,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Subscription.InlineCompletion(childComplexity, args["input"].(model.InlineInput)), true
+	case "Subscription.mobileBuildStatus":
+		if e.ComplexityRoot.Subscription.MobileBuildStatus == nil {
+			break
+		}
+
+		args, err := ec.field_Subscription_mobileBuildStatus_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Subscription.MobileBuildStatus(childComplexity, args["buildId"].(string)), true
 	case "Subscription.runProject":
 		if e.ComplexityRoot.Subscription.RunProject == nil {
 			break
@@ -5294,27 +6339,37 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	opCtx := graphql.GetOperationContext(ctx)
 	ec := newExecutionContext(opCtx, e, make(chan graphql.DeferredResult))
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputAppetizeUploadInput,
 		ec.unmarshalInputAuditExportFilter,
 		ec.unmarshalInputAuditQueryInput,
+		ec.unmarshalInputConnectDeployDomainInput,
 		ec.unmarshalInputCreatePaidExecutionInput,
 		ec.unmarshalInputCreateProjectInput,
 		ec.unmarshalInputCreateStageInput,
 		ec.unmarshalInputDescribeIdeaInput,
+		ec.unmarshalInputDeviceCloudStartInput,
 		ec.unmarshalInputEmailChangeInput,
 		ec.unmarshalInputEstimateInput,
+		ec.unmarshalInputGenerateMobileAssetsInput,
 		ec.unmarshalInputInlineInput,
 		ec.unmarshalInputLedgerFilter,
+		ec.unmarshalInputMobilePublishUpdateInput,
+		ec.unmarshalInputMobileSubmitInput,
+		ec.unmarshalInputMobileTriggerBuildInput,
 		ec.unmarshalInputPatchChangeInput,
 		ec.unmarshalInputPlanDeployInput,
 		ec.unmarshalInputProposePatchInput,
+		ec.unmarshalInputPurchaseDeployDomainInput,
 		ec.unmarshalInputRenameSymbolInput,
 		ec.unmarshalInputRerunGateInput,
+		ec.unmarshalInputReserveDeploySubdomainInput,
 		ec.unmarshalInputSignInInput,
 		ec.unmarshalInputSignUpInput,
 		ec.unmarshalInputStartCheckoutInput,
 		ec.unmarshalInputSymbolPatchInput,
 		ec.unmarshalInputTelemetryPreferenceInput,
 		ec.unmarshalInputUpdateProjectInput,
+		ec.unmarshalInputWriteProjectFileInput,
 	)
 	first := true
 
@@ -5486,6 +6541,111 @@ extend type Query {
 
 extend type Subscription {
   costStream: CostDelta!
+}
+`, BuiltIn: false},
+	{Name: "../schema/appetize.graphql", Input: `# Appetize.io integration — browser-embeddable iOS / Android
+# simulator. Lets Free-tier users preview an iOS build without a Mac
+# pool: the orchestrator uploads the artifact to Appetize, returns a
+# publicKey + iframe-ready embed URL.
+#
+# TODO(gqlgen): regenerate generated.go / generated_models.go after
+# editing this file. The resolver scaffold lives at
+# apps/orchestrator/internal/graph/resolver/appetize.resolver.go and
+# expects model.AppetizeApp / model.AppetizeUploadInput to be emitted
+# by gqlgen.
+
+extend type Mutation {
+  # appetizeUploadBuild streams the named EAS / local mobile build
+  # artifact up to Appetize and returns a session-ready embed URL.
+  appetizeUploadBuild(input: AppetizeUploadInput!): AppetizeApp!
+  # appetizeDeleteApp removes the Appetize app entry. Idempotent;
+  # 404 from upstream counts as success.
+  appetizeDeleteApp(publicKey: String!): Boolean!
+}
+
+type AppetizeApp {
+  publicKey: String!
+  embedUrl: String!
+  platform: String!
+  createdAt: DateTime!
+}
+
+input AppetizeUploadInput {
+  projectId: String!
+  # buildId references either an EAS build row or a local build
+  # artifact produced by MobileBuildGate (artifact key
+  # ArtifactMobileBuild).
+  buildId: String!
+  # deviceProfile picks the Appetize embed device (e.g.
+  # "iphone15pro", "pixel8"). Empty falls back to the platform default.
+  deviceProfile: String
+}
+`, BuiltIn: false},
+	{Name: "../schema/assets.graphql", Input: `# Mobile asset generation surface — takes a single square logo PNG plus
+# colour choices and renders the full ~20-asset bundle every mobile app
+# needs (Android mipmaps + adaptive icon, iOS AppIcon.appiconset +
+# Contents.json + LaunchScreen.storyboard, Expo icon/splash/favicon).
+#
+# Persistence trade-off: we deliberately return the generated bundle
+# as a manifest (path + size + purpose, no binary blobs) so the GraphQL
+# response stays small and reviewable. The actual PNG bytes are written
+# to the workspace by a follow-up runtime call when persistence is
+# wired — sending base64 blobs through GraphQL responses is feasible
+# but rapidly turns into multi-MB payloads the moment a project ships
+# all three platforms at once.
+extend type Mutation {
+  generateMobileAssets(
+    input: GenerateMobileAssetsInput!
+  ): GenerateMobileAssetsResult!
+}
+
+input GenerateMobileAssetsInput {
+  # projectId scopes the generated bundle to a single project so the
+  # follow-up persistence step lands the bytes in the right tree.
+  projectId: String!
+
+  # logoPngBase64 is the source square logo. MUST be at least
+  # 1024x1024 — smaller logos produce visible aliasing at the larger
+  # marketing sizes. The base64 wrapper exists because GraphQL has no
+  # native Upload scalar in this schema; the frontend reads the file
+  # with FileReader and posts the base64 string.
+  logoPngBase64: String!
+
+  # backgroundColor is the hex (#rrggbb) used for the adaptive icon
+  # background tile and the splash canvas. Pulled from
+  # tokens.color.bg.base by default in the UI.
+  backgroundColor: String!
+
+  # splashForegroundColor optionally tints the splash-screen label.
+  # Defaults to white when omitted.
+  splashForegroundColor: String
+
+  # platforms is the set of platforms to render. Valid values:
+  # "android", "ios", "expo". An empty list means "all three".
+  platforms: [String!]!
+}
+
+type GenerateMobileAssetsResult {
+  # filesCount is the total number of assets emitted across every
+  # requested platform.
+  filesCount: Int!
+  # totalBytes is the sum of every entry's sizeBytes — useful for the
+  # UI to surface "1.4 MB generated" without iterating the list.
+  totalBytes: Int!
+  generatedAt: DateTime!
+  entries: [GenerateMobileAssetEntry!]!
+}
+
+type GenerateMobileAssetEntry {
+  # path is the project-relative path the asset will be written to
+  # once the persistence step is wired.
+  path: String!
+  width: Int!
+  height: Int!
+  sizeBytes: Int!
+  # purpose is a stable identifier the UI uses to group thumbnails
+  # ("icon-mdpi", "splash-2x", "appicon-1024", "adaptive-foreground"...)
+  purpose: String!
 }
 `, BuiltIn: false},
 	{Name: "../schema/audit.graphql", Input: `# Immutable hash-chained audit log. Maps onto audit.Store /
@@ -5973,6 +7133,8 @@ extend type Query {
   deploy(id: ID!): Deploy
   deploys(limit: Int = 50, offset: Int = 0): [Deploy!]!
   pendingDeployApprovals: [DeployApproval!]!
+  deployDomains(projectID: ID!): [DeployDomain!]!
+  domainAvailability(domain: String!, registrar: String = "manual"): DomainAvailability!
 }
 
 extend type Mutation {
@@ -5983,6 +7145,11 @@ extend type Mutation {
   promoteDeploy(deployID: ID!): Deploy!
   rollbackDeploy(deployID: ID!, reason: String!): Deploy!
   cancelDeploy(deployID: ID!, reason: String!): Deploy!
+  reserveDeploySubdomain(input: ReserveDeploySubdomainInput!): DeployDomain!
+  connectDeployDomain(input: ConnectDeployDomainInput!): DeployDomain!
+  checkDeployDomain(id: ID!): DeployDomain!
+  setPrimaryDeployDomain(id: ID!): DeployDomain!
+  purchaseDeployDomain(input: PurchaseDeployDomainInput!): DeployDomain!
 }
 
 extend type Subscription {
@@ -5997,6 +7164,38 @@ input PlanDeployInput {
   environment: String!
   artifactRef: String!
   diffHash: String!
+  metadata: JSON
+}
+
+input ReserveDeploySubdomainInput {
+  projectID: ID!
+  deployID: ID
+  subdomain: String
+  provider: String = "ironflyer"
+  primary: Boolean = true
+  metadata: JSON
+}
+
+input ConnectDeployDomainInput {
+  projectID: ID!
+  deployID: ID
+  hostname: String!
+  provider: String = "ironflyer"
+  primary: Boolean = true
+  metadata: JSON
+}
+
+input PurchaseDeployDomainInput {
+  projectID: ID!
+  deployID: ID
+  domain: String!
+  provider: String = "ironflyer"
+  registrar: String = "cloudflare"
+  years: Int = 1
+  autoRenew: Boolean = true
+  expectedPriceUSD: Float = 0
+  contact: JSON
+  primary: Boolean = true
   metadata: JSON
 }
 
@@ -6051,6 +7250,105 @@ type DeployEvent {
   eventType: String!
   payload: JSON!
   createdAt: DateTime!
+}
+
+type DNSRecord {
+  type: String!
+  name: String!
+  value: String!
+  ttl: Int
+}
+
+type DeployDomain {
+  id: ID!
+  tenantID: ID!
+  projectID: ID!
+  deployID: ID
+  hostname: String!
+  kind: String!
+  status: String!
+  provider: String!
+  registrar: String
+  primary: Boolean!
+  dnsRecords: [DNSRecord!]!
+  verificationStatus: String!
+  certificateStatus: String!
+  instructions: String!
+  metadata: JSON!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  verifiedAt: DateTime
+  liveAt: DateTime
+}
+
+type DomainAvailability {
+  domain: String!
+  available: Boolean!
+  registrar: String!
+  priceUSD: Float!
+  currency: String!
+  premium: Boolean!
+  canPurchase: Boolean!
+  reason: String
+  checkedAt: DateTime!
+  requirements: [String!]!
+}
+`, BuiltIn: false},
+	{Name: "../schema/devicecloud.graphql", Input: `# devicecloud — Pro-tier real-device sessions surfaced through GraphQL.
+#
+# BrowserStack App Live + AWS Device Farm sit behind a single Manager;
+# this schema is the cockpit surface. deviceCloudDevices fans the
+# catalogue across every wired provider; the start/end mutations carry
+# the project + workspace IDs so the ledger entry tags spend correctly.
+
+extend type Query {
+  # deviceCloudDevices returns the union of every wired provider's
+  # device catalogue. platform is "android" or "ios"; "" returns all.
+  deviceCloudDevices(platform: String!): [DeviceCloudDevice!]!
+}
+
+extend type Mutation {
+  # deviceCloudStartSession boots an interactive real-device session
+  # against the chosen provider. Pro-tier gated: free-tier callers get
+  # an UPGRADE_REQUIRED extension instead of a created session.
+  deviceCloudStartSession(input: DeviceCloudStartInput!): DeviceCloudSession!
+
+  # deviceCloudEndSession tears down a running session and writes the
+  # reconciling ledger entry. provider must match the provider that
+  # started the session — sessionIDs are not globally unique across
+  # vendors.
+  deviceCloudEndSession(sessionId: String!, provider: String!): Boolean!
+}
+
+input DeviceCloudStartInput {
+  projectId: String!
+  workspaceId: String!
+  provider: String!
+  deviceId: String!
+  appUrl: String!
+  sessionLengthMinutes: Int
+}
+
+type DeviceCloudDevice {
+  id: String!
+  provider: String!
+  platform: String!
+  osVersion: String!
+  model: String!
+  manufacturer: String
+  real: Boolean!
+}
+
+type DeviceCloudSession {
+  id: String!
+  provider: String!
+  deviceId: String!
+  status: String!
+  appUrl: String
+  sessionUrl: String
+  startedAt: DateTime!
+  expiresAt: DateTime!
+  billableMinutesUsed: Float!
 }
 `, BuiltIn: false},
 	{Name: "../schema/diagnostics.graphql", Input: `# V22 in-process diagnostics surface.
@@ -6323,6 +7621,15 @@ extend type Query {
     limit: Int = 100
     offset: Int = 0
   ): [WalletLedgerEntry!]!
+
+  # Today's profitability for the caller's tenant — revenue, cost
+  # breakdown, and gross margin from UTC midnight to now. The single
+  # query that answers "are we currently making money on this tenant
+  # today?" without the caller having to construct a DateTime range.
+  # Sums every typed cost (provider, sandbox, storage, deployment,
+  # mobile legs, premium reasoning) against revenue so a regression
+  # in any leg shows up immediately.
+  tenantProfitToday: LedgerRollup!
 }
 
 input LedgerFilter {
@@ -6360,6 +7667,151 @@ type LedgerRollup {
   refundsUSD: Float!
   platformMarginUSD: Float!
   grossMarginPct: Float!
+}
+`, BuiltIn: false},
+	{Name: "../schema/mobile.graphql", Input: `# Mobile build + submission + OTA update plane.
+#
+# Drives the orchestrator's real Expo Application Services (EAS)
+# integration. Mutations dispatch builds, cancel them, submit signed
+# artifacts to the App Store / Google Play, and publish OTA updates;
+# queries surface the build + submission history per project;
+# the mobileBuildStatus subscription streams status changes as the
+# EAS poller observes them.
+#
+# TODO: run gqlgen generate after edits — ` + "`" + `go run github.com/99designs/gqlgen generate` + "`" + ` from the orchestrator root.
+# The resolver implementations live in internal/graph/resolver/mobile.resolver.go.
+
+extend type Query {
+  # mobileBuilds returns the build history for a project, newest first.
+  # Resolver enforces project ownership before reaching EAS.
+  mobileBuilds(projectId: String!): [MobileBuild!]!
+
+  # mobileBuild fetches a single EAS build by id. Returns null when the
+  # caller has no access or the build is unknown.
+  mobileBuild(buildId: String!): MobileBuild
+
+  # mobileSubmissions returns the App Store / Play Store submission
+  # history for a project.
+  mobileSubmissions(projectId: String!): [MobileSubmission!]!
+}
+
+extend type Mutation {
+  # mobileTriggerBuild kicks off a new EAS build. The orchestrator
+  # passes the workspace bound to the request so artifacts and ledger
+  # entries land on the right project.
+  mobileTriggerBuild(input: MobileTriggerBuildInput!): MobileBuild!
+
+  # mobileCancelBuild stops an in-flight EAS build. Idempotent: a
+  # build that already completed returns true and a debug log line.
+  mobileCancelBuild(buildId: String!): Boolean!
+
+  # mobileSubmitToStore dispatches an existing build artifact to the
+  # App Store (iOS) or Google Play (Android).
+  mobileSubmitToStore(input: MobileSubmitInput!): MobileSubmission!
+
+  # mobilePublishUpdate publishes a new OTA update on the supplied
+  # channel + runtime version.
+  mobilePublishUpdate(input: MobilePublishUpdateInput!): MobileUpdate!
+}
+
+extend type Subscription {
+  # mobileBuildStatus streams build snapshots whenever the poller sees
+  # a status change for the named build. Closes on terminal status.
+  mobileBuildStatus(buildId: String!): MobileBuild!
+}
+
+# A MobileBuild mirrors the orchestrator-side eas.Build shape.
+type MobileBuild {
+  id: ID!
+  projectId: String!
+  platform: String!
+  profile: String!
+  status: String!
+  distribution: String
+  artifactUrl: String
+  artifactSizeBytes: Int
+  logUrl: String
+  appVersion: String
+  appBuildVersion: String
+  sdkVersion: String
+  channel: String
+  initiator: String
+  errorMessage: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  completedAt: DateTime
+}
+
+# A MobileSubmission mirrors eas.Submission. target is one of
+# ios-app-store | android-google-play.
+type MobileSubmission {
+  id: ID!
+  projectId: String!
+  platform: String!
+  target: String!
+  status: String!
+  buildId: String
+  archiveUrl: String
+  logUrl: String
+  errorMessage: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  completedAt: DateTime
+}
+
+# A MobileUpdate mirrors eas.Update.
+type MobileUpdate {
+  id: ID!
+  branch: String!
+  channel: String!
+  runtimeVersion: String!
+  platform: String
+  message: String
+  manifestUrl: String
+  groupId: String
+  createdAt: DateTime!
+}
+
+input MobileTriggerBuildInput {
+  projectId: String!
+  platform: String!
+  # profile is the eas.json build profile name (preview / production / ...).
+  profile: String
+  # channel forwarded to EAS so the build is associated with the
+  # right OTA update channel on success.
+  channel: String
+  # message is an operator-readable changelog hint surfaced in the
+  # dashboard timeline.
+  message: String
+}
+
+input MobileSubmitInput {
+  buildId: String!
+  projectId: String!
+  platform: String!
+  # iOS App Store Connect knobs. Required when platform == "ios".
+  iosAppleId: String
+  iosAscAppId: String
+  iosAppleTeamId: String
+  iosSku: String
+  iosCompanyName: String
+  # Google Play knobs. Required when platform == "android".
+  # androidServiceAccountKey is the base64-encoded JSON service-account
+  # key — the orchestrator decodes it once before forwarding to EAS.
+  androidServiceAccountKey: String
+  androidTrack: String
+  androidReleaseStatus: String
+}
+
+input MobilePublishUpdateInput {
+  projectId: String!
+  channel: String!
+  branch: String
+  message: String
+  runtimeVersion: String!
+  # manifestExtra is forwarded into the published manifest, e.g. for
+  # feature-flag overrides delivered alongside the OTA update.
+  manifestExtra: JSON
 }
 `, BuiltIn: false},
 	{Name: "../schema/operator.graphql", Input: `# V22 Operator surface.
@@ -6709,6 +8161,17 @@ input UpdateProjectInput {
   status: String
 }
 
+# Operator IDE write-back. Replaces the project's file set with the
+# supplied entries. Used by the embedded openvscode IDE to push edits
+# made directly in the editor back into projectFiles so Monaco + the
+# finisher loop see the same state. AI-generated changes still flow
+# through patch.Engine.Propose; this is the human-operator override
+# path and bypasses the finisher gate lifecycle by design.
+input WriteProjectFileInput {
+  path: String!
+  content: String!
+}
+
 extend type Query {
   # Canonical owner-scoped project list. limit/offset paginate over
   # the caller's projects (plus public seeds) newest-first as the
@@ -6726,6 +8189,9 @@ extend type Mutation {
   bulkDeleteProjects(ids: [ID!]!): OperationResult!
   runFinisher(id: ID!): JSON!
   promptPlan(id: ID!, prompt: String!): JSON!
+  # Replace the project's files with the supplied set. Returns the new
+  # ProjectFile list as the orchestrator now sees it. Owner-only.
+  writeProjectFiles(id: ID!, files: [WriteProjectFileInput!]!): [ProjectFile!]!
 }
 
 extend type Subscription {
@@ -7166,6 +8632,20 @@ func (ec *executionContext) childFields_AgentCall(ctx context.Context, field gra
 	return nil, fmt.Errorf("no field named %q was found under type AgentCall", field.Name)
 }
 
+func (ec *executionContext) childFields_AppetizeApp(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "publicKey":
+		return ec.fieldContext_AppetizeApp_publicKey(ctx, field)
+	case "embedUrl":
+		return ec.fieldContext_AppetizeApp_embedUrl(ctx, field)
+	case "platform":
+		return ec.fieldContext_AppetizeApp_platform(ctx, field)
+	case "createdAt":
+		return ec.fieldContext_AppetizeApp_createdAt(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type AppetizeApp", field.Name)
+}
+
 func (ec *executionContext) childFields_AuditChainProof(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 	switch field.Name {
 	case "windowStart":
@@ -7482,6 +8962,20 @@ func (ec *executionContext) childFields_CostReport(ctx context.Context, field gr
 	return nil, fmt.Errorf("no field named %q was found under type CostReport", field.Name)
 }
 
+func (ec *executionContext) childFields_DNSRecord(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "type":
+		return ec.fieldContext_DNSRecord_type(ctx, field)
+	case "name":
+		return ec.fieldContext_DNSRecord_name(ctx, field)
+	case "value":
+		return ec.fieldContext_DNSRecord_value(ctx, field)
+	case "ttl":
+		return ec.fieldContext_DNSRecord_ttl(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type DNSRecord", field.Name)
+}
+
 func (ec *executionContext) childFields_DashboardBlueprintStats(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 	switch field.Name {
 	case "blueprintID":
@@ -7580,6 +9074,50 @@ func (ec *executionContext) childFields_DeployApproval(ctx context.Context, fiel
 	return nil, fmt.Errorf("no field named %q was found under type DeployApproval", field.Name)
 }
 
+func (ec *executionContext) childFields_DeployDomain(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "id":
+		return ec.fieldContext_DeployDomain_id(ctx, field)
+	case "tenantID":
+		return ec.fieldContext_DeployDomain_tenantID(ctx, field)
+	case "projectID":
+		return ec.fieldContext_DeployDomain_projectID(ctx, field)
+	case "deployID":
+		return ec.fieldContext_DeployDomain_deployID(ctx, field)
+	case "hostname":
+		return ec.fieldContext_DeployDomain_hostname(ctx, field)
+	case "kind":
+		return ec.fieldContext_DeployDomain_kind(ctx, field)
+	case "status":
+		return ec.fieldContext_DeployDomain_status(ctx, field)
+	case "provider":
+		return ec.fieldContext_DeployDomain_provider(ctx, field)
+	case "registrar":
+		return ec.fieldContext_DeployDomain_registrar(ctx, field)
+	case "primary":
+		return ec.fieldContext_DeployDomain_primary(ctx, field)
+	case "dnsRecords":
+		return ec.fieldContext_DeployDomain_dnsRecords(ctx, field)
+	case "verificationStatus":
+		return ec.fieldContext_DeployDomain_verificationStatus(ctx, field)
+	case "certificateStatus":
+		return ec.fieldContext_DeployDomain_certificateStatus(ctx, field)
+	case "instructions":
+		return ec.fieldContext_DeployDomain_instructions(ctx, field)
+	case "metadata":
+		return ec.fieldContext_DeployDomain_metadata(ctx, field)
+	case "createdAt":
+		return ec.fieldContext_DeployDomain_createdAt(ctx, field)
+	case "updatedAt":
+		return ec.fieldContext_DeployDomain_updatedAt(ctx, field)
+	case "verifiedAt":
+		return ec.fieldContext_DeployDomain_verifiedAt(ctx, field)
+	case "liveAt":
+		return ec.fieldContext_DeployDomain_liveAt(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type DeployDomain", field.Name)
+}
+
 func (ec *executionContext) childFields_DeployEvent(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 	switch field.Name {
 	case "deployID":
@@ -7592,6 +9130,76 @@ func (ec *executionContext) childFields_DeployEvent(ctx context.Context, field g
 		return ec.fieldContext_DeployEvent_createdAt(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type DeployEvent", field.Name)
+}
+
+func (ec *executionContext) childFields_DeviceCloudDevice(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "id":
+		return ec.fieldContext_DeviceCloudDevice_id(ctx, field)
+	case "provider":
+		return ec.fieldContext_DeviceCloudDevice_provider(ctx, field)
+	case "platform":
+		return ec.fieldContext_DeviceCloudDevice_platform(ctx, field)
+	case "osVersion":
+		return ec.fieldContext_DeviceCloudDevice_osVersion(ctx, field)
+	case "model":
+		return ec.fieldContext_DeviceCloudDevice_model(ctx, field)
+	case "manufacturer":
+		return ec.fieldContext_DeviceCloudDevice_manufacturer(ctx, field)
+	case "real":
+		return ec.fieldContext_DeviceCloudDevice_real(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type DeviceCloudDevice", field.Name)
+}
+
+func (ec *executionContext) childFields_DeviceCloudSession(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "id":
+		return ec.fieldContext_DeviceCloudSession_id(ctx, field)
+	case "provider":
+		return ec.fieldContext_DeviceCloudSession_provider(ctx, field)
+	case "deviceId":
+		return ec.fieldContext_DeviceCloudSession_deviceId(ctx, field)
+	case "status":
+		return ec.fieldContext_DeviceCloudSession_status(ctx, field)
+	case "appUrl":
+		return ec.fieldContext_DeviceCloudSession_appUrl(ctx, field)
+	case "sessionUrl":
+		return ec.fieldContext_DeviceCloudSession_sessionUrl(ctx, field)
+	case "startedAt":
+		return ec.fieldContext_DeviceCloudSession_startedAt(ctx, field)
+	case "expiresAt":
+		return ec.fieldContext_DeviceCloudSession_expiresAt(ctx, field)
+	case "billableMinutesUsed":
+		return ec.fieldContext_DeviceCloudSession_billableMinutesUsed(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type DeviceCloudSession", field.Name)
+}
+
+func (ec *executionContext) childFields_DomainAvailability(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "domain":
+		return ec.fieldContext_DomainAvailability_domain(ctx, field)
+	case "available":
+		return ec.fieldContext_DomainAvailability_available(ctx, field)
+	case "registrar":
+		return ec.fieldContext_DomainAvailability_registrar(ctx, field)
+	case "priceUSD":
+		return ec.fieldContext_DomainAvailability_priceUSD(ctx, field)
+	case "currency":
+		return ec.fieldContext_DomainAvailability_currency(ctx, field)
+	case "premium":
+		return ec.fieldContext_DomainAvailability_premium(ctx, field)
+	case "canPurchase":
+		return ec.fieldContext_DomainAvailability_canPurchase(ctx, field)
+	case "reason":
+		return ec.fieldContext_DomainAvailability_reason(ctx, field)
+	case "checkedAt":
+		return ec.fieldContext_DomainAvailability_checkedAt(ctx, field)
+	case "requirements":
+		return ec.fieldContext_DomainAvailability_requirements(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type DomainAvailability", field.Name)
 }
 
 func (ec *executionContext) childFields_ErrorAggregate(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
@@ -7744,6 +9352,36 @@ func (ec *executionContext) childFields_GateVerdict(ctx context.Context, field g
 	return nil, fmt.Errorf("no field named %q was found under type GateVerdict", field.Name)
 }
 
+func (ec *executionContext) childFields_GenerateMobileAssetEntry(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "path":
+		return ec.fieldContext_GenerateMobileAssetEntry_path(ctx, field)
+	case "width":
+		return ec.fieldContext_GenerateMobileAssetEntry_width(ctx, field)
+	case "height":
+		return ec.fieldContext_GenerateMobileAssetEntry_height(ctx, field)
+	case "sizeBytes":
+		return ec.fieldContext_GenerateMobileAssetEntry_sizeBytes(ctx, field)
+	case "purpose":
+		return ec.fieldContext_GenerateMobileAssetEntry_purpose(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type GenerateMobileAssetEntry", field.Name)
+}
+
+func (ec *executionContext) childFields_GenerateMobileAssetsResult(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "filesCount":
+		return ec.fieldContext_GenerateMobileAssetsResult_filesCount(ctx, field)
+	case "totalBytes":
+		return ec.fieldContext_GenerateMobileAssetsResult_totalBytes(ctx, field)
+	case "generatedAt":
+		return ec.fieldContext_GenerateMobileAssetsResult_generatedAt(ctx, field)
+	case "entries":
+		return ec.fieldContext_GenerateMobileAssetsResult_entries(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type GenerateMobileAssetsResult", field.Name)
+}
+
 func (ec *executionContext) childFields_HeartbeatEvent(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 	switch field.Name {
 	case "ts":
@@ -7826,6 +9464,102 @@ func (ec *executionContext) childFields_LogEntry(ctx context.Context, field grap
 		return ec.fieldContext_LogEntry_fields(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type LogEntry", field.Name)
+}
+
+func (ec *executionContext) childFields_MobileBuild(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "id":
+		return ec.fieldContext_MobileBuild_id(ctx, field)
+	case "projectId":
+		return ec.fieldContext_MobileBuild_projectId(ctx, field)
+	case "platform":
+		return ec.fieldContext_MobileBuild_platform(ctx, field)
+	case "profile":
+		return ec.fieldContext_MobileBuild_profile(ctx, field)
+	case "status":
+		return ec.fieldContext_MobileBuild_status(ctx, field)
+	case "distribution":
+		return ec.fieldContext_MobileBuild_distribution(ctx, field)
+	case "artifactUrl":
+		return ec.fieldContext_MobileBuild_artifactUrl(ctx, field)
+	case "artifactSizeBytes":
+		return ec.fieldContext_MobileBuild_artifactSizeBytes(ctx, field)
+	case "logUrl":
+		return ec.fieldContext_MobileBuild_logUrl(ctx, field)
+	case "appVersion":
+		return ec.fieldContext_MobileBuild_appVersion(ctx, field)
+	case "appBuildVersion":
+		return ec.fieldContext_MobileBuild_appBuildVersion(ctx, field)
+	case "sdkVersion":
+		return ec.fieldContext_MobileBuild_sdkVersion(ctx, field)
+	case "channel":
+		return ec.fieldContext_MobileBuild_channel(ctx, field)
+	case "initiator":
+		return ec.fieldContext_MobileBuild_initiator(ctx, field)
+	case "errorMessage":
+		return ec.fieldContext_MobileBuild_errorMessage(ctx, field)
+	case "createdAt":
+		return ec.fieldContext_MobileBuild_createdAt(ctx, field)
+	case "updatedAt":
+		return ec.fieldContext_MobileBuild_updatedAt(ctx, field)
+	case "completedAt":
+		return ec.fieldContext_MobileBuild_completedAt(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type MobileBuild", field.Name)
+}
+
+func (ec *executionContext) childFields_MobileSubmission(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "id":
+		return ec.fieldContext_MobileSubmission_id(ctx, field)
+	case "projectId":
+		return ec.fieldContext_MobileSubmission_projectId(ctx, field)
+	case "platform":
+		return ec.fieldContext_MobileSubmission_platform(ctx, field)
+	case "target":
+		return ec.fieldContext_MobileSubmission_target(ctx, field)
+	case "status":
+		return ec.fieldContext_MobileSubmission_status(ctx, field)
+	case "buildId":
+		return ec.fieldContext_MobileSubmission_buildId(ctx, field)
+	case "archiveUrl":
+		return ec.fieldContext_MobileSubmission_archiveUrl(ctx, field)
+	case "logUrl":
+		return ec.fieldContext_MobileSubmission_logUrl(ctx, field)
+	case "errorMessage":
+		return ec.fieldContext_MobileSubmission_errorMessage(ctx, field)
+	case "createdAt":
+		return ec.fieldContext_MobileSubmission_createdAt(ctx, field)
+	case "updatedAt":
+		return ec.fieldContext_MobileSubmission_updatedAt(ctx, field)
+	case "completedAt":
+		return ec.fieldContext_MobileSubmission_completedAt(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type MobileSubmission", field.Name)
+}
+
+func (ec *executionContext) childFields_MobileUpdate(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "id":
+		return ec.fieldContext_MobileUpdate_id(ctx, field)
+	case "branch":
+		return ec.fieldContext_MobileUpdate_branch(ctx, field)
+	case "channel":
+		return ec.fieldContext_MobileUpdate_channel(ctx, field)
+	case "runtimeVersion":
+		return ec.fieldContext_MobileUpdate_runtimeVersion(ctx, field)
+	case "platform":
+		return ec.fieldContext_MobileUpdate_platform(ctx, field)
+	case "message":
+		return ec.fieldContext_MobileUpdate_message(ctx, field)
+	case "manifestUrl":
+		return ec.fieldContext_MobileUpdate_manifestUrl(ctx, field)
+	case "groupId":
+		return ec.fieldContext_MobileUpdate_groupId(ctx, field)
+	case "createdAt":
+		return ec.fieldContext_MobileUpdate_createdAt(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type MobileUpdate", field.Name)
 }
 
 func (ec *executionContext) childFields_NextAction(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
@@ -8590,6 +10324,34 @@ func (ec *executionContext) field_Mutation_acceptInlineCompletion_args(ctx conte
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_appetizeDeleteApp_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "publicKey",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNString2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["publicKey"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_appetizeUploadBuild_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
+		func(ctx context.Context, v any) (model.AppetizeUploadInput, error) {
+			return ec.unmarshalNAppetizeUploadInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAppetizeUploadInput(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_applyPatch_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -8668,6 +10430,20 @@ func (ec *executionContext) field_Mutation_cancelDeploy_args(ctx context.Context
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_checkDeployDomain_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNID2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_confirmEmailChange_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -8679,6 +10455,20 @@ func (ec *executionContext) field_Mutation_confirmEmailChange_args(ctx context.C
 		return nil, err
 	}
 	args["token"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_connectDeployDomain_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
+		func(ctx context.Context, v any) (model.ConnectDeployDomainInput, error) {
+			return ec.unmarshalNConnectDeployDomainInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐConnectDeployDomainInput(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -8782,6 +10572,112 @@ func (ec *executionContext) field_Mutation_describeIdea_args(ctx context.Context
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_deviceCloudEndSession_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "sessionId",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNString2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["sessionId"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "provider",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNString2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["provider"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deviceCloudStartSession_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
+		func(ctx context.Context, v any) (model.DeviceCloudStartInput, error) {
+			return ec.unmarshalNDeviceCloudStartInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeviceCloudStartInput(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_generateMobileAssets_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
+		func(ctx context.Context, v any) (model.GenerateMobileAssetsInput, error) {
+			return ec.unmarshalNGenerateMobileAssetsInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGenerateMobileAssetsInput(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_mobileCancelBuild_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "buildId",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNString2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["buildId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_mobilePublishUpdate_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
+		func(ctx context.Context, v any) (model.MobilePublishUpdateInput, error) {
+			return ec.unmarshalNMobilePublishUpdateInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobilePublishUpdateInput(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_mobileSubmitToStore_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
+		func(ctx context.Context, v any) (model.MobileSubmitInput, error) {
+			return ec.unmarshalNMobileSubmitInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileSubmitInput(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_mobileTriggerBuild_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
+		func(ctx context.Context, v any) (model.MobileTriggerBuildInput, error) {
+			return ec.unmarshalNMobileTriggerBuildInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileTriggerBuildInput(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_planDeploy_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -8852,6 +10748,20 @@ func (ec *executionContext) field_Mutation_proposeSymbolPatch_args(ctx context.C
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
 		func(ctx context.Context, v any) (model.SymbolPatchInput, error) {
 			return ec.unmarshalNSymbolPatchInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐSymbolPatchInput(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_purchaseDeployDomain_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
+		func(ctx context.Context, v any) (model.PurchaseDeployDomainInput, error) {
+			return ec.unmarshalNPurchaseDeployDomainInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPurchaseDeployDomainInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -9012,6 +10922,20 @@ func (ec *executionContext) field_Mutation_rerunGate_args(ctx context.Context, r
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_reserveDeploySubdomain_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
+		func(ctx context.Context, v any) (model.ReserveDeploySubdomainInput, error) {
+			return ec.unmarshalNReserveDeploySubdomainInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐReserveDeploySubdomainInput(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_resetPassword_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -9085,6 +11009,20 @@ func (ec *executionContext) field_Mutation_rollbackPatch_args(ctx context.Contex
 }
 
 func (ec *executionContext) field_Mutation_runFinisher_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNID2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_setPrimaryDeployDomain_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id",
@@ -9223,6 +11161,28 @@ func (ec *executionContext) field_Mutation_walletCreateTopUp_args(ctx context.Co
 		return nil, err
 	}
 	args["amountUSD"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_writeProjectFiles_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNID2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "files",
+		func(ctx context.Context, v any) ([]model.WriteProjectFileInput, error) {
+			return ec.unmarshalNWriteProjectFileInput2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐWriteProjectFileInputᚄ(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["files"] = arg1
 	return args, nil
 }
 
@@ -9434,6 +11394,20 @@ func (ec *executionContext) field_Query_cohortDashboard_args(ctx context.Context
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_deployDomains_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "projectID",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNID2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["projectID"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_deploy_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -9467,6 +11441,42 @@ func (ec *executionContext) field_Query_deploys_args(ctx context.Context, rawArg
 		return nil, err
 	}
 	args["offset"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_deviceCloudDevices_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "platform",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNString2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["platform"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_domainAvailability_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "domain",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNString2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["domain"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "registrar",
+		func(ctx context.Context, v any) (*string, error) {
+			return ec.unmarshalOString2ᚖstring(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["registrar"] = arg1
 	return args, nil
 }
 
@@ -9655,6 +11665,48 @@ func (ec *executionContext) field_Query_ledger_args(ctx context.Context, rawArgs
 		return nil, err
 	}
 	args["filter"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_mobileBuild_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "buildId",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNString2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["buildId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_mobileBuilds_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "projectId",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNString2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["projectId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_mobileSubmissions_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "projectId",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNString2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["projectId"] = arg0
 	return args, nil
 }
 
@@ -10021,6 +12073,20 @@ func (ec *executionContext) field_Subscription_inlineCompletion_args(ctx context
 		return nil, err
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Subscription_mobileBuildStatus_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "buildId",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNString2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["buildId"] = arg0
 	return args, nil
 }
 
@@ -10629,6 +12695,98 @@ func (ec *executionContext) _AgentCall_projectId(ctx context.Context, field grap
 }
 func (ec *executionContext) fieldContext_AgentCall_projectId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("AgentCall", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
+func (ec *executionContext) _AppetizeApp_publicKey(ctx context.Context, field graphql.CollectedField, obj *model.AppetizeApp) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AppetizeApp_publicKey(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.PublicKey, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AppetizeApp_publicKey(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AppetizeApp", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _AppetizeApp_embedUrl(ctx context.Context, field graphql.CollectedField, obj *model.AppetizeApp) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AppetizeApp_embedUrl(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.EmbedURL, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AppetizeApp_embedUrl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AppetizeApp", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _AppetizeApp_platform(ctx context.Context, field graphql.CollectedField, obj *model.AppetizeApp) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AppetizeApp_platform(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Platform, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AppetizeApp_platform(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AppetizeApp", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _AppetizeApp_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.AppetizeApp) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AppetizeApp_createdAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.CreatedAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AppetizeApp_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AppetizeApp", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _AuditChainProof_windowStart(ctx context.Context, field graphql.CollectedField, obj *model.AuditChainProof) (ret graphql.Marshaler) {
@@ -13146,6 +15304,98 @@ func (ec *executionContext) fieldContext_CostReport_grossMarginPct(_ context.Con
 	return graphql.NewScalarFieldContext("CostReport", field, false, false, errors.New("field of type Float does not have child fields"))
 }
 
+func (ec *executionContext) _DNSRecord_type(ctx context.Context, field graphql.CollectedField, obj *model.DNSRecord) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DNSRecord_type(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Type, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DNSRecord_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DNSRecord", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _DNSRecord_name(ctx context.Context, field graphql.CollectedField, obj *model.DNSRecord) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DNSRecord_name(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DNSRecord_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DNSRecord", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _DNSRecord_value(ctx context.Context, field graphql.CollectedField, obj *model.DNSRecord) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DNSRecord_value(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Value, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DNSRecord_value(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DNSRecord", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _DNSRecord_ttl(ctx context.Context, field graphql.CollectedField, obj *model.DNSRecord) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DNSRecord_ttl(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.TTL, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *int) graphql.Marshaler {
+			return ec.marshalOInt2ᚖint(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_DNSRecord_ttl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DNSRecord", field, false, false, errors.New("field of type Int does not have child fields"))
+}
+
 func (ec *executionContext) _DashboardBlueprintStats_blueprintID(ctx context.Context, field graphql.CollectedField, obj *model.DashboardBlueprintStats) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -14066,6 +16316,452 @@ func (ec *executionContext) fieldContext_DeployApproval_decidedAt(_ context.Cont
 	return graphql.NewScalarFieldContext("DeployApproval", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
+func (ec *executionContext) _DeployDomain_id(ctx context.Context, field graphql.CollectedField, obj *model.DeployDomain) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeployDomain_id(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNID2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DeployDomain_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeployDomain", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
+func (ec *executionContext) _DeployDomain_tenantID(ctx context.Context, field graphql.CollectedField, obj *model.DeployDomain) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeployDomain_tenantID(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.TenantID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNID2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DeployDomain_tenantID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeployDomain", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
+func (ec *executionContext) _DeployDomain_projectID(ctx context.Context, field graphql.CollectedField, obj *model.DeployDomain) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeployDomain_projectID(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ProjectID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNID2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DeployDomain_projectID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeployDomain", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
+func (ec *executionContext) _DeployDomain_deployID(ctx context.Context, field graphql.CollectedField, obj *model.DeployDomain) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeployDomain_deployID(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.DeployID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOID2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_DeployDomain_deployID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeployDomain", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
+func (ec *executionContext) _DeployDomain_hostname(ctx context.Context, field graphql.CollectedField, obj *model.DeployDomain) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeployDomain_hostname(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Hostname, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DeployDomain_hostname(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeployDomain", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _DeployDomain_kind(ctx context.Context, field graphql.CollectedField, obj *model.DeployDomain) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeployDomain_kind(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Kind, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DeployDomain_kind(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeployDomain", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _DeployDomain_status(ctx context.Context, field graphql.CollectedField, obj *model.DeployDomain) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeployDomain_status(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Status, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DeployDomain_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeployDomain", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _DeployDomain_provider(ctx context.Context, field graphql.CollectedField, obj *model.DeployDomain) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeployDomain_provider(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Provider, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DeployDomain_provider(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeployDomain", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _DeployDomain_registrar(ctx context.Context, field graphql.CollectedField, obj *model.DeployDomain) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeployDomain_registrar(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Registrar, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_DeployDomain_registrar(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeployDomain", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _DeployDomain_primary(ctx context.Context, field graphql.CollectedField, obj *model.DeployDomain) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeployDomain_primary(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Primary, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v bool) graphql.Marshaler {
+			return ec.marshalNBoolean2bool(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DeployDomain_primary(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeployDomain", field, false, false, errors.New("field of type Boolean does not have child fields"))
+}
+
+func (ec *executionContext) _DeployDomain_dnsRecords(ctx context.Context, field graphql.CollectedField, obj *model.DeployDomain) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeployDomain_dnsRecords(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.DNSRecords, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []model.DNSRecord) graphql.Marshaler {
+			return ec.marshalNDNSRecord2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDNSRecordᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DeployDomain_dnsRecords(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DeployDomain",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_DNSRecord(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DeployDomain_verificationStatus(ctx context.Context, field graphql.CollectedField, obj *model.DeployDomain) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeployDomain_verificationStatus(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.VerificationStatus, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DeployDomain_verificationStatus(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeployDomain", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _DeployDomain_certificateStatus(ctx context.Context, field graphql.CollectedField, obj *model.DeployDomain) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeployDomain_certificateStatus(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.CertificateStatus, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DeployDomain_certificateStatus(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeployDomain", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _DeployDomain_instructions(ctx context.Context, field graphql.CollectedField, obj *model.DeployDomain) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeployDomain_instructions(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Instructions, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DeployDomain_instructions(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeployDomain", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _DeployDomain_metadata(ctx context.Context, field graphql.CollectedField, obj *model.DeployDomain) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeployDomain_metadata(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Metadata, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v model.JSON) graphql.Marshaler {
+			return ec.marshalNJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DeployDomain_metadata(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeployDomain", field, false, false, errors.New("field of type JSON does not have child fields"))
+}
+
+func (ec *executionContext) _DeployDomain_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.DeployDomain) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeployDomain_createdAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.CreatedAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DeployDomain_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeployDomain", field, false, false, errors.New("field of type DateTime does not have child fields"))
+}
+
+func (ec *executionContext) _DeployDomain_updatedAt(ctx context.Context, field graphql.CollectedField, obj *model.DeployDomain) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeployDomain_updatedAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.UpdatedAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DeployDomain_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeployDomain", field, false, false, errors.New("field of type DateTime does not have child fields"))
+}
+
+func (ec *executionContext) _DeployDomain_verifiedAt(ctx context.Context, field graphql.CollectedField, obj *model.DeployDomain) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeployDomain_verifiedAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.VerifiedAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *time.Time) graphql.Marshaler {
+			return ec.marshalODateTime2ᚖtimeᚐTime(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_DeployDomain_verifiedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeployDomain", field, false, false, errors.New("field of type DateTime does not have child fields"))
+}
+
+func (ec *executionContext) _DeployDomain_liveAt(ctx context.Context, field graphql.CollectedField, obj *model.DeployDomain) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeployDomain_liveAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.LiveAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *time.Time) graphql.Marshaler {
+			return ec.marshalODateTime2ᚖtimeᚐTime(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_DeployDomain_liveAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeployDomain", field, false, false, errors.New("field of type DateTime does not have child fields"))
+}
+
 func (ec *executionContext) _DeployEvent_deployID(ctx context.Context, field graphql.CollectedField, obj *model.DeployEvent) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -14156,6 +16852,604 @@ func (ec *executionContext) _DeployEvent_createdAt(ctx context.Context, field gr
 }
 func (ec *executionContext) fieldContext_DeployEvent_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("DeployEvent", field, false, false, errors.New("field of type DateTime does not have child fields"))
+}
+
+func (ec *executionContext) _DeviceCloudDevice_id(ctx context.Context, field graphql.CollectedField, obj *model.DeviceCloudDevice) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeviceCloudDevice_id(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DeviceCloudDevice_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeviceCloudDevice", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _DeviceCloudDevice_provider(ctx context.Context, field graphql.CollectedField, obj *model.DeviceCloudDevice) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeviceCloudDevice_provider(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Provider, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DeviceCloudDevice_provider(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeviceCloudDevice", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _DeviceCloudDevice_platform(ctx context.Context, field graphql.CollectedField, obj *model.DeviceCloudDevice) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeviceCloudDevice_platform(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Platform, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DeviceCloudDevice_platform(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeviceCloudDevice", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _DeviceCloudDevice_osVersion(ctx context.Context, field graphql.CollectedField, obj *model.DeviceCloudDevice) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeviceCloudDevice_osVersion(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OsVersion, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DeviceCloudDevice_osVersion(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeviceCloudDevice", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _DeviceCloudDevice_model(ctx context.Context, field graphql.CollectedField, obj *model.DeviceCloudDevice) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeviceCloudDevice_model(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Model, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DeviceCloudDevice_model(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeviceCloudDevice", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _DeviceCloudDevice_manufacturer(ctx context.Context, field graphql.CollectedField, obj *model.DeviceCloudDevice) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeviceCloudDevice_manufacturer(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Manufacturer, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_DeviceCloudDevice_manufacturer(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeviceCloudDevice", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _DeviceCloudDevice_real(ctx context.Context, field graphql.CollectedField, obj *model.DeviceCloudDevice) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeviceCloudDevice_real(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Real, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v bool) graphql.Marshaler {
+			return ec.marshalNBoolean2bool(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DeviceCloudDevice_real(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeviceCloudDevice", field, false, false, errors.New("field of type Boolean does not have child fields"))
+}
+
+func (ec *executionContext) _DeviceCloudSession_id(ctx context.Context, field graphql.CollectedField, obj *model.DeviceCloudSession) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeviceCloudSession_id(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DeviceCloudSession_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeviceCloudSession", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _DeviceCloudSession_provider(ctx context.Context, field graphql.CollectedField, obj *model.DeviceCloudSession) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeviceCloudSession_provider(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Provider, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DeviceCloudSession_provider(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeviceCloudSession", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _DeviceCloudSession_deviceId(ctx context.Context, field graphql.CollectedField, obj *model.DeviceCloudSession) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeviceCloudSession_deviceId(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.DeviceID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DeviceCloudSession_deviceId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeviceCloudSession", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _DeviceCloudSession_status(ctx context.Context, field graphql.CollectedField, obj *model.DeviceCloudSession) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeviceCloudSession_status(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Status, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DeviceCloudSession_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeviceCloudSession", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _DeviceCloudSession_appUrl(ctx context.Context, field graphql.CollectedField, obj *model.DeviceCloudSession) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeviceCloudSession_appUrl(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.AppURL, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_DeviceCloudSession_appUrl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeviceCloudSession", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _DeviceCloudSession_sessionUrl(ctx context.Context, field graphql.CollectedField, obj *model.DeviceCloudSession) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeviceCloudSession_sessionUrl(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.SessionURL, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_DeviceCloudSession_sessionUrl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeviceCloudSession", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _DeviceCloudSession_startedAt(ctx context.Context, field graphql.CollectedField, obj *model.DeviceCloudSession) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeviceCloudSession_startedAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.StartedAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DeviceCloudSession_startedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeviceCloudSession", field, false, false, errors.New("field of type DateTime does not have child fields"))
+}
+
+func (ec *executionContext) _DeviceCloudSession_expiresAt(ctx context.Context, field graphql.CollectedField, obj *model.DeviceCloudSession) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeviceCloudSession_expiresAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ExpiresAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DeviceCloudSession_expiresAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeviceCloudSession", field, false, false, errors.New("field of type DateTime does not have child fields"))
+}
+
+func (ec *executionContext) _DeviceCloudSession_billableMinutesUsed(ctx context.Context, field graphql.CollectedField, obj *model.DeviceCloudSession) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DeviceCloudSession_billableMinutesUsed(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.BillableMinutesUsed, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DeviceCloudSession_billableMinutesUsed(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DeviceCloudSession", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _DomainAvailability_domain(ctx context.Context, field graphql.CollectedField, obj *model.DomainAvailability) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DomainAvailability_domain(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Domain, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DomainAvailability_domain(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DomainAvailability", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _DomainAvailability_available(ctx context.Context, field graphql.CollectedField, obj *model.DomainAvailability) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DomainAvailability_available(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Available, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v bool) graphql.Marshaler {
+			return ec.marshalNBoolean2bool(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DomainAvailability_available(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DomainAvailability", field, false, false, errors.New("field of type Boolean does not have child fields"))
+}
+
+func (ec *executionContext) _DomainAvailability_registrar(ctx context.Context, field graphql.CollectedField, obj *model.DomainAvailability) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DomainAvailability_registrar(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Registrar, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DomainAvailability_registrar(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DomainAvailability", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _DomainAvailability_priceUSD(ctx context.Context, field graphql.CollectedField, obj *model.DomainAvailability) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DomainAvailability_priceUSD(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.PriceUsd, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DomainAvailability_priceUSD(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DomainAvailability", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _DomainAvailability_currency(ctx context.Context, field graphql.CollectedField, obj *model.DomainAvailability) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DomainAvailability_currency(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Currency, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DomainAvailability_currency(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DomainAvailability", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _DomainAvailability_premium(ctx context.Context, field graphql.CollectedField, obj *model.DomainAvailability) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DomainAvailability_premium(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Premium, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v bool) graphql.Marshaler {
+			return ec.marshalNBoolean2bool(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DomainAvailability_premium(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DomainAvailability", field, false, false, errors.New("field of type Boolean does not have child fields"))
+}
+
+func (ec *executionContext) _DomainAvailability_canPurchase(ctx context.Context, field graphql.CollectedField, obj *model.DomainAvailability) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DomainAvailability_canPurchase(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.CanPurchase, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v bool) graphql.Marshaler {
+			return ec.marshalNBoolean2bool(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DomainAvailability_canPurchase(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DomainAvailability", field, false, false, errors.New("field of type Boolean does not have child fields"))
+}
+
+func (ec *executionContext) _DomainAvailability_reason(ctx context.Context, field graphql.CollectedField, obj *model.DomainAvailability) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DomainAvailability_reason(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Reason, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_DomainAvailability_reason(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DomainAvailability", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _DomainAvailability_checkedAt(ctx context.Context, field graphql.CollectedField, obj *model.DomainAvailability) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DomainAvailability_checkedAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.CheckedAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DomainAvailability_checkedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DomainAvailability", field, false, false, errors.New("field of type DateTime does not have child fields"))
+}
+
+func (ec *executionContext) _DomainAvailability_requirements(ctx context.Context, field graphql.CollectedField, obj *model.DomainAvailability) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_DomainAvailability_requirements(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Requirements, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []string) graphql.Marshaler {
+			return ec.marshalNString2ᚕstringᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_DomainAvailability_requirements(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("DomainAvailability", field, false, false, errors.New("field of type String does not have child fields"))
 }
 
 func (ec *executionContext) _ErrorAggregate_class(ctx context.Context, field graphql.CollectedField, obj *model.ErrorAggregate) (ret graphql.Marshaler) {
@@ -15416,6 +18710,222 @@ func (ec *executionContext) _GateVerdict_notes(ctx context.Context, field graphq
 }
 func (ec *executionContext) fieldContext_GateVerdict_notes(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("GateVerdict", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _GenerateMobileAssetEntry_path(ctx context.Context, field graphql.CollectedField, obj *model.GenerateMobileAssetEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_GenerateMobileAssetEntry_path(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Path, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_GenerateMobileAssetEntry_path(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("GenerateMobileAssetEntry", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _GenerateMobileAssetEntry_width(ctx context.Context, field graphql.CollectedField, obj *model.GenerateMobileAssetEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_GenerateMobileAssetEntry_width(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Width, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int) graphql.Marshaler {
+			return ec.marshalNInt2int(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_GenerateMobileAssetEntry_width(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("GenerateMobileAssetEntry", field, false, false, errors.New("field of type Int does not have child fields"))
+}
+
+func (ec *executionContext) _GenerateMobileAssetEntry_height(ctx context.Context, field graphql.CollectedField, obj *model.GenerateMobileAssetEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_GenerateMobileAssetEntry_height(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Height, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int) graphql.Marshaler {
+			return ec.marshalNInt2int(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_GenerateMobileAssetEntry_height(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("GenerateMobileAssetEntry", field, false, false, errors.New("field of type Int does not have child fields"))
+}
+
+func (ec *executionContext) _GenerateMobileAssetEntry_sizeBytes(ctx context.Context, field graphql.CollectedField, obj *model.GenerateMobileAssetEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_GenerateMobileAssetEntry_sizeBytes(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.SizeBytes, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int) graphql.Marshaler {
+			return ec.marshalNInt2int(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_GenerateMobileAssetEntry_sizeBytes(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("GenerateMobileAssetEntry", field, false, false, errors.New("field of type Int does not have child fields"))
+}
+
+func (ec *executionContext) _GenerateMobileAssetEntry_purpose(ctx context.Context, field graphql.CollectedField, obj *model.GenerateMobileAssetEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_GenerateMobileAssetEntry_purpose(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Purpose, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_GenerateMobileAssetEntry_purpose(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("GenerateMobileAssetEntry", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _GenerateMobileAssetsResult_filesCount(ctx context.Context, field graphql.CollectedField, obj *model.GenerateMobileAssetsResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_GenerateMobileAssetsResult_filesCount(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.FilesCount, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int) graphql.Marshaler {
+			return ec.marshalNInt2int(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_GenerateMobileAssetsResult_filesCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("GenerateMobileAssetsResult", field, false, false, errors.New("field of type Int does not have child fields"))
+}
+
+func (ec *executionContext) _GenerateMobileAssetsResult_totalBytes(ctx context.Context, field graphql.CollectedField, obj *model.GenerateMobileAssetsResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_GenerateMobileAssetsResult_totalBytes(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.TotalBytes, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int) graphql.Marshaler {
+			return ec.marshalNInt2int(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_GenerateMobileAssetsResult_totalBytes(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("GenerateMobileAssetsResult", field, false, false, errors.New("field of type Int does not have child fields"))
+}
+
+func (ec *executionContext) _GenerateMobileAssetsResult_generatedAt(ctx context.Context, field graphql.CollectedField, obj *model.GenerateMobileAssetsResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_GenerateMobileAssetsResult_generatedAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.GeneratedAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_GenerateMobileAssetsResult_generatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("GenerateMobileAssetsResult", field, false, false, errors.New("field of type DateTime does not have child fields"))
+}
+
+func (ec *executionContext) _GenerateMobileAssetsResult_entries(ctx context.Context, field graphql.CollectedField, obj *model.GenerateMobileAssetsResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_GenerateMobileAssetsResult_entries(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Entries, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []model.GenerateMobileAssetEntry) graphql.Marshaler {
+			return ec.marshalNGenerateMobileAssetEntry2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGenerateMobileAssetEntryᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_GenerateMobileAssetsResult_entries(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GenerateMobileAssetsResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_GenerateMobileAssetEntry(ctx, field)
+		},
+	}
+	return fc, nil
 }
 
 func (ec *executionContext) _GqlError_code(ctx context.Context, field graphql.CollectedField, obj *model.GqlError) (ret graphql.Marshaler) {
@@ -16683,6 +20193,903 @@ func (ec *executionContext) fieldContext_LogEntry_fields(_ context.Context, fiel
 	return graphql.NewScalarFieldContext("LogEntry", field, false, false, errors.New("field of type JSON does not have child fields"))
 }
 
+func (ec *executionContext) _MobileBuild_id(ctx context.Context, field graphql.CollectedField, obj *model.MobileBuild) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileBuild_id(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNID2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MobileBuild_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileBuild", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
+func (ec *executionContext) _MobileBuild_projectId(ctx context.Context, field graphql.CollectedField, obj *model.MobileBuild) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileBuild_projectId(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ProjectID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MobileBuild_projectId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileBuild", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MobileBuild_platform(ctx context.Context, field graphql.CollectedField, obj *model.MobileBuild) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileBuild_platform(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Platform, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MobileBuild_platform(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileBuild", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MobileBuild_profile(ctx context.Context, field graphql.CollectedField, obj *model.MobileBuild) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileBuild_profile(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Profile, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MobileBuild_profile(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileBuild", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MobileBuild_status(ctx context.Context, field graphql.CollectedField, obj *model.MobileBuild) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileBuild_status(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Status, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MobileBuild_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileBuild", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MobileBuild_distribution(ctx context.Context, field graphql.CollectedField, obj *model.MobileBuild) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileBuild_distribution(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Distribution, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_MobileBuild_distribution(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileBuild", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MobileBuild_artifactUrl(ctx context.Context, field graphql.CollectedField, obj *model.MobileBuild) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileBuild_artifactUrl(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ArtifactURL, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_MobileBuild_artifactUrl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileBuild", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MobileBuild_artifactSizeBytes(ctx context.Context, field graphql.CollectedField, obj *model.MobileBuild) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileBuild_artifactSizeBytes(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ArtifactSizeBytes, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *int) graphql.Marshaler {
+			return ec.marshalOInt2ᚖint(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_MobileBuild_artifactSizeBytes(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileBuild", field, false, false, errors.New("field of type Int does not have child fields"))
+}
+
+func (ec *executionContext) _MobileBuild_logUrl(ctx context.Context, field graphql.CollectedField, obj *model.MobileBuild) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileBuild_logUrl(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.LogURL, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_MobileBuild_logUrl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileBuild", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MobileBuild_appVersion(ctx context.Context, field graphql.CollectedField, obj *model.MobileBuild) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileBuild_appVersion(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.AppVersion, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_MobileBuild_appVersion(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileBuild", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MobileBuild_appBuildVersion(ctx context.Context, field graphql.CollectedField, obj *model.MobileBuild) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileBuild_appBuildVersion(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.AppBuildVersion, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_MobileBuild_appBuildVersion(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileBuild", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MobileBuild_sdkVersion(ctx context.Context, field graphql.CollectedField, obj *model.MobileBuild) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileBuild_sdkVersion(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.SdkVersion, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_MobileBuild_sdkVersion(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileBuild", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MobileBuild_channel(ctx context.Context, field graphql.CollectedField, obj *model.MobileBuild) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileBuild_channel(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Channel, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_MobileBuild_channel(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileBuild", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MobileBuild_initiator(ctx context.Context, field graphql.CollectedField, obj *model.MobileBuild) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileBuild_initiator(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Initiator, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_MobileBuild_initiator(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileBuild", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MobileBuild_errorMessage(ctx context.Context, field graphql.CollectedField, obj *model.MobileBuild) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileBuild_errorMessage(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ErrorMessage, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_MobileBuild_errorMessage(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileBuild", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MobileBuild_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.MobileBuild) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileBuild_createdAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.CreatedAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MobileBuild_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileBuild", field, false, false, errors.New("field of type DateTime does not have child fields"))
+}
+
+func (ec *executionContext) _MobileBuild_updatedAt(ctx context.Context, field graphql.CollectedField, obj *model.MobileBuild) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileBuild_updatedAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.UpdatedAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MobileBuild_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileBuild", field, false, false, errors.New("field of type DateTime does not have child fields"))
+}
+
+func (ec *executionContext) _MobileBuild_completedAt(ctx context.Context, field graphql.CollectedField, obj *model.MobileBuild) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileBuild_completedAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.CompletedAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *time.Time) graphql.Marshaler {
+			return ec.marshalODateTime2ᚖtimeᚐTime(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_MobileBuild_completedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileBuild", field, false, false, errors.New("field of type DateTime does not have child fields"))
+}
+
+func (ec *executionContext) _MobileSubmission_id(ctx context.Context, field graphql.CollectedField, obj *model.MobileSubmission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileSubmission_id(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNID2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MobileSubmission_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileSubmission", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
+func (ec *executionContext) _MobileSubmission_projectId(ctx context.Context, field graphql.CollectedField, obj *model.MobileSubmission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileSubmission_projectId(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ProjectID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MobileSubmission_projectId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileSubmission", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MobileSubmission_platform(ctx context.Context, field graphql.CollectedField, obj *model.MobileSubmission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileSubmission_platform(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Platform, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MobileSubmission_platform(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileSubmission", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MobileSubmission_target(ctx context.Context, field graphql.CollectedField, obj *model.MobileSubmission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileSubmission_target(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Target, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MobileSubmission_target(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileSubmission", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MobileSubmission_status(ctx context.Context, field graphql.CollectedField, obj *model.MobileSubmission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileSubmission_status(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Status, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MobileSubmission_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileSubmission", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MobileSubmission_buildId(ctx context.Context, field graphql.CollectedField, obj *model.MobileSubmission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileSubmission_buildId(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.BuildID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_MobileSubmission_buildId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileSubmission", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MobileSubmission_archiveUrl(ctx context.Context, field graphql.CollectedField, obj *model.MobileSubmission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileSubmission_archiveUrl(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ArchiveURL, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_MobileSubmission_archiveUrl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileSubmission", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MobileSubmission_logUrl(ctx context.Context, field graphql.CollectedField, obj *model.MobileSubmission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileSubmission_logUrl(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.LogURL, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_MobileSubmission_logUrl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileSubmission", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MobileSubmission_errorMessage(ctx context.Context, field graphql.CollectedField, obj *model.MobileSubmission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileSubmission_errorMessage(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ErrorMessage, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_MobileSubmission_errorMessage(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileSubmission", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MobileSubmission_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.MobileSubmission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileSubmission_createdAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.CreatedAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MobileSubmission_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileSubmission", field, false, false, errors.New("field of type DateTime does not have child fields"))
+}
+
+func (ec *executionContext) _MobileSubmission_updatedAt(ctx context.Context, field graphql.CollectedField, obj *model.MobileSubmission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileSubmission_updatedAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.UpdatedAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MobileSubmission_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileSubmission", field, false, false, errors.New("field of type DateTime does not have child fields"))
+}
+
+func (ec *executionContext) _MobileSubmission_completedAt(ctx context.Context, field graphql.CollectedField, obj *model.MobileSubmission) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileSubmission_completedAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.CompletedAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *time.Time) graphql.Marshaler {
+			return ec.marshalODateTime2ᚖtimeᚐTime(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_MobileSubmission_completedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileSubmission", field, false, false, errors.New("field of type DateTime does not have child fields"))
+}
+
+func (ec *executionContext) _MobileUpdate_id(ctx context.Context, field graphql.CollectedField, obj *model.MobileUpdate) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileUpdate_id(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNID2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MobileUpdate_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileUpdate", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
+func (ec *executionContext) _MobileUpdate_branch(ctx context.Context, field graphql.CollectedField, obj *model.MobileUpdate) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileUpdate_branch(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Branch, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MobileUpdate_branch(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileUpdate", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MobileUpdate_channel(ctx context.Context, field graphql.CollectedField, obj *model.MobileUpdate) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileUpdate_channel(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Channel, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MobileUpdate_channel(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileUpdate", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MobileUpdate_runtimeVersion(ctx context.Context, field graphql.CollectedField, obj *model.MobileUpdate) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileUpdate_runtimeVersion(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.RuntimeVersion, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MobileUpdate_runtimeVersion(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileUpdate", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MobileUpdate_platform(ctx context.Context, field graphql.CollectedField, obj *model.MobileUpdate) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileUpdate_platform(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Platform, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_MobileUpdate_platform(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileUpdate", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MobileUpdate_message(ctx context.Context, field graphql.CollectedField, obj *model.MobileUpdate) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileUpdate_message(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Message, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_MobileUpdate_message(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileUpdate", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MobileUpdate_manifestUrl(ctx context.Context, field graphql.CollectedField, obj *model.MobileUpdate) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileUpdate_manifestUrl(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ManifestURL, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_MobileUpdate_manifestUrl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileUpdate", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MobileUpdate_groupId(ctx context.Context, field graphql.CollectedField, obj *model.MobileUpdate) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileUpdate_groupId(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.GroupID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_MobileUpdate_groupId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileUpdate", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MobileUpdate_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.MobileUpdate) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MobileUpdate_createdAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.CreatedAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MobileUpdate_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MobileUpdate", field, false, false, errors.New("field of type DateTime does not have child fields"))
+}
+
 func (ec *executionContext) _Mutation__empty(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -16704,6 +21111,138 @@ func (ec *executionContext) _Mutation__empty(ctx context.Context, field graphql.
 }
 func (ec *executionContext) fieldContext_Mutation__empty(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("Mutation", field, true, true, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _Mutation_appetizeUploadBuild(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_appetizeUploadBuild(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().AppetizeUploadBuild(ctx, fc.Args["input"].(model.AppetizeUploadInput))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.AppetizeApp) graphql.Marshaler {
+			return ec.marshalNAppetizeApp2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAppetizeApp(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_appetizeUploadBuild(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_AppetizeApp(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_appetizeUploadBuild_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_appetizeDeleteApp(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_appetizeDeleteApp(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().AppetizeDeleteApp(ctx, fc.Args["publicKey"].(string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v bool) graphql.Marshaler {
+			return ec.marshalNBoolean2bool(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_appetizeDeleteApp(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_appetizeDeleteApp_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_generateMobileAssets(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_generateMobileAssets(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().GenerateMobileAssets(ctx, fc.Args["input"].(model.GenerateMobileAssetsInput))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.GenerateMobileAssetsResult) graphql.Marshaler {
+			return ec.marshalNGenerateMobileAssetsResult2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGenerateMobileAssetsResult(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_generateMobileAssets(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_GenerateMobileAssetsResult(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_generateMobileAssets_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
 }
 
 func (ec *executionContext) _Mutation_signUp(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -17594,6 +22133,314 @@ func (ec *executionContext) fieldContext_Mutation_cancelDeploy(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_reserveDeploySubdomain(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_reserveDeploySubdomain(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().ReserveDeploySubdomain(ctx, fc.Args["input"].(model.ReserveDeploySubdomainInput))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.DeployDomain) graphql.Marshaler {
+			return ec.marshalNDeployDomain2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployDomain(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_reserveDeploySubdomain(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_DeployDomain(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_reserveDeploySubdomain_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_connectDeployDomain(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_connectDeployDomain(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().ConnectDeployDomain(ctx, fc.Args["input"].(model.ConnectDeployDomainInput))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.DeployDomain) graphql.Marshaler {
+			return ec.marshalNDeployDomain2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployDomain(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_connectDeployDomain(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_DeployDomain(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_connectDeployDomain_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_checkDeployDomain(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_checkDeployDomain(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().CheckDeployDomain(ctx, fc.Args["id"].(string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.DeployDomain) graphql.Marshaler {
+			return ec.marshalNDeployDomain2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployDomain(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_checkDeployDomain(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_DeployDomain(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_checkDeployDomain_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_setPrimaryDeployDomain(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_setPrimaryDeployDomain(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().SetPrimaryDeployDomain(ctx, fc.Args["id"].(string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.DeployDomain) graphql.Marshaler {
+			return ec.marshalNDeployDomain2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployDomain(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_setPrimaryDeployDomain(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_DeployDomain(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_setPrimaryDeployDomain_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_purchaseDeployDomain(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_purchaseDeployDomain(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().PurchaseDeployDomain(ctx, fc.Args["input"].(model.PurchaseDeployDomainInput))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.DeployDomain) graphql.Marshaler {
+			return ec.marshalNDeployDomain2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployDomain(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_purchaseDeployDomain(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_DeployDomain(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_purchaseDeployDomain_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deviceCloudStartSession(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_deviceCloudStartSession(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().DeviceCloudStartSession(ctx, fc.Args["input"].(model.DeviceCloudStartInput))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.DeviceCloudSession) graphql.Marshaler {
+			return ec.marshalNDeviceCloudSession2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeviceCloudSession(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_deviceCloudStartSession(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_DeviceCloudSession(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deviceCloudStartSession_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deviceCloudEndSession(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_deviceCloudEndSession(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().DeviceCloudEndSession(ctx, fc.Args["sessionId"].(string), fc.Args["provider"].(string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v bool) graphql.Marshaler {
+			return ec.marshalNBoolean2bool(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_deviceCloudEndSession(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deviceCloudEndSession_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_createPaidExecution(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -17764,6 +22611,182 @@ func (ec *executionContext) fieldContext_Mutation_rerunGate(ctx context.Context,
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_rerunGate_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_mobileTriggerBuild(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_mobileTriggerBuild(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().MobileTriggerBuild(ctx, fc.Args["input"].(model.MobileTriggerBuildInput))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.MobileBuild) graphql.Marshaler {
+			return ec.marshalNMobileBuild2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileBuild(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_mobileTriggerBuild(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_MobileBuild(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_mobileTriggerBuild_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_mobileCancelBuild(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_mobileCancelBuild(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().MobileCancelBuild(ctx, fc.Args["buildId"].(string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v bool) graphql.Marshaler {
+			return ec.marshalNBoolean2bool(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_mobileCancelBuild(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_mobileCancelBuild_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_mobileSubmitToStore(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_mobileSubmitToStore(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().MobileSubmitToStore(ctx, fc.Args["input"].(model.MobileSubmitInput))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.MobileSubmission) graphql.Marshaler {
+			return ec.marshalNMobileSubmission2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileSubmission(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_mobileSubmitToStore(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_MobileSubmission(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_mobileSubmitToStore_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_mobilePublishUpdate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_mobilePublishUpdate(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().MobilePublishUpdate(ctx, fc.Args["input"].(model.MobilePublishUpdateInput))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.MobileUpdate) graphql.Marshaler {
+			return ec.marshalNMobileUpdate2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileUpdate(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_mobilePublishUpdate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_MobileUpdate(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_mobilePublishUpdate_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -18380,6 +23403,50 @@ func (ec *executionContext) fieldContext_Mutation_promptPlan(ctx context.Context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_promptPlan_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_writeProjectFiles(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_writeProjectFiles(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().WriteProjectFiles(ctx, fc.Args["id"].(string), fc.Args["files"].([]model.WriteProjectFileInput))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []model.ProjectFile) graphql.Marshaler {
+			return ec.marshalNProjectFile2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐProjectFileᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_writeProjectFiles(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_ProjectFile(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_writeProjectFiles_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -22309,6 +27376,138 @@ func (ec *executionContext) fieldContext_Query_pendingDeployApprovals(_ context.
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_deployDomains(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Query_deployDomains(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().DeployDomains(ctx, fc.Args["projectID"].(string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []model.DeployDomain) graphql.Marshaler {
+			return ec.marshalNDeployDomain2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployDomainᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Query_deployDomains(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_DeployDomain(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_deployDomains_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_domainAvailability(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Query_domainAvailability(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().DomainAvailability(ctx, fc.Args["domain"].(string), fc.Args["registrar"].(*string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.DomainAvailability) graphql.Marshaler {
+			return ec.marshalNDomainAvailability2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDomainAvailability(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Query_domainAvailability(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_DomainAvailability(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_domainAvailability_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_deviceCloudDevices(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Query_deviceCloudDevices(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().DeviceCloudDevices(ctx, fc.Args["platform"].(string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []model.DeviceCloudDevice) graphql.Marshaler {
+			return ec.marshalNDeviceCloudDevice2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeviceCloudDeviceᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Query_deviceCloudDevices(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_DeviceCloudDevice(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_deviceCloudDevices_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_recentErrors(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -22787,6 +27986,170 @@ func (ec *executionContext) fieldContext_Query_executionLedger(ctx context.Conte
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_executionLedger_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_tenantProfitToday(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Query_tenantProfitToday(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Query().TenantProfitToday(ctx)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.LedgerRollup) graphql.Marshaler {
+			return ec.marshalNLedgerRollup2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐLedgerRollup(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Query_tenantProfitToday(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_LedgerRollup(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_mobileBuilds(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Query_mobileBuilds(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().MobileBuilds(ctx, fc.Args["projectId"].(string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []model.MobileBuild) graphql.Marshaler {
+			return ec.marshalNMobileBuild2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileBuildᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Query_mobileBuilds(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_MobileBuild(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_mobileBuilds_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_mobileBuild(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Query_mobileBuild(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().MobileBuild(ctx, fc.Args["buildId"].(string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.MobileBuild) graphql.Marshaler {
+			return ec.marshalOMobileBuild2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileBuild(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_Query_mobileBuild(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_MobileBuild(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_mobileBuild_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_mobileSubmissions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Query_mobileSubmissions(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().MobileSubmissions(ctx, fc.Args["projectId"].(string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []model.MobileSubmission) graphql.Marshaler {
+			return ec.marshalNMobileSubmission2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileSubmissionᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Query_mobileSubmissions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_MobileSubmission(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_mobileSubmissions_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -25146,6 +30509,50 @@ func (ec *executionContext) fieldContext_Subscription_executionFeed(ctx context.
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Subscription_executionFeed_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Subscription_mobileBuildStatus(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
+	return graphql.ResolveFieldStream(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Subscription_mobileBuildStatus(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Subscription().MobileBuildStatus(ctx, fc.Args["buildId"].(string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.MobileBuild) graphql.Marshaler {
+			return ec.marshalNMobileBuild2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileBuild(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Subscription_mobileBuildStatus(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Subscription",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_MobileBuild(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Subscription_mobileBuildStatus_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -27726,6 +33133,50 @@ func (ec *executionContext) fieldContext___Type_isOneOf(_ context.Context, field
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputAppetizeUploadInput(ctx context.Context, obj any) (model.AppetizeUploadInput, error) {
+	var it model.AppetizeUploadInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"projectId", "buildId", "deviceProfile"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "projectId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("projectId"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ProjectID = data
+		case "buildId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("buildId"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BuildID = data
+		case "deviceProfile":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("deviceProfile"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DeviceProfile = data
+		}
+	}
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputAuditExportFilter(ctx context.Context, obj any) (model.AuditExportFilter, error) {
 	var it model.AuditExportFilter
 	if obj == nil {
@@ -27858,6 +33309,78 @@ func (ec *executionContext) unmarshalInputAuditQueryInput(ctx context.Context, o
 				return it, err
 			}
 			it.Limit = data
+		}
+	}
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConnectDeployDomainInput(ctx context.Context, obj any) (model.ConnectDeployDomainInput, error) {
+	var it model.ConnectDeployDomainInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	if _, present := asMap["provider"]; !present {
+		asMap["provider"] = "ironflyer"
+	}
+	if _, present := asMap["primary"]; !present {
+		asMap["primary"] = true
+	}
+
+	fieldsInOrder := [...]string{"projectID", "deployID", "hostname", "provider", "primary", "metadata"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "projectID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("projectID"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ProjectID = data
+		case "deployID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("deployID"))
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DeployID = data
+		case "hostname":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hostname"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Hostname = data
+		case "provider":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("provider"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Provider = data
+		case "primary":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("primary"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Primary = data
+		case "metadata":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metadata"))
+			data, err := ec.unmarshalOJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Metadata = data
 		}
 	}
 	return it, nil
@@ -28085,6 +33608,71 @@ func (ec *executionContext) unmarshalInputDescribeIdeaInput(ctx context.Context,
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputDeviceCloudStartInput(ctx context.Context, obj any) (model.DeviceCloudStartInput, error) {
+	var it model.DeviceCloudStartInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"projectId", "workspaceId", "provider", "deviceId", "appUrl", "sessionLengthMinutes"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "projectId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("projectId"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ProjectID = data
+		case "workspaceId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspaceId"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.WorkspaceID = data
+		case "provider":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("provider"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Provider = data
+		case "deviceId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("deviceId"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DeviceID = data
+		case "appUrl":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appUrl"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AppURL = data
+		case "sessionLengthMinutes":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sessionLengthMinutes"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SessionLengthMinutes = data
+		}
+	}
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputEmailChangeInput(ctx context.Context, obj any) (model.EmailChangeInput, error) {
 	var it model.EmailChangeInput
 	if obj == nil {
@@ -28168,6 +33756,64 @@ func (ec *executionContext) unmarshalInputEstimateInput(ctx context.Context, obj
 				return it, err
 			}
 			it.PromptSummary = data
+		}
+	}
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputGenerateMobileAssetsInput(ctx context.Context, obj any) (model.GenerateMobileAssetsInput, error) {
+	var it model.GenerateMobileAssetsInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"projectId", "logoPngBase64", "backgroundColor", "splashForegroundColor", "platforms"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "projectId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("projectId"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ProjectID = data
+		case "logoPngBase64":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("logoPngBase64"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LogoPngBase64 = data
+		case "backgroundColor":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("backgroundColor"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BackgroundColor = data
+		case "splashForegroundColor":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("splashForegroundColor"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SplashForegroundColor = data
+		case "platforms":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("platforms"))
+			data, err := ec.unmarshalNString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Platforms = data
 		}
 	}
 	return it, nil
@@ -28326,6 +33972,229 @@ func (ec *executionContext) unmarshalInputLedgerFilter(ctx context.Context, obj 
 				return it, err
 			}
 			it.Offset = data
+		}
+	}
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputMobilePublishUpdateInput(ctx context.Context, obj any) (model.MobilePublishUpdateInput, error) {
+	var it model.MobilePublishUpdateInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"projectId", "channel", "branch", "message", "runtimeVersion", "manifestExtra"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "projectId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("projectId"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ProjectID = data
+		case "channel":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channel"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Channel = data
+		case "branch":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("branch"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Branch = data
+		case "message":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("message"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Message = data
+		case "runtimeVersion":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("runtimeVersion"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RuntimeVersion = data
+		case "manifestExtra":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("manifestExtra"))
+			data, err := ec.unmarshalOJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ManifestExtra = data
+		}
+	}
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputMobileSubmitInput(ctx context.Context, obj any) (model.MobileSubmitInput, error) {
+	var it model.MobileSubmitInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"buildId", "projectId", "platform", "iosAppleId", "iosAscAppId", "iosAppleTeamId", "iosSku", "iosCompanyName", "androidServiceAccountKey", "androidTrack", "androidReleaseStatus"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "buildId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("buildId"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BuildID = data
+		case "projectId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("projectId"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ProjectID = data
+		case "platform":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("platform"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Platform = data
+		case "iosAppleId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("iosAppleId"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IosAppleID = data
+		case "iosAscAppId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("iosAscAppId"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IosAscAppID = data
+		case "iosAppleTeamId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("iosAppleTeamId"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IosAppleTeamID = data
+		case "iosSku":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("iosSku"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IosSku = data
+		case "iosCompanyName":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("iosCompanyName"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IosCompanyName = data
+		case "androidServiceAccountKey":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("androidServiceAccountKey"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AndroidServiceAccountKey = data
+		case "androidTrack":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("androidTrack"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AndroidTrack = data
+		case "androidReleaseStatus":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("androidReleaseStatus"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AndroidReleaseStatus = data
+		}
+	}
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputMobileTriggerBuildInput(ctx context.Context, obj any) (model.MobileTriggerBuildInput, error) {
+	var it model.MobileTriggerBuildInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"projectId", "platform", "profile", "channel", "message"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "projectId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("projectId"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ProjectID = data
+		case "platform":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("platform"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Platform = data
+		case "profile":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("profile"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Profile = data
+		case "channel":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channel"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Channel = data
+		case "message":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("message"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Message = data
 		}
 	}
 	return it, nil
@@ -28533,6 +34402,125 @@ func (ec *executionContext) unmarshalInputProposePatchInput(ctx context.Context,
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputPurchaseDeployDomainInput(ctx context.Context, obj any) (model.PurchaseDeployDomainInput, error) {
+	var it model.PurchaseDeployDomainInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	if _, present := asMap["provider"]; !present {
+		asMap["provider"] = "ironflyer"
+	}
+	if _, present := asMap["registrar"]; !present {
+		asMap["registrar"] = "cloudflare"
+	}
+	if _, present := asMap["years"]; !present {
+		asMap["years"] = 1
+	}
+	if _, present := asMap["autoRenew"]; !present {
+		asMap["autoRenew"] = true
+	}
+	if _, present := asMap["expectedPriceUSD"]; !present {
+		asMap["expectedPriceUSD"] = 0
+	}
+	if _, present := asMap["primary"]; !present {
+		asMap["primary"] = true
+	}
+
+	fieldsInOrder := [...]string{"projectID", "deployID", "domain", "provider", "registrar", "years", "autoRenew", "expectedPriceUSD", "contact", "primary", "metadata"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "projectID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("projectID"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ProjectID = data
+		case "deployID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("deployID"))
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DeployID = data
+		case "domain":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("domain"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Domain = data
+		case "provider":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("provider"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Provider = data
+		case "registrar":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("registrar"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Registrar = data
+		case "years":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("years"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Years = data
+		case "autoRenew":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("autoRenew"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AutoRenew = data
+		case "expectedPriceUSD":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("expectedPriceUSD"))
+			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ExpectedPriceUsd = data
+		case "contact":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contact"))
+			data, err := ec.unmarshalOJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Contact = data
+		case "primary":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("primary"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Primary = data
+		case "metadata":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metadata"))
+			data, err := ec.unmarshalOJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Metadata = data
+		}
+	}
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputRenameSymbolInput(ctx context.Context, obj any) (model.RenameSymbolInput, error) {
 	var it model.RenameSymbolInput
 	if obj == nil {
@@ -28616,6 +34604,78 @@ func (ec *executionContext) unmarshalInputRerunGateInput(ctx context.Context, ob
 				return it, err
 			}
 			it.Gate = data
+		}
+	}
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputReserveDeploySubdomainInput(ctx context.Context, obj any) (model.ReserveDeploySubdomainInput, error) {
+	var it model.ReserveDeploySubdomainInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	if _, present := asMap["provider"]; !present {
+		asMap["provider"] = "ironflyer"
+	}
+	if _, present := asMap["primary"]; !present {
+		asMap["primary"] = true
+	}
+
+	fieldsInOrder := [...]string{"projectID", "deployID", "subdomain", "provider", "primary", "metadata"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "projectID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("projectID"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ProjectID = data
+		case "deployID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("deployID"))
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.DeployID = data
+		case "subdomain":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("subdomain"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Subdomain = data
+		case "provider":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("provider"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Provider = data
+		case "primary":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("primary"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Primary = data
+		case "metadata":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metadata"))
+			data, err := ec.unmarshalOJSON2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐJSON(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Metadata = data
 		}
 	}
 	return it, nil
@@ -28934,6 +34994,43 @@ func (ec *executionContext) unmarshalInputUpdateProjectInput(ctx context.Context
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputWriteProjectFileInput(ctx context.Context, obj any) (model.WriteProjectFileInput, error) {
+	var it model.WriteProjectFileInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"path", "content"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "path":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("path"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Path = data
+		case "content":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("content"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Content = data
+		}
+	}
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -29231,6 +35328,60 @@ func (ec *executionContext) _AgentCall(ctx context.Context, sel ast.SelectionSet
 			out.Values[i] = ec._AgentCall_userId(ctx, field, obj)
 		case "projectId":
 			out.Values[i] = ec._AgentCall_projectId(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var appetizeAppImplementors = []string{"AppetizeApp"}
+
+func (ec *executionContext) _AppetizeApp(ctx context.Context, sel ast.SelectionSet, obj *model.AppetizeApp) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, appetizeAppImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AppetizeApp")
+		case "publicKey":
+			out.Values[i] = ec._AppetizeApp_publicKey(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "embedUrl":
+			out.Values[i] = ec._AppetizeApp_embedUrl(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "platform":
+			out.Values[i] = ec._AppetizeApp_platform(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._AppetizeApp_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -30301,6 +36452,57 @@ func (ec *executionContext) _CostReport(ctx context.Context, sel ast.SelectionSe
 	return out
 }
 
+var dNSRecordImplementors = []string{"DNSRecord"}
+
+func (ec *executionContext) _DNSRecord(ctx context.Context, sel ast.SelectionSet, obj *model.DNSRecord) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, dNSRecordImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DNSRecord")
+		case "type":
+			out.Values[i] = ec._DNSRecord_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._DNSRecord_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "value":
+			out.Values[i] = ec._DNSRecord_value(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "ttl":
+			out.Values[i] = ec._DNSRecord_ttl(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var dashboardBlueprintStatsImplementors = []string{"DashboardBlueprintStats"}
 
 func (ec *executionContext) _DashboardBlueprintStats(ctx context.Context, sel ast.SelectionSet, obj *model.DashboardBlueprintStats) graphql.Marshaler {
@@ -30567,6 +36769,123 @@ func (ec *executionContext) _DeployApproval(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var deployDomainImplementors = []string{"DeployDomain"}
+
+func (ec *executionContext) _DeployDomain(ctx context.Context, sel ast.SelectionSet, obj *model.DeployDomain) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, deployDomainImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DeployDomain")
+		case "id":
+			out.Values[i] = ec._DeployDomain_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "tenantID":
+			out.Values[i] = ec._DeployDomain_tenantID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "projectID":
+			out.Values[i] = ec._DeployDomain_projectID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deployID":
+			out.Values[i] = ec._DeployDomain_deployID(ctx, field, obj)
+		case "hostname":
+			out.Values[i] = ec._DeployDomain_hostname(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "kind":
+			out.Values[i] = ec._DeployDomain_kind(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "status":
+			out.Values[i] = ec._DeployDomain_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "provider":
+			out.Values[i] = ec._DeployDomain_provider(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "registrar":
+			out.Values[i] = ec._DeployDomain_registrar(ctx, field, obj)
+		case "primary":
+			out.Values[i] = ec._DeployDomain_primary(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "dnsRecords":
+			out.Values[i] = ec._DeployDomain_dnsRecords(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "verificationStatus":
+			out.Values[i] = ec._DeployDomain_verificationStatus(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "certificateStatus":
+			out.Values[i] = ec._DeployDomain_certificateStatus(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "instructions":
+			out.Values[i] = ec._DeployDomain_instructions(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "metadata":
+			out.Values[i] = ec._DeployDomain_metadata(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._DeployDomain_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updatedAt":
+			out.Values[i] = ec._DeployDomain_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "verifiedAt":
+			out.Values[i] = ec._DeployDomain_verifiedAt(ctx, field, obj)
+		case "liveAt":
+			out.Values[i] = ec._DeployDomain_liveAt(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var deployEventImplementors = []string{"DeployEvent"}
 
 func (ec *executionContext) _DeployEvent(ctx context.Context, sel ast.SelectionSet, obj *model.DeployEvent) graphql.Marshaler {
@@ -30595,6 +36914,226 @@ func (ec *executionContext) _DeployEvent(ctx context.Context, sel ast.SelectionS
 			}
 		case "createdAt":
 			out.Values[i] = ec._DeployEvent_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var deviceCloudDeviceImplementors = []string{"DeviceCloudDevice"}
+
+func (ec *executionContext) _DeviceCloudDevice(ctx context.Context, sel ast.SelectionSet, obj *model.DeviceCloudDevice) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, deviceCloudDeviceImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DeviceCloudDevice")
+		case "id":
+			out.Values[i] = ec._DeviceCloudDevice_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "provider":
+			out.Values[i] = ec._DeviceCloudDevice_provider(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "platform":
+			out.Values[i] = ec._DeviceCloudDevice_platform(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "osVersion":
+			out.Values[i] = ec._DeviceCloudDevice_osVersion(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "model":
+			out.Values[i] = ec._DeviceCloudDevice_model(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "manufacturer":
+			out.Values[i] = ec._DeviceCloudDevice_manufacturer(ctx, field, obj)
+		case "real":
+			out.Values[i] = ec._DeviceCloudDevice_real(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var deviceCloudSessionImplementors = []string{"DeviceCloudSession"}
+
+func (ec *executionContext) _DeviceCloudSession(ctx context.Context, sel ast.SelectionSet, obj *model.DeviceCloudSession) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, deviceCloudSessionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DeviceCloudSession")
+		case "id":
+			out.Values[i] = ec._DeviceCloudSession_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "provider":
+			out.Values[i] = ec._DeviceCloudSession_provider(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deviceId":
+			out.Values[i] = ec._DeviceCloudSession_deviceId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "status":
+			out.Values[i] = ec._DeviceCloudSession_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "appUrl":
+			out.Values[i] = ec._DeviceCloudSession_appUrl(ctx, field, obj)
+		case "sessionUrl":
+			out.Values[i] = ec._DeviceCloudSession_sessionUrl(ctx, field, obj)
+		case "startedAt":
+			out.Values[i] = ec._DeviceCloudSession_startedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "expiresAt":
+			out.Values[i] = ec._DeviceCloudSession_expiresAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "billableMinutesUsed":
+			out.Values[i] = ec._DeviceCloudSession_billableMinutesUsed(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var domainAvailabilityImplementors = []string{"DomainAvailability"}
+
+func (ec *executionContext) _DomainAvailability(ctx context.Context, sel ast.SelectionSet, obj *model.DomainAvailability) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, domainAvailabilityImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DomainAvailability")
+		case "domain":
+			out.Values[i] = ec._DomainAvailability_domain(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "available":
+			out.Values[i] = ec._DomainAvailability_available(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "registrar":
+			out.Values[i] = ec._DomainAvailability_registrar(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "priceUSD":
+			out.Values[i] = ec._DomainAvailability_priceUSD(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "currency":
+			out.Values[i] = ec._DomainAvailability_currency(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "premium":
+			out.Values[i] = ec._DomainAvailability_premium(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "canPurchase":
+			out.Values[i] = ec._DomainAvailability_canPurchase(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "reason":
+			out.Values[i] = ec._DomainAvailability_reason(ctx, field, obj)
+		case "checkedAt":
+			out.Values[i] = ec._DomainAvailability_checkedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "requirements":
+			out.Values[i] = ec._DomainAvailability_requirements(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -31043,6 +37582,119 @@ func (ec *executionContext) _GateVerdict(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = ec._GateVerdict_durationMs(ctx, field, obj)
 		case "notes":
 			out.Values[i] = ec._GateVerdict_notes(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var generateMobileAssetEntryImplementors = []string{"GenerateMobileAssetEntry"}
+
+func (ec *executionContext) _GenerateMobileAssetEntry(ctx context.Context, sel ast.SelectionSet, obj *model.GenerateMobileAssetEntry) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, generateMobileAssetEntryImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("GenerateMobileAssetEntry")
+		case "path":
+			out.Values[i] = ec._GenerateMobileAssetEntry_path(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "width":
+			out.Values[i] = ec._GenerateMobileAssetEntry_width(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "height":
+			out.Values[i] = ec._GenerateMobileAssetEntry_height(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "sizeBytes":
+			out.Values[i] = ec._GenerateMobileAssetEntry_sizeBytes(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "purpose":
+			out.Values[i] = ec._GenerateMobileAssetEntry_purpose(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var generateMobileAssetsResultImplementors = []string{"GenerateMobileAssetsResult"}
+
+func (ec *executionContext) _GenerateMobileAssetsResult(ctx context.Context, sel ast.SelectionSet, obj *model.GenerateMobileAssetsResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, generateMobileAssetsResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("GenerateMobileAssetsResult")
+		case "filesCount":
+			out.Values[i] = ec._GenerateMobileAssetsResult_filesCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "totalBytes":
+			out.Values[i] = ec._GenerateMobileAssetsResult_totalBytes(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "generatedAt":
+			out.Values[i] = ec._GenerateMobileAssetsResult_generatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "entries":
+			out.Values[i] = ec._GenerateMobileAssetsResult_entries(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -31667,6 +38319,243 @@ func (ec *executionContext) _LogEntry(ctx context.Context, sel ast.SelectionSet,
 	return out
 }
 
+var mobileBuildImplementors = []string{"MobileBuild"}
+
+func (ec *executionContext) _MobileBuild(ctx context.Context, sel ast.SelectionSet, obj *model.MobileBuild) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, mobileBuildImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MobileBuild")
+		case "id":
+			out.Values[i] = ec._MobileBuild_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "projectId":
+			out.Values[i] = ec._MobileBuild_projectId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "platform":
+			out.Values[i] = ec._MobileBuild_platform(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "profile":
+			out.Values[i] = ec._MobileBuild_profile(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "status":
+			out.Values[i] = ec._MobileBuild_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "distribution":
+			out.Values[i] = ec._MobileBuild_distribution(ctx, field, obj)
+		case "artifactUrl":
+			out.Values[i] = ec._MobileBuild_artifactUrl(ctx, field, obj)
+		case "artifactSizeBytes":
+			out.Values[i] = ec._MobileBuild_artifactSizeBytes(ctx, field, obj)
+		case "logUrl":
+			out.Values[i] = ec._MobileBuild_logUrl(ctx, field, obj)
+		case "appVersion":
+			out.Values[i] = ec._MobileBuild_appVersion(ctx, field, obj)
+		case "appBuildVersion":
+			out.Values[i] = ec._MobileBuild_appBuildVersion(ctx, field, obj)
+		case "sdkVersion":
+			out.Values[i] = ec._MobileBuild_sdkVersion(ctx, field, obj)
+		case "channel":
+			out.Values[i] = ec._MobileBuild_channel(ctx, field, obj)
+		case "initiator":
+			out.Values[i] = ec._MobileBuild_initiator(ctx, field, obj)
+		case "errorMessage":
+			out.Values[i] = ec._MobileBuild_errorMessage(ctx, field, obj)
+		case "createdAt":
+			out.Values[i] = ec._MobileBuild_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updatedAt":
+			out.Values[i] = ec._MobileBuild_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "completedAt":
+			out.Values[i] = ec._MobileBuild_completedAt(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var mobileSubmissionImplementors = []string{"MobileSubmission"}
+
+func (ec *executionContext) _MobileSubmission(ctx context.Context, sel ast.SelectionSet, obj *model.MobileSubmission) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, mobileSubmissionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MobileSubmission")
+		case "id":
+			out.Values[i] = ec._MobileSubmission_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "projectId":
+			out.Values[i] = ec._MobileSubmission_projectId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "platform":
+			out.Values[i] = ec._MobileSubmission_platform(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "target":
+			out.Values[i] = ec._MobileSubmission_target(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "status":
+			out.Values[i] = ec._MobileSubmission_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "buildId":
+			out.Values[i] = ec._MobileSubmission_buildId(ctx, field, obj)
+		case "archiveUrl":
+			out.Values[i] = ec._MobileSubmission_archiveUrl(ctx, field, obj)
+		case "logUrl":
+			out.Values[i] = ec._MobileSubmission_logUrl(ctx, field, obj)
+		case "errorMessage":
+			out.Values[i] = ec._MobileSubmission_errorMessage(ctx, field, obj)
+		case "createdAt":
+			out.Values[i] = ec._MobileSubmission_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updatedAt":
+			out.Values[i] = ec._MobileSubmission_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "completedAt":
+			out.Values[i] = ec._MobileSubmission_completedAt(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var mobileUpdateImplementors = []string{"MobileUpdate"}
+
+func (ec *executionContext) _MobileUpdate(ctx context.Context, sel ast.SelectionSet, obj *model.MobileUpdate) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, mobileUpdateImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MobileUpdate")
+		case "id":
+			out.Values[i] = ec._MobileUpdate_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "branch":
+			out.Values[i] = ec._MobileUpdate_branch(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "channel":
+			out.Values[i] = ec._MobileUpdate_channel(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "runtimeVersion":
+			out.Values[i] = ec._MobileUpdate_runtimeVersion(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "platform":
+			out.Values[i] = ec._MobileUpdate_platform(ctx, field, obj)
+		case "message":
+			out.Values[i] = ec._MobileUpdate_message(ctx, field, obj)
+		case "manifestUrl":
+			out.Values[i] = ec._MobileUpdate_manifestUrl(ctx, field, obj)
+		case "groupId":
+			out.Values[i] = ec._MobileUpdate_groupId(ctx, field, obj)
+		case "createdAt":
+			out.Values[i] = ec._MobileUpdate_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -31690,6 +38579,27 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation__empty(ctx, field)
 			})
+		case "appetizeUploadBuild":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_appetizeUploadBuild(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "appetizeDeleteApp":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_appetizeDeleteApp(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "generateMobileAssets":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_generateMobileAssets(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "signUp":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_signUp(ctx, field)
@@ -31837,6 +38747,55 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "reserveDeploySubdomain":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_reserveDeploySubdomain(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "connectDeployDomain":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_connectDeployDomain(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "checkDeployDomain":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_checkDeployDomain(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "setPrimaryDeployDomain":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_setPrimaryDeployDomain(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "purchaseDeployDomain":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_purchaseDeployDomain(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deviceCloudStartSession":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deviceCloudStartSession(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deviceCloudEndSession":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deviceCloudEndSession(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "createPaidExecution":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createPaidExecution(ctx, field)
@@ -31861,6 +38820,34 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "rerunGate":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_rerunGate(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "mobileTriggerBuild":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_mobileTriggerBuild(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "mobileCancelBuild":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_mobileCancelBuild(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "mobileSubmitToStore":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_mobileSubmitToStore(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "mobilePublishUpdate":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_mobilePublishUpdate(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -31959,6 +38946,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "promptPlan":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_promptPlan(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "writeProjectFiles":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_writeProjectFiles(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -33743,6 +40737,72 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "deployDomains":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_deployDomains(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "domainAvailability":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_domainAvailability(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "deviceCloudDevices":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_deviceCloudDevices(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "recentErrors":
 			field := field
 
@@ -33967,6 +41027,91 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_executionLedger(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "tenantProfitToday":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_tenantProfitToday(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "mobileBuilds":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_mobileBuilds(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "mobileBuild":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_mobileBuild(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "mobileSubmissions":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_mobileSubmissions(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -35042,6 +42187,8 @@ func (ec *executionContext) _Subscription(ctx context.Context, sel ast.Selection
 		return ec._Subscription_deployFeed(ctx, fields[0])
 	case "executionFeed":
 		return ec._Subscription_executionFeed(ctx, fields[0])
+	case "mobileBuildStatus":
+		return ec._Subscription_mobileBuildStatus(ctx, fields[0])
 	case "runProject":
 		return ec._Subscription_runProject(ctx, fields[0])
 	default:
@@ -36061,6 +43208,25 @@ func (ec *executionContext) marshalNAgentCall2ᚕironflyerᚋappsᚋorchestrator
 	return ret
 }
 
+func (ec *executionContext) marshalNAppetizeApp2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAppetizeApp(ctx context.Context, sel ast.SelectionSet, v model.AppetizeApp) graphql.Marshaler {
+	return ec._AppetizeApp(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAppetizeApp2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAppetizeApp(ctx context.Context, sel ast.SelectionSet, v *model.AppetizeApp) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._AppetizeApp(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNAppetizeUploadInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAppetizeUploadInput(ctx context.Context, v any) (model.AppetizeUploadInput, error) {
+	res, err := ec.unmarshalInputAppetizeUploadInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNAuditChainProof2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐAuditChainProof(ctx context.Context, sel ast.SelectionSet, v model.AuditChainProof) graphql.Marshaler {
 	return ec._AuditChainProof(ctx, sel, &v)
 }
@@ -36330,6 +43496,11 @@ func (ec *executionContext) marshalNCohortDashboard2ᚖironflyerᚋappsᚋorches
 	return ec._CohortDashboard(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNConnectDeployDomainInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐConnectDeployDomainInput(ctx context.Context, v any) (model.ConnectDeployDomainInput, error) {
+	res, err := ec.unmarshalInputConnectDeployDomainInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNCostDelta2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐCostDelta(ctx context.Context, sel ast.SelectionSet, v model.CostDelta) graphql.Marshaler {
 	return ec._CostDelta(ctx, sel, &v)
 }
@@ -36375,6 +43546,26 @@ func (ec *executionContext) unmarshalNCreateProjectInput2ironflyerᚋappsᚋorch
 func (ec *executionContext) unmarshalNCreateStageInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐCreateStageInput(ctx context.Context, v any) (model.CreateStageInput, error) {
 	res, err := ec.unmarshalInputCreateStageInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNDNSRecord2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDNSRecord(ctx context.Context, sel ast.SelectionSet, v model.DNSRecord) graphql.Marshaler {
+	return ec._DNSRecord(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDNSRecord2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDNSRecordᚄ(ctx context.Context, sel ast.SelectionSet, v []model.DNSRecord) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNDNSRecord2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDNSRecord(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalNDashboardBlueprintStats2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDashboardBlueprintStats(ctx context.Context, sel ast.SelectionSet, v model.DashboardBlueprintStats) graphql.Marshaler {
@@ -36483,6 +43674,36 @@ func (ec *executionContext) marshalNDeployApproval2ᚖironflyerᚋappsᚋorchest
 	return ec._DeployApproval(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNDeployDomain2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployDomain(ctx context.Context, sel ast.SelectionSet, v model.DeployDomain) graphql.Marshaler {
+	return ec._DeployDomain(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDeployDomain2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployDomainᚄ(ctx context.Context, sel ast.SelectionSet, v []model.DeployDomain) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNDeployDomain2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployDomain(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNDeployDomain2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployDomain(ctx context.Context, sel ast.SelectionSet, v *model.DeployDomain) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._DeployDomain(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNDeployEvent2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeployEvent(ctx context.Context, sel ast.SelectionSet, v model.DeployEvent) graphql.Marshaler {
 	return ec._DeployEvent(ctx, sel, &v)
 }
@@ -36500,6 +43721,59 @@ func (ec *executionContext) marshalNDeployEvent2ᚖironflyerᚋappsᚋorchestrat
 func (ec *executionContext) unmarshalNDescribeIdeaInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDescribeIdeaInput(ctx context.Context, v any) (model.DescribeIdeaInput, error) {
 	res, err := ec.unmarshalInputDescribeIdeaInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNDeviceCloudDevice2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeviceCloudDevice(ctx context.Context, sel ast.SelectionSet, v model.DeviceCloudDevice) graphql.Marshaler {
+	return ec._DeviceCloudDevice(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDeviceCloudDevice2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeviceCloudDeviceᚄ(ctx context.Context, sel ast.SelectionSet, v []model.DeviceCloudDevice) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNDeviceCloudDevice2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeviceCloudDevice(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNDeviceCloudSession2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeviceCloudSession(ctx context.Context, sel ast.SelectionSet, v model.DeviceCloudSession) graphql.Marshaler {
+	return ec._DeviceCloudSession(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDeviceCloudSession2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeviceCloudSession(ctx context.Context, sel ast.SelectionSet, v *model.DeviceCloudSession) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._DeviceCloudSession(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNDeviceCloudStartInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDeviceCloudStartInput(ctx context.Context, v any) (model.DeviceCloudStartInput, error) {
+	res, err := ec.unmarshalInputDeviceCloudStartInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNDomainAvailability2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDomainAvailability(ctx context.Context, sel ast.SelectionSet, v model.DomainAvailability) graphql.Marshaler {
+	return ec._DomainAvailability(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDomainAvailability2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐDomainAvailability(ctx context.Context, sel ast.SelectionSet, v *model.DomainAvailability) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._DomainAvailability(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNEmailChangeInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐEmailChangeInput(ctx context.Context, v any) (model.EmailChangeInput, error) {
@@ -36676,6 +43950,45 @@ func (ec *executionContext) marshalNGateVerdict2ᚖironflyerᚋappsᚋorchestrat
 	return ec._GateVerdict(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNGenerateMobileAssetEntry2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGenerateMobileAssetEntry(ctx context.Context, sel ast.SelectionSet, v model.GenerateMobileAssetEntry) graphql.Marshaler {
+	return ec._GenerateMobileAssetEntry(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNGenerateMobileAssetEntry2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGenerateMobileAssetEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []model.GenerateMobileAssetEntry) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNGenerateMobileAssetEntry2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGenerateMobileAssetEntry(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalNGenerateMobileAssetsInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGenerateMobileAssetsInput(ctx context.Context, v any) (model.GenerateMobileAssetsInput, error) {
+	res, err := ec.unmarshalInputGenerateMobileAssetsInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNGenerateMobileAssetsResult2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGenerateMobileAssetsResult(ctx context.Context, sel ast.SelectionSet, v model.GenerateMobileAssetsResult) graphql.Marshaler {
+	return ec._GenerateMobileAssetsResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNGenerateMobileAssetsResult2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐGenerateMobileAssetsResult(ctx context.Context, sel ast.SelectionSet, v *model.GenerateMobileAssetsResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._GenerateMobileAssetsResult(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNHeartbeatEvent2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐHeartbeatEvent(ctx context.Context, sel ast.SelectionSet, v model.HeartbeatEvent) graphql.Marshaler {
 	return ec._HeartbeatEvent(ctx, sel, &v)
 }
@@ -36835,6 +44148,95 @@ func (ec *executionContext) marshalNLogEntry2ᚕironflyerᚋappsᚋorchestrator�
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalNMobileBuild2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileBuild(ctx context.Context, sel ast.SelectionSet, v model.MobileBuild) graphql.Marshaler {
+	return ec._MobileBuild(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNMobileBuild2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileBuildᚄ(ctx context.Context, sel ast.SelectionSet, v []model.MobileBuild) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNMobileBuild2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileBuild(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNMobileBuild2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileBuild(ctx context.Context, sel ast.SelectionSet, v *model.MobileBuild) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._MobileBuild(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNMobilePublishUpdateInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobilePublishUpdateInput(ctx context.Context, v any) (model.MobilePublishUpdateInput, error) {
+	res, err := ec.unmarshalInputMobilePublishUpdateInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNMobileSubmission2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileSubmission(ctx context.Context, sel ast.SelectionSet, v model.MobileSubmission) graphql.Marshaler {
+	return ec._MobileSubmission(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNMobileSubmission2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileSubmissionᚄ(ctx context.Context, sel ast.SelectionSet, v []model.MobileSubmission) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNMobileSubmission2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileSubmission(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNMobileSubmission2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileSubmission(ctx context.Context, sel ast.SelectionSet, v *model.MobileSubmission) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._MobileSubmission(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNMobileSubmitInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileSubmitInput(ctx context.Context, v any) (model.MobileSubmitInput, error) {
+	res, err := ec.unmarshalInputMobileSubmitInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNMobileTriggerBuildInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileTriggerBuildInput(ctx context.Context, v any) (model.MobileTriggerBuildInput, error) {
+	res, err := ec.unmarshalInputMobileTriggerBuildInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNMobileUpdate2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileUpdate(ctx context.Context, sel ast.SelectionSet, v model.MobileUpdate) graphql.Marshaler {
+	return ec._MobileUpdate(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNMobileUpdate2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileUpdate(ctx context.Context, sel ast.SelectionSet, v *model.MobileUpdate) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._MobileUpdate(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNNextAction2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐNextAction(ctx context.Context, sel ast.SelectionSet, v model.NextAction) graphql.Marshaler {
@@ -37155,6 +44557,11 @@ func (ec *executionContext) unmarshalNProposePatchInput2ironflyerᚋappsᚋorche
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNPurchaseDeployDomainInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPurchaseDeployDomainInput(ctx context.Context, v any) (model.PurchaseDeployDomainInput, error) {
+	res, err := ec.unmarshalInputPurchaseDeployDomainInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNRate2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐRate(ctx context.Context, sel ast.SelectionSet, v model.Rate) graphql.Marshaler {
 	return ec._Rate(ctx, sel, &v)
 }
@@ -37182,6 +44589,11 @@ func (ec *executionContext) unmarshalNRenameSymbolInput2ironflyerᚋappsᚋorche
 
 func (ec *executionContext) unmarshalNRerunGateInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐRerunGateInput(ctx context.Context, v any) (model.RerunGateInput, error) {
 	res, err := ec.unmarshalInputRerunGateInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNReserveDeploySubdomainInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐReserveDeploySubdomainInput(ctx context.Context, v any) (model.ReserveDeploySubdomainInput, error) {
+	res, err := ec.unmarshalInputReserveDeploySubdomainInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -37545,6 +44957,26 @@ func (ec *executionContext) marshalNWalletTopUp2ᚕironflyerᚋappsᚋorchestrat
 	return ret
 }
 
+func (ec *executionContext) unmarshalNWriteProjectFileInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐWriteProjectFileInput(ctx context.Context, v any) (model.WriteProjectFileInput, error) {
+	res, err := ec.unmarshalInputWriteProjectFileInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNWriteProjectFileInput2ᚕironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐWriteProjectFileInputᚄ(ctx context.Context, v any) ([]model.WriteProjectFileInput, error) {
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]model.WriteProjectFileInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNWriteProjectFileInput2ironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐWriteProjectFileInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
 	return ec.___Directive(ctx, sel, &v)
 }
@@ -37868,6 +45300,13 @@ func (ec *executionContext) unmarshalOLedgerFilter2ᚖironflyerᚋappsᚋorchest
 	}
 	res, err := ec.unmarshalInputLedgerFilter(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOMobileBuild2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐMobileBuild(ctx context.Context, sel ast.SelectionSet, v *model.MobileBuild) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._MobileBuild(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOPatch2ᚖironflyerᚋappsᚋorchestratorᚋinternalᚋgraphᚋmodelᚐPatch(ctx context.Context, sel ast.SelectionSet, v *model.Patch) graphql.Marshaler {

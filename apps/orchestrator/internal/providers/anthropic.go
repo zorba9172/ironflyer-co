@@ -414,6 +414,16 @@ func (a *AnthropicProvider) runStreamTurn(ctx context.Context, params anthropic.
 // the SDK's tagged union, skipping the empty case so we don't even send
 // a tools field on text-only calls (which would otherwise cost a few
 // extra prefill tokens).
+//
+// The LAST tool gets a cache_control breakpoint: Anthropic treats one
+// breakpoint anywhere in the tools array as "cache the whole tools
+// block", and tools rarely change between rounds (the agent role's
+// tool surface is stable). This is the 4th and final breakpoint slot
+// (system + project_context + rolling-message + tools), used to its
+// fullest. The first two cache_control stamps live in
+// buildSystemBlocks, the third in applyMessageCacheBreakpoints; this
+// one closes the loop so every stable input the model sees is in the
+// cache after the first call.
 func buildAnthropicTools(req Request) []anthropic.ToolUnionParam {
 	if len(req.Tools) == 0 {
 		return nil
@@ -429,6 +439,12 @@ func buildAnthropicTools(req Request) []anthropic.ToolUnionParam {
 				},
 			},
 		})
+	}
+	// Stamp cache_control on the FINAL tool. Anthropic accepts the
+	// breakpoint on any tool but the canonical pattern is "last one"
+	// so cache hits include every prior tool too.
+	if last := &tools[len(tools)-1]; last.OfTool != nil {
+		last.OfTool.CacheControl = anthropic.CacheControlEphemeralParam{}
 	}
 	return tools
 }

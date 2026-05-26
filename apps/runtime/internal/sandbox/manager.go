@@ -146,7 +146,14 @@ var PreviewPortSafelist = map[int]bool{
 	5173: true, // Vite
 	8000: true, // Django, FastAPI, Python http.server
 	8080: true, // Spring Boot, Go default
-	8081: true, // alt http
+	8081: true, // alt http + legacy Metro packager port (RN < 0.74)
+	// Expo / Metro family — needed for hot reload over the runtime proxy.
+	// 19000: Metro dev server (HTTP + WS HMR endpoint at /message).
+	// 19001: Manifest server (exp:// resolves to this).
+	// 19002: Inspector WebSocket (React Native Debugger / Hermes).
+	19000: true,
+	19001: true,
+	19002: true,
 }
 
 // PreviewPortAllowed reports whether port is on the safelist.

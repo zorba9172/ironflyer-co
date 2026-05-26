@@ -120,6 +120,13 @@ export const chartPalette = {
   tooltipBg: tokens.color.bg.surface,
   tooltipBorder: tokens.color.border.strong,
   tooltipText: tokens.color.text.primary,
+  // Tooltip drop shadow — derived from the inverse-text token (the
+  // darkest legal value in the palette) so the lift over a dark
+  // surface stays consistent with the rest of the chrome. Never
+  // inline a raw `#000000` here; the design-reference rule forbids it.
+  // If a different shadow tone is needed, add it to
+  // packages/design-tokens first.
+  tooltipShadow: tokens.color.text.inverse,
   // Semantic series colors — match the no-lime-first identity:
   //   violet  → primary metric (revenue, count)
   //   mint    → live / success / positive delta
@@ -159,7 +166,7 @@ export function tooltipDefaults(): Record<string, unknown> {
       fontFamily: tokens.font.family,
       fontSize: 12,
     },
-    extraCssText: `box-shadow: 0 8px 24px ${hexAlpha("#000000", 0.35)}; border-radius: 6px;`,
+    extraCssText: `box-shadow: 0 8px 24px ${hexAlpha(chartPalette.tooltipShadow, 0.35)}; border-radius: 6px;`,
   };
 }
 

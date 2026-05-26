@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"ironflyer/apps/orchestrator/internal/appsec"
 	"ironflyer/apps/orchestrator/internal/domain"
 )
 
@@ -26,7 +27,9 @@ func TestSecurityGate_CatchesHighConfidenceSecrets(t *testing.T) {
 	}
 	for name, payload := range cases {
 		t.Run(name, func(t *testing.T) {
-			issues := scanForSecrets("config.yaml", payload)
+			issues := SecurityGate{}.Check(context.Background(), &GateEnv{
+				Project: &domain.Project{Files: []domain.FileNode{{Path: "config.yaml", Content: payload}}},
+			})
 			if len(issues) == 0 {
 				t.Fatalf("expected %s to be detected, got 0 issues", name)
 			}
@@ -55,7 +58,9 @@ func TestSecurityGate_IgnoresNoise(t *testing.T) {
 		"placeholder=<your-secret-here>",
 		"const example = 'short'", // assignment too short to match
 	} {
-		issues := scanForSecrets("README.md", body)
+		issues := SecurityGate{}.Check(context.Background(), &GateEnv{
+			Project: &domain.Project{Files: []domain.FileNode{{Path: "README.md", Content: body}}},
+		})
 		// Suspicious assignment is warning-only; documentation snippets above
 		// don't hit any high-confidence pattern.
 		for _, iss := range issues {
@@ -68,7 +73,9 @@ func TestSecurityGate_IgnoresNoise(t *testing.T) {
 
 func TestSecurityGate_FlagsSuspiciousAssignmentsAsWarning(t *testing.T) {
 	body := `password = "p@ssw0rd123"`
-	issues := scanForSecrets("app.py", body)
+	issues := SecurityGate{}.Check(context.Background(), &GateEnv{
+		Project: &domain.Project{Files: []domain.FileNode{{Path: "app.py", Content: body}}},
+	})
 	found := false
 	for _, iss := range issues {
 		if iss.Severity == domain.SeverityWarning && strings.Contains(iss.Message, "suspicious") {
@@ -92,8 +99,8 @@ func TestShouldSkipForSecrets(t *testing.T) {
 		"infra/k8s/ingress.yaml": false,
 	}
 	for path, want := range cases {
-		if got := shouldSkipForSecrets(path); got != want {
-			t.Errorf("shouldSkipForSecrets(%q) = %v, want %v", path, got, want)
+		if got := appsec.ShouldSkipSecretsPath(path); got != want {
+			t.Errorf("ShouldSkipSecretsPath(%q) = %v, want %v", path, got, want)
 		}
 	}
 }
@@ -121,8 +128,8 @@ func TestDetectBuildAndTestCommands(t *testing.T) {
 			wantBuild: "go build", wantTest: "go test",
 		},
 		{
-			name: "node via package.json",
-			project: domain.Project{Files: []domain.FileNode{{Path: "package.json"}}},
+			name:      "node via package.json",
+			project:   domain.Project{Files: []domain.FileNode{{Path: "package.json"}}},
 			wantBuild: "npm", wantTest: "npm",
 		},
 	}

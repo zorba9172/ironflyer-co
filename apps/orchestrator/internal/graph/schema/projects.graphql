@@ -45,6 +45,17 @@ input UpdateProjectInput {
   status: String
 }
 
+# Operator IDE write-back. Replaces the project's file set with the
+# supplied entries. Used by the embedded openvscode IDE to push edits
+# made directly in the editor back into projectFiles so Monaco + the
+# finisher loop see the same state. AI-generated changes still flow
+# through patch.Engine.Propose; this is the human-operator override
+# path and bypasses the finisher gate lifecycle by design.
+input WriteProjectFileInput {
+  path: String!
+  content: String!
+}
+
 extend type Query {
   # Canonical owner-scoped project list. limit/offset paginate over
   # the caller's projects (plus public seeds) newest-first as the
@@ -62,6 +73,9 @@ extend type Mutation {
   bulkDeleteProjects(ids: [ID!]!): OperationResult!
   runFinisher(id: ID!): JSON!
   promptPlan(id: ID!, prompt: String!): JSON!
+  # Replace the project's files with the supplied set. Returns the new
+  # ProjectFile list as the orchestrator now sees it. Owner-only.
+  writeProjectFiles(id: ID!, files: [WriteProjectFileInput!]!): [ProjectFile!]!
 }
 
 extend type Subscription {

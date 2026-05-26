@@ -52,7 +52,7 @@ type rule struct {
 // free.
 var ruleTable = []rule{
 	// Static / marketing sites — cheapest. Match first so "static
-	// landing page" doesn't get pulled into nextjs-mvp by the
+	// landing page" doesn't get pulled into nextjs-production by the
 	// "page" / "site" overlap with the default branch.
 	{[]string{"static", "landing", "marketing"}, "static-landing", 2.0, "static"},
 	// SaaS bundles — auth + billing keywords win over generic
@@ -72,7 +72,7 @@ var ruleTable = []rule{
 	{[]string{"python", "flask", "fastapi"}, "python-flask-api", 3.0, "api"},
 	{[]string{"api", "backend", "rest", "graphql server", "microservice"}, "python-flask-api", 3.0, "api"},
 	// Generic webapp — last so the more specific rules win.
-	{[]string{"next", "react", "web app", "webapp", "dashboard", "crm", "tool"}, "nextjs-mvp", 4.0, "webapp"},
+	{[]string{"next", "react", "web app", "webapp", "dashboard", "crm", "tool"}, "nextjs-production", 4.0, "webapp"},
 }
 
 // Parse picks the first matching rule (in declaration order) and

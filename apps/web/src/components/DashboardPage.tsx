@@ -21,7 +21,10 @@
 //   - mutation DashboardCreateProject       (inline gql — `createProject`)
 //   - mutation DashboardBulkDeleteProjects  (inline gql)
 
-import { gql, useApolloClient, useMutation, useQuery } from "@apollo/client";
+import { useApolloClient } from "@apollo/client";
+// `useApolloClient` is still needed for `apollo.refetchQueries({ include })`
+// after bulk delete — there's no generated equivalent for that imperative
+// cache surgery.
 import {
   AutoAwesomeRounded,
   ChevronRightRounded,
@@ -58,9 +61,16 @@ import { useAuth } from "../lib/auth";
 import { extractErrorMessage } from "../lib/errors";
 import { formatMoney, formatNumber } from "../lib/format";
 import {
+  useBanditRankingQuery,
+  useBulkDeleteProjectsMutation,
+  useCreateProjectMutation,
+  useDashboardProjectsQuery,
   useExecutionsQuery,
+  useMyBudgetQuery,
+  useVaultQuery,
   useWalletQuery,
   type ExecutionsQuery,
+  DashboardProjectsDocument,
 } from "../lib/gql/__generated__";
 import { relativeTime } from "../lib/relativeTime";
 import { tokens } from "../theme";
@@ -80,169 +90,11 @@ const SpendBars = dynamic(
   { ssr: false, loading: () => <Box sx={{ height: 160 }} /> },
 );
 
-// ----- inline GraphQL operations -----
-
-interface DashboardProject {
-  id: string;
-  name: string;
-  description: string | null;
-  status: string;
-  idea: string | null;
-  isPublic: boolean;
-  createdAt: string;
-  updatedAt: string;
-  files: Array<{ path: string }>;
-}
-interface DashboardProjectsData {
-  projects: DashboardProject[];
-}
-const DASHBOARD_PROJECTS = gql`
-  query DashboardProjects {
-    projects {
-      id
-      name
-      description
-      status
-      idea
-      isPublic
-      createdAt
-      updatedAt
-      files {
-        path
-      }
-    }
-  }
-`;
-
-interface DashboardVaultData {
-  vault: {
-    revenueUsd: string;
-    providerCostUsd: string;
-    marginUsd: string;
-    entries: number;
-    asOf: string;
-  };
-}
-const DASHBOARD_VAULT = gql`
-  query DashboardVault {
-    vault {
-      revenueUsd
-      providerCostUsd
-      marginUsd
-      entries
-      asOf
-    }
-  }
-`;
-
-interface DashboardBudgetData {
-  myBudget: {
-    userId: string;
-    email: string;
-    tier: string;
-    spentUsd: string;
-    entries: Array<{
-      id: string;
-      projectId: string | null;
-      provider: string | null;
-      model: string | null;
-      promptTokens: number;
-      completionTokens: number;
-      costUsd: string;
-      revenueUsd: string;
-      ts: string;
-      agent: string | null;
-      durationMs: number | null;
-    }>;
-  };
-}
-const DASHBOARD_BUDGET = gql`
-  query DashboardBudget {
-    myBudget {
-      userId
-      email
-      tier
-      spentUsd
-      entries {
-        id
-        projectId
-        provider
-        model
-        promptTokens
-        completionTokens
-        costUsd
-        revenueUsd
-        ts
-        agent
-        durationMs
-      }
-    }
-  }
-`;
-
-interface DashboardBanditData {
-  banditRanking: {
-    lookback: number;
-    strategy: string;
-    capabilities: Array<{
-      capability: string;
-      total: number;
-      winners: Array<{
-        provider: string;
-        model: string | null;
-        share: number;
-        meanReward: number;
-        isLeader: boolean;
-      }>;
-    }>;
-  };
-}
-const DASHBOARD_BANDIT = gql`
-  query DashboardBandit($lookback: Int) {
-    banditRanking(lookback: $lookback) {
-      lookback
-      strategy
-      capabilities {
-        capability
-        total
-        winners {
-          provider
-          model
-          share
-          meanReward
-          isLeader
-        }
-      }
-    }
-  }
-`;
-
-interface DashboardCreateProjectData {
-  createProject: { id: string; name: string };
-}
-interface DashboardCreateProjectVars {
-  input: { name: string; description?: string | null; idea?: string | null };
-}
-const DASHBOARD_CREATE_PROJECT = gql`
-  mutation DashboardCreateProject($input: CreateProjectInput!) {
-    createProject(input: $input) {
-      id
-      name
-    }
-  }
-`;
-
-interface DashboardBulkDeleteData {
-  bulkDeleteProjects: { ok: boolean; message: string | null };
-}
-const DASHBOARD_BULK_DELETE = gql`
-  mutation DashboardBulkDeleteProjects($ids: [ID!]!) {
-    bulkDeleteProjects(ids: $ids) {
-      ok
-      message
-    }
-  }
-`;
+// Inline gql operations were retired in favour of operations/*.graphql +
+// codegen. The local DashboardProject alias stays so the rest of the
+// file (selection logic, projectsById Map) keeps its narrow row type.
+import type { DashboardProjectsQuery } from "../lib/gql/__generated__";
+type DashboardProject = DashboardProjectsQuery["projects"][number];
 
 const ACTIVE_RUN_STATUSES = new Set(["created", "admitted", "started", "running"]);
 
@@ -301,31 +153,20 @@ export function DashboardPage() {
 
   const skipUntilAuth = !authenticated;
   const walletQ = useWalletQuery({ skip: skipUntilAuth });
-  const projectsQ = useQuery<DashboardProjectsData>(DASHBOARD_PROJECTS, {
-    skip: skipUntilAuth,
-  });
+  const projectsQ = useDashboardProjectsQuery({ skip: skipUntilAuth });
   const executionsQ = useExecutionsQuery({
     skip: skipUntilAuth,
     variables: { limit: 20, offset: 0 },
   });
-  const vaultQ = useQuery<DashboardVaultData>(DASHBOARD_VAULT, {
-    skip: skipUntilAuth,
-  });
-  const budgetQ = useQuery<DashboardBudgetData>(DASHBOARD_BUDGET, {
-    skip: skipUntilAuth,
-  });
-  const banditQ = useQuery<DashboardBanditData>(DASHBOARD_BANDIT, {
+  const vaultQ = useVaultQuery({ skip: skipUntilAuth });
+  const budgetQ = useMyBudgetQuery({ skip: skipUntilAuth });
+  const banditQ = useBanditRankingQuery({
     skip: skipUntilAuth,
     variables: { lookback: 24 },
   });
 
-  const [createProject, createProjectM] = useMutation<
-    DashboardCreateProjectData,
-    DashboardCreateProjectVars
-  >(DASHBOARD_CREATE_PROJECT);
-  const [bulkDelete, bulkDeleteM] = useMutation<DashboardBulkDeleteData>(
-    DASHBOARD_BULK_DELETE,
-  );
+  const [createProject, createProjectM] = useCreateProjectMutation();
+  const [bulkDelete, bulkDeleteM] = useBulkDeleteProjectsMutation();
 
   // ----- "Start a new app" prompt state -----
   const [prompt, setPrompt] = useState("");
@@ -391,7 +232,7 @@ export function DashboardPage() {
       );
       clearSelection();
       setConfirmingDelete(false);
-      await apollo.refetchQueries({ include: [DASHBOARD_PROJECTS] });
+      await apollo.refetchQueries({ include: [DashboardProjectsDocument] });
     } catch (err) {
       void swal.error("Delete failed", extractErrorMessage(err));
       setConfirmingDelete(false);

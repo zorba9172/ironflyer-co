@@ -20,7 +20,7 @@
 //      CodePane / FilesPane / DashboardPane in the center stage,
 //      PatchesPane / logs / changed-files in the bottom dock.
 
-import { Box, Stack, Typography } from "@mui/material";
+import { Box, Button, Stack, Typography } from "@mui/material";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
@@ -42,8 +42,9 @@ import type { StudioStatusBucket } from "../../../src/components/studio/Suggesti
 import { useWorkbenchLayout } from "../../../src/components/studio/useWorkbenchLayout";
 import { getToken, RequireAuth, useAuth } from "../../../src/lib/auth";
 import { streamChat, type StreamChatHandle } from "../../../src/lib/chat/stream";
-import { extractErrorMessage } from "../../../src/lib/errors";
+import { extractErrorMessage, normalizeError } from "../../../src/lib/errors";
 import {
+  useCreatePaidExecutionMutation,
   useExecutionFeedSubscription,
   useExecutionQuery,
   useProjectExecutionsQuery,
@@ -55,6 +56,7 @@ import {
   selectMessages,
   useChatStore,
 } from "../../../src/lib/stores/chatStore";
+import { pushToast } from "../../../src/lib/stores/uiStore";
 import { tokens } from "../../../src/theme";
 import type { StudioAttachment } from "../../../src/components/studio/types";
 
@@ -364,8 +366,24 @@ function ProjectStudioInner() {
         toggleFocus={layout.toggleFocus}
         setDockTab={layout.setDockTab}
         setDockHeight={layout.setDockHeight}
-        previewSlot={<NoExecutionPlaceholder />}
-        mobileSlot={<NoExecutionPlaceholder />}
+        previewSlot={
+          <StartExecutionPanel
+            projectID={projectID}
+            seedIdea={projectQuery.data?.project?.idea ?? null}
+            onStarted={() => {
+              void projectExecutionsQuery.refetch();
+            }}
+          />
+        }
+        mobileSlot={
+          <StartExecutionPanel
+            projectID={projectID}
+            seedIdea={projectQuery.data?.project?.idea ?? null}
+            onStarted={() => {
+              void projectExecutionsQuery.refetch();
+            }}
+          />
+        }
         codeSlot={<NoExecutionPlaceholder />}
         filesSlot={<NoExecutionPlaceholder />}
         dashboardSlot={<NoExecutionPlaceholder />}
@@ -577,7 +595,7 @@ function NoExecutionPlaceholder() {
     <Stack
       alignItems="center"
       justifyContent="center"
-      spacing={1.5}
+      spacing={1}
       sx={{
         color: tokens.color.text.muted,
         flex: 1,
@@ -587,35 +605,184 @@ function NoExecutionPlaceholder() {
       }}
     >
       <Typography
-        sx={{
-          color: tokens.color.text.primary,
-          fontSize: 16,
-          fontWeight: 800,
-        }}
+        sx={{ color: tokens.color.text.secondary, fontSize: 13, maxWidth: 360 }}
       >
-        Start a build
+        Start the first execution from the Preview tab to populate this view.
       </Typography>
-      <Typography
-        sx={{
-          color: tokens.color.text.muted,
-          fontSize: 13,
-          maxWidth: 420,
-        }}
-      >
-        This project has no execution yet. Open Studio and describe what you
-        want so Ironflyer can create the first execution.
-      </Typography>
-      <Box
-        component={Link}
-        href="/studio"
-        sx={{
-          color: tokens.color.accent.violet,
-          fontWeight: 800,
-          textDecoration: "none",
-        }}
-      >
-        Open Studio →
+    </Stack>
+  );
+}
+
+// StartExecutionPanel — replaces the dead-end "Open Studio" link for
+// projects that have no execution yet. The user can describe the build
+// (pre-seeded from `project.idea`) and set a wallet hold, and we call
+// `createPaidExecution` directly. On success we refetch
+// projectExecutions so the page swaps into the full Studio layout
+// without a hard reload.
+function StartExecutionPanel({
+  projectID,
+  seedIdea,
+  onStarted,
+}: {
+  projectID: string;
+  seedIdea: string | null;
+  onStarted: () => void;
+}) {
+  const [prompt, setPrompt] = useState<string>(seedIdea?.trim() ?? "");
+  const [budget, setBudget] = useState<string>("5");
+  const [error, setError] = useState<string | null>(null);
+  const [createExec, { loading }] = useCreatePaidExecutionMutation();
+
+  const canSubmit = prompt.trim().length > 0 && Number(budget) > 0 && !loading;
+
+  const handleStart = async () => {
+    if (!canSubmit) return;
+    setError(null);
+    try {
+      const budgetUSD = Number(budget);
+      const res = await createExec({
+        variables: {
+          input: {
+            projectID,
+            budgetUSD,
+            stopLossUSD: budgetUSD,
+            promptSummary: prompt.trim().slice(0, 240),
+            metadata: { source: "studio.start_execution" },
+          },
+        },
+        refetchQueries: ["ProjectExecutions"],
+      });
+      if (!res.data?.createPaidExecution?.id) {
+        throw new Error("Orchestrator did not return an execution id.");
+      }
+      onStarted();
+    } catch (e) {
+      const n = normalizeError(e);
+      if (
+        n.code === "INSUFFICIENT_FUNDS" ||
+        n.code === "PAYMENT_REQUIRED" ||
+        n.status === 402
+      ) {
+        pushToast({
+          message: "Wallet too low — top up to start this execution.",
+          severity: "warning",
+          href: "/wallet",
+          actionLabel: "Top up",
+        });
+        setError("Wallet has insufficient balance for this hold.");
+        return;
+      }
+      setError(extractErrorMessage(e));
+    }
+  };
+
+  return (
+    <Stack
+      spacing={2}
+      sx={{
+        color: tokens.color.text.primary,
+        height: "100%",
+        justifyContent: "center",
+        maxWidth: 560,
+        mx: "auto",
+        p: { xs: 3, md: 5 },
+        width: "100%",
+      }}
+    >
+      <Box>
+        <Typography
+          variant="overline"
+          sx={{ color: tokens.color.accent.violet, letterSpacing: 1.2 }}
+        >
+          First execution
+        </Typography>
+        <Typography sx={{ mt: 0.5, fontSize: 22, fontWeight: 800, lineHeight: 1.2 }}>
+          Start the build for this project
+        </Typography>
+        <Typography
+          sx={{ mt: 1, fontSize: 13.5, color: tokens.color.text.secondary, lineHeight: 1.55 }}
+        >
+          Describe what you want and set a wallet hold. The finisher plans,
+          generates, gates and previews — every dollar is debited from the
+          hold as cost materialises; unused funds release on commit.
+        </Typography>
       </Box>
+
+      <Box
+        component="textarea"
+        value={prompt}
+        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+          setPrompt(e.target.value)
+        }
+        placeholder="Build a client operations portal with projects, invoices, role-based access…"
+        rows={5}
+        sx={{
+          bgcolor: tokens.color.bg.inset,
+          border: `1px solid ${tokens.color.border.subtle}`,
+          borderRadius: `${tokens.radius.sm}px`,
+          color: tokens.color.text.primary,
+          fontFamily: tokens.font.family,
+          fontSize: 14,
+          lineHeight: 1.55,
+          outline: "none",
+          p: 1.5,
+          resize: "vertical",
+          width: "100%",
+          "&:focus": { borderColor: tokens.color.accent.violet },
+          "&::placeholder": { color: tokens.color.text.muted },
+        }}
+      />
+
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} alignItems={{ sm: "flex-end" }}>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography
+            variant="overline"
+            sx={{ color: tokens.color.text.muted, letterSpacing: 1.1, fontSize: 10.5 }}
+          >
+            Wallet hold (USD)
+          </Typography>
+          <Box
+            component="input"
+            type="number"
+            min={1}
+            step={1}
+            value={budget}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setBudget(e.target.value)
+            }
+            sx={{
+              bgcolor: tokens.color.bg.inset,
+              border: `1px solid ${tokens.color.border.subtle}`,
+              borderRadius: `${tokens.radius.sm}px`,
+              color: tokens.color.text.primary,
+              fontFamily: tokens.font.mono,
+              fontSize: 16,
+              fontWeight: 700,
+              mt: 0.5,
+              outline: "none",
+              px: 1.5,
+              py: 1,
+              width: "100%",
+              "&:focus": { borderColor: tokens.color.accent.violet },
+            }}
+          />
+        </Box>
+        <Button
+          variant="contained"
+          color="primary"
+          disabled={!canSubmit}
+          onClick={() => void handleStart()}
+          sx={{ minWidth: { xs: "100%", sm: 180 }, minHeight: 44 }}
+        >
+          {loading ? "Starting…" : "Start execution"}
+        </Button>
+      </Stack>
+
+      {error && (
+        <Typography sx={{ color: tokens.color.accent.danger, fontSize: 13 }}>
+          {error}
+        </Typography>
+      )}
     </Stack>
   );
 }
