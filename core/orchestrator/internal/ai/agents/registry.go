@@ -29,6 +29,17 @@ const (
 	// findings the Coder can fix in a single retry without paying for a
 	// full Reviewer re-run. Cheap model by design.
 	RoleCritic Role = "critic"
+	// RoleVerifier is the live-preview proof agent. Given an
+	// AcceptanceCriterion, a screenshot of the running app, and a
+	// truncated DOM dump, it returns a JSON verdict
+	// `{verdict, evidence, failure_reason?}` and the minimum Playwright
+	// actions needed to demonstrate the criterion (goto, click, fill,
+	// waitForSelector, screenshot). The Verifier gate drives a
+	// headless chromium inside the runtime workspace based on that
+	// plan and blocks the gate loop until every criterion is
+	// observably satisfied. This is the differentiator no competitor
+	// enforces as a blocker. Cheap-ish + vision capability.
+	RoleVerifier Role = "verifier"
 	// RoleMigrator is the schema-evolution agent: when the Coder changes
 	// the project's data model the Migrator emits a reversible migration
 	// patch in the project's existing migration toolchain instead of

@@ -53,6 +53,22 @@ type Genome interface {
 	MarkSuccess(ctx context.Context, signature string) error
 	Top(ctx context.Context, limit int) ([]Recipe, error)
 	AttemptsByExecution(ctx context.Context, executionID string) ([]Attempt, error)
+	// LookupSimilar searches for recipes whose failure description is
+	// semantically similar to the input text (raw failure text, NOT a
+	// signature hex). threshold is the cosine similarity floor; k is
+	// the max returned hit count, ordered by score descending. The
+	// default implementations return (nil, nil) when no SemanticIndex
+	// is attached — callers degrade to the exact-match path
+	// transparently. Wired by main.go when IRONFLYER_REPAIR_SEMANTIC=true.
+	LookupSimilar(ctx context.Context, failureDescription string, threshold float64, k int) ([]SimilarHit, error)
+}
+
+// SemanticAttacher is the optional interface a Genome implementation
+// satisfies when it can host a SemanticIndex. Both Memory and Postgres
+// backends in this package satisfy it. Callers wire the index via
+// AttachSemanticIndex during boot when IRONFLYER_REPAIR_SEMANTIC=true.
+type SemanticAttacher interface {
+	AttachSemanticIndex(idx *SemanticIndex)
 }
 
 // Attempt is one recovery attempt as projected for the wow-loop

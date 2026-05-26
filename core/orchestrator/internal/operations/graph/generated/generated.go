@@ -604,6 +604,24 @@ type ComplexityRoot struct {
 		Time        func(childComplexity int) int
 	}
 
+	MCPRunningServer struct {
+		ID        func(childComplexity int) int
+		ServerID  func(childComplexity int) int
+		StartedAt func(childComplexity int) int
+	}
+
+	MCPServerSpec struct {
+		Capabilities   func(childComplexity int) int
+		Category       func(childComplexity int) int
+		Description    func(childComplexity int) int
+		EnvKeys        func(childComplexity int) int
+		ID             func(childComplexity int) int
+		IconURL        func(childComplexity int) int
+		Name           func(childComplexity int) int
+		RequiresSecret func(childComplexity int) int
+		Vendor         func(childComplexity int) int
+	}
+
 	MobileBuild struct {
 		AppBuildVersion   func(childComplexity int) int
 		AppVersion        func(childComplexity int) int
@@ -676,6 +694,8 @@ type ComplexityRoot struct {
 		GenerateMobileAssets          func(childComplexity int, input model.GenerateMobileAssetsInput) int
 		MarkAllNotificationsRead      func(childComplexity int) int
 		MarkNotificationRead          func(childComplexity int, id string) int
+		McpDisable                    func(childComplexity int, projectID string, serverID string) int
+		McpEnable                     func(childComplexity int, projectID string, serverID string) int
 		MobileCancelBuild             func(childComplexity int, buildID string) int
 		MobilePublishUpdate           func(childComplexity int, input model.MobilePublishUpdateInput) int
 		MobileSubmitToStore           func(childComplexity int, input model.MobileSubmitInput) int
@@ -941,6 +961,8 @@ type ComplexityRoot struct {
 		LearningDashboard        func(childComplexity int) int
 		Ledger                   func(childComplexity int, filter *model.LedgerFilter) int
 		LedgerRollup             func(childComplexity int, since time.Time, until time.Time) int
+		McpCatalog               func(childComplexity int) int
+		McpEnabled               func(childComplexity int, projectID string) int
 		Me                       func(childComplexity int) int
 		MobileBuild              func(childComplexity int, buildID string) int
 		MobileBuilds             func(childComplexity int, projectID string) int
@@ -1223,6 +1245,8 @@ type MutationResolver interface {
 	StopExecution(ctx context.Context, id string, reason string) (*model.Execution, error)
 	RefundExecution(ctx context.Context, id string, amountUsd *float64, reason *string) (*model.Execution, error)
 	RerunGate(ctx context.Context, input model.RerunGateInput) (*model.GateVerdict, error)
+	McpEnable(ctx context.Context, projectID string, serverID string) (*model.MCPRunningServer, error)
+	McpDisable(ctx context.Context, projectID string, serverID string) (bool, error)
 	MobileTriggerBuild(ctx context.Context, input model.MobileTriggerBuildInput) (*model.MobileBuild, error)
 	MobileCancelBuild(ctx context.Context, buildID string) (bool, error)
 	MobileSubmitToStore(ctx context.Context, input model.MobileSubmitInput) (*model.MobileSubmission, error)
@@ -1295,6 +1319,8 @@ type QueryResolver interface {
 	LedgerRollup(ctx context.Context, since time.Time, until time.Time) (*model.LedgerRollup, error)
 	ExecutionLedger(ctx context.Context, executionID string, limit *int, offset *int) ([]model.WalletLedgerEntry, error)
 	TenantProfitToday(ctx context.Context) (*model.LedgerRollup, error)
+	McpCatalog(ctx context.Context) ([]model.MCPServerSpec, error)
+	McpEnabled(ctx context.Context, projectID string) ([]model.MCPRunningServer, error)
 	MobileBuilds(ctx context.Context, projectID string) ([]model.MobileBuild, error)
 	MobileBuild(ctx context.Context, buildID string) (*model.MobileBuild, error)
 	MobileSubmissions(ctx context.Context, projectID string) ([]model.MobileSubmission, error)
@@ -3726,6 +3752,80 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.LogEntry.Time(childComplexity), true
 
+	case "MCPRunningServer.id":
+		if e.ComplexityRoot.MCPRunningServer.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MCPRunningServer.ID(childComplexity), true
+	case "MCPRunningServer.serverId":
+		if e.ComplexityRoot.MCPRunningServer.ServerID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MCPRunningServer.ServerID(childComplexity), true
+	case "MCPRunningServer.startedAt":
+		if e.ComplexityRoot.MCPRunningServer.StartedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MCPRunningServer.StartedAt(childComplexity), true
+
+	case "MCPServerSpec.capabilities":
+		if e.ComplexityRoot.MCPServerSpec.Capabilities == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MCPServerSpec.Capabilities(childComplexity), true
+	case "MCPServerSpec.category":
+		if e.ComplexityRoot.MCPServerSpec.Category == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MCPServerSpec.Category(childComplexity), true
+	case "MCPServerSpec.description":
+		if e.ComplexityRoot.MCPServerSpec.Description == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MCPServerSpec.Description(childComplexity), true
+	case "MCPServerSpec.envKeys":
+		if e.ComplexityRoot.MCPServerSpec.EnvKeys == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MCPServerSpec.EnvKeys(childComplexity), true
+	case "MCPServerSpec.id":
+		if e.ComplexityRoot.MCPServerSpec.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MCPServerSpec.ID(childComplexity), true
+	case "MCPServerSpec.iconUrl":
+		if e.ComplexityRoot.MCPServerSpec.IconURL == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MCPServerSpec.IconURL(childComplexity), true
+	case "MCPServerSpec.name":
+		if e.ComplexityRoot.MCPServerSpec.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MCPServerSpec.Name(childComplexity), true
+	case "MCPServerSpec.requiresSecret":
+		if e.ComplexityRoot.MCPServerSpec.RequiresSecret == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MCPServerSpec.RequiresSecret(childComplexity), true
+	case "MCPServerSpec.vendor":
+		if e.ComplexityRoot.MCPServerSpec.Vendor == nil {
+			break
+		}
+
+		return e.ComplexityRoot.MCPServerSpec.Vendor(childComplexity), true
+
 	case "MobileBuild.appBuildVersion":
 		if e.ComplexityRoot.MobileBuild.AppBuildVersion == nil {
 			break
@@ -4206,6 +4306,28 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.MarkNotificationRead(childComplexity, args["id"].(string)), true
+	case "Mutation.mcpDisable":
+		if e.ComplexityRoot.Mutation.McpDisable == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_mcpDisable_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.McpDisable(childComplexity, args["projectId"].(string), args["serverId"].(string)), true
+	case "Mutation.mcpEnable":
+		if e.ComplexityRoot.Mutation.McpEnable == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_mcpEnable_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.McpEnable(childComplexity, args["projectId"].(string), args["serverId"].(string)), true
 	case "Mutation.mobileCancelBuild":
 		if e.ComplexityRoot.Mutation.MobileCancelBuild == nil {
 			break
@@ -5745,6 +5867,23 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.LedgerRollup(childComplexity, args["since"].(time.Time), args["until"].(time.Time)), true
+	case "Query.mcpCatalog":
+		if e.ComplexityRoot.Query.McpCatalog == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Query.McpCatalog(childComplexity), true
+	case "Query.mcpEnabled":
+		if e.ComplexityRoot.Query.McpEnabled == nil {
+			break
+		}
+
+		args, err := ec.field_Query_mcpEnabled_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.McpEnabled(childComplexity, args["projectId"].(string)), true
 	case "Query.me":
 		if e.ComplexityRoot.Query.Me == nil {
 			break
@@ -8365,6 +8504,66 @@ type LedgerRollup {
   grossMarginPct: Float!
 }
 `, BuiltIn: false},
+	{Name: "../schema/mcp.graphql", Input: `# MCP catalog + per-project lifecycle.
+#
+# Surface for the Settings → MCP servers panel: the catalog query lists
+# every server the orchestrator knows how to spawn; mcpEnabled returns
+# the running set for a given project; mcpEnable / mcpDisable toggle
+# state.
+#
+# Every mutation goes through the project-owner check on the resolver
+# side so a logged-in user can never enable an MCP server against a
+# project they don't own.
+
+extend type Query {
+  # mcpCatalog returns the static catalog the orchestrator ships with.
+  # Unauthenticated requests are allowed — the catalog itself contains
+  # no secrets, and the marketing page wants to advertise the surface.
+  mcpCatalog: [MCPServerSpec!]!
+
+  # mcpEnabled returns the running servers for the authenticated user
+  # against a project they own. Empty list when nothing is enabled.
+  mcpEnabled(projectId: String!): [MCPRunningServer!]!
+}
+
+extend type Mutation {
+  # mcpEnable spawns the named server against the project's per-user
+  # process slot. The orchestrator resolves the spec's required secrets
+  # from Project.Secrets first, falling back to the process env so a
+  # self-hosted singleton deployment works without per-project keys.
+  mcpEnable(projectId: String!, serverId: String!): MCPRunningServer!
+
+  # mcpDisable tears the spawned server down. Idempotent — a Disable
+  # against a server that is not running returns true so the cockpit's
+  # optimistic UI stays consistent under retry.
+  mcpDisable(projectId: String!, serverId: String!): Boolean!
+}
+
+# MCPServerSpec is the declarative catalog entry. Maps to
+# suppliers/mcp_catalog.ServerSpec one-to-one minus the Command/Args
+# pair — those stay server-side so an arbitrary tenant can never inject
+# their own exec invocation through the GraphQL boundary.
+type MCPServerSpec {
+  id: String!
+  name: String!
+  description: String!
+  vendor: String!
+  envKeys: [String!]!
+  category: String!
+  requiresSecret: Boolean!
+  iconUrl: String
+  capabilities: [String!]!
+}
+
+# MCPRunningServer is the live runtime view. The id is the composite
+# runningKey so the cockpit can use it as a React key without colliding
+# across projects.
+type MCPRunningServer {
+  id: String!
+  serverId: String!
+  startedAt: DateTime!
+}
+`, BuiltIn: false},
 	{Name: "../schema/mobile.graphql", Input: `# Mobile build + submission + OTA update plane.
 #
 # Drives the orchestrator's real Expo Application Services (EAS)
@@ -10314,6 +10513,42 @@ func (ec *executionContext) childFields_LogEntry(ctx context.Context, field grap
 	return nil, fmt.Errorf("no field named %q was found under type LogEntry", field.Name)
 }
 
+func (ec *executionContext) childFields_MCPRunningServer(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "id":
+		return ec.fieldContext_MCPRunningServer_id(ctx, field)
+	case "serverId":
+		return ec.fieldContext_MCPRunningServer_serverId(ctx, field)
+	case "startedAt":
+		return ec.fieldContext_MCPRunningServer_startedAt(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type MCPRunningServer", field.Name)
+}
+
+func (ec *executionContext) childFields_MCPServerSpec(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "id":
+		return ec.fieldContext_MCPServerSpec_id(ctx, field)
+	case "name":
+		return ec.fieldContext_MCPServerSpec_name(ctx, field)
+	case "description":
+		return ec.fieldContext_MCPServerSpec_description(ctx, field)
+	case "vendor":
+		return ec.fieldContext_MCPServerSpec_vendor(ctx, field)
+	case "envKeys":
+		return ec.fieldContext_MCPServerSpec_envKeys(ctx, field)
+	case "category":
+		return ec.fieldContext_MCPServerSpec_category(ctx, field)
+	case "requiresSecret":
+		return ec.fieldContext_MCPServerSpec_requiresSecret(ctx, field)
+	case "iconUrl":
+		return ec.fieldContext_MCPServerSpec_iconUrl(ctx, field)
+	case "capabilities":
+		return ec.fieldContext_MCPServerSpec_capabilities(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type MCPServerSpec", field.Name)
+}
+
 func (ec *executionContext) childFields_MobileBuild(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 	switch field.Name {
 	case "id":
@@ -11554,6 +11789,50 @@ func (ec *executionContext) field_Mutation_markNotificationRead_args(ctx context
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_mcpDisable_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "projectId",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNString2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["projectId"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "serverId",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNString2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["serverId"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_mcpEnable_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "projectId",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNString2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["projectId"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "serverId",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNString2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["serverId"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_mobileCancelBuild_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -12611,6 +12890,20 @@ func (ec *executionContext) field_Query_ledger_args(ctx context.Context, rawArgs
 		return nil, err
 	}
 	args["filter"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_mcpEnabled_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "projectId",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNString2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["projectId"] = arg0
 	return args, nil
 }
 
@@ -22191,6 +22484,282 @@ func (ec *executionContext) fieldContext_LogEntry_fields(_ context.Context, fiel
 	return graphql.NewScalarFieldContext("LogEntry", field, false, false, errors.New("field of type JSON does not have child fields"))
 }
 
+func (ec *executionContext) _MCPRunningServer_id(ctx context.Context, field graphql.CollectedField, obj *model.MCPRunningServer) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MCPRunningServer_id(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MCPRunningServer_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MCPRunningServer", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MCPRunningServer_serverId(ctx context.Context, field graphql.CollectedField, obj *model.MCPRunningServer) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MCPRunningServer_serverId(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ServerID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MCPRunningServer_serverId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MCPRunningServer", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MCPRunningServer_startedAt(ctx context.Context, field graphql.CollectedField, obj *model.MCPRunningServer) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MCPRunningServer_startedAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.StartedAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MCPRunningServer_startedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MCPRunningServer", field, false, false, errors.New("field of type DateTime does not have child fields"))
+}
+
+func (ec *executionContext) _MCPServerSpec_id(ctx context.Context, field graphql.CollectedField, obj *model.MCPServerSpec) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MCPServerSpec_id(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MCPServerSpec_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MCPServerSpec", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MCPServerSpec_name(ctx context.Context, field graphql.CollectedField, obj *model.MCPServerSpec) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MCPServerSpec_name(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MCPServerSpec_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MCPServerSpec", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MCPServerSpec_description(ctx context.Context, field graphql.CollectedField, obj *model.MCPServerSpec) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MCPServerSpec_description(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Description, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MCPServerSpec_description(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MCPServerSpec", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MCPServerSpec_vendor(ctx context.Context, field graphql.CollectedField, obj *model.MCPServerSpec) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MCPServerSpec_vendor(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Vendor, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MCPServerSpec_vendor(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MCPServerSpec", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MCPServerSpec_envKeys(ctx context.Context, field graphql.CollectedField, obj *model.MCPServerSpec) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MCPServerSpec_envKeys(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.EnvKeys, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []string) graphql.Marshaler {
+			return ec.marshalNString2ᚕstringᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MCPServerSpec_envKeys(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MCPServerSpec", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MCPServerSpec_category(ctx context.Context, field graphql.CollectedField, obj *model.MCPServerSpec) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MCPServerSpec_category(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Category, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MCPServerSpec_category(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MCPServerSpec", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MCPServerSpec_requiresSecret(ctx context.Context, field graphql.CollectedField, obj *model.MCPServerSpec) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MCPServerSpec_requiresSecret(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.RequiresSecret, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v bool) graphql.Marshaler {
+			return ec.marshalNBoolean2bool(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MCPServerSpec_requiresSecret(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MCPServerSpec", field, false, false, errors.New("field of type Boolean does not have child fields"))
+}
+
+func (ec *executionContext) _MCPServerSpec_iconUrl(ctx context.Context, field graphql.CollectedField, obj *model.MCPServerSpec) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MCPServerSpec_iconUrl(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.IconURL, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_MCPServerSpec_iconUrl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MCPServerSpec", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _MCPServerSpec_capabilities(ctx context.Context, field graphql.CollectedField, obj *model.MCPServerSpec) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_MCPServerSpec_capabilities(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Capabilities, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []string) graphql.Marshaler {
+			return ec.marshalNString2ᚕstringᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_MCPServerSpec_capabilities(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("MCPServerSpec", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
 func (ec *executionContext) _MobileBuild_id(ctx context.Context, field graphql.CollectedField, obj *model.MobileBuild) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -24609,6 +25178,94 @@ func (ec *executionContext) fieldContext_Mutation_rerunGate(ctx context.Context,
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_rerunGate_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_mcpEnable(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_mcpEnable(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().McpEnable(ctx, fc.Args["projectId"].(string), fc.Args["serverId"].(string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.MCPRunningServer) graphql.Marshaler {
+			return ec.marshalNMCPRunningServer2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMCPRunningServer(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_mcpEnable(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_MCPRunningServer(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_mcpEnable_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_mcpDisable(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_mcpDisable(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().McpDisable(ctx, fc.Args["projectId"].(string), fc.Args["serverId"].(string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v bool) graphql.Marshaler {
+			return ec.marshalNBoolean2bool(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_mcpDisable(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_mcpDisable_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -30606,6 +31263,82 @@ func (ec *executionContext) fieldContext_Query_tenantProfitToday(_ context.Conte
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return ec.childFields_LedgerRollup(ctx, field)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_mcpCatalog(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Query_mcpCatalog(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Query().McpCatalog(ctx)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []model.MCPServerSpec) graphql.Marshaler {
+			return ec.marshalNMCPServerSpec2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMCPServerSpecᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Query_mcpCatalog(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_MCPServerSpec(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_mcpEnabled(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Query_mcpEnabled(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().McpEnabled(ctx, fc.Args["projectId"].(string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []model.MCPRunningServer) graphql.Marshaler {
+			return ec.marshalNMCPRunningServer2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMCPRunningServerᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Query_mcpEnabled(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_MCPRunningServer(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_mcpEnabled_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -41816,6 +42549,131 @@ func (ec *executionContext) _LogEntry(ctx context.Context, sel ast.SelectionSet,
 	return out
 }
 
+var mCPRunningServerImplementors = []string{"MCPRunningServer"}
+
+func (ec *executionContext) _MCPRunningServer(ctx context.Context, sel ast.SelectionSet, obj *model.MCPRunningServer) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, mCPRunningServerImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MCPRunningServer")
+		case "id":
+			out.Values[i] = ec._MCPRunningServer_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "serverId":
+			out.Values[i] = ec._MCPRunningServer_serverId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "startedAt":
+			out.Values[i] = ec._MCPRunningServer_startedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var mCPServerSpecImplementors = []string{"MCPServerSpec"}
+
+func (ec *executionContext) _MCPServerSpec(ctx context.Context, sel ast.SelectionSet, obj *model.MCPServerSpec) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, mCPServerSpecImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MCPServerSpec")
+		case "id":
+			out.Values[i] = ec._MCPServerSpec_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._MCPServerSpec_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "description":
+			out.Values[i] = ec._MCPServerSpec_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "vendor":
+			out.Values[i] = ec._MCPServerSpec_vendor(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "envKeys":
+			out.Values[i] = ec._MCPServerSpec_envKeys(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "category":
+			out.Values[i] = ec._MCPServerSpec_category(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "requiresSecret":
+			out.Values[i] = ec._MCPServerSpec_requiresSecret(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "iconUrl":
+			out.Values[i] = ec._MCPServerSpec_iconUrl(ctx, field, obj)
+		case "capabilities":
+			out.Values[i] = ec._MCPServerSpec_capabilities(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var mobileBuildImplementors = []string{"MobileBuild"}
 
 func (ec *executionContext) _MobileBuild(ctx context.Context, sel ast.SelectionSet, obj *model.MobileBuild) graphql.Marshaler {
@@ -42317,6 +43175,20 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "rerunGate":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_rerunGate(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "mcpEnable":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_mcpEnable(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "mcpDisable":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_mcpDisable(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -44753,6 +45625,50 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_tenantProfitToday(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "mcpCatalog":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_mcpCatalog(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "mcpEnabled":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_mcpEnabled(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -48150,6 +49066,56 @@ func (ec *executionContext) marshalNLogEntry2ᚕironflyerᚋcoreᚋorchestrator�
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
 		return ec.marshalNLogEntry2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐLogEntry(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNMCPRunningServer2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMCPRunningServer(ctx context.Context, sel ast.SelectionSet, v model.MCPRunningServer) graphql.Marshaler {
+	return ec._MCPRunningServer(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNMCPRunningServer2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMCPRunningServerᚄ(ctx context.Context, sel ast.SelectionSet, v []model.MCPRunningServer) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNMCPRunningServer2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMCPRunningServer(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNMCPRunningServer2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMCPRunningServer(ctx context.Context, sel ast.SelectionSet, v *model.MCPRunningServer) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._MCPRunningServer(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNMCPServerSpec2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMCPServerSpec(ctx context.Context, sel ast.SelectionSet, v model.MCPServerSpec) graphql.Marshaler {
+	return ec._MCPServerSpec(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNMCPServerSpec2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMCPServerSpecᚄ(ctx context.Context, sel ast.SelectionSet, v []model.MCPServerSpec) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNMCPServerSpec2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐMCPServerSpec(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {

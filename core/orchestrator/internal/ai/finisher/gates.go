@@ -70,6 +70,15 @@ type GateEnv struct {
 	// Nil-safe: when not wired the dedup gate keeps surfacing
 	// findings verbatim without the propose-it-for-me upgrade.
 	Refactor *refactor.Service
+	// PreviousAcceptanceEvidence is the prior-run snapshot the
+	// DriftGate compares the current workspace against. Keyed by
+	// AcceptanceCriterion.ID; the value records the path that last
+	// satisfied the criterion plus its byte size at that time. The
+	// Engine projects this map onto GateEnv each iteration from the
+	// project's most recent Spec-gate output. Nil/empty disables the
+	// DriftGate's evidence-loss detection (the gate becomes a no-op
+	// for projects whose Spec gate has never landed).
+	PreviousAcceptanceEvidence map[string]previousEvidence
 }
 
 // MobileBuildHook is the BeforeMobileBuild ProfitGuard seam consumed by
@@ -965,8 +974,10 @@ func itoaPositive(n int) string {
 func DefaultGates() []Gate {
 	base := []Gate{
 		SpecGate{}, UXGate{}, ArchGate{},
-		CodeGate{}, LintGate{}, TestGate{},
-		SecurityGate{}, BudgetGate{}, MobileBuildGate{},
+		CodeGate{}, VerifierGate{}, DriftGate{}, LintGate{}, TestGate{},
+		SecurityGate{}, BudgetGate{},
+		ComplianceSOC2Gate{}, ComplianceHIPAAGate{},
+		MobileBuildGate{},
 		MobileExpoDoctorGate{},
 		MobileSizeBudgetGate{},
 		MobileSecurityGate{}, IOSPrivacyManifestGate{},

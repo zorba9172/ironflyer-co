@@ -10,15 +10,26 @@ import (
 type GateName string
 
 const (
-	GateSpec        GateName = "spec"
-	GateUX          GateName = "ux"
-	GateArch        GateName = "arch"
-	GateCode        GateName = "code"
-	GateLint        GateName = "lint"
-	GateTest        GateName = "test"
-	GateSecurity    GateName = "security"
-	GateBudget      GateName = "budget"
-	GateDeploy      GateName = "deploy"
+	GateSpec GateName = "spec"
+	GateUX   GateName = "ux"
+	GateArch GateName = "arch"
+	GateCode GateName = "code"
+	// GateVerifier is the live-preview Playwright proof gate. After Code
+	// compiles a clean tree, the Verifier walks every AcceptanceCriterion,
+	// asks the Verifier agent to plan minimal Playwright actions
+	// (goto/click/fill/waitForSelector/screenshot) for it, then drives a
+	// headless chromium inside the runtime workspace and asserts the
+	// criterion is visually + DOM-observably satisfied. A criterion that
+	// cannot be visually proven becomes a SeverityError. This gate is the
+	// differentiator that no competitor enforces as a blocker — it turns
+	// "we shipped" into "we proved we shipped". Skipped (zero issues)
+	// when there is no runtime, no preview URL, or no acceptance criteria.
+	GateVerifier GateName = "verifier"
+	GateLint     GateName = "lint"
+	GateTest     GateName = "test"
+	GateSecurity GateName = "security"
+	GateBudget   GateName = "budget"
+	GateDeploy   GateName = "deploy"
 	// GateMobileBuild runs when the project's StackDecision.Mobile.Kind is
 	// non-empty. It validates the mobile manifest (Expo app.json, Android
 	// build.gradle, iOS Info.plist), signing setup, bundle identifier
@@ -125,13 +136,41 @@ const (
 	// GateVulnScan wraps govulncheck / npm audit reports. Reads
 	// IRONFLYER_VULN_REPORT_PATH; evidence-stub when unset.
 	GateVulnScan GateName = "vuln_scan"
+
+	// GateDrift re-validates previously-Validated AcceptanceCriterion
+	// records as patches land. The base Spec gate validates once on
+	// project creation — nothing today catches the regression case
+	// where a patch removes the file that previously satisfied a
+	// criterion. DriftGate runs on every iteration; SeverityWarning
+	// when evidence vanishes, SeverityInfo when evidence shrinks >50%.
+	// RepairAgent is the Coder so the agent re-implements the lost
+	// behaviour rather than re-spec'ing the project.
+	GateDrift GateName = "drift"
+
+	// GateComplianceSOC2 enforces SOC2 CC6/CC7/CC8 control families
+	// against the project workspace. Only fires when
+	// Project.Spec.Compliance contains "soc2". Each control maps to a
+	// finding that points at the missing artefact (auth declaration,
+	// HTTPS binding, audit log, monitoring tool, etc.). This is the
+	// enterprise gate Lovable / Bolt / v0 / Cursor don't ship —
+	// "production-discipline" includes the audit conversation.
+	GateComplianceSOC2 GateName = "compliance_soc2"
+
+	// GateComplianceHIPAA enforces HIPAA 164.312 technical safeguards.
+	// Only fires when Project.Spec.Compliance contains "hipaa".
+	// Findings cover access control + audit + integrity +
+	// transmission security + PHI tagging. SeverityError on missing
+	// access control or audit log — the OCR ship-stoppers; everything
+	// else surfaces as Warning / Info.
+	GateComplianceHIPAA GateName = "compliance_hipaa"
 )
 
 func AllGates() []GateName {
 	return []GateName{
 		GateSpec, GateUX, GateArch,
-		GateCode, GateLint, GateTest,
+		GateCode, GateDrift, GateVerifier, GateLint, GateTest,
 		GateSecurity, GateBudget,
+		GateComplianceSOC2, GateComplianceHIPAA,
 		GateMobileBuild,
 		GateMobileExpoDoctor, GateMobileSize,
 		GateMobileSecurity, GateIOSPrivacyManifest,
@@ -175,37 +214,37 @@ type Issue struct {
 }
 
 type GateState struct {
-	Name     GateName   `json:"name"`
-	Status   GateStatus `json:"status"`
-	Issues   []Issue    `json:"issues,omitempty"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	Name      GateName   `json:"name"`
+	Status    GateStatus `json:"status"`
+	Issues    []Issue    `json:"issues,omitempty"`
+	UpdatedAt time.Time  `json:"updatedAt"`
 }
 
 type Project struct {
-	ID          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Description string                 `json:"description"`
-	Status      string                 `json:"status"`
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Status      string `json:"status"`
 	// OwnerID is the user that owns this project. Empty means "public" —
 	// every authenticated user can read it (used for the seed demo project).
-	OwnerID string                 `json:"ownerId,omitempty"`
+	OwnerID string `json:"ownerId,omitempty"`
 	// Federated is true when the owner has opted this project into their
 	// own personal memory-federation pool. Federation NEVER crosses users
 	// — only the same OwnerID's other federated projects can read this
 	// project's memory. See internal/memory + the /me/memory-federation
 	// endpoints.
-	Federated bool `json:"federated,omitempty"`
-	Spec    ProductSpec            `json:"spec"`
-	Files   []FileNode             `json:"files"`
+	Federated bool        `json:"federated,omitempty"`
+	Spec      ProductSpec `json:"spec"`
+	Files     []FileNode  `json:"files"`
 	// Artifacts holds typed, structured documents produced by the finisher
 	// pipeline (plan, stack, screen_map, design_tokens, …). Stored as raw
 	// JSON so callers can evolve the inner shape without a schema lock.
 	// Prefer GetArtifact / SetArtifact over direct map access so nil-safe
 	// behaviour is preserved.
 	Artifacts map[string]json.RawMessage `json:"artifacts,omitempty"`
-	Gates   map[GateName]GateState `json:"gates"`
-	Events  []Event                `json:"events"`
-	GitHub  *GitHubLink            `json:"github,omitempty"`
+	Gates     map[GateName]GateState     `json:"gates"`
+	Events    []Event                    `json:"events"`
+	GitHub    *GitHubLink                `json:"github,omitempty"`
 	// Secrets holds provisioned per-project credentials — DATABASE_URL,
 	// Stripe keys, Supabase service-role tokens, etc. Never serialised to
 	// JSON so it cannot leak through API responses; callers that need a
@@ -223,8 +262,27 @@ type Project struct {
 	// empty, each Subproject represents a deployable unit; the finisher
 	// can apply scaffolders + gates per-subproject in a later iteration.
 	Subprojects []Subproject `json:"subprojects,omitempty"`
-	CreatedAt time.Time            `json:"createdAt"`
-	UpdatedAt time.Time            `json:"updatedAt"`
+	// Settings holds per-project feature flags the engine reads at gate
+	// time. New flags should default to their zero value so omitting
+	// them never changes behaviour for existing projects.
+	Settings  ProjectSettings `json:"settings,omitempty"`
+	CreatedAt time.Time       `json:"createdAt"`
+	UpdatedAt time.Time       `json:"updatedAt"`
+}
+
+// ProjectSettings is the home for per-project feature flags the
+// finisher engine consults. Lives on Project (not ProductSpec.Stack)
+// because these toggles describe *how the engine drives the project*,
+// not the product surface itself.
+type ProjectSettings struct {
+	// EnableParallelBranches lets the engine run independent
+	// AcceptanceCriterion-clusters in parallel git worktrees inside
+	// the workspace sandbox, then merge them via a Critic-driven
+	// merge before resuming the sequential gate loop. Off by default
+	// — the parallel lane requires a runtime + `git worktree`
+	// support inside the sandbox, and the merge step costs an extra
+	// Critic round.
+	EnableParallelBranches bool `json:"enableParallelBranches,omitempty"`
 }
 
 // IsAccessibleBy returns true when userID owns the project or it is public.
@@ -270,18 +328,39 @@ func (p Project) SubprojectByPath(filePath string) *Subproject {
 }
 
 type ProductSpec struct {
-	Idea         string       `json:"idea"`
-	UserStories  []UserStory  `json:"userStories"`
-	DataModel    []EntityDef  `json:"dataModel"`
-	Stack        StackDecision `json:"stack"`
+	Idea        string        `json:"idea"`
+	UserStories []UserStory   `json:"userStories"`
+	DataModel   []EntityDef   `json:"dataModel"`
+	Stack       StackDecision `json:"stack"`
+	// Compliance enumerates the regulatory regimes this project commits to.
+	// Recognised values are lower-cased identifiers like "soc2", "hipaa",
+	// "gdpr". Empty means "no compliance gates run". When a regime is
+	// listed, the matching ComplianceGate fires and enforces its control
+	// list against the workspace; absent regimes stay dark.
+	Compliance []string `json:"compliance,omitempty"`
+}
+
+// HasCompliance reports whether the spec opts into the given compliance
+// regime. Match is case-insensitive on the regime identifier.
+func (s ProductSpec) HasCompliance(regime string) bool {
+	target := strings.ToLower(strings.TrimSpace(regime))
+	if target == "" {
+		return false
+	}
+	for _, c := range s.Compliance {
+		if strings.ToLower(strings.TrimSpace(c)) == target {
+			return true
+		}
+	}
+	return false
 }
 
 type UserStory struct {
-	ID          string   `json:"id"`
-	As          string   `json:"as"`
-	IWant       string   `json:"iWant"`
-	SoThat      string   `json:"soThat"`
-	Acceptance  []string `json:"acceptance"`
+	ID         string   `json:"id"`
+	As         string   `json:"as"`
+	IWant      string   `json:"iWant"`
+	SoThat     string   `json:"soThat"`
+	Acceptance []string `json:"acceptance"`
 }
 
 type EntityDef struct {
@@ -483,21 +562,21 @@ func (m MobileStack) NeedsMacHost() bool {
 // at RouteHint + viewport, diffs it against ImagePNGBase64, and refuses
 // to pass when the difference exceeds Tolerance.
 type VisualTarget struct {
-	ID              string `json:"id"`
-	Name            string `json:"name,omitempty"`
+	ID   string `json:"id"`
+	Name string `json:"name,omitempty"`
 	// RouteHint is the path the runtime should screenshot (e.g. "/",
 	// "/pricing", "/app/dashboard"). Empty = "/".
-	RouteHint       string `json:"routeHint,omitempty"`
-	ViewportW       int    `json:"viewportW"`        // e.g. 1280
-	ViewportH       int    `json:"viewportH"`        // e.g. 800
+	RouteHint string `json:"routeHint,omitempty"`
+	ViewportW int    `json:"viewportW"` // e.g. 1280
+	ViewportH int    `json:"viewportH"` // e.g. 800
 	// ImagePNGBase64 is the target screenshot, base64-encoded PNG bytes
 	// (no data: prefix). The orchestrator decodes lazily — keep it small
 	// (<= 2 MiB after encoding).
-	ImagePNGBase64  string `json:"imagePngBase64"`
+	ImagePNGBase64 string `json:"imagePngBase64"`
 	// Tolerance is the fraction of pixels (0..1) that may differ before
 	// the gate fails. Default 0.02 = 2% — generous enough that anti-
 	// aliasing flicker won't fire false positives.
-	Tolerance       float64 `json:"tolerance,omitempty"`
+	Tolerance float64 `json:"tolerance,omitempty"`
 }
 
 // GitHubLink binds a project to a remote GitHub repo so the coder/deploy
@@ -548,4 +627,11 @@ type AcceptanceCriterion struct {
 	// (empty when not Validated). Used by the dashboard to deep-link the
 	// user to the supporting code.
 	EvidencePath string `json:"evidencePath,omitempty"`
+	// LastVerifiedAt is the timestamp of the most recent successful
+	// VerifierGate pass for this criterion. Used by the studio UI to
+	// surface staleness ("verified 6 days ago — recheck") and by the
+	// VerifierGate itself to short-circuit when nothing has materially
+	// changed since the last green proof. Zero value means the
+	// criterion has never been live-verified by Playwright.
+	LastVerifiedAt time.Time `json:"lastVerifiedAt,omitempty"`
 }

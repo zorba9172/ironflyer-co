@@ -8,6 +8,7 @@ import (
 	"errors"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/rs/zerolog"
 )
@@ -160,6 +161,12 @@ type Router struct {
 	mu        sync.RWMutex
 	providers []Provider
 	bandit    *Bandit
+	// ctxBandit, when non-nil, is the proprietary contextual bandit
+	// (LinUCB) that re-orders PickChain output by per-tenant learned
+	// reward. Enabled via IRONFLYER_BANDIT_STRATEGY=contextual at
+	// boot. The legacy `bandit` field stays wired so the existing
+	// UCB1/Thompson rerank continues to run when ctxBandit is nil.
+	ctxBandit *ContextualBandit
 
 	// Failover wiring. Optional — zero values keep the existing
 	// best-effort fallback in runFallbackChain working unchanged.
@@ -199,6 +206,26 @@ func (r *Router) WithBandit(b *Bandit) *Router {
 	defer r.mu.Unlock()
 	r.bandit = b
 	return r
+}
+
+// WithContextualBandit attaches the LinUCB contextual bandit. When
+// set, PickChain hoists the bandit's Select winner to the head of
+// the chain (after the legacy bandit's rerank, so the two policies
+// compose cleanly during the rollout window). Pass nil to disable.
+func (r *Router) WithContextualBandit(b *ContextualBandit) *Router {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.ctxBandit = b
+	return r
+}
+
+// ContextualBandit returns the currently attached contextual bandit
+// or nil. Used by main.go wireup so the RouterModel can subscribe to
+// the exact instance the router is consulting.
+func (r *Router) ContextualBandit() *ContextualBandit {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return r.ctxBandit
 }
 
 func (r *Router) Register(p Provider) {
@@ -292,7 +319,70 @@ func (r *Router) PickChain(caps []Capability) []Provider {
 	if r.bandit != nil {
 		out = r.bandit.Rerank(out, caps)
 	}
+	if r.ctxBandit != nil && len(out) > 1 {
+		rc := routeContextFromCaps(caps, "", "", 0)
+		if winner := r.ctxBandit.Select(context.Background(), rc); winner != "" {
+			for i, p := range out {
+				if p.Name() == winner {
+					if i != 0 {
+						w := out[i]
+						copy(out[1:i+1], out[0:i])
+						out[0] = w
+					}
+					break
+				}
+			}
+		}
+	}
 	return out
+}
+
+// routeContextFromCaps builds a RouteContext for the contextual
+// bandit from the request's capability tags. The first matching
+// capability bucket wins (reasoning > code > json > cheap > fast >
+// vision) so a single Capability string is a faithful summary of
+// the request intent. tenantID is currently unused in feature
+// encoding — kept in the signature so per-tenant feature lanes can
+// be added without a router-wide breaking change.
+func routeContextFromCaps(caps []Capability, tenantTier, _ string, promptTokens int) RouteContext {
+	rc := RouteContext{
+		PromptTokens: promptTokens,
+		TenantTier:   tenantTier,
+		TimeOfDay:    time.Now().UTC().Hour(),
+	}
+	for _, c := range caps {
+		switch c {
+		case CapReasoning:
+			if rc.Capability == "" {
+				rc.Capability = "reasoning"
+			}
+		case CapCode:
+			if rc.Capability == "" {
+				rc.Capability = "code"
+			}
+		case CapJSON:
+			if rc.Capability == "" {
+				rc.Capability = "json"
+			}
+		case CapCheap:
+			if rc.Capability == "" {
+				rc.Capability = "cheap"
+			}
+		case CapFast:
+			if rc.Capability == "" {
+				rc.Capability = "fast"
+			}
+		case CapVision:
+			if rc.Capability == "" {
+				rc.Capability = "vision"
+			}
+		case CapThinking:
+			rc.HasThinking = true
+		case CapTools:
+			rc.HasTools = true
+		}
+	}
+	return rc
 }
 
 func (r *Router) CompleteStream(ctx context.Context, req Request) (<-chan Delta, error) {

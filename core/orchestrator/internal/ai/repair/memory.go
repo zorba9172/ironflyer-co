@@ -15,9 +15,15 @@ import (
 // MemoryGenome is the in-memory Genome implementation. State is kept
 // under a single mutex; the cardinality is small (one recipe per
 // failure class) so finer-grained locking isn't worth it.
+//
+// semantic is the optional embedding-based similarity index. Wired by
+// main.go via AttachSemanticIndex when IRONFLYER_REPAIR_SEMANTIC=true;
+// nil by default so the exact-match path stays the only repair
+// surface unless operators opt in.
 type MemoryGenome struct {
-	mu        sync.Mutex
-	bySig     map[string]*Recipe
+	mu       sync.Mutex
+	bySig    map[string]*Recipe
+	semantic *SemanticIndex
 }
 
 // NewMemoryGenome returns a ready-to-use in-memory genome.

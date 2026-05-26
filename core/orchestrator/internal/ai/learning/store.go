@@ -66,6 +66,26 @@ func NewMemoryStore() *MemoryStore {
 	}
 }
 
+// EventsSince returns a copy of the ring-buffered OutcomeEvents with
+// Timestamp at or after cutoff. Exposed so the CompletionPredictor
+// (and other in-process consumers) can warm-start from recent history
+// without depending on the durable ClickHouse path. nil-safe.
+func (s *MemoryStore) EventsSince(cutoff time.Time) []OutcomeEvent {
+	if s == nil {
+		return nil
+	}
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	out := make([]OutcomeEvent, 0, len(s.events))
+	for _, evt := range s.events {
+		if evt.Timestamp.Before(cutoff) {
+			continue
+		}
+		out = append(out, evt)
+	}
+	return out
+}
+
 // Observe is the Publisher.SetObserver callback. It is safe to call
 // concurrently with Snapshot.
 func (s *MemoryStore) Observe(evt OutcomeEvent) {

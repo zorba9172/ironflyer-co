@@ -715,6 +715,24 @@ type LogEntry struct {
 	Fields      JSON      `json:"fields"`
 }
 
+type MCPRunningServer struct {
+	ID        string    `json:"id"`
+	ServerID  string    `json:"serverId"`
+	StartedAt time.Time `json:"startedAt"`
+}
+
+type MCPServerSpec struct {
+	ID             string   `json:"id"`
+	Name           string   `json:"name"`
+	Description    string   `json:"description"`
+	Vendor         string   `json:"vendor"`
+	EnvKeys        []string `json:"envKeys"`
+	Category       string   `json:"category"`
+	RequiresSecret bool     `json:"requiresSecret"`
+	IconURL        *string  `json:"iconUrl,omitempty"`
+	Capabilities   []string `json:"capabilities"`
+}
+
 type MobileBuild struct {
 	ID                string     `json:"id"`
 	ProjectID         string     `json:"projectId"`

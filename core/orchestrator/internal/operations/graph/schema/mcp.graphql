@@ -1,0 +1,59 @@
+# MCP catalog + per-project lifecycle.
+#
+# Surface for the Settings → MCP servers panel: the catalog query lists
+# every server the orchestrator knows how to spawn; mcpEnabled returns
+# the running set for a given project; mcpEnable / mcpDisable toggle
+# state.
+#
+# Every mutation goes through the project-owner check on the resolver
+# side so a logged-in user can never enable an MCP server against a
+# project they don't own.
+
+extend type Query {
+  # mcpCatalog returns the static catalog the orchestrator ships with.
+  # Unauthenticated requests are allowed — the catalog itself contains
+  # no secrets, and the marketing page wants to advertise the surface.
+  mcpCatalog: [MCPServerSpec!]!
+
+  # mcpEnabled returns the running servers for the authenticated user
+  # against a project they own. Empty list when nothing is enabled.
+  mcpEnabled(projectId: String!): [MCPRunningServer!]!
+}
+
+extend type Mutation {
+  # mcpEnable spawns the named server against the project's per-user
+  # process slot. The orchestrator resolves the spec's required secrets
+  # from Project.Secrets first, falling back to the process env so a
+  # self-hosted singleton deployment works without per-project keys.
+  mcpEnable(projectId: String!, serverId: String!): MCPRunningServer!
+
+  # mcpDisable tears the spawned server down. Idempotent — a Disable
+  # against a server that is not running returns true so the cockpit's
+  # optimistic UI stays consistent under retry.
+  mcpDisable(projectId: String!, serverId: String!): Boolean!
+}
+
+# MCPServerSpec is the declarative catalog entry. Maps to
+# suppliers/mcp_catalog.ServerSpec one-to-one minus the Command/Args
+# pair — those stay server-side so an arbitrary tenant can never inject
+# their own exec invocation through the GraphQL boundary.
+type MCPServerSpec {
+  id: String!
+  name: String!
+  description: String!
+  vendor: String!
+  envKeys: [String!]!
+  category: String!
+  requiresSecret: Boolean!
+  iconUrl: String
+  capabilities: [String!]!
+}
+
+# MCPRunningServer is the live runtime view. The id is the composite
+# runningKey so the cockpit can use it as a React key without colliding
+# across projects.
+type MCPRunningServer {
+  id: String!
+  serverId: String!
+  startedAt: DateTime!
+}

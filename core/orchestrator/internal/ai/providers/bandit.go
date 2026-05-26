@@ -382,6 +382,45 @@ func (b *Bandit) RegisterPrior(provider string, prior SeedPrior) {
 	b.mu.Unlock()
 }
 
+// ToContextual builds a ContextualBandit seeded with the same arms
+// as this Bandit. It is the migration path: operators can swap the
+// legacy UCB1/Thompson strategy for the contextual policy without
+// rebuilding the provider chain. The arm list is sourced from the
+// recorded seed priors plus any provider names observed in the most
+// recent Sink.Recent(LookbackN) window — that covers both registered-
+// at-boot providers and ones that have already produced telemetry.
+// Callers should AddArm on the returned bandit for any provider not
+// yet seen by either signal.
+func (b *Bandit) ToContextual(opts ...ContextualOpt) *ContextualBandit {
+	if b == nil {
+		return NewContextualBandit(nil, opts...)
+	}
+	seen := map[string]struct{}{}
+	b.mu.RLock()
+	for name := range b.seedPriors {
+		seen[name] = struct{}{}
+	}
+	b.mu.RUnlock()
+	if b.Sink != nil {
+		lookback := b.LookbackN
+		if lookback <= 0 {
+			lookback = 256
+		}
+		for _, rec := range b.Sink.Recent(lookback) {
+			if rec.Provider == "" {
+				continue
+			}
+			seen[rec.Provider] = struct{}{}
+		}
+	}
+	arms := make([]string, 0, len(seen))
+	for name := range seen {
+		arms = append(arms, name)
+	}
+	sort.Strings(arms)
+	return NewContextualBandit(arms, opts...)
+}
+
 // StrategyName returns the human-readable name of the active strategy
 // ("ucb1" or "thompson"). Safe to call before Rerank has fired.
 func (b *Bandit) StrategyName() string {
