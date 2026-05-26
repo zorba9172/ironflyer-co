@@ -67,10 +67,39 @@ const MARKETING_LINKS: NavLink[] = [
     href: "/templates",
     match: (p) => p.startsWith("/templates"),
   },
+  { label: "Mobile", href: "/mobile", match: (p) => p.startsWith("/mobile") },
   { label: "Solutions", href: "/solutions", match: (p) => p.startsWith("/solutions") },
   { label: "Pricing", href: "/pricing", match: (p) => p.startsWith("/pricing") },
-  { label: "Resources", href: "/resources", match: (p) => p.startsWith("/resources") },
+  {
+    label: "Resources",
+    href: "/resources",
+    match: (p) =>
+      p.startsWith("/resources") ||
+      p.startsWith("/showcase") ||
+      p.startsWith("/changelog") ||
+      p.startsWith("/blog") ||
+      p.startsWith("/security") ||
+      p.startsWith("/developers"),
+  },
   { label: "Enterprise", href: "/enterprise", match: (p) => p.startsWith("/enterprise") },
+];
+
+// Sub-links surfaced under the "Resources" dropdown on marketing nav.
+// Keeps the top bar from getting crowded while exposing all six SEO
+// landing pages added in v22.4.7.
+interface ResourceLink {
+  label: string;
+  href: string;
+  description: string;
+}
+
+const RESOURCE_LINKS: ResourceLink[] = [
+  { label: "Showcase", href: "/showcase", description: "What people ship with Ironflyer." },
+  { label: "Developers", href: "/developers", description: "GraphQL, SSE, runtime API, @ironflyer/sdk." },
+  { label: "Security", href: "/security", description: "OwnerID isolation, wallet hard-block, ledger." },
+  { label: "Changelog", href: "/changelog", description: "What we shipped to the gate." },
+  { label: "Blog", href: "/blog", description: "Field notes on shipping AI-built software." },
+  { label: "Resources", href: "/resources", description: "Guides, templates, and references." },
 ];
 
 // Cockpit nav — shown to authenticated callers on cockpit routes. The
@@ -154,6 +183,7 @@ export function Nav() {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const [notifAnchor, setNotifAnchor] = useState<HTMLElement | null>(null);
   const [mobileNavAnchor, setMobileNavAnchor] = useState<HTMLElement | null>(null);
+  const [resourcesAnchor, setResourcesAnchor] = useState<HTMLElement | null>(null);
   const visibleLinks = links.filter((l) => !l.operatorOnly || operator);
   const authReturn = pathname === "/" ? "/studio" : pathname;
   const loginHref = `/login?returnTo=${encodeURIComponent(authReturn)}`;
@@ -251,31 +281,93 @@ export function Nav() {
             const active = l.match(pathname);
             const hasMenuCaret =
               !cockpitMode && (l.label === "Solutions" || l.label === "Resources");
+            const isResources = !cockpitMode && l.label === "Resources";
+            const sxButton = {
+              color: active ? tokens.color.text.primary : tokens.color.text.secondary,
+              bgcolor: active ? `${tokens.color.accent.purple}24` : "transparent",
+              borderRadius: 1,
+              px: 1.5,
+              py: 0.75,
+              fontWeight: 700,
+              letterSpacing: 0.1,
+              "&:hover": {
+                bgcolor: tokens.color.bg.surfaceHover,
+                color: tokens.color.text.primary,
+              },
+            } as const;
+            const inner = (
+              <Stack direction="row" sx={{ alignItems: "center", gap: 0.35 }}>
+                {l.label}
+                {hasMenuCaret && <ExpandMoreRounded sx={{ fontSize: 15 }} />}
+              </Stack>
+            );
+            if (isResources) {
+              return (
+                <Button
+                  key={l.href}
+                  onClick={(e) => setResourcesAnchor(e.currentTarget)}
+                  size="small"
+                  sx={sxButton}
+                  aria-haspopup="menu"
+                  aria-expanded={!!resourcesAnchor}
+                >
+                  {inner}
+                </Button>
+              );
+            }
             return (
               <Button
                 key={l.href}
                 component={Link}
                 href={l.href}
                 size="small"
-                sx={{
-                  color: active ? tokens.color.text.primary : tokens.color.text.secondary,
-                  bgcolor: active ? `${tokens.color.accent.purple}24` : "transparent",
-                  borderRadius: 1,
-                  px: 1.5,
-                  py: 0.75,
-                  fontWeight: 700,
-                  letterSpacing: 0.1,
-                  "&:hover": { bgcolor: tokens.color.bg.surfaceHover, color: tokens.color.text.primary },
-                }}
+                sx={sxButton}
               >
-                <Stack direction="row" sx={{ alignItems: "center", gap: 0.35 }}>
-                  {l.label}
-                  {hasMenuCaret && <ExpandMoreRounded sx={{ fontSize: 15 }} />}
-                </Stack>
+                {inner}
               </Button>
             );
           })}
         </Stack>
+
+        <Menu
+          anchorEl={resourcesAnchor}
+          open={!!resourcesAnchor}
+          onClose={() => setResourcesAnchor(null)}
+          slotProps={{
+            paper: {
+              sx: {
+                mt: 1,
+                minWidth: 320,
+                bgcolor: tokens.color.bg.surfaceRaised,
+                border: `1px solid ${tokens.color.border.subtle}`,
+              },
+            },
+          }}
+        >
+          {RESOURCE_LINKS.map((r) => (
+            <MenuItem
+              key={r.href}
+              component={Link}
+              href={r.href}
+              onClick={() => setResourcesAnchor(null)}
+              sx={{
+                alignItems: "flex-start",
+                py: 1.2,
+                gap: 0.4,
+                flexDirection: "column",
+              }}
+            >
+              <Typography
+                sx={{ fontWeight: 700, fontSize: 14, color: tokens.color.text.primary }}
+              >
+                {r.label}
+              </Typography>
+              <Typography sx={{ fontSize: 12.5, color: tokens.color.text.secondary }}>
+                {r.description}
+              </Typography>
+            </MenuItem>
+          ))}
+        </Menu>
 
         <Box sx={{ flexGrow: 1 }} />
 
