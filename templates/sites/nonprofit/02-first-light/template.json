@@ -1,0 +1,35 @@
+{
+  "slug": "nonprofit-02-first-light",
+  "title": "First Light",
+  "subtitle": "Children's literacy nonprofit putting free books and trained tutors into Title I schools.",
+  "category": "Nonprofit",
+  "type": "Websites",
+  "tags": [
+    "literacy",
+    "warm",
+    "hopeful",
+    "friendly"
+  ],
+  "previewImage": "/templates/nonprofit-02-first-light.jpg",
+  "palette": {
+    "bg": "#fffaee",
+    "fg": "#2a230f",
+    "accent": "#ffd400"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "impact",
+    "programs",
+    "donate",
+    "help",
+    "story",
+    "reports",
+    "team",
+    "partners",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the First Light template as the foundation for a children's literacy nonprofit site with a warm cream + yellow palette, DM Serif Display headings, hero with rotated photo card, impact stats grid, three program cards with per-child costs, a bright donate band with selectable tiers, get-involved trio, a teacher quote, transparency reports, leadership grid, and a dark ink footer.",
+  "livePreview": "/template-previews/nonprofit-02-first-light/"
+}

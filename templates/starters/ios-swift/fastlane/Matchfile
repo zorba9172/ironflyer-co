@@ -1,0 +1,17 @@
+# Ironflyer iOS starter — fastlane match config.
+#
+# match keeps signing certificates + provisioning profiles in a private
+# git repo so every CI runner gets a deterministic, replayable set of
+# credentials without copy-pasting .p12 files into repo secrets.
+#
+# Set IRONFLYER_MATCH_GIT_URL to the private match repo URL before
+# running `bundle exec fastlane match` for the first time. The
+# MATCH_PASSWORD env var (used by the match action) decrypts the
+# stored material.
+
+git_url(ENV["IRONFLYER_MATCH_GIT_URL"] || "git@github.com:ironflyer/ios-signing.git")
+storage_mode("git")
+type("appstore")
+app_identifier([ENV["IRONFLYER_APP_IDENTIFIER"] || "com.ironflyer.starter"])
+username(ENV["APPLE_ID"])
+team_id(ENV["IRONFLYER_TEAM_ID"])

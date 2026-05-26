@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>About CodeForge — The team behind enforced gates</title>
+  <meta name="description" content="CodeForge was founded by engineers who shipped production software under real constraints. We sell discipline, not vibes." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --surface: #131312;
+      --surface-2: #1c1c1a;
+      --border: rgba(244, 240, 232, 0.12);
+      --border-strong: rgba(244, 240, 232, 0.24);
+      --fg: #f7f3ea;
+      --fg-2: #b9b3a8;
+      --fg-3: #77736b;
+      --accent: #e5ff00;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg); color: var(--fg);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      font-size: 16px; line-height: 1.5;
+      -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace; }
+
+    .nav { position: sticky; top: 0; z-index: 50; backdrop-filter: blur(14px); background: rgba(10,10,10,0.78); border-bottom: 1px solid var(--border); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 900; letter-spacing: -0.01em; }
+    .brand-mark { width: 28px; height: 28px; border-radius: 7px; background: var(--fg); display: grid; place-items: center; color: var(--bg); font-weight: 900; font-family: 'JetBrains Mono', monospace; }
+    .nav-links { display: flex; gap: 28px; color: var(--fg-2); font-size: 14px; }
+    .nav-links a:hover { color: var(--fg); }
+    .nav-links a.current { color: var(--fg); }
+    .nav-cta { display: flex; gap: 10px; align-items: center; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 16px; border-radius: var(--radius-sm); font-weight: 600; font-size: 14px; border: 1px solid transparent; cursor: pointer; transition: transform 160ms cubic-bezier(0.22,1,0.36,1), background 160ms; }
+    .btn-primary { background: var(--accent); color: #111; }
+    .btn-primary:hover { transform: translateY(-1px); }
+    .btn-ghost { background: transparent; color: var(--fg); border-color: var(--border-strong); }
+    .btn-ghost:hover { border-color: var(--fg); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    .hero { padding: 96px 0 72px; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border: 1px solid var(--border-strong); border-radius: 999px; font-size: 12px; color: var(--fg-2); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    h1 { font-size: clamp(40px, 6vw, 72px); line-height: 1.02; letter-spacing: -0.025em; font-weight: 900; margin: 20px 0 24px; max-width: 880px; }
+    h1 em { font-style: normal; color: var(--accent); }
+    .lede { font-size: 19px; color: var(--fg-2); max-width: 720px; line-height: 1.55; }
+
+    .section { padding: 96px 0; }
+    .section-head { max-width: 760px; margin-bottom: 56px; }
+    .section h2 { font-size: clamp(32px, 4.4vw, 48px); letter-spacing: -0.02em; line-height: 1.05; font-weight: 900; margin: 14px 0 16px; }
+    .section h2 em { font-style: normal; color: var(--accent); }
+    .section .lede { font-size: 17px; }
+
+    .story { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 64px; align-items: start; }
+    .story p { color: var(--fg-2); font-size: 17px; line-height: 1.7; }
+    .story p + p { margin-top: 18px; }
+    @media (max-width: 1080px) { .story { grid-template-columns: 1fr; gap: 32px; } }
+
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .feature { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 28px; transition: border-color 260ms cubic-bezier(0.16,1,0.3,1); }
+    .feature:hover { border-color: var(--border-strong); }
+    .feature-icon { width: 36px; height: 36px; border-radius: 8px; background: var(--surface-2); border: 1px solid var(--border); display: grid; place-items: center; margin-bottom: 20px; color: var(--accent); }
+    .feature h3 { font-size: 18px; font-weight: 700; margin: 0 0 8px; letter-spacing: -0.01em; }
+    .feature p { color: var(--fg-2); margin: 0; font-size: 15px; line-height: 1.55; }
+    @media (max-width: 1080px) { .features { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .features { grid-template-columns: 1fr; } }
+
+    .team { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .member { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
+    .member img { width: 100%; aspect-ratio: 4/3; object-fit: cover; filter: grayscale(20%); }
+    .member-body { padding: 22px 24px 26px; }
+    .member-name { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+    .member-role { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 6px; }
+    .member-bio { color: var(--fg-2); font-size: 14px; margin-top: 12px; line-height: 1.55; }
+    @media (max-width: 1080px) { .team { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .team { grid-template-columns: 1fr; } }
+
+    .backers { padding: 56px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .backers-label { font-size: 12px; color: var(--fg-3); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; text-align: center; margin-bottom: 24px; }
+    .backers-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 24px; color: var(--fg-2); font-weight: 700; font-size: 16px; text-align: center; }
+    .backers-row span { opacity: 0.7; }
+    @media (max-width: 720px) { .backers-row { grid-template-columns: repeat(2, 1fr); } }
+
+    .cta-band { margin: 0; border-top: 1px solid var(--border); padding: 96px 0; text-align: center; }
+    .cta-band h2 { font-size: clamp(36px, 5vw, 60px); letter-spacing: -0.025em; line-height: 1.05; margin-bottom: 20px; }
+    .cta-band p { color: var(--fg-2); max-width: 540px; margin: 0 auto 32px; font-size: 18px; }
+
+    footer { border-top: 1px solid var(--border); padding: 48px 0 32px; }
+    .foot-grid { display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 40px; }
+    .foot-col h4 { font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-3); margin: 0 0 16px; }
+    .foot-col a { display: block; color: var(--fg-2); font-size: 14px; padding: 6px 0; }
+    .foot-col a:hover { color: var(--fg); }
+    .foot-bot { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; color: var(--fg-3); font-size: 13px; font-family: 'JetBrains Mono', monospace; }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 12px; text-align: center; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">▮</span>
+        CodeForge
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="index.html">Product</a>
+        <a href="index.html#code">Engine</a>
+        <a href="about.html" class="current">About</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-ghost" href="#">Sign in</a>
+        <a class="btn btn-primary" href="contact.html">Start building →</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <span class="eyebrow"><span class="dot"></span>About CodeForge</span>
+        <h1>We sell <em>discipline</em>, not demos.</h1>
+        <p class="lede">CodeForge was founded by engineers who have shipped real production systems under real constraints. We watched a generation of AI tools sell speed without proof — so we built the gates that turn output into shippable software.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="story">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>Origin</span>
+            <h2>Why this <em>company</em> exists.</h2>
+          </div>
+          <div>
+            <p>The pattern that bothered us was simple: a chatbot would write a 600-line file, the demo would close cleanly, and then the team would spend two weeks rewriting it. The "AI" wasn't the bottleneck. Review was. Tests were. Security was. Deployment was. Anything that touched production.</p>
+            <p>So we built CodeForge as the opposite of a chatbot. Eight gates — Spec, UX, Architecture, Code, Lint, Tests, Security, Deploy — sit between an idea and a shipped artifact. Each gate emits a verdict. The next gate cannot start until the verdict is green. The patch is reviewable. The cost is in the ledger before the call returns.</p>
+            <p>We are not trying to make programming feel magical. We are trying to make finished software feel routine. That is a different product, with a different customer, and a different bar.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>What we value</span>
+          <h2>The non-negotiables we <em>build to</em>.</h2>
+          <p class="lede">These aren't aspirations. They're the gates we measure ourselves against, the same way our product measures your code.</p>
+        </div>
+        <div class="features">
+          <div class="feature">
+            <div class="feature-icon">▮</div>
+            <h3>Engineering rigor first</h3>
+            <p>Every feature ships with a spec, a test, and a rollback plan. We will say no to a release before we will hide a regression.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">⌗</div>
+            <h3>Reviewable by default</h3>
+            <p>Patches, ledger entries, gate verdicts — everything we generate is human-readable, diff-able, and reversible. No magic boxes.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">$</div>
+            <h3>Costs you can audit</h3>
+            <p>The margin formula sits in the contract. Subscription minus provider cost is your company's spend, exposed to the dollar.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">⚐</div>
+            <h3>You own what ships</h3>
+            <p>Your registry, your cloud account, your domain, your keys. CodeForge writes the artifact. The deploy belongs to you.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">⎈</div>
+            <h3>Real infrastructure</h3>
+            <p>Per-user Linux workspaces with a PTY and a real container runtime. Not a serverless sandbox. Not a REPL pretending to be a server.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon">∞</div>
+            <h3>Honesty in comparisons</h3>
+            <p>When a competitor ships something we don't, we update our table. Fake checks poison trust, and trust is most of what we're selling.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Team</span>
+          <h2>The people behind the <em>gates</em>.</h2>
+          <p class="lede">A small group of engineers, designers, and operators who have all shipped systems under more constraint than they would have liked.</p>
+        </div>
+        <div class="team">
+          <div class="member">
+            <img src="https://picsum.photos/seed/codeforge-team-1/600/450" width="600" height="450" loading="lazy" alt="Portrait of Eitan Morris, co-founder and CEO of CodeForge." />
+            <div class="member-body">
+              <div class="member-name">Eitan Morris</div>
+              <div class="member-role">Co-founder · CEO</div>
+              <p class="member-bio">Previously shipped infra at two production-scale platforms. Wrote the first version of the gate runtime on a flight back from a postmortem.</p>
+            </div>
+          </div>
+          <div class="member">
+            <img src="https://picsum.photos/seed/codeforge-team-2/600/450" width="600" height="450" loading="lazy" alt="Portrait of Avery Cho, co-founder and CTO of CodeForge." />
+            <div class="member-body">
+              <div class="member-name">Avery Cho</div>
+              <div class="member-role">Co-founder · CTO</div>
+              <p class="member-bio">Spent a decade on developer tools and compilers. Owns the patch engine and the security gate. Loves boring test coverage.</p>
+            </div>
+          </div>
+          <div class="member">
+            <img src="https://picsum.photos/seed/codeforge-team-3/600/450" width="600" height="450" loading="lazy" alt="Portrait of Priya Salim, head of platform at CodeForge." />
+            <div class="member-body">
+              <div class="member-name">Priya Salim</div>
+              <div class="member-role">Head of Platform</div>
+              <p class="member-bio">Runs the workspace runtime and the deploy gate. Has strong opinions on Docker, weak tolerance for hand-rolled YAML.</p>
+            </div>
+          </div>
+          <div class="member">
+            <img src="https://picsum.photos/seed/codeforge-team-4/600/450" width="600" height="450" loading="lazy" alt="Portrait of Marius Novak, head of design at CodeForge." />
+            <div class="member-body">
+              <div class="member-name">Marius Novak</div>
+              <div class="member-role">Head of Design</div>
+              <p class="member-bio">Designs the ledger, the gate verdicts, and the patch review surface. Believes a good interface is a contract you can read.</p>
+            </div>
+          </div>
+          <div class="member">
+            <img src="https://picsum.photos/seed/codeforge-team-5/600/450" width="600" height="450" loading="lazy" alt="Portrait of Rina Achebe, head of customer engineering at CodeForge." />
+            <div class="member-body">
+              <div class="member-name">Rina Achebe</div>
+              <div class="member-role">Customer Engineering</div>
+              <p class="member-bio">Onboards every Builder and Team customer. Will read your repo before the first call so the demo isn't generic.</p>
+            </div>
+          </div>
+          <div class="member">
+            <img src="https://picsum.photos/seed/codeforge-team-6/600/450" width="600" height="450" loading="lazy" alt="Portrait of Tomás Granados, security lead at CodeForge." />
+            <div class="member-body">
+              <div class="member-name">Tomás Granados</div>
+              <div class="member-role">Security Lead</div>
+              <p class="member-bio">Owns the security gate and the audit pipeline. Spent eight years on incident response before deciding to write the controls first.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="backers">
+      <div class="wrap">
+        <p class="backers-label">Backed by engineers who shipped before they invested</p>
+        <div class="backers-row">
+          <span>Northbeam Capital</span>
+          <span>Atlas Group</span>
+          <span>Field &amp; Format</span>
+          <span>Pivot House Ventures</span>
+          <span>Bureau Verso</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="cta-band">
+    <div class="wrap">
+      <h2>Hiring engineers who like <em>tight</em> contracts.</h2>
+      <p>If gates, ledgers, and reviewable patches sound like the right product to build for the next five years, we'd like to hear from you.</p>
+      <a class="btn btn-primary" href="contact.html" style="height:54px;padding:0 28px;font-size:15px;">Talk to us →</a>
+    </div>
+  </section>
+
+  <footer id="footer">
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a class="brand" href="index.html" style="margin-bottom:16px;">
+            <span class="brand-mark">▮</span>
+            CodeForge
+          </a>
+          <p style="color:var(--fg-2); font-size:14px; max-width:280px;">Ship finished software through enforced gates. Patches are reviewable. Cost is in the ledger.</p>
+        </div>
+        <div class="foot-col">
+          <h4>Product</h4>
+          <a href="index.html">Gates</a>
+          <a href="index.html#code">Engine</a>
+          <a href="pricing.html">Pricing</a>
+          <a href="index.html">Workspaces</a>
+        </div>
+        <div class="foot-col">
+          <h4>Resources</h4>
+          <a href="#">Docs</a>
+          <a href="#">API reference</a>
+          <a href="#">Changelog</a>
+          <a href="#">Status</a>
+        </div>
+        <div class="foot-col">
+          <h4>Company</h4>
+          <a href="about.html">About</a>
+          <a href="#">Privacy</a>
+          <a href="#">Terms</a>
+          <a href="contact.html">Contact</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 CodeForge Labs</span>
+        <span>Built with gates · Reviewed before shipped</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

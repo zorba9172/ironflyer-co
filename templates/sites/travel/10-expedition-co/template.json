@@ -1,0 +1,34 @@
+{
+  "slug": "travel-10-expedition-co",
+  "title": "Expedition Co.",
+  "subtitle": "Polar and remote expeditions, run by people who go.",
+  "category": "Travel",
+  "type": "Websites",
+  "tags": [
+    "expedition",
+    "gritty",
+    "charcoal",
+    "polar",
+    "photo-led"
+  ],
+  "previewImage": "/templates/travel-10-expedition-co.jpg",
+  "palette": {
+    "bg": "#131318",
+    "fg": "#ece7dc",
+    "accent": "#ff6c3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "filter-bar",
+    "rosters",
+    "day-schedule",
+    "kit-support",
+    "field-reports",
+    "apply-cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Expedition Co. template as the foundation for a polar and remote expedition company: charcoal and orange palette, Space Grotesk and JetBrains Mono typography, a full-bleed hero with telemetry strip, a dark roster-filter bar with grade dropdown, four expedition rosters with grade tags, spec tables, and per-person pricing, a sticky day-by-day schedule with latitude column, a four-column kit-and-support strip, four field-report quotes with orange left rule, and an orange apply CTA.",
+  "livePreview": "/template-previews/travel-10-expedition-co/"
+}

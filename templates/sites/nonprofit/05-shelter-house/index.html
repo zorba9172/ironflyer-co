@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shelter House — Housing first, dignity always</title>
+  <meta name="description" content="Shelter House runs three permanent supportive housing buildings and a 24-hour outreach team. 1,840 people moved from the street to a key of their own in 2025." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #faf5ec;
+      --bg-2: #f2eadb;
+      --paper: #ffffff;
+      --ink: #241a13;
+      --ink-2: #5a473b;
+      --ink-3: #8f7c6f;
+      --accent: #ff6c3a;
+      --accent-2: #e95820;
+      --line: #e7ddc8;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 22px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--ink); font-family: 'Inter', system-ui, sans-serif; font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    .display { font-family: 'Bricolage Grotesque', system-ui, sans-serif; }
+
+    /* Nav */
+    .nav { position: sticky; top: 0; z-index: 50; background: rgba(250,245,236,0.95); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 74px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 22px; letter-spacing: -0.02em; }
+    .brand-mark { width: 32px; height: 32px; border-radius: 8px; background: var(--accent); display: grid; place-items: center; color: #fff; font-weight: 800; }
+    .nav-links { display: flex; gap: 30px; color: var(--ink-2); font-size: 14px; font-weight: 500; }
+    .nav-links a:hover { color: var(--ink); }
+    .nav-cta { display: flex; gap: 10px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 20px; border-radius: 999px; font-weight: 700; font-size: 14px; border: 1.5px solid transparent; cursor: pointer; transition: background 160ms, transform 160ms; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-2); transform: translateY(-1px); }
+    .btn-ghost { background: transparent; color: var(--ink); border-color: var(--ink); }
+    .btn-ghost:hover { background: var(--ink); color: var(--bg); }
+    @media (max-width: 1080px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 64px 0 56px; }
+    .hero-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 56px; align-items: end; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; background: var(--paper); border: 1px solid var(--line); border-radius: 999px; font-size: 12px; color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; }
+    .eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+    h1 { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(46px, 7vw, 92px); line-height: 0.98; letter-spacing: -0.03em; margin: 22px 0 22px; }
+    h1 em { font-style: normal; color: var(--accent); }
+    .lede { font-size: 19px; color: var(--ink-2); max-width: 540px; }
+    .hero-cta { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
+    .hero-art { position: relative; }
+    .hero-art img { width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: var(--radius-lg); }
+    .hero-stack { position: absolute; right: 16px; bottom: -32px; background: var(--ink); color: var(--bg); padding: 24px 26px; border-radius: var(--radius-md); box-shadow: 0 30px 60px rgba(0,0,0,0.18); max-width: 320px; }
+    .hero-stack .n { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 44px; line-height: 1; color: var(--accent); }
+    .hero-stack p { margin: 8px 0 0; font-size: 14px; color: #d8ccb6; }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 48px; } .hero-stack { right: 0; } }
+    @media (max-width: 720px) { .hero { padding: 48px 0 32px; } .hero-cta .btn { width: 100%; justify-content: center; } }
+
+    /* Sections */
+    .section { padding: 100px 0; }
+    .section.paper { background: var(--paper); }
+    .section.dark { background: var(--ink); color: var(--bg); }
+    .section.dark h2, .section.dark .eyebrow { color: var(--bg); }
+    .section.dark .eyebrow { background: rgba(250,245,236,0.07); border-color: rgba(250,245,236,0.18); }
+    .section-head { max-width: 720px; margin-bottom: 56px; }
+    h2 { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(34px, 5vw, 60px); letter-spacing: -0.02em; line-height: 1.02; margin: 14px 0 16px; }
+    h2 em { font-style: normal; color: var(--accent); }
+
+    /* Pillars */
+    .pillars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+    .pillar { padding: 32px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-md); }
+    .pillar .num { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; color: var(--accent); font-size: 14px; letter-spacing: 0.04em; }
+    .pillar h3 { font-family: 'Bricolage Grotesque', sans-serif; font-size: 26px; font-weight: 700; margin: 8px 0 10px; line-height: 1.1; }
+    .pillar p { color: var(--ink-2); margin: 0; font-size: 15px; }
+    @media (max-width: 1080px) { .pillars { grid-template-columns: 1fr; } }
+
+    /* Stats band */
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; }
+    .stat { padding: 32px; border-right: 1px solid rgba(250,245,236,0.18); }
+    .stat:last-child { border-right: 0; }
+    .stat .val { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(40px, 5vw, 64px); line-height: 1; letter-spacing: -0.02em; color: var(--accent); }
+    .stat .label { color: #d8ccb6; font-size: 14px; margin-top: 10px; }
+    @media (max-width: 1080px) { .stats { grid-template-columns: 1fr 1fr; } .stat { border-bottom: 1px solid rgba(250,245,236,0.18); } .stat:nth-child(2n) { border-right: 0; } }
+
+    /* Programs */
+    .programs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; }
+    .program { display: grid; grid-template-columns: 1fr 1.2fr; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-md); overflow: hidden; }
+    .program img { width: 100%; height: 100%; object-fit: cover; aspect-ratio: 1/1; }
+    .program-body { padding: 28px; display: flex; flex-direction: column; }
+    .program h3 { font-family: 'Bricolage Grotesque', sans-serif; font-size: 24px; font-weight: 700; margin: 4px 0 8px; }
+    .program .sub { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); font-weight: 700; }
+    .program p { color: var(--ink-2); font-size: 14.5px; margin: 0 0 14px; flex: 1; }
+    .program .meta { font-size: 13px; color: var(--ink-3); }
+    @media (max-width: 1080px) { .programs { grid-template-columns: 1fr; } .program { grid-template-columns: 1fr; } .program img { aspect-ratio: 4/3; } }
+
+    /* Donate */
+    .donate-card { background: var(--ink); color: var(--bg); border-radius: var(--radius-lg); padding: 56px; display: grid; grid-template-columns: 1.05fr 1fr; gap: 56px; align-items: center; }
+    .donate-card h2 { color: var(--bg); }
+    .donate-card p { color: #d8ccb6; max-width: 440px; }
+    .tiers { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 16px; }
+    .tier { background: rgba(250,245,236,0.06); border: 1.5px solid rgba(250,245,236,0.18); border-radius: var(--radius-md); padding: 18px; cursor: pointer; text-align: left; transition: all 160ms; }
+    .tier:hover, .tier.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .tier .amt { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 26px; line-height: 1; }
+    .tier .what { font-size: 13px; color: #d8ccb6; margin-top: 6px; }
+    .tier.active .what, .tier:hover .what { color: rgba(255,255,255,0.92); }
+    .donate-card .btn { margin-top: 22px; height: 50px; padding: 0 26px; background: var(--accent); color: #fff; }
+    @media (max-width: 1080px) { .donate-card { grid-template-columns: 1fr; padding: 36px; } }
+
+    /* How to help row */
+    .help-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 64px; }
+    .help-card { padding: 24px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-md); }
+    .help-card .ic { width: 40px; height: 40px; border-radius: 10px; background: var(--bg-2); color: var(--accent); display: grid; place-items: center; font-weight: 800; margin-bottom: 14px; }
+    .help-card h3 { font-family: 'Bricolage Grotesque', sans-serif; font-size: 18px; margin: 0 0 6px; font-weight: 700; }
+    .help-card p { color: var(--ink-2); font-size: 14px; margin: 0 0 10px; }
+    .help-card a { color: var(--accent); font-weight: 700; font-size: 13px; }
+    @media (max-width: 1080px) { .help-row { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .help-row { grid-template-columns: 1fr; } }
+
+    /* Story */
+    .story-grid { display: grid; grid-template-columns: 1fr 1.05fr; gap: 56px; align-items: center; }
+    .story-grid img { aspect-ratio: 4/5; object-fit: cover; width: 100%; border-radius: var(--radius-lg); }
+    blockquote { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 500; font-size: clamp(24px, 2.8vw, 34px); line-height: 1.2; margin: 0 0 24px; letter-spacing: -0.01em; }
+    cite { font-style: normal; color: var(--ink-2); font-size: 15px; }
+    cite strong { color: var(--ink); display: block; font-weight: 700; margin-bottom: 2px; }
+    @media (max-width: 1080px) { .story-grid { grid-template-columns: 1fr; } }
+
+    /* Transparency */
+    .trans-card { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 48px; display: grid; grid-template-columns: 1.3fr 1fr; gap: 48px; align-items: center; }
+    .ledger { display: flex; flex-direction: column; gap: 12px; }
+    .ledger .row { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px dashed var(--line); font-size: 15px; }
+    .ledger .row:last-child { border-bottom: 0; font-weight: 700; }
+    .ledger .row strong { color: var(--accent); }
+    @media (max-width: 1080px) { .trans-card { grid-template-columns: 1fr; padding: 28px; } }
+
+    /* Team */
+    .team { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
+    .person img { aspect-ratio: 1/1; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 12px; }
+    .person h4 { margin: 0 0 2px; font-size: 16px; font-weight: 700; }
+    .person p { margin: 0; color: var(--ink-2); font-size: 13px; }
+    @media (max-width: 1080px) { .team { grid-template-columns: repeat(2, 1fr); } }
+
+    /* Footer */
+    footer { background: var(--ink); color: #d8ccb6; padding: 64px 0 28px; }
+    .foot-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1.2fr; gap: 40px; }
+    .foot-col h4 { color: var(--accent); font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 14px; margin: 0 0 14px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .foot-col a { display: block; color: #d8ccb6; font-size: 14px; padding: 6px 0; }
+    .foot-col a:hover { color: #fff; }
+    .foot-bot { margin-top: 48px; padding-top: 24px; border-top: 1px solid rgba(250,245,236,0.12); display: flex; justify-content: space-between; font-size: 13px; }
+    @media (max-width: 1080px) { .foot-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr; } .foot-bot { flex-direction: column; gap: 10px; } }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#"><span class="brand-mark">SH</span>Shelter House</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#how">How we work</a>
+        <a href="#programs">Programs</a>
+        <a href="#help">Get involved</a>
+        <a href="#transparency">Where it goes</a>
+        <a href="#team">Team</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-ghost" href="#help">Volunteer</a>
+        <a class="btn btn-primary" href="#donate">Donate</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>24-hour outreach line: 1-833-555-0114</span>
+            <h1>Housing first. <em>Dignity</em> always.</h1>
+            <p class="lede">Shelter House runs three permanent supportive-housing buildings and a 24-hour street outreach team across Greater Cleveland. In 2025 we moved 1,840 of our neighbors from the street to a key of their own.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#donate">Donate now</a>
+              <a class="btn btn-ghost" href="#help">Volunteer this week</a>
+            </div>
+          </div>
+          <div class="hero-art">
+            <img src="https://picsum.photos/seed/shelter-house-1/900/1100" width="900" height="1100" alt="A formerly homeless resident sitting at the small kitchen table in their new permanent supportive housing apartment, holding a key." loading="eager" />
+            <div class="hero-stack">
+              <div class="n">1,840</div>
+              <p>neighbors moved from the street to permanent housing in 2025 — 91% still housed at 12 months.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="how">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Our model</span>
+          <h2>We give the <em>key first</em>. Then we work on everything else.</h2>
+          <p class="lede">Housing First is not a slogan, it's a sequence. Mental-health care, addiction recovery, and job training all work better once a person has a door that locks. The data says so. So does every neighbor we've served.</p>
+        </div>
+        <div class="pillars">
+          <div class="pillar">
+            <div class="num">PILLAR 01</div>
+            <h3>Permanent supportive housing</h3>
+            <p>Three buildings, 412 units. No sobriety test, no income test, no time limit. Wraparound services on site: nurse, case manager, peer specialist.</p>
+          </div>
+          <div class="pillar">
+            <div class="num">PILLAR 02</div>
+            <h3>24-hour outreach</h3>
+            <p>Two vans, twelve outreach workers, every night of the year. We know our neighbors by name and they know us. No quotas, no sweeps.</p>
+          </div>
+          <div class="pillar">
+            <div class="num">PILLAR 03</div>
+            <h3>Path back to work</h3>
+            <p>An on-site work program with three local employers. 68% of residents who join the program are employed and housed at 18 months.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section dark">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>2025 impact</span>
+          <h2>The numbers we'd want <em>asked of us</em>.</h2>
+          <p class="lede" style="color: #d8ccb6;">Independently audited. Posted in our public dashboard quarterly. We don't round up.</p>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="val">1,840</div><div class="label">neighbors moved into housing in 2025</div></div>
+          <div class="stat"><div class="val">91%</div><div class="label">still housed at 12 months — sector average is 78%</div></div>
+          <div class="stat"><div class="val">214,000</div><div class="label">meals served at our day centers and outreach vans</div></div>
+          <div class="stat"><div class="val">$32 / night</div><div class="label">vs. $148 / night for an emergency-room bed</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section paper" id="programs">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>What we do</span>
+          <h2>Six programs, <em>one front door</em>.</h2>
+        </div>
+        <div class="programs">
+          <article class="program">
+            <img src="https://picsum.photos/seed/shelter-house-2/700/700" width="700" height="700" alt="Exterior of a renovated supportive housing building with welcoming front entrance." loading="lazy" />
+            <div class="program-body">
+              <div class="sub">Housing</div>
+              <h3>Maple Avenue Apartments</h3>
+              <p>148 permanent supportive units. Renovated 2022. On-site nurse, case manager, peer specialist. No sobriety requirement.</p>
+              <div class="meta">148 units · Opened 2017 · 96% occupancy</div>
+            </div>
+          </article>
+          <article class="program">
+            <img src="https://picsum.photos/seed/shelter-house-3/700/700" width="700" height="700" alt="Late-night outreach van with team members preparing thermoses of hot coffee." loading="lazy" />
+            <div class="program-body">
+              <div class="sub">Outreach</div>
+              <h3>Night Outreach Vans</h3>
+              <p>Two vans on the street every night, year-round. Coffee, blankets, naloxone, a friendly face, and a direct line to a bed if someone wants one.</p>
+              <div class="meta">12 staff · 1,200 contacts / month</div>
+            </div>
+          </article>
+          <article class="program">
+            <img src="https://picsum.photos/seed/shelter-house-4/700/700" width="700" height="700" alt="A day-shelter common area with people sharing a meal at a long table." loading="lazy" />
+            <div class="program-body">
+              <div class="sub">Day Services</div>
+              <h3>Riverside Day Center</h3>
+              <p>Showers, laundry, mail, medical clinic, and three hot meals a day. Open 6 AM to 10 PM, 365 days a year. No ID required.</p>
+              <div class="meta">214k meals served in 2025</div>
+            </div>
+          </article>
+          <article class="program">
+            <img src="https://picsum.photos/seed/shelter-house-5/700/700" width="700" height="700" alt="A workforce training room with adults learning building maintenance skills." loading="lazy" />
+            <div class="program-body">
+              <div class="sub">Workforce</div>
+              <h3>Path Back to Work</h3>
+              <p>Twelve-week paid apprenticeship in building maintenance, food service, or peer counseling. Direct hire pipeline to three Cleveland employers.</p>
+              <div class="meta">68% housed + employed at 18mo</div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="donate">
+      <div class="wrap">
+        <div class="donate-card">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>Your gift, this winter</span>
+            <h2>$32 buys one neighbor <em>one night inside</em>.</h2>
+            <p>Pick a tier or set your own. Recurring gifts let us keep the night vans on the road and the building lights on through January.</p>
+          </div>
+          <div>
+            <div class="tiers" role="group" aria-label="Donation amounts">
+              <button type="button" class="tier"><div class="amt">$25</div><div class="what">A week of meals at Riverside Day Center</div></button>
+              <button type="button" class="tier active"><div class="amt">$100</div><div class="what">Three nights of supportive housing</div></button>
+              <button type="button" class="tier"><div class="amt">$500</div><div class="what">One outreach van shift, fully provisioned</div></button>
+              <button type="button" class="tier"><div class="amt">$1,000</div><div class="what">A full apprentice stipend in Path Back to Work</div></button>
+            </div>
+            <a class="btn" href="#">Donate now →</a>
+          </div>
+        </div>
+
+        <div class="help-row" id="help">
+          <div class="help-card"><div class="ic">⚐</div><h3>Cook a meal</h3><p>Sign up to lead an evening meal at Riverside. We provide ingredients and walk you through it.</p><a href="#">Pick a date →</a></div>
+          <div class="help-card"><div class="ic">⌂</div><h3>Sponsor a unit</h3><p>$8,400/year keeps one apartment open for a neighbor. Companies and families can sponsor by name.</p><a href="#">Sponsor a unit →</a></div>
+          <div class="help-card"><div class="ic">⚙</div><h3>Skilled trades</h3><p>Plumbers, electricians, and HVAC techs: we always have a maintenance backlog. Donate hours.</p><a href="#">Donate hours →</a></div>
+          <div class="help-card"><div class="ic">★</div><h3>Lobby city hall</h3><p>The supportive housing tax credit is up for renewal. Tell your council member you support it.</p><a href="#">Send a letter →</a></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section paper">
+      <div class="wrap">
+        <div class="story-grid">
+          <img src="https://picsum.photos/seed/shelter-house-6/900/1100" width="900" height="1100" alt="Portrait of a Shelter House resident smiling in the doorway of their apartment with a coffee mug in hand." loading="lazy" />
+          <div>
+            <span class="eyebrow"><span class="dot"></span>From a resident</span>
+            <blockquote>“Seven shelters wanted me sober before they'd give me a bed. Shelter House gave me the bed and said, ‘we'll figure the rest out.' Two years later I'm three years sober and I work the night outreach van.”</blockquote>
+            <cite><strong>Anthony R.</strong>Maple Avenue resident since 2023 · Night Outreach team since June 2024</cite>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="transparency">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Where the money goes</span>
+          <h2>Audited each year. <em>Posted</em> each quarter.</h2>
+          <p class="lede">Cole &amp; Hatcher LLP audits our books annually. Quarterly statements with full program-level cost breakdowns are public, no email gate.</p>
+        </div>
+        <div class="trans-card">
+          <div class="ledger">
+            <div class="row"><span>Housing operations (3 buildings, 412 units)</span><span>62%</span></div>
+            <div class="row"><span>Outreach + day services</span><span>21%</span></div>
+            <div class="row"><span>Workforce program</span><span>9%</span></div>
+            <div class="row"><span>Fundraising</span><span>5%</span></div>
+            <div class="row"><span>Administration</span><span>3%</span></div>
+            <div class="row"><span>Programs total (vs. sector median of 78%)</span><strong>92%</strong></div>
+          </div>
+          <div>
+            <h3 style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 24px; font-weight: 700; margin: 0 0 12px;">Read the books.</h3>
+            <p style="color: var(--ink-2); margin-bottom: 18px;">Three years of audited statements, Form 990s, and our salary disclosures (executive director included).</p>
+            <a class="btn btn-ghost" href="#" style="margin-right: 10px;">2025 annual report</a>
+            <a class="btn btn-ghost" href="#">Form 990 (2024)</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section paper" id="team">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>The people <em>showing up</em> at 3 AM.</h2>
+          <p class="lede">Our team is local. Forty percent of our staff have lived experience of homelessness. Salaries are posted in the annual report.</p>
+        </div>
+        <div class="team">
+          <div class="person"><img src="https://picsum.photos/seed/shelter-house-7/500/500" width="500" height="500" alt="Portrait of Shelter House executive director." loading="lazy" /><h4>Marquis Trent</h4><p>Executive Director</p></div>
+          <div class="person"><img src="https://picsum.photos/seed/shelter-house-8/500/500" width="500" height="500" alt="Portrait of Shelter House director of housing." loading="lazy" /><h4>Dawn O'Sullivan</h4><p>Director of Housing</p></div>
+          <div class="person"><img src="https://picsum.photos/seed/shelter-house-9/500/500" width="500" height="500" alt="Portrait of Shelter House lead outreach worker." loading="lazy" /><h4>Hector Ramos</h4><p>Lead Outreach Worker</p></div>
+          <div class="person"><img src="https://picsum.photos/seed/shelter-house-10/500/500" width="500" height="500" alt="Portrait of Shelter House chief financial officer." loading="lazy" /><h4>Renee Whitaker</h4><p>Chief Financial Officer</p></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a class="brand" href="#" style="color: var(--bg); margin-bottom: 14px;"><span class="brand-mark">SH</span>Shelter House</a>
+          <p style="font-size: 14px; max-width: 320px;">A Cleveland-based homeless services nonprofit. 501(c)(3) EIN 34-1928104. Founded 1986. Three buildings, two outreach vans, one front door.</p>
+          <p style="font-size: 14px; margin-top: 14px;"><strong style="color: #fff;">24-hour line:</strong> 1-833-555-0114</p>
+          <a class="btn btn-primary" href="#donate" style="margin-top: 12px;">Donate now</a>
+        </div>
+        <div class="foot-col">
+          <h4>Programs</h4>
+          <a href="#">Maple Avenue Apartments</a>
+          <a href="#">Night Outreach Vans</a>
+          <a href="#">Riverside Day Center</a>
+          <a href="#">Path Back to Work</a>
+        </div>
+        <div class="foot-col">
+          <h4>Get involved</h4>
+          <a href="#">Cook a meal</a>
+          <a href="#">Sponsor a unit</a>
+          <a href="#">Donate trades hours</a>
+          <a href="#">Lobby city hall</a>
+        </div>
+        <div class="foot-col">
+          <h4>Contact</h4>
+          <a href="mailto:hello@shelterhouse.org">hello@shelterhouse.org</a>
+          <a href="tel:+12165550114">+1 (216) 555-0114</a>
+          <a href="#">2240 Superior Avenue, Cleveland, OH 44114</a>
+          <a href="#">Newsletter</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Shelter House · 501(c)(3) EIN 34-1928104</span>
+        <span>Audited annually by Cole &amp; Hatcher LLP</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.querySelectorAll('.tier').forEach(t => t.addEventListener('click', () => {
+      document.querySelectorAll('.tier').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+    }));
+  </script>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

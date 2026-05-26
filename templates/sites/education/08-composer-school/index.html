@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Composer School — Online studies in music composition</title>
+  <meta name="description" content="A small online conservatory for composition, theory, and orchestration. Live private lessons, weekly seminars, and the score in your hand." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --surface: #131210;
+      --surface-2: #1c1a16;
+      --border: rgba(244, 236, 216, 0.10);
+      --border-strong: rgba(244, 236, 216, 0.22);
+      --fg: #f4ecd8;
+      --fg-2: #b8af9a;
+      --fg-3: #777063;
+      --accent: #d4af37;
+      --accent-deep: #b39125;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--fg); font-family: 'Inter', system-ui, sans-serif; font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1160px; margin: 0 auto; padding: 0 32px; }
+    .serif { font-family: 'EB Garamond', Georgia, serif; }
+
+    .nav { position: sticky; top: 0; z-index: 50; background: rgba(10, 10, 10, 0.85); backdrop-filter: blur(14px); border-bottom: 1px solid var(--border); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 76px; }
+    .brand { font-family: 'EB Garamond', serif; font-size: 26px; font-weight: 500; letter-spacing: 0.02em; }
+    .brand-sub { display: block; font-family: 'Inter'; font-size: 10px; font-weight: 500; letter-spacing: 0.32em; color: var(--accent); text-transform: uppercase; margin-top: -4px; }
+    .nav-links { display: flex; gap: 32px; color: var(--fg-2); font-size: 14px; }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta { display: flex; gap: 10px; align-items: center; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 22px; border-radius: 0; font-weight: 500; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; border: 1px solid transparent; cursor: pointer; transition: background 200ms; }
+    .btn-primary { background: var(--accent); color: #0a0a0a; }
+    .btn-primary:hover { background: var(--accent-deep); }
+    .btn-ghost { background: transparent; color: var(--fg); border-color: var(--fg); }
+    .btn-ghost:hover { background: var(--fg); color: var(--bg); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    .hero { padding: 96px 0 80px; border-bottom: 1px solid var(--border); position: relative; overflow: hidden; }
+    .hero-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 80px; align-items: center; }
+    .eyebrow { display: inline-block; font-size: 11px; letter-spacing: 0.34em; text-transform: uppercase; color: var(--accent); padding-bottom: 12px; border-bottom: 1px solid var(--accent); margin-bottom: 32px; }
+    h1 { font-family: 'EB Garamond', serif; font-size: clamp(48px, 8vw, 96px); line-height: 1; letter-spacing: -0.005em; font-weight: 400; margin: 0 0 28px; }
+    h1 em { font-style: italic; color: var(--accent); }
+    .lede { font-family: 'EB Garamond', serif; font-style: italic; font-size: 21px; color: var(--fg-2); max-width: 480px; line-height: 1.55; }
+    .hero-cta { display: flex; gap: 14px; margin-top: 40px; flex-wrap: wrap; }
+    .hero-art { position: relative; }
+    .hero-art img { width: 100%; aspect-ratio: 3/4; object-fit: cover; filter: contrast(1.05) saturate(0.9); }
+    .hero-art .caption { font-family: 'EB Garamond', serif; font-style: italic; font-size: 13px; color: var(--fg-3); margin-top: 14px; }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 48px; } }
+    @media (max-width: 720px) { .hero { padding: 64px 0; } .hero-cta .btn { width: 100%; justify-content: center; } }
+
+    .section { padding: 96px 0; }
+    .section-head { max-width: 720px; margin-bottom: 56px; }
+    .section h2 { font-family: 'EB Garamond', serif; font-size: clamp(40px, 5.4vw, 64px); letter-spacing: -0.005em; line-height: 1.05; font-weight: 400; margin: 12px 0 16px; }
+    .section h2 em { font-style: italic; color: var(--accent); }
+
+    .courses { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border-top: 1px solid var(--border); }
+    .course { padding: 40px 32px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .course:nth-child(3n) { border-right: 0; }
+    .course .num { font-family: 'EB Garamond', serif; font-style: italic; color: var(--accent); font-size: 22px; }
+    .course h3 { font-family: 'EB Garamond', serif; font-size: 32px; font-weight: 400; margin: 8px 0 14px; line-height: 1.1; }
+    .course p { color: var(--fg-2); margin: 0; font-size: 15px; }
+    .course .meta { margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--border); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--fg-3); display: flex; justify-content: space-between; }
+    @media (max-width: 1080px) { .courses { grid-template-columns: 1fr; } .course { border-right: 0; } }
+
+    .how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 60px; }
+    .step .num { font-family: 'EB Garamond', serif; font-style: italic; color: var(--accent); font-size: 60px; line-height: 1; }
+    .step h3 { font-family: 'EB Garamond', serif; font-size: 26px; font-weight: 400; margin: 18px 0 10px; }
+    .step p { color: var(--fg-2); margin: 0; font-size: 15px; }
+    @media (max-width: 720px) { .how { grid-template-columns: 1fr; gap: 36px; } }
+
+    .faculty { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; }
+    .person { display: flex; flex-direction: column; gap: 12px; }
+    .person img { width: 100%; aspect-ratio: 4/5; object-fit: cover; filter: grayscale(80%) contrast(1.05); transition: filter 240ms; }
+    .person:hover img { filter: grayscale(0%) contrast(1.05); }
+    .person h4 { font-family: 'EB Garamond', serif; margin: 0; font-size: 24px; font-weight: 400; }
+    .person .role { color: var(--accent); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 500; }
+    .person p { color: var(--fg-2); font-size: 14px; margin: 0; font-style: italic; font-family: 'EB Garamond'; }
+    @media (max-width: 1080px) { .faculty { grid-template-columns: repeat(2, 1fr); } }
+
+    .outcomes { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; }
+    .quote { border-left: 1px solid var(--accent); padding: 12px 0 12px 36px; }
+    .quote p { font-family: 'EB Garamond', serif; font-size: 28px; font-style: italic; line-height: 1.35; margin: 0 0 24px; font-weight: 400; color: var(--fg); }
+    .quote .who { font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--fg-3); }
+    .quote .who strong { color: var(--accent); font-weight: 500; }
+    @media (max-width: 720px) { .outcomes { grid-template-columns: 1fr; } }
+
+    .pricing { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .plan { background: var(--surface); border: 1px solid var(--border); padding: 44px 36px; display: flex; flex-direction: column; }
+    .plan.featured { border-color: var(--accent); }
+    .plan h3 { font-family: 'EB Garamond', serif; font-size: 30px; font-weight: 400; margin: 0 0 8px; }
+    .plan .price { font-family: 'EB Garamond', serif; font-size: 60px; font-weight: 400; margin: 12px 0 4px; line-height: 1; }
+    .plan .price small { font-family: 'Inter'; font-size: 13px; color: var(--fg-3); letter-spacing: 0.06em; }
+    .plan .desc { color: var(--fg-2); font-size: 14px; font-style: italic; font-family: 'EB Garamond'; min-height: 44px; }
+    .plan ul { list-style: none; padding: 0; margin: 28px 0; flex: 1; }
+    .plan li { padding: 10px 0; color: var(--fg-2); font-size: 14px; display: flex; gap: 12px; border-bottom: 1px dashed var(--border); }
+    .plan li:last-child { border: 0; }
+    .plan li::before { content: '♪'; color: var(--accent); flex-shrink: 0; }
+    @media (max-width: 1080px) { .pricing { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; } }
+
+    .faq { max-width: 820px; margin: 0 auto; }
+    .faq details { border-bottom: 1px solid var(--border); padding: 26px 0; }
+    .faq summary { cursor: pointer; font-family: 'EB Garamond', serif; font-weight: 400; font-size: 26px; list-style: none; display: flex; justify-content: space-between; align-items: baseline; }
+    .faq summary::after { content: '+'; color: var(--accent); font-size: 28px; font-weight: 300; }
+    .faq details[open] summary::after { content: '−'; }
+    .faq p { color: var(--fg-2); margin: 14px 0 0; font-size: 16px; }
+
+    footer.site { border-top: 1px solid var(--border); padding: 56px 0 32px; background: var(--surface); }
+    .foot-grid { display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 48px; }
+    .foot-col h4 { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent); margin: 0 0 18px; font-weight: 500; }
+    .foot-col a { display: block; color: var(--fg-2); font-size: 14px; padding: 6px 0; }
+    .foot-col a:hover { color: var(--accent); }
+    .foot-bot { margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; color: var(--fg-3); font-size: 12px; letter-spacing: 0.08em; }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 12px; text-align: center; } }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">Composer School<span class="brand-sub">conservatory online</span></a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#courses">Courses</a>
+        <a href="#how">How it works</a>
+        <a href="#faculty">Faculty</a>
+        <a href="#pricing">Tuition</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-ghost" href="#">Apply</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow">Autumn term · cohort vii</span>
+            <h1>Begin to <em>compose</em>.</h1>
+            <p class="lede">Composer School is a small online conservatory for composition, music theory, and orchestration. Weekly private lessons with a working composer, a Friday seminar with the cohort, and the score in your hand at the end.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#courses">View courses</a>
+              <a class="btn btn-ghost" href="#how">How it works</a>
+            </div>
+          </div>
+          <div class="hero-art">
+            <img src="https://picsum.photos/seed/composer-hero/900/1200" width="900" height="1200" alt="A composer's desk with a score in progress, a pencil, and a metronome." loading="eager" />
+            <p class="caption">Maestro Ravel's table, reconstructed. Lyon, 2026.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="courses">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Course of study</span>
+          <h2>Six courses, three <em>years</em>.</h2>
+          <p class="lede" style="font-family: 'Inter'; font-style: normal; font-size: 17px;">A full three-year course of study taken at the student's pace. Most students complete two courses per term.</p>
+        </div>
+        <div class="courses">
+          <article class="course">
+            <span class="num">i.</span>
+            <h3>Harmony &amp; voice leading</h3>
+            <p>The grammar of Western tonal music. Daily exercises, weekly chorale, and one short prelude at term's end.</p>
+            <div class="meta"><span>Year I</span><span>14 weeks</span></div>
+          </article>
+          <article class="course">
+            <span class="num">ii.</span>
+            <h3>Counterpoint, species through fugue</h3>
+            <p>From two-voice species exercises to the three-voice fugue. The discipline of writing against yourself.</p>
+            <div class="meta"><span>Year I–II</span><span>16 weeks</span></div>
+          </article>
+          <article class="course">
+            <span class="num">iii.</span>
+            <h3>Form &amp; analysis</h3>
+            <p>Sonata, rondo, theme &amp; variations, and the small forms. Listen, analyze, then write your own.</p>
+            <div class="meta"><span>Year II</span><span>12 weeks</span></div>
+          </article>
+          <article class="course">
+            <span class="num">iv.</span>
+            <h3>Orchestration I &amp; II</h3>
+            <p>The instruments, their habits, and how to write for them in chamber and full orchestra settings.</p>
+            <div class="meta"><span>Year II–III</span><span>20 weeks</span></div>
+          </article>
+          <article class="course">
+            <span class="num">v.</span>
+            <h3>20th-century techniques</h3>
+            <p>Modes, set theory, serialism, spectralism, and the language of contemporary composition.</p>
+            <div class="meta"><span>Year III</span><span>14 weeks</span></div>
+          </article>
+          <article class="course">
+            <span class="num">vi.</span>
+            <h3>Composition portfolio</h3>
+            <p>A capstone year. Three works completed and performed by professional musicians in a Paris session.</p>
+            <div class="meta"><span>Year III</span><span>26 weeks</span></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="how" style="background: var(--surface);">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">How a term unfolds</span>
+          <h2>Three <em>weekly</em> rituals.</h2>
+        </div>
+        <div class="how">
+          <div class="step">
+            <div class="num">i.</div>
+            <h3>Private lesson, every Monday</h3>
+            <p>A 60-minute one-on-one lesson with your composition teacher. Bring your sketches; leave with comments and a homework score.</p>
+          </div>
+          <div class="step">
+            <div class="num">ii.</div>
+            <h3>Cohort seminar, every Friday</h3>
+            <p>A two-hour live seminar with the cohort. Two students share a work-in-progress; the room responds with care.</p>
+          </div>
+          <div class="step">
+            <div class="num">iii.</div>
+            <h3>Hearing the music</h3>
+            <p>Every term ends with a Paris recording session. Your score is played by professional musicians and given to you as audio.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="faculty">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Faculty</span>
+          <h2>Living <em>composers</em>.</h2>
+          <p class="lede" style="font-family: 'Inter'; font-style: normal; font-size: 17px;">Each member of our faculty is a working composer with a recent commission or recording.</p>
+        </div>
+        <div class="faculty">
+          <div class="person">
+            <img src="https://picsum.photos/seed/cs-f1/500/600" width="500" height="600" alt="Portrait of Maestro Hadewych De Smet." loading="lazy" />
+            <h4>Hadewych De Smet</h4>
+            <span class="role">Chair · Orchestral</span>
+            <p>Composer-in-residence, Antwerp Symphony.</p>
+          </div>
+          <div class="person">
+            <img src="https://picsum.photos/seed/cs-f2/500/600" width="500" height="600" alt="Portrait of Maestro Tarō Kuriyama." loading="lazy" />
+            <h4>Tarō Kuriyama</h4>
+            <span class="role">Chamber · Mixed media</span>
+            <p>Premiered at Suntory Hall, Tokyo, 2025.</p>
+          </div>
+          <div class="person">
+            <img src="https://picsum.photos/seed/cs-f3/500/600" width="500" height="600" alt="Portrait of Maestra Mireille Aubin." loading="lazy" />
+            <h4>Mireille Aubin</h4>
+            <span class="role">Theory · Counterpoint</span>
+            <p>Lecturer in counterpoint, Conservatoire de Paris.</p>
+          </div>
+          <div class="person">
+            <img src="https://picsum.photos/seed/cs-f4/500/600" width="500" height="600" alt="Portrait of Maestro Bashir Halabi." loading="lazy" />
+            <h4>Bashir Halabi</h4>
+            <span class="role">Film &amp; concert</span>
+            <p>Scores for Mubi originals; concert works for Ensemble Modern.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="outcomes" style="background: var(--surface);">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Voices</span>
+          <h2>From the <em>students</em>.</h2>
+        </div>
+        <div class="outcomes">
+          <figure class="quote">
+            <p>The Friday seminar was the most generous room I have ever shared as a composer. I left every meeting with three pages of useful notes and one new friend.</p>
+            <div class="who"><strong>Léa M.</strong> — Orchestration II, 2024</div>
+          </figure>
+          <figure class="quote">
+            <p>I wrote my first string quartet in this program, and a chamber group recorded it in Paris. I had been writing in private for fifteen years.</p>
+            <div class="who"><strong>Hannes O.</strong> — Composition Portfolio, 2025</div>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="pricing">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Tuition</span>
+          <h2>Per <em>term</em>, per course.</h2>
+        </div>
+        <div class="pricing">
+          <div class="plan">
+            <h3>Audit</h3>
+            <div class="price">$680<small> / course</small></div>
+            <p class="desc">Attend lectures and seminars; no graded work.</p>
+            <ul>
+              <li>All seminars + recordings</li>
+              <li>Reading and listening lists</li>
+              <li>Score library access</li>
+            </ul>
+            <a class="btn btn-ghost" href="#">Audit</a>
+          </div>
+          <div class="plan featured">
+            <h3>Full credit</h3>
+            <div class="price">$1,950<small> / course</small></div>
+            <p class="desc">Private lessons, graded work, end-of-term recording.</p>
+            <ul>
+              <li>Weekly 60-min private lesson</li>
+              <li>Weekly cohort seminar</li>
+              <li>Graded weekly exercises</li>
+              <li>End-of-term recording session</li>
+              <li>Certificate of completion</li>
+            </ul>
+            <a class="btn btn-primary" href="#">Apply</a>
+          </div>
+          <div class="plan">
+            <h3>Diploma path</h3>
+            <div class="price">$22,000<small> / 3 years</small></div>
+            <p class="desc">All six courses, capstone, and Paris recording.</p>
+            <ul>
+              <li>Full curriculum, 3 years</li>
+              <li>Capstone portfolio</li>
+              <li>Paris recording, professional ensemble</li>
+              <li>Composer School diploma</li>
+              <li>Career mentoring after graduation</li>
+            </ul>
+            <a class="btn btn-ghost" href="#">Apply</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="faq" style="background: var(--surface);">
+      <div class="wrap">
+        <div class="section-head" style="margin: 0 auto 40px; text-align: center;">
+          <span class="eyebrow">Questions</span>
+          <h2>Common <em>asks</em>.</h2>
+        </div>
+        <div class="faq">
+          <details>
+            <summary>What level of music must I bring?</summary>
+            <p>You should read music fluently and know your major and minor scales. Year I assumes no formal harmony background. Applicants submit a 30-second written exercise with their application.</p>
+          </details>
+          <details>
+            <summary>Is the school accredited?</summary>
+            <p>Composer School is not a university and does not grant degrees. Our diploma is recognized within the European new music community and several of our alumni hold positions in working ensembles.</p>
+          </details>
+          <details>
+            <summary>What software do I need?</summary>
+            <p>Any modern notation software is fine — Dorico, Sibelius, MuseScore, or Finale. You should also have a piano or MIDI keyboard available for work between lessons.</p>
+          </details>
+          <details>
+            <summary>Are recordings included in the tuition?</summary>
+            <p>End-of-term recording sessions are included for full-credit and diploma students. Audit students may purchase a session separately.</p>
+          </details>
+          <details>
+            <summary>Is financial aid available?</summary>
+            <p>Yes. A limited number of partial tuition grants are available each term. The application is included in the academic application form.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site">
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a class="brand" href="#" style="margin-bottom: 16px;">Composer School<span class="brand-sub">conservatory online</span></a>
+          <p style="color: var(--fg-2); font-size: 14px; max-width: 280px;">A small online conservatory for composition, theory, and orchestration. Working composers, weekly lessons, the score in your hand.</p>
+        </div>
+        <div class="foot-col">
+          <h4>Studies</h4>
+          <a href="#">Courses</a>
+          <a href="#">Faculty</a>
+          <a href="#">Library</a>
+          <a href="#">Apply</a>
+        </div>
+        <div class="foot-col">
+          <h4>School</h4>
+          <a href="#">Calendar</a>
+          <a href="#">Tuition</a>
+          <a href="#">Aid</a>
+          <a href="#">FAQ</a>
+        </div>
+        <div class="foot-col">
+          <h4>Office</h4>
+          <a href="#">Paris</a>
+          <a href="#">New York</a>
+          <a href="#">Press</a>
+          <a href="#">Contact</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Composer School</span>
+        <span>Música, in memoriam — for those who taught us</span>
+      </div>
+    </div>
+  </footer>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

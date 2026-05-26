@@ -1,0 +1,34 @@
+{
+  "slug": "saas-04-ledgerpro",
+  "title": "LedgerPro",
+  "subtitle": "Accounting for builders. Real-time books, audit-ready ledgers.",
+  "category": "SaaS",
+  "type": "Apps",
+  "tags": [
+    "dark",
+    "fintech",
+    "trustworthy",
+    "serif",
+    "accounting"
+  ],
+  "previewImage": "/templates/saas-04-ledgerpro.jpg",
+  "palette": {
+    "bg": "#0b1736",
+    "fg": "#f6f1de",
+    "accent": "#d4af37"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "logos",
+    "features",
+    "audit",
+    "quote",
+    "pricing",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the LedgerPro template as the foundation for a fintech-grade accounting SaaS: navy + gold palette, serif headlines, a live journal entry mockup, audit packet section with compliance badges, recognized quote, and per-entity pricing.",
+  "livePreview": "/template-previews/saas-04-ledgerpro/"
+}

@@ -1,0 +1,33 @@
+{
+  "slug": "education-09-lawpath",
+  "title": "LawPath",
+  "subtitle": "Bar exam prep and 1L study materials built by practicing attorneys.",
+  "category": "Education",
+  "type": "Apps",
+  "tags": [
+    "serious",
+    "law",
+    "serif",
+    "navy"
+  ],
+  "previewImage": "/templates/education-09-lawpath.jpg",
+  "palette": {
+    "bg": "#0b1736",
+    "fg": "#efe1c8",
+    "accent": "#efe1c8"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "tracks",
+    "how",
+    "instructors",
+    "outcomes",
+    "pricing",
+    "faq",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the LawPath template as the foundation for a serious, navy-and-cream bar exam prep site. Keep the serif headings, deep navy background, cream typography, and attorney-built tone. Replace tracks, instructor bios, and pricing with the customer's real catalog.",
+  "livePreview": "/template-previews/education-09-lawpath/"
+}

@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mariposa — Modern Mexican and a mezcal program</title>
+  <meta name="description" content="A modern Mexican restaurant on Mission Street with a forty-six-bottle mezcal program. Heirloom-corn tortillas, live-fire seafood, and a long bar." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=Marcellus&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #102246;
+      --bg-2: #182f5e;
+      --bg-3: #0a1832;
+      --paper: #fbf4ea;
+      --paper-2: #f3e5cb;
+      --fg: #fbf4ea;
+      --fg-2: rgba(251, 244, 234, 0.74);
+      --fg-3: rgba(251, 244, 234, 0.42);
+      --accent: #ff6c3a;
+      --accent-2: #ff8b5f;
+      --gold: #d8a850;
+      --rule: rgba(251, 244, 234, 0.14);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 0 28px; }
+    .display { font-family: 'Bricolage Grotesque', 'Inter', sans-serif; font-weight: 800; letter-spacing: -0.03em; }
+    .serif { font-family: 'Marcellus', serif; }
+    .eyebrow {
+      font-size: 11px; letter-spacing: 0.32em; text-transform: uppercase;
+      color: var(--accent); font-weight: 600;
+    }
+
+    /* Nav */
+    .nav {
+      position: absolute; top: 0; left: 0; right: 0; z-index: 50;
+      padding: 28px 0;
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand {
+      display: flex; align-items: center; gap: 10px;
+      font-family: 'Marcellus', serif;
+      font-size: 28px; letter-spacing: 0.04em;
+    }
+    .brand-mark {
+      width: 32px; height: 32px;
+      background: var(--accent);
+      clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    }
+    .nav-links { display: flex; gap: 36px; font-size: 13px; color: var(--fg-2); letter-spacing: 0.06em; text-transform: uppercase; }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta {
+      background: var(--accent); color: var(--bg);
+      padding: 12px 24px; border-radius: 999px;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.14em;
+      text-transform: uppercase; transition: background 200ms;
+    }
+    .nav-cta:hover { background: var(--accent-2); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      overflow: hidden;
+      display: flex; align-items: center;
+      padding: 120px 0 80px;
+    }
+    .hero-bg { position: absolute; inset: 0; z-index: 0; }
+    .hero-bg img { width: 100%; height: 100%; object-fit: cover; }
+    .hero-bg::after {
+      content: ''; position: absolute; inset: 0;
+      background:
+        radial-gradient(circle at 80% 30%, rgba(255, 108, 58, 0.25), transparent 50%),
+        linear-gradient(180deg, rgba(16, 34, 70, 0.6) 0%, rgba(16, 34, 70, 0.2) 30%, rgba(16, 34, 70, 0.92) 100%);
+    }
+    .hero-content { position: relative; z-index: 2; max-width: 820px; }
+    h1 {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: clamp(64px, 10vw, 152px);
+      line-height: 0.9; letter-spacing: -0.04em;
+      font-weight: 800; margin: 24px 0 28px;
+    }
+    h1 .serif-bit {
+      font-family: 'Marcellus', serif;
+      font-style: italic; font-weight: 400;
+      color: var(--accent); letter-spacing: -0.01em;
+    }
+    .lede { font-size: 20px; color: var(--fg-2); max-width: 600px; line-height: 1.55; }
+    .hero-cta { display: flex; gap: 16px; margin-top: 40px; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center;
+      padding: 16px 32px; border-radius: 999px;
+      font-size: 13px; font-weight: 700;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      transition: transform 200ms, background 200ms;
+    }
+    .btn-primary { background: var(--accent); color: var(--bg); }
+    .btn-primary:hover { background: var(--accent-2); transform: translateY(-1px); }
+    .btn-ghost { background: transparent; color: var(--fg); border: 1px solid var(--rule); }
+    .btn-ghost:hover { border-color: var(--accent); }
+
+    /* Stat band */
+    .stats {
+      position: relative; z-index: 2;
+      padding: 32px 0; background: var(--bg-3);
+      border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+    }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    .stat .val {
+      font-family: 'Marcellus', serif;
+      font-size: 44px; color: var(--accent);
+      line-height: 1; letter-spacing: -0.02em;
+    }
+    .stat .label { font-size: 11px; color: var(--fg-3); letter-spacing: 0.2em; text-transform: uppercase; margin-top: 8px; }
+    @media (max-width: 720px) { .stats-grid { grid-template-columns: 1fr 1fr; gap: 24px; } }
+
+    /* Section */
+    .section { padding: 120px 0; }
+    .section-head { max-width: 760px; margin-bottom: 64px; }
+    h2 {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: clamp(48px, 7vw, 96px);
+      letter-spacing: -0.03em; line-height: 0.95;
+      font-weight: 800; margin: 16px 0 16px;
+    }
+    h2 .serif-bit { font-family: 'Marcellus', serif; font-style: italic; font-weight: 400; color: var(--accent); }
+    .section .lede { font-size: 18px; }
+
+    /* Menu cards */
+    .dishes {
+      display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px;
+    }
+    .dish {
+      position: relative;
+      overflow: hidden;
+      border-radius: 16px;
+      min-height: 360px;
+      background: var(--bg-2);
+    }
+    .dish img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .dish::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(180deg, transparent 35%, rgba(10, 24, 50, 0.92) 100%);
+    }
+    .dish-body {
+      position: absolute; left: 0; right: 0; bottom: 0; z-index: 2;
+      padding: 28px;
+    }
+    .dish .meta { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent-2); margin-bottom: 8px; }
+    .dish h3 { font-family: 'Marcellus', serif; font-size: 28px; font-weight: 400; margin: 0 0 8px; letter-spacing: -0.005em; }
+    .dish p { font-size: 14px; color: var(--fg-2); margin: 0 0 12px; max-width: 480px; line-height: 1.55; }
+    .dish .price { font-family: 'Marcellus', serif; font-size: 22px; color: var(--accent); }
+    .dish.s1 { grid-column: span 8; min-height: 480px; }
+    .dish.s2 { grid-column: span 4; }
+    .dish.s3 { grid-column: span 4; }
+    .dish.s4 { grid-column: span 4; }
+    .dish.s5 { grid-column: span 4; }
+    .dish.s6 { grid-column: span 6; }
+    .dish.s7 { grid-column: span 6; }
+    @media (max-width: 1080px) { .dish { grid-column: span 6 !important; } .dish.s1 { grid-column: span 12 !important; } }
+    @media (max-width: 720px) { .dish { grid-column: span 12 !important; min-height: 320px; } }
+
+    /* Mezcal */
+    .mezcal {
+      background: var(--bg-3);
+      padding: 120px 0;
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+    }
+    .mezcal-grid { display: grid; grid-template-columns: 1fr 1.4fr; gap: 80px; align-items: center; }
+    .mezcal-img { aspect-ratio: 4/5; border-radius: 16px; overflow: hidden; }
+    .mezcal-img img { width: 100%; height: 100%; object-fit: cover; }
+    .mezcal-list { margin-top: 32px; }
+    .pour {
+      display: grid; grid-template-columns: 1fr 100px 80px;
+      gap: 24px; padding: 18px 0;
+      border-bottom: 1px solid var(--rule);
+      align-items: baseline;
+    }
+    .pour .name-block strong { font-family: 'Marcellus', serif; font-size: 20px; font-weight: 400; display: block; }
+    .pour .name-block em { font-style: italic; font-size: 12px; color: var(--fg-3); letter-spacing: 0.06em; text-transform: uppercase; }
+    .pour .agave { font-family: 'Marcellus', serif; font-style: italic; font-size: 14px; color: var(--accent-2); }
+    .pour .price { font-family: 'Marcellus', serif; font-size: 18px; color: var(--accent); text-align: right; }
+    @media (max-width: 1080px) { .mezcal-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 720px) { .pour { grid-template-columns: 1fr 80px; } .pour .agave { grid-column: 1 / -1; margin-top: -8px; } }
+
+    /* Story */
+    .story-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 80px; align-items: center; }
+    .story-img { aspect-ratio: 4/5; border-radius: 16px; overflow: hidden; }
+    .story-img img { width: 100%; height: 100%; object-fit: cover; }
+    .story p { font-size: 18px; color: var(--fg-2); line-height: 1.65; margin: 0 0 18px; }
+    @media (max-width: 1080px) { .story-grid { grid-template-columns: 1fr; gap: 56px; } }
+
+    /* Visit */
+    .visit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; }
+    .hours-list { list-style: none; padding: 0; margin: 24px 0 0; }
+    .hours-list li {
+      display: flex; justify-content: space-between; padding: 16px 0;
+      border-bottom: 1px solid var(--rule); font-size: 16px;
+    }
+    .hours-list li.today { color: var(--accent); }
+    .hours-list li.closed { color: var(--fg-3); }
+    .hours-list .day { font-family: 'Marcellus', serif; font-size: 20px; font-style: italic; }
+    .address-card { font-family: 'Marcellus', serif; font-size: 28px; line-height: 1.4; margin: 32px 0; }
+    .map {
+      aspect-ratio: 4/5;
+      background: var(--bg-3);
+      border-radius: 16px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--rule);
+    }
+    .map::before {
+      content: ''; position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,108,58,0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,108,58,0.08) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .map::after {
+      content: ''; position: absolute; left: 45%; top: 40%;
+      width: 24px; height: 24px;
+      background: var(--accent); border-radius: 50%;
+      box-shadow: 0 0 0 12px rgba(255, 108, 58, 0.2), 0 0 30px rgba(255, 108, 58, 0.6);
+    }
+    .map-label {
+      position: absolute; left: 24px; bottom: 24px;
+      background: var(--bg-3); border: 1px solid var(--accent); color: var(--accent);
+      padding: 10px 16px; border-radius: 999px;
+      font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase;
+    }
+    @media (max-width: 1080px) { .visit-grid { grid-template-columns: 1fr; } }
+
+    /* Press */
+    .press { padding: 64px 0; background: var(--bg-3); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+    .press-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; }
+    .press-card .pub { font-family: 'Marcellus', serif; font-size: 24px; color: var(--accent); margin-bottom: 8px; }
+    .press-card p { color: var(--fg-2); font-size: 14px; margin: 0; line-height: 1.55; font-style: italic; }
+    @media (max-width: 720px) { .press-row { grid-template-columns: 1fr 1fr; gap: 32px; } }
+
+    /* Reserve */
+    .reserve {
+      position: relative; padding: 140px 0;
+      text-align: center; overflow: hidden;
+    }
+    .reserve-bg { position: absolute; inset: 0; }
+    .reserve-bg img { width: 100%; height: 100%; object-fit: cover; opacity: 0.35; }
+    .reserve-bg::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, rgba(16,34,70,0.4), var(--bg) 80%); }
+    .reserve-inner { position: relative; z-index: 2; }
+    .reserve h2 { margin: 16px 0 20px; }
+    .reserve p { font-size: 19px; color: var(--fg-2); max-width: 600px; margin: 0 auto 36px; }
+
+    /* Footer */
+    footer { padding: 64px 0 32px; border-top: 1px solid var(--rule); background: var(--bg-3); }
+    .foot-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; }
+    .foot-col h4 { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin: 0 0 16px; font-weight: 600; }
+    .foot-col a, .foot-col p { display: block; color: var(--fg-2); font-size: 14px; line-height: 1.8; }
+    .foot-col a:hover { color: var(--accent); }
+    .foot-bot { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; color: var(--fg-3); font-size: 12px; letter-spacing: 0.1em; }
+    @media (max-width: 720px) {
+      .foot-grid { grid-template-columns: 1fr 1fr; }
+      .foot-bot { flex-direction: column; gap: 12px; text-align: center; }
+    }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a href="#" class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        Mariposa
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#menu">The Menu</a>
+        <a href="#mezcal">Mezcal</a>
+        <a href="#story">Kitchen</a>
+        <a href="#visit">Visit</a>
+      </nav>
+      <a href="#reserve" class="nav-cta">Reserve</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-bg">
+        <img src="https://picsum.photos/seed/mariposa-1/2200/1400" width="2200" height="1400" alt="A spread of modern Mexican dishes — aguachile, tacos, mole — on the bar at Mariposa." loading="eager" />
+      </div>
+      <div class="wrap hero-content">
+        <span class="eyebrow">Modern Mexican · Mission Street</span>
+        <h1>Loud bar, <span class="serif-bit">long fire,</span> low light.</h1>
+        <p class="lede">A modern Mexican kitchen on Mission Street. Heirloom-corn tortillas pressed to order, live-fire seafood from the Sonora coast, and a forty-six-bottle mezcal program. The bar is open late.</p>
+        <div class="hero-cta">
+          <a href="#reserve" class="btn btn-primary">Reserve a table</a>
+          <a href="#menu" class="btn btn-ghost">See the menu</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats">
+      <div class="wrap">
+        <div class="stats-grid">
+          <div class="stat"><div class="val">46</div><div class="label">Mezcals on the back bar</div></div>
+          <div class="stat"><div class="val">9</div><div class="label">Heirloom corn varieties</div></div>
+          <div class="stat"><div class="val">12 am</div><div class="label">Bar closes, weekends</div></div>
+          <div class="stat"><div class="val">'22</div><div class="label">Year we opened</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="menu">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">The Menu</span>
+          <h2>Cooked over <span class="serif-bit">live fire,</span> pressed to order.</h2>
+          <p class="lede">A short menu, market-driven. Everything that touches a tortilla begins with nine pounds of heirloom corn nixtamalized in our basement.</p>
+        </div>
+
+        <div class="dishes">
+          <article class="dish s1">
+            <img src="https://picsum.photos/seed/mariposa-2/1200/800" width="1200" height="800" alt="Aguachile verde with Baja shrimp at Mariposa." loading="lazy" />
+            <div class="dish-body">
+              <span class="meta">First course · raw</span>
+              <h3>Aguachile verde, Baja shrimp</h3>
+              <p>Wild blue shrimp from Bahía Magdalena, cured in lime, serrano, cilantro, and toasted cucumber. Tostadas, avocado, salt.</p>
+              <span class="price">$22</span>
+            </div>
+          </article>
+
+          <article class="dish s2">
+            <img src="https://picsum.photos/seed/mariposa-3/600/700" width="600" height="700" alt="Heirloom-corn tortillas pressed by hand." loading="lazy" />
+            <div class="dish-body">
+              <span class="meta">From the comal</span>
+              <h3>Tortillas, by the dozen</h3>
+              <p>Pressed to order from nine corn varieties nixtamalized in-house. Butter, sea salt.</p>
+              <span class="price">$10</span>
+            </div>
+          </article>
+
+          <article class="dish s3">
+            <img src="https://picsum.photos/seed/mariposa-4/600/700" width="600" height="700" alt="Charred octopus taco with morita salsa." loading="lazy" />
+            <div class="dish-body">
+              <span class="meta">Taco · 2 per order</span>
+              <h3>Octopus, morita</h3>
+              <p>Live-fire octopus, charred onion, smoked tomato salsa, lime, on a blue corn tortilla.</p>
+              <span class="price">$18</span>
+            </div>
+          </article>
+
+          <article class="dish s4">
+            <img src="https://picsum.photos/seed/mariposa-5/600/700" width="600" height="700" alt="A bowl of red mole over duck breast." loading="lazy" />
+            <div class="dish-body">
+              <span class="meta">Main · 36-hour mole</span>
+              <h3>Duck breast, mole rojo</h3>
+              <p>Long Island duck, hardwood-grilled. Twenty-eight-ingredient red mole. Pumpkin seed, sesame.</p>
+              <span class="price">$42</span>
+            </div>
+          </article>
+
+          <article class="dish s5">
+            <img src="https://picsum.photos/seed/mariposa-6/600/700" width="600" height="700" alt="Cochinita pibil sandwich." loading="lazy" />
+            <div class="dish-body">
+              <span class="meta">Main · Yucatán</span>
+              <h3>Cochinita pibil</h3>
+              <p>Heritage pork shoulder, banana leaf, achiote, sour orange, slow-roasted overnight. Pickled red onion, habanero salsa.</p>
+              <span class="price">$32</span>
+            </div>
+          </article>
+
+          <article class="dish s6">
+            <img src="https://picsum.photos/seed/mariposa-7/800/700" width="800" height="700" alt="Whole branzino al carbon, charred limes." loading="lazy" />
+            <div class="dish-body">
+              <span class="meta">Main · for two · live fire</span>
+              <h3>Whole branzino al carbón</h3>
+              <p>Mesquite-grilled whole sea bass, charred limes, salsa verde cruda, hand-made flour tortillas at the table.</p>
+              <span class="price">$58</span>
+            </div>
+          </article>
+
+          <article class="dish s7">
+            <img src="https://picsum.photos/seed/mariposa-8/800/700" width="800" height="700" alt="Tres leches cake with cajeta." loading="lazy" />
+            <div class="dish-body">
+              <span class="meta">Dessert</span>
+              <h3>Tres leches, smoked cajeta</h3>
+              <p>Soaked sponge, condensed milk three ways, smoked goat-milk caramel. Toasted coconut.</p>
+              <span class="price">$14</span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="mezcal" id="mezcal">
+      <div class="wrap">
+        <div class="mezcal-grid">
+          <div class="mezcal-img">
+            <img src="https://picsum.photos/seed/mariposa-9/900/1100" width="900" height="1100" alt="The Mariposa mezcal back bar with forty-six bottles lined up." loading="lazy" />
+          </div>
+          <div>
+            <span class="eyebrow">The Back Bar</span>
+            <h2>Forty-six <span class="serif-bit">single-village</span> mezcals.</h2>
+            <p class="lede">All from Oaxaca and Michoacán. Mostly small producers, mostly from agaves you've never heard of. Two ounces, in a copita, with orange and worm salt on the side.</p>
+            <div class="mezcal-list">
+              <div class="pour">
+                <div class="name-block"><strong>Real Minero</strong><em>Santa Catarina Minas, Oaxaca</em></div>
+                <span class="agave">espadín</span>
+                <span class="price">$22</span>
+              </div>
+              <div class="pour">
+                <div class="name-block"><strong>Mezcal Vago</strong><em>Candelaria Yegolé, Oaxaca</em></div>
+                <span class="agave">tobalá</span>
+                <span class="price">$28</span>
+              </div>
+              <div class="pour">
+                <div class="name-block"><strong>Del Maguey</strong><em>San Luis del Río, Oaxaca</em></div>
+                <span class="agave">arroqueño</span>
+                <span class="price">$26</span>
+              </div>
+              <div class="pour">
+                <div class="name-block"><strong>El Jolgorio</strong><em>San Juan del Río, Oaxaca</em></div>
+                <span class="agave">tepeztate · 25 yr</span>
+                <span class="price">$48</span>
+              </div>
+              <div class="pour">
+                <div class="name-block"><strong>Don Mateo</strong><em>Etúcuaro, Michoacán</em></div>
+                <span class="agave">cupreata</span>
+                <span class="price">$24</span>
+              </div>
+              <div class="pour">
+                <div class="name-block"><strong>5 Sentidos</strong><em>San Baltazar Chichicápam</em></div>
+                <span class="agave">cuixe</span>
+                <span class="price">$32</span>
+              </div>
+            </div>
+            <p style="color: var(--fg-3); font-size: 13px; margin-top: 28px; font-style: italic;">Forty more on the list. Ask Inés.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="story">
+      <div class="wrap">
+        <div class="story story-grid">
+          <div class="story-img">
+            <img src="https://picsum.photos/seed/mariposa-10/900/1100" width="900" height="1100" alt="Chef Manuel Aguilar at the wood-fire grill in the Mariposa kitchen." loading="lazy" />
+          </div>
+          <div>
+            <span class="eyebrow">Chef · Owner</span>
+            <h2>Manuel <span class="serif-bit">Aguilar.</span></h2>
+            <p>Manuel grew up in Oaxaca City and trained at Pujol in Mexico City under Chef Olvera. He moved to San Francisco in 2017 to work the line at Californios, and opened Mariposa in 2022 on a quiet stretch of Mission Street.</p>
+            <p>The kitchen is built around three obsessions: heirloom corn, live fire, and the bar. Every tortilla starts as dry corn that arrives by mail from a co-op in San Pedro Cajonos. The grill burns mesquite from Sonora. The bar lists mezcals you can't get anywhere else in the city.</p>
+            <p>The food is not "elevated." It is just cooked with care, from ingredients we sourced ourselves.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="press">
+      <div class="wrap">
+        <div class="press-row">
+          <div class="press-card">
+            <div class="pub">Eater · 2024</div>
+            <p>"The best new Mexican restaurant in the country."</p>
+          </div>
+          <div class="press-card">
+            <div class="pub">Bon Appétit · 2024</div>
+            <p>Top 10 Best New Restaurants in America.</p>
+          </div>
+          <div class="press-card">
+            <div class="pub">Michelin Guide · 2025</div>
+            <p>One star — retained.</p>
+          </div>
+          <div class="press-card">
+            <div class="pub">Esquire · 2025</div>
+            <p>"A reason to be on Mission Street again."</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="visit">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Visit</span>
+          <h2>2418 <span class="serif-bit">Mission Street.</span></h2>
+        </div>
+        <div class="visit-grid">
+          <div>
+            <ul class="hours-list">
+              <li class="closed"><span class="day">Monday</span><span>Closed</span></li>
+              <li class="closed"><span class="day">Tuesday</span><span>Closed</span></li>
+              <li id="day-wed"><span class="day">Wednesday</span><span>5:30 pm – 11 pm</span></li>
+              <li id="day-thu"><span class="day">Thursday</span><span>5:30 pm – 11 pm</span></li>
+              <li id="day-fri"><span class="day">Friday</span><span>5:30 pm – 12 am</span></li>
+              <li id="day-sat"><span class="day">Saturday</span><span>5:30 pm – 12 am</span></li>
+              <li id="day-sun"><span class="day">Sunday</span><span>5:30 pm – 10 pm</span></li>
+            </ul>
+            <p class="address-card">2418 Mission Street<br/>San Francisco, CA 94110</p>
+            <p style="color: var(--fg-2); font-size: 14px;">Reservations open thirty days out at noon. The bar is first-come, every night.</p>
+          </div>
+          <div class="map" aria-label="Map showing Mariposa at 2418 Mission Street.">
+            <span class="map-label">2418 Mission</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="reserve" id="reserve">
+    <div class="reserve-bg">
+      <img src="https://picsum.photos/seed/mariposa-11/2200/1200" width="2200" height="1200" alt="The Mariposa dining room at night, candles lit, bar full." loading="lazy" />
+    </div>
+    <div class="wrap reserve-inner">
+      <span class="eyebrow">Reservations</span>
+      <h2>Book a <span class="serif-bit">table.</span></h2>
+      <p>Wednesday through Sunday, two seatings a night. Private dining for parties of twelve to twenty-four. We don't take walk-in tables — the bar is yours.</p>
+      <a href="#" class="btn btn-primary">Reserve on Resy →</a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a href="#" class="brand" style="margin-bottom: 16px;">
+            <span class="brand-mark" aria-hidden="true"></span>
+            Mariposa
+          </a>
+          <p>A modern Mexican restaurant on Mission Street. Heirloom corn, live fire, a long mezcal back bar.</p>
+        </div>
+        <div class="foot-col">
+          <h4>Visit</h4>
+          <a>2418 Mission St.</a>
+          <a>San Francisco, CA 94110</a>
+          <a href="tel:+14155550133">(415) 555 0133</a>
+        </div>
+        <div class="foot-col">
+          <h4>Hours</h4>
+          <a>Wed – Thu · 5:30 to 11</a>
+          <a>Fri – Sat · 5:30 to 12</a>
+          <a>Sun · 5:30 to 10</a>
+        </div>
+        <div class="foot-col">
+          <h4>Follow</h4>
+          <a href="#">Instagram</a>
+          <a href="#">Resy</a>
+          <a href="#">Private Events</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Mariposa Hospitality Group</span>
+        <span>Mission Street · since 2022</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var days = ['day-sun','day-mon','day-tue','day-wed','day-thu','day-fri','day-sat'];
+      var idx = new Date().getDay();
+      var el = document.getElementById(days[idx]);
+      if (el) el.classList.add('today');
+    })();
+  </script>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

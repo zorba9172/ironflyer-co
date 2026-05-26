@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pricing — PulseAnalytics</title>
+  <meta name="description" content="Priced on insights, not seats. Starter, Growth, Scale, and Enterprise plans with full feature comparison." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root { --bg:#faf8f3; --paper:#fff; --ink:#14181f; --ink-2:#4d5563; --ink-3:#8b929e; --rule:#e7e2d6; --rule-strong:#cfc8b6; --accent:#1d4ed8; --accent-soft:#e6edff; --accent-deep:#142d8a; --good:#15803d; --radius-sm:6px; --radius-md:10px; --radius-lg:18px; }
+    * { box-sizing: border-box; } html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--ink); font-family: 'Inter', -apple-system, system-ui, sans-serif; font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; } .wrap { max-width: 1200px; margin: 0 auto; padding: 0 28px; }
+    .nav { position: sticky; top: 0; z-index: 50; background: rgba(250,248,243,0.9); backdrop-filter: blur(16px); border-bottom: 1px solid var(--rule); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 68px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: -0.015em; font-size: 17px; }
+    .brand-mark { width: 30px; height: 30px; border-radius: 8px; background: var(--accent); display: grid; place-items: center; color: white; font-weight: 800; font-family: 'JetBrains Mono', monospace; font-size: 16px; }
+    .nav-links { display: flex; gap: 30px; font-size: 14px; color: var(--ink-2); font-weight: 500; }
+    .nav-links a:hover, .nav-links a.current { color: var(--ink); }
+    .nav-cta { display: flex; gap: 10px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 18px; border-radius: var(--radius-sm); font-weight: 600; font-size: 14px; border: 1px solid transparent; cursor: pointer; transition: transform 160ms ease, background 160ms ease; }
+    .btn-primary { background: var(--accent); color: white; } .btn-primary:hover { background: var(--accent-deep); transform: translateY(-1px); }
+    .btn-ghost { background: transparent; color: var(--ink); border-color: var(--rule-strong); } .btn-ghost:hover { border-color: var(--ink); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    .hero { padding: 80px 0 40px; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border: 1px solid var(--rule-strong); background: var(--paper); border-radius: 999px; font-size: 12px; color: var(--ink-2); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    h1 { font-family: 'Fraunces', Georgia, serif; font-size: clamp(44px, 6.4vw, 80px); font-weight: 600; line-height: 1.02; letter-spacing: -0.028em; margin: 22px 0 22px; max-width: 920px; }
+    h1 em { font-style: italic; color: var(--accent); }
+    .lede { font-size: 19px; color: var(--ink-2); max-width: 720px; }
+
+    .section { padding: 56px 0 88px; }
+    .section h2 { font-family: 'Fraunces', Georgia, serif; font-size: clamp(34px, 4.6vw, 56px); letter-spacing: -0.022em; line-height: 1.05; font-weight: 600; margin: 14px 0 16px; }
+    .section h2 em { font-style: italic; color: var(--accent); }
+    .section-head { max-width: 760px; margin-bottom: 40px; }
+
+    .pricing { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .plan { background: var(--paper); border: 1px solid var(--rule); border-radius: var(--radius-md); padding: 28px; display: flex; flex-direction: column; }
+    .plan.featured { border-color: var(--accent); box-shadow: 0 18px 36px -16px rgba(29,78,216,0.25); position: relative; }
+    .plan.featured::after { content: 'POPULAR'; position: absolute; top: -10px; right: 20px; background: var(--accent); color: white; font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 4px 8px; border-radius: 4px; letter-spacing: 0.08em; font-weight: 700; }
+    .plan h3 { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 600; margin: 0; }
+    .plan .price { font-family: 'Fraunces', serif; font-size: 40px; font-weight: 600; letter-spacing: -0.02em; margin: 14px 0 4px; }
+    .plan .price small { font-size: 14px; color: var(--ink-3); font-family: 'Inter', sans-serif; }
+    .plan .desc { color: var(--ink-2); font-size: 14px; min-height: 44px; }
+    .plan ul { list-style: none; padding: 0; margin: 18px 0; flex: 1; }
+    .plan li { padding: 7px 0; color: var(--ink-2); font-size: 13.5px; display: flex; gap: 10px; align-items: flex-start; }
+    .plan li::before { content: '◆'; color: var(--accent); font-size: 11px; margin-top: 4px; flex-shrink: 0; }
+    @media (max-width: 1080px) { .pricing { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .pricing { grid-template-columns: 1fr; max-width: 460px; margin: 0 auto; } }
+
+    .compare-wrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: var(--radius-md); background: var(--paper); }
+    table.compare { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 720px; }
+    .compare th, .compare td { padding: 16px 20px; text-align: left; border-bottom: 1px solid var(--rule); }
+    .compare thead th { font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); background: var(--bg); }
+    .compare td.yes { color: var(--accent); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+    .compare td.no { color: var(--ink-3); }
+
+    .faq { max-width: 880px; margin: 0 auto; }
+    .faq details { background: var(--paper); border: 1px solid var(--rule); border-radius: var(--radius-md); margin-bottom: 10px; }
+    .faq details[open] { border-color: var(--rule-strong); }
+    .faq summary { padding: 18px 22px; cursor: pointer; font-weight: 600; font-size: 16px; list-style: none; position: relative; font-family: 'Fraunces', serif; font-size: 19px; }
+    .faq summary::-webkit-details-marker { display: none; }
+    .faq summary::after { content: '+'; position: absolute; right: 22px; color: var(--accent); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+    .faq details[open] summary::after { content: '−'; }
+    .faq p { padding: 0 22px 20px; color: var(--ink-2); margin: 0; font-size: 15px; line-height: 1.6; }
+
+    .cta-band { padding: 96px 0; text-align: center; background: var(--paper); border-top: 1px solid var(--rule); }
+    .cta-band h2 { font-family: 'Fraunces', serif; font-size: clamp(36px, 5.5vw, 60px); font-weight: 600; letter-spacing: -0.025em; line-height: 1.05; margin: 0 0 18px; }
+    .cta-band h2 em { font-style: italic; color: var(--accent); }
+    .cta-band p { color: var(--ink-2); max-width: 540px; margin: 0 auto 28px; font-size: 18px; }
+
+    footer { padding: 56px 0 36px; }
+    .foot-grid { display: grid; grid-template-columns: 1.6fr repeat(3, 1fr); gap: 44px; }
+    .foot-col h4 { font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-3); margin: 0 0 16px; }
+    .foot-col a { display: block; color: var(--ink-2); font-size: 14px; padding: 6px 0; } .foot-col a:hover { color: var(--ink); }
+    .foot-bot { margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; color: var(--ink-3); font-size: 13px; font-family: 'JetBrains Mono', monospace; }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 12px; text-align: center; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="index.html"><span class="brand-mark">P</span>PulseAnalytics</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="index.html">Product</a>
+        <a href="index.html#attribution">Attribution</a>
+        <a href="about.html">About</a>
+        <a href="pricing.html" class="current">Pricing</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-ghost" href="#">Sign in</a>
+        <a class="btn btn-primary" href="contact.html">Book a demo</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <span class="eyebrow"><span class="dot"></span>Pricing</span>
+        <h1>Priced on <em>insights</em>, not seats.</h1>
+        <p class="lede">Every plan includes unlimited viewers and editors. Your finance team should see the dashboards too — for free. Charges scale with events analysed, not the people allowed to look.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="pricing">
+          <div class="plan">
+            <h3>Starter</h3>
+            <div class="price">$240<small> / mo</small></div>
+            <p class="desc">For one warehouse, getting your first cohort right.</p>
+            <ul>
+              <li>Up to 10M events / mo</li>
+              <li>One warehouse, three dashboards</li>
+              <li>Two attribution models</li>
+              <li>Email digests</li>
+              <li>Community support</li>
+            </ul>
+            <a class="btn btn-ghost" href="contact.html">Start trial</a>
+          </div>
+          <div class="plan featured">
+            <h3>Growth</h3>
+            <div class="price">$980<small> / mo</small></div>
+            <p class="desc">For software companies with a board and a forecast.</p>
+            <ul>
+              <li>Up to 200M events / mo</li>
+              <li>Unlimited dashboards</li>
+              <li>All attribution models</li>
+              <li>Forecasts &amp; scenarios</li>
+              <li>Alerts with verdicts</li>
+              <li>SAML SSO</li>
+            </ul>
+            <a class="btn btn-primary" href="contact.html">Choose Growth</a>
+          </div>
+          <div class="plan">
+            <h3>Scale</h3>
+            <div class="price">$3,800<small> / mo</small></div>
+            <p class="desc">For Series C and beyond, with multi-warehouse and audit cycles.</p>
+            <ul>
+              <li>Up to 1B events / mo</li>
+              <li>Multi-warehouse routing</li>
+              <li>Method-note review queue</li>
+              <li>Audit packet on demand</li>
+              <li>Priority routing</li>
+              <li>Dedicated success engineer</li>
+            </ul>
+            <a class="btn btn-ghost" href="contact.html">Talk to sales</a>
+          </div>
+          <div class="plan">
+            <h3>Enterprise</h3>
+            <div class="price">Custom</div>
+            <p class="desc">For regulated industries with on-prem or VPC requirements.</p>
+            <ul>
+              <li>Unlimited events</li>
+              <li>Dedicated environment</li>
+              <li>On-prem option</li>
+              <li>Custom retention policy</li>
+              <li>24×7 support &amp; named CSM</li>
+              <li>Audit assistance &amp; SOX advisory</li>
+            </ul>
+            <a class="btn btn-ghost" href="contact.html">Contact enterprise</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Compare</span>
+          <h2>The full <em>feature table</em>.</h2>
+          <p class="lede">No hidden upgrade tiers. No &quot;contact sales for SSO.&quot;</p>
+        </div>
+        <div class="compare-wrap">
+          <table class="compare">
+            <thead><tr><th>Capability</th><th>Starter</th><th>Growth</th><th>Scale</th><th>Enterprise</th></tr></thead>
+            <tbody>
+              <tr><td>Events / month</td><td>10M</td><td>200M</td><td>1B</td><td>Unlimited</td></tr>
+              <tr><td>Warehouse-native sync</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+              <tr><td>Dashboards</td><td>3</td><td>Unlimited</td><td>Unlimited</td><td>Unlimited</td></tr>
+              <tr><td>Attribution models</td><td>2</td><td>All</td><td>All</td><td>All + custom</td></tr>
+              <tr><td>Forecasts &amp; scenarios</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+              <tr><td>Alerts with verdicts</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+              <tr><td>SAML SSO</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+              <tr><td>Method-note review queue</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+              <tr><td>Audit packet export</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+              <tr><td>Multi-warehouse routing</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+              <tr><td>On-prem deployment</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td></tr>
+              <tr><td>Named CSM</td><td class="no">—</td><td class="no">—</td><td>Shared</td><td class="yes">Dedicated</td></tr>
+              <tr><td>Support SLA</td><td>Community</td><td>1 business day</td><td>Priority</td><td>24×7</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head" style="text-align:center; margin: 0 auto 40px;">
+          <span class="eyebrow"><span class="dot"></span>FAQ</span>
+          <h2>Pricing <em>questions</em>.</h2>
+        </div>
+        <div class="faq">
+          <details><summary>How do you count an event?</summary><p>One row read from your warehouse in a query that hits a defined event table. Re-running the same dashboard does not re-charge — we cache the read by query fingerprint and re-validate when the upstream changes.</p></details>
+          <details><summary>What happens if I exceed my event cap?</summary><p>We warn at 80% and rate-limit at 100%. Your dashboards continue to serve cached data; new queries queue until you upgrade or the month rolls. We never invoice you for overage without prior consent.</p></details>
+          <details><summary>Do you charge per seat?</summary><p>No. Every plan includes unlimited viewers and editors. Pricing is on event volume.</p></details>
+          <details><summary>Can finance get a read-only seat?</summary><p>Yes. Finance, board, and exec seats are free on every plan, including Starter.</p></details>
+          <details><summary>Is there an annual discount?</summary><p>Annual contracts save two months on Growth and Scale. Enterprise contracts are priced separately.</p></details>
+          <details><summary>Do you support on-prem deployment?</summary><p>Enterprise customers can deploy Pulse inside a VPC or on-prem. We ship a Helm chart, a runbook, and a quarterly upgrade procedure.</p></details>
+          <details><summary>How do refunds work?</summary><p>Cancel within 30 days of a new subscription and we refund the unused portion in full. Enterprise refunds follow the terms in your signed contract.</p></details>
+          <details><summary>Will Pulse write back to my warehouse?</summary><p>No. Pulse is strictly read-only. Connection credentials use a least-privilege role you create.</p></details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="cta-band">
+    <div class="wrap">
+      <h2>Start with a <em>pulse report</em>.</h2>
+      <p>Send us your warehouse credentials in a read-only role and we'll return a thirty-page report with the revenue leaks within five business days. Free.</p>
+      <a class="btn btn-primary" href="contact.html" style="height:50px;padding:0 26px;">Request a pulse report →</a>
+    </div>
+  </section>
+
+  <footer id="footer">
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col"><a class="brand" href="index.html" style="margin-bottom:16px;"><span class="brand-mark">P</span>PulseAnalytics</a><p style="color:var(--ink-2); font-size:14px; max-width:300px;">Product analytics that connect every event to the revenue it created.</p></div>
+        <div class="foot-col"><h4>Product</h4><a href="index.html#attribution">Attribution</a><a href="index.html">Cohorts</a><a href="index.html">Forecasts</a><a href="pricing.html">Pricing</a></div>
+        <div class="foot-col"><h4>Resources</h4><a href="#">Docs</a><a href="#">Method notes</a><a href="#">Changelog</a><a href="#">Trust center</a></div>
+        <div class="foot-col"><h4>Company</h4><a href="about.html">About</a><a href="#">Customers</a><a href="#">Careers</a><a href="contact.html">Contact</a></div>
+      </div>
+      <div class="foot-bot"><span>© 2026 Pulse Analytics, Inc.</span><span>SOC 2 Type II · GDPR · HIPAA</span></div>
+    </div>
+  </footer>
+</body>
+</html>

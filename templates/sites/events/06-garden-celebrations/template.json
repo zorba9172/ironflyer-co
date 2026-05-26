@@ -1,0 +1,36 @@
+{
+  "slug": "events-06-garden-celebrations",
+  "title": "Garden",
+  "subtitle": "Private milestone celebrations — birthdays, anniversaries, bat &amp; bar mitzvahs.",
+  "category": "Events",
+  "type": "Websites",
+  "tags": [
+    "celebration",
+    "soft",
+    "hand-feel",
+    "private",
+    "milestone"
+  ],
+  "previewImage": "/templates/events-06-garden-celebrations.jpg",
+  "palette": {
+    "bg": "#efe5d4",
+    "fg": "#2b3424",
+    "accent": "#75876b"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "occasions",
+    "story",
+    "process",
+    "portfolio",
+    "investment",
+    "venues",
+    "testimonials",
+    "inquire",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Garden template as the foundation for a private-celebration planning studio: birthdays, bat/bar mitzvahs, anniversaries. Keep the cream + sage palette, hand-drawn feel, occasion grid, and the milestone gallery. Replace photography and copy with the studio's real work.",
+  "livePreview": "/template-previews/events-06-garden-celebrations/"
+}

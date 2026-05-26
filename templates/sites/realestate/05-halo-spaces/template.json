@@ -1,0 +1,34 @@
+{
+  "slug": "realestate-05-halo-spaces",
+  "title": "Halo Spaces",
+  "subtitle": "Coworking and private studios for teams that actually ship.",
+  "category": "Real Estate",
+  "type": "Websites",
+  "tags": [
+    "coworking",
+    "modern",
+    "bright",
+    "productized",
+    "membership"
+  ],
+  "previewImage": "/templates/realestate-05-halo-spaces.jpg",
+  "palette": {
+    "bg": "#ffffff",
+    "fg": "#0b0f1f",
+    "accent": "#1a3cff"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "logos",
+    "locations",
+    "plans",
+    "amenities",
+    "testimonials",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Halo Spaces template as the foundation for a coworking and private studios brand with a bright modern hero, location search, customer logo strip, six city flagships with pricing, four membership tiers, eight amenities, member testimonials, and a tour-booking CTA.",
+  "livePreview": "/template-previews/realestate-05-halo-spaces/"
+}

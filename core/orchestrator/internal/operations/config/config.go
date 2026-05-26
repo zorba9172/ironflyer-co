@@ -152,6 +152,17 @@ type Config struct {
 	// Where to send the browser after we finish the OAuth exchange.
 	GitHubPostLoginURL string `env:"GITHUB_POST_LOGIN_URL" envDefault:"http://localhost:3000/app"`
 
+	// Google OAuth (social sign-in). Same shape as the GitHub block.
+	// Leaving CLIENT_ID empty disables /auth/google/*.
+	GoogleClientID     string `env:"GOOGLE_CLIENT_ID"`
+	GoogleClientSecret string `env:"GOOGLE_CLIENT_SECRET"`
+	GoogleRedirectURL  string `env:"GOOGLE_REDIRECT_URL" envDefault:"http://localhost:8080/auth/google/callback"`
+	GooglePostLoginURL string `env:"GOOGLE_POST_LOGIN_URL" envDefault:"http://localhost:3000/app"`
+
+	// Shared OAuth state-signing secret. Required when any OAuth
+	// provider is configured. Generate via `openssl rand -hex 32`.
+	OAuthStateSecret string `env:"IRONFLYER_OAUTH_STATE_SECRET"`
+
 	// GitHub App (separate from OAuth). The App flavor subscribes to
 	// webhooks (pull_request, push) and lets the orchestrator post PR
 	// reviews + commit statuses on inbound PRs. Leaving GITHUB_APP_ID
@@ -407,6 +418,21 @@ func Load() (Config, error) {
 		if c.MetricsToken == "" {
 			return c, fmt.Errorf("IRONFLYER_METRICS_TOKEN must be set when IRONFLYER_ENV=prod (open /metrics is refused in production)")
 		}
+		if c.HasOAuthProvider() && c.OAuthStateSecret == "" {
+			return c, fmt.Errorf("IRONFLYER_OAUTH_STATE_SECRET must be set when any OAuth provider is configured in prod")
+		}
+		if c.GitHubClientID != "" && c.GitHubClientSecret == "" {
+			return c, fmt.Errorf("GITHUB_CLIENT_SECRET must be set when GITHUB_CLIENT_ID is configured in prod")
+		}
+		if c.GoogleClientID != "" && c.GoogleClientSecret == "" {
+			return c, fmt.Errorf("GOOGLE_CLIENT_SECRET must be set when GOOGLE_CLIENT_ID is configured in prod")
+		}
 	}
 	return c, nil
+}
+
+// HasOAuthProvider reports whether at least one social OAuth provider
+// has a client id configured.
+func (c Config) HasOAuthProvider() bool {
+	return c.GitHubClientID != "" || c.GoogleClientID != ""
 }

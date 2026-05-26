@@ -1,0 +1,35 @@
+{
+  "slug": "web3-10-archive-onchain",
+  "title": "Archive",
+  "subtitle": "Permanent on-chain storage with 32-node replication and hourly proof-of-storage.",
+  "category": "Web3",
+  "type": "Apps",
+  "tags": [
+    "light",
+    "storage",
+    "minimal",
+    "bright"
+  ],
+  "previewImage": "/templates/web3-10-archive-onchain.jpg",
+  "palette": {
+    "bg": "#ffffff",
+    "fg": "#111111",
+    "accent": "#5cf0a1"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "upload",
+    "stats",
+    "how",
+    "features",
+    "pricing",
+    "security",
+    "dev",
+    "ecosystem",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Archive template as the foundation for an on-chain permanent storage network. Keep the bright white background with the neon green underline accent, the upload zone demo in the hero with replicating file list, the pay-once pricing card, and the proof-of-storage narrative. Replace placeholder pricing and file examples with the protocol's real numbers.",
+  "livePreview": "/template-previews/web3-10-archive-onchain/"
+}

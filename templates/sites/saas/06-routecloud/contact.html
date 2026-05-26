@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Contact — RouteCloud</title>
+  <meta name="description" content="Talk to RouteCloud. We reply within one business day. SREs, not BDRs." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root { --bg:#050507; --surface:#0c0c10; --surface-2:#131318; --rule:rgba(92,240,161,0.16); --rule-strong:rgba(92,240,161,0.4); --fg:#e5e7eb; --fg-2:#9aa0a8; --fg-3:#5e6168; --accent:#5cf0a1; --accent-deep:#2cb574; --radius-sm:0; --radius-md:0; --radius-lg:0; }
+    * { box-sizing: border-box; } html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--fg); font-family: 'Inter', system-ui, sans-serif; font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; } .wrap { max-width: 1240px; margin: 0 auto; padding: 0 28px; }
+    .nav { position: sticky; top: 0; z-index: 50; background: var(--bg); border-bottom: 1px solid var(--rule); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 16px; font-family: 'IBM Plex Mono', monospace; letter-spacing: -0.01em; text-transform: uppercase; }
+    .brand-mark { width: 28px; height: 28px; background: var(--accent); display: grid; place-items: center; color: var(--bg); font-weight: 800; font-family: 'IBM Plex Mono', monospace; }
+    .nav-links { display: flex; gap: 28px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--fg-2); }
+    .nav-links a:hover, .nav-links a.current { color: var(--accent); }
+    .nav-cta { display: flex; gap: 8px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 18px; font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 13px; border: 1px solid transparent; cursor: pointer; transition: background 140ms; text-transform: uppercase; letter-spacing: 0.04em; }
+    .btn-primary { background: var(--accent); color: var(--bg); } .btn-primary:hover { background: white; }
+    .btn-ghost { background: transparent; color: var(--fg); border-color: var(--rule-strong); } .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    .hero { padding: 72px 0 48px; border-bottom: 1px solid var(--rule); }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 5px 10px; border: 1px solid var(--rule-strong); color: var(--accent); font-size: 11px; font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; }
+    .eyebrow .dot { width: 6px; height: 6px; background: var(--accent); }
+    h1 { font-size: clamp(48px, 7.2vw, 100px); line-height: 0.95; letter-spacing: -0.04em; font-weight: 900; margin: 24px 0 24px; text-transform: uppercase; max-width: 1000px; }
+    h1 em { font-style: normal; color: var(--accent); }
+    .lede { font-size: 18px; color: var(--fg-2); max-width: 720px; }
+
+    .section { padding: 80px 0; border-bottom: 1px solid var(--rule); }
+    .section h2 { font-size: clamp(28px, 4vw, 48px); letter-spacing: -0.035em; line-height: 1.0; font-weight: 900; margin: 14px 0 14px; text-transform: uppercase; }
+    .section h2 em { font-style: normal; color: var(--accent); }
+    .section-head { max-width: 760px; margin-bottom: 36px; }
+
+    .contact-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: start; }
+    @media (max-width: 1080px) { .contact-grid { grid-template-columns: 1fr; gap: 36px; } }
+
+    form.contact-form { border: 1px solid var(--rule); padding: 32px; background: var(--surface); }
+    .form-row { margin-bottom: 14px; }
+    .form-row.two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 720px) { .form-row.two { grid-template-columns: 1fr; } }
+    label { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-3); margin-bottom: 6px; }
+    input, textarea, select { width: 100%; background: var(--bg); border: 1px solid var(--rule-strong); color: var(--fg); font-family: 'IBM Plex Mono', monospace; font-size: 13px; padding: 12px 14px; border-radius: 0; resize: vertical; transition: border-color 140ms; }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); }
+    textarea { min-height: 140px; }
+    .form-foot { margin-top: 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .form-note { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.06em; }
+
+    .info-stack { display: grid; gap: 0; border: 1px solid var(--rule); }
+    .info-card { padding: 22px 24px; border-bottom: 1px solid var(--rule); }
+    .info-card:last-child { border-bottom: none; }
+    .info-card h3 { font-size: 14px; font-weight: 700; margin: 0 0 6px; text-transform: uppercase; letter-spacing: 0.04em; font-family: 'IBM Plex Mono', monospace; }
+    .info-card p { color: var(--fg-2); font-size: 14px; margin: 0; line-height: 1.55; }
+    .info-card a.mail { display: inline-block; margin-top: 10px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--accent); }
+
+    .offices { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--rule); }
+    .office { padding: 28px 28px 32px; border-right: 1px solid var(--rule); }
+    .office:last-child { border-right: none; }
+    .office h3 { font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: 0.04em; }
+    .office .where { color: var(--fg-2); font-size: 13px; margin: 8px 0 14px; line-height: 1.55; font-family: 'IBM Plex Mono', monospace; }
+    .office .hours { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.08em; }
+    @media (max-width: 1080px) { .offices { grid-template-columns: 1fr; } .office { border-right: none; border-bottom: 1px solid var(--rule); } .office:last-child { border-bottom: none; } }
+
+    .map { margin-top: 36px; height: 360px; border: 1px solid var(--rule); position: relative; overflow: hidden; background: black; background-image: linear-gradient(rgba(92,240,161,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(92,240,161,0.08) 1px, transparent 1px); background-size: 40px 40px; }
+    .pin { position: absolute; width: 10px; height: 10px; background: var(--accent); box-shadow: 0 0 0 4px rgba(92,240,161,0.22), 0 0 0 12px rgba(92,240,161,0.06); }
+    .pin::after { content: attr(data-label); position: absolute; top: 16px; left: 50%; transform: translateX(-50%); font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--accent); white-space: nowrap; text-transform: uppercase; letter-spacing: 0.06em; }
+    .pin.a { left: 24%; top: 36%; } .pin.b { left: 50%; top: 40%; } .pin.c { left: 76%; top: 58%; }
+
+    footer { padding: 56px 0 28px; }
+    .foot-grid { display: grid; grid-template-columns: 1.6fr repeat(3, 1fr); gap: 40px; }
+    .foot-col h4 { font-size: 11px; font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-3); margin: 0 0 14px; }
+    .foot-col a { display: block; color: var(--fg-2); font-family: 'IBM Plex Mono', monospace; font-size: 13px; padding: 5px 0; } .foot-col a:hover { color: var(--accent); }
+    .foot-bot { margin-top: 40px; padding-top: 22px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; color: var(--fg-3); font-size: 12px; font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: 0.06em; }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 12px; text-align: center; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="index.html"><span class="brand-mark">▶</span>ROUTECLOUD</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="index.html">product</a>
+        <a href="index.html#recipes">recipes</a>
+        <a href="about.html">about</a>
+        <a href="pricing.html">pricing</a>
+        <a href="contact.html" class="current">contact</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-ghost" href="#">sign in</a>
+        <a class="btn btn-primary" href="#">deploy now</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <span class="eyebrow"><span class="dot"></span>// contact</span>
+        <h1>Talk to <em>engineers</em>.</h1>
+        <p class="lede">No BDRs, no chatbots. Sales replies within one business day. Security, procurement, and press routed to the right specialist.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="contact-grid">
+          <form class="contact-form" onsubmit="event.preventDefault();" aria-label="Contact RouteCloud">
+            <div class="form-row two">
+              <div><label for="rc-name">your name</label><input id="rc-name" type="text" placeholder="aram h." aria-label="Your name" required /></div>
+              <div><label for="rc-email">work email</label><input id="rc-email" type="email" placeholder="you@company.com" aria-label="Work email" required /></div>
+            </div>
+            <div class="form-row two">
+              <div><label for="rc-company">company</label><input id="rc-company" type="text" placeholder="acme labs" aria-label="Company" /></div>
+              <div><label for="rc-cloud">cloud</label>
+                <select id="rc-cloud" aria-label="Cloud">
+                  <option>aws</option><option>gcp</option><option>fly</option><option>cloudflare</option><option>multi-cloud</option><option>not sure yet</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row"><label for="rc-msg">what are you shipping?</label><textarea id="rc-msg" placeholder="languages, services, region, scale." aria-label="Project description"></textarea></div>
+            <div class="form-foot">
+              <span class="form-note">// encrypted in transit · DPA on request</span>
+              <button type="submit" class="btn btn-primary" style="height:40px;padding:0 22px;">send message →</button>
+            </div>
+          </form>
+          <div class="info-stack">
+            <div class="info-card"><h3>sales</h3><p>For walkthroughs and procurement. We will plan a real workload from your sentence before the call.</p><a class="mail" href="mailto:sales@route.cloud">sales@route.cloud</a></div>
+            <div class="info-card"><h3>support</h3><p>For existing customers. The engineer who wrote the recipe answers the ticket.</p><a class="mail" href="mailto:support@route.cloud">support@route.cloud</a></div>
+            <div class="info-card"><h3>security &amp; press</h3><p>Trust center, SOC 2 evidence, coordinated disclosure, journalist requests.</p><a class="mail" href="mailto:security@route.cloud">security@route.cloud</a></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>// offices</span>
+          <h2>where we <em>work from</em>.</h2>
+        </div>
+        <div class="offices">
+          <div class="office"><h3>San Francisco</h3><p class="where">// 50 4th Street · San Francisco, CA 94103 · United States</p><p class="hours">Mon–Fri · 09:00–18:00 PT</p></div>
+          <div class="office"><h3>Lisbon</h3><p class="where">// Rua Castilho 50 · 1250-071 Lisboa · Portugal</p><p class="hours">Mon–Fri · 09:30–18:30 WET</p></div>
+          <div class="office"><h3>Sydney</h3><p class="where">// 60 Carrington Street · Sydney NSW 2000 · Australia</p><p class="hours">Mon–Fri · 09:00–18:00 AEST</p></div>
+        </div>
+        <div class="map" role="img" aria-label="Map showing RouteCloud offices in San Francisco, Lisbon, and Sydney.">
+          <span class="pin a" data-label="san francisco"></span>
+          <span class="pin b" data-label="lisbon"></span>
+          <span class="pin c" data-label="sydney"></span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col"><a class="brand" href="index.html" style="margin-bottom:14px;"><span class="brand-mark">▶</span>ROUTECLOUD</a><p style="color:var(--fg-2); font-family:'IBM Plex Mono',monospace; font-size:12px; max-width:280px; line-height:1.6;">// deploy infra as a sentence.</p></div>
+        <div class="foot-col"><h4>product</h4><a href="index.html">cli</a><a href="index.html#recipes">recipes</a><a href="index.html">plans</a><a href="index.html">rollback</a></div>
+        <div class="foot-col"><h4>resources</h4><a href="#">docs</a><a href="#">terraform modules</a><a href="#">status</a><a href="#">changelog</a></div>
+        <div class="foot-col"><h4>company</h4><a href="about.html">about</a><a href="#">security</a><a href="#">careers</a><a href="contact.html">contact</a></div>
+      </div>
+      <div class="foot-bot"><span>© 2026 routecloud labs · mit licensed cli</span><span>your cloud, our planner</span></div>
+    </div>
+  </footer>
+</body>
+</html>

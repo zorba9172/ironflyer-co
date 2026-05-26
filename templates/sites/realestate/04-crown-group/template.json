@@ -1,0 +1,34 @@
+{
+  "slug": "realestate-04-crown-group",
+  "title": "The Crown Group",
+  "subtitle": "Private international brokerage representing trophy residences by sole mandate.",
+  "category": "Real Estate",
+  "type": "Websites",
+  "tags": [
+    "ultra-luxury",
+    "global",
+    "dark",
+    "discreet",
+    "editorial"
+  ],
+  "previewImage": "/templates/realestate-04-crown-group.jpg",
+  "palette": {
+    "bg": "#0a0a0a",
+    "fg": "#f7f1e6",
+    "accent": "#d6c098"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "cities",
+    "residences",
+    "philosophy",
+    "advisory",
+    "principal-letters",
+    "cta",
+    "offices"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use The Crown Group template as the foundation for an ultra-luxury international residence brokerage with a full-bleed cinematic hero, twelve-city strip, six privately presented residences across global cities, a chairman philosophy panel, three sole-mandate advisory practices, principal testimonials, and a discreet introduction CTA.",
+  "livePreview": "/template-previews/realestate-04-crown-group/"
+}

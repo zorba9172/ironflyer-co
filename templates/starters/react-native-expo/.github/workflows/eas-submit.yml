@@ -1,0 +1,52 @@
+# EAS Submit — uploads an already-built binary to Google Play /
+# TestFlight. Manual only: the operator types the EAS build ID and the
+# target platform from the EAS dashboard. Submitting on every push is a
+# footgun (App Store reviews are slow + irreversible) so we keep this
+# strictly opt-in.
+name: EAS Submit
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Submit platform
+        type: choice
+        options:
+          - android
+          - ios
+        required: true
+      buildId:
+        description: EAS build ID to submit
+        type: string
+        required: true
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Setup Expo + EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: EAS submit
+        run: |
+          eas submit \
+            --platform ${{ github.event.inputs.platform }} \
+            --id ${{ github.event.inputs.buildId }} \
+            --non-interactive

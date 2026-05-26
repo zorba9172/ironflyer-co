@@ -1,0 +1,32 @@
+{
+  "slug": "beauty-01-maison-salon",
+  "title": "Maison",
+  "subtitle": "A small editorial hair salon, by appointment only.",
+  "category": "Beauty",
+  "type": "Websites",
+  "tags": [
+    "salon",
+    "editorial",
+    "serif",
+    "luxury"
+  ],
+  "previewImage": "/templates/beauty-01-maison-salon.jpg",
+  "palette": {
+    "bg": "#efe9da",
+    "fg": "#181613",
+    "accent": "#181613"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "services",
+    "artists",
+    "gallery",
+    "testimonials",
+    "visit",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Maison template as the foundation for an editorial, cream-and-black luxury hair salon site with a tall display headline, priced service list, stylist bios, photo gallery, and quiet client quotes.",
+  "livePreview": "/template-previews/beauty-01-maison-salon/"
+}

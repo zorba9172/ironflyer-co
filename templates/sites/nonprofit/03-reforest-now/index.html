@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Reforest Now — Native forests, planted with the people who keep them alive</title>
+  <meta name="description" content="Reforest Now funds community-led native reforestation across 7 biomes. 12,400,000 native saplings planted in 2025 with a verified 78% five-year survival rate." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #efe5d4;
+      --bg-2: #e7dcc8;
+      --paper: #f7eedd;
+      --ink: #1d2a1d;
+      --ink-2: #45533f;
+      --ink-3: #7d8a75;
+      --accent: #2a4a2a;
+      --accent-2: #1a3a1a;
+      --line: #d4c6a8;
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 20px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--ink); font-family: 'Inter', system-ui, sans-serif; font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 0 28px; }
+    .serif { font-family: 'Cormorant Garamond', Georgia, serif; }
+
+    /* Nav */
+    .nav { position: sticky; top: 0; z-index: 50; background: rgba(239,229,212,0.94); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 76px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 20px; letter-spacing: -0.005em; }
+    .brand-mark { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); display: grid; place-items: center; color: var(--paper); font-weight: 700; font-family: 'Cormorant Garamond', serif; font-size: 20px; }
+    .nav-links { display: flex; gap: 32px; color: var(--ink-2); font-size: 14px; font-weight: 500; }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta { display: flex; gap: 10px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 20px; border-radius: 4px; font-weight: 600; font-size: 14px; border: 1.5px solid transparent; cursor: pointer; transition: transform 160ms, background 160ms; }
+    .btn-primary { background: var(--accent); color: var(--paper); }
+    .btn-primary:hover { background: var(--accent-2); }
+    .btn-ghost { background: transparent; color: var(--ink); border-color: var(--ink); }
+    .btn-ghost:hover { background: var(--ink); color: var(--paper); }
+    @media (max-width: 1080px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 0; position: relative; }
+    .hero-photo { position: relative; height: 78vh; min-height: 560px; max-height: 760px; overflow: hidden; border-bottom: 1px solid var(--line); }
+    .hero-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .hero-photo::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(29,42,29,0.65) 100%); }
+    .hero-text { position: absolute; left: 0; right: 0; bottom: 56px; color: var(--paper); }
+    .hero-text .wrap { display: grid; grid-template-columns: 1.4fr 1fr; gap: 56px; align-items: end; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; background: rgba(247,238,221,0.18); border: 1px solid rgba(247,238,221,0.3); border-radius: 999px; font-size: 12px; color: var(--paper); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
+    .eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: #b6dc8a; }
+    h1 { font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(48px, 7vw, 96px); line-height: 1.0; letter-spacing: -0.015em; margin: 18px 0 0; color: var(--paper); }
+    h1 em { font-style: italic; color: #c6e09a; }
+    .hero-text .lede { color: #ece2c4; max-width: 460px; font-size: 17px; }
+    .hero-cta { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+    .hero-cta .btn-primary { background: #c6e09a; color: var(--accent); }
+    .hero-cta .btn-primary:hover { background: #d6ecaa; }
+    .hero-cta .btn-ghost { color: var(--paper); border-color: rgba(247,238,221,0.5); }
+    @media (max-width: 1080px) { .hero-text .wrap { grid-template-columns: 1fr; gap: 24px; } .hero-photo { height: 68vh; } }
+
+    /* Sections */
+    .section { padding: 112px 0; }
+    .section.paper { background: var(--paper); }
+    .section.dark { background: var(--accent); color: var(--paper); }
+    .section.dark h2, .section.dark .eyebrow { color: var(--paper); }
+    .section.dark .eyebrow { background: rgba(247,238,221,0.1); border-color: rgba(247,238,221,0.25); }
+    .section-head { max-width: 760px; margin-bottom: 64px; }
+    h2 { font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: clamp(36px, 5vw, 64px); letter-spacing: -0.01em; line-height: 1.04; margin: 16px 0 18px; }
+    h2 em { font-style: italic; color: var(--accent); }
+    .section.dark h2 em { color: #c6e09a; }
+    .lede { font-size: 18px; color: var(--ink-2); max-width: 600px; }
+    .section.dark .lede { color: #d6cdb1; }
+
+    /* Stats */
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .stat { padding: 36px 24px; border-right: 1px solid var(--line); }
+    .stat:last-child { border-right: 0; }
+    .stat .val { font-family: 'Cormorant Garamond', serif; font-size: clamp(44px, 5.5vw, 72px); line-height: 1; letter-spacing: -0.02em; color: var(--accent); }
+    .stat .label { color: var(--ink-2); font-size: 14px; margin-top: 12px; }
+    @media (max-width: 1080px) { .stats { grid-template-columns: 1fr 1fr; } .stat { border-bottom: 1px solid var(--line); } .stat:nth-child(2n) { border-right: 0; } }
+
+    /* Biomes */
+    .biomes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .biome { position: relative; border-radius: var(--radius-lg); overflow: hidden; aspect-ratio: 3/4; }
+    .biome img { width: 100%; height: 100%; object-fit: cover; transition: transform 600ms; }
+    .biome:hover img { transform: scale(1.04); }
+    .biome::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(29,42,29,0.85) 100%); }
+    .biome-info { position: absolute; left: 0; right: 0; bottom: 0; padding: 24px; color: var(--paper); z-index: 1; }
+    .biome h3 { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 600; margin: 0 0 4px; line-height: 1.05; }
+    .biome p { color: #d6cdb1; font-size: 14px; margin: 0; }
+    .biome .num { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: #c6e09a; }
+    @media (max-width: 1080px) { .biomes { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .biomes { grid-template-columns: 1fr; } }
+
+    /* Donate */
+    .donate-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 64px; align-items: center; }
+    .donate-card { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 40px; }
+    .tier-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 24px 0 20px; }
+    .tier { background: transparent; border: 1.5px solid var(--ink); border-radius: 6px; padding: 14px 10px; cursor: pointer; text-align: center; transition: background 160ms, color 160ms; }
+    .tier .amt { font-family: 'Cormorant Garamond', serif; font-size: 24px; line-height: 1; }
+    .tier:hover, .tier.active { background: var(--accent); color: var(--paper); border-color: var(--accent); }
+    .tier-impact { background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 18px; }
+    .tier-impact strong { display: block; font-family: 'Cormorant Garamond', serif; font-size: 22px; color: var(--accent); margin-bottom: 4px; }
+    .tier-impact span { font-size: 14px; color: var(--ink-2); }
+    @media (max-width: 1080px) { .donate-grid { grid-template-columns: 1fr; } .tier-row { grid-template-columns: repeat(2, 1fr); } }
+
+    /* How to help */
+    .help { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+    .help-card { padding: 32px; border: 1px solid rgba(247,238,221,0.2); border-radius: var(--radius-md); background: rgba(247,238,221,0.04); }
+    .help-card h3 { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 600; margin: 0 0 10px; }
+    .help-card p { font-size: 15px; margin: 0 0 16px; color: #d6cdb1; }
+    .help-card a { color: #c6e09a; font-weight: 600; font-size: 14px; }
+    @media (max-width: 1080px) { .help { grid-template-columns: 1fr; } }
+
+    /* Story */
+    .story-grid { display: grid; grid-template-columns: 1fr 1.05fr; gap: 64px; align-items: center; }
+    .story-grid img { aspect-ratio: 4/5; object-fit: cover; width: 100%; border-radius: var(--radius-lg); }
+    blockquote { font-family: 'Cormorant Garamond', serif; font-size: clamp(28px, 3.2vw, 40px); font-style: italic; line-height: 1.18; margin: 0 0 24px; color: var(--ink); }
+    cite { font-style: normal; color: var(--ink-2); font-size: 15px; }
+    cite strong { color: var(--ink); display: block; font-weight: 700; margin-bottom: 2px; }
+    @media (max-width: 1080px) { .story-grid { grid-template-columns: 1fr; } }
+
+    /* Transparency */
+    .trans-card { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 40px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 48px; align-items: center; }
+    .pie { position: relative; width: 220px; height: 220px; border-radius: 50%; background: conic-gradient(var(--accent) 0 82%, #8d9d6f 82% 92%, #c6c1a8 92% 100%); margin: 0 auto; }
+    .pie::after { content: ''; position: absolute; inset: 38px; background: var(--paper); border-radius: 50%; }
+    .pie-label { position: absolute; inset: 0; display: grid; place-items: center; font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--accent); z-index: 1; }
+    .legend { display: flex; flex-direction: column; gap: 12px; font-size: 15px; }
+    .legend .row { display: flex; align-items: center; gap: 12px; }
+    .legend .sw { width: 14px; height: 14px; border-radius: 3px; }
+    @media (max-width: 1080px) { .trans-card { grid-template-columns: 1fr; padding: 28px; } }
+
+    /* Team */
+    .team { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
+    .person img { aspect-ratio: 1/1; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 12px; }
+    .person h4 { margin: 0 0 2px; font-size: 16px; font-weight: 600; }
+    .person p { margin: 0; color: var(--ink-2); font-size: 13px; }
+    @media (max-width: 1080px) { .team { grid-template-columns: repeat(2, 1fr); } }
+
+    /* Footer */
+    footer { background: var(--accent-2); color: #c6c1a8; padding: 64px 0 28px; }
+    .foot-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1.2fr; gap: 40px; }
+    .foot-col h4 { color: #c6e09a; font-family: 'Cormorant Garamond', serif; font-weight: 700; font-size: 16px; margin: 0 0 14px; letter-spacing: 0.01em; }
+    .foot-col a { display: block; color: #c6c1a8; font-size: 14px; padding: 6px 0; }
+    .foot-col a:hover { color: var(--paper); }
+    .foot-bot { margin-top: 48px; padding-top: 24px; border-top: 1px solid rgba(247,238,221,0.15); display: flex; justify-content: space-between; font-size: 13px; }
+    @media (max-width: 1080px) { .foot-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr; } .foot-bot { flex-direction: column; gap: 10px; } }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#"><span class="brand-mark">R</span>Reforest Now</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#impact">Impact</a>
+        <a href="#biomes">Biomes</a>
+        <a href="#donate">Donate</a>
+        <a href="#transparency">Where it goes</a>
+        <a href="#team">Team</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-ghost" href="#help">Partner</a>
+        <a class="btn btn-primary" href="#donate">Plant trees</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-photo">
+        <img src="https://picsum.photos/seed/reforest-now-1/1800/1100" width="1800" height="1100" alt="Wide-angle view of a recently planted native forest restoration site in the Brazilian Atlantic Rainforest, with a planting crew walking between rows of saplings." loading="eager" />
+        <div class="hero-text">
+          <div class="wrap">
+            <div>
+              <span class="eyebrow"><span class="dot"></span>2025 planting season closed</span>
+              <h1>Native forests, planted <em>with the people</em> who keep them alive.</h1>
+            </div>
+            <div>
+              <p class="lede">Reforest Now funds community-led native reforestation across 7 biomes. We pay local cooperatives to plant, monitor, and protect — and we publish per-tree survival data.</p>
+              <div class="hero-cta">
+                <a class="btn btn-primary" href="#donate">Plant trees →</a>
+                <a class="btn btn-ghost" href="#transparency">See the survival data</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="impact">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow" style="background: var(--paper); color: var(--ink-2); border-color: var(--line);"><span class="dot" style="background: var(--accent);"></span>2025 in numbers</span>
+          <h2>Counted, monitored, and <em>kept alive</em>.</h2>
+          <p class="lede">Many tree campaigns stop the clock at "planted." We measure at planting, year three, and year five. The numbers below are the survival counts, not the planting counts.</p>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="val">12.4M</div><div class="label">native saplings planted across 7 biomes</div></div>
+          <div class="stat"><div class="val">78%</div><div class="label">verified 5-year survival rate (sector average: 44%)</div></div>
+          <div class="stat"><div class="val">220</div><div class="label">community cooperatives paid as planting partners</div></div>
+          <div class="stat"><div class="val">68,400</div><div class="label">hectares under active restoration management</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section dark" id="biomes">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Where we plant</span>
+          <h2>Seven biomes, <em>seven</em> playbooks.</h2>
+          <p class="lede">A mahogany seedling is not a pine seedling. Each biome uses a planting plan written with the local cooperative, with native species lists, density targets, and survival audits.</p>
+        </div>
+        <div class="biomes">
+          <article class="biome"><img src="https://picsum.photos/seed/reforest-now-2/800/1000" width="800" height="1000" alt="Atlantic Rainforest restoration site with diverse native canopy species." loading="lazy" /><div class="biome-info"><div class="num">4.1M saplings · 2025</div><h3>Atlantic Rainforest</h3><p>14 cooperatives · Brazil, Argentina</p></div></article>
+          <article class="biome"><img src="https://picsum.photos/seed/reforest-now-3/800/1000" width="800" height="1000" alt="Cerrado savanna landscape with sparse native trees." loading="lazy" /><div class="biome-info"><div class="num">1.6M saplings · 2025</div><h3>Cerrado Savanna</h3><p>9 cooperatives · Central Brazil</p></div></article>
+          <article class="biome"><img src="https://picsum.photos/seed/reforest-now-4/800/1000" width="800" height="1000" alt="Andean cloud forest restoration with mountain mist." loading="lazy" /><div class="biome-info"><div class="num">980k saplings · 2025</div><h3>Andean Cloud Forest</h3><p>22 cooperatives · Peru, Colombia, Ecuador</p></div></article>
+          <article class="biome"><img src="https://picsum.photos/seed/reforest-now-5/800/1000" width="800" height="1000" alt="East African dryland forest with acacia trees." loading="lazy" /><div class="biome-info"><div class="num">1.9M saplings · 2025</div><h3>East African Drylands</h3><p>41 cooperatives · Kenya, Tanzania, Ethiopia</p></div></article>
+          <article class="biome"><img src="https://picsum.photos/seed/reforest-now-6/800/1000" width="800" height="1000" alt="Mediterranean cork oak woodland." loading="lazy" /><div class="biome-info"><div class="num">640k saplings · 2025</div><h3>Mediterranean Cork Oak</h3><p>11 cooperatives · Portugal, Morocco</p></div></article>
+          <article class="biome"><img src="https://picsum.photos/seed/reforest-now-7/800/1000" width="800" height="1000" alt="Southeast Asian peat swamp with restoration crew." loading="lazy" /><div class="biome-info"><div class="num">3.2M saplings · 2025</div><h3>Peat Swamp Forest</h3><p>18 cooperatives · Indonesia, Malaysia</p></div></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section paper" id="donate">
+      <div class="wrap">
+        <div class="donate-grid">
+          <div>
+            <span class="eyebrow" style="background: var(--bg); color: var(--ink-2); border-color: var(--line);"><span class="dot" style="background: var(--accent);"></span>Pick a tier</span>
+            <h2>Each dollar is one or two <em>living</em> trees, monitored for 5 years.</h2>
+            <p class="lede">We pay cooperatives by survival, not by planting. Your gift covers seedling, planting labor, three years of monitoring, and the per-tree audit that confirms it's still alive.</p>
+            <p style="margin-top: 18px; font-size: 14px; color: var(--ink-3);"><strong>Average cost-per-living-tree at year 5:</strong> $1.38 USD across the 7 biomes.</p>
+          </div>
+          <div class="donate-card">
+            <strong style="font-family: 'Cormorant Garamond', serif; font-size: 28px;">Choose your impact</strong>
+            <div class="tier-row" role="group" aria-label="Donation amounts">
+              <button type="button" class="tier"><div class="amt">$25</div></button>
+              <button type="button" class="tier active"><div class="amt">$100</div></button>
+              <button type="button" class="tier"><div class="amt">$500</div></button>
+              <button type="button" class="tier"><div class="amt">$1,000</div></button>
+            </div>
+            <div class="tier-impact">
+              <strong id="impact-label">72 living trees in the Atlantic Rainforest</strong>
+              <span>Planted, monitored, and audited at years 3 and 5. You'll receive coordinates and survival reports.</span>
+            </div>
+            <a class="btn btn-primary" href="#" style="margin-top: 20px; width: 100%; justify-content: center; height: 50px;">Donate $100 →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section dark" id="help">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Other ways to <em>plant with us</em>.</h2>
+        </div>
+        <div class="help">
+          <div class="help-card">
+            <h3>Company offsets</h3>
+            <p>Verified, audited, biome-matched offsets sold by the living tree. No re-labeled credits, no carbon casino. Contracts run 5 years with annual survival reports.</p>
+            <a href="#">Talk to the corporate team →</a>
+          </div>
+          <div class="help-card">
+            <h3>Cooperative partnership</h3>
+            <p>If you're a local cooperative, conservation NGO, or land-stewardship community in one of the 7 biomes, we'd like to talk about a 2026 planting plan.</p>
+            <a href="#">Apply as a partner →</a>
+          </div>
+          <div class="help-card">
+            <h3>Legacy planting</h3>
+            <p>Endow a hectare of one of our biomes. Your gift funds planting, monitoring, and protection in perpetuity, in your name or in honor of a loved one.</p>
+            <a href="#">Plan a legacy gift →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="story-grid">
+          <img src="https://picsum.photos/seed/reforest-now-8/800/1000" width="800" height="1000" alt="Portrait of an Andean cooperative leader holding a young native sapling at a planting site." loading="lazy" />
+          <div>
+            <span class="eyebrow" style="background: var(--paper); color: var(--ink-2); border-color: var(--line);"><span class="dot" style="background: var(--accent);"></span>From the field</span>
+            <blockquote>“Other groups paid us per sapling and disappeared. Reforest Now pays us at year three and year five. That's why the trees are still here.”</blockquote>
+            <cite><strong>Diego Quispe Mamani</strong>Coordinator, Apurímac Cooperative — Andean Cloud Forest, partner since 2019</cite>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section paper" id="transparency">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow" style="background: var(--bg); color: var(--ink-2); border-color: var(--line);"><span class="dot" style="background: var(--accent);"></span>Transparency</span>
+          <h2>82 cents of every dollar <em>reaches</em> the ground.</h2>
+          <p class="lede">Independently audited each year by Tarrant Hadley LLP. Our full 990 and per-biome cost breakdowns are public.</p>
+        </div>
+        <div class="trans-card">
+          <div style="position: relative;">
+            <div class="pie" aria-hidden="true"></div>
+            <div class="pie-label">82%</div>
+          </div>
+          <div class="legend">
+            <div class="row"><span class="sw" style="background: var(--accent);"></span><span><strong>82%</strong> — direct planting, monitoring, and cooperative payments</span></div>
+            <div class="row"><span class="sw" style="background: #8d9d6f;"></span><span><strong>10%</strong> — biome research, survival auditing, and open data</span></div>
+            <div class="row"><span class="sw" style="background: #c6c1a8;"></span><span><strong>8%</strong> — fundraising and administration combined</span></div>
+            <div style="margin-top: 16px;">
+              <a class="btn btn-ghost" href="#" style="margin-right: 10px;">2025 annual report</a>
+              <a class="btn btn-ghost" href="#">Form 990 (2024)</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="team">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>The people <em>doing</em> the work.</h2>
+          <p class="lede">Our staff is small. Our cooperative partners are big. The list below is the global team that supports them — the 220 cooperatives are on the partners page.</p>
+        </div>
+        <div class="team">
+          <div class="person"><img src="https://picsum.photos/seed/reforest-now-9/500/500" width="500" height="500" alt="Portrait of Reforest Now's executive director." loading="lazy" /><h4>Mireia Bosch</h4><p>Executive Director</p></div>
+          <div class="person"><img src="https://picsum.photos/seed/reforest-now-10/500/500" width="500" height="500" alt="Portrait of Reforest Now's head of biome programs." loading="lazy" /><h4>Joseph Kimani</h4><p>Head of Biome Programs</p></div>
+          <div class="person"><img src="https://picsum.photos/seed/reforest-now-11/500/500" width="500" height="500" alt="Portrait of Reforest Now's chief scientist." loading="lazy" /><h4>Dr. Lila Soeharto</h4><p>Chief Scientist</p></div>
+          <div class="person"><img src="https://picsum.photos/seed/reforest-now-12/500/500" width="500" height="500" alt="Portrait of Reforest Now's chief financial officer." loading="lazy" /><h4>Felix Otieno</h4><p>Chief Financial Officer</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section paper" id="updates">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow" style="background: var(--bg); color: var(--ink-2); border-color: var(--line);"><span class="dot" style="background: var(--accent);"></span>From the cooperatives</span>
+          <h2>What the <em>last three months</em> looked like.</h2>
+          <p class="lede">A short list from our monthly field digest. Full digests are open in the partner reports section.</p>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px;">
+          <article style="background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius-md); overflow: hidden;">
+            <img src="https://picsum.photos/seed/reforest-now-13/700/520" width="700" height="520" alt="A nursery worker holding native sapling trays in a Brazilian Atlantic Rainforest nursery." loading="lazy" style="aspect-ratio: 4/3; object-fit: cover; width: 100%;" />
+            <div style="padding: 22px;">
+              <div style="font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--accent); font-size: 14px;">March 2026 · Atlantic Rainforest</div>
+              <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 600; margin: 6px 0 10px;">Nursery #14 hits 220k sapling capacity</h3>
+              <p style="color: var(--ink-2); font-size: 14.5px; margin: 0;">The Pernambuco cooperative doubled its nursery throughput this quarter, on track to supply 1.2M saplings for the 2027 planting season.</p>
+            </div>
+          </article>
+          <article style="background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius-md); overflow: hidden;">
+            <img src="https://picsum.photos/seed/reforest-now-14/700/520" width="700" height="520" alt="A community planting day in the East African drylands with rows of acacia saplings." loading="lazy" style="aspect-ratio: 4/3; object-fit: cover; width: 100%;" />
+            <div style="padding: 22px;">
+              <div style="font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--accent); font-size: 14px;">February 2026 · East African Drylands</div>
+              <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 600; margin: 6px 0 10px;">Year-5 audit closes at 81% survival in Kitui</h3>
+              <p style="color: var(--ink-2); font-size: 14.5px; margin: 0;">An independent audit of our 2020 Kitui plantings closed at 81% live trees — the highest verified year-5 number we've recorded in any biome.</p>
+            </div>
+          </article>
+          <article style="background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius-md); overflow: hidden;">
+            <img src="https://picsum.photos/seed/reforest-now-15/700/520" width="700" height="520" alt="A peat-swamp restoration crew laying replanting markers from a small wooden boat." loading="lazy" style="aspect-ratio: 4/3; object-fit: cover; width: 100%;" />
+            <div style="padding: 22px;">
+              <div style="font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--accent); font-size: 14px;">January 2026 · Peat Swamp</div>
+              <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 600; margin: 6px 0 10px;">Kalimantan crews begin 2026 planting</h3>
+              <p style="color: var(--ink-2); font-size: 14.5px; margin: 0;">Our Kalimantan cooperative began the 2026 wet-season planting on January 14, with 800k saplings staged across 12 staging boats.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a class="brand" href="#" style="color: var(--paper); margin-bottom: 14px;"><span class="brand-mark">R</span>Reforest Now</a>
+          <p style="font-size: 14px; max-width: 320px;">A global native-reforestation nonprofit. 501(c)(3) EIN 86-3104982. Founded 2014, headquartered in Lisbon with offices in Nairobi, Cusco, and Jakarta.</p>
+          <a class="btn btn-primary" href="#donate" style="margin-top: 16px; background: #c6e09a; color: var(--accent);">Plant trees</a>
+        </div>
+        <div class="foot-col">
+          <h4>Biomes</h4>
+          <a href="#">Atlantic Rainforest</a>
+          <a href="#">Cerrado Savanna</a>
+          <a href="#">Andean Cloud Forest</a>
+          <a href="#">East African Drylands</a>
+          <a href="#">Peat Swamp</a>
+        </div>
+        <div class="foot-col">
+          <h4>Transparency</h4>
+          <a href="#">Annual report</a>
+          <a href="#">Form 990</a>
+          <a href="#">Survival data</a>
+          <a href="#">Partner list</a>
+        </div>
+        <div class="foot-col">
+          <h4>Contact</h4>
+          <a href="mailto:hello@reforestnow.org">hello@reforestnow.org</a>
+          <a href="tel:+351210000182">+351 21 000 0182</a>
+          <a href="#">Rua das Janelas Verdes 18, 1200 Lisbon</a>
+          <a href="#">Newsletter</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Reforest Now Foundation · 501(c)(3) EIN 86-3104982</span>
+        <span>Audited annually by Tarrant Hadley LLP · Verified by Bureau Vérité</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const impactMap = {
+      '$25': '18 living trees in the East African Drylands',
+      '$100': '72 living trees in the Atlantic Rainforest',
+      '$500': '362 living trees across two biomes of your choice',
+      '$1,000': '724 living trees — one quarter-hectare of restored forest'
+    };
+    document.querySelectorAll('.tier').forEach(t => {
+      t.addEventListener('click', () => {
+        document.querySelectorAll('.tier').forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        const amt = t.querySelector('.amt').textContent.trim();
+        document.getElementById('impact-label').textContent = impactMap[amt] || '';
+        document.querySelector('.donate-card .btn-primary').textContent = `Donate ${amt} →`;
+      });
+    });
+  </script>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

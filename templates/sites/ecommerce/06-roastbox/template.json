@@ -1,0 +1,35 @@
+{
+  "slug": "ecommerce-06-roastbox",
+  "title": "Roastbox",
+  "subtitle": "Specialty single-origin coffee, roasted Fridays, delivered Mondays.",
+  "category": "E-commerce",
+  "type": "Commerce",
+  "tags": [
+    "coffee",
+    "subscription",
+    "story-rich",
+    "serif",
+    "warm"
+  ],
+  "previewImage": "/templates/ecommerce-06-roastbox.jpg",
+  "palette": {
+    "bg": "#efe5d4",
+    "fg": "#3a261b",
+    "accent": "#3a261b"
+  },
+  "sections": [
+    "tape",
+    "nav",
+    "hero",
+    "bags",
+    "subscription",
+    "process",
+    "story",
+    "testimonials",
+    "newsletter",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Roastbox template as the foundation for a specialty coffee storefront. Cream and espresso palette with a gold accent, Playfair Display italic headlines, single-origin bag grid with tasting notes, dark subscription configurator, four-step process panel, story panel about the roastery, customer quotes, and a Friday-morning newsletter. Replace placeholder copy with the roaster's actual lots and farms.",
+  "livePreview": "/template-previews/ecommerce-06-roastbox/"
+}

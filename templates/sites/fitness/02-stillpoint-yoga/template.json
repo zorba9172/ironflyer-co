@@ -1,0 +1,34 @@
+{
+  "slug": "fitness-02-stillpoint-yoga",
+  "title": "Stillpoint Yoga",
+  "subtitle": "A quiet yoga studio in the middle of a loud city.",
+  "category": "Fitness",
+  "type": "Websites",
+  "tags": [
+    "yoga",
+    "soft",
+    "calm",
+    "editorial"
+  ],
+  "previewImage": "/templates/fitness-02-stillpoint-yoga.jpg",
+  "palette": {
+    "bg": "#efe2c8",
+    "fg": "#2b2a23",
+    "accent": "#5b6a3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "philosophy",
+    "classes",
+    "schedule",
+    "teachers",
+    "testimonials",
+    "pricing",
+    "visit",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Stillpoint Yoga template as the foundation for a soft, sand-and-olive yoga studio site with hero photo, class types, weekly schedule, teacher grid, member quotes, and pricing.",
+  "livePreview": "/template-previews/fitness-02-stillpoint-yoga/"
+}

@@ -1,0 +1,34 @@
+{
+  "slug": "realestate-03-field-estates",
+  "title": "Field Estates",
+  "subtitle": "Ranch and land brokers across the Rockies and the Pacific Northwest.",
+  "category": "Real Estate",
+  "type": "Websites",
+  "tags": [
+    "rural",
+    "land",
+    "ranch",
+    "earthy",
+    "photo-led"
+  ],
+  "previewImage": "/templates/realestate-03-field-estates.jpg",
+  "palette": {
+    "bg": "#efe2c8",
+    "fg": "#2a3a1f",
+    "accent": "#2a3a1f"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "search",
+    "properties",
+    "approach",
+    "land-types",
+    "stories",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Field Estates template as the foundation for a land brokerage site representing working ranches, vineyards, and farms with a sand and forest-green palette, photo-led hero, land search, six property listings with acres and AUM, a four-step walk-through approach, land-type cards, owner stories, and a porch-side CTA.",
+  "livePreview": "/template-previews/realestate-03-field-estates/"
+}

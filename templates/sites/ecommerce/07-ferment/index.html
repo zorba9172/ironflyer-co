@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ferment — Wild-fermented sodas and kombucha for grown-ups</title>
+  <meta name="description" content="Ferment makes wild-fermented soda and kombucha in small batches with whole fruit, real roots and no concentrate. Funky labels, low sugar, big flavor." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;600;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f6f1e3;
+      --surface: #ece4cf;
+      --fg: #1b1a16;
+      --fg-2: #4a4943;
+      --fg-3: #807e72;
+      --accent: #b8d139;
+      --accent-deep: #94aa28;
+      --pink: #ff7a99;
+      --berry: #6c2a4a;
+      --border: rgba(27, 26, 22, 0.16);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--fg); font-family: 'Archivo', system-ui, sans-serif; font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 0 28px; }
+    .display { font-family: 'Archivo Black', system-ui, sans-serif; letter-spacing: -0.02em; line-height: 0.9; }
+    .hand { font-family: 'Caveat', cursive; }
+    .eyebrow { font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--fg); font-weight: 700; }
+
+    /* Marquee */
+    .marquee { background: var(--fg); color: var(--bg); padding: 14px 0; overflow: hidden; }
+    .marquee-row { display: flex; gap: 48px; white-space: nowrap; font-family: 'Archivo Black', sans-serif; font-size: 14px; letter-spacing: 0.04em; text-transform: uppercase; }
+    .marquee-row span::before { content: '✦'; color: var(--accent); margin-right: 14px; }
+
+    /* Nav */
+    .nav { position: sticky; top: 0; z-index: 50; background: var(--bg); border-bottom: 3px solid var(--fg); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+    .brand { font-family: 'Archivo Black', sans-serif; font-size: 28px; letter-spacing: -0.03em; }
+    .brand::after { content: '.'; color: var(--accent); }
+    .nav-links { display: flex; gap: 26px; font-size: 14px; font-weight: 600; }
+    .nav-links a:hover { color: var(--accent-deep); }
+    .cart-btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 18px; background: var(--accent); color: var(--fg); border-radius: 999px; font-size: 13px; font-weight: 700; border: 2px solid var(--fg); }
+    .cart-btn:hover { background: var(--fg); color: var(--accent); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 64px 0 96px; position: relative; overflow: hidden; }
+    .hero-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 64px; align-items: center; }
+    .hero h1 { font-family: 'Archivo Black', sans-serif; font-size: clamp(64px, 9vw, 140px); line-height: 0.84; letter-spacing: -0.03em; margin: 24px 0 28px; text-transform: uppercase; }
+    .hero h1 .y { color: var(--accent-deep); }
+    .hero h1 .p { color: var(--pink); }
+    .hero h1 span { display: block; }
+    .hero p.lede { font-size: 19px; max-width: 460px; color: var(--fg-2); }
+    .hero-cta { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 54px; padding: 0 28px; border-radius: 999px; font-weight: 700; font-size: 15px; cursor: pointer; border: 3px solid var(--fg); transition: transform 200ms; }
+    .btn:hover { transform: translateY(-2px); }
+    .btn-primary { background: var(--accent); color: var(--fg); }
+    .btn-ghost { background: var(--bg); color: var(--fg); }
+    .hero-stickers { display: flex; gap: 16px; margin-top: 24px; align-items: center; }
+    .sticker { display: inline-flex; align-items: center; gap: 6px; background: var(--bg); padding: 8px 14px; border: 2px solid var(--fg); border-radius: 999px; font-size: 12px; font-weight: 700; text-transform: uppercase; transform: rotate(-2deg); }
+    .sticker:nth-child(2) { background: var(--accent); transform: rotate(2deg); }
+    .sticker:nth-child(3) { background: var(--pink); color: var(--fg); transform: rotate(-1deg); }
+    .hero-art { position: relative; aspect-ratio: 4/5; }
+    .hero-art img { width: 100%; height: 100%; object-fit: cover; border-radius: 16px; border: 4px solid var(--fg); }
+    .hand-note { position: absolute; top: -20px; right: -10px; font-family: 'Caveat', cursive; font-size: 36px; color: var(--berry); transform: rotate(-8deg); }
+    .hand-note .arr { display: inline-block; transform: rotate(40deg) translateY(8px); margin-left: 8px; }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 40px; } }
+
+    /* Big label band */
+    .label-band { background: var(--accent); border-top: 3px solid var(--fg); border-bottom: 3px solid var(--fg); padding: 48px 0; }
+    .label-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; text-align: center; }
+    .label-grid .item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .label-grid .v { font-family: 'Archivo Black', sans-serif; font-size: clamp(36px, 5vw, 60px); line-height: 1; }
+    .label-grid .l { font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 700; }
+    @media (max-width: 720px) { .label-grid { grid-template-columns: 1fr 1fr; gap: 28px; } }
+
+    /* Section */
+    .section { padding: 96px 0; }
+    .section-head { margin-bottom: 56px; }
+    .section h2 { font-family: 'Archivo Black', sans-serif; font-size: clamp(44px, 6vw, 88px); line-height: 0.92; letter-spacing: -0.03em; text-transform: uppercase; margin: 12px 0 0; }
+    .section h2 em { font-style: italic; color: var(--accent-deep); font-family: 'Archivo Black', sans-serif; }
+
+    /* Products */
+    .products { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    .product { background: var(--bg); border: 3px solid var(--fg); border-radius: 16px; padding: 20px; transition: transform 200ms; position: relative; }
+    .product:hover { transform: translateY(-4px) rotate(-1deg); }
+    .product:nth-child(2n):hover { transform: translateY(-4px) rotate(1deg); }
+    .product .ph { aspect-ratio: 1/1.1; overflow: hidden; border-radius: 12px; margin-bottom: 14px; background: var(--surface); }
+    .product .ph img { width: 100%; height: 100%; object-fit: cover; }
+    .product .badge { position: absolute; top: -10px; right: 14px; background: var(--accent); border: 2px solid var(--fg); padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+    .product .badge.pink { background: var(--pink); }
+    .product h3 { font-family: 'Archivo Black', sans-serif; font-size: 20px; margin: 0 0 4px; letter-spacing: -0.02em; }
+    .product .notes { font-size: 13px; color: var(--fg-2); margin: 0 0 10px; }
+    .product .row { display: flex; justify-content: space-between; align-items: center; }
+    .product .price { font-weight: 700; }
+    .product .add { background: var(--fg); color: var(--bg); padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    @media (max-width: 1080px) { .products { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .products { grid-template-columns: 1fr; } }
+
+    /* Variety packs */
+    .packs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+    .pack { background: var(--fg); color: var(--bg); border-radius: 16px; padding: 28px; display: flex; flex-direction: column; gap: 12px; }
+    .pack.green { background: var(--accent); color: var(--fg); }
+    .pack.pink { background: var(--pink); color: var(--fg); }
+    .pack h3 { font-family: 'Archivo Black', sans-serif; font-size: 32px; margin: 0; letter-spacing: -0.02em; }
+    .pack p { font-size: 14px; margin: 0; opacity: 0.92; }
+    .pack .ps { font-size: 12px; opacity: 0.7; letter-spacing: 0.12em; text-transform: uppercase; }
+    .pack a { margin-top: auto; padding: 12px 20px; border: 2px solid currentColor; border-radius: 999px; font-weight: 700; font-size: 13px; align-self: flex-start; }
+    .pack a:hover { background: currentColor; color: var(--bg); }
+    @media (max-width: 1080px) { .packs { grid-template-columns: 1fr; } }
+
+    /* Story */
+    .story { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+    .story-img { aspect-ratio: 4/5; border-radius: 16px; overflow: hidden; border: 4px solid var(--fg); position: relative; }
+    .story-img img { width: 100%; height: 100%; object-fit: cover; }
+    .story p { font-size: 18px; color: var(--fg-2); margin: 0 0 18px; max-width: 480px; }
+    .story .hand-tag { position: absolute; top: 16px; left: 16px; transform: rotate(-8deg); background: var(--pink); border: 2px solid var(--fg); padding: 8px 16px; border-radius: 999px; font-family: 'Caveat', cursive; font-size: 24px; }
+    @media (max-width: 1080px) { .story { grid-template-columns: 1fr; gap: 32px; } }
+
+    /* Quotes */
+    .quotes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .quote { background: var(--bg); border: 3px solid var(--fg); border-radius: 16px; padding: 28px; transform: rotate(-1deg); }
+    .quote:nth-child(2) { transform: rotate(1deg); background: var(--accent); }
+    .quote:nth-child(3) { transform: rotate(-0.5deg); }
+    .quote p { font-size: 18px; margin: 0 0 16px; line-height: 1.45; }
+    .quote .who { font-weight: 700; font-size: 13px; }
+    .quote .who small { display: block; font-weight: 500; opacity: 0.7; }
+    @media (max-width: 1080px) { .quotes { grid-template-columns: 1fr; } .quote { transform: rotate(0); } }
+
+    /* Newsletter */
+    .news { background: var(--berry); color: var(--bg); padding: 96px 0; text-align: center; position: relative; overflow: hidden; }
+    .news h2 { font-family: 'Archivo Black', sans-serif; font-size: clamp(44px, 6vw, 88px); line-height: 0.92; letter-spacing: -0.03em; text-transform: uppercase; margin: 12px 0 14px; color: var(--bg); }
+    .news h2 .y { color: var(--accent); }
+    .news p { max-width: 520px; margin: 0 auto 28px; font-size: 17px; opacity: 0.9; }
+    .news form { display: flex; gap: 8px; max-width: 520px; margin: 0 auto; background: var(--bg); padding: 6px; border-radius: 999px; }
+    .news input { flex: 1; height: 48px; padding: 0 18px; background: transparent; border: 0; color: var(--fg); font-size: 14px; font-family: inherit; outline: none; }
+    .news button { height: 48px; padding: 0 22px; background: var(--accent); color: var(--fg); border: 0; border-radius: 999px; font-size: 13px; font-weight: 700; cursor: pointer; }
+    @media (max-width: 720px) { .news form { flex-direction: column; background: transparent; padding: 0; } .news form input, .news form button { border-radius: 999px; } }
+
+    /* Footer */
+    footer { padding: 56px 0 28px; background: var(--fg); color: var(--bg); }
+    .foot-grid { display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 40px; }
+    .foot-col h4 { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 14px; font-weight: 700; }
+    .foot-col a { display: block; padding: 5px 0; font-size: 14px; color: rgba(246, 241, 227, 0.7); }
+    .foot-col a:hover { color: var(--accent); }
+    .foot-brand { font-family: 'Archivo Black', sans-serif; font-size: 36px; letter-spacing: -0.03em; }
+    .foot-brand::after { content: '.'; color: var(--accent); }
+    .foot-bot { margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(246, 241, 227, 0.18); display: flex; justify-content: space-between; font-size: 12px; color: rgba(246, 241, 227, 0.5); letter-spacing: 0.06em; text-transform: uppercase; }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 8px; text-align: center; } }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-row">
+      <span>wild fermented</span><span>no concentrate ever</span><span>brewed in Oakland</span><span>4g sugar or less</span><span>real fruit, real roots</span><span>vol. 04</span>
+    </div>
+  </div>
+
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">Ferment</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#shop">Sodas</a>
+        <a href="#shop">Kombucha</a>
+        <a href="#packs">Variety packs</a>
+        <a href="#story">Our brew</a>
+        <a href="#">Find us</a>
+      </nav>
+      <a class="cart-btn" href="#" aria-label="Cart">Cart · 0</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow">Volume 04 / pack of 12</span>
+            <h1><span>Drinks <span class="y">that</span></span><span>do <span class="p">something</span></span><span>weird.</span></h1>
+            <p class="lede">Wild-fermented sodas and kombucha brewed in small batches with whole fruit, real roots, and live cultures. Funky labels. Low sugar. Big, strange flavor.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#shop">Shop the lineup</a>
+              <a class="btn btn-ghost" href="#packs">Build a 12-pack</a>
+            </div>
+            <div class="hero-stickers">
+              <span class="sticker">No concentrate</span>
+              <span class="sticker">Live cultures</span>
+              <span class="sticker">4g sugar</span>
+            </div>
+          </div>
+          <div class="hero-art">
+            <img src="https://picsum.photos/seed/ferment-1/1000/1250" width="1000" height="1250" alt="A bright label bottle of lime-green wild soda dripping with condensation on a yellow surface." loading="eager" />
+            <span class="hand-note">try the rhubarb<span class="arr">↗</span></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="label-band">
+      <div class="wrap">
+        <div class="label-grid">
+          <div class="item"><div class="v">42</div><div class="l">batches a month</div></div>
+          <div class="item"><div class="v">0</div><div class="l">grams of concentrate</div></div>
+          <div class="item"><div class="v">4g</div><div class="l">sugar per can</div></div>
+          <div class="item"><div class="v">14</div><div class="l">flavors in rotation</div></div>
+        </div>
+      </div>
+    </div>
+
+    <section class="section" id="shop">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">The lineup</span>
+          <h2>Cans, by <em>flavor.</em></h2>
+        </div>
+        <div class="products">
+          <a class="product" href="#">
+            <span class="badge">New</span>
+            <div class="ph"><img src="https://picsum.photos/seed/ferment-2/700/770" width="700" height="770" alt="A can of Rhubarb Yuzu soda in bright magenta packaging." loading="lazy" /></div>
+            <h3>Rhubarb Yuzu</h3>
+            <p class="notes">Tart rhubarb, late yuzu peel</p>
+            <div class="row"><span class="price">$4.50</span><span class="add">Add</span></div>
+          </a>
+          <a class="product" href="#">
+            <div class="ph"><img src="https://picsum.photos/seed/ferment-3/700/770" width="700" height="770" alt="A can of Ginger Kombucha in olive green." loading="lazy" /></div>
+            <h3>Ginger Kombucha</h3>
+            <p class="notes">Fresh ginger, jasmine green</p>
+            <div class="row"><span class="price">$4.50</span><span class="add">Add</span></div>
+          </a>
+          <a class="product" href="#">
+            <span class="badge pink">Crowd fav</span>
+            <div class="ph"><img src="https://picsum.photos/seed/ferment-4/700/770" width="700" height="770" alt="A can of Strawberry Basil soda in soft pink." loading="lazy" /></div>
+            <h3>Strawberry Basil</h3>
+            <p class="notes">Whole strawberry, garden basil</p>
+            <div class="row"><span class="price">$4.50</span><span class="add">Add</span></div>
+          </a>
+          <a class="product" href="#">
+            <div class="ph"><img src="https://picsum.photos/seed/ferment-5/700/770" width="700" height="770" alt="A can of Sumac Lime soda in burnt orange." loading="lazy" /></div>
+            <h3>Sumac Lime</h3>
+            <p class="notes">Wild sumac, kaffir lime</p>
+            <div class="row"><span class="price">$4.50</span><span class="add">Add</span></div>
+          </a>
+          <a class="product" href="#">
+            <div class="ph"><img src="https://picsum.photos/seed/ferment-6/700/770" width="700" height="770" alt="A can of Hibiscus Hopped kombucha in red." loading="lazy" /></div>
+            <h3>Hibiscus Hopped</h3>
+            <p class="notes">Hibiscus, dry hop</p>
+            <div class="row"><span class="price">$4.50</span><span class="add">Add</span></div>
+          </a>
+          <a class="product" href="#">
+            <span class="badge">Spicy</span>
+            <div class="ph"><img src="https://picsum.photos/seed/ferment-7/700/770" width="700" height="770" alt="A can of Black Pepper Plum soda." loading="lazy" /></div>
+            <h3>Black Pepper Plum</h3>
+            <p class="notes">Wild plum, cracked pepper</p>
+            <div class="row"><span class="price">$4.50</span><span class="add">Add</span></div>
+          </a>
+          <a class="product" href="#">
+            <div class="ph"><img src="https://picsum.photos/seed/ferment-8/700/770" width="700" height="770" alt="A can of Birch Sap Lemon soda." loading="lazy" /></div>
+            <h3>Birch Sap Lemon</h3>
+            <p class="notes">Birch sap tonic, meyer lemon</p>
+            <div class="row"><span class="price">$4.50</span><span class="add">Add</span></div>
+          </a>
+          <a class="product" href="#">
+            <span class="badge pink">Limited</span>
+            <div class="ph"><img src="https://picsum.photos/seed/ferment-9/700/770" width="700" height="770" alt="A can of Fig Vanilla kombucha." loading="lazy" /></div>
+            <h3>Fig Vanilla</h3>
+            <p class="notes">Black mission fig, vanilla pod</p>
+            <div class="row"><span class="price">$4.50</span><span class="add">Add</span></div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="packs">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Built for the fridge</span>
+          <h2>Variety <em>packs.</em></h2>
+        </div>
+        <div class="packs">
+          <div class="pack">
+            <span class="ps">Pack 01</span>
+            <h3>The Crowd Pleaser</h3>
+            <p>Strawberry Basil, Ginger Kombucha, Birch Lemon, Rhubarb Yuzu. Three of each, twelve total.</p>
+            <a href="#">$48 · build →</a>
+          </div>
+          <div class="pack green">
+            <span class="ps">Pack 02</span>
+            <h3>Funk Forward</h3>
+            <p>Hibiscus Hopped, Black Pepper Plum, Sumac Lime, Fig Vanilla. For the weirdo fridge.</p>
+            <a href="#">$52 · build →</a>
+          </div>
+          <div class="pack pink">
+            <span class="ps">Pack 03</span>
+            <h3>Build your own</h3>
+            <p>Pick any 12 from the lineup, swap any time, on a subscription if you want it.</p>
+            <a href="#">From $48 · start →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="story">
+      <div class="wrap">
+        <div class="story">
+          <div class="story-img">
+            <span class="hand-tag">live cultures!</span>
+            <img src="https://picsum.photos/seed/ferment-10/900/1100" width="900" height="1100" alt="A brewer leans over a tall fermentation vessel, watching bubbles." loading="lazy" />
+          </div>
+          <div>
+            <span class="eyebrow">Brewed in Oakland</span>
+            <h2>One <em>brewery.</em> No concentrate.</h2>
+            <p>We started Ferment in 2021 in a back room behind a taqueria. Two people, three plastic buckets, an Excel sheet of pH readings. Today we are a six-person crew with a 300L tank — and the same plastic buckets, kept for sentimental reasons.</p>
+            <p>Every bottle comes from a wild ferment of whole fruit and real roots. Nothing arrives in a drum. Nothing arrives in a paste.</p>
+            <a class="btn btn-ghost" href="#" style="margin-top: 12px;">Tour the brewery</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Out in the wild</span>
+          <h2>What people <em>say.</em></h2>
+        </div>
+        <div class="quotes">
+          <figure class="quote">
+            <p>"Replaced beer at dinner with Ferment. I do not miss the beer. I do think about the Sumac Lime when it runs out, though."</p>
+            <figcaption class="who">Mira H. <small>Subscriber, Oakland</small></figcaption>
+          </figure>
+          <figure class="quote">
+            <p>"Black Pepper Plum is the strangest thing I have put in my fridge this year, and the first I had to reorder."</p>
+            <figcaption class="who">Daniel W. <small>Customer · NYC</small></figcaption>
+          </figure>
+          <figure class="quote">
+            <p>"We stock all of these at the wine bar. They are the only zero-proof drinks we have ever sold out of in a week."</p>
+            <figcaption class="who">Field & Format <small>Wholesale partner · Portland</small></figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="news">
+    <div class="wrap">
+      <span class="eyebrow" style="color: var(--accent);">The Bubble Report</span>
+      <h2>New <span class="y">flavors,</span> first.</h2>
+      <p>One short email when we drop a new brew, plus the occasional weird recipe and an invitation to the brewery on tasting nights.</p>
+      <form onsubmit="event.preventDefault(); this.querySelector('button').textContent='Subscribed!';">
+        <input type="email" required placeholder="your@email" aria-label="Email address" />
+        <button type="submit">Send it</button>
+      </form>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <div class="foot-brand">Ferment</div>
+          <p style="color: rgba(246, 241, 227, 0.7); max-width: 280px; margin-top: 12px; font-size:14px;">Wild-fermented sodas and kombucha, brewed in a back room behind a taqueria in Oakland.</p>
+        </div>
+        <div class="foot-col">
+          <h4>Shop</h4>
+          <a href="#">Sodas</a>
+          <a href="#">Kombucha</a>
+          <a href="#">Variety packs</a>
+          <a href="#">Subscriptions</a>
+          <a href="#">Merch</a>
+        </div>
+        <div class="foot-col">
+          <h4>Brewery</h4>
+          <a href="#">Our brew</a>
+          <a href="#">Tasting nights</a>
+          <a href="#">Wholesale</a>
+          <a href="#">Find us</a>
+        </div>
+        <div class="foot-col">
+          <h4>Help</h4>
+          <a href="#">Shipping</a>
+          <a href="#">Returns</a>
+          <a href="#">Contact</a>
+          <a href="#">Press kit</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Ferment Drinks Co. · Oakland, CA</span>
+        <span>Cultures live in the can</span>
+      </div>
+    </div>
+  </footer>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

@@ -1,0 +1,33 @@
+{
+  "slug": "fitness-03-trail-run",
+  "title": "Trail Run Club",
+  "subtitle": "A running club for the city and the dirt under it.",
+  "category": "Fitness",
+  "type": "Websites",
+  "tags": [
+    "running",
+    "outdoors",
+    "energetic",
+    "photo-led"
+  ],
+  "previewImage": "/templates/fitness-03-trail-run.jpg",
+  "palette": {
+    "bg": "#f5eee2",
+    "fg": "#1a1a17",
+    "accent": "#ff6c3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "stats",
+    "groups",
+    "schedule",
+    "events",
+    "members",
+    "join",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Trail Run Club template as the foundation for a photo-led city running club site with hero, run groups, weekly meet schedule, race calendar, member quotes, and a membership join section.",
+  "livePreview": "/template-previews/fitness-03-trail-run/"
+}

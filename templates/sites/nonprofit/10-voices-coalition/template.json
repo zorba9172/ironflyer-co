@@ -1,0 +1,36 @@
+{
+  "slug": "nonprofit-10-voices-coalition",
+  "title": "Voices Coalition",
+  "subtitle": "Civil rights litigation, policy drafting, and organizer training in twenty-two states.",
+  "category": "Nonprofit",
+  "type": "Websites",
+  "tags": [
+    "civil-rights",
+    "bold",
+    "urgent",
+    "advocacy"
+  ],
+  "previewImage": "/templates/nonprofit-10-voices-coalition.jpg",
+  "palette": {
+    "bg": "#ffffff",
+    "fg": "#190606",
+    "accent": "#d63a3a"
+  },
+  "sections": [
+    "banner",
+    "nav",
+    "hero",
+    "mission",
+    "stats",
+    "cases",
+    "donate",
+    "actions",
+    "quote",
+    "transparency",
+    "team",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Voices Coalition template as the foundation for an urgent civil-rights advocacy nonprofit site with a white + red palette, Tiempos Headline serif, a top urgent banner, hard-edged buttons, a three-pillar mission strip, a dark stats band, a four-case docket grid with status tags, a red donate band with tiers, a four-up take-action row, a centered pull quote, a transparency ledger, a counsel-and-coalition team grid, and a dark serif footer with a red accent stripe.",
+  "livePreview": "/template-previews/nonprofit-10-voices-coalition/"
+}

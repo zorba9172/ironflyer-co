@@ -1,0 +1,36 @@
+{
+  "slug": "realestate-09-rent-atlas",
+  "title": "Rent Atlas",
+  "subtitle": "Rental search platform with verified listings and no application fees.",
+  "category": "Real Estate",
+  "type": "Websites",
+  "tags": [
+    "platform",
+    "search-led",
+    "productized",
+    "marketplace",
+    "renters"
+  ],
+  "previewImage": "/templates/realestate-09-rent-atlas.jpg",
+  "palette": {
+    "bg": "#f7f3ec",
+    "fg": "#161311",
+    "accent": "#d63a3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "search",
+    "cities",
+    "listings",
+    "trust",
+    "stats",
+    "app",
+    "testimonials",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Rent Atlas template as the foundation for a rental-search marketplace with a productized hero, six-field rental search, city tile grid, filterable verified listings with photos taken this month, six trust rules including price-lock and verified landlords, four platform stats, an iOS/Android app callout, renter testimonials, and a city search CTA.",
+  "livePreview": "/template-previews/realestate-09-rent-atlas/"
+}

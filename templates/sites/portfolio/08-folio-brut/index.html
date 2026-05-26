@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FOLIO BRUT — Janek Wozniak, brand designer</title>
+  <meta name="description" content="Folio Brut is Janek Wozniak: a brand designer working with a brutalist hand and a soft palette. Brand systems, identity, and the loud parts of small businesses." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;700;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #efe9da;
+      --bg-2: #e1dac8;
+      --bg-3: #d2c9b1;
+      --ink: #111111;
+      --ink-2: #2c2a26;
+      --ink-3: #6f6b62;
+      --rule: #111111;
+      --blue: #1a3cff;
+      --blue-deep: #0024d6;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Archivo', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      font-size: 16px; line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
+    .display { font-family: 'Archivo Black', 'Archivo', sans-serif; }
+    .mono { font-family: 'IBM Plex Mono', monospace; }
+
+    /* Nav */
+    .nav {
+      border-bottom: 3px solid var(--rule);
+      position: sticky; top: 0; z-index: 50;
+      background: var(--bg);
+    }
+    .nav-inner {
+      display: grid; grid-template-columns: auto 1fr auto auto; gap: 24px;
+      align-items: center; height: 64px;
+    }
+    .brand { font-family: 'Archivo Black', sans-serif; font-size: 22px; letter-spacing: -0.02em; }
+    .brand::after { content: '®'; font-size: 12px; vertical-align: super; margin-left: 4px; }
+    .nav-meta { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.1em; }
+    .nav-links { display: flex; gap: 24px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; }
+    .nav-cta {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--blue); color: white;
+      padding: 8px 14px;
+      font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      border: 2px solid var(--rule);
+    }
+    @media (max-width: 720px) { .nav-links, .nav-meta { display: none; } }
+
+    /* Hero */
+    .hero {
+      padding: 48px 0 32px;
+      border-bottom: 3px solid var(--rule);
+    }
+    .hero-tag {
+      font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+      color: var(--blue); text-transform: uppercase; letter-spacing: 0.18em;
+      margin-bottom: 24px;
+    }
+    h1 {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: clamp(64px, 14vw, 220px);
+      line-height: 0.85; letter-spacing: -0.045em;
+      font-weight: 900; margin: 0;
+      text-transform: uppercase;
+    }
+    h1 .blue { color: var(--blue); }
+    h1 .line2 { display: block; }
+    h1 .line2 .star { color: var(--blue); display: inline-block; vertical-align: middle; }
+    .hero-bottom {
+      margin-top: 32px;
+      display: grid; grid-template-columns: 1.8fr 1fr 1fr; gap: 32px;
+      align-items: end;
+      padding-top: 24px; border-top: 1.5px solid var(--rule);
+    }
+    .hero-lede {
+      font-size: 22px; line-height: 1.35; max-width: 48ch; color: var(--ink);
+      font-weight: 500;
+    }
+    .hero-lede strong { background: var(--blue); color: var(--bg); padding: 1px 6px; font-weight: 500; }
+    .hero-fact { font-family: 'IBM Plex Mono', monospace; }
+    .hero-fact .k { font-size: 11px; text-transform: uppercase; letter-spacing: 0.16em; color: var(--ink-3); margin-bottom: 6px; }
+    .hero-fact .v { font-family: 'Archivo Black', sans-serif; font-size: 22px; }
+    @media (max-width: 1080px) {
+      .hero-bottom { grid-template-columns: 1fr; gap: 16px; }
+    }
+
+    /* Marquee */
+    .marquee {
+      border-bottom: 3px solid var(--rule);
+      overflow: hidden; white-space: nowrap;
+      background: var(--ink); color: var(--bg);
+      padding: 14px 0;
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 22px; letter-spacing: -0.01em;
+      text-transform: uppercase;
+    }
+    .marquee .track { display: inline-flex; gap: 32px; animation: scroll 32s linear infinite; padding-left: 32px; }
+    .marquee .track span { display: inline-flex; align-items: center; gap: 32px; }
+    .marquee .track .blue { color: var(--blue); }
+    @keyframes scroll {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    /* Section */
+    .section { padding: 80px 0; border-bottom: 3px solid var(--rule); }
+    .section-head {
+      display: grid; grid-template-columns: 240px 1fr 1fr; gap: 24px;
+      margin-bottom: 48px; align-items: end;
+    }
+    .section-head .num { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--blue); text-transform: uppercase; letter-spacing: 0.18em; }
+    .section-head h2 {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: clamp(36px, 5vw, 64px);
+      letter-spacing: -0.025em; line-height: 0.95; margin: 0;
+      text-transform: uppercase;
+    }
+    .section-head h2 .blue { color: var(--blue); }
+    .section-head p { font-size: 16px; max-width: 42ch; margin: 0; }
+    @media (max-width: 720px) {
+      .section-head { grid-template-columns: 1fr; }
+    }
+
+    /* Projects */
+    .projects { display: grid; grid-template-columns: 1fr; gap: 56px; }
+    .project {
+      display: grid; grid-template-columns: 1fr 1.4fr; gap: 32px;
+      align-items: stretch;
+      border-top: 1.5px solid var(--rule);
+      padding-top: 24px;
+    }
+    .project .head { display: flex; flex-direction: column; gap: 12px; padding-right: 16px; }
+    .project .num { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--ink-3); }
+    .project h3 {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: clamp(28px, 3.6vw, 48px);
+      letter-spacing: -0.02em; line-height: 0.95; margin: 0;
+      text-transform: uppercase;
+    }
+    .project h3 .blue { color: var(--blue); }
+    .project p { font-size: 16px; color: var(--ink-2); margin: 0; max-width: 44ch; }
+    .project .meta-row {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px; padding-top: 16px; border-top: 1.5px solid var(--rule);
+    }
+    .meta-row .k { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.14em; }
+    .meta-row .v { font-family: 'Archivo Black', sans-serif; font-size: 14px; margin-top: 4px; text-transform: uppercase; }
+    .project .art {
+      background: var(--bg-2);
+      border: 1.5px solid var(--rule);
+      overflow: hidden;
+      position: relative;
+    }
+    .project .art img { width: 100%; aspect-ratio: 4/3; object-fit: cover; }
+    .project:nth-child(even) .art { background: var(--blue); }
+    .project:nth-child(even) .art img { mix-blend-mode: luminosity; opacity: 0.92; }
+    @media (max-width: 1080px) {
+      .project { grid-template-columns: 1fr; }
+    }
+
+    /* System band */
+    .system-band {
+      background: var(--ink); color: var(--bg);
+      border-bottom: 3px solid var(--rule);
+      padding: 80px 0;
+    }
+    .system-band h2 { color: var(--bg); }
+    .system-band h2 .blue { color: var(--blue); }
+    .system-band .section-head p { color: rgba(239, 233, 218, 0.7); }
+    .system-band .section-head .num { color: var(--blue); }
+    .system-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .system-card {
+      background: #1a1a1a;
+      border: 1.5px solid #2a2a2a;
+      padding: 24px;
+    }
+    .system-card .k { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(239, 233, 218, 0.6); text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: 14px; }
+    .system-card h3 {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 24px; margin: 0 0 8px; text-transform: uppercase; letter-spacing: -0.01em;
+    }
+    .system-card p { color: rgba(239, 233, 218, 0.72); font-size: 14px; margin: 0; }
+    .system-swatches { margin-top: 18px; display: flex; gap: 8px; }
+    .swatch { width: 32px; height: 32px; border: 1.5px solid var(--bg); }
+    .swatch.b { background: var(--blue); }
+    .swatch.k { background: var(--ink); border-color: #2a2a2a; }
+    .swatch.p { background: var(--bg); }
+    .swatch.g { background: var(--bg-3); }
+    @media (max-width: 1080px) { .system-grid { grid-template-columns: 1fr; } }
+
+    /* Manifesto */
+    .manifesto {
+      padding: 80px 0;
+      display: grid; grid-template-columns: 240px 1fr; gap: 24px;
+      border-bottom: 3px solid var(--rule);
+    }
+    .manifesto .label { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--blue); text-transform: uppercase; letter-spacing: 0.18em; }
+    .manifesto ol {
+      list-style: none; padding: 0; margin: 0; counter-reset: m;
+      column-count: 2; column-gap: 48px;
+    }
+    .manifesto li {
+      break-inside: avoid; counter-increment: m;
+      padding: 16px 0; border-top: 1.5px solid var(--rule);
+      display: grid; grid-template-columns: 56px 1fr; gap: 16px;
+    }
+    .manifesto li::before {
+      content: counter(m, decimal-leading-zero) ".";
+      font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--blue);
+    }
+    .manifesto li p {
+      font-family: 'Archivo', sans-serif; font-size: 18px; margin: 0; font-weight: 500;
+    }
+    @media (max-width: 1080px) {
+      .manifesto { grid-template-columns: 1fr; }
+      .manifesto ol { column-count: 1; }
+    }
+
+    /* Index table */
+    .index-table { width: 100%; border-collapse: collapse; }
+    .index-table th, .index-table td {
+      text-align: left; padding: 14px 16px;
+      border-top: 1.5px solid var(--rule);
+      font-size: 14px; vertical-align: top;
+    }
+    .index-table th {
+      font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em;
+      color: var(--ink-3); padding-bottom: 18px; border-top: none;
+    }
+    .index-table tr:hover { background: var(--bg-2); }
+    .index-table .id { font-family: 'IBM Plex Mono', monospace; color: var(--blue); }
+    .index-table .name { font-family: 'Archivo Black', sans-serif; font-size: 16px; text-transform: uppercase; letter-spacing: -0.01em; }
+    .index-table .tag {
+      display: inline-block; padding: 2px 8px;
+      font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+      border: 1.5px solid var(--rule); text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .index-table .tag.blue { background: var(--blue); color: white; border-color: var(--blue); }
+    @media (max-width: 720px) {
+      .index-table th:nth-child(4), .index-table td:nth-child(4),
+      .index-table th:nth-child(5), .index-table td:nth-child(5) { display: none; }
+    }
+
+    /* Press */
+    .press { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .press-card {
+      border: 1.5px solid var(--rule); padding: 24px;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .press-card .pub { font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--blue); }
+    .press-card blockquote { margin: 0; font-family: 'Archivo Black', sans-serif; font-size: 22px; letter-spacing: -0.015em; line-height: 1.1; text-transform: uppercase; }
+    .press-card .by { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.12em; }
+    @media (max-width: 1080px) { .press { grid-template-columns: 1fr; } }
+
+    /* Contact */
+    .contact-band {
+      background: var(--blue); color: white;
+      padding: 96px 0; border-bottom: 3px solid var(--rule);
+    }
+    .contact-band h2 {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: clamp(56px, 11vw, 180px);
+      letter-spacing: -0.045em; line-height: 0.88; margin: 0;
+      text-transform: uppercase;
+    }
+    .contact-band .email-row {
+      margin-top: 32px; padding-top: 24px; border-top: 2px solid white;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: baseline;
+    }
+    .contact-band .email {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: clamp(24px, 3vw, 40px); letter-spacing: -0.02em;
+      border-bottom: 2px solid white; padding-bottom: 6px; display: inline-block;
+    }
+    .contact-band .meta { font-family: 'IBM Plex Mono', monospace; font-size: 13px; text-transform: uppercase; letter-spacing: 0.16em; text-align: right; }
+    @media (max-width: 1080px) {
+      .contact-band .email-row { grid-template-columns: 1fr; }
+      .contact-band .meta { text-align: left; }
+    }
+
+    /* Footer */
+    footer { padding: 32px 0; }
+    .foot {
+      display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+      font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+      color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.14em;
+    }
+    .foot a:hover { color: var(--blue); }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">FOLIO&nbsp;BRUT</a>
+      <span class="nav-meta">EST. 2014 · WARSAW &amp; LISBON</span>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#projects">Projects</a>
+        <a href="#system">System</a>
+        <a href="#index">Index</a>
+        <a href="#manifesto">Manifesto</a>
+      </nav>
+      <a class="nav-cta" href="#contact">Hire — 2026 →</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <p class="hero-tag">Brand Designer · Studio of one · Janek Wozniak</p>
+        <h1>BIG <span class="blue">BRAND.</span><span class="line2">SMALL <span class="star">★</span> STUDIO.</span></h1>
+        <div class="hero-bottom">
+          <p class="hero-lede">I make <strong>loud identities</strong> for businesses that have been polite for too long. Brand systems, packaging, type, and the parts of a website that have to scream from across the room.</p>
+          <div class="hero-fact">
+            <div class="k">Available</div>
+            <div class="v">Sept 2026</div>
+          </div>
+          <div class="hero-fact">
+            <div class="k">Working</div>
+            <div class="v">2 / quarter</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="marquee" aria-hidden="true">
+      <div class="track">
+        <span>BRAND SYSTEMS <span class="blue">★</span> IDENTITY <span class="blue">★</span> PACKAGING <span class="blue">★</span> TYPE <span class="blue">★</span> EDITORIAL <span class="blue">★</span> POSTERS <span class="blue">★</span> WAYFINDING <span class="blue">★</span></span>
+        <span>BRAND SYSTEMS <span class="blue">★</span> IDENTITY <span class="blue">★</span> PACKAGING <span class="blue">★</span> TYPE <span class="blue">★</span> EDITORIAL <span class="blue">★</span> POSTERS <span class="blue">★</span> WAYFINDING <span class="blue">★</span></span>
+      </div>
+    </section>
+
+    <section class="section" id="projects">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="num">§01 — Projects · 2024–2026</span>
+          <h2>Five <span class="blue">brands</span> I made bigger.</h2>
+          <p>Long-form case studies live in the index below. These are the headlines.</p>
+        </div>
+
+        <div class="projects">
+          <article class="project">
+            <div class="head">
+              <span class="num">№ 01</span>
+              <h3>NORTHBEAM, <span class="blue">REPRINTED.</span></h3>
+              <p>A complete identity, packaging system, and brand book for a financial product that was tired of looking like a bank.</p>
+              <div class="meta-row">
+                <div><div class="k">Sector</div><div class="v">Fintech</div></div>
+                <div><div class="k">Year</div><div class="v">2026</div></div>
+                <div><div class="k">Scope</div><div class="v">Full system</div></div>
+              </div>
+            </div>
+            <div class="art"><img src="https://picsum.photos/seed/folio-brut-1/1400/1050" width="1400" height="1050" alt="A brutalist identity application for Northbeam, with large condensed type on a bone background." loading="lazy" /></div>
+          </article>
+
+          <article class="project">
+            <div class="head">
+              <span class="num">№ 02</span>
+              <h3>FIELD &amp; FORMAT — <span class="blue">A LOUD MAGAZINE.</span></h3>
+              <p>Editorial system and cover programme for a quarterly print magazine. Six issues so far. I write the cover lines too.</p>
+              <div class="meta-row">
+                <div><div class="k">Sector</div><div class="v">Editorial</div></div>
+                <div><div class="k">Year</div><div class="v">2024–</div></div>
+                <div><div class="k">Scope</div><div class="v">System + 6 covers</div></div>
+              </div>
+            </div>
+            <div class="art"><img src="https://picsum.photos/seed/folio-brut-2/1400/1050" width="1400" height="1050" alt="A stack of Field & Format magazine covers in heavy black type." loading="lazy" /></div>
+          </article>
+
+          <article class="project">
+            <div class="head">
+              <span class="num">№ 03</span>
+              <h3>SALT &amp; PINE, <span class="blue">UNAPOLOGETIC.</span></h3>
+              <p>A new identity, packaging line, and shop signage for a small natural wine importer in Lisbon. Sales doubled by the second month.</p>
+              <div class="meta-row">
+                <div><div class="k">Sector</div><div class="v">F&amp;B</div></div>
+                <div><div class="k">Year</div><div class="v">2025</div></div>
+                <div><div class="k">Scope</div><div class="v">Identity + retail</div></div>
+              </div>
+            </div>
+            <div class="art"><img src="https://picsum.photos/seed/folio-brut-3/1400/1050" width="1400" height="1050" alt="Wine bottle labels and a shop front for Salt and Pine." loading="lazy" /></div>
+          </article>
+
+          <article class="project">
+            <div class="head">
+              <span class="num">№ 04</span>
+              <h3>HANGAR 12 — <span class="blue">RAW BRAND.</span></h3>
+              <p>A festival identity built around three woodcut marks and one rule: no more than two colours in any application.</p>
+              <div class="meta-row">
+                <div><div class="k">Sector</div><div class="v">Culture</div></div>
+                <div><div class="k">Year</div><div class="v">2024</div></div>
+                <div><div class="k">Scope</div><div class="v">Identity + print</div></div>
+              </div>
+            </div>
+            <div class="art"><img src="https://picsum.photos/seed/folio-brut-4/1400/1050" width="1400" height="1050" alt="Festival posters and tickets in two colours of ink." loading="lazy" /></div>
+          </article>
+
+          <article class="project">
+            <div class="head">
+              <span class="num">№ 05</span>
+              <h3>BUREAU VERSO, <span class="blue">QUIETLY LOUD.</span></h3>
+              <p>A complete rebrand for a Belgian publishing house. The new mark is a single fat dot. We argued about it for a month.</p>
+              <div class="meta-row">
+                <div><div class="k">Sector</div><div class="v">Publishing</div></div>
+                <div><div class="k">Year</div><div class="v">2023</div></div>
+                <div><div class="k">Scope</div><div class="v">Identity + books</div></div>
+              </div>
+            </div>
+            <div class="art"><img src="https://picsum.photos/seed/folio-brut-5/1400/1050" width="1400" height="1050" alt="Book covers for Bureau Verso, each with a single large dot." loading="lazy" /></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="system-band" id="system">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="num">§02 — System</span>
+          <h2>The <span class="blue">system</span> — bone, ink, blue.</h2>
+          <p>Every brand I ship has a colour discipline, a type discipline, and a behaviour discipline. The bone/ink/blue you see on this site is mine.</p>
+        </div>
+        <div class="system-grid">
+          <div class="system-card">
+            <span class="k">01 / Colour</span>
+            <h3>Bone, ink, blue.</h3>
+            <p>Bone for paper. Ink for rules. Blue when it has to bite. Anything else has to argue its way in.</p>
+            <div class="system-swatches">
+              <div class="swatch p" title="bone"></div>
+              <div class="swatch g" title="bone-deep"></div>
+              <div class="swatch k" title="ink"></div>
+              <div class="swatch b" title="blue"></div>
+            </div>
+          </div>
+          <div class="system-card">
+            <span class="k">02 / Type</span>
+            <h3>Archivo Black + Mono.</h3>
+            <p>A display face that doesn't blink, a working face that does the dishes, and a monospace for the small print.</p>
+          </div>
+          <div class="system-card">
+            <span class="k">03 / Behaviour</span>
+            <h3>Three rules — no more.</h3>
+            <p>Heavy rules, big type, single accent. If a project needs a fourth move, that's the project, not the system.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="manifesto" id="manifesto">
+      <div class="wrap" style="display: contents;"></div>
+      <div class="wrap" style="grid-column: 1 / -1; display: grid; grid-template-columns: 240px 1fr; gap: 24px;">
+        <div>
+          <span class="label">§03 — Manifesto</span>
+          <h2 style="font-family: 'Archivo Black', sans-serif; font-size: clamp(40px, 5vw, 64px); letter-spacing: -0.025em; line-height: 0.95; margin: 12px 0 0; text-transform: uppercase;">EIGHT RULES.</h2>
+        </div>
+        <ol>
+          <li><p>If the logo doesn't work at one centimetre, it doesn't work.</p></li>
+          <li><p>A brief is the client's first draft. Rewrite it.</p></li>
+          <li><p>Big type is honest. Small type is honest, too. The middle is suspicious.</p></li>
+          <li><p>A system survives a junior designer's bad day. A logo doesn't.</p></li>
+          <li><p>One accent colour. Earn the second one.</p></li>
+          <li><p>The launch is week one. The brand is years three to ten.</p></li>
+          <li><p>If a stakeholder won't read the brand book, the brand book is too long.</p></li>
+          <li><p>Charge for the thinking. Give the artwork away with it.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="section" id="index">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="num">§04 — Index</span>
+          <h2>The whole <span class="blue">catalogue</span>.</h2>
+          <p>Forty-one projects since 2014. The full index is on request, with a NDA where needed.</p>
+        </div>
+
+        <table class="index-table">
+          <thead>
+            <tr><th>ID</th><th>Project</th><th>Sector</th><th>Year</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="id">041</td><td><span class="name">Northbeam — Reprinted</span></td><td>Fintech</td><td>2026</td><td><span class="tag blue">Live</span></td></tr>
+            <tr><td class="id">040</td><td><span class="name">Field &amp; Format Vol. 06</span></td><td>Editorial</td><td>2026</td><td><span class="tag blue">Shipping</span></td></tr>
+            <tr><td class="id">039</td><td><span class="name">Salt &amp; Pine — Retail</span></td><td>F&amp;B</td><td>2025</td><td><span class="tag">Live</span></td></tr>
+            <tr><td class="id">038</td><td><span class="name">Atlas Group — Annual</span></td><td>Investing</td><td>2025</td><td><span class="tag">Live</span></td></tr>
+            <tr><td class="id">037</td><td><span class="name">Pivot House — Site &amp; book</span></td><td>SaaS</td><td>2025</td><td><span class="tag">Live</span></td></tr>
+            <tr><td class="id">036</td><td><span class="name">Hangar 12 Festival</span></td><td>Culture</td><td>2024</td><td><span class="tag">Archived</span></td></tr>
+            <tr><td class="id">035</td><td><span class="name">Bureau Verso — Rebrand</span></td><td>Publishing</td><td>2023</td><td><span class="tag">Live</span></td></tr>
+            <tr><td class="id">034</td><td><span class="name">Volt Marketing — System</span></td><td>Agency</td><td>2023</td><td><span class="tag">Live</span></td></tr>
+            <tr><td class="id">033</td><td><span class="name">Studio Trail — Identity</span></td><td>Photography</td><td>2022</td><td><span class="tag">Live</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="num">§05 — Press</span>
+          <h2>What people <span class="blue">printed</span>.</h2>
+          <p>Selected coverage, in print. The kind the studio still keeps on a shelf.</p>
+        </div>
+        <div class="press">
+          <div class="press-card">
+            <span class="pub">Eye Magazine — 2025</span>
+            <blockquote>"WOZNIAK MAKES BRANDS THE WAY OTHER STUDIOS MAKE LOGOS — WHOLE, RUDE, AND BUILT TO LAST A DECADE."</blockquote>
+            <span class="by">— Helena Roth, editor at large</span>
+          </div>
+          <div class="press-card">
+            <span class="pub">It's Nice That — 2024</span>
+            <blockquote>"FOLIO BRUT IS A REMINDER THAT BRUTALISM IS A HAND, NOT A FILTER."</blockquote>
+            <span class="by">— Marko Lin, on the Salt &amp; Pine system</span>
+          </div>
+          <div class="press-card">
+            <span class="pub">D&amp;AD — 2024</span>
+            <blockquote>"A PENCIL FOR HANGAR 12, AND THE ANNUAL LIST FOR THE NORTHBEAM PROGRAMME."</blockquote>
+            <span class="by">— Awards jury statement</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="contact-band" id="contact">
+      <div class="wrap">
+        <h2>GOT A BRAND<br/>WORTH SHOUTING ABOUT?</h2>
+        <div class="email-row">
+          <a class="email" href="mailto:janek@foliobrut.studio">JANEK@FOLIOBRUT.STUDIO ↗</a>
+          <span class="meta">Two-week turnaround for a quote · Three projects per year</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap foot">
+      <span>© 2014–2026 FOLIO BRUT® · JANEK WOZNIAK</span>
+      <span><a href="#">Instagram</a> · <a href="#">Are.na</a> · <a href="#">Press kit</a></span>
+    </div>
+  </footer>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

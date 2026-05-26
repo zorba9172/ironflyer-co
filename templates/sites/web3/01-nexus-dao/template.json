@@ -1,0 +1,34 @@
+{
+  "slug": "web3-01-nexus-dao",
+  "title": "Nexus DAO",
+  "subtitle": "Onchain governance for serious protocols — propose, vote, execute.",
+  "category": "Web3",
+  "type": "Apps",
+  "tags": [
+    "dark",
+    "dao",
+    "governance",
+    "technical"
+  ],
+  "previewImage": "/templates/web3-01-nexus-dao.jpg",
+  "palette": {
+    "bg": "#07080a",
+    "fg": "#e8eef4",
+    "accent": "#6dd5ff"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "stats",
+    "how",
+    "features",
+    "security",
+    "token",
+    "ecosystem",
+    "dev",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Nexus DAO template as the foundation for a DAO governance protocol landing. Keep the near-black background with cyan accent, the active proposal preview in the hero, the timelock/multisig narrative, and the modular features grid. Replace placeholder copy with the specific protocol's positioning, quorum, and chain set.",
+  "livePreview": "/template-previews/web3-01-nexus-dao/"
+}

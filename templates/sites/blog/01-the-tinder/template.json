@@ -1,0 +1,34 @@
+{
+  "slug": "blog-01-the-tinder",
+  "title": "The Tinder",
+  "subtitle": "An independent weekly of long-form essays on software, systems, and the people who build them.",
+  "category": "Blog",
+  "type": "Websites",
+  "tags": [
+    "editorial",
+    "serif",
+    "essays",
+    "long-form",
+    "minimal"
+  ],
+  "previewImage": "/templates/blog-01-the-tinder.jpg",
+  "palette": {
+    "bg": "#f4ede0",
+    "fg": "#111111",
+    "accent": "#b3261e"
+  },
+  "sections": [
+    "nav",
+    "masthead",
+    "hero",
+    "essays",
+    "interviews",
+    "editor-note",
+    "newsletter",
+    "archive",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use The Tinder template as the foundation for an editorial essay publication. Cream paper background, Fraunces display serif, Inter body, restrained red accent, big masthead, one feature essay hero, three-up essay grid, conversations list, an editor's note, newsletter signup, and a numbered archive. Replace copy with the publication's real essays and bylines, keep the slow editorial voice.",
+  "livePreview": "/template-previews/blog-01-the-tinder/"
+}

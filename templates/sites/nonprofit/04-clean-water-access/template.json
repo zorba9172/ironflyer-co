@@ -1,0 +1,35 @@
+{
+  "slug": "nonprofit-04-clean-water-access",
+  "title": "Clean Water Access",
+  "subtitle": "Drilling, repairing, and ten-year monitoring of community wells in eleven underserved regions.",
+  "category": "Nonprofit",
+  "type": "Websites",
+  "tags": [
+    "water",
+    "global",
+    "mission",
+    "data"
+  ],
+  "previewImage": "/templates/nonprofit-04-clean-water-access.jpg",
+  "palette": {
+    "bg": "#ffffff",
+    "fg": "#0b1736",
+    "accent": "#4aa8e0"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "impact",
+    "how",
+    "regions",
+    "donate",
+    "help",
+    "story",
+    "transparency",
+    "team",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Clean Water Access template as the foundation for a water-access nonprofit site with a white + sky-blue + deep-navy palette, Source Serif 4 headings, photo-led hero with overlapping data card, impact stats grid, four-step well pipeline, six regional program cards with per-person cost, a donate card with selectable tiers, monthly-giving + corporate trio, beneficiary quote, a dark transparency band, leadership grid, and a navy footer.",
+  "livePreview": "/template-previews/nonprofit-04-clean-water-access/"
+}

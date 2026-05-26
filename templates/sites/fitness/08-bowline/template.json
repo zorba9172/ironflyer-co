@@ -1,0 +1,34 @@
+{
+  "slug": "fitness-08-bowline",
+  "title": "Bowline Wellness",
+  "subtitle": "Sailing and breathwork retreats on the Mediterranean.",
+  "category": "Fitness",
+  "type": "Websites",
+  "tags": [
+    "retreat",
+    "sailing",
+    "breathwork",
+    "dreamy"
+  ],
+  "previewImage": "/templates/fitness-08-bowline.jpg",
+  "palette": {
+    "bg": "#d9e7e0",
+    "fg": "#0e2326",
+    "accent": "#ff6c3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "retreats",
+    "day-on-board",
+    "guides",
+    "what-included",
+    "testimonials",
+    "dates",
+    "booking",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Bowline Wellness template as the foundation for a sea-foam and coral retreat brand combining sailing with breathwork. Hero, retreat types, day-on-board itinerary, guides, what's included, testimonials, upcoming dates, and booking.",
+  "livePreview": "/template-previews/fitness-08-bowline/"
+}

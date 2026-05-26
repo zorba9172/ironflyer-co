@@ -1,0 +1,36 @@
+{
+  "slug": "blog-10-tradewinds",
+  "title": "Tradewinds",
+  "subtitle": "An independent newsletter on business, finance, and capital — explained slowly, with the spreadsheet attached.",
+  "category": "Blog",
+  "type": "Websites",
+  "tags": [
+    "finance",
+    "editorial",
+    "serif",
+    "newsletter",
+    "business"
+  ],
+  "previewImage": "/templates/blog-10-tradewinds.jpg",
+  "palette": {
+    "bg": "#f3eee5",
+    "fg": "#0b1736",
+    "accent": "#b78a3a"
+  },
+  "sections": [
+    "nav",
+    "ticker",
+    "masthead",
+    "hero-essay",
+    "companies",
+    "numbers",
+    "chart",
+    "longreads",
+    "about",
+    "newsletter",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Tradewinds template as the foundation for a finance and business newsletter. Off-white paper, deep navy ink, gold accent, Lora display serif with IBM Plex Mono for tickers and Inter for sans elements. Sections cover a dark scrolling market ticker, masthead with metadata, a left essay plus right briefs hero, three-up companies stories, a four-up numbers-of-the-week grid, an inline SVG chart-of-the-week, a long-reads list, an editor's note, and a dark newsletter band. Voice is precise, footnoted, reader-supported.",
+  "livePreview": "/template-previews/blog-10-tradewinds/"
+}

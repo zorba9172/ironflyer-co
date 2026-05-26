@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hope Runs — The 14th annual run for breast cancer research</title>
+  <meta name="description" content="Hope Runs is a 5K and half-marathon raising direct grants for early-stage breast cancer research labs. $4.2M raised in 2025. Saturday, October 11, 2026 at Liberty State Park." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #ffffff;
+      --bg-2: #fff5f9;
+      --paper: #ffffff;
+      --ink: #1d0a16;
+      --ink-2: #4a2638;
+      --ink-3: #7a5566;
+      --accent: #ff3d8a;
+      --accent-2: #e22072;
+      --line: #f3dde6;
+      --radius-sm: 6px;
+      --radius-md: 14px;
+      --radius-lg: 22px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--ink); font-family: 'Inter', system-ui, sans-serif; font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    .display { font-family: 'Anton', system-ui, sans-serif; font-weight: 400; letter-spacing: 0.005em; }
+
+    /* Nav */
+    .nav { position: sticky; top: 0; z-index: 50; background: rgba(255,255,255,0.95); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 74px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-family: 'Anton', sans-serif; font-size: 26px; letter-spacing: 0.02em; }
+    .brand-mark { width: 34px; height: 34px; border-radius: 50%; background: var(--accent); display: grid; place-items: center; color: #fff; font-family: 'Anton', sans-serif; font-size: 18px; }
+    .nav-links { display: flex; gap: 30px; color: var(--ink-2); font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta { display: flex; gap: 10px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 22px; border-radius: 999px; font-weight: 700; font-size: 14px; border: 2px solid transparent; cursor: pointer; transition: background 160ms, transform 160ms; text-transform: uppercase; letter-spacing: 0.04em; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-2); transform: translateY(-1px); }
+    .btn-ghost { background: transparent; color: var(--ink); border-color: var(--ink); }
+    .btn-ghost:hover { background: var(--ink); color: #fff; }
+    @media (max-width: 1080px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 0; position: relative; }
+    .hero-photo { position: relative; min-height: 720px; height: 92vh; max-height: 880px; overflow: hidden; }
+    .hero-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .hero-photo::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(29,10,22,0.7) 0%, rgba(255,61,138,0.35) 100%); }
+    .hero-text { position: absolute; inset: 0; display: grid; align-items: center; color: #fff; }
+    .hero-text .wrap { position: relative; z-index: 2; }
+    .hero-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 56px; align-items: center; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.35); border-radius: 999px; font-size: 12px; color: #fff; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; }
+    .eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+    h1 { font-family: 'Anton', sans-serif; font-weight: 400; font-size: clamp(60px, 9.5vw, 144px); line-height: 0.88; letter-spacing: 0.0em; margin: 18px 0 18px; text-transform: uppercase; }
+    h1 .pink { color: var(--accent); display: block; }
+    .lede { font-size: 19px; color: rgba(255,255,255,0.92); max-width: 540px; }
+    .hero-cta { display: flex; gap: 14px; margin-top: 28px; flex-wrap: wrap; }
+    .countdown { background: rgba(255,255,255,0.96); color: var(--ink); border-radius: var(--radius-lg); padding: 28px; backdrop-filter: blur(12px); }
+    .countdown .when { font-family: 'Anton', sans-serif; font-size: 40px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.01em; line-height: 1; }
+    .countdown .where { color: var(--ink-2); font-size: 14px; margin: 6px 0 14px; }
+    .clock { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .clock-cell { background: var(--ink); color: #fff; padding: 14px 10px; border-radius: 10px; text-align: center; }
+    .clock-cell .n { font-family: 'Anton', sans-serif; font-size: 32px; line-height: 1; color: var(--accent); }
+    .clock-cell .l { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.8; margin-top: 4px; }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 40px; } .hero-photo { height: auto; min-height: 0; padding: 80px 0 56px; } .hero-photo img { position: absolute; inset: 0; } }
+    @media (max-width: 720px) { .hero-cta .btn { width: 100%; justify-content: center; } }
+
+    /* Sections */
+    .section { padding: 96px 0; }
+    .section.tint { background: var(--bg-2); }
+    .section.dark { background: var(--ink); color: #fff; }
+    .section.dark h2 { color: #fff; }
+    .section-head { max-width: 760px; margin-bottom: 56px; }
+    h2 { font-family: 'Anton', sans-serif; font-weight: 400; font-size: clamp(40px, 6vw, 84px); letter-spacing: 0.005em; line-height: 0.95; margin: 14px 0 16px; text-transform: uppercase; }
+    h2 .pink { color: var(--accent); }
+    .section.dark .lede { color: rgba(255,255,255,0.78); }
+
+    /* Race options */
+    .races { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+    .race { background: var(--paper); border: 2px solid var(--ink); border-radius: var(--radius-md); padding: 36px 32px; display: flex; flex-direction: column; transition: transform 200ms; }
+    .race:hover { transform: translateY(-4px); }
+    .race.featured { background: var(--ink); color: #fff; }
+    .race .distance { font-family: 'Anton', sans-serif; font-size: 88px; line-height: 0.9; color: var(--ink); letter-spacing: 0.01em; }
+    .race.featured .distance { color: var(--accent); }
+    .race h3 { font-family: 'Anton', sans-serif; font-size: 24px; font-weight: 400; margin: 12px 0 8px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .race p { color: var(--ink-2); font-size: 15px; margin: 0 0 18px; flex: 1; }
+    .race.featured p { color: rgba(255,255,255,0.78); }
+    .race .meta { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--ink-3); margin-bottom: 18px; }
+    .race.featured .meta { color: rgba(255,255,255,0.6); }
+    .race .price { font-family: 'Anton', sans-serif; font-size: 36px; line-height: 1; margin-bottom: 12px; }
+    .race a.btn { align-self: flex-start; }
+    @media (max-width: 1080px) { .races { grid-template-columns: 1fr; } }
+
+    /* Impact */
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+    .stat { padding: 32px 24px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-md); }
+    .stat .val { font-family: 'Anton', sans-serif; font-size: clamp(44px, 5.5vw, 64px); line-height: 1; color: var(--accent); letter-spacing: 0.01em; }
+    .stat .label { color: var(--ink-2); font-size: 14px; margin-top: 12px; }
+    @media (max-width: 1080px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+
+    /* Where money goes */
+    .labs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; }
+    .lab { display: grid; grid-template-columns: 0.9fr 1.1fr; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-md); overflow: hidden; }
+    .lab img { width: 100%; height: 100%; object-fit: cover; aspect-ratio: 4/3; }
+    .lab-body { padding: 24px; display: flex; flex-direction: column; }
+    .lab .sub { font-size: 12px; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+    .lab h3 { font-family: 'Anton', sans-serif; font-size: 24px; font-weight: 400; margin: 6px 0 8px; letter-spacing: 0.01em; }
+    .lab p { color: var(--ink-2); font-size: 14.5px; margin: 0 0 14px; flex: 1; }
+    .lab .grant { padding-top: 12px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; font-size: 13px; }
+    .lab .grant strong { color: var(--accent); font-family: 'Anton', sans-serif; font-size: 18px; }
+    @media (max-width: 1080px) { .labs { grid-template-columns: 1fr; } .lab { grid-template-columns: 1fr; } }
+
+    /* Donate */
+    .donate-band { background: var(--accent); color: #fff; border-radius: var(--radius-lg); padding: 56px; display: grid; grid-template-columns: 1.05fr 1fr; gap: 56px; align-items: center; }
+    .donate-band h2 { color: #fff; }
+    .donate-band p { color: rgba(255,255,255,0.92); }
+    .tiers { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 18px 0; }
+    .tier { background: rgba(255,255,255,0.14); border: 2px solid #fff; border-radius: 10px; padding: 18px; cursor: pointer; text-align: left; color: #fff; transition: all 160ms; }
+    .tier:hover, .tier.active { background: #fff; color: var(--ink); }
+    .tier .amt { font-family: 'Anton', sans-serif; font-size: 32px; line-height: 1; }
+    .tier .what { font-size: 13px; opacity: 0.85; margin-top: 6px; }
+    .donate-band .btn { background: var(--ink); color: #fff; height: 50px; padding: 0 26px; }
+    @media (max-width: 1080px) { .donate-band { grid-template-columns: 1fr; padding: 36px; } }
+
+    /* Story */
+    .story-grid { display: grid; grid-template-columns: 1fr 1.05fr; gap: 56px; align-items: center; }
+    .story-grid img { aspect-ratio: 4/5; object-fit: cover; width: 100%; border-radius: var(--radius-lg); }
+    blockquote { font-family: 'Anton', sans-serif; font-weight: 400; font-size: clamp(28px, 3.6vw, 44px); line-height: 1.05; letter-spacing: 0.01em; margin: 0 0 24px; text-transform: uppercase; }
+    cite { font-style: normal; color: var(--ink-2); font-size: 15px; }
+    cite strong { color: var(--ink); display: block; font-weight: 700; margin-bottom: 2px; }
+    @media (max-width: 1080px) { .story-grid { grid-template-columns: 1fr; } }
+
+    /* Sponsors */
+    .sponsors { padding: 56px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .sponsors-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 24px; align-items: center; justify-items: center; font-family: 'Anton', sans-serif; font-size: 22px; color: var(--ink-3); }
+    @media (max-width: 1080px) { .sponsors-row { grid-template-columns: repeat(3, 1fr); } }
+
+    /* Team */
+    .team { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
+    .person img { aspect-ratio: 1/1; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 12px; }
+    .person h4 { margin: 0 0 2px; font-size: 16px; font-weight: 700; }
+    .person p { margin: 0; color: var(--ink-2); font-size: 13px; }
+    @media (max-width: 1080px) { .team { grid-template-columns: repeat(2, 1fr); } }
+
+    /* Footer */
+    footer { background: var(--ink); color: #d4b4c3; padding: 64px 0 28px; }
+    .foot-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1.2fr; gap: 40px; }
+    .foot-col h4 { color: var(--accent); font-family: 'Anton', sans-serif; font-weight: 400; font-size: 18px; margin: 0 0 14px; text-transform: uppercase; }
+    .foot-col a { display: block; color: #d4b4c3; font-size: 14px; padding: 6px 0; }
+    .foot-col a:hover { color: #fff; }
+    .foot-bot { margin-top: 48px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.12); display: flex; justify-content: space-between; font-size: 13px; }
+    @media (max-width: 1080px) { .foot-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr; } .foot-bot { flex-direction: column; gap: 10px; } }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#"><span class="brand-mark">HR</span>Hope Runs</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#races">Races</a>
+        <a href="#impact">Impact</a>
+        <a href="#labs">Funded labs</a>
+        <a href="#sponsors">Sponsors</a>
+        <a href="#team">Team</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-ghost" href="#help">Volunteer</a>
+        <a class="btn btn-primary" href="#races">Register</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-photo">
+        <img src="https://picsum.photos/seed/hope-runs-1/1800/1200" width="1800" height="1200" alt="A large crowd of runners in pink shirts crossing the start line at the annual Hope Runs 5K, with cheering supporters lining the route." loading="eager" />
+        <div class="hero-text">
+          <div class="wrap">
+            <div class="hero-grid">
+              <div>
+                <span class="eyebrow"><span class="dot"></span>14th annual · Saturday, October 11, 2026</span>
+                <h1>Run for <span class="pink">research.</span><br />Run for <span class="pink">her.</span></h1>
+                <p class="lede">A 5K and a half-marathon on the Hudson waterfront. 100% of registration revenue goes directly to early-stage breast cancer research grants — no overhead skim, no operations cut.</p>
+                <div class="hero-cta">
+                  <a class="btn btn-primary" href="#races">Register now →</a>
+                  <a class="btn" href="#labs" style="background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.4);">See funded labs</a>
+                </div>
+              </div>
+              <div class="countdown">
+                <div class="when">Race Day</div>
+                <div class="where">Liberty State Park, Jersey City NJ · 7:30 AM start</div>
+                <div class="clock" aria-label="Countdown to race day">
+                  <div class="clock-cell"><div class="n">142</div><div class="l">Days</div></div>
+                  <div class="clock-cell"><div class="n">06</div><div class="l">Hours</div></div>
+                  <div class="clock-cell"><div class="n">24</div><div class="l">Min</div></div>
+                  <div class="clock-cell"><div class="n">18</div><div class="l">Sec</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="races">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow" style="background: var(--paper); color: var(--ink-2); border-color: var(--line);"><span class="dot"></span>Pick your race</span>
+          <h2>Three ways to <span class="pink">show up.</span></h2>
+          <p style="font-size: 18px; color: var(--ink-2);">Every entry includes a finisher's medal, a tech tee, post-race brunch, and the right to brag for at least 30 days.</p>
+        </div>
+        <div class="races">
+          <article class="race">
+            <div class="distance">5K</div>
+            <h3>The Boardwalk Five</h3>
+            <p>Flat and fast along the Hudson waterfront. Strollers and walkers welcome. Cutoff at 90 minutes. Perfect first race for first-timers and families.</p>
+            <div class="meta"><span>3.1 miles</span><span>Flat</span><span>Strollers OK</span></div>
+            <div class="price">$48</div>
+            <a class="btn btn-ghost" href="#">Register 5K →</a>
+          </article>
+          <article class="race featured">
+            <div class="distance">13.1</div>
+            <h3>Liberty Half Marathon</h3>
+            <p>The full Hope Runs experience. Loops through Liberty State Park with a Statue of Liberty backdrop at mile 8. Chip-timed. Cutoff at 3:30:00.</p>
+            <div class="meta"><span>13.1 miles</span><span>Chip-timed</span><span>USATF certified</span></div>
+            <div class="price">$92</div>
+            <a class="btn btn-primary" href="#">Register Half →</a>
+          </article>
+          <article class="race">
+            <div class="distance">·1·</div>
+            <h3>Survivors' Mile</h3>
+            <p>A non-competitive mile for survivors, families, and care teams. Starts after the half-marathon finishes. Pink shirts provided. Free for survivors.</p>
+            <div class="meta"><span>1 mile</span><span>Untimed</span><span>Free for survivors</span></div>
+            <div class="price">$25</div>
+            <a class="btn btn-ghost" href="#">Register Mile →</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section tint" id="impact">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>What we've done</span>
+          <h2>Fourteen years. <span class="pink">$36.4M</span> to research.</h2>
+          <p style="font-size: 18px; color: var(--ink-2);">Every dollar above operating cost goes to peer-reviewed grants for early-stage breast cancer labs. Our event sponsors cover operations so registration money flows straight through.</p>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="val">$4.2M</div><div class="label">raised in 2025, the largest year in the event's history</div></div>
+          <div class="stat"><div class="val">$36.4M</div><div class="label">cumulative since 2012 — all to research grants</div></div>
+          <div class="stat"><div class="val">38</div><div class="label">independent labs funded across 14 universities</div></div>
+          <div class="stat"><div class="val">12,400</div><div class="label">runners crossed the line in 2025 across all distances</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="labs">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow" style="background: var(--paper); color: var(--ink-2); border-color: var(--line);"><span class="dot"></span>Where it goes</span>
+          <h2>Real labs. <span class="pink">Real grants.</span> No middlemen.</h2>
+          <p style="font-size: 18px; color: var(--ink-2);">A small selection of the 2025 grant cohort. Full grantee list and proposals are public on our research portal.</p>
+        </div>
+        <div class="labs">
+          <article class="lab">
+            <img src="https://picsum.photos/seed/hope-runs-2/700/520" width="700" height="520" alt="A research scientist working at a microscope in a breast cancer lab." loading="lazy" />
+            <div class="lab-body">
+              <div class="sub">2025 grant cohort</div>
+              <h3>Vasquez Lab · Penn</h3>
+              <p>Investigating ductal carcinoma in situ (DCIS) progression markers using single-cell sequencing. A pilot grant that could change who gets watchful waiting and who gets surgery.</p>
+              <div class="grant"><span>2-year pilot</span><strong>$420,000</strong></div>
+            </div>
+          </article>
+          <article class="lab">
+            <img src="https://picsum.photos/seed/hope-runs-3/700/520" width="700" height="520" alt="A clinician scientist reviewing mammography data on a workstation." loading="lazy" />
+            <div class="lab-body">
+              <div class="sub">2025 grant cohort</div>
+              <h3>Adeyemo Lab · Johns Hopkins</h3>
+              <p>Disparity research on dense-breast screening protocols for Black women under 40, where current guidelines fail catastrophically. Hope Runs is the lead funder.</p>
+              <div class="grant"><span>3-year R-grant</span><strong>$680,000</strong></div>
+            </div>
+          </article>
+          <article class="lab">
+            <img src="https://picsum.photos/seed/hope-runs-4/700/520" width="700" height="520" alt="A research technician holding a tissue sample tray under a sterile hood." loading="lazy" />
+            <div class="lab-body">
+              <div class="sub">2025 grant cohort</div>
+              <h3>Chen Lab · Stanford</h3>
+              <p>Triple-negative tumor microenvironment mapping. The lab's first preprint on lymphocyte distribution dropped in February. Replication is in progress.</p>
+              <div class="grant"><span>2-year pilot</span><strong>$350,000</strong></div>
+            </div>
+          </article>
+          <article class="lab">
+            <img src="https://picsum.photos/seed/hope-runs-5/700/520" width="700" height="520" alt="A clinical researcher with a clipboard interviewing a study participant." loading="lazy" />
+            <div class="lab-body">
+              <div class="sub">2025 grant cohort</div>
+              <h3>Whitley Lab · UCSF</h3>
+              <p>Long-term survivorship study: bone density, fatigue, and cognitive function 10+ years post-treatment. The cohort is at year 7.</p>
+              <div class="grant"><span>10-year cohort</span><strong>$1.1M total</strong></div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section tint">
+      <div class="wrap">
+        <div class="donate-band">
+          <div>
+            <span class="eyebrow" style="background: rgba(0,0,0,0.18);"><span class="dot" style="background:#fff;"></span>Don't run? Still help.</span>
+            <h2>Fund a <span style="color: var(--ink);">grant</span> directly.</h2>
+            <p style="font-size: 17px;">Every dollar above $4 in registration costs goes straight to a research grant. You can also just give directly — your gift is matched 1:1 by event sponsors in October.</p>
+          </div>
+          <div>
+            <div class="tiers" role="group" aria-label="Donation amounts">
+              <button type="button" class="tier"><div class="amt">$25</div><div class="what">A bib for a survivor who can't afford it</div></button>
+              <button type="button" class="tier active"><div class="amt">$100</div><div class="what">A research-cohort week of consumables</div></button>
+              <button type="button" class="tier"><div class="amt">$500</div><div class="what">Half a month of a postdoc's lab salary</div></button>
+              <button type="button" class="tier"><div class="amt">$1,000</div><div class="what">A named pilot study — yours, in someone's memory</div></button>
+            </div>
+            <a class="btn" href="#">Donate now →</a>
+          </div>
+        </div>
+
+        <div id="help" style="margin-top: 80px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;">
+          <div style="background: #fff; border: 1px solid var(--line); border-radius: var(--radius-md); padding: 26px;">
+            <strong class="display" style="font-size: 26px; display: block; margin-bottom: 6px;">Volunteer race day</strong>
+            <p style="color: var(--ink-2); font-size: 14.5px;">We need 480 volunteers — aid stations, finish chute, packet pickup, lost socks. Free brunch, free shirt, very loud playlist.</p>
+            <a href="#" style="color: var(--accent); font-weight: 700; font-size: 14px;">Sign up to volunteer →</a>
+          </div>
+          <div style="background: #fff; border: 1px solid var(--line); border-radius: var(--radius-md); padding: 26px;">
+            <strong class="display" style="font-size: 26px; display: block; margin-bottom: 6px;">Start a team</strong>
+            <p style="color: var(--ink-2); font-size: 14.5px;">Lead a team of friends or coworkers. Teams of 8+ get group-rate registrations and matching swag. The biggest fundraising team gets the front of the photo.</p>
+            <a href="#" style="color: var(--accent); font-weight: 700; font-size: 14px;">Start a team →</a>
+          </div>
+          <div style="background: #fff; border: 1px solid var(--line); border-radius: var(--radius-md); padding: 26px;">
+            <strong class="display" style="font-size: 26px; display: block; margin-bottom: 6px;">Sponsor the race</strong>
+            <p style="color: var(--ink-2); font-size: 14.5px;">Sponsorship pays for the race itself, so 100% of registration revenue flows to research. Six tiers, from aid-station sponsor to title.</p>
+            <a href="#" style="color: var(--accent); font-weight: 700; font-size: 14px;">See sponsor tiers →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="story-grid">
+          <img src="https://picsum.photos/seed/hope-runs-6/900/1100" width="900" height="1100" alt="Portrait of a Hope Runs survivor runner with a pink finisher's medal around her neck and a wide smile after crossing the finish line." loading="lazy" />
+          <div>
+            <span class="eyebrow" style="background: var(--paper); color: var(--ink-2); border-color: var(--line);"><span class="dot"></span>From the course</span>
+            <blockquote>“The first year I ran this race I was bald and chemo-sick. Last year I ran it sub-2:00. Hope Runs is the only race where the loudest cheer is for the slowest runner.”</blockquote>
+            <cite><strong>Yvonne Ramírez</strong>Half marathon finisher 2019 (DNF), 2020 (3:48), 2024 (1:58:42) · 8-year survivor</cite>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sponsors" id="sponsors">
+      <div class="wrap">
+        <div style="text-align: center; font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; margin-bottom: 24px;">2026 sponsors · they pay for the race so your registration pays for research</div>
+        <div class="sponsors-row">
+          <span>NORTHBEAM</span>
+          <span>ACME HEALTH</span>
+          <span>FIELD &amp; FORMAT</span>
+          <span>PIVOT HOUSE</span>
+          <span>BUREAU VERSO</span>
+          <span>ATLAS GROUP</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section dark" id="team">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Our team</span>
+          <h2>The people behind the <span class="pink">finish line.</span></h2>
+          <p class="lede">Most of us also run it. Salaries are disclosed in the annual report and capped at $185k for the executive director.</p>
+        </div>
+        <div class="team">
+          <div class="person"><img src="https://picsum.photos/seed/hope-runs-7/500/500" width="500" height="500" alt="Portrait of Hope Runs race director and executive director." loading="lazy" /><h4>Talia Greenberg</h4><p>Executive &amp; Race Director</p></div>
+          <div class="person"><img src="https://picsum.photos/seed/hope-runs-8/500/500" width="500" height="500" alt="Portrait of Hope Runs scientific committee chair." loading="lazy" /><h4>Dr. Charles Ouedraogo</h4><p>Scientific Committee Chair</p></div>
+          <div class="person"><img src="https://picsum.photos/seed/hope-runs-9/500/500" width="500" height="500" alt="Portrait of Hope Runs head of partnerships." loading="lazy" /><h4>Beverly Park</h4><p>Head of Partnerships</p></div>
+          <div class="person"><img src="https://picsum.photos/seed/hope-runs-10/500/500" width="500" height="500" alt="Portrait of Hope Runs chief financial officer." loading="lazy" /><h4>Lloyd Petersen</h4><p>Chief Financial Officer</p></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a class="brand" href="#" style="color: #fff; margin-bottom: 14px;"><span class="brand-mark">HR</span>Hope Runs</a>
+          <p style="font-size: 14px; max-width: 320px;">A 501(c)(3) annual road race funding early-stage breast cancer research grants. EIN 27-0814502. Founded 2012, race director Talia Greenberg.</p>
+          <a class="btn btn-primary" href="#races" style="margin-top: 16px;">Register now</a>
+        </div>
+        <div class="foot-col">
+          <h4>The race</h4>
+          <a href="#">5K — Boardwalk Five</a>
+          <a href="#">13.1 — Liberty Half</a>
+          <a href="#">Survivors' Mile</a>
+          <a href="#">Course map</a>
+        </div>
+        <div class="foot-col">
+          <h4>The mission</h4>
+          <a href="#">Funded labs</a>
+          <a href="#">Grant application</a>
+          <a href="#">Annual report</a>
+          <a href="#">Form 990</a>
+        </div>
+        <div class="foot-col">
+          <h4>Contact</h4>
+          <a href="mailto:hello@hoperuns.org">hello@hoperuns.org</a>
+          <a href="tel:+12015550172">+1 (201) 555-0172</a>
+          <a href="#">Liberty State Park, Jersey City, NJ</a>
+          <a href="#">Newsletter</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Hope Runs · 501(c)(3) EIN 27-0814502</span>
+        <span>Audited annually by Reardon Pope CPA · USATF certified course #NJ-08114</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.querySelectorAll('.tier').forEach(t => t.addEventListener('click', () => {
+      document.querySelectorAll('.tier').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+    }));
+  </script>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

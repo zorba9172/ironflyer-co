@@ -1,0 +1,34 @@
+{
+  "slug": "ecommerce-03-wired",
+  "title": "Wired",
+  "subtitle": "Audio gear measured in public, repairable for ten years.",
+  "category": "E-commerce",
+  "type": "Commerce",
+  "tags": [
+    "dark",
+    "electronics",
+    "technical",
+    "audio",
+    "measurements"
+  ],
+  "previewImage": "/templates/ecommerce-03-wired.jpg",
+  "palette": {
+    "bg": "#0e0e10",
+    "fg": "#f4f4f6",
+    "accent": "#ff6c3a"
+  },
+  "sections": [
+    "topbar",
+    "nav",
+    "hero",
+    "products",
+    "measurements",
+    "compare",
+    "reviews",
+    "newsletter",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Wired template as the foundation for a technical audio / electronics storefront. Matte black with hot orange accent, JetBrains Mono labels, product cards with sensitivity / impedance specs, a measurements panel with an SVG frequency-response chart, a compare strip, and a no-hype newsletter band. Replace placeholder copy with the brand's real lineup.",
+  "livePreview": "/template-previews/ecommerce-03-wired/"
+}

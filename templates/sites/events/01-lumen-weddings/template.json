@@ -1,0 +1,36 @@
+{
+  "slug": "events-01-lumen-weddings",
+  "title": "Lumen Weddings",
+  "subtitle": "A boutique wedding planning studio for considered, full-service days.",
+  "category": "Events",
+  "type": "Websites",
+  "tags": [
+    "wedding",
+    "romantic",
+    "serif",
+    "boutique",
+    "soft"
+  ],
+  "previewImage": "/templates/events-01-lumen-weddings.jpg",
+  "palette": {
+    "bg": "#f7e8e2",
+    "fg": "#3a2a26",
+    "accent": "#fbf6ec"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "story",
+    "services",
+    "schedule",
+    "team",
+    "investment",
+    "testimonials",
+    "faq",
+    "contact",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Lumen Weddings template as the foundation for a boutique wedding planner's site. Keep the soft blush + cream palette, italic serif headlines, and the planning timeline. Replace photos and copy with the studio's real ceremonies, services, and pricing.",
+  "livePreview": "/template-previews/events-01-lumen-weddings/"
+}

@@ -1,0 +1,34 @@
+{
+  "slug": "web3-06-stake-protocol",
+  "title": "Stake Protocol",
+  "subtitle": "Liquid staking for Ethereum and L2s with audited validators and an stETH-style derivative.",
+  "category": "Web3",
+  "type": "Apps",
+  "tags": [
+    "dark",
+    "staking",
+    "technical",
+    "charts"
+  ],
+  "previewImage": "/templates/web3-06-stake-protocol.jpg",
+  "palette": {
+    "bg": "#0b1736",
+    "fg": "#eaf2ff",
+    "accent": "#c5ff3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "stats",
+    "chart",
+    "how",
+    "features",
+    "validators",
+    "security",
+    "token",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Stake Protocol template as the foundation for a liquid staking protocol landing. Keep the navy background with lime accent, the live stake widget in the hero, the APR chart, and the named validator table. Replace placeholder operators, APR numbers, and tokenomics with the protocol's real data.",
+  "livePreview": "/template-previews/web3-06-stake-protocol/"
+}

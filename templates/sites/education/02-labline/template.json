@@ -1,0 +1,33 @@
+{
+  "slug": "education-02-labline",
+  "title": "LabLine",
+  "subtitle": "Online STEM courses for high school and early university students.",
+  "category": "Education",
+  "type": "Apps",
+  "tags": [
+    "light",
+    "stem",
+    "didactic",
+    "bright"
+  ],
+  "previewImage": "/templates/education-02-labline.jpg",
+  "palette": {
+    "bg": "#ffffff",
+    "fg": "#0d1330",
+    "accent": "#1a3cff"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "subjects",
+    "how",
+    "instructors",
+    "outcomes",
+    "pricing",
+    "faq",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the LabLine template as the foundation for a bright STEM course site aimed at high school and early university students. Keep the white background, cobalt accent, and didactic, no-nonsense tone. Replace subjects, course lengths, and instructor profiles with the customer's real catalog.",
+  "livePreview": "/template-previews/education-02-labline/"
+}

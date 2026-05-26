@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>About Synthwave AI — Trained on your code, not the public internet</title>
+  <meta name="description" content="Synthwave AI was founded by engineers who got tired of public copilots inventing APIs that didn't exist." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root { --bg:#07070a; --surface:#0e0d14; --surface-2:#16141f; --surface-3:#1f1c2c; --rule:rgba(139,92,255,0.18); --rule-strong:rgba(139,92,255,0.38); --fg:#ece8f7; --fg-2:#a39db8; --fg-3:#6b6584; --accent:#8b5cff; --accent-glow:#b18bff; --accent-deep:#5b29e0; --cyan:#29d3ff; --radius-sm:6px; --radius-md:12px; --radius-lg:20px; }
+    * { box-sizing: border-box; } html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--fg); font-family: 'Geist', 'Inter', system-ui, sans-serif; font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; } img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 28px; }
+    body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse 60% 40% at 80% 0%, rgba(139,92,255,0.16) 0%, transparent 60%), radial-gradient(ellipse 50% 40% at 0% 80%, rgba(41,211,255,0.07) 0%, transparent 60%); pointer-events: none; z-index: 0; }
+    body > * { position: relative; z-index: 1; }
+
+    .nav { position: sticky; top: 0; z-index: 50; background: rgba(7,7,10,0.78); backdrop-filter: blur(16px); border-bottom: 1px solid var(--rule); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 66px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 17px; letter-spacing: -0.015em; }
+    .brand-mark { width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg, var(--accent) 0%, var(--cyan) 100%); display: grid; place-items: center; color: white; font-weight: 800; font-family: 'JetBrains Mono', monospace; box-shadow: 0 0 24px rgba(139,92,255,0.5); }
+    .nav-links { display: flex; gap: 28px; font-size: 14px; color: var(--fg-2); font-weight: 500; }
+    .nav-links a:hover, .nav-links a.current { color: var(--fg); }
+    .nav-cta { display: flex; gap: 10px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 18px; border-radius: var(--radius-sm); font-weight: 600; font-size: 14px; border: 1px solid transparent; cursor: pointer; transition: transform 160ms ease, background 160ms ease, box-shadow 200ms ease; }
+    .btn-primary { background: var(--accent); color: white; } .btn-primary:hover { background: var(--accent-glow); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(139,92,255,0.4); }
+    .btn-ghost { background: transparent; color: var(--fg); border-color: var(--rule-strong); } .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    .hero { padding: 96px 0 64px; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border: 1px solid var(--rule-strong); background: rgba(139,92,255,0.08); color: var(--accent-glow); border-radius: 999px; font-size: 12px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em; }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px var(--accent); }
+    h1 { font-size: clamp(48px, 7vw, 88px); line-height: 1.0; letter-spacing: -0.035em; font-weight: 800; margin: 22px 0 22px; max-width: 920px; }
+    h1 em { font-style: normal; background: linear-gradient(135deg, var(--accent) 0%, var(--cyan) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .lede { font-size: 19px; color: var(--fg-2); max-width: 720px; }
+
+    .section { padding: 104px 0; }
+    .section h2 { font-size: clamp(38px, 5vw, 60px); letter-spacing: -0.028em; line-height: 1.05; font-weight: 800; margin: 16px 0 16px; }
+    .section h2 em { font-style: normal; background: linear-gradient(135deg, var(--accent), var(--cyan)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .section-head { max-width: 760px; margin-bottom: 48px; }
+
+    .story { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 56px; align-items: start; }
+    .story p { color: var(--fg-2); font-size: 17px; line-height: 1.7; margin: 0 0 16px; }
+    @media (max-width: 1080px) { .story { grid-template-columns: 1fr; gap: 28px; } }
+
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .feature { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius-md); padding: 28px; }
+    .feature-icon { width: 40px; height: 40px; border-radius: 10px; background: rgba(139,92,255,0.12); border: 1px solid var(--rule-strong); color: var(--accent-glow); display: grid; place-items: center; margin-bottom: 18px; font-family: 'JetBrains Mono', monospace; }
+    .feature h3 { font-size: 19px; font-weight: 700; margin: 0 0 8px; letter-spacing: -0.012em; }
+    .feature p { color: var(--fg-2); font-size: 15px; margin: 0; }
+    @media (max-width: 1080px) { .features { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .features { grid-template-columns: 1fr; } }
+
+    .team { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .member { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius-md); overflow: hidden; }
+    .member img { width: 100%; aspect-ratio: 4/3; object-fit: cover; }
+    .member-body { padding: 22px 24px 26px; }
+    .member-name { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+    .member-role { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent-glow); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; }
+    .member-bio { color: var(--fg-2); font-size: 14px; margin-top: 12px; line-height: 1.55; }
+    @media (max-width: 1080px) { .team { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .team { grid-template-columns: 1fr; } }
+
+    .backers { padding: 48px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+    .backers-label { font-size: 12px; color: var(--fg-3); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; text-align: center; margin-bottom: 22px; }
+    .backers-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 24px; color: var(--fg-2); font-weight: 700; font-size: 16px; text-align: center; }
+    .backers-row span { opacity: 0.55; }
+    @media (max-width: 720px) { .backers-row { grid-template-columns: repeat(2, 1fr); } }
+
+    .cta-band { padding: 120px 0; text-align: center; position: relative; }
+    .cta-band::before { content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 800px; height: 400px; background: radial-gradient(ellipse, rgba(139,92,255,0.18) 0%, transparent 70%); pointer-events: none; }
+    .cta-band > * { position: relative; }
+    .cta-band h2 { font-size: clamp(40px, 6vw, 72px); letter-spacing: -0.03em; line-height: 1.05; margin: 0 0 20px; font-weight: 800; }
+    .cta-band h2 em { font-style: normal; background: linear-gradient(135deg, var(--accent), var(--cyan)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .cta-band p { color: var(--fg-2); max-width: 540px; margin: 0 auto 32px; font-size: 18px; }
+
+    footer { padding: 56px 0 36px; border-top: 1px solid var(--rule); }
+    .foot-grid { display: grid; grid-template-columns: 1.6fr repeat(3, 1fr); gap: 44px; }
+    .foot-col h4 { font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-3); margin: 0 0 16px; }
+    .foot-col a { display: block; color: var(--fg-2); font-size: 14px; padding: 6px 0; } .foot-col a:hover { color: var(--accent-glow); }
+    .foot-bot { margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; color: var(--fg-3); font-size: 13px; font-family: 'JetBrains Mono', monospace; }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 12px; text-align: center; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="index.html"><span class="brand-mark">∿</span>Synthwave AI</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="index.html">Product</a>
+        <a href="index.html#editor">Editor</a>
+        <a href="about.html" class="current">About</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-ghost" href="#">Sign in</a>
+        <a class="btn btn-primary" href="contact.html">Install</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <span class="eyebrow"><span class="dot"></span>About Synthwave AI</span>
+        <h1>Trained on <em>your</em> code, not the public internet.</h1>
+        <p class="lede">We built Synthwave because the public copilots kept inventing APIs that didn't exist in our codebase. We wanted suggestions that read our real files, followed our real imports, and respected our real conventions. So we built that.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="story">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>Origin</span>
+            <h2>Why this company <em>exists</em>.</h2>
+          </div>
+          <div>
+            <p>We were three senior engineers on a small team. The public copilots were fast — and often wrong about us. They suggested methods we'd already deprecated, error patterns we never used, and imports from packages we'd left for a fork. The suggestions felt confident. They merged less than half the time.</p>
+            <p>The fix was obvious in retrospect: index the actual repo. Read the actual files. Cite the actual source. The first prototype was a Friday evening. The first acceptance rate that made us put the laptops down was a Tuesday a month later.</p>
+            <p>Synthwave is built on a simple promise. Every suggestion cites the file it learned from. Your code never trains a public model. The index runs on your hardware or our SOC 2 cloud — you choose.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>What we value</span>
+          <h2>Six <em>commitments</em> we won't move on.</h2>
+          <p class="lede">These show up in product decisions, hiring loops, and the data processing addendum we sign.</p>
+        </div>
+        <div class="features">
+          <div class="feature"><div class="feature-icon">⌬</div><h3>Citations or it didn't happen</h3><p>Every suggestion cites the files it learned from. If we can't cite, we don't suggest.</p></div>
+          <div class="feature"><div class="feature-icon">⌥</div><h3>Tokens stay home</h3><p>Your code never leaves your tenant. Contractually. With a published DPA.</p></div>
+          <div class="feature"><div class="feature-icon">∇</div><h3>Patch sets, not single-file edits</h3><p>Refactors propose a reviewable patch set across every callsite. You see the diff before you confirm.</p></div>
+          <div class="feature"><div class="feature-icon">⌗</div><h3>Convention-aware</h3><p>We learn your style guide on first index. Suggestions look like your team wrote them — because we read the code they did write.</p></div>
+          <div class="feature"><div class="feature-icon">⎈</div><h3>Editor-native</h3><p>VS Code, JetBrains, Zed, Neovim. The keystroke is the same. The latency is local. The model lives behind the wall.</p></div>
+          <div class="feature"><div class="feature-icon">⟁</div><h3>Honest comparisons</h3><p>If a competitor catches up on a capability, we update the table. Fake checkmarks poison trust.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Team</span>
+          <h2>The people <em>indexing</em> the wall.</h2>
+          <p class="lede">Three founders, a small team of ML engineers, and one designer who refuses to ship a suggestion without its citation.</p>
+        </div>
+        <div class="team">
+          <div class="member"><img src="https://picsum.photos/seed/sw-team-1/600/450" width="600" height="450" loading="lazy" alt="Portrait of Avery Cho, co-founder and CEO." /><div class="member-body"><div class="member-name">Avery Cho</div><div class="member-role">Co-founder · CEO</div><p class="member-bio">Spent a decade on compilers. Wrote the first version of the index over a long weekend in Brooklyn.</p></div></div>
+          <div class="member"><img src="https://picsum.photos/seed/sw-team-2/600/450" width="600" height="450" loading="lazy" alt="Portrait of Tomás Granados, co-founder and head of model." /><div class="member-body"><div class="member-name">Tomás Granados</div><div class="member-role">Co-founder · Head of Model</div><p class="member-bio">Ran ML infra at a large platform. Owns the citation scorer and the retrieval pipeline.</p></div></div>
+          <div class="member"><img src="https://picsum.photos/seed/sw-team-3/600/450" width="600" height="450" loading="lazy" alt="Portrait of Priya Salim, co-founder and head of product." /><div class="member-body"><div class="member-name">Priya Salim</div><div class="member-role">Co-founder · Head of Product</div><p class="member-bio">Designed the patch review surface and the editor integration. Believes a citation is an interface.</p></div></div>
+          <div class="member"><img src="https://picsum.photos/seed/sw-team-4/600/450" width="600" height="450" loading="lazy" alt="Portrait of June Mwangi, head of platform." /><div class="member-body"><div class="member-name">June Mwangi</div><div class="member-role">Head of Platform</div><p class="member-bio">Runs the self-hosted index and the SOC 2 cloud. Owns the operations runbook.</p></div></div>
+          <div class="member"><img src="https://picsum.photos/seed/sw-team-5/600/450" width="600" height="450" loading="lazy" alt="Portrait of Marius Novak, head of design." /><div class="member-body"><div class="member-name">Marius Novak</div><div class="member-role">Head of Design</div><p class="member-bio">Designs the citation, the diff, and the patch confirmation flow. Refuses to ship a suggestion without its source.</p></div></div>
+          <div class="member"><img src="https://picsum.photos/seed/sw-team-6/600/450" width="600" height="450" loading="lazy" alt="Portrait of Hana Kalmar, head of security." /><div class="member-body"><div class="member-name">Hana Kalmar</div><div class="member-role">Security &amp; Compliance</div><p class="member-bio">Drove SOC 2 Type II. Wrote our data processing addendum line by line. Will say no.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="backers">
+      <div class="wrap">
+        <p class="backers-label">Backed by engineers who shipped before they invested</p>
+        <div class="backers-row">
+          <span>Atlas Group</span><span>Northbeam Capital</span><span>Field &amp; Format</span><span>Pivot House</span><span>Brigantine</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="cta-band">
+    <div class="wrap">
+      <h2>Hiring ML engineers who believe in <em>citations</em>.</h2>
+      <p>Remote across the US and EU. We pay above market and document the comp band in the offer.</p>
+      <a class="btn btn-primary" href="contact.html" style="height:52px;padding:0 26px;font-size:15px;">See open roles →</a>
+    </div>
+  </section>
+
+  <footer id="footer">
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col"><a class="brand" href="index.html" style="margin-bottom:16px;"><span class="brand-mark">∿</span>Synthwave AI</a><p style="color:var(--fg-2); font-size:14px; max-width:300px;">A coding copilot trained on your codebase, your conventions, and your dependency graph.</p></div>
+        <div class="foot-col"><h4>Product</h4><a href="index.html#editor">Editor</a><a href="index.html">PR review</a><a href="index.html">Refactors</a><a href="pricing.html">Pricing</a></div>
+        <div class="foot-col"><h4>Resources</h4><a href="#">Docs</a><a href="#">Security</a><a href="#">Status</a><a href="#">Changelog</a></div>
+        <div class="foot-col"><h4>Company</h4><a href="about.html">About</a><a href="#">Careers</a><a href="#">Privacy</a><a href="contact.html">Contact</a></div>
+      </div>
+      <div class="foot-bot"><span>© 2026 Synthwave AI Labs</span><span>Tokens stay home.</span></div>
+    </div>
+  </footer>
+</body>
+</html>

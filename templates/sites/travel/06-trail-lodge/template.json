@@ -1,0 +1,34 @@
+{
+  "slug": "travel-06-trail-lodge",
+  "title": "Trail Lodge",
+  "subtitle": "A twenty-bunk mountain lodge for hikers and climbers above the Wind River Range.",
+  "category": "Travel",
+  "type": "Websites",
+  "tags": [
+    "adventure",
+    "lodge",
+    "outdoors",
+    "rugged",
+    "olive"
+  ],
+  "previewImage": "/templates/travel-06-trail-lodge.jpg",
+  "palette": {
+    "bg": "#2c2f24",
+    "fg": "#ece3cf",
+    "accent": "#c1832d"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "booking",
+    "bunks",
+    "routes",
+    "day-rhythm",
+    "guests",
+    "getting-here",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Trail Lodge template as the foundation for an adventure lodge and guide service: olive and amber palette, Bebas Neue condensed display headlines on Inter body, full-bleed lodge-and-mountain hero with four stats, a dark booking widget with optional guide selection, three bunk cards from bunkhouse to family room with all-meal pricing, four route cards with class grade and distance/vert stats, a day-rhythm timeline, three guest reviews, and an amber call-to-action with directions.",
+  "livePreview": "/template-previews/travel-06-trail-lodge/"
+}

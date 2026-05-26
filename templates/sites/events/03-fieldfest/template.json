@@ -1,0 +1,35 @@
+{
+  "slug": "events-03-fieldfest",
+  "title": "Fieldfest",
+  "subtitle": "An outdoor summer music festival in the hills outside Asheville.",
+  "category": "Events",
+  "type": "Websites",
+  "tags": [
+    "festival",
+    "music",
+    "outdoor",
+    "warm",
+    "photo-led"
+  ],
+  "previewImage": "/templates/events-03-fieldfest.jpg",
+  "palette": {
+    "bg": "#efe2c8",
+    "fg": "#2a1f17",
+    "accent": "#ff6c3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "lineup",
+    "schedule",
+    "info",
+    "tickets",
+    "camping",
+    "vendors",
+    "faq",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Fieldfest template as the foundation for an outdoor summer music festival landing. Keep the sand + orange palette, hero photo, layered lineup, and three-day schedule. Replace artists, stages, and the venue town with the festival's real details.",
+  "livePreview": "/template-previews/events-03-fieldfest/"
+}

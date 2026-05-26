@@ -1,0 +1,34 @@
+{
+  "slug": "portfolio-05-the-cabin",
+  "title": "The Cabin",
+  "subtitle": "Writer and essayist on technology, attention, and place.",
+  "category": "Portfolio",
+  "type": "Websites",
+  "tags": [
+    "writer",
+    "serif",
+    "long-form",
+    "essay"
+  ],
+  "previewImage": "/templates/portfolio-05-the-cabin.jpg",
+  "palette": {
+    "bg": "#f1ebde",
+    "fg": "#1a1410",
+    "accent": "#5a3a22"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "essays",
+    "newsletter",
+    "book",
+    "elsewhere",
+    "now",
+    "about",
+    "contact",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use The Cabin template as the foundation for a writer-and-essayist portfolio. Keep the cream paper background, deep brown accent, generous serif typography, drop caps on essays, and a quiet long-form feel. Lead with three to five essays, a newsletter sign-up, a book, and an honest 'about' page. No popups.",
+  "livePreview": "/template-previews/portfolio-05-the-cabin/"
+}

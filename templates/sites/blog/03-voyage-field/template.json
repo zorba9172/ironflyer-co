@@ -1,0 +1,33 @@
+{
+  "slug": "blog-03-voyage-field",
+  "title": "Voyage Field",
+  "subtitle": "A quarterly travel journal of long dispatches, original photography, and reader-supported reporting.",
+  "category": "Blog",
+  "type": "Websites",
+  "tags": [
+    "travel",
+    "photography",
+    "editorial",
+    "serif",
+    "magazine"
+  ],
+  "previewImage": "/templates/blog-03-voyage-field.jpg",
+  "palette": {
+    "bg": "#efe9da",
+    "fg": "#0b1736",
+    "accent": "#b88a3a"
+  },
+  "sections": [
+    "hero",
+    "masthead-band",
+    "dispatches",
+    "photo-essay",
+    "longreads",
+    "about",
+    "newsletter",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Voyage Field template as the foundation for a travel magazine. Full-bleed photographic hero with italic Playfair display headline, navy and bone palette, gold accents, dispatches grid, photo essay block, long-reads list, about-the-journal section, and a dark newsletter band. Keep the slow, reader-supported, no-sponsored-travel editorial voice.",
+  "livePreview": "/template-previews/blog-03-voyage-field/"
+}

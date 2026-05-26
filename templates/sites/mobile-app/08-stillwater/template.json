@@ -1,0 +1,34 @@
+{
+  "slug": "mobile-app-08-stillwater",
+  "title": "Stillwater",
+  "subtitle": "Guided meditation, breathwork, and silence — without the influencer voice.",
+  "category": "Mobile App",
+  "type": "Mobile/PWA",
+  "tags": [
+    "meditation",
+    "calm",
+    "soft",
+    "wellness"
+  ],
+  "previewImage": "/templates/mobile-app-08-stillwater.jpg",
+  "palette": {
+    "bg": "#efe2c8",
+    "fg": "#2c2920",
+    "accent": "#75876b"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "badges",
+    "features",
+    "sessions",
+    "how",
+    "social",
+    "faq",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Stillwater template as the foundation for a meditation-app landing. Keep the cream + sage soft palette, the CSS phone frame with a breath-pacer UI, hand-picked session shelf, App Store + Google Play badges, calm explainer, and a quiet download CTA.",
+  "livePreview": "/template-previews/mobile-app-08-stillwater/"
+}

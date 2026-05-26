@@ -1,0 +1,35 @@
+{
+  "slug": "realestate-10-roost",
+  "title": "Roost",
+  "subtitle": "A friendlier buyer's brokerage built for first-time home buyers.",
+  "category": "Real Estate",
+  "type": "Websites",
+  "tags": [
+    "friendly",
+    "educational",
+    "soft",
+    "first-time-buyer",
+    "flat-fee"
+  ],
+  "previewImage": "/templates/realestate-10-roost.jpg",
+  "palette": {
+    "bg": "#faf5ec",
+    "fg": "#14211b",
+    "accent": "#6ad9b3"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "how-it-works",
+    "listings",
+    "calculator",
+    "guides",
+    "fixed-fee",
+    "stories",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Roost template as the foundation for a first-time home-buyer brokerage with a warm mint palette, friendly hero with mortgage callout, four-step how-it-works, six entry-level listings with monthly payment, an honest mortgage calculator panel, three plain-English guides, a flat-fee pricing card, buyer stories, and an email-capture CTA.",
+  "livePreview": "/template-previews/realestate-10-roost/"
+}

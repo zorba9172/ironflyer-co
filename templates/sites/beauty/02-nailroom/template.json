@@ -1,0 +1,34 @@
+{
+  "slug": "beauty-02-nailroom",
+  "title": "Nailroom",
+  "subtitle": "A modern, photo-led nail studio in Brooklyn.",
+  "category": "Beauty",
+  "type": "Websites",
+  "tags": [
+    "nails",
+    "soft",
+    "modern",
+    "photo"
+  ],
+  "previewImage": "/templates/beauty-02-nailroom.jpg",
+  "palette": {
+    "bg": "#ffffff",
+    "fg": "#1d1417",
+    "accent": "#d99fb3"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "marquee",
+    "menu",
+    "gallery",
+    "artists",
+    "reviews",
+    "booking",
+    "visit",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Nailroom template as the foundation for a clean, dusty-pink nail studio site with photo grid, priced service menu, technician bios, reviews, and an inline booking request form.",
+  "livePreview": "/template-previews/beauty-02-nailroom/"
+}

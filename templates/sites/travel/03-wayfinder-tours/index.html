@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wayfinder Tours — Small-group guided travel, twelve travellers at a time</title>
+  <meta name="description" content="Wayfinder runs small-group guided tours across thirty-two countries. Twelve travellers per departure, local lead guides, real local cooks, and a kit-list we walk through with you over the phone." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0b1736;
+      --bg-2: #131f42;
+      --paper: #f4eee0;
+      --paper-2: #ddd2b6;
+      --fg: #f4eee0;
+      --fg-2: rgba(244, 238, 224, 0.7);
+      --fg-3: rgba(244, 238, 224, 0.45);
+      --accent: #ff6c3a;
+      --accent-2: #ff8a5e;
+      --line: rgba(244, 238, 224, 0.14);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--fg); font-family: 'Inter', sans-serif; font-size: 16px; line-height: 1.65; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .serif { font-family: 'Playfair Display', serif; }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
+
+    /* Nav */
+    .nav { padding: 26px 0; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: rgba(11, 23, 54, 0.92); backdrop-filter: blur(8px); z-index: 50; }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 500; letter-spacing: 0.02em; display: flex; align-items: center; gap: 10px; }
+    .brand-mark { width: 30px; height: 30px; border-radius: 50%; background: var(--accent); display: grid; place-items: center; font-family: 'Inter', sans-serif; color: var(--bg); font-weight: 700; font-size: 13px; }
+    .nav-links { display: flex; gap: 28px; font-size: 14px; color: var(--fg-2); font-weight: 500; }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta { display: flex; gap: 10px; align-items: center; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 11px 22px; border-radius: 999px; font-weight: 600; font-size: 13px; cursor: pointer; border: 1.5px solid transparent; }
+    .btn-solid { background: var(--accent); color: var(--bg); }
+    .btn-solid:hover { background: var(--accent-2); }
+    .btn-line { color: var(--paper); border-color: rgba(244, 238, 224, 0.4); }
+    .btn-line:hover { background: var(--paper); color: var(--bg); }
+    @media (max-width: 1080px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 80px 0 96px; position: relative; }
+    .hero-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 64px; align-items: end; }
+    .eyebrow { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent); font-weight: 700; margin-bottom: 22px; }
+    h1 { font-family: 'Playfair Display', serif; font-weight: 400; font-size: clamp(52px, 7.5vw, 108px); line-height: 0.98; letter-spacing: -0.02em; margin: 0 0 24px; }
+    h1 em { font-style: italic; color: var(--accent); }
+    .hero-lede { font-size: 19px; color: var(--fg-2); margin: 0 0 32px; max-width: 560px; }
+    .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; padding-top: 32px; border-top: 1px solid var(--line); }
+    .stat .num { font-family: 'Playfair Display', serif; font-size: 44px; line-height: 1; }
+    .stat .lab { font-size: 12px; color: var(--fg-3); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 6px; }
+    .hero-img { position: relative; }
+    .hero-img img { width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 4px; }
+    .hero-img .badge { position: absolute; top: 24px; right: 24px; background: var(--accent); color: var(--bg); padding: 8px 14px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 32px; } }
+
+    /* Sections */
+    .section { padding: 112px 0; border-top: 1px solid var(--line); }
+    h2 { font-family: 'Playfair Display', serif; font-weight: 400; font-size: clamp(40px, 5.5vw, 80px); line-height: 1.04; letter-spacing: -0.01em; margin: 0; }
+    h2 em { font-style: italic; color: var(--accent); }
+    h3 { font-family: 'Playfair Display', serif; font-weight: 500; }
+    .section-head { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: end; margin-bottom: 56px; }
+    .section-head p { font-size: 17px; color: var(--fg-2); margin: 0; max-width: 520px; }
+    @media (max-width: 1080px) { .section-head { grid-template-columns: 1fr; gap: 16px; } }
+
+    /* Departures */
+    .deps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+    .dep { background: var(--bg-2); border-radius: 4px; overflow: hidden; display: flex; flex-direction: column; }
+    .dep-img { aspect-ratio: 5/4; overflow: hidden; position: relative; }
+    .dep-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 500ms ease; }
+    .dep:hover .dep-img img { transform: scale(1.04); }
+    .dep-tag { position: absolute; top: 16px; left: 16px; background: var(--paper); color: var(--bg); padding: 5px 12px; border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+    .dep-body { padding: 24px; flex: 1; display: flex; flex-direction: column; }
+    .dep-meta { display: flex; gap: 8px; font-size: 11px; color: var(--fg-3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+    .dep h3 { margin: 0 0 8px; font-size: 26px; font-weight: 400; }
+    .dep p { font-size: 14px; color: var(--fg-2); margin: 0 0 18px; }
+    .dep-foot { margin-top: auto; display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid var(--line); padding-top: 14px; }
+    .dep-price { font-family: 'Playfair Display', serif; font-size: 24px; color: var(--accent); }
+    .dep-price span { font-family: 'Inter', sans-serif; font-size: 12px; color: var(--fg-3); }
+    .dep-foot a { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700; }
+    .dep-foot a:hover { color: var(--accent); }
+    @media (max-width: 1080px) { .deps { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .deps { grid-template-columns: 1fr; } }
+
+    /* Itinerary */
+    .itin { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
+    .itin-img { position: sticky; top: 96px; }
+    .itin-img img { width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 4px; }
+    .itin-img .badge { background: var(--accent); color: var(--bg); padding: 8px 14px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; display: inline-block; margin-bottom: 16px; }
+    .day { display: grid; grid-template-columns: 80px 1fr; gap: 24px; padding: 28px 0; border-bottom: 1px solid var(--line); }
+    .day .n { font-family: 'Playfair Display', serif; font-size: 36px; color: var(--accent); line-height: 1; }
+    .day .n small { font-family: 'Inter', sans-serif; font-size: 10px; color: var(--fg-3); letter-spacing: 0.14em; text-transform: uppercase; display: block; margin-top: 6px; }
+    .day h4 { margin: 0 0 6px; font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 500; }
+    .day p { color: var(--fg-2); font-size: 14px; margin: 0; }
+    @media (max-width: 1080px) { .itin { grid-template-columns: 1fr; } .itin-img { position: static; } }
+
+    /* Testimonials */
+    .testi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px; }
+    .testi { padding: 36px; background: var(--bg-2); border-radius: 4px; border: 1px solid var(--line); }
+    .testi .stars { color: var(--accent); letter-spacing: 0.2em; margin-bottom: 14px; font-size: 14px; }
+    .testi blockquote { margin: 0 0 18px; font-family: 'Playfair Display', serif; font-style: italic; font-size: 22px; line-height: 1.35; }
+    .testi .who { font-size: 12px; color: var(--fg-3); letter-spacing: 0.1em; text-transform: uppercase; }
+    @media (max-width: 1080px) { .testi-grid { grid-template-columns: 1fr; } }
+
+    /* CTA */
+    .cta { padding: 96px 64px; background: linear-gradient(135deg, var(--accent) 0%, #c84a23 100%); color: var(--bg); border-radius: 4px; display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 32px; align-items: end; }
+    .cta h2 { color: var(--bg); font-size: clamp(40px, 5vw, 64px); }
+    .cta h2 em { color: var(--paper); }
+    .cta p { color: rgba(11, 23, 54, 0.78); margin: 0; }
+    @media (max-width: 1080px) { .cta { grid-template-columns: 1fr; padding: 48px 32px; } }
+
+    /* Footer */
+    footer { padding: 72px 0 28px; }
+    .foot-grid { display: grid; grid-template-columns: 1.4fr repeat(3, 1fr); gap: 32px; }
+    .foot-col h4 { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); margin: 0 0 14px; font-weight: 700; }
+    .foot-col a, .foot-col p { display: block; color: var(--fg-2); font-size: 13px; padding: 4px 0; margin: 0; }
+    .foot-col a:hover { color: var(--accent); }
+    .foot-bot { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; font-size: 12px; color: var(--fg-3); }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 8px; } }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a href="#" class="brand"><span class="brand-mark">W</span>Wayfinder</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#departures">Departures</a>
+        <a href="#itinerary">A sample tour</a>
+        <a href="#how">How we travel</a>
+        <a href="#guests">Travellers</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-line" href="#contact">Call a planner</a>
+        <a class="btn btn-solid" href="#departures">Browse 28 trips</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <div class="eyebrow">Small-group travel · est. 2008 · 32 countries</div>
+            <h1>Twelve travellers,<br/>one local guide, <em>real places.</em></h1>
+            <p class="hero-lede">Wayfinder runs hand-built small-group tours across thirty-two countries. Twelve travellers per departure, a local lead guide who lives where you are going, and a kit-list we walk through with you over the phone before you pack.</p>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+              <a class="btn btn-solid" href="#departures">See 2026 departures</a>
+              <a class="btn btn-line" href="#how">How we travel</a>
+            </div>
+            <div class="stat-row">
+              <div class="stat"><div class="num">12</div><div class="lab">Max group size</div></div>
+              <div class="stat"><div class="num">32</div><div class="lab">Countries on the map</div></div>
+              <div class="stat"><div class="num">4.94</div><div class="lab">Avg. traveller rating</div></div>
+            </div>
+          </div>
+          <div class="hero-img">
+            <span class="badge">Featured · Patagonia 12 day</span>
+            <img src="https://picsum.photos/seed/wayfinder-1/1100/1400" width="1100" height="1400" alt="A small group of hikers crossing a high ridge with glacier and turquoise lake below." loading="eager" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="departures">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Featured departures</div>
+            <h2>Six trips <em>going out next.</em></h2>
+          </div>
+          <p>Every departure has a confirmed local lead, a paid local cook for the long days, and a printed kit-list we work through with you over a phone call. Prices are all-in: lodging, transport in-country, every meal except dinners on your own evenings.</p>
+        </div>
+        <div class="deps">
+          <article class="dep">
+            <div class="dep-img"><img src="https://picsum.photos/seed/wayfinder-2/1000/800" width="1000" height="800" alt="Two hikers descending a windswept ridge in southern Patagonia." loading="lazy" /><span class="dep-tag">12 day · 4 left</span></div>
+            <div class="dep-body">
+              <div class="dep-meta"><span>Chile · Argentina</span><span>·</span><span>Nov 2026</span></div>
+              <h3>Patagonia traverse</h3>
+              <p>Torres del Paine, Fitz Roy, a long day on Perito Moreno glacier, two nights at an estancia with our friends Inés and Roberto.</p>
+              <div class="dep-foot"><div class="dep-price">$5,840 <span>/ traveller</span></div><a href="#">View →</a></div>
+            </div>
+          </article>
+          <article class="dep">
+            <div class="dep-img"><img src="https://picsum.photos/seed/wayfinder-3/1000/800" width="1000" height="800" alt="A bustling Marrakech medina with spices and lanterns at dusk." loading="lazy" /><span class="dep-tag">10 day · 7 left</span></div>
+            <div class="dep-body">
+              <div class="dep-meta"><span>Morocco</span><span>·</span><span>Oct 2026</span></div>
+              <h3>Atlas to Atlantic</h3>
+              <p>High Atlas with our lead Hicham, three nights in Marrakech, two in Essaouira on the coast, a long afternoon with a Berber weaver.</p>
+              <div class="dep-foot"><div class="dep-price">$4,280 <span>/ traveller</span></div><a href="#">View →</a></div>
+            </div>
+          </article>
+          <article class="dep">
+            <div class="dep-img"><img src="https://picsum.photos/seed/wayfinder-4/1000/800" width="1000" height="800" alt="Rice terraces and a small Japanese inn at the edge of a forest." loading="lazy" /><span class="dep-tag">14 day · 2 left</span></div>
+            <div class="dep-body">
+              <div class="dep-meta"><span>Japan</span><span>·</span><span>Apr 2026</span></div>
+              <h3>Nakasendō walk</h3>
+              <p>The old post road from Magome to Karuizawa. Nine nights in family-run ryokan, an onsen morning, a half-day with a soba master.</p>
+              <div class="dep-foot"><div class="dep-price">$6,920 <span>/ traveller</span></div><a href="#">View →</a></div>
+            </div>
+          </article>
+          <article class="dep">
+            <div class="dep-img"><img src="https://picsum.photos/seed/wayfinder-5/1000/800" width="1000" height="800" alt="Two travellers on a wooden boat off the Lofoten Islands at low sun." loading="lazy" /><span class="dep-tag">9 day · 8 left</span></div>
+            <div class="dep-body">
+              <div class="dep-meta"><span>Norway</span><span>·</span><span>Sep 2026</span></div>
+              <h3>Lofoten Islands</h3>
+              <p>Sea kayaking around Reine, two summit hikes, a working day on a fishing boat with our friend Halvard from Henningsvær.</p>
+              <div class="dep-foot"><div class="dep-price">$4,640 <span>/ traveller</span></div><a href="#">View →</a></div>
+            </div>
+          </article>
+          <article class="dep">
+            <div class="dep-img"><img src="https://picsum.photos/seed/wayfinder-6/1000/800" width="1000" height="800" alt="A herd of elephants crossing a dusty plain at golden hour in Botswana." loading="lazy" /><span class="dep-tag">11 day · sold out</span></div>
+            <div class="dep-body">
+              <div class="dep-meta"><span>Botswana</span><span>·</span><span>Aug 2026 · sold out</span></div>
+              <h3>Okavango safari</h3>
+              <p>Mokoro through the delta, three nights at our partner camp at Khwai, a guided morning with the Kgosi at Beetsha village.</p>
+              <div class="dep-foot"><div class="dep-price">$8,940 <span>/ traveller</span></div><a href="#">Waitlist →</a></div>
+            </div>
+          </article>
+          <article class="dep">
+            <div class="dep-img"><img src="https://picsum.photos/seed/wayfinder-7/1000/800" width="1000" height="800" alt="A small alpine refuge on a stone ridge with the Dolomites behind." loading="lazy" /><span class="dep-tag">8 day · 9 left</span></div>
+            <div class="dep-body">
+              <div class="dep-meta"><span>Italy</span><span>·</span><span>Jun 2026</span></div>
+              <h3>Dolomites rifugio walk</h3>
+              <p>Six nights in the mountain refuges, a day on a via ferrata with Marco, and a long lunch in Cortina with our cellist friend Giulia.</p>
+              <div class="dep-foot"><div class="dep-price">$3,940 <span>/ traveller</span></div><a href="#">View →</a></div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="itinerary">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">A sample itinerary · Patagonia 12 day</div>
+            <h2>What twelve days <em>actually looks like.</em></h2>
+          </div>
+          <p>This is the day-by-day from our November 2026 Patagonia departure. Every itinerary on the site reads at this level of detail before you book.</p>
+        </div>
+        <div class="itin">
+          <div class="itin-img">
+            <span class="badge">November 2 — November 13 · 2026</span>
+            <img src="https://picsum.photos/seed/wayfinder-8/1100/1400" width="1100" height="1400" alt="A path winding past granite spires of Torres del Paine national park." loading="lazy" />
+          </div>
+          <div>
+            <div class="day"><div class="n">01<small>Sun</small></div><div><h4>Land in Punta Arenas</h4><p>Group dinner at Damiana's. Kit check. Your lead guide Constanza meets you at the hotel at 7.</p></div></div>
+            <div class="day"><div class="n">02<small>Mon</small></div><div><h4>Punta Arenas → Torres del Paine</h4><p>Bus north, lunch at a roadside parrilla, settle into the lodge inside the park by sundown.</p></div></div>
+            <div class="day"><div class="n">03<small>Tue</small></div><div><h4>The Towers</h4><p>The classic day hike to the base of the towers. 9 hours, 22 km. Empanadas at the top.</p></div></div>
+            <div class="day"><div class="n">04<small>Wed</small></div><div><h4>Grey Glacier</h4><p>Catamaran across Lago Grey, ice walk with Bernardo, and a long boat ride back to the dock.</p></div></div>
+            <div class="day"><div class="n">05<small>Thu</small></div><div><h4>Rest day at the lodge</h4><p>Sleep in. Optional horseback ride to Lago Pehoé. Asado dinner.</p></div></div>
+            <div class="day"><div class="n">06<small>Fri</small></div><div><h4>Down to El Calafate</h4><p>Cross the border by mid-morning. Afternoon free in town. Dinner at La Tablita.</p></div></div>
+            <div class="day"><div class="n">07<small>Sat</small></div><div><h4>Perito Moreno glacier</h4><p>Full day on the ice with the team from Hielo & Aventura. Wine and steaks at the lodge.</p></div></div>
+            <div class="day"><div class="n">08<small>Sun</small></div><div><h4>To El Chaltén</h4><p>Three-hour drive to the climbing village. Free afternoon, group dinner at La Tapera.</p></div></div>
+            <div class="day"><div class="n">09<small>Mon</small></div><div><h4>Laguna de los Tres</h4><p>The day hike to the base of Fitz Roy. 20 km, 8 hours.</p></div></div>
+            <div class="day"><div class="n">10<small>Tue</small></div><div><h4>The estancia</h4><p>Out to Inés and Roberto's estancia for a working day. Roast lamb. Stars.</p></div></div>
+            <div class="day"><div class="n">11<small>Wed</small></div><div><h4>El Chaltén → Buenos Aires</h4><p>Morning hike with optional refuelling, then flight to BA, last group dinner at Don Julio.</p></div></div>
+            <div class="day"><div class="n">12<small>Thu</small></div><div><h4>Onward</h4><p>Onward connections handled. We stay in town until your flight is wheels up.</p></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="guests">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Travellers</div>
+            <h2>What our travellers <em>send back from the road.</em></h2>
+          </div>
+          <p>2,840 travellers across the last six years. Average rating 4.94. Reviews verified, lightly edited, never sponsored.</p>
+        </div>
+        <div class="testi-grid">
+          <div class="testi"><div class="stars">★★★★★</div><blockquote>"Constanza is the best guide I have travelled with in twenty years. She read the group within an hour and bent the schedule around what we actually needed."</blockquote><div class="who">Paula G. · Patagonia · Nov 2025</div></div>
+          <div class="testi"><div class="stars">★★★★★</div><blockquote>"Wayfinder doesn't herd you. Twelve people, one mini-bus, and a guide who treats the trip like it's their own holiday too."</blockquote><div class="who">Daniel & Mira H. · Morocco · Oct 2025</div></div>
+          <div class="testi"><div class="stars">★★★★★</div><blockquote>"The kit-list call before we left was the moment I knew this was different. Forty minutes on the phone with someone who had actually walked the trail."</blockquote><div class="who">Hannah B. · Japan · Apr 2025</div></div>
+          <div class="testi"><div class="stars">★★★★★</div><blockquote>"Halvard cooked us cod he had pulled out of the water two hours earlier. The light in Lofoten at midnight is something I will not forget."</blockquote><div class="who">Ravi & Sara N. · Norway · Sep 2025</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="contact">
+      <div class="wrap">
+        <div class="cta">
+          <h2>Have a question? <em>Call us. A real person answers.</em></h2>
+          <div>
+            <p style="margin-bottom: 18px;">Wayfinder is twenty-two people in an office in Edinburgh. The phone is staffed 8 a.m. to 8 p.m. UK, every day. No queues, no chat-bots.</p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <a class="btn btn-line" style="border-color: var(--bg); color: var(--bg);" href="tel:+441316222040">+44 131 622 2040</a>
+              <a class="btn btn-solid" style="background: var(--bg); color: var(--paper);" href="mailto:plan@wayfindertours.com">Email a planner</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <div class="brand"><span class="brand-mark">W</span>Wayfinder Tours</div>
+          <p style="margin-top: 14px; max-width: 280px;">Small-group guided travel across 32 countries. ATOL protected, ABTA bonded, certified B-Corp since 2019.</p>
+        </div>
+        <div class="foot-col"><h4>Travel</h4><a href="#departures">All 28 trips</a><a href="#">2026 departures</a><a href="#">Private departures</a><a href="#">Group gifts</a></div>
+        <div class="foot-col"><h4>How we work</h4><a href="#how">Our guides</a><a href="#">Sustainability</a><a href="#">ATOL & cover</a><a href="#">FAQ</a></div>
+        <div class="foot-col"><h4>Contact</h4><a href="tel:+441316222040">+44 131 622 2040</a><a href="mailto:plan@wayfindertours.com">plan@wayfindertours.com</a><a href="#">Edinburgh office</a></div>
+      </div>
+      <div class="foot-bot"><span>© 2026 Wayfinder Tours Ltd · Edinburgh</span><span>ATOL 9482 · B-Corp · 12 travellers max</span></div>
+    </div>
+  </footer>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

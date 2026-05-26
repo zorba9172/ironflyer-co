@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Curator Academy — Online studies in art history and curating</title>
+  <meta name="description" content="An online academy in art history and curatorial studies. Live seminars, museum visits, and reading lists built by working curators." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f3eee0;
+      --surface: #faf5e6;
+      --surface-2: #e6dec9;
+      --border: rgba(35, 27, 24, 0.16);
+      --border-strong: rgba(35, 27, 24, 0.30);
+      --fg: #231b18;
+      --fg-2: #574a44;
+      --fg-3: #8a7d75;
+      --accent: #6e1f2a;
+      --accent-deep: #4d141c;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--fg); font-family: 'Inter', system-ui, sans-serif; font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1160px; margin: 0 auto; padding: 0 32px; }
+    .serif { font-family: 'Cormorant Garamond', Georgia, serif; }
+
+    .nav { position: sticky; top: 0; z-index: 50; background: rgba(243, 238, 224, 0.92); backdrop-filter: blur(14px); border-bottom: 1px solid var(--border); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+    .brand { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 700; letter-spacing: 0.02em; }
+    .brand-sub { display: block; font-family: 'Inter'; font-size: 10px; font-weight: 500; letter-spacing: 0.3em; color: var(--fg-3); text-transform: uppercase; margin-top: -4px; }
+    .nav-links { display: flex; gap: 28px; color: var(--fg-2); font-size: 14px; }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta { display: flex; gap: 10px; align-items: center; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 20px; border-radius: 0; font-weight: 500; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; border: 1px solid transparent; cursor: pointer; transition: background 200ms; }
+    .btn-primary { background: var(--accent); color: var(--bg); }
+    .btn-primary:hover { background: var(--accent-deep); }
+    .btn-ghost { background: transparent; color: var(--fg); border-color: var(--fg); }
+    .btn-ghost:hover { background: var(--fg); color: var(--bg); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    .hero { padding: 80px 0; border-bottom: 1px solid var(--border); }
+    .hero-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 72px; align-items: end; }
+    .eyebrow { display: inline-block; font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--accent); font-weight: 600; padding-bottom: 8px; border-bottom: 1px solid var(--accent); margin-bottom: 28px; }
+    h1 { font-family: 'Cormorant Garamond', serif; font-size: clamp(48px, 8vw, 96px); line-height: 0.98; letter-spacing: -0.01em; font-weight: 500; margin: 0 0 28px; }
+    h1 em { font-style: italic; color: var(--accent); }
+    .lede { font-size: 19px; color: var(--fg-2); max-width: 480px; font-family: 'Cormorant Garamond', serif; font-style: italic; }
+    .hero-cta { display: flex; gap: 12px; margin-top: 36px; flex-wrap: wrap; }
+    .hero-art { position: relative; }
+    .hero-art img { width: 100%; aspect-ratio: 4/5; object-fit: cover; }
+    .hero-caption { font-size: 12px; color: var(--fg-3); margin-top: 12px; font-style: italic; }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 48px; } }
+    @media (max-width: 720px) { .hero { padding: 56px 0; } .hero-cta .btn { width: 100%; justify-content: center; } }
+
+    .section { padding: 96px 0; }
+    .section-head { max-width: 720px; margin-bottom: 56px; }
+    .section h2 { font-family: 'Cormorant Garamond', serif; font-size: clamp(40px, 5.4vw, 64px); letter-spacing: -0.01em; line-height: 1.05; font-weight: 500; margin: 12px 0 16px; }
+    .section h2 em { font-style: italic; color: var(--accent); }
+    .section .lede { font-style: normal; font-family: 'Inter'; }
+
+    .programs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border-top: 1px solid var(--border); }
+    .program { padding: 36px 32px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .program:last-child { border-right: 0; }
+    .program .num { font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--accent); font-size: 22px; }
+    .program h3 { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 500; margin: 10px 0 14px; line-height: 1.1; }
+    .program p { color: var(--fg-2); margin: 0; font-size: 15px; }
+    .program .meta { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-3); display: flex; justify-content: space-between; }
+    @media (max-width: 1080px) { .programs { grid-template-columns: 1fr; } .program { border-right: 0; } }
+
+    .syllabus-grid { display: grid; grid-template-columns: 0.95fr 1.05fr; gap: 80px; align-items: start; }
+    .syllabus-grid img { width: 100%; aspect-ratio: 3/4; object-fit: cover; }
+    .syllabus-list { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--border); }
+    .syllabus-list li { display: grid; grid-template-columns: 80px 1fr auto; gap: 16px; padding: 22px 0; border-bottom: 1px solid var(--border); align-items: baseline; }
+    .syllabus-list .wk { font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--accent); font-size: 20px; }
+    .syllabus-list .topic { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; }
+    .syllabus-list .by { font-size: 13px; color: var(--fg-3); }
+    @media (max-width: 1080px) { .syllabus-grid { grid-template-columns: 1fr; gap: 40px; } }
+
+    .faculty { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; }
+    .person { display: flex; flex-direction: column; gap: 12px; }
+    .person img { width: 100%; aspect-ratio: 4/5; object-fit: cover; filter: grayscale(60%); transition: filter 240ms; }
+    .person:hover img { filter: grayscale(0%); }
+    .person h4 { font-family: 'Cormorant Garamond', serif; margin: 0; font-size: 22px; font-weight: 500; }
+    .person .role { color: var(--fg-3); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
+    @media (max-width: 1080px) { .faculty { grid-template-columns: repeat(2, 1fr); } }
+
+    .outcomes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 40px; }
+    .quote { border-left: 2px solid var(--accent); padding: 12px 0 12px 32px; }
+    .quote p { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-style: italic; line-height: 1.3; margin: 0 0 20px; font-weight: 500; }
+    .quote .who { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-3); }
+    .quote .who strong { color: var(--fg); }
+    @media (max-width: 720px) { .outcomes { grid-template-columns: 1fr; } }
+
+    .pricing { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .plan { background: var(--surface); border: 1px solid var(--border); padding: 40px 32px; display: flex; flex-direction: column; }
+    .plan.featured { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+    .plan.featured .desc, .plan.featured li { color: rgba(243, 238, 224, 0.78); }
+    .plan h3 { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 500; margin: 0 0 8px; }
+    .plan .price { font-family: 'Cormorant Garamond', serif; font-size: 54px; font-weight: 500; margin: 8px 0 4px; line-height: 1; }
+    .plan .price small { font-family: 'Inter'; font-size: 13px; color: var(--fg-3); }
+    .plan.featured .price small { color: rgba(243, 238, 224, 0.6); }
+    .plan .desc { color: var(--fg-2); font-size: 14px; min-height: 44px; font-style: italic; }
+    .plan ul { list-style: none; padding: 0; margin: 24px 0; flex: 1; }
+    .plan li { padding: 8px 0; color: var(--fg-2); font-size: 14px; display: flex; gap: 10px; }
+    .plan li::before { content: '—'; color: var(--accent); flex-shrink: 0; }
+    .plan.featured li::before { color: var(--bg); }
+    @media (max-width: 1080px) { .pricing { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; } }
+
+    .faq { max-width: 820px; margin: 0 auto; }
+    .faq details { border-bottom: 1px solid var(--border); padding: 26px 0; }
+    .faq summary { cursor: pointer; font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 24px; list-style: none; display: flex; justify-content: space-between; align-items: baseline; }
+    .faq summary::after { content: '+'; color: var(--accent); font-size: 28px; font-weight: 300; }
+    .faq details[open] summary::after { content: '−'; }
+    .faq p { color: var(--fg-2); margin: 14px 0 0; font-size: 16px; }
+
+    footer.site { border-top: 1px solid var(--border); padding: 56px 0 32px; background: var(--surface); }
+    .foot-grid { display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 48px; }
+    .foot-col h4 { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--fg-3); margin: 0 0 18px; font-weight: 600; }
+    .foot-col a { display: block; color: var(--fg-2); font-size: 14px; padding: 6px 0; }
+    .foot-col a:hover { color: var(--accent); }
+    .foot-bot { margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; color: var(--fg-3); font-size: 12px; letter-spacing: 0.06em; }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 12px; text-align: center; } }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">Curator Academy<span class="brand-sub">est. 2019 — online</span></a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#programs">Programs</a>
+        <a href="#syllabus">Syllabus</a>
+        <a href="#faculty">Faculty</a>
+        <a href="#pricing">Tuition</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-ghost" href="#">Apply</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow">Autumn term · cohort 09</span>
+            <h1>The slow study of <em>looking</em>.</h1>
+            <p class="lede">Curator Academy is a small online school for art history and curatorial studies. We teach the discipline of looking, writing, and shaping an exhibition — with working curators, not career instructors.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#programs">View programs</a>
+              <a class="btn btn-ghost" href="#syllabus">Sample syllabus</a>
+            </div>
+          </div>
+          <div class="hero-art">
+            <img src="https://picsum.photos/seed/curator-hero/900/1100" width="900" height="1100" alt="A still life of a curator's desk: a 17th-century portrait reproduction, a notebook, and a brass loupe." loading="eager" />
+            <p class="hero-caption">A curator's desk. Lisbon, Spring 2026.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="programs">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Programs</span>
+          <h2>Three programs, taught <em>slowly</em>.</h2>
+          <p class="lede">Each program runs twice a year, capped at thirty students. You write, you read, you visit a museum every week. We meet on Tuesday and Thursday evenings.</p>
+        </div>
+        <div class="programs">
+          <article class="program">
+            <span class="num">i.</span>
+            <h3>The History of Looking</h3>
+            <p>A foundational survey of European and global art from antiquity through the early twentieth century. Designed for students entering the field, with no prerequisites beyond curiosity.</p>
+            <div class="meta"><span>16 weeks</span><span>Foundation</span></div>
+          </article>
+          <article class="program">
+            <span class="num">ii.</span>
+            <h3>Curatorial Practice</h3>
+            <p>How to read a collection, choose a thesis, and shape an exhibition. Students propose, defend, and partially install a virtual show by the end of term.</p>
+            <div class="meta"><span>20 weeks</span><span>Intermediate</span></div>
+          </article>
+          <article class="program">
+            <span class="num">iii.</span>
+            <h3>Writing on Art</h3>
+            <p>A workshop on the catalogue essay, the wall label, the review, and the press release. Weekly drafts, weekly critique, no AI prose.</p>
+            <div class="meta"><span>12 weeks</span><span>Advanced</span></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="syllabus" style="background: var(--surface);">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">A sample syllabus</span>
+          <h2>The History of Looking, <em>weeks 1–8</em>.</h2>
+        </div>
+        <div class="syllabus-grid">
+          <img src="https://picsum.photos/seed/curator-sy/900/1200" width="900" height="1200" alt="A reading room with art history books open on a long oak table." loading="lazy" />
+          <ol class="syllabus-list">
+            <li><span class="wk">Week 1</span><span class="topic">The cave, the temple, the city</span><span class="by">Dr. Albright</span></li>
+            <li><span class="wk">Week 2</span><span class="topic">Byzantium and the sacred image</span><span class="by">Dr. Marenko</span></li>
+            <li><span class="wk">Week 3</span><span class="topic">The early Italian Renaissance</span><span class="by">Dr. Albright</span></li>
+            <li><span class="wk">Week 4</span><span class="topic">Northern Renaissance &amp; the print</span><span class="by">Dr. Albright</span></li>
+            <li><span class="wk">Week 5</span><span class="topic">Mughal painting and Persian albums</span><span class="by">Prof. Khan</span></li>
+            <li><span class="wk">Week 6</span><span class="topic">The Dutch interior</span><span class="by">Dr. Marenko</span></li>
+            <li><span class="wk">Week 7</span><span class="topic">Goya to Manet</span><span class="by">Prof. Khan</span></li>
+            <li><span class="wk">Week 8</span><span class="topic">Mid-term essay critique</span><span class="by">All faculty</span></li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="faculty">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Faculty</span>
+          <h2>Working <em>curators</em>.</h2>
+          <p class="lede">Each member of our faculty holds, or has recently held, a curatorial position at a major museum or research institution.</p>
+        </div>
+        <div class="faculty">
+          <div class="person">
+            <img src="https://picsum.photos/seed/curator-f1/500/600" width="500" height="600" alt="Portrait of Dr. Eleanor Albright." loading="lazy" />
+            <h4>Dr. Eleanor Albright</h4>
+            <span class="role">Renaissance · Uffizi</span>
+          </div>
+          <div class="person">
+            <img src="https://picsum.photos/seed/curator-f2/500/600" width="500" height="600" alt="Portrait of Prof. Imran Khan." loading="lazy" />
+            <h4>Prof. Imran Khan</h4>
+            <span class="role">Mughal · V&amp;A</span>
+          </div>
+          <div class="person">
+            <img src="https://picsum.photos/seed/curator-f3/500/600" width="500" height="600" alt="Portrait of Dr. Yuki Marenko." loading="lazy" />
+            <h4>Dr. Yuki Marenko</h4>
+            <span class="role">Northern Baroque · Rijksmuseum</span>
+          </div>
+          <div class="person">
+            <img src="https://picsum.photos/seed/curator-f4/500/600" width="500" height="600" alt="Portrait of Dr. Sonia Vianello." loading="lazy" />
+            <h4>Dr. Sonia Vianello</h4>
+            <span class="role">Contemporary · Castello di Rivoli</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="outcomes" style="background: var(--surface);">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Alumni</span>
+          <h2>What our students <em>say</em>.</h2>
+        </div>
+        <div class="outcomes">
+          <figure class="quote">
+            <p>I had read the books for years and learned nothing. Eleanor taught me to look first — and the books opened. Now I write wall texts for a gallery in Berlin.</p>
+            <div class="who"><strong>Hannah W.</strong> — Curatorial Practice 2024</div>
+          </figure>
+          <figure class="quote">
+            <p>I did not expect the academy to be this serious. The reading is real, the critique is honest, and the cohort is small enough that I remember every name.</p>
+            <div class="who"><strong>Matías F.</strong> — History of Looking 2023</div>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="pricing">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Tuition</span>
+          <h2>Three ways to <em>enroll</em>.</h2>
+        </div>
+        <div class="pricing">
+          <div class="plan">
+            <h3>Audit</h3>
+            <div class="price">$420<small> / program</small></div>
+            <p class="desc">Attend live, read along, no graded work.</p>
+            <ul>
+              <li>Live seminars + recordings</li>
+              <li>Annotated reading lists</li>
+              <li>Discussion forum access</li>
+            </ul>
+            <a class="btn btn-ghost" href="#">Audit</a>
+          </div>
+          <div class="plan featured">
+            <h3>For credit</h3>
+            <div class="price">$1,250<small> / program</small></div>
+            <p class="desc">Full participation, graded essays, certificate.</p>
+            <ul>
+              <li>Live seminars + recordings</li>
+              <li>Weekly graded essays</li>
+              <li>One-on-one tutor meetings</li>
+              <li>Mid-term and final critique</li>
+              <li>Certificate of completion</li>
+            </ul>
+            <a class="btn btn-primary" href="#">Apply</a>
+          </div>
+          <div class="plan">
+            <h3>Diploma</h3>
+            <div class="price">$3,400<small> / 3 programs</small></div>
+            <p class="desc">All three programs, one year, diploma at the end.</p>
+            <ul>
+              <li>All three programs in 12 months</li>
+              <li>Capstone exhibition proposal</li>
+              <li>Curator Academy diploma</li>
+              <li>Career references on request</li>
+            </ul>
+            <a class="btn btn-ghost" href="#">Apply</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="faq" style="background: var(--surface);">
+      <div class="wrap">
+        <div class="section-head" style="margin: 0 auto 40px; text-align: center;">
+          <span class="eyebrow">FAQ</span>
+          <h2>Questions <em>before</em> you apply.</h2>
+        </div>
+        <div class="faq">
+          <details>
+            <summary>Is the academy accredited?</summary>
+            <p>We are not a university and do not grant degrees. Our diploma is a recognized credential in the curatorial community, particularly within European institutions where several of our faculty work.</p>
+          </details>
+          <details>
+            <summary>How much reading is involved?</summary>
+            <p>Roughly 120 pages a week. We assign primary sources and a short selection of secondary literature. Reading is the foundation of the discipline; we do not pretend otherwise.</p>
+          </details>
+          <details>
+            <summary>Are museum visits required?</summary>
+            <p>One museum visit per week is encouraged but not graded. Students unable to visit in person submit a long-form virtual visit using one of our partner institutions' online collections.</p>
+          </details>
+          <details>
+            <summary>Do you accept students without an art history background?</summary>
+            <p>Yes, for the History of Looking program. The other two require either completion of History of Looking or a writing sample for review.</p>
+          </details>
+          <details>
+            <summary>Is financial aid available?</summary>
+            <p>Yes. Up to one third of each cohort receives partial tuition support. Applications are reviewed alongside the academic application.</p>
+          </details>
+          <details>
+            <summary>How are seminars scheduled across time zones?</summary>
+            <p>Live seminars are held Tuesday and Thursday evenings, 6–8 pm Lisbon time. Recordings are posted within twenty-four hours for students who attend asynchronously.</p>
+          </details>
+          <details>
+            <summary>What language are programs taught in?</summary>
+            <p>All programs are taught in English. Primary sources in other languages are provided in translation; advanced students are encouraged to read alongside the original.</p>
+          </details>
+          <details>
+            <summary>Are alumni events offered after a program ends?</summary>
+            <p>Yes. Alumni are invited to four virtual lectures a year and one annual in-person symposium hosted at a partner museum, on a rotating basis between Lisbon, Paris, and New York.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head" style="margin: 0 auto 0; text-align: center;">
+          <span class="eyebrow">A note</span>
+          <h2>On <em>slowness</em>.</h2>
+          <p class="lede" style="font-style: italic; font-family: 'Cormorant Garamond', serif; max-width: 640px; margin: 0 auto; font-size: 22px;">We do not believe one can become a curator in six weeks. We believe one can begin a serious practice — and that the beginning, taken slowly, lasts a long time.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site">
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a class="brand" href="#" style="margin-bottom: 16px;">Curator Academy<span class="brand-sub">est. 2019 — online</span></a>
+          <p style="color: var(--fg-2); font-size: 14px; max-width: 280px;">A small online school for art history and curatorial studies. Three programs, two terms a year, taught slowly.</p>
+        </div>
+        <div class="foot-col">
+          <h4>Programs</h4>
+          <a href="#">History of Looking</a>
+          <a href="#">Curatorial Practice</a>
+          <a href="#">Writing on Art</a>
+          <a href="#">Diploma</a>
+        </div>
+        <div class="foot-col">
+          <h4>Academy</h4>
+          <a href="#">Faculty</a>
+          <a href="#">Library</a>
+          <a href="#">Calendar</a>
+          <a href="#">Apply</a>
+        </div>
+        <div class="foot-col">
+          <h4>Office</h4>
+          <a href="#">Lisbon</a>
+          <a href="#">New York</a>
+          <a href="#">Press</a>
+          <a href="#">Contact</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Curator Academy</span>
+        <span>Slow looking since 2019</span>
+      </div>
+    </div>
+  </footer>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

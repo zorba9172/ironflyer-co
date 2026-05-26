@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Algae — Plant kitchen, tasting menu only</title>
+  <meta name="description" content="A twelve-seat plant-based tasting menu. Twenty-one courses built from sea vegetables, fermented seed cultures, and one farm in Hudson, NY." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #cfd9c3;
+      --bg-2: #c2cdb3;
+      --bg-3: #dbe4d0;
+      --paper: #eef2e8;
+      --ink: #1a1a1a;
+      --ink-2: #333333;
+      --ink-3: #555555;
+      --ink-4: #7a7a7a;
+      --accent: #1a1a1a;
+      --rule: rgba(26, 26, 26, 0.14);
+      --rule-soft: rgba(26, 26, 26, 0.08);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.65;
+      font-weight: 400;
+      -webkit-font-smoothing: antialiased;
+      letter-spacing: 0.005em;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 0 32px; }
+    .serif { font-family: 'Cormorant Garamond', serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--ink-3); font-weight: 500;
+    }
+
+    /* Nav */
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(207, 217, 195, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--rule);
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 76px; }
+    .brand {
+      display: flex; align-items: center; gap: 12px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 26px; font-weight: 500; letter-spacing: 0;
+    }
+    .brand-mark {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: 1px solid var(--ink); position: relative;
+    }
+    .brand-mark::after {
+      content: ''; position: absolute; inset: 7px;
+      border-radius: 50%; background: var(--ink);
+    }
+    .nav-links { display: flex; gap: 28px; font-size: 13px; color: var(--ink-3); }
+    .nav-links a:hover { color: var(--ink); }
+    .nav-cta {
+      border: 1px solid var(--ink); color: var(--ink);
+      padding: 10px 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+      transition: background 200ms, color 200ms;
+    }
+    .nav-cta:hover { background: var(--ink); color: var(--paper); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 120px 0 96px; }
+    .hero-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 96px; align-items: end;
+    }
+    h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(64px, 9vw, 128px);
+      line-height: 0.98; letter-spacing: -0.015em;
+      font-weight: 400; margin: 24px 0 32px;
+    }
+    h1 em { font-style: italic; }
+    .hero-meta-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 28px 40px;
+      padding-top: 32px; border-top: 1px solid var(--rule);
+    }
+    .hero-meta-grid div {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px; letter-spacing: 0.04em;
+    }
+    .hero-meta-grid .label { color: var(--ink-4); font-size: 10px; text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 6px; display: block; }
+    .hero-meta-grid .val { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 400; line-height: 1.1; letter-spacing: 0; }
+    .hero-art {
+      aspect-ratio: 4/5;
+      overflow: hidden;
+      border: 1px solid var(--rule);
+    }
+    .hero-art img { width: 100%; height: 100%; object-fit: cover; filter: contrast(1.02) saturate(0.92); }
+    .lede {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px; color: var(--ink-2); line-height: 1.55;
+      max-width: 480px; font-style: italic;
+    }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 56px; } }
+
+    /* Spec */
+    .spec {
+      background: var(--paper);
+      border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+      padding: 56px 0;
+    }
+    .spec-grid {
+      display: grid; grid-template-columns: 220px 1fr 220px 1fr;
+      gap: 40px; align-items: baseline;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+    }
+    .spec-grid .key { color: var(--ink-4); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; }
+    .spec-grid .val { color: var(--ink); }
+    @media (max-width: 1080px) { .spec-grid { grid-template-columns: 200px 1fr; gap: 24px 32px; } }
+
+    /* Section */
+    .section { padding: 140px 0; }
+    .section-head { max-width: 760px; margin-bottom: 80px; }
+    h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(44px, 6vw, 80px);
+      letter-spacing: -0.01em; line-height: 1.02;
+      font-weight: 400; margin: 24px 0 16px;
+    }
+    h2 em { font-style: italic; }
+    .section .lede { font-size: 18px; }
+
+    /* Tasting menu list */
+    .menu-frame {
+      display: grid; grid-template-columns: 1fr;
+      gap: 0;
+      border-top: 1px solid var(--ink);
+    }
+    .course {
+      display: grid; grid-template-columns: 80px 1.4fr 2fr 1fr;
+      gap: 32px; padding: 28px 0;
+      border-bottom: 1px solid var(--rule);
+      align-items: baseline;
+    }
+    .course .num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px; color: var(--ink-4); letter-spacing: 0.1em;
+    }
+    .course .name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 26px; font-weight: 400; line-height: 1.1;
+      letter-spacing: -0.005em;
+    }
+    .course .name em { font-style: italic; color: var(--ink-3); }
+    .course .body {
+      font-size: 14px; color: var(--ink-3); line-height: 1.55;
+    }
+    .course .technique {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em;
+      color: var(--ink-4); text-align: right;
+    }
+    @media (max-width: 1080px) {
+      .course { grid-template-columns: 60px 1fr; gap: 16px 20px; }
+      .course .body, .course .technique { grid-column: 2 / -1; }
+      .course .technique { text-align: left; margin-top: 4px; }
+    }
+
+    /* Lab / philosophy */
+    .lab {
+      background: var(--ink); color: var(--paper);
+      padding: 140px 0;
+    }
+    .lab h2 { color: var(--paper); }
+    .lab-grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 96px; align-items: center; }
+    .lab-img { aspect-ratio: 4/5; overflow: hidden; border: 1px solid rgba(238, 242, 232, 0.2); }
+    .lab-img img { width: 100%; height: 100%; object-fit: cover; }
+    .lab-body p {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px; line-height: 1.65;
+      color: rgba(238, 242, 232, 0.78);
+      margin: 0 0 22px;
+    }
+    .lab-foot {
+      margin-top: 48px; padding-top: 28px;
+      border-top: 1px solid rgba(238, 242, 232, 0.2);
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+    }
+    .lab-foot .label { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(238, 242, 232, 0.5); margin-bottom: 8px; }
+    .lab-foot .val { font-family: 'Cormorant Garamond', serif; font-size: 22px; line-height: 1.1; letter-spacing: 0; }
+    @media (max-width: 1080px) { .lab-grid { grid-template-columns: 1fr; gap: 56px; } }
+
+    /* The farm */
+    .farm-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 96px; align-items: center; }
+    .farm-img { aspect-ratio: 5/4; overflow: hidden; border: 1px solid var(--rule); }
+    .farm-img img { width: 100%; height: 100%; object-fit: cover; filter: saturate(0.9); }
+    .farm-list {
+      list-style: none; padding: 0; margin: 40px 0 0;
+      display: grid; grid-template-columns: 1fr; gap: 0;
+      border-top: 1px solid var(--rule);
+    }
+    .farm-list li {
+      display: grid; grid-template-columns: 1fr auto;
+      padding: 14px 0; border-bottom: 1px solid var(--rule);
+      align-items: baseline;
+    }
+    .farm-list .item {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px; font-weight: 400; letter-spacing: -0.005em;
+    }
+    .farm-list .item em { font-style: italic; color: var(--ink-3); font-size: 14px; display: block; }
+    .farm-list .picked {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--ink-4);
+    }
+    @media (max-width: 1080px) { .farm-grid { grid-template-columns: 1fr; } }
+
+    /* Press */
+    .press { padding: 80px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+    .press-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 48px; }
+    .press-card .pub { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-style: italic; margin-bottom: 8px; }
+    .press-card p { font-size: 13px; color: var(--ink-3); margin: 0; line-height: 1.55; }
+    @media (max-width: 720px) { .press-row { grid-template-columns: 1fr 1fr; gap: 32px; } }
+
+    /* Visit */
+    .visit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 96px; }
+    .hours-list { list-style: none; padding: 0; margin: 32px 0 0; }
+    .hours-list li {
+      display: grid; grid-template-columns: 140px 1fr;
+      padding: 16px 0; border-bottom: 1px solid var(--rule);
+      align-items: baseline;
+    }
+    .hours-list .day { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-style: italic; font-weight: 400; }
+    .hours-list .when { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--ink-3); letter-spacing: 0.06em; }
+    .hours-list li.today .when { color: var(--ink); }
+    .hours-list li.closed { color: var(--ink-4); }
+    .address-card { font-family: 'Cormorant Garamond', serif; font-size: 26px; line-height: 1.4; margin: 36px 0 12px; font-style: italic; }
+    .map {
+      aspect-ratio: 4/5;
+      background: var(--paper);
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--ink);
+    }
+    .map::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(26,26,26,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(26,26,26,0.06) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+    .map-cross {
+      position: absolute; left: 48%; top: 44%;
+      width: 24px; height: 24px;
+    }
+    .map-cross::before, .map-cross::after {
+      content: ''; position: absolute; background: var(--ink);
+    }
+    .map-cross::before { left: 50%; top: 0; bottom: 0; width: 1px; transform: translateX(-50%); }
+    .map-cross::after { top: 50%; left: 0; right: 0; height: 1px; transform: translateY(-50%); }
+    .map-label {
+      position: absolute; left: 24px; bottom: 24px;
+      background: var(--paper); border: 1px solid var(--ink);
+      padding: 12px 18px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    }
+    @media (max-width: 1080px) { .visit-grid { grid-template-columns: 1fr; } }
+
+    /* Reserve */
+    .reserve {
+      background: var(--paper);
+      padding: 140px 0; text-align: center;
+      border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+    }
+    .reserve h2 { margin-bottom: 20px; }
+    .reserve p { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-style: italic; max-width: 560px; margin: 0 auto 36px; color: var(--ink-3); }
+    .reserve-btn {
+      display: inline-block;
+      background: var(--ink); color: var(--paper);
+      padding: 18px 36px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase;
+    }
+    .reserve-meta {
+      margin-top: 32px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--ink-4);
+    }
+
+    /* Footer */
+    footer { padding: 64px 0 32px; }
+    .foot-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; }
+    .foot-col h4 { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-4); margin: 0 0 16px; font-weight: 500; }
+    .foot-col a, .foot-col p { display: block; color: var(--ink-3); font-size: 14px; line-height: 1.8; }
+    .foot-col a:hover { color: var(--ink); }
+    .foot-bot { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; color: var(--ink-4); font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 8px; } }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a href="#" class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        Algae
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#menu">Menu</a>
+        <a href="#lab">Method</a>
+        <a href="#farm">Farm</a>
+        <a href="#visit">Visit</a>
+      </nav>
+      <a href="#reserve" class="nav-cta">Book a seat</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow">Plant kitchen · Twelve seats · Tasting menu</span>
+            <h1>One menu. <em>Twenty-one courses.</em> No animal.</h1>
+            <p class="lede">A small kitchen built around sea vegetables, fermented seed cultures, and the produce from a single farm two hours north on the Hudson.</p>
+            <div class="hero-meta-grid">
+              <div><span class="label">Format</span><span class="val">21 courses</span></div>
+              <div><span class="label">Price · per person</span><span class="val">$210</span></div>
+              <div><span class="label">Seats</span><span class="val">12 at the counter</span></div>
+              <div><span class="label">Wine pairing · optional</span><span class="val">+ $145</span></div>
+            </div>
+          </div>
+          <div class="hero-art">
+            <img src="https://picsum.photos/seed/algae-kitchen-1/900/1100" width="900" height="1100" alt="A small plate at Algae — sea lettuce, fermented sunflower, and pickled nasturtium." loading="eager" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="spec">
+      <div class="wrap">
+        <div class="spec-grid">
+          <div class="key">Established</div>
+          <div class="val">2022 · Brooklyn, NY · Williamsburg</div>
+          <div class="key">Animal products</div>
+          <div class="val">Zero. No exception.</div>
+          <div class="key">Single farm</div>
+          <div class="val">Plover Hill Farm · Hudson, NY</div>
+          <div class="key">Fermentation lab</div>
+          <div class="val">In the basement · 47 cultures live</div>
+          <div class="key">Menu changes</div>
+          <div class="val">Every six weeks</div>
+          <div class="key">Open</div>
+          <div class="val">Thursday through Saturday · two seatings</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="menu">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">The Menu · Issue 14 · Late Winter</span>
+          <h2>Twenty-one <em>courses,</em> in order.</h2>
+          <p class="lede">One menu, served to every seat, in the same order, every night. Allergies and aversions handled at the time of booking, not at the table.</p>
+        </div>
+        <div class="menu-frame">
+          <div class="course">
+            <span class="num">01</span>
+            <div class="name">Welcome <em>· three bites</em></div>
+            <div class="body">Sea lettuce cracker, sunflower butter, smoked salt. Pickled green almond. A single ripe medlar.</div>
+            <div class="technique">raw / fermented</div>
+          </div>
+          <div class="course">
+            <span class="num">02</span>
+            <div class="name">Sourdough, <em>cultured butter</em></div>
+            <div class="body">Three-day cold-proofed loaf, baked at 480°. House cultured butter, churned that morning from oat cream.</div>
+            <div class="technique">baked · 480°</div>
+          </div>
+          <div class="course">
+            <span class="num">03</span>
+            <div class="name">Beet, <em>black garlic, walnut</em></div>
+            <div class="body">Salt-baked golden beet, ninety-day fermented black garlic crème, candied walnut, sherry vinegar gel.</div>
+            <div class="technique">salt-baked</div>
+          </div>
+          <div class="course">
+            <span class="num">04</span>
+            <div class="name">Cauliflower velouté, <em>kombu dashi</em></div>
+            <div class="body">Whole roasted cauliflower blended with kombu dashi and toasted koji rice. Cured egg-yolk replacement made from kabocha.</div>
+            <div class="technique">roasted / steamed</div>
+          </div>
+          <div class="course">
+            <span class="num">05</span>
+            <div class="name">Hand-rolled gnocchi, <em>sea buckthorn</em></div>
+            <div class="body">Ricotta gnocchi made from cultured soy curd, butter sage, foraged sea buckthorn berries.</div>
+            <div class="technique">cultured · poached</div>
+          </div>
+          <div class="course">
+            <span class="num">06</span>
+            <div class="name">Smoked carrot, <em>preserved lemon, dukkah</em></div>
+            <div class="body">Plover Hill carrots, smoked over green hay, finished on the grill. Preserved Meyer lemon paste, hazelnut dukkah.</div>
+            <div class="technique">smoked · grilled</div>
+          </div>
+          <div class="course">
+            <span class="num">07</span>
+            <div class="name">Wild mushroom, <em>black truffle</em></div>
+            <div class="body">Hen of the woods seared in mushroom butter, finished with grated winter truffle, a single drop of aged tamari.</div>
+            <div class="technique">seared</div>
+          </div>
+          <div class="course">
+            <span class="num">08</span>
+            <div class="name">Squash, <em>fermented honey, pumpkin seed</em></div>
+            <div class="body">Honeynut squash, slow-braised in fermented honey and brown butter. Toasted pumpkin seed praline.</div>
+            <div class="technique">braised</div>
+          </div>
+          <div class="course">
+            <span class="num">09</span>
+            <div class="name">Risotto, <em>fermented barley, nettle</em></div>
+            <div class="body">Pearled barley aged sixty days in koji rice. Spring nettle, wild garlic oil, charred lemon.</div>
+            <div class="technique">koji-aged</div>
+          </div>
+          <div class="course">
+            <span class="num">10</span>
+            <div class="name">Palate · <em>cold celery, gin</em></div>
+            <div class="body">Iced celery consommé, juniper, dehydrated lime. Served in a single glass spoon.</div>
+            <div class="technique">cold-set</div>
+          </div>
+          <div class="course">
+            <span class="num">11</span>
+            <div class="name">Charred leek, <em>walnut miso, sorrel</em></div>
+            <div class="body">Whole leeks buried in the coals for two hours. Two-year-aged walnut miso, blood sorrel from the rooftop.</div>
+            <div class="technique">coal-roasted</div>
+          </div>
+          <div class="course">
+            <span class="num">12</span>
+            <div class="name">Bread course · <em>milk bread, smoked salt</em></div>
+            <div class="body">Steamed soy-milk brioche, sea salt crystals, brown butter (vegan), passed warm.</div>
+            <div class="technique">steamed</div>
+          </div>
+          <div class="course">
+            <span class="num">13</span>
+            <div class="name">Hudson Valley turnip, <em>seventy days fermented</em></div>
+            <div class="body">A single turnip, lacto-fermented since November. Served whole, sliced thin, with elderflower vinegar.</div>
+            <div class="technique">lacto-fermented · 70 days</div>
+          </div>
+          <div class="course">
+            <span class="num">14</span>
+            <div class="name">Sea vegetables, <em>three ways</em></div>
+            <div class="body">Dulse, kombu, sea grape. Tempura, pickled, fresh. A study in salt and minerality.</div>
+            <div class="technique">tempura · pickled · raw</div>
+          </div>
+          <div class="course">
+            <span class="num">15</span>
+            <div class="name">"Cheese," <em>fermented cashew, beebrood</em></div>
+            <div class="body">Aged cashew culture, three months in the cellar. Fermented honey crystal, dehydrated rose petal, biscuit.</div>
+            <div class="technique">aged · 90 days</div>
+          </div>
+          <div class="course">
+            <span class="num">16</span>
+            <div class="name">Pre-dessert · <em>green apple, shiso</em></div>
+            <div class="body">Granny smith, perilla leaf, cucumber granita, sweet rice vinegar.</div>
+            <div class="technique">granita</div>
+          </div>
+          <div class="course">
+            <span class="num">17</span>
+            <div class="name">Chocolate, <em>olive oil, salt</em></div>
+            <div class="body">Single-origin Madagascar 73%, whipped with Tuscan oil and finished with smoked Maldon. A single quenelle.</div>
+            <div class="technique">whipped</div>
+          </div>
+          <div class="course">
+            <span class="num">18</span>
+            <div class="name">Birch sap sorbet, <em>black currant, lavender</em></div>
+            <div class="body">Wild-tapped birch sap, churned with fermented black currant, dried lavender bud.</div>
+            <div class="technique">churned</div>
+          </div>
+          <div class="course">
+            <span class="num">19</span>
+            <div class="name">Mignardise, <em>five pieces</em></div>
+            <div class="body">Walnut financier. Buckwheat caramel. Yuzu jelly. Pine candy. A single perfect cherry on the stem.</div>
+            <div class="technique">five small things</div>
+          </div>
+          <div class="course">
+            <span class="num">20</span>
+            <div class="name">Brewed tea or coffee</div>
+            <div class="body">Pour-over from a Yirgacheffe lot. Or a single estate Darjeeling first flush.</div>
+            <div class="technique">v60 · 88°</div>
+          </div>
+          <div class="course">
+            <span class="num">21</span>
+            <div class="name">Departure · <em>one bite to take home</em></div>
+            <div class="body">A small box of fermented honey caramels, made that morning. For tomorrow.</div>
+            <div class="technique">to-go</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="lab" id="lab">
+      <div class="wrap">
+        <div class="lab-grid">
+          <div class="lab-img">
+            <img src="https://picsum.photos/seed/algae-kitchen-2/900/1100" width="900" height="1100" alt="Glass jars of ferments — koji rice, walnut miso, black garlic — on a steel rack at Algae." loading="lazy" />
+          </div>
+          <div class="lab-body">
+            <span class="eyebrow" style="color: rgba(238, 242, 232, 0.55);">Method</span>
+            <h2>The kitchen as a <em>lab.</em></h2>
+            <p>Algae does not "imitate" meat. We do not put cashew cream on something and pretend it's cheese. The kitchen is a fermentation lab — koji rice, lactic ferments, vinegar mothers, garums made from sunflower and pumpkin seed. We work with what plants can do that animals cannot.</p>
+            <p>Most of the flavor on the menu took weeks or months to build. A few took years.</p>
+            <div class="lab-foot">
+              <div>
+                <div class="label">Live cultures</div>
+                <div class="val">47 jars / 3 cellars</div>
+              </div>
+              <div>
+                <div class="label">Oldest miso</div>
+                <div class="val">38 months · sunflower</div>
+              </div>
+              <div>
+                <div class="label">Garums in rotation</div>
+                <div class="val">9 · all seed-based</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="farm">
+      <div class="wrap">
+        <div class="farm-grid">
+          <div>
+            <span class="eyebrow">The Farm · Plover Hill</span>
+            <h2>One farm. <em>Two hours away.</em></h2>
+            <p style="font-size: 18px; color: var(--ink-2); line-height: 1.65;">Plover Hill is a six-acre farm in Hudson, NY, run by Maya and David Linwood. They grow forty heirloom varieties — most of them not commercially viable — and ship a single van down to Brooklyn every Tuesday morning. The menu is built around what's in the van.</p>
+            <ul class="farm-list">
+              <li><span class="item">Sungold turnip <em>· planted September</em></span><span class="picked">Picked Tuesday</span></li>
+              <li><span class="item">Black Tuscan kale <em>· cold-hardy variety</em></span><span class="picked">Picked Tuesday</span></li>
+              <li><span class="item">Sea kale shoots <em>· cliff-foraged</em></span><span class="picked">Foraged Sunday</span></li>
+              <li><span class="item">Honeynut squash <em>· cured 6 weeks</em></span><span class="picked">From cellar</span></li>
+              <li><span class="item">Crapaudine beet <em>· 1850s heirloom</em></span><span class="picked">Picked Tuesday</span></li>
+              <li><span class="item">Castelfranco radicchio <em>· Italian variety</em></span><span class="picked">Picked Monday</span></li>
+            </ul>
+          </div>
+          <div class="farm-img">
+            <img src="https://picsum.photos/seed/algae-kitchen-3/900/720" width="900" height="720" alt="Hands holding two heirloom carrots over a basket of root vegetables at Plover Hill farm." loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="press">
+      <div class="wrap">
+        <div class="press-row">
+          <div class="press-card"><div class="pub">Michelin Guide</div><p>One star, retained 2024 and 2025.</p></div>
+          <div class="press-card"><div class="pub">N.Y. Times · 2024</div><p>Three stars. "An argument for plants."</p></div>
+          <div class="press-card"><div class="pub">World's 50 Best</div><p>#33 in the world, 2025.</p></div>
+          <div class="press-card"><div class="pub">James Beard · 2024</div><p>Outstanding Restaurant nominee.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="visit">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Visit</span>
+          <h2>North 6th, <em>Williamsburg.</em></h2>
+        </div>
+        <div class="visit-grid">
+          <div>
+            <ul class="hours-list">
+              <li class="closed"><span class="day">Mon — Wed</span><span class="when">Closed · prep days</span></li>
+              <li id="day-thu"><span class="day">Thursday</span><span class="when">6 pm · single seating</span></li>
+              <li id="day-fri"><span class="day">Friday</span><span class="when">5:30 · two seatings</span></li>
+              <li id="day-sat"><span class="day">Saturday</span><span class="when">5:30 · two seatings</span></li>
+              <li class="closed"><span class="day">Sunday</span><span class="when">Brunch · 11:30</span></li>
+            </ul>
+            <p class="address-card">142 North 6th Street<br/>Brooklyn, NY 11249</p>
+            <p style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--ink-4); letter-spacing: 0.04em; line-height: 1.8;">
+              Reservations · open 60 days out · Tock<br/>
+              Allergies declared at booking, please<br/>
+              Smart casual · no dress code
+            </p>
+          </div>
+          <div class="map" aria-label="Map showing Algae on North 6th Street, Williamsburg.">
+            <span class="map-cross" aria-hidden="true"></span>
+            <span class="map-label">142 N. 6th</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="reserve" id="reserve">
+    <div class="wrap">
+      <span class="eyebrow">Reservations</span>
+      <h2>Twelve seats. <em>Sixty days out.</em></h2>
+      <p>The book opens at noon Eastern, sixty days in advance. A non-refundable deposit holds the seat. Reschedule freely up to forty-eight hours before.</p>
+      <a href="#" class="reserve-btn">Book through Tock →</a>
+      <div class="reserve-meta">$210 / person · pairing optional · allergies declared in advance</div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a href="#" class="brand" style="margin-bottom: 16px;">
+            <span class="brand-mark" aria-hidden="true"></span>
+            Algae
+          </a>
+          <p>A twelve-seat plant kitchen in Williamsburg. Tasting menu only. Twenty-one courses. Built around one farm in Hudson, NY.</p>
+        </div>
+        <div class="foot-col">
+          <h4>Visit</h4>
+          <p>142 N. 6th St.</p>
+          <p>Brooklyn, NY 11249</p>
+          <p>book@algae.kitchen</p>
+        </div>
+        <div class="foot-col">
+          <h4>Open</h4>
+          <p>Thu — Sun</p>
+          <p>2 seatings · Fri / Sat</p>
+          <p>Brunch · Sundays</p>
+        </div>
+        <div class="foot-col">
+          <h4>Follow</h4>
+          <a href="#">Instagram</a>
+          <a href="#">Journal</a>
+          <a href="#">Private buyouts</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Algae LLC</span>
+        <span>Issue 14 · Late Winter '26</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var days = ['day-sun','day-mon','day-tue','day-wed','day-thu','day-fri','day-sat'];
+      var idx = new Date().getDay();
+      var el = document.getElementById(days[idx]);
+      if (el && !el.classList.contains('closed')) el.classList.add('today');
+    })();
+  </script>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

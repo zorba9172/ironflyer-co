@@ -1,0 +1,35 @@
+{
+  "slug": "realestate-08-cedar-architects",
+  "title": "Cedar Architects",
+  "subtitle": "Slow residential architecture practice. Drawings on the wall.",
+  "category": "Real Estate",
+  "type": "Websites",
+  "tags": [
+    "architecture",
+    "restrained",
+    "editorial",
+    "monograph",
+    "studio"
+  ],
+  "previewImage": "/templates/realestate-08-cedar-architects.jpg",
+  "palette": {
+    "bg": "#f3eee0",
+    "fg": "#111111",
+    "accent": "#111111"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "drawings",
+    "projects",
+    "process",
+    "studio",
+    "press",
+    "clients",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Cedar Architects template as the foundation for a residential architecture monograph site with a serif editorial hero, three inline SVG architectural drawings, four monograph project entries with spec lists, a four-phase process panel, studio biography, press list, client quotes, and a single-email engagement CTA.",
+  "livePreview": "/template-previews/realestate-08-cedar-architects/"
+}

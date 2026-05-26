@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Field Estates — Ranches, farms, and working land</title>
+  <meta name="description" content="A land brokerage representing working ranches, vineyards, and family farms across the Rockies and Pacific Northwest. We walk every property ourselves." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #efe2c8;
+      --bg-2: #e6d7b5;
+      --paper: #f7eed9;
+      --fg: #2a3a1f;
+      --fg-2: #5a6b48;
+      --fg-3: #8a907a;
+      --accent: #2a3a1f;
+      --gold: #b08826;
+      --line: rgba(42, 58, 31, 0.16);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--fg); font-family: 'Inter', -apple-system, sans-serif; font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .serif { font-family: 'Fraunces', Georgia, serif; }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 0 28px; }
+
+    .nav { padding: 28px 0; }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .brand-mark { width: 36px; height: 36px; border: 2px solid var(--accent); display: grid; place-items: center; font-family: 'Fraunces', serif; font-weight: 700; font-size: 20px; }
+    .brand-name { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; letter-spacing: 0.01em; }
+    .brand-name small { display: block; font-family: 'Inter', sans-serif; font-size: 10px; letter-spacing: 0.28em; color: var(--fg-3); margin-top: 2px; }
+    .nav-links { display: flex; gap: 32px; font-size: 14px; }
+    .nav-links a:hover { color: var(--gold); }
+    .nav-cta { display: flex; align-items: center; gap: 16px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border: 1.5px solid var(--accent); font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; cursor: pointer; }
+    .btn-fill { background: var(--accent); color: var(--paper); }
+    .btn-fill:hover { background: #1a2a10; }
+    .btn-line:hover { background: var(--accent); color: var(--paper); }
+    @media (max-width: 1080px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { position: relative; padding: 24px 0 80px; }
+    .hero-media { position: relative; border-radius: 6px; overflow: hidden; }
+    .hero-media img { width: 100%; height: 70vh; min-height: 520px; object-fit: cover; }
+    .hero-media .badge { position: absolute; top: 24px; left: 24px; background: var(--paper); border: 1.5px solid var(--accent); padding: 8px 14px; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; }
+    .hero-content { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 56px; margin-top: 48px; align-items: end; }
+    h1 { font-family: 'Fraunces', serif; font-weight: 500; font-size: clamp(48px, 6.4vw, 84px); line-height: 1.02; letter-spacing: -0.015em; margin: 0; }
+    h1 em { font-style: italic; color: var(--gold); }
+    .hero-lede { font-size: 17px; color: var(--fg-2); max-width: 440px; }
+    .hero-lede p { margin: 0 0 16px; }
+    .hero-meta { display: flex; gap: 32px; margin-top: 24px; }
+    .hero-meta .v { font-family: 'Fraunces', serif; font-size: 36px; font-weight: 600; }
+    .hero-meta .l { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--fg-3); }
+    @media (max-width: 1080px) { .hero-content { grid-template-columns: 1fr; gap: 24px; } }
+
+    /* Search */
+    .land-search { background: var(--paper); border: 1.5px solid var(--accent); padding: 22px; margin-top: 56px; display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr auto; gap: 20px; align-items: end; }
+    .land-search label { display: block; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--fg-3); margin-bottom: 6px; }
+    .land-search input, .land-search select { width: 100%; padding: 10px 12px; border: 1px solid var(--line); background: transparent; font-family: inherit; font-size: 15px; color: var(--fg); }
+    .land-search button { background: var(--accent); color: var(--paper); padding: 12px 24px; border: none; font-family: 'Fraunces', serif; font-size: 16px; letter-spacing: 0.04em; cursor: pointer; }
+    @media (max-width: 1080px) { .land-search { grid-template-columns: 1fr 1fr; } .land-search button { grid-column: 1 / -1; } }
+    @media (max-width: 720px) { .land-search { grid-template-columns: 1fr; } }
+
+    .section { padding: 96px 0; }
+    .section-head { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 56px; align-items: end; margin-bottom: 56px; }
+    .section-head h2 { font-family: 'Fraunces', serif; font-weight: 500; font-size: clamp(36px, 4.4vw, 56px); margin: 8px 0 0; line-height: 1.05; }
+    .section-head p { margin: 0; font-size: 16px; color: var(--fg-2); }
+    .eyebrow { font-size: 11px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--gold); }
+    @media (max-width: 1080px) { .section-head { grid-template-columns: 1fr; gap: 16px; } }
+
+    .properties { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+    .property { background: var(--paper); border: 1px solid var(--line); overflow: hidden; transition: transform 320ms ease; }
+    .property:hover { transform: translateY(-3px); }
+    .property-img { aspect-ratio: 4/3; overflow: hidden; }
+    .property-img img { width: 100%; height: 100%; object-fit: cover; }
+    .property-body { padding: 24px; }
+    .property-loc { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--fg-3); }
+    .property h3 { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 500; margin: 8px 0 12px; line-height: 1.15; }
+    .property p { color: var(--fg-2); font-size: 14px; margin: 0 0 16px; }
+    .property-stats { display: flex; gap: 18px; padding: 14px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); font-size: 13px; color: var(--fg-2); margin-bottom: 16px; }
+    .property-stats strong { color: var(--fg); font-weight: 600; }
+    .property-foot { display: flex; justify-content: space-between; align-items: baseline; }
+    .property-foot .price { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 500; }
+    .property-foot a { font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); border-bottom: 1px solid var(--gold); padding-bottom: 2px; }
+    @media (max-width: 1080px) { .properties { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .properties { grid-template-columns: 1fr; } }
+
+    /* Walk-through process */
+    .walk { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; padding: 56px 0; background: var(--bg-2); }
+    .walk .wrap-inner { padding: 0 28px; }
+    .walk img { width: 100%; aspect-ratio: 4/5; object-fit: cover; }
+    .walk-body h2 { font-family: 'Fraunces', serif; font-size: clamp(36px, 4vw, 48px); font-weight: 500; line-height: 1.05; margin: 8px 0 22px; }
+    .walk-body p { color: var(--fg-2); font-size: 16px; margin: 0 0 14px; max-width: 480px; }
+    .walk-steps { margin-top: 32px; }
+    .walk-step { display: grid; grid-template-columns: 48px 1fr; gap: 16px; padding: 18px 0; border-top: 1px solid var(--line); }
+    .walk-step:last-child { border-bottom: 1px solid var(--line); }
+    .walk-step .n { font-family: 'Fraunces', serif; font-size: 28px; color: var(--gold); font-weight: 500; line-height: 1; }
+    .walk-step h4 { margin: 0 0 4px; font-family: 'Fraunces', serif; font-weight: 600; font-size: 18px; }
+    .walk-step p { font-size: 14px; margin: 0; color: var(--fg-2); }
+    @media (max-width: 1080px) { .walk { grid-template-columns: 1fr; gap: 36px; padding: 56px 28px; } .walk .wrap-inner { padding: 0; } }
+
+    .land-types { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    .ltype { padding: 28px; background: var(--paper); border: 1px solid var(--line); }
+    .ltype h3 { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 500; margin: 0 0 8px; }
+    .ltype p { color: var(--fg-2); margin: 0 0 12px; font-size: 14px; }
+    .ltype .acres { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); }
+    @media (max-width: 1080px) { .land-types { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .land-types { grid-template-columns: 1fr; } }
+
+    .testimonials { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+    .testi { padding: 32px; background: var(--paper); border: 1px solid var(--line); }
+    .testi blockquote { font-family: 'Fraunces', serif; font-size: 19px; line-height: 1.45; font-weight: 400; margin: 0 0 18px; }
+    .testi cite { font-style: normal; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--fg-3); }
+    @media (max-width: 1080px) { .testimonials { grid-template-columns: 1fr; } }
+
+    .cta { background: var(--accent); color: var(--paper); padding: 96px 0; }
+    .cta-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 56px; align-items: end; }
+    .cta h2 { font-family: 'Fraunces', serif; font-size: clamp(40px, 5vw, 64px); font-weight: 500; margin: 0; color: var(--paper); line-height: 1.04; }
+    .cta h2 em { color: #d8b04a; font-style: italic; }
+    .cta p { color: rgba(247, 238, 217, 0.78); margin: 0 0 24px; font-size: 16px; }
+    .cta .btn-fill { background: var(--paper); color: var(--accent); border-color: var(--paper); }
+    .cta .btn-fill:hover { background: #d8b04a; border-color: #d8b04a; }
+    @media (max-width: 1080px) { .cta-grid { grid-template-columns: 1fr; gap: 24px; } }
+
+    footer { padding: 56px 0 32px; }
+    .foot-grid { display: grid; grid-template-columns: 1.4fr repeat(3, 1fr); gap: 40px; }
+    .foot-col h4 { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); margin: 0 0 14px; font-weight: 600; }
+    .foot-col a, .foot-col p { display: block; color: var(--fg-2); font-size: 14px; padding: 4px 0; margin: 0; }
+    .foot-col a:hover { color: var(--fg); }
+    .foot-bot { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; font-size: 12px; color: var(--fg-3); }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 8px; } }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a href="#" class="brand">
+        <span class="brand-mark">F</span>
+        <span class="brand-name">Field Estates<small>RANCH & LAND BROKERS</small></span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#ranches">Properties</a>
+        <a href="#approach">Our approach</a>
+        <a href="#types">Land types</a>
+        <a href="#stories">Owner stories</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <div class="nav-cta">
+        <a href="#contact" class="btn btn-line">Get the catalog</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-media">
+          <img src="https://picsum.photos/seed/field-1/2000/1200" width="2000" height="1200" alt="Sunrise over a working cattle ranch with rolling hills, fence lines, and distant mountains." loading="eager" />
+          <span class="badge">Now representing — Wyoming</span>
+        </div>
+        <div class="hero-content">
+          <h1>The land brokers who actually <em>walked the fence line.</em></h1>
+          <div class="hero-lede">
+            <p>Field Estates represents working ranches, family farms, and vineyards across the Rockies, the Pacific Northwest, and the Texas Hill Country.</p>
+            <p>We tour every listing on foot, in season, before it goes to market. The catalog comes out twice a year.</p>
+            <div class="hero-meta">
+              <div><div class="v">214K</div><div class="l">Acres listed</div></div>
+              <div><div class="v">38</div><div class="l">Closings, 2025</div></div>
+              <div><div class="v">11</div><div class="l">Western states</div></div>
+            </div>
+          </div>
+        </div>
+
+        <form class="land-search" onsubmit="event.preventDefault();">
+          <div><label for="region">Region</label><input id="region" type="text" placeholder="Wyoming, Montana, Hill Country…" /></div>
+          <div><label for="ltype">Land type</label><select id="ltype"><option>Any</option><option>Working ranch</option><option>Vineyard</option><option>Farmland</option><option>Recreational</option><option>Timber</option></select></div>
+          <div><label for="acres">Acres</label><select id="acres"><option>100 +</option><option>500 +</option><option>1,500 +</option><option>5,000 +</option></select></div>
+          <div><label for="lprice">Price</label><select id="lprice"><option>Any</option><option>$1M – $5M</option><option>$5M – $15M</option><option>$15M – $50M</option><option>$50M +</option></select></div>
+          <button type="submit">Search land</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="section" id="ranches">
+      <div class="wrap">
+        <div class="section-head">
+          <div><span class="eyebrow">On the market</span><h2>Properties walked and represented this season.</h2></div>
+          <p>Six current listings. Each one toured by a partner. Detailed property books, water rights, mineral rights, and conservation easements available on request.</p>
+        </div>
+        <div class="properties">
+          <article class="property">
+            <div class="property-img"><img src="https://picsum.photos/seed/field-2/900/700" width="900" height="700" alt="A working cattle ranch with riparian creek and a log lodge in northwest Wyoming." loading="lazy" /></div>
+            <div class="property-body">
+              <div class="property-loc">Sublette County · Wyoming</div>
+              <h3>Lone Creek Ranch</h3>
+              <p>3,840 deeded acres with two miles of trout-stocked creek and a 1947 log lodge.</p>
+              <div class="property-stats"><span><strong>3,840</strong> acres</span><span><strong>250</strong> AUM</span><span><strong>2</strong> mi creek</span></div>
+              <div class="property-foot"><span class="price">$18,400,000</span><a href="#">Property book →</a></div>
+            </div>
+          </article>
+          <article class="property">
+            <div class="property-img"><img src="https://picsum.photos/seed/field-3/900/700" width="900" height="700" alt="A vineyard estate with rolling rows of vines and a hilltop stone winery." loading="lazy" /></div>
+            <div class="property-body">
+              <div class="property-loc">Walla Walla · Washington</div>
+              <h3>Stoneridge Vineyards</h3>
+              <p>184 acres planted to Cabernet and Syrah with a 1,200-case bonded winery.</p>
+              <div class="property-stats"><span><strong>262</strong> acres</span><span><strong>184</strong> planted</span><span><strong>2</strong> wells</span></div>
+              <div class="property-foot"><span class="price">$8,750,000</span><a href="#">Property book →</a></div>
+            </div>
+          </article>
+          <article class="property">
+            <div class="property-img"><img src="https://picsum.photos/seed/field-4/900/700" width="900" height="700" alt="Texas hill country ranch with live oaks and a stone main house." loading="lazy" /></div>
+            <div class="property-body">
+              <div class="property-loc">Llano County · Texas</div>
+              <h3>Big Spring Ranch</h3>
+              <p>1,290 acres of native pasture and oak savanna with two spring-fed lakes.</p>
+              <div class="property-stats"><span><strong>1,290</strong> acres</span><span><strong>2</strong> lakes</span><span><strong>120</strong> AUM</span></div>
+              <div class="property-foot"><span class="price">$11,950,000</span><a href="#">Property book →</a></div>
+            </div>
+          </article>
+          <article class="property">
+            <div class="property-img"><img src="https://picsum.photos/seed/field-5/900/700" width="900" height="700" alt="A high mountain ranch with aspen groves and a snow-capped peak in the background." loading="lazy" /></div>
+            <div class="property-body">
+              <div class="property-loc">Gunnison County · Colorado</div>
+              <h3>Aspen Park Ranch</h3>
+              <p>2,100 acres bordering national forest with senior water rights and ski-in cabin.</p>
+              <div class="property-stats"><span><strong>2,100</strong> acres</span><span><strong>Senior</strong> H₂O</span><span><strong>Borders</strong> NF</span></div>
+              <div class="property-foot"><span class="price">$24,500,000</span><a href="#">Property book →</a></div>
+            </div>
+          </article>
+          <article class="property">
+            <div class="property-img"><img src="https://picsum.photos/seed/field-6/900/700" width="900" height="700" alt="A historic family farm with red barns, hay fields, and a farmhouse." loading="lazy" /></div>
+            <div class="property-body">
+              <div class="property-loc">Willamette Valley · Oregon</div>
+              <h3>Hollow Hill Farm</h3>
+              <p>620 acres of irrigated farmland with hay, grain, and a fifth-generation farmhouse.</p>
+              <div class="property-stats"><span><strong>620</strong> acres</span><span><strong>540</strong> irrigated</span><span><strong>3</strong> homes</span></div>
+              <div class="property-foot"><span class="price">$6,250,000</span><a href="#">Property book →</a></div>
+            </div>
+          </article>
+          <article class="property">
+            <div class="property-img"><img src="https://picsum.photos/seed/field-7/900/700" width="900" height="700" alt="Open prairie with grain silos and a single windmill at sunset." loading="lazy" /></div>
+            <div class="property-body">
+              <div class="property-loc">Cherry County · Nebraska</div>
+              <h3>Niobrara River Ranch</h3>
+              <p>9,400 acres of Sandhills grass with five miles of river frontage and 800 head capacity.</p>
+              <div class="property-stats"><span><strong>9,400</strong> acres</span><span><strong>800</strong> AUM</span><span><strong>5</strong> mi river</span></div>
+              <div class="property-foot"><span class="price">$32,800,000</span><a href="#">Property book →</a></div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="walk" id="approach">
+    <div>
+      <img src="https://picsum.photos/seed/field-8/800/1000" width="800" height="1000" alt="A broker walking a fence line at dawn with a notebook in hand." loading="lazy" />
+    </div>
+    <div class="walk-body wrap-inner">
+      <span class="eyebrow">Our approach</span>
+      <h2>We sell land we have walked.</h2>
+      <p>A ranch is not an MLS listing. Water, easements, AUM, mineral rights, fence condition, and seasonal flow change the value far more than square footage. We walk every property in person, in season, before we represent it.</p>
+      <div class="walk-steps">
+        <div class="walk-step"><div class="n">01</div><div><h4>Tour the land in season</h4><p>Spring runoff, summer pasture, fall sale weight. We see the property under load before we price it.</p></div></div>
+        <div class="walk-step"><div class="n">02</div><div><h4>Build the property book</h4><p>Survey, water rights, grazing leases, conservation easements, mineral history, comparable sales. Reviewed by counsel.</p></div></div>
+        <div class="walk-step"><div class="n">03</div><div><h4>Match the buyer</h4><p>Operating buyers, conservation buyers, and recreation buyers price differently. We start with the right one.</p></div></div>
+        <div class="walk-step"><div class="n">04</div><div><h4>Close on the ground</h4><p>We close in the county where the land sits. The owner shakes the buyer's hand on the porch, not in a title office two states away.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="types">
+    <div class="wrap">
+      <div class="section-head">
+        <div><span class="eyebrow">What we represent</span><h2>Four categories of land we know cold.</h2></div>
+        <p>We do not list condos. We do not list city homes. We do one thing well: land with a use case and a deed history.</p>
+      </div>
+      <div class="land-types">
+        <div class="ltype"><h3>Working ranches</h3><p>Cow-calf operations, hay ground, summer pasture. We underwrite carrying capacity and water rights.</p><div class="acres">From 500 acres</div></div>
+        <div class="ltype"><h3>Vineyards & estate wineries</h3><p>Bonded wineries and vineyard ground. Soil, varietal mix, water table, and trellising are part of the underwriting.</p><div class="acres">From 40 acres</div></div>
+        <div class="ltype"><h3>Family farms</h3><p>Row crop, orchard, dairy, and specialty operations. We respect succession sales and family timelines.</p><div class="acres">From 80 acres</div></div>
+        <div class="ltype"><h3>Recreational & conservation</h3><p>Hunting, fishing, and timber properties. Conservation easements available to qualifying buyers.</p><div class="acres">From 200 acres</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="stories">
+    <div class="wrap">
+      <div class="section-head">
+        <div><span class="eyebrow">Owner stories</span><h2>Five generations. Three decades of closings.</h2></div>
+        <p>Selling a family ranch is rarely about price. It is about who the next steward is, and whether the new owner will keep the cattle running.</p>
+      </div>
+      <div class="testimonials">
+        <div class="testi"><blockquote>"Tom walked our home place for three days before he gave us a number. The number was the number. We closed in eight weeks to a neighbor who keeps the cattle."</blockquote><cite>— J. Holloway, Lone Creek Ranch (sold 2024)</cite></div>
+        <div class="testi"><blockquote>"They underwrote the water rights better than our lawyer did. Two of the easements would have killed the deal at any other firm."</blockquote><cite>— M. Trujillo, Verde River Farm</cite></div>
+        <div class="testi"><blockquote>"Three offers, all above ask, none from out-of-state developers. That was the brief, and that is what we got."</blockquote><cite>— K. Rasmussen, Willamette Vineyards</cite></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta" id="contact">
+    <div class="wrap cta-grid">
+      <h2>Thinking about <em>selling the place?</em></h2>
+      <div>
+        <p>A walk and a coffee, on the porch, no obligation. We take on a small number of new listings each year and we prefer to start with the land itself.</p>
+        <a href="#" class="btn btn-fill">Schedule a walk →</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <div class="brand"><span class="brand-mark">F</span><span class="brand-name">Field Estates</span></div>
+          <p style="margin-top:14px; max-width: 280px;">Ranch and land brokers across the Rockies and the Pacific Northwest. Licensed in 11 western states.</p>
+        </div>
+        <div class="foot-col"><h4>Offices</h4><p>Bozeman, Montana</p><p>Sheridan, Wyoming</p><p>Walla Walla, Washington</p><p>Fredericksburg, Texas</p></div>
+        <div class="foot-col"><h4>Practice</h4><a href="#">Working ranches</a><a href="#">Vineyards</a><a href="#">Farmland</a><a href="#">Recreational</a></div>
+        <div class="foot-col"><h4>Resources</h4><a href="#">Property catalog</a><a href="#">Land letter</a><a href="#">Sold portfolio</a><a href="#">Contact a partner</a></div>
+      </div>
+      <div class="foot-bot"><span>© 2026 Field Estates LLC</span><span>Equal housing opportunity · Member RLI</span></div>
+    </div>
+  </footer>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

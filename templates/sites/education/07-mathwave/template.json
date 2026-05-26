@@ -1,0 +1,33 @@
+{
+  "slug": "education-07-mathwave",
+  "title": "Mathwave",
+  "subtitle": "K-12 math tutoring with real teachers and unlimited AI practice.",
+  "category": "Education",
+  "type": "Apps",
+  "tags": [
+    "k-12",
+    "math",
+    "tutoring",
+    "friendly"
+  ],
+  "previewImage": "/templates/education-07-mathwave.jpg",
+  "palette": {
+    "bg": "#ffffff",
+    "fg": "#0e2e2b",
+    "accent": "#2ec4b6"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "subjects",
+    "how",
+    "tutors",
+    "outcomes",
+    "pricing",
+    "faq",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Mathwave template as the foundation for a friendly K-12 math tutoring site. Keep the white background, teal accent, parent-friendly tone, and human-tutor-plus-AI-practice framing. Replace grade ranges, tutor profiles, and pricing with the customer's real catalog.",
+  "livePreview": "/template-previews/education-07-mathwave/"
+}

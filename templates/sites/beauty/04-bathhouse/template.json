@@ -1,0 +1,33 @@
+{
+  "slug": "beauty-04-bathhouse",
+  "title": "Bathhouse",
+  "subtitle": "Korean spa and bathing rituals, open until midnight.",
+  "category": "Beauty",
+  "type": "Websites",
+  "tags": [
+    "spa",
+    "calm",
+    "wellness",
+    "photo"
+  ],
+  "previewImage": "/templates/beauty-04-bathhouse.jpg",
+  "palette": {
+    "bg": "#f4ede0",
+    "fg": "#1f261f",
+    "accent": "#336a5b"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "stats",
+    "rituals",
+    "treatments",
+    "photos",
+    "stories",
+    "visit",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Bathhouse template as the foundation for a calm, off-white-and-jade Korean spa site with a tall hero photo, a ritual sequence, treatment menu with prices, interior gallery, member stories, and visit details.",
+  "livePreview": "/template-previews/beauty-04-bathhouse/"
+}

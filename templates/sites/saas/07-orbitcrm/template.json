@@ -1,0 +1,34 @@
+{
+  "slug": "saas-07-orbitcrm",
+  "title": "OrbitCRM",
+  "subtitle": "The CRM that pulls from every doc, call, and message.",
+  "category": "SaaS",
+  "type": "Apps",
+  "tags": [
+    "pastel",
+    "soft",
+    "crm",
+    "friendly",
+    "lavender"
+  ],
+  "previewImage": "/templates/saas-07-orbitcrm.jpg",
+  "palette": {
+    "bg": "#f3f0fc",
+    "fg": "#1a1733",
+    "accent": "#6b5cff"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "logos",
+    "features",
+    "pipeline",
+    "quote",
+    "pricing",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the OrbitCRM template as the foundation for a soft, friendly CRM landing page: pastel lavender background, Newsreader serif headings, an account-view hero with a live activity timeline, a five-stage pipeline mockup, recognized quote, and per-rep pricing.",
+  "livePreview": "/template-previews/saas-07-orbitcrm/"
+}

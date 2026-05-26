@@ -1,0 +1,35 @@
+{
+  "slug": "agency-07-atlas-films",
+  "title": "Atlas Films",
+  "subtitle": "Film and motion for products with something to say.",
+  "category": "Agency",
+  "type": "Websites",
+  "tags": [
+    "cinematic",
+    "dark",
+    "film",
+    "motion"
+  ],
+  "previewImage": "/templates/agency-07-atlas-films.jpg",
+  "palette": {
+    "bg": "#060606",
+    "fg": "#f4f0e6",
+    "accent": "#d6a953"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "reel-grid",
+    "philosophy",
+    "services",
+    "selected-films",
+    "process",
+    "directors",
+    "press",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Atlas Films template as the foundation for a cinematic, image-led production company site in inky black with a warm cinema-gold accent, oversized stills, a directors index, and a film-credits feel.",
+  "livePreview": "/template-previews/agency-07-atlas-films/"
+}

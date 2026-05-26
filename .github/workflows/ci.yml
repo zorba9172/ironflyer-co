@@ -143,10 +143,12 @@ jobs:
 
   lint-health:
     # Anti-Bloat pre-deploy health pass. Runs every functional driver
-    # (govulncheck + jscpd + knip + gocognit + size-limit) and uploads
-    # the JSON reports as build artifacts. goleak smoke is intentionally
-    # skipped here — it needs a running orchestrator with
+    # (govulncheck + jscpd + knip + gocognit + size-limit + lighthouse)
+    # and uploads the JSON reports as build artifacts. goleak smoke is
+    # intentionally skipped here — it needs a running orchestrator with
     # IRONFLYER_LEAK_PROBE_TOKEN, which the smoke leg already exercises.
+    # Lighthouse only runs when IRONFLYER_LH_URL is set on the workflow
+    # env (deploy preview URL); without it the gate stays SeverityInfo.
     # INTENTIONALLY non-blocking for now — the team iterates on findings
     # before flipping `continue-on-error: false`. Wire the gates by
     # exporting the artifact paths to:
@@ -155,6 +157,7 @@ jobs:
     #   IRONFLYER_DEADCODE_REPORT_PATH    (knip-*.json)
     #   IRONFLYER_COMPLEXITY_REPORT_PATH  (gocognit-*.json)
     #   IRONFLYER_BUNDLE_REPORT_PATH      (size-limit-*.json)
+    #   IRONFLYER_PERF_REPORT_PATH        (lighthouse-*.json)
     name: Lint-health (Anti-Bloat tools)
     runs-on: ubuntu-latest
     continue-on-error: true
@@ -190,6 +193,15 @@ jobs:
       - name: size-limit (web bundle budgets)
         env: { NEXT_TELEMETRY_DISABLED: "1" }
         run: ./scripts/lint/run-size-limit.sh
+        continue-on-error: true
+      - name: lighthouse (perf/a11y/bp/seo budgets)
+        # Only runs when IRONFLYER_LH_URL is set to a reachable deploy
+        # preview URL. Same pattern as goleak smoke — the gate stays
+        # SeverityInfo "tool not installed" when the URL is absent.
+        if: env.IRONFLYER_LH_URL != ''
+        env:
+          IRONFLYER_LH_URL: ${{ env.IRONFLYER_LH_URL }}
+        run: ./scripts/lint/run-lighthouse.sh
         continue-on-error: true
       - name: upload reports
         if: always()

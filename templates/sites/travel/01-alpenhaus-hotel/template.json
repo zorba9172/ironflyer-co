@@ -1,0 +1,34 @@
+{
+  "slug": "travel-01-alpenhaus-hotel",
+  "title": "Alpenhaus",
+  "subtitle": "A twenty-two room boutique hotel above the Engadin Valley.",
+  "category": "Travel",
+  "type": "Websites",
+  "tags": [
+    "hotel",
+    "alpine",
+    "boutique",
+    "warm",
+    "photo-led"
+  ],
+  "previewImage": "/templates/travel-01-alpenhaus-hotel.jpg",
+  "palette": {
+    "bg": "#efe9da",
+    "fg": "#1e2a16",
+    "accent": "#2a3a1f"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "booking",
+    "rooms",
+    "story",
+    "dining",
+    "guests",
+    "location",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Alpenhaus template as the foundation for a small boutique mountain hotel: cream and forest-green palette, Fraunces serif headlines, full-bleed hero with a green booking widget, three room cards with per-night euro pricing, a family-history split section with amenities list, a long-table dining grid, four handwritten-style guest entries, a forest-green location panel with travel routes, and a quiet family-run footer.",
+  "livePreview": "/template-previews/travel-01-alpenhaus-hotel/"
+}

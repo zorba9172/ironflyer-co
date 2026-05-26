@@ -1,0 +1,36 @@
+{
+  "slug": "nonprofit-09-builders-foundation",
+  "title": "Builders Foundation",
+  "subtitle": "Community-led house rehab and trades-academy nonprofit selling rehabbed homes at cost.",
+  "category": "Nonprofit",
+  "type": "Websites",
+  "tags": [
+    "housing",
+    "gritty",
+    "trades",
+    "dark"
+  ],
+  "previewImage": "/templates/nonprofit-09-builders-foundation.jpg",
+  "palette": {
+    "bg": "#131318",
+    "fg": "#f3f1ea",
+    "accent": "#c5ff3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "build-log",
+    "impact",
+    "programs",
+    "cities",
+    "donate",
+    "help",
+    "story",
+    "transparency",
+    "team",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Builders Foundation template as the foundation for a gritty community-housing nonprofit site with a charcoal + lime palette, Space Grotesk + JetBrains Mono pairing, a per-house build-log card styled like a terminal, impact stats grid, three program tiles with cost taglines, an eight-city grid, a dark donate band with selectable tiers, an owner quote, a lime transparency band with bars, and a code-flavored footer.",
+  "livePreview": "/template-previews/nonprofit-09-builders-foundation/"
+}

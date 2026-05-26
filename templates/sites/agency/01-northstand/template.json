@@ -1,0 +1,34 @@
+{
+  "slug": "agency-01-northstand",
+  "title": "Northstand",
+  "subtitle": "A brand and product studio for ambitious second acts.",
+  "category": "Agency",
+  "type": "Websites",
+  "tags": [
+    "dark",
+    "premium",
+    "editorial",
+    "big-type"
+  ],
+  "previewImage": "/templates/agency-01-northstand.jpg",
+  "palette": {
+    "bg": "#0a0a0a",
+    "fg": "#f4efe6",
+    "accent": "#c5ff3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "manifesto",
+    "capabilities",
+    "selected-work",
+    "process",
+    "studio",
+    "press",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Northstand template as the foundation for a dark, premium agency site with a manifesto-style hero, capability grid, selected-work gallery, and a confident editorial voice for a brand-and-product studio focused on second-act companies.",
+  "livePreview": "/template-previews/agency-01-northstand/"
+}

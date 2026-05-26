@@ -1,0 +1,35 @@
+{
+  "slug": "saas-08-kernel-logs",
+  "title": "KernelLogs",
+  "subtitle": "Observability for engineers who think in flame graphs.",
+  "category": "SaaS",
+  "type": "Apps",
+  "tags": [
+    "dark",
+    "technical",
+    "dense",
+    "observability",
+    "developer"
+  ],
+  "previewImage": "/templates/saas-08-kernel-logs.jpg",
+  "palette": {
+    "bg": "#131318",
+    "fg": "#ece9e2",
+    "accent": "#ff6c3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "logos",
+    "features",
+    "query",
+    "compare",
+    "stats",
+    "pricing",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the KernelLogs template as the foundation for a dense, technical observability landing: charcoal background with orange accents, an inline flame graph hero, KQL query block with sample results, honest comparison table, and ingest-priced plans.",
+  "livePreview": "/template-previews/saas-08-kernel-logs/"
+}

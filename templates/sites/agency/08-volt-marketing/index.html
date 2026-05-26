@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Volt Marketing — Performance marketing for category leaders</title>
+  <meta name="description" content="Volt Marketing is a performance marketing agency for category leaders. We plan, buy, and measure paid media across search, social, and retail. We publish our numbers." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #000000;
+      --bg-2: #0c0c0d;
+      --bg-3: #15151a;
+      --paper: #1a1a20;
+      --fg: #f6f6f6;
+      --fg-2: #a8a8ad;
+      --fg-3: #62626a;
+      --rule: rgba(246, 246, 246, 0.10);
+      --rule-strong: rgba(246, 246, 246, 0.28);
+      --accent: #00b3ff;
+      --accent-2: #00ffe1;
+      --warn: #ffae00;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg); color: var(--fg);
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      font-size: 15px; line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1320px; margin: 0 auto; padding: 0 32px; }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+    .nav { position: sticky; top: 0; z-index: 50; backdrop-filter: blur(14px); background: rgba(0, 0, 0, 0.78); border-bottom: 1px solid var(--rule); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
+    .brand-mark { width: 26px; height: 26px; background: var(--accent); display: grid; place-items: center; font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--bg); border-radius: 4px; }
+    .nav-links { display: flex; gap: 28px; font-size: 14px; color: var(--fg-2); }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-right { display: flex; gap: 16px; align-items: center; }
+    .ticker { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent-2); }
+    .ticker .arr { color: var(--accent-2); }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 6px; font-weight: 600; font-size: 14px; }
+    .btn-primary { background: var(--accent); color: var(--bg); }
+    .btn-primary:hover { background: var(--accent-2); }
+    @media (max-width: 1080px) { .nav-links { display: none; } .ticker { display: none; } }
+
+    .hero { padding: 96px 0 64px; position: relative; overflow: hidden; }
+    .hero-bg {
+      position: absolute; inset: 0; pointer-events: none;
+      background: radial-gradient(ellipse at 80% -20%, rgba(0, 179, 255, 0.18), transparent 60%), radial-gradient(ellipse at 10% 100%, rgba(0, 255, 225, 0.08), transparent 50%);
+    }
+    .hero-inner { position: relative; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.14em; }
+    .eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px var(--accent); }
+    h1 {
+      font-size: clamp(56px, 9vw, 156px);
+      line-height: 0.9; letter-spacing: -0.04em;
+      font-weight: 700; margin: 24px 0 32px;
+    }
+    h1 .acc { color: var(--accent); }
+    .hero-lede { font-size: 20px; color: var(--fg-2); line-height: 1.55; max-width: 660px; margin: 0 0 40px; }
+    .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 56px; }
+    .btn-ghost { background: var(--bg-2); border: 1px solid var(--rule-strong); color: var(--fg); padding: 10px 18px; border-radius: 6px; font-weight: 600; font-size: 14px; }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-big { height: 52px; padding: 0 26px; font-size: 15px; }
+
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; padding: 40px 0; border-top: 1px solid var(--rule-strong); border-bottom: 1px solid var(--rule-strong); margin-top: 64px; }
+    .stat { padding: 0 24px; border-right: 1px solid var(--rule); }
+    .stat:last-child { border-right: none; }
+    .stat .label { font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--fg-3); }
+    .stat .val { font-family: 'JetBrains Mono', monospace; font-size: 48px; font-weight: 600; letter-spacing: -0.025em; line-height: 1; margin: 14px 0 8px; color: var(--accent); }
+    .stat .note { font-size: 13px; color: var(--fg-2); }
+    @media (max-width: 1080px) { .stats { grid-template-columns: repeat(2, 1fr); } .stat { padding: 16px 24px; border-bottom: 1px solid var(--rule); } }
+
+    .section { padding: 120px 0; border-top: 1px solid var(--rule); }
+    .section-head { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-bottom: 56px; align-items: end; }
+    .section-head h2 { font-size: clamp(40px, 6vw, 88px); font-weight: 700; line-height: 0.95; letter-spacing: -0.035em; margin: 16px 0 0; }
+    .section-head h2 .acc { color: var(--accent); }
+    .section-head p { color: var(--fg-2); font-size: 17px; line-height: 1.6; margin: 0; max-width: 480px; justify-self: end; }
+    @media (max-width: 1080px) { .section-head { grid-template-columns: 1fr; } .section-head p { justify-self: start; } }
+
+    .services { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--rule-strong); border: 1px solid var(--rule-strong); }
+    .svc { background: var(--bg); padding: 32px 28px; min-height: 280px; position: relative; }
+    .svc:hover { background: var(--bg-2); }
+    .svc .num { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); letter-spacing: 0.12em; }
+    .svc h3 { font-size: 24px; font-weight: 700; letter-spacing: -0.015em; margin: 16px 0 12px; }
+    .svc p { color: var(--fg-2); font-size: 14px; line-height: 1.6; margin: 0 0 16px; }
+    .svc ul { padding: 0 0 0 16px; margin: 0; color: var(--fg-3); font-size: 13px; }
+    .svc ul li { padding: 3px 0; }
+    @media (max-width: 1080px) { .services { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .services { grid-template-columns: 1fr; } }
+
+    .cases { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .case { display: block; padding: 32px; border: 1px solid var(--rule-strong); background: var(--bg-2); position: relative; transition: border-color 200ms; }
+    .case:hover { border-color: var(--accent); }
+    .case .img { aspect-ratio: 16/9; background: var(--bg-3); margin-bottom: 24px; overflow: hidden; }
+    .case .img img { width: 100%; height: 100%; object-fit: cover; }
+    .case .row { display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--fg-3); margin-bottom: 8px; }
+    .case h3 { font-size: 28px; font-weight: 700; letter-spacing: -0.015em; margin: 0 0 16px; }
+    .case-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--rule); }
+    .case-metrics div .label { font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--fg-3); }
+    .case-metrics div .val { font-family: 'JetBrains Mono', monospace; font-size: 22px; color: var(--accent); font-weight: 600; margin-top: 4px; }
+    @media (max-width: 1080px) { .cases { grid-template-columns: 1fr; } }
+
+    .chart-section { padding: 120px 0; border-top: 1px solid var(--rule); }
+    .chart-card { background: var(--bg-2); border: 1px solid var(--rule-strong); border-radius: 12px; padding: 32px; }
+    .chart-head { display: flex; justify-content: space-between; align-items: end; margin-bottom: 24px; flex-wrap: wrap; gap: 20px; }
+    .chart-head .meta { font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--fg-3); }
+    .chart-head h3 { font-size: 22px; font-weight: 700; margin: 8px 0 0; letter-spacing: -0.01em; }
+    .chart-legend { display: flex; gap: 24px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--fg-2); }
+    .chart-legend span { display: inline-flex; align-items: center; gap: 8px; }
+    .chart-legend span::before { content: ''; width: 12px; height: 3px; background: var(--accent); }
+    .chart-legend span.b::before { background: var(--accent-2); }
+    .chart-legend span.c::before { background: var(--warn); }
+    .chart-bars { display: grid; grid-template-columns: repeat(12, 1fr); gap: 12px; height: 280px; align-items: end; padding: 16px 0 8px; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+    .bar { display: flex; flex-direction: column-reverse; gap: 3px; }
+    .bar .a { background: var(--accent); }
+    .bar .b { background: var(--accent-2); }
+    .bar .c { background: var(--warn); }
+    .chart-foot { display: grid; grid-template-columns: repeat(12, 1fr); gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--fg-3); margin-top: 12px; text-align: center; }
+    @media (max-width: 1080px) { .chart-bars { grid-template-columns: repeat(6, 1fr); height: 200px; } .chart-foot { grid-template-columns: repeat(6, 1fr); } }
+
+    .process-section { padding: 120px 0; border-top: 1px solid var(--rule); }
+    .process-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    .phase { padding: 28px; border: 1px solid var(--rule-strong); background: var(--bg-2); position: relative; }
+    .phase .num { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); letter-spacing: 0.14em; }
+    .phase h3 { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; margin: 12px 0 10px; }
+    .phase p { font-size: 13px; color: var(--fg-2); margin: 0; line-height: 1.6; }
+    @media (max-width: 1080px) { .process-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .team-section { padding: 120px 0; border-top: 1px solid var(--rule); }
+    .team-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    .person { padding: 24px; background: var(--bg-2); border: 1px solid var(--rule); }
+    .person img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; margin-bottom: 16px; }
+    .person h4 { font-size: 18px; font-weight: 700; margin: 0 0 4px; }
+    .person p { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.12em; }
+    .person small { font-size: 13px; color: var(--fg-2); line-height: 1.5; display: block; }
+    @media (max-width: 1080px) { .team-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .clients { padding: 56px 0; border-top: 1px solid var(--rule); }
+    .clients-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 32px; align-items: center; justify-items: center; color: var(--fg-2); font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
+    @media (max-width: 720px) { .clients-row { grid-template-columns: repeat(3, 1fr); gap: 20px; } }
+
+    .cta-band { padding: 140px 0; text-align: center; border-top: 1px solid var(--rule); position: relative; overflow: hidden; }
+    .cta-band::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(0, 179, 255, 0.16), transparent 60%); pointer-events: none; }
+    .cta-band .inner { position: relative; }
+    .cta-band h2 { font-size: clamp(48px, 8vw, 120px); font-weight: 700; letter-spacing: -0.04em; line-height: 0.95; margin: 0 0 24px; }
+    .cta-band h2 .acc { color: var(--accent); }
+    .cta-band p { color: var(--fg-2); font-size: 18px; max-width: 580px; margin: 0 auto 32px; }
+
+    footer { padding: 56px 0 32px; border-top: 1px solid var(--rule); }
+    .foot-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; }
+    .foot-col h4 { font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--fg-3); margin: 0 0 14px; font-weight: 500; }
+    .foot-col a { display: block; font-size: 14px; padding: 5px 0; color: var(--fg-2); }
+    .foot-col a:hover { color: var(--accent); }
+    .foot-bot { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; color: var(--fg-3); font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; }
+    @media (max-width: 1080px) { .foot-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .foot-bot { flex-direction: column; gap: 12px; } }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#"><span class="brand-mark">V</span> Volt</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#services">Services</a>
+        <a href="#cases">Case studies</a>
+        <a href="#process">Process</a>
+        <a href="#team">Team</a>
+      </nav>
+      <div class="nav-right">
+        <span class="ticker">↑ ROAS 4.32 · LIVE</span>
+        <a class="btn btn-primary" href="#contact">Brief us →</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-bg"></div>
+      <div class="wrap hero-inner">
+        <span class="eyebrow"><span class="dot"></span>// Performance marketing · Series B → IPO · est. 2017</span>
+        <h1>We turn paid<br/>media into<br/><span class="acc">profitable</span> growth.</h1>
+        <p class="hero-lede">Volt is a performance marketing agency for category leaders. We plan, buy, and measure paid media across search, social, retail, and CTV. We publish our numbers, and we charge on incremental margin &mdash; never gross spend.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary btn-big" href="#contact">Get a free audit</a>
+          <a class="btn-ghost btn-big" href="#cases">See the numbers</a>
+        </div>
+        <div class="stats">
+          <div class="stat">
+            <div class="label">// Media managed</div>
+            <div class="val">$840M</div>
+            <div class="note">Trailing 12 months across 48 active accounts.</div>
+          </div>
+          <div class="stat">
+            <div class="label">// Median ROAS</div>
+            <div class="val">4.32×</div>
+            <div class="note">Post-iOS, blended across paid social + search.</div>
+          </div>
+          <div class="stat">
+            <div class="label">// Client retention</div>
+            <div class="val">91%</div>
+            <div class="note">YoY, measured on accounts active in 2024.</div>
+          </div>
+          <div class="stat">
+            <div class="label">// Team size</div>
+            <div class="val">62</div>
+            <div class="note">Strategists, analysts, creatives, ops.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="services">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>// What we do</span>
+            <h2>Six paid channels.<br/>One <span class="acc">accountable</span> team.</h2>
+          </div>
+          <p>We don&rsquo;t resell ad accounts and we don&rsquo;t markup media. Every retainer is staffed by a senior strategist who sits on your account every day.</p>
+        </div>
+        <div class="services">
+          <div class="svc"><div class="num">01 / Search</div><h3>Paid search &amp; shopping</h3><p>Google Ads, Microsoft Ads, retail media. Bid management, query mining, creative refresh on a 14-day cycle.</p><ul><li>Google Search &amp; PMax</li><li>Bing</li><li>Amazon Ads</li><li>Apple Search</li></ul></div>
+          <div class="svc"><div class="num">02 / Social</div><h3>Paid social</h3><p>Meta, TikTok, Reddit, LinkedIn, X. Creative-first, incrementality-tested, MMM-validated quarterly.</p><ul><li>Meta &amp; TikTok</li><li>Reddit, LinkedIn</li><li>Snap, Pinterest</li><li>Creative testing pipeline</li></ul></div>
+          <div class="svc"><div class="num">03 / Programmatic</div><h3>Display, video, CTV</h3><p>DV360, The Trade Desk, retail networks. Brand-safe inventory, deal IDs negotiated, frequency capped against incrementality lift studies.</p><ul><li>CTV / OTT</li><li>Programmatic display</li><li>Audio (Spotify, Pandora)</li></ul></div>
+          <div class="svc"><div class="num">04 / Measurement</div><h3>MMM &amp; incrementality</h3><p>Marketing mix modeling rebuilt quarterly. Conversion lift studies on every channel above $40K / month.</p><ul><li>Quarterly MMM</li><li>Lift studies</li><li>Attribution audits</li><li>Server-side tracking</li></ul></div>
+          <div class="svc"><div class="num">05 / Creative</div><h3>Performance creative</h3><p>An in-house creative team building 30 to 60 net new assets a month, tested in your accounts, retired on data.</p><ul><li>Static, motion, UGC</li><li>Concept &amp; copy</li><li>Edit-room iteration</li></ul></div>
+          <div class="svc"><div class="num">06 / Owned</div><h3>Lifecycle &amp; CRM</h3><p>Email, SMS, push. The unpaid layer that decides whether paid media compounds.</p><ul><li>Klaviyo, Iterable</li><li>Lifecycle flows</li><li>Promo planning</li></ul></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="cases">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>// Recent case studies</span>
+            <h2>Four <span class="acc">profitable</span> engagements.</h2>
+          </div>
+          <p>We publish median results, not best-of. Every case study below is one of our top-quartile accounts &mdash; not necessarily our best month.</p>
+        </div>
+        <div class="cases">
+          <a class="case" href="#">
+            <div class="img"><img src="https://picsum.photos/seed/volt-case1/1200/675" width="1200" height="675" alt="Northbeam DTC case study analytics dashboard" loading="lazy" /></div>
+            <div class="row"><span>// DTC SKINCARE</span><span>2024 – 26</span></div>
+            <h3>Northbeam — from $9M to $42M ARR in 22 months.</h3>
+            <p style="color: var(--fg-2); font-size: 14px; line-height: 1.6; margin: 0;">A category-leading skincare brand that needed to scale paid social past $1M / month without ROAS collapse. We rebuilt the creative pipeline and consolidated 14 ad accounts into 4.</p>
+            <div class="case-metrics">
+              <div><div class="label">Net new ARR</div><div class="val">+$33M</div></div>
+              <div><div class="label">ROAS</div><div class="val">4.8×</div></div>
+              <div><div class="label">CAC</div><div class="val">−38%</div></div>
+            </div>
+          </a>
+          <a class="case" href="#">
+            <div class="img"><img src="https://picsum.photos/seed/volt-case2/1200/675" width="1200" height="675" alt="Field House B2B SaaS case study with charts" loading="lazy" /></div>
+            <div class="row"><span>// B2B SAAS</span><span>2023 – 26</span></div>
+            <h3>Field House — built the pipeline that drove a $400M Series D.</h3>
+            <p style="color: var(--fg-2); font-size: 14px; line-height: 1.6; margin: 0;">A vertical SaaS company that needed paid pipeline at SQL stage, not just MQL. We rebuilt the LinkedIn + paid search funnel with closed-loop attribution.</p>
+            <div class="case-metrics">
+              <div><div class="label">SQL volume</div><div class="val">+312%</div></div>
+              <div><div class="label">CPL</div><div class="val">−52%</div></div>
+              <div><div class="label">Pipeline</div><div class="val">$84M</div></div>
+            </div>
+          </a>
+          <a class="case" href="#">
+            <div class="img"><img src="https://picsum.photos/seed/volt-case3/1200/675" width="1200" height="675" alt="Pivot House CPG retail media case study" loading="lazy" /></div>
+            <div class="row"><span>// CPG RETAIL</span><span>2024 – 25</span></div>
+            <h3>Pivot House — Amazon and Walmart, 11× ROAS, year one.</h3>
+            <p style="color: var(--fg-2); font-size: 14px; line-height: 1.6; margin: 0;">A category-defining beverage brand entering retail media for the first time. We launched on Amazon Ads and Walmart Connect in two weeks.</p>
+            <div class="case-metrics">
+              <div><div class="label">ROAS</div><div class="val">11×</div></div>
+              <div><div class="label">Share of voice</div><div class="val">38%</div></div>
+              <div><div class="label">Rank</div><div class="val">#1</div></div>
+            </div>
+          </a>
+          <a class="case" href="#">
+            <div class="img"><img src="https://picsum.photos/seed/volt-case4/1200/675" width="1200" height="675" alt="Atlas Films streaming TV CTV case study" loading="lazy" /></div>
+            <div class="row"><span>// STREAMING</span><span>2025 – 26</span></div>
+            <h3>Atlas — CTV that actually moved net subscribers.</h3>
+            <p style="color: var(--fg-2); font-size: 14px; line-height: 1.6; margin: 0;">A streaming service whose CTV campaigns showed pretty dashboards but no incremental subs. We rebuilt the strategy with monthly incrementality testing.</p>
+            <div class="case-metrics">
+              <div><div class="label">Incrementality</div><div class="val">+24%</div></div>
+              <div><div class="label">Cost / sub</div><div class="val">−41%</div></div>
+              <div><div class="label">Watch time</div><div class="val">+12%</div></div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="chart-section">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>// Aggregate results</span>
+            <h2>What we did<br/>in 2025 &mdash; <span class="acc">in one chart.</span></h2>
+          </div>
+          <p>Aggregate performance across 41 active client accounts in 2025, by quarter. Median, not best-of. Charts refresh on the first of each month.</p>
+        </div>
+        <div class="chart-card">
+          <div class="chart-head">
+            <div>
+              <div class="meta">// REPORT 26.Q1 · MEDIAN ACROSS 41 ACTIVE ACCOUNTS</div>
+              <h3>Monthly ROAS, blended paid media</h3>
+            </div>
+            <div class="chart-legend">
+              <span>ROAS · Paid social</span>
+              <span class="b">ROAS · Paid search</span>
+              <span class="c">ROAS · Retail media</span>
+            </div>
+          </div>
+          <div class="chart-bars" role="img" aria-label="Monthly blended ROAS chart, January through December 2025">
+            <div class="bar"><div class="a" style="height: 36%;"></div><div class="b" style="height: 30%;"></div><div class="c" style="height: 22%;"></div></div>
+            <div class="bar"><div class="a" style="height: 42%;"></div><div class="b" style="height: 32%;"></div><div class="c" style="height: 26%;"></div></div>
+            <div class="bar"><div class="a" style="height: 50%;"></div><div class="b" style="height: 38%;"></div><div class="c" style="height: 32%;"></div></div>
+            <div class="bar"><div class="a" style="height: 56%;"></div><div class="b" style="height: 42%;"></div><div class="c" style="height: 38%;"></div></div>
+            <div class="bar"><div class="a" style="height: 60%;"></div><div class="b" style="height: 46%;"></div><div class="c" style="height: 44%;"></div></div>
+            <div class="bar"><div class="a" style="height: 64%;"></div><div class="b" style="height: 50%;"></div><div class="c" style="height: 48%;"></div></div>
+            <div class="bar"><div class="a" style="height: 58%;"></div><div class="b" style="height: 52%;"></div><div class="c" style="height: 46%;"></div></div>
+            <div class="bar"><div class="a" style="height: 70%;"></div><div class="b" style="height: 56%;"></div><div class="c" style="height: 52%;"></div></div>
+            <div class="bar"><div class="a" style="height: 78%;"></div><div class="b" style="height: 60%;"></div><div class="c" style="height: 60%;"></div></div>
+            <div class="bar"><div class="a" style="height: 84%;"></div><div class="b" style="height: 68%;"></div><div class="c" style="height: 70%;"></div></div>
+            <div class="bar"><div class="a" style="height: 92%;"></div><div class="b" style="height: 72%;"></div><div class="c" style="height: 82%;"></div></div>
+            <div class="bar"><div class="a" style="height: 96%;"></div><div class="b" style="height: 80%;"></div><div class="c" style="height: 88%;"></div></div>
+          </div>
+          <div class="chart-foot">
+            <span>JAN</span><span>FEB</span><span>MAR</span><span>APR</span><span>MAY</span><span>JUN</span><span>JUL</span><span>AUG</span><span>SEP</span><span>OCT</span><span>NOV</span><span>DEC</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="process-section" id="process">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>// Engagement</span>
+            <h2>From <span class="acc">audit</span> to scale &mdash; in six weeks.</h2>
+          </div>
+          <p>We don&rsquo;t do month-to-month. The minimum engagement is a paid audit, after which you choose whether to retain us. Most do.</p>
+        </div>
+        <div class="process-grid">
+          <div class="phase"><div class="num">// PHASE 01 · WEEK 1–2</div><h3>Paid audit</h3><p>Account access, last 90 days of spend, MMM if you have it. We deliver a written audit with prioritized fixes.</p></div>
+          <div class="phase"><div class="num">// PHASE 02 · WEEK 3–4</div><h3>Re-architect</h3><p>Account structure, conversion API, server-side tracking, creative briefs. We rebuild the engine before we touch spend.</p></div>
+          <div class="phase"><div class="num">// PHASE 03 · WEEK 5–8</div><h3>Test phase</h3><p>Two weeks of structured incrementality tests across new creatives, audiences, and bid strategies. Statistical significance, not vibes.</p></div>
+          <div class="phase"><div class="num">// PHASE 04 · WEEK 9+</div><h3>Scale phase</h3><p>Weekly creative refresh, monthly MMM, quarterly executive review. You see the numbers in your inbox every Monday at 9:00 ET.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="team-section" id="team">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>// Leadership</span>
+            <h2>Senior people <span class="acc">on every account.</span></h2>
+          </div>
+          <p>You will never be handed off to a junior. Every retainer is run by a strategist with at least eight years of paid media experience.</p>
+        </div>
+        <div class="team-grid">
+          <div class="person">
+            <img src="https://picsum.photos/seed/volt-p1/200/200" width="200" height="200" alt="Portrait of Mira Khan, CEO" loading="lazy" />
+            <h4>Mira Khan</h4>
+            <p>CEO · Founder</p>
+            <small>Ex-Wieden, ex-Google. Built the agency around incrementality, not vanity.</small>
+          </div>
+          <div class="person">
+            <img src="https://picsum.photos/seed/volt-p2/200/200" width="200" height="200" alt="Portrait of Daniel Voss, Head of Paid Social" loading="lazy" />
+            <h4>Daniel Voss</h4>
+            <p>SVP · Paid Social</p>
+            <small>Twelve years scaling DTC. Has burned more bad creative than most teams will ever ship.</small>
+          </div>
+          <div class="person">
+            <img src="https://picsum.photos/seed/volt-p3/200/200" width="200" height="200" alt="Portrait of Lou Park, Head of Measurement" loading="lazy" />
+            <h4>Lou Park</h4>
+            <p>VP · Measurement</p>
+            <small>Built the MMM stack at two unicorns before joining. Quarterly model owner.</small>
+          </div>
+          <div class="person">
+            <img src="https://picsum.photos/seed/volt-p4/200/200" width="200" height="200" alt="Portrait of Sam Okafor, Head of Creative" loading="lazy" />
+            <h4>Sam Okafor</h4>
+            <p>VP · Creative</p>
+            <small>Runs the in-house studio. Forty-two new assets a month, no AI slop.</small>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="clients">
+      <div class="wrap">
+        <div class="section-head" style="margin-bottom: 32px;">
+          <span class="eyebrow"><span class="dot"></span>// Clients, selected</span>
+        </div>
+        <div class="clients-row">
+          <span>Northbeam</span>
+          <span>Field House</span>
+          <span>Pivot House</span>
+          <span>Atlas Co.</span>
+          <span>Verso</span>
+          <span>Hangar 12</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="cta-band" id="contact">
+    <div class="wrap inner">
+      <span class="eyebrow"><span class="dot"></span>// Free 2-week audit</span>
+      <h2>Hand us your ad accounts.<br/>We&rsquo;ll <span class="acc">find $1M.</span></h2>
+      <p>The audit is free. If we can&rsquo;t identify $1M in incremental annual margin in your accounts, we tell you so &mdash; and we don&rsquo;t take the engagement.</p>
+      <a class="btn btn-primary btn-big" href="mailto:hello@volt.co">Book your audit →</a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a class="brand" href="#" style="margin-bottom: 16px;"><span class="brand-mark">V</span> Volt Marketing</a>
+          <p style="font-size: 14px; color: var(--fg-2); max-width: 320px; margin: 12px 0 0;">A performance marketing agency for category leaders. New York &amp; London.</p>
+        </div>
+        <div class="foot-col">
+          <h4>// Services</h4>
+          <a href="#services">Paid social</a>
+          <a href="#services">Paid search</a>
+          <a href="#services">Retail media</a>
+          <a href="#services">Measurement</a>
+        </div>
+        <div class="foot-col">
+          <h4>// Studio</h4>
+          <a href="#cases">Cases</a>
+          <a href="#process">Process</a>
+          <a href="#team">Team</a>
+          <a href="#">Careers</a>
+        </div>
+        <div class="foot-col">
+          <h4>// Resources</h4>
+          <a href="#">Quarterly report</a>
+          <a href="#">MMM 101</a>
+          <a href="#">Incrementality guide</a>
+          <a href="#">Press kit</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Volt Marketing Inc.</span>
+        <span>// Built on numbers · Reviewed monthly</span>
+      </div>
+    </div>
+  </footer>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

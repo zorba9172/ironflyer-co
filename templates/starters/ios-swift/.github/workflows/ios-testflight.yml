@@ -1,0 +1,42 @@
+# iOS TestFlight — signs and ships the build to App Store Connect's
+# TestFlight track via fastlane. Manual-only because TestFlight builds
+# are visible to internal testers within minutes and are awkward to
+# retract; the operator decides when a build is review-ready.
+#
+# Signing flows through `fastlane match` so the certificate + profile
+# state lives in a private git repo, not in repo secrets.
+name: iOS TestFlight
+
+on:
+  workflow_dispatch:
+
+jobs:
+  testflight:
+    runs-on: macos-15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install xcodegen + fastlane
+        run: |
+          brew install xcodegen
+          gem install bundler
+          gem install fastlane
+
+      - name: Run fastlane beta lane
+        env:
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+          FASTLANE_USER: ${{ secrets.APPLE_ID }}
+          FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          IRONFLYER_APP_IDENTIFIER: ${{ secrets.IRONFLYER_APP_IDENTIFIER }}
+          IRONFLYER_TEAM_ID: ${{ secrets.TEAM_ID }}
+          IRONFLYER_ITC_TEAM_ID: ${{ secrets.ITC_TEAM_ID }}
+        run: |
+          cd $GITHUB_WORKSPACE
+          fastlane beta

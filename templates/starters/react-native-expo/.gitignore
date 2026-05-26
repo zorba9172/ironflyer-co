@@ -1,0 +1,17 @@
+node_modules/
+.expo/
+dist/
+web-build/
+.DS_Store
+*.orig.*
+*.jks
+*.p12
+*.key
+*.mobileprovision
+ios/Pods/
+ios/build/
+android/.gradle/
+android/build/
+android/app/build/
+.env*.local
+expo-env.d.ts

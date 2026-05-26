@@ -1,0 +1,35 @@
+{
+  "slug": "saas-09-beacon-hr",
+  "title": "BeaconHR",
+  "subtitle": "The HR platform that treats people like a roster, not a ticket.",
+  "category": "SaaS",
+  "type": "Apps",
+  "tags": [
+    "warm",
+    "editorial",
+    "hr",
+    "serif",
+    "humane"
+  ],
+  "previewImage": "/templates/saas-09-beacon-hr.jpg",
+  "palette": {
+    "bg": "#fdfbf6",
+    "fg": "#2a1b15",
+    "accent": "#ff5d4d"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "logos",
+    "features",
+    "editorial",
+    "reviews",
+    "metrics",
+    "pricing",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the BeaconHR template as the foundation for a warm, editorial HR SaaS landing: cream background, coral CTAs, DM Serif Display headlines, a team roster hero, an approach editorial section with a pull quote, customer mosaic, and per-teammate pricing.",
+  "livePreview": "/template-previews/saas-09-beacon-hr/"
+}

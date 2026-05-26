@@ -1,0 +1,35 @@
+{
+  "slug": "saas-10-vaultline",
+  "title": "Vaultline",
+  "subtitle": "Secrets management with a paranoia gauge.",
+  "category": "SaaS",
+  "type": "Apps",
+  "tags": [
+    "dark",
+    "security",
+    "brutalist",
+    "bold",
+    "secrets"
+  ],
+  "previewImage": "/templates/saas-10-vaultline.jpg",
+  "palette": {
+    "bg": "#000000",
+    "fg": "#ffffff",
+    "accent": "#ff1818"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "logos",
+    "features",
+    "blast",
+    "audit",
+    "stats",
+    "pricing",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Vaultline template as the foundation for a brutalist, bold-typography security SaaS landing: black background, electric red accents, Archivo display headlines, a paranoia gauge hero, blast-radius diagram, structured audit log, and per-workload pricing.",
+  "livePreview": "/template-previews/saas-10-vaultline/"
+}

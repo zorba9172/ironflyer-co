@@ -1,0 +1,33 @@
+{
+  "slug": "portfolio-03-aria-park",
+  "title": "Aria Park",
+  "subtitle": "Documentary photographer working in light, distance, and restraint.",
+  "category": "Portfolio",
+  "type": "Websites",
+  "tags": [
+    "photography",
+    "minimal",
+    "editorial",
+    "restrained"
+  ],
+  "previewImage": "/templates/portfolio-03-aria-park.jpg",
+  "palette": {
+    "bg": "#f3eee5",
+    "fg": "#000000",
+    "accent": "#000000"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "series",
+    "single-image",
+    "bio",
+    "exhibitions",
+    "press",
+    "contact",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Aria Park template as the foundation for a documentary photographer portfolio. Keep the off-white paper background, very small typography, generous whitespace, large editorial imagery, and discreet captions. The photography is the front page — every other element apologises for being there.",
+  "livePreview": "/template-previews/portfolio-03-aria-park/"
+}

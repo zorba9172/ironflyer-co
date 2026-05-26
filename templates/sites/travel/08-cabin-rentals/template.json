@@ -1,0 +1,34 @@
+{
+  "slug": "travel-08-cabin-rentals",
+  "title": "Cabin",
+  "subtitle": "A marketplace of hand-picked vacation cabins, owner-managed.",
+  "category": "Travel",
+  "type": "Websites",
+  "tags": [
+    "rentals",
+    "search",
+    "marketplace",
+    "modern",
+    "sage"
+  ],
+  "previewImage": "/templates/travel-08-cabin-rentals.jpg",
+  "palette": {
+    "bg": "#ffffff",
+    "fg": "#1a1d18",
+    "accent": "#75876b"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "search",
+    "stats",
+    "cabins",
+    "how-it-works",
+    "guests",
+    "owner-cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Cabin template as the foundation for a vacation-rental marketplace: white and sage palette, Fraunces serif headlines on Inter body, a centered hero with a five-field search form and filter chips, a four-stat strip, six cabin cards with rating star/locale/specs/price, a how-it-works panel with four steps, three guest reviews, and a sage owners-CTA panel with apply button.",
+  "livePreview": "/template-previews/travel-08-cabin-rentals/"
+}

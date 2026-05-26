@@ -1,0 +1,802 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wired &amp; Wild — Outdoor and adventure magazine</title>
+  <meta name="description" content="Wired & Wild is the magazine for climbers, ski-mountaineers, paddlers, and the people who go out the door when the forecast says don't." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #131318;
+      --surface: #1c1c22;
+      --surface-2: #25252c;
+      --ink: #f4f1ea;
+      --ink-2: #b8b5ac;
+      --ink-3: #7d7a72;
+      --rule: rgba(244, 241, 234, 0.12);
+      --rule-strong: rgba(244, 241, 234, 0.22);
+      --accent: #ff6c3a;
+      --accent-2: #ffb259;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1320px; margin: 0 auto; padding: 0 32px; }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    .display { font-family: 'Archivo Black', system-ui, sans-serif; letter-spacing: -0.01em; }
+
+    /* Nav */
+    .nav {
+      background: var(--bg);
+      border-bottom: 1px solid var(--rule);
+      position: sticky; top: 0; z-index: 50;
+    }
+    .nav-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 72px;
+    }
+    .brand {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 22px;
+      letter-spacing: -0.005em;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .brand .mark {
+      width: 32px; height: 32px;
+      background: var(--accent);
+      display: grid; place-items: center;
+      color: var(--bg);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 16px;
+      transform: rotate(-3deg);
+    }
+    .nav-links {
+      display: flex; gap: 28px;
+      font-size: 13px; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--ink-2);
+      font-weight: 600;
+    }
+    .nav-links a:hover { color: var(--accent); }
+    .sub-btn {
+      background: var(--accent); color: var(--bg);
+      padding: 11px 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px; letter-spacing: 0.1em;
+      text-transform: uppercase; font-weight: 700;
+      clip-path: polygon(8% 0, 100% 0, 92% 100%, 0 100%);
+    }
+    .sub-btn:hover { background: var(--accent-2); }
+    @media (max-width: 720px) {
+      .nav-links { display: none; }
+    }
+
+    /* Hero */
+    .hero {
+      position: relative;
+      min-height: 86vh;
+      overflow: hidden;
+      display: flex; align-items: flex-end;
+    }
+    .hero img {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      z-index: 0;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(19, 19, 24, 0.4) 0%, rgba(19, 19, 24, 0.1) 35%, rgba(19, 19, 24, 0.95) 100%);
+      z-index: 1;
+    }
+    .hero-content {
+      position: relative; z-index: 2;
+      padding: 0 0 80px;
+      width: 100%;
+    }
+    .hero-meta {
+      display: inline-flex; align-items: center; gap: 14px;
+      padding: 8px 16px;
+      background: var(--accent); color: var(--bg);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.16em;
+      text-transform: uppercase; font-weight: 700;
+      margin-bottom: 28px;
+    }
+    .hero-meta .dot { width: 6px; height: 6px; background: var(--bg); border-radius: 50%; }
+    h1 {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: clamp(48px, 9vw, 132px);
+      line-height: 0.92; letter-spacing: -0.025em;
+      margin: 0 0 24px;
+      max-width: 1100px;
+      text-transform: uppercase;
+    }
+    h1 .accent { color: var(--accent); }
+    .dek {
+      font-size: 19px; color: var(--ink-2);
+      line-height: 1.55; max-width: 620px;
+      margin: 0 0 30px;
+    }
+    .hero-byline {
+      display: flex; gap: 28px; flex-wrap: wrap;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.16em;
+      text-transform: uppercase; color: var(--ink-3);
+    }
+    .hero-byline strong { color: var(--ink); }
+
+    /* Ticker */
+    .ticker {
+      background: var(--accent);
+      color: var(--bg);
+      padding: 14px 0;
+      overflow: hidden;
+      white-space: nowrap;
+      border-bottom: 4px solid var(--bg);
+    }
+    .ticker-inner {
+      display: flex; gap: 48px;
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 14px; letter-spacing: 0.04em;
+      text-transform: uppercase;
+      animation: scroll 35s linear infinite;
+    }
+    .ticker-inner span { display: inline-flex; align-items: center; gap: 14px; }
+    .ticker-inner .dot { width: 6px; height: 6px; background: var(--bg); border-radius: 50%; }
+    @keyframes scroll {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    /* Section */
+    .section { padding: 100px 0; }
+    .section-head {
+      display: grid; grid-template-columns: 1fr auto;
+      align-items: end; gap: 24px;
+      margin-bottom: 48px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--rule-strong);
+    }
+    .section-head .eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.22em;
+      text-transform: uppercase; color: var(--accent);
+      font-weight: 700; margin-bottom: 10px;
+    }
+    .section-head h2 {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: clamp(36px, 5vw, 64px);
+      line-height: 1; text-transform: uppercase;
+      letter-spacing: -0.015em;
+      margin: 0;
+    }
+    .section-head a {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--ink-2);
+      padding: 10px 16px;
+      border: 1px solid var(--rule-strong);
+    }
+    .section-head a:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* Feature row - large left + stacked right */
+    .feature-row {
+      display: grid; grid-template-columns: 1.6fr 1fr; gap: 32px;
+    }
+    .feature-big {
+      position: relative;
+      aspect-ratio: 4/5;
+      overflow: hidden;
+    }
+    .feature-big img { width: 100%; height: 100%; object-fit: cover; }
+    .feature-big::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, transparent 50%, rgba(19,19,24,0.9) 100%);
+    }
+    .feature-big .cap {
+      position: absolute; z-index: 2;
+      bottom: 32px; left: 32px; right: 32px;
+    }
+    .feature-big .cat {
+      display: inline-block;
+      padding: 5px 10px; background: var(--accent); color: var(--bg);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; letter-spacing: 0.18em;
+      text-transform: uppercase; font-weight: 700;
+      margin-bottom: 14px;
+    }
+    .feature-big h3 {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: clamp(28px, 3.5vw, 44px);
+      line-height: 1.05; letter-spacing: -0.015em;
+      margin: 0 0 12px; text-transform: uppercase;
+    }
+    .feature-big .by {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.16em;
+      color: var(--ink-2);
+    }
+
+    .feature-stack {
+      display: grid; grid-template-rows: 1fr 1fr; gap: 32px;
+    }
+    .feature-mid {
+      display: grid; grid-template-rows: 1fr auto; gap: 18px;
+      position: relative;
+    }
+    .feature-mid .img-wrap {
+      position: relative; aspect-ratio: 16/10;
+      overflow: hidden;
+    }
+    .feature-mid img { width: 100%; height: 100%; object-fit: cover; }
+    .feature-mid .cat {
+      position: absolute; top: 12px; left: 12px;
+      padding: 5px 10px; background: var(--accent); color: var(--bg);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; letter-spacing: 0.18em;
+      text-transform: uppercase; font-weight: 700;
+      z-index: 2;
+    }
+    .feature-mid h3 {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 22px; line-height: 1.15;
+      letter-spacing: -0.01em;
+      margin: 0 0 6px; text-transform: uppercase;
+    }
+    .feature-mid .by {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.14em;
+      color: var(--ink-3);
+    }
+    @media (max-width: 1080px) {
+      .feature-row { grid-template-columns: 1fr; }
+    }
+
+    /* Gear & guides grid */
+    .grid-4 {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--rule);
+      transition: border-color 220ms, transform 220ms;
+    }
+    .card:hover { border-color: var(--accent); transform: translateY(-3px); }
+    .card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; }
+    .card-body { padding: 22px; }
+    .card .cat {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; letter-spacing: 0.22em;
+      text-transform: uppercase; color: var(--accent);
+      font-weight: 700; margin-bottom: 10px;
+    }
+    .card h4 {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 18px; line-height: 1.2;
+      margin: 0 0 10px; text-transform: uppercase;
+      letter-spacing: -0.005em;
+    }
+    .card .by {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; letter-spacing: 0.14em;
+      color: var(--ink-3);
+    }
+    @media (max-width: 1080px) {
+      .grid-4 { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 720px) {
+      .grid-4 { grid-template-columns: 1fr; }
+    }
+
+    /* Field log - list of dispatches */
+    .field-log {
+      padding: 100px 0;
+      background: var(--surface);
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+    }
+    .log-list { display: grid; gap: 0; }
+    .log-row {
+      display: grid; grid-template-columns: 80px 100px 1fr 240px 100px;
+      gap: 24px; align-items: center;
+      padding: 22px 0;
+      border-top: 1px solid var(--rule);
+      font-family: 'Inter', sans-serif;
+      transition: padding 200ms;
+    }
+    .log-row:hover { padding-left: 10px; }
+    .log-row:last-child { border-bottom: 1px solid var(--rule); }
+    .log-row .ix {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px; color: var(--ink-3);
+      letter-spacing: 0.1em;
+    }
+    .log-row .where {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--accent);
+      font-weight: 700;
+    }
+    .log-row h4 {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 18px; line-height: 1.2;
+      margin: 0; text-transform: uppercase;
+      letter-spacing: -0.005em;
+    }
+    .log-row .by {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.12em;
+      color: var(--ink-2);
+    }
+    .log-row .dt {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.12em;
+      color: var(--ink-3); text-align: right;
+    }
+    @media (max-width: 1080px) {
+      .log-row { grid-template-columns: 60px 1fr; }
+      .log-row .where, .log-row .by, .log-row .dt { display: none; }
+    }
+
+    /* About */
+    .about {
+      padding: 120px 0;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 64px;
+      align-items: center;
+    }
+    .about img { width: 100%; aspect-ratio: 4/5; object-fit: cover; }
+    .about .eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.22em;
+      text-transform: uppercase; color: var(--accent);
+      font-weight: 700; margin-bottom: 18px;
+    }
+    .about h2 {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: clamp(36px, 5vw, 64px);
+      text-transform: uppercase; line-height: 0.98;
+      letter-spacing: -0.02em;
+      margin: 0 0 24px;
+    }
+    .about p {
+      font-size: 17px; color: var(--ink-2);
+      max-width: 460px; margin: 0 0 16px;
+      line-height: 1.6;
+    }
+    @media (max-width: 1080px) {
+      .about { grid-template-columns: 1fr; gap: 40px; }
+      .about img { max-height: 480px; }
+    }
+
+    /* Newsletter */
+    .newsletter {
+      padding: 96px 0;
+      background: var(--accent);
+      color: var(--bg);
+      text-align: center;
+    }
+    .newsletter h2 {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: clamp(36px, 5vw, 64px);
+      text-transform: uppercase; line-height: 0.98;
+      letter-spacing: -0.02em;
+      margin: 0 0 16px;
+    }
+    .newsletter p {
+      max-width: 540px; margin: 0 auto 32px;
+      font-size: 17px;
+    }
+    .nl-form {
+      display: flex; max-width: 480px; margin: 0 auto;
+      background: var(--bg);
+    }
+    .nl-form input {
+      flex: 1; border: 0; outline: 0;
+      background: transparent;
+      padding: 16px 18px;
+      color: var(--ink); font-size: 15px;
+    }
+    .nl-form input::placeholder { color: var(--ink-3); }
+    .nl-form button {
+      border: 0; cursor: pointer;
+      background: var(--bg); color: var(--accent);
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 14px; letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0 24px;
+    }
+    .nl-form button:hover { color: var(--accent-2); }
+
+    /* Footer */
+    footer {
+      padding: 64px 0 32px;
+      background: var(--bg);
+      border-top: 1px solid var(--rule);
+    }
+    .foot-grid {
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px;
+      padding-bottom: 40px; border-bottom: 1px solid var(--rule);
+    }
+    .foot-col h5 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; letter-spacing: 0.22em;
+      text-transform: uppercase; color: var(--ink-3);
+      margin: 0 0 18px; font-weight: 700;
+    }
+    .foot-col a { display: block; padding: 6px 0; font-size: 14px; color: var(--ink-2); }
+    .foot-col a:hover { color: var(--accent); }
+    .foot-col p {
+      font-size: 14px; color: var(--ink-2);
+      max-width: 320px; margin: 12px 0 0;
+      line-height: 1.6;
+    }
+    .foot-bot {
+      display: flex; justify-content: space-between;
+      padding-top: 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--ink-3); letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+    @media (max-width: 720px) {
+      .foot-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+      .foot-bot { flex-direction: column; gap: 10px; }
+    }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">
+        <span class="mark">▲</span>
+        Wired &amp; Wild
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#features">Features</a>
+        <a href="#gear">Gear</a>
+        <a href="#guides">Guides</a>
+        <a href="#log">Field log</a>
+        <a href="#about">About</a>
+      </nav>
+      <a class="sub-btn" href="#newsletter">Subscribe</a>
+    </div>
+  </header>
+
+  <section class="hero">
+    <img src="https://picsum.photos/seed/wired-wild-1/2200/1600" width="2200" height="1600" alt="A solo climber on a vertical rock face at dawn, deep orange light on the granite." loading="eager" />
+    <div class="hero-content">
+      <div class="wrap">
+        <div class="hero-meta"><span class="dot"></span>The cover story · Issue 64 · April / May 2026</div>
+        <h1>Eighteen days <span class="accent">on the</span> Cassin.</h1>
+        <p class="dek">A four-person alpine team attempts a winter ascent of Denali's Cassin Ridge. The forecast does not cooperate, the radio goes out on day six, and the youngest climber on the team has to lead the crux. A long account of decisions made in cold places.</p>
+        <div class="hero-byline">
+          <span>Words by <strong>Hadley Briggs</strong></span>
+          <span>Photographs by <strong>Tomi Eskelinen</strong></span>
+          <span>9,400 words · 38 min</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="ticker">
+    <div class="ticker-inner">
+      <span>Issue 64 out now<span class="dot"></span></span>
+      <span>Three new field dispatches from the Karakoram<span class="dot"></span></span>
+      <span>Spring gear tests · 47 items, 6 testers<span class="dot"></span></span>
+      <span>Subscribe before May 1 for the print bundle<span class="dot"></span></span>
+      <span>Issue 64 out now<span class="dot"></span></span>
+      <span>Three new field dispatches from the Karakoram<span class="dot"></span></span>
+      <span>Spring gear tests · 47 items, 6 testers<span class="dot"></span></span>
+      <span>Subscribe before May 1 for the print bundle<span class="dot"></span></span>
+    </div>
+  </div>
+
+  <section class="section" id="features">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">Features</div>
+          <h2>This issue</h2>
+        </div>
+        <a href="#">All features →</a>
+      </div>
+      <div class="feature-row">
+        <a href="#" class="feature-big">
+          <img src="https://picsum.photos/seed/wired-wild-2/1100/1400" width="1100" height="1400" alt="A kayaker in heavy whitewater, helmet glinting in the spray, big rocks below." loading="lazy" />
+          <div class="cap">
+            <span class="cat">Whitewater</span>
+            <h3>The first descent that took eleven years.</h3>
+            <div class="by">By Mateo Velázquez · 6,200 words</div>
+          </div>
+        </a>
+        <div class="feature-stack">
+          <a href="#" class="feature-mid">
+            <div class="img-wrap">
+              <span class="cat">Ski</span>
+              <img src="https://picsum.photos/seed/wired-wild-3/800/500" width="800" height="500" alt="A solitary ski-mountaineer climbing a steep snow couloir at sunrise." loading="lazy" />
+            </div>
+            <div>
+              <h3>The line nobody else wanted on Mont Blanc du Tacul.</h3>
+              <div class="by">By Inès Ducruet · 4,100 words</div>
+            </div>
+          </a>
+          <a href="#" class="feature-mid">
+            <div class="img-wrap">
+              <span class="cat">Trail</span>
+              <img src="https://picsum.photos/seed/wired-wild-4/800/500" width="800" height="500" alt="A trail runner on a high desert ridge, long shadow trailing behind." loading="lazy" />
+            </div>
+            <div>
+              <h3>200 miles, one pack, one bad foot. The hardrock log.</h3>
+              <div class="by">By Janelle Okafor · 3,800 words</div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="gear">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">Gear desk</div>
+          <h2>Tested. Broken. Mended.</h2>
+        </div>
+        <a href="#">All gear tests →</a>
+      </div>
+      <div class="grid-4">
+        <a href="#" class="card">
+          <img src="https://picsum.photos/seed/wired-wild-5/600/450" width="600" height="450" alt="A worn alpine harness clipped onto a snowy belay anchor." loading="lazy" />
+          <div class="card-body">
+            <div class="cat">Climbing</div>
+            <h4>Six harnesses, one full season.</h4>
+            <div class="by">By Sam Korhonen · Apr 24</div>
+          </div>
+        </a>
+        <a href="#" class="card">
+          <img src="https://picsum.photos/seed/wired-wild-6/600/450" width="600" height="450" alt="A hardshell jacket draped over a granite boulder, soaked from rain." loading="lazy" />
+          <div class="card-body">
+            <div class="cat">Shells</div>
+            <h4>The hardshell test, eighth year.</h4>
+            <div class="by">By Frida Wessel · Apr 17</div>
+          </div>
+        </a>
+        <a href="#" class="card">
+          <img src="https://picsum.photos/seed/wired-wild-7/600/450" width="600" height="450" alt="A line of trail running shoes laid out on a wooden porch." loading="lazy" />
+          <div class="card-body">
+            <div class="cat">Run</div>
+            <h4>Twelve trail shoes, six hundred miles.</h4>
+            <div class="by">By Janelle Okafor · Apr 10</div>
+          </div>
+        </a>
+        <a href="#" class="card">
+          <img src="https://picsum.photos/seed/wired-wild-8/600/450" width="600" height="450" alt="A small ultralight tent pitched in a high alpine meadow." loading="lazy" />
+          <div class="card-body">
+            <div class="cat">Shelter</div>
+            <h4>Ultralight, until you actually use it.</h4>
+            <div class="by">By Pearce Nakamura · Apr 3</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="field-log" id="log">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">Field log</div>
+          <h2>Short dispatches</h2>
+        </div>
+        <a href="#">All dispatches →</a>
+      </div>
+      <div class="log-list">
+        <div class="log-row">
+          <span class="ix">// 01</span>
+          <span class="where">Karakoram, PK</span>
+          <h4>Day 9: portering at 4,300 metres.</h4>
+          <span class="by">Hadley Briggs</span>
+          <span class="dt">21.04.26</span>
+        </div>
+        <div class="log-row">
+          <span class="ix">// 02</span>
+          <span class="where">Bishop, CA</span>
+          <h4>The Buttermilks, in too much wind.</h4>
+          <span class="by">Sam Korhonen</span>
+          <span class="dt">17.04.26</span>
+        </div>
+        <div class="log-row">
+          <span class="ix">// 03</span>
+          <span class="where">Lofoten, NO</span>
+          <h4>Sea kayak crossing, twelve hours, four espressos.</h4>
+          <span class="by">Inès Ducruet</span>
+          <span class="dt">12.04.26</span>
+        </div>
+        <div class="log-row">
+          <span class="ix">// 04</span>
+          <span class="where">Wadi Rum, JO</span>
+          <h4>A first-light scramble that lasted until noon.</h4>
+          <span class="by">Mateo Velázquez</span>
+          <span class="dt">06.04.26</span>
+        </div>
+        <div class="log-row">
+          <span class="ix">// 05</span>
+          <span class="where">Patagonia, AR</span>
+          <h4>Waiting on the Torres del Paine weather window.</h4>
+          <span class="by">Frida Wessel</span>
+          <span class="dt">30.03.26</span>
+        </div>
+        <div class="log-row">
+          <span class="ix">// 06</span>
+          <span class="where">Yosemite, CA</span>
+          <h4>El Cap, in a day, with everything we forgot to bring.</h4>
+          <span class="by">Pearce Nakamura</span>
+          <span class="dt">23.03.26</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="guides">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">Guides</div>
+          <h2>How to actually do it</h2>
+        </div>
+        <a href="#">All guides →</a>
+      </div>
+      <div class="grid-4">
+        <a href="#" class="card">
+          <img src="https://picsum.photos/seed/wired-wild-9/600/450" width="600" height="450" alt="A hand placing a cam into a granite crack, careful detail shot." loading="lazy" />
+          <div class="card-body">
+            <div class="cat">Climbing</div>
+            <h4>Setting a trad anchor without overthinking it.</h4>
+            <div class="by">Field skills · 12 min</div>
+          </div>
+        </a>
+        <a href="#" class="card">
+          <img src="https://picsum.photos/seed/wired-wild-10/600/450" width="600" height="450" alt="A topographic map spread open on a rock, compass on top." loading="lazy" />
+          <div class="card-body">
+            <div class="cat">Navigation</div>
+            <h4>Map and compass, when the battery is gone.</h4>
+            <div class="by">Field skills · 18 min</div>
+          </div>
+        </a>
+        <a href="#" class="card">
+          <img src="https://picsum.photos/seed/wired-wild-11/600/450" width="600" height="450" alt="A backcountry skier digging a snow pit to assess avalanche layers." loading="lazy" />
+          <div class="card-body">
+            <div class="cat">Avalanche</div>
+            <h4>Reading a snow pit in fifteen minutes.</h4>
+            <div class="by">Safety · 14 min</div>
+          </div>
+        </a>
+        <a href="#" class="card">
+          <img src="https://picsum.photos/seed/wired-wild-12/600/450" width="600" height="450" alt="A small camp stove burning under a kettle, blue flame in early light." loading="lazy" />
+          <div class="card-body">
+            <div class="cat">Camp</div>
+            <h4>Calories for a long day, packed for a small bag.</h4>
+            <div class="by">Field skills · 9 min</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="about" id="about">
+    <div class="wrap" style="display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center;">
+      <img src="https://picsum.photos/seed/wired-wild-editor/800/1000" width="800" height="1000" alt="A magazine editor at a cluttered desk, maps and old gear on the wall behind her." loading="lazy" />
+      <div>
+        <div class="eyebrow">About the magazine</div>
+        <h2>We send writers out, and we wait for them to come back.</h2>
+        <p>Wired &amp; Wild is an independent outdoor magazine. We do not run sponsored gear reviews. We do not accept comp'd expeditions. Every writer in this issue went under the magazine's commission, paid the bill, came back, and told us what actually happened — including the parts they would rather not have written down.</p>
+        <p>If a piece is not finished, we hold it. The mountain is patient. So are we.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="newsletter" id="newsletter">
+    <div class="wrap">
+      <h2>The dispatch.</h2>
+      <p>Once a week. One short field dispatch, one gear note, one weather window worth knowing about. Free.</p>
+      <form class="nl-form" onsubmit="event.preventDefault();">
+        <input type="email" placeholder="you@base.camp" aria-label="Email address" required />
+        <button type="submit">Subscribe</button>
+      </form>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a class="brand" href="#" style="margin-bottom: 8px;">
+            <span class="mark">▲</span>
+            Wired &amp; Wild
+          </a>
+          <p>An independent outdoor and adventure magazine. Print quarterly. Web weekly. Made in Innsbruck and Squamish.</p>
+        </div>
+        <div class="foot-col">
+          <h5>Sections</h5>
+          <a href="#">Features</a>
+          <a href="#">Gear</a>
+          <a href="#">Guides</a>
+          <a href="#">Field log</a>
+        </div>
+        <div class="foot-col">
+          <h5>House</h5>
+          <a href="#">Editorial code</a>
+          <a href="#">Pitch us</a>
+          <a href="#">Contact</a>
+          <a href="#">Press</a>
+        </div>
+        <div class="foot-col">
+          <h5>Elsewhere</h5>
+          <a href="#">Instagram</a>
+          <a href="#">YouTube</a>
+          <a href="#">Mastodon</a>
+          <a href="#">RSS</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Wired &amp; Wild · ISSN 2615-3320</span>
+        <span>Set in Archivo Black, Inter &amp; JetBrains Mono</span>
+      </div>
+    </div>
+  </footer>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

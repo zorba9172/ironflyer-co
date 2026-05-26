@@ -886,16 +886,142 @@ func parseLeakReport(raw []byte) []domain.Issue {
 	return out
 }
 
-// PerfBudgetGate consumes hyperfine / Lighthouse / Web Vitals reports.
+// PerfBudgetGate consumes a Lighthouse CI report normalised by
+// scripts/lint/run-lighthouse.sh. Wire it by running the driver against
+// a deploy preview URL and exporting the normalised report path:
+//
+//	IRONFLYER_LH_URL=https://preview.example.com ./scripts/lint/run-lighthouse.sh
+//	export IRONFLYER_PERF_REPORT_PATH=tmp/reports/lighthouse-<ts>.json
+//
+// The driver writes a `{ summary: { performance, accessibility,
+// bestPractices, seo, passed, thresholds }, findings: [...] }` document.
+// Performance < perf-fail (default 60) or accessibility < a11y-fail
+// (default 90) escalates the verdict to SeverityError; soft dips below
+// the configured min surface as SeverityWarning; all-pass emits a
+// single SeverityInfo summary. Falls back to evidenceGate's generic
+// parser if the report is shaped like a plain `{ findings: [...] }`.
 type PerfBudgetGate struct{}
 
 func (PerfBudgetGate) Name() domain.GateName    { return domain.GatePerfBudget }
 func (PerfBudgetGate) RepairAgent() agents.Role { return agents.RoleCoder }
-func (PerfBudgetGate) Check(ctx context.Context, env *GateEnv) []domain.Issue {
-	return evidenceGate{
-		name: domain.GatePerfBudget, envVar: "IRONFLYER_PERF_REPORT_PATH",
-		repairAgent: agents.RoleCoder, severity: domain.SeverityError,
-	}.Check(ctx, env)
+func (PerfBudgetGate) Check(_ context.Context, env *GateEnv) []domain.Issue {
+	path := strings.TrimSpace(os.Getenv("IRONFLYER_PERF_REPORT_PATH"))
+	if path == "" {
+		return []domain.Issue{{
+			Gate:     domain.GatePerfBudget,
+			Severity: domain.SeverityInfo,
+			Message:  "perf_budget tool not installed — run scripts/lint/run-lighthouse.sh and export IRONFLYER_PERF_REPORT_PATH",
+			Hint:     "see docs/ANTI_BLOAT_ENGINE.md§\"Tool wire-up\" + docs/CLOSEOUT_CHECKLIST.md",
+		}}
+	}
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return []domain.Issue{{
+			Gate:     domain.GatePerfBudget,
+			Severity: domain.SeverityWarning,
+			Message:  "perf_budget report missing at " + path + ": " + err.Error(),
+			Hint:     "re-run scripts/lint/run-lighthouse.sh or unset IRONFLYER_PERF_REPORT_PATH",
+		}}
+	}
+	return parseLighthouseReport(raw)
+}
+
+// lighthouseReport mirrors scripts/lint/run-lighthouse.sh.
+type lighthouseReport struct {
+	Summary struct {
+		Performance   int  `json:"performance"`
+		Accessibility int  `json:"accessibility"`
+		BestPractices int  `json:"bestPractices"`
+		SEO           int  `json:"seo"`
+		Passed        bool `json:"passed"`
+		HardFail      bool `json:"hardFail"`
+		Thresholds    struct {
+			Performance   int `json:"performance"`
+			Accessibility int `json:"accessibility"`
+			BestPractices int `json:"bestPractices"`
+			SEO           int `json:"seo"`
+		} `json:"thresholds"`
+	} `json:"summary"`
+	Findings []lighthouseFinding `json:"findings,omitempty"`
+}
+
+// lighthouseFinding is the per-audit shape the driver emits. It is a
+// superset of genericFinding — same `message`/`severity`/`path` keys
+// plus the Lighthouse-specific `category`/`audit`/`score` so an
+// operator scanning the dashboard knows whether a finding is the
+// category-level verdict or a single audit row.
+type lighthouseFinding struct {
+	Category string `json:"category,omitempty"`
+	Audit    string `json:"audit,omitempty"`
+	Score    int    `json:"score,omitempty"`
+	Path     string `json:"path,omitempty"`
+	Message  string `json:"message,omitempty"`
+	Severity string `json:"severity,omitempty"`
+}
+
+func parseLighthouseReport(raw []byte) []domain.Issue {
+	if len(raw) == 0 {
+		return nil
+	}
+	var r lighthouseReport
+	if err := json.Unmarshal(raw, &r); err != nil {
+		return []domain.Issue{{
+			Gate:     domain.GatePerfBudget,
+			Severity: domain.SeverityWarning,
+			Message:  "perf_budget report parse error: " + err.Error(),
+			Hint:     "scripts/lint/run-lighthouse.sh writes { summary, findings }; re-run it",
+		}}
+	}
+	// Empty summary AND no findings → degrade to the evidence parser so
+	// a hand-rolled `{ findings: [...] }` report still produces issues.
+	if r.Summary.Performance == 0 && r.Summary.Accessibility == 0 &&
+		r.Summary.BestPractices == 0 && r.Summary.SEO == 0 && len(r.Findings) == 0 {
+		return parseEvidenceReport(domain.GatePerfBudget, domain.SeverityError, raw)
+	}
+	summarySev := domain.SeverityInfo
+	if r.Summary.HardFail {
+		summarySev = domain.SeverityError
+	} else if !r.Summary.Passed {
+		summarySev = domain.SeverityWarning
+	}
+	out := make([]domain.Issue, 0, len(r.Findings)+1)
+	out = append(out, domain.Issue{
+		Gate:     domain.GatePerfBudget,
+		Severity: summarySev,
+		Message: "perf_budget: perf=" + fmtInt(r.Summary.Performance) +
+			" a11y=" + fmtInt(r.Summary.Accessibility) +
+			" bp=" + fmtInt(r.Summary.BestPractices) +
+			" seo=" + fmtInt(r.Summary.SEO) +
+			" (min perf=" + fmtInt(r.Summary.Thresholds.Performance) +
+			" a11y=" + fmtInt(r.Summary.Thresholds.Accessibility) +
+			" bp=" + fmtInt(r.Summary.Thresholds.BestPractices) +
+			" seo=" + fmtInt(r.Summary.Thresholds.SEO) + ")",
+		Hint: "trim render-blocking JS, lazy-load heavy modules, fix a11y violations; see docs/PERF_BUDGETS.md",
+	})
+	for _, f := range r.Findings {
+		// Skip the synthetic category-score summary findings the driver
+		// emits for each category — we already produced the rolled-up
+		// summary above using the structured Summary block.
+		if f.Audit == "category-score" {
+			continue
+		}
+		sev := domain.SeverityInfo
+		switch strings.ToLower(f.Severity) {
+		case "critical":
+			sev = domain.SeverityCritical
+		case "error", "high":
+			sev = domain.SeverityError
+		case "warn", "warning", "medium":
+			sev = domain.SeverityWarning
+		}
+		out = append(out, domain.Issue{
+			Gate:     domain.GatePerfBudget,
+			Severity: sev,
+			Message:  f.Message,
+			Path:     f.Path,
+		})
+	}
+	return out
 }
 
 // VulnScanGate consumes govulncheck JSON. Wire it by running

@@ -1,0 +1,33 @@
+{
+  "slug": "beauty-03-ember-barbershop",
+  "title": "Ember Barbershop",
+  "subtitle": "Hot towels, sharp cuts, and a chair that doesn't rush you.",
+  "category": "Beauty",
+  "type": "Websites",
+  "tags": [
+    "barber",
+    "dark",
+    "masculine",
+    "bold"
+  ],
+  "previewImage": "/templates/beauty-03-ember-barbershop.jpg",
+  "palette": {
+    "bg": "#1a1815",
+    "fg": "#f3ede1",
+    "accent": "#d49858"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "ticker",
+    "services",
+    "barbers",
+    "gallery",
+    "reviews",
+    "visit",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Ember Barbershop template as the foundation for a dark, charcoal-and-amber traditional men's barbershop site with a bold display headline, priced services, barber bios with photos, work gallery, and walk-in hours.",
+  "livePreview": "/template-previews/beauty-03-ember-barbershop/"
+}

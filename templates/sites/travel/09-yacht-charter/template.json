@@ -1,0 +1,34 @@
+{
+  "slug": "travel-09-yacht-charter",
+  "title": "Yacht Charter Co.",
+  "subtitle": "Private crewed yacht charters across the Mediterranean.",
+  "category": "Travel",
+  "type": "Websites",
+  "tags": [
+    "yacht",
+    "luxe",
+    "navy",
+    "champagne",
+    "photo-led"
+  ],
+  "previewImage": "/templates/travel-09-yacht-charter.jpg",
+  "palette": {
+    "bg": "#0b1736",
+    "fg": "#f4efde",
+    "accent": "#d6c098"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "enquire",
+    "fleet",
+    "itineraries",
+    "process",
+    "guests",
+    "contact-cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Yacht Charter Co. template as the foundation for a Mediterranean yacht charter brokerage: navy and champagne palette, Cormorant Garamond italic display, a portrait-image hero with a pinned featured yacht, a four-field charter brief form, three yacht cards with spec grids and weekly-base pricing, four cruising-ground itinerary cards with gradient overlays, a four-step charter process panel, four guest reviews, and a champagne CTA panel.",
+  "livePreview": "/template-previews/travel-09-yacht-charter/"
+}

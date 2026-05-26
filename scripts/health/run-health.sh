@@ -33,7 +33,7 @@ warn()    { printf "  %s[WARN]%s %s\n" "${yellow}" "${reset}" "$1"; }
 fail()    { printf "  %s[FAIL]%s %s\n" "${red}" "${reset}" "$1"; }
 
 # Per-tool exit codes. 0 = success; non-zero = the tool's exit.
-declare -i VULN_RC=0 DEDUP_RC=0 DEAD_RC=0 COMPLEX_RC=0 LEAK_RC=0 BUNDLE_RC=0
+declare -i VULN_RC=0 DEDUP_RC=0 DEAD_RC=0 COMPLEX_RC=0 LEAK_RC=0 BUNDLE_RC=0 LH_RC=0
 
 run_tool() {
   local label="$1"
@@ -66,6 +66,15 @@ else
   warn "IRONFLYER_LEAK_PROBE_TOKEN unset — skipping (gate stays SeverityInfo)"
 fi
 run_tool "size-limit (web bundle budgets)" "./scripts/lint/run-size-limit.sh" || BUNDLE_RC=$?
+# Lighthouse smoke requires a running web (or a deploy preview URL) —
+# same pattern as goleak: only run when IRONFLYER_LH_URL is set so the
+# health pass still completes for local dev without a server.
+if [ -n "${IRONFLYER_LH_URL:-}" ]; then
+  run_tool "lighthouse (perf/a11y/bp/seo budgets)" "./scripts/lint/run-lighthouse.sh" || LH_RC=$?
+else
+  section "lighthouse (perf/a11y/bp/seo budgets)"
+  warn "IRONFLYER_LH_URL unset — skipping (gate stays SeverityInfo)"
+fi
 
 # Stamp the summary so CI artifacts capture what failed without parsing
 # stdout. Each entry: { tool, rc, reportGlob }.
@@ -79,9 +88,10 @@ cat > "${SUMMARY}" <<EOF
     { "tool": "knip",        "rc": ${DEAD_RC},    "reportGlob": "tmp/reports/knip-*.json" },
     { "tool": "gocognit",    "rc": ${COMPLEX_RC}, "reportGlob": "tmp/reports/gocognit-*.json" },
     { "tool": "goleak",      "rc": ${LEAK_RC},    "reportGlob": "tmp/reports/goleak-*.json" },
-    { "tool": "size-limit",  "rc": ${BUNDLE_RC},  "reportGlob": "tmp/reports/size-limit-*.json" }
+    { "tool": "size-limit",  "rc": ${BUNDLE_RC},  "reportGlob": "tmp/reports/size-limit-*.json" },
+    { "tool": "lighthouse",  "rc": ${LH_RC},      "reportGlob": "tmp/reports/lighthouse-*.json" }
   ],
-  "anyFailed": $([ $((VULN_RC | DEDUP_RC | DEAD_RC | COMPLEX_RC | LEAK_RC | BUNDLE_RC)) -ne 0 ] && echo true || echo false)
+  "anyFailed": $([ $((VULN_RC | DEDUP_RC | DEAD_RC | COMPLEX_RC | LEAK_RC | BUNDLE_RC | LH_RC)) -ne 0 ] && echo true || echo false)
 }
 EOF
 
@@ -95,8 +105,9 @@ echo "    IRONFLYER_DEADCODE_REPORT_PATH=<latest tmp/reports/knip-*.json>"
 echo "    IRONFLYER_COMPLEXITY_REPORT_PATH=<latest tmp/reports/gocognit-*.json>"
 echo "    IRONFLYER_MEMLEAK_REPORT_PATH=<latest tmp/reports/goleak-normalized-*.json>"
 echo "    IRONFLYER_BUNDLE_REPORT_PATH=<latest tmp/reports/size-limit-*.json>"
+echo "    IRONFLYER_PERF_REPORT_PATH=<latest tmp/reports/lighthouse-*.json>"
 
-declare -i AGG=$((VULN_RC | DEDUP_RC | DEAD_RC | COMPLEX_RC | LEAK_RC | BUNDLE_RC))
+declare -i AGG=$((VULN_RC | DEDUP_RC | DEAD_RC | COMPLEX_RC | LEAK_RC | BUNDLE_RC | LH_RC))
 if [ "${AGG}" -ne 0 ]; then
   echo
   fail "one or more drivers failed — see ${SUMMARY}"

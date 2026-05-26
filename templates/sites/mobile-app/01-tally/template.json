@@ -1,0 +1,33 @@
+{
+  "slug": "mobile-app-01-tally",
+  "title": "Tally",
+  "subtitle": "A habit tracker that nudges, never nags.",
+  "category": "Mobile App",
+  "type": "Mobile/PWA",
+  "tags": [
+    "habits",
+    "soft",
+    "friendly",
+    "wellness"
+  ],
+  "previewImage": "/templates/mobile-app-01-tally.jpg",
+  "palette": {
+    "bg": "#ffffff",
+    "fg": "#1b1b1f",
+    "accent": "#6ad9b3"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "badges",
+    "features",
+    "how",
+    "social",
+    "faq",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Tally template as the foundation for a habit-tracker mobile-app landing. Keep the soft mint-on-white system, the CSS phone frame, App Store + Google Play badges, three-step explainer, and the calm download CTA band. Replace placeholder copy with the product's actual habit-tracker positioning.",
+  "livePreview": "/template-previews/mobile-app-01-tally/"
+}

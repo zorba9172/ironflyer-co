@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Ironflyer Starter</string>
+    <string name="dashboard_title">Dashboard</string>
+    <string name="builds_card">Builds</string>
+    <string name="crashes_card">Crashes</string>
+    <string name="analytics_card">Analytics</string>
+</resources>

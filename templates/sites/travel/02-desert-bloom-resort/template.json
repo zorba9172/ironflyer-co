@@ -1,0 +1,34 @@
+{
+  "slug": "travel-02-desert-bloom-resort",
+  "title": "Desert Bloom",
+  "subtitle": "A forty-room desert resort and spa in the Negev Highlands.",
+  "category": "Travel",
+  "type": "Websites",
+  "tags": [
+    "resort",
+    "desert",
+    "spa",
+    "serif",
+    "dreamy"
+  ],
+  "previewImage": "/templates/travel-02-desert-bloom-resort.jpg",
+  "palette": {
+    "bg": "#efe2c8",
+    "fg": "#3a2418",
+    "accent": "#c45a3f"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "booking",
+    "experiences",
+    "suites",
+    "spa-quote",
+    "guests",
+    "location",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Desert Bloom template as the foundation for a desert resort and spa: sand and terracotta palette, Cormorant Garamond italic serif headlines, a center-aligned hero, a four-field booking widget that overlaps the hero image, three image-led experience cards with gradient overlays, two suite cards with all-inclusive pricing, a warm spa pull-quote panel, four guest reviews, and a dark stone-coloured location panel.",
+  "livePreview": "/template-previews/travel-02-desert-bloom-resort/"
+}

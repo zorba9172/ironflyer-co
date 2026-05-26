@@ -1,0 +1,35 @@
+{
+  "slug": "events-02-conference-syndicate",
+  "title": "Syndicate",
+  "subtitle": "A two-day technical conference for engineering leaders.",
+  "category": "Events",
+  "type": "Websites",
+  "tags": [
+    "tech",
+    "conference",
+    "dark",
+    "mono",
+    "developer"
+  ],
+  "previewImage": "/templates/events-02-conference-syndicate.jpg",
+  "palette": {
+    "bg": "#0e0e10",
+    "fg": "#f3f3ee",
+    "accent": "#c5ff3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "stats",
+    "schedule",
+    "speakers",
+    "venue",
+    "tickets",
+    "sponsors",
+    "faq",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Syndicate template as the foundation for a serious, mono-styled engineering conference site. Keep the charcoal + lime palette, multi-track schedule, and the speakers wall. Replace tracks, speakers, and venue with the actual event.",
+  "livePreview": "/template-previews/events-02-conference-syndicate/"
+}

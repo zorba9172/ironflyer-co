@@ -1,0 +1,34 @@
+{
+  "slug": "ecommerce-02-bloom",
+  "title": "Bloom",
+  "subtitle": "Seasonal cut flowers grown on a small farm and arranged by hand.",
+  "category": "E-commerce",
+  "type": "Commerce",
+  "tags": [
+    "flowers",
+    "soft",
+    "subscription",
+    "photo-led",
+    "sustainable"
+  ],
+  "previewImage": "/templates/ecommerce-02-bloom.jpg",
+  "palette": {
+    "bg": "#fbf8f2",
+    "fg": "#2a2e26",
+    "accent": "#75876b"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "tape",
+    "products",
+    "subscription",
+    "story",
+    "testimonials",
+    "newsletter",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Bloom template as the foundation for a seasonal flower farm storefront. Soft off-white and sage palette, Fraunces serif headlines, rounded photo-led product cards, a subscription chooser, farm story panel with stats, and a sage newsletter band. Replace placeholder copy with the farm's actual harvest and plans.",
+  "livePreview": "/template-previews/ecommerce-02-bloom/"
+}

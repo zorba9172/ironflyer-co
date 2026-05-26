@@ -1,0 +1,35 @@
+{
+  "slug": "events-05-vinyl-launch",
+  "title": "Vinyl Launch Night",
+  "subtitle": "A record-label launch series, one new record at a time.",
+  "category": "Events",
+  "type": "Websites",
+  "tags": [
+    "music",
+    "dark",
+    "neon",
+    "nightlife",
+    "launch"
+  ],
+  "previewImage": "/templates/events-05-vinyl-launch.jpg",
+  "palette": {
+    "bg": "#0a0a0d",
+    "fg": "#f5e8f2",
+    "accent": "#ff3d8a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "next",
+    "series",
+    "artists",
+    "tickets",
+    "venue",
+    "press",
+    "newsletter",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Vinyl Launch Night template as the foundation for a record label's launch event series page. Keep the inky background, hot-pink accent, big record art, and the running event calendar. Replace artists, set lists, and venue with the label's actual roster and venue.",
+  "livePreview": "/template-previews/events-05-vinyl-launch/"
+}

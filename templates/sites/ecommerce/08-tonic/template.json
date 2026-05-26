@@ -1,0 +1,34 @@
+{
+  "slug": "ecommerce-08-tonic",
+  "title": "Tonic",
+  "subtitle": "Single-active wellness drops, formulated with citations and third-party tested.",
+  "category": "E-commerce",
+  "type": "Commerce",
+  "tags": [
+    "wellness",
+    "science-forward",
+    "calm",
+    "serif",
+    "supplements"
+  ],
+  "previewImage": "/templates/ecommerce-08-tonic.jpg",
+  "palette": {
+    "bg": "#e8efe5",
+    "fg": "#232b22",
+    "accent": "#c19044"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "citations",
+    "products",
+    "formulation",
+    "routines",
+    "reviews",
+    "newsletter",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Tonic template as the foundation for a science-forward wellness storefront. Pale green and amber palette, Cormorant serif headlines, single-active product grid with dosage detail, four-principle formulation panel, three time-of-day routine cards, customer reports, and a journal-style newsletter band. Replace placeholder copy with the brand's actual actives and doses.",
+  "livePreview": "/template-previews/ecommerce-08-tonic/"
+}

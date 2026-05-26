@@ -1,0 +1,34 @@
+{
+  "slug": "fitness-07-roam-therapy",
+  "title": "Roam Therapy",
+  "subtitle": "A modern therapy practice for people who actually want to feel better.",
+  "category": "Fitness",
+  "type": "Websites",
+  "tags": [
+    "therapy",
+    "mental-health",
+    "soft",
+    "hopeful"
+  ],
+  "previewImage": "/templates/fitness-07-roam-therapy.jpg",
+  "palette": {
+    "bg": "#faf5ec",
+    "fg": "#1d1a30",
+    "accent": "#6b5cff"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "modalities",
+    "process",
+    "therapists",
+    "specialties",
+    "testimonials",
+    "fees",
+    "faq",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Roam Therapy template as the foundation for a warm, lavender-accented mental health practice site with hero, modalities, four-step intake process, therapist grid, specialties, patient quotes, fees, and FAQ.",
+  "livePreview": "/template-previews/fitness-07-roam-therapy/"
+}

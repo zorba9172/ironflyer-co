@@ -1,0 +1,34 @@
+{
+  "slug": "mobile-app-06-loop-sleep",
+  "title": "Loop",
+  "subtitle": "A sleep tracker that helps you fall asleep, not gamify it.",
+  "category": "Mobile App",
+  "type": "Mobile/PWA",
+  "tags": [
+    "sleep",
+    "dark",
+    "dreamy",
+    "wellness"
+  ],
+  "previewImage": "/templates/mobile-app-06-loop-sleep.jpg",
+  "palette": {
+    "bg": "#0a0a0d",
+    "fg": "#eaeaf3",
+    "accent": "#8b5cff"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "badges",
+    "features",
+    "phases",
+    "how",
+    "social",
+    "faq",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Loop template as the foundation for a sleep-tracker mobile-app landing. Keep the inky + lavender dreamy system, the CSS phone frame with a night summary UI, the phases visual, App Store + Google Play badges, three-step bedtime explainer, and a calm download CTA.",
+  "livePreview": "/template-previews/mobile-app-06-loop-sleep/"
+}

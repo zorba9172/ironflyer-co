@@ -1,0 +1,32 @@
+{
+  "slug": "web3-05-chronos-nft",
+  "title": "Chronos",
+  "subtitle": "A curated platform for generative art with on-chain provenance and long-form releases.",
+  "category": "Web3",
+  "type": "Apps",
+  "tags": [
+    "light",
+    "nft",
+    "editorial",
+    "gallery"
+  ],
+  "previewImage": "/templates/web3-05-chronos-nft.jpg",
+  "palette": {
+    "bg": "#efe5d4",
+    "fg": "#111111",
+    "accent": "#d63a2a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "drop",
+    "gallery",
+    "process",
+    "artists",
+    "proof",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Chronos template as the foundation for a generative art NFT platform with an editorial sensibility. Keep the cream background, large serif headlines, the live drop layout, and the gallery grid with CSS-rendered artwork tiles. Replace placeholder artists and editions with the platform's actual lineup.",
+  "livePreview": "/template-previews/web3-05-chronos-nft/"
+}

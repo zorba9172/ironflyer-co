@@ -1,0 +1,35 @@
+{
+  "slug": "events-07-launchpad-demoday",
+  "title": "Launchpad Demo Day",
+  "subtitle": "A founder-led startup demo day series, four times a year.",
+  "category": "Events",
+  "type": "Websites",
+  "tags": [
+    "demo-day",
+    "startup",
+    "brutalist",
+    "builder",
+    "dark"
+  ],
+  "previewImage": "/templates/events-07-launchpad-demoday.jpg",
+  "palette": {
+    "bg": "#131318",
+    "fg": "#f5f5f0",
+    "accent": "#5cf0a1"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "next",
+    "cohort",
+    "agenda",
+    "investors",
+    "apply",
+    "past",
+    "faq",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Launchpad Demo Day template as the foundation for a startup demo-day event series. Keep the charcoal + green palette, brutalist grid, cohort wall, and investor strip. Replace the cohort, the investors, and the venue with the series' real data.",
+  "livePreview": "/template-previews/events-07-launchpad-demoday/"
+}

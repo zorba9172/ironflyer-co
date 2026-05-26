@@ -1,0 +1,34 @@
+{
+  "slug": "agency-04-field-format",
+  "title": "Field & Format",
+  "subtitle": "A design practice rooted in print, alive in product.",
+  "category": "Agency",
+  "type": "Websites",
+  "tags": [
+    "swiss",
+    "print",
+    "restrained",
+    "editorial"
+  ],
+  "previewImage": "/templates/agency-04-field-format.jpg",
+  "palette": {
+    "bg": "#f0ece4",
+    "fg": "#161513",
+    "accent": "#c1392b"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "thesis",
+    "disciplines",
+    "selected-projects",
+    "clients",
+    "studio",
+    "essays",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Field & Format template as the foundation for a Swiss-grid, print-inspired design practice site on off-white with a single red accent. Restrained typography, an essay strip, and a quiet but confident voice.",
+  "livePreview": "/template-previews/agency-04-field-format/"
+}

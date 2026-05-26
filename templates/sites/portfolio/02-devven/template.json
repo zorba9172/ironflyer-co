@@ -1,0 +1,33 @@
+{
+  "slug": "portfolio-02-devven",
+  "title": "Devven",
+  "subtitle": "Staff software engineer working on distributed systems and hard problems.",
+  "category": "Portfolio",
+  "type": "Websites",
+  "tags": [
+    "dark",
+    "developer",
+    "monospace",
+    "technical"
+  ],
+  "previewImage": "/templates/portfolio-02-devven.jpg",
+  "palette": {
+    "bg": "#0a0c0d",
+    "fg": "#e9efe7",
+    "accent": "#5cf0a1"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "now",
+    "work",
+    "writing",
+    "stack",
+    "talks",
+    "contact",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Devven template as the foundation for a staff-level software engineer portfolio. Keep the terminal-black background, mono-leading typography, green prompt accent, and dense factual sections. Replace the persona with the engineer's actual work history, writing, and talks. Aim for an engineer's CV, not a designer's deck.",
+  "livePreview": "/template-previews/portfolio-02-devven/"
+}

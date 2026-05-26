@@ -1,0 +1,34 @@
+{
+  "slug": "agency-03-glaze-creative",
+  "title": "Glaze Creative",
+  "subtitle": "Bold ideas for brands that refuse to whisper.",
+  "category": "Agency",
+  "type": "Websites",
+  "tags": [
+    "colorful",
+    "bold",
+    "playful",
+    "creative"
+  ],
+  "previewImage": "/templates/agency-03-glaze-creative.jpg",
+  "palette": {
+    "bg": "#ff3d8a",
+    "fg": "#111111",
+    "accent": "#ffd400"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "mission",
+    "services",
+    "work",
+    "process",
+    "team",
+    "press",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Glaze Creative template as the foundation for a bold, color-forward agency site in hot pink and yellow with oversized type, big shapes, and a playful tone aimed at consumer challenger brands.",
+  "livePreview": "/template-previews/agency-03-glaze-creative/"
+}

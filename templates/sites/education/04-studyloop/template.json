@@ -1,0 +1,33 @@
+{
+  "slug": "education-04-studyloop",
+  "title": "Studyloop",
+  "subtitle": "Spaced-repetition exam prep that actually fits your week.",
+  "category": "Education",
+  "type": "Apps",
+  "tags": [
+    "edtech",
+    "app",
+    "modern",
+    "purple"
+  ],
+  "previewImage": "/templates/education-04-studyloop.jpg",
+  "palette": {
+    "bg": "#faf5ec",
+    "fg": "#1a1326",
+    "accent": "#6b5cff"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "features",
+    "how",
+    "screens",
+    "outcomes",
+    "pricing",
+    "faq",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Studyloop template as the foundation for a modern study app marketing page. Keep the off-white background, purple accent, screen mockups, and spaced-repetition framing. Replace exam types, feature copy, and screen content with the customer's real flows.",
+  "livePreview": "/template-previews/education-04-studyloop/"
+}

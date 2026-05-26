@@ -1,0 +1,36 @@
+{
+  "slug": "events-09-retreats-haven",
+  "title": "Haven Retreats",
+  "subtitle": "Designed corporate offsites for distributed teams.",
+  "category": "Events",
+  "type": "Websites",
+  "tags": [
+    "retreat",
+    "corporate",
+    "calm",
+    "photo-led",
+    "wellness"
+  ],
+  "previewImage": "/templates/events-09-retreats-haven.jpg",
+  "palette": {
+    "bg": "#faf5ec",
+    "fg": "#2b2620",
+    "accent": "#b6724d"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "approach",
+    "destinations",
+    "agenda-sample",
+    "team",
+    "investment",
+    "stories",
+    "inquire",
+    "faq",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Haven Retreats template as the foundation for a corporate offsite planning studio. Keep the warm-white + clay palette, photo-forward destinations, agenda sample, and the calm tone. Replace destinations, programming, and team with the studio's real offerings.",
+  "livePreview": "/template-previews/events-09-retreats-haven/"
+}

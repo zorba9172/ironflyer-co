@@ -1,0 +1,33 @@
+{
+  "slug": "restaurant-01-vita-trattoria",
+  "title": "Vita Trattoria",
+  "subtitle": "A small Northern Italian kitchen on North Vine Street, family run, six nights a week.",
+  "category": "Restaurant",
+  "type": "Websites",
+  "tags": [
+    "italian",
+    "warm",
+    "serif",
+    "trattoria",
+    "neighborhood"
+  ],
+  "previewImage": "/templates/restaurant-01-vita-trattoria.jpg",
+  "palette": {
+    "bg": "#ede2cc",
+    "fg": "#2a3a1f",
+    "accent": "#b8451f"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "menu",
+    "chef",
+    "press",
+    "visit",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Vita Trattoria template as the foundation for a warm, serif Italian restaurant site — a quiet hero with a single sentence of story, a printed-menu section with dish names, prices, and short Italian descriptors, a chef-and-kitchen narrative, a press strip, hours and a styled map placeholder, and a reservation CTA.",
+  "livePreview": "/template-previews/restaurant-01-vita-trattoria/"
+}

@@ -1,0 +1,33 @@
+{
+  "slug": "education-10-kidscanvas",
+  "title": "KidsCanvas",
+  "subtitle": "Creative classes for kids ages 5 to 12 — art, animation, music, and writing.",
+  "category": "Education",
+  "type": "Apps",
+  "tags": [
+    "kids",
+    "playful",
+    "creative",
+    "bright"
+  ],
+  "previewImage": "/templates/education-10-kidscanvas.jpg",
+  "palette": {
+    "bg": "#fffaee",
+    "fg": "#1d1226",
+    "accent": "#ff3d8a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "classes",
+    "how",
+    "teachers",
+    "outcomes",
+    "pricing",
+    "faq",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the KidsCanvas template as the foundation for a playful kids creative classes site. Keep the warm-white background, hot-pink accent, big rounded shapes, and parent-friendly tone. Replace classes, teacher cards, and ages with the customer's real catalog.",
+  "livePreview": "/template-previews/education-10-kidscanvas/"
+}

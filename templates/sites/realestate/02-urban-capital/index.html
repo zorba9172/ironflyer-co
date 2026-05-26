@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Urban Capital — Commercial real estate, brokered for institutional capital</title>
+  <meta name="description" content="A commercial brokerage advising institutional investors on office, industrial, and mixed-use assets across 14 metros. $9.4B transacted in 2025." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #131318;
+      --bg-2: #1c1c22;
+      --bg-3: #25252c;
+      --fg: #f4f1e8;
+      --fg-2: #b1aea4;
+      --fg-3: #7a786f;
+      --accent: #d4af37;
+      --line: rgba(244, 241, 232, 0.1);
+      --line-strong: rgba(244, 241, 232, 0.2);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg); color: var(--fg);
+      font-family: 'Inter', -apple-system, sans-serif;
+      font-size: 15px; line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .serif { font-family: 'Playfair Display', Georgia, serif; }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
+
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(19, 19, 24, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 68px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark {
+      width: 28px; height: 28px; background: var(--accent);
+      display: grid; place-items: center; color: var(--bg); font-weight: 800; font-family: 'Playfair Display', serif; font-size: 18px;
+    }
+    .brand-name { font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; font-size: 13px; }
+    .nav-links { display: flex; gap: 28px; font-size: 13px; color: var(--fg-2); text-transform: uppercase; letter-spacing: 0.12em; }
+    .nav-links a:hover { color: var(--fg); }
+    .nav-cta { display: flex; gap: 12px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; border: 1px solid var(--line-strong); font-weight: 600; cursor: pointer; }
+    .btn-gold { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+    .btn-gold:hover { background: #c39d2c; }
+    .btn-ghost:hover { border-color: var(--fg); }
+    @media (max-width: 1080px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { position: relative; padding: 80px 0 64px; border-bottom: 1px solid var(--line); }
+    .hero-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 64px; align-items: center; }
+    .eyebrow { display: inline-block; font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--accent); padding-bottom: 6px; border-bottom: 1px solid var(--accent); margin-bottom: 28px; }
+    h1 { font-family: 'Playfair Display', serif; font-weight: 500; font-size: clamp(44px, 5.6vw, 76px); line-height: 1.04; letter-spacing: -0.01em; margin: 0 0 24px; }
+    h1 em { font-style: italic; color: var(--accent); }
+    .hero-lede { font-size: 17px; color: var(--fg-2); max-width: 520px; margin-bottom: 32px; }
+    .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; }
+    .hero-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-top: 48px; padding-top: 32px; border-top: 1px solid var(--line); }
+    .hero-stat .v { font-family: 'Playfair Display', serif; font-size: 36px; color: var(--accent); }
+    .hero-stat .l { font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.18em; margin-top: 4px; }
+    .hero-art { position: relative; }
+    .hero-art img { width: 100%; aspect-ratio: 4/5; object-fit: cover; }
+    .hero-art .ribbon {
+      position: absolute; bottom: 24px; left: 24px; right: 24px;
+      background: rgba(19,19,24,0.92); border: 1px solid var(--accent);
+      padding: 18px 22px; display: grid; grid-template-columns: 1fr auto; gap: 18px; align-items: center;
+    }
+    .hero-art .ribbon h3 { font-family: 'Playfair Display', serif; font-weight: 500; font-size: 20px; margin: 0; }
+    .hero-art .ribbon p { margin: 4px 0 0; color: var(--fg-2); font-size: 12px; letter-spacing: 0.08em; }
+    .hero-art .ribbon .deal { color: var(--accent); font-size: 22px; font-family: 'Playfair Display', serif; }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 40px; } }
+
+    /* Sector strip */
+    .sectors { padding: 28px 0; border-bottom: 1px solid var(--line); }
+    .sectors-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 24px; align-items: center; }
+    .sectors-grid span { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--fg-3); text-align: center; }
+    @media (max-width: 1080px) { .sectors-grid { grid-template-columns: repeat(3, 1fr); gap: 18px; } }
+
+    .section { padding: 96px 0; border-bottom: 1px solid var(--line); }
+    .section-head { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 56px; align-items: end; margin-bottom: 56px; }
+    .section-head h2 { font-family: 'Playfair Display', serif; font-weight: 500; font-size: clamp(34px, 4.2vw, 52px); line-height: 1.04; margin: 12px 0 0; }
+    .section-head p { font-size: 16px; color: var(--fg-2); margin: 0; }
+    @media (max-width: 1080px) { .section-head { grid-template-columns: 1fr; gap: 18px; } }
+
+    /* Listings: dense + tabular */
+    .listings { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .deal-card { border: 1px solid var(--line); background: var(--bg-2); display: flex; flex-direction: column; transition: border-color 240ms ease; }
+    .deal-card:hover { border-color: var(--accent); }
+    .deal-img { position: relative; aspect-ratio: 16/10; overflow: hidden; }
+    .deal-img img { width: 100%; height: 100%; object-fit: cover; }
+    .deal-img .badge {
+      position: absolute; top: 12px; left: 12px; background: var(--bg); border: 1px solid var(--accent);
+      color: var(--accent); padding: 4px 10px; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase;
+    }
+    .deal-body { padding: 22px; flex: 1; display: flex; flex-direction: column; }
+    .deal-meta { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--fg-3); }
+    .deal-name { font-family: 'Playfair Display', serif; font-size: 22px; margin: 6px 0 14px; font-weight: 500; }
+    .deal-table { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 18px; font-size: 13px; color: var(--fg-2); margin-bottom: 16px; }
+    .deal-table dt { color: var(--fg-3); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; }
+    .deal-table dd { margin: 0; color: var(--fg); }
+    .deal-foot { display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid var(--line); padding-top: 14px; margin-top: auto; }
+    .deal-foot .price { color: var(--accent); font-family: 'Playfair Display', serif; font-size: 22px; }
+    .deal-foot a { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--fg-2); }
+    .deal-foot a:hover { color: var(--accent); }
+    @media (max-width: 1080px) { .listings { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .listings { grid-template-columns: 1fr; } }
+
+    /* Services */
+    .services { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    .svc { padding: 28px; border: 1px solid var(--line); background: var(--bg-2); }
+    .svc-num { font-family: 'Playfair Display', serif; color: var(--accent); font-size: 14px; letter-spacing: 0.12em; }
+    .svc h3 { font-family: 'Playfair Display', serif; font-weight: 500; font-size: 22px; margin: 18px 0 10px; }
+    .svc p { font-size: 14px; color: var(--fg-2); margin: 0; }
+    @media (max-width: 1080px) { .services { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .services { grid-template-columns: 1fr; } }
+
+    /* Track record table */
+    .track { background: var(--bg-2); border: 1px solid var(--line); }
+    .track table { width: 100%; border-collapse: collapse; }
+    .track th, .track td { padding: 18px 22px; text-align: left; border-bottom: 1px solid var(--line); font-size: 14px; }
+    .track th { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--fg-3); font-weight: 600; background: var(--bg-3); }
+    .track tr:last-child td { border-bottom: none; }
+    .track td.price { color: var(--accent); font-family: 'Playfair Display', serif; font-size: 18px; }
+    .track td.status { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; }
+    @media (max-width: 720px) { .track th:nth-child(3), .track td:nth-child(3) { display: none; } }
+
+    /* Quote */
+    .quote-row { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+    .quote { background: var(--bg-2); padding: 36px; border-left: 2px solid var(--accent); }
+    .quote blockquote { font-family: 'Playfair Display', serif; font-weight: 500; font-size: 22px; line-height: 1.4; margin: 0 0 18px; }
+    .quote cite { font-style: normal; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--fg-3); }
+    @media (max-width: 720px) { .quote-row { grid-template-columns: 1fr; } }
+
+    /* CTA */
+    .cta { padding: 96px 0; background: linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%); }
+    .cta-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 56px; align-items: end; }
+    .cta h2 { font-family: 'Playfair Display', serif; font-weight: 500; font-size: clamp(36px, 5vw, 60px); margin: 0; line-height: 1.04; }
+    .cta h2 em { color: var(--accent); font-style: italic; }
+    .cta p { font-size: 17px; color: var(--fg-2); margin: 0 0 28px; }
+
+    footer { background: var(--bg); padding: 64px 0 28px; border-top: 1px solid var(--line); }
+    .foot-grid { display: grid; grid-template-columns: 1.4fr repeat(4, 1fr); gap: 32px; }
+    .foot-col h4 { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent); margin: 0 0 14px; }
+    .foot-col a, .foot-col p { display: block; color: var(--fg-2); font-size: 13px; padding: 4px 0; margin: 0; }
+    .foot-col a:hover { color: var(--fg); }
+    .foot-bot { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; font-size: 11px; color: var(--fg-3); letter-spacing: 0.18em; text-transform: uppercase; }
+    @media (max-width: 1080px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 12px; } }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a href="#" class="brand"><span class="brand-mark">U</span><span class="brand-name">Urban Capital</span></a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#deals">Available</a>
+        <a href="#services">Advisory</a>
+        <a href="#track">Track record</a>
+        <a href="#team">Principals</a>
+        <a href="#research">Research</a>
+      </nav>
+      <div class="nav-cta">
+        <a href="#" class="btn btn-ghost">Investor login</a>
+        <a href="#contact" class="btn btn-gold">Brief us</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow">Commercial Brokerage · Est. 2004</span>
+            <h1>The brokerage <em>institutional capital</em> calls before the deal is public.</h1>
+            <p class="hero-lede">Urban Capital advises pension funds, family offices, and REIT sponsors on office, industrial, and mixed-use acquisitions across fourteen North American metros. We close deals quietly and we close them at price.</p>
+            <div class="hero-actions">
+              <a class="btn btn-gold" href="#deals">View current offerings</a>
+              <a class="btn btn-ghost" href="#research">2025 market letter</a>
+            </div>
+            <div class="hero-stats">
+              <div class="hero-stat"><div class="v">$9.4B</div><div class="l">Transacted 2025</div></div>
+              <div class="hero-stat"><div class="v">142</div><div class="l">Closings</div></div>
+              <div class="hero-stat"><div class="v">14</div><div class="l">Markets covered</div></div>
+            </div>
+          </div>
+          <div class="hero-art">
+            <img src="https://picsum.photos/seed/urbancapital-1/1200/1500" width="1200" height="1500" alt="A reflective glass office tower at twilight in midtown Manhattan." loading="eager" />
+            <div class="ribbon">
+              <div>
+                <h3>One Whitfield Plaza</h3>
+                <p>Class A office · 412,000 sqft · Chicago Loop</p>
+              </div>
+              <div class="deal">$184M</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sectors">
+      <div class="wrap sectors-grid">
+        <span>Office</span><span>Industrial</span><span>Multifamily</span><span>Retail</span><span>Mixed-use</span><span>Data centers</span>
+      </div>
+    </section>
+
+    <section class="section" id="deals">
+      <div class="wrap">
+        <div class="section-head">
+          <div><span class="eyebrow">Current offerings</span><h2>Six investment-grade assets currently on the market.</h2></div>
+          <p>Detailed financial packages are released to qualified principals under NDA. Yields, debt assumptions, and capital stacks are diligenced in-house before listing.</p>
+        </div>
+        <div class="listings">
+          <article class="deal-card">
+            <div class="deal-img">
+              <img src="https://picsum.photos/seed/urbancapital-2/900/560" width="900" height="560" alt="A 24-story glass office tower in downtown Atlanta with a stepped facade." loading="lazy" />
+              <span class="badge">Office</span>
+            </div>
+            <div class="deal-body">
+              <div class="deal-meta">Atlanta · Peachtree</div>
+              <div class="deal-name">Peachtree 90</div>
+              <dl class="deal-table">
+                <dt>Class</dt><dd>A trophy</dd>
+                <dt>NRA</dt><dd>620,400 sqft</dd>
+                <dt>Cap rate</dt><dd>6.4%</dd>
+                <dt>Occupancy</dt><dd>92%</dd>
+              </dl>
+              <div class="deal-foot"><span class="price">$248,500,000</span><a href="#">Request package →</a></div>
+            </div>
+          </article>
+          <article class="deal-card">
+            <div class="deal-img">
+              <img src="https://picsum.photos/seed/urbancapital-3/900/560" width="900" height="560" alt="A modern industrial warehouse complex with loading docks and trucks." loading="lazy" />
+              <span class="badge">Industrial</span>
+            </div>
+            <div class="deal-body">
+              <div class="deal-meta">Dallas · Ft. Worth corridor</div>
+              <div class="deal-name">Northgate Logistics Park</div>
+              <dl class="deal-table">
+                <dt>Class</dt><dd>A logistics</dd>
+                <dt>NRA</dt><dd>1.2M sqft</dd>
+                <dt>Cap rate</dt><dd>5.9%</dd>
+                <dt>WALT</dt><dd>8.4 yrs</dd>
+              </dl>
+              <div class="deal-foot"><span class="price">$162,000,000</span><a href="#">Request package →</a></div>
+            </div>
+          </article>
+          <article class="deal-card">
+            <div class="deal-img">
+              <img src="https://picsum.photos/seed/urbancapital-4/900/560" width="900" height="560" alt="A premium retail block on a tree-lined Manhattan avenue with flagship storefronts." loading="lazy" />
+              <span class="badge">Retail</span>
+            </div>
+            <div class="deal-body">
+              <div class="deal-meta">New York · SoHo</div>
+              <div class="deal-name">Broadway Flagship Block</div>
+              <dl class="deal-table">
+                <dt>Class</dt><dd>Trophy retail</dd>
+                <dt>NRA</dt><dd>84,200 sqft</dd>
+                <dt>Cap rate</dt><dd>4.8%</dd>
+                <dt>Occupancy</dt><dd>100%</dd>
+              </dl>
+              <div class="deal-foot"><span class="price">$312,000,000</span><a href="#">Request package →</a></div>
+            </div>
+          </article>
+          <article class="deal-card">
+            <div class="deal-img">
+              <img src="https://picsum.photos/seed/urbancapital-5/900/560" width="900" height="560" alt="A 22-story luxury multifamily building with rooftop amenities in Seattle." loading="lazy" />
+              <span class="badge">Multifamily</span>
+            </div>
+            <div class="deal-body">
+              <div class="deal-meta">Seattle · South Lake Union</div>
+              <div class="deal-name">The Latimer</div>
+              <dl class="deal-table">
+                <dt>Class</dt><dd>A multifamily</dd>
+                <dt>Units</dt><dd>284</dd>
+                <dt>Cap rate</dt><dd>4.6%</dd>
+                <dt>Occupancy</dt><dd>96%</dd>
+              </dl>
+              <div class="deal-foot"><span class="price">$184,250,000</span><a href="#">Request package →</a></div>
+            </div>
+          </article>
+          <article class="deal-card">
+            <div class="deal-img">
+              <img src="https://picsum.photos/seed/urbancapital-6/900/560" width="900" height="560" alt="A modern five-building hyperscale data center campus." loading="lazy" />
+              <span class="badge">Data center</span>
+            </div>
+            <div class="deal-body">
+              <div class="deal-meta">Northern Virginia</div>
+              <div class="deal-name">Ashburn Campus II</div>
+              <dl class="deal-table">
+                <dt>Class</dt><dd>Hyperscale</dd>
+                <dt>Power</dt><dd>72 MW</dd>
+                <dt>Cap rate</dt><dd>6.1%</dd>
+                <dt>WALT</dt><dd>11 yrs</dd>
+              </dl>
+              <div class="deal-foot"><span class="price">$420,000,000</span><a href="#">Request package →</a></div>
+            </div>
+          </article>
+          <article class="deal-card">
+            <div class="deal-img">
+              <img src="https://picsum.photos/seed/urbancapital-7/900/560" width="900" height="560" alt="An adaptive reuse warehouse turned mixed-use creative office in Brooklyn." loading="lazy" />
+              <span class="badge">Mixed-use</span>
+            </div>
+            <div class="deal-body">
+              <div class="deal-meta">Brooklyn · Dumbo</div>
+              <div class="deal-name">Bridge Yard</div>
+              <dl class="deal-table">
+                <dt>Class</dt><dd>Creative</dd>
+                <dt>NRA</dt><dd>248,000 sqft</dd>
+                <dt>Cap rate</dt><dd>5.4%</dd>
+                <dt>Occupancy</dt><dd>89%</dd>
+              </dl>
+              <div class="deal-foot"><span class="price">$129,800,000</span><a href="#">Request package →</a></div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="services">
+      <div class="wrap">
+        <div class="section-head">
+          <div><span class="eyebrow">Advisory</span><h2>Five practices, one fiduciary standard.</h2></div>
+          <p>We are a brokerage, not an asset manager. Our incentive is the same as yours: close the right deal at the right basis.</p>
+        </div>
+        <div class="services">
+          <div class="svc"><div class="svc-num">01 / Capital markets</div><h3>Investment sales</h3><p>Disposition of trophy and value-add assets through a competitive, principal-only process.</p></div>
+          <div class="svc"><div class="svc-num">02 / Acquisitions</div><h3>Buyer advisory</h3><p>Off-market sourcing, underwriting, and price negotiation on behalf of institutional principals.</p></div>
+          <div class="svc"><div class="svc-num">03 / Debt</div><h3>Financing & recapitalization</h3><p>Senior, mezzanine, and preferred equity placement against a calibrated capital stack.</p></div>
+          <div class="svc"><div class="svc-num">04 / Leasing</div><h3>Tenant representation</h3><p>Lease negotiation, renewal strategy, and portfolio optimization for occupiers above 100,000 sqft.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="track">
+      <div class="wrap">
+        <div class="section-head">
+          <div><span class="eyebrow">Selected closings</span><h2>Eighteen months. Forty-one closings worth quoting.</h2></div>
+          <p>A representative sample of recent transactions, redacted where confidentiality applies. Full track record available under NDA.</p>
+        </div>
+        <div class="track">
+          <table>
+            <thead><tr><th>Asset</th><th>Market</th><th>Sector</th><th>Size</th><th>Price</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>1 Whitfield Plaza</td><td>Chicago</td><td>Office</td><td>412,000 sqft</td><td class="price">$184M</td><td class="status" style="color:var(--accent)">Closed</td></tr>
+              <tr><td>Cedar Distribution</td><td>Inland Empire</td><td>Industrial</td><td>2.1M sqft</td><td class="price">$340M</td><td class="status" style="color:var(--accent)">Closed</td></tr>
+              <tr><td>Confidential MF</td><td>Austin</td><td>Multifamily</td><td>410 units</td><td class="price">$148M</td><td class="status" style="color:var(--accent)">Closed</td></tr>
+              <tr><td>Harborfront II</td><td>Boston</td><td>Mixed-use</td><td>318,000 sqft</td><td class="price">$246M</td><td class="status" style="color:var(--accent)">Closed</td></tr>
+              <tr><td>Atlantic Logistics</td><td>Savannah</td><td>Industrial</td><td>1.6M sqft</td><td class="price">$215M</td><td class="status" style="color:var(--accent)">Closed</td></tr>
+              <tr><td>Foundry Block</td><td>Brooklyn</td><td>Creative office</td><td>164,000 sqft</td><td class="price">$92M</td><td class="status" style="color:var(--accent)">Closed</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="research">
+      <div class="wrap">
+        <div class="section-head">
+          <div><span class="eyebrow">Principals & clients</span><h2>What the people who write the checks say.</h2></div>
+          <p>Quoted with permission. The principals quoted below close more than $1B of commercial real estate per year between them.</p>
+        </div>
+        <div class="quote-row">
+          <div class="quote">
+            <blockquote>"They underwrote our acquisition of a 1.2M sqft logistics portfolio in eleven days and walked us off two deals that didn't price. The discipline is the product."</blockquote>
+            <cite>— Managing director, North American REIT</cite>
+          </div>
+          <div class="quote">
+            <blockquote>"Urban Capital is the only brokerage I will pay full fee to. Their off-market pipeline is the difference between a 6.0 cap and a 5.4 cap on the same building."</blockquote>
+            <cite>— Partner, Family office, New York</cite>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="cta" id="contact">
+    <div class="wrap cta-grid">
+      <h2>Considering a <em>2026 disposition</em> or acquisition program?</h2>
+      <div>
+        <p>Briefings are accepted from principals and authorized advisors only. We respond to qualified inquiries within one business day.</p>
+        <a class="btn btn-gold" href="#">Submit a confidential brief →</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <div class="brand"><span class="brand-mark">U</span><span class="brand-name">Urban Capital</span></div>
+          <p style="margin-top:14px; max-width: 260px;">An institutional commercial real estate brokerage. NY Lic. 10311208842. Member NAR, ULI.</p>
+        </div>
+        <div class="foot-col"><h4>Practices</h4><a href="#">Investment sales</a><a href="#">Acquisitions</a><a href="#">Financing</a><a href="#">Leasing</a></div>
+        <div class="foot-col"><h4>Markets</h4><a href="#">New York</a><a href="#">Chicago</a><a href="#">Dallas</a><a href="#">Los Angeles</a></div>
+        <div class="foot-col"><h4>Research</h4><a href="#">Market letter</a><a href="#">Quarterly cap</a><a href="#">Sector outlook</a><a href="#">Archive</a></div>
+        <div class="foot-col"><h4>Firm</h4><a href="#">Principals</a><a href="#">Careers</a><a href="#">Press</a><a href="#">Contact</a></div>
+      </div>
+      <div class="foot-bot"><span>© 2026 Urban Capital Partners LLC</span><span>Investor relations · ir@urbancapital.com</span></div>
+    </div>
+  </footer>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

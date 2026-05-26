@@ -1,0 +1,34 @@
+{
+  "slug": "realestate-07-tideline",
+  "title": "Tideline",
+  "subtitle": "Hand-picked beachfront and waterfront vacation rentals with owner-handover.",
+  "category": "Real Estate",
+  "type": "Websites",
+  "tags": [
+    "vacation",
+    "beach",
+    "photo-led",
+    "dreamy",
+    "owner-managed"
+  ],
+  "previewImage": "/templates/realestate-07-tideline.jpg",
+  "palette": {
+    "bg": "#d9e7e0",
+    "fg": "#16312a",
+    "accent": "#ff6c3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "search",
+    "destinations",
+    "stays",
+    "how-it-works",
+    "testimonials",
+    "owner-cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Tideline template as the foundation for a beachfront vacation rental brand with a coastal sea-foam palette and coral accent, dreamy hero with date/guest search, six destination chips, six editorially curated stays with per-night pricing, a four-step how-it-works panel with host handover, guest testimonials, and a list-your-home CTA.",
+  "livePreview": "/template-previews/realestate-07-tideline/"
+}

@@ -1,0 +1,35 @@
+{
+  "slug": "nonprofit-08-hope-runs",
+  "title": "Hope Runs",
+  "subtitle": "Annual 5K and half-marathon funding early-stage breast cancer research grants.",
+  "category": "Nonprofit",
+  "type": "Websites",
+  "tags": [
+    "health",
+    "energetic",
+    "event",
+    "fundraiser"
+  ],
+  "previewImage": "/templates/nonprofit-08-hope-runs.jpg",
+  "palette": {
+    "bg": "#ffffff",
+    "fg": "#1d0a16",
+    "accent": "#ff3d8a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "races",
+    "impact",
+    "labs",
+    "donate",
+    "help",
+    "story",
+    "sponsors",
+    "team",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Hope Runs template as the foundation for an annual fundraising race site with a white + hot pink palette, Anton display headings, a full-bleed photo hero with countdown card, three race-distance cards including a featured half-marathon, cumulative impact stats, four funded-lab grant cards, a pink donate band with selectable tiers, a survivor quote, sponsor strip, and dark leadership grid.",
+  "livePreview": "/template-previews/nonprofit-08-hope-runs/"
+}

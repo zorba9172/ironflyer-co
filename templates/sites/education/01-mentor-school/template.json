@@ -1,0 +1,33 @@
+{
+  "slug": "education-01-mentor-school",
+  "title": "Mentor School",
+  "subtitle": "A modern code bootcamp, cohort-based and shipping-focused.",
+  "category": "Education",
+  "type": "Apps",
+  "tags": [
+    "dark",
+    "bootcamp",
+    "developer",
+    "cohort"
+  ],
+  "previewImage": "/templates/education-01-mentor-school.jpg",
+  "palette": {
+    "bg": "#0e0e10",
+    "fg": "#f5f5f4",
+    "accent": "#c5ff3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "curriculum",
+    "how",
+    "instructors",
+    "outcomes",
+    "pricing",
+    "faq",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Mentor School template as the foundation for a dark, technical code bootcamp landing page. Keep the charcoal background, lime accent, JetBrains Mono detailing, and cohort-based language. Replace course names, instructor bios, and outcomes with the customer's real cohorts.",
+  "livePreview": "/template-previews/education-01-mentor-school/"
+}

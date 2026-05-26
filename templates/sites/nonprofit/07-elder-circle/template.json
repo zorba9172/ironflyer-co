@@ -1,0 +1,35 @@
+{
+  "slug": "nonprofit-07-elder-circle",
+  "title": "Elder Circle",
+  "subtitle": "Companionship, day centers, and in-home care for isolated seniors across Maine.",
+  "category": "Nonprofit",
+  "type": "Websites",
+  "tags": [
+    "seniors",
+    "calm",
+    "dignity",
+    "community"
+  ],
+  "previewImage": "/templates/nonprofit-07-elder-circle.jpg",
+  "palette": {
+    "bg": "#efe5d4",
+    "fg": "#2b2820",
+    "accent": "#75876b"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "impact",
+    "programs",
+    "week",
+    "donate",
+    "help",
+    "story",
+    "transparency",
+    "team",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Elder Circle template as the foundation for a senior-care nonprofit site with a cream + sage palette, italic Lora serif headings, photo hero with overlapping pull-quote card, divided stats strip, three program cards, a weekly day-center schedule block, donate card with selectable tiers, sage volunteer band, intergenerational quote, audited ledger table, leadership grid, and a warm dark footer.",
+  "livePreview": "/template-previews/nonprofit-07-elder-circle/"
+}

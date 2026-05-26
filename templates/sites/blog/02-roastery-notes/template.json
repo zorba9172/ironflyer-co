@@ -1,0 +1,34 @@
+{
+  "slug": "blog-02-roastery-notes",
+  "title": "Roastery Notes",
+  "subtitle": "A slow quarterly of specialty coffee writing, tasting notes, and conversations with the people behind the cup.",
+  "category": "Blog",
+  "type": "Websites",
+  "tags": [
+    "coffee",
+    "editorial",
+    "warm",
+    "serif",
+    "slow"
+  ],
+  "previewImage": "/templates/blog-02-roastery-notes.jpg",
+  "palette": {
+    "bg": "#fbf6ec",
+    "fg": "#3a261b",
+    "accent": "#b08750"
+  },
+  "sections": [
+    "nav",
+    "masthead",
+    "hero",
+    "origins",
+    "tastings",
+    "interviews",
+    "letter",
+    "newsletter",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Roastery Notes template as the foundation for a specialty coffee publication. Warm cream paper, espresso ink, soft gold accents, italic Cormorant display, Source Sans body. Sections cover origins, tasting notes, interviews, an editor's letter, and a newsletter subscription on a dark espresso band. Keep the slow, journalistic voice; replace copy with the publication's own writing.",
+  "livePreview": "/template-previews/blog-02-roastery-notes/"
+}

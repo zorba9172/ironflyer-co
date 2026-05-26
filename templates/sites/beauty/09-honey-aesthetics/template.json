@@ -1,0 +1,34 @@
+{
+  "slug": "beauty-09-honey-aesthetics",
+  "title": "Honey Aesthetics",
+  "subtitle": "Boutique medical aesthetics, led by a board-certified physician.",
+  "category": "Beauty",
+  "type": "Websites",
+  "tags": [
+    "medspa",
+    "luxe",
+    "soft",
+    "medical"
+  ],
+  "previewImage": "/templates/beauty-09-honey-aesthetics.jpg",
+  "palette": {
+    "bg": "#f5e0dc",
+    "fg": "#2a1818",
+    "accent": "#d4af37"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "trust",
+    "treatments",
+    "director",
+    "promise",
+    "stories",
+    "faq",
+    "booking",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Honey Aesthetics template as the foundation for a luxe, blush-and-gold medical aesthetics site with a serif hero, trust stats, transparent treatment pricing, a featured medical director, brand promises, client stories, an FAQ, and an inline consult booking form.",
+  "livePreview": "/template-previews/beauty-09-honey-aesthetics/"
+}

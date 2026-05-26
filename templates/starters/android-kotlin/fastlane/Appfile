@@ -1,0 +1,10 @@
+# Ironflyer Android starter — fastlane app identity.
+#
+# Both fields read from environment variables so the same checkout
+# works for every project that derives from this starter. The CI
+# workflow writes the service-account JSON to a temp path and points
+# the env var at it; locally, set the path manually before running
+# `bundle exec fastlane release`.
+
+package_name(ENV["IRONFLYER_ANDROID_PACKAGE_NAME"] || "com.ironflyer.starter")
+json_key_file(ENV["IRONFLYER_PLAY_JSON_KEY_FILE"] || "play-service-account.json")

@@ -1,0 +1,35 @@
+{
+  "slug": "restaurant-09-algae-kitchen",
+  "title": "Algae",
+  "subtitle": "A twelve-seat plant kitchen — twenty-one courses, one farm, tasting menu only.",
+  "category": "Restaurant",
+  "type": "Websites",
+  "tags": [
+    "vegan",
+    "minimal",
+    "science",
+    "tasting",
+    "plant-based"
+  ],
+  "previewImage": "/templates/restaurant-09-algae-kitchen.jpg",
+  "palette": {
+    "bg": "#cfd9c3",
+    "fg": "#1a1a1a",
+    "accent": "#1a1a1a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "spec",
+    "menu",
+    "lab",
+    "farm",
+    "press",
+    "visit",
+    "reserve",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Algae template as the foundation for a minimal plant-based tasting menu site — sage and ink palette, restrained Cormorant Garamond serif over JetBrains Mono labels, a numbered twenty-one-course menu, a dark fermentation-lab story, a single-farm sourcing list, and a Tock booking CTA.",
+  "livePreview": "/template-previews/restaurant-09-algae-kitchen/"
+}

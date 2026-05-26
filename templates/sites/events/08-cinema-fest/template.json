@@ -1,0 +1,36 @@
+{
+  "slug": "events-08-cinema-fest",
+  "title": "Cinema Fest",
+  "subtitle": "An independent film festival in its eighth year.",
+  "category": "Events",
+  "type": "Websites",
+  "tags": [
+    "film",
+    "festival",
+    "dark",
+    "dramatic",
+    "cinema"
+  ],
+  "previewImage": "/templates/events-08-cinema-fest.jpg",
+  "palette": {
+    "bg": "#0a0a0a",
+    "fg": "#f4ecd6",
+    "accent": "#d6a953"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "marquee",
+    "selections",
+    "schedule",
+    "filmmakers",
+    "venues",
+    "passes",
+    "jury",
+    "submissions",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Cinema Fest template as the foundation for an independent film festival site. Keep the inky background, gold accent, marquee animation, and the program grid. Replace selections, filmmakers, and screening venues with the festival's actual program.",
+  "livePreview": "/template-previews/events-08-cinema-fest/"
+}

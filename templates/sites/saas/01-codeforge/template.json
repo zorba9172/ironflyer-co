@@ -1,0 +1,33 @@
+{
+  "slug": "saas-01-codeforge",
+  "title": "CodeForge",
+  "subtitle": "The AI dev platform that ships production code, gated and reviewed.",
+  "category": "SaaS",
+  "type": "Apps",
+  "tags": [
+    "dark",
+    "developer",
+    "minimal",
+    "saas"
+  ],
+  "previewImage": "/templates/saas-01-codeforge.jpg",
+  "palette": {
+    "bg": "#0a0a0a",
+    "fg": "#f7f3ea",
+    "accent": "#e5ff00"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "logos",
+    "features",
+    "code",
+    "metrics",
+    "pricing",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the CodeForge template as the foundation for a developer-focused SaaS landing with hero, logo strip, feature grid, code demo, metrics, pricing, and a tight footer. Keep the dark, alabaster-on-near-black, electric-lime accent system. Replace placeholder copy with the product's actual positioning.",
+  "livePreview": "/template-previews/saas-01-codeforge/"
+}

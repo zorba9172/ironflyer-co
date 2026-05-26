@@ -1,0 +1,34 @@
+{
+  "slug": "web3-09-layer-zero-net",
+  "title": "LayerZero Net",
+  "subtitle": "A zk-rollup L2 with sub-cent fees, native account abstraction, and full Ethereum security.",
+  "category": "Web3",
+  "type": "Apps",
+  "tags": [
+    "dark",
+    "l2",
+    "futuristic",
+    "gradients"
+  ],
+  "previewImage": "/templates/web3-09-layer-zero-net.jpg",
+  "palette": {
+    "bg": "#000000",
+    "fg": "#f5f0ff",
+    "accent": "#671dfc"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "spec",
+    "how",
+    "features",
+    "compare",
+    "ecosystem",
+    "security",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the LayerZero Net template as the foundation for an L2 rollup landing. Keep the black background with purple gradient accents and ambient orbs, the center-aligned hero with metric card, the architecture steps, and the honest comparison table. Replace placeholder TPS/fee/ecosystem numbers with the network's real data.",
+  "livePreview": "/template-previews/web3-09-layer-zero-net/"
+}

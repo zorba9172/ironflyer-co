@@ -1,0 +1,34 @@
+{
+  "slug": "mobile-app-04-threads-fit",
+  "title": "Threads",
+  "subtitle": "A fitness logger for people who do both strength and cardio.",
+  "category": "Mobile App",
+  "type": "Mobile/PWA",
+  "tags": [
+    "fitness",
+    "athletic",
+    "dark",
+    "tracker"
+  ],
+  "previewImage": "/templates/mobile-app-04-threads-fit.jpg",
+  "palette": {
+    "bg": "#131318",
+    "fg": "#f1f3ec",
+    "accent": "#c5ff3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "badges",
+    "stats",
+    "features",
+    "how",
+    "social",
+    "faq",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Threads template as the foundation for a fitness-logger mobile-app landing. Keep the charcoal + lime athletic system, the CSS phone frame with workout log UI, the stat strip, App Store + Google Play badges, three-step explainer, and a punchy download CTA.",
+  "livePreview": "/template-previews/mobile-app-04-threads-fit/"
+}

@@ -1,11 +1,11 @@
 # Ironflyer Anti-Bloat Engine — MVP Architecture
 
 > Source spec: `docs/FIGMA_TO_PRODUCT_UNIFIED_PLAYBOOK_2026-05-26.md` §8.
-> Status: structural MVP. Functional gates: `reuse_check`,
-> `dep_graph`, `arch_boundary`. Evidence-stub gates: `dedup`,
-> `deadcode`, `complexity`, `bundle_size`, `mem_leak`, `perf_budget`,
-> `vuln_scan`. Per-tool wireup (jscpd / knip / gocognit / govulncheck /
-> goleak / hyperfine / size-limit) is a follow-up per tool.
+> Status: **all 10 gates functional.** Structural gates: `reuse_check`,
+> `dep_graph`, `arch_boundary`. Evidence-driven gates (now wired):
+> `dedup` (jscpd), `deadcode` (knip), `complexity` (gocognit),
+> `bundle_size` (size-limit), `mem_leak` (goleak smoke), `perf_budget`
+> (Lighthouse CI), `vuln_scan` (govulncheck).
 
 ## Why this exists
 
@@ -175,13 +175,13 @@ The Engine attaches `GateEnv.Preflight`, `GateEnv.PatchPaths`, and
 | `reuse_check` | YES | `GateEnv.Preflight` (agents) | Warning (skipped) / Error (malformed) / Info (`new`) |
 | `dep_graph` | YES | `GateEnv.Manifest` + `GateEnv.PatchPaths` | Info (unmapped path); Critical when Validate denies an edge (follow-up) |
 | `arch_boundary` | YES | same as `dep_graph` | same |
-| `dedup` | stub | `IRONFLYER_DEDUP_REPORT_PATH` (jscpd/dupl JSON) | Warning per finding |
-| `deadcode` | stub | `IRONFLYER_DEADCODE_REPORT_PATH` (knip/ts-prune/unparam JSON) | Warning per finding |
-| `complexity` | stub | `IRONFLYER_COMPLEXITY_REPORT_PATH` (gocognit/sonarjs JSON) | Warning per finding |
-| `bundle_size` | stub | `IRONFLYER_BUNDLE_REPORT_PATH` (size-limit / @next/bundle-analyzer) | Error per finding |
-| `mem_leak` | stub | `IRONFLYER_MEMLEAK_REPORT_PATH` (goleak + heap-diff smoke) | Error per finding |
-| `perf_budget` | stub | `IRONFLYER_PERF_REPORT_PATH` (hyperfine / Lighthouse / Web Vitals) | Error per finding |
-| `vuln_scan` | stub | `IRONFLYER_VULN_REPORT_PATH` (govulncheck / npm audit) | Critical per finding |
+| `dedup` | YES | `IRONFLYER_DEDUP_REPORT_PATH` (jscpd JSON) | Warning per finding |
+| `deadcode` | YES | `IRONFLYER_DEADCODE_REPORT_PATH` (knip JSON) | Warning per finding |
+| `complexity` | YES | `IRONFLYER_COMPLEXITY_REPORT_PATH` (gocognit JSON) | Warning per finding |
+| `bundle_size` | YES | `IRONFLYER_BUNDLE_REPORT_PATH` (size-limit / @next/bundle-analyzer) | Error per finding |
+| `mem_leak` | YES | `IRONFLYER_MEMLEAK_REPORT_PATH` (goleak smoke + /debug/leak/snapshot) | Critical when delta > threshold |
+| `perf_budget` | YES | `IRONFLYER_PERF_REPORT_PATH` (Lighthouse CI: perf/a11y/bp/seo) | Error when perf<60 or a11y<90 |
+| `vuln_scan` | YES | `IRONFLYER_VULN_REPORT_PATH` (govulncheck / npm audit) | Critical per finding |
 
 The evidence-stub semantics are:
 
@@ -236,10 +236,10 @@ The seven recommended tools per playbook §8.5:
 | `ts-prune` | `deadcode` (fallback) | line-oriented; needs `awk` to JSON |
 | `gocognit` | `complexity` | `gocognit -over 15 -json ./...` |
 | `dependency-cruiser` | `dep_graph` (richer than the manifest-only MVP) | `depcruise --output-type json src` |
-| `size-limit` | `bundle_size` | already produces JSON |
-| `goleak` | `mem_leak` | wrap calls in `scripts/smoke.sh` and JSON-serialise the `goleak.Find()` output |
-| `hyperfine` | `perf_budget` | `--export-json` |
-| `govulncheck` | `vuln_scan` | `-json` |
+| `size-limit` | `bundle_size` | already produces JSON; wrapper: `scripts/lint/run-size-limit.sh` |
+| `goleak` | `mem_leak` | wrapper: `scripts/lint/run-goleak-smoke.sh` curls `/debug/leak/snapshot` and diffs the goroutine count |
+| `@lhci/cli` | `perf_budget` | wrapper: `scripts/lint/run-lighthouse.sh` runs `npx --yes @lhci/cli@0.13 collect` ×3 against `IRONFLYER_LH_URL`, computes medians per category, thresholds via `IRONFLYER_LH_{PERF,A11Y,BP,SEO}_MIN` |
+| `govulncheck` | `vuln_scan` | `-json` wrapper: `scripts/lint/run-govulncheck.sh` |
 | `npm audit` | `vuln_scan` | needs reshape |
 
 ## Code Health Dashboard

@@ -1,0 +1,34 @@
+{
+  "slug": "mobile-app-02-vault-wallet",
+  "title": "Vault Wallet",
+  "subtitle": "A multi-chain self-custody wallet built for grown-ups.",
+  "category": "Mobile App",
+  "type": "Mobile/PWA",
+  "tags": [
+    "crypto",
+    "dark",
+    "wallet",
+    "security"
+  ],
+  "previewImage": "/templates/mobile-app-02-vault-wallet.jpg",
+  "palette": {
+    "bg": "#0a0a0a",
+    "fg": "#f3f6f3",
+    "accent": "#5cf0a1"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "badges",
+    "features",
+    "chains",
+    "how",
+    "social",
+    "faq",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Vault Wallet template as the foundation for a self-custody crypto wallet mobile-app landing. Keep the near-black + electric-green system, the CSS phone frame with a wallet UI, supported-chains strip, App Store + Google Play badges, security FAQ, and a final download CTA. Replace placeholder copy with the product's actual wallet positioning.",
+  "livePreview": "/template-previews/mobile-app-02-vault-wallet/"
+}

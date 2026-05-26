@@ -34,6 +34,7 @@ import (
 	"ironflyer/core/orchestrator/internal/operations/audit"
 	"ironflyer/core/orchestrator/internal/operations/auditexport"
 	"ironflyer/core/orchestrator/internal/customer/auth"
+	"ironflyer/core/orchestrator/internal/customer/auth/oauth"
 	"ironflyer/core/orchestrator/internal/business/blueprints"
 	"ironflyer/core/orchestrator/internal/business/budget"
 	"ironflyer/core/orchestrator/internal/business/budget/payments"
@@ -90,6 +91,10 @@ type Deps struct {
 	// Authentication.
 	Auth         *auth.Service
 	AuthOptional bool
+
+	// OAuth (Google + GitHub social sign-in). Optional; nil skips
+	// /auth/{provider}/start + /auth/{provider}/callback registration.
+	OAuth *oauth.Handler
 
 	// AllowedOrigins is the comma-separated list of browser origins the
 	// CORS middleware should reflect into Access-Control-Allow-Origin.
@@ -291,6 +296,15 @@ func New(d Deps) http.Handler {
 	r.Post("/budget/webhook", a.stripeWebhook)
 	// Paddle webhook — third-party callback, signature-verified inline.
 	r.Post("/budget/paddle/webhook", a.paddleWebhook)
+
+	// OAuth social sign-in (Google + GitHub). REST exception: the
+	// browser cannot drive a GraphQL mutation through the provider's
+	// redirect dance, and the JWT must ride back via a URL fragment so
+	// it never reaches access logs. See oauth.Handler.
+	if a.d.OAuth != nil {
+		r.Get("/auth/{provider}/start", a.d.OAuth.Start)
+		r.Get("/auth/{provider}/callback", a.d.OAuth.Callback)
+	}
 
 	// /admin/logs/tail — operator-gated NDJSON stream of recent log
 	// entries from the diagnostics ring buffer. Auth is enforced inside

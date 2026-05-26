@@ -1,0 +1,32 @@
+{
+  "slug": "travel-03-wayfinder-tours",
+  "title": "Wayfinder Tours",
+  "subtitle": "Small-group guided tours with twelve travellers and a local lead.",
+  "category": "Travel",
+  "type": "Websites",
+  "tags": [
+    "tours",
+    "editorial",
+    "navy",
+    "photo-led",
+    "small-group"
+  ],
+  "previewImage": "/templates/travel-03-wayfinder-tours.jpg",
+  "palette": {
+    "bg": "#0b1736",
+    "fg": "#f4eee0",
+    "accent": "#ff6c3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "departures",
+    "itinerary",
+    "testimonials",
+    "contact-cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Wayfinder template as the foundation for a small-group guided tour company: navy and coral palette, Playfair Display serif headlines on Inter body, an editorial hero with portrait image and three stats, six departure cards with country, duration, seats-left tag and per-traveller pricing, a sticky-image day-by-day itinerary panel, four traveller reviews, and a coral call-a-planner CTA.",
+  "livePreview": "/template-previews/travel-03-wayfinder-tours/"
+}

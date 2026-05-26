@@ -1,0 +1,35 @@
+{
+  "slug": "blog-06-cinemaze",
+  "title": "Cinemaze",
+  "subtitle": "An independent film publication of long reviews, director interviews, and festival dispatches.",
+  "category": "Blog",
+  "type": "Websites",
+  "tags": [
+    "film",
+    "dark",
+    "dramatic",
+    "serif",
+    "editorial"
+  ],
+  "previewImage": "/templates/blog-06-cinemaze.jpg",
+  "palette": {
+    "bg": "#0a0a0a",
+    "fg": "#ece6d5",
+    "accent": "#d6a953"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "marquee",
+    "reviews",
+    "interview",
+    "festival-dispatches",
+    "ranking",
+    "about",
+    "newsletter",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Cinemaze template as the foundation for a film publication. Inky black background, cinema-gold accent, Bodoni Moda italic display, Inter body. Cinematic hero with star rating, scrolling marquee, three-up review grid with poster cards and star ratings, director interview block with a pull-quote, festival dispatch cards, a Letterboxd-style ranked list, an about section, and a newsletter signup. Voice is patient, cinephile, watched-it-twice.",
+  "livePreview": "/template-previews/blog-06-cinemaze/"
+}

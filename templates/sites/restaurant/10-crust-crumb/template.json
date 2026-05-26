@@ -1,0 +1,36 @@
+{
+  "slug": "restaurant-10-crust-crumb",
+  "title": "Crust + Crumb",
+  "subtitle": "An artisan sourdough bakery on Warren Street, Hudson NY — long cold-ferments and a starter named Lucille.",
+  "category": "Restaurant",
+  "type": "Websites",
+  "tags": [
+    "bakery",
+    "warm",
+    "label-style",
+    "sourdough",
+    "artisan"
+  ],
+  "previewImage": "/templates/restaurant-10-crust-crumb.jpg",
+  "palette": {
+    "bg": "#efe2cb",
+    "fg": "#2b1a10",
+    "accent": "#c1392b"
+  },
+  "sections": [
+    "topmark",
+    "nav",
+    "hero",
+    "schedule",
+    "breads",
+    "pastry",
+    "story",
+    "press",
+    "visit",
+    "preorder",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Crust + Crumb template as the foundation for a warm, label-style sourdough bakery site — wheat and red palette, DM Serif Display headlines with Special Elite typewriter labels, a six-card daily bake schedule with day highlight, hand-tagged bread cards with lot numbers, a pastry-case grid, a starter story with a feeding recipe card, and a pre-order CTA.",
+  "livePreview": "/template-previews/restaurant-10-crust-crumb/"
+}

@@ -1,0 +1,34 @@
+{
+  "slug": "fitness-06-pulse-cardio",
+  "title": "Pulse Cardio",
+  "subtitle": "HIIT and cardio bootcamp, programmed by heart-rate zones.",
+  "category": "Fitness",
+  "type": "Websites",
+  "tags": [
+    "cardio",
+    "hiit",
+    "bold",
+    "data"
+  ],
+  "previewImage": "/templates/fitness-06-pulse-cardio.jpg",
+  "palette": {
+    "bg": "#0b1736",
+    "fg": "#eef4ff",
+    "accent": "#00b3ff"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "zones",
+    "classes",
+    "metrics",
+    "schedule",
+    "coaches",
+    "results",
+    "pricing",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Pulse Cardio template as the foundation for a navy and electric-blue HIIT studio site with hero, heart-rate zones, class types, weekly schedule, coach grid, member results, and class-pack pricing.",
+  "livePreview": "/template-previews/fitness-06-pulse-cardio/"
+}

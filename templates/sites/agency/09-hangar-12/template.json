@@ -1,0 +1,34 @@
+{
+  "slug": "agency-09-hangar-12",
+  "title": "Hangar 12",
+  "subtitle": "Brand consultancy for founder-led companies.",
+  "category": "Agency",
+  "type": "Websites",
+  "tags": [
+    "consultancy",
+    "confident",
+    "photo-led",
+    "warm-grey"
+  ],
+  "previewImage": "/templates/agency-09-hangar-12.jpg",
+  "palette": {
+    "bg": "#1a1a18",
+    "fg": "#f4efe6",
+    "accent": "#ff6c3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "premise",
+    "practice-areas",
+    "engagements",
+    "story-grid",
+    "founders",
+    "thinking",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Hangar 12 template as the foundation for a confident, photo-led brand consultancy in warm grey and coral, aimed at founder-led companies. Long-form prose, founder portraits, an essays section, a serious-but-warm tone.",
+  "livePreview": "/template-previews/agency-09-hangar-12/"
+}

@@ -1,0 +1,36 @@
+{
+  "slug": "restaurant-08-smoke-oak",
+  "title": "Smoke & Oak",
+  "subtitle": "Central Texas BBQ in Burnet — post-oak fire, prime brisket, a beer garden under live oaks.",
+  "category": "Restaurant",
+  "type": "Websites",
+  "tags": [
+    "bbq",
+    "rustic",
+    "gritty",
+    "texas",
+    "beer-garden"
+  ],
+  "previewImage": "/templates/restaurant-08-smoke-oak.jpg",
+  "palette": {
+    "bg": "#7a2a1f",
+    "fg": "#efe1c8",
+    "accent": "#d8a23a"
+  },
+  "sections": [
+    "tape",
+    "nav",
+    "hero",
+    "soldout",
+    "menu",
+    "sides",
+    "fire",
+    "press",
+    "garden",
+    "visit",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Smoke & Oak template as the foundation for a gritty Texas BBQ site — barn-red and cream with gold accents, Alfa Slab One headlines, a scrolling tape banner, a sold-out live count strip, by-the-pound menu cards with grade tags, sides band, a post-oak fire story, beer-garden section, and burnet-Texas hours.",
+  "livePreview": "/template-previews/restaurant-08-smoke-oak/"
+}

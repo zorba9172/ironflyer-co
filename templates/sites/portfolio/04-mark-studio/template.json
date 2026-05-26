@@ -1,0 +1,33 @@
+{
+  "slug": "portfolio-04-mark-studio",
+  "title": "Mark Studio",
+  "subtitle": "Illustrator and zine-maker working in pen, ink, and pixels.",
+  "category": "Portfolio",
+  "type": "Websites",
+  "tags": [
+    "illustration",
+    "playful",
+    "warm",
+    "zine"
+  ],
+  "previewImage": "/templates/portfolio-04-mark-studio.jpg",
+  "palette": {
+    "bg": "#fbf6ec",
+    "fg": "#1a1815",
+    "accent": "#e23a2f"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "selected-illustrations",
+    "zines",
+    "process",
+    "shop",
+    "clients",
+    "contact",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Mark Studio template as the foundation for an illustrator and zine-maker portfolio. Keep the warm white background, hand-set red accent, slightly wobbly section frames, and a playful tone of voice. Show illustration grids and zines as objects, not just images. Friendly first-person copy.",
+  "livePreview": "/template-previews/portfolio-04-mark-studio/"
+}

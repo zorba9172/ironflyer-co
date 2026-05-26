@@ -16,10 +16,23 @@ clients/web/tmp-screenshots/
 playwright-report/
 coverage/
 
-# Local template scratchpad — third-party template packages staged for
-# inspection. NEVER commit; the repo curates a small subset under
-# clients/web/public/templates/ instead.
-/templates/
+# Build artifacts inside template starters — NEVER commit. The starters
+# themselves (sources, manifests, fastlane config) ARE tracked at
+# templates/starters/* per CLAUDE.md ("Real, runnable starters").
+templates/*/node_modules/
+templates/*/build/
+templates/*/.gradle/
+templates/*/.expo/
+templates/*/dist/
+templates/starters/*/node_modules/
+templates/starters/*/build/
+templates/starters/*/.gradle/
+templates/starters/*/.expo/
+templates/starters/*/dist/
+templates/starters/*/DerivedData/
+templates/starters/*/ios/build/
+templates/starters/*/android/build/
+templates/starters/*/android/app/build/
 
 # Go
 bin/

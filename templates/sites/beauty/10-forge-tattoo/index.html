@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Forge Tattoo Co. — Custom tattoo studio in Greenpoint</title>
+  <meta name="description" content="A six-artist custom tattoo studio. Fine line, blackwork, traditional, illustrative. Walk-ins on Saturdays. Bring a reference, leave with a custom design." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #131318;
+      --paper: #1c1c22;
+      --paper-2: #25252c;
+      --ink: #f1ede4;
+      --ink-2: #b1ada3;
+      --ink-3: #797568;
+      --line: rgba(241, 237, 228, 0.10);
+      --accent: #d63a3a;
+      --accent-deep: #a52727;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--ink); font-family: 'Inter', system-ui, sans-serif; font-size: 16px; line-height: 1.6; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 28px; }
+    .display { font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.02em; }
+    .mono { font-family: 'IBM Plex Mono', monospace; }
+    .eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent); }
+
+    .nav { padding: 22px 0; border-bottom: 1px solid var(--line); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { font-family: 'Bebas Neue', sans-serif; font-size: 30px; letter-spacing: 0.06em; }
+    .brand .a { color: var(--accent); }
+    .nav-links { display: flex; gap: 28px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.16em; }
+    .nav-links a:hover { color: var(--accent); }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 0.18em; text-transform: uppercase; border: 1px solid transparent; cursor: pointer; transition: background 200ms, color 200ms; }
+    .btn-primary { background: var(--accent); color: var(--bg); }
+    .btn-primary:hover { background: var(--ink); }
+    .btn-ghost { background: transparent; color: var(--ink); border-color: var(--line); border: 1px solid var(--line); }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    .hero { position: relative; padding: 70px 0 90px; overflow: hidden; }
+    .hero::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(19,19,24,0.5) 0%, rgba(19,19,24,0.95) 70%, var(--bg) 100%), url('https://picsum.photos/seed/forge-tattoo-hero-bg/1800/1200'); background-size: cover; background-position: center; opacity: 0.55; z-index: -1; }
+    h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(72px, 13vw, 200px); line-height: 0.9; letter-spacing: 0.005em; margin: 14px 0 0; }
+    h1 .a { color: var(--accent); }
+    h1 .stk { -webkit-text-stroke: 2px var(--ink); color: transparent; }
+    .hero-foot { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 40px; margin-top: 48px; align-items: end; }
+    .hero-foot p { font-size: 18px; color: var(--ink-2); margin: 0; max-width: 440px; }
+    .hero-foot dt { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-3); }
+    .hero-foot dd { font-family: 'Bebas Neue', sans-serif; font-size: 26px; margin: 4px 0 0; }
+    .hero-cta { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
+    @media (max-width: 1080px) { .hero-foot { grid-template-columns: 1fr; } }
+
+    .ticker { background: var(--accent); color: var(--bg); padding: 16px 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); }
+    .ticker-inner { display: flex; gap: 36px; justify-content: center; flex-wrap: wrap; font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 0.22em; }
+
+    section { padding: 110px 0; }
+    h2 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(48px, 8vw, 108px); letter-spacing: 0.01em; line-height: 0.95; margin: 14px 0 18px; max-width: 14ch; }
+    h2 .a { color: var(--accent); }
+    .section-head { max-width: 780px; margin-bottom: 56px; }
+    .section-head p { font-size: 17px; color: var(--ink-2); }
+
+    .styles-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+    .style-card { background: var(--paper); border: 1px solid var(--line); padding: 28px; transition: border-color 200ms; }
+    .style-card:hover { border-color: var(--accent); }
+    .style-card .n { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--accent); letter-spacing: 0.16em; }
+    .style-card h3 { font-family: 'Bebas Neue', sans-serif; font-size: 30px; letter-spacing: 0.04em; margin: 8px 0 8px; }
+    .style-card p { font-size: 14px; color: var(--ink-2); margin: 0; }
+    @media (max-width: 1080px) { .styles-grid { grid-template-columns: 1fr 1fr; } }
+
+    .flash { background: var(--paper); }
+    .flash-grid { display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(2, 1fr); gap: 8px; }
+    .flash-grid img { width: 100%; height: 100%; object-fit: cover; aspect-ratio: 1/1; filter: grayscale(0.1) contrast(1.05); }
+    .flash-grid .a { grid-column: span 2; grid-row: span 2; aspect-ratio: 1/1; }
+    .flash-grid .b { grid-column: span 2; aspect-ratio: 2/1; }
+    @media (max-width: 1080px) { .flash-grid { grid-template-columns: 1fr 1fr; } .flash-grid .a, .flash-grid .b { grid-column: auto; grid-row: auto; aspect-ratio: 1/1; } }
+
+    .artists-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .artist { background: var(--paper); border: 1px solid var(--line); position: relative; overflow: hidden; }
+    .artist img { width: 100%; aspect-ratio: 4/5; object-fit: cover; filter: contrast(1.05); }
+    .artist-body { padding: 24px 26px 28px; }
+    .artist h3 { font-family: 'Bebas Neue', sans-serif; font-size: 30px; margin: 0; letter-spacing: 0.04em; }
+    .artist .style { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 0.2em; text-transform: uppercase; margin-top: 4px; display: block; }
+    .artist p { font-size: 14px; color: var(--ink-2); margin: 12px 0 14px; }
+    .artist .meta { display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-3); border-top: 1px solid var(--line); padding-top: 14px; }
+    @media (max-width: 1080px) { .artists-grid { grid-template-columns: 1fr 1fr; } }
+
+    .process { background: var(--paper); }
+    .process-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; }
+    .step { padding-top: 22px; border-top: 2px solid var(--accent); }
+    .step .n { font-family: 'Bebas Neue', sans-serif; font-size: 56px; color: var(--accent); line-height: 1; }
+    .step h4 { font-family: 'Bebas Neue', sans-serif; font-size: 28px; margin: 4px 0 10px; letter-spacing: 0.04em; }
+    .step p { font-size: 14px; color: var(--ink-2); margin: 0; }
+    @media (max-width: 1080px) { .process-grid { grid-template-columns: 1fr 1fr; } }
+
+    .pricing-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+    .price-card { background: var(--paper); border: 1px solid var(--line); padding: 28px; }
+    .price-card.feat { border-color: var(--accent); }
+    .price-card h3 { font-family: 'Bebas Neue', sans-serif; font-size: 26px; margin: 0 0 6px; letter-spacing: 0.04em; }
+    .price-card .p { font-family: 'Bebas Neue', sans-serif; font-size: 48px; color: var(--accent); margin: 14px 0 4px; line-height: 1; }
+    .price-card .per { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--ink-3); letter-spacing: 0.18em; text-transform: uppercase; }
+    .price-card ul { list-style: none; padding: 0; margin: 22px 0 0; font-size: 13px; color: var(--ink-2); }
+    .price-card li { padding: 6px 0; border-bottom: 1px solid var(--line); }
+    .price-card li:last-child { border-bottom: 0; }
+    @media (max-width: 1080px) { .pricing-grid { grid-template-columns: 1fr 1fr; } }
+
+    .reviews { background: var(--paper); }
+    .reviews-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+    .review { background: var(--bg); border-left: 3px solid var(--accent); padding: 28px; }
+    .review .stars { color: var(--accent); letter-spacing: 0.1em; font-size: 14px; }
+    .review p { font-size: 15px; color: var(--ink); line-height: 1.6; margin: 14px 0; }
+    .review .who { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-3); }
+    @media (max-width: 1080px) { .reviews-grid { grid-template-columns: 1fr; } }
+
+    .booking { padding: 110px 0; }
+    .booking-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+    .booking form { background: var(--paper); border: 1px solid var(--line); padding: 36px; display: grid; gap: 16px; }
+    .booking label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-3); }
+    .booking input, .booking select, .booking textarea { padding: 14px 16px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font-family: inherit; font-size: 15px; }
+    .booking textarea { min-height: 100px; resize: vertical; }
+    .booking .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 1080px) { .booking-grid { grid-template-columns: 1fr; } }
+
+    footer { border-top: 1px solid var(--line); padding: 48px 0 32px; }
+    .foot { display: flex; justify-content: space-between; align-items: flex-end; gap: 28px; flex-wrap: wrap; }
+    .foot .links { display: flex; gap: 22px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.14em; }
+    .foot .copy { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-3); }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">Forge<span class="a">▲</span>Tattoo Co.</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#styles">// Styles</a>
+        <a href="#flash">// Flash</a>
+        <a href="#artists">// Artists</a>
+        <a href="#process">// Process</a>
+        <a href="#pricing">// Pricing</a>
+        <a href="#booking">// Book</a>
+      </nav>
+      <a class="btn btn-primary" href="#booking">Book consult</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <span class="eyebrow">// Est. 2017 · Greenpoint, Brooklyn</span>
+        <h1>Ink that <span class="a">outlives</span><br/><span class="stk">a trend.</span></h1>
+        <div class="hero-foot">
+          <div>
+            <p>A custom tattoo studio. Six artists, hospital-grade sterilization, no copy-paste flash. We design for your body, your story, your skin.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#booking">Book a consult</a>
+              <a class="btn btn-ghost" href="#flash">See our work</a>
+            </div>
+          </div>
+          <dl>
+            <dt>Minimum</dt><dd>$180</dd>
+            <dt>Hour rate</dt><dd>$220 — $280</dd>
+          </dl>
+          <dl>
+            <dt>Sterilization</dt><dd>Autoclave + single-use</dd>
+            <dt>Walk-ins</dt><dd>Saturdays · 12 — 7</dd>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <div class="ticker">
+      <div class="wrap ticker-inner">
+        <span>Custom only</span><span>·</span><span>Hospital-grade autoclave</span><span>·</span><span>Cover-ups by consult</span><span>·</span><span>Walk-ins Saturdays</span>
+      </div>
+    </div>
+
+    <section id="styles">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">// What we do</span>
+          <h2>Five <span class="a">styles</span>, six artists.</h2>
+          <p>Every artist owns a style. We won't push you toward an artist whose work doesn't match what you actually want.</p>
+        </div>
+        <div class="styles-grid">
+          <div class="style-card">
+            <div class="n">// 01</div>
+            <h3>Fine line</h3>
+            <p>Single-needle, delicate work. Botanicals, micro-script, small framework pieces.</p>
+          </div>
+          <div class="style-card">
+            <div class="n">// 02</div>
+            <h3>Blackwork</h3>
+            <p>Bold black, geometric, ornamental. Heavy contrast. Designed to age beautifully.</p>
+          </div>
+          <div class="style-card">
+            <div class="n">// 03</div>
+            <h3>Traditional</h3>
+            <p>American traditional, neo-trad. Bright color, thick line, will look like itself in twenty years.</p>
+          </div>
+          <div class="style-card">
+            <div class="n">// 04</div>
+            <h3>Illustrative</h3>
+            <p>Custom illustrative narratives, storybook tattoos, sketch-style portraits.</p>
+          </div>
+          <div class="style-card">
+            <div class="n">// 05</div>
+            <h3>Cover-ups</h3>
+            <p>Strategic transformation of older work. By consult only — bring photos of the existing piece.</p>
+          </div>
+          <div class="style-card">
+            <div class="n">// 06</div>
+            <h3>Sleeves &amp; back</h3>
+            <p>Multi-session, long-form work. We'll build out a plan across three to ten sittings.</p>
+          </div>
+          <div class="style-card">
+            <div class="n">// 07</div>
+            <h3>Lettering</h3>
+            <p>Custom-drawn script, blackletter, sans serif. Never pulled from a font menu.</p>
+          </div>
+          <div class="style-card">
+            <div class="n">// 08</div>
+            <h3>Memorial</h3>
+            <p>Quiet, careful work for memorial pieces. Free consult, no upsell, no clock.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="flash" id="flash">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">// The work</span>
+          <h2>Healed work, <span class="a">last 90 days</span>.</h2>
+          <p>Every photo on this site is healed. Day-of photos make any tattoo look better than it'll age — we'd rather show you the real thing.</p>
+        </div>
+        <div class="flash-grid">
+          <img class="a" src="https://picsum.photos/seed/forge-tattoo-f1/900/900" width="900" height="900" alt="A large blackwork dagger tattoo on a forearm, healed." loading="lazy" />
+          <img src="https://picsum.photos/seed/forge-tattoo-f2/600/600" width="600" height="600" alt="A fine-line botanical tattoo on the inside of a wrist." loading="lazy" />
+          <img src="https://picsum.photos/seed/forge-tattoo-f3/600/600" width="600" height="600" alt="A neo-traditional rose with thick black outline on a calf." loading="lazy" />
+          <img class="b" src="https://picsum.photos/seed/forge-tattoo-f4/1200/600" width="1200" height="600" alt="A large illustrative back piece featuring a wolf and forest." loading="lazy" />
+          <img src="https://picsum.photos/seed/forge-tattoo-f5/600/600" width="600" height="600" alt="An ornamental geometric blackwork sleeve." loading="lazy" />
+          <img src="https://picsum.photos/seed/forge-tattoo-f6/600/600" width="600" height="600" alt="A small fine-line constellation on a collarbone." loading="lazy" />
+          <img src="https://picsum.photos/seed/forge-tattoo-f7/600/600" width="600" height="600" alt="A bold traditional eagle on a chest." loading="lazy" />
+          <img src="https://picsum.photos/seed/forge-tattoo-f8/600/600" width="600" height="600" alt="A delicate hand-lettered phrase on the side of a ribcage." loading="lazy" />
+        </div>
+      </div>
+    </section>
+
+    <section id="artists">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">// The chairs</span>
+          <h2>Six <span class="a">artists</span>.</h2>
+        </div>
+        <div class="artists-grid">
+          <div class="artist">
+            <img src="https://picsum.photos/seed/forge-tattoo-a1/700/900" width="700" height="900" alt="Tattoo artist Sasha Vexler holding a machine over a sketchbook." loading="lazy" />
+            <div class="artist-body">
+              <h3>Sasha Vexler</h3>
+              <span class="style">// Blackwork · ornamental</span>
+              <p>Owner. Twelve years. Heavy, considered black with strong negative space. Books out three months.</p>
+              <div class="meta"><span>$280 / hr</span><span>// est. 2013</span></div>
+            </div>
+          </div>
+          <div class="artist">
+            <img src="https://picsum.photos/seed/forge-tattoo-a2/700/900" width="700" height="900" alt="Tattoo artist Mira Voss inking a fine line tattoo." loading="lazy" />
+            <div class="artist-body">
+              <h3>Mira Voss</h3>
+              <span class="style">// Fine line · botanical</span>
+              <p>Eight years. Single-needle specialist. Patient, exact, kindest in the studio.</p>
+              <div class="meta"><span>$240 / hr</span><span>// est. 2017</span></div>
+            </div>
+          </div>
+          <div class="artist">
+            <img src="https://picsum.photos/seed/forge-tattoo-a3/700/900" width="700" height="900" alt="Tattoo artist Jonas Bell sketching at a desk." loading="lazy" />
+            <div class="artist-body">
+              <h3>Jonas Bell</h3>
+              <span class="style">// Traditional · neo-trad</span>
+              <p>Ten years. American traditional, with a soft modern hand on color and shading.</p>
+              <div class="meta"><span>$240 / hr</span><span>// est. 2015</span></div>
+            </div>
+          </div>
+          <div class="artist">
+            <img src="https://picsum.photos/seed/forge-tattoo-a4/700/900" width="700" height="900" alt="Tattoo artist Wes Okafor wiping ink from a client's arm." loading="lazy" />
+            <div class="artist-body">
+              <h3>Wes Okafor</h3>
+              <span class="style">// Illustrative · narrative</span>
+              <p>Seven years. Hand-drawn illustrative pieces with a sketchbook texture. Best for storytelling tattoos.</p>
+              <div class="meta"><span>$220 / hr</span><span>// est. 2018</span></div>
+            </div>
+          </div>
+          <div class="artist">
+            <img src="https://picsum.photos/seed/forge-tattoo-a5/700/900" width="700" height="900" alt="Tattoo artist Theo Marsh outlining lettering." loading="lazy" />
+            <div class="artist-body">
+              <h3>Theo Marsh</h3>
+              <span class="style">// Lettering · script</span>
+              <p>Five years. Custom-drawn lettering only. Won't tattoo from a font menu, ever.</p>
+              <div class="meta"><span>$220 / hr</span><span>// est. 2020</span></div>
+            </div>
+          </div>
+          <div class="artist">
+            <img src="https://picsum.photos/seed/forge-tattoo-a6/700/900" width="700" height="900" alt="Tattoo artist Naomi Park looking up from a tablet sketch." loading="lazy" />
+            <div class="artist-body">
+              <h3>Naomi Park</h3>
+              <span class="style">// Cover-ups · large scale</span>
+              <p>Nine years. Cover-up specialist. Will tell you honestly what can and can't be transformed.</p>
+              <div class="meta"><span>$240 / hr</span><span>// est. 2016</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="process" id="process">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">// Process</span>
+          <h2>How a <span class="a">tattoo</span> gets made here.</h2>
+        </div>
+        <div class="process-grid">
+          <div class="step">
+            <div class="n">01</div>
+            <h4>The brief</h4>
+            <p>Send us your idea, reference images, placement, and rough size. We'll match you to the right artist.</p>
+          </div>
+          <div class="step">
+            <div class="n">02</div>
+            <h4>The consult</h4>
+            <p>30-minute in-person or video consult. We look at placement, talk size, and quote a total estimate.</p>
+          </div>
+          <div class="step">
+            <div class="n">03</div>
+            <h4>The design</h4>
+            <p>A $100 deposit holds your appointment and pays for the custom design, applied to your final total.</p>
+          </div>
+          <div class="step">
+            <div class="n">04</div>
+            <h4>The session</h4>
+            <p>The actual tattoo. Sterile single-use needles. We don't rush — most pieces take longer than the estimate suggests.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pricing">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">// Pricing</span>
+          <h2>What it <span class="a">actually costs</span>.</h2>
+          <p>We don't have hidden fees. Hour rate × estimate, plus a $100 design deposit on booking. Aftercare card, water, and snacks are on the house.</p>
+        </div>
+        <div class="pricing-grid">
+          <div class="price-card">
+            <h3>Minimum</h3>
+            <div class="p">$180</div>
+            <div class="per">// shop minimum</div>
+            <ul>
+              <li>Anything up to 2"</li>
+              <li>Single sitting</li>
+              <li>Includes design time</li>
+              <li>Walk-ins welcome (Sat)</li>
+            </ul>
+          </div>
+          <div class="price-card feat">
+            <h3>Hour rate</h3>
+            <div class="p">$220–280</div>
+            <div class="per">// per artist</div>
+            <ul>
+              <li>Sliding by artist seniority</li>
+              <li>Most pieces 2–6 hrs</li>
+              <li>Quoted on consult</li>
+              <li>Deposit applied to total</li>
+            </ul>
+          </div>
+          <div class="price-card">
+            <h3>Half day</h3>
+            <div class="p">$1,100</div>
+            <div class="per">// 4 hours, one artist</div>
+            <ul>
+              <li>For larger pieces</li>
+              <li>Locked artist time</li>
+              <li>Includes design + setup</li>
+              <li>10% off vs. hour rate</li>
+            </ul>
+          </div>
+          <div class="price-card">
+            <h3>Full day</h3>
+            <div class="p">$2,000</div>
+            <div class="per">// 8 hours, one artist</div>
+            <ul>
+              <li>Sleeves &amp; back pieces</li>
+              <li>Locked artist time</li>
+              <li>Includes design + setup</li>
+              <li>15% off vs. hour rate</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="reviews">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">// Reviews</span>
+          <h2>What people <span class="a">say</span>, healed.</h2>
+        </div>
+        <div class="reviews-grid">
+          <div class="review">
+            <div class="stars">★★★★★</div>
+            <p>"Sasha drew a piece that looked exactly like the conversation we had on the consult, only sharper. Six months healed and still crisp."</p>
+            <div class="who">— Daniel R., blackwork sleeve</div>
+          </div>
+          <div class="review">
+            <div class="stars">★★★★★</div>
+            <p>"Mira talked me out of a font and into custom lettering. She was right. It looks one-of-one and it's healed perfectly."</p>
+            <div class="who">— Hannah K., lettering</div>
+          </div>
+          <div class="review">
+            <div class="stars">★★★★★</div>
+            <p>"Naomi covered a fifteen-year-old tribal disaster with a piece I'd actually be sad to lose. That's the highest compliment a cover-up can earn."</p>
+            <div class="who">— Mike L., cover-up</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="booking" id="booking">
+      <div class="wrap">
+        <div class="booking-grid">
+          <div>
+            <span class="eyebrow">// Book a consult</span>
+            <h2>Send the <span class="a">brief</span>.</h2>
+            <p style="font-size:17px; color:var(--ink-2);">Tell us what you want, where on your body, and roughly how big. Attach reference images by replying to our confirmation email. We respond within two business days.</p>
+            <div style="margin-top:24px; font-family:'IBM Plex Mono', monospace; font-size:14px; color:var(--ink-2); line-height:2;">
+              <div>// 178 Manhattan Ave, Brooklyn NY</div>
+              <div>// (718) 555-0114</div>
+              <div>// Tue–Sat · 12pm — 9pm</div>
+            </div>
+          </div>
+          <form onsubmit="event.preventDefault(); this.querySelector('button').textContent='// Sent — talk soon';">
+            <div>
+              <label for="name">// Name</label>
+              <input id="name" type="text" placeholder="Your name" required />
+            </div>
+            <div class="row">
+              <div>
+                <label for="email">// Email</label>
+                <input id="email" type="email" placeholder="you@email" required />
+              </div>
+              <div>
+                <label for="artist">// Artist</label>
+                <select id="artist">
+                  <option>No preference</option>
+                  <option>Sasha (blackwork)</option>
+                  <option>Mira (fine line)</option>
+                  <option>Jonas (traditional)</option>
+                  <option>Wes (illustrative)</option>
+                  <option>Theo (lettering)</option>
+                  <option>Naomi (cover-ups)</option>
+                </select>
+              </div>
+            </div>
+            <div class="row">
+              <div>
+                <label for="placement">// Placement</label>
+                <input id="placement" type="text" placeholder="Forearm · ribs · etc" />
+              </div>
+              <div>
+                <label for="size">// Approx size</label>
+                <input id="size" type="text" placeholder="4 inches" />
+              </div>
+            </div>
+            <div>
+              <label for="brief">// The idea</label>
+              <textarea id="brief" placeholder="A few sentences. Bring references when you arrive."></textarea>
+            </div>
+            <button class="btn btn-primary" type="submit">Submit brief</button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot">
+        <div class="brand">Forge<span class="a">▲</span>Tattoo Co.</div>
+        <div class="links">
+          <a href="#styles">Styles</a>
+          <a href="#artists">Artists</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#booking">Book</a>
+          <a href="#">Aftercare</a>
+        </div>
+        <div class="copy">// © 2026 · Greenpoint, Brooklyn</div>
+      </div>
+    </div>
+  </footer>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

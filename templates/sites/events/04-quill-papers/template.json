@@ -1,0 +1,35 @@
+{
+  "slug": "events-04-quill-papers",
+  "title": "Quill",
+  "subtitle": "The annual Quill conference on retrieval, language, and human reasoning.",
+  "category": "Events",
+  "type": "Websites",
+  "tags": [
+    "academic",
+    "serif",
+    "restrained",
+    "research",
+    "conference"
+  ],
+  "previewImage": "/templates/events-04-quill-papers.jpg",
+  "palette": {
+    "bg": "#faf5ec",
+    "fg": "#0b1736",
+    "accent": "#7d2e2e"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "program",
+    "papers",
+    "keynotes",
+    "committee",
+    "registration",
+    "venue",
+    "deadlines",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Quill template as the foundation for an academic research conference site. Keep the warm-white + navy palette, serif headings, paper list, and the deadlines block. Replace tracks, papers, and committee with the conference's actual program.",
+  "livePreview": "/template-previews/events-04-quill-papers/"
+}

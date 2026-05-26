@@ -1,0 +1,34 @@
+name: IronflyerStarter
+options:
+  deploymentTarget:
+    iOS: "15.1"
+  bundleIdPrefix: com.ironflyer
+  groupSortPosition: top
+  createIntermediateGroups: true
+settings:
+  base:
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "5.10"
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+targets:
+  IronflyerStarter:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+    resources:
+      - Resources/Assets.xcassets
+      - Resources/PrivacyInfo.xcprivacy
+    info:
+      path: Resources/Info.plist
+      properties:
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UIRequiredDeviceCapabilities: [arm64]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ironflyer.starter
+        ENABLE_PREVIEWS: YES
+        GENERATE_INFOPLIST_FILE: NO

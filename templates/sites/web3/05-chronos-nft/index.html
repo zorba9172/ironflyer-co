@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chronos — A platform for generative art on-chain</title>
+  <meta name="description" content="Chronos is a curated platform for generative art. On-chain provenance, programmable royalties, and an editorial program of long-form releases." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #efe5d4;
+      --surface: #f7efe0;
+      --surface-2: #e6dcc8;
+      --border: rgba(17, 17, 17, 0.10);
+      --border-strong: rgba(17, 17, 17, 0.20);
+      --fg: #111;
+      --fg-2: #4d473d;
+      --fg-3: #8a8174;
+      --accent: #111;
+      --hot: #d63a2a;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 0 28px; }
+    .serif { font-family: 'Fraunces', 'Times New Roman', serif; }
+
+    /* Nav */
+    .nav { padding: 28px 0; border-bottom: 1px solid var(--border); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+    .nav-links { display: flex; gap: 32px; color: var(--fg-2); font-size: 14px; font-weight: 500; }
+    .nav-links a:hover { color: var(--fg); text-decoration: underline; text-underline-offset: 4px; }
+    .nav-cta { display: flex; gap: 10px; align-items: center; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      height: 40px; padding: 0 18px;
+      border-radius: 999px; font-weight: 600; font-size: 14px;
+      border: 1px solid transparent; cursor: pointer;
+      transition: transform 160ms, background 160ms;
+      font-family: inherit;
+    }
+    .btn-primary { background: var(--fg); color: var(--bg); }
+    .btn-primary:hover { transform: translateY(-1px); }
+    .btn-ghost { background: transparent; color: var(--fg); border-color: var(--border-strong); }
+    .btn-ghost:hover { background: var(--fg); color: var(--bg); }
+    @media (max-width: 900px) { .nav-links { display: none; } }
+
+    /* Hero — editorial */
+    .hero { padding: 96px 0 64px; }
+    .hero-meta { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; color: var(--fg-2); margin-bottom: 40px; }
+    .hero-meta .label { font-family: 'Inter', monospace; letter-spacing: 0.1em; text-transform: uppercase; font-size: 11px; font-weight: 600; }
+    h1 {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(60px, 11vw, 180px);
+      line-height: 0.92; letter-spacing: -0.04em;
+      font-weight: 600; margin: 0 0 36px;
+    }
+    h1 em { font-style: italic; font-weight: 500; }
+    .hero-grid { display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 48px; align-items: end; margin-bottom: 64px; }
+    .hero-lede { font-family: 'Fraunces', serif; font-size: clamp(22px, 2vw, 28px); line-height: 1.35; font-weight: 400; max-width: 580px; }
+    .hero-meta-right { font-size: 13px; color: var(--fg-2); font-weight: 500; }
+    .hero-meta-right b { color: var(--fg); font-weight: 700; display: block; font-size: 15px; margin-bottom: 4px; }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 28px; } }
+
+    /* Featured drop */
+    .featured-drop {
+      display: grid; grid-template-columns: 1.3fr 1fr; gap: 48px; align-items: start;
+      padding: 56px 0; border-top: 1px solid var(--fg); border-bottom: 1px solid var(--border);
+    }
+    .drop-image {
+      aspect-ratio: 4 / 3;
+      background:
+        radial-gradient(circle at 20% 30%, #d63a2a 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, #111 0%, transparent 60%),
+        conic-gradient(from 120deg at 50% 50%, #efe5d4, #c8b89a, #efe5d4);
+      border-radius: 4px;
+      position: relative;
+    }
+    .drop-image::after {
+      content: 'Hash 0x42a8…f912'; position: absolute; bottom: 18px; right: 18px;
+      font-family: 'Inter', monospace; font-size: 11px;
+      background: var(--bg); padding: 4px 8px; border-radius: 2px;
+      letter-spacing: 0.05em;
+    }
+    .drop-info .drop-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 20px; color: var(--hot); }
+    .drop-info h2 { font-family: 'Fraunces', serif; font-size: clamp(36px, 4.4vw, 56px); letter-spacing: -0.02em; line-height: 1.04; font-weight: 600; margin: 0 0 16px; }
+    .drop-info h2 em { font-style: italic; font-weight: 500; }
+    .drop-artist { font-size: 15px; color: var(--fg-2); margin-bottom: 24px; }
+    .drop-artist b { color: var(--fg); font-weight: 600; }
+    .drop-desc { font-size: 16px; line-height: 1.6; color: var(--fg-2); margin-bottom: 28px; max-width: 480px; }
+    .drop-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 24px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin-bottom: 28px; }
+    .drop-stat .val { font-family: 'Fraunces', serif; font-size: 36px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
+    .drop-stat .label { font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 8px; font-weight: 600; }
+    @media (max-width: 1080px) { .featured-drop { grid-template-columns: 1fr; } }
+
+    /* Section */
+    .section { padding: 96px 0; border-top: 1px solid var(--border); }
+    .section-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 48px; flex-wrap: wrap; gap: 16px; }
+    .section-head h2 { font-family: 'Fraunces', serif; font-size: clamp(36px, 4vw, 56px); letter-spacing: -0.02em; line-height: 1.04; font-weight: 600; margin: 0; }
+    .section-head h2 em { font-style: italic; font-weight: 500; }
+    .section-head .sec-meta { font-size: 13px; color: var(--fg-2); font-weight: 500; }
+
+    /* Gallery */
+    .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+    .piece { display: block; }
+    .piece-art {
+      aspect-ratio: 1; border-radius: 2px; margin-bottom: 16px;
+    }
+    .art-1 { background: radial-gradient(circle at 30% 30%, #111, transparent 55%), linear-gradient(135deg, #d63a2a, #efe5d4); }
+    .art-2 { background: conic-gradient(from 0deg at 50% 50%, #efe5d4, #111, #d63a2a, #efe5d4); }
+    .art-3 { background: repeating-linear-gradient(45deg, #111 0 2px, transparent 2px 18px), linear-gradient(180deg, #efe5d4, #c8b89a); }
+    .art-4 { background: radial-gradient(ellipse at 80% 20%, #d63a2a, transparent 60%), linear-gradient(225deg, #111, #efe5d4); }
+    .art-5 { background: conic-gradient(from 220deg at 30% 70%, #d63a2a, #efe5d4, #111, #d63a2a); }
+    .art-6 { background: linear-gradient(180deg, transparent 50%, #111 50%), radial-gradient(circle at 50% 30%, #d63a2a, #efe5d4 70%); }
+    .piece-title { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 4px; }
+    .piece-artist { font-size: 14px; color: var(--fg-2); }
+    .piece-meta { display: flex; justify-content: space-between; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 13px; }
+    .piece-meta b { font-family: 'Fraunces', serif; font-weight: 600; }
+    @media (max-width: 1080px) { .gallery { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .gallery { grid-template-columns: 1fr; } }
+
+    /* How it works (process) */
+    .process { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; padding: 56px 0; }
+    .process-step .num { font-family: 'Fraunces', serif; font-size: 80px; font-weight: 500; line-height: 1; font-style: italic; opacity: 0.5; }
+    .process-step h3 { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 600; margin: 16px 0 12px; letter-spacing: -0.01em; }
+    .process-step p { color: var(--fg-2); font-size: 15px; line-height: 1.65; margin: 0; max-width: 320px; }
+    @media (max-width: 1080px) { .process { grid-template-columns: 1fr; gap: 28px; } }
+
+    /* Artists */
+    .artists { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; }
+    .artist { text-align: left; }
+    .artist-photo {
+      aspect-ratio: 1; border-radius: 50%; margin-bottom: 16px; width: 100%;
+    }
+    .artist h3 { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; margin: 0 0 4px; letter-spacing: -0.01em; }
+    .artist p { font-size: 13px; color: var(--fg-2); margin: 0; }
+    @media (max-width: 1080px) { .artists { grid-template-columns: repeat(2, 1fr); } }
+
+    /* Provenance / proof */
+    .proof { background: var(--fg); color: var(--bg); padding: 96px 0; border: 0; }
+    .proof h2 { font-family: 'Fraunces', serif; font-size: clamp(36px, 4.4vw, 56px); letter-spacing: -0.02em; line-height: 1.04; font-weight: 600; margin: 0 0 24px; }
+    .proof h2 em { font-style: italic; font-weight: 500; }
+    .proof-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 56px; align-items: start; }
+    .proof p { font-size: 17px; line-height: 1.6; color: rgba(239, 229, 212, 0.78); max-width: 540px; margin: 0 0 28px; }
+    .proof-card {
+      background: rgba(239, 229, 212, 0.06);
+      border: 1px solid rgba(239, 229, 212, 0.18);
+      border-radius: 6px; padding: 28px;
+    }
+    .proof-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(239, 229, 212, 0.10); font-family: 'Inter', monospace; font-size: 13px; color: rgba(239, 229, 212, 0.78); }
+    .proof-row b { color: var(--bg); font-weight: 600; }
+    .proof-row:last-child { border-bottom: 0; }
+    @media (max-width: 1080px) { .proof-grid { grid-template-columns: 1fr; gap: 40px; } }
+
+    /* Footer */
+    footer { padding: 64px 0 32px; border-top: 1px solid var(--border); }
+    .foot-grid { display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 48px; }
+    .foot-col h4 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--fg-3); margin: 0 0 18px; font-weight: 700; }
+    .foot-col a { display: block; color: var(--fg-2); font-size: 14px; padding: 6px 0; }
+    .foot-col a:hover { color: var(--fg); }
+    .foot-bot { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; color: var(--fg-3); font-size: 13px; }
+    @media (max-width: 720px) {
+      .foot-grid { grid-template-columns: 1fr 1fr; }
+      .foot-bot { flex-direction: column; gap: 12px; text-align: center; }
+    }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">Chronos</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#drops">Drops</a>
+        <a href="#gallery">Editions</a>
+        <a href="#artists">Artists</a>
+        <a href="#process">Process</a>
+        <a href="#proof">Provenance</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-ghost" href="#">Sign in</a>
+        <a class="btn btn-primary" href="#">Connect wallet</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-meta">
+          <span class="label">Volume CCXVII · Spring 2026</span>
+          <span class="label">Curated. On-chain. Long-form.</span>
+        </div>
+        <h1>Generative <em>art</em>, on the ledger.</h1>
+        <div class="hero-grid">
+          <p class="hero-lede">Chronos is a curated platform for generative art. On-chain provenance, programmable royalties, and an editorial program of long-form releases — three to five each month, chosen by artists and curators we respect.</p>
+          <div class="hero-meta-right">
+            <b>This week's release</b>
+            "Field Notations" by Hito Lin · 250 editions · mints Friday 18:00 UTC.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap" id="drops">
+      <div class="featured-drop">
+        <div class="drop-image" role="img" aria-label="Generative artwork preview — Field Notations by Hito Lin"></div>
+        <div class="drop-info">
+          <div class="drop-eyebrow">● Live drop · 02d 14h remaining</div>
+          <h2>Field <em>Notations</em></h2>
+          <p class="drop-artist">By <b>Hito Lin</b> · curated by Mira Okonjo</p>
+          <p class="drop-desc">A study in vector fields rendered as plotter-ready instructions. Each edition derives its line density from the mint block hash; no two outputs are identical, and every variation is reproducible from a single 32-byte seed.</p>
+          <div class="drop-stats">
+            <div class="drop-stat">
+              <div class="val">250</div>
+              <div class="label">Editions</div>
+            </div>
+            <div class="drop-stat">
+              <div class="val">0.18 ETH</div>
+              <div class="label">Mint price</div>
+            </div>
+            <div class="drop-stat">
+              <div class="val">7.5%</div>
+              <div class="label">Artist royalty</div>
+            </div>
+            <div class="drop-stat">
+              <div class="val">2.5%</div>
+              <div class="label">Platform fee</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <a class="btn btn-primary" href="#">Mint edition →</a>
+            <a class="btn btn-ghost" href="#">Read the essay</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="gallery">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <h2>Recent <em>editions</em>.</h2>
+          </div>
+          <span class="sec-meta">All editions are 1:1 reproducible from a 32-byte on-chain seed.</span>
+        </div>
+        <div class="gallery">
+          <a class="piece" href="#">
+            <div class="piece-art art-1" role="img" aria-label="Recurrence by Hito Lin"></div>
+            <div class="piece-title">Recurrence</div>
+            <div class="piece-artist">Hito Lin · edition of 100</div>
+            <div class="piece-meta"><span>Floor</span><b>0.42 ETH</b></div>
+          </a>
+          <a class="piece" href="#">
+            <div class="piece-art art-2" role="img" aria-label="Calendar by Mira Okonjo"></div>
+            <div class="piece-title">Calendar</div>
+            <div class="piece-artist">Mira Okonjo · edition of 88</div>
+            <div class="piece-meta"><span>Floor</span><b>0.61 ETH</b></div>
+          </a>
+          <a class="piece" href="#">
+            <div class="piece-art art-3" role="img" aria-label="Stitch by Pavel Ruzic"></div>
+            <div class="piece-title">Stitch</div>
+            <div class="piece-artist">Pavel Ruzic · edition of 144</div>
+            <div class="piece-meta"><span>Floor</span><b>0.28 ETH</b></div>
+          </a>
+          <a class="piece" href="#">
+            <div class="piece-art art-4" role="img" aria-label="A Late Sun by Anjali Vora"></div>
+            <div class="piece-title">A Late Sun</div>
+            <div class="piece-artist">Anjali Vora · edition of 60</div>
+            <div class="piece-meta"><span>Floor</span><b>1.02 ETH</b></div>
+          </a>
+          <a class="piece" href="#">
+            <div class="piece-art art-5" role="img" aria-label="Horizon Set by Nikolai Bex"></div>
+            <div class="piece-title">Horizon Set</div>
+            <div class="piece-artist">Nikolai Bex · edition of 220</div>
+            <div class="piece-meta"><span>Floor</span><b>0.18 ETH</b></div>
+          </a>
+          <a class="piece" href="#">
+            <div class="piece-art art-6" role="img" aria-label="Half Moon by Hito Lin"></div>
+            <div class="piece-title">Half Moon</div>
+            <div class="piece-artist">Hito Lin · edition of 50</div>
+            <div class="piece-meta"><span>Floor</span><b>0.92 ETH</b></div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="process">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>The release <em>process</em>.</h2>
+          <span class="sec-meta">Three steps. Mint, render, archive.</span>
+        </div>
+        <div class="process">
+          <div class="process-step">
+            <div class="num">i</div>
+            <h3>The seed</h3>
+            <p>When you mint, the contract records a 32-byte seed derived from the block hash and your address. That seed is the artwork's deterministic input forever.</p>
+          </div>
+          <div class="process-step">
+            <div class="num">ii</div>
+            <h3>The render</h3>
+            <p>The artwork code lives on IPFS and Arweave, referenced by hash on the contract. Any client (including a plotter) can re-render the piece from the seed.</p>
+          </div>
+          <div class="process-step">
+            <div class="num">iii</div>
+            <h3>The royalty</h3>
+            <p>Royalties are enforced via EIP-2981 and Chronos's allowlist. Artists receive 7.5% on every secondary transfer, paid directly from the marketplace contract.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="artists">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Artists in <em>residence</em>.</h2>
+          <span class="sec-meta">Twelve artists. One curated release every two weeks.</span>
+        </div>
+        <div class="artists">
+          <div class="artist">
+            <div class="artist-photo" style="background: radial-gradient(circle at 40% 30%, #d63a2a, transparent 50%), linear-gradient(135deg, #111, #efe5d4);" role="img" aria-label="Portrait of Hito Lin"></div>
+            <h3>Hito Lin</h3>
+            <p>Plotter-led generative art. Tokyo.</p>
+          </div>
+          <div class="artist">
+            <div class="artist-photo" style="background: conic-gradient(from 60deg, #efe5d4, #111, #d63a2a, #efe5d4);" role="img" aria-label="Portrait of Mira Okonjo"></div>
+            <h3>Mira Okonjo</h3>
+            <p>Sound-driven imagery. Lagos.</p>
+          </div>
+          <div class="artist">
+            <div class="artist-photo" style="background: linear-gradient(135deg, #d63a2a, #111 70%);" role="img" aria-label="Portrait of Pavel Ruzic"></div>
+            <h3>Pavel Ruzic</h3>
+            <p>Typographic systems. Prague.</p>
+          </div>
+          <div class="artist">
+            <div class="artist-photo" style="background: radial-gradient(circle at 70% 20%, #efe5d4, #d63a2a 50%, #111);" role="img" aria-label="Portrait of Anjali Vora"></div>
+            <h3>Anjali Vora</h3>
+            <p>Color-field studies. Mumbai.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="proof" id="proof">
+      <div class="wrap">
+        <div class="proof-grid">
+          <div>
+            <h2>Provenance <em>on the ledger</em>.</h2>
+            <p>Every Chronos edition is an ERC-721 with an immutable seed, an IPFS-pinned render script, and an Arweave fallback. The contract is the canonical record of who minted what, when, and from which transaction.</p>
+            <p>We do not host any image you can't reconstruct independently. We do not move tokens you didn't sign. The platform fee is 2.5%, hard-coded, and visible on every receipt.</p>
+            <div style="display: flex; gap: 10px; margin-top: 28px; flex-wrap: wrap;">
+              <a class="btn btn-primary" style="background: var(--bg); color: var(--fg);" href="#">Etherscan →</a>
+              <a class="btn btn-ghost" style="border-color: rgba(239,229,212,0.3); color: var(--bg);" href="#">Read the audit</a>
+            </div>
+          </div>
+          <div class="proof-card">
+            <div class="proof-row"><span>Contract</span><b>0x42a8…f912</b></div>
+            <div class="proof-row"><span>Total minted</span><b>14,302 editions</b></div>
+            <div class="proof-row"><span>Artists onboarded</span><b>62</b></div>
+            <div class="proof-row"><span>Platform fee</span><b>2.50%</b></div>
+            <div class="proof-row"><span>Audit</span><b>OpenZeppelin · 2025</b></div>
+            <div class="proof-row"><span>Royalty enforcement</span><b>EIP-2981 + allowlist</b></div>
+            <div class="proof-row"><span>Storage</span><b>IPFS + Arweave</b></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <div class="brand" style="margin-bottom: 18px;">Chronos</div>
+          <p style="color:var(--fg-2); font-size:14px; max-width:320px;">A curated platform for generative art. On-chain provenance, programmable royalties, and a long-form editorial program.</p>
+        </div>
+        <div class="foot-col">
+          <h4>Platform</h4>
+          <a href="#">Drops</a>
+          <a href="#">Editions</a>
+          <a href="#">Artists</a>
+          <a href="#">Submit</a>
+        </div>
+        <div class="foot-col">
+          <h4>About</h4>
+          <a href="#">Editorial</a>
+          <a href="#">Provenance</a>
+          <a href="#">Audit</a>
+          <a href="#">Press</a>
+        </div>
+        <div class="foot-col">
+          <h4>Community</h4>
+          <a href="#">Discord</a>
+          <a href="#">Twitter / X</a>
+          <a href="#">Newsletter</a>
+          <a href="#">RSS</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Chronos Editions</span>
+        <span>All artworks © their respective artists</span>
+      </div>
+    </div>
+  </footer>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

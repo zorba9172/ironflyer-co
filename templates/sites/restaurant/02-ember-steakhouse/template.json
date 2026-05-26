@@ -1,0 +1,35 @@
+{
+  "slug": "restaurant-02-ember-steakhouse",
+  "title": "Ember",
+  "subtitle": "A modern steakhouse built around one hardwood fire, sixty-day beef, and a bourbon library.",
+  "category": "Restaurant",
+  "type": "Websites",
+  "tags": [
+    "steakhouse",
+    "dark",
+    "dramatic",
+    "fire",
+    "bourbon"
+  ],
+  "previewImage": "/templates/restaurant-02-ember-steakhouse.jpg",
+  "palette": {
+    "bg": "#181513",
+    "fg": "#f3ece2",
+    "accent": "#d49858"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "stats",
+    "cuts",
+    "fire",
+    "library",
+    "press",
+    "visit",
+    "reserve",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Ember template as the foundation for a dramatic, dark, fire-led steakhouse site — a full-bleed hearth hero, a stats strip with dry-age numbers, a cuts grid with image cards and prices, a long-form story about the fire, a bourbon list, press strip, hours and reservation CTA.",
+  "livePreview": "/template-previews/restaurant-02-ember-steakhouse/"
+}

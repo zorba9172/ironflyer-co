@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Launchpad Demo Day — Twelve startups, one stage, quarterly</title>
+  <meta name="description" content="Launchpad is a quarterly demo day for early-stage founders. Twelve startups present in 90 minutes. Operator-led, investor-attended, no theatrics." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #131318;
+      --surface: #1c1c22;
+      --surface-2: #25252c;
+      --border: rgba(245, 245, 240, 0.10);
+      --border-strong: rgba(245, 245, 240, 0.25);
+      --fg: #f5f5f0;
+      --fg-2: #b0b0a8;
+      --fg-3: #6c6c64;
+      --accent: #5cf0a1;
+      --accent-2: #1fd97a;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg); color: var(--fg);
+      font-family: 'Geist', system-ui, sans-serif;
+      font-size: 16px; line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+    .mono { font-family: 'Geist Mono', monospace; }
+    .eyebrow { font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.14em; }
+
+    /* Nav */
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(19, 19, 24, 0.86);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; }
+    .brand-mark { width: 26px; height: 26px; background: var(--accent); color: var(--bg); display: grid; place-items: center; font-family: 'Geist Mono', monospace; font-weight: 700; }
+    .nav-links { display: flex; gap: 30px; font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--fg-2); }
+    .nav-links a:hover { color: var(--accent); }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px; font-weight: 600; font-size: 13px; border: 1px solid transparent; cursor: pointer; transition: transform 160ms; }
+    .btn-primary { background: var(--accent); color: var(--bg); }
+    .btn-primary:hover { transform: translateY(-1px); }
+    .btn-ghost { background: transparent; color: var(--fg); border-color: var(--border-strong); }
+    .btn-ghost:hover { border-color: var(--fg); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 80px 0 56px; border-bottom: 1px solid var(--border); position: relative; }
+    .hero-grid { display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 56px; align-items: end; }
+    h1 {
+      font-size: clamp(56px, 9vw, 144px);
+      line-height: 0.9; letter-spacing: -0.04em; font-weight: 900;
+      margin: 24px 0 28px;
+    }
+    h1 em { font-style: normal; color: var(--accent); }
+    .hero p.lede { font-size: 20px; color: var(--fg-2); max-width: 560px; line-height: 1.5; }
+    .hero-meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 32px; font-family: 'Geist Mono', monospace; }
+    .hero-meta div { padding-top: 14px; border-top: 1px solid var(--border-strong); }
+    .hero-meta strong { display: block; font-size: 17px; color: var(--fg); margin-bottom: 6px; }
+    .hero-meta span { font-size: 12px; color: var(--fg-3); }
+    .hero-cta { display: flex; gap: 12px; margin-top: 40px; flex-wrap: wrap; }
+    .hero-cta .btn { padding: 14px 24px; font-size: 14px; }
+    .hero-board { background: var(--surface); border: 1px solid var(--border); padding: 24px; font-family: 'Geist Mono', monospace; font-size: 13px; }
+    .hero-board h4 { margin: 0 0 16px; color: var(--accent); letter-spacing: 0.14em; text-transform: uppercase; font-size: 11px; }
+    .hero-board .row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .hero-board .row:last-child { border-bottom: none; }
+    .hero-board .row .v { color: var(--accent); }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 40px; } }
+
+    /* Section */
+    .section { padding: 96px 0; border-bottom: 1px solid var(--border); }
+    .section-head { max-width: 720px; margin-bottom: 48px; }
+    .section h2 { font-size: clamp(36px, 5vw, 64px); font-weight: 900; letter-spacing: -0.03em; line-height: 1.02; margin: 10px 0 16px; }
+    .section h2 em { font-style: normal; color: var(--accent); }
+    .section .lede { font-size: 18px; color: var(--fg-2); max-width: 620px; }
+
+    /* Next event */
+    .next-card { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+    .next-card img { aspect-ratio: 4/3; object-fit: cover; }
+    .next-detail h3 { font-size: 40px; font-weight: 900; letter-spacing: -0.02em; margin: 0 0 18px; }
+    .next-detail .rows { font-family: 'Geist Mono', monospace; }
+    .next-detail .row { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+    .next-detail .row span:first-child { color: var(--fg-3); }
+    .next-detail .row span:last-child { color: var(--accent); }
+    @media (max-width: 1080px) { .next-card { grid-template-columns: 1fr; } }
+
+    /* Cohort wall */
+    .cohort { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 1px solid var(--border); }
+    .startup { padding: 28px 24px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; min-height: 220px; transition: background 200ms; }
+    .startup:hover { background: var(--surface); }
+    .startup:nth-child(4n) { border-right: none; }
+    .startup .num { font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 0.14em; }
+    .startup h4 { font-size: 22px; font-weight: 800; margin: 0; letter-spacing: -0.01em; }
+    .startup p { margin: 0; color: var(--fg-2); font-size: 14px; flex: 1; }
+    .startup .tag { display: inline-block; font-family: 'Geist Mono', monospace; font-size: 11px; padding: 4px 8px; border: 1px solid var(--border-strong); color: var(--fg-2); align-self: flex-start; }
+    @media (max-width: 1080px) { .cohort { grid-template-columns: repeat(2, 1fr); } .startup:nth-child(4n) { border-right: 1px solid var(--border); } .startup:nth-child(2n) { border-right: none; } }
+    @media (max-width: 720px) { .cohort { grid-template-columns: 1fr; } .startup { border-right: none !important; } }
+
+    /* Agenda */
+    .agenda { display: grid; gap: 12px; }
+    .item { display: grid; grid-template-columns: 130px 1fr 160px; gap: 24px; padding: 18px 24px; background: var(--surface); border-left: 3px solid var(--accent); align-items: center; }
+    .item .time { font-family: 'Geist Mono', monospace; font-size: 14px; color: var(--accent); }
+    .item h4 { margin: 0 0 4px; font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+    .item p { margin: 0; color: var(--fg-2); font-size: 14px; }
+    .item .kind { font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.1em; text-align: right; }
+    @media (max-width: 720px) { .item { grid-template-columns: 1fr; gap: 6px; } .item .kind { text-align: left; } }
+
+    /* Investors strip */
+    .investors-label { font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.18em; text-align: center; margin-bottom: 32px; }
+    .investors-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; }
+    .investors-row span { padding: 20px 16px; text-align: center; border: 1px solid var(--border); font-weight: 700; font-size: 15px; color: var(--fg-2); }
+    @media (max-width: 720px) { .investors-row { grid-template-columns: repeat(2, 1fr); } }
+
+    /* Apply */
+    .apply { background: var(--accent); color: var(--bg); padding: 96px 0; border-bottom: 1px solid var(--border); }
+    .apply h2 { color: var(--bg); margin: 0 0 16px; }
+    .apply p.lede { color: rgba(19, 19, 24, 0.75); max-width: 560px; margin: 0 auto 36px; text-align: center; }
+    .apply .head { text-align: center; }
+    .apply-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 24px; }
+    .apply-card { background: var(--bg); color: var(--fg); padding: 28px 24px; }
+    .apply-card h4 { margin: 0 0 8px; font-size: 18px; font-weight: 800; letter-spacing: -0.01em; }
+    .apply-card p { margin: 0; color: var(--fg-2); font-size: 14px; }
+    .apply-card .when { font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--accent); margin-bottom: 10px; letter-spacing: 0.12em; text-transform: uppercase; }
+    .apply-cta { text-align: center; margin-top: 40px; }
+    .apply-cta .btn { background: var(--bg); color: var(--fg); padding: 18px 32px; font-size: 14px; }
+    @media (max-width: 1080px) { .apply-grid { grid-template-columns: 1fr; max-width: 460px; margin: 24px auto 0; } }
+
+    /* Past */
+    .past { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+    .past-batch { background: var(--surface); padding: 28px; border: 1px solid var(--border); }
+    .past-batch h4 { margin: 0 0 6px; font-size: 18px; font-weight: 800; letter-spacing: -0.01em; }
+    .past-batch p { margin: 0 0 14px; color: var(--fg-2); font-size: 14px; }
+    .past-batch .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; font-family: 'Geist Mono', monospace; font-size: 13px; padding-top: 14px; border-top: 1px solid var(--border); }
+    .past-batch .stats .n { color: var(--accent); font-size: 22px; font-weight: 700; }
+    .past-batch .stats .l { color: var(--fg-3); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 4px; }
+    @media (max-width: 720px) { .past { grid-template-columns: 1fr; } }
+
+    /* FAQ */
+    .faq { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 48px; }
+    .qa { padding: 18px 0; border-bottom: 1px solid var(--border); }
+    .qa h4 { margin: 0 0 8px; font-size: 16px; font-weight: 700; }
+    .qa p { margin: 0; color: var(--fg-2); font-size: 14px; }
+    @media (max-width: 720px) { .faq { grid-template-columns: 1fr; } }
+
+    /* Footer */
+    footer { padding: 40px 0 28px; }
+    .foot-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 32px; }
+    .foot-col h5 { font-family: 'Geist Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 0.14em; text-transform: uppercase; margin: 0 0 14px; }
+    .foot-col a { display: block; color: var(--fg-2); font-size: 14px; padding: 5px 0; }
+    .foot-col a:hover { color: var(--accent); }
+    .foot-bot { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--fg-3); }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 10px; } }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#"><span class="brand-mark">▶</span> Launchpad</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#next">Next</a>
+        <a href="#cohort">Cohort</a>
+        <a href="#agenda">Agenda</a>
+        <a href="#investors">Investors</a>
+        <a href="#apply">Apply</a>
+        <a href="#past">Past</a>
+      </nav>
+      <a class="btn btn-primary" href="#apply">Apply to demo →</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow">Demo Day 014 · Sept 24, 2026 · SOMA</span>
+            <h1>Twelve startups. <em>Ninety minutes.</em> One stage.</h1>
+            <p class="lede">Quarterly demo day for pre-seed and seed founders. Operator-curated, investor-attended, no fluff round. Twelve teams, six minutes each, plus founder Q&amp;A in the lobby.</p>
+            <div class="hero-meta">
+              <div><strong>014 / Sept 24</strong><span>NEXT EVENT</span></div>
+              <div><strong>12 startups</strong><span>6 MIN EACH</span></div>
+              <div><strong>240 attendees</strong><span>INVITE + WAITLIST</span></div>
+            </div>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#apply">Apply to demo</a>
+              <a class="btn btn-ghost" href="#cohort">See cohort 014</a>
+            </div>
+          </div>
+          <aside class="hero-board">
+            <h4>// Stats from cohort 013</h4>
+            <div class="row"><span>Startups demoed</span><span class="v">12</span></div>
+            <div class="row"><span>Raised in 90 days</span><span class="v">$32.4M</span></div>
+            <div class="row"><span>Lead investors closed</span><span class="v">9</span></div>
+            <div class="row"><span>Investors in attendance</span><span class="v">186</span></div>
+            <div class="row"><span>Median round size</span><span class="v">$2.8M</span></div>
+            <div class="row"><span>YC rejection rate, applied</span><span class="v">100%</span></div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="next">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">[01] The next event</span>
+          <h2>Demo Day <em>014</em> — Sept 24, 2026.</h2>
+        </div>
+        <div class="next-card">
+          <img src="https://picsum.photos/seed/launchpad-demoday-2/1100/825" width="1100" height="825" alt="The interior of The Old Mint in SF, a stone-walled hall set up with rows of chairs facing a single low stage with a laptop." loading="lazy" />
+          <div class="next-detail">
+            <h3>The Old Mint · 88 5th Street, SOMA</h3>
+            <div class="rows">
+              <div class="row"><span>Doors</span><span>16:30</span></div>
+              <div class="row"><span>Demos</span><span>17:00 — 18:30</span></div>
+              <div class="row"><span>Founder Q&amp;A</span><span>18:30 — 20:00</span></div>
+              <div class="row"><span>Capacity</span><span>240, invite + waitlist</span></div>
+              <div class="row"><span>Investor coverage</span><span>180+ confirmed</span></div>
+              <div class="row"><span>Live stream</span><span>YES · operators only</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="cohort">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">[02] Cohort 014</span>
+          <h2>The twelve <em>demoing</em>.</h2>
+          <p class="lede">Selected from 312 applications. Each team has a working product, paying users or design partners, and a founder we know personally or by one degree.</p>
+        </div>
+        <div class="cohort">
+          <div class="startup"><span class="num">// 01</span><h4>Ferris</h4><p>Postgres-native row-level encryption with deterministic indexes. Live with 3 fintech customers.</p><span class="tag">B2B INFRA · SF</span></div>
+          <div class="startup"><span class="num">// 02</span><h4>Glasshouse</h4><p>A reading-room app for research teams. Citation-aware notes, no AI summaries.</p><span class="tag">PRODUCTIVITY · LISBON</span></div>
+          <div class="startup"><span class="num">// 03</span><h4>Stockyard</h4><p>Inventory forecasting for restaurants under 20 locations. Replaces a Google Sheet.</p><span class="tag">VERTICAL SAAS · NYC</span></div>
+          <div class="startup"><span class="num">// 04</span><h4>Cinch</h4><p>One-click HSA + commuter benefits for two-person startups. Live in 14 states.</p><span class="tag">FINTECH · OAKLAND</span></div>
+          <div class="startup"><span class="num">// 05</span><h4>Pilot Wave</h4><p>Open-source dataset registry for biotech labs. Self-hosted, S3-backed, free.</p><span class="tag">DEVTOOLS · BOSTON</span></div>
+          <div class="startup"><span class="num">// 06</span><h4>Atlas of Trust</h4><p>Compliance evidence collection for SOC 2, ISO 27001. No screenshots.</p><span class="tag">SECURITY · SF</span></div>
+          <div class="startup"><span class="num">// 07</span><h4>Vending</h4><p>Coffee + snack vending machines for offices, billed per swipe. 110 machines live.</p><span class="tag">HARDWARE · LA</span></div>
+          <div class="startup"><span class="num">// 08</span><h4>Marrow</h4><p>A clinical-trial portal that does not feel like 2004. Pilots at three academic centers.</p><span class="tag">HEALTHCARE · SF</span></div>
+          <div class="startup"><span class="num">// 09</span><h4>Hatchling</h4><p>Onboarding flow builder for B2B SaaS. Replaces Pendo for teams under 40 users.</p><span class="tag">SAAS · BERLIN</span></div>
+          <div class="startup"><span class="num">// 10</span><h4>Switchback</h4><p>A power-monitoring tool for warehouses on time-of-use electricity. Pays for itself in 14 weeks.</p><span class="tag">CLIMATE · DENVER</span></div>
+          <div class="startup"><span class="num">// 11</span><h4>Conduit</h4><p>Internal API portal for finance and ops teams. The "Stripe Atlas of dashboards."</p><span class="tag">INTERNAL TOOLS · NYC</span></div>
+          <div class="startup"><span class="num">// 12</span><h4>Tetherline</h4><p>Backups for the open-source projects you actually depend on. Free for personal, paid for orgs.</p><span class="tag">DEVTOOLS · TEL AVIV</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="agenda">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">[03] The agenda</span>
+          <h2>Ninety minutes <em>of demos</em>, then a room.</h2>
+          <p class="lede">No keynote, no panel, no investor pitch. The demos start at 17:00 and end at 18:30. After that the bar is open and every founder is in the room.</p>
+        </div>
+        <div class="agenda">
+          <div class="item"><span class="time">16:30</span><div><h4>Doors + check-in</h4><p>Coffee + light snacks at the back. Investor lanyards picked up at the front desk.</p></div><span class="kind">Lobby</span></div>
+          <div class="item"><span class="time">17:00</span><div><h4>Demos 01–04</h4><p>Ferris · Glasshouse · Stockyard · Cinch. Six minutes each. Q&amp;A held until the lobby.</p></div><span class="kind">Main hall</span></div>
+          <div class="item"><span class="time">17:30</span><div><h4>Demos 05–08</h4><p>Pilot Wave · Atlas of Trust · Vending · Marrow.</p></div><span class="kind">Main hall</span></div>
+          <div class="item"><span class="time">18:00</span><div><h4>Demos 09–12</h4><p>Hatchling · Switchback · Conduit · Tetherline.</p></div><span class="kind">Main hall</span></div>
+          <div class="item"><span class="time">18:30</span><div><h4>Founder Q&amp;A</h4><p>Twelve founders at twelve tables. The bar is open. Investors rotate.</p></div><span class="kind">Lobby</span></div>
+          <div class="item"><span class="time">20:00</span><div><h4>End</h4><p>The room closes. Founders and investors typically head to Anchor Steam two blocks over.</p></div><span class="kind">—</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="investors">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">[04] Investors</span>
+          <h2>The kind of <em>investors</em> in the room.</h2>
+          <p class="lede">A partial list of funds with partners attending Demo Day 014. Confirmed RSVPs only. We do not sell access.</p>
+        </div>
+        <p class="investors-label">// Demo Day 014 · Confirmed funds</p>
+        <div class="investors-row">
+          <span>Initialized</span>
+          <span>Founders Fund</span>
+          <span>Lux Capital</span>
+          <span>SignalFire</span>
+          <span>Conviction</span>
+          <span>South Park Commons</span>
+          <span>Bond</span>
+          <span>Bessemer</span>
+          <span>Renegade Partners</span>
+          <span>Cota Capital</span>
+          <span>Bain Capital Ventures</span>
+          <span>Felicis</span>
+        </div>
+
+        <div style="margin-top: 64px;">
+          <p class="investors-label">// Solo capital + angels confirmed</p>
+          <div class="investors-row">
+            <span>Sahil Lavingia</span>
+            <span>Lenny Rachitsky</span>
+            <span>Dan Romero</span>
+            <span>Sara Mauskopf</span>
+            <span>Avlok Kohli</span>
+            <span>Anu Atluru</span>
+            <span>Naval Ravikant</span>
+            <span>Calvin French-Owen</span>
+            <span>Tobi Lütke</span>
+            <span>Linear-fund partners</span>
+            <span>Akshay Kothari</span>
+            <span>Packy McCormick</span>
+          </div>
+        </div>
+
+        <div style="margin-top: 56px; padding: 28px; background: var(--surface); border: 1px solid var(--border); font-family: 'Geist Mono', monospace; font-size: 13px; color: var(--fg-2);">
+          <strong style="color: var(--accent); display: block; margin-bottom: 8px; letter-spacing: 0.1em; text-transform: uppercase; font-size: 11px;">// Investor policy</strong>
+          We do not sell access. Investors are invited based on relationship with the operator committee, fund stage, and historical follow-through on intros made at past demo days. We say no to roughly 60% of incoming requests each cycle. If you are a partner at a fund and want to attend, the cleanest path is a backchannel from a portfolio founder.
+        </div>
+      </div>
+    </section>
+
+    <section class="apply" id="apply">
+      <div class="wrap">
+        <div class="head">
+          <span class="eyebrow" style="color:var(--bg);">[05] Apply</span>
+          <h2>Apply to demo at <em style="color:var(--bg); text-decoration:underline; text-decoration-color:rgba(19,19,24,0.5);">015</em>.</h2>
+          <p class="lede">Applications open for Demo Day 015 (December 10, 2026). One page, no slides. Two weeks for review, then a call.</p>
+        </div>
+        <div class="apply-grid">
+          <div class="apply-card"><div class="when">// JUL 1, 2026</div><h4>Applications open</h4><p>Apply through the one-page form. Founders only — no scouts, no third parties.</p></div>
+          <div class="apply-card"><div class="when">// AUG 30, 2026</div><h4>Applications close</h4><p>Hard deadline. Late applications are held for Demo Day 016.</p></div>
+          <div class="apply-card"><div class="when">// SEP 15, 2026</div><h4>Cohort announced</h4><p>Twelve teams selected by a five-person operator committee. Decisions are final.</p></div>
+        </div>
+        <div class="apply-cta">
+          <a class="btn" href="#">Open the application →</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="past">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">[06] Past cohorts</span>
+          <h2>What we have <em>shipped</em>.</h2>
+          <p class="lede">Three years, 13 demo days, 156 founders. A snapshot from the last four batches.</p>
+        </div>
+        <div class="past">
+          <div class="past-batch"><h4>Cohort 013 · June 2026</h4><p>The first AI-heavy cohort since 012. Three companies announced lead investors within 48 hours of the demo.</p><div class="stats"><div><div class="n">$32M</div><div class="l">raised in 90d</div></div><div><div class="n">9</div><div class="l">leads closed</div></div><div><div class="n">186</div><div class="l">investors</div></div></div></div>
+          <div class="past-batch"><h4>Cohort 012 · March 2026</h4><p>Heavy on devtools and vertical SaaS. Marrow's seed was led by Khosla two weeks after demo.</p><div class="stats"><div><div class="n">$28M</div><div class="l">raised in 90d</div></div><div><div class="n">8</div><div class="l">leads closed</div></div><div><div class="n">172</div><div class="l">investors</div></div></div></div>
+          <div class="past-batch"><h4>Cohort 011 · December 2025</h4><p>Two of the twelve have crossed $1M ARR. Three have shut down. Demo Day told us roughly which would be which.</p><div class="stats"><div><div class="n">$19M</div><div class="l">raised in 90d</div></div><div><div class="n">6</div><div class="l">leads closed</div></div><div><div class="n">158</div><div class="l">investors</div></div></div></div>
+          <div class="past-batch"><h4>Cohort 010 · September 2025</h4><p>The first Launchpad after the rebrand. The room was small, the deals were not.</p><div class="stats"><div><div class="n">$24M</div><div class="l">raised in 90d</div></div><div><div class="n">7</div><div class="l">leads closed</div></div><div><div class="n">141</div><div class="l">investors</div></div></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">[07] FAQ</span>
+          <h2>The <em>practical</em> stuff.</h2>
+        </div>
+        <div class="faq">
+          <div class="qa"><h4>Do you take equity?</h4><p>No. Launchpad is free for founders, ever, forever. We are underwritten by sponsors and a small ticketed press section.</p></div>
+          <div class="qa"><h4>Who can attend?</h4><p>Investors with a deployed fund, and operators by referral. We do not sell tickets to the public.</p></div>
+          <div class="qa"><h4>Is it streamed?</h4><p>Yes, to a private feed for operators who can't attend. Recordings are deleted after 30 days.</p></div>
+          <div class="qa"><h4>Why no AI cohort?</h4><p>We have an AI cohort whenever the best applications happen to be AI. We do not have a quota.</p></div>
+          <div class="qa"><h4>Do international founders apply?</h4><p>Yes. 41% of cohort 013 was outside the US. We help with travel.</p></div>
+          <div class="qa"><h4>What about press?</h4><p>One reporter per outlet, by application. No livestreaming, no recording inside the hall.</p></div>
+          <div class="qa"><h4>Can my company sponsor?</h4><p>We take three sponsors per cycle, capped. We turn down sponsorships from funds and from anyone selling to early-stage founders. Email sponsor@launchpad.demo for the deck.</p></div>
+          <div class="qa"><h4>Can I attend if I'm just curious?</h4><p>No. The room is sized for the cohort plus 240 confirmed-active investors. We protect the founders' time, not the audience number.</p></div>
+        </div>
+
+        <div style="margin-top: 64px; padding: 36px; border: 1px dashed var(--border-strong); display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: center;">
+          <div>
+            <strong style="color: var(--accent); font-family: 'Geist Mono', monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; display: block; margin-bottom: 8px;">// Run by operators, for operators</strong>
+            <p style="margin: 0; color: var(--fg-2); font-size: 15px; max-width: 720px;">Launchpad is run by Sasha Cole, Jonas Reyes, Mei Park, and Daniel Krug — four operators who have shipped, raised, exited, or shut down enough companies between them to know what a useful demo day actually looks like. No fund. No carry. No equity. No exceptions.</p>
+          </div>
+          <a class="btn btn-ghost" href="#" style="white-space: nowrap;">Read the founding memo →</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a class="brand" href="#" style="margin-bottom:12px;"><span class="brand-mark">▶</span> Launchpad</a>
+          <p style="color:var(--fg-2); font-size:14px; max-width:300px;">A quarterly demo day for pre-seed and seed founders. Operator-led, no equity, no fluff. Founded 2022 by four ex-founders who pitched at one too many of these.</p>
+        </div>
+        <div class="foot-col"><h5>// Event</h5><a href="#next">Next event</a><a href="#cohort">Cohort 014</a><a href="#agenda">Agenda</a><a href="#investors">Investors</a></div>
+        <div class="foot-col"><h5>// Founders</h5><a href="#apply">Apply</a><a href="#past">Past cohorts</a><a href="#">Office hours</a></div>
+        <div class="foot-col"><h5>// Contact</h5><a href="mailto:hello@launchpad.demo">hello@launchpad.demo</a><a href="#">Sponsor</a><a href="#">Press</a></div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 LAUNCHPAD DEMO DAY · A 501(C)(3) PROGRAM</span>
+        <span>// NEXT: 014 · SEP 24 · SOMA</span>
+      </div>
+    </div>
+  </footer>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ember — A fire-led steakhouse</title>
+  <meta name="description" content="Ember is a modern steakhouse built around a single hardwood fire. Sixty-day dry-aged beef, live-coal vegetables, and a bourbon library." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #181513;
+      --bg-2: #221d1a;
+      --bg-3: #2c2522;
+      --fg: #f3ece2;
+      --fg-2: #b8aea0;
+      --fg-3: #7a6f60;
+      --accent: #d49858;
+      --accent-2: #e6b070;
+      --ember: #c45a1c;
+      --rule: rgba(243, 236, 226, 0.1);
+      --rule-strong: rgba(243, 236, 226, 0.22);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 0 28px; }
+    .display { font-family: 'Playfair Display', 'Times New Roman', serif; }
+    .eyebrow {
+      font-size: 11px; letter-spacing: 0.32em; text-transform: uppercase;
+      color: var(--accent); font-weight: 600;
+    }
+
+    /* Nav */
+    .nav {
+      position: absolute; top: 0; left: 0; right: 0; z-index: 50;
+      padding: 28px 0;
+    }
+    .nav.solid { position: sticky; background: rgba(24, 21, 19, 0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--rule); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: flex; align-items: center; gap: 10px; font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; letter-spacing: 0.02em; }
+    .brand-mark {
+      width: 32px; height: 32px;
+      background: var(--accent); position: relative;
+      clip-path: polygon(50% 0, 100% 60%, 80% 100%, 20% 100%, 0 60%);
+    }
+    .nav-links { display: flex; gap: 32px; font-size: 13px; color: var(--fg-2); letter-spacing: 0.06em; text-transform: uppercase; }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta {
+      border: 1px solid var(--accent); color: var(--accent);
+      padding: 12px 22px; font-size: 12px; font-weight: 600;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      transition: background 200ms, color 200ms;
+    }
+    .nav-cta:hover { background: var(--accent); color: var(--bg); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero {
+      position: relative;
+      min-height: 92vh;
+      display: flex; align-items: flex-end;
+      overflow: hidden;
+      padding-bottom: 88px;
+    }
+    .hero-img {
+      position: absolute; inset: 0;
+    }
+    .hero-img img { width: 100%; height: 100%; object-fit: cover; }
+    .hero-img::after {
+      content: ''; position: absolute; inset: 0;
+      background:
+        radial-gradient(circle at 70% 20%, rgba(196, 90, 28, 0.22), transparent 50%),
+        linear-gradient(180deg, rgba(24,21,19,0.55) 0%, rgba(24,21,19,0.15) 35%, rgba(24,21,19,0.95) 100%);
+    }
+    .hero-content {
+      position: relative; z-index: 2;
+      max-width: 780px;
+    }
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(56px, 8vw, 112px);
+      line-height: 0.98; letter-spacing: -0.02em;
+      font-weight: 700; margin: 24px 0 28px;
+    }
+    h1 em { font-style: italic; color: var(--accent); font-weight: 500; }
+    .lede { font-size: 19px; color: var(--fg-2); max-width: 520px; line-height: 1.6; }
+    .hero-cta { display: flex; gap: 16px; margin-top: 40px; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center;
+      padding: 16px 32px; font-size: 13px; font-weight: 600;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      transition: transform 200ms, background 200ms;
+    }
+    .btn-primary { background: var(--accent); color: var(--bg); }
+    .btn-primary:hover { background: var(--accent-2); transform: translateY(-1px); }
+    .btn-ghost { background: transparent; color: var(--fg); border: 1px solid var(--rule-strong); }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* Stat strip */
+    .stats { padding: 40px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); background: var(--bg-2); }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; }
+    .stat .val { font-family: 'Playfair Display', serif; font-size: 56px; font-weight: 700; color: var(--accent); line-height: 1; letter-spacing: -0.02em; }
+    .stat .label { font-size: 12px; color: var(--fg-2); letter-spacing: 0.16em; text-transform: uppercase; margin-top: 10px; }
+    @media (max-width: 720px) { .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; } }
+
+    /* Section */
+    .section { padding: 120px 0; }
+    .section-head { max-width: 780px; margin-bottom: 64px; }
+    h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(42px, 5.6vw, 72px);
+      letter-spacing: -0.02em; line-height: 1.05;
+      font-weight: 700; margin: 14px 0 16px;
+    }
+    h2 em { font-style: italic; color: var(--accent); font-weight: 500; }
+    .section .lede { font-size: 17px; }
+
+    /* Menu cuts */
+    .cuts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .cut {
+      background: var(--bg-2);
+      border: 1px solid var(--rule);
+      overflow: hidden;
+      position: relative;
+      transition: border-color 240ms, transform 240ms;
+    }
+    .cut:hover { border-color: var(--accent); transform: translateY(-4px); }
+    .cut-img { aspect-ratio: 4/3; overflow: hidden; }
+    .cut-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 600ms; }
+    .cut:hover .cut-img img { transform: scale(1.06); }
+    .cut-body { padding: 28px; }
+    .cut-top { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-bottom: 12px; }
+    .cut h3 { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+    .cut .price { font-family: 'Playfair Display', serif; font-size: 24px; color: var(--accent); font-weight: 500; }
+    .cut .age { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ember); margin-bottom: 8px; display: block; }
+    .cut p { color: var(--fg-2); font-size: 14px; margin: 0; line-height: 1.6; }
+    @media (max-width: 1080px) { .cuts { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .cuts { grid-template-columns: 1fr; } }
+
+    /* Fire / story */
+    .fire {
+      background: var(--bg-2);
+      padding: 120px 0;
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+    }
+    .fire-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+    .fire-img { aspect-ratio: 4/5; overflow: hidden; position: relative; }
+    .fire-img img { width: 100%; height: 100%; object-fit: cover; }
+    .fire-img::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 30% 30%, rgba(196, 90, 28, 0.25), transparent 60%); }
+    .fire-body p { font-size: 18px; color: var(--fg-2); line-height: 1.65; margin: 0 0 20px; }
+    .fire-body p strong { color: var(--fg); font-weight: 600; }
+    .fire-list { list-style: none; padding: 0; margin: 36px 0 0; }
+    .fire-list li {
+      padding: 16px 0; border-top: 1px solid var(--rule);
+      display: flex; gap: 20px; align-items: baseline;
+    }
+    .fire-list .num { font-family: 'Playfair Display', serif; font-size: 32px; color: var(--accent); font-weight: 500; min-width: 56px; }
+    .fire-list .label { font-family: 'Playfair Display', serif; font-size: 22px; }
+    .fire-list .desc { color: var(--fg-2); font-size: 14px; margin-left: auto; max-width: 280px; text-align: right; }
+    @media (max-width: 1080px) { .fire-grid { grid-template-columns: 1fr; gap: 56px; } .fire-list .desc { text-align: left; max-width: none; margin-left: 0; } .fire-list li { flex-wrap: wrap; } }
+
+    /* Bourbon library */
+    .library-grid { display: grid; grid-template-columns: 2fr 3fr; gap: 56px; }
+    .bourbon-list { columns: 2; column-gap: 32px; }
+    .bourbon {
+      break-inside: avoid;
+      padding: 14px 0;
+      border-bottom: 1px dashed var(--rule);
+      display: flex; justify-content: space-between;
+      font-size: 15px;
+    }
+    .bourbon strong { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 500; }
+    .bourbon em { font-style: italic; color: var(--fg-3); font-size: 13px; display: block; }
+    .bourbon .pour { color: var(--accent); font-family: 'Playfair Display', serif; font-size: 17px; }
+    @media (max-width: 1080px) { .library-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 720px) { .bourbon-list { columns: 1; } }
+
+    /* Press */
+    .press {
+      padding: 64px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+    }
+    .press-row {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px;
+    }
+    .press-card .pub { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--accent); margin-bottom: 8px; }
+    .press-card p { color: var(--fg-2); font-size: 14px; margin: 0; font-style: italic; line-height: 1.55; }
+    @media (max-width: 720px) { .press-row { grid-template-columns: 1fr 1fr; gap: 32px; } }
+
+    /* Visit */
+    .visit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; }
+    .hours { font-family: 'Playfair Display', serif; }
+    .hours li { list-style: none; display: flex; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--rule); font-size: 18px; }
+    .hours li.today { color: var(--accent); }
+    .map {
+      aspect-ratio: 4/5;
+      background: var(--bg-3);
+      position: relative;
+      border: 1px solid var(--rule-strong);
+      background-image:
+        linear-gradient(rgba(212,152,88,0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(212,152,88,0.08) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+    .map::before {
+      content: ''; position: absolute; left: 48%; top: 42%;
+      width: 18px; height: 18px;
+      background: var(--ember); border-radius: 50%;
+      box-shadow: 0 0 0 10px rgba(196, 90, 28, 0.25), 0 0 36px rgba(196, 90, 28, 0.6);
+    }
+    .map-label {
+      position: absolute; left: 24px; bottom: 24px;
+      background: var(--bg);
+      border: 1px solid var(--accent); color: var(--accent);
+      padding: 12px 18px; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase;
+    }
+    .address-card { padding: 32px 0; }
+    .address-card p { font-family: 'Playfair Display', serif; font-size: 26px; margin: 12px 0; }
+    .address-card a { color: var(--accent); border-bottom: 1px solid var(--accent); padding-bottom: 2px; font-size: 14px; letter-spacing: 0.1em; text-transform: uppercase; }
+    @media (max-width: 1080px) { .visit-grid { grid-template-columns: 1fr; } }
+
+    /* Reserve CTA */
+    .reserve {
+      position: relative; padding: 140px 0;
+      text-align: center;
+      overflow: hidden;
+    }
+    .reserve-bg { position: absolute; inset: 0; }
+    .reserve-bg img { width: 100%; height: 100%; object-fit: cover; opacity: 0.35; }
+    .reserve-bg::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, rgba(24,21,19,0.4), var(--bg) 80%); }
+    .reserve-inner { position: relative; z-index: 2; }
+    .reserve h2 { font-size: clamp(48px, 7vw, 88px); margin: 16px 0 20px; }
+    .reserve p { font-size: 18px; color: var(--fg-2); max-width: 580px; margin: 0 auto 36px; }
+
+    /* Footer */
+    footer { padding: 64px 0 32px; border-top: 1px solid var(--rule); }
+    .foot-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; }
+    .foot-col h4 { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin: 0 0 16px; font-weight: 600; }
+    .foot-col a, .foot-col p { display: block; color: var(--fg-2); font-size: 14px; line-height: 1.8; }
+    .foot-col a:hover { color: var(--accent); }
+    .foot-bot { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; color: var(--fg-3); font-size: 12px; letter-spacing: 0.1em; }
+    @media (max-width: 720px) {
+      .foot-grid { grid-template-columns: 1fr 1fr; }
+      .foot-bot { flex-direction: column; gap: 12px; text-align: center; }
+    }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a href="#" class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        Ember
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#cuts">Cuts</a>
+        <a href="#fire">The Fire</a>
+        <a href="#library">Bourbon</a>
+        <a href="#visit">Visit</a>
+      </nav>
+      <a href="#reserve" class="nav-cta">Reserve</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-img">
+        <img src="https://picsum.photos/seed/ember-steakhouse-1/2200/1400" width="2200" height="1400" alt="A bone-in ribeye seared over live oak coals at Ember." loading="eager" />
+      </div>
+      <div class="wrap hero-content">
+        <span class="eyebrow">Modern Steakhouse · Live Fire · West Loop</span>
+        <h1>One fire. Sixty days. <em>Beef.</em></h1>
+        <p class="lede">Ember is a steakhouse built around a single hardwood hearth. Sixty-day dry-aged cuts, live-coal vegetables, and a bourbon library two hundred bottles deep.</p>
+        <div class="hero-cta">
+          <a href="#reserve" class="btn btn-primary">Reserve a table</a>
+          <a href="#cuts" class="btn btn-ghost">See the cuts</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats">
+      <div class="wrap">
+        <div class="stats-grid">
+          <div class="stat">
+            <div class="val">60</div>
+            <div class="label">Days dry-aged, minimum</div>
+          </div>
+          <div class="stat">
+            <div class="val">1,800°</div>
+            <div class="label">Hardwood hearth, peak</div>
+          </div>
+          <div class="stat">
+            <div class="val">214</div>
+            <div class="label">Bottles in the bourbon library</div>
+          </div>
+          <div class="stat">
+            <div class="val">9pm</div>
+            <div class="label">Late seating, last reservation</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="cuts">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">The Cuts</span>
+          <h2>Every steak <em>cut</em>, aged, and fired in this room.</h2>
+          <p class="lede">We dry-age in the cellar downstairs. The butcher block faces the dining room. The hearth runs all night. If a cut is on the menu, it's because we want to cook it for you.</p>
+        </div>
+        <div class="cuts">
+          <article class="cut">
+            <div class="cut-img"><img src="https://picsum.photos/seed/ember-steakhouse-2/800/600" width="800" height="600" alt="Sixty-day dry-aged bone-in ribeye, plated with charred shallot." loading="lazy" /></div>
+            <div class="cut-body">
+              <span class="age">60 days · 22 oz</span>
+              <div class="cut-top"><h3>Bone-in ribeye</h3><span class="price">$92</span></div>
+              <p>A heavy cut from Creekstone Black Angus, dry-aged in our cellar for sixty days. Salt, hardwood, butter baste, rest. Nothing else.</p>
+            </div>
+          </article>
+          <article class="cut">
+            <div class="cut-img"><img src="https://picsum.photos/seed/ember-steakhouse-3/800/600" width="800" height="600" alt="Filet mignon with bone-marrow butter at Ember." loading="lazy" /></div>
+            <div class="cut-body">
+              <span class="age">45 days · 8 oz</span>
+              <div class="cut-top"><h3>Filet mignon</h3><span class="price">$58</span></div>
+              <p>Lean center-cut tenderloin, hearth-finished with bone-marrow butter. Served with a single roasted shallot.</p>
+            </div>
+          </article>
+          <article class="cut">
+            <div class="cut-img"><img src="https://picsum.photos/seed/ember-steakhouse-4/800/600" width="800" height="600" alt="A 40 oz porterhouse for two, carved tableside." loading="lazy" /></div>
+            <div class="cut-body">
+              <span class="age">75 days · 40 oz · for two</span>
+              <div class="cut-top"><h3>Porterhouse</h3><span class="price">$168</span></div>
+              <p>Seventy-five-day dry-aged, the strip and the filet sharing one bone. Carved at the table. Built to be split.</p>
+            </div>
+          </article>
+          <article class="cut">
+            <div class="cut-img"><img src="https://picsum.photos/seed/ember-steakhouse-5/800/600" width="800" height="600" alt="A live-coal roasted hen of the woods mushroom." loading="lazy" /></div>
+            <div class="cut-body">
+              <span class="age">No beef · the hearth</span>
+              <div class="cut-top"><h3>Hen of the woods</h3><span class="price">$28</span></div>
+              <p>A pound of hen of the woods, roasted directly in the coals, finished with sherry vinegar, brown butter, and chive.</p>
+            </div>
+          </article>
+          <article class="cut">
+            <div class="cut-img"><img src="https://picsum.photos/seed/ember-steakhouse-6/800/600" width="800" height="600" alt="Charred octopus over white-bean purée." loading="lazy" /></div>
+            <div class="cut-body">
+              <span class="age">First course</span>
+              <div class="cut-top"><h3>Charred octopus</h3><span class="price">$24</span></div>
+              <p>Spanish octopus, slow-braised, finished on the hearth. White-bean purée, pickled fresno, smoked paprika oil.</p>
+            </div>
+          </article>
+          <article class="cut">
+            <div class="cut-img"><img src="https://picsum.photos/seed/ember-steakhouse-7/800/600" width="800" height="600" alt="A wedge of basque-style cheesecake with burnt sugar crust." loading="lazy" /></div>
+            <div class="cut-body">
+              <span class="age">Dessert</span>
+              <div class="cut-top"><h3>Burnt Basque cheesecake</h3><span class="price">$14</span></div>
+              <p>Pulled from the oven at 480° until the top is mahogany and the center is still loose. Salted honey on the side.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="fire" id="fire">
+      <div class="wrap">
+        <div class="fire-grid">
+          <div class="fire-img">
+            <img src="https://picsum.photos/seed/ember-steakhouse-8/900/1100" width="900" height="1100" alt="Live oak coals glowing in the Ember hearth at midnight." loading="lazy" />
+          </div>
+          <div class="fire-body">
+            <span class="eyebrow">The Fire</span>
+            <h2 style="margin-top: 14px;">The hearth runs <em>the kitchen.</em></h2>
+            <p>Every protein on this menu touches the same fire. We burn white oak and pecan, split that morning, never gas, never propane. The hearth is lit at three in the afternoon and finally raked down at midnight.</p>
+            <p><strong>Why one fire?</strong> Because the cook reads it. The cook adjusts. The cook decides when the ribeye comes off, not a timer.</p>
+            <ul class="fire-list">
+              <li><span class="num">01</span><span class="label">Sourcing</span><span class="desc">Creekstone Black Angus, single-source Kansas farm.</span></li>
+              <li><span class="num">02</span><span class="label">Cellar</span><span class="desc">Forty-five to ninety days at 34° in our own cellar.</span></li>
+              <li><span class="num">03</span><span class="label">Butcher</span><span class="desc">Trimmed and portioned every morning, in view.</span></li>
+              <li><span class="num">04</span><span class="label">Hearth</span><span class="desc">Live oak and pecan, no propane, no shortcuts.</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="library">
+      <div class="wrap">
+        <div class="library-grid">
+          <div>
+            <span class="eyebrow">The Library</span>
+            <h2>Two hundred bottles of <em>American</em> whiskey.</h2>
+            <p class="lede">Our bourbon program runs from the basics to the bottles you have to ask for. Pours are honest — two ounces, neat, one large rock if you want it.</p>
+            <p style="color: var(--fg-2); margin-top: 24px;">A few from the current shelf.</p>
+          </div>
+          <div>
+            <div class="bourbon-list">
+              <div class="bourbon"><div><strong>Pappy Van Winkle</strong><em>23 year · Kentucky</em></div><span class="pour">$96</span></div>
+              <div class="bourbon"><div><strong>George T. Stagg</strong><em>BTAC '24 · Kentucky</em></div><span class="pour">$58</span></div>
+              <div class="bourbon"><div><strong>Eagle Rare</strong><em>17 year · single barrel</em></div><span class="pour">$42</span></div>
+              <div class="bourbon"><div><strong>Four Roses</strong><em>OBSV single barrel</em></div><span class="pour">$24</span></div>
+              <div class="bourbon"><div><strong>Old Forester</strong><em>1920 Prohibition style</em></div><span class="pour">$18</span></div>
+              <div class="bourbon"><div><strong>Russell's Reserve</strong><em>10 year · small batch</em></div><span class="pour">$14</span></div>
+              <div class="bourbon"><div><strong>Henry McKenna</strong><em>10 year · bottled in bond</em></div><span class="pour">$16</span></div>
+              <div class="bourbon"><div><strong>Wild Turkey</strong><em>Rare Breed barrel proof</em></div><span class="pour">$15</span></div>
+              <div class="bourbon"><div><strong>Booker's</strong><em>Batch 2025-01</em></div><span class="pour">$22</span></div>
+              <div class="bourbon"><div><strong>Knob Creek</strong><em>15 year · single barrel</em></div><span class="pour">$28</span></div>
+            </div>
+            <p style="color: var(--fg-3); font-size: 13px; margin-top: 28px; font-style: italic;">Full list of two hundred bottles available at the bar. Ask Mateo.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="press">
+      <div class="wrap">
+        <div class="press-row">
+          <div class="press-card">
+            <div class="pub">Eater · 2025</div>
+            <p>"The steakhouse Chicago has been waiting for."</p>
+          </div>
+          <div class="press-card">
+            <div class="pub">Bon Appétit · 2025</div>
+            <p>"Best New Restaurant — top ten in America."</p>
+          </div>
+          <div class="press-card">
+            <div class="pub">Michelin Guide · 2025</div>
+            <p>One star, retained in the Chicago guide.</p>
+          </div>
+          <div class="press-card">
+            <div class="pub">Resy 50 · 2025</div>
+            <p>"Worth the drive from Lincoln Park, every time."</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="visit">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Visit</span>
+          <h2>West Loop, between two <em>el</em> stops.</h2>
+        </div>
+        <div class="visit-grid">
+          <div>
+            <ul class="hours">
+              <li class="closed" style="color: var(--fg-3);"><span>Monday</span><span>Closed</span></li>
+              <li id="day-tue"><span>Tuesday</span><span>5:00 – 10:00 pm</span></li>
+              <li id="day-wed"><span>Wednesday</span><span>5:00 – 10:00 pm</span></li>
+              <li id="day-thu"><span>Thursday</span><span>5:00 – 10:00 pm</span></li>
+              <li id="day-fri"><span>Friday</span><span>5:00 – 11:30 pm</span></li>
+              <li id="day-sat"><span>Saturday</span><span>5:00 – 11:30 pm</span></li>
+              <li id="day-sun"><span>Sunday</span><span>5:00 – 9:00 pm</span></li>
+            </ul>
+            <div class="address-card">
+              <span class="eyebrow">Address</span>
+              <p>918 W. Randolph Street<br/>Chicago, IL 60607</p>
+              <a href="tel:+13125550148">+1 (312) 555 0148</a>
+            </div>
+          </div>
+          <div class="map" aria-label="Map showing Ember on West Randolph Street.">
+            <span class="map-label">918 W. Randolph</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="reserve" id="reserve">
+    <div class="reserve-bg">
+      <img src="https://picsum.photos/seed/ember-steakhouse-9/2200/1200" width="2200" height="1200" alt="The Ember dining room at dusk, hearth lit, banquettes set." loading="lazy" />
+    </div>
+    <div class="wrap reserve-inner">
+      <span class="eyebrow">Reservations</span>
+      <h2>Book the <em>hearth.</em></h2>
+      <p>Reservations open thirty days out. Walk-ins at the bar every night. Private dining for parties up to twenty-four.</p>
+      <a href="#" class="btn btn-primary">Reserve on Tock →</a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a href="#" class="brand" style="margin-bottom: 16px;">
+            <span class="brand-mark" aria-hidden="true"></span>
+            Ember
+          </a>
+          <p>A fire-led steakhouse in the West Loop. Live coals, sixty-day beef, two hundred bourbons.</p>
+        </div>
+        <div class="foot-col">
+          <h4>Visit</h4>
+          <a>918 W. Randolph St.</a>
+          <a>Chicago, IL 60607</a>
+          <a href="tel:+13125550148">(312) 555 0148</a>
+        </div>
+        <div class="foot-col">
+          <h4>Hours</h4>
+          <a>Tue – Thu · 5 to 10</a>
+          <a>Fri – Sat · 5 to 11:30</a>
+          <a>Sun · 5 to 9</a>
+        </div>
+        <div class="foot-col">
+          <h4>Follow</h4>
+          <a href="#">Instagram</a>
+          <a href="#">Tock</a>
+          <a href="#">Private Dining</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Ember Hospitality Group</span>
+        <span>Built around one fire.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var days = ['day-sun','day-mon','day-tue','day-wed','day-thu','day-fri','day-sat'];
+      var idx = new Date().getDay();
+      var el = document.getElementById(days[idx]);
+      if (el) el.classList.add('today');
+    })();
+  </script>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

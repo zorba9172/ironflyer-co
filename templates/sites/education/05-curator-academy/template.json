@@ -1,0 +1,33 @@
+{
+  "slug": "education-05-curator-academy",
+  "title": "Curator Academy",
+  "subtitle": "Online art history and curatorial studies for serious students.",
+  "category": "Education",
+  "type": "Apps",
+  "tags": [
+    "museum",
+    "serif",
+    "art-history",
+    "editorial"
+  ],
+  "previewImage": "/templates/education-05-curator-academy.jpg",
+  "palette": {
+    "bg": "#f3eee0",
+    "fg": "#231b18",
+    "accent": "#6e1f2a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "programs",
+    "syllabus",
+    "faculty",
+    "outcomes",
+    "pricing",
+    "faq",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Curator Academy template as the foundation for a museum-tone art history and curatorial studies site. Keep the bone background, burgundy accent, serif typography, and editorial pace. Replace programs, syllabus weeks, and faculty with the customer's real catalog.",
+  "livePreview": "/template-previews/education-05-curator-academy/"
+}

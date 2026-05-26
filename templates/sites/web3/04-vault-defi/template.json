@@ -1,0 +1,32 @@
+{
+  "slug": "web3-04-vault-defi",
+  "title": "Vault Finance",
+  "subtitle": "A curator-led yield aggregator with risk-tiered strategies and transparent fees.",
+  "category": "Web3",
+  "type": "Apps",
+  "tags": [
+    "dark",
+    "defi",
+    "premium",
+    "dense"
+  ],
+  "previewImage": "/templates/web3-04-vault-defi.jpg",
+  "palette": {
+    "bg": "#131318",
+    "fg": "#f4f1e8",
+    "accent": "#d4af37"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "stats",
+    "vaults",
+    "how",
+    "features",
+    "security",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Vault Finance template as the foundation for a premium DeFi yield aggregator. Keep the charcoal background with gold accent and the editorial serif headlines, the live vault listing table with APY/TVL/risk columns, and the curator-led narrative. Replace placeholder vaults with the protocol's actual strategies.",
+  "livePreview": "/template-previews/web3-04-vault-defi/"
+}

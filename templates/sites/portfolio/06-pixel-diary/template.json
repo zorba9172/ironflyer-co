@@ -1,0 +1,34 @@
+{
+  "slug": "portfolio-06-pixel-diary",
+  "title": "Pixel Diary",
+  "subtitle": "UI designer building the small, polished pieces of large products.",
+  "category": "Portfolio",
+  "type": "Websites",
+  "tags": [
+    "ui",
+    "modern",
+    "screens",
+    "pink"
+  ],
+  "previewImage": "/templates/portfolio-06-pixel-diary.jpg",
+  "palette": {
+    "bg": "#ffffff",
+    "fg": "#0a0a0a",
+    "accent": "#ff3d8a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "screens-grid",
+    "shots",
+    "components",
+    "process",
+    "clients",
+    "now",
+    "contact",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Pixel Diary template as the foundation for a senior UI designer portfolio focused on small, polished work. Keep the white background, hot pink accent, sharp grids, and screens-as-product feel. Show actual interface shots, components, and a process. Crisp, modern, no editorial flourishes.",
+  "livePreview": "/template-previews/portfolio-06-pixel-diary/"
+}

@@ -1,0 +1,34 @@
+{
+  "slug": "blog-09-provender",
+  "title": "Provender",
+  "subtitle": "A reader-supported quarterly of food writing about cooks, ingredients, and long recipes.",
+  "category": "Blog",
+  "type": "Websites",
+  "tags": [
+    "food",
+    "serif",
+    "warm",
+    "editorial",
+    "magazine"
+  ],
+  "previewImage": "/templates/blog-09-provender.jpg",
+  "palette": {
+    "bg": "#fbf7ed",
+    "fg": "#2a1c1c",
+    "accent": "#6e1f2a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "stories",
+    "recipe",
+    "larder",
+    "cooks-table",
+    "about",
+    "newsletter",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Provender template as the foundation for a food writing publication. Warm cream paper, wine red accent, ochre and handwritten Caveat highlights, EB Garamond italic display, Inter body. Sections cover stories, a long recipe band on the wine accent, a four-up larder grid with circular images, a cook's-table pull-quote block, about, and newsletter. Voice is patient, hand-tested, no-sponsored-recipes.",
+  "livePreview": "/template-previews/blog-09-provender/"
+}

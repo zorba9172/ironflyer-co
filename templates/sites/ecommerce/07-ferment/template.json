@@ -1,0 +1,35 @@
+{
+  "slug": "ecommerce-07-ferment",
+  "title": "Ferment",
+  "subtitle": "Wild-fermented sodas and kombucha, brewed in Oakland with whole fruit and real roots.",
+  "category": "E-commerce",
+  "type": "Commerce",
+  "tags": [
+    "drinks",
+    "playful",
+    "label-style",
+    "kombucha",
+    "soda"
+  ],
+  "previewImage": "/templates/ecommerce-07-ferment.jpg",
+  "palette": {
+    "bg": "#f6f1e3",
+    "fg": "#1b1a16",
+    "accent": "#b8d139"
+  },
+  "sections": [
+    "marquee",
+    "nav",
+    "hero",
+    "stats",
+    "products",
+    "variety-packs",
+    "story",
+    "testimonials",
+    "newsletter",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Ferment template as the foundation for a playful drinks storefront. Bright cream and lime palette with magenta and berry accents, Archivo Black display headlines and Caveat handwritten notes, marquee strip, label-style stat band, tilted product cards with badges, three variety packs, brewery story with hand-drawn tag, and a colorful newsletter band. Replace placeholder copy with the brand's actual flavors.",
+  "livePreview": "/template-previews/ecommerce-07-ferment/"
+}

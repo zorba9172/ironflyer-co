@@ -1,0 +1,33 @@
+{
+  "slug": "education-08-composer-school",
+  "title": "Composer School",
+  "subtitle": "Online music composition and theory, taught by working composers.",
+  "category": "Education",
+  "type": "Apps",
+  "tags": [
+    "dark",
+    "music",
+    "elegant",
+    "gold"
+  ],
+  "previewImage": "/templates/education-08-composer-school.jpg",
+  "palette": {
+    "bg": "#0a0a0a",
+    "fg": "#f4ecd8",
+    "accent": "#d4af37"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "courses",
+    "how",
+    "faculty",
+    "outcomes",
+    "pricing",
+    "faq",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Composer School template as the foundation for a dark, elegant music composition school. Keep the inky background, gold accent, serif headings, and concert-program tone. Replace courses, faculty, and student works with the customer's real catalog.",
+  "livePreview": "/template-previews/education-08-composer-school/"
+}

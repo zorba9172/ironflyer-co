@@ -1,0 +1,35 @@
+{
+  "slug": "ecommerce-05-highline",
+  "title": "Highline",
+  "subtitle": "Eyewear tuned for screens and weather, made in Italy, fit in Brooklyn.",
+  "category": "E-commerce",
+  "type": "Commerce",
+  "tags": [
+    "eyewear",
+    "clean",
+    "white",
+    "editorial",
+    "model"
+  ],
+  "previewImage": "/templates/ecommerce-05-highline.jpg",
+  "palette": {
+    "bg": "#ffffff",
+    "fg": "#181a14",
+    "accent": "#5b6a3a"
+  },
+  "sections": [
+    "banner",
+    "nav",
+    "hero",
+    "category-tabs",
+    "products",
+    "editorial",
+    "lookbook",
+    "reviews",
+    "newsletter",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Highline template as the foundation for an eyewear storefront. White background with olive accent, Manrope sans + Newsreader serif italics, category tab strip, product grid with screen / polarized pills and swatches, editorial story panel, asymmetric lookbook grid, reviews, and a structured newsletter band. Replace placeholder copy with the brand's actual frames.",
+  "livePreview": "/template-previews/ecommerce-05-highline/"
+}

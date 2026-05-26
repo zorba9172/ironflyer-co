@@ -1,0 +1,35 @@
+{
+  "slug": "agency-02-studio-curio",
+  "title": "Studio Curio",
+  "subtitle": "We build identity systems for objects worth keeping.",
+  "category": "Agency",
+  "type": "Websites",
+  "tags": [
+    "editorial",
+    "minimal",
+    "serif",
+    "cream"
+  ],
+  "previewImage": "/templates/agency-02-studio-curio.jpg",
+  "palette": {
+    "bg": "#f7f2e8",
+    "fg": "#111111",
+    "accent": "#1a1a1a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "intro",
+    "services",
+    "work-index",
+    "case-study",
+    "process",
+    "team",
+    "press",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Studio Curio template as the foundation for a minimal, editorial agency site built on cream and black with serif headlines, a typographic work index, and a careful tone aimed at heritage product brands and houseware makers.",
+  "livePreview": "/template-previews/agency-02-studio-curio/"
+}

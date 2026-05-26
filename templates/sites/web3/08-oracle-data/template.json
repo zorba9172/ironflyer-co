@@ -1,0 +1,33 @@
+{
+  "slug": "web3-08-oracle-data",
+  "title": "Oracle Data",
+  "subtitle": "A decentralized oracle network with signed feeds, VRF, off-chain compute, and cross-chain attestations.",
+  "category": "Web3",
+  "type": "Apps",
+  "tags": [
+    "dark",
+    "oracle",
+    "technical",
+    "terminal"
+  ],
+  "previewImage": "/templates/web3-08-oracle-data.jpg",
+  "palette": {
+    "bg": "#0a0a0d",
+    "fg": "#f0eee8",
+    "accent": "#ff6c3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "stats",
+    "feeds",
+    "how",
+    "features",
+    "security",
+    "dev",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Oracle Data template as the foundation for a decentralized oracle network landing. Keep the dark terminal aesthetic with orange accent, the live terminal in the hero, the live feed table with deviation/heartbeat columns, and the Solidity code example. Replace placeholder feeds and operator counts with the network's real numbers.",
+  "livePreview": "/template-previews/web3-08-oracle-data/"
+}

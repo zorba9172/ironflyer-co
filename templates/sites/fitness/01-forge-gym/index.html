@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Forge Gym — Strength training in East Williamsburg</title>
+  <meta name="description" content="A barbell-focused strength gym for lifters who train with intent. Coached programs, open lifting, and a 4,800 sq ft floor with 18 platforms." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0e0e10;
+      --surface: #17171a;
+      --surface-2: #1f1f23;
+      --border: rgba(244, 241, 234, 0.10);
+      --border-strong: rgba(244, 241, 234, 0.22);
+      --fg: #f4f1ea;
+      --fg-2: #b7b3a9;
+      --fg-3: #6f6d65;
+      --accent: #c5ff3a;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg); color: var(--fg);
+      font-family: 'Archivo', system-ui, sans-serif;
+      font-size: 16px; line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(14,14,16,0.86);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 68px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 900; letter-spacing: 0.02em; text-transform: uppercase; }
+    .brand-mark { width: 28px; height: 28px; background: var(--accent); color: #000; display: grid; place-items: center; font-weight: 900; }
+    .nav-links { display: flex; gap: 28px; color: var(--fg-2); font-size: 14px; font-weight: 600; }
+    .nav-links a:hover { color: var(--fg); }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 20px; border-radius: 4px; font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: 0.06em; border: 1px solid transparent; cursor: pointer; transition: transform 160ms ease, background 160ms; }
+    .btn-primary { background: var(--accent); color: #0e0e10; }
+    .btn-primary:hover { transform: translateY(-1px); }
+    .btn-ghost { background: transparent; color: var(--fg); border-color: var(--border-strong); }
+    .btn-ghost:hover { border-color: var(--fg); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    .hero { padding: 80px 0 64px; position: relative; overflow: hidden; }
+    .hero-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 56px; align-items: center; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border: 1px solid var(--border-strong); border-radius: 999px; font-size: 11px; color: var(--fg-2); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    h1 { font-size: clamp(48px, 8vw, 96px); line-height: 0.95; letter-spacing: -0.03em; font-weight: 900; margin: 20px 0 24px; text-transform: uppercase; }
+    h1 em { font-style: normal; color: var(--accent); }
+    .lede { font-size: 18px; color: var(--fg-2); max-width: 520px; }
+    .hero-cta { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
+    .hero-art { position: relative; border: 1px solid var(--border-strong); overflow: hidden; aspect-ratio: 3/4; }
+    .hero-art img { width: 100%; height: 100%; object-fit: cover; filter: contrast(1.05) saturate(0.95); }
+    .hero-tag { position: absolute; bottom: 16px; left: 16px; right: 16px; background: var(--accent); color: #0e0e10; padding: 12px 14px; font-family: 'JetBrains Mono', monospace; font-size: 12px; text-transform: uppercase; font-weight: 700; display: flex; justify-content: space-between; }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; } .hero-art { max-width: 480px; } }
+
+    .stats { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); }
+    .stat { padding: 36px 24px; border-right: 1px solid var(--border); }
+    .stat:last-child { border-right: 0; }
+    .stat .v { font-size: 48px; font-weight: 900; letter-spacing: -0.02em; line-height: 1; color: var(--accent); }
+    .stat .l { color: var(--fg-2); font-size: 13px; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.08em; font-family: 'JetBrains Mono', monospace; }
+    @media (max-width: 720px) { .stats-row { grid-template-columns: repeat(2, 1fr); } .stat:nth-child(2n) { border-right: 0; } .stat:nth-child(-n+2) { border-bottom: 1px solid var(--border); } }
+
+    .section { padding: 96px 0; }
+    .section-head { max-width: 700px; margin-bottom: 56px; }
+    .section h2 { font-size: clamp(36px, 5vw, 56px); letter-spacing: -0.02em; line-height: 1.02; font-weight: 900; margin: 14px 0 16px; text-transform: uppercase; }
+    .section h2 em { font-style: normal; color: var(--accent); }
+    .section .lede { font-size: 17px; }
+
+    .programs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .program { background: var(--surface); border: 1px solid var(--border); padding: 32px; display: flex; flex-direction: column; min-height: 320px; transition: border-color 200ms; }
+    .program:hover { border-color: var(--accent); }
+    .program .tag { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; }
+    .program h3 { font-size: 26px; margin: 12px 0 12px; font-weight: 800; text-transform: uppercase; letter-spacing: -0.01em; }
+    .program p { color: var(--fg-2); flex: 1; font-size: 15px; }
+    .program .meta { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--fg-3); display: flex; justify-content: space-between; }
+    .program .meta span:last-child { color: var(--fg); }
+    @media (max-width: 1080px) { .programs { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .programs { grid-template-columns: 1fr; } }
+
+    .schedule-card { background: var(--surface); border: 1px solid var(--border); overflow: hidden; }
+    .schedule-tabs { display: flex; border-bottom: 1px solid var(--border); }
+    .schedule-tab { flex: 1; padding: 16px; background: none; border: 0; color: var(--fg-2); font-family: 'JetBrains Mono', monospace; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; font-weight: 700; }
+    .schedule-tab.active { background: var(--accent); color: #0e0e10; }
+    .schedule-day { display: none; }
+    .schedule-day.active { display: block; }
+    .slot { display: grid; grid-template-columns: 120px 1fr 140px 100px; padding: 18px 28px; border-bottom: 1px solid var(--border); align-items: center; gap: 20px; }
+    .slot:last-child { border-bottom: 0; }
+    .slot .time { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--accent); }
+    .slot .cls { font-weight: 800; text-transform: uppercase; letter-spacing: -0.01em; }
+    .slot .coach { color: var(--fg-2); font-size: 14px; }
+    .slot .spots { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--fg-3); text-align: right; }
+    @media (max-width: 720px) { .slot { grid-template-columns: 1fr; padding: 16px 18px; gap: 4px; } .slot .spots { text-align: left; } }
+
+    .coaches { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .coach-card { background: var(--surface); border: 1px solid var(--border); overflow: hidden; }
+    .coach-card img { width: 100%; aspect-ratio: 4/5; object-fit: cover; }
+    .coach-card .body { padding: 20px; }
+    .coach-card h3 { margin: 0 0 4px; font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: -0.01em; }
+    .coach-card .role { color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; }
+    .coach-card p { color: var(--fg-2); font-size: 14px; margin: 10px 0 0; }
+    @media (max-width: 1080px) { .coaches { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .coaches { grid-template-columns: 1fr; } }
+
+    .testimonials { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .quote { background: var(--surface); border: 1px solid var(--border); padding: 28px; }
+    .quote p { font-size: 17px; line-height: 1.5; margin: 0 0 20px; }
+    .quote .who { display: flex; align-items: center; gap: 12px; }
+    .quote .who img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+    .quote .who div { font-size: 13px; }
+    .quote .who strong { display: block; }
+    .quote .who span { color: var(--fg-3); }
+    @media (max-width: 1080px) { .testimonials { grid-template-columns: 1fr; max-width: 640px; margin: 0 auto; } }
+
+    .membership { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .plan { background: var(--surface); border: 1px solid var(--border); padding: 32px; display: flex; flex-direction: column; }
+    .plan.feat { border-color: var(--accent); position: relative; }
+    .plan.feat::after { content: 'MOST POPULAR'; position: absolute; top: -10px; left: 20px; background: var(--accent); color: #0e0e10; padding: 4px 10px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; font-weight: 700; }
+    .plan h3 { margin: 0; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-2); font-size: 13px; font-weight: 700; }
+    .plan .price { font-size: 56px; font-weight: 900; letter-spacing: -0.03em; margin: 12px 0 4px; }
+    .plan .price small { font-size: 14px; color: var(--fg-3); font-weight: 600; }
+    .plan ul { list-style: none; padding: 0; margin: 22px 0; flex: 1; }
+    .plan li { padding: 6px 0; color: var(--fg-2); font-size: 14px; display: flex; gap: 10px; }
+    .plan li::before { content: '▸'; color: var(--accent); }
+    @media (max-width: 1080px) { .membership { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; } }
+
+    .location { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: center; }
+    .location img { width: 100%; aspect-ratio: 4/3; object-fit: cover; }
+    .location-info h3 { font-size: 28px; text-transform: uppercase; font-weight: 800; margin: 0 0 14px; letter-spacing: -0.01em; }
+    .location-info dl { display: grid; grid-template-columns: 100px 1fr; gap: 10px 18px; font-size: 15px; }
+    .location-info dt { font-family: 'JetBrains Mono', monospace; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-3); }
+    .location-info dd { margin: 0; color: var(--fg); }
+    @media (max-width: 1080px) { .location { grid-template-columns: 1fr; } }
+
+    footer { border-top: 1px solid var(--border); padding: 56px 0 32px; }
+    .foot-grid { display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 40px; }
+    .foot-col h4 { font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-3); margin: 0 0 16px; }
+    .foot-col a { display: block; color: var(--fg-2); font-size: 14px; padding: 6px 0; }
+    .foot-col a:hover { color: var(--fg); }
+    .foot-bot { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; color: var(--fg-3); font-size: 13px; font-family: 'JetBrains Mono', monospace; }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 10px; text-align: center; } }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#"><span class="brand-mark">F</span> Forge</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#programs">Programs</a>
+        <a href="#schedule">Schedule</a>
+        <a href="#coaches">Coaches</a>
+        <a href="#membership">Membership</a>
+        <a href="#location">Location</a>
+      </nav>
+      <div>
+        <a class="btn btn-primary" href="#membership">Try a week →</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>East Williamsburg · Est. 2017</span>
+            <h1>Lift heavy. <em>Stay coached.</em></h1>
+            <p class="lede">Forge is a 4,800 sq ft strength gym built around the barbell. Eighteen platforms, calibrated plates, and coaches who actually program your training. No mirrors. No music made for treadmills.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#membership">Book a free intro</a>
+              <a class="btn btn-ghost" href="#schedule">See the schedule</a>
+            </div>
+          </div>
+          <div class="hero-art">
+            <img src="https://picsum.photos/seed/forge-gym-1/900/1200" width="900" height="1200" alt="A lifter pulling a heavy deadlift on a wooden platform inside Forge gym." loading="eager" />
+            <div class="hero-tag"><span>OPEN FLOOR</span><span>5:30A – 10:00P</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats">
+      <div class="wrap">
+        <div class="stats-row">
+          <div class="stat"><div class="v">18</div><div class="l">Lifting platforms</div></div>
+          <div class="stat"><div class="v">240+</div><div class="l">Active members</div></div>
+          <div class="stat"><div class="v">7</div><div class="l">Certified coaches</div></div>
+          <div class="stat"><div class="v">16.5h</div><div class="l">Open daily</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="programs">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Programs</span>
+          <h2>Pick the track <em>that fits</em>.</h2>
+          <p class="lede">Three coached programs and an open floor. Every track is written by a coach, reviewed every six weeks, and adjusted to what you're actually recovering from.</p>
+        </div>
+        <div class="programs">
+          <div class="program">
+            <span class="tag">/ 01 · Powerlifting</span>
+            <h3>Forge Strength</h3>
+            <p>Squat, bench, deadlift, accessories. Twelve-week blocks with a mock meet at the end. For lifters who want a number on the bar.</p>
+            <div class="meta"><span>4× / week</span><span>$220 / mo</span></div>
+          </div>
+          <div class="program">
+            <span class="tag">/ 02 · Olympic</span>
+            <h3>Snatch &amp; Clean</h3>
+            <p>Coached weightlifting, capped at six per session. Videoed lifts, position work, and a real warmup. USAW certified coaches only.</p>
+            <div class="meta"><span>3× / week</span><span>$260 / mo</span></div>
+          </div>
+          <div class="program">
+            <span class="tag">/ 03 · General</span>
+            <h3>Forge Foundations</h3>
+            <p>For your first six months under a barbell. Mobility, technique, and a slow ramp to weight that actually challenges you.</p>
+            <div class="meta"><span>2× / week</span><span>$180 / mo</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="schedule" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Schedule</span>
+          <h2>This week <em>at Forge</em>.</h2>
+        </div>
+        <div class="schedule-card">
+          <div class="schedule-tabs" role="tablist">
+            <button class="schedule-tab active" data-day="mon">Mon</button>
+            <button class="schedule-tab" data-day="tue">Tue</button>
+            <button class="schedule-tab" data-day="wed">Wed</button>
+            <button class="schedule-tab" data-day="thu">Thu</button>
+            <button class="schedule-tab" data-day="fri">Fri</button>
+            <button class="schedule-tab" data-day="sat">Sat</button>
+          </div>
+          <div class="schedule-day active" data-day="mon">
+            <div class="slot"><span class="time">06:00</span><span class="cls">Forge Strength A</span><span class="coach">w/ Marta Rios</span><span class="spots">3 / 12 open</span></div>
+            <div class="slot"><span class="time">09:30</span><span class="cls">Foundations</span><span class="coach">w/ Devon King</span><span class="spots">6 / 8 open</span></div>
+            <div class="slot"><span class="time">12:00</span><span class="cls">Open lifting</span><span class="coach">Floor coach: Sam</span><span class="spots">platforms open</span></div>
+            <div class="slot"><span class="time">17:30</span><span class="cls">Snatch &amp; Clean</span><span class="coach">w/ Marta Rios</span><span class="spots">2 / 6 open</span></div>
+            <div class="slot"><span class="time">19:00</span><span class="cls">Forge Strength B</span><span class="coach">w/ Hassan Adel</span><span class="spots">FULL · waitlist</span></div>
+          </div>
+          <div class="schedule-day" data-day="tue">
+            <div class="slot"><span class="time">06:00</span><span class="cls">Open lifting</span><span class="coach">Floor coach: Marta</span><span class="spots">platforms open</span></div>
+            <div class="slot"><span class="time">10:00</span><span class="cls">Foundations</span><span class="coach">w/ Devon King</span><span class="spots">4 / 8 open</span></div>
+            <div class="slot"><span class="time">18:00</span><span class="cls">Snatch &amp; Clean</span><span class="coach">w/ Hassan Adel</span><span class="spots">1 / 6 open</span></div>
+          </div>
+          <div class="schedule-day" data-day="wed">
+            <div class="slot"><span class="time">06:00</span><span class="cls">Forge Strength A</span><span class="coach">w/ Hassan Adel</span><span class="spots">5 / 12 open</span></div>
+            <div class="slot"><span class="time">12:00</span><span class="cls">Open lifting</span><span class="coach">Floor coach: Devon</span><span class="spots">platforms open</span></div>
+            <div class="slot"><span class="time">17:30</span><span class="cls">Forge Strength B</span><span class="coach">w/ Marta Rios</span><span class="spots">2 / 12 open</span></div>
+          </div>
+          <div class="schedule-day" data-day="thu">
+            <div class="slot"><span class="time">06:00</span><span class="cls">Snatch &amp; Clean</span><span class="coach">w/ Marta Rios</span><span class="spots">3 / 6 open</span></div>
+            <div class="slot"><span class="time">18:00</span><span class="cls">Foundations</span><span class="coach">w/ Sam Okeke</span><span class="spots">8 / 8 open</span></div>
+            <div class="slot"><span class="time">19:30</span><span class="cls">Open lifting</span><span class="coach">Floor coach: Sam</span><span class="spots">platforms open</span></div>
+          </div>
+          <div class="schedule-day" data-day="fri">
+            <div class="slot"><span class="time">06:00</span><span class="cls">Forge Strength A</span><span class="coach">w/ Devon King</span><span class="spots">FULL · waitlist</span></div>
+            <div class="slot"><span class="time">12:00</span><span class="cls">Open lifting</span><span class="coach">Floor coach: Marta</span><span class="spots">platforms open</span></div>
+            <div class="slot"><span class="time">17:30</span><span class="cls">Forge Strength B</span><span class="coach">w/ Hassan Adel</span><span class="spots">4 / 12 open</span></div>
+          </div>
+          <div class="schedule-day" data-day="sat">
+            <div class="slot"><span class="time">08:00</span><span class="cls">Saturday heavy</span><span class="coach">w/ Marta &amp; Hassan</span><span class="spots">7 / 16 open</span></div>
+            <div class="slot"><span class="time">10:30</span><span class="cls">Foundations</span><span class="coach">w/ Devon King</span><span class="spots">5 / 8 open</span></div>
+            <div class="slot"><span class="time">12:00</span><span class="cls">Open lifting</span><span class="coach">Floor coach: Sam</span><span class="spots">platforms open</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="coaches" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Coaches</span>
+          <h2>Coaches who <em>compete</em>.</h2>
+          <p class="lede">Every coach on the floor has a competition platform under their belt. They train the way they coach you to train.</p>
+        </div>
+        <div class="coaches">
+          <div class="coach-card">
+            <img src="https://picsum.photos/seed/forge-gym-c1/600/750" width="600" height="750" alt="Coach Marta Rios setting up a snatch in the gym." loading="lazy" />
+            <div class="body">
+              <span class="role">Head coach</span>
+              <h3>Marta Rios</h3>
+              <p>USAW L2. 76 kg national qualifier. Programs Snatch &amp; Clean.</p>
+            </div>
+          </div>
+          <div class="coach-card">
+            <img src="https://picsum.photos/seed/forge-gym-c2/600/750" width="600" height="750" alt="Coach Hassan Adel spotting a heavy bench press." loading="lazy" />
+            <div class="body">
+              <span class="role">Strength coach</span>
+              <h3>Hassan Adel</h3>
+              <p>SSC. 705 lb deadlift. Writes Forge Strength B blocks.</p>
+            </div>
+          </div>
+          <div class="coach-card">
+            <img src="https://picsum.photos/seed/forge-gym-c3/600/750" width="600" height="750" alt="Coach Devon King teaching a barbell squat technique." loading="lazy" />
+            <div class="body">
+              <span class="role">Foundations lead</span>
+              <h3>Devon King</h3>
+              <p>NSCA-CSCS. Spent six years at a college S&amp;C program. Patient.</p>
+            </div>
+          </div>
+          <div class="coach-card">
+            <img src="https://picsum.photos/seed/forge-gym-c4/600/750" width="600" height="750" alt="Floor coach Sam Okeke writing on a whiteboard at the gym." loading="lazy" />
+            <div class="body">
+              <span class="role">Floor coach</span>
+              <h3>Sam Okeke</h3>
+              <p>Open-floor cues, programming hand-offs, and the calmest spotter we have.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="testimonials" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Members <em>talk</em>.</h2>
+        </div>
+        <div class="testimonials">
+          <div class="quote">
+            <p>"I came in benching 95 lb and afraid of the squat rack. A year later I pulled 245 in a sleeveless singlet. The coaches actually program."</p>
+            <div class="who"><img src="https://picsum.photos/seed/forge-gym-t1/100/100" width="100" height="100" alt="Portrait of Forge member Priya N." loading="lazy" /><div><strong>Priya N.</strong><span>Member, 18 months</span></div></div>
+          </div>
+          <div class="quote">
+            <p>"Forge feels like a real gym. Chalk on the floor, music you don't notice, and a coach who'll tell you to drop the weight when your form goes."</p>
+            <div class="who"><img src="https://picsum.photos/seed/forge-gym-t2/100/100" width="100" height="100" alt="Portrait of Forge member Jordan T." loading="lazy" /><div><strong>Jordan T.</strong><span>Member, 3 years</span></div></div>
+          </div>
+          <div class="quote">
+            <p>"I tried four gyms in Brooklyn. This is the only one where I never wait for a platform and never get a personal-training pitch."</p>
+            <div class="who"><img src="https://picsum.photos/seed/forge-gym-t3/100/100" width="100" height="100" alt="Portrait of Forge member Alex M." loading="lazy" /><div><strong>Alex M.</strong><span>Member, 9 months</span></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="membership" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Membership</span>
+          <h2>One floor. <em>Three plans</em>.</h2>
+          <p class="lede">Month-to-month. No initiation fee. Cancel any time with two weeks' notice.</p>
+        </div>
+        <div class="membership">
+          <div class="plan">
+            <h3>Open Floor</h3>
+            <div class="price">$140<small> / month</small></div>
+            <ul>
+              <li>24/7 platform access</li>
+              <li>Free reset / form check anytime</li>
+              <li>Calibrated plates &amp; bars</li>
+              <li>No coached classes</li>
+            </ul>
+            <a class="btn btn-ghost" href="#">Choose Open</a>
+          </div>
+          <div class="plan feat">
+            <h3>Coached</h3>
+            <div class="price">$240<small> / month</small></div>
+            <ul>
+              <li>Everything in Open Floor</li>
+              <li>Pick one program (Strength / Snatch / Foundations)</li>
+              <li>Block reviews every 6 weeks</li>
+              <li>Mock meet entries included</li>
+            </ul>
+            <a class="btn btn-primary" href="#">Choose Coached</a>
+          </div>
+          <div class="plan">
+            <h3>Full</h3>
+            <div class="price">$320<small> / month</small></div>
+            <ul>
+              <li>Everything in Coached</li>
+              <li>All three programs, unlimited</li>
+              <li>Quarterly 1:1 with head coach</li>
+              <li>Guest passes (2 / month)</li>
+            </ul>
+            <a class="btn btn-ghost" href="#">Choose Full</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="location" style="padding-top:0;">
+      <div class="wrap">
+        <div class="location">
+          <img src="https://picsum.photos/seed/forge-gym-loc/1000/750" width="1000" height="750" alt="The Forge gym floor showing wooden platforms, racks, and chalked bars at dusk." loading="lazy" />
+          <div class="location-info">
+            <span class="eyebrow"><span class="dot"></span>Visit</span>
+            <h3 style="margin-top:14px;">412 Meserole St, Brooklyn</h3>
+            <dl>
+              <dt>Hours</dt><dd>Mon–Fri 5:30a – 10p · Sat 7a – 5p · Sun 8a – 2p</dd>
+              <dt>Phone</dt><dd>(718) 555-0149</dd>
+              <dt>Email</dt><dd>floor@forgegym.co</dd>
+              <dt>Subway</dt><dd>L to Morgan Av · 4 min walk</dd>
+            </dl>
+            <div style="margin-top:24px;"><a class="btn btn-primary" href="#">Book a free intro</a></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a class="brand" href="#" style="margin-bottom:14px;"><span class="brand-mark">F</span> Forge Gym</a>
+          <p style="color:var(--fg-2);font-size:14px;max-width:300px;">A strength gym for people who actually want to get strong. Built in Brooklyn, run by lifters.</p>
+        </div>
+        <div class="foot-col"><h4>Train</h4><a href="#programs">Programs</a><a href="#schedule">Schedule</a><a href="#membership">Membership</a></div>
+        <div class="foot-col"><h4>Gym</h4><a href="#coaches">Coaches</a><a href="#location">Location</a><a href="#">House rules</a></div>
+        <div class="foot-col"><h4>More</h4><a href="#">Meet results</a><a href="#">Apparel</a><a href="#">Contact</a></div>
+      </div>
+      <div class="foot-bot"><span>© 2026 Forge Gym, Inc.</span><span>Brooklyn · NY</span></div>
+    </div>
+  </footer>
+
+  <script>
+    document.querySelectorAll('.schedule-tab').forEach(t => {
+      t.addEventListener('click', () => {
+        const d = t.dataset.day;
+        document.querySelectorAll('.schedule-tab').forEach(x => x.classList.toggle('active', x === t));
+        document.querySelectorAll('.schedule-day').forEach(x => x.classList.toggle('active', x.dataset.day === d));
+      });
+    });
+  </script>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

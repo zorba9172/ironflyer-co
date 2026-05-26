@@ -1,0 +1,36 @@
+{
+  "slug": "ecommerce-09-yardbird",
+  "title": "Yardbird",
+  "subtitle": "Outdoor and trail gear built to be used, repaired in the shop that sewed it.",
+  "category": "E-commerce",
+  "type": "Commerce",
+  "tags": [
+    "outdoor",
+    "rugged",
+    "photo-grid",
+    "dark",
+    "trail"
+  ],
+  "previewImage": "/templates/ecommerce-09-yardbird.jpg",
+  "palette": {
+    "bg": "#2c2f24",
+    "fg": "#e9e4d2",
+    "accent": "#b04e2a"
+  },
+  "sections": [
+    "topbar",
+    "nav",
+    "hero",
+    "field-stats",
+    "products",
+    "photo-grid",
+    "repair",
+    "trail-picks",
+    "field-logs",
+    "newsletter",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Yardbird template as the foundation for an outdoor / trail gear storefront. Dusty olive and rust palette, Space Grotesk + Space Mono typography, full-bleed hero, mono-stat field bar, light-section product grid, asymmetric trail photo grid, repair-shop panel with stats, kit pick cards, and field-log testimonials. Replace placeholder copy with the brand's actual lineup.",
+  "livePreview": "/template-previews/ecommerce-09-yardbird/"
+}

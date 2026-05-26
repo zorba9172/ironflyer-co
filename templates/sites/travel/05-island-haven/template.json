@@ -1,0 +1,34 @@
+{
+  "slug": "travel-05-island-haven",
+  "title": "Island Haven",
+  "subtitle": "A thirty-eight villa beach resort tucked into a Mahé cove.",
+  "category": "Travel",
+  "type": "Websites",
+  "tags": [
+    "beach",
+    "resort",
+    "tropical",
+    "photo-led",
+    "dreamy"
+  ],
+  "previewImage": "/templates/travel-05-island-haven.jpg",
+  "palette": {
+    "bg": "#d9e7e0",
+    "fg": "#163a30",
+    "accent": "#ff6c3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "booking",
+    "villas",
+    "experiences",
+    "dining",
+    "guests",
+    "location",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Island Haven template as the foundation for a tropical beach resort: sea-foam and coral palette, DM Serif Display headlines, a rounded-corner hero image with overlaid title and white booking widget, three villa cards including one feature, four experience tiles with circular icons, a split dining panel with weekly menu list, three guest reviews with portraits, and a five-stat dark location strip.",
+  "livePreview": "/template-previews/travel-05-island-haven/"
+}

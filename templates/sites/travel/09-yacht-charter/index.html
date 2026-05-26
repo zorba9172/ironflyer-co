@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Yacht Charter Co. — Private yacht charters across the Mediterranean</title>
+  <meta name="description" content="A fleet of eleven crewed yachts from 24 to 64 metres, available for private charter across the Mediterranean. Captain and crew on board, itinerary in your hands." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0b1736;
+      --bg-2: #131f42;
+      --bg-3: #08112a;
+      --paper: #f4efde;
+      --champagne: #d6c098;
+      --champagne-2: #b89f6e;
+      --fg: #f4efde;
+      --fg-2: rgba(244, 239, 222, 0.72);
+      --fg-3: rgba(244, 239, 222, 0.45);
+      --line: rgba(244, 239, 222, 0.14);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--fg); font-family: 'Inter', sans-serif; font-size: 16px; line-height: 1.65; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .serif { font-family: 'Cormorant Garamond', serif; }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
+
+    /* Nav */
+    .nav { padding: 28px 0; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: rgba(11, 23, 54, 0.94); backdrop-filter: blur(10px); z-index: 50; }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 500; letter-spacing: 0.06em; display: flex; align-items: center; gap: 12px; }
+    .brand-mark { width: 32px; height: 32px; border: 1px solid var(--champagne); display: grid; place-items: center; color: var(--champagne); font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 16px; }
+    .nav-links { display: flex; gap: 32px; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--fg-2); font-weight: 500; }
+    .nav-links a:hover { color: var(--champagne); }
+    .nav-cta { display: flex; gap: 12px; align-items: center; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 13px 28px; font-weight: 600; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; border: 1px solid transparent; }
+    .btn-solid { background: var(--champagne); color: var(--bg); }
+    .btn-solid:hover { background: var(--champagne-2); }
+    .btn-line { color: var(--paper); border-color: rgba(244, 239, 222, 0.4); }
+    .btn-line:hover { background: var(--paper); color: var(--bg); }
+    @media (max-width: 1080px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 56px 0 96px; position: relative; }
+    .hero-grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 64px; align-items: end; }
+    .eyebrow { font-size: 11px; letter-spacing: 0.32em; text-transform: uppercase; color: var(--champagne); font-weight: 600; margin-bottom: 24px; }
+    h1 { font-family: 'Cormorant Garamond', serif; font-weight: 400; font-size: clamp(52px, 7.4vw, 116px); line-height: 0.96; letter-spacing: -0.01em; margin: 0 0 28px; }
+    h1 em { font-style: italic; color: var(--champagne); }
+    .hero-lede { font-size: 18px; color: var(--fg-2); margin: 0 0 32px; max-width: 520px; }
+    .hero-img { position: relative; }
+    .hero-img img { width: 100%; aspect-ratio: 4/5; object-fit: cover; }
+    .hero-img .pin { position: absolute; left: -20px; top: 40px; background: var(--champagne); color: var(--bg); padding: 8px 14px; font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 32px; } }
+
+    /* Charter form */
+    .charter { background: var(--bg-2); border: 1px solid var(--line); padding: 28px; }
+    .charter h3 { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 24px; margin: 0 0 18px; font-weight: 500; color: var(--champagne); }
+    .charter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .charter-field { padding: 12px 0; border-bottom: 1px solid var(--line); }
+    .charter-field label { display: block; font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--fg-3); margin-bottom: 6px; }
+    .charter-field input, .charter-field select { width: 100%; border: none; background: transparent; color: var(--paper); font-family: inherit; font-size: 15px; padding: 0; outline: none; }
+    .charter button { width: 100%; background: var(--champagne); color: var(--bg); border: none; padding: 16px; font-family: 'Inter', sans-serif; font-weight: 700; cursor: pointer; font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; margin-top: 18px; }
+    .charter button:hover { background: var(--champagne-2); }
+    @media (max-width: 720px) { .charter-grid { grid-template-columns: 1fr; } }
+
+    /* Sections */
+    .section { padding: 112px 0; border-top: 1px solid var(--line); }
+    h2 { font-family: 'Cormorant Garamond', serif; font-weight: 400; font-size: clamp(40px, 6vw, 84px); line-height: 1.02; letter-spacing: -0.005em; margin: 0; }
+    h2 em { font-style: italic; color: var(--champagne); }
+    h3 { font-family: 'Cormorant Garamond', serif; font-weight: 500; }
+    .section-head { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: end; margin-bottom: 64px; }
+    .section-head p { font-size: 17px; color: var(--fg-2); margin: 0; max-width: 520px; }
+    @media (max-width: 1080px) { .section-head { grid-template-columns: 1fr; gap: 16px; } }
+
+    /* Fleet */
+    .fleet { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+    .yacht { background: var(--bg-2); border: 1px solid var(--line); display: flex; flex-direction: column; }
+    .yacht img { width: 100%; aspect-ratio: 4/3; object-fit: cover; }
+    .yacht-body { padding: 28px; flex: 1; display: flex; flex-direction: column; }
+    .yacht-meta { font-size: 11px; color: var(--champagne); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 8px; font-weight: 600; }
+    .yacht h3 { margin: 0 0 4px; font-size: 30px; font-weight: 400; font-style: italic; line-height: 1; }
+    .yacht .builder { font-size: 13px; color: var(--fg-3); margin-bottom: 18px; }
+    .yacht-specs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 16px; padding: 16px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-bottom: 18px; }
+    .yacht-specs div .l { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg-3); }
+    .yacht-specs div .v { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: var(--paper); margin-top: 2px; }
+    .yacht-foot { margin-top: auto; display: flex; justify-content: space-between; align-items: baseline; }
+    .yacht-price { font-family: 'Cormorant Garamond', serif; font-size: 26px; color: var(--champagne); }
+    .yacht-price span { font-family: 'Inter', sans-serif; font-size: 11px; color: var(--fg-3); letter-spacing: 0.06em; }
+    .yacht-foot a { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 700; }
+    .yacht-foot a:hover { color: var(--champagne); }
+    @media (max-width: 1080px) { .fleet { grid-template-columns: 1fr; } }
+
+    /* Itineraries */
+    .itins { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+    .itin { position: relative; border-radius: 0; overflow: hidden; aspect-ratio: 16/10; }
+    .itin img { width: 100%; height: 100%; object-fit: cover; transition: transform 600ms ease; }
+    .itin:hover img { transform: scale(1.04); }
+    .itin::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(11, 23, 54, 0.94) 0%, rgba(11, 23, 54, 0.2) 50%, transparent 100%); }
+    .itin-body { position: absolute; bottom: 32px; left: 32px; right: 32px; z-index: 2; }
+    .itin-body .tag { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--champagne); margin-bottom: 8px; font-weight: 600; }
+    .itin-body h3 { font-size: 36px; margin: 0 0 8px; font-style: italic; font-weight: 400; }
+    .itin-body p { font-size: 14px; color: var(--fg-2); margin: 0; max-width: 420px; }
+    .itin-body .stops { margin-top: 14px; font-size: 12px; color: var(--fg-3); letter-spacing: 0.06em; font-family: 'Cormorant Garamond', serif; font-style: italic; }
+    @media (max-width: 1080px) { .itins { grid-template-columns: 1fr; } }
+
+    /* Process */
+    .process { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: 64px; align-items: start; }
+    .process img { width: 100%; aspect-ratio: 3/4; object-fit: cover; }
+    .step { padding: 24px 0; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 80px 1fr; gap: 24px; align-items: baseline; }
+    .step .n { font-family: 'Cormorant Garamond', serif; font-size: 38px; color: var(--champagne); line-height: 1; }
+    .step h4 { margin: 0 0 6px; font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 22px; font-weight: 500; }
+    .step p { margin: 0; font-size: 14px; color: var(--fg-2); }
+    @media (max-width: 1080px) { .process { grid-template-columns: 1fr; } }
+
+    /* Guests */
+    .testi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px; }
+    .testi { padding: 40px; background: var(--bg-2); border: 1px solid var(--line); }
+    .testi blockquote { margin: 0 0 18px; font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 24px; line-height: 1.3; }
+    .testi .who { font-size: 12px; color: var(--fg-3); letter-spacing: 0.14em; text-transform: uppercase; }
+    .testi .who b { color: var(--paper); font-weight: 700; }
+    @media (max-width: 1080px) { .testi-grid { grid-template-columns: 1fr; } }
+
+    /* CTA */
+    .cta { padding: 80px 64px; background: var(--champagne); color: var(--bg); display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 48px; align-items: end; }
+    .cta h2 { color: var(--bg); font-size: clamp(40px, 5vw, 64px); }
+    .cta h2 em { color: var(--bg-2); }
+    .cta p { color: rgba(11, 23, 54, 0.78); margin: 0 0 16px; }
+    @media (max-width: 1080px) { .cta { grid-template-columns: 1fr; padding: 48px 32px; } }
+
+    /* Footer */
+    footer { padding: 80px 0 28px; }
+    .foot-grid { display: grid; grid-template-columns: 1.4fr repeat(3, 1fr); gap: 32px; }
+    .foot-col h4 { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--champagne); margin: 0 0 14px; font-weight: 700; }
+    .foot-col a, .foot-col p { display: block; color: var(--fg-2); font-size: 13px; padding: 4px 0; margin: 0; }
+    .foot-col a:hover { color: var(--champagne); }
+    .foot-bot { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; font-size: 12px; color: var(--fg-3); }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 8px; } }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a href="#" class="brand"><span class="brand-mark">~</span>Yacht Charter Co.</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#fleet">The fleet</a>
+        <a href="#itineraries">Itineraries</a>
+        <a href="#process">How it works</a>
+        <a href="#guests">Guests</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-line" href="tel:+377978900">+377 9 78 9000</a>
+        <a class="btn btn-solid" href="#enquire">Enquire</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <div class="eyebrow">Est. 1998 · Monaco · 11 yachts · 24 – 64 m</div>
+            <h1>A boat, a crew,<br/><em>and a week of water.</em></h1>
+            <p class="hero-lede">Eleven crewed motor and sailing yachts from twenty-four to sixty-four metres, available for private charter across the Mediterranean. Captain and crew on board, the itinerary in your hands.</p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <a class="btn btn-solid" href="#fleet">View the fleet</a>
+              <a class="btn btn-line" href="#process">How a charter works</a>
+            </div>
+          </div>
+          <div class="hero-img">
+            <span class="pin">Featured · Aellopos · 42 m</span>
+            <img src="https://picsum.photos/seed/yachtcharter-1/1100/1400" width="1100" height="1400" alt="A 42-metre yacht moored in a turquoise bay near Capri." loading="eager" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="enquire">
+      <div class="wrap" style="max-width: 720px;">
+        <div class="section-head" style="grid-template-columns: 1fr; margin-bottom: 32px;">
+          <div>
+            <div class="eyebrow">Begin a conversation</div>
+            <h2>Send a brief, <em>we send a shortlist.</em></h2>
+            <p>Fill in the four fields below and our chartering team will return a hand-built shortlist within twenty-four hours. No automated quotes, no aggregators.</p>
+          </div>
+        </div>
+        <form class="charter" onsubmit="event.preventDefault();" aria-label="Charter enquiry">
+          <h3>Charter brief</h3>
+          <div class="charter-grid">
+            <div class="charter-field"><label for="c-when">Week of</label><input id="c-when" type="date" /></div>
+            <div class="charter-field"><label for="c-where">Where</label><input id="c-where" type="text" placeholder="Amalfi · Côte d'Azur · Aegean" /></div>
+            <div class="charter-field"><label for="c-guests">Guests on board</label><select id="c-guests"><option>2 guests</option><option>4 guests</option><option>6 guests</option><option>8 guests</option><option>10+ guests</option></select></div>
+            <div class="charter-field"><label for="c-budget">Indicative budget</label><select id="c-budget"><option>€60,000 / week</option><option>€100,000 / week</option><option>€180,000 / week</option><option>€350,000 / week</option><option>€500,000+ / week</option></select></div>
+          </div>
+          <button type="submit">Send brief & receive shortlist</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="section" id="fleet">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">The fleet</div>
+            <h2>Three of <em>the eleven.</em></h2>
+          </div>
+          <p>A representative slice of the fleet. The other eight are reserved for direct conversation with a broker. Prices below are indicative weekly base rates ex MYBA, excluding APA.</p>
+        </div>
+        <div class="fleet">
+          <article class="yacht">
+            <img src="https://picsum.photos/seed/yachtcharter-2/1000/750" width="1000" height="750" alt="The 42-metre yacht Aellopos moored at sunset." loading="lazy" />
+            <div class="yacht-body">
+              <div class="yacht-meta">Motor yacht · 2018 · refit 2024</div>
+              <h3>Aellopos</h3>
+              <div class="builder">Benetti · 42 m</div>
+              <div class="yacht-specs">
+                <div><div class="l">Length</div><div class="v">42 m</div></div>
+                <div><div class="l">Guests</div><div class="v">12 in 6</div></div>
+                <div><div class="l">Crew</div><div class="v">9</div></div>
+                <div><div class="l">Cruising</div><div class="v">12 kn</div></div>
+              </div>
+              <div class="yacht-foot"><div class="yacht-price">€180k <span>/ week</span></div><a href="#enquire">Enquire →</a></div>
+            </div>
+          </article>
+          <article class="yacht">
+            <img src="https://picsum.photos/seed/yachtcharter-3/1000/750" width="1000" height="750" alt="The 28-metre sailing yacht Notos under full sail." loading="lazy" />
+            <div class="yacht-body">
+              <div class="yacht-meta">Sailing yacht · 2021</div>
+              <h3>Notos</h3>
+              <div class="builder">Perini Navi · 28 m</div>
+              <div class="yacht-specs">
+                <div><div class="l">Length</div><div class="v">28 m</div></div>
+                <div><div class="l">Guests</div><div class="v">6 in 3</div></div>
+                <div><div class="l">Crew</div><div class="v">4</div></div>
+                <div><div class="l">Cruising</div><div class="v">10 kn</div></div>
+              </div>
+              <div class="yacht-foot"><div class="yacht-price">€72k <span>/ week</span></div><a href="#enquire">Enquire →</a></div>
+            </div>
+          </article>
+          <article class="yacht">
+            <img src="https://picsum.photos/seed/yachtcharter-4/1000/750" width="1000" height="750" alt="The 64-metre superyacht Selene at anchor in Sardinia." loading="lazy" />
+            <div class="yacht-body">
+              <div class="yacht-meta">Superyacht · 2022 · cinema · helipad</div>
+              <h3>Selene</h3>
+              <div class="builder">Feadship · 64 m</div>
+              <div class="yacht-specs">
+                <div><div class="l">Length</div><div class="v">64 m</div></div>
+                <div><div class="l">Guests</div><div class="v">12 in 7</div></div>
+                <div><div class="l">Crew</div><div class="v">17</div></div>
+                <div><div class="l">Cruising</div><div class="v">14 kn</div></div>
+              </div>
+              <div class="yacht-foot"><div class="yacht-price">€480k <span>/ week</span></div><a href="#enquire">Enquire →</a></div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="itineraries">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Sample itineraries</div>
+            <h2>Four cruising grounds <em>we know cold.</em></h2>
+          </div>
+          <p>Built with our captains from twenty seasons of repeat passages. Every itinerary is shaped on the brief — these are starting points, not menus.</p>
+        </div>
+        <div class="itins">
+          <article class="itin">
+            <img src="https://picsum.photos/seed/yachtcharter-5/1100/700" width="1100" height="700" alt="A yacht moored off the Amalfi coast with cliffs and lemon groves behind." loading="lazy" />
+            <div class="itin-body">
+              <div class="tag">7 nights · Amalfi</div>
+              <h3>The Amalfi loop</h3>
+              <p>Naples to Naples by way of Capri, Positano, Amalfi, Ischia, and a long lunch on Procida.</p>
+              <div class="stops">Capri · Positano · Amalfi · Ischia · Procida</div>
+            </div>
+          </article>
+          <article class="itin">
+            <img src="https://picsum.photos/seed/yachtcharter-6/1100/700" width="1100" height="700" alt="A yacht moored off Saint-Tropez at sunset." loading="lazy" />
+            <div class="itin-body">
+              <div class="tag">7 nights · French Riviera</div>
+              <h3>Monaco to Saint-Tropez</h3>
+              <p>Monaco out, the classic loop down the Côte d'Azur, with a long dinner at Domaine Tropez.</p>
+              <div class="stops">Monaco · Èze · Antibes · Cannes · Saint-Tropez · Pampelonne</div>
+            </div>
+          </article>
+          <article class="itin">
+            <img src="https://picsum.photos/seed/yachtcharter-7/1100/700" width="1100" height="700" alt="A yacht in a quiet Aegean cove at golden hour." loading="lazy" />
+            <div class="itin-body">
+              <div class="tag">10 nights · Cyclades</div>
+              <h3>The Aegean traverse</h3>
+              <p>Athens out, slow crossings through Mykonos, Folegandros, Milos, Hydra, with one quiet night at anchor.</p>
+              <div class="stops">Mykonos · Paros · Ios · Folegandros · Milos · Hydra</div>
+            </div>
+          </article>
+          <article class="itin">
+            <img src="https://picsum.photos/seed/yachtcharter-8/1100/700" width="1100" height="700" alt="A yacht in the wild north coast of Sardinia at dawn." loading="lazy" />
+            <div class="itin-body">
+              <div class="tag">7 nights · Costa Smeralda</div>
+              <h3>Sardinia & the Maddalena</h3>
+              <p>Olbia out, Porto Cervo, the seven sisters of La Maddalena, Bonifacio in Corsica, back to Olbia.</p>
+              <div class="stops">Porto Cervo · Razzoli · La Maddalena · Bonifacio · Olbia</div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="process">
+      <div class="wrap">
+        <div class="process">
+          <img src="https://picsum.photos/seed/yachtcharter-9/900/1200" width="900" height="1200" alt="A yacht broker shaking hands with a client on a marina dock." loading="lazy" />
+          <div>
+            <div class="eyebrow">How a charter works</div>
+            <h2>Four steps,<br/><em>from brief to lift-off.</em></h2>
+            <div class="step"><span class="n">01</span><div><h4>You send a brief</h4><p>Week, region, guest count, indicative budget. No more than five lines.</p></div></div>
+            <div class="step"><span class="n">02</span><div><h4>We build a shortlist</h4><p>Within twenty-four hours, three to five yachts that fit the brief. Built by a broker, not an algorithm.</p></div></div>
+            <div class="step"><span class="n">03</span><div><h4>You meet the captains</h4><p>One call per yacht with the captain, the chef, and our chief broker on the line.</p></div></div>
+            <div class="step"><span class="n">04</span><div><h4>You step on board</h4><p>MYBA contract, APA paid in, preference sheet sent to the chef. The boat is yours for the week.</p></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="guests">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">Guests</div>
+            <h2>What charterers <em>have said back.</em></h2>
+          </div>
+          <p>Verified post-charter reviews from the last two seasons. We do not publish a rating that has not been audited by a broker outside the charter.</p>
+        </div>
+        <div class="testi-grid">
+          <div class="testi"><blockquote>"Captain Stelios read the family within an hour. By Wednesday my children were on the helm and my wife had a chef plating tomato salad on the bow."</blockquote><div class="who"><b>Mr & Mrs A.</b> · Aellopos · Amalfi · July 2025</div></div>
+          <div class="testi"><blockquote>"The broker found us a yacht inside our budget that no other firm had on their list. Quiet, fast, and Stamatis the chef put us on a different beach for lunch every day."</blockquote><div class="who"><b>Mr V.</b> · Notos · Aegean · August 2025</div></div>
+          <div class="testi"><blockquote>"Selene is a small floating hotel. Cinema, spa, a cellar that surprised our sommelier. Even at sixty-four metres, the crew of seventeen disappeared when we wanted them to."</blockquote><div class="who"><b>Mr & Mrs L.</b> · Selene · Sardinia · June 2025</div></div>
+          <div class="testi"><blockquote>"Twenty-one years of chartering, three brokers before this one. The shortlist arrived in eighteen hours and was better than the previous two firms combined."</blockquote><div class="who"><b>Mr B.</b> · multiple yachts · 2023-2025</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="contact">
+      <div class="wrap">
+        <div class="cta">
+          <h2>Begin a charter <em>by sending a brief.</em></h2>
+          <div>
+            <p>Our chartering team in Monaco is staffed seven days, 8 a.m. to 8 p.m. CET. Email is faster than the phone in the high season, but we always pick up.</p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <a class="btn" style="background: var(--bg); color: var(--champagne);" href="mailto:charter@yachtcharter.co">charter@yachtcharter.co</a>
+              <a class="btn btn-line" style="color: var(--bg); border-color: var(--bg);" href="#enquire">Send a brief</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <div class="brand"><span class="brand-mark">~</span>Yacht Charter Co.</div>
+          <p style="margin-top: 14px; max-width: 280px;">Private crewed yacht charters across the Mediterranean. Established 1998. MYBA member. Eleven yachts, four cruising grounds, twenty seasons.</p>
+        </div>
+        <div class="foot-col"><h4>Charter</h4><a href="#fleet">The fleet</a><a href="#itineraries">Itineraries</a><a href="#enquire">Send a brief</a><a href="#">Calendar</a></div>
+        <div class="foot-col"><h4>The firm</h4><a href="#process">How it works</a><a href="#">MYBA & APA</a><a href="#">Crew</a><a href="#">Press</a></div>
+        <div class="foot-col"><h4>Contact</h4><a href="tel:+377978900">+377 9 78 9000</a><a href="mailto:charter@yachtcharter.co">charter@yachtcharter.co</a><a href="#">Monaco office</a></div>
+      </div>
+      <div class="foot-bot"><span>© 2026 Yacht Charter Co. S.A.M. · La Condamine · Monaco</span><span>MYBA member · 11 yachts · since 1998</span></div>
+    </div>
+  </footer>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

@@ -1,0 +1,34 @@
+{
+  "slug": "restaurant-06-polenta-cafe",
+  "title": "Polenta Café",
+  "subtitle": "A small neighborhood café and bakery on Linden Lane — sourdough at eight, coffee from three farms.",
+  "category": "Restaurant",
+  "type": "Websites",
+  "tags": [
+    "cafe",
+    "friendly",
+    "hand-feel",
+    "bakery",
+    "coffee"
+  ],
+  "previewImage": "/templates/restaurant-06-polenta-cafe.jpg",
+  "palette": {
+    "bg": "#efe6d3",
+    "fg": "#2c3320",
+    "accent": "#5b6a3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "today",
+    "menu",
+    "story",
+    "beans",
+    "visit",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Polenta Café template as the foundation for a friendly neighborhood-café site — cream and olive palette, Fraunces serif with handwritten Caveat accents, a today's-bakes circle grid, an all-day menu split between bar and kitchen, a single-origin coffee spotlight, and warm hours and pre-order CTA.",
+  "livePreview": "/template-previews/restaurant-06-polenta-cafe/"
+}

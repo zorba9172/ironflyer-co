@@ -1,0 +1,35 @@
+{
+  "slug": "nonprofit-05-shelter-house",
+  "title": "Shelter House",
+  "subtitle": "Housing First permanent supportive housing and 24-hour street outreach in Greater Cleveland.",
+  "category": "Nonprofit",
+  "type": "Websites",
+  "tags": [
+    "homeless",
+    "warm",
+    "human",
+    "human-services"
+  ],
+  "previewImage": "/templates/nonprofit-05-shelter-house.jpg",
+  "palette": {
+    "bg": "#faf5ec",
+    "fg": "#241a13",
+    "accent": "#ff6c3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "how",
+    "stats",
+    "programs",
+    "donate",
+    "help",
+    "story",
+    "transparency",
+    "team",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Shelter House template as the foundation for a homeless-services nonprofit site with a warm cream + coral palette, Bricolage Grotesque headings, a Housing First three-pillar block, a dark stats band, four large program tiles with imagery + costs, a dark coral donate card with tiers, a four-way get-involved row, a resident quote with lived experience, an audited ledger table, a leadership grid, and a dark footer with 24-hour outreach number.",
+  "livePreview": "/template-previews/nonprofit-05-shelter-house/"
+}

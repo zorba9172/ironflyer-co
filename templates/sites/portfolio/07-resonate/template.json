@@ -1,0 +1,34 @@
+{
+  "slug": "portfolio-07-resonate",
+  "title": "Resonate",
+  "subtitle": "Composer and sound designer for film, brand, and product.",
+  "category": "Portfolio",
+  "type": "Websites",
+  "tags": [
+    "dark",
+    "sound",
+    "cinematic",
+    "music"
+  ],
+  "previewImage": "/templates/portfolio-07-resonate.jpg",
+  "palette": {
+    "bg": "#0a0a0d",
+    "fg": "#f6f1ea",
+    "accent": "#ff6c3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "reel",
+    "selected-scores",
+    "sound-design",
+    "discography",
+    "process",
+    "clients",
+    "contact",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Resonate template as the foundation for a composer and sound designer portfolio. Keep the inky dark background, coral accent, big serif display type, waveform motifs, and a cinematic restraint. Show projects with track players, score notes, and frame stills. The site should feel like an opening title sequence.",
+  "livePreview": "/template-previews/portfolio-07-resonate/"
+}

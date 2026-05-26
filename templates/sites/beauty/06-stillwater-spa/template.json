@@ -1,0 +1,34 @@
+{
+  "slug": "beauty-06-stillwater-spa",
+  "title": "Stillwater Spa",
+  "subtitle": "A full-service day spa on the Hudson, eight rooms, one quiet hallway.",
+  "category": "Beauty",
+  "type": "Websites",
+  "tags": [
+    "spa",
+    "calm",
+    "dreamy",
+    "wellness"
+  ],
+  "previewImage": "/templates/beauty-06-stillwater-spa.jpg",
+  "palette": {
+    "bg": "#d9e7e0",
+    "fg": "#1f2c2a",
+    "accent": "#cbb38e"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "philosophy",
+    "menu",
+    "rooms",
+    "therapists",
+    "packages",
+    "quote",
+    "visit",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Stillwater Spa template as the foundation for a calm, sea-foam-and-sand day spa site with a centered serif hero, treatment menu split between massage and facial, room photos, therapist bios, day packages, and a quiet pull quote.",
+  "livePreview": "/template-previews/beauty-06-stillwater-spa/"
+}

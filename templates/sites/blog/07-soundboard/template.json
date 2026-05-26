@@ -1,0 +1,35 @@
+{
+  "slug": "blog-07-soundboard",
+  "title": "Soundboard",
+  "subtitle": "An independent music magazine of artists, scenes, and records — paid for by readers.",
+  "category": "Blog",
+  "type": "Websites",
+  "tags": [
+    "music",
+    "magazine",
+    "bold",
+    "white",
+    "big-type"
+  ],
+  "previewImage": "/templates/blog-07-soundboard.jpg",
+  "palette": {
+    "bg": "#ffffff",
+    "fg": "#111111",
+    "accent": "#d63a3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "now-playing",
+    "features",
+    "albums",
+    "tracks",
+    "scene-report",
+    "newsletter",
+    "about",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Soundboard template as the foundation for a music publication. White paper, red accent, yellow secondary accent, Anton display, Space Grotesk body. Big-type hero, scrolling now-playing strip, three-up features, album reviews 4-up grid with scores, tracks-of-the-week list with play buttons, a dark scene-report band, a yellow newsletter band, about, and footer. Voice is loud, independent, paid-for-by-readers.",
+  "livePreview": "/template-previews/blog-07-soundboard/"
+}

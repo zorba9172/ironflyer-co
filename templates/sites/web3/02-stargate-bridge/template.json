@@ -1,0 +1,34 @@
+{
+  "slug": "web3-02-stargate-bridge",
+  "title": "Stargate Bridge",
+  "subtitle": "Cross-chain liquidity protocol with guaranteed finality and native asset settlement.",
+  "category": "Web3",
+  "type": "Apps",
+  "tags": [
+    "dark",
+    "bridge",
+    "neon",
+    "futuristic"
+  ],
+  "previewImage": "/templates/web3-02-stargate-bridge.jpg",
+  "palette": {
+    "bg": "#0a0a0a",
+    "fg": "#f3eeff",
+    "accent": "#8b5cff"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "stats",
+    "how",
+    "features",
+    "security",
+    "chains",
+    "dev",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Stargate Bridge template as the foundation for a cross-chain bridge protocol landing. Keep the neon violet on dark scheme, the interactive bridge widget in the hero, the chain-by-chain TVL grid, and the developer SDK section. Replace placeholder amounts and chain TVL numbers with the protocol's real figures.",
+  "livePreview": "/template-previews/web3-02-stargate-bridge/"
+}

@@ -2,8 +2,10 @@
 # internal/auth/service.go.
 #
 # V22 trims this surface to email + password + verification + reset
-# + sessions + telemetry preference. MFA, SAML, IP allowlist, and
-# GitHub OAuth are deferred per docs/V22_PLAN.md.
+# + sessions + telemetry preference. MFA, SAML, and IP allowlist are
+# deferred per docs/V22_PLAN.md. Google + GitHub OAuth are wired via
+# `/auth/{provider}/start` and `/auth/{provider}/callback` (REST
+# handlers — fragments deliver the JWT to the SPA).
 
 type User {
   id: ID!

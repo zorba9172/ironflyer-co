@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pricing — RouteCloud</title>
+  <meta name="description" content="Pay for the planner, not your bill. Solo, Team, Scale, Enterprise — and a full feature comparison." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root { --bg:#050507; --surface:#0c0c10; --surface-2:#131318; --rule:rgba(92,240,161,0.16); --rule-strong:rgba(92,240,161,0.4); --fg:#e5e7eb; --fg-2:#9aa0a8; --fg-3:#5e6168; --accent:#5cf0a1; --accent-deep:#2cb574; --radius-sm:0; --radius-md:0; --radius-lg:0; }
+    * { box-sizing: border-box; } html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--fg); font-family: 'Inter', system-ui, sans-serif; font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; } .wrap { max-width: 1240px; margin: 0 auto; padding: 0 28px; }
+    .mono { font-family: 'IBM Plex Mono', monospace; }
+    .nav { position: sticky; top: 0; z-index: 50; background: var(--bg); border-bottom: 1px solid var(--rule); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 16px; font-family: 'IBM Plex Mono', monospace; letter-spacing: -0.01em; text-transform: uppercase; }
+    .brand-mark { width: 28px; height: 28px; background: var(--accent); display: grid; place-items: center; color: var(--bg); font-weight: 800; font-family: 'IBM Plex Mono', monospace; }
+    .nav-links { display: flex; gap: 28px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--fg-2); }
+    .nav-links a:hover, .nav-links a.current { color: var(--accent); }
+    .nav-cta { display: flex; gap: 8px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 18px; font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 13px; border: 1px solid transparent; cursor: pointer; transition: background 140ms; text-transform: uppercase; letter-spacing: 0.04em; }
+    .btn-primary { background: var(--accent); color: var(--bg); } .btn-primary:hover { background: white; }
+    .btn-ghost { background: transparent; color: var(--fg); border-color: var(--rule-strong); } .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    .hero { padding: 72px 0 48px; border-bottom: 1px solid var(--rule); }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 5px 10px; border: 1px solid var(--rule-strong); color: var(--accent); font-size: 11px; font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; }
+    .eyebrow .dot { width: 6px; height: 6px; background: var(--accent); }
+    h1 { font-size: clamp(48px, 7.2vw, 100px); line-height: 0.95; letter-spacing: -0.04em; font-weight: 900; margin: 24px 0 24px; text-transform: uppercase; max-width: 1000px; }
+    h1 em { font-style: normal; color: var(--accent); }
+    .lede { font-size: 18px; color: var(--fg-2); max-width: 720px; }
+
+    .section { padding: 80px 0; border-bottom: 1px solid var(--rule); }
+    .section h2 { font-size: clamp(36px, 5.4vw, 64px); letter-spacing: -0.035em; line-height: 1.0; font-weight: 900; margin: 14px 0 16px; text-transform: uppercase; }
+    .section h2 em { font-style: normal; color: var(--accent); }
+    .section-head { max-width: 760px; margin-bottom: 40px; }
+
+    .pricing { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--rule); }
+    .plan { padding: 36px 30px; border-right: 1px solid var(--rule); display: flex; flex-direction: column; }
+    .plan:last-child { border-right: none; }
+    .plan.featured { background: rgba(92,240,161,0.04); position: relative; }
+    .plan.featured::after { content: '★ RECOMMENDED'; position: absolute; top: 10px; right: 10px; background: var(--accent); color: var(--bg); font-family: 'IBM Plex Mono', monospace; font-size: 9px; padding: 4px 8px; letter-spacing: 0.1em; font-weight: 700; }
+    .plan h3 { font-size: 18px; font-weight: 800; margin: 0; text-transform: uppercase; letter-spacing: -0.01em; }
+    .plan .price { font-family: 'IBM Plex Mono', monospace; font-size: 32px; font-weight: 700; letter-spacing: -0.02em; margin: 12px 0 4px; color: var(--accent); }
+    .plan .price small { font-size: 12px; color: var(--fg-3); font-weight: 500; }
+    .plan .desc { color: var(--fg-2); font-size: 14px; min-height: 44px; }
+    .plan ul { list-style: none; padding: 0; margin: 18px 0; flex: 1; }
+    .plan li { padding: 7px 0; color: var(--fg-2); font-size: 13px; font-family: 'IBM Plex Mono', monospace; display: flex; gap: 10px; align-items: flex-start; }
+    .plan li::before { content: '▶'; color: var(--accent); flex-shrink: 0; font-size: 9px; margin-top: 6px; }
+    @media (max-width: 1080px) { .pricing { grid-template-columns: 1fr 1fr; } .plan:nth-child(2n) { border-right: none; } .plan:nth-child(-n+2) { border-bottom: 1px solid var(--rule); } }
+    @media (max-width: 720px) { .pricing { grid-template-columns: 1fr; } .plan { border-right: none; border-bottom: 1px solid var(--rule); } .plan:last-child { border-bottom: none; } }
+
+    .compare-wrap { overflow-x: auto; border: 1px solid var(--rule); }
+    table.compare { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 720px; font-family: 'IBM Plex Mono', monospace; }
+    .compare th, .compare td { padding: 16px 20px; text-align: left; border-bottom: 1px solid var(--rule); }
+    .compare thead th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-3); background: var(--surface); }
+    .compare td.yes { color: var(--accent); font-weight: 700; }
+    .compare td.no { color: var(--fg-3); }
+
+    .faq { max-width: 880px; margin: 0 auto; }
+    .faq details { border: 1px solid var(--rule); margin-bottom: 0; border-bottom: none; }
+    .faq details:last-child { border-bottom: 1px solid var(--rule); }
+    .faq details[open] { background: rgba(92,240,161,0.03); }
+    .faq summary { padding: 18px 22px; cursor: pointer; font-weight: 700; font-size: 14px; font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: 0.04em; list-style: none; position: relative; }
+    .faq summary::-webkit-details-marker { display: none; }
+    .faq summary::after { content: '+'; position: absolute; right: 22px; color: var(--accent); font-weight: 700; font-family: 'IBM Plex Mono', monospace; }
+    .faq details[open] summary::after { content: '−'; }
+    .faq p { padding: 0 22px 20px; color: var(--fg-2); margin: 0; font-size: 14px; line-height: 1.6; }
+
+    .cta-band { padding: 120px 0; text-align: center; background: radial-gradient(ellipse at 50% 50%, rgba(92,240,161,0.06) 0%, transparent 60%); border-bottom: 1px solid var(--rule); }
+    .cta-band h2 { font-size: clamp(40px, 6.5vw, 84px); letter-spacing: -0.04em; line-height: 0.95; margin: 0 0 24px; font-weight: 900; text-transform: uppercase; }
+    .cta-band h2 em { font-style: normal; color: var(--accent); }
+    .cta-band p { color: var(--fg-2); max-width: 560px; margin: 0 auto 32px; font-size: 18px; }
+
+    footer { padding: 56px 0 28px; }
+    .foot-grid { display: grid; grid-template-columns: 1.6fr repeat(3, 1fr); gap: 40px; }
+    .foot-col h4 { font-size: 11px; font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-3); margin: 0 0 14px; }
+    .foot-col a { display: block; color: var(--fg-2); font-family: 'IBM Plex Mono', monospace; font-size: 13px; padding: 5px 0; } .foot-col a:hover { color: var(--accent); }
+    .foot-bot { margin-top: 40px; padding-top: 22px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; color: var(--fg-3); font-size: 12px; font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: 0.06em; }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 12px; text-align: center; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="index.html"><span class="brand-mark">▶</span>ROUTECLOUD</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="index.html">product</a>
+        <a href="index.html#recipes">recipes</a>
+        <a href="about.html">about</a>
+        <a href="pricing.html" class="current">pricing</a>
+        <a href="contact.html">contact</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-ghost" href="#">sign in</a>
+        <a class="btn btn-primary" href="contact.html">deploy now</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <span class="eyebrow"><span class="dot"></span>// pricing</span>
+        <h1>Pay for the <em>planner</em>.</h1>
+        <p class="lede">Your cloud bill stays with you. We charge a flat, predictable fee for the planning, costing, and rollback machinery. No per-resource markup. No surprise overage.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="pricing">
+          <div class="plan">
+            <h3>solo</h3>
+            <div class="price">$0</div>
+            <p class="desc">For one engineer with three services.</p>
+            <ul>
+              <li>1 cloud account</li>
+              <li>3 services</li>
+              <li>unlimited sentences</li>
+              <li>public terraform state</li>
+              <li>community support</li>
+            </ul>
+            <a class="btn btn-ghost" href="contact.html">install</a>
+          </div>
+          <div class="plan featured">
+            <h3>team</h3>
+            <div class="price">$80<small>/mo</small></div>
+            <p class="desc">For real teams with multi-cloud and audit needs.</p>
+            <ul>
+              <li>multi-cloud routing</li>
+              <li>private state</li>
+              <li>RBAC + audit log</li>
+              <li>custom regions</li>
+              <li>rollback by sentence</li>
+              <li>email support</li>
+            </ul>
+            <a class="btn btn-primary" href="contact.html">choose team</a>
+          </div>
+          <div class="plan">
+            <h3>scale</h3>
+            <div class="price">$320<small>/mo</small></div>
+            <p class="desc">For platform teams running 50+ services.</p>
+            <ul>
+              <li>unlimited services</li>
+              <li>custom recipe library</li>
+              <li>SLA on plan latency</li>
+              <li>priority support</li>
+              <li>signed Terraform modules</li>
+            </ul>
+            <a class="btn btn-ghost" href="contact.html">talk to sales</a>
+          </div>
+          <div class="plan">
+            <h3>enterprise</h3>
+            <div class="price">custom</div>
+            <p class="desc">For regulated orgs and on-prem deployments.</p>
+            <ul>
+              <li>self-hosted planner</li>
+              <li>dedicated environment</li>
+              <li>signed BYO modules</li>
+              <li>24×7 on-call</li>
+              <li>custom contracts</li>
+            </ul>
+            <a class="btn btn-ghost" href="contact.html">contact</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>// compare</span>
+          <h2>FULL <em>feature</em> table.</h2>
+        </div>
+        <div class="compare-wrap">
+          <table class="compare">
+            <thead><tr><th>capability</th><th>solo</th><th>team</th><th>scale</th><th>enterprise</th></tr></thead>
+            <tbody>
+              <tr><td>services</td><td>3</td><td>Unlimited</td><td>Unlimited</td><td>Unlimited</td></tr>
+              <tr><td>clouds supported</td><td>1</td><td>4</td><td>4</td><td>4 + custom</td></tr>
+              <tr><td>terraform state</td><td>public</td><td>private</td><td>private</td><td>self-hosted</td></tr>
+              <tr><td>RBAC + audit log</td><td class="no">—</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+              <tr><td>rollback by sentence</td><td>basic</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+              <tr><td>cost estimate</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+              <tr><td>custom recipe library</td><td class="no">—</td><td class="no">—</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+              <tr><td>SLA on plan latency</td><td class="no">—</td><td class="no">—</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+              <tr><td>signed Terraform modules</td><td class="no">—</td><td class="no">—</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+              <tr><td>self-hosted planner</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="yes">yes</td></tr>
+              <tr><td>support SLA</td><td>community</td><td>1 business day</td><td>priority</td><td>24×7</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head" style="text-align:center; margin: 0 auto 40px;">
+          <span class="eyebrow"><span class="dot"></span>// faq</span>
+          <h2>Pricing <em>questions</em>.</h2>
+        </div>
+        <div class="faq">
+          <details><summary>does routecloud cost on top of my cloud bill?</summary><p>Yes — and only for the planner. Your cloud bill stays with your cloud provider. We charge a flat fee for parsing, planning, costing, applying, and rolling back.</p></details>
+          <details><summary>what happens when i exceed services on solo?</summary><p>We warn and rate-limit. We never charge solo users without an upgrade you confirmed.</p></details>
+          <details><summary>can i export the terraform?</summary><p>Always. Every plan compiles to versioned HCL stored in your tenant. You can &quot;break glass&quot; and read the HCL at any time.</p></details>
+          <details><summary>which clouds are supported?</summary><p>AWS, GCP, Fly, and Cloudflare today. Azure is on the roadmap.</p></details>
+          <details><summary>is there an annual discount?</summary><p>Annual contracts save two months on Team and Scale. Enterprise is priced separately.</p></details>
+          <details><summary>can i self-host?</summary><p>Enterprise customers run the planner inside their own kubernetes cluster. We ship a Helm chart and a quarterly upgrade procedure.</p></details>
+          <details><summary>how do refunds work?</summary><p>Cancel within 30 days of a new Team or Scale subscription and we refund the unused portion. Enterprise refunds follow the signed contract.</p></details>
+          <details><summary>do you offer an open-source discount?</summary><p>Yes. Public OSS projects with 1,000+ stars get Team free. Send us the repo link from contact.</p></details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="cta-band">
+    <div class="wrap">
+      <h2>TYPE A <em>sentence</em>.</h2>
+      <p>Install the CLI. Connect your cloud. Type what you want to ship. We'll handle the plumbing and show you the bill before we touch it.</p>
+      <a class="btn btn-primary" href="contact.html" style="height:48px;padding:0 28px;">curl -sSL route.cloud/install | sh</a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col"><a class="brand" href="index.html" style="margin-bottom:14px;"><span class="brand-mark">▶</span>ROUTECLOUD</a><p style="color:var(--fg-2); font-family:'IBM Plex Mono',monospace; font-size:12px; max-width:280px; line-height:1.6;">// deploy infra as a sentence.</p></div>
+        <div class="foot-col"><h4>product</h4><a href="index.html">cli</a><a href="index.html#recipes">recipes</a><a href="index.html">plans</a><a href="index.html">rollback</a></div>
+        <div class="foot-col"><h4>resources</h4><a href="#">docs</a><a href="#">terraform modules</a><a href="#">status</a><a href="#">changelog</a></div>
+        <div class="foot-col"><h4>company</h4><a href="about.html">about</a><a href="#">security</a><a href="#">careers</a><a href="contact.html">contact</a></div>
+      </div>
+      <div class="foot-bot"><span>© 2026 routecloud labs · mit licensed cli</span><span>your cloud, our planner</span></div>
+    </div>
+  </footer>
+</body>
+</html>

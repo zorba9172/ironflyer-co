@@ -1,0 +1,34 @@
+{
+  "slug": "realestate-01-northbay-realty",
+  "title": "Northbay Realty",
+  "subtitle": "Boutique brokerage for fine homes on the Northern California shore.",
+  "category": "Real Estate",
+  "type": "Websites",
+  "tags": [
+    "luxury",
+    "editorial",
+    "serif",
+    "coastal",
+    "boutique"
+  ],
+  "previewImage": "/templates/realestate-01-northbay-realty.jpg",
+  "palette": {
+    "bg": "#efe9da",
+    "fg": "#1a2b4a",
+    "accent": "#1a2b4a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "search",
+    "listings",
+    "story",
+    "agents",
+    "testimonials",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Northbay Realty template as the foundation for a luxury coastal brokerage site with a signature hero residence, a refined property search bar, six exclusive listing cards, a story panel with closing volume, agent grid, client testimonials, and a quiet sale CTA.",
+  "livePreview": "/template-previews/realestate-01-northbay-realty/"
+}

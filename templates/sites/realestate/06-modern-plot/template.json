@@ -1,0 +1,34 @@
+{
+  "slug": "realestate-06-modern-plot",
+  "title": "Modern Plot",
+  "subtitle": "Vertically integrated builder of new modernist homes, sealed plan and fixed price.",
+  "category": "Real Estate",
+  "type": "Websites",
+  "tags": [
+    "construction",
+    "architectural",
+    "technical",
+    "modernist",
+    "builder"
+  ],
+  "previewImage": "/templates/realestate-06-modern-plot.jpg",
+  "palette": {
+    "bg": "#e9e7e1",
+    "fg": "#1a1a18",
+    "accent": "#c1832d"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "inventory",
+    "process",
+    "specification",
+    "architects",
+    "owner-notes",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Modern Plot template as the foundation for a new-construction modernist homebuilder site with a technical hero, six available plots with engineering specs, a five-step sealed-plan process, base specification table, in-house architect grid, owner testimonials, and a site-visit reservation CTA.",
+  "livePreview": "/template-previews/realestate-06-modern-plot/"
+}

@@ -1,0 +1,34 @@
+{
+  "slug": "mobile-app-07-ridepool",
+  "title": "RidePool",
+  "subtitle": "Carpool the commute with neighbors and coworkers.",
+  "category": "Mobile App",
+  "type": "Mobile/PWA",
+  "tags": [
+    "carpool",
+    "friendly",
+    "civic",
+    "transport"
+  ],
+  "previewImage": "/templates/mobile-app-07-ridepool.jpg",
+  "palette": {
+    "bg": "#ffffff",
+    "fg": "#16181d",
+    "accent": "#ff6c3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "badges",
+    "stats",
+    "features",
+    "how",
+    "social",
+    "faq",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the RidePool template as the foundation for a carpool mobile-app landing. Keep the white + coral civic-friendly system, the CSS phone frame with a ride match UI, weekly savings stat strip, App Store + Google Play badges, three-step explainer, and a friendly download CTA.",
+  "livePreview": "/template-previews/mobile-app-07-ridepool/"
+}

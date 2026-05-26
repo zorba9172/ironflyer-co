@@ -1,0 +1,35 @@
+{
+  "slug": "beauty-10-forge-tattoo",
+  "title": "Forge Tattoo Co.",
+  "subtitle": "A six-artist custom tattoo studio. Walk-ins on Saturdays.",
+  "category": "Beauty",
+  "type": "Websites",
+  "tags": [
+    "tattoo",
+    "dark",
+    "bold",
+    "gritty"
+  ],
+  "previewImage": "/templates/beauty-10-forge-tattoo.jpg",
+  "palette": {
+    "bg": "#131318",
+    "fg": "#f1ede4",
+    "accent": "#d63a3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "ticker",
+    "styles",
+    "flash",
+    "artists",
+    "process",
+    "pricing",
+    "reviews",
+    "booking",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Forge Tattoo template as the foundation for a dark, charcoal-and-red custom tattoo studio site with a giant condensed display headline, style grid, healed-work flash gallery, six artist bios with hour rates, four-step process, transparent pricing, reviews, and a brief-submission booking form.",
+  "livePreview": "/template-previews/beauty-10-forge-tattoo/"
+}

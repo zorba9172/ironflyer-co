@@ -1,0 +1,33 @@
+{
+  "slug": "education-06-founder-track",
+  "title": "Founder Track",
+  "subtitle": "A 12-week startup school with weekly office hours.",
+  "category": "Education",
+  "type": "Apps",
+  "tags": [
+    "startup",
+    "builder",
+    "gritty",
+    "warm"
+  ],
+  "previewImage": "/templates/education-06-founder-track.jpg",
+  "palette": {
+    "bg": "#fbf7ed",
+    "fg": "#15110b",
+    "accent": "#ff6c3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "curriculum",
+    "how",
+    "mentors",
+    "outcomes",
+    "pricing",
+    "faq",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Founder Track template as the foundation for a gritty startup school landing page. Keep the warm-white background, orange accent, builder-tone copy, and weekly office-hours framing. Replace mentors, alumni, and weekly modules with the customer's real cohort.",
+  "livePreview": "/template-previews/education-06-founder-track/"
+}

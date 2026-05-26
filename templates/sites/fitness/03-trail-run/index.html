@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trail Run Club — Road, track, and trail in Portland</title>
+  <meta name="description" content="An all-paces running club meeting four times a week in Portland. Tuesday track, Thursday tempo, Saturday long run, Sunday trail. No drop policy." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f5eee2;
+      --paper: #fff8eb;
+      --ink: #1a1a17;
+      --ink-2: #4d4a40;
+      --ink-3: #847e6e;
+      --line: rgba(26,26,23,0.14);
+      --line-strong: rgba(26,26,23,0.28);
+      --accent: #ff6c3a;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--ink); font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 16px; line-height: 1.55; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    .mono { font-family: 'Space Mono', monospace; }
+
+    .nav { padding: 18px 0; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: rgba(245,238,226,0.92); backdrop-filter: blur(10px); z-index: 50; }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
+    .brand-mark { width: 36px; height: 36px; background: var(--accent); border-radius: 50%; display: grid; place-items: center; color: var(--paper); font-family: 'Space Mono', monospace; font-weight: 700; }
+    .nav-links { display: flex; gap: 28px; font-size: 14px; color: var(--ink-2); font-weight: 500; }
+    .nav-links a:hover { color: var(--ink); }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 22px; border-radius: 999px; font-weight: 600; font-size: 14px; border: 1px solid transparent; cursor: pointer; transition: transform 160ms ease, background 200ms; }
+    .btn-primary { background: var(--accent); color: var(--paper); }
+    .btn-primary:hover { transform: translateY(-1px); }
+    .btn-ghost { background: transparent; color: var(--ink); border-color: var(--line-strong); }
+    .btn-ghost:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    .hero { padding: 64px 0 56px; }
+    .hero h1 { font-size: clamp(56px, 11vw, 144px); line-height: 0.92; letter-spacing: -0.04em; font-weight: 700; margin: 16px 0 24px; text-transform: uppercase; }
+    .hero h1 em { font-style: normal; color: var(--accent); }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-family: 'Space Mono', monospace; font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); }
+    .eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+    .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: end; margin-top: 32px; }
+    .hero-grid img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 6px; }
+    .hero-grid img.tall { aspect-ratio: 4/5; }
+    .hero-side { display: flex; flex-direction: column; gap: 20px; }
+    .hero-side p { font-size: 18px; color: var(--ink-2); margin: 0; max-width: 380px; }
+    .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; } }
+
+    .marquee { background: var(--ink); color: var(--paper); padding: 18px 0; overflow: hidden; white-space: nowrap; font-family: 'Space Mono', monospace; font-size: 18px; letter-spacing: 0.04em; text-transform: uppercase; }
+    .marquee-track { display: inline-block; animation: scroll 30s linear infinite; }
+    .marquee span { padding: 0 24px; }
+    .marquee span em { font-style: normal; color: var(--accent); }
+    @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+    .section { padding: 96px 0; }
+    .section h2 { font-size: clamp(40px, 6vw, 72px); letter-spacing: -0.03em; line-height: 0.98; font-weight: 700; margin: 12px 0 18px; text-transform: uppercase; }
+    .section h2 em { font-style: normal; color: var(--accent); }
+    .section-head { max-width: 720px; margin-bottom: 56px; }
+    .section-head .lede { font-size: 18px; color: var(--ink-2); }
+
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .stat { padding: 32px 24px; border-right: 1px solid var(--line); }
+    .stat:last-child { border-right: 0; }
+    .stat .v { font-family: 'Space Mono', monospace; font-size: 44px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+    .stat .l { color: var(--ink-3); font-size: 13px; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.08em; font-family: 'Space Mono', monospace; }
+    @media (max-width: 720px) { .stats { grid-template-columns: 1fr 1fr; } .stat:nth-child(2n) { border-right: 0; } .stat:nth-child(-n+2) { border-bottom: 1px solid var(--line); } }
+
+    .groups { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .group { background: var(--paper); border: 1px solid var(--line); padding: 32px; border-radius: 8px; }
+    .group .pace { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; }
+    .group h3 { font-size: 32px; font-weight: 700; margin: 10px 0 12px; letter-spacing: -0.02em; }
+    .group p { color: var(--ink-2); font-size: 15px; }
+    .group .meta { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); font-family: 'Space Mono', monospace; font-size: 12px; color: var(--ink-3); display: flex; justify-content: space-between; }
+    @media (max-width: 1080px) { .groups { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .groups { grid-template-columns: 1fr; } }
+
+    .week { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+    .day-row { display: grid; grid-template-columns: 100px 1fr 1fr 140px; padding: 22px 28px; border-bottom: 1px solid var(--line); align-items: center; gap: 20px; }
+    .day-row:last-child { border-bottom: 0; }
+    .day-row .d { font-family: 'Space Mono', monospace; font-weight: 700; text-transform: uppercase; }
+    .day-row .work { font-weight: 700; letter-spacing: -0.01em; }
+    .day-row .where { color: var(--ink-2); font-size: 14px; }
+    .day-row .when { font-family: 'Space Mono', monospace; font-size: 13px; color: var(--accent); text-align: right; }
+    @media (max-width: 720px) { .day-row { grid-template-columns: 1fr; padding: 16px 20px; gap: 4px; } .day-row .when { text-align: left; } }
+
+    .events { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+    .event { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; display: grid; grid-template-columns: 140px 1fr; align-items: stretch; }
+    .event .dt { background: var(--accent); color: var(--paper); padding: 24px; text-align: center; display: grid; place-content: center; }
+    .event .dt .mo { font-family: 'Space Mono', monospace; font-size: 13px; text-transform: uppercase; letter-spacing: 0.12em; }
+    .event .dt .day { font-size: 44px; font-weight: 700; line-height: 1; margin-top: 4px; }
+    .event .body { padding: 22px 24px; }
+    .event h3 { margin: 0 0 6px; font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+    .event p { margin: 0; color: var(--ink-2); font-size: 14px; }
+    .event .tag { font-family: 'Space Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-3); margin-bottom: 6px; display: block; }
+    @media (max-width: 1080px) { .events { grid-template-columns: 1fr; } }
+
+    .members { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .member { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+    .member img { width: 100%; aspect-ratio: 4/5; object-fit: cover; }
+    .member .body { padding: 22px; }
+    .member p { font-size: 16px; line-height: 1.5; margin: 0 0 16px; }
+    .member .who { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.1em; }
+    .member .who strong { color: var(--ink); }
+    @media (max-width: 1080px) { .members { grid-template-columns: 1fr; max-width: 540px; margin: 0 auto; } }
+
+    .leaders { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .leader { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 22px; }
+    .leader img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; margin-bottom: 12px; }
+    .leader h3 { margin: 0 0 4px; font-size: 18px; font-weight: 700; }
+    .leader .role { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; }
+    .leader p { font-size: 13px; color: var(--ink-2); margin: 8px 0 0; }
+    @media (max-width: 1080px) { .leaders { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .leaders { grid-template-columns: 1fr; } }
+
+    .gallery { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .gallery img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 8px; }
+    @media (max-width: 1080px) { .gallery { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .gallery { grid-template-columns: 1fr 1fr; } }
+
+    .gear { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 32px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .gear-item h3 { font-size: 16px; font-weight: 700; margin: 0 0 6px; }
+    .gear-item p { font-size: 14px; color: var(--ink-2); margin: 0; }
+    @media (max-width: 720px) { .gear { grid-template-columns: 1fr; } }
+
+    .join { background: var(--ink); color: var(--paper); padding: 80px 0; text-align: center; }
+    .join h2 { color: var(--paper); }
+    .join h2 em { color: var(--accent); }
+    .join p { color: rgba(245,238,226,0.7); max-width: 540px; margin: 0 auto 28px; font-size: 18px; }
+    .join .btn-primary { height: 52px; padding: 0 28px; font-size: 15px; }
+
+    footer { padding: 48px 0 28px; border-top: 1px solid var(--line); }
+    .foot { display: flex; justify-content: space-between; gap: 28px; flex-wrap: wrap; align-items: flex-end; }
+    .foot .links { display: flex; gap: 24px; font-size: 14px; }
+    .foot .copy { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.1em; }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#"><span class="brand-mark">TR</span> Trail Run Club</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#groups">Groups</a>
+        <a href="#schedule">Schedule</a>
+        <a href="#events">Races</a>
+        <a href="#members">Members</a>
+        <a href="#join">Join</a>
+      </nav>
+      <a class="btn btn-primary" href="#join">Run with us</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <span class="eyebrow"><span class="dot"></span>Portland, OR · Founded 2018 · 412 members</span>
+        <h1>Road, track, <em>and dirt</em>.<br/>Four times a week.</h1>
+        <div class="hero-grid">
+          <img src="https://picsum.photos/seed/trail-run-1/900/700" width="900" height="700" alt="A pack of runners cresting a hill on a forest service road at sunrise." loading="eager" />
+          <div class="hero-side">
+            <p>Trail Run Club is an open running club for people who want to go further than they can alone. We meet four times a week. No drop policy. No singlet sales. Coffee after.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#join">Join free</a>
+              <a class="btn btn-ghost" href="#schedule">See the schedule</a>
+            </div>
+            <img class="tall" src="https://picsum.photos/seed/trail-run-2/700/900" width="700" height="900" alt="Two runners chatting on a trail in Forest Park." loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee-track">
+        <span>Tuesday <em>track</em></span><span>·</span><span>Thursday <em>tempo</em></span><span>·</span><span>Saturday <em>long run</em></span><span>·</span><span>Sunday <em>trail</em></span><span>·</span><span>Tuesday <em>track</em></span><span>·</span><span>Thursday <em>tempo</em></span><span>·</span><span>Saturday <em>long run</em></span><span>·</span><span>Sunday <em>trail</em></span><span>·</span>
+      </div>
+    </div>
+
+    <section class="stats">
+      <div class="wrap" style="padding:0;">
+        <div class="stats" style="border:0;">
+          <div class="stat"><div class="v">412</div><div class="l">Active members</div></div>
+          <div class="stat"><div class="v">4×</div><div class="l">Weekly runs</div></div>
+          <div class="stat"><div class="v">86k</div><div class="l">Club miles in 2025</div></div>
+          <div class="stat"><div class="v">37</div><div class="l">Races run as a club</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="groups">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Groups</span>
+          <h2>Three paces. <em>No drop.</em></h2>
+          <p class="lede">Every run splits into three groups, each with a designated leader. The leader runs the slowest pace, not the fastest. We finish together.</p>
+        </div>
+        <div class="groups">
+          <div class="group">
+            <span class="pace">/ 8:30+ min/mi</span>
+            <h3>The Long Way</h3>
+            <p>For new runners and those rebuilding. Walk breaks are a feature. We talk the whole time.</p>
+            <div class="meta"><span>~5 mi</span><span>Leader: Iris</span></div>
+          </div>
+          <div class="group">
+            <span class="pace">/ 7:30 – 8:30 min/mi</span>
+            <h3>The Middle Mile</h3>
+            <p>Where most of the club runs. Comfortably conversational. The pace people return to once a race ends.</p>
+            <div class="meta"><span>~7 mi</span><span>Leader: Marcus</span></div>
+          </div>
+          <div class="group">
+            <span class="pace">/ sub 7:30 min/mi</span>
+            <h3>The Front</h3>
+            <p>Marathon-prep paces, tempo work, and Tuesday repeats. Capped at twelve to keep a pack together.</p>
+            <div class="meta"><span>~9 mi</span><span>Leader: Tessa</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="schedule" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Weekly</span>
+          <h2>The four <em>standing</em> runs.</h2>
+        </div>
+        <div class="week">
+          <div class="day-row"><span class="d">Tue</span><span class="work">Track workout · 400s + 800s</span><span class="where">Duniway track</span><span class="when">6:00 pm</span></div>
+          <div class="day-row"><span class="d">Thu</span><span class="work">Tempo run · progressive 5 mi</span><span class="where">Steel Bridge meetup</span><span class="when">6:00 pm</span></div>
+          <div class="day-row"><span class="d">Sat</span><span class="work">Long run · 8 to 16 mi</span><span class="where">Eastbank Esplanade</span><span class="when">8:00 am</span></div>
+          <div class="day-row"><span class="d">Sun</span><span class="work">Trail run · 6 to 10 mi</span><span class="where">Forest Park · Lower Macleay</span><span class="when">9:00 am</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="events" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Race calendar</span>
+          <h2>Where we're <em>showing up</em>.</h2>
+          <p class="lede">We pick six club races a year. Members get group registration discounts and a singlet you can earn but can't buy.</p>
+        </div>
+        <div class="events">
+          <div class="event">
+            <div class="dt"><span class="mo">Mar</span><span class="day">02</span></div>
+            <div class="body"><span class="tag">Road · half marathon</span><h3>Shamrock Run Portland</h3><p>The club's spring opener. Costumes encouraged for the 5K, banned for the half.</p></div>
+          </div>
+          <div class="event">
+            <div class="dt"><span class="mo">May</span><span class="day">17</span></div>
+            <div class="body"><span class="tag">Trail · 25k</span><h3>Forest Park Half</h3><p>Our home race. Twenty-two members signed up so far.</p></div>
+          </div>
+          <div class="event">
+            <div class="dt"><span class="mo">Jul</span><span class="day">04</span></div>
+            <div class="body"><span class="tag">Road · 5k</span><h3>Foot Traffic Flat</h3><p>Sauvie Island, flat as advertised. A club PR weekend.</p></div>
+          </div>
+          <div class="event">
+            <div class="dt"><span class="mo">Oct</span><span class="day">04</span></div>
+            <div class="body"><span class="tag">Road · marathon</span><h3>Portland Marathon</h3><p>Goal race for the fall block. Club tent at mile 21.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="leaders" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Pace leaders</span>
+          <h2>The folks at the <em>front and back</em>.</h2>
+          <p class="lede">Pace leaders volunteer their Tuesdays and Saturdays so nobody runs alone. They're members like you, just with a high-vis vest and a watch.</p>
+        </div>
+        <div class="leaders">
+          <div class="leader">
+            <img src="https://picsum.photos/seed/trail-run-l1/120/120" width="120" height="120" alt="Pace leader Iris L." loading="lazy" />
+            <span class="role">Long Way · 8:30+</span>
+            <h3>Iris L.</h3>
+            <p>Three years in the club, ran the Eugene Marathon last spring.</p>
+          </div>
+          <div class="leader">
+            <img src="https://picsum.photos/seed/trail-run-l2/120/120" width="120" height="120" alt="Pace leader Marcus B." loading="lazy" />
+            <span class="role">Middle Mile · 7:30–8:30</span>
+            <h3>Marcus B.</h3>
+            <p>2:54 marathoner. Believes in negative splits the same way other people believe in sunsets.</p>
+          </div>
+          <div class="leader">
+            <img src="https://picsum.photos/seed/trail-run-l3/120/120" width="120" height="120" alt="Pace leader Tessa O." loading="lazy" />
+            <span class="role">Front · sub 7:30</span>
+            <h3>Tessa O.</h3>
+            <p>USATF L1 coach. Writes the Tuesday track workouts.</p>
+          </div>
+          <div class="leader">
+            <img src="https://picsum.photos/seed/trail-run-l4/120/120" width="120" height="120" alt="Pace leader Devon K." loading="lazy" />
+            <span class="role">Sweeper · all paces</span>
+            <h3>Devon K.</h3>
+            <p>Runs the back of the pack. Knows every coffee shop within a mile of the start.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="gallery" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Saturdays</span>
+          <h2>What a <em>long run</em> looks like.</h2>
+        </div>
+        <div class="gallery">
+          <img src="https://picsum.photos/seed/trail-run-g1/500/500" width="500" height="500" alt="Members gathered at the Eastbank Esplanade before a Saturday long run." loading="lazy" />
+          <img src="https://picsum.photos/seed/trail-run-g2/500/500" width="500" height="500" alt="A pack of runners on a forest road in early morning light." loading="lazy" />
+          <img src="https://picsum.photos/seed/trail-run-g3/500/500" width="500" height="500" alt="Runners at a coffee shop after a long run." loading="lazy" />
+          <img src="https://picsum.photos/seed/trail-run-g4/500/500" width="500" height="500" alt="Two members high-fiving at the end of a workout." loading="lazy" />
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="gear" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>What to bring</span>
+          <h2>Showing up for the <em>first time</em>.</h2>
+        </div>
+        <div class="gear">
+          <div class="gear-item"><h3>Shoes that fit</h3><p>Anything you've been running in. We're not a sponsored shoe club.</p></div>
+          <div class="gear-item"><h3>A watch or your phone</h3><p>You don't need a Garmin. Most members track on their phones.</p></div>
+          <div class="gear-item"><h3>Water for trail Sundays</h3><p>The road runs have water stops. The trail run doesn't.</p></div>
+          <div class="gear-item"><h3>Layers in the winter</h3><p>Portland winter means a base, a vest, gloves, and a hat. We meet rain or shine.</p></div>
+          <div class="gear-item"><h3>A reflective something</h3><p>For evening runs. We have spares at the meetup.</p></div>
+          <div class="gear-item"><h3>$0</h3><p>The club is free. The coffee after is on whoever PR'd that morning.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="members" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Members</span>
+          <h2>Why people <em>keep showing up</em>.</h2>
+        </div>
+        <div class="members">
+          <div class="member">
+            <img src="https://picsum.photos/seed/trail-run-m1/700/900" width="700" height="900" alt="Club member Iris L. running on a forest road." loading="lazy" />
+            <div class="body">
+              <p>"I joined because I was new in town. A year later, half my friends are people I met at a Tuesday track."</p>
+              <div class="who"><strong>Iris L.</strong> · member 14 months</div>
+            </div>
+          </div>
+          <div class="member">
+            <img src="https://picsum.photos/seed/trail-run-m2/700/900" width="700" height="900" alt="Club member Marcus B. on a Saturday long run." loading="lazy" />
+            <div class="body">
+              <p>"The club ran my first marathon with me. They literally took shifts. I PR'd because nobody let me bonk."</p>
+              <div class="who"><strong>Marcus B.</strong> · member 2 years</div>
+            </div>
+          </div>
+          <div class="member">
+            <img src="https://picsum.photos/seed/trail-run-m3/700/900" width="700" height="900" alt="Club member Tessa O. on a trail in Forest Park." loading="lazy" />
+            <div class="body">
+              <p>"I came back to running after a knee surgery. The no-drop rule isn't marketing. It's the actual culture."</p>
+              <div class="who"><strong>Tessa O.</strong> · member 3 years</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="join" id="join">
+    <div class="wrap">
+      <span class="eyebrow" style="color:rgba(245,238,226,0.7);"><span class="dot"></span>It's free</span>
+      <h2>Show up <em>Tuesday</em>.</h2>
+      <p>Free to join. No application. Show up at the track meetup, find the orange flag, run with the group that matches your pace.</p>
+      <a class="btn btn-primary" href="#">Get the newsletter →</a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot">
+        <a class="brand" href="#"><span class="brand-mark">TR</span> Trail Run Club</a>
+        <div class="links">
+          <a href="#groups">Groups</a>
+          <a href="#schedule">Schedule</a>
+          <a href="#events">Races</a>
+          <a href="#">Strava</a>
+          <a href="#">Instagram</a>
+        </div>
+        <div class="copy">© 2026 · Portland, OR</div>
+      </div>
+    </div>
+  </footer>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

@@ -1,0 +1,34 @@
+{
+  "slug": "travel-04-city-suites",
+  "title": "City Suites",
+  "subtitle": "A forty-four room boutique urban hotel off Rua Garrett, Lisbon.",
+  "category": "Travel",
+  "type": "Websites",
+  "tags": [
+    "hotel",
+    "urban",
+    "dark",
+    "premium",
+    "boutique"
+  ],
+  "previewImage": "/templates/travel-04-city-suites.jpg",
+  "palette": {
+    "bg": "#131318",
+    "fg": "#f5f0e6",
+    "accent": "#d4af37"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "booking",
+    "rooms",
+    "amenities",
+    "dining",
+    "guests",
+    "location",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the City Suites template as the foundation for a dark urban boutique hotel: charcoal and gold palette, Italiana display serif headlines, full-bleed dimly lit hero with an overlapping cream booking widget, three room cards with euro pricing, a numbered amenities list with two portrait images, two large dining-and-bar cards with gradient overlays, three editorial guest pull-quotes, and a side-by-side location panel.",
+  "livePreview": "/template-previews/travel-04-city-suites/"
+}

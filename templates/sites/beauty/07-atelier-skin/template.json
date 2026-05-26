@@ -1,0 +1,34 @@
+{
+  "slug": "beauty-07-atelier-skin",
+  "title": "Atelier Skin",
+  "subtitle": "Medical-grade skincare, written treatment plans, real before-and-afters.",
+  "category": "Beauty",
+  "type": "Websites",
+  "tags": [
+    "skincare",
+    "clinical",
+    "clean",
+    "science"
+  ],
+  "previewImage": "/templates/beauty-07-atelier-skin.jpg",
+  "palette": {
+    "bg": "#ffffff",
+    "fg": "#14171b",
+    "accent": "#75876b"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "credentials",
+    "protocols",
+    "method",
+    "pricing",
+    "team",
+    "results",
+    "booking",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Atelier Skin template as the foundation for a clinical, sage-and-white medical-grade skincare site with a stats hero, evidence-led protocol cards, a four-step method, an honest pricing table, clinician bios with credentials, a before/after section, and an inline consult booking form.",
+  "livePreview": "/template-previews/beauty-07-atelier-skin/"
+}

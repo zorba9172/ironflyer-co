@@ -1,0 +1,34 @@
+{
+  "slug": "portfolio-09-cartographer",
+  "title": "Cartographer",
+  "subtitle": "UX researcher mapping people's actual jobs to be done.",
+  "category": "Portfolio",
+  "type": "Websites",
+  "tags": [
+    "research",
+    "diagrams",
+    "careful",
+    "navy"
+  ],
+  "previewImage": "/templates/portfolio-09-cartographer.jpg",
+  "palette": {
+    "bg": "#f8f4ec",
+    "fg": "#0b1736",
+    "accent": "#0b1736"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "studies",
+    "methods",
+    "diagrams",
+    "publications",
+    "field-notes",
+    "clients",
+    "contact",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Cartographer template as the foundation for a UX researcher portfolio. Keep the paper background, deep navy accent, careful sans-serif typography, diagram-like section dividers, footnote-style citations, and a tone that's evidence-led without being academic. Studies should read like trip reports, not slides.",
+  "livePreview": "/template-previews/portfolio-09-cartographer/"
+}

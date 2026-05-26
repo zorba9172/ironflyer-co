@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Contact — Synthwave AI</title>
+  <meta name="description" content="Talk to Synthwave AI. Sales, security, and press routed to engineers within one business day." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root { --bg:#07070a; --surface:#0e0d14; --surface-2:#16141f; --rule:rgba(139,92,255,0.18); --rule-strong:rgba(139,92,255,0.38); --fg:#ece8f7; --fg-2:#a39db8; --fg-3:#6b6584; --accent:#8b5cff; --accent-glow:#b18bff; --accent-deep:#5b29e0; --cyan:#29d3ff; --radius-sm:6px; --radius-md:12px; --radius-lg:20px; }
+    * { box-sizing: border-box; } html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--fg); font-family: 'Geist', 'Inter', system-ui, sans-serif; font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; } .wrap { max-width: 1200px; margin: 0 auto; padding: 0 28px; }
+    body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse 60% 40% at 80% 0%, rgba(139,92,255,0.16) 0%, transparent 60%); pointer-events: none; z-index: 0; }
+    body > * { position: relative; z-index: 1; }
+    .nav { position: sticky; top: 0; z-index: 50; background: rgba(7,7,10,0.78); backdrop-filter: blur(16px); border-bottom: 1px solid var(--rule); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 66px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 17px; letter-spacing: -0.015em; }
+    .brand-mark { width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg, var(--accent) 0%, var(--cyan) 100%); display: grid; place-items: center; color: white; font-weight: 800; font-family: 'JetBrains Mono', monospace; box-shadow: 0 0 24px rgba(139,92,255,0.5); }
+    .nav-links { display: flex; gap: 28px; font-size: 14px; color: var(--fg-2); font-weight: 500; }
+    .nav-links a:hover, .nav-links a.current { color: var(--fg); }
+    .nav-cta { display: flex; gap: 10px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 18px; border-radius: var(--radius-sm); font-weight: 600; font-size: 14px; border: 1px solid transparent; cursor: pointer; transition: transform 160ms ease, background 160ms ease; }
+    .btn-primary { background: var(--accent); color: white; } .btn-primary:hover { background: var(--accent-glow); transform: translateY(-1px); }
+    .btn-ghost { background: transparent; color: var(--fg); border-color: var(--rule-strong); } .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    .hero { padding: 88px 0 48px; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border: 1px solid var(--rule-strong); background: rgba(139,92,255,0.08); color: var(--accent-glow); border-radius: 999px; font-size: 12px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em; }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px var(--accent); }
+    h1 { font-size: clamp(48px, 7vw, 88px); line-height: 1.0; letter-spacing: -0.035em; font-weight: 800; margin: 22px 0 22px; max-width: 920px; }
+    h1 em { font-style: normal; background: linear-gradient(135deg, var(--accent) 0%, var(--cyan) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .lede { font-size: 19px; color: var(--fg-2); max-width: 720px; }
+
+    .section { padding: 56px 0 96px; }
+    .section h2 { font-size: clamp(28px, 3.6vw, 42px); letter-spacing: -0.028em; line-height: 1.1; font-weight: 800; margin: 14px 0 14px; }
+    .section h2 em { font-style: normal; background: linear-gradient(135deg, var(--accent), var(--cyan)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .section-head { max-width: 760px; margin-bottom: 36px; }
+
+    .contact-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: start; }
+    @media (max-width: 1080px) { .contact-grid { grid-template-columns: 1fr; gap: 40px; } }
+
+    form.contact-form { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius-md); padding: 32px; }
+    .form-row { margin-bottom: 14px; }
+    .form-row.two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 720px) { .form-row.two { grid-template-columns: 1fr; } }
+    label { display: block; font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-3); margin-bottom: 6px; }
+    input, textarea, select { width: 100%; background: var(--bg); border: 1px solid var(--rule-strong); color: var(--fg); font-family: inherit; font-size: 14px; padding: 12px 14px; border-radius: var(--radius-sm); resize: vertical; transition: border-color 160ms; }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent-glow); }
+    textarea { min-height: 140px; }
+    .form-foot { margin-top: 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .form-note { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.06em; }
+
+    .info-stack { display: grid; gap: 14px; }
+    .info-card { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius-md); padding: 22px 24px; }
+    .info-card h3 { font-size: 17px; font-weight: 700; margin: 0 0 6px; }
+    .info-card p { color: var(--fg-2); font-size: 14px; margin: 0; line-height: 1.55; }
+    .info-card a.mail { display: inline-block; margin-top: 10px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent-glow); }
+
+    .offices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .office { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius-md); padding: 24px; }
+    .office h3 { font-size: 18px; font-weight: 700; margin: 0; }
+    .office .where { color: var(--fg-2); font-size: 13px; margin: 8px 0 14px; line-height: 1.55; }
+    .office .hours { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.08em; }
+    @media (max-width: 1080px) { .offices { grid-template-columns: 1fr; } }
+
+    .map { margin-top: 48px; height: 360px; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius-md); position: relative; overflow: hidden; background-image: linear-gradient(rgba(139,92,255,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(139,92,255,0.07) 1px, transparent 1px); background-size: 40px 40px; }
+    .pin { position: absolute; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px rgba(139,92,255,0.22), 0 0 0 12px rgba(139,92,255,0.06), 0 0 18px var(--accent-glow); }
+    .pin::after { content: attr(data-label); position: absolute; top: 18px; left: 50%; transform: translateX(-50%); font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--fg); white-space: nowrap; text-transform: uppercase; letter-spacing: 0.06em; }
+    .pin.a { left: 20%; top: 40%; } .pin.b { left: 50%; top: 30%; } .pin.c { left: 78%; top: 56%; }
+
+    footer { padding: 56px 0 36px; border-top: 1px solid var(--rule); }
+    .foot-grid { display: grid; grid-template-columns: 1.6fr repeat(3, 1fr); gap: 44px; }
+    .foot-col h4 { font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-3); margin: 0 0 16px; }
+    .foot-col a { display: block; color: var(--fg-2); font-size: 14px; padding: 6px 0; } .foot-col a:hover { color: var(--accent-glow); }
+    .foot-bot { margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; color: var(--fg-3); font-size: 13px; font-family: 'JetBrains Mono', monospace; }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 12px; text-align: center; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="index.html"><span class="brand-mark">∿</span>Synthwave AI</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="index.html">Product</a>
+        <a href="index.html#editor">Editor</a>
+        <a href="about.html">About</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="contact.html" class="current">Contact</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-ghost" href="#">Sign in</a>
+        <a class="btn btn-primary" href="#">Install</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <span class="eyebrow"><span class="dot"></span>Contact</span>
+        <h1>Talk to <em>engineers</em>, not bots.</h1>
+        <p class="lede">Sales replies inside one business day. Security and procurement reach the right specialist directly. We will read your repo before the call so the conversation is real.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="contact-grid">
+          <form class="contact-form" onsubmit="event.preventDefault();" aria-label="Contact Synthwave AI">
+            <div class="form-row two">
+              <div><label for="sw-name">Your name</label><input id="sw-name" type="text" placeholder="Avery Cho" aria-label="Your name" required /></div>
+              <div><label for="sw-email">Work email</label><input id="sw-email" type="email" placeholder="you@company.com" aria-label="Work email" required /></div>
+            </div>
+            <div class="form-row two">
+              <div><label for="sw-company">Company</label><input id="sw-company" type="text" placeholder="Acme Labs" aria-label="Company" /></div>
+              <div><label for="sw-host">Hosting</label>
+                <select id="sw-host" aria-label="Hosting">
+                  <option>Synthwave SOC 2 cloud</option><option>Self-hosted on our infra</option><option>Air-gapped</option><option>Not sure yet</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row"><label for="sw-msg">What does your codebase look like?</label><textarea id="sw-msg" placeholder="Languages, monorepo or polyrepo, approximate LoC, team size." aria-label="Project description"></textarea></div>
+            <div class="form-foot">
+              <span class="form-note">Encrypted in transit · DPA available on request</span>
+              <button type="submit" class="btn btn-primary" style="height:44px;padding:0 22px;">Send message →</button>
+            </div>
+          </form>
+          <div class="info-stack">
+            <div class="info-card"><h3>Sales</h3><p>Walkthroughs and procurement. We index a sample of your repo before the call so the demo is yours.</p><a class="mail" href="mailto:sales@synthwave.ai">sales@synthwave.ai</a></div>
+            <div class="info-card"><h3>Support</h3><p>Existing customers reach the engineer who wrote the integration in the editor.</p><a class="mail" href="mailto:support@synthwave.ai">support@synthwave.ai</a></div>
+            <div class="info-card"><h3>Security &amp; press</h3><p>SOC 2 evidence, coordinated disclosure, journalist questions.</p><a class="mail" href="mailto:security@synthwave.ai">security@synthwave.ai</a></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Offices</span>
+          <h2>Where we <em>work from</em>.</h2>
+        </div>
+        <div class="offices">
+          <div class="office"><h3>Brooklyn</h3><p class="where">42 Broadway · Brooklyn, NY 11211 · United States</p><p class="hours">Mon–Fri · 09:00–18:00 ET</p></div>
+          <div class="office"><h3>Stockholm</h3><p class="where">Norrlandsgatan 12 · 111 43 Stockholm · Sweden</p><p class="hours">Mon–Fri · 09:00–18:00 CET</p></div>
+          <div class="office"><h3>Tokyo</h3><p class="where">Shibuya Mark City West 22F · 1-12-1 Dogenzaka, Shibuya · Tokyo 150-0043</p><p class="hours">Mon–Fri · 09:00–18:00 JST</p></div>
+        </div>
+        <div class="map" role="img" aria-label="Map showing Synthwave AI offices in Brooklyn, Stockholm, and Tokyo.">
+          <span class="pin a" data-label="Brooklyn"></span>
+          <span class="pin b" data-label="Stockholm"></span>
+          <span class="pin c" data-label="Tokyo"></span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer id="footer">
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col"><a class="brand" href="index.html" style="margin-bottom:16px;"><span class="brand-mark">∿</span>Synthwave AI</a><p style="color:var(--fg-2); font-size:14px; max-width:300px;">A coding copilot trained on your codebase.</p></div>
+        <div class="foot-col"><h4>Product</h4><a href="index.html#editor">Editor</a><a href="index.html">PR review</a><a href="index.html">Refactors</a><a href="pricing.html">Pricing</a></div>
+        <div class="foot-col"><h4>Resources</h4><a href="#">Docs</a><a href="#">Security</a><a href="#">Status</a><a href="#">Changelog</a></div>
+        <div class="foot-col"><h4>Company</h4><a href="about.html">About</a><a href="#">Careers</a><a href="#">Privacy</a><a href="contact.html">Contact</a></div>
+      </div>
+      <div class="foot-bot"><span>© 2026 Synthwave AI Labs</span><span>Tokens stay home.</span></div>
+    </div>
+  </footer>
+</body>
+</html>

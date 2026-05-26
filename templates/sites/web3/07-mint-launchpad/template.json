@@ -1,0 +1,35 @@
+{
+  "slug": "web3-07-mint-launchpad",
+  "title": "Mint Launchpad",
+  "subtitle": "Fair, audited token launches with public vesting and an independent review on every sale.",
+  "category": "Web3",
+  "type": "Apps",
+  "tags": [
+    "light",
+    "launchpad",
+    "bright",
+    "productized"
+  ],
+  "previewImage": "/templates/web3-07-mint-launchpad.jpg",
+  "palette": {
+    "bg": "#ffffff",
+    "fg": "#0f172a",
+    "accent": "#1a3cff"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "stats",
+    "launches",
+    "how",
+    "vesting",
+    "features",
+    "security",
+    "ecosystem",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Mint Launchpad template as the foundation for a token launchpad landing. Keep the bright white background with electric blue accent, the featured launch card in the hero, the live/upcoming/ended launch grid, and the vesting breakdown. Replace placeholder projects with the platform's actual launches.",
+  "livePreview": "/template-previews/web3-07-mint-launchpad/"
+}

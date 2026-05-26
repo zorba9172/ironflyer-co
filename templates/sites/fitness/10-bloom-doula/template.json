@@ -1,0 +1,34 @@
+{
+  "slug": "fitness-10-bloom-doula",
+  "title": "Bloom Doula",
+  "subtitle": "Pregnancy, birth, and postpartum support for the whole arc.",
+  "category": "Fitness",
+  "type": "Websites",
+  "tags": [
+    "maternity",
+    "doula",
+    "warm",
+    "friendly"
+  ],
+  "previewImage": "/templates/fitness-10-bloom-doula.jpg",
+  "palette": {
+    "bg": "#f5e0dc",
+    "fg": "#3a2424",
+    "accent": "#75876b"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "services",
+    "approach",
+    "team",
+    "classes",
+    "testimonials",
+    "pricing",
+    "faq",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Bloom Doula template as the foundation for a warm, blush-and-sage doula practice site with hero, service tiers, approach, doula team, classes, parent quotes, pricing, and FAQ.",
+  "livePreview": "/template-previews/fitness-10-bloom-doula/"
+}

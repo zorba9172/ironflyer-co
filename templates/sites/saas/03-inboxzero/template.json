@@ -1,0 +1,35 @@
+{
+  "slug": "saas-03-inboxzero",
+  "title": "InboxZero",
+  "subtitle": "The team inbox that learns who answers what.",
+  "category": "SaaS",
+  "type": "Apps",
+  "tags": [
+    "light",
+    "productivity",
+    "modern",
+    "soft",
+    "support"
+  ],
+  "previewImage": "/templates/saas-03-inboxzero.jpg",
+  "palette": {
+    "bg": "#ffffff",
+    "fg": "#1a1330",
+    "accent": "#d946ef"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "logos",
+    "features",
+    "workflow",
+    "quotes",
+    "metrics",
+    "pricing",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the InboxZero template as the foundation for a friendly productivity SaaS landing: soft white background with magenta accents, a realistic inbox mockup in the hero, a numbered workflow band, customer quote grid, metric strip, and per-resolved pricing.",
+  "livePreview": "/template-previews/saas-03-inboxzero/"
+}

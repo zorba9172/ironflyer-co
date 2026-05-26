@@ -1,0 +1,35 @@
+{
+  "slug": "ecommerce-10-papercut",
+  "title": "PaperCut",
+  "subtitle": "Letterpress notebooks, fountain pens, and stationery from a Brooklyn bindery.",
+  "category": "E-commerce",
+  "type": "Commerce",
+  "tags": [
+    "stationery",
+    "minimal",
+    "type-led",
+    "letterpress",
+    "serif"
+  ],
+  "previewImage": "/templates/ecommerce-10-papercut.jpg",
+  "palette": {
+    "bg": "#ffffff",
+    "fg": "#111111",
+    "accent": "#d22d2d"
+  },
+  "sections": [
+    "banner",
+    "nav",
+    "hero",
+    "rules",
+    "products",
+    "bindery",
+    "type-band",
+    "testimonials",
+    "newsletter",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the PaperCut template as the foundation for a stationery storefront. White paper background with cherry red accent and italic Instrument Serif headlines, four-rule strip, numbered product catalogue grid, bindery process panel with numbered steps, paper-spec type band, and a quiet monthly dispatch newsletter. Replace placeholder copy with the brand's actual notebooks and tools.",
+  "livePreview": "/template-previews/ecommerce-10-papercut/"
+}

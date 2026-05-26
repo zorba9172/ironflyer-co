@@ -1,0 +1,34 @@
+{
+  "slug": "fitness-04-cyclebar-loop",
+  "title": "Cyclebar Loop",
+  "subtitle": "Indoor cycling, lit like a club, programmed like a track day.",
+  "category": "Fitness",
+  "type": "Websites",
+  "tags": [
+    "cycling",
+    "neon",
+    "kinetic",
+    "dark"
+  ],
+  "previewImage": "/templates/fitness-04-cyclebar-loop.jpg",
+  "palette": {
+    "bg": "#0a0a0a",
+    "fg": "#f6f1eb",
+    "accent": "#ff3d8a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "ride-types",
+    "schedule",
+    "instructors",
+    "stats",
+    "pricing",
+    "testimonials",
+    "studio",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Cyclebar Loop template as the foundation for a dark, neon-pink indoor cycling studio site with hero, ride types, schedule, instructor grid, member quotes, and class pack pricing.",
+  "livePreview": "/template-previews/fitness-04-cyclebar-loop/"
+}

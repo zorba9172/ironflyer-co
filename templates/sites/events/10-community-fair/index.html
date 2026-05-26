@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Oak Park Community Fair — Saturday, June 13, 2026</title>
+  <meta name="description" content="The 24th annual Oak Park Community Fair. Music, games, vendors, neighbors. Saturday June 13, 2026, 11 a.m. to 8 p.m. Lake Park, Oak Park, IL. Free." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #ffffff;
+      --paper: #fff8e6;
+      --ink: #1a1a1a;
+      --ink-2: #4a4a4a;
+      --ink-3: #8a8a8a;
+      --red: #d63a3a;
+      --red-2: #a02828;
+      --yellow: #ffd400;
+      --blue: #2461c8;
+      --rule: rgba(26, 26, 26, 0.15);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg); color: var(--ink);
+      font-family: 'DM Sans', system-ui, sans-serif;
+      font-size: 16px; line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+    .display { font-family: 'Archivo Black', system-ui, sans-serif; letter-spacing: -0.01em; }
+    .eyebrow { font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 700; color: var(--red); }
+
+    /* Nav */
+    .nav { padding: 18px 0; border-bottom: 4px solid var(--ink); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: flex; align-items: center; gap: 12px; font-family: 'Archivo Black', sans-serif; font-size: 22px; letter-spacing: -0.01em; }
+    .brand-mark { width: 36px; height: 36px; background: var(--red); border-radius: 50%; position: relative; }
+    .brand-mark::after { content: ''; position: absolute; top: 8px; left: 8px; width: 20px; height: 20px; background: var(--yellow); border-radius: 50%; }
+    .nav-links { display: flex; gap: 30px; font-size: 14px; font-weight: 700; }
+    .nav-cta { background: var(--yellow); color: var(--ink); padding: 12px 22px; font-weight: 800; font-size: 14px; border-radius: 999px; border: 2px solid var(--ink); }
+    .nav-cta:hover { background: var(--red); color: var(--bg); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { position: relative; padding: 80px 0 96px; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top: -120px; right: -120px; width: 460px; height: 460px; background: var(--yellow); border-radius: 50%; z-index: 0; }
+    .hero::after { content: ''; position: absolute; bottom: -160px; left: 10%; width: 320px; height: 320px; background: var(--red); border-radius: 50%; z-index: 0; opacity: 0.85; }
+    .hero-inner { position: relative; z-index: 1; }
+    .hero-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 48px; align-items: end; }
+    h1 {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: clamp(64px, 13vw, 180px);
+      line-height: 0.86; letter-spacing: -0.035em;
+      margin: 24px 0 24px;
+    }
+    h1 span { color: var(--red); }
+    h1 em { font-style: normal; color: var(--blue); }
+    .hero-tag { font-size: clamp(20px, 3vw, 32px); font-weight: 700; max-width: 640px; line-height: 1.25; margin-bottom: 32px; }
+    .hero-meta { background: var(--ink); color: var(--bg); padding: 28px 32px; border-radius: 16px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .hero-meta strong { display: block; font-family: 'Archivo Black', sans-serif; font-size: 22px; color: var(--yellow); }
+    .hero-meta span { font-size: 13px; color: rgba(255, 255, 255, 0.75); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; margin-top: 4px; display: block; }
+    .hero-card { background: var(--bg); border: 4px solid var(--ink); padding: 32px; border-radius: 24px; transform: rotate(-2deg); }
+    .hero-card h3 { font-family: 'Archivo Black', sans-serif; font-size: 28px; margin: 0 0 14px; line-height: 1.05; }
+    .hero-card p { margin: 0 0 16px; color: var(--ink-2); font-size: 15px; }
+    .hero-card .btn { display: inline-flex; align-items: center; gap: 8px; background: var(--red); color: var(--bg); padding: 14px 22px; font-weight: 700; font-size: 14px; letter-spacing: 0.06em; text-transform: uppercase; border-radius: 999px; }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 36px; } .hero-meta { grid-template-columns: 1fr 1fr; } }
+
+    /* Sections */
+    .section { padding: 96px 0; border-top: 4px solid var(--ink); position: relative; }
+    .section h2 { font-family: 'Archivo Black', sans-serif; font-size: clamp(40px, 7vw, 88px); letter-spacing: -0.025em; line-height: 0.95; margin: 12px 0 14px; }
+    .section h2 em { font-style: normal; color: var(--red); }
+    .section-head { max-width: 720px; margin-bottom: 56px; }
+    .section .lede { font-size: 18px; color: var(--ink-2); max-width: 620px; }
+
+    /* What's there */
+    .what { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+    .thing { padding: 32px 26px; border-radius: 20px; border: 3px solid var(--ink); position: relative; overflow: hidden; }
+    .thing:nth-child(1) { background: var(--yellow); }
+    .thing:nth-child(2) { background: var(--red); color: var(--bg); }
+    .thing:nth-child(3) { background: var(--bg); }
+    .thing:nth-child(4) { background: var(--blue); color: var(--bg); }
+    .thing:nth-child(5) { background: var(--bg); }
+    .thing:nth-child(6) { background: var(--yellow); }
+    .thing:nth-child(7) { background: var(--red); color: var(--bg); }
+    .thing:nth-child(8) { background: var(--blue); color: var(--bg); }
+    .thing .icon { font-family: 'Archivo Black', sans-serif; font-size: 42px; margin-bottom: 14px; line-height: 1; }
+    .thing h3 { font-family: 'Archivo Black', sans-serif; font-size: 22px; margin: 0 0 8px; }
+    .thing p { font-size: 14px; margin: 0; opacity: 0.85; }
+    @media (max-width: 1080px) { .what { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .what { grid-template-columns: 1fr; } }
+
+    /* Schedule */
+    .schedule { display: grid; gap: 14px; }
+    .sch { display: grid; grid-template-columns: 130px 1fr 220px 100px; gap: 24px; align-items: center; padding: 20px 28px; border-radius: 16px; border: 3px solid var(--ink); background: var(--bg); }
+    .sch:nth-child(odd) { background: var(--paper); }
+    .sch .time { font-family: 'Archivo Black', sans-serif; font-size: 24px; color: var(--red); }
+    .sch h4 { margin: 0 0 4px; font-weight: 800; font-size: 18px; letter-spacing: -0.01em; }
+    .sch p { margin: 0; color: var(--ink-2); font-size: 14px; }
+    .sch .where { font-size: 13px; color: var(--ink-2); font-weight: 600; }
+    .sch .kind { font-family: 'Archivo Black', sans-serif; font-size: 11px; padding: 6px 12px; border-radius: 999px; background: var(--ink); color: var(--bg); text-align: center; letter-spacing: 0.06em; }
+    .sch .kind.music { background: var(--red); }
+    .sch .kind.kids { background: var(--yellow); color: var(--ink); }
+    .sch .kind.food { background: var(--blue); }
+    @media (max-width: 1080px) { .sch { grid-template-columns: 90px 1fr; } .sch .where, .sch .kind { grid-column: 2; text-align: left; } }
+
+    /* Map / Venue */
+    .map-wrap { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 36px; align-items: stretch; }
+    .map-img { aspect-ratio: 5/3; object-fit: cover; border-radius: 16px; border: 3px solid var(--ink); }
+    .map-info { background: var(--ink); color: var(--bg); border-radius: 16px; padding: 36px; display: flex; flex-direction: column; justify-content: center; }
+    .map-info h3 { font-family: 'Archivo Black', sans-serif; font-size: 28px; margin: 0 0 16px; line-height: 1.1; }
+    .map-info p { margin: 0 0 18px; color: rgba(255,255,255,0.78); font-size: 15px; }
+    .map-info .row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.15); font-size: 14px; }
+    .map-info .row:last-child { border-bottom: none; }
+    .map-info .row span:first-child { color: var(--yellow); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; font-size: 11px; }
+    @media (max-width: 1080px) { .map-wrap { grid-template-columns: 1fr; } }
+
+    /* Vendors */
+    .vendors { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+    .v-col h3 { font-family: 'Archivo Black', sans-serif; font-size: 32px; margin: 0 0 18px; }
+    .v-col h3 .red { color: var(--red); }
+    .v-col h3 .blue { color: var(--blue); }
+    .v-col ul { list-style: none; padding: 0; margin: 0; }
+    .v-col li { padding: 14px 0; border-bottom: 1px dashed var(--rule); font-size: 16px; display: flex; justify-content: space-between; }
+    .v-col li:last-child { border-bottom: none; }
+    .v-col li span { color: var(--ink-2); font-size: 13px; }
+    @media (max-width: 1080px) { .vendors { grid-template-columns: 1fr; } }
+
+    /* Kids zone */
+    .kids-card { background: var(--yellow); border: 4px solid var(--ink); border-radius: 24px; padding: 56px; display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: center; position: relative; overflow: hidden; }
+    .kids-card::before { content: ''; position: absolute; top: -40px; right: -40px; width: 160px; height: 160px; background: var(--red); border-radius: 50%; opacity: 0.2; }
+    .kids-card h2 { margin-top: 0; }
+    .kids-card img { aspect-ratio: 4/3; object-fit: cover; border-radius: 12px; border: 3px solid var(--ink); }
+    .kids-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
+    .kids-grid div { padding: 12px 16px; background: var(--bg); border: 2px solid var(--ink); border-radius: 10px; font-weight: 700; font-size: 14px; }
+    @media (max-width: 1080px) { .kids-card { grid-template-columns: 1fr; padding: 36px; } }
+
+    /* Volunteer */
+    .vol-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; }
+    .vol-card { background: var(--red); color: var(--bg); padding: 40px 36px; border-radius: 20px; }
+    .vol-card h3 { font-family: 'Archivo Black', sans-serif; font-size: 32px; margin: 0 0 14px; }
+    .vol-card p { margin: 0 0 22px; opacity: 0.92; }
+    .vol-card form { display: grid; gap: 12px; }
+    .vol-card label { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.8; font-weight: 700; display: block; margin-bottom: 4px; }
+    .vol-card input, .vol-card select { width: 100%; background: rgba(255,255,255,0.12); border: 2px solid rgba(255,255,255,0.3); color: var(--bg); padding: 12px 14px; font-family: inherit; font-size: 15px; border-radius: 10px; }
+    .vol-card input::placeholder { color: rgba(255,255,255,0.6); }
+    .vol-card .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .vol-card .submit { background: var(--ink); color: var(--bg); border: none; padding: 14px 24px; font-weight: 800; font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; border-radius: 999px; cursor: pointer; margin-top: 10px; }
+    .vol-shifts { background: var(--bg); border: 3px solid var(--ink); border-radius: 20px; padding: 32px; }
+    .vol-shifts h3 { font-family: 'Archivo Black', sans-serif; font-size: 24px; margin: 0 0 14px; }
+    .vol-shifts .shift { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed var(--rule); font-size: 14px; }
+    .vol-shifts .shift:last-child { border-bottom: none; }
+    .vol-shifts .shift .b { background: var(--yellow); padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; }
+    .vol-shifts .shift .b.full { background: var(--rule); color: var(--ink-3); }
+    @media (max-width: 1080px) { .vol-grid { grid-template-columns: 1fr; } }
+
+    /* Donate */
+    .donate { background: var(--blue); color: var(--bg); padding: 80px 0; }
+    .donate h2 { color: var(--bg); }
+    .donate h2 em { color: var(--yellow); }
+    .donate p.lede { color: rgba(255,255,255,0.85); }
+    .donate-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 40px; max-width: 720px; }
+    .donate-row button { background: rgba(255,255,255,0.12); border: 2px solid rgba(255,255,255,0.3); color: var(--bg); padding: 22px 0; border-radius: 12px; font-family: 'Archivo Black', sans-serif; font-size: 24px; cursor: pointer; transition: transform 200ms; }
+    .donate-row button:hover { transform: translateY(-2px); background: var(--yellow); color: var(--ink); }
+    @media (max-width: 720px) { .donate-row { grid-template-columns: 1fr 1fr; } }
+
+    /* Sponsors */
+    .sponsors-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; }
+    .sponsors-row span { padding: 22px 12px; text-align: center; border: 2px dashed var(--rule); border-radius: 12px; font-weight: 800; font-size: 15px; color: var(--ink-2); }
+    @media (max-width: 720px) { .sponsors-row { grid-template-columns: repeat(2, 1fr); } }
+
+    /* Footer */
+    footer { background: var(--ink); color: var(--bg); padding: 56px 0 32px; }
+    .foot-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 36px; }
+    .foot-col h5 { font-family: 'Archivo Black', sans-serif; font-size: 14px; color: var(--yellow); margin: 0 0 14px; letter-spacing: 0.06em; }
+    .foot-col a { display: block; padding: 5px 0; color: rgba(255,255,255,0.75); font-size: 14px; }
+    .foot-col a:hover { color: var(--yellow); }
+    .foot-bot { margin-top: 40px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.18); display: flex; justify-content: space-between; color: rgba(255,255,255,0.6); font-size: 13px; }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 10px; } }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#"><span class="brand-mark"></span>Oak Park Fair</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#what">What's there</a>
+        <a href="#schedule">Schedule</a>
+        <a href="#map">Map</a>
+        <a href="#vendors">Vendors</a>
+        <a href="#volunteer">Volunteer</a>
+        <a href="#donate">Donate</a>
+      </nav>
+      <a class="nav-cta" href="#donate">Chip in</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap hero-inner">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow">24th annual · Free · Rain or shine</span>
+            <h1>The <span>Oak&nbsp;Park</span><br/><em>Community Fair.</em></h1>
+            <p class="hero-tag">Saturday, June 13, 2026 · 11 a.m. to 8 p.m. · Lake Park. Music, games, food trucks, two hundred neighbors you have not met yet.</p>
+            <div class="hero-meta">
+              <div><strong>Sat June 13</strong><span>11A — 8P</span></div>
+              <div><strong>Lake Park</strong><span>OAK PARK, IL</span></div>
+              <div><strong>Always free</strong><span>SINCE 2002</span></div>
+            </div>
+          </div>
+          <div class="hero-card">
+            <h3>Where the day actually starts.</h3>
+            <p>The pancake breakfast at the playground from 9 a.m., a 5K fun run at 10, then the fair at 11. The mayor cuts the ribbon at 11 sharp. The mayor is also our librarian.</p>
+            <a class="btn" href="#schedule">See the schedule →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="what">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">What's there</span>
+          <h2>Eight reasons to <em>walk over</em>.</h2>
+          <p class="lede">No tickets, no fences, no marketing pop-ups. Just the neighborhood, doing the things it likes doing in early summer.</p>
+        </div>
+        <div class="what">
+          <div class="thing"><div class="icon">♪</div><h3>Two music stages</h3><p>Folk and brass at noon, a local cover band at 4, a sundown headliner at 7.</p></div>
+          <div class="thing"><div class="icon">★</div><h3>Food row</h3><p>Twelve food trucks and four neighborhood restaurants on Ridgeland Ave.</p></div>
+          <div class="thing"><div class="icon">▸</div><h3>Sixty makers</h3><p>Local crafts, prints, ceramics, and the only honey stand we trust.</p></div>
+          <div class="thing"><div class="icon">●</div><h3>Kids zone</h3><p>Free face paint, balloon animals, the dunk tank, and the fire truck.</p></div>
+          <div class="thing"><div class="icon">▲</div><h3>Library tent</h3><p>Story time at 11, used-book sale all day, summer reading sign-ups.</p></div>
+          <div class="thing"><div class="icon">◆</div><h3>5K fun run</h3><p>10 a.m. start at the gazebo. $15 to enter; free if you wear last year's shirt.</p></div>
+          <div class="thing"><div class="icon">✺</div><h3>Beer garden</h3><p>21+ with ID. Two local breweries, two ciders, one neighborhood wine.</p></div>
+          <div class="thing"><div class="icon">✦</div><h3>Fireworks at dusk</h3><p>8:30 p.m. over the lake. Best seats are the south lawn or the dock.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="schedule">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Schedule</span>
+          <h2>The whole <em>day</em>.</h2>
+          <p class="lede">Pick what you want to be there for. Wander away from the rest. The fair runs from 11 a.m. to 8 p.m. and the fireworks start at 8:30.</p>
+        </div>
+        <div class="schedule">
+          <div class="sch"><span class="time">09:00</span><div><h4>Pancake breakfast</h4><p>Hosted by the Oak Park Firefighters Association. $8 a plate.</p></div><span class="where">Playground</span><span class="kind food">Food</span></div>
+          <div class="sch"><span class="time">10:00</span><div><h4>5K Fun Run</h4><p>$15 entry, $5 for kids under 12. Free if you wear a past fair shirt.</p></div><span class="where">Gazebo start</span><span class="kind">Active</span></div>
+          <div class="sch"><span class="time">11:00</span><div><h4>Ribbon cutting · Fair opens</h4><p>Welcome from the mayor. The library tent opens with the year's first story time.</p></div><span class="where">Main entrance</span><span class="kind">Open</span></div>
+          <div class="sch"><span class="time">12:00</span><div><h4>The Oak Park Brass Quartet</h4><p>A standing 30-minute set in the gazebo. Free.</p></div><span class="where">North stage</span><span class="kind music">Music</span></div>
+          <div class="sch"><span class="time">13:30</span><div><h4>Kids' bike parade</h4><p>Decorate your bike at the library tent, parade at 1:30. Helmets only.</p></div><span class="where">Loop path</span><span class="kind kids">Kids</span></div>
+          <div class="sch"><span class="time">15:00</span><div><h4>Pie contest results</h4><p>Bring a pie by noon, taste at 2:30, results announced at 3.</p></div><span class="where">Library tent</span><span class="kind food">Food</span></div>
+          <div class="sch"><span class="time">16:00</span><div><h4>The Northside Drifters</h4><p>The 4 p.m. headliner is a local cover band that comes back every year.</p></div><span class="where">South stage</span><span class="kind music">Music</span></div>
+          <div class="sch"><span class="time">17:30</span><div><h4>Hot-dog eating challenge</h4><p>Limit 12 contestants. The mayor competes; the mayor does not win.</p></div><span class="where">Food row</span><span class="kind food">Food</span></div>
+          <div class="sch"><span class="time">19:00</span><div><h4>Headliner: The Carolyn Park Band</h4><p>A 60-minute closing set. Bring a blanket.</p></div><span class="where">South stage</span><span class="kind music">Music</span></div>
+          <div class="sch"><span class="time">20:30</span><div><h4>Fireworks over the lake</h4><p>20-minute show by the Oak Park Lakeshore Fire District.</p></div><span class="where">Lakefront</span><span class="kind">Closing</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="map">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Where</span>
+          <h2>Lake Park · <em>Oak Park, IL</em>.</h2>
+        </div>
+        <div class="map-wrap">
+          <img class="map-img" src="https://picsum.photos/seed/community-fair-2/1400/840" width="1400" height="840" alt="A hand-drawn fair map showing the south stage, north stage, food row, kids zone, library tent, and lakefront fireworks area." loading="lazy" />
+          <div class="map-info">
+            <h3>The corner of Ridgeland &amp; Lake.</h3>
+            <p>The fair stretches from the gazebo to the lakefront. Bike racks on every corner. Closest CTA: Oak Park Green Line, a 6-minute walk.</p>
+            <div class="row"><span>Address</span><span>411 Lake St, Oak Park IL</span></div>
+            <div class="row"><span>Transit</span><span>Oak Park Green Line · 6 min</span></div>
+            <div class="row"><span>Parking</span><span>Two free city lots, full by 11:30</span></div>
+            <div class="row"><span>Accessibility</span><span>Paved routes, ASL on the south stage</span></div>
+            <div class="row"><span>Bathrooms</span><span>Park bathrooms + 14 portables</span></div>
+            <div class="row"><span>Lost child</span><span>Library tent · ask any volunteer</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="vendors">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Sixty vendors</span>
+          <h2>The <em>makers</em> and the <em>food</em>.</h2>
+          <p class="lede">A short list. The full vendor map is at the library tent the day of, and on the city's website the Friday before.</p>
+        </div>
+        <div class="vendors">
+          <div class="v-col">
+            <h3>Food <span class="red">row</span></h3>
+            <ul>
+              <li>Carbón Live Fire <span>Mexican BBQ</span></li>
+              <li>The Italian Lemonade Cart <span>Since 1998</span></li>
+              <li>Marion's Kitchen <span>Pierogi + babka</span></li>
+              <li>Curry Up Now <span>Indian street food</span></li>
+              <li>Lou Malnati's <span>Slice cart</span></li>
+              <li>Spoken Cafe <span>Cold brew · iced</span></li>
+              <li>Tomato Joe's <span>Sandwiches + salads</span></li>
+              <li>Vienna Beef truck <span>Hot dogs · Chicago style</span></li>
+              <li>Ohana Donuts <span>Hot mini donuts</span></li>
+              <li>Carnitas Uruapan <span>Pop-up cart</span></li>
+              <li>Mr. Beef truck <span>Italian beef</span></li>
+              <li>Garrett Popcorn <span>Caramel + cheese tin</span></li>
+            </ul>
+          </div>
+          <div class="v-col">
+            <h3>Makers <span class="blue">row</span></h3>
+            <ul>
+              <li>Three Bees Honey <span>Local hives</span></li>
+              <li>Wright &amp; Sons Wood <span>Cutting boards, spoons</span></li>
+              <li>Oak Park Pottery Co-op <span>Mugs, plates</span></li>
+              <li>Field Notes <span>Printed in Chicago</span></li>
+              <li>Stitchwork Studio <span>Embroidery</span></li>
+              <li>Lakeside Letterpress <span>Cards, prints</span></li>
+              <li>Ridgeland Bookbinders <span>Notebooks</span></li>
+              <li>Glass Half Full <span>Stained glass</span></li>
+              <li>The Knit Closet <span>Hand-spun yarn</span></li>
+              <li>South Boulevard Soap <span>Cold-process</span></li>
+              <li>Hawthorn Plants <span>Local nursery</span></li>
+              <li>Eight Treasures Tea <span>Loose-leaf</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="kids">
+      <div class="wrap">
+        <div class="kids-card">
+          <div>
+            <span class="eyebrow">For the small ones</span>
+            <h2 style="margin-top:8px;">The <em style="color:var(--blue);">kids zone</em> is free and shaded.</h2>
+            <p style="font-size:17px; color:var(--ink-2); margin-bottom: 20px;">Adjacent to the library tent and within line-of-sight of every food stand. Two retired teachers and ten volunteers staff it all day. Strollers welcome.</p>
+            <div class="kids-grid">
+              <div>Face paint · 11A–4P</div>
+              <div>Balloon animals · 12P–3P</div>
+              <div>Bouncy house · 11A–6P</div>
+              <div>Fire truck · 1P–3P</div>
+              <div>Bike parade · 1:30P</div>
+              <div>Library story time · 11A, 2P, 5P</div>
+              <div>Sidewalk chalk · all day</div>
+              <div>Dunk the principal · 2P–4P</div>
+            </div>
+          </div>
+          <img src="https://picsum.photos/seed/community-fair-3/1000/750" width="1000" height="750" alt="Kids painting on a long roll of paper at a community fair, with face paint and chalk." loading="lazy" />
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="volunteer">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Volunteer</span>
+          <h2>The fair runs on <em>neighbors</em>.</h2>
+          <p class="lede">Two-hour shifts only, in groups of two, with a captain. Volunteers eat free at any food vendor and get a fair t-shirt to keep.</p>
+        </div>
+        <div class="vol-grid">
+          <div class="vol-card">
+            <h3>Sign up · pick a shift</h3>
+            <p>Fill this in and we'll text you the day before with your spot.</p>
+            <form onsubmit="event.preventDefault();">
+              <div class="row2">
+                <div><label for="v-name">Your name</label><input id="v-name" type="text" placeholder="Your name" /></div>
+                <div><label for="v-phone">Phone</label><input id="v-phone" type="tel" placeholder="773 555-0142" /></div>
+              </div>
+              <div><label for="v-shift">Shift preference</label><select id="v-shift">
+                <option>10A — 12P · Setup</option>
+                <option>11A — 1P · Library tent</option>
+                <option>1P — 3P · Food row</option>
+                <option>3P — 5P · Kids zone</option>
+                <option>5P — 7P · South stage</option>
+                <option>7P — 9P · Cleanup</option>
+              </select></div>
+              <div><label for="v-shirt">T-shirt size</label><select id="v-shirt"><option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option><option>2XL</option></select></div>
+              <button class="submit" type="submit">Sign me up</button>
+            </form>
+          </div>
+          <div class="vol-shifts">
+            <h3>What's open</h3>
+            <div class="shift"><span>10A — 12P · Setup (8 needed)</span><span class="b">5 left</span></div>
+            <div class="shift"><span>11A — 1P · Library tent (4 needed)</span><span class="b">2 left</span></div>
+            <div class="shift"><span>1P — 3P · Food row runner (6 needed)</span><span class="b full">Full</span></div>
+            <div class="shift"><span>3P — 5P · Kids zone (8 needed)</span><span class="b">3 left</span></div>
+            <div class="shift"><span>5P — 7P · South stage crew (6 needed)</span><span class="b">5 left</span></div>
+            <div class="shift"><span>7P — 9P · Cleanup (10 needed)</span><span class="b">10 left</span></div>
+            <p style="font-size:13px; color:var(--ink-2); margin: 18px 0 0;">Captains needed for the 5–7 and 7–9 shifts. Email volunteer@oakparkfair.org if you can captain.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="donate" id="donate">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow" style="color:var(--yellow);">Donate</span>
+        <h2>Keep it <em>free</em>.</h2>
+        <p class="lede">The Oak Park Community Fair has been free for 23 years. Sponsors and small donations from neighbors pay for the stages, the portables, the library tent, and the fireworks.</p>
+      </div>
+      <div class="donate-row">
+        <button>$25</button>
+        <button>$50</button>
+        <button>$100</button>
+        <button>$250</button>
+      </div>
+      <p style="font-size:13px; color:rgba(255,255,255,0.7); margin: 24px 0 0;">Donations are tax-deductible. Receipt by email within ten minutes.</p>
+    </div>
+  </section>
+
+  <section class="section" id="sponsors">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">Sponsors</span>
+        <h2>The <em>businesses</em> that chip in.</h2>
+        <p class="lede">A partial list. Sponsors do not get a stage, an ad on the schedule, or a microphone. They get our thanks.</p>
+      </div>
+      <div class="sponsors-row">
+        <span>Spoken Cafe</span>
+        <span>Lou Malnati's</span>
+        <span>Pumping Station</span>
+        <span>Wright Realty</span>
+        <span>Field Notes</span>
+        <span>Oak Park Library</span>
+        <span>Marion's Kitchen</span>
+        <span>OPRF Bank</span>
+        <span>Ridgeland Press</span>
+        <span>Hawthorn Plants</span>
+        <span>Lakeside Brewing</span>
+        <span>Three Bees Honey</span>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a class="brand" href="#" style="color:var(--bg); margin-bottom:14px;"><span class="brand-mark"></span>Oak Park Community Fair</a>
+          <p style="color:rgba(255,255,255,0.7); font-size:14px; max-width:300px;">An always-free community fair, run by a 14-person volunteer board with help from 220 neighbors each summer. Founded 2002.</p>
+        </div>
+        <div class="foot-col"><h5>The fair</h5><a href="#schedule">Schedule</a><a href="#map">Map</a><a href="#vendors">Vendors</a><a href="#kids">Kids zone</a></div>
+        <div class="foot-col"><h5>Help out</h5><a href="#volunteer">Volunteer</a><a href="#donate">Donate</a><a href="#">Sponsor</a><a href="#">Apply as vendor</a></div>
+        <div class="foot-col"><h5>Contact</h5><a href="mailto:hello@oakparkfair.org">hello@oakparkfair.org</a><a href="#">Press</a><a href="#">Lost &amp; found</a></div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Oak Park Community Fair, a 501(c)(3) nonprofit</span>
+        <span>Saturday, June 13, 2026 · 11A — 8P · Lake Park</span>
+      </div>
+    </div>
+  </footer>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

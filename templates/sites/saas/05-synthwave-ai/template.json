@@ -1,0 +1,34 @@
+{
+  "slug": "saas-05-synthwave-ai",
+  "title": "Synthwave AI",
+  "subtitle": "The AI copilot trained on your codebase, not the internet.",
+  "category": "SaaS",
+  "type": "Apps",
+  "tags": [
+    "dark",
+    "neon",
+    "futuristic",
+    "developer",
+    "ai"
+  ],
+  "previewImage": "/templates/saas-05-synthwave-ai.jpg",
+  "palette": {
+    "bg": "#07070a",
+    "fg": "#ece8f7",
+    "accent": "#8b5cff"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "logos",
+    "features",
+    "compare",
+    "stats",
+    "pricing",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Synthwave AI template as the foundation for a near-black, neon violet developer-tools landing page: gradient brand mark, editor mockup with a grounded suggestion, comparison table, neon stat strip, and per-developer pricing.",
+  "livePreview": "/template-previews/saas-05-synthwave-ai/"
+}

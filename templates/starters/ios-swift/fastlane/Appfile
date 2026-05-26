@@ -1,0 +1,11 @@
+# Ironflyer iOS starter — fastlane app identity.
+#
+# Each value reads from an environment variable so the same checkout
+# works for every project derived from this starter. The CI workflow
+# sets these from repo secrets; locally, export them before running
+# `bundle exec fastlane beta`.
+
+app_identifier(ENV["IRONFLYER_APP_IDENTIFIER"] || "com.ironflyer.starter")
+apple_id(ENV["APPLE_ID"])
+itc_team_id(ENV["IRONFLYER_ITC_TEAM_ID"])
+team_id(ENV["IRONFLYER_TEAM_ID"])

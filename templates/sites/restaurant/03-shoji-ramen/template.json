@@ -1,0 +1,33 @@
+{
+  "slug": "restaurant-03-shoji-ramen",
+  "title": "Shoji",
+  "subtitle": "A fourteen-seat ramen counter on Mott Street, lunch and late night, six days a week.",
+  "category": "Restaurant",
+  "type": "Websites",
+  "tags": [
+    "japanese",
+    "minimal",
+    "brush",
+    "ramen",
+    "counter"
+  ],
+  "previewImage": "/templates/restaurant-03-shoji-ramen.jpg",
+  "palette": {
+    "bg": "#f5eee2",
+    "fg": "#1c1d2a",
+    "accent": "#1f2a5e"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "menu",
+    "broth",
+    "counter",
+    "visit",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Shoji template as the foundation for a minimal Japanese ramen counter site — off-white paper background with indigo accents and red brush marks, a quiet hero with vertical kanji, a tabbed menu with circular dish photos, a broth process story, a counter gallery, and walk-in hours.",
+  "livePreview": "/template-previews/restaurant-03-shoji-ramen/"
+}

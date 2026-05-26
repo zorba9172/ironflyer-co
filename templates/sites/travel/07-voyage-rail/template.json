@@ -1,0 +1,34 @@
+{
+  "slug": "travel-07-voyage-rail",
+  "title": "Voyage Rail",
+  "subtitle": "Luxury sleeper-train journeys across Europe and Asia.",
+  "category": "Travel",
+  "type": "Websites",
+  "tags": [
+    "rail",
+    "vintage",
+    "romance",
+    "burgundy",
+    "luxury"
+  ],
+  "previewImage": "/templates/travel-07-voyage-rail.jpg",
+  "palette": {
+    "bg": "#efe1c8",
+    "fg": "#2a1418",
+    "accent": "#6e1f2a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "booking",
+    "journeys",
+    "schedule",
+    "cabins",
+    "dining",
+    "guests",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Voyage Rail template as the foundation for a luxury sleeper-train company: cream and burgundy palette with gold accents, Cormorant Garamond italic display, ornament dividers, centered hero, a four-field booking widget, four journey cards with stat panels and per-guest pricing, a dark burgundy seven-stop schedule panel, three cabin-class tiles with roman numeral icons, a dining-car menu list, and four guest-book quotes.",
+  "livePreview": "/template-previews/travel-07-voyage-rail/"
+}

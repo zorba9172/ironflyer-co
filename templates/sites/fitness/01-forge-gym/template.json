@@ -1,0 +1,33 @@
+{
+  "slug": "fitness-01-forge-gym",
+  "title": "Forge Gym",
+  "subtitle": "A strength gym for people who actually want to get strong.",
+  "category": "Fitness",
+  "type": "Websites",
+  "tags": [
+    "dark",
+    "gym",
+    "strength",
+    "bold"
+  ],
+  "previewImage": "/templates/fitness-01-forge-gym.jpg",
+  "palette": {
+    "bg": "#0e0e10",
+    "fg": "#f4f1ea",
+    "accent": "#c5ff3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "stats",
+    "programs",
+    "schedule",
+    "coaches",
+    "testimonials",
+    "membership",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Forge Gym template as the foundation for a dark, barbell-focused strength gym site with hero, program cards, weekly schedule, coach grid, member testimonials, and membership tiers.",
+  "livePreview": "/template-previews/fitness-01-forge-gym/"
+}

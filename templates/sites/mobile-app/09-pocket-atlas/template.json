@@ -1,0 +1,34 @@
+{
+  "slug": "mobile-app-09-pocket-atlas",
+  "title": "Pocket Atlas",
+  "subtitle": "Offline maps and editorial guides for travelers who read.",
+  "category": "Mobile App",
+  "type": "Mobile/PWA",
+  "tags": [
+    "travel",
+    "editorial",
+    "photo",
+    "maps"
+  ],
+  "previewImage": "/templates/mobile-app-09-pocket-atlas.jpg",
+  "palette": {
+    "bg": "#efe9da",
+    "fg": "#1f1815",
+    "accent": "#c1392b"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "badges",
+    "features",
+    "cities",
+    "how",
+    "social",
+    "faq",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Pocket Atlas template as the foundation for a travel-companion mobile-app landing. Keep the sand + brick-red editorial system, the CSS phone frame with an offline-map UI, photo-rich city cards, App Store + Google Play badges, three-step trip explainer, and an editorial download CTA.",
+  "livePreview": "/template-previews/mobile-app-09-pocket-atlas/"
+}

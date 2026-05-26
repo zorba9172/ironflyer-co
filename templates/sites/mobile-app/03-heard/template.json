@@ -1,0 +1,34 @@
+{
+  "slug": "mobile-app-03-heard",
+  "title": "Heard",
+  "subtitle": "A podcast app built around transcripts you can actually search.",
+  "category": "Mobile App",
+  "type": "Mobile/PWA",
+  "tags": [
+    "podcast",
+    "warm",
+    "editorial",
+    "audio"
+  ],
+  "previewImage": "/templates/mobile-app-03-heard.jpg",
+  "palette": {
+    "bg": "#faf5ec",
+    "fg": "#1a1814",
+    "accent": "#ff6c3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "badges",
+    "features",
+    "shows",
+    "how",
+    "social",
+    "faq",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Heard template as the foundation for a podcast-app landing. Keep the warm cream-and-orange editorial system, the CSS phone frame with a now-playing UI, transcript-search feature highlight, App Store + Google Play badges, hand-picked shows shelf, and review band.",
+  "livePreview": "/template-previews/mobile-app-03-heard/"
+}

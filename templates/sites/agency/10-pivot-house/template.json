@@ -1,0 +1,35 @@
+{
+  "slug": "agency-10-pivot-house",
+  "title": "Pivot House",
+  "subtitle": "A startup studio that takes ideas from spec to shipped.",
+  "category": "Agency",
+  "type": "Websites",
+  "tags": [
+    "studio",
+    "builder",
+    "gritty",
+    "venture"
+  ],
+  "previewImage": "/templates/agency-10-pivot-house.jpg",
+  "palette": {
+    "bg": "#1f1b17",
+    "fg": "#f1ece1",
+    "accent": "#6ad9b3"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "what-we-do",
+    "portfolio-companies",
+    "operating-model",
+    "build-track",
+    "team",
+    "fund-info",
+    "press",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Pivot House template as the foundation for a startup studio site in clay and mint, with a built-in-house aesthetic, a portfolio company grid, operating-model breakdown, and a confident builder voice. Tight, gritty, on-the-tools.",
+  "livePreview": "/template-previews/agency-10-pivot-house/"
+}

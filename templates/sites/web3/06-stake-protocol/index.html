@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Stake Protocol — Liquid staking for Ethereum and L2s</title>
+  <meta name="description" content="Stake Protocol is a liquid staking protocol with audited validators, distributed node operators, and an stETH-style derivative on every supported chain." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0b1736;
+      --bg-2: #0a142e;
+      --surface: #0e1d44;
+      --surface-2: #142855;
+      --border: rgba(197, 255, 58, 0.10);
+      --border-strong: rgba(197, 255, 58, 0.25);
+      --fg: #eaf2ff;
+      --fg-2: #8aa0c8;
+      --fg-3: #56688c;
+      --accent: #c5ff3a;
+      --accent-dim: rgba(197, 255, 58, 0.16);
+      --green: #4ce8a0;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: blur(16px);
+      background: rgba(11, 23, 54, 0.85);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 66px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: -0.02em; font-size: 17px; }
+    .brand-mark {
+      width: 28px; height: 28px; border-radius: 6px;
+      background: var(--accent); color: #0b1736;
+      display: grid; place-items: center; font-weight: 800;
+      font-family: 'JetBrains Mono', monospace; font-size: 14px;
+    }
+    .nav-links { display: flex; gap: 28px; color: var(--fg-2); font-size: 14px; }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta { display: flex; gap: 10px; align-items: center; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      height: 38px; padding: 0 16px;
+      border-radius: 8px; font-weight: 600; font-size: 14px;
+      border: 1px solid transparent; cursor: pointer;
+      transition: transform 160ms, background 160ms;
+      font-family: inherit;
+    }
+    .btn-primary { background: var(--accent); color: #0b1736; }
+    .btn-primary:hover { transform: translateY(-1px); }
+    .btn-ghost { background: transparent; color: var(--fg); border-color: var(--border-strong); }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    @media (max-width: 900px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 96px 0 72px; position: relative; overflow: hidden; }
+    .hero::before {
+      content: ''; position: absolute; top: -100px; right: -200px; width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(197, 255, 58, 0.12), transparent 60%);
+      pointer-events: none;
+    }
+    .hero-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 56px; align-items: center; position: relative; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 12px; border: 1px solid var(--border-strong);
+      border-radius: 999px; font-size: 12px; color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+    h1 {
+      font-size: clamp(44px, 6.6vw, 84px);
+      line-height: 0.98; letter-spacing: -0.035em;
+      font-weight: 800; margin: 22px 0 22px;
+    }
+    h1 em { font-style: normal; color: var(--accent); }
+    .lede { font-size: 19px; color: var(--fg-2); max-width: 540px; line-height: 1.55; }
+    .hero-cta { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; }
+    .hero-cta .btn { height: 48px; padding: 0 22px; }
+
+    /* Stake widget */
+    .stake-widget {
+      background: linear-gradient(180deg, var(--surface), var(--bg-2));
+      border: 1px solid var(--border-strong);
+      border-radius: 14px; padding: 24px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+    }
+    .sw-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .sw-title { font-family: 'JetBrains Mono', monospace; font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-2); }
+    .sw-apy { font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 5px 10px; border-radius: 999px; background: var(--accent-dim); color: var(--accent); font-weight: 700; }
+    .sw-input {
+      background: var(--bg-2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px; margin-bottom: 12px;
+    }
+    .sw-input-label { font-size: 11px; color: var(--fg-3); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
+    .sw-input-row { display: flex; justify-content: space-between; align-items: center; }
+    .sw-amount { font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; background: transparent; border: 0; color: var(--fg); outline: none; width: 100%; padding: 0; }
+    .sw-token { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border: 1px solid var(--border-strong); border-radius: 999px; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+    .sw-token-ico { width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, #627eea, #8198ff); }
+    .sw-receive { background: var(--bg-2); border: 1px dashed var(--border-strong); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+    .sw-receive .label { font-size: 11px; color: var(--fg-3); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
+    .sw-receive .row { display: flex; justify-content: space-between; align-items: center; }
+    .sw-est { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 700; color: var(--accent); }
+    .sw-rewards { display: grid; gap: 8px; padding: 14px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin-bottom: 16px; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+    .sw-rewards-row { display: flex; justify-content: space-between; color: var(--fg-2); }
+    .sw-rewards-row b { color: var(--fg); font-weight: 700; }
+    .sw-cta { width: 100%; height: 50px; border-radius: 10px; font-weight: 700; font-size: 15px; background: var(--accent); color: #0b1736; border: 0; cursor: pointer; font-family: inherit; }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 48px; } }
+
+    /* Stats */
+    .stats {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 40px 0;
+      background: rgba(0, 0, 0, 0.2);
+    }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    .stat .val { font-family: 'JetBrains Mono', monospace; font-size: clamp(28px, 3.4vw, 42px); font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+    .stat .val em { font-style: normal; color: var(--accent); }
+    .stat .label { color: var(--fg-2); font-size: 13px; margin-top: 8px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; }
+    @media (max-width: 720px) { .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 28px; } }
+
+    /* Section */
+    .section { padding: 96px 0; }
+    .section-head { max-width: 720px; margin-bottom: 56px; }
+    .section h2 { font-size: clamp(32px, 4.4vw, 54px); letter-spacing: -0.03em; line-height: 1.05; font-weight: 800; margin: 14px 0 16px; }
+    .section h2 em { font-style: normal; color: var(--accent); }
+    .section .lede { font-size: 17px; }
+
+    /* APY chart */
+    .chart-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 28px;
+    }
+    .chart-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+    .chart-title { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--fg-2); text-transform: uppercase; letter-spacing: 0.08em; }
+    .chart-current { font-family: 'JetBrains Mono', monospace; font-size: 32px; font-weight: 700; color: var(--accent); letter-spacing: -0.01em; }
+    .chart-svg { width: 100%; height: 220px; display: block; }
+    .chart-foot { display: flex; justify-content: space-between; padding-top: 12px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.08em; }
+    .chart-legend { display: flex; gap: 16px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--fg-2); }
+    .chart-legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .chart-legend i { width: 10px; height: 2px; background: var(--accent); display: inline-block; }
+    .chart-legend i.b { background: var(--fg-3); }
+
+    /* How it works */
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .step {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 28px; position: relative;
+    }
+    .step-num { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); margin-bottom: 12px; display: inline-flex; padding: 4px 8px; background: var(--accent-dim); border-radius: 4px; }
+    .step h3 { font-size: 19px; font-weight: 700; margin: 8px 0 10px; letter-spacing: -0.01em; }
+    .step p { color: var(--fg-2); margin: 0; font-size: 14.5px; line-height: 1.65; }
+    @media (max-width: 1080px) { .steps { grid-template-columns: 1fr; } }
+
+    /* Features */
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .feature {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 28px;
+      transition: border-color 240ms;
+    }
+    .feature:hover { border-color: var(--border-strong); }
+    .feature-icon { width: 38px; height: 38px; border-radius: 8px; background: var(--accent-dim); display: grid; place-items: center; margin-bottom: 18px; color: var(--accent); font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+    .feature h3 { font-size: 17px; font-weight: 700; margin: 0 0 8px; letter-spacing: -0.01em; }
+    .feature p { color: var(--fg-2); margin: 0; font-size: 14px; line-height: 1.6; }
+    @media (max-width: 1080px) { .features { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .features { grid-template-columns: 1fr; } }
+
+    /* Validators */
+    .validators-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    .validators-head { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; padding: 14px 22px; background: var(--surface-2); font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid var(--border); }
+    .validator-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; padding: 16px 22px; border-bottom: 1px solid var(--border); align-items: center; font-size: 14px; }
+    .validator-row:last-child { border-bottom: 0; }
+    .validator-name { font-weight: 600; }
+    .validator-meta { font-size: 11px; color: var(--fg-3); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
+    .validator-cell { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--fg-2); }
+    .validator-cell.val { color: var(--accent); font-weight: 700; }
+    .status-pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-family: 'JetBrains Mono', monospace; font-size: 11px; background: rgba(76, 232, 160, 0.16); color: var(--green); font-weight: 600; }
+    @media (max-width: 1080px) {
+      .validators-head { display: none; }
+      .validator-row { grid-template-columns: 1fr; gap: 8px; }
+    }
+
+    /* Security */
+    .security { background: var(--bg-2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 96px 0; }
+    .sec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: start; }
+    .auditors { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .auditor { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+    .auditor-name { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+    .auditor-meta { font-size: 12px; color: var(--fg-2); font-family: 'JetBrains Mono', monospace; }
+    .auditor a { color: var(--accent); font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+    @media (max-width: 1080px) { .sec-grid { grid-template-columns: 1fr; gap: 40px; } }
+
+    /* Token */
+    .token-card {
+      background: linear-gradient(135deg, var(--surface), var(--bg-2));
+      border: 1px solid var(--border-strong);
+      border-radius: 14px; padding: 36px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
+    }
+    .token-info h3 { font-size: 24px; font-weight: 700; margin: 0 0 12px; letter-spacing: -0.01em; }
+    .token-info p { color: var(--fg-2); font-size: 15px; }
+    .token-meta { display: grid; gap: 12px; }
+    .token-meta-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+    .token-meta-row span:first-child { color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.08em; font-size: 11px; }
+    @media (max-width: 1080px) { .token-card { grid-template-columns: 1fr; padding: 28px; } }
+
+    /* Footer */
+    footer { border-top: 1px solid var(--border); padding: 56px 0 32px; background: #060e22; }
+    .foot-grid { display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 40px; }
+    .foot-col h4 { font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-3); margin: 0 0 16px; }
+    .foot-col a { display: block; color: var(--fg-2); font-size: 14px; padding: 6px 0; }
+    .foot-col a:hover { color: var(--accent); }
+    .foot-bot { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; color: var(--fg-3); font-size: 13px; font-family: 'JetBrains Mono', monospace; }
+    @media (max-width: 720px) {
+      .foot-grid { grid-template-columns: 1fr 1fr; }
+      .foot-bot { flex-direction: column; gap: 12px; text-align: center; }
+    }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">
+        <span class="brand-mark">S</span>
+        Stake
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#how">How it works</a>
+        <a href="#features">Features</a>
+        <a href="#validators">Validators</a>
+        <a href="#security">Security</a>
+        <a href="#token">Token</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-ghost" href="#">Docs</a>
+        <a class="btn btn-primary" href="#">Stake now</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>4.18% APR · 9 distributed operators</span>
+            <h1>Stake ETH. <em>Keep liquidity</em>.</h1>
+            <p class="lede">Stake Protocol is a liquid staking protocol with audited validators, distributed node operators, and an stETH-style derivative on every supported chain. Earn validator rewards without locking your ETH.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#">Stake ETH →</a>
+              <a class="btn btn-ghost" href="#how">Read the protocol</a>
+            </div>
+          </div>
+          <div class="stake-widget" role="region" aria-label="Stake widget">
+            <div class="sw-head">
+              <span class="sw-title">Stake</span>
+              <span class="sw-apy">4.18% APR</span>
+            </div>
+            <div class="sw-input">
+              <div class="sw-input-label">You stake</div>
+              <div class="sw-input-row">
+                <input class="sw-amount" type="text" value="10.000" aria-label="Amount to stake" />
+                <button class="sw-token" type="button"><span class="sw-token-ico"></span>ETH</button>
+              </div>
+            </div>
+            <div class="sw-receive">
+              <div class="label">You receive (instantly)</div>
+              <div class="row">
+                <span class="sw-est">10.000 stkETH</span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--fg-2);">≈ $31,540</span>
+              </div>
+            </div>
+            <div class="sw-rewards">
+              <div class="sw-rewards-row"><span>Annual reward</span><b>+ 0.418 ETH</b></div>
+              <div class="sw-rewards-row"><span>Protocol fee</span><b>10% of rewards</b></div>
+              <div class="sw-rewards-row"><span>Unstake delay</span><b>Instant (or 1–4 days)</b></div>
+              <div class="sw-rewards-row"><span>Reference rate</span><b>Beacon chain</b></div>
+            </div>
+            <button class="sw-cta">Stake 10 ETH</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats">
+      <div class="wrap">
+        <div class="stats-grid">
+          <div class="stat"><div class="val"><em>$8.2B</em></div><div class="label">Total staked</div></div>
+          <div class="stat"><div class="val">4.18%</div><div class="label">Current APR</div></div>
+          <div class="stat"><div class="val">2.4M</div><div class="label">stkETH holders</div></div>
+          <div class="stat"><div class="val">9</div><div class="label">Node operators</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="chart">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Rewards over time</span>
+          <h2>Boring, <em>predictable</em>, on-chain.</h2>
+          <p class="lede">Validator rewards minus protocol fee, computed per epoch and rebased into stkETH. The curve below tracks the rolling 30-day APR over the last 12 months.</p>
+        </div>
+        <div class="chart-card">
+          <div class="chart-head">
+            <div>
+              <div class="chart-title">stkETH 30-day APR</div>
+              <div class="chart-current">4.18%</div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-ghost" style="height: 30px; padding: 0 12px; font-size: 12px;">7d</button>
+              <button class="btn btn-ghost" style="height: 30px; padding: 0 12px; font-size: 12px;">30d</button>
+              <button class="btn btn-primary" style="height: 30px; padding: 0 12px; font-size: 12px;">12m</button>
+            </div>
+          </div>
+          <svg class="chart-svg" viewBox="0 0 600 220" preserveAspectRatio="none" aria-label="APR over the last 12 months">
+            <defs>
+              <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#c5ff3a" stop-opacity="0.4" />
+                <stop offset="100%" stop-color="#c5ff3a" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+            <g stroke="rgba(255,255,255,0.06)" stroke-width="1">
+              <line x1="0" y1="50" x2="600" y2="50" />
+              <line x1="0" y1="100" x2="600" y2="100" />
+              <line x1="0" y1="150" x2="600" y2="150" />
+              <line x1="0" y1="200" x2="600" y2="200" />
+            </g>
+            <path d="M 0 130 L 50 122 L 100 118 L 150 110 L 200 96 L 250 102 L 300 88 L 350 92 L 400 80 L 450 76 L 500 72 L 550 70 L 600 60 L 600 220 L 0 220 Z" fill="url(#grad)" />
+            <path d="M 0 130 L 50 122 L 100 118 L 150 110 L 200 96 L 250 102 L 300 88 L 350 92 L 400 80 L 450 76 L 500 72 L 550 70 L 600 60" stroke="#c5ff3a" stroke-width="2.5" fill="none" />
+          </svg>
+          <div class="chart-foot">
+            <span>Jun '25</span><span>Sep '25</span><span>Dec '25</span><span>Mar '26</span><span>May '26</span>
+          </div>
+          <div class="chart-legend">
+            <span><i></i> stkETH APR</span>
+            <span><i class="b"></i> Beacon chain APR</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="how" style="padding-top: 0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>How it works</span>
+          <h2>Three contracts. <em>One token</em>.</h2>
+          <p class="lede">Deposit ETH, receive stkETH, redeem any time. Under the hood, your ETH is staked into one of nine distributed node operators via the deposit contract.</p>
+        </div>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">01 / deposit</div>
+            <h3>Deposit ETH</h3>
+            <p>Send ETH to the staking pool. You receive stkETH 1:1, instantly. The pool batches deposits and submits to the beacon deposit contract in 32-ETH chunks.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">02 / validate</div>
+            <h3>Validators earn</h3>
+            <p>The pool's stake is distributed across nine audited operators. Rewards accrue per epoch and rebase into stkETH on every oracle update — typically every 24 hours.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">03 / redeem</div>
+            <h3>Redeem any time</h3>
+            <p>Burn stkETH for ETH via the withdrawal queue, or trade out on Curve, Uniswap, and Balancer for instant exit. The protocol does not lock your liquidity.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="features" style="padding-top: 0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Features</span>
+          <h2>Built for <em>everyday</em> stakers.</h2>
+          <p class="lede">No hardware. No 32-ETH minimum. No black-box pool operator. Validator set is open, audited, and reported in real time.</p>
+        </div>
+        <div class="features">
+          <div class="feature"><div class="feature-icon">∞</div><h3>No minimum</h3><p>Stake any amount, from 0.01 ETH up. The pool batches deposits into 32-ETH validator units, so you don't need to.</p></div>
+          <div class="feature"><div class="feature-icon">⌗</div><h3>9 node operators</h3><p>Stake is split across nine professional validators across three continents and two client implementations to minimize correlated risk.</p></div>
+          <div class="feature"><div class="feature-icon">⚐</div><h3>DVT-ready</h3><p>Distributed Validator Technology integration via Obol and SSV. No single key holds the validator signing power.</p></div>
+          <div class="feature"><div class="feature-icon">$</div><h3>Composable stkETH</h3><p>stkETH is an ERC-20 with standard hooks. Use it as collateral on Aave, Morpho, and Spark, or pair it on Curve and Balancer.</p></div>
+          <div class="feature"><div class="feature-icon">↻</div><h3>Restaking ready</h3><p>One-click EigenLayer restaking into the operator set of your choice, with a published slashing risk per AVS.</p></div>
+          <div class="feature"><div class="feature-icon">⛬</div><h3>Open oracle</h3><p>The reward oracle is a 5-of-9 quorum across the same operators. Every report and every rebase is on-chain.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="validators" style="padding-top: 0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Validators</span>
+          <h2>Operators, <em>named</em>.</h2>
+          <p class="lede">We publish every node operator, their key count, their client mix, and their slashing history. You're never staking with anonymous infrastructure.</p>
+        </div>
+        <div class="validators-card">
+          <div class="validators-head">
+            <div>Operator</div>
+            <div>Stake</div>
+            <div>Validators</div>
+            <div>Effectiveness</div>
+            <div>Status</div>
+          </div>
+          <div class="validator-row">
+            <div><div class="validator-name">Stakewise Nodes</div><div class="validator-meta">Lighthouse + Geth · Frankfurt</div></div>
+            <div class="validator-cell val">$1.42B</div>
+            <div class="validator-cell">11,820</div>
+            <div class="validator-cell">99.42%</div>
+            <div><span class="status-pill">Active</span></div>
+          </div>
+          <div class="validator-row">
+            <div><div class="validator-name">P2P.org</div><div class="validator-meta">Prysm + Erigon · Singapore</div></div>
+            <div class="validator-cell val">$1.28B</div>
+            <div class="validator-cell">10,650</div>
+            <div class="validator-cell">99.18%</div>
+            <div><span class="status-pill">Active</span></div>
+          </div>
+          <div class="validator-row">
+            <div><div class="validator-name">Chorus One</div><div class="validator-meta">Teku + Nethermind · Zurich</div></div>
+            <div class="validator-cell val">$0.96B</div>
+            <div class="validator-cell">7,980</div>
+            <div class="validator-cell">99.50%</div>
+            <div><span class="status-pill">Active</span></div>
+          </div>
+          <div class="validator-row">
+            <div><div class="validator-name">Figment</div><div class="validator-meta">Lighthouse + Besu · Toronto</div></div>
+            <div class="validator-cell val">$0.88B</div>
+            <div class="validator-cell">7,310</div>
+            <div class="validator-cell">99.32%</div>
+            <div><span class="status-pill">Active</span></div>
+          </div>
+          <div class="validator-row">
+            <div><div class="validator-name">Allnodes Cluster</div><div class="validator-meta">Nimbus + Geth · Reykjavik</div></div>
+            <div class="validator-cell val">$0.74B</div>
+            <div class="validator-cell">6,150</div>
+            <div class="validator-cell">99.26%</div>
+            <div><span class="status-pill">Active</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="security" id="security">
+      <div class="wrap">
+        <div class="sec-grid">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>Security</span>
+            <h2>Audited. <em>Bounty-backed</em>.</h2>
+            <p class="lede">Every contract in the staking and withdrawal path is open-source and audited by at least two firms. We carry a $2M Immunefi bounty and a public slashing-insurance pool.</p>
+            <div style="margin-top: 28px;">
+              <a class="btn btn-ghost" href="#" style="margin-right: 10px;">View audits</a>
+              <a class="btn btn-ghost" href="#">Bug bounty</a>
+            </div>
+          </div>
+          <div class="auditors">
+            <div class="auditor"><div class="auditor-name">Trail of Bits</div><div class="auditor-meta">Staking pool · Feb 2026</div><a href="#">View report →</a></div>
+            <div class="auditor"><div class="auditor-name">OpenZeppelin</div><div class="auditor-meta">Withdrawal queue · Jan 2026</div><a href="#">View report →</a></div>
+            <div class="auditor"><div class="auditor-name">Halborn</div><div class="auditor-meta">Operator router · Nov 2025</div><a href="#">View report →</a></div>
+            <div class="auditor"><div class="auditor-name">ChainSecurity</div><div class="auditor-meta">Oracle quorum · Oct 2025</div><a href="#">View report →</a></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="token">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Token</span>
+          <h2>STK — the <em>governance</em> token.</h2>
+          <p class="lede">STK holders set protocol fees, approve new node operators, and vote on AVS additions for restaking. No mint authority outside the timelock.</p>
+        </div>
+        <div class="token-card">
+          <div class="token-info">
+            <h3>Stake Token (STK)</h3>
+            <p>ERC-20 with vote delegation. Total supply 1B, 40% to community treasury, 20% to contributors with 4-year vesting, 25% ecosystem, 15% protocol-owned liquidity. Vesting on-chain.</p>
+            <div style="margin-top: 24px; display: flex; gap: 10px; flex-wrap: wrap;">
+              <a class="btn btn-primary" href="#">View contract</a>
+              <a class="btn btn-ghost" href="#">Governance forum</a>
+            </div>
+          </div>
+          <div class="token-meta">
+            <div class="token-meta-row"><span>Contract</span><span>0x6a1c…d3f8</span></div>
+            <div class="token-meta-row"><span>Total supply</span><span>1,000,000,000</span></div>
+            <div class="token-meta-row"><span>Circulating</span><span>312,480,000</span></div>
+            <div class="token-meta-row"><span>Voting quorum</span><span>4.00%</span></div>
+            <div class="token-meta-row"><span>Timelock delay</span><span>72 hours</span></div>
+            <div class="token-meta-row"><span>Holders</span><span>28,402</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a class="brand" href="#" style="margin-bottom:16px;">
+            <span class="brand-mark">S</span>
+            Stake
+          </a>
+          <p style="color:var(--fg-2); font-size:14px; max-width:300px;">Liquid staking for Ethereum and L2s. Audited validators, distributed operators, stETH-style derivative — without locking your liquidity.</p>
+        </div>
+        <div class="foot-col">
+          <h4>Protocol</h4>
+          <a href="#">How it works</a>
+          <a href="#">Validators</a>
+          <a href="#">Tokenomics</a>
+          <a href="#">Governance</a>
+        </div>
+        <div class="foot-col">
+          <h4>Developers</h4>
+          <a href="#">Docs</a>
+          <a href="#">SDK</a>
+          <a href="#">GitHub</a>
+          <a href="#">Integrations</a>
+        </div>
+        <div class="foot-col">
+          <h4>Community</h4>
+          <a href="#">Forum</a>
+          <a href="#">Discord</a>
+          <a href="#">Twitter / X</a>
+          <a href="#">Mirror</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Stake DAO · MIT licensed</span>
+        <span>Beacon-chain reference rate: 3.92%</span>
+      </div>
+    </div>
+  </footer>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

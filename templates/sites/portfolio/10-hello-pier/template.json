@@ -1,0 +1,35 @@
+{
+  "slug": "portfolio-10-hello-pier",
+  "title": "Hello, Pier",
+  "subtitle": "Full-stack engineer and indie hacker building small bets.",
+  "category": "Portfolio",
+  "type": "Websites",
+  "tags": [
+    "indie",
+    "builder",
+    "friendly",
+    "yellow"
+  ],
+  "previewImage": "/templates/portfolio-10-hello-pier.jpg",
+  "palette": {
+    "bg": "#1d1d1a",
+    "fg": "#f3efe6",
+    "accent": "#ffd400"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "products",
+    "side-projects",
+    "now",
+    "writing",
+    "stack",
+    "stats",
+    "uses",
+    "contact",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Hello, Pier template as the foundation for an indie-hacker full-stack engineer portfolio. Keep the warm dark grey background, yellow accent, friendly first-person voice, product cards with MRR/users metrics, side-project list, and a /now style block. The site should feel like the home page of someone who actually ships.",
+  "livePreview": "/template-previews/portfolio-10-hello-pier/"
+}

@@ -1,0 +1,34 @@
+{
+  "slug": "ecommerce-01-salt-spruce",
+  "title": "Salt & Spruce",
+  "subtitle": "Heritage menswear made in small batches, in one workshop in Porto.",
+  "category": "E-commerce",
+  "type": "Commerce",
+  "tags": [
+    "apparel",
+    "editorial",
+    "calm",
+    "serif",
+    "menswear"
+  ],
+  "previewImage": "/templates/ecommerce-01-salt-spruce.jpg",
+  "palette": {
+    "bg": "#f4ede0",
+    "fg": "#181613",
+    "accent": "#181613"
+  },
+  "sections": [
+    "promo",
+    "nav",
+    "hero",
+    "products",
+    "story",
+    "editorial",
+    "testimonials",
+    "newsletter",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Salt & Spruce template as the foundation for a heritage apparel storefront. Cream and near-black, Cormorant Garamond serif headlines, editorial product grid, slow-fashion story panel, customer voice quotes, and a calm newsletter band. Replace placeholder copy with the actual brand, drop, and product names.",
+  "livePreview": "/template-previews/ecommerce-01-salt-spruce/"
+}

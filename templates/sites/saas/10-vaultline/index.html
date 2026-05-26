@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vaultline — Secrets management with a paranoia gauge</title>
+  <meta name="description" content="Vaultline is secrets management for teams who assume they are already breached. Per-secret blast radius, signed retrievals, and a paranoia gauge that ranks your stack." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #000000;
+      --surface: #0a0a0a;
+      --surface-2: #131313;
+      --surface-3: #1c1c1c;
+      --rule: rgba(255, 24, 24, 0.18);
+      --rule-strong: rgba(255, 24, 24, 0.42);
+      --rule-cool: rgba(255, 255, 255, 0.08);
+      --fg: #ffffff;
+      --fg-2: #b8b8b8;
+      --fg-3: #6a6a6a;
+      --accent: #ff1818;
+      --accent-glow: #ff4d4d;
+      --accent-deep: #c20000;
+      --warn: #facc15;
+      --good: #4ade80;
+      --radius-sm: 2px;
+      --radius-md: 4px;
+      --radius-lg: 6px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 15.5px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 0 28px; }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    .display { font-family: 'Archivo', 'Inter', sans-serif; font-weight: 900; }
+
+    /* Nav */
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      background: var(--bg);
+      border-bottom: 1px solid var(--rule-cool);
+    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+    .brand {
+      display: flex; align-items: center; gap: 12px;
+      font-family: 'Archivo', sans-serif; font-weight: 900;
+      font-size: 17px; letter-spacing: -0.02em;
+      text-transform: uppercase;
+    }
+    .brand-mark {
+      width: 28px; height: 28px;
+      background: var(--accent);
+      display: grid; place-items: center;
+      color: var(--bg); font-weight: 900;
+      font-family: 'JetBrains Mono', monospace;
+      box-shadow: 0 0 16px rgba(255, 24, 24, 0.5);
+    }
+    .nav-links { display: flex; gap: 28px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--fg-2); text-transform: uppercase; letter-spacing: 0.06em; }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta { display: flex; gap: 8px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      height: 38px; padding: 0 18px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700; font-size: 12px;
+      border: 1px solid transparent;
+      cursor: pointer; transition: background 140ms ease;
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .btn-primary { background: var(--accent); color: var(--bg); }
+    .btn-primary:hover { background: var(--accent-glow); box-shadow: 0 0 24px rgba(255, 24, 24, 0.45); }
+    .btn-ghost { background: transparent; color: var(--fg); border-color: var(--rule-cool); }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 96px 0 56px; position: relative; overflow: hidden; border-bottom: 1px solid var(--rule-cool); }
+    .hero::before {
+      content: ''; position: absolute; top: 0; right: -10%; width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(255, 24, 24, 0.18) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .hero > * { position: relative; }
+    .hero-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 56px; align-items: center; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 5px 12px;
+      border: 1px solid var(--rule-strong);
+      background: rgba(255, 24, 24, 0.08);
+      color: var(--accent-glow);
+      font-size: 11px; font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .eyebrow .dot { width: 6px; height: 6px; background: var(--accent); box-shadow: 0 0 10px var(--accent); animation: pulse 1.4s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    h1 {
+      font-family: 'Archivo', sans-serif;
+      font-size: clamp(56px, 8vw, 116px);
+      line-height: 0.92;
+      letter-spacing: -0.04em;
+      font-weight: 900;
+      margin: 22px 0 22px;
+      text-transform: uppercase;
+    }
+    h1 em { font-style: normal; color: var(--accent); }
+    .lede { font-size: 18px; color: var(--fg-2); max-width: 540px; }
+    .hero-cta { display: flex; gap: 10px; margin-top: 30px; flex-wrap: wrap; }
+    .hero-cta .btn { height: 46px; padding: 0 22px; font-size: 13px; }
+    .hero-warn {
+      margin-top: 28px; padding: 12px 14px;
+      border: 1px solid var(--rule-strong);
+      background: rgba(255, 24, 24, 0.05);
+      font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
+      color: var(--accent-glow); letter-spacing: 0.04em;
+    }
+    .hero-warn strong { color: var(--fg); }
+
+    /* Paranoia gauge */
+    .gauge {
+      background: var(--surface);
+      border: 1px solid var(--rule-strong);
+      padding: 28px;
+      box-shadow: 0 0 0 1px rgba(255, 24, 24, 0.1), 0 30px 80px -30px rgba(255, 24, 24, 0.25);
+    }
+    .gauge-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+    .gauge-head .t { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.1em; }
+    .gauge-head .pill { padding: 3px 8px; border: 1px solid var(--rule-strong); color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+    .gauge-num {
+      font-family: 'Archivo', sans-serif; font-weight: 900;
+      font-size: 92px; line-height: 1; letter-spacing: -0.04em;
+      color: var(--accent);
+      text-shadow: 0 0 24px rgba(255, 24, 24, 0.35);
+    }
+    .gauge-num small { font-size: 32px; color: var(--fg-3); margin-left: 6px; font-weight: 700; }
+    .gauge-bar { height: 8px; background: var(--surface-3); margin-top: 18px; position: relative; }
+    .gauge-bar > span { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, #4ade80 0%, #facc15 50%, var(--accent) 100%); width: 78%; }
+    .gauge-bar > .mark { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--fg); left: 78%; }
+    .gauge-items { margin-top: 24px; }
+    .gauge-item {
+      display: grid; grid-template-columns: 1fr auto auto;
+      gap: 14px; padding: 10px 0;
+      border-bottom: 1px dashed var(--rule-cool);
+      font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    }
+    .gauge-item:last-child { border-bottom: none; }
+    .gauge-item .l { color: var(--fg); }
+    .gauge-item .s { color: var(--fg-3); }
+    .gauge-item .v { color: var(--accent-glow); font-weight: 700; }
+    .gauge-item .v.ok { color: var(--good); }
+    .gauge-item .v.warn { color: var(--warn); }
+
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 48px; } }
+    @media (max-width: 720px) { .hero { padding: 64px 0 48px; } .hero-cta .btn { width: 100%; justify-content: center; } .gauge-num { font-size: 72px; } }
+
+    /* Logos */
+    .logos { padding: 28px 0; border-bottom: 1px solid var(--rule-cool); }
+    .logos-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 28px; align-items: center; justify-items: center; color: var(--fg-2); font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .logos-row span { opacity: 0.55; }
+    @media (max-width: 720px) { .logos-row { grid-template-columns: repeat(3, 1fr); } }
+
+    /* Sections */
+    .section { padding: 100px 0; border-bottom: 1px solid var(--rule-cool); }
+    .section-head { max-width: 760px; margin-bottom: 48px; }
+    .section h2 {
+      font-family: 'Archivo', sans-serif;
+      font-size: clamp(40px, 6vw, 80px);
+      letter-spacing: -0.035em;
+      line-height: 0.95;
+      font-weight: 900;
+      margin: 14px 0 16px;
+      text-transform: uppercase;
+    }
+    .section h2 em { font-style: normal; color: var(--accent); }
+    .section .lede { font-size: 17px; max-width: 620px; }
+
+    /* Features grid (brutalist) */
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--rule-cool); }
+    .feature {
+      padding: 36px 32px;
+      border-right: 1px solid var(--rule-cool);
+      border-bottom: 1px solid var(--rule-cool);
+      transition: background 200ms ease;
+    }
+    .feature:hover { background: rgba(255, 24, 24, 0.04); }
+    .feature:nth-child(3n) { border-right: none; }
+    .feature:nth-last-child(-n+3) { border-bottom: none; }
+    .feature-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; }
+    .feature h3 { font-family: 'Archivo', sans-serif; font-size: 22px; font-weight: 700; margin: 12px 0 10px; text-transform: uppercase; letter-spacing: -0.018em; }
+    .feature p { color: var(--fg-2); font-size: 14.5px; margin: 0; }
+    @media (max-width: 1080px) {
+      .features { grid-template-columns: repeat(2, 1fr); }
+      .feature:nth-child(3n) { border-right: 1px solid var(--rule-cool); }
+      .feature:nth-child(2n) { border-right: none; }
+      .feature:nth-last-child(-n+3) { border-bottom: 1px solid var(--rule-cool); }
+      .feature:nth-last-child(-n+2) { border-bottom: none; }
+    }
+    @media (max-width: 720px) {
+      .features { grid-template-columns: 1fr; }
+      .feature { border-right: none !important; border-bottom: 1px solid var(--rule-cool) !important; }
+      .feature:last-child { border-bottom: none !important; }
+    }
+
+    /* Blast radius diagram */
+    .blast { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+    .blast-art {
+      aspect-ratio: 1 / 1; position: relative;
+      border: 1px solid var(--rule-strong);
+      background:
+        radial-gradient(circle at 50% 50%, rgba(255, 24, 24, 0.18) 0%, transparent 70%),
+        var(--surface);
+      display: grid; place-items: center;
+    }
+    .blast-art svg { width: 80%; height: 80%; }
+    @media (max-width: 1080px) { .blast { grid-template-columns: 1fr; } }
+
+    /* Log */
+    .log {
+      background: black;
+      border: 1px solid var(--rule-strong);
+      padding: 20px 22px;
+      font-family: 'JetBrains Mono', monospace; font-size: 12.5px;
+      line-height: 1.8;
+    }
+    .log .ts { color: var(--fg-3); }
+    .log .ok { color: var(--good); }
+    .log .er { color: var(--accent-glow); }
+    .log .lab { color: var(--warn); }
+
+    /* Stats */
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--rule-cool); }
+    .stat { padding: 44px 28px; border-right: 1px solid var(--rule-cool); }
+    .stat:last-child { border-right: none; }
+    .stat .val {
+      font-family: 'Archivo', sans-serif;
+      font-size: clamp(40px, 5vw, 60px); font-weight: 900;
+      letter-spacing: -0.03em; line-height: 1; color: var(--accent);
+    }
+    .stat .label { color: var(--fg-2); font-size: 12.5px; margin-top: 10px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.06em; }
+    @media (max-width: 1080px) { .stats { grid-template-columns: repeat(2, 1fr); } .stat:nth-child(2) { border-right: none; } }
+
+    /* Pricing */
+    .pricing { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border: 1px solid var(--rule-cool); }
+    .plan {
+      padding: 40px 32px;
+      border-right: 1px solid var(--rule-cool);
+      display: flex; flex-direction: column;
+    }
+    .plan:last-child { border-right: none; }
+    .plan.featured { background: rgba(255, 24, 24, 0.05); position: relative; }
+    .plan.featured::after {
+      content: '★ MAX PARANOIA'; position: absolute; top: 12px; right: 12px;
+      background: var(--accent); color: var(--bg);
+      font-family: 'JetBrains Mono', monospace; font-size: 9px;
+      padding: 4px 8px; letter-spacing: 0.1em; font-weight: 700;
+    }
+    .plan h3 { font-family: 'Archivo', sans-serif; font-size: 24px; font-weight: 900; margin: 0; text-transform: uppercase; letter-spacing: -0.015em; }
+    .plan .price { font-family: 'Archivo', sans-serif; font-size: 48px; font-weight: 900; letter-spacing: -0.03em; margin: 14px 0 4px; }
+    .plan .price small { font-size: 13px; color: var(--fg-3); font-weight: 500; font-family: 'JetBrains Mono', monospace; }
+    .plan .desc { color: var(--fg-2); font-size: 14px; min-height: 44px; }
+    .plan ul { list-style: none; padding: 0; margin: 22px 0; flex: 1; }
+    .plan li { padding: 7px 0; color: var(--fg-2); font-size: 13.5px; display: flex; gap: 10px; font-family: 'JetBrains Mono', monospace; }
+    .plan li::before { content: '▮'; color: var(--accent); flex-shrink: 0; }
+    @media (max-width: 1080px) {
+      .pricing { grid-template-columns: 1fr; }
+      .plan { border-right: none; border-bottom: 1px solid var(--rule-cool); }
+      .plan:last-child { border-bottom: none; }
+    }
+
+    /* CTA */
+    .cta-band {
+      padding: 140px 0; text-align: center;
+      background:
+        radial-gradient(ellipse at 50% 50%, rgba(255, 24, 24, 0.18) 0%, transparent 60%);
+      border-bottom: 1px solid var(--rule-cool);
+    }
+    .cta-band h2 {
+      font-family: 'Archivo', sans-serif;
+      font-size: clamp(48px, 8vw, 120px);
+      letter-spacing: -0.04em; line-height: 0.92;
+      margin: 0 0 24px; font-weight: 900;
+      text-transform: uppercase;
+    }
+    .cta-band h2 em { font-style: normal; color: var(--accent); }
+    .cta-band p { color: var(--fg-2); max-width: 560px; margin: 0 auto 32px; font-size: 18px; }
+
+    /* Footer */
+    footer { padding: 56px 0 32px; }
+    .foot-grid { display: grid; grid-template-columns: 1.6fr repeat(3, 1fr); gap: 40px; }
+    .foot-col h4 { font-size: 11px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-3); margin: 0 0 14px; }
+    .foot-col a { display: block; color: var(--fg-2); font-family: 'JetBrains Mono', monospace; font-size: 13px; padding: 5px 0; }
+    .foot-col a:hover { color: var(--accent); }
+    .foot-bot { margin-top: 44px; padding-top: 20px; border-top: 1px solid var(--rule-cool); display: flex; justify-content: space-between; align-items: center; color: var(--fg-3); font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.06em; }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 12px; text-align: center; } }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">
+        <span class="brand-mark">▮</span>
+        VAULTLINE
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#product">product</a>
+        <a href="#paranoia">paranoia</a>
+        <a href="#audit">audit</a>
+        <a href="#pricing">pricing</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-ghost" href="#">sign in</a>
+        <a class="btn btn-primary" href="#">request access</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>assume breach · ship anyway</span>
+            <h1>Secrets management with a <em>paranoia gauge</em>.</h1>
+            <p class="lede">Vaultline ranks every secret in your stack by blast radius — and tells you which ones a breach next Tuesday would survive. Signed retrievals. Per-secret lifetimes. A log your auditor reads before bed.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#">Request access</a>
+              <a class="btn btn-ghost" href="#paranoia">See the gauge →</a>
+            </div>
+            <div class="hero-warn">
+              <strong>⚠ status:</strong> 3,212 secrets in active circulation · 12 flagged · 1 critical rotation overdue
+            </div>
+          </div>
+          <div class="gauge" role="img" aria-label="Paranoia gauge showing the current security score and contributing factors.">
+            <div class="gauge-head">
+              <span class="t">paranoia gauge · acme prod</span>
+              <span class="pill">● live</span>
+            </div>
+            <div class="gauge-num">78<small>/100</small></div>
+            <div class="gauge-bar"><span></span><span class="mark"></span></div>
+            <div class="gauge-items">
+              <div class="gauge-item">
+                <span class="l">signed retrievals · last 24h</span>
+                <span class="s">requirement</span>
+                <span class="v ok">100%</span>
+              </div>
+              <div class="gauge-item">
+                <span class="l">secrets ttl &gt; 90 days</span>
+                <span class="s">target ≤ 0</span>
+                <span class="v warn">14</span>
+              </div>
+              <div class="gauge-item">
+                <span class="l">prod creds reachable from laptops</span>
+                <span class="s">target = 0</span>
+                <span class="v">2</span>
+              </div>
+              <div class="gauge-item">
+                <span class="l">break-glass usage</span>
+                <span class="s">last 7d</span>
+                <span class="v ok">0</span>
+              </div>
+              <div class="gauge-item">
+                <span class="l">audit log shipped to siem</span>
+                <span class="s">required</span>
+                <span class="v ok">yes</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="logos">
+      <div class="wrap">
+        <div class="logos-row">
+          <span>// acme labs</span>
+          <span>// northbeam</span>
+          <span>// pivot house</span>
+          <span>// bureau verso</span>
+          <span>// atlas group</span>
+          <span>// brigantine</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="product">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>// product</span>
+          <h2>Assume breach. <em>Ship anyway</em>.</h2>
+          <p class="lede">Vaultline assumes the laptop is compromised, the CI runner is compromised, and the intern's account is compromised. Every secret has a blast radius. Every retrieval is signed. Every leak is contained.</p>
+        </div>
+        <div class="features">
+          <div class="feature">
+            <div class="feature-num">01 · scope</div>
+            <h3>Per-secret blast radius</h3>
+            <p>Every secret declares what it can touch. A leaked staging key cannot reach prod. A leaked prod read cannot become a write.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-num">02 · sign</div>
+            <h3>Signed retrievals</h3>
+            <p>Every fetch is signed with a hardware-bound key. Replays are rejected. The audit log shows which workload, which commit, which user.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-num">03 · ttl</div>
+            <h3>Short lifetimes by default</h3>
+            <p>One-hour TTLs are the default, not a feature. Long-lived credentials require a written justification — and they decay anyway.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-num">04 · break</div>
+            <h3>Break-glass with a ledger</h3>
+            <p>Emergency access is one click. It also pages your security team, posts to the audit channel, and rolls the credential at the end of the window.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-num">05 · scan</div>
+            <h3>Leak scanner that closes the loop</h3>
+            <p>Vaultline watches GitHub, your CI logs, and your SIEM. A leaked secret is auto-rotated within 60 seconds and replaced everywhere it lives.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-num">06 · siem</div>
+            <h3>Audit log your auditor reads</h3>
+            <p>Every event ships to your SIEM as structured JSON. Human-readable. Court-readable. Sealed with a tamper-evident checksum chain.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="paranoia">
+      <div class="wrap">
+        <div class="blast">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>// blast radius</span>
+            <h2>Every secret knows how far it can <em>burn</em>.</h2>
+            <p class="lede">A Vaultline secret carries its scope inside it. The blast radius is checked at retrieval time, at use time, and at rotation time. If a credential leaks, the damage stops at the radius — not at the perimeter.</p>
+            <p class="lede" style="margin-top: 14px;">No more "this read-only key happens to also have admin." Scopes are signed. Scopes are visible. Scopes are auditable.</p>
+          </div>
+          <div class="blast-art">
+            <svg viewBox="0 0 400 400" aria-hidden="true">
+              <defs>
+                <radialGradient id="r1">
+                  <stop offset="0%" stop-color="#ff1818" stop-opacity="0.6" />
+                  <stop offset="100%" stop-color="#ff1818" stop-opacity="0" />
+                </radialGradient>
+              </defs>
+              <circle cx="200" cy="200" r="160" fill="none" stroke="#ff1818" stroke-opacity="0.12" stroke-dasharray="4 6" />
+              <circle cx="200" cy="200" r="110" fill="none" stroke="#ff1818" stroke-opacity="0.24" stroke-dasharray="4 6" />
+              <circle cx="200" cy="200" r="60" fill="url(#r1)" stroke="#ff1818" stroke-width="1.5" />
+              <text x="200" y="78" text-anchor="middle" fill="#ff4d4d" font-family="JetBrains Mono, monospace" font-size="11" letter-spacing="2">PROD WRITE</text>
+              <text x="200" y="130" text-anchor="middle" fill="#facc15" font-family="JetBrains Mono, monospace" font-size="10">PROD READ</text>
+              <text x="200" y="190" text-anchor="middle" fill="#fff" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">SECRET</text>
+              <text x="200" y="205" text-anchor="middle" fill="#b8b8b8" font-family="JetBrains Mono, monospace" font-size="9">scope=staging:read</text>
+              <text x="200" y="270" text-anchor="middle" fill="#4ade80" font-family="JetBrains Mono, monospace" font-size="10">STAGING READ</text>
+              <text x="200" y="340" text-anchor="middle" fill="#6a6a6a" font-family="JetBrains Mono, monospace" font-size="10">DEV READ</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="audit">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>// audit</span>
+          <h2>The log <em>your auditor</em> wants to read.</h2>
+          <p class="lede">Structured, sealed, and shipped. Vaultline produces audit events your security team can pipe straight into Splunk, Datadog, or a homegrown SIEM — without a custom parser.</p>
+        </div>
+        <div class="log">
+<span class="ts">2026-05-23T09:14:22Z</span> <span class="ok">retrieve.ok</span>   secret=stripe.live workload=ci.runner.42 sig=ed25519:7a3f… ttl=3600s
+<span class="ts">2026-05-23T09:14:24Z</span> <span class="ok">use.ok</span>        secret=stripe.live caller=checkout-svc bytes_egress=4128
+<span class="ts">2026-05-23T09:18:51Z</span> <span class="lab">leak.detected</span> source=github.com/acme/web@a4f1c2 secret=intercom.dev action=auto-rotate
+<span class="ts">2026-05-23T09:18:52Z</span> <span class="ok">rotate.ok</span>     secret=intercom.dev new_version=v34 propagated=12 workloads
+<span class="ts">2026-05-23T09:34:09Z</span> <span class="er">retrieve.denied</span> secret=db.prod.write caller=laptop:priya.m reason=blast_radius
+<span class="ts">2026-05-23T09:34:10Z</span> <span class="lab">page.security</span> reason="prod write attempted from blast=laptop"
+<span class="ts">2026-05-23T10:02:31Z</span> <span class="ok">breakglass.open</span> user=avery.k window=15m reason="incident-2614 rollback"
+<span class="ts">2026-05-23T10:17:31Z</span> <span class="ok">breakglass.close</span> user=avery.k credentials_rotated=4
+        </div>
+      </div>
+    </section>
+
+    <section class="section" style="padding: 0;">
+      <div class="wrap">
+        <div class="stats">
+          <div class="stat"><div class="val">60s</div><div class="label">leak → rotation</div></div>
+          <div class="stat"><div class="val">0</div><div class="label">credentials with infinite ttl</div></div>
+          <div class="stat"><div class="val">100%</div><div class="label">retrievals signed &amp; logged</div></div>
+          <div class="stat"><div class="val">SOC&nbsp;2</div><div class="label">type ii · in production</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="pricing">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>// pricing</span>
+          <h2>Pay per <em>workload</em>, not per panic.</h2>
+          <p class="lede">A workload is a service, a CI job, or a human session. Unlimited secrets, unlimited rotations, unlimited paranoia per workload.</p>
+        </div>
+        <div class="pricing">
+          <div class="plan">
+            <h3>Starter</h3>
+            <div class="price">$0</div>
+            <p class="desc">Up to 5 workloads. Full paranoia gauge, signed retrievals, leak scanner.</p>
+            <ul>
+              <li>Full audit log</li>
+              <li>One environment</li>
+              <li>Community support</li>
+            </ul>
+            <a class="btn btn-ghost" href="#">Sign up</a>
+          </div>
+          <div class="plan featured">
+            <h3>Team</h3>
+            <div class="price">$8<small>/workload/mo</small></div>
+            <p class="desc">Unlimited environments, SIEM shipping, hardware-bound signing keys, named on-call.</p>
+            <ul>
+              <li>SAML SSO</li>
+              <li>Break-glass workflows</li>
+              <li>Hardware-bound HSM signing</li>
+              <li>24×5 on-call</li>
+            </ul>
+            <a class="btn btn-primary" href="#">Choose Team</a>
+          </div>
+          <div class="plan">
+            <h3>Fortress</h3>
+            <div class="price">Custom</div>
+            <p class="desc">Self-hosted control plane, air-gapped option, custom policy engine, 24×7 IR retainer.</p>
+            <ul>
+              <li>On-prem deployment</li>
+              <li>Custom blast policies</li>
+              <li>Dedicated TAM</li>
+              <li>IR retainer included</li>
+            </ul>
+            <a class="btn btn-ghost" href="#">Contact security</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="cta-band">
+    <div class="wrap">
+      <h2>Sleep <em>tonight</em>.</h2>
+      <p>Connect Vaultline to your secret stores. Watch the paranoia gauge build itself. Find the one credential that would have ruined your weekend.</p>
+      <a class="btn btn-primary" href="#" style="height: 50px; padding: 0 28px; font-size: 14px;">Request access →</a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a class="brand" href="#" style="margin-bottom: 14px;">
+            <span class="brand-mark">▮</span>
+            VAULTLINE
+          </a>
+          <p style="color: var(--fg-2); font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.6; max-width: 280px;">// secrets management for teams who assume they are already breached. ship anyway.</p>
+        </div>
+        <div class="foot-col">
+          <h4>product</h4>
+          <a href="#">vault</a>
+          <a href="#">paranoia gauge</a>
+          <a href="#">audit log</a>
+          <a href="#">leak scanner</a>
+        </div>
+        <div class="foot-col">
+          <h4>security</h4>
+          <a href="#">whitepaper</a>
+          <a href="#">trust center</a>
+          <a href="#">bug bounty</a>
+          <a href="#">incident response</a>
+        </div>
+        <div class="foot-col">
+          <h4>company</h4>
+          <a href="#">about</a>
+          <a href="#">careers</a>
+          <a href="#">privacy</a>
+          <a href="#">contact</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 vaultline systems · all signed, all logged</span>
+        <span>assume breach. ship anyway.</span>
+      </div>
+    </div>
+  </footer>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

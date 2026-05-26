@@ -1,0 +1,34 @@
+{
+  "slug": "beauty-08-mane-color-bar",
+  "title": "Mane Color Bar",
+  "subtitle": "A color-only salon — balayage, dimensional brunettes, vivid fashion shades.",
+  "category": "Beauty",
+  "type": "Websites",
+  "tags": [
+    "color",
+    "bold",
+    "edgy",
+    "salon"
+  ],
+  "previewImage": "/templates/beauty-08-mane-color-bar.jpg",
+  "palette": {
+    "bg": "#efe5d4",
+    "fg": "#16140e",
+    "accent": "#00b3ff"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "tape",
+    "menu",
+    "work",
+    "colorists",
+    "process",
+    "reviews",
+    "visit",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Mane Color Bar template as the foundation for a bold, cream-and-electric-blue hair color specialty salon site with a giant serif headline, color-only price menu, work gallery, colorist bios, a four-step process, reviews, and visit details.",
+  "livePreview": "/template-previews/beauty-08-mane-color-bar/"
+}

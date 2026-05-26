@@ -1,0 +1,35 @@
+{
+  "slug": "nonprofit-06-art-for-all",
+  "title": "Art For All",
+  "subtitle": "K-8 arts education nonprofit funding teachers, supplies, and public year-end exhibitions.",
+  "category": "Nonprofit",
+  "type": "Websites",
+  "tags": [
+    "arts",
+    "kids",
+    "bold",
+    "playful"
+  ],
+  "previewImage": "/templates/nonprofit-06-art-for-all.jpg",
+  "palette": {
+    "bg": "#ffffff",
+    "fg": "#1a0822",
+    "accent": "#d946ef"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "impact",
+    "programs",
+    "donate",
+    "help",
+    "gallery",
+    "quote",
+    "transparency",
+    "team",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Art For All template as the foundation for a playful arts-education nonprofit site with a white + magenta palette, Archivo Black display headings, hard offset shadows, a rotated photo collage hero, three program tiles with per-school costs, a magenta donate band with selectable tiers, a student-work gallery with credits, a teacher quote, a transparency block with stacked numbers, and a tilted-photo leadership grid.",
+  "livePreview": "/template-previews/nonprofit-06-art-for-all/"
+}

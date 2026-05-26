@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nailroom — A modern nail studio in Williamsburg</title>
+  <meta name="description" content="A clean, photo-led nail studio specializing in gel, builder gel, and considered nail art. Five chairs, weekend appointments, walk-ins on Tuesday." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #ffffff;
+      --paper: #faf5f7;
+      --ink: #1d1417;
+      --ink-2: #5a4e54;
+      --ink-3: #8c7f86;
+      --line: rgba(29, 20, 23, 0.10);
+      --accent: #d99fb3;
+      --accent-deep: #b97e93;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--ink); font-family: 'Manrope', system-ui, sans-serif; font-size: 16px; line-height: 1.6; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 28px; }
+    .serif { font-family: 'Fraunces', serif; }
+    .eyebrow { font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent-deep); font-weight: 600; }
+
+    .nav { padding: 22px 0; border-bottom: 1px solid var(--line); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { font-family: 'Fraunces', serif; font-weight: 500; font-size: 26px; letter-spacing: -0.01em; }
+    .brand .dot { color: var(--accent); }
+    .nav-links { display: flex; gap: 28px; font-size: 14px; color: var(--ink-2); font-weight: 500; }
+    .nav-links a:hover { color: var(--ink); }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border-radius: 999px; font-size: 14px; font-weight: 600; border: 1px solid transparent; cursor: pointer; transition: background 200ms, color 200ms, border-color 200ms; }
+    .btn-primary { background: var(--ink); color: #fff; }
+    .btn-primary:hover { background: var(--accent-deep); }
+    .btn-soft { background: var(--accent); color: var(--ink); }
+    .btn-soft:hover { background: var(--accent-deep); color: #fff; }
+    .btn-ghost { background: transparent; color: var(--ink); border-color: rgba(29,20,23,0.2); }
+    .btn-ghost:hover { border-color: var(--ink); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    .hero { padding: 72px 0 60px; }
+    .hero-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 56px; align-items: center; }
+    h1 { font-family: 'Fraunces', serif; font-weight: 500; font-size: clamp(46px, 7vw, 88px); line-height: 1.0; letter-spacing: -0.02em; margin: 18px 0 22px; }
+    h1 em { font-style: italic; color: var(--accent-deep); font-weight: 400; }
+    .lede { font-size: 18px; color: var(--ink-2); max-width: 460px; }
+    .hero-cta { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
+    .hero-photos { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 12px; aspect-ratio: 1/1.05; }
+    .hero-photos img { width: 100%; height: 100%; object-fit: cover; border-radius: 18px; }
+    .hero-photos .a { grid-row: span 2; }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 36px; } .hero-photos { aspect-ratio: 1.4/1; } }
+
+    .marquee { background: var(--paper); padding: 22px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .marquee-inner { display: flex; gap: 56px; align-items: center; justify-content: center; flex-wrap: wrap; font-family: 'Fraunces', serif; font-style: italic; font-size: 22px; color: var(--ink-2); }
+    .marquee span { color: var(--accent-deep); }
+
+    section { padding: 96px 0; }
+    h2 { font-family: 'Fraunces', serif; font-weight: 500; font-size: clamp(36px, 5vw, 60px); letter-spacing: -0.015em; line-height: 1.05; margin: 14px 0 18px; max-width: 18ch; }
+    h2 em { font-style: italic; color: var(--accent-deep); }
+    .section-head { max-width: 700px; margin-bottom: 56px; }
+    .section-head p { font-size: 18px; color: var(--ink-2); }
+
+    .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 80px; }
+    .menu-row { display: grid; grid-template-columns: 1fr auto; gap: 18px; padding: 22px 0; border-bottom: 1px solid var(--line); align-items: baseline; }
+    .menu-row h3 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 22px; margin: 0; }
+    .menu-row .meta { font-size: 13px; color: var(--ink-3); margin-top: 4px; }
+    .menu-row .price { font-family: 'Fraunces', serif; font-size: 22px; color: var(--ink); white-space: nowrap; }
+    @media (max-width: 1080px) { .menu-grid { grid-template-columns: 1fr; gap: 0 0; } }
+
+    .gallery { background: var(--paper); }
+    .gallery-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .gallery-grid img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 14px; }
+    .gallery-grid .span2 { grid-column: span 2; aspect-ratio: 2/1; }
+    @media (max-width: 1080px) { .gallery-grid { grid-template-columns: 1fr 1fr; } }
+
+    .artists-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+    .artist-card { background: var(--paper); border-radius: 20px; padding: 24px; }
+    .artist-card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 14px; }
+    .artist-card h3 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 24px; margin: 16px 0 4px; }
+    .artist-card .role { font-size: 13px; color: var(--accent-deep); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; }
+    .artist-card p { font-size: 14px; color: var(--ink-2); margin: 12px 0 0; }
+    @media (max-width: 1080px) { .artists-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .artists-grid { grid-template-columns: 1fr; } }
+
+    .reviews { background: linear-gradient(180deg, var(--paper), #fff); }
+    .reviews-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .review { padding: 30px; border: 1px solid var(--line); border-radius: 20px; background: #fff; }
+    .stars { color: var(--accent-deep); letter-spacing: 0.1em; font-size: 14px; }
+    .review p { font-family: 'Fraunces', serif; font-style: italic; font-size: 20px; line-height: 1.5; margin: 14px 0; }
+    .review .who { font-size: 13px; color: var(--ink-3); font-weight: 500; }
+    @media (max-width: 1080px) { .reviews-grid { grid-template-columns: 1fr; } }
+
+    .booking { background: var(--ink); color: #fff; border-radius: 28px; padding: 64px; display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+    .booking h2 { color: #fff; }
+    .booking p { color: rgba(255,255,255,0.78); font-size: 17px; }
+    .booking form { background: var(--paper); color: var(--ink); padding: 30px; border-radius: 18px; display: grid; gap: 12px; }
+    .booking label { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); font-weight: 600; }
+    .booking input, .booking select { padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line); font-family: inherit; font-size: 15px; background: #fff; }
+    .booking .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 1080px) { .booking { grid-template-columns: 1fr; padding: 40px; } }
+
+    .visit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+    .visit-grid img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 20px; }
+    .visit dl { display: grid; grid-template-columns: 110px 1fr; gap: 10px 24px; font-size: 16px; margin-top: 18px; }
+    .visit dt { color: var(--ink-3); }
+    .visit dd { margin: 0; }
+    @media (max-width: 1080px) { .visit-grid { grid-template-columns: 1fr; } }
+
+    footer { border-top: 1px solid var(--line); padding: 48px 0 32px; }
+    .foot { display: flex; justify-content: space-between; align-items: flex-end; gap: 28px; flex-wrap: wrap; }
+    .foot .links { display: flex; gap: 22px; font-size: 14px; color: var(--ink-2); }
+    .foot .copy { font-size: 13px; color: var(--ink-3); }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">Nailroom<span class="dot">.</span></a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#menu">Menu</a>
+        <a href="#gallery">Gallery</a>
+        <a href="#artists">Artists</a>
+        <a href="#reviews">Reviews</a>
+        <a href="#visit">Visit</a>
+      </nav>
+      <a class="btn btn-primary" href="#booking">Book now</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow">Williamsburg · Brooklyn</span>
+            <h1>The quiet way to <em>great nails</em>.</h1>
+            <p class="lede">A small, photo-led nail studio specializing in gel, builder gel, and considered nail art. Five chairs. Sanitation logbook on the wall. Tea at the door.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#booking">Book an appointment</a>
+              <a class="btn btn-ghost" href="#menu">See the menu</a>
+            </div>
+          </div>
+          <div class="hero-photos">
+            <img class="a" src="https://picsum.photos/seed/nailroom-h1/700/1000" width="700" height="1000" alt="A hand with glossy almond-shaped nails in a soft pink shade resting on a marble counter." loading="eager" />
+            <img src="https://picsum.photos/seed/nailroom-h2/600/600" width="600" height="600" alt="Close-up of two hands with short square nails and minimal chrome detail." loading="eager" />
+            <img src="https://picsum.photos/seed/nailroom-h3/600/600" width="600" height="600" alt="A bottle of soft pink gel polish next to a buffer on a clean white tray." loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="marquee">
+      <div class="wrap marquee-inner">
+        <div>Gel <span>·</span> Builder gel <span>·</span> Soft gel extensions <span>·</span> Russian manicure <span>·</span> Pedicure <span>·</span> Nail art</div>
+      </div>
+    </div>
+
+    <section id="menu">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">The menu</span>
+          <h2>Honest pricing, <em>no add-on chaos</em>.</h2>
+          <p>Soak-off and basic shaping are included with every service. Nail art is priced per nail. Bring a reference photo and we'll quote it before we start.</p>
+        </div>
+        <div class="menu-grid">
+          <div class="menu-row">
+            <div>
+              <h3>Classic manicure</h3>
+              <div class="meta">Shape · cuticle · hand massage · regular polish</div>
+            </div>
+            <div class="price">$45 · 45 min</div>
+          </div>
+          <div class="menu-row">
+            <div>
+              <h3>Gel manicure</h3>
+              <div class="meta">Including soak-off · 14-day finish</div>
+            </div>
+            <div class="price">$68 · 60 min</div>
+          </div>
+          <div class="menu-row">
+            <div>
+              <h3>Builder gel overlay</h3>
+              <div class="meta">Strengthening overlay on the natural nail</div>
+            </div>
+            <div class="price">$95 · 75 min</div>
+          </div>
+          <div class="menu-row">
+            <div>
+              <h3>Soft gel extensions</h3>
+              <div class="meta">Light, flexible length. Includes shape and color.</div>
+            </div>
+            <div class="price">$120 · 90 min</div>
+          </div>
+          <div class="menu-row">
+            <div>
+              <h3>Russian manicure</h3>
+              <div class="meta">E-file cuticle work · gel finish</div>
+            </div>
+            <div class="price">$110 · 90 min</div>
+          </div>
+          <div class="menu-row">
+            <div>
+              <h3>Spa pedicure</h3>
+              <div class="meta">Scrub · paraffin · hot towels · gel or regular</div>
+            </div>
+            <div class="price">$72 · 60 min</div>
+          </div>
+          <div class="menu-row">
+            <div>
+              <h3>Nail art · simple</h3>
+              <div class="meta">French · chrome · single-tone art · per nail</div>
+            </div>
+            <div class="price">+ $4 / nail</div>
+          </div>
+          <div class="menu-row">
+            <div>
+              <h3>Nail art · detailed</h3>
+              <div class="meta">Hand-painted designs · 3D · gems · per nail</div>
+            </div>
+            <div class="price">+ $9 / nail</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="gallery" id="gallery">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Looks, this season</span>
+          <h2>Photographs of <em>actual nails</em>, not stock photos.</h2>
+        </div>
+        <div class="gallery-grid">
+          <img src="https://picsum.photos/seed/nailroom-g1/600/600" width="600" height="600" alt="Almond-shaped nails in a milky white gel." loading="lazy" />
+          <img src="https://picsum.photos/seed/nailroom-g2/600/600" width="600" height="600" alt="Short square nails with a soft pink french tip." loading="lazy" />
+          <img src="https://picsum.photos/seed/nailroom-g3/600/600" width="600" height="600" alt="Hand with chrome silver mirror nails." loading="lazy" />
+          <img src="https://picsum.photos/seed/nailroom-g4/600/600" width="600" height="600" alt="Coffin-shaped nails with delicate floral nail art." loading="lazy" />
+          <img class="span2" src="https://picsum.photos/seed/nailroom-g5/1200/600" width="1200" height="600" alt="Two hands resting on linen with matching nude-pink builder gel." loading="lazy" />
+          <img src="https://picsum.photos/seed/nailroom-g6/600/600" width="600" height="600" alt="Short oval nails with a single line of micro pearls." loading="lazy" />
+          <img src="https://picsum.photos/seed/nailroom-g7/600/600" width="600" height="600" alt="Almond nails with a tortoiseshell ombre." loading="lazy" />
+        </div>
+      </div>
+    </section>
+
+    <section id="artists">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">The chairs</span>
+          <h2>Five technicians, one waiting list.</h2>
+        </div>
+        <div class="artists-grid">
+          <div class="artist-card">
+            <img src="https://picsum.photos/seed/nailroom-a1/600/600" width="600" height="600" alt="Nail technician June Park working on a client's hand." loading="lazy" />
+            <span class="role">Founder · Russian manicure</span>
+            <h3>June Park</h3>
+            <p>Eight years behind the e-file. Trained in Seoul. Best in the room for nail repair and structure.</p>
+          </div>
+          <div class="artist-card">
+            <img src="https://picsum.photos/seed/nailroom-a2/600/600" width="600" height="600" alt="Nail technician Mira Soto smiling at the studio counter." loading="lazy" />
+            <span class="role">Nail art · gel</span>
+            <h3>Mira Soto</h3>
+            <p>Former illustrator. Bring her a Pinterest board and she'll improve on it. Books out three weeks ahead.</p>
+          </div>
+          <div class="artist-card">
+            <img src="https://picsum.photos/seed/nailroom-a3/600/600" width="600" height="600" alt="Nail technician Anya Reyes mixing a bottle of polish." loading="lazy" />
+            <span class="role">Pedicure · gel</span>
+            <h3>Anya Reyes</h3>
+            <p>Five years in spa pedicures. Patient, gentle hands. Will quietly fix whatever you did to your toenails.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="reviews" id="reviews">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Clients</span>
+          <h2>What people <em>actually say</em>.</h2>
+        </div>
+        <div class="reviews-grid">
+          <div class="review">
+            <div class="stars">★★★★★</div>
+            <p>"My gel lasted nineteen days through dish-pan hands and a beach weekend. The shape is finally what I described."</p>
+            <div class="who">— Hannah K., gel manicure</div>
+          </div>
+          <div class="review">
+            <div class="stars">★★★★★</div>
+            <p>"Mira drew a tiny wishbone on my pinky from a photo I sent at 2am the night before. Sharper than the reference."</p>
+            <div class="who">— Sofia M., nail art</div>
+          </div>
+          <div class="review">
+            <div class="stars">★★★★★</div>
+            <p>"It smells like nothing. No acrylic in the air, no perfume. I can actually sit through an appointment without a headache."</p>
+            <div class="who">— Lena F., regular client</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="booking">
+      <div class="wrap">
+        <div class="booking">
+          <div>
+            <span class="eyebrow" style="color:var(--accent);">Book</span>
+            <h2 style="color:#fff;">Request a chair. We'll confirm within two hours.</h2>
+            <p>Walk-ins are welcome on Tuesdays. Weekends are appointment-only and usually book a week out.</p>
+          </div>
+          <form onsubmit="event.preventDefault(); this.querySelector('button').textContent='Sent — see you soon';">
+            <div>
+              <label for="name">Name</label>
+              <input id="name" type="text" placeholder="Your name" required />
+            </div>
+            <div class="row">
+              <div>
+                <label for="service">Service</label>
+                <select id="service">
+                  <option>Gel manicure</option>
+                  <option>Builder gel overlay</option>
+                  <option>Soft gel extensions</option>
+                  <option>Russian manicure</option>
+                  <option>Spa pedicure</option>
+                </select>
+              </div>
+              <div>
+                <label for="when">When</label>
+                <input id="when" type="text" placeholder="Thu afternoon" />
+              </div>
+            </div>
+            <div>
+              <label for="contact">Phone or email</label>
+              <input id="contact" type="text" placeholder="So we can confirm" required />
+            </div>
+            <button class="btn btn-soft" type="submit">Request appointment</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section id="visit">
+      <div class="wrap">
+        <div class="visit-grid visit">
+          <img src="https://picsum.photos/seed/nailroom-visit/900/900" width="900" height="900" alt="The bright storefront of Nailroom on a quiet Brooklyn street." loading="lazy" />
+          <div>
+            <span class="eyebrow">Visit</span>
+            <h2>One floor up, <em>off Bedford</em>.</h2>
+            <p class="lede" style="margin:0;">Ring the bell at the green door. We're a five-chair room with a tea kettle and a long window. Take your time.</p>
+            <dl>
+              <dt>Address</dt><dd>112 N 7th St, Suite 2, Brooklyn NY</dd>
+              <dt>Hours</dt><dd>Tue–Sun · 10am — 8pm</dd>
+              <dt>Email</dt><dd>hello@nailroom.studio</dd>
+              <dt>Phone</dt><dd>(718) 555-0142</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot">
+        <div class="brand">Nailroom<span class="dot">.</span></div>
+        <div class="links">
+          <a href="#menu">Menu</a>
+          <a href="#gallery">Gallery</a>
+          <a href="#artists">Artists</a>
+          <a href="#booking">Book</a>
+          <a href="#">Gift card</a>
+        </div>
+        <div class="copy">© 2026 · Brooklyn, New York</div>
+      </div>
+    </div>
+  </footer>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

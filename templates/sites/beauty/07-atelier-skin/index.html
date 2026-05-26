@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Atelier Skin — Medical-grade skincare clinic in TriBeCa</title>
+  <meta name="description" content="A clinical, evidence-led skincare studio offering chemical peels, microneedling, LED therapy, and bespoke treatment plans built by an MD-trained esthetician." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #ffffff;
+      --paper: #f4f6f1;
+      --paper-2: #ecf0e6;
+      --ink: #14171b;
+      --ink-2: #4e5560;
+      --ink-3: #8a909a;
+      --line: rgba(20, 23, 27, 0.10);
+      --accent: #75876b;
+      --accent-deep: #56684c;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--ink); font-family: 'Inter', system-ui, sans-serif; font-size: 16px; line-height: 1.65; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 28px; }
+    .serif { font-family: 'Newsreader', serif; }
+    .eyebrow { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent-deep); font-weight: 600; }
+
+    .nav { padding: 22px 0; border-bottom: 1px solid var(--line); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { font-family: 'Newsreader', serif; font-size: 26px; font-weight: 500; letter-spacing: -0.01em; }
+    .brand .dot { color: var(--accent); }
+    .nav-links { display: flex; gap: 30px; font-size: 14px; color: var(--ink-2); font-weight: 500; }
+    .nav-links a:hover { color: var(--ink); }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border-radius: 6px; font-size: 14px; font-weight: 600; border: 1px solid transparent; cursor: pointer; transition: background 200ms; }
+    .btn-primary { background: var(--ink); color: #fff; }
+    .btn-primary:hover { background: var(--accent-deep); }
+    .btn-ghost { background: transparent; color: var(--ink); border-color: rgba(20,23,27,0.16); }
+    .btn-ghost:hover { border-color: var(--ink); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    .hero { padding: 80px 0 80px; }
+    .hero-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 64px; align-items: center; }
+    h1 { font-family: 'Newsreader', serif; font-weight: 500; font-size: clamp(46px, 6.5vw, 80px); line-height: 1.05; letter-spacing: -0.02em; margin: 16px 0 22px; }
+    h1 em { font-style: italic; color: var(--accent-deep); font-weight: 400; }
+    .lede { font-size: 18px; color: var(--ink-2); max-width: 480px; }
+    .hero-cta { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
+    .hero-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 48px; padding-top: 32px; border-top: 1px solid var(--line); }
+    .hero-stats dt { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-3); }
+    .hero-stats dd { font-family: 'Newsreader', serif; font-size: 28px; margin: 6px 0 0; font-weight: 500; }
+    .hero-img { position: relative; }
+    .hero-img img { width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 12px; }
+    .hero-img .badge { position: absolute; bottom: 22px; left: 22px; background: #fff; padding: 14px 20px; border-radius: 8px; font-size: 13px; box-shadow: 0 12px 32px rgba(20,23,27,0.08); }
+    .hero-img .badge strong { display: block; font-family: 'Newsreader', serif; font-size: 22px; font-weight: 500; }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; } }
+
+    .credentials { background: var(--paper); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .cred-inner { display: flex; gap: 56px; align-items: center; justify-content: space-between; padding: 24px 0; flex-wrap: wrap; }
+    .cred-inner .lbl { font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-3); }
+    .cred-inner .items { display: flex; gap: 36px; flex-wrap: wrap; font-family: 'Newsreader', serif; font-style: italic; font-size: 18px; color: var(--ink-2); }
+
+    section { padding: 110px 0; }
+    h2 { font-family: 'Newsreader', serif; font-weight: 500; font-size: clamp(36px, 5vw, 60px); letter-spacing: -0.015em; line-height: 1.1; margin: 14px 0 18px; max-width: 22ch; }
+    h2 em { font-style: italic; color: var(--accent-deep); font-weight: 400; }
+    .section-head { max-width: 720px; margin-bottom: 56px; }
+    .section-head p { font-size: 18px; color: var(--ink-2); }
+
+    .protocols-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .proto { background: var(--paper); border-radius: 14px; padding: 30px; display: flex; flex-direction: column; }
+    .proto .tag { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent-deep); font-weight: 600; }
+    .proto h3 { font-family: 'Newsreader', serif; font-weight: 500; font-size: 26px; margin: 8px 0 12px; }
+    .proto p { font-size: 15px; color: var(--ink-2); margin: 0 0 18px; flex: 1; }
+    .proto .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; font-size: 13px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .proto .meta dt { color: var(--ink-3); }
+    .proto .meta dd { margin: 0; font-weight: 600; }
+    @media (max-width: 1080px) { .protocols-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .protocols-grid { grid-template-columns: 1fr; } }
+
+    .method { background: var(--paper); }
+    .method-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+    .method-grid img { width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 12px; }
+    .steps { display: grid; gap: 18px; margin-top: 24px; }
+    .step { display: grid; grid-template-columns: 56px 1fr; gap: 18px; padding: 18px 0; border-bottom: 1px solid var(--line); }
+    .step .n { font-family: 'Newsreader', serif; font-size: 28px; color: var(--accent-deep); }
+    .step h4 { font-family: 'Newsreader', serif; font-weight: 500; font-size: 22px; margin: 0 0 4px; }
+    .step p { font-size: 15px; color: var(--ink-2); margin: 0; }
+    @media (max-width: 1080px) { .method-grid { grid-template-columns: 1fr; } }
+
+    .pricing-table { background: #fff; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+    .pricing-table .row { display: grid; grid-template-columns: 1fr 1fr 220px 140px; gap: 20px; align-items: center; padding: 22px 28px; border-bottom: 1px solid var(--line); }
+    .pricing-table .row:last-child { border-bottom: 0; }
+    .pricing-table .row.head { background: var(--paper); font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; padding: 16px 28px; }
+    .pricing-table h4 { font-family: 'Newsreader', serif; font-weight: 500; font-size: 19px; margin: 0; }
+    .pricing-table .desc { font-size: 14px; color: var(--ink-2); }
+    .pricing-table .time { font-size: 14px; color: var(--ink-3); }
+    .pricing-table .price { font-family: 'Newsreader', serif; font-size: 22px; text-align: right; font-weight: 500; }
+    @media (max-width: 1080px) { .pricing-table .row { grid-template-columns: 1fr; gap: 4px; } .pricing-table .row.head { display: none; } .pricing-table .price { text-align: left; } }
+
+    .team { background: var(--paper); }
+    .team-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; }
+    .team-card { display: grid; grid-template-columns: 280px 1fr; gap: 28px; }
+    .team-card img { width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 12px; }
+    .team-card h3 { font-family: 'Newsreader', serif; font-weight: 500; font-size: 28px; margin: 0 0 4px; }
+    .team-card .role { color: var(--accent-deep); font-weight: 600; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; }
+    .team-card p { font-size: 15px; color: var(--ink-2); margin: 14px 0; }
+    .team-card .creds { font-size: 13px; color: var(--ink-3); border-top: 1px solid var(--line); padding-top: 14px; }
+    @media (max-width: 1080px) { .team-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 720px) { .team-card { grid-template-columns: 1fr; } }
+
+    .results-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+    .result { background: #fff; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+    .result-imgs { display: grid; grid-template-columns: 1fr 1fr; }
+    .result-imgs > div { position: relative; }
+    .result-imgs img { width: 100%; aspect-ratio: 1/1; object-fit: cover; }
+    .result-imgs .lbl { position: absolute; top: 12px; left: 12px; background: rgba(255,255,255,0.92); padding: 4px 10px; border-radius: 999px; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; }
+    .result-body { padding: 24px 28px 28px; }
+    .result h3 { font-family: 'Newsreader', serif; font-weight: 500; font-size: 22px; margin: 0 0 6px; }
+    .result p { font-size: 14px; color: var(--ink-2); margin: 0; }
+    @media (max-width: 1080px) { .results-grid { grid-template-columns: 1fr; } }
+
+    .booking { background: var(--ink); color: #fff; padding: 80px 0; }
+    .booking-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+    .booking h2 { color: #fff; }
+    .booking p { color: rgba(255,255,255,0.7); }
+    .booking form { background: #fff; color: var(--ink); padding: 32px; border-radius: 14px; display: grid; gap: 14px; }
+    .booking label { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
+    .booking input, .booking select, .booking textarea { padding: 12px 14px; border-radius: 8px; border: 1px solid var(--line); font-family: inherit; font-size: 15px; }
+    .booking textarea { min-height: 90px; resize: vertical; }
+    @media (max-width: 1080px) { .booking-grid { grid-template-columns: 1fr; } }
+
+    footer { border-top: 1px solid var(--line); padding: 48px 0 32px; }
+    .foot { display: flex; justify-content: space-between; align-items: flex-end; gap: 28px; flex-wrap: wrap; }
+    .foot .links { display: flex; gap: 22px; font-size: 14px; color: var(--ink-2); }
+    .foot .copy { font-size: 13px; color: var(--ink-3); }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">Atelier<span class="dot">.</span> Skin</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#protocols">Protocols</a>
+        <a href="#method">The method</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#team">Team</a>
+        <a href="#results">Results</a>
+        <a href="#booking">Book</a>
+      </nav>
+      <a class="btn btn-primary" href="#booking">Book a consult</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow">TriBeCa · medical-grade skincare</span>
+            <h1>Clinical results, <em>without the hype</em>.</h1>
+            <p class="lede">An evidence-led skincare studio built by an MD-trained esthetician. Chemical peels, microneedling, LED, and bespoke treatment plans tailored to your skin — not last week's trend.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#booking">Book a consult</a>
+              <a class="btn btn-ghost" href="#pricing">See pricing</a>
+            </div>
+            <dl class="hero-stats">
+              <div><dt>Treatments delivered</dt><dd>12,400+</dd></div>
+              <div><dt>Repeat clients</dt><dd>87%</dd></div>
+              <div><dt>Average consult</dt><dd>45 min</dd></div>
+            </dl>
+          </div>
+          <div class="hero-img">
+            <img src="https://picsum.photos/seed/atelier-skin-hero/900/1120" width="900" height="1120" alt="A bright, minimal clinical room with a treatment chair, ring light, and white shelving holding labeled bottles." loading="eager" />
+            <div class="badge"><span class="eyebrow">SkinScan AI · included</span><strong>15-minute analysis with every consult</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="credentials">
+      <div class="wrap cred-inner">
+        <span class="lbl">Trained at</span>
+        <div class="items">
+          <span>NYU Langone Dermatology</span>
+          <span>Skinceuticals Advanced Clinic</span>
+          <span>Dr. Lancer Institute LA</span>
+          <span>ZO Skin Health</span>
+        </div>
+      </div>
+    </div>
+
+    <section id="protocols">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Protocols</span>
+          <h2>Treatments that <em>actually do something</em>.</h2>
+          <p>Every protocol is built around a real concern — texture, pigment, acne scarring, fine lines — with downtime, cost, and number of sessions clearly stated up front.</p>
+        </div>
+        <div class="protocols-grid">
+          <div class="proto">
+            <span class="tag">Texture · pigment</span>
+            <h3>Mandelic peel series</h3>
+            <p>A gentle, lipid-soluble peel that resurfaces tone and softens fine lines. Six sessions, two weeks apart.</p>
+            <dl class="meta">
+              <dt>Downtime</dt><dd>None</dd>
+              <dt>Per session</dt><dd>$245</dd>
+              <dt>Series</dt><dd>$1,260</dd>
+              <dt>Best for</dt><dd>Sensitive skin</dd>
+            </dl>
+          </div>
+          <div class="proto">
+            <span class="tag">Acne scarring · scars</span>
+            <h3>Microneedling + PRP</h3>
+            <p>Collagen induction with platelet-rich plasma. Builds new tissue across three to four sessions, six weeks apart.</p>
+            <dl class="meta">
+              <dt>Downtime</dt><dd>2 days</dd>
+              <dt>Per session</dt><dd>$650</dd>
+              <dt>Series</dt><dd>$2,400</dd>
+              <dt>Best for</dt><dd>Acne scarring</dd>
+            </dl>
+          </div>
+          <div class="proto">
+            <span class="tag">Active acne</span>
+            <h3>Clear protocol</h3>
+            <p>Salicylic peel, LED red light, and a tailored home routine. Three sessions, four weeks apart, plus a check-in.</p>
+            <dl class="meta">
+              <dt>Downtime</dt><dd>None</dd>
+              <dt>Per session</dt><dd>$210</dd>
+              <dt>Series</dt><dd>$580</dd>
+              <dt>Best for</dt><dd>Hormonal acne</dd>
+            </dl>
+          </div>
+          <div class="proto">
+            <span class="tag">Fine lines · firmness</span>
+            <h3>Microcurrent lift</h3>
+            <p>A non-invasive lifting protocol using medical-grade microcurrent. Ten sessions, weekly, then monthly maintenance.</p>
+            <dl class="meta">
+              <dt>Downtime</dt><dd>None</dd>
+              <dt>Per session</dt><dd>$275</dd>
+              <dt>Series</dt><dd>$2,450</dd>
+              <dt>Best for</dt><dd>40+ skin</dd>
+            </dl>
+          </div>
+          <div class="proto">
+            <span class="tag">Pigment · melasma</span>
+            <h3>Cosmelan resurface</h3>
+            <p>A two-stage depigmentation protocol for stubborn melasma and post-inflammatory pigment.</p>
+            <dl class="meta">
+              <dt>Downtime</dt><dd>5–7 days</dd>
+              <dt>Phase one</dt><dd>$890</dd>
+              <dt>Home phase</dt><dd>$340</dd>
+              <dt>Best for</dt><dd>Melasma</dd>
+            </dl>
+          </div>
+          <div class="proto">
+            <span class="tag">Glow · maintenance</span>
+            <h3>Atelier facial</h3>
+            <p>Our flagship monthly facial — double cleanse, enzyme peel, LED, lymphatic massage, and a sheet mask.</p>
+            <dl class="meta">
+              <dt>Downtime</dt><dd>None</dd>
+              <dt>Single</dt><dd>$185</dd>
+              <dt>Monthly</dt><dd>$155</dd>
+              <dt>Best for</dt><dd>Maintenance</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="method" id="method">
+      <div class="wrap">
+        <div class="method-grid">
+          <img src="https://picsum.photos/seed/atelier-skin-method/900/1100" width="900" height="1100" alt="A skincare clinician examining a client's skin with a magnifying lamp." loading="lazy" />
+          <div>
+            <span class="eyebrow">The method</span>
+            <h2>Diagnose first. Treat slowly. <em>Re-measure</em>.</h2>
+            <p style="font-size:17px; color:var(--ink-2);">We don't sell treatments à la carte. Every client starts with a one-hour consult, a SkinScan AI imaging analysis, and a written plan with cost and timeline before we book anything.</p>
+            <div class="steps">
+              <div class="step">
+                <div class="n">01</div>
+                <div>
+                  <h4>The consult</h4>
+                  <p>One hour. We look at your skin under magnification, review your history and meds, and shoot SkinScan images of pigment, texture, and redness.</p>
+                </div>
+              </div>
+              <div class="step">
+                <div class="n">02</div>
+                <div>
+                  <h4>The plan</h4>
+                  <p>A written, costed plan with timeline. Most plans run three to six months. We won't book treatments without it.</p>
+                </div>
+              </div>
+              <div class="step">
+                <div class="n">03</div>
+                <div>
+                  <h4>The treatments</h4>
+                  <p>We start gentle, re-measure with SkinScan every two months, and adjust the plan based on what your skin is actually doing.</p>
+                </div>
+              </div>
+              <div class="step">
+                <div class="n">04</div>
+                <div>
+                  <h4>The maintenance</h4>
+                  <p>Once you're where you want to be, most clients move to a monthly Atelier facial and a stable home routine.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pricing">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Pricing</span>
+          <h2>Every price <em>on the wall</em>.</h2>
+          <p>No "starting from" pricing, no surprise add-ons. The price on this page is the price you'll see on the invoice.</p>
+        </div>
+        <div class="pricing-table">
+          <div class="row head">
+            <div>Treatment</div>
+            <div>What it does</div>
+            <div>Time</div>
+            <div style="text-align:right;">Price</div>
+          </div>
+          <div class="row">
+            <h4>Skin consult + scan</h4>
+            <div class="desc">One-hour consult with SkinScan AI imaging</div>
+            <div class="time">60 min</div>
+            <div class="price">$135</div>
+          </div>
+          <div class="row">
+            <h4>Atelier facial</h4>
+            <div class="desc">Our flagship monthly facial</div>
+            <div class="time">75 min</div>
+            <div class="price">$185</div>
+          </div>
+          <div class="row">
+            <h4>Mandelic peel</h4>
+            <div class="desc">Gentle resurfacing, no downtime</div>
+            <div class="time">45 min</div>
+            <div class="price">$245</div>
+          </div>
+          <div class="row">
+            <h4>TCA peel</h4>
+            <div class="desc">Medium-depth resurfacing, 3-day downtime</div>
+            <div class="time">60 min</div>
+            <div class="price">$425</div>
+          </div>
+          <div class="row">
+            <h4>Microneedling</h4>
+            <div class="desc">Collagen induction</div>
+            <div class="time">75 min</div>
+            <div class="price">$485</div>
+          </div>
+          <div class="row">
+            <h4>Microneedling + PRP</h4>
+            <div class="desc">With platelet-rich plasma</div>
+            <div class="time">90 min</div>
+            <div class="price">$650</div>
+          </div>
+          <div class="row">
+            <h4>LED therapy</h4>
+            <div class="desc">Red, blue, or near-infrared</div>
+            <div class="time">30 min</div>
+            <div class="price">$65</div>
+          </div>
+          <div class="row">
+            <h4>Microcurrent lift</h4>
+            <div class="desc">Non-invasive firming</div>
+            <div class="time">60 min</div>
+            <div class="price">$275</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="team" id="team">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">The clinic</span>
+          <h2>Two clinicians. One clear standard of care.</h2>
+        </div>
+        <div class="team-grid">
+          <div class="team-card">
+            <img src="https://picsum.photos/seed/atelier-skin-t1/600/750" width="600" height="750" alt="Founder Dr. Anjali Kapoor smiling in a clinical setting." loading="lazy" />
+            <div>
+              <span class="role">Founder</span>
+              <h3>Dr. Anjali Kapoor</h3>
+              <p>MD-trained esthetician with fourteen years in dermatology adjacent practice, including six at NYU Langone. Her treatment plans are unhurried, precise, and skeptical of trends.</p>
+              <div class="creds">Cornell, MS Skin Science · NYU Langone Dermatology · ZO Skin Health Trainer</div>
+            </div>
+          </div>
+          <div class="team-card">
+            <img src="https://picsum.photos/seed/atelier-skin-t2/600/750" width="600" height="750" alt="Lead clinician Sasha Rivera at a treatment station." loading="lazy" />
+            <div>
+              <span class="role">Lead clinician</span>
+              <h3>Sasha Rivera</h3>
+              <p>Eight years of clinical skincare across LA and New York. Specialist in microneedling, microcurrent, and acne scarring. Patient, exact, never up-sells.</p>
+              <div class="creds">Licensed Esthetician (NY, CA) · Skinceuticals Advanced Clinic · Dr. Lancer Institute LA</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="results">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Real results</span>
+          <h2>Before / after, with client consent.</h2>
+        </div>
+        <div class="results-grid">
+          <div class="result">
+            <div class="result-imgs">
+              <div><img src="https://picsum.photos/seed/atelier-skin-b1/600/600" width="600" height="600" alt="Client skin before peel series — visible texture and tone unevenness." loading="lazy" /><span class="lbl">Before</span></div>
+              <div><img src="https://picsum.photos/seed/atelier-skin-a1/600/600" width="600" height="600" alt="Same client after a six-session peel series — smoother texture, even tone." loading="lazy" /><span class="lbl">After 6 sessions</span></div>
+            </div>
+            <div class="result-body">
+              <h3>Mandelic peel series</h3>
+              <p>Female, 34. Twelve weeks. Texture and post-inflammatory pigment, reduced approximately 70% by SkinScan measurement.</p>
+            </div>
+          </div>
+          <div class="result">
+            <div class="result-imgs">
+              <div><img src="https://picsum.photos/seed/atelier-skin-b2/600/600" width="600" height="600" alt="Client skin before microneedling — visible acne scarring." loading="lazy" /><span class="lbl">Before</span></div>
+              <div><img src="https://picsum.photos/seed/atelier-skin-a2/600/600" width="600" height="600" alt="Same client after four microneedling sessions — softened scarring." loading="lazy" /><span class="lbl">After 4 sessions</span></div>
+            </div>
+            <div class="result-body">
+              <h3>Microneedling + PRP</h3>
+              <p>Male, 29. Twenty-four weeks. Mild acne scarring, softened approximately 60% by SkinScan depth measurement.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="booking" id="booking">
+      <div class="wrap">
+        <div class="booking-grid">
+          <div>
+            <span class="eyebrow" style="color:var(--accent);">Book a consult</span>
+            <h2>One hour, no commitment. <em>$135</em>, applied to your plan.</h2>
+            <p>Tell us a little about your skin. We'll get back within one business day to confirm a time. We see clients Tuesday through Saturday.</p>
+          </div>
+          <form onsubmit="event.preventDefault(); this.querySelector('button').textContent='Sent — talk soon';">
+            <div>
+              <label for="name">Name</label>
+              <input id="name" type="text" placeholder="Your name" required />
+            </div>
+            <div>
+              <label for="email">Email</label>
+              <input id="email" type="email" placeholder="hello@example.com" required />
+            </div>
+            <div>
+              <label for="concern">Primary concern</label>
+              <select id="concern">
+                <option>Texture &amp; tone</option>
+                <option>Active acne</option>
+                <option>Acne scarring</option>
+                <option>Pigment / melasma</option>
+                <option>Fine lines &amp; firmness</option>
+                <option>Maintenance / glow</option>
+              </select>
+            </div>
+            <div>
+              <label for="note">A short note (optional)</label>
+              <textarea id="note" placeholder="Anything we should know"></textarea>
+            </div>
+            <button class="btn btn-primary" type="submit">Request consult</button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot">
+        <div class="brand">Atelier<span class="dot">.</span> Skin</div>
+        <div class="links">
+          <a href="#protocols">Protocols</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#team">Team</a>
+          <a href="#booking">Book</a>
+          <a href="#">Privacy</a>
+        </div>
+        <div class="copy">© 2026 · TriBeCa, New York · 84 Franklin St</div>
+      </div>
+    </div>
+  </footer>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

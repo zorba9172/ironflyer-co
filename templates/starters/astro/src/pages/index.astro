@@ -1,0 +1,65 @@
+---
+const projectName = "{{PROJECT_NAME}}";
+const today = "{{TODAY}}";
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{projectName}</title>
+    <style>
+      :root { color-scheme: dark; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: #0b0b0c;
+        color: #f5f5f4;
+        font-family: Inter, system-ui, sans-serif;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+      .card {
+        max-width: 560px;
+        width: 100%;
+        background: #161617;
+        border-radius: 12px;
+        padding: 28px;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+      }
+      .chip {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: #c6ff3a;
+        color: #0b0b0c;
+        font-weight: 600;
+        font-size: 12px;
+      }
+      h1 { margin: 12px 0 8px; font-size: 28px; }
+      p { opacity: 0.8; line-height: 1.5; }
+      .btn {
+        display: inline-block;
+        margin-top: 12px;
+        padding: 8px 16px;
+        background: #c6ff3a;
+        color: #0b0b0c;
+        border-radius: 6px;
+        font-weight: 600;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <span class="chip">Ironflyer scaffold {today}</span>
+      <h1>Welcome to {projectName}</h1>
+      <p>
+        This Astro app is the live preview of your project. The Ironflyer
+        finisher will keep editing it through enforced gates until it ships.
+      </p>
+      <a class="btn" href="https://ironflyer.dev">Continue</a>
+    </div>
+  </body>
+</html>

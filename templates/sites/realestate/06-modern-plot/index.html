@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Modern Plot — New construction homes by modernist builders</title>
+  <meta name="description" content="A vertically integrated builder of new modernist homes. Eight neighborhoods, fifty-two units delivered in 2025. Sealed plans, fixed-price contracts, fixed timelines." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #e9e7e1;
+      --bg-2: #ddd9d0;
+      --paper: #f3f1ec;
+      --fg: #1a1a18;
+      --fg-2: #4d4b46;
+      --fg-3: #7b7872;
+      --accent: #c1832d;
+      --accent-2: #a06d1e;
+      --line: rgba(26, 26, 24, 0.16);
+      --line-soft: rgba(26, 26, 24, 0.08);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--fg); font-family: 'Inter', sans-serif; font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 0 28px; }
+
+    .nav { padding: 24px 0; border-bottom: 1px solid var(--line-soft); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: -0.02em; font-size: 18px; }
+    .brand-mark { width: 30px; height: 30px; background: var(--fg); display: grid; place-items: center; color: var(--bg); font-family: 'IBM Plex Mono', monospace; font-weight: 700; font-size: 14px; }
+    .nav-links { display: flex; gap: 28px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.04em; color: var(--fg-2); text-transform: uppercase; }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta { display: flex; gap: 10px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; border: 1px solid var(--fg); cursor: pointer; font-weight: 600; }
+    .btn-fill { background: var(--fg); color: var(--bg); }
+    .btn-fill:hover { background: var(--accent); border-color: var(--accent); }
+    .btn-line:hover { background: var(--fg); color: var(--bg); }
+    @media (max-width: 1080px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 64px 0 80px; }
+    .hero-head { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 64px; align-items: end; margin-bottom: 48px; }
+    .eyebrow-mono { display: inline-block; font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.06em; color: var(--accent); padding-bottom: 4px; border-bottom: 1px solid var(--accent); margin-bottom: 24px; }
+    h1 { font-size: clamp(44px, 6vw, 76px); font-weight: 800; line-height: 1.02; letter-spacing: -0.028em; margin: 0; }
+    h1 em { font-style: normal; color: var(--accent); }
+    .hero-meta-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 32px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--fg-2); padding-top: 24px; border-top: 1px solid var(--line); }
+    .hero-meta-list dt { color: var(--fg-3); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+    .hero-meta-list dd { margin: 0; color: var(--fg); }
+    .hero-media { position: relative; aspect-ratio: 16/9; overflow: hidden; }
+    .hero-media img { width: 100%; height: 100%; object-fit: cover; }
+    .hero-marks { position: absolute; bottom: 24px; left: 24px; right: 24px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--paper); padding: 1px; border: 1px solid var(--accent); font-family: 'IBM Plex Mono', monospace; }
+    .hero-marks div { background: var(--paper); padding: 14px 18px; }
+    .hero-marks .l { font-size: 10px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.08em; }
+    .hero-marks .v { font-size: 18px; font-weight: 600; margin-top: 2px; color: var(--fg); }
+    @media (max-width: 1080px) {
+      .hero-head { grid-template-columns: 1fr; gap: 28px; }
+      .hero-marks { grid-template-columns: repeat(2, 1fr); position: static; margin-top: 16px; }
+    }
+
+    .section { padding: 96px 0; border-top: 1px solid var(--line-soft); }
+    .section-head { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 48px; align-items: end; margin-bottom: 56px; }
+    .section-head h2 { font-size: clamp(34px, 4.4vw, 52px); line-height: 1.05; font-weight: 800; letter-spacing: -0.025em; margin: 12px 0 0; }
+    .section-head h2 em { font-style: normal; color: var(--accent); }
+    .section-head p { font-size: 16px; color: var(--fg-2); margin: 0; }
+    @media (max-width: 1080px) { .section-head { grid-template-columns: 1fr; gap: 16px; } }
+
+    /* Properties grid */
+    .plots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .plot { background: var(--paper); border: 1px solid var(--line-soft); display: flex; flex-direction: column; transition: border-color 240ms ease; }
+    .plot:hover { border-color: var(--accent); }
+    .plot-img { aspect-ratio: 4/3; overflow: hidden; }
+    .plot-img img { width: 100%; height: 100%; object-fit: cover; }
+    .plot-body { padding: 22px; flex: 1; display: flex; flex-direction: column; }
+    .plot-tag { display: inline-block; font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.06em; color: var(--accent); border: 1px solid var(--accent); padding: 3px 8px; align-self: flex-start; margin-bottom: 12px; }
+    .plot-tag.sold { color: var(--fg-3); border-color: var(--fg-3); }
+    .plot h3 { font-weight: 800; font-size: 22px; margin: 0 0 4px; letter-spacing: -0.012em; }
+    .plot .neigh { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--fg-2); margin-bottom: 14px; }
+    .plot-specs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 18px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--fg-2); padding: 12px 0; border-top: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); margin-bottom: 14px; }
+    .plot-specs dt { color: var(--fg-3); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
+    .plot-specs dd { margin: 0; color: var(--fg); }
+    .plot-foot { display: flex; justify-content: space-between; align-items: baseline; margin-top: auto; }
+    .plot-foot .price { font-size: 22px; font-weight: 800; letter-spacing: -0.015em; }
+    .plot-foot a { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--accent); border-bottom: 1px solid var(--accent); padding-bottom: 2px; }
+    @media (max-width: 1080px) { .plots { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .plots { grid-template-columns: 1fr; } }
+
+    /* Process */
+    .process { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+    .step { background: var(--bg); padding: 28px 22px; }
+    .step .n { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--accent); letter-spacing: 0.06em; }
+    .step h3 { font-size: 17px; font-weight: 700; margin: 14px 0 8px; letter-spacing: -0.01em; }
+    .step p { font-size: 13px; color: var(--fg-2); margin: 0 0 8px; }
+    .step .time { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.08em; }
+    @media (max-width: 1080px) { .process { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .process { grid-template-columns: 1fr; } }
+
+    /* Spec table */
+    .specs-block { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: stretch; }
+    .specs-block img { width: 100%; height: 100%; aspect-ratio: 4/5; object-fit: cover; }
+    .specs-table { background: var(--paper); padding: 32px; border: 1px solid var(--line-soft); }
+    .specs-table h3 { font-size: 22px; font-weight: 800; letter-spacing: -0.015em; margin: 0 0 6px; }
+    .specs-table p { color: var(--fg-2); margin: 0 0 22px; font-size: 14px; }
+    .specs-list { display: grid; grid-template-columns: 1fr; }
+    .specs-list .row { display: grid; grid-template-columns: 200px 1fr; padding: 14px 0; border-top: 1px solid var(--line-soft); font-family: 'IBM Plex Mono', monospace; font-size: 13px; }
+    .specs-list .row dt { color: var(--fg-3); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+    .specs-list .row dd { margin: 0; color: var(--fg); }
+    @media (max-width: 1080px) { .specs-block { grid-template-columns: 1fr; } }
+
+    /* Architects */
+    .team { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+    .arch { background: var(--paper); padding: 22px; border: 1px solid var(--line-soft); }
+    .arch img { width: 100%; aspect-ratio: 1/1; object-fit: cover; margin-bottom: 14px; filter: grayscale(0.2); }
+    .arch h3 { margin: 0 0 4px; font-size: 17px; font-weight: 700; }
+    .arch p { margin: 0; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--fg-3); }
+    @media (max-width: 1080px) { .team { grid-template-columns: 1fr 1fr; } }
+
+    .quote-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .quote { background: var(--paper); padding: 32px; border-left: 3px solid var(--accent); }
+    .quote blockquote { font-size: 19px; font-weight: 500; line-height: 1.45; margin: 0 0 18px; letter-spacing: -0.01em; }
+    .quote cite { font-style: normal; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--fg-3); letter-spacing: 0.04em; }
+    @media (max-width: 720px) { .quote-row { grid-template-columns: 1fr; } }
+
+    .cta { padding: 96px 0; background: var(--fg); color: var(--paper); }
+    .cta-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: end; }
+    .cta h2 { font-size: clamp(36px, 5vw, 60px); font-weight: 800; letter-spacing: -0.025em; color: var(--paper); margin: 0; line-height: 1.04; }
+    .cta h2 em { font-style: normal; color: var(--accent); }
+    .cta p { color: rgba(243, 241, 236, 0.72); margin: 0 0 24px; font-size: 16px; }
+    .cta .btn { border-color: var(--paper); color: var(--paper); }
+    .cta .btn-fill { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+    .cta .btn-fill:hover { background: var(--accent-2); border-color: var(--accent-2); }
+    @media (max-width: 1080px) { .cta-grid { grid-template-columns: 1fr; gap: 24px; } }
+
+    footer { background: var(--bg-2); padding: 56px 0 28px; }
+    .foot-grid { display: grid; grid-template-columns: 1.4fr repeat(4, 1fr); gap: 32px; }
+    .foot-col h4 { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin: 0 0 14px; }
+    .foot-col a, .foot-col p { display: block; color: var(--fg-2); font-size: 13px; padding: 4px 0; margin: 0; }
+    .foot-col a:hover { color: var(--fg); }
+    .foot-bot { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--fg-3); letter-spacing: 0.04em; }
+    @media (max-width: 1080px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 8px; } }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a href="#" class="brand"><span class="brand-mark">MP</span>Modern Plot</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#available">Available</a>
+        <a href="#process">Process</a>
+        <a href="#specs">Specs</a>
+        <a href="#team">Architects</a>
+        <a href="#story">Story</a>
+      </nav>
+      <div class="nav-cta">
+        <a href="#" class="btn btn-line">Floor plans</a>
+        <a href="#cta" class="btn btn-fill">Book a walkthrough</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-head">
+          <div>
+            <span class="eyebrow-mono">PROJECT_LOG · 2025–2026</span>
+            <h1>New construction, <em>modernist</em>, built to a sealed plan.</h1>
+          </div>
+          <div>
+            <p style="color:var(--fg-2); margin:0 0 24px; font-size:16px; max-width: 460px;">Modern Plot is a vertically integrated builder. We hold the land, the architects, and the trades. Plans are sealed before ground breaks. Price is fixed at contract. Timeline is fixed at contract.</p>
+            <dl class="hero-meta-list">
+              <dt>Founded</dt><dd>2014 · Portland, OR</dd>
+              <dt>Active developments</dt><dd>8</dd>
+              <dt>Homes delivered</dt><dd>312</dd>
+              <dt>Avg time over budget</dt><dd>0 days · 0%</dd>
+            </dl>
+          </div>
+        </div>
+        <div class="hero-media">
+          <img src="https://picsum.photos/seed/modernplot-1/2000/1125" width="2000" height="1125" alt="A flat-roof modernist home under construction with timber framing visible against a pacific northwest forest." loading="eager" />
+          <div class="hero-marks">
+            <div><div class="l">Spec set</div><div class="v">REV 14</div></div>
+            <div><div class="l">Permit</div><div class="v">ISSUED</div></div>
+            <div><div class="l">Completion</div><div class="v">Q3 2026</div></div>
+            <div><div class="l">Reservations</div><div class="v">6 / 12</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="available">
+      <div class="wrap">
+        <div class="section-head">
+          <div><span class="eyebrow-mono">CURRENT_INVENTORY</span><h2>Homes for sale across <em>eight developments</em>.</h2></div>
+          <p>Each home is part of a defined development with a sealed plan, fixed cost, and fixed delivery window. Reservations are taken in person at the site office.</p>
+        </div>
+        <div class="plots">
+          <article class="plot">
+            <div class="plot-img"><img src="https://picsum.photos/seed/modernplot-2/900/700" width="900" height="700" alt="A two-story flat-roof home with vertical cedar siding and large windows." loading="lazy" /></div>
+            <div class="plot-body">
+              <span class="plot-tag">Available</span>
+              <h3>Plot 14 / Linden Cross</h3>
+              <div class="neigh">Linden Cross · Portland, OR</div>
+              <dl class="plot-specs">
+                <dt>BEDS</dt><dd>4</dd>
+                <dt>BATHS</dt><dd>3.5</dd>
+                <dt>LIVING</dt><dd>2,840 sqft</dd>
+                <dt>LOT</dt><dd>5,200 sqft</dd>
+              </dl>
+              <div class="plot-foot"><span class="price">$1,495,000</span><a href="#">SPEC SHEET →</a></div>
+            </div>
+          </article>
+          <article class="plot">
+            <div class="plot-img"><img src="https://picsum.photos/seed/modernplot-3/900/700" width="900" height="700" alt="A horizontal modernist home with a flat green roof and concrete plinth." loading="lazy" /></div>
+            <div class="plot-body">
+              <span class="plot-tag">Reserved</span>
+              <h3>Plot 06 / Marine View</h3>
+              <div class="neigh">Marine View · Seattle, WA</div>
+              <dl class="plot-specs">
+                <dt>BEDS</dt><dd>3</dd>
+                <dt>BATHS</dt><dd>2.5</dd>
+                <dt>LIVING</dt><dd>2,140 sqft</dd>
+                <dt>LOT</dt><dd>4,800 sqft</dd>
+              </dl>
+              <div class="plot-foot"><span class="price">$1,295,000</span><a href="#">SPEC SHEET →</a></div>
+            </div>
+          </article>
+          <article class="plot">
+            <div class="plot-img"><img src="https://picsum.photos/seed/modernplot-4/900/700" width="900" height="700" alt="A stepped concrete and glass home built into a sloped hillside lot." loading="lazy" /></div>
+            <div class="plot-body">
+              <span class="plot-tag">Available</span>
+              <h3>Plot 22 / Ridge House</h3>
+              <div class="neigh">Bridle Trails · Bellevue, WA</div>
+              <dl class="plot-specs">
+                <dt>BEDS</dt><dd>5</dd>
+                <dt>BATHS</dt><dd>4</dd>
+                <dt>LIVING</dt><dd>4,120 sqft</dd>
+                <dt>LOT</dt><dd>9,400 sqft</dd>
+              </dl>
+              <div class="plot-foot"><span class="price">$2,750,000</span><a href="#">SPEC SHEET →</a></div>
+            </div>
+          </article>
+          <article class="plot">
+            <div class="plot-img"><img src="https://picsum.photos/seed/modernplot-5/900/700" width="900" height="700" alt="A black-stained timber home with double-height windows in a forest clearing." loading="lazy" /></div>
+            <div class="plot-body">
+              <span class="plot-tag">Available</span>
+              <h3>Plot 03 / Cedar Run</h3>
+              <div class="neigh">Cedar Run · Mt. Hood, OR</div>
+              <dl class="plot-specs">
+                <dt>BEDS</dt><dd>3</dd>
+                <dt>BATHS</dt><dd>2</dd>
+                <dt>LIVING</dt><dd>1,840 sqft</dd>
+                <dt>LOT</dt><dd>2.1 acres</dd>
+              </dl>
+              <div class="plot-foot"><span class="price">$985,000</span><a href="#">SPEC SHEET →</a></div>
+            </div>
+          </article>
+          <article class="plot">
+            <div class="plot-img"><img src="https://picsum.photos/seed/modernplot-6/900/700" width="900" height="700" alt="A modular concrete home with three offset volumes and rooftop terrace." loading="lazy" /></div>
+            <div class="plot-body">
+              <span class="plot-tag sold">Sold</span>
+              <h3>Plot 09 / Field & Form</h3>
+              <div class="neigh">Field & Form · Boise, ID</div>
+              <dl class="plot-specs">
+                <dt>BEDS</dt><dd>4</dd>
+                <dt>BATHS</dt><dd>3</dd>
+                <dt>LIVING</dt><dd>2,640 sqft</dd>
+                <dt>LOT</dt><dd>6,000 sqft</dd>
+              </dl>
+              <div class="plot-foot"><span class="price">$895,000</span><a href="#">SPEC SHEET →</a></div>
+            </div>
+          </article>
+          <article class="plot">
+            <div class="plot-img"><img src="https://picsum.photos/seed/modernplot-7/900/700" width="900" height="700" alt="A long single-story home with white-stained siding and a wraparound deck." loading="lazy" /></div>
+            <div class="plot-body">
+              <span class="plot-tag">Available</span>
+              <h3>Plot 18 / Brookline</h3>
+              <div class="neigh">Brookline · Portland, OR</div>
+              <dl class="plot-specs">
+                <dt>BEDS</dt><dd>3</dd>
+                <dt>BATHS</dt><dd>2.5</dd>
+                <dt>LIVING</dt><dd>2,280 sqft</dd>
+                <dt>LOT</dt><dd>5,500 sqft</dd>
+              </dl>
+              <div class="plot-foot"><span class="price">$1,180,000</span><a href="#">SPEC SHEET →</a></div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="process">
+      <div class="wrap">
+        <div class="section-head">
+          <div><span class="eyebrow-mono">HOW_IT_WORKS</span><h2>Five steps, sealed before <em>ground breaks</em>.</h2></div>
+          <p>We do not change-order our buyers. The price you sign at contract is the price you pay at closing. The timeline is the same.</p>
+        </div>
+        <div class="process">
+          <div class="step"><div class="n">01 / DESIGN</div><h3>Architect-sealed plan</h3><p>You select from three sealed plans per neighborhood. No bespoke redesign mid-build.</p><div class="time">Week 0</div></div>
+          <div class="step"><div class="n">02 / CONTRACT</div><h3>Fixed price, fixed date</h3><p>Final price and target delivery date are signed into the purchase agreement.</p><div class="time">Week 2</div></div>
+          <div class="step"><div class="n">03 / BUILD</div><h3>In-house crews</h3><p>Foundation through trim handled by Modern Plot crews on Modern Plot equipment.</p><div class="time">Weeks 4–36</div></div>
+          <div class="step"><div class="n">04 / FINISH</div><h3>Selections, on schedule</h3><p>Two finish meetings on a fixed calendar — cabinetry, tile, and lighting only.</p><div class="time">Weeks 28, 32</div></div>
+          <div class="step"><div class="n">05 / DELIVERY</div><h3>Walk-through + handover</h3><p>Pre-closing punch list cleared on a single day. Keys handed over on the contracted date.</p><div class="time">Week 38</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="specs">
+      <div class="wrap">
+        <div class="section-head">
+          <div><span class="eyebrow-mono">SPECIFICATION</span><h2>What every Modern Plot home <em>actually has</em>.</h2></div>
+          <p>The base specification is published. No upgrade packages, no surprise downgrades, no allowances under-funded at contract.</p>
+        </div>
+        <div class="specs-block">
+          <img src="https://picsum.photos/seed/modernplot-8/900/1100" width="900" height="1100" alt="Construction detail of a poured concrete wall with steel reinforcement and engineered timber framing." loading="lazy" />
+          <div class="specs-table">
+            <h3>Base specification, all homes</h3>
+            <p>Every Modern Plot home ships with this minimum spec. Plans differ in floor area and program, not in build quality.</p>
+            <div class="specs-list">
+              <div class="row"><dt>FOUNDATION</dt><dd>Reinforced poured concrete, 12" footings</dd></div>
+              <div class="row"><dt>FRAMING</dt><dd>FSC-certified engineered lumber, no MDF structure</dd></div>
+              <div class="row"><dt>ENVELOPE</dt><dd>R-30 walls, R-50 roof, ZIP system sheathing</dd></div>
+              <div class="row"><dt>WINDOWS</dt><dd>Triple-pane aluminum-clad timber, U-factor 0.18</dd></div>
+              <div class="row"><dt>HVAC</dt><dd>Heat-pump primary, ERV ventilation, no gas appliances</dd></div>
+              <div class="row"><dt>ELECTRICAL</dt><dd>200A panel, dedicated EV circuit, solar-ready conduit</dd></div>
+              <div class="row"><dt>FINISH</dt><dd>White oak floors, quartz counters, integrated appliances</dd></div>
+              <div class="row"><dt>WARRANTY</dt><dd>10-year structural, 2-year mechanical, lifetime envelope</dd></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="team">
+      <div class="wrap">
+        <div class="section-head">
+          <div><span class="eyebrow-mono">IN-HOUSE</span><h2>The architects on staff.</h2></div>
+          <p>Every plan is sealed by a Modern Plot architect-of-record. No subcontracted design, no franchised builder.</p>
+        </div>
+        <div class="team">
+          <div class="arch"><img src="https://picsum.photos/seed/modernplot-9/500/500" width="500" height="500" alt="Portrait of Henrik Larsson." loading="lazy" /><h3>Henrik Larsson, AIA</h3><p>Architect-of-record / OR, WA</p></div>
+          <div class="arch"><img src="https://picsum.photos/seed/modernplot-10/500/500" width="500" height="500" alt="Portrait of Priya Iyengar." loading="lazy" /><h3>Priya Iyengar, AIA</h3><p>Architect-of-record / ID, MT</p></div>
+          <div class="arch"><img src="https://picsum.photos/seed/modernplot-11/500/500" width="500" height="500" alt="Portrait of Daniel Brusen." loading="lazy" /><h3>Daniel Brusen, AIA</h3><p>Design director</p></div>
+          <div class="arch"><img src="https://picsum.photos/seed/modernplot-12/500/500" width="500" height="500" alt="Portrait of Caro Vega." loading="lazy" /><h3>Caro Vega, AIA</h3><p>Specifications lead</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="story">
+      <div class="wrap">
+        <div class="section-head">
+          <div><span class="eyebrow-mono">OWNER_NOTES</span><h2>Closed buyers, on the record.</h2></div>
+          <p>Quoted with permission, from owners who closed on Modern Plot homes in the last twenty-four months.</p>
+        </div>
+        <div class="quote-row">
+          <div class="quote"><blockquote>"Two homes, two contracts, two on-time closings. Both at the contracted price, with the spec we signed. That should be normal. It is not."</blockquote><cite>— R. Doheny · Plot 17 / Cedar Run, 2024</cite></div>
+          <div class="quote"><blockquote>"Our previous builder hit us with $84,000 in change orders. Modern Plot did not change-order us once. Final cost matched contract to the dollar."</blockquote><cite>— M. & J. Park · Plot 04 / Marine View, 2025</cite></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="cta" id="cta">
+    <div class="wrap cta-grid">
+      <h2>Walk a <em>plot</em> with us this weekend.</h2>
+      <div>
+        <p>Site tours run Saturdays at our eight active developments. Reservations are taken in person at the site office only — no online deposits until you have walked the lot.</p>
+        <a href="#" class="btn btn-fill">Reserve a site visit →</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <div class="brand"><span class="brand-mark">MP</span>Modern Plot</div>
+          <p style="margin-top:14px; max-width: 280px;">A vertically integrated builder of modernist homes in the Pacific Northwest. CCB# 218401 · WA MODERPC847JD.</p>
+        </div>
+        <div class="foot-col"><h4>Developments</h4><a href="#">Linden Cross</a><a href="#">Marine View</a><a href="#">Cedar Run</a><a href="#">Field & Form</a></div>
+        <div class="foot-col"><h4>Plans</h4><a href="#">Plan 21</a><a href="#">Plan 28</a><a href="#">Plan 34</a><a href="#">Plan 42</a></div>
+        <div class="foot-col"><h4>Practice</h4><a href="#">Architects</a><a href="#">Crews</a><a href="#">Warranty</a><a href="#">Specifications</a></div>
+        <div class="foot-col"><h4>Company</h4><a href="#">About</a><a href="#">Careers</a><a href="#">Press</a><a href="#">Contact</a></div>
+      </div>
+      <div class="foot-bot"><span>© 2026 MODERN PLOT, INC.</span><span>SEALED PLAN · FIXED PRICE · FIXED DATE</span></div>
+    </div>
+  </footer>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

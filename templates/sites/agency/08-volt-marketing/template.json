@@ -1,0 +1,35 @@
+{
+  "slug": "agency-08-volt-marketing",
+  "title": "Volt Marketing",
+  "subtitle": "Performance marketing for category leaders.",
+  "category": "Agency",
+  "type": "Websites",
+  "tags": [
+    "bold",
+    "data",
+    "performance",
+    "dark"
+  ],
+  "previewImage": "/templates/agency-08-volt-marketing.jpg",
+  "palette": {
+    "bg": "#000000",
+    "fg": "#f6f6f6",
+    "accent": "#00b3ff"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "stats",
+    "services",
+    "case-studies",
+    "results",
+    "process",
+    "team",
+    "clients",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Volt Marketing template as the foundation for a bold, data-forward performance marketing agency site in black with an electric blue accent, big numerical stats, an inline chart, and a confident growth-focused voice.",
+  "livePreview": "/template-previews/agency-08-volt-marketing/"
+}

@@ -48,6 +48,7 @@ import (
 	"ironflyer/core/orchestrator/internal/business/ledger"
 	"ironflyer/core/orchestrator/internal/business/outboxhooks"
 	"ironflyer/core/orchestrator/internal/customer/auth"
+	"ironflyer/core/orchestrator/internal/customer/auth/oauth"
 	"ironflyer/core/orchestrator/internal/customer/notify"
 	"ironflyer/core/orchestrator/internal/operations/abuse"
 	"ironflyer/core/orchestrator/internal/operations/arch"
@@ -1646,10 +1647,18 @@ func main() {
 		logger.Warn().Msg("EAS_TOKEN unset — mobile resolvers will fall back to per-project secrets only")
 	}
 
+	oauthHandler := buildOAuthHandler(cfg, authSvc, sessionStore, logger)
+	if oauthHandler != nil {
+		logger.Info().Bool("github", cfg.GitHubClientID != "").
+			Bool("google", cfg.GoogleClientID != "").
+			Msg("oauth: social sign-in enabled")
+	}
+
 	api := httpapi.New(httpapi.Deps{
 		Projects: projects, Engine: engine, Agents: registry, Patches: patches,
 		Billing: billing, Stripe: stripeSvc, Paddle: paddleSvc, Guard: guard,
 		Auth: authSvc, AuthOptional: cfg.AuthOptional,
+		OAuth: oauthHandler,
 		AllowedOrigins: cfg.CORSOrigins,
 		ProdMode:       cfg.IsProd(),
 		CSPOverride:    cfg.CSP,
@@ -2402,6 +2411,47 @@ func buildDeviceCloudManager(logger zerolog.Logger, ledgerSvc ledger.Service) *d
 		mgr.Register(devicecloud.NewAWSDeviceFarmClient(creds.AWSAccessKeyID, creds.AWSSecretAccessKey, ""))
 	}
 	return mgr
+}
+
+// buildOAuthHandler assembles the social-login Handler from cfg. The
+// state-signing secret + at least one provider client_id must be set
+// or it returns nil and main.go skips route registration entirely.
+func buildOAuthHandler(cfg config.Config, authSvc *auth.Service, sessions auth.SessionStore, logger zerolog.Logger) *oauth.Handler {
+	if authSvc == nil || !cfg.HasOAuthProvider() {
+		return nil
+	}
+	if cfg.OAuthStateSecret == "" {
+		logger.Warn().Msg("oauth: providers configured but IRONFLYER_OAUTH_STATE_SECRET is unset — refusing to enable")
+		return nil
+	}
+	var provs []oauth.Provider
+	postLogin := cfg.GitHubPostLoginURL
+	if p := oauth.NewGitHubProvider(cfg.GitHubClientID, cfg.GitHubClientSecret, cfg.GitHubRedirectURL); p != nil {
+		if cfg.GitHubClientSecret == "" {
+			logger.Warn().Msg("oauth: GITHUB_CLIENT_ID set without GITHUB_CLIENT_SECRET — provider will fail at exchange")
+		}
+		provs = append(provs, p)
+	}
+	if p := oauth.NewGoogleProvider(cfg.GoogleClientID, cfg.GoogleClientSecret, cfg.GoogleRedirectURL); p != nil {
+		if cfg.GoogleClientSecret == "" {
+			logger.Warn().Msg("oauth: GOOGLE_CLIENT_ID set without GOOGLE_CLIENT_SECRET — provider will fail at exchange")
+		}
+		provs = append(provs, p)
+		if cfg.GoogleClientID != "" && postLogin == "" {
+			postLogin = cfg.GooglePostLoginURL
+		}
+	}
+	if postLogin == "" {
+		postLogin = cfg.GooglePostLoginURL
+	}
+	return oauth.New(oauth.Config{
+		Providers:           provs,
+		Auth:                authSvc,
+		Sessions:            sessions,
+		StateSecret:         []byte(cfg.OAuthStateSecret),
+		Logger:              logger.With().Str("component", "oauth").Logger(),
+		DefaultPostLoginURL: postLogin,
+	})
 }
 
 // superviseDaemon launches fn in its own goroutine, recovers any panic

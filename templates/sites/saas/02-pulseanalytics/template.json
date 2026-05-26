@@ -1,0 +1,36 @@
+{
+  "slug": "saas-02-pulseanalytics",
+  "title": "PulseAnalytics",
+  "subtitle": "Product analytics that connect every event to the dollar it moved.",
+  "category": "SaaS",
+  "type": "Apps",
+  "tags": [
+    "light",
+    "editorial",
+    "data",
+    "analytics",
+    "serif"
+  ],
+  "previewImage": "/templates/saas-02-pulseanalytics.jpg",
+  "palette": {
+    "bg": "#faf8f3",
+    "fg": "#14181f",
+    "accent": "#1d4ed8"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "logos",
+    "features",
+    "attribution",
+    "dashboards",
+    "quote",
+    "metrics",
+    "pricing",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the PulseAnalytics template as the foundation for a data-forward, editorial SaaS landing: serif headlines on cream, a live dashboard hero, attribution and dashboard split-views, executive quote band, and a usage-based pricing grid.",
+  "livePreview": "/template-previews/saas-02-pulseanalytics/"
+}

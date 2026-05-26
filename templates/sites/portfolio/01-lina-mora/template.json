@@ -1,0 +1,33 @@
+{
+  "slug": "portfolio-01-lina-mora",
+  "title": "Lina Mora",
+  "subtitle": "Independent product designer working with founder-led teams.",
+  "category": "Portfolio",
+  "type": "Websites",
+  "tags": [
+    "editorial",
+    "designer",
+    "warm",
+    "minimal"
+  ],
+  "previewImage": "/templates/portfolio-01-lina-mora.jpg",
+  "palette": {
+    "bg": "#f5efe4",
+    "fg": "#111111",
+    "accent": "#111111"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "selected-work",
+    "about",
+    "services",
+    "now",
+    "clients",
+    "contact",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Lina Mora template as the foundation for an editorial product designer portfolio. Keep the warm cream background, near-black ink, large serif display headings, and disciplined two-column case studies. Replace the persona's copy with the actual designer's manifesto, selected work, and process. Six case studies max, photographed flat.",
+  "livePreview": "/template-previews/portfolio-01-lina-mora/"
+}

@@ -1,0 +1,33 @@
+{
+  "slug": "web3-03-cipher-wallet",
+  "title": "Cipher Wallet",
+  "subtitle": "A non-custodial multi-chain wallet with signature simulation and hardware-backed keys.",
+  "category": "Web3",
+  "type": "Apps",
+  "tags": [
+    "dark",
+    "wallet",
+    "security",
+    "trustworthy"
+  ],
+  "previewImage": "/templates/web3-03-cipher-wallet.jpg",
+  "palette": {
+    "bg": "#000000",
+    "fg": "#eafff1",
+    "accent": "#5cf0a1"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "stats",
+    "trust",
+    "features",
+    "security",
+    "ecosystem",
+    "dev",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Cipher Wallet template as the foundation for a non-custodial crypto wallet landing. Keep the pure black background with electric green accent, the phone preview in the hero, the signature simulation card, and the trustworthy security framing. Replace placeholder copy with the wallet's actual chain set and feature list.",
+  "livePreview": "/template-previews/web3-03-cipher-wallet/"
+}

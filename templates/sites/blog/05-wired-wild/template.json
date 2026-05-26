@@ -1,0 +1,35 @@
+{
+  "slug": "blog-05-wired-wild",
+  "title": "Wired & Wild",
+  "subtitle": "An independent outdoor and adventure magazine of expeditions, gear tests, and field dispatches.",
+  "category": "Blog",
+  "type": "Websites",
+  "tags": [
+    "outdoor",
+    "magazine",
+    "dark",
+    "photo-led",
+    "bold"
+  ],
+  "previewImage": "/templates/blog-05-wired-wild.jpg",
+  "palette": {
+    "bg": "#131318",
+    "fg": "#f4f1ea",
+    "accent": "#ff6c3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "ticker",
+    "features",
+    "gear",
+    "field-log",
+    "guides",
+    "about",
+    "newsletter",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Wired & Wild template as the foundation for an outdoor adventure magazine. Charcoal background, electric orange accent, Archivo Black display, Inter body, JetBrains Mono for tags and metadata. Full-bleed photographic hero, scrolling orange ticker band, big-left/small-right feature row, gear and guides 4-up card grids, a numbered field-log dispatch list, an about section, and a bold orange newsletter band. Voice is gritty, no-sponsored-gear, photo-led.",
+  "livePreview": "/template-previews/blog-05-wired-wild/"
+}

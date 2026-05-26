@@ -1,0 +1,35 @@
+{
+  "slug": "mobile-app-10-lumi-kids",
+  "title": "Lumi",
+  "subtitle": "Phonics, numbers, and tiny wins for ages 3–7.",
+  "category": "Mobile App",
+  "type": "Mobile/PWA",
+  "tags": [
+    "kids",
+    "playful",
+    "education",
+    "early-learning"
+  ],
+  "previewImage": "/templates/mobile-app-10-lumi-kids.jpg",
+  "palette": {
+    "bg": "#fffaee",
+    "fg": "#1f1d2e",
+    "accent": "#ff3d8a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "badges",
+    "features",
+    "lessons",
+    "how",
+    "social",
+    "parents",
+    "faq",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Lumi template as the foundation for a kids-learning mobile-app landing. Keep the warm-white + hot-pink playful system with big shapes, the CSS phone frame with a phonics lesson UI, parent-facing reassurance section, App Store + Google Play badges, and a joyful download CTA.",
+  "livePreview": "/template-previews/mobile-app-10-lumi-kids/"
+}

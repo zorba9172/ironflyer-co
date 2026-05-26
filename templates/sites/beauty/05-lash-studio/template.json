@@ -1,0 +1,33 @@
+{
+  "slug": "beauty-05-lash-studio",
+  "title": "Lash & Brow Studio",
+  "subtitle": "Custom lash extensions and brow shaping, by appointment.",
+  "category": "Beauty",
+  "type": "Websites",
+  "tags": [
+    "lash",
+    "refined",
+    "photo",
+    "soft"
+  ],
+  "previewImage": "/templates/beauty-05-lash-studio.jpg",
+  "palette": {
+    "bg": "#ffffff",
+    "fg": "#2a1f1c",
+    "accent": "#c79c8c"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "lashes",
+    "brows",
+    "artists",
+    "gallery",
+    "testimonials",
+    "visit",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Lash & Brow Studio template as the foundation for a refined, rose-gold lash studio site with a tabbed lash-style picker, brow service list, two artist bios, photo gallery, and quiet client quotes.",
+  "livePreview": "/template-previews/beauty-05-lash-studio/"
+}

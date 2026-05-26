@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bowline — Sailing &amp; breathwork retreats in the Aeolian Islands</title>
+  <meta name="description" content="Seven-day sailing retreats on a 48ft yacht, anchored each night in a quiet cove. Twice-daily breathwork led by a senior facilitator. Capped at eight guests." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #d9e7e0;
+      --paper: #effaf3;
+      --ink: #0e2326;
+      --ink-2: #41575a;
+      --ink-3: #7a8c8e;
+      --line: rgba(14,35,38,0.14);
+      --line-strong: rgba(14,35,38,0.26);
+      --accent: #ff6c3a;
+      --deep: #0e2326;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--ink); font-family: 'Inter', system-ui, sans-serif; line-height: 1.65; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+    .serif { font-family: 'DM Serif Display', serif; }
+
+    .nav { padding: 22px 0; }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { font-family: 'DM Serif Display', serif; font-size: 28px; letter-spacing: -0.01em; }
+    .brand em { color: var(--accent); font-style: normal; }
+    .nav-links { display: flex; gap: 28px; font-size: 14px; color: var(--ink-2); }
+    .nav-links a:hover { color: var(--ink); }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 46px; padding: 0 24px; border-radius: 999px; font-weight: 500; font-size: 14px; border: 1px solid transparent; cursor: pointer; transition: transform 200ms; }
+    .btn-primary { background: var(--accent); color: var(--paper); }
+    .btn-primary:hover { background: var(--deep); }
+    .btn-ghost { background: transparent; color: var(--ink); border-color: var(--line-strong); }
+    .btn-ghost:hover { border-color: var(--ink); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    .hero { padding: 32px 0 96px; position: relative; }
+    .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--accent); font-weight: 600; }
+    h1 { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(54px, 8vw, 108px); line-height: 0.96; letter-spacing: -0.02em; margin: 20px 0 22px; }
+    h1 em { font-style: italic; color: var(--accent); }
+    .lede { font-size: 19px; color: var(--ink-2); max-width: 500px; }
+    .hero-cta { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
+    .hero-art { position: relative; }
+    .hero-art img { width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 240px 240px 16px 16px; }
+    .hero-meta { display: flex; gap: 22px; margin-top: 20px; }
+    .hero-meta div { font-size: 13px; color: var(--ink-2); }
+    .hero-meta strong { display: block; font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--ink); font-weight: 400; }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; } }
+
+    .section { padding: 96px 0; }
+    .section.alt { background: var(--paper); }
+    .section.deep { background: var(--deep); color: var(--paper); }
+    .section.deep h2 { color: var(--paper); }
+    .section h2 { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: clamp(40px, 5.4vw, 64px); letter-spacing: -0.01em; line-height: 1.05; margin: 12px 0 16px; }
+    .section h2 em { font-style: italic; color: var(--accent); }
+    .section-head { max-width: 720px; margin-bottom: 56px; }
+
+    .retreats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .retreat { background: var(--paper); border-radius: 18px; overflow: hidden; border: 1px solid var(--line); }
+    .retreat img { width: 100%; aspect-ratio: 4/3; object-fit: cover; }
+    .retreat .body { padding: 26px 28px 30px; }
+    .retreat .meta { color: var(--accent); font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 600; }
+    .retreat h3 { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 26px; margin: 8px 0 10px; line-height: 1.15; }
+    .retreat p { font-size: 14px; color: var(--ink-2); margin: 0 0 16px; }
+    .retreat .row { display: flex; justify-content: space-between; padding-top: 14px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-3); }
+    .retreat .row strong { color: var(--ink); }
+    @media (max-width: 1080px) { .retreats { grid-template-columns: 1fr; max-width: 460px; margin: 0 auto; } }
+
+    .itinerary { display: grid; grid-template-columns: 200px 1fr; gap: 0; background: var(--paper); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; }
+    .iti-img { position: relative; }
+    .iti-img img { width: 100%; height: 100%; object-fit: cover; min-height: 320px; }
+    .iti-list { padding: 12px 0; }
+    .iti-row { display: grid; grid-template-columns: 110px 1fr; padding: 18px 28px; border-bottom: 1px solid var(--line); align-items: flex-start; gap: 18px; }
+    .iti-row:last-child { border-bottom: 0; }
+    .iti-row .t { font-family: 'DM Serif Display', serif; color: var(--accent); font-size: 22px; }
+    .iti-row .what strong { display: block; font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 20px; color: var(--ink); }
+    .iti-row .what p { color: var(--ink-2); font-size: 14px; margin: 4px 0 0; }
+    @media (max-width: 1080px) { .itinerary { grid-template-columns: 1fr; } .iti-img img { aspect-ratio: 4/3; min-height: 0; } }
+
+    .guides { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .guide { text-align: left; }
+    .guide img { width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 16px; }
+    .guide h3 { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 26px; margin: 16px 0 4px; }
+    .guide .role { color: var(--accent); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; }
+    .guide p { color: var(--ink-2); font-size: 14px; margin: 10px 0 0; }
+    @media (max-width: 1080px) { .guides { grid-template-columns: 1fr; max-width: 460px; margin: 0 auto; } }
+
+    .included { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+    .inc { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); border-radius: 14px; padding: 26px 28px; }
+    .inc h3 { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 22px; margin: 0 0 10px; color: var(--paper); }
+    .inc p { color: rgba(239,250,243,0.75); font-size: 14px; margin: 0; }
+    @media (max-width: 1080px) { .included { grid-template-columns: 1fr; } }
+
+    .testimonials { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+    .quote { background: var(--paper); border: 1px solid var(--line); padding: 32px; border-radius: 18px; }
+    .quote p { font-family: 'DM Serif Display', serif; font-size: 22px; line-height: 1.4; margin: 0 0 16px; font-style: italic; }
+    .quote .who { font-size: 13px; color: var(--ink-3); }
+    .quote .who strong { color: var(--ink); }
+    @media (max-width: 1080px) { .testimonials { grid-template-columns: 1fr; } }
+
+    .dates { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; }
+    .date-row { display: grid; grid-template-columns: 160px 1fr 1fr 200px 140px; padding: 20px 28px; border-bottom: 1px solid var(--line); align-items: center; gap: 16px; font-size: 14px; }
+    .date-row:last-child { border-bottom: 0; }
+    .date-row .d { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--accent); }
+    .date-row .n { font-weight: 600; }
+    .date-row .where { color: var(--ink-2); }
+    .date-row .price { font-family: 'DM Serif Display', serif; font-size: 20px; }
+    .date-row .status { font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.1em; }
+    .date-row .status.open { color: var(--accent); font-weight: 700; }
+    @media (max-width: 1080px) { .date-row { grid-template-columns: 1fr; gap: 4px; padding: 16px 20px; } }
+
+    .booking { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+    .booking img { width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 16px; }
+    .booking-card { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 36px; }
+    .booking-card label { display: block; font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+    .booking-card input, .booking-card select { width: 100%; height: 46px; padding: 0 16px; border: 1px solid var(--line); border-radius: 10px; background: #fff; margin-bottom: 14px; font-family: inherit; font-size: 14px; }
+    @media (max-width: 1080px) { .booking { grid-template-columns: 1fr; } }
+
+    footer { padding: 48px 0 28px; border-top: 1px solid var(--line); }
+    .foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 24px; }
+    .foot .links { display: flex; gap: 24px; font-size: 14px; color: var(--ink-2); }
+    .foot .copy { font-family: 'DM Serif Display', serif; font-style: italic; color: var(--ink-3); }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">Bow<em>line.</em></a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#retreats">Retreats</a>
+        <a href="#day">A day on board</a>
+        <a href="#guides">Guides</a>
+        <a href="#dates">Dates</a>
+        <a href="#booking">Book</a>
+      </nav>
+      <a class="btn btn-primary" href="#booking">Hold a berth</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow">Aeolian Islands · April – October · Eight guests</span>
+            <h1>Seven days on the water. <em>Two breaths</em> a day.</h1>
+            <p class="lede">Bowline is a small retreat company sailing a 48-foot yacht through the Aeolian Islands. Twice-daily breathwork, slow meals, and one quiet cove for every night. No phones at the table, no agenda after sunset.</p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="#dates">See spring dates</a>
+              <a class="btn btn-ghost" href="#retreats">Pick a retreat</a>
+            </div>
+            <div class="hero-meta">
+              <div>Guests<strong>8 max</strong></div>
+              <div>Length<strong>7 nights</strong></div>
+              <div>Anchored<strong>5 islands</strong></div>
+              <div>Boat<strong>Beneteau 48</strong></div>
+            </div>
+          </div>
+          <div class="hero-art">
+            <img src="https://picsum.photos/seed/bowline-1/900/1100" width="900" height="1100" alt="A white sailboat anchored in clear water at sunset with a coastline in the distance." loading="eager" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="retreats">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Retreats</span>
+          <h2>Three flavors of a <em>quiet week</em>.</h2>
+          <p class="lede">Same boat, same coves. The retreat you pick shapes the schedule: how much breathwork, how much sailing instruction, how much silence.</p>
+        </div>
+        <div class="retreats">
+          <div class="retreat">
+            <img src="https://picsum.photos/seed/bowline-r1/700/520" width="700" height="520" alt="Two people doing breathwork at the bow of the boat at sunrise." loading="lazy" />
+            <div class="body">
+              <span class="meta">Twice-daily breathwork</span>
+              <h3>Bowline · Breath</h3>
+              <p>Two breathwork sessions a day with our senior facilitator. Long mornings, short sails, evenings on deck.</p>
+              <div class="row"><span>7 nights · 8 guests</span><strong>€3,200 / berth</strong></div>
+            </div>
+          </div>
+          <div class="retreat">
+            <img src="https://picsum.photos/seed/bowline-r2/700/520" width="700" height="520" alt="A captain at the wheel of the sailboat with the sail filled." loading="lazy" />
+            <div class="body">
+              <span class="meta">Sailing-forward</span>
+              <h3>Bowline · Sail</h3>
+              <p>For people who want time on the helm. Longer passages, daily skipper lessons, one breathwork session a day.</p>
+              <div class="row"><span>7 nights · 8 guests</span><strong>€3,400 / berth</strong></div>
+            </div>
+          </div>
+          <div class="retreat">
+            <img src="https://picsum.photos/seed/bowline-r3/700/520" width="700" height="520" alt="A guest swimming in a turquoise cove from the back of the yacht." loading="lazy" />
+            <div class="body">
+              <span class="meta">Mostly silent</span>
+              <h3>Bowline · Quiet</h3>
+              <p>Optional silence from breakfast to sunset. Two facilitators, longer breathwork, no group dinners.</p>
+              <div class="row"><span>7 nights · 6 guests</span><strong>€3,800 / berth</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="day">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">A day on board</span>
+          <h2>One <em>typical</em> day.</h2>
+          <p class="lede">Days shift with weather and the wind. This is what a calm Wednesday looks like, anchored off Panarea.</p>
+        </div>
+        <div class="itinerary">
+          <div class="iti-img"><img src="https://picsum.photos/seed/bowline-iti/600/800" width="600" height="800" alt="The aft deck of the sailboat in the morning with mats laid out." loading="lazy" /></div>
+          <div class="iti-list">
+            <div class="iti-row"><span class="t">06:45</span><div class="what"><strong>Coffee on deck</strong><p>Boiled in a moka pot. Quiet, before anything else.</p></div></div>
+            <div class="iti-row"><span class="t">07:15</span><div class="what"><strong>Morning breathwork</strong><p>45 minutes of pranayama and circular breath, sunrise at our back.</p></div></div>
+            <div class="iti-row"><span class="t">09:00</span><div class="what"><strong>Slow breakfast</strong><p>Local bread, fresh ricotta, tomatoes. The longest meal of the day.</p></div></div>
+            <div class="iti-row"><span class="t">11:00</span><div class="what"><strong>Sail to the next cove</strong><p>Three to five hours under sail. Help on the lines if you'd like.</p></div></div>
+            <div class="iti-row"><span class="t">16:00</span><div class="what"><strong>Anchor, swim, nap</strong><p>The most important hour. The crew prepares dinner; you do whatever you do.</p></div></div>
+            <div class="iti-row"><span class="t">18:30</span><div class="what"><strong>Evening session</strong><p>A short integration breath or a long quiet walk, depending on the day.</p></div></div>
+            <div class="iti-row"><span class="t">20:30</span><div class="what"><strong>Dinner</strong><p>Wine on tables we set on shore when the cove allows. Otherwise on deck.</p></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="guides">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Guides</span>
+          <h2>The people <em>holding the week</em>.</h2>
+        </div>
+        <div class="guides">
+          <div class="guide">
+            <img src="https://picsum.photos/seed/bowline-g1/600/750" width="600" height="750" alt="Skipper Marco Greco at the helm of the yacht." loading="lazy" />
+            <span class="role">Captain</span>
+            <h3>Marco Greco</h3>
+            <p>RYA Yachtmaster Offshore. Eleven seasons in the Aeolian Islands. Reads weather like other people read books.</p>
+          </div>
+          <div class="guide">
+            <img src="https://picsum.photos/seed/bowline-g2/600/750" width="600" height="750" alt="Breathwork facilitator Inanna Wilde sitting cross-legged on deck." loading="lazy" />
+            <span class="role">Lead facilitator</span>
+            <h3>Inanna Wilde</h3>
+            <p>500-hour Yoga Medicine and Wim Hof certified. Twelve years guiding breathwork retreats on land and at sea.</p>
+          </div>
+          <div class="guide">
+            <img src="https://picsum.photos/seed/bowline-g3/600/750" width="600" height="750" alt="Chef Lia Costa cooking pasta in the boat's galley." loading="lazy" />
+            <span class="role">Chef</span>
+            <h3>Lia Costa</h3>
+            <p>Trained in Catania, ran a tasting menu in Naples. Cooks the way her grandmother did. No fusion, no foam.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section deep">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow" style="color:var(--accent);">What's included</span>
+          <h2>Everything except <em>the flight</em>.</h2>
+          <p class="lede" style="color:rgba(239,250,243,0.75);">Berth, board, breathwork, and the boat. We pick you up at Lipari port on Saturday at noon.</p>
+        </div>
+        <div class="included">
+          <div class="inc"><h3>Berth in a shared cabin</h3><p>Two berths per cabin, separate beds. Private cabin upgrade available.</p></div>
+          <div class="inc"><h3>All meals on board</h3><p>Breakfast, lunch, dinner, snacks. Wine with dinner. Aperitivo most evenings.</p></div>
+          <div class="inc"><h3>Twice-daily breathwork</h3><p>Sunrise and evening, weather permitting. Adapted on rough days.</p></div>
+          <div class="inc"><h3>One on-shore lunch</h3><p>Mid-week at a family-run trattoria in Panarea. A long, slow afternoon.</p></div>
+          <div class="inc"><h3>Sailing instruction</h3><p>As much or as little as you want. The captain enjoys teaching.</p></div>
+          <div class="inc"><h3>Snorkel, paddle, and dinghy</h3><p>Daily use included. We anchor where the water is worth it.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>What past <em>guests said</em>.</h2>
+        </div>
+        <div class="testimonials">
+          <div class="quote"><p>"I'd never sailed and I'd never done breathwork. By Tuesday I'd done both, and by Friday I wasn't sure how to leave the boat."</p><div class="who"><strong>Cleo M.</strong> · Bowline · Breath, May 2025</div></div>
+          <div class="quote"><p>"Marco is a real captain. Inanna is a real teacher. Lia is a real cook. The whole week felt like grown-ups had organized it for grown-ups."</p><div class="who"><strong>Eitan S.</strong> · Bowline · Sail, June 2025</div></div>
+          <div class="quote"><p>"The silent retreat was hard, in the way I needed it to be. I came home different. My partner noticed before I told her about it."</p><div class="who"><strong>Anya P.</strong> · Bowline · Quiet, Sept 2024</div></div>
+          <div class="quote"><p>"Worth every euro. Worth the flight. Worth re-arranging my calendar around. I'm booking 2026 in three weeks."</p><div class="who"><strong>Jamal K.</strong> · Bowline · Sail, Aug 2025</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="dates">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Upcoming dates</span>
+          <h2>Six weeks <em>still open</em>.</h2>
+        </div>
+        <div class="dates">
+          <div class="date-row"><span class="d">May 02</span><span class="n">Bowline · Breath</span><span class="where">Lipari → Stromboli</span><span class="price">€3,200</span><span class="status open">3 berths left</span></div>
+          <div class="date-row"><span class="d">May 16</span><span class="n">Bowline · Sail</span><span class="where">Lipari → Salina</span><span class="price">€3,400</span><span class="status open">5 berths left</span></div>
+          <div class="date-row"><span class="d">Jun 06</span><span class="n">Bowline · Quiet</span><span class="where">Lipari → Filicudi</span><span class="price">€3,800</span><span class="status open">2 berths left</span></div>
+          <div class="date-row"><span class="d">Jun 20</span><span class="n">Bowline · Breath</span><span class="where">Lipari → Panarea</span><span class="price">€3,200</span><span class="status">Sold out · waitlist</span></div>
+          <div class="date-row"><span class="d">Sep 12</span><span class="n">Bowline · Sail</span><span class="where">Lipari → Stromboli</span><span class="price">€3,400</span><span class="status open">8 berths left</span></div>
+          <div class="date-row"><span class="d">Oct 03</span><span class="n">Bowline · Breath</span><span class="where">Lipari → Salina</span><span class="price">€3,200</span><span class="status open">6 berths left</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="booking">
+      <div class="wrap">
+        <div class="booking">
+          <img src="https://picsum.photos/seed/bowline-booking/900/1100" width="900" height="1100" alt="The yacht moored at dusk with lanterns lit on deck." loading="lazy" />
+          <div class="booking-card">
+            <span class="eyebrow">Hold a berth</span>
+            <h2 class="serif" style="font-size:36px;margin:8px 0 18px;">Hold a berth, <em style="color:var(--accent);">decide later</em>.</h2>
+            <p style="margin:0 0 18px;color:var(--ink-2);">€300 holds your spot for two weeks. Fully refundable if you choose not to confirm.</p>
+            <form onsubmit="event.preventDefault(); alert('Thanks — we will email within a day.');">
+              <label for="bk-name">Your name</label>
+              <input id="bk-name" name="name" type="text" placeholder="First and last" required />
+              <label for="bk-email">Email</label>
+              <input id="bk-email" name="email" type="email" placeholder="you@example.com" required />
+              <label for="bk-date">Pick a retreat</label>
+              <select id="bk-date" name="date">
+                <option>May 02 · Breath · 3 berths left</option>
+                <option>May 16 · Sail · 5 berths left</option>
+                <option>Jun 06 · Quiet · 2 berths left</option>
+                <option>Sep 12 · Sail · 8 berths left</option>
+                <option>Oct 03 · Breath · 6 berths left</option>
+              </select>
+              <button class="btn btn-primary" style="width:100%;justify-content:center;" type="submit">Hold a berth · €300</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot">
+        <div class="brand">Bow<em style="color:var(--accent);font-style:normal;">line.</em></div>
+        <div class="links">
+          <a href="#retreats">Retreats</a>
+          <a href="#dates">Dates</a>
+          <a href="#guides">Guides</a>
+          <a href="#">Journal</a>
+          <a href="#">Contact</a>
+        </div>
+        <div class="copy">© 2026 · Lipari, Sicily</div>
+      </div>
+    </div>
+  </footer>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

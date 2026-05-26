@@ -1,0 +1,36 @@
+{
+  "slug": "events-10-community-fair",
+  "title": "Community Fair",
+  "subtitle": "The Oak Park Community Fair — a neighborhood summer afternoon.",
+  "category": "Events",
+  "type": "Websites",
+  "tags": [
+    "civic",
+    "playful",
+    "neighborhood",
+    "family",
+    "shapes"
+  ],
+  "previewImage": "/templates/events-10-community-fair.jpg",
+  "palette": {
+    "bg": "#ffffff",
+    "fg": "#1a1a1a",
+    "accent": "#d63a3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "what",
+    "schedule",
+    "map",
+    "vendors",
+    "kids",
+    "volunteer",
+    "donate",
+    "sponsors",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Community Fair template as the foundation for a neighborhood or city fair landing. Keep the white + bright red and yellow palette, big graphic shapes, attractions grid, and volunteer signup. Replace the schedule, vendors, and venue with the fair's real details.",
+  "livePreview": "/template-previews/events-10-community-fair/"
+}

@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pixel Diary — Sam Rivera, senior UI designer</title>
+  <meta name="description" content="Pixel Diary is Sam Rivera. A senior UI designer building the small, polished interface pieces of large products. Screens, components, and craft." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=General+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #ffffff;
+      --bg-2: #f6f6f6;
+      --bg-3: #efeff1;
+      --ink: #0a0a0a;
+      --ink-2: #4a4a52;
+      --ink-3: #8a8a93;
+      --rule: rgba(10, 10, 10, 0.08);
+      --rule-strong: rgba(10, 10, 10, 0.16);
+      --pink: #ff3d8a;
+      --pink-2: #ffd6e6;
+      --green: #14d97a;
+      --blue: #3858ff;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      font-size: 15px; line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 0 28px; }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+    /* Nav */
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(255, 255, 255, 0.86);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--rule);
+    }
+    .nav-inner {
+      display: flex; justify-content: space-between; align-items: center;
+      height: 64px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; }
+    .brand .mark {
+      width: 26px; height: 26px;
+      background: var(--pink); border-radius: 7px;
+      display: grid; place-items: center;
+      color: white; font-weight: 700; font-size: 14px;
+    }
+    .nav-links { display: flex; gap: 28px; font-size: 14px; color: var(--ink-2); font-weight: 500; }
+    .nav-links a:hover { color: var(--ink); }
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+    .badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; background: var(--bg-2); border-radius: 999px; font-size: 12px; color: var(--ink-2); }
+    .badge::before { content: ''; width: 6px; height: 6px; background: var(--green); border-radius: 50%; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      height: 36px; padding: 0 16px;
+      background: var(--ink); color: var(--bg);
+      border-radius: 8px; font-size: 14px; font-weight: 500;
+      border: none; cursor: pointer;
+    }
+    .btn:hover { background: var(--pink); }
+    .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--rule-strong); }
+    .btn.ghost:hover { border-color: var(--ink); background: var(--bg); color: var(--ink); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 80px 0 56px; }
+    .hero-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 56px; align-items: center; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 12px; border-radius: 999px;
+      background: var(--pink-2); color: var(--pink);
+      font-size: 12px; font-weight: 600; letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+    h1 {
+      font-family: 'General Sans', 'Inter', sans-serif;
+      font-size: clamp(40px, 5.6vw, 72px);
+      line-height: 1.02; letter-spacing: -0.028em;
+      font-weight: 700; margin: 18px 0 20px;
+    }
+    h1 .pink { color: var(--pink); }
+    .hero-lede {
+      font-size: 18px; color: var(--ink-2);
+      max-width: 52ch; line-height: 1.55;
+    }
+    .hero-cta-row { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
+    .hero-cta-row .btn { height: 44px; padding: 0 22px; font-size: 15px; }
+
+    .hero-art {
+      position: relative;
+      background: var(--bg-2);
+      border-radius: 18px;
+      padding: 24px;
+      border: 1px solid var(--rule);
+    }
+    .hero-art .mock {
+      background: var(--bg);
+      border-radius: 12px;
+      box-shadow: 0 14px 40px rgba(10,10,10,0.06), 0 1px 2px rgba(10,10,10,0.06);
+      overflow: hidden;
+      border: 1px solid var(--rule);
+    }
+    .mock-head { display: flex; align-items: center; gap: 6px; padding: 10px 14px; border-bottom: 1px solid var(--rule); }
+    .mock-head .d { width: 9px; height: 9px; border-radius: 50%; background: var(--bg-3); }
+    .mock-head .url { margin-left: 12px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-3); }
+    .mock img { width: 100%; aspect-ratio: 4/3; object-fit: cover; }
+    .hero-art .float {
+      position: absolute; bottom: -18px; right: -18px;
+      background: var(--ink); color: var(--bg);
+      padding: 12px 16px; border-radius: 14px;
+      font-size: 13px; font-weight: 500;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .hero-art .float .dot { width: 8px; height: 8px; background: var(--pink); border-radius: 50%; }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 32px; } }
+
+    /* Stats bar */
+    .stats {
+      margin-top: 56px;
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      border: 1px solid var(--rule); border-radius: 14px;
+      background: var(--bg-2);
+    }
+    .stat { padding: 24px; border-right: 1px solid var(--rule); }
+    .stat:last-child { border-right: none; }
+    .stat .n { font-family: 'General Sans', sans-serif; font-size: 32px; font-weight: 700; letter-spacing: -0.02em; }
+    .stat .n .pink { color: var(--pink); }
+    .stat .l { color: var(--ink-3); font-size: 13px; margin-top: 4px; }
+    @media (max-width: 720px) {
+      .stats { grid-template-columns: 1fr 1fr; }
+      .stat:nth-child(2) { border-right: none; }
+      .stat:nth-child(1), .stat:nth-child(2) { border-bottom: 1px solid var(--rule); }
+    }
+
+    /* Section */
+    .section { padding: 96px 0; }
+    .section-head { display: flex; justify-content: space-between; align-items: end; margin-bottom: 40px; gap: 24px; flex-wrap: wrap; }
+    .section-head h2 {
+      font-family: 'General Sans', sans-serif;
+      font-size: clamp(32px, 4.4vw, 52px); letter-spacing: -0.02em;
+      font-weight: 700; margin: 0; line-height: 1.05;
+    }
+    .section-head .meta { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--ink-3); }
+    .section-head p { color: var(--ink-2); max-width: 52ch; margin: 0; }
+
+    /* Screens grid */
+    .screens-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
+    .case {
+      grid-column: span 6;
+      background: var(--bg-2);
+      border: 1px solid var(--rule);
+      border-radius: 18px;
+      padding: 24px;
+      display: flex; flex-direction: column; gap: 18px;
+      transition: transform 240ms cubic-bezier(0.16,1,0.3,1), border-color 240ms;
+    }
+    .case:hover { transform: translateY(-4px); border-color: var(--rule-strong); }
+    .case.large { grid-column: span 12; flex-direction: row; align-items: center; }
+    .case.large .case-art { flex: 1.2; }
+    .case.large .case-body { flex: 1; padding: 12px 16px; }
+    .case-art {
+      background: var(--bg);
+      border: 1px solid var(--rule);
+      border-radius: 12px;
+      overflow: hidden;
+      aspect-ratio: 16/10;
+    }
+    .case-art img { width: 100%; height: 100%; object-fit: cover; }
+    .case-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+    .tag {
+      font-family: 'JetBrains Mono', monospace; font-size: 11px;
+      padding: 4px 10px; border-radius: 999px;
+      background: var(--bg-3); color: var(--ink-2);
+    }
+    .tag.pink { background: var(--pink-2); color: var(--pink); }
+    .case h3 { font-family: 'General Sans', sans-serif; font-weight: 700; font-size: 22px; letter-spacing: -0.01em; margin: 0; line-height: 1.2; }
+    .case p { color: var(--ink-2); margin: 0; font-size: 14px; }
+    .case-link { font-size: 13px; font-weight: 500; color: var(--pink); margin-top: 4px; }
+    .case-link::after { content: ' →'; }
+    @media (max-width: 1080px) {
+      .case, .case.large { grid-column: span 12; }
+      .case.large { flex-direction: column; }
+    }
+
+    /* Shots strip */
+    .shots {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+    }
+    .shot {
+      background: var(--bg-2); border: 1px solid var(--rule);
+      border-radius: 12px; overflow: hidden;
+      aspect-ratio: 4/5;
+    }
+    .shot img { width: 100%; height: 100%; object-fit: cover; }
+    @media (max-width: 1080px) { .shots { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .shots { grid-template-columns: 1fr 1fr; } }
+
+    /* Components */
+    .components-band {
+      background: var(--ink); color: var(--bg);
+      border-radius: 28px; padding: 64px 48px;
+      display: grid; grid-template-columns: 1fr 1.4fr; gap: 56px; align-items: center;
+    }
+    .components-band h2 { color: var(--bg); }
+    .components-band p { color: rgba(255,255,255,0.7); max-width: 44ch; margin: 16px 0 0; }
+    .component-card {
+      background: #161616; border: 1px solid #2a2a2a; border-radius: 14px;
+      padding: 20px;
+    }
+    .ui-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .ui-tile {
+      background: #1f1f1f; border-radius: 10px; padding: 14px;
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 13px; color: rgba(255,255,255,0.84);
+    }
+    .ui-tile.primary { background: var(--pink); color: white; }
+    .ui-tile .arr { opacity: 0.6; }
+    .ui-row.head { margin-bottom: 12px; }
+    .ui-row.head .ui-tile { background: transparent; padding: 0; font-size: 11px; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.1em; }
+    .switch { width: 30px; height: 18px; background: #2a2a2a; border-radius: 999px; position: relative; }
+    .switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; background: white; border-radius: 50%; }
+    .switch.on { background: var(--pink); }
+    .switch.on::after { left: 14px; }
+    @media (max-width: 1080px) {
+      .components-band { grid-template-columns: 1fr; padding: 40px 28px; }
+    }
+
+    /* Process */
+    .process { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .step {
+      background: var(--bg);
+      border: 1px solid var(--rule);
+      border-radius: 14px; padding: 24px;
+    }
+    .step .n { font-family: 'General Sans', sans-serif; font-weight: 700; font-size: 14px; color: var(--pink); margin-bottom: 12px; }
+    .step h3 { font-family: 'General Sans', sans-serif; font-size: 18px; margin: 0 0 8px; font-weight: 700; }
+    .step p { color: var(--ink-2); font-size: 14px; margin: 0; }
+    @media (max-width: 1080px) { .process { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .process { grid-template-columns: 1fr; } }
+
+    /* Clients */
+    .clients-row {
+      padding: 56px 0;
+      border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+      display: grid; grid-template-columns: repeat(6, 1fr); gap: 24px;
+      align-items: center; justify-items: center;
+      color: var(--ink-3); font-weight: 600;
+    }
+    @media (max-width: 720px) { .clients-row { grid-template-columns: repeat(3, 1fr); gap: 18px; } }
+
+    /* Now */
+    .now-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .now-card {
+      background: var(--bg-2); border: 1px solid var(--rule); border-radius: 14px;
+      padding: 28px;
+    }
+    .now-card h3 { font-family: 'General Sans', sans-serif; font-size: 14px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 10px; }
+    .now-card p { margin: 0; font-size: 16px; }
+    .now-card .pink { color: var(--pink); font-weight: 600; }
+    @media (max-width: 720px) { .now-grid { grid-template-columns: 1fr; } }
+
+    /* Contact */
+    .contact {
+      background: var(--pink); color: white;
+      border-radius: 28px; padding: 80px 48px; text-align: center; margin-bottom: 32px;
+    }
+    .contact h2 { font-family: 'General Sans', sans-serif; font-size: clamp(36px, 5vw, 64px); margin: 0 0 16px; font-weight: 700; letter-spacing: -0.02em; }
+    .contact p { font-size: 17px; opacity: 0.9; margin: 0 0 28px; }
+    .contact .email {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--ink); color: white;
+      padding: 16px 26px; border-radius: 12px; font-weight: 600;
+    }
+
+    /* Footer */
+    footer { padding: 32px 0 56px; }
+    .foot { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; color: var(--ink-3); font-size: 13px; }
+    .foot-links { display: flex; gap: 18px; }
+    .foot-links a:hover { color: var(--pink); }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#"><span class="mark">P</span> Pixel Diary</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#work">Work</a>
+        <a href="#shots">Shots</a>
+        <a href="#components">Components</a>
+        <a href="#process">Process</a>
+      </nav>
+      <div class="nav-right">
+        <span class="badge">2 slots in Q3</span>
+        <a class="btn" href="#contact">Book a call</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="pill">UI designer · 9 yrs · Brooklyn</span>
+            <h1>I design the <span class="pink">small, polished</span> pieces of large products.</h1>
+            <p class="hero-lede">I'm Sam. I work with engineering teams who already have a product and need someone who cares about the parts that are easy to leave rough — settings, empty states, error toasts, the seventh table view, the keyboard shortcuts. The kind of work that compounds.</p>
+            <div class="hero-cta-row">
+              <a class="btn" href="#work">See selected work →</a>
+              <a class="btn ghost" href="#contact">Book an intro call</a>
+            </div>
+          </div>
+          <div class="hero-art">
+            <div class="mock">
+              <div class="mock-head">
+                <span class="d"></span><span class="d"></span><span class="d"></span>
+                <span class="url">app.northbeam.com/settings/team</span>
+              </div>
+              <img src="https://picsum.photos/seed/pixel-diary-hero/1200/900" width="1200" height="900" alt="A clean settings page for a SaaS product, showing a team management table with avatars and roles." loading="eager" />
+            </div>
+            <div class="float"><span class="dot"></span>Shipped 4h ago</div>
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><div class="n"><span class="pink">38</span></div><div class="l">Projects shipped</div></div>
+          <div class="stat"><div class="n">9 yrs</div><div class="l">In product design</div></div>
+          <div class="stat"><div class="n">12</div><div class="l">Design systems built</div></div>
+          <div class="stat"><div class="n">100%</div><div class="l">Repeat clients in 2025</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="work">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <h2>Selected work, 2024–2026</h2>
+            <p>Five projects I learned the most on. Case studies link to full write-ups with the screens that didn't make it.</p>
+          </div>
+          <span class="meta">// case-studies/5</span>
+        </div>
+
+        <div class="screens-grid">
+          <article class="case large">
+            <div class="case-art"><img src="https://picsum.photos/seed/pixel-diary-1/1400/900" width="1400" height="900" alt="A dashboard screen for an analytics product, with a chart and a clean data table." loading="lazy" /></div>
+            <div class="case-body">
+              <div class="case-meta"><span class="tag pink">Lead UI</span><span class="tag">SaaS</span><span class="tag">2026</span></div>
+              <h3>Northbeam — rebuilt the entire analytics surface.</h3>
+              <p>Eight weeks redesigning the chart-first dashboard, the filters, and the table view that exports to twenty places. Adoption of saved views went from 14% to 71% in the first month.</p>
+              <a class="case-link" href="#">Read the case study</a>
+            </div>
+          </article>
+
+          <article class="case">
+            <div class="case-art"><img src="https://picsum.photos/seed/pixel-diary-2/1200/750" width="1200" height="750" alt="A settings page UI with toggles and a sidebar." loading="lazy" /></div>
+            <div class="case-meta"><span class="tag">UI</span><span class="tag">Settings</span><span class="tag">2025</span></div>
+            <h3>Field & Format — settings, refactored end to end.</h3>
+            <p>500 settings into 24 sensible pages. A search-first command bar. Half the support tickets disappeared.</p>
+            <a class="case-link" href="#">Read the case study</a>
+          </article>
+
+          <article class="case">
+            <div class="case-art"><img src="https://picsum.photos/seed/pixel-diary-3/1200/750" width="1200" height="750" alt="A mobile onboarding screen with a soft pink call-to-action." loading="lazy" /></div>
+            <div class="case-meta"><span class="tag">Mobile</span><span class="tag">Onboarding</span><span class="tag">2025</span></div>
+            <h3>Atlas Group — a mobile onboarding that converted.</h3>
+            <p>Four screens, two decisions, one CTA. D1 retention jumped 18 points. Now the template for their other apps.</p>
+            <a class="case-link" href="#">Read the case study</a>
+          </article>
+
+          <article class="case">
+            <div class="case-art"><img src="https://picsum.photos/seed/pixel-diary-4/1200/750" width="1200" height="750" alt="A web app screen with a generous empty state illustration." loading="lazy" /></div>
+            <div class="case-meta"><span class="tag">Empty states</span><span class="tag">Web</span><span class="tag">2024</span></div>
+            <h3>Pivot House — a system for empty states.</h3>
+            <p>Designed 47 empty states as a coordinated set. The team can now write a new one in under twenty minutes.</p>
+            <a class="case-link" href="#">Read the case study</a>
+          </article>
+
+          <article class="case">
+            <div class="case-art"><img src="https://picsum.photos/seed/pixel-diary-5/1200/750" width="1200" height="750" alt="A clean inspector panel in a design tool." loading="lazy" /></div>
+            <div class="case-meta"><span class="tag pink">Lead UI</span><span class="tag">Design tool</span><span class="tag">2024</span></div>
+            <h3>Bureau Verso — the inspector, but quieter.</h3>
+            <p>Reduced the inspector from 320 controls to 86 by grouping, hiding, and renaming. The other 234 are still there, just where you'd expect.</p>
+            <a class="case-link" href="#">Read the case study</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="shots">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <h2>Loose shots</h2>
+            <p>Pieces from in-flight projects. The good half of a hundred Figma boards.</p>
+          </div>
+          <span class="meta">// updated weekly</span>
+        </div>
+
+        <div class="shots">
+          <div class="shot"><img src="https://picsum.photos/seed/pixel-diary-s1/600/750" width="600" height="750" alt="A mobile chat interface with soft shadows." loading="lazy" /></div>
+          <div class="shot"><img src="https://picsum.photos/seed/pixel-diary-s2/600/750" width="600" height="750" alt="A pricing card with a pink highlight." loading="lazy" /></div>
+          <div class="shot"><img src="https://picsum.photos/seed/pixel-diary-s3/600/750" width="600" height="750" alt="A web nav with a command bar." loading="lazy" /></div>
+          <div class="shot"><img src="https://picsum.photos/seed/pixel-diary-s4/600/750" width="600" height="750" alt="A dense data table with editable cells." loading="lazy" /></div>
+          <div class="shot"><img src="https://picsum.photos/seed/pixel-diary-s5/600/750" width="600" height="750" alt="An onboarding step with two big choices." loading="lazy" /></div>
+          <div class="shot"><img src="https://picsum.photos/seed/pixel-diary-s6/600/750" width="600" height="750" alt="A web checkout with a sticky summary." loading="lazy" /></div>
+          <div class="shot"><img src="https://picsum.photos/seed/pixel-diary-s7/600/750" width="600" height="750" alt="A loading skeleton with subtle shimmer." loading="lazy" /></div>
+          <div class="shot"><img src="https://picsum.photos/seed/pixel-diary-s8/600/750" width="600" height="750" alt="A dark mode form with subtle accents." loading="lazy" /></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="components">
+      <div class="wrap">
+        <div class="components-band">
+          <div>
+            <span class="pill">Design systems</span>
+            <h2>A system that engineers actually use.</h2>
+            <p>I build small, opinionated component sets — fewer primitives, more applied patterns. Tokenised, documented in Storybook, and shipped with codemods so adoption isn't homework.</p>
+            <a class="btn" href="#" style="margin-top: 20px;">Browse the system →</a>
+          </div>
+          <div class="component-card" aria-hidden="true">
+            <div class="ui-row head">
+              <div class="ui-tile">Token</div>
+              <div class="ui-tile">Value</div>
+            </div>
+            <div class="ui-row"><div class="ui-tile">color.accent</div><div class="ui-tile">#ff3d8a <span class="arr">→</span></div></div>
+            <div class="ui-row" style="margin-top:8px;"><div class="ui-tile">radius.card</div><div class="ui-tile">14px</div></div>
+            <div class="ui-row" style="margin-top:8px;"><div class="ui-tile">space.gutter</div><div class="ui-tile">16px</div></div>
+            <div class="ui-row" style="margin-top:8px;"><div class="ui-tile">motion.snap</div><div class="ui-tile">cubic-bezier(.22,1,.36,1)</div></div>
+            <div class="ui-row" style="margin-top:16px;">
+              <div class="ui-tile primary">Save changes <span class="arr">↩</span></div>
+              <div class="ui-tile"><span>Compact mode</span><span class="switch on" aria-hidden="true"></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="process">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <h2>How I work, in four steps</h2>
+            <p>Engagements are four to twelve weeks. I price by the project and write a tight scope before we start.</p>
+          </div>
+          <span class="meta">// process/v3</span>
+        </div>
+        <div class="process">
+          <div class="step"><div class="n">01 / Listen</div><h3>Week one</h3><p>I sit in two of your standups and shadow a customer call. Most of the work is here.</p></div>
+          <div class="step"><div class="n">02 / Frame</div><h3>Week two</h3><p>I send a one-page brief: scope, screens, success metric, and what's deliberately out.</p></div>
+          <div class="step"><div class="n">03 / Build</div><h3>Weeks 3–6</h3><p>Daily Loom updates. Two weekly syncs. Working file is open the whole time.</p></div>
+          <div class="step"><div class="n">04 / Hand off</div><h3>Final week</h3><p>Specs, tokens, Storybook stories, and a thirty-minute walkthrough recorded for the team.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div class="clients-row">
+          <span>Northbeam</span>
+          <span>Field & Format</span>
+          <span>Atlas Group</span>
+          <span>Pivot House</span>
+          <span>Bureau Verso</span>
+          <span>Salt & Pine</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="now">
+      <div class="wrap">
+        <div class="section-head">
+          <div><h2>Now</h2><p>Updated each Monday with what I'm actually doing this week.</p></div>
+          <span class="meta">// updated 2026-05-19</span>
+        </div>
+        <div class="now-grid">
+          <div class="now-card"><h3>This week</h3><p>Wrapping the Atlas mobile onboarding. Two screens to polish, one to delete. <span class="pink">Shipping Friday.</span></p></div>
+          <div class="now-card"><h3>Next week</h3><p>Kickoff with Hangar 12 on their billing surfaces. Eight weeks, fixed scope, fixed price.</p></div>
+          <div class="now-card"><h3>Available</h3><p>One slot in <span class="pink">September</span>. Best fit: a Series A team with a real product and a rough surface.</p></div>
+          <div class="now-card"><h3>Currently learning</h3><p>SwiftUI on weekends. Reading <em>Refactoring UI</em> again because it still earns the re-read.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="contact" id="contact">
+      <div class="wrap">
+        <h2>Let's design something small and good.</h2>
+        <p>Tell me what you're shipping, when you need it by, and how big your team is. I reply within one working day.</p>
+        <a class="email" href="mailto:sam@pixeldiary.studio">sam@pixeldiary.studio ↗</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap foot">
+      <span>© 2026 Sam Rivera · Pixel Diary · Brooklyn, NY</span>
+      <div class="foot-links">
+        <a href="#">Read.cv</a>
+        <a href="#">Dribbble</a>
+        <a href="#">X</a>
+        <a href="#">RSS</a>
+      </div>
+    </div>
+  </footer>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

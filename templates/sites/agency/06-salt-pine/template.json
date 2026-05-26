@@ -1,0 +1,34 @@
+{
+  "slug": "agency-06-salt-pine",
+  "title": "Salt & Pine",
+  "subtitle": "A small studio doing slow, careful work for honest companies.",
+  "category": "Agency",
+  "type": "Websites",
+  "tags": [
+    "boutique",
+    "warm",
+    "hand-feel",
+    "sand"
+  ],
+  "previewImage": "/templates/agency-06-salt-pine.jpg",
+  "palette": {
+    "bg": "#efe8db",
+    "fg": "#1f3c2a",
+    "accent": "#1f3c2a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "intro",
+    "ways-we-help",
+    "portfolio",
+    "process",
+    "studio",
+    "writing",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Salt & Pine template as the foundation for a warm, boutique studio site in sand and forest green with a hand-set feel, careful typography, and a slow, considered voice aimed at small businesses and craft brands.",
+  "livePreview": "/template-previews/agency-06-salt-pine/"
+}

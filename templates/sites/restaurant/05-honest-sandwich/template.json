@@ -1,0 +1,35 @@
+{
+  "slug": "restaurant-05-honest-sandwich",
+  "title": "The Honest Sandwich",
+  "subtitle": "A nine-sandwich shop on Vanderbilt — bread from our own oven, meat sliced to order, open ten to three.",
+  "category": "Restaurant",
+  "type": "Websites",
+  "tags": [
+    "casual",
+    "playful",
+    "big-type",
+    "sandwich",
+    "deli"
+  ],
+  "previewImage": "/templates/restaurant-05-honest-sandwich.jpg",
+  "palette": {
+    "bg": "#f6dc4a",
+    "fg": "#111111",
+    "accent": "#e2241b"
+  },
+  "sections": [
+    "marquee",
+    "nav",
+    "hero",
+    "menu",
+    "sides",
+    "bread",
+    "press",
+    "visit",
+    "order",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use The Honest Sandwich template as the foundation for a loud, playful sandwich-shop site — yellow background, Archivo Black display type, scrolling marquee, tilted hero photos, a nine-sandwich card grid with numbers, a dark sides section, an in-house bread story, and an order-ahead CTA.",
+  "livePreview": "/template-previews/restaurant-05-honest-sandwich/"
+}

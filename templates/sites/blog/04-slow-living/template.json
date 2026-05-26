@@ -1,0 +1,35 @@
+{
+  "slug": "blog-04-slow-living",
+  "title": "Slow Living",
+  "subtitle": "A quarterly lifestyle magazine of home, food, garden, and the small attentions that make a life.",
+  "category": "Blog",
+  "type": "Websites",
+  "tags": [
+    "lifestyle",
+    "warm",
+    "serif",
+    "magazine",
+    "home"
+  ],
+  "previewImage": "/templates/blog-04-slow-living.jpg",
+  "palette": {
+    "bg": "#efe2c8",
+    "fg": "#2a2a22",
+    "accent": "#5b6a3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "categories",
+    "home-grid",
+    "recipe",
+    "garden-grid",
+    "house-notes",
+    "about",
+    "newsletter",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Slow Living template as the foundation for a warm lifestyle magazine. Sun-cream paper, olive accent, terracotta highlight, italic DM Serif Display and Inter body. Sections cover Home, Food, Garden, Essays, with a four-up category strip, three-up editorial grids, a long-recipe band on the olive accent, a circular-image house-notes list, about, and a newsletter footer. Voice is patient, hand-made, no sponsored content.",
+  "livePreview": "/template-previews/blog-04-slow-living/"
+}

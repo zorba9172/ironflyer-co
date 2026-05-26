@@ -1,0 +1,34 @@
+{
+  "slug": "fitness-09-athlon-performance",
+  "title": "Athlon Performance",
+  "subtitle": "A sports performance lab for serious athletes.",
+  "category": "Fitness",
+  "type": "Websites",
+  "tags": [
+    "sports",
+    "performance",
+    "technical",
+    "data"
+  ],
+  "previewImage": "/templates/fitness-09-athlon-performance.jpg",
+  "palette": {
+    "bg": "#0a0a0a",
+    "fg": "#f4f4f4",
+    "accent": "#ff1818"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "labs",
+    "services",
+    "process",
+    "athletes",
+    "metrics",
+    "coaches",
+    "pricing",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Athlon Performance template as the foundation for an inky-red sports science lab site with hero, lab tests, performance services, intake process, athlete roster, performance metrics, coach grid, and program pricing.",
+  "livePreview": "/template-previews/fitness-09-athlon-performance/"
+}

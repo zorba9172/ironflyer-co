@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quill 2026 — A conference on retrieval, language, and reasoning</title>
+  <meta name="description" content="The fifth annual Quill conference on retrieval, language, and human reasoning. Edinburgh, September 8–10, 2026. Forty papers, six keynotes." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #faf5ec;
+      --paper: #f3ecd9;
+      --ink: #0b1736;
+      --ink-2: #3b4566;
+      --ink-3: #7a809a;
+      --accent: #7d2e2e;
+      --accent-2: #b04848;
+      --rule: rgba(11, 23, 54, 0.15);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg); color: var(--ink);
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 16px; line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
+    .serif { font-family: 'Fraunces', Georgia, serif; }
+    .eyebrow {
+      font-family: 'Fraunces', serif; font-style: italic;
+      font-size: 16px; color: var(--accent); font-weight: 500;
+    }
+
+    /* Nav */
+    .nav { padding: 28px 0; border-bottom: 1px solid var(--rule); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 600; letter-spacing: -0.01em; }
+    .brand .num { font-style: italic; color: var(--accent); }
+    .nav-links { display: flex; gap: 32px; font-size: 14px; color: var(--ink-2); }
+    .nav-links a { text-decoration: none; }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta { font-family: 'Fraunces', serif; font-style: italic; font-size: 15px; color: var(--ink); text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 4px; }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 80px 0 64px; border-bottom: 1px solid var(--rule); }
+    .hero h1 { font-family: 'Fraunces', serif; font-size: clamp(48px, 7vw, 88px); line-height: 1.05; letter-spacing: -0.02em; font-weight: 500; margin: 14px 0 24px; max-width: 980px; }
+    .hero h1 em { font-style: italic; color: var(--accent); }
+    .hero p.lede { font-size: 19px; color: var(--ink-2); max-width: 720px; font-family: 'Fraunces', serif; font-weight: 400; line-height: 1.55; }
+    .hero-meta { display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--rule); }
+    .hero-meta div { display: flex; flex-direction: column; gap: 4px; }
+    .hero-meta strong { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 500; }
+    .hero-meta span { font-size: 13px; color: var(--ink-3); letter-spacing: 0.05em; }
+    @media (max-width: 720px) { .hero-meta { grid-template-columns: 1fr 1fr; } }
+
+    /* Sections */
+    .section { padding: 96px 0; border-bottom: 1px solid var(--rule); }
+    .section h2 { font-family: 'Fraunces', serif; font-size: clamp(36px, 5vw, 52px); font-weight: 500; line-height: 1.1; letter-spacing: -0.015em; margin: 8px 0 16px; }
+    .section h2 em { font-style: italic; color: var(--accent); }
+    .section-head { max-width: 720px; margin-bottom: 56px; }
+    .section .lede { font-size: 17px; color: var(--ink-2); }
+
+    /* Program */
+    .program { display: grid; grid-template-columns: 200px 1fr; gap: 36px; }
+    .day-label { font-family: 'Fraunces', serif; font-style: italic; font-size: 26px; color: var(--accent); }
+    .day-rows .slot { display: grid; grid-template-columns: 110px 1fr; gap: 24px; padding: 16px 0; border-bottom: 1px solid var(--rule); }
+    .day-rows .slot:last-child { border-bottom: none; }
+    .slot .time { font-family: 'Fraunces', serif; font-size: 16px; color: var(--ink-2); }
+    .slot h4 { margin: 0 0 4px; font-family: 'Fraunces', serif; font-size: 19px; font-weight: 500; }
+    .slot p { margin: 0; color: var(--ink-2); font-size: 14px; }
+    .slot .session-type { display: inline-block; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-right: 8px; }
+    @media (max-width: 720px) { .program { grid-template-columns: 1fr; } }
+
+    /* Papers */
+    .papers { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 48px; }
+    .paper { padding: 22px 0; border-bottom: 1px solid var(--rule); }
+    .paper .session { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+    .paper h4 { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 500; margin: 0 0 6px; line-height: 1.3; }
+    .paper p { margin: 0; color: var(--ink-2); font-size: 14px; }
+    .paper p em { font-style: italic; }
+    @media (max-width: 720px) { .papers { grid-template-columns: 1fr; } }
+
+    /* Keynotes */
+    .keynotes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+    .keynote { background: var(--paper); padding: 32px; border-radius: 2px; }
+    .keynote img { aspect-ratio: 4/5; object-fit: cover; margin-bottom: 18px; filter: grayscale(0.4) sepia(0.1); }
+    .keynote h4 { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 500; margin: 0 0 4px; }
+    .keynote .aff { font-style: italic; color: var(--ink-2); font-size: 14px; margin: 0 0 14px; font-family: 'Fraunces', serif; }
+    .keynote .talk { font-family: 'Fraunces', serif; font-style: italic; font-size: 16px; color: var(--accent); margin: 0; }
+    @media (max-width: 1080px) { .keynotes { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .keynotes { grid-template-columns: 1fr; } }
+
+    /* Committee */
+    .committee { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; }
+    .committee-block h3 { font-family: 'Fraunces', serif; font-style: italic; font-size: 22px; font-weight: 500; margin: 0 0 16px; color: var(--accent); }
+    .committee-block ul { list-style: none; padding: 0; margin: 0; columns: 2; column-gap: 28px; }
+    .committee-block li { font-size: 14px; padding: 5px 0; break-inside: avoid; }
+    .committee-block li em { font-style: italic; color: var(--ink-2); font-family: 'Fraunces', serif; }
+    @media (max-width: 1080px) { .committee { grid-template-columns: 1fr; } }
+
+    /* Registration */
+    .reg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border: 1px solid var(--ink); border-radius: 2px; overflow: hidden; }
+    .reg-tier { padding: 36px 28px; border-right: 1px solid var(--rule); background: var(--bg); }
+    .reg-tier:last-child { border-right: none; }
+    .reg-tier h3 { font-family: 'Fraunces', serif; font-style: italic; font-size: 22px; font-weight: 500; margin: 0 0 10px; color: var(--accent); }
+    .reg-tier .price { font-family: 'Fraunces', serif; font-size: 40px; font-weight: 500; margin: 8px 0 12px; }
+    .reg-tier .price small { font-size: 13px; font-family: 'Inter', sans-serif; color: var(--ink-3); }
+    .reg-tier p { font-size: 14px; color: var(--ink-2); margin: 0 0 16px; min-height: 56px; }
+    .reg-tier ul { list-style: none; padding: 0; margin: 0; }
+    .reg-tier li { font-size: 13px; color: var(--ink-2); padding: 6px 0; border-bottom: 1px dashed var(--rule); }
+    .reg-tier li:last-child { border-bottom: none; }
+    .reg-btn { display: inline-block; margin-top: 18px; padding: 10px 18px; background: var(--ink); color: var(--bg); font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; }
+    .reg-btn:hover { background: var(--accent); }
+    @media (max-width: 1080px) { .reg { grid-template-columns: 1fr; } .reg-tier { border-right: none; border-bottom: 1px solid var(--rule); } }
+
+    /* Venue */
+    .venue { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+    .venue img { aspect-ratio: 4/3; object-fit: cover; }
+    .venue h3 { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 500; margin: 0 0 14px; }
+    .venue p { color: var(--ink-2); font-size: 16px; }
+    .venue-rows { margin-top: 22px; }
+    .venue-rows .row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--rule); font-size: 14px; }
+    .venue-rows .row span:first-child { font-family: 'Fraunces', serif; font-style: italic; color: var(--ink-2); }
+    @media (max-width: 1080px) { .venue { grid-template-columns: 1fr; } }
+
+    /* Deadlines */
+    .deadlines { background: var(--ink); color: var(--bg); padding: 80px 0; }
+    .deadlines h2 { color: var(--bg); }
+    .deadlines h2 em { color: var(--paper); }
+    .deadlines .lede { color: rgba(250, 245, 236, 0.75); }
+    .dl-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; margin-top: 48px; }
+    .dl-card { background: rgba(250, 245, 236, 0.07); padding: 28px; border-radius: 2px; border-left: 3px solid var(--accent-2); }
+    .dl-card .when { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 500; margin-bottom: 6px; color: var(--paper); }
+    .dl-card .what { font-size: 14px; color: rgba(250, 245, 236, 0.75); }
+    .dl-card.past { opacity: 0.4; border-left-color: var(--ink-3); }
+    .dl-card.past::after { content: ' · passed'; font-size: 12px; color: var(--ink-3); }
+    @media (max-width: 1080px) { .dl-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .dl-grid { grid-template-columns: 1fr; } }
+
+    /* Footer */
+    footer { padding: 56px 0 32px; }
+    .foot-top { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 32px; margin-bottom: 32px; }
+    .foot-col h5 { font-family: 'Fraunces', serif; font-style: italic; font-size: 16px; color: var(--accent); margin: 0 0 12px; font-weight: 500; }
+    .foot-col a { display: block; padding: 4px 0; font-size: 14px; color: var(--ink-2); text-decoration: none; }
+    .foot-col a:hover { color: var(--accent); }
+    .foot-bot { padding-top: 20px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; font-size: 13px; color: var(--ink-3); }
+    @media (max-width: 720px) { .foot-top { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 10px; } }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#" style="text-decoration:none;">Quill <span class="num">'26</span></a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#program">Program</a>
+        <a href="#papers">Papers</a>
+        <a href="#keynotes">Keynotes</a>
+        <a href="#committee">Committee</a>
+        <a href="#registration">Register</a>
+      </nav>
+      <a class="nav-cta" href="#registration">Register →</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <span class="eyebrow">The fifth annual Quill conference · Edinburgh · September 8–10, 2026</span>
+        <h1>A conference on <em>retrieval, language,</em> and human reasoning.</h1>
+        <p class="lede">Three days of long-form papers and pointed discussion on the disciplines around modern language models: retrieval, evaluation, alignment, and the use of language to do real reasoning. Hosted by the School of Informatics, University of Edinburgh.</p>
+        <div class="hero-meta">
+          <div><strong>Sept 8–10, 2026</strong><span>main conference</span></div>
+          <div><strong>40 papers</strong><span>accepted from 412 submitted</span></div>
+          <div><strong>6 keynotes</strong><span>invited talks</span></div>
+          <div><strong>320 seats</strong><span>capped, registration open</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="program">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Program</span>
+          <h2>Three days, <em>two parallel tracks</em>.</h2>
+          <p class="lede">Each day opens with a plenary keynote, splits into two paper tracks, and closes with a discussant panel. A short summary of each day follows.</p>
+        </div>
+
+        <div class="program">
+          <div class="day-label">Day 1 · Sept 8</div>
+          <div class="day-rows">
+            <div class="slot"><span class="time">09:00</span><div><span class="session-type">Keynote</span><h4>The limits of retrieval as memory</h4><p>Plenary — Prof. Anna Korhonen (Cambridge)</p></div></div>
+            <div class="slot"><span class="time">10:30</span><div><span class="session-type">Track A</span><h4>Reasoning under retrieval noise</h4><p>Six papers · Chair: Sebastian Riedel</p></div></div>
+            <div class="slot"><span class="time">10:30</span><div><span class="session-type">Track B</span><h4>Evaluating long-context grounding</h4><p>Six papers · Chair: Maria Liakata</p></div></div>
+            <div class="slot"><span class="time">14:00</span><div><span class="session-type">Discussant panel</span><h4>What counts as a benchmark in 2026?</h4><p>Chair: Ferenc Huszár</p></div></div>
+          </div>
+        </div>
+
+        <div class="program" style="margin-top:48px;">
+          <div class="day-label">Day 2 · Sept 9</div>
+          <div class="day-rows">
+            <div class="slot"><span class="time">09:00</span><div><span class="session-type">Keynote</span><h4>Calibration after instruction tuning</h4><p>Plenary — Prof. Tim Rocktäschel (UCL)</p></div></div>
+            <div class="slot"><span class="time">10:30</span><div><span class="session-type">Track A</span><h4>Tool use and program-of-thoughts</h4><p>Six papers · Chair: Sasha Rush</p></div></div>
+            <div class="slot"><span class="time">10:30</span><div><span class="session-type">Track B</span><h4>Multilingual fairness in language modeling</h4><p>Six papers · Chair: Yulia Tsvetkov</p></div></div>
+            <div class="slot"><span class="time">14:00</span><div><span class="session-type">Workshop</span><h4>Reproducibility checklist 2.0</h4><p>Hands-on · Limited to 60 participants</p></div></div>
+          </div>
+        </div>
+
+        <div class="program" style="margin-top:48px;">
+          <div class="day-label">Day 3 · Sept 10</div>
+          <div class="day-rows">
+            <div class="slot"><span class="time">09:00</span><div><span class="session-type">Keynote</span><h4>Aligning models on disagreement</h4><p>Plenary — Prof. Yejin Choi (Stanford)</p></div></div>
+            <div class="slot"><span class="time">10:30</span><div><span class="session-type">Track A</span><h4>Mechanistic interpretability in the wild</h4><p>Five papers · Chair: David Bau</p></div></div>
+            <div class="slot"><span class="time">10:30</span><div><span class="session-type">Track B</span><h4>Reasoning datasets and their critiques</h4><p>Five papers · Chair: Iryna Gurevych</p></div></div>
+            <div class="slot"><span class="time">16:00</span><div><span class="session-type">Closing</span><h4>Awards, plenary discussion, and Quill 2027 preview</h4><p>Chair: Program committee</p></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="papers">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Accepted papers · partial</span>
+          <h2>A sample of the <em>forty</em> accepted.</h2>
+          <p class="lede">A 9.7% acceptance rate this year. Full proceedings published in the ACL Anthology on September 15.</p>
+        </div>
+        <div class="papers">
+          <div class="paper"><div class="session">Reasoning under retrieval noise</div><h4>Soft-grounded reasoning when retrieval is wrong twenty percent of the time</h4><p>Singh, Park, &amp; <em>Korhonen</em> · University of Cambridge</p></div>
+          <div class="paper"><div class="session">Evaluating long-context grounding</div><h4>The needle problem is not the haystack problem: a 12-task disentanglement</h4><p>Vasquez, Yamamoto, &amp; <em>Liakata</em> · Queen Mary University of London</p></div>
+          <div class="paper"><div class="session">Tool use and program-of-thoughts</div><h4>Programs that change their minds: counterfactual chain-of-thought editing</h4><p>Hashemi, Mendes, &amp; <em>Rush</em> · Cornell Tech</p></div>
+          <div class="paper"><div class="session">Multilingual fairness</div><h4>Code-switched evaluation: the gap between curated and natural Spanglish</h4><p>Romero, Khan, &amp; <em>Tsvetkov</em> · University of Washington</p></div>
+          <div class="paper"><div class="session">Mechanistic interpretability</div><h4>Circuits that refuse: locating safety-tuned activations in 7B-scale models</h4><p>Foster, Aoki, &amp; <em>Bau</em> · Northeastern University</p></div>
+          <div class="paper"><div class="session">Reasoning datasets</div><h4>What MMLU got wrong about graduate-level expertise</h4><p>Tetteh, Levesque, &amp; <em>Gurevych</em> · TU Darmstadt</p></div>
+          <div class="paper"><div class="session">Alignment</div><h4>Disagreement as data: training on annotator distributions instead of majorities</h4><p>Brennan, Park, &amp; <em>Choi</em> · Stanford University</p></div>
+          <div class="paper"><div class="session">Long-context grounding</div><h4>The 200k-token attention budget and what we spend it on</h4><p>O'Shea, Wright, &amp; <em>Rocktäschel</em> · University College London</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="keynotes">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Invited keynotes</span>
+          <h2>Six talks, <em>one</em> a day.</h2>
+        </div>
+        <div class="keynotes">
+          <div class="keynote">
+            <img src="https://picsum.photos/seed/quill-papers-2/600/750" width="600" height="750" alt="Portrait of Anna Korhonen, professor at Cambridge, in front of a wall of bookshelves." loading="lazy" />
+            <h4>Anna Korhonen</h4>
+            <p class="aff">Professor, University of Cambridge</p>
+            <p class="talk">"The limits of retrieval as memory" — Day 1, 09:00</p>
+          </div>
+          <div class="keynote">
+            <img src="https://picsum.photos/seed/quill-papers-3/600/750" width="600" height="750" alt="Portrait of Tim Rocktäschel, professor at UCL." loading="lazy" />
+            <h4>Tim Rocktäschel</h4>
+            <p class="aff">Professor, UCL / DeepMind</p>
+            <p class="talk">"Calibration after instruction tuning" — Day 2, 09:00</p>
+          </div>
+          <div class="keynote">
+            <img src="https://picsum.photos/seed/quill-papers-4/600/750" width="600" height="750" alt="Portrait of Yejin Choi, professor at Stanford." loading="lazy" />
+            <h4>Yejin Choi</h4>
+            <p class="aff">Professor, Stanford University</p>
+            <p class="talk">"Aligning models on disagreement" — Day 3, 09:00</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="committee">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Committee</span>
+          <h2>The <em>people</em> behind the program.</h2>
+        </div>
+        <div class="committee">
+          <div class="committee-block">
+            <h3>Program chairs</h3>
+            <ul>
+              <li>Sebastian Riedel <em>University of Edinburgh</em></li>
+              <li>Maria Liakata <em>Queen Mary, London</em></li>
+              <li>Ferenc Huszár <em>University of Cambridge</em></li>
+              <li>Yulia Tsvetkov <em>University of Washington</em></li>
+              <li>Sasha Rush <em>Cornell Tech</em></li>
+              <li>David Bau <em>Northeastern University</em></li>
+            </ul>
+          </div>
+          <div class="committee-block">
+            <h3>Area chairs</h3>
+            <ul>
+              <li>Iryna Gurevych <em>TU Darmstadt</em></li>
+              <li>Ehud Reiter <em>University of Aberdeen</em></li>
+              <li>Naomi Saphra <em>Harvard Kempner Institute</em></li>
+              <li>Hady Elsahar <em>NAVER LABS Europe</em></li>
+              <li>Ana Marasović <em>University of Utah</em></li>
+              <li>Tatsunori Hashimoto <em>Stanford University</em></li>
+              <li>Edoardo Maria Ponti <em>University of Edinburgh</em></li>
+              <li>Yanai Elazar <em>Allen Institute for AI</em></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="registration">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Registration</span>
+          <h2>Three rates, <em>posted</em>.</h2>
+          <p class="lede">Registration opens June 1. Early rate closes July 31. We hold 60 reduced-rate registrations for postgraduate students from underrepresented institutions.</p>
+        </div>
+        <div class="reg">
+          <div class="reg-tier">
+            <h3>Student</h3>
+            <div class="price">£295<small> · early</small></div>
+            <p>For enrolled postgraduates with a current institutional email. Proof requested at the door.</p>
+            <ul>
+              <li>Full conference</li>
+              <li>Proceedings access</li>
+              <li>Conference dinner included</li>
+              <li>Workshop optional, +£40</li>
+            </ul>
+            <a class="reg-btn" href="#">Register · student</a>
+          </div>
+          <div class="reg-tier">
+            <h3>Academic</h3>
+            <div class="price">£495<small> · early</small></div>
+            <p>The standard rate for faculty, postdocs, and research scientists at academic institutions.</p>
+            <ul>
+              <li>Full conference</li>
+              <li>Proceedings access</li>
+              <li>Conference dinner included</li>
+              <li>Workshop optional, +£60</li>
+            </ul>
+            <a class="reg-btn" href="#">Register · academic</a>
+          </div>
+          <div class="reg-tier">
+            <h3>Industry</h3>
+            <div class="price">£895<small> · early</small></div>
+            <p>For attendees from for-profit institutions. Underwrites student registrations.</p>
+            <ul>
+              <li>Full conference</li>
+              <li>Proceedings access</li>
+              <li>Conference dinner included</li>
+              <li>Workshop included</li>
+            </ul>
+            <a class="reg-btn" href="#">Register · industry</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="venue">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Venue</span>
+          <h2>Appleton Tower, <em>Edinburgh</em>.</h2>
+        </div>
+        <div class="venue">
+          <img src="https://picsum.photos/seed/quill-papers-5/1100/825" width="1100" height="825" alt="The brutalist exterior of Appleton Tower at the University of Edinburgh, on a clear Scottish afternoon." loading="lazy" />
+          <div>
+            <h3>Appleton Tower, School of Informatics.</h3>
+            <p>The main lecture theatres on the second floor seat 320; track sessions take the lecture rooms on the third floor. Coffee and tea are served between every session — included in every registration tier.</p>
+            <div class="venue-rows">
+              <div class="row"><span>Address</span><span>11 Crichton St, Edinburgh EH8 9LE</span></div>
+              <div class="row"><span>From the airport</span><span>27 min by tram to Princes St, then 12 min walk</span></div>
+              <div class="row"><span>Partner hotels</span><span>Six hotels with held blocks at £145/night</span></div>
+              <div class="row"><span>Accessibility</span><span>Step-free routes; live captioning on the main stage</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="deadlines">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow" style="color:var(--paper);">Deadlines</span>
+        <h2>The <em>important</em> dates.</h2>
+        <p class="lede">All deadlines are 23:59 anywhere on earth (AoE). No extensions, no exceptions; please plan accordingly.</p>
+      </div>
+      <div class="dl-grid">
+        <div class="dl-card past"><div class="when">Feb 15, 2026</div><div class="what">Abstract registration deadline</div></div>
+        <div class="dl-card past"><div class="when">Feb 22, 2026</div><div class="what">Full paper submission deadline</div></div>
+        <div class="dl-card"><div class="when">May 18, 2026</div><div class="what">Author notification of acceptance</div></div>
+        <div class="dl-card"><div class="when">Jun 1, 2026</div><div class="what">Camera-ready due · Registration opens</div></div>
+        <div class="dl-card"><div class="when">Jul 31, 2026</div><div class="what">Early registration closes</div></div>
+        <div class="dl-card"><div class="when">Aug 22, 2026</div><div class="what">Workshop proposals close</div></div>
+        <div class="dl-card"><div class="when">Sep 8, 2026</div><div class="what">Conference opens</div></div>
+        <div class="dl-card"><div class="when">Sep 15, 2026</div><div class="what">Proceedings published</div></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-top">
+        <div class="foot-col">
+          <div class="brand" style="margin-bottom:14px;">Quill <span class="num">'26</span></div>
+          <p style="color:var(--ink-2); font-size:14px; max-width:300px;">An annual research conference on retrieval, language, and reasoning, hosted by the School of Informatics, University of Edinburgh.</p>
+        </div>
+        <div class="foot-col"><h5>Program</h5><a href="#program">Schedule</a><a href="#papers">Papers</a><a href="#keynotes">Keynotes</a></div>
+        <div class="foot-col"><h5>Attend</h5><a href="#registration">Register</a><a href="#venue">Venue</a><a href="#">Travel</a><a href="#">Accessibility</a></div>
+        <div class="foot-col"><h5>Contact</h5><a href="mailto:program@quill.ac.uk">program@quill.ac.uk</a><a href="#">Past conferences</a><a href="#">Code of conduct</a></div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Quill Conference · University of Edinburgh</span>
+        <span>Sept 8–10 · Appleton Tower</span>
+      </div>
+    </div>
+  </footer>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

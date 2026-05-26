@@ -1,0 +1,34 @@
+{
+  "slug": "fitness-05-klinik",
+  "title": "Klinik",
+  "subtitle": "A modern dental clinic that treats you like a person, not a chart.",
+  "category": "Fitness",
+  "type": "Websites",
+  "tags": [
+    "dental",
+    "clinic",
+    "clean",
+    "friendly"
+  ],
+  "previewImage": "/templates/fitness-05-klinik.jpg",
+  "palette": {
+    "bg": "#ffffff",
+    "fg": "#0d1b1a",
+    "accent": "#6ad9b3"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "services",
+    "process",
+    "team",
+    "testimonials",
+    "insurance",
+    "visit",
+    "booking",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Klinik template as the foundation for a clean, mint-accented dental clinic site with hero, services grid, four-step new-patient process, dentist team, patient testimonials, insurance info, and booking section.",
+  "livePreview": "/template-previews/fitness-05-klinik/"
+}

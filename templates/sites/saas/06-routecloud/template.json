@@ -1,0 +1,34 @@
+{
+  "slug": "saas-06-routecloud",
+  "title": "RouteCloud",
+  "subtitle": "Deploy infrastructure as a sentence, get back a URL.",
+  "category": "SaaS",
+  "type": "Apps",
+  "tags": [
+    "dark",
+    "terminal",
+    "brutalist",
+    "devops",
+    "infrastructure"
+  ],
+  "previewImage": "/templates/saas-06-routecloud.jpg",
+  "palette": {
+    "bg": "#050507",
+    "fg": "#e5e7eb",
+    "accent": "#5cf0a1"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "logos",
+    "features",
+    "recipes",
+    "metrics",
+    "pricing",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the RouteCloud template as the foundation for a brutalist, terminal-coded devops landing: square edges, lime CTAs on near-black, a live terminal hero, sentence-to-Terraform recipe grid, monospaced footers, and a flat-fee pricing block.",
+  "livePreview": "/template-previews/saas-06-routecloud/"
+}

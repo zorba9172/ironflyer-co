@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Cabin — Hana Brooks, writer and essayist</title>
+  <meta name="description" content="The Cabin is Hana Brooks. Essays on technology, attention, and place. Books, journalism, and a quiet weekly letter." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f1ebde;
+      --paper: #e6dec9;
+      --paper-deep: #d8ceb4;
+      --ink: #1a1410;
+      --ink-2: #3a2c20;
+      --ink-3: #847566;
+      --rule: rgba(26, 20, 16, 0.18);
+      --brown: #5a3a22;
+      --brown-deep: #3f2a18;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'EB Garamond', 'Times New Roman', serif;
+      font-size: 18px; line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 0 32px; }
+    .ui { font-family: 'Inter', sans-serif; font-size: 14px; }
+
+    /* Nav */
+    .nav { padding: 28px 0; border-bottom: 1px solid var(--rule); }
+    .nav-inner { display: flex; justify-content: space-between; align-items: baseline; gap: 24px; }
+    .brand {
+      font-family: 'EB Garamond', serif; font-style: italic; font-weight: 500;
+      font-size: 28px; letter-spacing: -0.01em; color: var(--brown);
+    }
+    .nav-links { display: flex; gap: 24px; }
+    .nav-links a {
+      font-family: 'Inter', sans-serif; font-size: 13px;
+      color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.12em;
+    }
+    .nav-links a:hover { color: var(--brown); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    /* Hero */
+    .hero { padding: 96px 0 72px; }
+    .hero-eyebrow {
+      font-family: 'Inter', sans-serif; font-size: 12px;
+      color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.2em;
+      margin-bottom: 32px;
+    }
+    h1 {
+      font-family: 'EB Garamond', serif;
+      font-size: clamp(40px, 6vw, 72px);
+      line-height: 1.08; letter-spacing: -0.015em;
+      font-weight: 500; margin: 0 0 28px;
+      max-width: 20ch;
+    }
+    h1 em { font-style: italic; color: var(--brown); font-weight: 500; }
+    .hero-lede {
+      font-size: 21px; line-height: 1.55; color: var(--ink-2);
+      max-width: 58ch;
+    }
+    .hero-meta {
+      font-family: 'Inter', sans-serif; font-size: 13px; color: var(--ink-3);
+      margin-top: 40px;
+      display: flex; gap: 28px; flex-wrap: wrap;
+    }
+    .hero-meta strong { color: var(--ink); font-weight: 500; }
+
+    /* Essays */
+    .section { padding: 72px 0; border-top: 1px solid var(--rule); }
+    .section-head {
+      display: grid; grid-template-columns: 200px 1fr; gap: 32px;
+      align-items: baseline; margin-bottom: 48px;
+    }
+    .section-head .label {
+      font-family: 'Inter', sans-serif; font-size: 12px;
+      color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.18em;
+    }
+    .section-head h2 {
+      font-family: 'EB Garamond', serif;
+      font-size: clamp(32px, 4.4vw, 44px);
+      letter-spacing: -0.01em; line-height: 1.1; margin: 0;
+      font-weight: 500;
+    }
+    .section-head h2 em { font-style: italic; color: var(--brown); }
+    .section-head p { color: var(--ink-2); margin: 12px 0 0; font-size: 18px; max-width: 56ch; }
+    @media (max-width: 720px) { .section-head { grid-template-columns: 1fr; } }
+
+    .essay-list { display: grid; grid-template-columns: 1fr; gap: 8px; }
+    .essay {
+      display: grid; grid-template-columns: 80px 1fr 140px; gap: 24px;
+      align-items: baseline;
+      padding: 28px 0; border-top: 1px solid var(--rule);
+    }
+    .essay:first-child { border-top: 1px solid var(--rule); }
+    .essay-num {
+      font-family: 'EB Garamond', serif; font-style: italic;
+      color: var(--brown); font-size: 22px;
+    }
+    .essay-body h3 {
+      font-family: 'EB Garamond', serif; font-weight: 500;
+      font-size: 28px; margin: 0 0 6px; letter-spacing: -0.005em; line-height: 1.2;
+    }
+    .essay-body p { color: var(--ink-2); margin: 6px 0 0; font-size: 17px; max-width: 54ch; }
+    .essay-meta {
+      font-family: 'Inter', sans-serif; font-size: 12px;
+      color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.14em;
+      text-align: right;
+    }
+    .essay:hover h3 { color: var(--brown); }
+    @media (max-width: 720px) {
+      .essay { grid-template-columns: 50px 1fr; }
+      .essay-meta { grid-column: 2; text-align: left; }
+    }
+
+    /* Featured essay */
+    .featured {
+      background: var(--paper);
+      border: 1px solid var(--rule);
+      padding: 48px;
+      display: grid; grid-template-columns: 1.4fr 1fr; gap: 48px;
+      align-items: center;
+    }
+    .featured img { width: 100%; aspect-ratio: 4/5; object-fit: cover; }
+    .featured .tag {
+      font-family: 'Inter', sans-serif; font-size: 12px;
+      color: var(--brown); text-transform: uppercase; letter-spacing: 0.16em;
+      margin-bottom: 16px;
+    }
+    .featured h3 {
+      font-family: 'EB Garamond', serif; font-weight: 500;
+      font-size: clamp(28px, 3.4vw, 38px);
+      line-height: 1.15; letter-spacing: -0.01em; margin: 0 0 16px;
+    }
+    .featured h3 em { font-style: italic; }
+    .featured-body { font-size: 18px; color: var(--ink-2); }
+    .featured-body::first-letter {
+      font-family: 'EB Garamond', serif; float: left;
+      font-size: 56px; line-height: 0.85; padding: 8px 10px 0 0;
+      color: var(--brown);
+    }
+    .featured-body p { margin: 0 0 12px; }
+    .featured-cta {
+      font-family: 'Inter', sans-serif; font-size: 13px;
+      text-transform: uppercase; letter-spacing: 0.14em;
+      border-bottom: 1px solid var(--brown); color: var(--brown);
+      padding-bottom: 3px; display: inline-block; margin-top: 12px;
+    }
+    @media (max-width: 1080px) { .featured { grid-template-columns: 1fr; padding: 32px; } }
+
+    /* Newsletter */
+    .newsletter {
+      padding: 80px 0;
+      background: var(--paper-deep);
+      border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+    }
+    .newsletter-inner {
+      display: grid; grid-template-columns: 1fr 1.1fr; gap: 64px; align-items: center;
+    }
+    .newsletter h2 {
+      font-family: 'EB Garamond', serif; font-weight: 500;
+      font-size: clamp(32px, 4.2vw, 44px); margin: 0 0 12px; letter-spacing: -0.01em;
+    }
+    .newsletter h2 em { font-style: italic; color: var(--brown); }
+    .newsletter p { font-size: 18px; color: var(--ink-2); margin: 0; }
+    .nl-form { display: flex; gap: 8px; }
+    .nl-form input {
+      flex: 1; font-family: 'EB Garamond', serif; font-size: 17px;
+      background: var(--bg); border: 1px solid var(--rule); color: var(--ink);
+      padding: 14px 16px; border-radius: 4px;
+    }
+    .nl-form input:focus { outline: 2px solid var(--brown); outline-offset: -2px; }
+    .nl-form button {
+      font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500;
+      padding: 0 22px; background: var(--brown); color: var(--bg); border: none;
+      border-radius: 4px; cursor: pointer;
+    }
+    .nl-form button:hover { background: var(--brown-deep); }
+    .nl-meta {
+      font-family: 'Inter', sans-serif; font-size: 12px;
+      color: var(--ink-3); margin-top: 14px;
+    }
+    @media (max-width: 1080px) { .newsletter-inner { grid-template-columns: 1fr; } }
+
+    /* Book */
+    .book-grid { display: grid; grid-template-columns: 1fr 1.4fr; gap: 64px; align-items: center; }
+    .book-cover {
+      background: linear-gradient(140deg, var(--paper) 0%, var(--paper-deep) 100%);
+      padding: 36px;
+      border: 1px solid var(--rule);
+      box-shadow: 14px 14px 0 var(--paper-deep);
+      max-width: 360px;
+    }
+    .book-cover img { width: 100%; aspect-ratio: 4/6; object-fit: cover; }
+    .book-body .label { font-family: 'Inter', sans-serif; font-size: 12px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--ink-3); }
+    .book-body h3 {
+      font-family: 'EB Garamond', serif; font-style: italic;
+      font-size: clamp(36px, 4.8vw, 56px); letter-spacing: -0.01em;
+      font-weight: 500; margin: 14px 0 16px; line-height: 1.05;
+    }
+    .book-body p { font-size: 18px; color: var(--ink-2); margin: 0 0 14px; }
+    .book-cta { display: flex; gap: 12px; margin-top: 22px; flex-wrap: wrap; }
+    .btn {
+      font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500;
+      padding: 12px 22px; border-radius: 4px; border: 1px solid var(--ink);
+      background: transparent; color: var(--ink); cursor: pointer;
+    }
+    .btn.primary { background: var(--brown); border-color: var(--brown); color: var(--bg); }
+    .btn.primary:hover { background: var(--brown-deep); }
+    @media (max-width: 1080px) { .book-grid { grid-template-columns: 1fr; } }
+
+    /* Elsewhere */
+    .elsewhere-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .elsewhere-item {
+      padding: 24px; border: 1px solid var(--rule);
+      display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: baseline;
+    }
+    .elsewhere-item:hover { background: var(--paper); }
+    .elsewhere-item h4 {
+      font-family: 'EB Garamond', serif; font-weight: 500; font-size: 22px;
+      margin: 0 0 4px; letter-spacing: -0.005em;
+    }
+    .elsewhere-item .where {
+      font-family: 'Inter', sans-serif; font-size: 12px;
+      color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.14em;
+    }
+    .elsewhere-item .date { font-family: 'Inter', sans-serif; font-size: 12px; color: var(--ink-3); }
+    @media (max-width: 1080px) { .elsewhere-grid { grid-template-columns: 1fr; } }
+
+    /* Now */
+    .now-block { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 48px; }
+    .now-col h4 { font-family: 'Inter', sans-serif; font-size: 12px; text-transform: uppercase; letter-spacing: 0.16em; color: var(--ink-3); margin: 0 0 12px; }
+    .now-col p { font-size: 18px; color: var(--ink-2); line-height: 1.55; margin: 0; }
+    .now-col p em { color: var(--brown); }
+    @media (max-width: 1080px) { .now-block { grid-template-columns: 1fr; gap: 24px; } }
+
+    /* About */
+    .about-grid { display: grid; grid-template-columns: 1fr 1.4fr; gap: 64px; align-items: start; }
+    .about-grid img { width: 100%; aspect-ratio: 4/5; object-fit: cover; border: 1px solid var(--rule); }
+    .about-body p { font-size: 19px; color: var(--ink-2); margin: 0 0 18px; }
+    .about-body p:first-child::first-letter {
+      font-family: 'EB Garamond', serif; float: left;
+      font-size: 56px; line-height: 0.85; padding: 8px 10px 0 0; color: var(--brown);
+    }
+    @media (max-width: 1080px) { .about-grid { grid-template-columns: 1fr; } }
+
+    /* Contact */
+    .contact { padding: 128px 0; text-align: center; }
+    .contact h2 {
+      font-family: 'EB Garamond', serif; font-style: italic; font-weight: 500;
+      font-size: clamp(40px, 6vw, 72px); margin: 0 0 24px; letter-spacing: -0.01em;
+    }
+    .contact .email { font-size: 24px; border-bottom: 1px solid var(--brown); color: var(--brown); padding-bottom: 4px; }
+    .contact-meta { font-family: 'Inter', sans-serif; font-size: 12px; color: var(--ink-3); margin-top: 20px; text-transform: uppercase; letter-spacing: 0.14em; }
+
+    /* Footer */
+    footer { border-top: 1px solid var(--rule); padding: 32px 0; }
+    .foot {
+      display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+      font-family: 'Inter', sans-serif; font-size: 13px; color: var(--ink-3);
+    }
+    .foot-links { display: flex; gap: 18px; }
+    .foot-links a:hover { color: var(--brown); }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">The Cabin</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#essays">Essays</a>
+        <a href="#newsletter">Letter</a>
+        <a href="#book">Book</a>
+        <a href="#about">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <p class="hero-eyebrow">Hana Brooks · since 2017 · written in Galway</p>
+        <h1>Essays on <em>technology</em>, attention, and the places we leave behind.</h1>
+        <p class="hero-lede">I write long, quiet pieces about what software is doing to the way we live. I publish one essay a month, a book every few years, and a small letter on Sundays. Nothing here is on social media.</p>
+        <div class="hero-meta">
+          <span><strong>16 years</strong> writing</span>
+          <span><strong>3 books</strong>, one in proofs</span>
+          <span><strong>11,400 subscribers</strong></span>
+          <span><strong>Replies always</strong></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="essays">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="label">I. Selected essays</span>
+          <div>
+            <h2>What I've been <em>writing about</em> this year.</h2>
+            <p>Twelve essays a year, roughly four thousand words each, all archived here without paywalls.</p>
+          </div>
+        </div>
+
+        <div class="featured">
+          <img src="https://picsum.photos/seed/the-cabin-1/900/1125" width="900" height="1125" alt="A photograph of a desk by a window at the edge of a Connemara cabin, with a notebook and a cooling cup of tea." loading="lazy" />
+          <div>
+            <span class="tag">Cover essay · May 2026</span>
+            <h3>The <em>quiet machine</em> in the next room.</h3>
+            <div class="featured-body">
+              <p>Two months ago a friend asked me, in earnest, whether I thought we'd remember how to be bored. I said I didn't know. I've been worrying about it since. This essay is what fell out of the worrying — a long walk through what attention used to mean, and what it might mean if we let the next generation of soft machines stand in for it.</p>
+              <a class="featured-cta" href="#">Read the essay →</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="essay-list" style="margin-top:48px;">
+          <a class="essay" href="#">
+            <span class="essay-num">i.</span>
+            <div class="essay-body">
+              <h3>Against the unfinished archive</h3>
+              <p>On why we keep adding to our libraries and never sit with them. A short defence of finishing what we start.</p>
+            </div>
+            <span class="essay-meta">April 2026 · 14 min</span>
+          </a>
+          <a class="essay" href="#">
+            <span class="essay-num">ii.</span>
+            <div class="essay-body">
+              <h3>The internet of small towns</h3>
+              <p>What the local message board got right, and what it might tell us about how to live online again.</p>
+            </div>
+            <span class="essay-meta">March 2026 · 22 min</span>
+          </a>
+          <a class="essay" href="#">
+            <span class="essay-num">iii.</span>
+            <div class="essay-body">
+              <h3>On reading less, and slower</h3>
+              <p>A year of deliberately reading fewer books, and what came back to me when the queue got shorter.</p>
+            </div>
+            <span class="essay-meta">February 2026 · 11 min</span>
+          </a>
+          <a class="essay" href="#">
+            <span class="essay-num">iv.</span>
+            <div class="essay-body">
+              <h3>The shape of an attention budget</h3>
+              <p>A practical piece, with a small spreadsheet, on treating attention as something you can run out of.</p>
+            </div>
+            <span class="essay-meta">January 2026 · 18 min</span>
+          </a>
+          <a class="essay" href="#">
+            <span class="essay-num">v.</span>
+            <div class="essay-body">
+              <h3>What the cabin taught me about software</h3>
+              <p>The first essay I wrote here, in 2017, lightly revised. Still the one most people email me about.</p>
+            </div>
+            <span class="essay-meta">December 2017 · 9 min</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="newsletter" id="newsletter">
+      <div class="wrap">
+        <div class="newsletter-inner">
+          <div>
+            <h2>The Sunday <em>letter</em>.</h2>
+            <p>One short note every Sunday morning. What I'm reading, what I'm writing, and one paragraph of weather. No advertising, no tracking, no AI summary.</p>
+          </div>
+          <div>
+            <form class="nl-form" onsubmit="event.preventDefault(); this.querySelector('button').textContent='Thank you ✓';">
+              <input type="email" placeholder="you@your-inbox.com" aria-label="Email address" required />
+              <button type="submit">Subscribe</button>
+            </form>
+            <p class="nl-meta">11,432 readers · Unsubscribe in one click · You'll receive the welcome letter immediately.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="book">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="label">II. New book</span>
+          <div>
+            <h2>A book about <em>finishing</em> things.</h2>
+            <p>My third, out in October with Hangar 12 Press. You can pre-order or read the first chapter today.</p>
+          </div>
+        </div>
+
+        <div class="book-grid">
+          <div class="book-cover">
+            <img src="https://picsum.photos/seed/the-cabin-book/600/900" width="600" height="900" alt="The cover of the book A Slow Ending, a cream paper book with a small brown sun." loading="lazy" />
+          </div>
+          <div class="book-body">
+            <span class="label">Pre-order · ships October 2026</span>
+            <h3>A Slow Ending</h3>
+            <p>I started this book the autumn after my father died. It is partly about him, partly about Connemara, and almost entirely about why we still try to finish things in a world built to be unfinished. Two-hundred-and-twelve pages, no footnotes, one map.</p>
+            <p>The first chapter is available in full, free, here on the site. The book itself will be available wherever good books are sold, and signed copies are available directly from the press.</p>
+            <div class="book-cta">
+              <a class="btn primary" href="#">Pre-order signed →</a>
+              <a class="btn" href="#">Read chapter one</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="elsewhere">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="label">III. Elsewhere</span>
+          <div>
+            <h2>Things I've written <em>somewhere else</em>.</h2>
+            <p>Selected journalism and longer essays in places I'm fond of. I keep a complete list on request.</p>
+          </div>
+        </div>
+
+        <div class="elsewhere-grid">
+          <a class="elsewhere-item" href="#">
+            <div>
+              <h4>Letters to my younger neighbour</h4>
+              <span class="where">The Atlantic · Long read</span>
+            </div>
+            <span class="date">March 2026</span>
+          </a>
+          <a class="elsewhere-item" href="#">
+            <div>
+              <h4>What the web stopped being</h4>
+              <span class="where">The Guardian · Essay</span>
+            </div>
+            <span class="date">November 2025</span>
+          </a>
+          <a class="elsewhere-item" href="#">
+            <div>
+              <h4>A short field guide to leaving an inbox</h4>
+              <span class="where">The Paris Review · Notebook</span>
+            </div>
+            <span class="date">August 2025</span>
+          </a>
+          <a class="elsewhere-item" href="#">
+            <div>
+              <h4>The bookshop at the end of the road</h4>
+              <span class="where">Granta · Issue 167</span>
+            </div>
+            <span class="date">February 2025</span>
+          </a>
+          <a class="elsewhere-item" href="#">
+            <div>
+              <h4>Reading the obituary as a craft</h4>
+              <span class="where">The New York Times · Op-ed</span>
+            </div>
+            <span class="date">October 2024</span>
+          </a>
+          <a class="elsewhere-item" href="#">
+            <div>
+              <h4>A small defence of cabin-time</h4>
+              <span class="where">Aeon · Essay</span>
+            </div>
+            <span class="date">May 2024</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="now">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="label">IV. Now</span>
+          <div>
+            <h2>What's on the desk this <em>season</em>.</h2>
+          </div>
+        </div>
+
+        <div class="now-block">
+          <div class="now-col">
+            <h4>Reading</h4>
+            <p>Annie Dillard, <em>Pilgrim at Tinker Creek</em> — for the fourth time. Olivia Laing's new essays. Two unfinished Marilynne Robinson novels that I think I'm finally ready to finish.</p>
+          </div>
+          <div class="now-col">
+            <h4>Writing</h4>
+            <p>Final edits on <em>A Slow Ending</em>. A long essay on the village post office, due to The Atlantic in July. Slow notes for a children's book about a hare.</p>
+          </div>
+          <div class="now-col">
+            <h4>Not doing</h4>
+            <p>I'm off speaking engagements until 2027. No new podcasts. I'm answering email on Tuesdays and Fridays only — slowly, but always.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="about">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="label">V. About</span>
+          <div>
+            <h2>A short biography, written by me.</h2>
+          </div>
+        </div>
+
+        <div class="about-grid">
+          <img src="https://picsum.photos/seed/the-cabin-portrait/900/1125" width="900" height="1125" alt="A portrait of Hana Brooks reading at a window seat in her Connemara cabin." loading="lazy" />
+          <div class="about-body">
+            <p>I'm Hana. I write essays from a small wooden cabin on the edge of Connemara, in the west of Ireland. Before this I was a science journalist in London for a decade, and before that I was a not-very-good philosophy student in Edinburgh. The Cabin began as a Sunday letter to twenty-two friends. It is now mostly the same letter, with more readers.</p>
+            <p>My books — <em>The Slow Internet</em> (2019), <em>Inheritance</em> (2022), and the forthcoming <em>A Slow Ending</em> — are all attempts at the same question, asked differently: what do we owe the things we made and then forgot to finish? The question covers software, marriages, and the village I now live in.</p>
+            <p>If you've found me through a friend, hello. If you've found me through an algorithm, I'm sorry. Either way, you're welcome here.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="contact">
+      <div class="wrap">
+        <h2><em>Write to me.</em></h2>
+        <a class="email" href="mailto:hana@the-cabin.org">hana@the-cabin.org</a>
+        <p class="contact-meta">Replies on Tuesdays and Fridays · Always, eventually</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap foot">
+      <span>© 2017–2026 Hana Brooks · The Cabin · Connemara, IE</span>
+      <div class="foot-links">
+        <a href="#">RSS</a>
+        <a href="#">Archive</a>
+        <a href="#">Colophon</a>
+        <a href="#">Imprint</a>
+      </div>
+    </div>
+  </footer>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

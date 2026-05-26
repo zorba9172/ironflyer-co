@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>About InboxZero — Built by support leads who got tired of dashboards</title>
+  <meta name="description" content="InboxZero was built by support leads and ML engineers who wanted a queue, not a swamp." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Instrument+Serif&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root { --bg:#fff; --paper:#fff; --paper-2:#fbf9fd; --ink:#1a1330; --ink-2:#564a72; --ink-3:#8a82a3; --rule:#ece6f4; --rule-strong:#d9d0e8; --accent:#d946ef; --accent-deep:#a21caf; --accent-soft:#fdf4ff; --radius-sm:8px; --radius-md:14px; --radius-lg:22px; }
+    * { box-sizing: border-box; } html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--ink); font-family: 'Inter', -apple-system, system-ui, sans-serif; font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; } img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 28px; }
+    .nav { position: sticky; top: 0; z-index: 50; background: rgba(255,255,255,0.85); backdrop-filter: blur(16px); border-bottom: 1px solid var(--rule); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 68px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 17px; letter-spacing: -0.015em; }
+    .brand-mark { width: 30px; height: 30px; border-radius: 9px; background: linear-gradient(135deg, var(--accent) 0%, #f0abfc 100%); display: grid; place-items: center; color: white; font-weight: 800; }
+    .nav-links { display: flex; gap: 30px; font-size: 14px; color: var(--ink-2); font-weight: 500; }
+    .nav-links a:hover, .nav-links a.current { color: var(--ink); }
+    .nav-cta { display: flex; gap: 10px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 18px; border-radius: 999px; font-weight: 600; font-size: 14px; border: 1px solid transparent; cursor: pointer; transition: transform 160ms ease, background 160ms ease; }
+    .btn-primary { background: var(--ink); color: white; } .btn-primary:hover { background: #2d2349; transform: translateY(-1px); }
+    .btn-accent { background: var(--accent); color: white; } .btn-accent:hover { background: var(--accent-deep); }
+    .btn-ghost { background: transparent; color: var(--ink); border-color: var(--rule-strong); } .btn-ghost:hover { border-color: var(--ink); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    .hero { padding: 96px 0 64px; background: radial-gradient(ellipse 60% 50% at 80% 0%, rgba(217,70,239,0.12) 0%, transparent 60%), radial-gradient(ellipse 70% 60% at 0% 30%, rgba(165,180,252,0.16) 0%, transparent 60%), var(--bg); }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; background: var(--accent-soft); color: var(--accent-deep); border-radius: 999px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    h1 { font-size: clamp(44px, 6.4vw, 80px); line-height: 1.0; letter-spacing: -0.03em; font-weight: 700; margin: 22px 0 22px; max-width: 920px; }
+    h1 em { font-style: italic; font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; color: var(--accent); }
+    .lede { font-size: 20px; color: var(--ink-2); max-width: 720px; }
+
+    .section { padding: 88px 0; }
+    .section h2 { font-size: clamp(34px, 4.6vw, 56px); letter-spacing: -0.028em; line-height: 1.05; font-weight: 700; margin: 16px 0 16px; }
+    .section h2 em { font-style: italic; font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; color: var(--accent); }
+    .section-head { max-width: 720px; margin-bottom: 48px; }
+
+    .story { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 56px; align-items: start; }
+    .story p { color: var(--ink-2); font-size: 17px; line-height: 1.7; margin: 0 0 16px; }
+    @media (max-width: 1080px) { .story { grid-template-columns: 1fr; gap: 28px; } }
+
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .feature { background: var(--paper-2); border: 1px solid var(--rule); border-radius: var(--radius-md); padding: 30px; }
+    .feature-icon { width: 40px; height: 40px; border-radius: 10px; background: white; border: 1px solid var(--rule); display: grid; place-items: center; color: var(--accent); font-size: 18px; margin-bottom: 18px; }
+    .feature h3 { font-size: 19px; font-weight: 700; margin: 0 0 8px; letter-spacing: -0.012em; }
+    .feature p { color: var(--ink-2); font-size: 15px; margin: 0; }
+    @media (max-width: 1080px) { .features { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .features { grid-template-columns: 1fr; } }
+
+    .team { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .member { background: var(--paper); border: 1px solid var(--rule); border-radius: var(--radius-md); overflow: hidden; }
+    .member img { width: 100%; aspect-ratio: 4/3; object-fit: cover; }
+    .member-body { padding: 22px 24px 26px; }
+    .member-name { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+    .member-role { font-size: 12px; color: var(--accent-deep); font-weight: 600; margin-top: 4px; }
+    .member-bio { color: var(--ink-2); font-size: 14px; margin-top: 12px; line-height: 1.55; }
+    @media (max-width: 1080px) { .team { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .team { grid-template-columns: 1fr; } }
+
+    .backers { padding: 48px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+    .backers-label { font-size: 12px; color: var(--ink-3); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; text-align: center; margin-bottom: 22px; }
+    .backers-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 24px; color: var(--ink-2); font-weight: 700; font-size: 17px; text-align: center; }
+    .backers-row span { opacity: 0.6; }
+    @media (max-width: 720px) { .backers-row { grid-template-columns: repeat(2, 1fr); } }
+
+    .cta-band { padding: 100px 0; text-align: center; background: radial-gradient(ellipse 50% 50% at 50% 0%, rgba(217,70,239,0.18) 0%, transparent 60%), var(--bg); border-top: 1px solid var(--rule); }
+    .cta-band h2 { font-size: clamp(36px, 5.5vw, 60px); letter-spacing: -0.03em; line-height: 1.05; margin: 0 0 18px; font-weight: 700; }
+    .cta-band h2 em { font-style: italic; font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; color: var(--accent); }
+    .cta-band p { color: var(--ink-2); max-width: 520px; margin: 0 auto 28px; font-size: 18px; }
+
+    footer { padding: 56px 0 36px; border-top: 1px solid var(--rule); }
+    .foot-grid { display: grid; grid-template-columns: 1.6fr repeat(3, 1fr); gap: 44px; }
+    .foot-col h4 { font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-3); margin: 0 0 16px; }
+    .foot-col a { display: block; color: var(--ink-2); font-size: 14px; padding: 6px 0; } .foot-col a:hover { color: var(--ink); }
+    .foot-bot { margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; color: var(--ink-3); font-size: 13px; }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 12px; text-align: center; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="index.html"><span class="brand-mark">◐</span>InboxZero</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="index.html">Product</a>
+        <a href="index.html#workflow">How it works</a>
+        <a href="about.html" class="current">About</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-ghost" href="#">Sign in</a>
+        <a class="btn btn-accent" href="contact.html">Start free</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <span class="eyebrow"><span class="dot"></span>About InboxZero</span>
+        <h1>Built by support leads who got tired of <em>swamps</em>.</h1>
+        <p class="lede">We've all worked the queue. We've all stared at a wall of red. InboxZero is what we'd have built ourselves if we hadn't been busy answering tickets.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="story">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>Origin</span>
+            <h2>Why this <em>company</em> exists.</h2>
+          </div>
+          <div>
+            <p>Our co-founder Avery ran customer experience at a fast-growing fintech. The team had three help-desk tools, four AI add-ons, and a Tuesday standup that was mostly people explaining why a thread was missed.</p>
+            <p>We tried every &quot;AI inbox.&quot; They sorted by keyword and routed to whoever had the smallest queue. They didn't learn from outcomes. They didn't read your docs. They sent macros that hadn't landed well in a year.</p>
+            <p>InboxZero started as a weekend prototype that scored teammates by how their past replies on a topic actually performed — CSAT, reopen rate, follow-up chain length. The first time we ran it on a real mailbox, three threads moved to a teammate nobody had thought to assign them to. They all closed inside an hour. We've been building from that moment ever since.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>What we value</span>
+          <h2>Six commitments to the <em>queue</em>.</h2>
+          <p class="lede">These show up in product reviews, ticket triage, and the way we treat our own support team.</p>
+        </div>
+        <div class="features">
+          <div class="feature"><div class="feature-icon">★</div><h3>Routing on outcomes</h3><p>We score teammates by what closed, not what got picked up. Speed is a metric. Resolution is the metric.</p></div>
+          <div class="feature"><div class="feature-icon">✎</div><h3>Drafts cite the doc</h3><p>Every draft we write links to the page it came from. If the doc is wrong, we tell you. We don't paper over a stale macro.</p></div>
+          <div class="feature"><div class="feature-icon">⌗</div><h3>Lead-first reports</h3><p>The weekly digest is built for the support lead reading it on a Monday morning, not the dashboard architect reading it never.</p></div>
+          <div class="feature"><div class="feature-icon">⇆</div><h3>Reversible by default</h3><p>Routing decisions, drafts, and macros are all reversible from a single screen. Overrides train the model.</p></div>
+          <div class="feature"><div class="feature-icon">⊕</div><h3>Privacy on the body</h3><p>We summarize on read. We never store the raw email body. Your customers' words stay with your customers.</p></div>
+          <div class="feature"><div class="feature-icon">⏱</div><h3>Honest comparisons</h3><p>If a competitor catches up on a capability, we update the table. We won't sell a checkmark we don't ship.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Team</span>
+          <h2>The people behind the <em>queue</em>.</h2>
+          <p class="lede">Half support operators, half ML engineers, one designer who reads every release email twice.</p>
+        </div>
+        <div class="team">
+          <div class="member"><img src="https://picsum.photos/seed/iz-team-1/600/450" width="600" height="450" loading="lazy" alt="Portrait of Avery Stenson, co-founder and CEO." /><div class="member-body"><div class="member-name">Avery Stenson</div><div class="member-role">Co-founder · CEO</div><p class="member-bio">Ran CX at a Series C fintech. Knows the Monday standup feeling intimately.</p></div></div>
+          <div class="member"><img src="https://picsum.photos/seed/iz-team-2/600/450" width="600" height="450" loading="lazy" alt="Portrait of Marc Halberstam, co-founder and CTO." /><div class="member-body"><div class="member-name">Marc Halberstam</div><div class="member-role">Co-founder · CTO</div><p class="member-bio">Wrote the original reply-quality scorer in a weekend. Spends most days making it slower and more correct.</p></div></div>
+          <div class="member"><img src="https://picsum.photos/seed/iz-team-3/600/450" width="600" height="450" loading="lazy" alt="Portrait of Priya Salim, head of product." /><div class="member-body"><div class="member-name">Priya Salim</div><div class="member-role">Head of Product</div><p class="member-bio">Designed the routing override surface. Believes a good queue feels like a librarian, not a slot machine.</p></div></div>
+          <div class="member"><img src="https://picsum.photos/seed/iz-team-4/600/450" width="600" height="450" loading="lazy" alt="Portrait of Lina Kovacs, head of CX." /><div class="member-body"><div class="member-name">Lina Kovacs</div><div class="member-role">Head of CX</div><p class="member-bio">Runs our own support queue. Eats her own dog food, and writes about it on the changelog every Friday.</p></div></div>
+          <div class="member"><img src="https://picsum.photos/seed/iz-team-5/600/450" width="600" height="450" loading="lazy" alt="Portrait of Tomás Granados, ML lead." /><div class="member-body"><div class="member-name">Tomás Granados</div><div class="member-role">ML Lead</div><p class="member-bio">Owns the scoring model and the drift report. Will not ship a model whose decisions he can't explain.</p></div></div>
+          <div class="member"><img src="https://picsum.photos/seed/iz-team-6/600/450" width="600" height="450" loading="lazy" alt="Portrait of Hana Kalmar, head of design." /><div class="member-body"><div class="member-name">Hana Kalmar</div><div class="member-role">Head of Design</div><p class="member-bio">Designs the inbox, the digest, and the override flow. Hates dashboards with a quiet, principled intensity.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="backers">
+      <div class="wrap">
+        <p class="backers-label">Backed by support leaders who joined as angels first</p>
+        <div class="backers-row">
+          <span>Bureau Verso Capital</span><span>Pivot House</span><span>Brigantine</span><span>Studio Marlow</span><span>Atlas Group</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="cta-band">
+    <div class="wrap">
+      <h2>Hiring engineers who have <em>worked</em> a queue.</h2>
+      <p>Bonus points if you have stared down 47 unassigned threads at 9:03am on a Monday.</p>
+      <a class="btn btn-accent" href="contact.html" style="height:50px;padding:0 26px;">See open roles →</a>
+    </div>
+  </section>
+
+  <footer id="footer">
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col"><a class="brand" href="index.html" style="margin-bottom:16px;"><span class="brand-mark">◐</span>InboxZero</a><p style="color:var(--ink-2); font-size:14px; max-width:280px;">The team inbox that learns who answers what.</p></div>
+        <div class="foot-col"><h4>Product</h4><a href="index.html">Routing</a><a href="index.html">Drafts</a><a href="index.html">Reports</a><a href="index.html">Integrations</a></div>
+        <div class="foot-col"><h4>Resources</h4><a href="#">Docs</a><a href="#">API</a><a href="#">Help center</a><a href="#">Status</a></div>
+        <div class="foot-col"><h4>Company</h4><a href="about.html">About</a><a href="#">Customers</a><a href="#">Careers</a><a href="contact.html">Contact</a></div>
+      </div>
+      <div class="foot-bot"><span>© 2026 InboxZero Software</span><span>Made for support teams who hate dashboards</span></div>
+    </div>
+  </footer>
+</body>
+</html>

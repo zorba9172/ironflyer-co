@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>About LedgerPro — Founded by controllers who wrote the audit packet themselves</title>
+  <meta name="description" content="LedgerPro was founded by controllers and software engineers who got tired of closing the books in spreadsheets." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root { --bg:#0b1736; --bg-2:#0f1d44; --paper:#122355; --panel:#1a2e6a; --rule:rgba(212,175,55,0.18); --rule-strong:rgba(212,175,55,0.36); --fg:#f6f1de; --fg-2:#c2c0b1; --fg-3:#7b8aa8; --accent:#d4af37; --accent-soft:rgba(212,175,55,0.12); --accent-deep:#8a6f1a; --good:#4ade80; --radius-sm:6px; --radius-md:10px; --radius-lg:16px; }
+    * { box-sizing: border-box; } html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--fg); font-family: 'Inter', -apple-system, system-ui, sans-serif; font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; } img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 28px; }
+    .serif { font-family: 'Cormorant Garamond', Georgia, serif; }
+    .nav { position: sticky; top: 0; z-index: 50; background: rgba(11,23,54,0.86); backdrop-filter: blur(14px); border-bottom: 1px solid var(--rule); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 70px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 22px; font-weight: 700; }
+    .brand-mark { width: 32px; height: 32px; border-radius: 6px; background: var(--accent); display: grid; place-items: center; color: var(--bg); font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+    .nav-links { display: flex; gap: 32px; font-size: 14px; color: var(--fg-2); font-weight: 500; }
+    .nav-links a:hover, .nav-links a.current { color: var(--fg); }
+    .nav-cta { display: flex; gap: 10px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 18px; border-radius: var(--radius-sm); font-weight: 600; font-size: 14px; border: 1px solid transparent; cursor: pointer; transition: transform 160ms ease, background 160ms ease; }
+    .btn-primary { background: var(--accent); color: var(--bg); } .btn-primary:hover { background: #e8c34d; transform: translateY(-1px); }
+    .btn-ghost { background: transparent; color: var(--fg); border-color: var(--rule-strong); } .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    .hero { padding: 96px 0 64px; position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 50% 40% at 100% 10%, rgba(212,175,55,0.18) 0%, transparent 60%); pointer-events: none; }
+    .hero > * { position: relative; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border: 1px solid var(--rule-strong); background: var(--accent-soft); color: var(--accent); border-radius: 999px; font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    h1 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: clamp(48px, 7vw, 88px); line-height: 1.0; letter-spacing: -0.02em; font-weight: 600; margin: 22px 0 22px; max-width: 920px; }
+    h1 em { font-style: italic; color: var(--accent); }
+    .lede { font-size: 19px; color: var(--fg-2); max-width: 720px; }
+
+    .section { padding: 96px 0; }
+    .section h2 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: clamp(40px, 5.2vw, 64px); letter-spacing: -0.02em; line-height: 1.04; font-weight: 600; margin: 16px 0 16px; }
+    .section h2 em { font-style: italic; color: var(--accent); }
+    .section-head { max-width: 760px; margin-bottom: 48px; }
+
+    .story { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 64px; align-items: start; }
+    .story p { color: var(--fg-2); font-size: 17px; line-height: 1.7; margin: 0 0 16px; }
+    @media (max-width: 1080px) { .story { grid-template-columns: 1fr; gap: 28px; } }
+
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .feature { background: var(--bg-2); border: 1px solid var(--rule); border-radius: var(--radius-md); padding: 30px; }
+    .feature-icon { width: 38px; height: 38px; border-radius: 8px; background: var(--accent-soft); border: 1px solid var(--rule-strong); color: var(--accent); display: grid; place-items: center; margin-bottom: 18px; font-family: 'JetBrains Mono', monospace; font-size: 16px; }
+    .feature h3 { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; margin: 0 0 8px; letter-spacing: -0.01em; }
+    .feature p { color: var(--fg-2); font-size: 15px; margin: 0; }
+    @media (max-width: 1080px) { .features { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .features { grid-template-columns: 1fr; } }
+
+    .team { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .member { background: var(--bg-2); border: 1px solid var(--rule); border-radius: var(--radius-md); overflow: hidden; }
+    .member img { width: 100%; aspect-ratio: 4/3; object-fit: cover; filter: sepia(10%) saturate(95%); }
+    .member-body { padding: 22px 24px 26px; }
+    .member-name { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; letter-spacing: -0.01em; }
+    .member-role { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; }
+    .member-bio { color: var(--fg-2); font-size: 14px; margin-top: 12px; line-height: 1.55; }
+    @media (max-width: 1080px) { .team { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .team { grid-template-columns: 1fr; } }
+
+    .backers { padding: 48px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+    .backers-label { font-size: 12px; color: var(--fg-3); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; text-align: center; margin-bottom: 22px; }
+    .backers-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 24px; color: var(--fg-2); font-weight: 700; font-size: 17px; font-family: 'Cormorant Garamond', serif; text-align: center; }
+    .backers-row span { opacity: 0.55; }
+    @media (max-width: 720px) { .backers-row { grid-template-columns: repeat(2, 1fr); } }
+
+    .cta-band { padding: 120px 0; text-align: center; border-top: 1px solid var(--rule); }
+    .cta-band h2 { font-family: 'Cormorant Garamond', serif; font-size: clamp(40px, 6vw, 72px); letter-spacing: -0.025em; line-height: 1.05; margin: 0 0 20px; }
+    .cta-band h2 em { font-style: italic; color: var(--accent); }
+    .cta-band p { color: var(--fg-2); max-width: 540px; margin: 0 auto 32px; font-size: 18px; }
+
+    footer { padding: 56px 0 36px; border-top: 1px solid var(--rule); }
+    .foot-grid { display: grid; grid-template-columns: 1.6fr repeat(3, 1fr); gap: 44px; }
+    .foot-col h4 { font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-3); margin: 0 0 16px; }
+    .foot-col a { display: block; color: var(--fg-2); font-size: 14px; padding: 6px 0; } .foot-col a:hover { color: var(--accent); }
+    .foot-bot { margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; color: var(--fg-3); font-size: 13px; font-family: 'JetBrains Mono', monospace; }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 12px; text-align: center; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="index.html"><span class="brand-mark">L</span>LedgerPro</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="index.html">Product</a>
+        <a href="index.html#audit">Audit</a>
+        <a href="about.html" class="current">About</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-ghost" href="#">Sign in</a>
+        <a class="btn btn-primary" href="contact.html">Open the books</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <span class="eyebrow"><span class="dot"></span>About LedgerPro</span>
+        <h1>Founded by controllers, <em>built</em> for builders.</h1>
+        <p class="lede">LedgerPro began the day our co-founder closed her tenth quarterly audit in a spreadsheet. The next morning she sketched a real ledger on a notebook page. Two years later we audit Series C software companies on the back of it.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="story">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>Origin</span>
+            <h2>Why this <em>company</em> exists.</h2>
+          </div>
+          <div>
+            <p>The accountant's frustration is simple: by the time the books are right, the question has moved on. Revenue recognition rules sit in PDFs, deferred balances are reconciled by hand, and the audit packet is a folder of CSVs that took six weeks to assemble.</p>
+            <p>We built LedgerPro on three contracts. Policy lives in versioned code, not in PDFs. Every booking quotes the rule and the commit it came from. The audit packet exports itself.</p>
+            <p>The result is not a faster spreadsheet. It is a real-time double-entry general ledger, with policy-as-code recognition and an export your auditor opens first. The thing we wanted to use, finally available to buy.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Our values</span>
+          <h2>Six <em>commitments</em> the audit packet enforces.</h2>
+          <p class="lede">These are not aspirations. They are the contracts we measure ourselves against — and the contracts our customers measure their books against.</p>
+        </div>
+        <div class="features">
+          <div class="feature"><div class="feature-icon">§</div><h3>Policy in code</h3><p>Recognition rules live in a versioned policy file. Every booking quotes the rule and the commit. Audit trails write themselves.</p></div>
+          <div class="feature"><div class="feature-icon">∮</div><h3>Continuous close</h3><p>Trial balance current to the last second. Month-end is a checkbox. Year-end is a PDF.</p></div>
+          <div class="feature"><div class="feature-icon">$</div><h3>Multi-entity by default</h3><p>Subsidiaries roll up by jurisdiction, currency, and fiscal calendar from day one. No bolt-on consolidation module.</p></div>
+          <div class="feature"><div class="feature-icon">⊕</div><h3>Bank-grade workflow</h3><p>Maker-checker, segregation of duties, approval thresholds, and a clean audit log of every reversal.</p></div>
+          <div class="feature"><div class="feature-icon">⤓</div><h3>Auditor-readable exports</h3><p>One click for the audit packet: trial balance, journal, supporting docs, policy at year-end. PCAOB-ready.</p></div>
+          <div class="feature"><div class="feature-icon">✓</div><h3>SOX where it matters</h3><p>Controls are built into the workflow, not bolted on for the audit. SOC 1, SOC 2, and SOX 404 attested.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Team</span>
+          <h2>The people <em>posting the entries</em>.</h2>
+          <p class="lede">Half CPAs, half software engineers. Most of us have closed a real audit. All of us have re-built a journal at 11pm on a Sunday.</p>
+        </div>
+        <div class="team">
+          <div class="member"><img src="https://picsum.photos/seed/lp-team-1/600/450" width="600" height="450" loading="lazy" alt="Portrait of Cordelia Vance, co-founder and CEO." /><div class="member-body"><div class="member-name">Cordelia Vance</div><div class="member-role">Co-founder · CEO</div><p class="member-bio">CPA. Former controller at a Series C SaaS company. Closed her last audit on a spreadsheet, then quit.</p></div></div>
+          <div class="member"><img src="https://picsum.photos/seed/lp-team-2/600/450" width="600" height="450" loading="lazy" alt="Portrait of Aram Halberstam, co-founder and CTO." /><div class="member-body"><div class="member-name">Aram Halberstam</div><div class="member-role">Co-founder · CTO</div><p class="member-bio">Spent twelve years on payments infrastructure. Wrote the policy-as-code engine over a long weekend in Lisbon.</p></div></div>
+          <div class="member"><img src="https://picsum.photos/seed/lp-team-3/600/450" width="600" height="450" loading="lazy" alt="Portrait of Marisol Ortiz, head of accounting." /><div class="member-body"><div class="member-name">Marisol Ortiz</div><div class="member-role">Head of Accounting</div><p class="member-bio">Two decades as a controller. Owns the policy library and reviews every new recognition rule before it ships.</p></div></div>
+          <div class="member"><img src="https://picsum.photos/seed/lp-team-4/600/450" width="600" height="450" loading="lazy" alt="Portrait of Daniel Roux, head of customer engineering." /><div class="member-body"><div class="member-name">Daniel Roux</div><div class="member-role">Customer Engineering</div><p class="member-bio">Onboards every new Scale and Enterprise customer. Reads your chart of accounts before the kickoff call.</p></div></div>
+          <div class="member"><img src="https://picsum.photos/seed/lp-team-5/600/450" width="600" height="450" loading="lazy" alt="Portrait of Hana Kalmar, head of design." /><div class="member-body"><div class="member-name">Hana Kalmar</div><div class="member-role">Head of Design</div><p class="member-bio">Designs the ledger view, the audit packet, and the policy editor. Believes a good ledger reads like a memoir.</p></div></div>
+          <div class="member"><img src="https://picsum.photos/seed/lp-team-6/600/450" width="600" height="450" loading="lazy" alt="Portrait of Tomás Granados, security lead." /><div class="member-body"><div class="member-name">Tomás Granados</div><div class="member-role">Security &amp; Compliance</div><p class="member-bio">Drove SOC 1, SOC 2, and SOX 404 attestations. Will say no to a feature whose audit trail he can't trust.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="backers">
+      <div class="wrap">
+        <p class="backers-label">Backed by CFOs who keep their own books on LedgerPro</p>
+        <div class="backers-row">
+          <span>Brigantine Ventures</span><span>Field &amp; Format Capital</span><span>Atlas Group</span><span>Northbeam</span><span>Pivot House</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="cta-band">
+    <div class="wrap">
+      <h2>Hiring CPAs who can <em>read code</em>.</h2>
+      <p>If recognition policy is a programming language to you, we want to talk. Remote roles across the US and EU.</p>
+      <a class="btn btn-primary" href="contact.html" style="height:50px;padding:0 26px;">See open roles →</a>
+    </div>
+  </section>
+
+  <footer id="footer">
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col"><a class="brand" href="index.html" style="margin-bottom:16px;"><span class="brand-mark">L</span>LedgerPro</a><p style="color:var(--fg-2); font-size:14px; max-width:300px;">Real-time, audit-ready accounting for software companies.</p></div>
+        <div class="foot-col"><h4>Product</h4><a href="index.html">Ledger</a><a href="index.html">Revenue</a><a href="index.html">Multi-entity</a><a href="index.html#audit">Audit</a></div>
+        <div class="foot-col"><h4>Resources</h4><a href="#">Docs</a><a href="#">Policy library</a><a href="#">Status</a><a href="#">Trust</a></div>
+        <div class="foot-col"><h4>Company</h4><a href="about.html">About</a><a href="#">Customers</a><a href="#">Careers</a><a href="contact.html">Contact</a></div>
+      </div>
+      <div class="foot-bot"><span>© 2026 LedgerPro Inc.</span><span>Posted, balanced, audited</span></div>
+    </div>
+  </footer>
+</body>
+</html>

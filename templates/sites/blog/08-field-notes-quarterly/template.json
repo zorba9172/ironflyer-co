@@ -1,0 +1,35 @@
+{
+  "slug": "blog-08-field-notes-quarterly",
+  "title": "Field Notes Quarterly",
+  "subtitle": "A print quarterly of design and architecture: projects, studios, materials, and long reads.",
+  "category": "Blog",
+  "type": "Websites",
+  "tags": [
+    "design",
+    "architecture",
+    "swiss",
+    "grid",
+    "technical"
+  ],
+  "previewImage": "/templates/blog-08-field-notes-quarterly.jpg",
+  "palette": {
+    "bg": "#e9e7e1",
+    "fg": "#111111",
+    "accent": "#e8513a"
+  },
+  "sections": [
+    "nav",
+    "masthead",
+    "hero-project",
+    "projects",
+    "studio-visit",
+    "longreads",
+    "specimens",
+    "colophon",
+    "newsletter",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Field Notes Quarterly template as the foundation for a design and architecture publication. Concrete-grey paper, black ink, a single hot-orange accent, Inter and JetBrains Mono on a strict 12-column Swiss grid with slash-prefixed section numbering. Sections cover projects, a studio visit, long reads, material specimens, a colophon, and a tight newsletter footer. Voice is technical, built-and-lived-in, no-advertising.",
+  "livePreview": "/template-previews/blog-08-field-notes-quarterly/"
+}

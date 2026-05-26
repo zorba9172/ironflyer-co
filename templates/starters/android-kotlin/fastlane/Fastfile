@@ -1,0 +1,25 @@
+# Ironflyer Android starter — fastlane lanes.
+#
+# `bundle exec fastlane debug` produces a sideloadable debug APK from a
+# clean checkout. `bundle exec fastlane release` signs an AAB and
+# submits it to the Play Store's internal track as a draft so the
+# release manager can promote it from the Play Console once QA is done.
+
+default_platform(:android)
+
+platform :android do
+  desc "Submit a debug build to internal QA"
+  lane :debug do
+    gradle(task: "assembleDebug")
+  end
+
+  desc "Build and submit a release to Play Store internal track"
+  lane :release do
+    gradle(task: "bundleRelease")
+    upload_to_play_store(
+      track: "internal",
+      release_status: "draft",
+      aab: "app/build/outputs/bundle/release/app-release.aab",
+    )
+  end
+end

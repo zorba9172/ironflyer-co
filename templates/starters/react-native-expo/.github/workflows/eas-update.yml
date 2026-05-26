@@ -1,0 +1,46 @@
+# EAS Update — over-the-air JS bundle updates against an existing
+# build channel. Far cheaper than a full EAS Build and lands in the
+# user's app on the next launch. Pushes to main automatically refresh
+# the preview channel.
+name: EAS Update
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: EAS update branch
+        type: string
+        default: preview
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Setup Expo + EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: EAS update
+        run: |
+          eas update \
+            --auto \
+            --branch=${{ github.event.inputs.branch || 'preview' }} \
+            --non-interactive

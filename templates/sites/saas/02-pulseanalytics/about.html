@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>About PulseAnalytics — Analytics with a P&amp;L in mind</title>
+  <meta name="description" content="PulseAnalytics was built by analytics engineers and CFOs who got tired of dashboards that wouldn't survive an audit." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root { --bg:#faf8f3; --paper:#fff; --ink:#14181f; --ink-2:#4d5563; --ink-3:#8b929e; --rule:#e7e2d6; --rule-strong:#cfc8b6; --accent:#1d4ed8; --accent-soft:#e6edff; --accent-deep:#142d8a; --good:#15803d; --radius-sm:6px; --radius-md:10px; --radius-lg:18px; }
+    * { box-sizing: border-box; } html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--ink); font-family: 'Inter', -apple-system, system-ui, sans-serif; font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; } img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 28px; }
+    .serif { font-family: 'Fraunces', Georgia, serif; }
+    .nav { position: sticky; top: 0; z-index: 50; background: rgba(250,248,243,0.9); backdrop-filter: blur(16px); border-bottom: 1px solid var(--rule); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 68px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: -0.015em; font-size: 17px; }
+    .brand-mark { width: 30px; height: 30px; border-radius: 8px; background: var(--accent); display: grid; place-items: center; color: white; font-weight: 800; font-family: 'JetBrains Mono', monospace; font-size: 16px; }
+    .nav-links { display: flex; gap: 30px; font-size: 14px; color: var(--ink-2); font-weight: 500; }
+    .nav-links a:hover, .nav-links a.current { color: var(--ink); }
+    .nav-cta { display: flex; gap: 10px; align-items: center; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 18px; border-radius: var(--radius-sm); font-weight: 600; font-size: 14px; border: 1px solid transparent; cursor: pointer; transition: transform 160ms ease, background 160ms ease; }
+    .btn-primary { background: var(--accent); color: white; } .btn-primary:hover { background: var(--accent-deep); transform: translateY(-1px); }
+    .btn-ghost { background: transparent; color: var(--ink); border-color: var(--rule-strong); } .btn-ghost:hover { border-color: var(--ink); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    .hero { padding: 88px 0 56px; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border: 1px solid var(--rule-strong); background: var(--paper); border-radius: 999px; font-size: 12px; color: var(--ink-2); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    h1 { font-family: 'Fraunces', Georgia, serif; font-size: clamp(44px, 6.4vw, 80px); font-weight: 600; line-height: 1.02; letter-spacing: -0.028em; margin: 22px 0 22px; max-width: 920px; }
+    h1 em { font-style: italic; font-weight: 600; color: var(--accent); }
+    .lede { font-size: 19px; color: var(--ink-2); max-width: 720px; }
+
+    .section { padding: 88px 0; }
+    .section h2 { font-family: 'Fraunces', Georgia, serif; font-size: clamp(34px, 4.6vw, 56px); letter-spacing: -0.022em; line-height: 1.05; font-weight: 600; margin: 14px 0 16px; }
+    .section h2 em { font-style: italic; color: var(--accent); }
+    .section-head { max-width: 760px; margin-bottom: 48px; }
+    .section .lede { font-size: 17px; }
+
+    .story { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 56px; align-items: start; }
+    .story p { color: var(--ink-2); font-size: 17px; line-height: 1.7; margin: 0 0 16px; }
+    @media (max-width: 1080px) { .story { grid-template-columns: 1fr; gap: 28px; } }
+
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .feature { background: var(--paper); border: 1px solid var(--rule); border-radius: var(--radius-md); padding: 30px; }
+    .feature-num { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); letter-spacing: 0.08em; }
+    .feature h3 { font-family: 'Fraunces', Georgia, serif; font-size: 22px; font-weight: 600; margin: 14px 0 8px; letter-spacing: -0.01em; }
+    .feature p { color: var(--ink-2); font-size: 15px; margin: 0; }
+    @media (max-width: 1080px) { .features { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .features { grid-template-columns: 1fr; } }
+
+    .team { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .member { background: var(--paper); border: 1px solid var(--rule); border-radius: var(--radius-md); overflow: hidden; }
+    .member img { width: 100%; aspect-ratio: 4/3; object-fit: cover; }
+    .member-body { padding: 22px 24px 26px; }
+    .member-name { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+    .member-role { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; }
+    .member-bio { color: var(--ink-2); font-size: 14px; margin-top: 12px; line-height: 1.55; }
+    @media (max-width: 1080px) { .team { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) { .team { grid-template-columns: 1fr; } }
+
+    .backers { padding: 48px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+    .backers-label { font-size: 12px; color: var(--ink-3); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; text-align: center; margin-bottom: 22px; }
+    .backers-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 24px; color: var(--ink-2); font-weight: 700; font-size: 17px; font-family: 'Fraunces', serif; text-align: center; }
+    .backers-row span { opacity: 0.6; }
+    @media (max-width: 720px) { .backers-row { grid-template-columns: repeat(2, 1fr); } }
+
+    .cta-band { padding: 100px 0; text-align: center; background: var(--paper); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+    .cta-band h2 { font-family: 'Fraunces', serif; font-size: clamp(36px, 5.5vw, 60px); font-weight: 600; letter-spacing: -0.025em; line-height: 1.05; margin: 0 0 18px; }
+    .cta-band h2 em { font-style: italic; color: var(--accent); }
+    .cta-band p { color: var(--ink-2); max-width: 540px; margin: 0 auto 28px; font-size: 18px; }
+
+    footer { padding: 56px 0 36px; }
+    .foot-grid { display: grid; grid-template-columns: 1.6fr repeat(3, 1fr); gap: 44px; }
+    .foot-col h4 { font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-3); margin: 0 0 16px; }
+    .foot-col a { display: block; color: var(--ink-2); font-size: 14px; padding: 6px 0; }
+    .foot-col a:hover { color: var(--ink); }
+    .foot-bot { margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; color: var(--ink-3); font-size: 13px; font-family: 'JetBrains Mono', monospace; }
+    @media (max-width: 720px) { .foot-grid { grid-template-columns: 1fr 1fr; } .foot-bot { flex-direction: column; gap: 12px; text-align: center; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="index.html"><span class="brand-mark">P</span>PulseAnalytics</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="index.html">Product</a>
+        <a href="index.html#attribution">Attribution</a>
+        <a href="about.html" class="current">About</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+      <div class="nav-cta">
+        <a class="btn btn-ghost" href="#">Sign in</a>
+        <a class="btn btn-primary" href="contact.html">Book a demo</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <span class="eyebrow"><span class="dot"></span>About PulseAnalytics</span>
+        <h1>Analytics with a <em>P&amp;L</em> in mind.</h1>
+        <p class="lede">We were analytics engineers who watched the same charts get re-built every quarter from a slightly different CSV. Pulse is the answer we wish we'd had: warehouse-native, audit-grade, and aimed squarely at the people who sign the checks.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="story">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>Origin</span>
+            <h2>Why this company <em>exists</em>.</h2>
+          </div>
+          <div>
+            <p>The trigger was a board meeting that went sideways. The CRO presented one revenue number. The CFO presented another. The product analytics tool, the BI stack, and the spreadsheet that fed the deck had all calculated MRR differently — and nobody could reproduce the rounding.</p>
+            <p>That night we sketched the contract: every chart should publish its method note, cite the warehouse table it read, name the assumptions, and produce the same number on Tuesday that it produced on Monday. Three months later we had a working warehouse-native analytics tool. Two years later we have an audit packet that survives a real audit.</p>
+            <p>Pulse exists because finance leaders deserve a chart with a paper trail. And because product teams deserve to know which feature paid for the quarter.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>What we value</span>
+          <h2>Six <em>principles</em> we won't compromise.</h2>
+          <p class="lede">These show up in product reviews, hiring loops, and customer onboarding. If a feature breaks one of them, it doesn't ship.</p>
+        </div>
+        <div class="features">
+          <div class="feature"><div class="feature-num">01</div><h3>Reproducible by default</h3><p>Every chart is deterministic. The same query on the same data returns the same number, with the same method note attached.</p></div>
+          <div class="feature"><div class="feature-num">02</div><h3>Warehouse-native</h3><p>We read your warehouse directly. We never copy your data. We never operate a parallel store you have to reconcile.</p></div>
+          <div class="feature"><div class="feature-num">03</div><h3>Honest comparisons</h3><p>Our competitive table is updated the week competitors ship. If we lose on a dimension, we say so.</p></div>
+          <div class="feature"><div class="feature-num">04</div><h3>Auditors are users</h3><p>The audit packet is a first-class export. Anyone — your auditor, your board, your CFO — can read it without a walkthrough.</p></div>
+          <div class="feature"><div class="feature-num">05</div><h3>Forecast with humility</h3><p>Models ship with confidence intervals, not vibes. We will tell you when a scenario is outside training range.</p></div>
+          <div class="feature"><div class="feature-num">06</div><h3>Read-only is sacred</h3><p>Pulse reads. Pulse never writes back to your warehouse. The bytes you send us are the bytes you'd send a SOC 2 report.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top:0;">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow"><span class="dot"></span>Team</span>
+          <h2>The people <em>building</em> Pulse.</h2>
+          <p class="lede">Half analytics engineers, half finance operators. The split is the point.</p>
+        </div>
+        <div class="team">
+          <div class="member"><img src="https://picsum.photos/seed/pulse-team-1/600/450" width="600" height="450" loading="lazy" alt="Portrait of Sasha Aguilar, co-founder and CEO." /><div class="member-body"><div class="member-name">Sasha Aguilar</div><div class="member-role">Co-founder · CEO</div><p class="member-bio">Built the analytics function at two consumer subscription companies. Author of the original Pulse attribution paper.</p></div></div>
+          <div class="member"><img src="https://picsum.photos/seed/pulse-team-2/600/450" width="600" height="450" loading="lazy" alt="Portrait of Marc Halberstam, co-founder and CTO." /><div class="member-body"><div class="member-name">Marc Halberstam</div><div class="member-role">Co-founder · CTO</div><p class="member-bio">Spent a decade on warehouse query optimisation. Wrote the Pulse cohort engine in a single weekend, then spent two years making it boring.</p></div></div>
+          <div class="member"><img src="https://picsum.photos/seed/pulse-team-3/600/450" width="600" height="450" loading="lazy" alt="Portrait of June Mwangi, head of revenue." /><div class="member-body"><div class="member-name">June Mwangi</div><div class="member-role">Head of Revenue</div><p class="member-bio">Former CFO. Joined because she wanted Pulse on her own books, then realised she could sell it to her old peers.</p></div></div>
+          <div class="member"><img src="https://picsum.photos/seed/pulse-team-4/600/450" width="600" height="450" loading="lazy" alt="Portrait of Pablo Vega, head of design." /><div class="member-body"><div class="member-name">Pablo Vega</div><div class="member-role">Head of Design</div><p class="member-bio">Designed the method note, the assumption editor, and the audit packet. Believes a good dashboard reads like a memo.</p></div></div>
+          <div class="member"><img src="https://picsum.photos/seed/pulse-team-5/600/450" width="600" height="450" loading="lazy" alt="Portrait of Hana Kalmar, head of customer engineering." /><div class="member-body"><div class="member-name">Hana Kalmar</div><div class="member-role">Customer Engineering</div><p class="member-bio">Onboards every Growth and Enterprise customer. Reads the schema before the kickoff call so the demo isn't generic.</p></div></div>
+          <div class="member"><img src="https://picsum.photos/seed/pulse-team-6/600/450" width="600" height="450" loading="lazy" alt="Portrait of Marius Novak, head of security." /><div class="member-body"><div class="member-name">Marius Novak</div><div class="member-role">Security &amp; Compliance</div><p class="member-bio">Drove SOC 2 Type II and HIPAA. Reviews every query template before it ships. Will say no.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="backers">
+      <div class="wrap">
+        <p class="backers-label">Backed by operators who carry an audit packet to bed</p>
+        <div class="backers-row">
+          <span>Brigantine Ventures</span><span>Field &amp; Format Capital</span><span>Atlas Group</span><span>Northbeam</span><span>Pivot House</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="cta-band">
+    <div class="wrap">
+      <h2>Hiring analytics engineers who care about <em>method notes</em>.</h2>
+      <p>Remote-friendly across the US and EU. We pay above local market and write the comp band into the offer letter.</p>
+      <a class="btn btn-primary" href="contact.html" style="height:50px;padding:0 26px;">See open roles →</a>
+    </div>
+  </section>
+
+  <footer id="footer">
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col"><a class="brand" href="index.html" style="margin-bottom:16px;"><span class="brand-mark">P</span>PulseAnalytics</a><p style="color:var(--ink-2); font-size:14px; max-width:300px;">Product analytics that connect every event to the revenue it created. Warehouse-native, audit-ready, built for the people who sign the checks.</p></div>
+        <div class="foot-col"><h4>Product</h4><a href="index.html#attribution">Attribution</a><a href="index.html">Cohorts</a><a href="index.html">Forecasts</a><a href="pricing.html">Pricing</a></div>
+        <div class="foot-col"><h4>Resources</h4><a href="#">Docs</a><a href="#">Method notes</a><a href="#">Changelog</a><a href="#">Trust center</a></div>
+        <div class="foot-col"><h4>Company</h4><a href="about.html">About</a><a href="#">Customers</a><a href="#">Careers</a><a href="contact.html">Contact</a></div>
+      </div>
+      <div class="foot-bot"><span>© 2026 Pulse Analytics, Inc.</span><span>SOC 2 Type II · GDPR · HIPAA</span></div>
+    </div>
+  </footer>
+</body>
+</html>

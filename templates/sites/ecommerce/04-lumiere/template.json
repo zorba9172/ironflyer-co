@@ -1,0 +1,34 @@
+{
+  "slug": "ecommerce-04-lumiere",
+  "title": "Lumière",
+  "subtitle": "Hand-poured candles, slow-fired ceramics, and quiet objects from a Marseille atelier.",
+  "category": "E-commerce",
+  "type": "Commerce",
+  "tags": [
+    "home",
+    "warm",
+    "serif",
+    "candles",
+    "ceramics"
+  ],
+  "previewImage": "/templates/ecommerce-04-lumiere.jpg",
+  "palette": {
+    "bg": "#ece4d5",
+    "fg": "#2b1f17",
+    "accent": "#c45a3f"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "notice",
+    "products",
+    "collection",
+    "atelier",
+    "reviews",
+    "newsletter",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Lumière template as the foundation for a home goods / candle / ceramics storefront. Sand and terracotta palette, DM Serif Display italic headlines, centered product grid with scent notes, two-card collection band, atelier story with founder quote, and a quiet newsletter. Replace placeholder copy with the studio's actual collection.",
+  "livePreview": "/template-previews/ecommerce-04-lumiere/"
+}

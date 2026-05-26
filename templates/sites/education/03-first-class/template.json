@@ -1,0 +1,33 @@
+{
+  "slug": "education-03-first-class",
+  "title": "First Class",
+  "subtitle": "A language learning marketplace built on live teachers, not chatbots.",
+  "category": "Education",
+  "type": "Apps",
+  "tags": [
+    "editorial",
+    "language",
+    "warm",
+    "marketplace"
+  ],
+  "previewImage": "/templates/education-03-first-class.jpg",
+  "palette": {
+    "bg": "#f5efe4",
+    "fg": "#1b1814",
+    "accent": "#d63a3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "teachers",
+    "how",
+    "languages",
+    "outcomes",
+    "pricing",
+    "faq",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the First Class template as the foundation for an editorial, warm-cream language marketplace site. Keep the serif headings, red accent, friendly tone, and live-teacher positioning. Replace teacher cards, language list, and rates with the customer's real catalog.",
+  "livePreview": "/template-previews/education-03-first-class/"
+}

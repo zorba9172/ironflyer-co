@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hangar 12 — Brand consultancy for founder-led companies</title>
+  <meta name="description" content="Hangar 12 is a brand consultancy working with founder-led companies on the parts of the brand that only the founder can hand off — voice, narrative, and the long arc." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #1a1a18;
+      --bg-2: #232320;
+      --paper: #2a2925;
+      --fg: #f4efe6;
+      --fg-2: #b9b3a4;
+      --fg-3: #75716a;
+      --rule: rgba(244, 239, 230, 0.10);
+      --rule-strong: rgba(244, 239, 230, 0.26);
+      --accent: #ff6c3a;
+      --accent-2: #ffb88a;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg); color: var(--fg);
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 16px; line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 0 32px; }
+    .serif { font-family: 'Fraunces', Georgia, serif; }
+
+    .nav { padding: 24px 0; border-bottom: 1px solid var(--rule); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
+    .brand-num { width: 30px; height: 30px; background: var(--accent); display: grid; place-items: center; color: var(--bg); font-weight: 800; font-family: 'Fraunces', serif; font-style: italic; font-size: 18px; border-radius: 4px; }
+    .nav-links { display: flex; gap: 32px; font-size: 14px; color: var(--fg-2); }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta { display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 999px; background: var(--accent); color: var(--bg); font-weight: 600; font-size: 14px; }
+    .nav-cta:hover { background: var(--accent-2); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    .hero { padding: 96px 0 80px; }
+    .hero-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 80px; align-items: center; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 10px; font-size: 13px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.14em; font-weight: 600; }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+    h1 {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: clamp(48px, 7vw, 108px);
+      line-height: 0.98; letter-spacing: -0.025em;
+      font-weight: 400; margin: 24px 0 32px;
+    }
+    h1 em { font-style: italic; color: var(--accent); }
+    .hero-lede { font-size: 19px; line-height: 1.65; color: var(--fg-2); max-width: 540px; margin: 0; }
+    .hero-cta { display: flex; gap: 14px; margin-top: 40px; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 24px; border-radius: 999px; font-weight: 600; font-size: 15px; cursor: pointer; }
+    .btn-primary { background: var(--accent); color: var(--bg); }
+    .btn-ghost { background: transparent; color: var(--fg); border: 1px solid var(--rule-strong); }
+    .btn-ghost:hover { border-color: var(--fg); }
+    .hero-img { position: relative; }
+    .hero-img img { width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 8px; }
+    .hero-img .caption { position: absolute; bottom: 16px; left: 16px; right: 16px; background: var(--bg); padding: 14px 18px; border-radius: 6px; font-size: 13px; color: var(--fg-2); border-left: 3px solid var(--accent); }
+    .hero-img .caption b { display: block; color: var(--fg); margin-bottom: 4px; font-weight: 600; }
+    @media (max-width: 1080px) { .hero-grid { grid-template-columns: 1fr; gap: 48px; } }
+
+    .premise { background: var(--bg-2); padding: 96px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+    .premise-grid { display: grid; grid-template-columns: 0.5fr 1fr; gap: 80px; align-items: start; }
+    .premise .label { font-size: 13px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent); font-weight: 600; }
+    .premise h2 { font-family: 'Fraunces', serif; font-size: clamp(28px, 3.8vw, 44px); font-weight: 400; line-height: 1.15; letter-spacing: -0.015em; margin: 16px 0 32px; }
+    .premise h2 em { font-style: italic; color: var(--accent-2); }
+    .premise p { font-size: 18px; color: var(--fg-2); line-height: 1.75; margin: 0 0 18px; max-width: 640px; }
+    .premise p:last-child { color: var(--fg); font-family: 'Fraunces', serif; font-style: italic; font-size: 22px; margin-top: 28px; }
+    @media (max-width: 1080px) { .premise-grid { grid-template-columns: 1fr; gap: 24px; } }
+
+    .section { padding: 120px 0; }
+    .section-head { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; margin-bottom: 64px; align-items: end; }
+    .section-head h2 { font-family: 'Fraunces', serif; font-size: clamp(36px, 5vw, 68px); font-weight: 400; line-height: 1.05; letter-spacing: -0.02em; margin: 16px 0 0; }
+    .section-head h2 em { font-style: italic; color: var(--accent); }
+    .section-head p { color: var(--fg-2); font-size: 17px; line-height: 1.6; max-width: 480px; justify-self: end; margin: 0; }
+    @media (max-width: 1080px) { .section-head { grid-template-columns: 1fr; } .section-head p { justify-self: start; } }
+
+    .practice { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px; }
+    .practice-item { padding: 36px; background: var(--bg-2); border-radius: 8px; border: 1px solid var(--rule); display: flex; gap: 28px; }
+    .practice-item .num { font-family: 'Fraunces', serif; font-style: italic; font-size: 56px; color: var(--accent); line-height: 0.9; flex-shrink: 0; min-width: 60px; }
+    .practice-item h3 { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 500; letter-spacing: -0.015em; margin: 0 0 12px; }
+    .practice-item p { font-size: 15px; color: var(--fg-2); line-height: 1.7; margin: 0; }
+    @media (max-width: 1080px) { .practice { grid-template-columns: 1fr; } }
+
+    .engagements { padding: 96px 0; background: var(--bg-2); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+    .eng-row { display: grid; grid-template-columns: 80px 2fr 1fr 1fr 1fr 60px; gap: 24px; align-items: center; padding: 28px 0; border-top: 1px solid var(--rule); }
+    .eng-row:last-child { border-bottom: 1px solid var(--rule); }
+    .eng-row .id { font-family: 'Fraunces', serif; font-style: italic; font-size: 20px; color: var(--accent); }
+    .eng-row .name { font-size: 19px; font-weight: 600; letter-spacing: -0.01em; }
+    .eng-row .name small { display: block; font-size: 13px; color: var(--fg-3); font-weight: 400; margin-top: 4px; }
+    .eng-row .meta { font-size: 13px; color: var(--fg-2); }
+    .eng-row .price { color: var(--accent); font-weight: 600; font-size: 14px; }
+    .eng-row .arrow { text-align: right; font-family: 'Fraunces', serif; font-style: italic; font-size: 28px; color: var(--accent); }
+    @media (max-width: 1080px) { .eng-row { grid-template-columns: 50px 1fr 1fr; gap: 16px; } .eng-row .meta:nth-of-type(2), .eng-row .arrow { display: none; } }
+
+    .story-grid-section { padding: 120px 0; }
+    .stories { display: grid; grid-template-columns: repeat(12, 1fr); gap: 24px; }
+    .story { display: block; position: relative; overflow: hidden; border-radius: 8px; }
+    .story img { width: 100%; aspect-ratio: 4/3; object-fit: cover; transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1); }
+    .story:hover img { transform: scale(1.04); }
+    .story .caption { position: absolute; bottom: 0; left: 0; right: 0; padding: 24px; background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.7) 100%); }
+    .story .caption .tag { display: inline-block; padding: 4px 10px; background: var(--accent); color: var(--bg); font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 700; border-radius: 4px; margin-bottom: 12px; }
+    .story .caption h3 { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 500; letter-spacing: -0.015em; margin: 0; color: var(--fg); }
+    .story.tall { grid-column: span 5; grid-row: span 2; }
+    .story.tall img { aspect-ratio: 4/5; }
+    .story.wide { grid-column: span 7; }
+    .story.normal { grid-column: span 4; }
+    .story.wide-3 { grid-column: span 6; }
+    @media (max-width: 1080px) { .story.tall, .story.wide, .story.normal, .story.wide-3 { grid-column: span 12; grid-row: auto; } .story.tall img { aspect-ratio: 4/3; } }
+
+    .founders { padding: 120px 0; background: var(--bg-2); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+    .founders-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+    .founders-grid img { width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 8px; filter: contrast(1.02) saturate(0.95); }
+    .founders h3 { font-family: 'Fraunces', serif; font-size: 36px; font-weight: 400; letter-spacing: -0.02em; margin: 16px 0 24px; line-height: 1.1; }
+    .founders p { font-size: 17px; color: var(--fg-2); line-height: 1.75; margin: 0 0 16px; max-width: 520px; }
+    .founders .sig { font-family: 'Fraunces', serif; font-style: italic; font-size: 19px; color: var(--accent); margin-top: 32px; }
+    @media (max-width: 1080px) { .founders-grid { grid-template-columns: 1fr; } }
+
+    .thinking { padding: 120px 0; }
+    .essays { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+    .essay { padding: 32px; background: var(--bg-2); border-radius: 8px; border: 1px solid var(--rule); display: flex; flex-direction: column; }
+    .essay .meta { font-size: 12px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent); font-weight: 600; }
+    .essay h3 { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 500; letter-spacing: -0.015em; margin: 16px 0 12px; line-height: 1.25; }
+    .essay p { font-size: 14px; color: var(--fg-2); line-height: 1.65; margin: 0 0 24px; flex: 1; }
+    .essay .read { font-size: 13px; color: var(--accent); border-bottom: 1px solid var(--accent); padding-bottom: 2px; align-self: start; }
+    @media (max-width: 1080px) { .essays { grid-template-columns: 1fr; } }
+
+    .cta-band { padding: 140px 0; text-align: center; border-top: 1px solid var(--rule); }
+    .cta-band h2 { font-family: 'Fraunces', serif; font-size: clamp(48px, 8vw, 116px); font-weight: 400; line-height: 0.95; letter-spacing: -0.025em; margin: 0 0 24px; }
+    .cta-band h2 em { font-style: italic; color: var(--accent); }
+    .cta-band p { font-size: 19px; color: var(--fg-2); max-width: 600px; margin: 0 auto 32px; line-height: 1.6; }
+
+    footer { padding: 56px 0 32px; border-top: 1px solid var(--rule); }
+    .foot-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; }
+    .foot-col h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--fg-3); margin: 0 0 14px; font-weight: 600; }
+    .foot-col a { display: block; font-size: 14px; padding: 5px 0; color: var(--fg-2); }
+    .foot-col a:hover { color: var(--accent); }
+    .foot-bot { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; color: var(--fg-3); font-size: 13px; }
+    @media (max-width: 1080px) { .foot-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .foot-bot { flex-direction: column; gap: 12px; } }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#"><span class="brand-num">12</span> Hangar 12</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#practice">Practice</a>
+        <a href="#engagements">Engagements</a>
+        <a href="#stories">Stories</a>
+        <a href="#thinking">Thinking</a>
+      </nav>
+      <a class="nav-cta" href="#contact">Send us a brief →</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap hero-grid">
+        <div>
+          <span class="eyebrow"><span class="dot"></span>A brand consultancy &middot; founder-led, founder-focused</span>
+          <h1>The part of the brand only the <em>founder</em> can hand off.</h1>
+          <p class="hero-lede">Hangar 12 works with founder-led companies on the things that don&rsquo;t survive a brand brief: voice, narrative, the answer to &ldquo;why us, why now,&rdquo; and the long arc that needs to hold for the next ten years.</p>
+          <div class="hero-cta">
+            <a class="btn btn-primary" href="#contact">Start with a conversation</a>
+            <a class="btn btn-ghost" href="#stories">See client stories</a>
+          </div>
+        </div>
+        <div class="hero-img">
+          <img src="https://picsum.photos/seed/hangar-hero/900/1125" width="900" height="1125" alt="A founder reviewing print proofs in a warm-lit workspace" loading="eager" />
+          <div class="caption">
+            <b>Now in residence</b>
+            Four engagements live · two slots open for Q3 2026.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="premise">
+      <div class="wrap premise-grid">
+        <div class="label">— The premise / 01</div>
+        <div>
+          <h2>The founder is the brand. <em>The brand is the founder&rsquo;s patience for one idea, repeated.</em></h2>
+          <p>We&rsquo;ve worked with sixty-something founder-led companies over fourteen years. The pattern is the same: the company tries to grow past the founder&rsquo;s voice, the voice gets diluted, and someone is hired to &ldquo;professionalize the brand.&rdquo; A year later, the founder doesn&rsquo;t recognize the company.</p>
+          <p>Hangar 12 sits next to the founder during that growth. We listen, write, edit, and occasionally push back. We don&rsquo;t design logos. We work on the layer underneath, where the brand actually lives.</p>
+          <p>— That&rsquo;s the practice. The rest of this page is detail.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="practice">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>Practice areas</span>
+            <h2>Four ways the consultancy <em>shows up.</em></h2>
+          </div>
+          <p>Each engagement is built around the founder&rsquo;s schedule. Most are quarterly, some are weekly, none are monthly &mdash; we&rsquo;ve never made a monthly engagement work.</p>
+        </div>
+        <div class="practice">
+          <div class="practice-item">
+            <div class="num">i.</div>
+            <div>
+              <h3>Brand narrative</h3>
+              <p>A written, founder-signed narrative document. Who you&rsquo;re for. Why now. What changes when you win. We write it together, you sign it, and your hiring, fundraising, and marketing teams use it as the canonical source.</p>
+            </div>
+          </div>
+          <div class="practice-item">
+            <div class="num">ii.</div>
+            <div>
+              <h3>Voice &amp; positioning</h3>
+              <p>The tone that the company writes in &mdash; in product, in marketing, in customer email. We draft the voice guide, train your team, and edit live writing for ninety days afterward.</p>
+            </div>
+          </div>
+          <div class="practice-item">
+            <div class="num">iii.</div>
+            <div>
+              <h3>Founder ghostwriting</h3>
+              <p>Op-eds, conference keynotes, internal memos, founder letters. We don&rsquo;t put words in your mouth &mdash; we record you, listen, and write you back in your own voice with the noise edited out.</p>
+            </div>
+          </div>
+          <div class="practice-item">
+            <div class="num">iv.</div>
+            <div>
+              <h3>Advisory seat</h3>
+              <p>A standing seat at your monthly review for two years. Critique, redirection, and the occasional &ldquo;write that letter to the team yourself&rdquo; reminder.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="engagements" id="engagements">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>Engagement formats</span>
+            <h2>How we <em>scope.</em></h2>
+          </div>
+          <p>Every engagement starts with a paid two-week conversation. If we don&rsquo;t agree we&rsquo;re the right fit, we part ways without taking the larger engagement.</p>
+        </div>
+
+        <div class="eng-row">
+          <div class="id">F.01</div>
+          <div class="name">The conversation<small>Two weeks of in-person + written work to decide if we engage further.</small></div>
+          <div class="meta">2 weeks</div>
+          <div class="meta">Founder + one partner</div>
+          <div class="price">$22,000 fixed</div>
+          <div class="arrow">→</div>
+        </div>
+        <div class="eng-row">
+          <div class="id">F.02</div>
+          <div class="name">Brand narrative engagement<small>Written narrative document, signed by founder, distributed internally.</small></div>
+          <div class="meta">8&ndash;10 weeks</div>
+          <div class="meta">Founder + team of 3</div>
+          <div class="price">$120,000 fixed</div>
+          <div class="arrow">→</div>
+        </div>
+        <div class="eng-row">
+          <div class="id">F.03</div>
+          <div class="name">Voice + ghostwriting program<small>Voice guide, team training, 90 days of live editorial support.</small></div>
+          <div class="meta">6 months</div>
+          <div class="meta">Founder + writer</div>
+          <div class="price">$28,000 / month</div>
+          <div class="arrow">→</div>
+        </div>
+        <div class="eng-row">
+          <div class="id">F.04</div>
+          <div class="name">Advisory residency<small>Two-year seat at monthly review, on-call critique, two retreats per year.</small></div>
+          <div class="meta">24 months</div>
+          <div class="meta">Founder + partner</div>
+          <div class="price">$180,000 / year</div>
+          <div class="arrow">→</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="story-grid-section" id="stories">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>Recent client stories</span>
+            <h2>Founders we&rsquo;ve <em>worked alongside.</em></h2>
+          </div>
+          <p>Long-form case studies on request. Most of our work doesn&rsquo;t publish; the founders we work with prefer it that way.</p>
+        </div>
+        <div class="stories">
+          <a class="story tall" href="#">
+            <img src="https://picsum.photos/seed/hangar-s1/1000/1250" width="1000" height="1250" alt="A founder portrait by warm window light, Northbeam case" loading="lazy" />
+            <div class="caption"><span class="tag">Industrial · 2024</span><h3>Northbeam — the second-generation rebrand that didn&rsquo;t erase the first.</h3></div>
+          </a>
+          <a class="story wide" href="#">
+            <img src="https://picsum.photos/seed/hangar-s2/1400/1050" width="1400" height="1050" alt="Field House founder at a wood-floor office" loading="lazy" />
+            <div class="caption"><span class="tag">Software · 2025</span><h3>Field House — what to call the next product when the first one took ten years.</h3></div>
+          </a>
+          <a class="story normal" href="#">
+            <img src="https://picsum.photos/seed/hangar-s3/1200/900" width="1200" height="900" alt="Verso Ceramics founder at the wheel" loading="lazy" />
+            <div class="caption"><span class="tag">Consumer · 2025</span><h3>Verso Ceramics — a 125-year-old voice, re-written.</h3></div>
+          </a>
+          <a class="story normal" href="#">
+            <img src="https://picsum.photos/seed/hangar-s4/1200/900" width="1200" height="900" alt="Pivot House founder reviewing prints" loading="lazy" />
+            <div class="caption"><span class="tag">Hardware · 2024</span><h3>Pivot House — the engineering story their CFO wouldn&rsquo;t let them tell.</h3></div>
+          </a>
+          <a class="story wide-3" href="#">
+            <img src="https://picsum.photos/seed/hangar-s5/1400/1050" width="1400" height="1050" alt="Salt &amp; Pine founder at her studio table" loading="lazy" />
+            <div class="caption"><span class="tag">Studio · 2023</span><h3>Salt &amp; Pine — the partner letter that became the first hire&rsquo;s job description.</h3></div>
+          </a>
+          <a class="story wide-3" href="#">
+            <img src="https://picsum.photos/seed/hangar-s6/1400/1050" width="1400" height="1050" alt="Atlas Films founder behind a camera at golden hour" loading="lazy" />
+            <div class="caption"><span class="tag">Media · 2023</span><h3>Atlas Films — when the founder wanted to start saying &lsquo;no&rsquo; in public.</h3></div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="founders" id="founders">
+      <div class="wrap founders-grid">
+        <img src="https://picsum.photos/seed/hangar-founder/900/1125" width="900" height="1125" alt="The Hangar 12 founders at a table, working through printed pages" loading="lazy" />
+        <div>
+          <span class="eyebrow"><span class="dot"></span>The consultancy</span>
+          <h3>Three partners. Twelve engagements at a time. No more.</h3>
+          <p>Hangar 12 was founded in 2012 by Tomás Cardona &mdash; an ex-strategy director at three category-defining brands &mdash; alongside Maya Penn and Daniel Reyes, both former senior writers at companies you&rsquo;d know.</p>
+          <p>We deliberately stayed small. Every engagement is run by a partner, every word is written by the partner who owns the account, and no one on this site is a junior. We&rsquo;ve turned down growth four times. We&rsquo;ll probably turn it down again.</p>
+          <p>If you&rsquo;re considering working with us, the first thing we&rsquo;ll do is ask for an hour with your founder &mdash; not the head of marketing.</p>
+          <p class="sig">— Tomás Cardona, Maya Penn &amp; Daniel Reyes</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="thinking" id="thinking">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow"><span class="dot"></span>Thinking</span>
+            <h2>The writing the consultancy <em>publishes.</em></h2>
+          </div>
+          <p>Four to six essays a year. We don&rsquo;t have a blog &mdash; we have a writing practice, and we publish only when we have something we&rsquo;ve actually finished.</p>
+        </div>
+        <div class="essays">
+          <article class="essay">
+            <span class="meta">Essay · 18 min · 2026</span>
+            <h3>The case against the brand brief</h3>
+            <p>Why the document that&rsquo;s supposed to align the agency and the founder is usually the document that makes both feel further apart.</p>
+            <a class="read" href="#">Read the essay →</a>
+          </article>
+          <article class="essay">
+            <span class="meta">Essay · 12 min · 2025</span>
+            <h3>How to write a founder letter that doesn&rsquo;t age badly</h3>
+            <p>A short field guide to the company letter that you can re-read in five years without wincing &mdash; with examples and a working template.</p>
+            <a class="read" href="#">Read the essay →</a>
+          </article>
+          <article class="essay">
+            <span class="meta">Essay · 22 min · 2025</span>
+            <h3>The third brand crisis (and what to do about it)</h3>
+            <p>The growth stage where every founder-led company quietly fights a war about voice. Patterns, examples, and three exercises we use during it.</p>
+            <a class="read" href="#">Read the essay →</a>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="cta-band" id="contact">
+    <div class="wrap">
+      <span class="eyebrow"><span class="dot"></span>To begin</span>
+      <h2>Write us a <em>founder letter.</em></h2>
+      <p>If you&rsquo;re a founder considering this kind of work, send us two paragraphs about where you are and what feels stuck. Tomás replies to every one of these within five business days.</p>
+      <a class="btn btn-primary" href="mailto:office@hangar12.co" style="padding: 16px 28px; font-size: 16px;">office@hangar12.co →</a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a class="brand" href="#"><span class="brand-num">12</span> Hangar 12</a>
+          <p style="font-size: 14px; color: var(--fg-2); margin: 16px 0 0; max-width: 320px;">A brand consultancy for founder-led companies. Founded in 2012 in Austin, with a small office in New York.</p>
+        </div>
+        <div class="foot-col">
+          <h4>Practice</h4>
+          <a href="#practice">Practice areas</a>
+          <a href="#engagements">Engagements</a>
+          <a href="#stories">Stories</a>
+          <a href="#thinking">Thinking</a>
+        </div>
+        <div class="foot-col">
+          <h4>Visit</h4>
+          <a href="#">88 W 6th St, Austin</a>
+          <a href="#">141 Greene St, NY</a>
+          <a href="#">By appointment</a>
+        </div>
+        <div class="foot-col">
+          <h4>Letters</h4>
+          <a href="#">Quarterly letter</a>
+          <a href="#">Founders we&rsquo;ve worked with</a>
+          <a href="#">Press</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Hangar 12 LLC</span>
+        <span>Written in Austin, New York, occasionally in Lisbon</span>
+      </div>
+    </div>
+  </footer>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

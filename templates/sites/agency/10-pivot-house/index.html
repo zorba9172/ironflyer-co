@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pivot House — A startup studio that takes ideas from spec to shipped</title>
+  <meta name="description" content="Pivot House is a startup studio. We co-found and operate B2B software companies from spec to shipped, then spin them out with their first ten customers." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,400;9..144,500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #1f1b17;
+      --bg-2: #2a2520;
+      --paper: #34302a;
+      --fg: #f1ece1;
+      --fg-2: #b8b1a3;
+      --fg-3: #76706a;
+      --rule: rgba(241, 236, 225, 0.10);
+      --rule-strong: rgba(241, 236, 225, 0.28);
+      --accent: #6ad9b3;
+      --accent-2: #4ec8a0;
+      --warm: #d6a953;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg); color: var(--fg);
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 15px; line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; height: auto; }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    .serif { font-family: 'Fraunces', Georgia, serif; }
+
+    .nav { border-bottom: 1px solid var(--rule); padding: 18px 0; }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 17px; letter-spacing: -0.005em; }
+    .brand-mark { width: 30px; height: 30px; background: var(--accent); display: grid; place-items: center; color: var(--bg); font-family: 'JetBrains Mono', monospace; font-weight: 700; border-radius: 4px; }
+    .nav-links { display: flex; gap: 28px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--fg-2); text-transform: uppercase; letter-spacing: 0.12em; }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-right { display: flex; gap: 16px; align-items: center; }
+    .status { display: inline-flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.12em; }
+    .status .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px var(--accent); }
+    .btn-primary { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; background: var(--accent); color: var(--bg); font-weight: 600; font-size: 13px; border-radius: 4px; }
+    .btn-primary:hover { background: var(--accent-2); }
+    @media (max-width: 1080px) { .nav-links { display: none; } .status { display: none; } }
+
+    .hero { padding: 96px 0 80px; position: relative; }
+    .hero-meta { display: flex; gap: 32px; font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--fg-3); margin-bottom: 40px; }
+    .hero-meta b { color: var(--accent); font-weight: 600; }
+    h1 {
+      font-size: clamp(56px, 9vw, 144px);
+      line-height: 0.92; letter-spacing: -0.04em;
+      font-weight: 700; margin: 0 0 32px;
+    }
+    h1 em { font-family: 'Fraunces', serif; font-style: italic; font-weight: 500; color: var(--accent); }
+    .hero-lede { font-size: 20px; line-height: 1.6; color: var(--fg-2); max-width: 700px; margin: 0; }
+    .hero-cta { display: flex; gap: 14px; margin-top: 40px; flex-wrap: wrap; }
+    .btn-ghost { display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border: 1px solid var(--rule-strong); color: var(--fg); font-weight: 600; font-size: 14px; border-radius: 4px; }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-big { padding: 14px 26px; font-size: 15px; }
+
+    .marquee { padding: 24px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); margin-top: 64px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--fg-2); display: flex; gap: 40px; overflow: hidden; white-space: nowrap; }
+    .marquee span b { color: var(--accent); }
+
+    .section { padding: 120px 0; border-top: 1px solid var(--rule); }
+    .section-head { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-bottom: 56px; align-items: end; }
+    .section-head h2 { font-size: clamp(36px, 5.4vw, 76px); font-weight: 700; line-height: 0.96; letter-spacing: -0.035em; margin: 14px 0 0; }
+    .section-head h2 em { font-family: 'Fraunces', serif; font-style: italic; font-weight: 500; color: var(--accent); }
+    .section-head .label { font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent); }
+    .section-head p { color: var(--fg-2); font-size: 16px; line-height: 1.65; max-width: 480px; justify-self: end; margin: 0; }
+    @media (max-width: 1080px) { .section-head { grid-template-columns: 1fr; } .section-head p { justify-self: start; } }
+
+    .pillars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .pillar { padding: 32px; background: var(--bg-2); border: 1px solid var(--rule); position: relative; min-height: 280px; }
+    .pillar::before { content: ''; position: absolute; top: 0; left: 0; width: 32px; height: 3px; background: var(--accent); }
+    .pillar .num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 0.14em; }
+    .pillar h3 { font-size: 24px; font-weight: 700; letter-spacing: -0.015em; margin: 16px 0 12px; }
+    .pillar p { font-size: 14px; color: var(--fg-2); line-height: 1.65; margin: 0; }
+    @media (max-width: 1080px) { .pillars { grid-template-columns: 1fr; } }
+
+    .portfolio { padding: 120px 0; border-top: 1px solid var(--rule); background: var(--bg-2); }
+    .pf-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .pf { background: var(--bg); border: 1px solid var(--rule-strong); display: block; transition: transform 200ms, border-color 200ms; }
+    .pf:hover { transform: translateY(-2px); border-color: var(--accent); }
+    .pf .img { aspect-ratio: 16/10; background: var(--paper); position: relative; overflow: hidden; }
+    .pf .img img { width: 100%; height: 100%; object-fit: cover; }
+    .pf .stage { position: absolute; top: 12px; left: 12px; padding: 4px 10px; background: var(--bg); font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent); border: 1px solid var(--accent); }
+    .pf .info { padding: 24px 24px 24px; border-top: 1px solid var(--rule); }
+    .pf .row { display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--fg-3); margin-bottom: 10px; }
+    .pf h3 { font-size: 22px; font-weight: 700; letter-spacing: -0.015em; margin: 0 0 8px; }
+    .pf p { font-size: 14px; color: var(--fg-2); line-height: 1.6; margin: 0; }
+    @media (max-width: 1080px) { .pf-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .pf-grid { grid-template-columns: 1fr; } }
+
+    .operating { padding: 120px 0; border-top: 1px solid var(--rule); }
+    .op-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 64px; align-items: start; }
+    .op-grid .key { padding: 32px; background: var(--bg-2); border: 1px solid var(--rule); }
+    .op-grid .key .label { font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--fg-3); }
+    .op-grid .key .val { font-family: 'JetBrains Mono', monospace; font-size: 56px; font-weight: 600; letter-spacing: -0.025em; color: var(--accent); margin: 12px 0 8px; line-height: 1; }
+    .op-grid .key .note { font-size: 13px; color: var(--fg-2); line-height: 1.5; margin: 8px 0 24px; padding-bottom: 24px; border-bottom: 1px solid var(--rule); }
+    .op-grid .key .note:last-child { border-bottom: none; padding-bottom: 0; }
+    .op-list .step { display: grid; grid-template-columns: 80px 1fr 100px; gap: 24px; padding: 28px 0; border-top: 1px solid var(--rule); align-items: start; }
+    .op-list .step:last-child { border-bottom: 1px solid var(--rule); }
+    .op-list .step .id { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); letter-spacing: 0.14em; }
+    .op-list .step .name { font-size: 19px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 8px; }
+    .op-list .step .desc { font-size: 14px; color: var(--fg-2); line-height: 1.6; margin: 0; max-width: 540px; }
+    .op-list .step .time { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--fg-3); text-align: right; }
+    @media (max-width: 1080px) { .op-grid { grid-template-columns: 1fr; } .op-list .step { grid-template-columns: 60px 1fr; } .op-list .step .time { grid-column: 1 / -1; } }
+
+    .track { padding: 120px 0; border-top: 1px solid var(--rule); background: var(--bg-2); }
+    .track-table { width: 100%; border-collapse: collapse; }
+    .track-table th { text-align: left; font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--fg-3); padding: 16px 16px 16px 0; border-bottom: 1px solid var(--rule-strong); font-weight: 500; }
+    .track-table td { padding: 24px 16px 24px 0; border-bottom: 1px solid var(--rule); font-size: 15px; }
+    .track-table td:first-child { font-family: 'JetBrains Mono', monospace; color: var(--accent); font-size: 13px; }
+    .track-table .co { font-weight: 700; letter-spacing: -0.01em; font-size: 17px; }
+    .track-table .co small { font-weight: 400; color: var(--fg-3); display: block; margin-top: 4px; font-size: 13px; }
+    .track-table .stage { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); padding: 4px 10px; background: rgba(106, 217, 179, 0.12); border: 1px solid var(--accent); display: inline-block; }
+    .track-table .stage.spun { color: var(--warm); background: rgba(214, 169, 83, 0.12); border-color: var(--warm); }
+    .track-table .arr { color: var(--accent); text-align: right; font-family: 'Fraunces', serif; font-style: italic; font-size: 24px; }
+    @media (max-width: 1080px) { .track-table .desktop-only { display: none; } }
+
+    .team-section { padding: 120px 0; border-top: 1px solid var(--rule); }
+    .team-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; }
+    .person img { width: 100%; aspect-ratio: 4/5; object-fit: cover; filter: grayscale(0.4); margin-bottom: 18px; }
+    .person h4 { font-size: 19px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.01em; }
+    .person .role { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.12em; margin: 0 0 12px; }
+    .person p { font-size: 13px; color: var(--fg-2); margin: 0; line-height: 1.6; }
+    @media (max-width: 1080px) { .team-grid { grid-template-columns: 1fr 1fr; } }
+
+    .fund-info { padding: 96px 0; border-top: 1px solid var(--rule); background: var(--bg-2); }
+    .fund-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
+    .fund-grid h2 { font-size: clamp(32px, 4.6vw, 56px); font-weight: 700; line-height: 1; letter-spacing: -0.025em; margin: 0 0 24px; }
+    .fund-grid h2 em { font-family: 'Fraunces', serif; font-style: italic; color: var(--accent); }
+    .fund-grid p { font-size: 16px; color: var(--fg-2); line-height: 1.7; margin: 0 0 16px; max-width: 480px; }
+    .fund-grid .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .fund-grid .facts .fact { padding: 20px; background: var(--bg); border: 1px solid var(--rule); }
+    .fund-grid .facts .fact .label { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.14em; }
+    .fund-grid .facts .fact .val { font-family: 'JetBrains Mono', monospace; font-size: 28px; color: var(--accent); font-weight: 600; margin-top: 8px; }
+    .fund-grid .facts .fact .note { font-size: 12px; color: var(--fg-2); margin-top: 6px; }
+    @media (max-width: 1080px) { .fund-grid { grid-template-columns: 1fr; } }
+
+    .press { padding: 56px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+    .press-row { display: grid; grid-template-columns: 1fr 5fr; gap: 32px; align-items: center; }
+    .press-row .label { font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--fg-3); }
+    .press-row .names { display: grid; grid-template-columns: repeat(5, 1fr); gap: 24px; font-weight: 700; color: var(--fg-2); font-size: 17px; }
+    @media (max-width: 1080px) { .press-row { grid-template-columns: 1fr; } .press-row .names { grid-template-columns: repeat(3, 1fr); font-size: 14px; } }
+
+    .cta-band { padding: 140px 0; text-align: center; border-bottom: 1px solid var(--rule); }
+    .cta-band h2 { font-size: clamp(48px, 8vw, 124px); font-weight: 700; letter-spacing: -0.04em; line-height: 0.95; margin: 0 0 24px; }
+    .cta-band h2 em { font-family: 'Fraunces', serif; font-style: italic; color: var(--accent); font-weight: 500; }
+    .cta-band p { font-size: 18px; color: var(--fg-2); max-width: 560px; margin: 0 auto 32px; line-height: 1.6; }
+    .cta-band .row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+    footer { padding: 56px 0 32px; }
+    .foot-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; }
+    .foot-col h4 { font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent); margin: 0 0 14px; font-weight: 500; }
+    .foot-col a { display: block; font-size: 14px; padding: 5px 0; color: var(--fg-2); }
+    .foot-col a:hover { color: var(--accent); }
+    .foot-bot { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; color: var(--fg-3); font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; }
+    @media (max-width: 1080px) { .foot-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) { .foot-bot { flex-direction: column; gap: 12px; } }
+  </style>
+<!-- ironflyer-brand:head:start -->
+<style data-if-brand>
+/* Ironflyer brand kit — subtle scroll-reveal */
+section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:0}
+@keyframes if-reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.if-r-in{animation:if-reveal-up 720ms cubic-bezier(0.16,1,0.3,1) both;opacity:1!important}
+@media (prefers-reduced-motion:reduce){section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}.if-r-in{animation:none!important}}
+/* Ironflyer signature */
+.if-sig{position:fixed;bottom:24px;left:24px;z-index:9999;font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:12px;line-height:1;transition:opacity 240ms ease}
+.if-sig:hover{transform:none}
+.if-sig a{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 8px;background:#0d0e0f;border:1px solid rgba(244,240,232,0.18);border-radius:999px;color:#f7f3ea!important;text-decoration:none!important;font-weight:500;letter-spacing:-0.005em;box-shadow:0 6px 24px rgba(0,0,0,0.32);transition:transform 220ms cubic-bezier(0.22,1,0.36,1),border-color 220ms}
+.if-sig a:hover{border-color:rgba(229,255,0,0.7);transform:translateY(-1px)}
+.if-sig .if-sig-mark{width:18px;height:18px;background:#e5ff00;color:#0d0e0f;display:grid;place-items:center;border-radius:4px;font-weight:900;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px}
+.if-sig strong{font-weight:700;color:#f7f3ea}
+@media print{.if-sig{display:none}}
+</style>
+<noscript><style>section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item{opacity:1!important}</style></noscript>
+<!-- ironflyer-brand:head:end -->
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#"><span class="brand-mark">P</span> Pivot House</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#pillars">What we do</a>
+        <a href="#portfolio">Portfolio</a>
+        <a href="#operating">Model</a>
+        <a href="#team">Team</a>
+      </nav>
+      <div class="nav-right">
+        <span class="status"><span class="dot"></span>BUILD CYCLE 26.Q2 · LIVE</span>
+        <a class="btn-primary" href="#contact">Pitch us →</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-meta">
+          <span><b>// Studio</b> &middot; est. 2019</span>
+          <span><b>// HQ</b> &middot; Detroit + remote</span>
+          <span><b>// Live builds</b> &middot; 04</span>
+          <span><b>// Spun out</b> &middot; 11 companies</span>
+        </div>
+        <h1>From <em>spec</em><br/>to <em>shipped</em><br/>in 24 weeks.</h1>
+        <p class="hero-lede">Pivot House is a startup studio. We co-found and operate B2B software companies, take them from a one-pager to first ten customers in twenty-four weeks, then spin them out with a founding CEO from inside or outside the studio.</p>
+        <div class="hero-cta">
+          <a class="btn-primary btn-big" href="#contact">Pitch us a company</a>
+          <a class="btn-ghost btn-big" href="#portfolio">See what we&rsquo;ve built</a>
+        </div>
+        <div class="marquee">
+          <span><b>// Build 26.04</b> &mdash; Verso Ledger</span>
+          <span><b>// Spinning out</b> &mdash; Field House (Series A, $14M)</span>
+          <span><b>// Build 26.03</b> &mdash; Northbeam Compliance</span>
+          <span><b>// Build 26.02</b> &mdash; Atlas Health Records</span>
+          <span><b>// Studio capital</b> &mdash; $48M Fund II</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="pillars">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <span class="label">// What we do</span>
+            <h2>Three things, <em>on repeat.</em></h2>
+          </div>
+          <p>We pick an idea, build a real product in six months, and either spin it out or shelf it. We don&rsquo;t consult, advise, or run accelerator cohorts. Studio in, company out.</p>
+        </div>
+        <div class="pillars">
+          <div class="pillar">
+            <div class="num">// 01</div>
+            <h3>Spec it</h3>
+            <p>The studio writes the one-pager and the architecture doc. We interview twenty operators in the category. We kill the idea ourselves if it doesn&rsquo;t hold &mdash; thirty percent of our specs never become a build.</p>
+          </div>
+          <div class="pillar">
+            <div class="num">// 02</div>
+            <h3>Build it</h3>
+            <p>Two engineers, one designer, one operator. Twenty-four weeks. A live product with the first ten customers paying real money. We don&rsquo;t do MVPs &mdash; the spinout starts with revenue.</p>
+          </div>
+          <div class="pillar">
+            <div class="num">// 03</div>
+            <h3>Ship it out</h3>
+            <p>We recruit or appoint a founding CEO, transfer the cap table, sign the founder agreement, and the company is its own entity. The studio holds 30 to 40%. We stay on the board.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="portfolio" id="portfolio">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <span class="label">// Portfolio</span>
+            <h2>Six companies <em>currently in flight.</em></h2>
+          </div>
+          <p>Each one was specced, built, and either spun out or wound down inside Pivot House. The studio retains 30&ndash;40% equity at spinout and stays on the board for the first three years.</p>
+        </div>
+        <div class="pf-grid">
+          <a class="pf" href="#">
+            <div class="img"><img src="https://picsum.photos/seed/pivot-1/1400/875" width="1400" height="875" alt="Field House product screenshot, a compliance workflow dashboard" loading="lazy" /><span class="stage">SERIES A · 2026</span></div>
+            <div class="info">
+              <div class="row"><span>// CO.01</span><span>B2B SaaS · Compliance</span></div>
+              <h3>Field House</h3>
+              <p>Compliance workflow for mid-market financial firms. Built in 22 weeks, spun out in 2024, just closed $14M Series A.</p>
+            </div>
+          </a>
+          <a class="pf" href="#">
+            <div class="img"><img src="https://picsum.photos/seed/pivot-2/1400/875" width="1400" height="875" alt="Northbeam product screenshot, an observability dashboard" loading="lazy" /><span class="stage">SEED · 2026</span></div>
+            <div class="info">
+              <div class="row"><span>// CO.02</span><span>Infra · Observability</span></div>
+              <h3>Northbeam</h3>
+              <p>Drop-in observability for small platform teams. 23 weeks build, 14 paying customers at spinout. Closed $4.2M seed.</p>
+            </div>
+          </a>
+          <a class="pf" href="#">
+            <div class="img"><img src="https://picsum.photos/seed/pivot-3/1400/875" width="1400" height="875" alt="Verso Ledger product screenshot, a fintech ledger interface" loading="lazy" /><span class="stage">LIVE BUILD · 26.Q2</span></div>
+            <div class="info">
+              <div class="row"><span>// CO.03</span><span>Fintech · Ledger</span></div>
+              <h3>Verso Ledger</h3>
+              <p>Double-entry ledger primitives for embedded finance products. Currently in week 14 of the 24-week build cycle.</p>
+            </div>
+          </a>
+          <a class="pf" href="#">
+            <div class="img"><img src="https://picsum.photos/seed/pivot-4/1400/875" width="1400" height="875" alt="Atlas Health product screenshot, a health records interface" loading="lazy" /><span class="stage">SPUN OUT · 2025</span></div>
+            <div class="info">
+              <div class="row"><span>// CO.04</span><span>Vertical SaaS · Health</span></div>
+              <h3>Atlas Health</h3>
+              <p>EMR alternative for independent ambulatory surgery centers. Spun out Q4 2025 with $1.2M ARR. CEO recruited from inside.</p>
+            </div>
+          </a>
+          <a class="pf" href="#">
+            <div class="img"><img src="https://picsum.photos/seed/pivot-5/1400/875" width="1400" height="875" alt="Hangar Ops product screenshot, an ops dashboard" loading="lazy" /><span class="stage">SPUN OUT · 2024</span></div>
+            <div class="info">
+              <div class="row"><span>// CO.05</span><span>Ops · DevTools</span></div>
+              <h3>Hangar Ops</h3>
+              <p>Internal tooling generator for small platform teams. Spun out 2024, acquired by an infrastructure company in 2025.</p>
+            </div>
+          </a>
+          <a class="pf" href="#">
+            <div class="img"><img src="https://picsum.photos/seed/pivot-6/1400/875" width="1400" height="875" alt="Salt API product screenshot, a developer console" loading="lazy" /><span class="stage">SPUN OUT · 2024</span></div>
+            <div class="info">
+              <div class="row"><span>// CO.06</span><span>Dev Infra · API</span></div>
+              <h3>Salt API</h3>
+              <p>Postal address validation API for retail and shipping. Built in 18 weeks. Profitable at spinout. No outside capital yet.</p>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="operating" id="operating">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <span class="label">// Operating model</span>
+            <h2>The 24-week <em>build cycle.</em></h2>
+          </div>
+          <p>Every build follows the same cadence. The numbers below are studio averages across 11 spun-out companies and 4 in-flight builds.</p>
+        </div>
+        <div class="op-grid">
+          <div>
+            <div class="key">
+              <div class="label">// Studio averages</div>
+              <div class="val">24 wk</div>
+              <div class="note">from spec lock to spinout, median across 11 companies.</div>
+              <div class="val">$1.2M</div>
+              <div class="note">studio capital deployed per company through to spinout.</div>
+              <div class="val">10</div>
+              <div class="note">paying customers at the spinout date, on average.</div>
+              <div class="val">35%</div>
+              <div class="note">studio equity retained post-spinout; the rest goes to founders.</div>
+            </div>
+          </div>
+          <div class="op-list">
+            <div class="step">
+              <div class="id">// WK 00</div>
+              <div>
+                <div class="name">Spec lock</div>
+                <p class="desc">Studio writes a one-pager and an architecture doc. Twenty operator calls. Internal kill review. Thirty percent of specs die here.</p>
+              </div>
+              <div class="time">~3 weeks</div>
+            </div>
+            <div class="step">
+              <div class="id">// WK 03</div>
+              <div>
+                <div class="name">Founding team formed</div>
+                <p class="desc">Two engineers, one designer, one operator. Some hired from inside the studio, some recruited externally. The future CEO may or may not be on this team.</p>
+              </div>
+              <div class="time">~1 week</div>
+            </div>
+            <div class="step">
+              <div class="id">// WK 04</div>
+              <div>
+                <div class="name">First customer signed</div>
+                <p class="desc">Before a single feature is shipped, the team has to sign a paying design-partner contract. If they can&rsquo;t, the build doesn&rsquo;t start.</p>
+              </div>
+              <div class="time">~3 weeks</div>
+            </div>
+            <div class="step">
+              <div class="id">// WK 07</div>
+              <div>
+                <div class="name">v1 build</div>
+                <p class="desc">Twelve weeks of focused product development. Weekly demos to the design partner. Studio partners review on Fridays.</p>
+              </div>
+              <div class="time">~12 weeks</div>
+            </div>
+            <div class="step">
+              <div class="id">// WK 19</div>
+              <div>
+                <div class="name">First ten customers</div>
+                <p class="desc">Sales cycle starts in week 14. We aim for ten paying customers before spinout. Median: eleven.</p>
+              </div>
+              <div class="time">~5 weeks</div>
+            </div>
+            <div class="step">
+              <div class="id">// WK 24</div>
+              <div>
+                <div class="name">Spinout</div>
+                <p class="desc">Company is incorporated, cap table is signed, founding CEO is announced, studio takes its board seat. We are no longer the operating team.</p>
+              </div>
+              <div class="time">2&ndash;4 weeks</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="track">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <span class="label">// Build track record</span>
+            <h2>Eleven spinouts, <em>four live builds.</em></h2>
+          </div>
+          <p>Every company we&rsquo;ve started, including the ones that didn&rsquo;t make it. We update the table when a build ends, ships, raises, or is wound down.</p>
+        </div>
+        <table class="track-table">
+          <thead>
+            <tr><th>// ID</th><th>Company</th><th>Stage</th><th class="desktop-only">Studio equity</th><th class="desktop-only">Outcome</th><th></th></tr>
+          </thead>
+          <tbody>
+            <tr><td>BLD.026.04</td><td class="co">Verso Ledger<small>Embedded finance primitives</small></td><td><span class="stage">LIVE · WK 14</span></td><td class="desktop-only">42%</td><td class="desktop-only">In flight</td><td class="arr">→</td></tr>
+            <tr><td>BLD.026.03</td><td class="co">Northbeam<small>Observability for platform teams</small></td><td><span class="stage spun">SEED · $4.2M</span></td><td class="desktop-only">38%</td><td class="desktop-only">Spun out 26.Q1</td><td class="arr">→</td></tr>
+            <tr><td>BLD.026.02</td><td class="co">Atlas Health<small>EMR for ambulatory surgery</small></td><td><span class="stage spun">$1.2M ARR</span></td><td class="desktop-only">36%</td><td class="desktop-only">Spun out 25.Q4</td><td class="arr">→</td></tr>
+            <tr><td>BLD.025.04</td><td class="co">Field House<small>Compliance workflow</small></td><td><span class="stage spun">SERIES A · $14M</span></td><td class="desktop-only">28%</td><td class="desktop-only">Spun out 24.Q3</td><td class="arr">→</td></tr>
+            <tr><td>BLD.024.03</td><td class="co">Hangar Ops<small>Internal tooling generator</small></td><td><span class="stage spun">ACQUIRED</span></td><td class="desktop-only">—</td><td class="desktop-only">Acq. 25.Q3</td><td class="arr">→</td></tr>
+            <tr><td>BLD.024.02</td><td class="co">Salt API<small>Address validation API</small></td><td><span class="stage spun">PROFITABLE</span></td><td class="desktop-only">35%</td><td class="desktop-only">Spun out 24.Q1</td><td class="arr">→</td></tr>
+            <tr><td>BLD.023.04</td><td class="co">Pine Logs<small>Centralized logging for SMB</small></td><td><span class="stage spun">WOUND DOWN</span></td><td class="desktop-only">—</td><td class="desktop-only">Closed 24.Q4</td><td class="arr">→</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="team-section" id="team">
+      <div class="wrap">
+        <div class="section-head">
+          <div>
+            <span class="label">// The studio</span>
+            <h2>Eight operators <em>under one roof.</em></h2>
+          </div>
+          <p>Engineers, designers, operators. Every studio member has shipped a venture-backed company at least once. We hire on output, not pedigree.</p>
+        </div>
+        <div class="team-grid">
+          <div class="person"><img src="https://picsum.photos/seed/pivot-t1/600/750" width="600" height="750" alt="Portrait of Adrian Rao, Studio Partner" loading="lazy" /><h4>Adrian Rao</h4><p class="role">// Founder, Studio Partner</p><p>Three exits. Engineering background. Specs the technical bets.</p></div>
+          <div class="person"><img src="https://picsum.photos/seed/pivot-t2/600/750" width="600" height="750" alt="Portrait of Maya Nilsson, Operating Partner" loading="lazy" /><h4>Maya Nilsson</h4><p class="role">// Operating Partner</p><p>Ex-COO at two B2B SaaS companies. Runs the spinout process.</p></div>
+          <div class="person"><img src="https://picsum.photos/seed/pivot-t3/600/750" width="600" height="750" alt="Portrait of Theo Park, Design Partner" loading="lazy" /><h4>Theo Park</h4><p class="role">// Design Partner</p><p>Builds the founding design team for every spinout. Type-led.</p></div>
+          <div class="person"><img src="https://picsum.photos/seed/pivot-t4/600/750" width="600" height="750" alt="Portrait of Lou Ferreira, Sales Partner" loading="lazy" /><h4>Lou Ferreira</h4><p class="role">// Sales Partner</p><p>Closes the first ten customers for every build. Recruits founding AEs.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="fund-info">
+      <div class="wrap">
+        <div class="fund-grid">
+          <div>
+            <span class="label" style="font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent);">// Capital</span>
+            <h2>The <em>studio fund.</em></h2>
+            <p>Pivot House operates on a $48M studio fund (Fund II, 2024 vintage). We deploy studio capital into every build to take it from spec to spinout, then invite outside investors at the priced round.</p>
+            <p>Studio LPs are a mix of family offices, two strategic LPs from adjacent industries, and four operators-turned-LPs. We don&rsquo;t take government money and we don&rsquo;t syndicate from platforms.</p>
+          </div>
+          <div class="facts">
+            <div class="fact"><div class="label">// Fund II AUM</div><div class="val">$48M</div><div class="note">2024 vintage</div></div>
+            <div class="fact"><div class="label">// Per-build capital</div><div class="val">$1.2M</div><div class="note">spec to spinout median</div></div>
+            <div class="fact"><div class="label">// LPs</div><div class="val">12</div><div class="note">family offices + operators</div></div>
+            <div class="fact"><div class="label">// Hold period</div><div class="val">10 yr</div><div class="note">post-spinout median target</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="press">
+      <div class="wrap">
+        <div class="press-row">
+          <div class="label">// As covered in</div>
+          <div class="names">
+            <span>The Information</span>
+            <span>Forbes</span>
+            <span>TechCrunch</span>
+            <span>Stratechery</span>
+            <span>Pitchbook</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="cta-band" id="contact">
+    <div class="wrap">
+      <span class="label" style="font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--accent);">// We accept pitches year-round</span>
+      <h2 style="margin-top: 16px;">Have an idea<br/>worth <em>twenty-four weeks?</em></h2>
+      <p>Send us a paragraph about the problem and one about why now. If we&rsquo;re going to dig in, we&rsquo;ll respond within a week with a real read.</p>
+      <div class="row">
+        <a class="btn-primary btn-big" href="mailto:pitch@pivothouse.studio">pitch@pivothouse.studio</a>
+        <a class="btn-ghost btn-big" href="#portfolio">Read the portfolio first</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-col">
+          <a class="brand" href="#"><span class="brand-mark">P</span> Pivot House</a>
+          <p style="font-size: 14px; color: var(--fg-2); max-width: 320px; margin: 16px 0 0;">A startup studio in Detroit. Spec, build, ship, spin out &mdash; on a 24-week cycle.</p>
+        </div>
+        <div class="foot-col">
+          <h4>// Studio</h4>
+          <a href="#portfolio">Portfolio</a>
+          <a href="#operating">Operating model</a>
+          <a href="#team">Team</a>
+          <a href="#">Open roles</a>
+        </div>
+        <div class="foot-col">
+          <h4>// Visit</h4>
+          <a href="#">3401 Vinewood St</a>
+          <a href="#">Detroit, MI 48208</a>
+          <a href="#">By appointment</a>
+        </div>
+        <div class="foot-col">
+          <h4>// Letters</h4>
+          <a href="#">Quarterly memo</a>
+          <a href="#">Build retros</a>
+          <a href="#">Spinout playbook</a>
+          <a href="#">Press</a>
+        </div>
+      </div>
+      <div class="foot-bot">
+        <span>© 2026 Pivot House Studios LLC</span>
+        <span>// Built · Spun out · Funded</span>
+      </div>
+    </div>
+  </footer>
+<!-- ironflyer-brand:foot:start -->
+<a class="if-sig" href="https://ironflyer.dev" target="_blank" rel="noopener" aria-label="Built with Ironflyer"><span class="if-sig-mark">▮</span><span>Built with <strong>Ironflyer</strong></span></a>
+<script data-if-brand>
+(function(){
+  var sel='section,.feature,.plan,.card,.product,.listing,.item,.testimonial,.case-study,.post,.work,.member,.instructor,.speaker,.dish,.menu-item';
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches){
+    document.querySelectorAll(sel).forEach(function(el){el.style.opacity='1'});
+    return;
+  }
+  function go(){
+    var els=document.querySelectorAll(sel);
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){e.target.classList.add('if-r-in');io.unobserve(e.target)}
+      });
+    },{rootMargin:'-6% 0px -2% 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }
+  document.readyState!=='loading'?go():document.addEventListener('DOMContentLoaded',go);
+})();
+</script>
+<!-- ironflyer-brand:foot:end -->
+</body>
+</html>

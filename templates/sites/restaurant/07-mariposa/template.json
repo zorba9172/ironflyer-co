@@ -1,0 +1,35 @@
+{
+  "slug": "restaurant-07-mariposa",
+  "title": "Mariposa",
+  "subtitle": "A modern Mexican restaurant on Mission Street with a forty-six-bottle mezcal program and live-fire kitchen.",
+  "category": "Restaurant",
+  "type": "Websites",
+  "tags": [
+    "mexican",
+    "vibrant",
+    "photo-led",
+    "mezcal",
+    "fire"
+  ],
+  "previewImage": "/templates/restaurant-07-mariposa.jpg",
+  "palette": {
+    "bg": "#102246",
+    "fg": "#fbf4ea",
+    "accent": "#ff6c3a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "stats",
+    "menu",
+    "mezcal",
+    "story",
+    "press",
+    "visit",
+    "reserve",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Mariposa template as the foundation for a vibrant modern Mexican restaurant site — deep navy with coral and gold, full-bleed photo hero, mixed Bricolage Grotesque and Marcellus serif headlines, a magazine-style dish grid with bento sizing, a long mezcal list, a chef story, and a late-night reservation CTA.",
+  "livePreview": "/template-previews/restaurant-07-mariposa/"
+}

@@ -1,0 +1,34 @@
+{
+  "slug": "mobile-app-05-greenlight",
+  "title": "GreenLight",
+  "subtitle": "One calm app for the lights, locks, and thermostat.",
+  "category": "Mobile App",
+  "type": "Mobile/PWA",
+  "tags": [
+    "smart-home",
+    "modern",
+    "calm",
+    "iot"
+  ],
+  "previewImage": "/templates/mobile-app-05-greenlight.jpg",
+  "palette": {
+    "bg": "#0b1736",
+    "fg": "#f4f6fb",
+    "accent": "#ffd400"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "badges",
+    "devices",
+    "features",
+    "how",
+    "social",
+    "faq",
+    "cta",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the GreenLight template as the foundation for a smart-home mobile-app landing. Keep the navy + yellow system, the CSS phone frame with a room-control UI, supported-device strip, App Store + Google Play badges, three-step setup explainer, and a calm download CTA.",
+  "livePreview": "/template-previews/mobile-app-05-greenlight/"
+}

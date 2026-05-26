@@ -1,0 +1,35 @@
+# iOS Build — compiles the simulator binary on every push to main and
+# on manual triggers. Runs on macos-15 because xcodebuild only ships
+# on Apple-licensed runners. Uses xcodegen so the .xcodeproj does not
+# need to be checked in — the source of truth is xcodegen.yml.
+name: iOS Build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install xcodegen
+        run: brew install xcodegen
+
+      - name: Generate xcodeproj
+        run: make generate
+
+      - name: Build for iOS simulator
+        run: |
+          xcodebuild \
+            -project IronflyerStarter.xcodeproj \
+            -scheme IronflyerStarter \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.2' \
+            clean build

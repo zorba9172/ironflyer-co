@@ -1,0 +1,35 @@
+{
+  "slug": "nonprofit-03-reforest-now",
+  "title": "Reforest Now",
+  "subtitle": "Community-led native reforestation across seven biomes, with verified five-year survival data.",
+  "category": "Nonprofit",
+  "type": "Websites",
+  "tags": [
+    "reforestation",
+    "earthy",
+    "photo",
+    "climate"
+  ],
+  "previewImage": "/templates/nonprofit-03-reforest-now.jpg",
+  "palette": {
+    "bg": "#efe5d4",
+    "fg": "#1d2a1d",
+    "accent": "#2a4a2a"
+  },
+  "sections": [
+    "nav",
+    "hero",
+    "impact",
+    "biomes",
+    "donate",
+    "help",
+    "story",
+    "transparency",
+    "team",
+    "updates",
+    "footer"
+  ],
+  "stack": "HTML + inline CSS",
+  "prompt": "Use the Reforest Now template as the foundation for an earthy reforestation nonprofit site with a cream + deep-forest palette, Cormorant Garamond serif headings, a full-bleed hero photo, divided stat strip, six biome cards with overlay info, a donate card with live impact label, dark cooperative-partnership band, cooperative quote, transparency pie + legend, leadership grid, and a dark forest footer.",
+  "livePreview": "/template-previews/nonprofit-03-reforest-now/"
+}

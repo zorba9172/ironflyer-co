@@ -1,0 +1,26 @@
+# Build output
+DerivedData/
+build/
+*.ipa
+*.dSYM.zip
+
+# Xcode user state
+*.xcuserstate
+xcuserdata/
+
+# SwiftPM
+.swiftpm/
+.build/
+Package.resolved
+
+# Generated Xcode project (re-create with `make generate`)
+IronflyerStarter.xcodeproj/
+
+# Signing material — never commit
+*.p12
+*.mobileprovision
+*.keychain
+*.keychain-db
+
+# macOS noise
+.DS_Store
