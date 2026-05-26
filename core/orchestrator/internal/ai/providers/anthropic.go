@@ -3,6 +3,7 @@ package providers
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/anthropics/anthropic-sdk-go/option"
@@ -560,13 +561,12 @@ func estimateCost(model string, in, out, cacheRead, cacheCreate int) float64 {
 	return (float64(in)*inP + float64(out)*outP + float64(cacheRead)*cacheReadP + float64(cacheCreate)*cacheCreateP) / m
 }
 
+// contains is kept as a thin wrapper around strings.Contains so the
+// many call sites across the provider package don't need to change.
+// The underlying implementation uses the highly tuned Rabin-Karp /
+// substring search in the stdlib instead of the prior naive O(n*m) loop.
 func contains(s, sub string) bool {
-	for i := 0; i+len(sub) <= len(s); i++ {
-		if s[i:i+len(sub)] == sub {
-			return true
-		}
-	}
-	return false
+	return strings.Contains(s, sub)
 }
 
 // isClaude4Family reports whether the given Anthropic model id belongs to the
@@ -574,13 +574,13 @@ func contains(s, sub string) bool {
 // legacy `thinking.type=enabled` shape (Sonnet 3.5/3.7) and the 4.x-required
 // `thinking.type=adaptive` shape. Matches "claude-{opus,sonnet,haiku}-4..."
 // prefixes; everything else falls back to legacy.
+//
+// strings.HasPrefix avoids the per-call []string{...} allocation the
+// prior implementation incurred on every streaming turn.
 func isClaude4Family(model string) bool {
-	for _, prefix := range []string{"claude-opus-4", "claude-sonnet-4", "claude-haiku-4"} {
-		if len(model) >= len(prefix) && model[:len(prefix)] == prefix {
-			return true
-		}
-	}
-	return false
+	return strings.HasPrefix(model, "claude-opus-4") ||
+		strings.HasPrefix(model, "claude-sonnet-4") ||
+		strings.HasPrefix(model, "claude-haiku-4")
 }
 
 var _ Provider = (*AnthropicProvider)(nil)

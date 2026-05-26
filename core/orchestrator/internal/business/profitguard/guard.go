@@ -93,12 +93,17 @@ func (g *guard) Decide(_ context.Context, point EnforcementPoint, state ExecStat
 	// runaway Mac pool builds, Opus chains that estimate huge prompt
 	// budgets, and unbounded verification loops BEFORE the resource
 	// gets allocated — Stop here is cheaper than recovery later.
-	if cap := g.policy.maxNextStepFor(workloadFor(point)); cap > 0 {
+	//
+	// Cache workloadFor(point) once — it's called from three sites
+	// (supply cap, minimum margin, log message) and is invoked on
+	// every Decide(), which runs before every expensive call.
+	workload := workloadFor(point)
+	if cap := g.policy.maxNextStepFor(workload); cap > 0 {
 		if decimalToFloat(estStep) > cap {
 			return Decision{
 				Action: Stop,
 				Reason: fmt.Sprintf("supply_cap: est_step=$%s > workload_cap=$%.2f (%s)",
-					estStep.String(), cap, workloadFor(point)),
+					estStep.String(), cap, workload),
 			}, nil
 		}
 	}
@@ -110,7 +115,7 @@ func (g *guard) Decide(_ context.Context, point EnforcementPoint, state ExecStat
 	expectedRevenue := decimalToFloat(state.UserBudgetUSD)
 	expectedCost := decimalToFloat(state.EstimatedPlatformCostUSD)
 	marginPct := computeMarginPct(expectedRevenue, expectedCost)
-	minimumMargin := g.policy.minimumMarginFor(state, workloadFor(point))
+	minimumMargin := g.policy.minimumMarginFor(state, workload)
 
 	// (3) Expected margin below the per-workload floor. Try every
 	// rescue path before giving up and Stopping.

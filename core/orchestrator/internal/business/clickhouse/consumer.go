@@ -84,6 +84,27 @@ func (c *Consumer) Run(ctx context.Context) error {
 		Str("group", c.group).
 		Msg("clickhouse consumer started")
 
+	// One backoff timer, reused across loop iterations. time.After inside
+	// a select that may not always pick the timer leaks a Timer per miss;
+	// NewTimer + Reset is the leak-free pattern.
+	backoff := time.NewTimer(time.Hour)
+	if !backoff.Stop() {
+		<-backoff.C
+	}
+	defer backoff.Stop()
+	sleep := func() bool {
+		backoff.Reset(time.Second)
+		select {
+		case <-ctx.Done():
+			if !backoff.Stop() {
+				<-backoff.C
+			}
+			return false
+		case <-backoff.C:
+			return true
+		}
+	}
+
 	for {
 		msg, err := reader.FetchMessage(ctx)
 		if err != nil {
@@ -92,10 +113,8 @@ func (c *Consumer) Run(ctx context.Context) error {
 			}
 			c.log.Warn().Err(err).Msg("clickhouse consumer fetch")
 			// Brief backoff so a wedged broker doesn't tight-loop.
-			select {
-			case <-ctx.Done():
+			if !sleep() {
 				return ctx.Err()
-			case <-time.After(time.Second):
 			}
 			continue
 		}
@@ -108,10 +127,8 @@ func (c *Consumer) Run(ctx context.Context) error {
 			consumerEventsTotal.WithLabelValues(msg.Topic, "error").Inc()
 			// Skip commit so the broker redelivers. Sleep first to
 			// avoid a hot loop while ClickHouse is down.
-			select {
-			case <-ctx.Done():
+			if !sleep() {
 				return ctx.Err()
-			case <-time.After(time.Second):
 			}
 			continue
 		}
@@ -262,12 +279,28 @@ func insertRaw(ctx context.Context, c *Client, table string, env rawEnvelope, pa
 // consumer skips them rather than inventing a table.
 func tableForTopic(topic string) (string, bool) {
 	// Strip the ifly.<env>. prefix so dev/staging/prod all map to the
-	// same raw table.
-	parts := strings.Split(topic, ".")
-	if len(parts) < 4 || parts[0] != "ifly" {
+	// same raw table. Parse the dotted prefix without strings.Split so
+	// the hot ingest path doesn't allocate a fresh []string per event.
+	const prefix = "ifly."
+	if !strings.HasPrefix(topic, prefix) {
 		return "", false
 	}
-	domain := parts[2]
+	rest := topic[len(prefix):] // <env>.<domain>.<rest>
+	envEnd := strings.IndexByte(rest, '.')
+	if envEnd < 0 {
+		return "", false
+	}
+	rest = rest[envEnd+1:] // <domain>.<rest>
+	domEnd := strings.IndexByte(rest, '.')
+	if domEnd < 0 {
+		return "", false
+	}
+	if len(rest[domEnd+1:]) == 0 {
+		// Original guard required len(parts) >= 4 — at least one
+		// trailing segment after the domain.
+		return "", false
+	}
+	domain := rest[:domEnd]
 	switch domain {
 	case "execution":
 		return "raw_execution_events", true

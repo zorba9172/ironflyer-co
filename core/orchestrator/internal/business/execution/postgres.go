@@ -224,7 +224,10 @@ func (p *Postgres) ListByTenant(ctx context.Context, tenant string, limit, offse
 		return nil, err
 	}
 	defer rows.Close()
-	out := make([]Execution, 0)
+	// Pre-size to the query's LIMIT — we know the upper bound and the
+	// resolver-facing list is typically near full, so growing from 0
+	// burns through several reallocations per call for nothing.
+	out := make([]Execution, 0, limit)
 	for rows.Next() {
 		e, err := scanExecution(rows)
 		if err != nil {
@@ -252,7 +255,7 @@ func (p *Postgres) ListByTenantAndProject(ctx context.Context, tenant, projectID
 		return nil, err
 	}
 	defer rows.Close()
-	out := make([]Execution, 0)
+	out := make([]Execution, 0, limit)
 	for rows.Next() {
 		e, err := scanExecution(rows)
 		if err != nil {
@@ -681,6 +684,9 @@ func (p *Postgres) LatestSecurityFindings(ctx context.Context, executionID strin
 // gate.skipped.v1, gate.repaired.v1) imply the status from the type
 // itself.
 func (p *Postgres) GateEventsByExecution(ctx context.Context, executionID string) ([]GateEvent, error) {
+	// Hard cap: even a multi-hour run with thousands of gate replays
+	// stays bounded so the resolver does not stream the entire history
+	// across the wire on every executionFeed reconnect.
 	rows, err := p.pool.Query(ctx, `
         SELECT event_type, payload, created_at
         FROM execution_events
@@ -690,7 +696,8 @@ func (p *Postgres) GateEventsByExecution(ctx context.Context, executionID string
                              'gate.passed.v1',
                              'gate.skipped.v1',
                              'gate.repaired.v1')
-        ORDER BY created_at ASC`, executionID)
+        ORDER BY created_at ASC
+        LIMIT 2000`, executionID)
 	if err != nil {
 		return nil, err
 	}
@@ -716,12 +723,15 @@ func (p *Postgres) GateEventsByExecution(ctx context.Context, executionID string
 
 // PatchAppliedEventsByExecution — Postgres implementation.
 func (p *Postgres) PatchAppliedEventsByExecution(ctx context.Context, executionID string) ([]PatchAppliedEvent, error) {
+	// Hard cap matches GateEventsByExecution; bounded read keeps the
+	// feed replay path cheap even on pathological long-running runs.
 	rows, err := p.pool.Query(ctx, `
         SELECT payload, created_at
         FROM execution_events
         WHERE execution_id = $1
           AND event_type = 'patch.applied.v1'
-        ORDER BY created_at ASC`, executionID)
+        ORDER BY created_at ASC
+        LIMIT 2000`, executionID)
 	if err != nil {
 		return nil, err
 	}
@@ -746,13 +756,15 @@ func (p *Postgres) PatchAppliedEventsByExecution(ctx context.Context, executionI
 
 // RecoveryAttemptsByExecution — Postgres implementation.
 func (p *Postgres) RecoveryAttemptsByExecution(ctx context.Context, executionID string) ([]RecoveryAttempt, error) {
+	// Hard cap matches the other per-execution feed reads.
 	rows, err := p.pool.Query(ctx, `
         SELECT event_type, payload, created_at
         FROM execution_events
         WHERE execution_id = $1
           AND event_type IN ('recovery.recipe_hit.v1',
                              'recovery.recipe_applied.v1')
-        ORDER BY created_at ASC`, executionID)
+        ORDER BY created_at ASC
+        LIMIT 2000`, executionID)
 	if err != nil {
 		return nil, err
 	}
@@ -783,6 +795,9 @@ func (p *Postgres) RecoveryAttemptsByExecution(ctx context.Context, executionID 
 // (matched by the consumed marker's payload->>'refine_id' = the
 // originating row id). Oldest first.
 func (p *Postgres) PendingRefinements(ctx context.Context, executionID string) ([]Refinement, error) {
+	// LIMIT 500 — operator refinements are a low-volume signal; an
+	// execution carrying hundreds of unacked refinements is already
+	// pathological. Bounded read keeps the NOT EXISTS join cost capped.
 	rows, err := p.pool.Query(ctx, `
         SELECT id::text, payload, created_at
         FROM execution_events
@@ -794,7 +809,8 @@ func (p *Postgres) PendingRefinements(ctx context.Context, executionID string) (
                 AND e2.event_type = 'studio.refine.consumed.v1'
                 AND e2.payload->>'refine_id' = execution_events.id::text
           )
-        ORDER BY created_at ASC`, executionID)
+        ORDER BY created_at ASC
+        LIMIT 500`, executionID)
 	if err != nil {
 		return nil, logPGErr(ctx, "pending_refinements", executionID, err)
 	}
@@ -838,17 +854,45 @@ func (p *Postgres) DrainRefinements(ctx context.Context, executionID string) ([]
 	if err != nil {
 		return nil, err
 	}
+	if len(pending) == 0 {
+		return pending, nil
+	}
 	now := time.Now().UTC()
+	consumedAtStr := now.Format(time.RFC3339Nano)
+	// PendingRefinements just confirmed every row's execution exists;
+	// pipeline every consumed-marker INSERT through pgx.Batch so the N
+	// rows ship in a single round-trip rather than N×recordAndEmit
+	// sequential Exec calls. The broker fanout still happens after the
+	// batch closes — subscribers see the post-drain state.
+	batch := &pgx.Batch{}
+	payloads := make([]json.RawMessage, len(pending))
 	for i := range pending {
 		ack := now
 		pending[i].ConsumedAt = &ack
-		payload := mustJSON(map[string]any{
+		payloads[i] = mustJSON(map[string]any{
 			"refine_id":   pending[i].ID,
-			"consumed_at": now.Format(time.RFC3339Nano),
+			"consumed_at": consumedAtStr,
 		})
-		// Best-effort: a failed insert just means this refinement
-		// will surface again on the next Drain (idempotent retry).
-		_ = p.RecordEvent(ctx, executionID, EventStudioRefineConsumedV1, payload)
+		batch.Queue(
+			`INSERT INTO execution_events(execution_id, event_type, payload, created_at)
+             VALUES ($1, $2, $3, $4)`,
+			executionID, EventStudioRefineConsumedV1, []byte(payloads[i]), now,
+		)
+	}
+	br := p.pool.SendBatch(ctx, batch)
+	for range pending {
+		// Best-effort: a failed insert just means this refinement will
+		// surface again on the next Drain (idempotent retry).
+		_, _ = br.Exec()
+	}
+	_ = br.Close()
+	for i := range pending {
+		p.broker.publish(Event{
+			ExecutionID: executionID,
+			EventType:   EventStudioRefineConsumedV1,
+			Payload:     payloads[i],
+			CreatedAt:   now,
+		})
 	}
 	return pending, nil
 }

@@ -47,6 +47,17 @@
 region: "eu"
 requireRegion: true
 
+# Go runtime tuning — pinned in prod so the binary respects the cgroup
+# limits set on the orchestrator + runtime pods (2Gi limit → ~80%
+# GOMEMLIMIT = 1638MiB; 2 CPU limit → GOMAXPROCS=2). Without this the
+# Go runtime sees the host's cores via /proc and oversubscribes, and
+# the GC has no soft cap so a runaway allocation OOM-kills the pod
+# before the orchestrator can drain in-flight requests.
+goRuntime:
+  GOMEMLIMIT: "1638MiB"
+  GOMAXPROCS: "2"
+  GOGC: "100"
+
 # Public hostname the ingress publishes everything under in prod.
 host: api.ironflyer.ai
 ingress:

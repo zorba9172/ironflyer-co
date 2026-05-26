@@ -115,6 +115,17 @@ spec:
                   key: SENTRY_DSN
                   optional: true
             {{- end }}
+            # Go runtime tuning — see values.yaml `goRuntime`.
+            {{- with .Values.goRuntime.GOMEMLIMIT }}
+            - { name: GOMEMLIMIT, value: {{ . | quote }} }
+            {{- end }}
+            {{- with .Values.goRuntime.GOMAXPROCS }}
+            - { name: GOMAXPROCS, value: {{ . | quote }} }
+            - { name: IRONFLYER_GOMAXPROCS, value: {{ . | quote }} }
+            {{- end }}
+            {{- with .Values.goRuntime.GOGC }}
+            - { name: GOGC, value: {{ . | quote }} }
+            {{- end }}
           startupProbe:
             httpGet: { path: /readyz, port: http }
             periodSeconds: 5

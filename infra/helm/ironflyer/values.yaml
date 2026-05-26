@@ -207,9 +207,24 @@ priorityClass:
   description: "Ironflyer production workloads. Preempt low-prio noise."
 
 # Tuned graceful-shutdown windows. preStop sleep lets the service mesh /
-# ingress drop the pod from rotation before SIGTERM lands.
-terminationGracePeriodSeconds: 30
+# ingress drop the pod from rotation before SIGTERM lands. The in-app
+# shutdown deadline is 30s for the HTTP drain, so the grace period must
+# leave headroom for the preStop sleep PLUS that drain (10s + 30s = 40s;
+# 45s keeps a 5s safety margin before the kubelet sends SIGKILL).
+terminationGracePeriodSeconds: 45
 preStopSleepSeconds: 10
+
+# Go runtime tuning surfaced as env to the orchestrator + runtime pods.
+# Empty values leave the binary at its compiled defaults. GOMEMLIMIT is
+# the soft heap cap that prevents OOM-kills under sustained allocation;
+# size it to ~80% of the container memory limit. GOMAXPROCS overrides
+# Go's NumCPU default (which inside cgroups reports the host's cores,
+# not the container's limit). GOGC 100 is the default; 50 is tighter
+# for memory-constrained pods, 200 looser for CPU-bound ones.
+goRuntime:
+  GOMEMLIMIT: ""    # e.g. "1638MiB" (~80% of 2Gi); empty = no soft cap
+  GOMAXPROCS: ""    # e.g. "2"; empty = Go's NumCPU default
+  GOGC: ""          # e.g. "100"; empty = Go default
 
 orchestrator:
   enabled: true

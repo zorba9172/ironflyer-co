@@ -2,9 +2,13 @@ package main
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"os"
 	"os/signal"
+	goruntime "runtime"
+	"runtime/debug"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -34,6 +38,22 @@ func main() {
 	if err != nil {
 		logger.Fatal().Err(err).Msg("config")
 	}
+
+	// ---------------- Go runtime tuning -----------------------------------
+	if v := strings.TrimSpace(os.Getenv("IRONFLYER_GOMAXPROCS")); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			goruntime.GOMAXPROCS(n)
+			logger.Info().Int("gomaxprocs", n).Msg("GOMAXPROCS overridden via env")
+		}
+	}
+	if v := strings.TrimSpace(os.Getenv("IRONFLYER_GOMEMLIMIT")); v != "" {
+		if n, err := strconv.ParseInt(v, 10, 64); err == nil && n > 0 {
+			debug.SetMemoryLimit(n)
+			logger.Info().Int64("gomemlimit_bytes", n).Msg("GOMEMLIMIT overridden via env")
+		}
+	}
+	logger.Info().Int("gomaxprocs", goruntime.GOMAXPROCS(0)).Int("numcpu", goruntime.NumCPU()).
+		Msg("Go runtime: GOMAXPROCS active")
 
 	// ---------------- Sentry (optional) ------------------------------------
 	dsn := strings.TrimSpace(os.Getenv("RUNTIME_SENTRY_DSN"))
@@ -77,7 +97,10 @@ func main() {
 		logger.Warn().Err(scaleErr).Msg("runtime scale plane disabled (boot error)")
 	}
 	if scaleRes.Drainer != nil {
-		go scaleRes.Drainer.Run(bgCtxScale)
+		superviseDaemon(bgCtxScale, logger, "warmpool-drainer", func(runCtx context.Context) error {
+			scaleRes.Drainer.Run(runCtx)
+			return nil
+		})
 		logger.Info().Msg("warm pool drainer started")
 	}
 
@@ -157,7 +180,10 @@ func main() {
 		archiver, _ = workspaces.NewArchiver(bgCtx, workspaces.ArchiverConfig{EFSRoot: cfg.EFSMount, Store: store}, logger)
 	}
 	idleScanner := workspaces.NewScanner(store, archiver, cfg.IdleArchiveAfter, 2*time.Minute, logger)
-	go idleScanner.Run(bgCtx)
+	superviseDaemon(bgCtx, logger, "idle-scanner", func(runCtx context.Context) error {
+		idleScanner.Run(runCtx)
+		return nil
+	})
 
 	// ---------------- Portability (state + snapshot) --------------------
 	// The portable workspace stack is additive: the legacy single-pod
@@ -246,8 +272,21 @@ func main() {
 		Addr:              cfg.Addr,
 		Handler:           handler,
 		ReadHeaderTimeout: 5 * time.Second,
+		// PTY WebSockets + workspace upload streams are long-lived, so
+		// IdleTimeout reclaims wedged keep-alives but WriteTimeout=0
+		// lets streaming endpoints set per-request deadlines.
+		ReadTimeout:  60 * time.Second,
+		WriteTimeout: 0,
+		IdleTimeout:  120 * time.Second,
 	}
 	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				logger.Error().Interface("panic", r).Bytes("stack", debug.Stack()).
+					Msg("http listener panic recovered")
+				sentryext.CaptureRecovered(bgCtx, r)
+			}
+		}()
 		logger.Info().Str("addr", cfg.Addr).Msg("workspace runtime listening")
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.Fatal().Err(err).Msg("server")
@@ -256,9 +295,14 @@ func main() {
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
-	<-stop
-	logger.Info().Msg("SIGTERM received — releasing owned workspaces")
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	sig := <-stop
+	signal.Stop(stop)
+	logger.Info().Str("signal", sig.String()).Msg("SIGTERM received — releasing owned workspaces")
+	// Cancel the long-lived ctx so daemons (drainer, idle scanner,
+	// portability workers) exit cleanly before we close the HTTP server.
+	bgCancel()
+	bgCancelScale()
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	// Release Redis claims so the next request lands on whichever pod
 	// the LB picks. PTY clients have already received their
@@ -266,8 +310,34 @@ func main() {
 	for _, id := range registry.OwnedIDs() {
 		registry.Release(shutdownCtx, id)
 	}
-	_ = server.Shutdown(shutdownCtx)
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		logger.Warn().Err(err).Msg("http server shutdown")
+	}
 	_ = registry.Close()
+	logger.Info().Msg("shutdown complete")
+}
+
+// superviseDaemon launches fn in a goroutine, recovers any panic so a
+// single daemon crash never tears the runtime down, reports the panic
+// through Sentry + zerolog tagged by daemon name, and exits when ctx
+// is cancelled. Used by the warm-pool drainer, idle scanner, and the
+// portability workers.
+func superviseDaemon(ctx context.Context, logger zerolog.Logger, name string, fn func(context.Context) error) {
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				logger.Error().
+					Str("daemon", name).
+					Interface("panic", r).
+					Bytes("stack", debug.Stack()).
+					Msg("daemon goroutine panic recovered")
+				sentryext.CaptureRecovered(ctx, r)
+			}
+		}()
+		if err := fn(ctx); err != nil && !errors.Is(err, context.Canceled) {
+			logger.Warn().Str("daemon", name).Err(err).Msg("daemon exited with error")
+		}
+	}()
 }
 
 func buildLogger(cfg config.Config) zerolog.Logger {

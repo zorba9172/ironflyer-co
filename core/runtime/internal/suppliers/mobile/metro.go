@@ -215,6 +215,11 @@ func (m *MetroProxy) Stop(ctx context.Context, workspaceID string) error {
 func (m *MetroProxy) waitForMetro(ctx context.Context, ws sandbox.Workspace) error {
 	drv := m.sandboxMgr.Driver()
 	deadline := time.Now().Add(metroStartupBudget)
+	// NewTimer + Reset avoids the per-iteration Timer leak that time.After
+	// would otherwise cause inside this polling loop.
+	t := time.NewTimer(metroPollInterval)
+	defer t.Stop()
+	first := true
 	for time.Now().Before(deadline) {
 		res, err := drv.Exec(ctx, ws, sandbox.ExecOpts{
 			Shell:          fmt.Sprintf("curl -fsS --max-time 2 http://127.0.0.1:%d/status 2>/dev/null || true", MetroPortDefault),
@@ -223,10 +228,20 @@ func (m *MetroProxy) waitForMetro(ctx context.Context, ws sandbox.Workspace) err
 		if err == nil && strings.Contains(res.Stdout, "packager-status:running") {
 			return nil
 		}
+		if !first {
+			t.Reset(metroPollInterval)
+		}
+		first = false
 		select {
 		case <-ctx.Done():
+			if !t.Stop() {
+				select {
+				case <-t.C:
+				default:
+				}
+			}
 			return ctx.Err()
-		case <-time.After(metroPollInterval):
+		case <-t.C:
 		}
 	}
 	return fmt.Errorf("metro did not become ready within %s", metroStartupBudget)

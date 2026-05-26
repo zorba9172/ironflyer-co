@@ -21,6 +21,8 @@ func init() {
 var (
 	streamTransportOnce sync.Once
 	streamTransport     *http.Transport
+	streamClientOnce    sync.Once
+	streamClient        *http.Client
 )
 
 // StreamingTransport returns the shared, lazily-initialised
@@ -74,6 +76,14 @@ const (
 // headers — while letting the body run as long as the caller's context
 // allows. ResponseHeaderTimeout is the critical guard: it caps how long
 // a hung upstream can stall us before the first byte of headers.
+//
+// The *http.Client is built once and reused — every provider that
+// instantiates a fresh stream was previously allocating a wrapper
+// struct (and dragging the GC through a tiny per-request object) for
+// no behaviour difference.
 func streamingHTTPClient() *http.Client {
-	return &http.Client{Transport: StreamingTransport()}
+	streamClientOnce.Do(func() {
+		streamClient = &http.Client{Transport: StreamingTransport()}
+	})
+	return streamClient
 }

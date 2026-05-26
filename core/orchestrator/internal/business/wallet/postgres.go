@@ -637,20 +637,21 @@ func scanWallet(row pgx.Row) (Wallet, error) {
 		&w.UpdatedAt, &w.CreatedAt); err != nil {
 		return Wallet{}, fmt.Errorf("wallet: scan: %w", err)
 	}
-	for _, p := range []struct {
-		src string
-		dst *decimal.Decimal
-	}{
-		{balance, &w.BalanceUSD},
-		{hold, &w.HoldUSD},
-		{topup, &w.LifetimeTopUpUSD},
-		{spend, &w.LifetimeSpendUSD},
-	} {
-		d, err := decimal.NewFromString(p.src)
-		if err != nil {
-			return Wallet{}, fmt.Errorf("wallet: parse amount %q: %w", p.src, err)
-		}
-		*p.dst = d
+	// Unrolled to skip the per-call []struct{...} literal allocation and
+	// the *decimal.Decimal pointer dance — Get is on the wallet hot path
+	// (every GraphQL Wallet field read + every BillingGuard reservation).
+	var err error
+	if w.BalanceUSD, err = decimal.NewFromString(balance); err != nil {
+		return Wallet{}, fmt.Errorf("wallet: parse balance %q: %w", balance, err)
+	}
+	if w.HoldUSD, err = decimal.NewFromString(hold); err != nil {
+		return Wallet{}, fmt.Errorf("wallet: parse hold %q: %w", hold, err)
+	}
+	if w.LifetimeTopUpUSD, err = decimal.NewFromString(topup); err != nil {
+		return Wallet{}, fmt.Errorf("wallet: parse topup %q: %w", topup, err)
+	}
+	if w.LifetimeSpendUSD, err = decimal.NewFromString(spend); err != nil {
+		return Wallet{}, fmt.Errorf("wallet: parse spend %q: %w", spend, err)
 	}
 	return w, nil
 }

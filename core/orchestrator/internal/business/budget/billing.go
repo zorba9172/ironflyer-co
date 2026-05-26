@@ -153,13 +153,22 @@ func (b *Billing) PlanByTier(t PlanTier) (Plan, bool) {
 // PlansByTiers batch-fetches plans by tier id. Tiers without a
 // matching Plan are omitted from the result so the dataloader can
 // surface that absence per key.
+//
+// Builds a single tier-keyed index over b.Plans up front so a batch
+// of N tier lookups is O(P + N) instead of O(P * N) — the dataloader
+// calls this on every GraphQL query that touches User.plan, so
+// shaving the inner scan matters at scale.
 func (b *Billing) PlansByTiers(tiers []PlanTier) map[PlanTier]Plan {
 	out := make(map[PlanTier]Plan, len(tiers))
-	if b == nil {
+	if b == nil || len(tiers) == 0 {
 		return out
 	}
+	index := make(map[PlanTier]Plan, len(b.Plans))
+	for _, p := range b.Plans {
+		index[p.Tier] = p
+	}
 	for _, t := range tiers {
-		if p, ok := b.PlanByTier(t); ok {
+		if p, ok := index[t]; ok {
 			out[t] = p
 		}
 	}

@@ -14,6 +14,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	goruntime "runtime"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"syscall"
@@ -102,6 +104,29 @@ func main() {
 	logger := buildLogger(cfg)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("config load failed")
+	}
+
+	// ---------------- Go runtime tuning -----------------------------------
+	// GOMAXPROCS: containers default to NumCPU which reports the host's
+	// cores, not the cgroup limit. When IRONFLYER_GOMAXPROCS is set we
+	// honour it explicitly. Otherwise the Go runtime's default applies.
+	if v := strings.TrimSpace(os.Getenv("IRONFLYER_GOMAXPROCS")); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			goruntime.GOMAXPROCS(n)
+			logger.Info().Int("gomaxprocs", n).Msg("GOMAXPROCS overridden via env")
+		}
+	}
+	logger.Info().Int("gomaxprocs", goruntime.GOMAXPROCS(0)).Int("numcpu", goruntime.NumCPU()).
+		Msg("Go runtime: GOMAXPROCS active")
+	// GOMEMLIMIT: Go 1.19+ soft limit prevents the GC from letting heap
+	// grow past the container memory cap and triggering an OOM-kill.
+	// IRONFLYER_GOMEMLIMIT (in bytes) is honoured first; otherwise we
+	// trust the runtime to honour the standard GOMEMLIMIT env.
+	if v := strings.TrimSpace(os.Getenv("IRONFLYER_GOMEMLIMIT")); v != "" {
+		if n, err := strconv.ParseInt(v, 10, 64); err == nil && n > 0 {
+			debug.SetMemoryLimit(n)
+			logger.Info().Int64("gomemlimit_bytes", n).Msg("GOMEMLIMIT overridden via env")
+		}
 	}
 
 	// In-process diagnostics ring + zerolog hook. The hook captures
@@ -204,14 +229,15 @@ func main() {
 				Logger:        logger.With().Str("svc", "event-publisher").Logger(),
 			})
 			publisherDaemon = pump
-			go func() {
-				runCtx, span := tracing.StartSpan(ctx, "publisher.daemon")
+			superviseDaemon(ctx, logger, "event-publisher", func(runCtx context.Context) error {
+				runCtx, span := tracing.StartSpan(runCtx, "publisher.daemon")
 				defer span.End()
-				if err := pump.Run(runCtx); err != nil && !errors.Is(err, context.Canceled) {
+				err := pump.Run(runCtx)
+				if err != nil && !errors.Is(err, context.Canceled) {
 					span.RecordError(err)
-					logger.Warn().Err(err).Msg("event publisher stopped")
 				}
-			}()
+				return err
+			})
 			// Pre-create DLQ topics so the first dead row finds its
 			// target ready. Idempotent and best-effort: a failure here
 			// is logged but never blocks startup.
@@ -768,10 +794,11 @@ func main() {
 	)
 	storageBillerCtx, storageBillerSpan := tracing.StartSpan(ctx, "storage.biller.daemon")
 	storageBiller.Start(storageBillerCtx)
-	go func() {
+	superviseDaemon(ctx, logger, "storage-biller-span", func(runCtx context.Context) error {
 		<-storageBillerCtx.Done()
 		storageBillerSpan.End()
-	}()
+		return nil
+	})
 	logger.Info().
 		Str("rate_usd_per_gb_month", storage.DefaultRate().USDPerGBMonth.String()).
 		Msg("V22 storage biller armed (NoopUsageSource until a real bucket source lands)")
@@ -1073,29 +1100,26 @@ func main() {
 		chRes = wireup.ClickHouseResult{}
 	}
 	if chRes.Consumer != nil {
-		go func() {
-			if err := chRes.Consumer.Run(ctx); err != nil && !errors.Is(err, context.Canceled) {
-				logger.Warn().Err(err).Msg("clickhouse consumer stopped")
-			}
-		}()
+		superviseDaemon(ctx, logger, "clickhouse-consumer", func(runCtx context.Context) error {
+			return chRes.Consumer.Run(runCtx)
+		})
 	}
 	if chRes.Ingester != nil {
-		go func() {
-			if err := chRes.Ingester.Run(ctx); err != nil && !errors.Is(err, context.Canceled) {
-				logger.Warn().Err(err).Msg("clickhouse outbox ingester stopped")
-			}
-		}()
+		superviseDaemon(ctx, logger, "clickhouse-ingester", func(runCtx context.Context) error {
+			return chRes.Ingester.Run(runCtx)
+		})
 	}
 	if chRes.Client != nil {
 		correction := clickhouse.NewCorrectionJob(chRes.Client, logger, 14, time.Hour)
-		go func() {
-			runCtx, span := tracing.StartSpan(ctx, "clickhouse.correction.daemon")
+		superviseDaemon(ctx, logger, "clickhouse-correction", func(runCtx context.Context) error {
+			runCtx, span := tracing.StartSpan(runCtx, "clickhouse.correction.daemon")
 			defer span.End()
-			if err := correction.Run(runCtx); err != nil && !errors.Is(err, context.Canceled) {
+			err := correction.Run(runCtx)
+			if err != nil && !errors.Is(err, context.Canceled) {
 				span.RecordError(err)
-				logger.Error().Err(err).Msg("clickhouse correction job exited")
 			}
-		}()
+			return err
+		})
 	}
 
 	// ---------------- V22 Wave-2: deploy plane -----------------------------
@@ -1120,14 +1144,15 @@ func main() {
 	// real approval_decided event even when no operator returns.
 	if deploySvc != nil {
 		deploySweeper := deploy.NewSweeper(deploySvc, logger, 0)
-		go func() {
-			runCtx, span := tracing.StartSpan(ctx, "deploy.sweeper.daemon")
+		superviseDaemon(ctx, logger, "deploy-sweeper", func(runCtx context.Context) error {
+			runCtx, span := tracing.StartSpan(runCtx, "deploy.sweeper.daemon")
 			defer span.End()
-			if err := deploySweeper.Run(runCtx); err != nil && !errors.Is(err, context.Canceled) {
+			err := deploySweeper.Run(runCtx)
+			if err != nil && !errors.Is(err, context.Canceled) {
 				span.RecordError(err)
-				logger.Error().Err(err).Msg("deploy approval sweeper exited")
 			}
-		}()
+			return err
+		})
 	}
 
 	// Policy bundle hot-reloader: only does anything when
@@ -1140,11 +1165,9 @@ func main() {
 			rebinder = rb
 		}
 		policyReloader := policy.NewReloader(policyCfg, rebinder, logger)
-		go func() {
-			if err := policyReloader.Run(ctx); err != nil && !errors.Is(err, context.Canceled) {
-				logger.Error().Err(err).Msg("policy reloader exited")
-			}
-		}()
+		superviseDaemon(ctx, logger, "policy-reloader", func(runCtx context.Context) error {
+			return policyReloader.Run(runCtx)
+		})
 	}
 
 	// ---------------- V22 Wave-2: abuse engine + GraphQL hardening ---------
@@ -1287,14 +1310,15 @@ func main() {
 		easPoller = eas.NewPoller(easClient, ledgerSvc,
 			eas.WithPollerLogger(logger.With().Str("component", "eas-poller").Logger()),
 		)
-		go func() {
-			runCtx, span := tracing.StartSpan(ctx, "eas.poller.daemon")
+		superviseDaemon(ctx, logger, "eas-poller", func(runCtx context.Context) error {
+			runCtx, span := tracing.StartSpan(runCtx, "eas.poller.daemon")
 			defer span.End()
-			if err := easPoller.Start(runCtx); err != nil && !errors.Is(err, context.Canceled) {
+			err := easPoller.Start(runCtx)
+			if err != nil && !errors.Is(err, context.Canceled) {
 				span.RecordError(err)
-				logger.Error().Err(err).Msg("eas poller stopped")
 			}
-		}()
+			return err
+		})
 	} else {
 		logger.Warn().Msg("EAS_TOKEN unset — mobile resolvers will fall back to per-project secrets only")
 	}
@@ -1382,8 +1406,22 @@ func main() {
 		Addr:              cfg.Addr,
 		Handler:           api,
 		ReadHeaderTimeout: 5 * time.Second,
+		// SSE streams + GraphQL subscriptions can be long-lived, so we
+		// favour generous (but finite) body/write/idle deadlines over
+		// none-at-all. Slowloris protection still leans on
+		// ReadHeaderTimeout. IdleTimeout reclaims wedged keep-alives.
+		ReadTimeout:  60 * time.Second,
+		WriteTimeout: 0, // streaming endpoints set per-request deadlines
+		IdleTimeout:  120 * time.Second,
 	}
 	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				logger.Error().Interface("panic", r).Bytes("stack", debug.Stack()).
+					Msg("http listener panic recovered")
+				sentryext.CaptureRecovered(ctx, r)
+			}
+		}()
 		logger.Info().Str("addr", cfg.Addr).Str("env", cfg.Env).
 			Str("db", cfg.DBDriver).Bool("auth_optional", cfg.AuthOptional).
 			Msg("orchestrator listening")
@@ -1394,22 +1432,30 @@ func main() {
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
-	<-stop
+	sig := <-stop
+	signal.Stop(stop)
 
-	logger.Info().Msg("shutting down")
+	logger.Info().Str("signal", sig.String()).Msg("shutting down")
+	// Cancel the root context first so every background daemon receives
+	// the cancellation immediately. Then drain HTTP with a wider deadline
+	// so in-flight requests can finish (helm terminationGracePeriod gives
+	// us 45s; we reserve 30s for the HTTP drain and 15s for the rest).
 	cancelMain()
 	if temporalRuntime != nil {
 		temporalRuntime.Stop()
 	}
-	shCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	_ = server.Shutdown(shCtx)
+	if err := server.Shutdown(shCtx); err != nil {
+		logger.Warn().Err(err).Msg("http server shutdown")
+	}
 	if eventPublisher != nil {
 		_ = eventPublisher.Close()
 	}
 	if pgPool != nil {
 		pgPool.Close()
 	}
+	logger.Info().Msg("shutdown complete")
 }
 
 // connectPostgresTuned builds a pgxpool.Pool with production-scale sizing.
@@ -2010,6 +2056,31 @@ func buildDeviceCloudManager(logger zerolog.Logger, ledgerSvc ledger.Service) *d
 		mgr.Register(devicecloud.NewAWSDeviceFarmClient(creds.AWSAccessKeyID, creds.AWSSecretAccessKey, ""))
 	}
 	return mgr
+}
+
+// superviseDaemon launches fn in its own goroutine, recovers any panic
+// (so a single daemon crash never tears the whole orchestrator down),
+// reports the panic to Sentry + zerolog tagged by daemon name, and
+// blocks until ctx is cancelled. Used by every long-running background
+// worker the orchestrator owns (publisher, biller, sweeper, clickhouse
+// consumer/ingester/correction, EAS poller, policy reloader, …).
+func superviseDaemon(ctx context.Context, logger zerolog.Logger, name string, fn func(context.Context) error) {
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				stack := debug.Stack()
+				logger.Error().
+					Str("daemon", name).
+					Interface("panic", r).
+					Bytes("stack", stack).
+					Msg("daemon goroutine panic recovered")
+				sentryext.CaptureRecovered(ctx, r)
+			}
+		}()
+		if err := fn(ctx); err != nil && !errors.Is(err, context.Canceled) {
+			logger.Warn().Str("daemon", name).Err(err).Msg("daemon exited with error")
+		}
+	}()
 }
 
 func buildLogger(cfg config.Config) zerolog.Logger {
