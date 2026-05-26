@@ -47,6 +47,7 @@ import {
   Typography,
 } from "@mui/material";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import {
   use,
   useCallback,
@@ -55,6 +56,35 @@ import {
   useState,
   type ReactNode,
 } from "react";
+
+// ExecutionFlow ships a React Flow canvas + CSS — keep the cold
+// /executions surface lean by loading the chunk only when an exec
+// detail page mounts.
+const ExecutionFlow = dynamic(
+  () =>
+    import("../../../src/components/charts/ExecutionFlow").then(
+      (m) => m.ExecutionFlow,
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <Box
+        sx={{
+          height: 220,
+          borderRadius: 1.5,
+          border: `1px solid ${tokens.color.border.subtle}`,
+          bgcolor: tokens.color.bg.surface,
+        }}
+      />
+    ),
+  },
+);
+import type {
+  ExecutionFlowGate,
+  ExecutionFlowPhase,
+  GateVerdict,
+  PhaseStatus as FlowPhaseStatus,
+} from "../../../src/components/charts/ExecutionFlow";
 import {
   EmptyState,
   ErrorPanel,
@@ -76,6 +106,7 @@ import {
   useExecutionFeedSubscription,
   useExecutionLedgerQuery,
   useExecutionQuery,
+  useExecutionSupportBundleQuery,
   useProfitGuardDecisionsQuery,
   type ExecutionCoreFragment,
 } from "../../../src/lib/gql/__generated__";
@@ -210,6 +241,122 @@ function derivePhases(
   return map;
 }
 
+// PHASE_KEYWORDS — same keyword set as derivePhases, exposed so
+// enrichPhases can attribute each event to the right phase for the
+// per-node counts and "last activity" lines. Order matters: longer
+// or more specific tokens first so "patch" doesn't swallow "deploy".
+const PHASE_KEYWORDS: Record<PhaseKey, string[]> = {
+  queue: ["queue", "admit", "reserve"],
+  plan: ["plan", "blueprint", "describe"],
+  patch: ["patch", "diff", "file", "edit"],
+  build: ["build", "compile"],
+  verify: ["verify", "gate", "verdict", "score"],
+  ship: ["deploy", "ship", "promote", "publish"],
+};
+
+function phaseKeyOf(eventType: string): PhaseKey | null {
+  const t = eventType.toLowerCase();
+  // Verify before patch so "verify" doesn't get matched by "file"-style
+  // tokens, and ship before patch so "promote" wins over "patch".
+  const order: PhaseKey[] = ["ship", "verify", "build", "patch", "plan", "queue"];
+  for (const k of order) {
+    for (const kw of PHASE_KEYWORDS[k]) {
+      if (t.includes(kw)) return k;
+    }
+  }
+  return null;
+}
+
+// "What's missing to close this phase" — copy that nudges the
+// operator toward the next action. Heuristic but deterministic.
+function missingHintFor(
+  key: PhaseKey,
+  status: PhaseStatus,
+  count: number,
+  pendingGates: number,
+): string | undefined {
+  if (status === "done") return undefined;
+  if (status === "failed") return "Phase failed — open the timeline for the error event.";
+  if (status === "pending") return "Awaiting the previous phase to finish.";
+  // active
+  switch (key) {
+    case "queue":
+      return "Wallet hold + admit handshake still in flight.";
+    case "plan":
+      return count === 0
+        ? "Waiting for the idea parser to emit a plan event."
+        : "Plan in progress — finisher is still refining the spec.";
+    case "patch":
+      return count === 0
+        ? "Waiting for the first patch.propose event."
+        : "Patches landing — verify gate will pick them up next.";
+    case "build":
+      return "Build artifact has not been produced yet.";
+    case "verify":
+      if (pendingGates > 0) {
+        return `${pendingGates} gate${pendingGates === 1 ? "" : "s"} still pending a verdict.`;
+      }
+      return "No verdicts emitted yet — gates are evaluating.";
+    case "ship":
+      return "Awaiting deploy.success / promote event.";
+  }
+}
+
+function enrichPhases(
+  status: string,
+  events: LiveEvent[],
+  pendingGates: number,
+): ExecutionFlowPhase[] {
+  const flat = derivePhases(status, events);
+  // Per-phase aggregates.
+  const counts: Record<PhaseKey, number> = {
+    queue: 0,
+    plan: 0,
+    patch: 0,
+    build: 0,
+    verify: 0,
+    ship: 0,
+  };
+  const lastByPhase: Record<PhaseKey, LiveEvent | null> = {
+    queue: null,
+    plan: null,
+    patch: null,
+    build: null,
+    verify: null,
+    ship: null,
+  };
+  for (const ev of events) {
+    const k = phaseKeyOf(ev.eventType);
+    if (!k) continue;
+    counts[k] += 1;
+    // Events arrive in chronological order; keep the latest.
+    lastByPhase[k] = ev;
+  }
+  return PHASES.map((p) => {
+    const s = flat[p.key];
+    const last = lastByPhase[p.key];
+    return {
+      key: p.key,
+      label: p.label,
+      status: s as FlowPhaseStatus,
+      eventCount: counts[p.key],
+      lastEvent: last
+        ? { type: last.eventType, at: last.createdAt }
+        : null,
+      missing: missingHintFor(p.key, s, counts[p.key], pendingGates),
+    } satisfies ExecutionFlowPhase;
+  });
+}
+
+function gateVerdictOf(raw: string | null | undefined): GateVerdict {
+  const s = (raw ?? "").toLowerCase();
+  if (s === "pass" || s === "passed") return "pass";
+  if (s === "fail" || s === "failed") return "fail";
+  if (s === "blocked" || s === "block") return "blocked";
+  if (s === "skip" || s === "skipped" || s === "n/a") return "skip";
+  return "pending";
+}
+
 function phaseColor(s: PhaseStatus): string {
   switch (s) {
     case "done":
@@ -294,6 +441,16 @@ function ExecutionCockpit({ id }: { id: string }) {
     skip: terminal,
   });
 
+  // ── support bundle (gates / cost report) ──────────────────────
+  // Apollo dedupes with the SupportBundlePanel further down, so this
+  // adds no extra network round-trip while letting the workflow DAG
+  // render gate sub-nodes the moment they land.
+  const bundleQ = useExecutionSupportBundleQuery({
+    variables: { executionID: id },
+    fetchPolicy: "cache-and-network",
+    pollInterval: terminal ? 0 : 5000,
+  });
+
   const [events, setEvents] = useState<LiveEvent[]>([]);
   useEffect(() => {
     const ev = feed.data?.executionFeed;
@@ -361,7 +518,12 @@ function ExecutionCockpit({ id }: { id: string }) {
         onRefund={() => setRefundOpen(true)}
       />
 
-      <PhaseStepper status={e.status} events={events} createdAt={e.createdAt} />
+      <ExecutionFlowCard
+        status={e.status}
+        events={events}
+        createdAt={e.createdAt}
+        gateStages={bundleQ.data?.executionSupportBundle.gateReport.stages ?? null}
+      />
 
       <Box
         sx={{
@@ -609,6 +771,55 @@ function HeaderStrip({
 }
 
 // ─── phase stepper ────────────────────────────────────────────────
+
+// ExecutionFlowCard — workflow DAG that replaces the linear stepper.
+// Wraps the React Flow canvas in a cockpit card with the same header
+// strip (elapsed clock + section overline) the operator already knows
+// from the old PhaseStepper.
+function ExecutionFlowCard({
+  status,
+  events,
+  createdAt,
+  gateStages,
+}: {
+  status: string;
+  events: LiveEvent[];
+  createdAt: string;
+  gateStages:
+    | { name: string; status: string; issuesCount: number }[]
+    | null;
+}) {
+  const elapsed = useElapsed(createdAt, true);
+
+  const gates: ExecutionFlowGate[] = useMemo(() => {
+    if (!gateStages) return [];
+    return gateStages.map((g) => ({
+      name: g.name,
+      status: gateVerdictOf(g.status),
+      issuesCount: g.issuesCount,
+    }));
+  }, [gateStages]);
+
+  const pendingGates = gates.filter(
+    (g) => g.status === "pending" || g.status === "blocked",
+  ).length;
+
+  const phases = useMemo(
+    () => enrichPhases(status, events, pendingGates),
+    [status, events, pendingGates],
+  );
+
+  return (
+    <Card sx={{ p: 1.5, mb: 1, overflow: "visible" }}>
+      <ExecutionFlow
+        phases={phases}
+        gates={gates}
+        status={status}
+        elapsedLabel={elapsed}
+      />
+    </Card>
+  );
+}
 
 function PhaseStepper({
   status,

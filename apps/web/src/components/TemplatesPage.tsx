@@ -118,6 +118,12 @@ export function TemplatesPage() {
             },
           },
         });
+        if (res.errors && res.errors.length > 0) {
+          throw new Error(
+            res.errors.map((e) => e.message).join("\n") ||
+              "Backend rejected the request.",
+          );
+        }
         const projectID = res.data?.describeIdea.project.id;
         const executionID = res.data?.describeIdea.execution.id;
         if (!projectID) {

@@ -47,6 +47,25 @@ export function getOpenvscodeUrl(projectID?: string): string {
   return `${base}/?${params.toString()}`;
 }
 
+// getOpenvscodeFileUrl — opens the same workspace folder and asks VS Code
+// to focus a specific file. OpenVSCode/code-server both understand
+// `goto=/abs/path[:line[:column]]`.
+export function getOpenvscodeFileUrl(
+  projectID: string,
+  filePath: string,
+  line = 1,
+  column = 1,
+): string {
+  const base = resolveOpenvscodeBase();
+  const folder = getOpenvscodeFolder(projectID);
+  const rel = cleanWorkspacePath(filePath);
+  const params = new URLSearchParams();
+  params.set("folder", folder);
+  params.set("goto", `${folder}/${rel}:${Math.max(1, line)}:${Math.max(1, column)}`);
+  if (projectID.trim()) params.set("projectID", projectID.trim());
+  return `${base}/?${params.toString()}`;
+}
+
 export function getOpenvscodeFolder(projectID?: string): string {
   const folder = projectID?.trim() ? projectFolderName(projectID) : "project";
   return `${OPENVSCODE_WORKSPACE_ROOT}/${folder}`;
@@ -54,4 +73,12 @@ export function getOpenvscodeFolder(projectID?: string): string {
 
 export function projectFolderName(projectID: string): string {
   return projectID.replace(/[^a-zA-Z0-9._-]+/g, "-").slice(0, 80) || "project";
+}
+
+function cleanWorkspacePath(raw: string): string {
+  const parts = raw
+    .replaceAll("\\", "/")
+    .split("/")
+    .filter((part) => part && part !== "." && part !== "..");
+  return parts.join("/") || "README.md";
 }

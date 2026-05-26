@@ -148,6 +148,23 @@ func WriteEventInTx(ctx context.Context, tx pgx.Tx, e events.Event) error {
 	e.Headers = stampHeaders(ctx, e)
 	if reg := currentRegistry(); reg != nil {
 		subject := events.SubjectFor(e.Topic, e.Type)
+		// Stamp the envelope fields the schemas require (event_id /
+		// tenant_id / occurred_at) into the payload so producers can keep
+		// posting domain-only bodies. The originals (e.ID, e.CreatedAt,
+		// headers.tenant_id) remain authoritative.
+		if _, ok := e.Payload["event_id"]; !ok {
+			e.Payload["event_id"] = e.ID.String()
+		}
+		if _, ok := e.Payload["occurred_at"]; !ok {
+			e.Payload["occurred_at"] = e.CreatedAt.UTC().Format(time.RFC3339Nano)
+		}
+		if _, ok := e.Payload["tenant_id"]; !ok {
+			if t, ok2 := e.Headers["tenant_id"].(string); ok2 && t != "" {
+				e.Payload["tenant_id"] = t
+			} else if e.Key != "" {
+				e.Payload["tenant_id"] = e.Key
+			}
+		}
 		payloadBytes, mErr := json.Marshal(e.Payload)
 		if mErr != nil {
 			return fmt.Errorf("outboxhooks: marshal payload for validation: %w", mErr)

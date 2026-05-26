@@ -50,6 +50,16 @@ export interface WorkbenchLayoutState {
   codeMode: WorkbenchCodeMode;
 }
 
+// DEFAULT_STATE — landing layout for a fresh project.
+//
+// `primary: "preview"` is **constitutional**: per the Visualization-
+// First Contract (CLAUDE.md → "VISUALIZATION-FIRST, CODE-FOR-PROS"
+// and DESIGN_REFERENCE.md → "Visualization-First Contract"), every
+// operator surface must lead with a visual mirror of the AI's
+// technical state. Monaco / cloud IDE are the professional layer
+// reachable via the code-mode switcher; they MUST NOT become the
+// default landing pane. Do not change this default to "code" — flip
+// the constitution first.
 const DEFAULT_STATE: WorkbenchLayoutState = {
   primary: "preview",
   leftOpen: true,

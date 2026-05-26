@@ -112,6 +112,54 @@ Every Studio change must pass an automated user-journey check that covers prompt
 
 The core post-build automation must also walk the operational surfaces that prove the product loop is connected: execution detail, cost, ledger, ProfitGuard, support bundle, wallet, deploy list, and deploy detail. A mock that returns an empty success path is not enough; it must include realistic projects, executions, support bundles, patches, deploys, wallet top-ups, ledger entries, and ProfitGuard decisions.
 
+## Visualization-First Contract
+
+Operator-facing surfaces (studio workbench, execution detail, profit
+dashboard, wallet, deploy detail, security review) must lead with a
+visual that mirrors the AI's current technical state — workflow DAG,
+spend bars, cost-breakdown bar, gate verdict graph, revenue/cost area —
+before exposing raw tables, JSON payloads, or text-only status. The
+visualization is the first thing the operator sees per route and is
+the answer to "what is happening right now".
+
+Every visual must bind to live orchestrator state. Nodes, bars, chips,
+gauges, and edges map one-to-one to a phase, gate, patch, cost line,
+ledger entry, deploy artifact, or finding. Decorative charts with no
+backing series are a bug, not chartjunk.
+
+The "what is not closed end-to-end" surface is mandatory: phase nodes,
+gate chips, and breakdown legends must explicitly name a blocking item
+(pending gate, missing build artifact, unresolved patch, headroom or
+overage on budget) so an operator can read open work without expanding
+the timeline.
+
+Information graphs default to a compact glanceable form and expand on
+hover, click, or toggle. The studio Workbench primary pane defaults to
+`preview` — never `code` — so the first paint reflects the build, not
+the source.
+
+Heavy visualization libraries (echarts, @xyflow/react, future
+three.js views) load through `next/dynamic({ ssr: false })`. Cold
+routes that do not render a chart must not pay the chunk cost.
+
+Charts pull every color from `chartPalette` and `tokens.color.*`
+(see `apps/web/src/components/charts/EChart.tsx`). No raw hex, no
+lime-first chrome.
+
+## Code-Editor-For-Pros Contract
+
+Monaco, the cloud IDE iframe, raw event payload viewers, GraphQL
+Sandbox, ledger CSV export, and any future code-grade pane are the
+professional layer of Ironflyer — reachable in one click from every
+relevant surface, but never the default landing experience.
+
+These panes must read as power tools rather than as primary product:
+mono fonts allowed, terse labels allowed, density tighter than the
+visual layer, and they must announce themselves as the lifted hood
+(`Open code`, `Open in IDE`, `Open ledger`, `Open sandbox`). Replacing
+a visualization with a code editor as the default for any route is a
+regression against the Visualization-First Contract above.
+
 ## VS Code Cloud Contract
 
 Studio is a VS Code cloud-style product builder. The visual target is `design-reference/2026-05-25-private-ironflyer/references/STUDIO_VSCODE_CLOUD_TARGET.md` and the private Studio screenshot it records: global nav, left rail, breadcrumb/action bar, mode/status row, prompt panel, file tree, code editor, preview, status cards, assistant strip, and bounded internal scrolling.

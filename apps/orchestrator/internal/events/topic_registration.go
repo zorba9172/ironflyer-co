@@ -198,19 +198,22 @@ func RegisterV22Topics(ctx context.Context, reg Registry, log zerolog.Logger) er
 	// 2) Per-event subjects: <topic>-<event_type> against the runtime
 	// (env-aware) topic. The producers stamp event-type-specific
 	// subjects via outboxhooks.WriteEventInTx so the registry must too.
+	//
+	// Per-event subjects intentionally use the envelope schema (3
+	// required fields: event_id, tenant_id, occurred_at) — not the
+	// richer per-topic schema. Topic-level schemas (e.g. billing.ledger
+	// requires `entry_type, direction, amount_usd`) are correct for
+	// ledger rows but reject sibling event types in the same domain
+	// (wallet.topup/.hold/.release/.debit/.refund don't carry
+	// `entry_type`). Per-event payload-shape validation will land in a
+	// future pass that ships per-eventType schemas; until then the
+	// envelope is the V22 contract.
 	envelope := EnvelopeSchema
 	for stem, eventTypes := range matrix {
-		// Prefer the embedded per-topic schema when present (richer
-		// payload-shape validation); fall back to the envelope schema.
-		raw, err := fs.ReadFile(v22Schemas, "schemas/"+stem+".json")
-		schemaDoc := envelope
-		if err == nil && len(raw) > 0 {
-			schemaDoc = string(raw)
-		}
 		runtimeTopic := envTopicFor(env, stem)
 		for _, et := range eventTypes {
 			subject := SubjectFor(runtimeTopic, et)
-			if r, s := registerOne(ctx, reg, subject, schemaDoc, log); r {
+			if r, s := registerOne(ctx, reg, subject, envelope, log); r {
 				registered++
 			} else if s {
 				skipped++

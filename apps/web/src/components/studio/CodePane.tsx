@@ -27,6 +27,7 @@ import {
   ArchiveRounded,
   ArticleOutlined,
   CloudDownloadRounded,
+  CodeRounded,
   ContentCopyRounded,
   DownloadRounded,
   FolderOutlined,
@@ -54,6 +55,7 @@ import {
   type PatchCoreFragment,
   type ProjectFilesQuery,
 } from "../../lib/gql/__generated__";
+import { getOpenvscodeFileUrl } from "../../lib/ide";
 import { tokens } from "../../theme";
 
 // Monaco is heavy (~1MB). We're already inside CodePane (which is
@@ -664,6 +666,7 @@ export function CodePane({ projectID, executionID, executionStatus }: CodePanePr
       <Box sx={{ display: "flex", flexDirection: "column", minHeight: 0 }}>
         {selectedFile ? (
           <FileViewer
+            projectID={projectID}
             file={selectedFile}
             changed={changed.has(selectedFile.path)}
             ideChanged={ideChanged.has(selectedFile.path)}
@@ -695,6 +698,7 @@ export function CodePane({ projectID, executionID, executionStatus }: CodePanePr
 }
 
 function FileViewer({
+  projectID,
   file,
   changed,
   ideChanged,
@@ -704,6 +708,7 @@ function FileViewer({
   onToggleWordWrap,
   onToggleMinimap,
 }: {
+  projectID: string;
   file: ProjectFile;
   changed: boolean;
   ideChanged: boolean;
@@ -714,6 +719,15 @@ function FileViewer({
   onToggleMinimap: () => void;
 }) {
   const language = file.language?.trim() || languageFromPath(file.path);
+
+  const openInIDE = () => {
+    if (typeof window === "undefined") return;
+    window.open(
+      getOpenvscodeFileUrl(projectID, file.path),
+      "_blank",
+      "noopener,noreferrer",
+    );
+  };
 
   const openRaw = () => {
     if (typeof window === "undefined" || file.content == null) return;
@@ -875,6 +889,24 @@ function FileViewer({
             aria-label="Copy file path"
           >
             <ContentCopyRounded sx={{ fontSize: 14 }} />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Open this file in VS Code" arrow>
+          <IconButton
+            size="small"
+            onClick={openInIDE}
+            sx={{
+              bgcolor: `${tokens.color.accent.purple}22`,
+              color: tokens.color.accent.violet,
+              p: 0.25,
+              "&:hover": {
+                bgcolor: `${tokens.color.accent.purple}33`,
+                color: tokens.color.text.primary,
+              },
+            }}
+            aria-label="Open file in VS Code"
+          >
+            <CodeRounded sx={{ fontSize: 14 }} />
           </IconButton>
         </Tooltip>
         <Tooltip title="View raw" arrow>

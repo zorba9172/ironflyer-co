@@ -20,11 +20,11 @@ import {
   Typography,
 } from "@mui/material";
 import { useMemo, type ReactNode } from "react";
+import { CostBreakdownBar } from "../charts/CostBreakdownBar";
 import { LoadingPanel } from "../cockpit/LoadingPanel";
 import { MetricCard } from "../cockpit/MetricCard";
 import { MoneyChip } from "../cockpit/MoneyChip";
 import { StatusBadge } from "../cockpit/StatusBadge";
-import { formatMoney } from "../../lib/format";
 import { relativeTime } from "../../lib/relativeTime";
 import {
   useExecutionSupportBundleQuery,
@@ -75,7 +75,6 @@ export function DashboardPane({
 
   const budget = execution.budgetUSD;
   const spent = execution.spentUSD;
-  const budgetPct = budget > 0 ? Math.min(1, spent / budget) : 0;
 
   // Timeline = system + costtick entries, newest last.
   const timeline = useMemo(
@@ -165,23 +164,27 @@ export function DashboardPane({
           </Typography>
         </Stack>
 
+        <Card sx={{ p: 2 }}>
+          <CostBreakdownBar
+            budgetUSD={budget}
+            providerCostUSD={bundle?.costReport.providerCostUSD ?? execution.providerCostUSD}
+            sandboxCostUSD={bundle?.costReport.sandboxCostUSD ?? execution.sandboxCostUSD}
+            storageCostUSD={bundle?.costReport.storageCostUSD ?? execution.storageCostUSD}
+            deploymentCostUSD={bundle?.costReport.deploymentCostUSD ?? execution.deploymentCostUSD}
+            spentUSD={spent}
+          />
+        </Card>
+
         <Box
           sx={{
             display: "grid",
             gap: 1.5,
             gridTemplateColumns: {
               xs: "1fr",
-              sm: "1fr 1fr",
-              lg: "repeat(4, 1fr)",
+              sm: "repeat(3, 1fr)",
             },
           }}
         >
-          <MetricCard
-            label="Spent vs budget"
-            value={`${formatMoney(spent)}`}
-            hint={`of ${formatMoney(budget)} hold (${(budgetPct * 100).toFixed(0)}%)`}
-            accent="lime"
-          />
           <MetricCard
             label="Gates"
             value={

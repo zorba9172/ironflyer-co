@@ -463,8 +463,48 @@ type minimalSchema struct {
 	Properties map[string]minimalPropertyConstrain `json:"properties"`
 }
 
+// minimalPropertyConstrain captures the per-property `type` clause. JSON
+// Schema draft-6+ allows `type` to be a single string OR an array of
+// strings (e.g. `["string","null"]` for nullable fields). We accept both
+// shapes — the validator below treats any of the listed types as
+// satisfactory.
 type minimalPropertyConstrain struct {
-	Type string `json:"type"`
+	Types []string
+}
+
+func (p *minimalPropertyConstrain) UnmarshalJSON(b []byte) error {
+	if len(b) == 0 {
+		return nil
+	}
+	// Try string first (the common case).
+	var s string
+	if err := json.Unmarshal(b, &s); err == nil {
+		if s != "" {
+			p.Types = []string{s}
+		}
+		return nil
+	}
+	// Fall back to array of strings.
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(b, &raw); err == nil {
+		if tRaw, ok := raw["type"]; ok {
+			b = tRaw
+		}
+	}
+	var arr []string
+	if err := json.Unmarshal(b, &arr); err == nil {
+		p.Types = arr
+		return nil
+	}
+	// Object form: {"type": ...} — extract the inner type and recurse.
+	var obj struct {
+		Type json.RawMessage `json:"type"`
+	}
+	if err := json.Unmarshal(b, &obj); err == nil && len(obj.Type) > 0 {
+		return p.UnmarshalJSON(obj.Type)
+	}
+	// Unknown shape — leave Types empty so the validator skips this field.
+	return nil
 }
 
 func validateJSONSchemaMinimal(schemaJSON string, payload []byte) error {
@@ -494,11 +534,19 @@ func validateJSONSchemaMinimal(schemaJSON string, payload []byte) error {
 		if !ok || v == nil {
 			continue // unspecified optional field is fine
 		}
-		if prop.Type == "" {
+		if len(prop.Types) == 0 {
 			continue
 		}
-		if !jsonTypeMatches(prop.Type, v) {
-			return fmt.Errorf("%w: field %q expected %s", ErrSchemaValidation, name, prop.Type)
+		// Any-of-types semantics per JSON Schema draft-6+.
+		matched := false
+		for _, t := range prop.Types {
+			if jsonTypeMatches(t, v) {
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			return fmt.Errorf("%w: field %q expected one of %v", ErrSchemaValidation, name, prop.Types)
 		}
 	}
 	return nil

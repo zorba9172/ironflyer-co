@@ -23,8 +23,9 @@ type Config struct {
 	// the SignUp resolver credits the freshly-minted wallet with this
 	// USD amount via wallet.TopUp(stripeSessionID="dev-seed-<userID>")
 	// so the operator can immediately run describeIdea without going
-	// through Stripe. Ignored outside of dev. Default 0 (off).
-	DevWalletSeedUSD float64 `env:"IRONFLYER_DEV_WALLET_SEED_USD" envDefault:"0"`
+	// through Stripe. Ignored outside of dev (resolver-level gate on
+	// Env=="dev"). Default 50 so any dev orchestrator boots usable.
+	DevWalletSeedUSD float64 `env:"IRONFLYER_DEV_WALLET_SEED_USD" envDefault:"50"`
 	LogLevel  string `env:"IRONFLYER_LOG_LEVEL" envDefault:"info" validate:"oneof=debug info warn error"`
 	LogFormat string `env:"IRONFLYER_LOG_FORMAT" envDefault:"console" validate:"oneof=console json"`
 

@@ -223,6 +223,51 @@ The user has explicitly stated this is constitutional: "תקבע בחוקה
 שאסור לגעת בעיצוב, הכל צריך להיות כמו ברפרנס". Treat structural drift
 the same way you treat raw-hex drift — revert immediately and flag.
 
+### Constitutional rule: VISUALIZATION-FIRST, CODE-FOR-PROS
+
+Ironflyer is a paid AI execution engine — and the AI's technical
+state is the product. Every operator-facing surface must mirror that
+state as a **quick-readable visual graph** before falling back to
+raw text or tables. Code-grade tooling (the Monaco editor, the
+cloud IDE, raw GraphQL, ledger CSVs) is the **professional layer**
+that lives behind a toggle; it is not the default.
+
+**Hard rules:**
+
+- **The default view of every cockpit, studio, execution, profit,
+  and wallet surface is visual.** A workflow DAG, chart, gauge,
+  stacked bar, timeline, or status graph must surface what the
+  orchestrator is doing right now and what is still open end-to-end
+  before the operator scrolls past raw tables.
+- **Visualizations are mirrors, not decoration.** Every node, bar,
+  or chip must map to a concrete piece of orchestrator state
+  (phase, gate verdict, cost line, patch, deploy artifact, gate
+  finding). No charts that exist to look impressive without a live
+  data binding.
+- **The "what is not closed end-to-end" surface is mandatory.**
+  Phase nodes, gate chips, and cost panels must expose what is
+  blocking the next transition: a pending gate, a missing build
+  artifact, an unresolved patch, an unbudgeted cost line. A run
+  that says "running" without naming what is open is a regression.
+- **Collapsible information graphs.** Information graphs must
+  default to a compact, glanceable form and expand on hover, click,
+  or toggle. Operators must be able to skim five surfaces in ten
+  seconds and dive into one of them in two clicks.
+- **Code editor is opt-in, not opt-out.** Monaco / cloud IDE /
+  Apollo Sandbox / raw timeline JSON are reachable in one click but
+  never the landing pane. They are positioned as the "open the
+  hood" path for professionals.
+- **Charts honor the locked palette.** Every chart pulls from
+  `chartPalette` in `apps/web/src/components/charts/EChart.tsx` and
+  `tokens.color.*`. No raw hex; no lime as a primary chart series.
+- **Heavy libraries lazy-load.** echarts, @xyflow/react, three.js
+  and any future viz lib MUST be imported through `next/dynamic`
+  with `ssr: false` so they never land in the cold initial bundle.
+
+If a feature ships a new operator surface without a default visual
+that mirrors the underlying technical state, it works against the
+product even if the GraphQL plumbing is correct.
+
 ### Constitutional rule: NO TESTS, EVER
 
 This repository does not carry tests and never will. The rule is

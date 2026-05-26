@@ -62,9 +62,23 @@ func (r *mutationResolver) SignUp(ctx context.Context, input model.SignUpInput) 
 	}
 	// Dev convenience: pre-fund the new wallet so describeIdea runs
 	// without Stripe being wired. Strictly Env=="dev" + seed > 0.
+	r.Logger.Info().Str("user_id", u.ID).
+		Str("dev_env", r.DevEnv).
+		Float64("seed_usd", r.DevWalletSeedUSD).
+		Bool("wallet_svc_present", r.WalletSvc != nil).
+		Msg("auth: signup dev-seed gate evaluation")
 	if r.DevEnv == "dev" && r.DevWalletSeedUSD > 0 && r.WalletSvc != nil {
 		amt := decimal.NewFromFloat(r.DevWalletSeedUSD)
-		_ = r.WalletSvc.TopUp(ctx, u.ID, amt, "dev-seed-"+u.ID)
+		if terr := r.WalletSvc.TopUp(ctx, u.ID, amt, "dev-seed-"+u.ID); terr != nil {
+			r.Logger.Warn().Err(terr).Str("user_id", u.ID).Float64("seed_usd", r.DevWalletSeedUSD).
+				Msg("auth: dev wallet seed failed (user will have $0 balance)")
+		} else {
+			r.Logger.Info().Str("user_id", u.ID).Float64("seed_usd", r.DevWalletSeedUSD).
+				Msg("auth: dev wallet seeded")
+		}
+	} else if r.DevEnv == "dev" && r.WalletSvc != nil {
+		r.Logger.Debug().Str("user_id", u.ID).Float64("seed_usd", r.DevWalletSeedUSD).
+			Msg("auth: dev wallet seed skipped (seed amount is 0)")
 	}
 	return sess, nil
 }
