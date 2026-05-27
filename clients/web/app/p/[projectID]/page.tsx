@@ -69,6 +69,7 @@ import {
 import { pushToast } from "../../../src/lib/stores/uiStore";
 import { tokens } from "../../../src/theme";
 import type { StudioAttachment } from "../../../src/components/studio/types";
+import StudioPreviewPage from "../../studio/page";
 
 // Heavy panes lazy-load. They share the same fallback so the shell
 // keeps a consistent loading skin while their JS chunk lands.
@@ -142,18 +143,19 @@ function ProjectStudioInner() {
   const { user } = useAuth();
   const executionIDParam =
     search?.get("executionID") || search?.get("execution") || "";
+  const demoPreview = projectID === "demo" && !executionIDParam;
 
   const layout = useWorkbenchLayout(projectID);
 
   // 1. Resolve projectID → executionID.
   const projectExecutionsQuery = useProjectExecutionsQuery({
     variables: { projectId: projectID, limit: 5 },
-    skip: !projectID || !!executionIDParam,
+    skip: !projectID || !!executionIDParam || demoPreview,
     fetchPolicy: "cache-and-network",
   });
   const projectQuery = useProjectQuery({
     variables: { id: projectID },
-    skip: !projectID,
+    skip: !projectID || demoPreview,
     fetchPolicy: "cache-and-network",
   });
 
@@ -170,7 +172,7 @@ function ProjectStudioInner() {
     (!resolvedExecution || !TERMINAL_STATUSES.has(resolvedExecution.status));
   const executionQuery = useExecutionQuery({
     variables: { id: executionLookupID },
-    skip: !executionLookupID,
+    skip: !executionLookupID || demoPreview,
     fetchPolicy: "cache-and-network",
     pollInterval: shouldPollExecution ? 4000 : 0,
   });
@@ -209,7 +211,7 @@ function ProjectStudioInner() {
   // 3. Subscribe to executionFeed.
   const sub = useExecutionFeedSubscription({
     variables: { id: executionID },
-    skip: !executionID,
+    skip: !executionID || demoPreview,
   });
   useEffect(() => {
     const ev = sub.data?.executionFeed;
@@ -337,6 +339,10 @@ function ProjectStudioInner() {
         />
       </Box>
     );
+  }
+
+  if (demoPreview) {
+    return <StudioPreviewPage />;
   }
 
   if (
