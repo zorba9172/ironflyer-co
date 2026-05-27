@@ -88,6 +88,18 @@ func CSRFMiddleware(opts CSRFOptions) func(http.Handler) http.Handler {
 				next.ServeHTTP(w, r)
 				return
 			}
+			// Truly anonymous POSTs (no Bearer + no session cookie set
+			// by /auth.tsx) carry no auto-attached credential the
+			// attacker could exploit, so they also bypass CSRF. This
+			// covers signIn / signUp / requestPasswordReset where the
+			// SPA hasn't yet received a token and therefore can't
+			// guarantee the CSRF cookie was issued before the first
+			// POST round-trip. Without this gate the first signin from
+			// a fresh browser tab returns 403.
+			if !hasSessionCredential(r) {
+				next.ServeHTTP(w, r)
+				return
+			}
 			cookie, err := r.Cookie(opts.Cookie)
 			if err != nil || cookie == nil || cookie.Value == "" {
 				csrfRejects.Inc()
@@ -151,6 +163,23 @@ func mutates(method string) bool {
 func hasBearer(r *http.Request) bool {
 	h := strings.TrimSpace(r.Header.Get("Authorization"))
 	return len(h) > 7 && strings.EqualFold(h[:7], "Bearer ")
+}
+
+// hasSessionCredential reports whether the request carries any
+// browser-auto-attached auth: either a Bearer token (sent explicitly
+// by JS, but already covered upstream) or the `ironflyer_token`
+// session cookie set by clients/web/src/lib/auth.tsx after sign-in.
+// CSRF protection is only meaningful when one of these is present —
+// truly anonymous calls (a cold-tab signIn) have no credential an
+// attacker could exploit.
+func hasSessionCredential(r *http.Request) bool {
+	if hasBearer(r) {
+		return true
+	}
+	if c, _ := r.Cookie("ironflyer_token"); c != nil && c.Value != "" {
+		return true
+	}
+	return false
 }
 
 // ErrCSRFMissing is exported for any caller that wants to assert the
