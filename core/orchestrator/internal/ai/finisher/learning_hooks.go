@@ -20,6 +20,8 @@ package finisher
 
 import (
 	"context"
+	"os"
+	"strings"
 	"sync"
 
 	"github.com/google/uuid"
@@ -135,12 +137,69 @@ func (h *LearningHooks) OnPatchApplied(ctx context.Context, executionID, intent 
 // LookupRecipe is the read side of the genome. Returns ok=false (and
 // nil error) when no recipe matches. nil-safe: a nil hook or nil
 // store returns ok=false.
+//
+// When IRONFLYER_REPAIR_SEMANTIC=true and the exact-match miss path
+// triggers, the hook falls through to LookupSimilar(failure, 0.82, 3)
+// on the genome. A semantic hit whose cosine similarity is >=
+// HighConfidenceSemanticThreshold (0.92) is returned as if it were
+// an exact match — the agent can apply it directly. A hit in the
+// 0.82..0.92 band is returned via LookupRecipeCandidate; callers
+// that want the "review-before-apply" surface should call that
+// method instead.
 func (h *LearningHooks) LookupRecipe(ctx context.Context, failure string) (repair.Recipe, bool, error) {
 	if h == nil || h.Genome == nil || failure == "" {
 		return repair.Recipe{}, false, nil
 	}
 	sig := repair.FailureSignature(failure)
-	return h.Genome.Lookup(ctx, sig)
+	if r, ok, err := h.Genome.Lookup(ctx, sig); err == nil && ok {
+		return r, true, nil
+	} else if err != nil {
+		return repair.Recipe{}, false, err
+	}
+	if !semanticRepairEnabled() {
+		return repair.Recipe{}, false, nil
+	}
+	hits, err := h.Genome.LookupSimilar(ctx, failure, repair.DefaultSemanticThreshold, 3)
+	if err != nil || len(hits) == 0 {
+		return repair.Recipe{}, false, err
+	}
+	top := hits[0]
+	if float64(top.Score) >= repair.HighConfidenceSemanticThreshold {
+		return top.Recipe, true, nil
+	}
+	// Mid-confidence candidate — exposed via LookupRecipeCandidate, not
+	// this method, so callers that haven't been updated continue to
+	// short-circuit safely on the high-confidence hits only.
+	return repair.Recipe{}, false, nil
+}
+
+// LookupRecipeCandidate is the "review-before-apply" surface. It
+// returns the highest-scoring semantic hit even when its score is in
+// the candidate band (DefaultSemanticThreshold..HighConfidenceSemanticThreshold)
+// so a calling agent can surface the recipe to the operator before
+// applying. score == 0 means "no candidate found". nil-safe.
+func (h *LearningHooks) LookupRecipeCandidate(ctx context.Context, failure string) (recipe repair.Recipe, score float32, found bool, err error) {
+	if h == nil || h.Genome == nil || failure == "" || !semanticRepairEnabled() {
+		return repair.Recipe{}, 0, false, nil
+	}
+	hits, hitErr := h.Genome.LookupSimilar(ctx, failure, repair.DefaultSemanticThreshold, 1)
+	if hitErr != nil {
+		return repair.Recipe{}, 0, false, hitErr
+	}
+	if len(hits) == 0 {
+		return repair.Recipe{}, 0, false, nil
+	}
+	return hits[0].Recipe, hits[0].Score, true, nil
+}
+
+// semanticRepairEnabled reads IRONFLYER_REPAIR_SEMANTIC. Accepts the
+// usual truthy strings; everything else (including empty) is "off".
+func semanticRepairEnabled() bool {
+	switch strings.ToLower(strings.TrimSpace(os.Getenv("IRONFLYER_REPAIR_SEMANTIC"))) {
+	case "1", "true", "yes", "on":
+		return true
+	}
+	return false
 }
 
 // LookupPatch is the read side of the patch memory. Returns the

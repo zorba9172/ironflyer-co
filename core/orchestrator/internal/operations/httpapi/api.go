@@ -30,46 +30,47 @@ import (
 
 	"ironflyer/core/orchestrator/internal/ai/agents"
 	"ironflyer/core/orchestrator/internal/ai/atlas"
-	"ironflyer/core/orchestrator/internal/operations/arch"
-	"ironflyer/core/orchestrator/internal/operations/audit"
-	"ironflyer/core/orchestrator/internal/operations/auditexport"
-	"ironflyer/core/orchestrator/internal/customer/auth"
-	"ironflyer/core/orchestrator/internal/customer/auth/oauth"
+	"ironflyer/core/orchestrator/internal/ai/completion"
+	"ironflyer/core/orchestrator/internal/ai/finisher"
+	"ironflyer/core/orchestrator/internal/ai/ideaparser"
+	"ironflyer/core/orchestrator/internal/ai/learning"
+	"ironflyer/core/orchestrator/internal/ai/memory"
+	"ironflyer/core/orchestrator/internal/ai/memorygraph"
+	"ironflyer/core/orchestrator/internal/ai/providers"
+	"ironflyer/core/orchestrator/internal/ai/repair"
 	"ironflyer/core/orchestrator/internal/business/blueprints"
 	"ironflyer/core/orchestrator/internal/business/budget"
 	"ironflyer/core/orchestrator/internal/business/budget/payments"
-	"ironflyer/core/orchestrator/internal/operations/bus"
-	"ironflyer/core/orchestrator/internal/ai/completion"
 	"ironflyer/core/orchestrator/internal/business/dashboards"
+	"ironflyer/core/orchestrator/internal/business/execution"
+	"ironflyer/core/orchestrator/internal/business/forecast"
+	"ironflyer/core/orchestrator/internal/business/ledger"
+	"ironflyer/core/orchestrator/internal/business/profitguard"
+	"ironflyer/core/orchestrator/internal/business/wallet"
+	"ironflyer/core/orchestrator/internal/business/wowloop"
+	"ironflyer/core/orchestrator/internal/customer/auth"
+	"ironflyer/core/orchestrator/internal/customer/auth/oauth"
+	"ironflyer/core/orchestrator/internal/customer/notify"
+	"ironflyer/core/orchestrator/internal/operations/arch"
+	"ironflyer/core/orchestrator/internal/operations/audit"
+	"ironflyer/core/orchestrator/internal/operations/auditexport"
+	"ironflyer/core/orchestrator/internal/operations/bus"
 	"ironflyer/core/orchestrator/internal/operations/deploy"
 	"ironflyer/core/orchestrator/internal/operations/diagnostics"
-	"ironflyer/core/orchestrator/internal/business/execution"
-	"ironflyer/core/orchestrator/internal/ai/finisher"
-	"ironflyer/core/orchestrator/internal/ai/learning"
-	"ironflyer/core/orchestrator/internal/business/forecast"
 	"ironflyer/core/orchestrator/internal/operations/gqlhardening"
 	graphpkg "ironflyer/core/orchestrator/internal/operations/graph"
 	"ironflyer/core/orchestrator/internal/operations/graph/resolver"
-	"ironflyer/core/orchestrator/internal/ai/ideaparser"
-	"ironflyer/core/orchestrator/internal/business/ledger"
-	"ironflyer/core/orchestrator/internal/ai/memory"
-	"ironflyer/core/orchestrator/internal/ai/memorygraph"
 	"ironflyer/core/orchestrator/internal/operations/metrics"
 	"ironflyer/core/orchestrator/internal/operations/mobile/devicecloud"
 	"ironflyer/core/orchestrator/internal/operations/mobile/eas"
-	"ironflyer/core/orchestrator/internal/customer/notify"
 	"ironflyer/core/orchestrator/internal/operations/operator"
 	"ironflyer/core/orchestrator/internal/operations/patch"
-	"ironflyer/core/orchestrator/internal/pkg/httputil"
 	"ironflyer/core/orchestrator/internal/operations/policy"
-	"ironflyer/core/orchestrator/internal/business/profitguard"
-	"ironflyer/core/orchestrator/internal/ai/providers"
 	"ironflyer/core/orchestrator/internal/operations/ratelimit"
-	"ironflyer/core/orchestrator/internal/ai/repair"
 	"ironflyer/core/orchestrator/internal/operations/securityreport"
 	"ironflyer/core/orchestrator/internal/operations/store"
-	"ironflyer/core/orchestrator/internal/business/wallet"
-	"ironflyer/core/orchestrator/internal/business/wowloop"
+	"ironflyer/core/orchestrator/internal/pkg/httputil"
+	"ironflyer/core/orchestrator/internal/suppliers/github_pr"
 )
 
 // Deps is the full set of orchestrator dependencies the HTTP layer
@@ -147,9 +148,9 @@ type Deps struct {
 	BuildTime string
 
 	// Dev convenience: when DevEnv == "dev" and DevWalletSeedUSD > 0,
-	// the SignUp resolver credits the new wallet so describeIdea works
-	// without Stripe. Wired from config.Config in main.go; ignored in
-	// staging / prod.
+	// the SignUp resolver credits the new user's own wallet so describeIdea
+	// works without Stripe. Wired from config.Config in main.go; ignored
+	// in staging / prod.
 	DevEnv           string
 	DevWalletSeedUSD float64
 
@@ -315,6 +316,19 @@ func New(d Deps) http.Handler {
 	r.Post("/budget/webhook", a.stripeWebhook)
 	// Paddle webhook — third-party callback, signature-verified inline.
 	r.Post("/budget/paddle/webhook", a.paddleWebhook)
+	// GitHub PR webhook — third-party callback. The path embeds the
+	// projectID + routing secret; the body is HMAC-verified against the
+	// per-project GITHUB_WEBHOOK_SECRET. See suppliers/github_pr for
+	// the handler implementation and route shape.
+	if a.d.Projects != nil {
+		ghHandler := github_pr.NewHandler(github_pr.HandlerDeps{
+			Projects: a.d.Projects,
+			Engine:   a.d.Engine,
+			Agents:   a.d.Agents,
+			Logger:   a.d.Logger,
+		})
+		ghHandler.Mount(r)
+	}
 
 	// OAuth social sign-in (Google + GitHub). REST exception: the
 	// browser cannot drive a GraphQL mutation through the provider's

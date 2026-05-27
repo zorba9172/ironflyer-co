@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -17,8 +18,18 @@ import (
 
 // PostgresGenome is the Postgres-backed Genome implementation. It
 // reads/writes the repair_recipes table from migration 00028.
+//
+// semantic is the optional embedding-based similarity index wired
+// when IRONFLYER_REPAIR_SEMANTIC=true. We keep the actual vectors in
+// process rather than as a pgvector column so the feature can ship
+// without a hard pgvector dependency — operators who want durable
+// vectors can follow up with a migration once the heuristic proves
+// itself in production.
 type PostgresGenome struct {
 	pool *pgxpool.Pool
+
+	semMu    sync.Mutex
+	semantic *SemanticIndex
 }
 
 // NewPostgresGenome wires the genome to an existing pgxpool.
@@ -104,6 +115,40 @@ func (g *PostgresGenome) AttemptsByExecution(_ context.Context, executionID stri
 		return nil, nil
 	}
 	return []Attempt{}, nil
+}
+
+// AttachSemanticIndex installs the embedding-based similarity index
+// used by LookupSimilar. Safe to call once at boot.
+func (g *PostgresGenome) AttachSemanticIndex(idx *SemanticIndex) {
+	g.semMu.Lock()
+	defer g.semMu.Unlock()
+	g.semantic = idx
+}
+
+// LookupSimilar delegates to the attached SemanticIndex. Returns
+// (nil, nil) when none is wired so the exact-match path remains
+// authoritative. threshold > 0 overrides the index default.
+func (g *PostgresGenome) LookupSimilar(ctx context.Context, failureDescription string, threshold float64, k int) ([]SimilarHit, error) {
+	g.semMu.Lock()
+	idx := g.semantic
+	g.semMu.Unlock()
+	if idx == nil {
+		return nil, nil
+	}
+	hits, err := idx.LookupSimilar(ctx, failureDescription, k)
+	if err != nil {
+		return nil, err
+	}
+	if threshold <= 0 {
+		return hits, nil
+	}
+	out := hits[:0]
+	for _, h := range hits {
+		if float64(h.Score) >= threshold {
+			out = append(out, h)
+		}
+	}
+	return out, nil
 }
 
 // Top returns the most-used recipes by Hits.

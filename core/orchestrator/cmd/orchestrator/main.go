@@ -36,6 +36,7 @@ import (
 	"ironflyer/core/orchestrator/internal/ai/completion"
 	"ironflyer/core/orchestrator/internal/ai/embeddings"
 	"ironflyer/core/orchestrator/internal/ai/finisher"
+	"ironflyer/core/orchestrator/internal/ai/inference"
 	"ironflyer/core/orchestrator/internal/ai/learning"
 	"ironflyer/core/orchestrator/internal/ai/memory"
 	"ironflyer/core/orchestrator/internal/ai/refactor"
@@ -487,6 +488,9 @@ func main() {
 		billing.AssignPlan(ctx, u.ID, budget.TierPro)
 	}
 
+	var bootstrappedSuperuser auth.User
+	hasBootstrappedSuperuser := false
+
 	// ---------------- Superuser bootstrap (privileged backdoor) -----------
 	if cfg.SuperuserEmail != "" && cfg.SuperuserPassword != "" {
 		if cfg.IsProd() {
@@ -496,10 +500,14 @@ func main() {
 		} else {
 			verifier, _ := userStore.(auth.EmailVerifier)
 			roleSetter, _ := userStore.(auth.RoleSetter)
-			if _, err := auth.EnsureSuperuser(ctx, authSvc, userStore, verifier, roleSetter,
-				cfg.SuperuserEmail, cfg.SuperuserPassword, logger); err != nil {
+			superuser, err := auth.EnsureSuperuser(ctx, authSvc, userStore, verifier, roleSetter,
+				cfg.SuperuserEmail, cfg.SuperuserPassword, logger)
+			if err != nil {
 				logger.Warn().Err(err).Str("email", cfg.SuperuserEmail).
 					Msg("superuser bootstrap failed (continuing)")
+			} else {
+				bootstrappedSuperuser = superuser
+				hasBootstrappedSuperuser = true
 			}
 		}
 	}
@@ -655,6 +663,36 @@ func main() {
 			logger.Info().Str("backend", label).Msg("Memory store: semantic re-ranking enabled")
 		}
 	}
+
+	// ---------------- Local ONNX inference (deep-learning v2) ------------
+	// Small scoring models served on-cluster — no third-party API call.
+	// Default build wires NoopService (every Score returns
+	// ErrModelUnavailable so callers fall back to their heuristic
+	// priors); -tags onnx + IRONFLYER_INFERENCE_ENABLED=true upgrades to
+	// the real ORT-backed Service. See docs/DEEP_LEARNING.md.
+	var infSvc inference.Service = inference.NewNoopService(logger)
+	if cfg.InferenceEnabled {
+		infSvc = inference.NewOnnxService(cfg.ModelsDir, logger)
+		if path := strings.TrimSpace(cfg.CompletionScorerModelFile); path != "" {
+			if err := infSvc.LoadModel(ctx, inference.CompletionScorerModel(path)); err != nil {
+				logger.Warn().Err(err).Msg("inference: completion-scorer load failed; falling back to heuristic")
+			}
+		}
+		if path := strings.TrimSpace(cfg.HallucinationModelFile); path != "" {
+			if err := infSvc.LoadModel(ctx, inference.HallucinationModel(path)); err != nil {
+				logger.Warn().Err(err).Msg("inference: hallucination-detector load failed; verifier will not block on it")
+			}
+		}
+		if path := strings.TrimSpace(cfg.IntentClassifierModelFile); path != "" {
+			if err := infSvc.LoadModel(ctx, inference.IntentClassifierModel(path)); err != nil {
+				logger.Warn().Err(err).Msg("inference: intent-classifier load failed; router will use lexical fallback")
+			}
+		}
+		logger.Info().Int("models", len(infSvc.Models())).Msg("inference: local ONNX scoring service ready")
+	} else {
+		logger.Info().Msg("inference: disabled (IRONFLYER_INFERENCE_ENABLED=false) — using NoopService")
+	}
+	_ = infSvc // wired into CompletionPredictor/RepairMatcher by the parallel learning-v2 work; expose now so the contract is locked.
 
 	var auditStore audit.Store
 	if cfg.AuditBackend == "surreal" && surrealDB != nil {
@@ -822,10 +860,10 @@ func main() {
 		}).
 		WithOnPreflightDecision(func(p patch.Patch, d agents.PreflightDecision) {
 			attrs := map[string]any{
-				"action":    string(d.Action),
-				"query":     d.Query,
-				"hitCount":  len(d.AtlasHits),
-				"patchId":   p.ID,
+				"action":     string(d.Action),
+				"query":      d.Query,
+				"hitCount":   len(d.AtlasHits),
+				"patchId":    p.ID,
 				"patchTitle": p.Title,
 			}
 			outcome := audit.OutcomeSuccess
@@ -995,17 +1033,26 @@ func main() {
 	} else {
 		walletSvc = wallet.NewMemoryService()
 		logger.Info().Msg("V22 wallet: in-memory backend")
-		// Dev convenience: seed the demo tenant with $100 so the
-		// describeIdea entrypoint works out of the box. The seed is
-		// scoped to dev + in-memory mode so it can't accidentally
-		// inflate a production ledger.
-		if cfg.Env == "dev" {
-			if err := walletSvc.TopUp(ctx, "demo", decimal.NewFromInt(100), "dev-seed"); err != nil {
-				logger.Warn().Err(err).Msg("dev seed: wallet top-up failed (demo tenant)")
-			} else {
-				logger.Info().Msg("dev seed: demo wallet seeded with $100")
-			}
+	}
+	if cfg.Env == "dev" && cfg.DevWalletSeedUSD > 0 && hasBootstrappedSuperuser {
+		seedTenant, err := seedDevSuperuserWallet(ctx, walletSvc, bootstrappedSuperuser, cfg.DevWalletSeedUSD)
+		if err != nil {
+			logger.Warn().Err(err).
+				Str("tenant_id", seedTenant).
+				Str("user_id", bootstrappedSuperuser.ID).
+				Float64("seed_usd", cfg.DevWalletSeedUSD).
+				Msg("dev seed: superuser wallet top-up failed")
+		} else {
+			logger.Info().
+				Str("tenant_id", seedTenant).
+				Str("user_id", bootstrappedSuperuser.ID).
+				Float64("seed_usd", cfg.DevWalletSeedUSD).
+				Msg("dev seed: superuser wallet seeded")
 		}
+	} else if cfg.Env == "dev" && cfg.DevWalletSeedUSD > 0 {
+		logger.Info().
+			Float64("seed_usd", cfg.DevWalletSeedUSD).
+			Msg("dev seed: no superuser bootstrap configured; skipping shared wallet seed")
 	}
 	// Wallet Stripe topper (optional — keyed off STRIPE_SECRET_KEY).
 	var walletTopper *wallet.Topper
@@ -1163,6 +1210,36 @@ func main() {
 	} else {
 		repairGenome = repair.NewMemoryGenome()
 		patchMem = repair.NewMemoryPatchStore()
+	}
+
+	// V22 Semantic Repair Matcher (proprietary model #1) — opt-in via
+	// IRONFLYER_REPAIR_SEMANTIC=true. Attaches a SemanticIndex to the
+	// active Genome so LearningHooks.LookupRecipe falls through to
+	// embedding-based similarity when the exact signature misses.
+	// Threshold tunable via IRONFLYER_REPAIR_SEMANTIC_THRESHOLD (default
+	// 0.82). Warm-start runs async so a cold embedder never blocks boot.
+	if semanticRepairEnabled() {
+		if attacher, ok := repairGenome.(repair.SemanticAttacher); ok {
+			emb, embLabel := selectEmbedder(cfg, logger)
+			if emb == nil {
+				logger.Warn().Msg("V22 semantic repair: no embedder available; staying on exact-match only")
+			} else {
+				cached := embeddings.NewCachedEmbedder(emb)
+				threshold := semanticRepairThreshold()
+				idx := repair.NewSemanticIndex(cached, repairGenome, repair.WithSemanticThreshold(threshold))
+				attacher.AttachSemanticIndex(idx)
+				go func() {
+					reindexCtx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+					defer cancel()
+					if err := idx.ReindexAll(reindexCtx, ""); err != nil {
+						logger.Warn().Err(err).Msg("V22 semantic repair: warm-start reindex failed (will warm online)")
+						return
+					}
+					logger.Info().Int("indexed", idx.Size()).Str("embedder", embLabel).Float64("threshold", threshold).Msg("V22 semantic repair: index warmed")
+				}()
+				logger.Info().Str("embedder", embLabel).Float64("threshold", threshold).Msg("V22 semantic repair: SemanticIndex attached (opt-in)")
+			}
+		}
 	}
 
 	// V22 integration loop: wire ProfitGuard into the two enforcement
@@ -1499,6 +1576,43 @@ func main() {
 	})
 	learningLog.Info().Msg("Feedback Brain online (publisher + store + miner)")
 
+	// V22 Completion Score Predictor (proprietary model #2). Logistic
+	// regression over execution features; online SGD on every
+	// KindExecutionComplete event. Predicts P(success) BEFORE expensive
+	// Opus reasoning runs so the pre-execution gate
+	// (IRONFLYER_COMPLETION_GATE) can warn on low-confidence runs.
+	//
+	// Warm-start from the last 7 days runs async — production boots
+	// must not block on a long history fold. The predictor is always
+	// constructed (zero-cost when unused) so live executions train it
+	// for whoever flips the gate on next.
+	completionPredictor := learning.NewCompletionPredictor(learningStore, learningLog)
+	go func() {
+		if err := completionPredictor.LoadFromHistory(ctx, 7*24*time.Hour); err != nil {
+			learningLog.Warn().Err(err).Msg("V22 completion predictor: warm-start failed")
+		}
+		learningLog.Info().Float64("confidence", completionPredictor.Confidence()).Int("samples", completionPredictor.GlobalSamples()).Msg("V22 completion predictor: online (predictor: confidence=warm)")
+	}()
+	// Chain the predictor onto the existing publisher observer so each
+	// terminal outcome trains the weights without an extra goroutine.
+	prevObserver := func(evt learning.OutcomeEvent) {}
+	if chRes.Client == nil {
+		// Memory store already owns the observer slot; preserve it via a
+		// rebind. NewMemoryStore is held inside learningStore as
+		// *MemoryStore — re-cast so we can keep observing.
+		if mem, ok := learningStore.(*learning.MemoryStore); ok {
+			prevObserver = mem.Observe
+		}
+	}
+	learningPublisher.SetObserver(func(evt learning.OutcomeEvent) {
+		prevObserver(evt)
+		if evt.Kind != learning.KindExecutionComplete || evt.Success == nil {
+			return
+		}
+		_ = completionPredictor.Update(featuresFromEventAttrs(evt), *evt.Success)
+	})
+	learning.SetGlobal(learningPublisher)
+
 	// ---------------- V22 Wave-2: deploy plane -----------------------------
 	bridgeDeps := profitguardbridge.BridgeDeps{Registry: blueprintsReg, Genome: repairGenome}
 	deploySvc := wireup.BuildDeployService(wireup.DeployDeps{
@@ -1745,7 +1859,7 @@ func main() {
 		Projects: projects, Engine: engine, Agents: registry, Patches: patches,
 		Billing: billing, Stripe: stripeSvc, Paddle: paddleSvc, Guard: guard,
 		Auth: authSvc, AuthOptional: cfg.AuthOptional,
-		OAuth: oauthHandler,
+		OAuth:          oauthHandler,
 		AllowedOrigins: cfg.CORSOrigins,
 		ProdMode:       cfg.IsProd(),
 		CSPOverride:    cfg.CSP,
@@ -1964,6 +2078,107 @@ func durationEnv(name string, def time.Duration) time.Duration {
 		return def
 	}
 	return d
+}
+
+func seedDevSuperuserWallet(ctx context.Context, svc wallet.Service, u auth.User, seedUSD float64) (string, error) {
+	tenant := canonicalTenantForUser(u)
+	if tenant == "" {
+		return "", nil
+	}
+	amount := decimal.NewFromFloat(seedUSD)
+	return tenant, svc.TopUp(ctx, tenant, amount, "dev-seed-"+tenant)
+}
+
+func canonicalTenantForUser(u auth.User) string {
+	if u.OrgID != "" {
+		return u.OrgID
+	}
+	return u.ID
+}
+
+// featuresFromEventAttrs lifts an ExecutionFeatures from an
+// OutcomeEvent's Attributes bag. Mirrors the private helper inside the
+// learning package; kept here so the publisher observer can train the
+// predictor without the predictor having to consume Publisher types.
+func featuresFromEventAttrs(evt learning.OutcomeEvent) learning.ExecutionFeatures {
+	f := learning.ExecutionFeatures{}
+	if bp, ok := evt.Attributes["blueprint_id"].(string); ok {
+		f.BlueprintID = bp
+	}
+	f.PromptTokens = intAttr(evt.Attributes, "prompt_tokens")
+	f.NumGates = intAttr(evt.Attributes, "num_gates")
+	if mobile, ok := evt.Attributes["has_mobile_target"].(bool); ok {
+		f.HasMobileTarget = mobile
+	}
+	f.TenantHistorySuccess = floatAttr(evt.Attributes, "tenant_history_success")
+	f.SimilarPastSuccess = floatAttr(evt.Attributes, "similar_past_success")
+	if evt.CostUSD != nil {
+		v, _ := evt.CostUSD.Float64()
+		f.EstimatedCostUSD = v
+	}
+	return f
+}
+
+func intAttr(a map[string]any, key string) int {
+	switch v := a[key].(type) {
+	case int:
+		return v
+	case int64:
+		return int(v)
+	case float64:
+		return int(v)
+	}
+	return 0
+}
+
+func floatAttr(a map[string]any, key string) float64 {
+	switch v := a[key].(type) {
+	case float64:
+		return v
+	case float32:
+		return float64(v)
+	case int:
+		return float64(v)
+	case int64:
+		return float64(v)
+	}
+	return 0
+}
+
+// semanticRepairEnabled reads IRONFLYER_REPAIR_SEMANTIC. Truthy strings
+// ("1", "true", "yes", "on") enable the V22 Semantic Repair Matcher;
+// everything else (default) keeps the exact-match-only behaviour.
+func semanticRepairEnabled() bool {
+	switch strings.ToLower(strings.TrimSpace(os.Getenv("IRONFLYER_REPAIR_SEMANTIC"))) {
+	case "1", "true", "yes", "on":
+		return true
+	}
+	return false
+}
+
+// semanticRepairThreshold reads IRONFLYER_REPAIR_SEMANTIC_THRESHOLD.
+// Falls back to repair.DefaultSemanticThreshold when unset or invalid.
+func semanticRepairThreshold() float64 {
+	raw := strings.TrimSpace(os.Getenv("IRONFLYER_REPAIR_SEMANTIC_THRESHOLD"))
+	if raw == "" {
+		return repair.DefaultSemanticThreshold
+	}
+	v, err := strconv.ParseFloat(raw, 64)
+	if err != nil || v <= 0 || v > 1 {
+		return repair.DefaultSemanticThreshold
+	}
+	return v
+}
+
+// completionGateEnabled reads IRONFLYER_COMPLETION_GATE. Toggles the
+// pre-execution warning surface; predictor itself always runs and folds
+// outcomes into its weights so the model keeps improving regardless.
+func completionGateEnabled() bool {
+	switch strings.ToLower(strings.TrimSpace(os.Getenv("IRONFLYER_COMPLETION_GATE"))) {
+	case "1", "true", "yes", "on":
+		return true
+	}
+	return false
 }
 
 // selectEmbedder resolves IRONFLYER_EMBEDDINGS_BACKEND into a concrete

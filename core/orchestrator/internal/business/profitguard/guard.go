@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/rs/zerolog"
 	"github.com/shopspring/decimal"
+
+	"ironflyer/core/orchestrator/internal/business/forecast"
 )
 
 // Guard is the runtime-facing surface of Profit Guard. Every
@@ -72,6 +75,15 @@ type guard struct {
 	policy Policy
 	store  DecisionStore
 	audit  AuditSink
+
+	// costModel + capResolver + costLog are the additive learned-cost
+	// hook. All three are populated via NewWithOptions(WithCostModel,
+	// WithCapabilityResolver, WithCostModelLogger). When costModel is
+	// nil the Decide path is byte-identical to the original static
+	// behaviour — see cost_model.go for the actual hook.
+	costModel   *forecast.LearnedCostModel
+	capResolver CapabilityResolver
+	costLog     zerolog.Logger
 }
 
 // Decide implements the V22 ProfitGuard policy. The algorithm is
@@ -94,9 +106,20 @@ type guard struct {
 //
 // Numbered to match the spec verbatim — do not reorder without
 // updating the package doc and the audit dashboard.
-func (g *guard) Decide(_ context.Context, point EnforcementPoint, state ExecState) (Decision, error) {
+func (g *guard) Decide(ctx context.Context, point EnforcementPoint, state ExecState) (Decision, error) {
 	if err := validate(state); err != nil {
 		return Decision{}, err
+	}
+
+	// Additive learned-cost hook. When the cost model has a confident
+	// prediction it tightens EstimatedNextStepCostUSD to the learned
+	// mean (so the static arithmetic below uses the better number) and
+	// may refuse early when the upper bound exceeds wallet headroom.
+	// No-op when the model is nil or under-trained.
+	if newState, dec, intercepted := g.applyCostModel(ctx, point, state); intercepted {
+		return dec, nil
+	} else {
+		state = newState
 	}
 
 	estStep := nonNegative(state.EstimatedNextStepCostUSD)

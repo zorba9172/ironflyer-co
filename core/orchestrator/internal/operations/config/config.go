@@ -20,11 +20,9 @@ type Config struct {
 	Env         string   `env:"IRONFLYER_ENV" envDefault:"dev" validate:"oneof=dev staging prod"`
 
 	// DevWalletSeedUSD — dev-only convenience. When > 0 AND Env == "dev",
-	// the SignUp resolver credits the freshly-minted wallet with this
-	// USD amount via wallet.TopUp(stripeSessionID="dev-seed-<userID>")
-	// so the operator can immediately run describeIdea without going
-	// through Stripe. Ignored outside of dev (resolver-level gate on
-	// Env=="dev"). Default 50 so any dev orchestrator boots usable.
+	// the SignUp resolver credits the freshly-minted user's own wallet,
+	// and the boot path credits only the configured superuser tenant.
+	// There is no shared "demo" wallet pool. Ignored outside of dev.
 	DevWalletSeedUSD float64 `env:"IRONFLYER_DEV_WALLET_SEED_USD" envDefault:"50"`
 	LogLevel         string  `env:"IRONFLYER_LOG_LEVEL" envDefault:"info" validate:"oneof=debug info warn error"`
 	LogFormat        string  `env:"IRONFLYER_LOG_FORMAT" envDefault:"console" validate:"oneof=console json"`
@@ -130,6 +128,37 @@ type Config struct {
 	// (bge-small-en-v1.5 hidden size). Set this only when running a
 	// non-default model.
 	ONNXDimension int `env:"IRONFLYER_ONNX_DIM" envDefault:"0"`
+
+	// InferenceEnabled flips the orchestrator from NoopService to
+	// OnnxService for the local scoring models (completion-scorer,
+	// hallucination-detector, intent-classifier). When false the
+	// scorers all return ErrModelUnavailable and every caller falls
+	// back to its heuristic prior. Requires a binary built with
+	// -tags onnx; without the tag the OnnxService constructor
+	// degrades to NoopService and logs a warning. See
+	// docs/DEEP_LEARNING.md for the full operator runbook.
+	InferenceEnabled bool `env:"IRONFLYER_INFERENCE_ENABLED" envDefault:"false"`
+
+	// ModelsDir is the base directory the inference Service resolves
+	// model paths against. In Helm this is rendered to
+	// /var/ironflyer/models and populated by the inference-models
+	// initContainer pulling artefacts from S3/R2 at deploy time. An
+	// absolute Model.Path bypasses this base.
+	ModelsDir string `env:"IRONFLYER_MODELS_DIR" envDefault:"/var/ironflyer/models"`
+
+	// CompletionScorerModelFile is the filename (or absolute path) of
+	// the completion-scorer-v1 ONNX artefact. Empty = do not register;
+	// the Score path then degrades to the heuristic. The Helm chart
+	// renders this from .Values.inference.models.completionScorer.
+	CompletionScorerModelFile string `env:"IRONFLYER_COMPLETION_SCORER_MODEL"`
+
+	// HallucinationModelFile mirrors CompletionScorerModelFile for the
+	// hallucination-v1 classifier.
+	HallucinationModelFile string `env:"IRONFLYER_HALLUCINATION_MODEL"`
+
+	// IntentClassifierModelFile mirrors CompletionScorerModelFile for
+	// the intent-classifier-v1 model.
+	IntentClassifierModelFile string `env:"IRONFLYER_INTENT_CLASSIFIER_MODEL"`
 
 	// OpenAIImageAPIKey is the API key used by the built-in
 	// generate_image tool (core/orchestrator/internal/imagegen). Leave

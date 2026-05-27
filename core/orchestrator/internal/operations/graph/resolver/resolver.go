@@ -15,37 +15,38 @@ import (
 
 	"ironflyer/core/orchestrator/internal/ai/agents"
 	"ironflyer/core/orchestrator/internal/ai/atlas"
+	"ironflyer/core/orchestrator/internal/ai/completion"
+	"ironflyer/core/orchestrator/internal/ai/finisher"
+	"ironflyer/core/orchestrator/internal/ai/ideaparser"
+	"ironflyer/core/orchestrator/internal/ai/learning"
+	"ironflyer/core/orchestrator/internal/ai/memorygraph"
+	"ironflyer/core/orchestrator/internal/ai/providers"
+	"ironflyer/core/orchestrator/internal/ai/repair"
+	"ironflyer/core/orchestrator/internal/business/blueprints"
+	"ironflyer/core/orchestrator/internal/business/budget"
+	"ironflyer/core/orchestrator/internal/business/dashboards"
+	"ironflyer/core/orchestrator/internal/business/execution"
+	"ironflyer/core/orchestrator/internal/business/forecast"
+	"ironflyer/core/orchestrator/internal/business/ledger"
+	"ironflyer/core/orchestrator/internal/business/profitguard"
+	"ironflyer/core/orchestrator/internal/business/wallet"
+	"ironflyer/core/orchestrator/internal/business/wowloop"
+	"ironflyer/core/orchestrator/internal/customer/auth"
+	"ironflyer/core/orchestrator/internal/customer/notify"
 	"ironflyer/core/orchestrator/internal/operations/arch"
 	"ironflyer/core/orchestrator/internal/operations/audit"
 	"ironflyer/core/orchestrator/internal/operations/auditexport"
-	"ironflyer/core/orchestrator/internal/customer/auth"
-	"ironflyer/core/orchestrator/internal/business/blueprints"
-	"ironflyer/core/orchestrator/internal/business/budget"
-	"ironflyer/core/orchestrator/internal/ai/completion"
-	"ironflyer/core/orchestrator/internal/business/dashboards"
 	"ironflyer/core/orchestrator/internal/operations/deploy"
 	"ironflyer/core/orchestrator/internal/operations/diagnostics"
-	"ironflyer/core/orchestrator/internal/business/execution"
-	"ironflyer/core/orchestrator/internal/ai/finisher"
-	"ironflyer/core/orchestrator/internal/business/forecast"
-	"ironflyer/core/orchestrator/internal/ai/ideaparser"
-	"ironflyer/core/orchestrator/internal/ai/learning"
-	"ironflyer/core/orchestrator/internal/business/ledger"
-	"ironflyer/core/orchestrator/internal/ai/memorygraph"
 	"ironflyer/core/orchestrator/internal/operations/mobile/appetize"
 	"ironflyer/core/orchestrator/internal/operations/mobile/devicecloud"
 	"ironflyer/core/orchestrator/internal/operations/mobile/eas"
-	"ironflyer/core/orchestrator/internal/customer/notify"
 	"ironflyer/core/orchestrator/internal/operations/operator"
 	"ironflyer/core/orchestrator/internal/operations/patch"
-	"ironflyer/core/orchestrator/internal/business/profitguard"
-	"ironflyer/core/orchestrator/internal/ai/providers"
 	"ironflyer/core/orchestrator/internal/operations/ratelimit"
-	"ironflyer/core/orchestrator/internal/ai/repair"
 	"ironflyer/core/orchestrator/internal/operations/securityreport"
 	"ironflyer/core/orchestrator/internal/operations/store"
-	"ironflyer/core/orchestrator/internal/business/wallet"
-	"ironflyer/core/orchestrator/internal/business/wowloop"
+	"ironflyer/core/orchestrator/internal/suppliers/mcp_catalog"
 )
 
 // EmailChanger is the user-store surface the resolver uses to flip a
@@ -129,9 +130,9 @@ type Resolver struct {
 	// user" so the dev box stays usable.
 	AdminUserIDs map[string]bool
 
-	// DevWalletSeedUSD — convenience credit applied by SignUp in dev
-	// only, so a fresh account can immediately run describeIdea
-	// without Stripe being configured. Wired from
+	// DevWalletSeedUSD — convenience credit applied by SignUp to the
+	// new user's own wallet in dev only, so a fresh account can
+	// immediately run describeIdea without Stripe being configured. Wired from
 	// config.Config.DevWalletSeedUSD (gated by Env=="dev").
 	DevWalletSeedUSD float64
 	// DevEnv reflects config.Env so SignUp can gate the seed.
@@ -247,6 +248,12 @@ type Resolver struct {
 	// so the panel still renders.
 	LearningStore     learning.Store
 	LearningPublisher *learning.Publisher
+
+	// MCPManager owns the per-(user, project) lifecycle of MCP
+	// server child processes. Nil-safe — when unwired the mcp*
+	// resolvers return NOT_CONFIGURED so the cockpit renders the
+	// catalog read-only state.
+	MCPManager *mcp_catalog.Manager
 }
 
 // HealthReportPaths captures the file paths the resolver consults to

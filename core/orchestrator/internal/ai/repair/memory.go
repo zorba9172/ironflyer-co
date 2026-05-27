@@ -117,6 +117,41 @@ func (g *MemoryGenome) Top(_ context.Context, limit int) ([]Recipe, error) {
 	return out, nil
 }
 
+// AttachSemanticIndex installs the embedding-based similarity index
+// used by LookupSimilar. Safe to call once at boot from main.go.
+func (g *MemoryGenome) AttachSemanticIndex(idx *SemanticIndex) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	g.semantic = idx
+}
+
+// LookupSimilar delegates to the attached SemanticIndex. Returns
+// (nil, nil) when no index is wired so the exact-match path remains
+// the default behaviour. threshold overrides the index default when
+// > 0; pass 0 to use the configured floor.
+func (g *MemoryGenome) LookupSimilar(ctx context.Context, failureDescription string, threshold float64, k int) ([]SimilarHit, error) {
+	g.mu.Lock()
+	idx := g.semantic
+	g.mu.Unlock()
+	if idx == nil {
+		return nil, nil
+	}
+	hits, err := idx.LookupSimilar(ctx, failureDescription, k)
+	if err != nil {
+		return nil, err
+	}
+	if threshold <= 0 {
+		return hits, nil
+	}
+	out := hits[:0]
+	for _, h := range hits {
+		if float64(h.Score) >= threshold {
+			out = append(out, h)
+		}
+	}
+	return out, nil
+}
+
 // MemoryPatchStore is the in-memory Memory implementation.
 type MemoryPatchStore struct {
 	mu      sync.Mutex
