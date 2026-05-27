@@ -77,6 +77,8 @@ import (
 	"ironflyer/core/orchestrator/internal/business/profitguardbridge"
 	"ironflyer/core/orchestrator/internal/business/profitguardctx"
 	"ironflyer/core/orchestrator/internal/business/provisioning"
+	"ironflyer/core/orchestrator/internal/business/sentinel"
+	"ironflyer/core/orchestrator/internal/business/shippass"
 	"ironflyer/core/orchestrator/internal/business/wallet"
 	"ironflyer/core/orchestrator/internal/operations/ratelimit"
 	"ironflyer/core/orchestrator/internal/operations/redisbus"
@@ -1201,6 +1203,79 @@ func main() {
 		}
 	}
 
+	// Ship Pass — outcome-based SKU on top of the wallet. The wallet
+	// service satisfies wallet.IdempotentService on both backends
+	// (memory + postgres), so the cast below is safe in dev and prod;
+	// a future backend that only satisfies wallet.Service would land
+	// as a nil cast and the resolver would surface NOT_CONFIGURED.
+	var (
+		shipPassSvc     shippass.Service
+		shipPassSettler *shippass.Settler
+	)
+	if walletIdem, ok := walletSvc.(wallet.IdempotentService); ok {
+		if pgPool != nil {
+			shipPassSvc = shippass.NewPostgresService(pgPool, walletIdem,
+				logger.With().Str("component", "shippass").Logger())
+			logger.Info().Msg("V22 shippass: Postgres backend")
+		} else {
+			shipPassSvc = shippass.NewMemoryService(walletIdem)
+			logger.Info().Msg("V22 shippass: in-memory backend")
+		}
+		shipPassSettler = shippass.NewSettler(shipPassSvc,
+			logger.With().Str("component", "shippass.settler").Logger())
+		// Periodic deadline sweep: expired active passes flip to
+		// refunded and the wallet hold is released back to the user.
+		go func() {
+			ticker := time.NewTicker(15 * time.Minute)
+			defer ticker.Stop()
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case t := <-ticker.C:
+					if _, err := shipPassSvc.ExpireDue(ctx, t); err != nil {
+						logger.Warn().Err(err).Msg("V22 shippass: expire sweep failed")
+					}
+				}
+			}
+		}()
+	} else {
+		logger.Warn().Msg("V22 shippass: wallet does not satisfy IdempotentService; disabled")
+	}
+
+	// Budget Sentinel — predictive forecast layer + Insured Ship SKU.
+	// Adapters (history, completion estimate, project context, spent
+	// loader) default to nil-loader stubs so the dashboard renders
+	// from boot before deeper integration lands; the Insured Ship SKU
+	// is fully live regardless via StaticUnderwriter.
+	var sentinelSvc *sentinel.Service
+	if walletIdem, ok := walletSvc.(wallet.IdempotentService); ok {
+		sentinelPolicy := sentinel.DefaultPolicy()
+		sentinelPredictor := sentinel.NewPredictor(sentinelPolicy, nil, nil)
+		sentinelSuggester := sentinel.NewSuggestionEngine(nil)
+		sentinelInsurance := sentinel.NewMemoryInsurance(sentinelPolicy,
+			sentinel.NewStaticUnderwriter(), walletIdem)
+		sentinelSvc = sentinel.NewService(sentinelPredictor, sentinelSuggester,
+			sentinelInsurance, nil)
+		// Hourly expiry sweep: policies past their coverage window
+		// flip to expired (no payout) so the active set stays clean.
+		go func() {
+			ticker := time.NewTicker(time.Hour)
+			defer ticker.Stop()
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case t := <-ticker.C:
+					if _, err := sentinelInsurance.ExpireDue(ctx, t); err != nil {
+						logger.Warn().Err(err).Msg("V22 sentinel: insurance expire sweep failed")
+					}
+				}
+			}
+		}()
+		logger.Info().Msg("V22 sentinel: forecast + Insured Ship SKU wired")
+	}
+
 	// Ledger.
 	var ledgerSvc ledger.Service
 	if pgPool != nil {
@@ -2033,6 +2108,9 @@ func main() {
 		WalletToppers:    walletToppers,
 		Compliance:       complianceSvc,
 		Provisioning:     provisioningVault,
+		ShipPass:         shipPassSvc,
+		ShipPassSettler:  shipPassSettler,
+		Sentinel:         sentinelSvc,
 		Ledger:           ledgerSvc,
 		Execution:        execSvc,
 		ExecutionSettler: executionSettler,
