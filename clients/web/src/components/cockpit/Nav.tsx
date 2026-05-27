@@ -94,7 +94,10 @@ const MARKETING_LINKS: NavLink[] = [
       p.startsWith("/blog") ||
       p.startsWith("/security") ||
       p.startsWith("/developers") ||
-      p.startsWith("/vscode"),
+      p.startsWith("/vscode") ||
+      p.startsWith("/appsec") ||
+      p.startsWith("/compare") ||
+      p.startsWith("/vs/"),
   },
   {
     label: "Enterprise",
@@ -127,6 +130,16 @@ const RESOURCE_LINKS: ResourceLink[] = [
     label: "VS Code Extension",
     href: "/vscode",
     description: "Review patches, gates and previews in your editor.",
+  },
+  {
+    label: "AppSec",
+    href: "/appsec",
+    description: "Threat modeling, compliance checks and launch gates.",
+  },
+  {
+    label: "Compare",
+    href: "/compare",
+    description: "See where IronFlyer fits against prompt app builders.",
   },
   {
     label: "Enterprise",

@@ -24,6 +24,7 @@ export function CockpitFrame({ children }: { children: ReactNode }) {
   const isMarketingHome = pathname === "/";
   const isPublicMarketing =
     isMarketingHome ||
+    pathname === "/product" ||
     pathname === "/templates" ||
     pathname === "/solutions" ||
     pathname === "/pricing" ||
@@ -31,7 +32,14 @@ export function CockpitFrame({ children }: { children: ReactNode }) {
     pathname === "/enterprise" ||
     pathname === "/vscode" ||
     pathname === "/appsec" ||
-    pathname === "/compare";
+    pathname === "/compare" ||
+    pathname === "/developers" ||
+    pathname === "/mobile" ||
+    pathname === "/security" ||
+    pathname === "/showcase" ||
+    pathname === "/blog" ||
+    pathname === "/changelog" ||
+    pathname?.startsWith("/vs/") === true;
   const isStudioEntry = pathname === "/studio";
   const isStudioWorkspace = pathname?.startsWith("/p/");
   // /login and /signup own their own full-bleed split layout (AuthShell)

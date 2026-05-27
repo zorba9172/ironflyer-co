@@ -20,6 +20,20 @@ const staticRoutes: Array<{
   { path: "/resources", priority: 0.7, changeFrequency: "weekly" },
   { path: "/enterprise", priority: 0.8, changeFrequency: "weekly" },
   { path: "/vscode", priority: 0.8, changeFrequency: "weekly" },
+  { path: "/appsec", priority: 0.75, changeFrequency: "weekly" },
+  { path: "/compare", priority: 0.75, changeFrequency: "weekly" },
+  { path: "/product", priority: 0.8, changeFrequency: "weekly" },
+  { path: "/developers", priority: 0.7, changeFrequency: "weekly" },
+  { path: "/mobile", priority: 0.7, changeFrequency: "weekly" },
+  { path: "/security", priority: 0.75, changeFrequency: "weekly" },
+  { path: "/showcase", priority: 0.7, changeFrequency: "weekly" },
+  { path: "/blog", priority: 0.6, changeFrequency: "weekly" },
+  { path: "/changelog", priority: 0.6, changeFrequency: "weekly" },
+  { path: "/vs/lovable", priority: 0.65, changeFrequency: "weekly" },
+  { path: "/vs/bolt", priority: 0.65, changeFrequency: "weekly" },
+  { path: "/vs/base44", priority: 0.65, changeFrequency: "weekly" },
+  { path: "/vs/replit-agent", priority: 0.65, changeFrequency: "weekly" },
+  { path: "/vs/v0", priority: 0.65, changeFrequency: "weekly" },
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
