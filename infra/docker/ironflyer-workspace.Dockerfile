@@ -29,7 +29,10 @@ RUN apk add --no-cache git ca-certificates
 # AppSec scanners that ship as Go binaries.
 RUN go install golang.org/x/vuln/cmd/govulncheck@latest
 RUN go install github.com/zricethezav/gitleaks/v8@latest
-RUN go install github.com/trufflesecurity/trufflehog/v3@latest
+RUN git clone --depth=1 --branch v3.95.3 https://github.com/trufflesecurity/trufflehog.git /tmp/trufflehog \
+ && cd /tmp/trufflehog \
+ && go build -trimpath -ldflags="-s -w" -o /go/bin/trufflehog . \
+ && rm -rf /tmp/trufflehog
 
 FROM alpine:3.20
 
