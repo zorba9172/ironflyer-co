@@ -1,109 +1,71 @@
 package data
 
 import (
-	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/ec2"
-	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/elasticache"
+	"github.com/pulumi/pulumi-digitalocean/sdk/v4/go/digitalocean"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
-// Redis is the ElastiCache cluster + connection details the orchestrator
-// uses for locks, rate limit counters, and pub/sub.
+// Redis is the managed DO Valkey (Redis-compatible) cluster + outputs.
+//
+// DigitalOcean transitioned Redis-branded managed clusters to Valkey;
+// the engine slug is `valkey`, Redis clients continue to work unchanged
+// (Valkey is a drop-in protocol-compatible fork).
 type Redis struct {
-	Replication      *elasticache.ReplicationGroup
-	PrimaryEndpoint  pulumi.StringOutput
-	ReaderEndpoint   pulumi.StringOutput
-	SubnetGroup      *elasticache.SubnetGroup
-	ParameterGroup   *elasticache.ParameterGroup
+	Cluster     *digitalocean.DatabaseCluster
+	Host        pulumi.StringOutput
+	Port        pulumi.IntOutput
+	PrivateHost pulumi.StringOutput
+	URI         pulumi.StringOutput // secret
+	PrivateURI  pulumi.StringOutput // secret
+	Password    pulumi.StringOutput // secret
 }
 
-func provisionRedis(ctx *pulumi.Context, env *stackEnv, deps Compute, k *KMSKeys, dataSG *ec2.SecurityGroup, secrets *Secrets) (*Redis, error) {
-	// Cluster SG -> data SG on 6379.
-	if _, err := ec2.NewSecurityGroupRule(ctx, name(env, "data-sg-ingress-redis"), &ec2.SecurityGroupRuleArgs{
-		Type:                  pulumi.String("ingress"),
-		FromPort:              pulumi.Int(6379),
-		ToPort:                pulumi.Int(6379),
-		Protocol:              pulumi.String("tcp"),
-		SecurityGroupId:       dataSG.ID(),
-		SourceSecurityGroupId: deps.ClusterSGID,
-		Description:           pulumi.String("Redis from EKS cluster SG"),
+func provisionRedis(ctx *pulumi.Context, in Inputs) (*Redis, error) {
+	cfg := in.Config
+	clusterName := cfg.ResourceName("redis")
+
+	cluster, err := digitalocean.NewDatabaseCluster(ctx, clusterName, &digitalocean.DatabaseClusterArgs{
+		Name:               pulumi.String(clusterName),
+		Engine:             pulumi.String("valkey"),
+		Version:            pulumi.String(cfg.RedisVersion),
+		Size:               pulumi.String(cfg.RedisSize),
+		Region:             pulumi.String(cfg.Region),
+		NodeCount:          pulumi.Int(IfHA(cfg, 2, 1)),
+		PrivateNetworkUuid: in.Network.VpcID.ToStringOutput(),
+		EvictionPolicy:     pulumi.String("allkeys_lru"),
+		Tags:               cfg.Tags("data", "redis", "valkey"),
+		MaintenanceWindows: digitalocean.DatabaseClusterMaintenanceWindowArray{
+			&digitalocean.DatabaseClusterMaintenanceWindowArgs{
+				Day:  pulumi.String("sunday"),
+				Hour: pulumi.String("04:00:00"),
+			},
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Trusted-source firewall identical pattern to Postgres: only the
+	// DOKS cluster's worker droplets can dial the Valkey endpoint.
+	if _, err := digitalocean.NewDatabaseFirewall(ctx, cfg.ResourceName("redis-fw"), &digitalocean.DatabaseFirewallArgs{
+		ClusterId: cluster.ID(),
+		Rules: digitalocean.DatabaseFirewallRuleArray{
+			&digitalocean.DatabaseFirewallRuleArgs{
+				Type:  pulumi.String("k8s"),
+				Value: in.Cluster.ID().ToStringOutput(),
+			},
+		},
 	}); err != nil {
 		return nil, err
 	}
 
-	subnetGroup, err := elasticache.NewSubnetGroup(ctx, name(env, "redis-subnets"), &elasticache.SubnetGroupArgs{
-		Name:      pulumi.String(name(env, "redis-subnets")),
-		SubnetIds: deps.PrivateSubnetIDs,
-		Tags:      env.tags,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	pg, err := elasticache.NewParameterGroup(ctx, name(env, "redis-params"), &elasticache.ParameterGroupArgs{
-		Name:        pulumi.String(name(env, "redis-params")),
-		Family:      pulumi.String("redis7"),
-		Description: pulumi.String("Ironflyer Redis 7 params (LRU eviction, idle timeout)"),
-		Parameters: elasticache.ParameterGroupParameterArray{
-			&elasticache.ParameterGroupParameterArgs{Name: pulumi.String("maxmemory-policy"), Value: pulumi.String("allkeys-lru")},
-			&elasticache.ParameterGroupParameterArgs{Name: pulumi.String("timeout"), Value: pulumi.String("300")},
-		},
-		Tags: env.tags,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	// Auth token comes from the random-generated Secrets Manager entry.
-	authToken := secrets.RedisAuthVersion.SecretString.ApplyT(func(s string) (string, error) {
-		return extractJSONField(s, "auth_token")
-	}).(pulumi.StringOutput)
-
-	// Cluster mode disabled (single logical store per stack memory). We
-	// model "shards" as additional replicas in the replication group so
-	// the orchestrator sees one writer + N read replicas behind the
-	// primary endpoint.
-	numCacheClusters := 2 // primary + 1 replica
-	if env.isProd {
-		numCacheClusters = 1 + env.redisShards // primary + N replicas
-	}
-
-	nodeType := "cache.t4g.small"
-	if env.isProd {
-		nodeType = "cache.r7g.large"
-	}
-
-	rg, err := elasticache.NewReplicationGroup(ctx, name(env, "redis"), &elasticache.ReplicationGroupArgs{
-		ReplicationGroupId:       pulumi.String(name(env, "redis")),
-		Description:              pulumi.String("Ironflyer Redis (orchestrator locks + rate limit + pub/sub)"),
-		Engine:                   pulumi.String("redis"),
-		EngineVersion:            pulumi.String("7.1"),
-		NodeType:                 pulumi.String(nodeType),
-		Port:                     pulumi.Int(6379),
-		ParameterGroupName:       pg.Name,
-		SubnetGroupName:          subnetGroup.Name,
-		SecurityGroupIds:         pulumi.StringArray{dataSG.ID()},
-		AutomaticFailoverEnabled: pulumi.Bool(true),
-		MultiAzEnabled:           pulumi.Bool(true),
-		NumCacheClusters:         pulumi.Int(numCacheClusters),
-		AtRestEncryptionEnabled:  pulumi.Bool(true),
-		TransitEncryptionEnabled: pulumi.Bool(true),
-		KmsKeyId:                 k.RDSKey.Arn, // RDS CMK reused; ElastiCache is also covered by its key policy.
-		AuthToken:                authToken,
-		SnapshotRetentionLimit:   pulumi.Int(7),
-		SnapshotWindow:           pulumi.String("01:00-02:00"),
-		MaintenanceWindow:        pulumi.String("sun:03:00-sun:04:00"),
-		ApplyImmediately:         pulumi.Bool(!env.isProd),
-		Tags:                     env.tags,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	return &Redis{
-		Replication:     rg,
-		PrimaryEndpoint: rg.PrimaryEndpointAddress,
-		ReaderEndpoint:  rg.ReaderEndpointAddress,
-		SubnetGroup:     subnetGroup,
-		ParameterGroup:  pg,
+		Cluster:     cluster,
+		Host:        cluster.Host,
+		Port:        cluster.Port,
+		PrivateHost: cluster.PrivateHost,
+		URI:         cluster.Uri,
+		PrivateURI:  cluster.PrivateUri,
+		Password:    cluster.Password,
 	}, nil
 }

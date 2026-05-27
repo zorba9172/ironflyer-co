@@ -40,7 +40,7 @@ inside our compliance boundary.
   `infra/helm/ironflyer/values.yaml` (full reference) and
   `infra/helm/ironflyer/values-prod.yaml` (prod overlay).
 - DNS: `errors.<root>` A-record provisioned by
-  `infra/pulumi-do/edge/cloudflare.go` (proxied through Cloudflare).
+  `infra/pulumi/edge/cloudflare.go` (proxied through Cloudflare).
 - TLS: Let's Encrypt via cert-manager (`letsencrypt-prod`
   cluster-issuer), TLS secret `glitchtip-tls`.
 
@@ -135,7 +135,7 @@ kubectl -n ironflyer exec -it postgres-0 -- \
    `pulumi up`:
 
    ```bash
-   bash scripts/load-secrets-to-pulumi.sh prod-ams3
+   bash scripts/load-secrets-to-pulumi.sh prod
    ```
 
 7. **Harden — close registration.** Edit

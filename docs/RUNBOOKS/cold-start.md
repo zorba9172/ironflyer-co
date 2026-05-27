@@ -5,8 +5,8 @@ healthy Ironflyer stack. Every command below has been re-executed
 against the live dev stack on 2026-05-26 and verified to exit 0 unless
 explicitly marked otherwise.
 
-The production install on AWS/DigitalOcean uses Pulumi programs under
-`infra/pulumi/` and `infra/pulumi-do/`; that path is the subject of
+The production install uses the single DigitalOcean Pulumi program at
+`infra/pulumi/` (stack: `prod`); that path is the subject of
 [`../../DEPLOY.md`](../../DEPLOY.md). This runbook focuses on the
 local-dev cold start that operators actually rehearse against.
 
@@ -161,13 +161,12 @@ Current verified behavior (2026-05-26):
 ## 9. Production domain — `ironflyer.ai` (DigitalOcean registrar)
 
 `ironflyer.ai` is registered at the DigitalOcean **registrar** but its
-authoritative DNS is **Cloudflare** (see `infra/pulumi-do/edge/cloudflare.go`
-— every Ironflyer stack uses Cloudflare for DNS + WAF; the DO DNS service
-is intentionally unused so the WAF + proxying are uniform across clouds).
+authoritative DNS is **Cloudflare** (see `infra/pulumi/edge/cloudflare.go`
+— Cloudflare owns DNS + WAF; the DO DNS service is intentionally
+unused so the WAF + proxying are uniform).
 
-Before the first `pulumi up` against `prod-ams3` (or any prod stack that
-sets `ironflyer:rootDomain = ironflyer.ai`) the operator MUST delegate
-the zone to Cloudflare at the DigitalOcean registrar:
+Before the first `pulumi up` against the `prod` stack the operator MUST
+delegate the zone to Cloudflare at the DigitalOcean registrar:
 
 1. In the Cloudflare dashboard, add the zone `ironflyer.ai`. Cloudflare
    assigns four name servers (the exact hostnames are zone-specific;
@@ -188,7 +187,7 @@ the zone to Cloudflare at the DigitalOcean registrar:
    # Expect four *.ns.cloudflare.com entries.
    ```
 5. Once Cloudflare reports the zone as **Active**, run `pulumi up` in
-   `infra/pulumi-do/` against the `prod-ams3` stack. The Pulumi program
+   `infra/pulumi/` against the `prod` stack. The Pulumi program
    will create the `api.`, `runtime.`, `app.`, `docs.` records inside
    the now-delegated zone.
 

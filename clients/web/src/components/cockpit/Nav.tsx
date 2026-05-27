@@ -13,7 +13,9 @@
 import {
   AccountBalanceWalletOutlined,
   ArrowForwardRounded,
+  DarkModeRounded,
   ExpandMoreRounded,
+  LightModeRounded,
   LogoutRounded,
   MenuRounded,
   NotificationsNoneRounded,
@@ -242,6 +244,11 @@ export function Nav() {
   const navBorder = publicLight
     ? "rgba(18,22,55,0.10)"
     : tokens.color.border.subtle;
+  const hrefWithTiming = (href: string) => {
+    if (cockpitMode || !href.startsWith("/")) return href;
+    const theme = publicTiming === "dark" ? "theme=dark" : "theme=light";
+    return `${href}${href.includes("?") ? "&" : "?"}${theme}`;
+  };
   const themeHref = `${pathname === "/" ? "/" : pathname}?theme=${publicLight ? "dark" : "light"}`;
   const marketingLabel = (label: string) => {
     if (cockpitMode) return label;
@@ -310,7 +317,7 @@ export function Nav() {
               <MenuItem
                 key={l.href}
                 component={Link}
-                href={l.href}
+                href={hrefWithTiming(l.href)}
                 onClick={() => setMobileNavAnchor(null)}
                 sx={{
                   fontWeight: 700,
@@ -396,7 +403,7 @@ export function Nav() {
               <Button
                 key={l.href}
                 component={Link}
-                href={l.href}
+                href={hrefWithTiming(l.href)}
                 size="small"
                 sx={sxButton}
               >
@@ -425,7 +432,7 @@ export function Nav() {
             <MenuItem
               key={r.href}
               component={Link}
-              href={r.href}
+              href={hrefWithTiming(r.href)}
               onClick={() => setResourcesAnchor(null)}
               sx={{
                 alignItems: "flex-start",
@@ -457,31 +464,43 @@ export function Nav() {
         {!cockpitMode && pathname !== "/" && <LanguageSwitcher />}
 
         {marketingMode && (
-          <Button
-            component={Link}
-            href={themeHref}
-            size="small"
-            sx={{
-              minWidth: 76,
-              minHeight: 34,
-              color: navText,
-              bgcolor: publicLight
-                ? "rgba(255,255,255,0.72)"
-                : tokens.color.bg.surfaceRaised,
-              border: `1px solid ${navBorder}`,
-              borderRadius: 999,
-              fontSize: 12,
-              fontWeight: 900,
-              display: { xs: "none", md: "inline-flex" },
-              "&:hover": {
-                bgcolor: publicLight
-                  ? "rgba(143,77,255,0.08)"
-                  : tokens.color.bg.surfaceHover,
-              },
-            }}
+          <Tooltip
+            title={
+              publicLight ? "Switch to dark timing" : "Switch to light timing"
+            }
+            arrow
           >
-            {publicLight ? "Dark" : "Light"}
-          </Button>
+            <IconButton
+              component={Link}
+              href={themeHref}
+              size="small"
+              aria-label={
+                publicLight ? "Switch to dark timing" : "Switch to light timing"
+              }
+              sx={{
+                width: 38,
+                height: 38,
+                color: navText,
+                bgcolor: publicLight
+                  ? "rgba(255,255,255,0.78)"
+                  : tokens.color.bg.surfaceRaised,
+                border: `1px solid ${navBorder}`,
+                borderRadius: 999,
+                display: { xs: "none", md: "inline-flex" },
+                "&:hover": {
+                  bgcolor: publicLight
+                    ? "rgba(143,77,255,0.08)"
+                    : tokens.color.bg.surfaceHover,
+                },
+              }}
+            >
+              {publicLight ? (
+                <DarkModeRounded sx={{ fontSize: 18 }} />
+              ) : (
+                <LightModeRounded sx={{ fontSize: 18 }} />
+              )}
+            </IconButton>
+          </Tooltip>
         )}
 
         {authenticated && (

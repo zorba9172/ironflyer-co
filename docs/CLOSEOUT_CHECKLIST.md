@@ -7,13 +7,12 @@ command you run, a secret you set, or a screen you read.
 
 Read it top-to-bottom on the first deploy. On subsequent deploys §2c
 (`pulumi up`) is the only required pass; §2b should be a no-op as
-long as nothing in `infra/pulumi-do/Pulumi.prod-ams3.yaml` has
-changed.
+long as nothing in `infra/pulumi/Pulumi.prod.yaml` has changed.
 
 Related docs:
 
-- [`DEPLOY.md`](../DEPLOY.md) — the full deploy reference (originally
-  AWS-flavored; treat the secrets table as the canonical list).
+- [`DEPLOY.md`](../DEPLOY.md) — the full deploy reference; treat the
+  secrets table as the canonical list.
 - [`docs/RUNBOOKS/cold-start.md`](RUNBOOKS/cold-start.md) — the
   verified short version of §2c.
 - [`docs/PROJECT_CLOSEOUT_PLAN.md`](PROJECT_CLOSEOUT_PLAN.md) — the
@@ -117,11 +116,11 @@ domain record + A/AAAA inside DO, but only if the NS chain is correct.
 ### 2. Pulumi config — required secrets
 
 The full set lives in `DEPLOY.md §4`. Mirror it into the
-`infra/pulumi-do` stack:
+`infra/pulumi` stack:
 
 ```bash
-cd infra/pulumi-do
-pulumi stack select prod-ams3       # or prod-nyc3 / prod-sgp1
+cd infra/pulumi
+pulumi stack select prod
 pulumi config                       # eyeball the current state
 ```
 
@@ -235,7 +234,7 @@ After `pulumi up` (deferred to §2c § post-deploy):
 - Re-run the secrets loader + redeploy:
 
   ```bash
-  bash scripts/load-secrets-to-pulumi.sh prod-ams3
+  bash scripts/load-secrets-to-pulumi.sh prod
   pulumi up
   ```
 
@@ -294,12 +293,12 @@ Warning; `low` is Info. Dup > 2 % yields SeverityError on the
 
 ## §2c — `pulumi up` walkthrough
 
-This is the actual command sequence for a fresh prod-ams3 install.
+This is the actual command sequence for a fresh prod install.
 The runbook short version is
 [`docs/RUNBOOKS/cold-start.md`](RUNBOOKS/cold-start.md).
 
 ```bash
-cd infra/pulumi-do
+cd infra/pulumi
 
 # 1. Auth Pulumi (managed cloud or self-hosted backend).
 pulumi login
@@ -311,8 +310,7 @@ doctl auth init
 export DIGITALOCEAN_TOKEN="dop_v1_..."
 
 # 3. Pick the stack.
-pulumi stack select prod-ams3       # ams3 = Amsterdam, EU baseline
-#   alternatives: prod-nyc3 (NYC), prod-sgp1 (Singapore)
+pulumi stack select prod            # ams3 region
 
 # 4. Dry-run. READ THE DIFF.
 pulumi preview
@@ -373,7 +371,6 @@ Runbooks under [`docs/RUNBOOKS/`](RUNBOOKS/):
 | First boot / restart-from-cold | [`cold-start.md`](RUNBOOKS/cold-start.md) |
 | Rolling release | [`upgrade.md`](RUNBOOKS/upgrade.md) |
 | Roll a release back | [`rollback.md`](RUNBOOKS/rollback.md) |
-| Region degradation / failover | [`region-failover.md`](RUNBOOKS/region-failover.md) |
 | Provider cost spike | [`cost-spike.md`](RUNBOOKS/cost-spike.md) |
 | Workspace pool saturation | [`workspace-saturation.md`](RUNBOOKS/workspace-saturation.md) |
 | GraphQL latency / error incident | [`graphql-incident.md`](RUNBOOKS/graphql-incident.md) |
@@ -422,10 +419,6 @@ launch on their own; each is the next reasonable improvement.
   enforces a `reuse`/`extend`/`new` decision, and the indexer
   runs at boot) — but the actual model-side integration that
   CALLS the search lives as a one-pass follow-up.
-- **`pulumi-do` parity with `pulumi` (AWS)** — DO is the launch
-  target; AWS stack exists at `infra/pulumi/` for migration
-  optionality but isn't part of the cold-start path.
-
 ---
 
 ## §2g — Definition of Done recap
@@ -439,7 +432,7 @@ From [`docs/PROJECT_CLOSEOUT_PLAN.md`](PROJECT_CLOSEOUT_PLAN.md):
 | 3 | Every execution emits events into Redpanda | partial | Outbox publisher exists; Redpanda is `--profile analytics` (opt-in). Lean default still serves events from the in-process pub/sub. |
 | 4 | ClickHouse dashboards show margin in near real time | partial | Async insert path landed; `profitDashboard` in lean dev still reads the in-process aggregator. Flip via `IRONFLYER_DB_DRIVER=hybrid`. |
 | 5 | SurrealDB improves reuse/retrieval without owning durable truth | ✓ | Default in production profiles; durable truth stays in Postgres. |
-| 6 | Temporal can resume interrupted workflows | partial | Temporal is `--profile temporal` (opt-in); the prod-ams3 stack toggles it on. Lean dev is in-process. |
+| 6 | Temporal can resume interrupted workflows | partial | Temporal is `--profile temporal` (opt-in); the prod stack toggles it on. Lean dev is in-process. |
 | 7 | Runtime workers scale by demand and shrink when idle | partial | HPA + topic-lag KEDA wiring exists in the Helm chart; verified manually under load on staging, not yet in continuous prod canary. |
 | 8 | GraphQL is hardened for production | ✓ | Complexity + depth caps, APQ policy, masked errors, introspection off in `IRONFLYER_PROD=true`. |
 | 9 | One synthetic paid execution passes in CI/CD | ✓ | `.github/workflows/ci.yml::go::smoke` runs `scripts/smoke.sh` (which tail-calls `v22_smoke.sh`) on every PR. |
@@ -447,7 +440,7 @@ From [`docs/PROJECT_CLOSEOUT_PLAN.md`](PROJECT_CLOSEOUT_PLAN.md):
 
 Net: 7 ✓, 3 partial, 0 ✗. The three `partial` lines are all the
 "prod-profile-only" data plane services (Redpanda / ClickHouse /
-Temporal) — they ship hot in `prod-ams3` and warm-cold in lean dev,
+Temporal) — they ship hot in `prod` and warm-cold in lean dev,
 which is the intended split.
 
 ---

@@ -1,191 +1,122 @@
 package data
 
 import (
-	"fmt"
-
-	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/secretsmanager"
-	"github.com/pulumi/pulumi-random/sdk/v4/go/random"
+	corev1 "github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes/core/v1"
+	metav1 "github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes/meta/v1"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
-// Secrets is every Secrets Manager secret the orchestrator + runtime + web
-// surfaces depend on. Each secret is created with a placeholder JSON value
-// flagged TODO so the operator MUST rotate it before going to production.
-// The placeholder body is also stable, so re-running Pulumi after a manual
-// rotation won't clobber the rotated value (the resource is created with
-// IgnoreChanges on SecretString).
-type Secrets struct {
-	PostgresMaster        *secretsmanager.Secret
-	PostgresMasterVersion *secretsmanager.SecretVersion
-	RedisAuth             *secretsmanager.Secret
-	RedisAuthVersion      *secretsmanager.SecretVersion
-
-	StripeSecretKey     *secretsmanager.Secret
-	StripeWebhookSecret *secretsmanager.Secret
-
-	AnthropicAPIKey   *secretsmanager.Secret
-	OpenAIAPIKey      *secretsmanager.Secret
-	GeminiAPIKey      *secretsmanager.Secret
-	HuggingfaceAPIKey *secretsmanager.Secret
-
-	SentryDSN     *secretsmanager.Secret
-	JWTSigningKey *secretsmanager.Secret
-
-	GithubAppPrivateKey    *secretsmanager.Secret
-	GithubAppWebhookSecret *secretsmanager.Secret
-
-	SurrealRootCreds *secretsmanager.Secret
-
-	// flat index for outputs + ExternalSecrets reflection.
-	byLogical map[string]*secretsmanager.Secret
-}
-
-const placeholderTODO = `{"value":"TODO-ROTATE-BEFORE-PROD","ironflyer.rotation_required":true}`
-
-func provisionSecrets(ctx *pulumi.Context, env *stackEnv, kms *KMSKeys) (*Secrets, error) {
-	s := &Secrets{byLogical: map[string]*secretsmanager.Secret{}}
-
-	// Postgres master password — generated, not a placeholder, because we
-	// need it in the RDS cluster too.
-	pgPwd, err := random.NewRandomPassword(ctx, name(env, "pg-master-pw"), &random.RandomPasswordArgs{
-		Length:  pulumi.Int(40),
-		Special: pulumi.Bool(false),
-	})
+// provisionNamespace ensures the `ironflyer` namespace exists. Every
+// in-cluster Secret + Job + Helm release the data layer creates lands
+// here so the orchestrator + runtime + edge can RBAC against a single
+// scoped namespace. We label it `app.kubernetes.io/part-of=ironflyer`
+// so observability dashboards can group resources easily.
+func provisionNamespace(ctx *pulumi.Context, in Inputs) (*corev1.Namespace, error) {
+	if in.K8sProvider == nil {
+		return nil, nil
+	}
+	ns, err := corev1.NewNamespace(ctx, in.Config.ResourceName("ns"), &corev1.NamespaceArgs{
+		Metadata: &metav1.ObjectMetaArgs{
+			Name: pulumi.String("ironflyer"),
+			Labels: pulumi.StringMap{
+				"app.kubernetes.io/part-of": pulumi.String("ironflyer"),
+				"ironflyer.dev/stack":       pulumi.String(in.Config.Stack),
+			},
+		},
+	}, pulumi.Provider(in.K8sProvider))
 	if err != nil {
 		return nil, err
 	}
-	s.PostgresMaster, s.PostgresMasterVersion, err = managedSecret(ctx, env, kms,
-		"postgres-master", "ironflyer/postgres/master",
-		pgPwd.Result.ApplyT(func(p string) (string, error) {
-			return fmt.Sprintf(`{"username":"ironflyer_master","password":%q}`, p), nil
-		}).(pulumi.StringOutput),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	// Redis auth token — same pattern: generated so the cluster + clients
-	// share a credential, but exposed via Secrets Manager for rotation.
-	redisAuth, err := random.NewRandomPassword(ctx, name(env, "redis-auth"), &random.RandomPasswordArgs{
-		Length:  pulumi.Int(64),
-		Special: pulumi.Bool(false),
-	})
-	if err != nil {
-		return nil, err
-	}
-	s.RedisAuth, s.RedisAuthVersion, err = managedSecret(ctx, env, kms,
-		"redis-auth", "ironflyer/redis/auth",
-		redisAuth.Result.ApplyT(func(p string) (string, error) {
-			return fmt.Sprintf(`{"auth_token":%q}`, p), nil
-		}).(pulumi.StringOutput),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	// All third-party + product secrets land here. Placeholder body, the
-	// operator must rotate them before go-live (the placeholder value is
-	// flagged `ironflyer.rotation_required: true`).
-	type spec struct {
-		field     **secretsmanager.Secret
-		logical   string
-		secretKey string
-	}
-	all := []spec{
-		{&s.StripeSecretKey, "stripe-secret-key", "ironflyer/stripe/secret-key"},
-		{&s.StripeWebhookSecret, "stripe-webhook-secret", "ironflyer/stripe/webhook-secret"},
-		{&s.AnthropicAPIKey, "anthropic-api-key", "ironflyer/anthropic/api-key"},
-		{&s.OpenAIAPIKey, "openai-api-key", "ironflyer/openai/api-key"},
-		{&s.GeminiAPIKey, "gemini-api-key", "ironflyer/gemini/api-key"},
-		{&s.HuggingfaceAPIKey, "huggingface-api-key", "ironflyer/huggingface/api-key"},
-		{&s.SentryDSN, "sentry-dsn", "ironflyer/sentry/dsn"},
-		{&s.JWTSigningKey, "jwt-signing-key", "ironflyer/jwt/signing-key"},
-		{&s.GithubAppPrivateKey, "github-app-private-key", "ironflyer/github-app/private-key"},
-		{&s.GithubAppWebhookSecret, "github-app-webhook-secret", "ironflyer/github-app/webhook-secret"},
-		{&s.SurrealRootCreds, "surreal-root", "ironflyer/surreal/root-credentials"},
-	}
-	for _, item := range all {
-		sec, _, err := managedSecret(ctx, env, kms, item.logical, item.secretKey, pulumi.String(placeholderTODO).ToStringOutput())
-		if err != nil {
-			return nil, err
-		}
-		*item.field = sec
-	}
-
-	// Build the by-logical index used for outputs + ExternalSecrets.
-	s.byLogical["postgres-master"] = s.PostgresMaster
-	s.byLogical["redis-auth"] = s.RedisAuth
-	s.byLogical["stripe-secret-key"] = s.StripeSecretKey
-	s.byLogical["stripe-webhook-secret"] = s.StripeWebhookSecret
-	s.byLogical["anthropic-api-key"] = s.AnthropicAPIKey
-	s.byLogical["openai-api-key"] = s.OpenAIAPIKey
-	s.byLogical["gemini-api-key"] = s.GeminiAPIKey
-	s.byLogical["huggingface-api-key"] = s.HuggingfaceAPIKey
-	s.byLogical["sentry-dsn"] = s.SentryDSN
-	s.byLogical["jwt-signing-key"] = s.JWTSigningKey
-	s.byLogical["github-app-private-key"] = s.GithubAppPrivateKey
-	s.byLogical["github-app-webhook-secret"] = s.GithubAppWebhookSecret
-	s.byLogical["surreal-root"] = s.SurrealRootCreds
-
-	return s, nil
+	return ns, nil
 }
 
-// managedSecret centralizes Secrets Manager creation: KMS-encrypted with
-// the secrets CMK, project tags applied, and an initial version pinned so
-// later operator rotations don't churn Pulumi state.
-func managedSecret(ctx *pulumi.Context, env *stackEnv, kms *KMSKeys, logical, awsName string, value pulumi.StringOutput) (*secretsmanager.Secret, *secretsmanager.SecretVersion, error) {
-	sec, err := secretsmanager.NewSecret(ctx, name(env, "secret-"+logical), &secretsmanager.SecretArgs{
-		Name:                 pulumi.String(fmt.Sprintf("ironflyer/%s/%s", env.stack, awsName[len("ironflyer/"):])),
-		Description:          pulumi.String(fmt.Sprintf("Ironflyer %s (%s)", logical, env.stack)),
-		KmsKeyId:             kms.SecretsKey.Arn,
-		RecoveryWindowInDays: pulumi.Int(7),
-		Tags:                 env.tags,
-	})
-	if err != nil {
-		return nil, nil, err
+// provisionSecrets mirrors the managed-DB + Spaces connection details
+// into Kubernetes Secrets the orchestrator reads via standard envFrom.
+//
+// We intentionally piggy-back on the orchestrator's existing `R2_*` env
+// var names for Spaces — Spaces is S3-compatible with an endpoint URL,
+// which is exactly the wire shape the `S3_BACKEND=r2` path expects. The
+// orchestrator-polish agent will add a first-class `spaces` backend
+// later; today this keeps deploys working without a new orchestrator
+// release. The `S3_BACKEND` knob is set in the Helm chart, not here.
+func provisionSecrets(ctx *pulumi.Context, in Inputs, ns *corev1.Namespace, pg *Postgres, redis *Redis, spaces *Spaces) error {
+	if in.K8sProvider == nil || ns == nil {
+		return nil
 	}
-	ver, err := secretsmanager.NewSecretVersion(ctx, name(env, "secret-"+logical+"-v1"), &secretsmanager.SecretVersionArgs{
-		SecretId:     sec.ID(),
-		SecretString: value,
-	}, pulumi.IgnoreChanges([]string{"secretString"}))
-	if err != nil {
-		return nil, nil, err
-	}
-	return sec, ver, nil
-}
 
-// ArnsByLogicalName produces a map suitable for ctx.Export of the form
-// {"postgres-master": "arn:aws:secretsmanager:...", ...}.
-func (s *Secrets) ArnsByLogicalName() pulumi.StringMapOutput {
-	m := pulumi.StringMap{}
-	for k, v := range s.byLogical {
-		m[k] = v.Arn
+	opts := []pulumi.ResourceOption{
+		pulumi.Provider(in.K8sProvider),
+		pulumi.DependsOn([]pulumi.Resource{ns}),
 	}
-	return m.ToStringMapOutput()
-}
 
-// LogicalNames returns the ordered list of logical names used by
-// consumers.go to mirror each AWS secret into a K8s Secret.
-func (s *Secrets) LogicalNames() []string {
-	return []string{
-		"postgres-master",
-		"redis-auth",
-		"stripe-secret-key",
-		"stripe-webhook-secret",
-		"anthropic-api-key",
-		"openai-api-key",
-		"gemini-api-key",
-		"huggingface-api-key",
-		"sentry-dsn",
-		"jwt-signing-key",
-		"github-app-private-key",
-		"github-app-webhook-secret",
-		"surreal-root",
+	// Postgres — prefer the PrivateUri so k8s pods route over the VPC.
+	if _, err := corev1.NewSecret(ctx, in.Config.ResourceName("secret-postgres"), &corev1.SecretArgs{
+		Metadata: &metav1.ObjectMetaArgs{
+			Name:      pulumi.String("ironflyer-postgres"),
+			Namespace: ns.Metadata.Name().Elem(),
+			Labels: pulumi.StringMap{
+				"app.kubernetes.io/part-of":   pulumi.String("ironflyer"),
+				"app.kubernetes.io/component": pulumi.String("data-postgres"),
+			},
+		},
+		StringData: pulumi.StringMap{
+			"POSTGRES_URL":      pg.PrivateURI,
+			"POSTGRES_HOST":     pg.PrivateHost,
+			"POSTGRES_DATABASE": pulumi.String("ironflyer").ToStringOutput(),
+		},
+	}, opts...); err != nil {
+		return err
 	}
-}
 
-// SecretByLogical returns the underlying *Secret for ExternalSecret
-// wiring (need the Name attribute for the secret-key reference).
-func (s *Secrets) SecretByLogical(logical string) *secretsmanager.Secret {
-	return s.byLogical[logical]
+	// Redis / Valkey — same shape; the URI carries auth + scheme.
+	if _, err := corev1.NewSecret(ctx, in.Config.ResourceName("secret-redis"), &corev1.SecretArgs{
+		Metadata: &metav1.ObjectMetaArgs{
+			Name:      pulumi.String("ironflyer-redis"),
+			Namespace: ns.Metadata.Name().Elem(),
+			Labels: pulumi.StringMap{
+				"app.kubernetes.io/part-of":   pulumi.String("ironflyer"),
+				"app.kubernetes.io/component": pulumi.String("data-redis"),
+			},
+		},
+		StringData: pulumi.StringMap{
+			"REDIS_URL":      redis.PrivateURI,
+			"REDIS_HOST":     redis.PrivateHost,
+			"REDIS_PASSWORD": redis.Password,
+		},
+	}, opts...); err != nil {
+		return err
+	}
+
+	// Spaces — exposed under the orchestrator's R2_* keys (S3-compatible
+	// path). BACKUP_S3_URI points at the dedicated backups bucket so the
+	// backup CronJob doesn't need separate config wiring.
+	backupURI := spaces.Names["backups"].ApplyT(func(name string) string {
+		return "s3://" + name
+	}).(pulumi.StringOutput)
+
+	if _, err := corev1.NewSecret(ctx, in.Config.ResourceName("secret-spaces"), &corev1.SecretArgs{
+		Metadata: &metav1.ObjectMetaArgs{
+			Name:      pulumi.String("ironflyer-spaces"),
+			Namespace: ns.Metadata.Name().Elem(),
+			Labels: pulumi.StringMap{
+				"app.kubernetes.io/part-of":   pulumi.String("ironflyer"),
+				"app.kubernetes.io/component": pulumi.String("data-spaces"),
+			},
+		},
+		StringData: pulumi.StringMap{
+			// R2_* alias intentional — see package doc above.
+			"R2_ACCOUNT_ID":        pulumi.String("digitalocean-spaces").ToStringOutput(),
+			"R2_ACCESS_KEY_ID":     spaces.AccessKey,
+			"R2_SECRET_ACCESS_KEY": spaces.SecretKey,
+			"SPACES_ENDPOINT":      spaces.Endpoint,
+			"SPACES_REGION":        pulumi.String(in.Config.SpacesRegion).ToStringOutput(),
+			"BACKUP_S3_URI":        backupURI,
+			"WORKSPACES_BUCKET":    spaces.Names["workspaces"],
+			"AUDIT_EXPORTS_BUCKET": spaces.Names["audit-exports"],
+		},
+	}, opts...); err != nil {
+		return err
+	}
+
+	return nil
 }

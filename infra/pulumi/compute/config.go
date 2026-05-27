@@ -1,6 +1,7 @@
 package compute
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
@@ -9,105 +10,108 @@ import (
 
 // Config captures every setting the program reads from Pulumi config.
 // Kept as plain values (not Pulumi Outputs) — they're resolved at startup
-// and reused everywhere downstream.
+// and reused everywhere downstream. Mirrors compute.Config in the AWS
+// project; the field set is DO-shaped (droplet sizes, region slugs).
 type Config struct {
-	Stack            string
-	Region           string
-	Project          string
-	VpcCidr          string
-	SingleNatGateway bool
-	K8sVersion       string
-	PublicAPICidrs   []string
-	OrchestratorType string
-	RuntimeType      string
-	UseKarpenter     bool
-	RootDomain       string
-	RegionSubdomain  string
-	WebSpaBucket     string
-	AllowlistedIPs   []string
-	DataStackName    string
+	Stack         string
+	ProjectName   string
+	Region        string
+	SpacesRegion  string
+	RootDomain    string
+	K8sVersion    string
 
-	// Vercel — drives edge.NewVercel when VercelEnabled is true. Tokens
-	// stay out of plain config (operator sets `vercel:apiToken` as a
-	// Pulumi secret).
-	VercelEnabled      bool
-	VercelTeamID       string
-	VercelDomain       string
-	VercelBranch       string
-	VercelFramework    string
-	VercelGitRepoOwner string
-	VercelGitRepoName  string
-	VercelSentryDSN    string
+	// System node pool (control-plane facing workloads — orchestrator API,
+	// edge controllers, observability stack).
+	DOKSNodeSize  string
+	DOKSNodeCount int
+	DOKSMaxNodes  int
+
+	// Runtime node pool (per-user sandbox pods — code-server, runtime
+	// driver). Larger droplets, separately scaled, labelled `workload=runtime`
+	// and tainted so only runtime pods land there.
+	DOKSRuntimeNodeSize  string
+	DOKSRuntimeNodeCount int
+	DOKSRuntimeMaxNodes  int
+
+	// Data layer sizing — consumed by the sibling `data` package.
+	PostgresSize    string
+	PostgresVersion string
+	RedisSize       string
+	RedisVersion   string
+
+	// HA + edge toggles.
+	EnableHA      bool
+	VercelEnabled bool
+	VercelDomain  string
 }
 
-// LoadConfig reads every value the program needs from Pulumi config.
-// Falling back to sensible defaults that match Pulumi.yaml.
-func LoadConfig(ctx *pulumi.Context) *Config {
-	c := config.New(ctx, "infra")
-	aws := config.New(ctx, "aws")
-	iron := config.New(ctx, "ironflyer")
+// LoadConfig reads every value the program needs from Pulumi config under
+// the `ironflyer:` namespace. Defaults match Pulumi.yaml.
+func LoadConfig(ctx *pulumi.Context) (*Config, error) {
+	c := config.New(ctx, "ironflyer")
 
 	cfg := &Config{
-		Stack:            ctx.Stack(),
-		Project:          "ironflyer",
-		Region:           aws.Get("region"),
-		VpcCidr:          getOr(c, "vpcCidr", "10.0.0.0/16"),
-		SingleNatGateway: c.GetBool("singleNatGateway"),
-		K8sVersion:       getOr(c, "k8sVersion", "1.30"),
-		PublicAPICidrs:   getStringArr(c, "publicApiCidrs", []string{"0.0.0.0/0"}),
-		OrchestratorType: getOr(c, "orchestratorInstanceType", "m6i.large"),
-		RuntimeType:      getOr(c, "runtimeInstanceType", "m6i.xlarge"),
-		UseKarpenter:     c.GetBool("useKarpenter"),
-		RootDomain:       getOr(c, "rootDomain", "ironflyer.dev"),
-		RegionSubdomain:  c.Get("regionSubdomain"),
-		WebSpaBucket:     c.Get("webSpaBucketName"),
-		AllowlistedIPs:   csv(c.Get("allowlistedIps")),
-		DataStackName:    c.Get("dataStackName"),
-
-		VercelEnabled:      iron.GetBool("vercelEnabled"),
-		VercelTeamID:       iron.Get("vercelTeamId"),
-		VercelDomain:       iron.Get("vercelDomain"),
-		VercelBranch:       getOr(iron, "vercelBranch", "main"),
-		VercelFramework:    getOr(iron, "vercelFramework", "nextjs"),
-		VercelGitRepoOwner: iron.Get("vercelGitRepoOwner"),
-		VercelGitRepoName:  iron.Get("vercelGitRepoName"),
-		VercelSentryDSN:    iron.Get("vercelSentryDsn"),
+		Stack:                ctx.Stack(),
+		ProjectName:          "ironflyer",
+		Region:               c.Require("region"),
+		SpacesRegion:         getOr(c, "spacesRegion", c.Require("region")),
+		RootDomain:           getOr(c, "rootDomain", "ironflyer.dev"),
+		K8sVersion:           getOr(c, "k8sVersion", "1.30.6-do.0"),
+		DOKSNodeSize:         getOr(c, "doksNodeSize", "s-2vcpu-4gb"),
+		DOKSNodeCount:        getInt(c, "doksNodeCount", 2),
+		DOKSMaxNodes:         getInt(c, "doksMaxNodes", 6),
+		DOKSRuntimeNodeSize:  getOr(c, "doksRuntimeNodeSize", "s-4vcpu-8gb"),
+		DOKSRuntimeNodeCount: getInt(c, "doksRuntimeNodeCount", 1),
+		DOKSRuntimeMaxNodes:  getInt(c, "doksRuntimeMaxNodes", 8),
+		PostgresSize:         getOr(c, "postgresSize", "db-s-1vcpu-1gb"),
+		PostgresVersion:      getOr(c, "postgresVersion", "16"),
+		RedisSize:            getOr(c, "redisSize", "db-s-1vcpu-1gb"),
+		RedisVersion:         getOr(c, "redisVersion", "7"),
+		EnableHA:             c.GetBool("enableHA"),
+		VercelEnabled:        c.GetBool("vercelEnabled"),
+		VercelDomain:         c.Get("vercelDomain"),
 	}
-	return cfg
+	return cfg, nil
 }
 
-// Tags returns the standard tag set every resource gets.
-func (c *Config) Tags() pulumi.StringMap {
-	return pulumi.StringMap{
-		"Project":   pulumi.String(c.Project),
-		"Stack":     pulumi.String(c.Stack),
-		"Region":    pulumi.String(c.Region),
-		"ManagedBy": pulumi.String("pulumi"),
+// Tags returns the standard tag slice every DO resource gets. DigitalOcean
+// resources accept a `[]string` of free-form tags (not key/value maps like
+// AWS), so we encode our well-known key:value pairs as colon-separated
+// strings to keep them searchable in the DO UI + API.
+func (c *Config) Tags(extra ...string) pulumi.StringArray {
+	base := []string{
+		"ironflyer",
+		"project:" + c.ProjectName,
+		"stack:" + c.Stack,
+		"region:" + c.Region,
+		"managed-by:pulumi",
 	}
-}
-
-// TagsWith returns the standard tag set plus any extras.
-func (c *Config) TagsWith(extra map[string]string) pulumi.StringMap {
-	out := c.Tags()
-	for k, v := range extra {
-		out[k] = pulumi.String(v)
+	base = append(base, extra...)
+	out := make(pulumi.StringArray, 0, len(base))
+	for _, t := range base {
+		out = append(out, pulumi.String(t))
 	}
 	return out
 }
 
-// APIHostname returns the public-facing hostname for the orchestrator API
-// in this stack — `api.${region}.${root}` in prod, `api.${root}` otherwise.
+// ResourceName returns a stable, stack-scoped DO resource name (e.g.
+// `ironflyer-dev-vpc`). DigitalOcean enforces lowercase + DNS-label charset
+// for most resources, which our stack names already respect.
+func (c *Config) ResourceName(suffix string) string {
+	return strings.ToLower(c.ProjectName + "-" + c.Stack + "-" + suffix)
+}
+
+// APIHostname is the front-door hostname for the orchestrator API in this
+// stack — used by edge for ingress + cert wiring.
 func (c *Config) APIHostname() string {
-	if c.RegionSubdomain != "" {
-		return "api." + c.RegionSubdomain + "." + c.RootDomain
-	}
 	return "api." + c.RootDomain
 }
 
-// WebHostname is the front-door SPA hostname (Web SPA via CloudFront).
+// WebHostname is the dashboard hostname. Falls back to VercelDomain when
+// Vercel is enabled (Vercel owns the apex in those stacks).
 func (c *Config) WebHostname() string {
-	if c.RegionSubdomain != "" {
-		return "app." + c.RegionSubdomain + "." + c.RootDomain
+	if c.VercelEnabled && c.VercelDomain != "" {
+		return c.VercelDomain
 	}
 	if strings.HasPrefix(c.Stack, "prod") {
 		return "app." + c.RootDomain
@@ -122,25 +126,14 @@ func getOr(c *config.Config, key, fallback string) string {
 	return fallback
 }
 
-func getStringArr(c *config.Config, key string, fallback []string) []string {
-	var out []string
-	if err := c.TryObject(key, &out); err == nil && len(out) > 0 {
-		return out
+func getInt(c *config.Config, key string, fallback int) int {
+	v := c.Get(key)
+	if v == "" {
+		return fallback
 	}
-	return fallback
-}
-
-func csv(s string) []string {
-	if s == "" {
-		return nil
+	n, err := strconv.Atoi(strings.TrimSpace(v))
+	if err != nil {
+		return fallback
 	}
-	parts := strings.Split(s, ",")
-	out := make([]string, 0, len(parts))
-	for _, p := range parts {
-		p = strings.TrimSpace(p)
-		if p != "" {
-			out = append(out, p)
-		}
-	}
-	return out
+	return n
 }

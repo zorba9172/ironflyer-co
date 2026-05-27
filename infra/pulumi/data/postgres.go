@@ -1,226 +1,189 @@
 package data
 
 import (
-	"fmt"
-
-	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/appautoscaling"
-	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/ec2"
-	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/rds"
+	"github.com/pulumi/pulumi-digitalocean/sdk/v4/go/digitalocean"
+	corev1 "github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes/core/v1"
+	metav1 "github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes/meta/v1"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
+
+	batchv1 "github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes/batch/v1"
+
+	"ironflyer/infra/pulumi-do/compute"
 )
 
-// Postgres holds the Aurora cluster + endpoints we surface as stack outputs.
+// Postgres is the managed DO Postgres cluster + the outputs the rest of
+// the data layer (secrets, observability) and the edge layer consume.
 type Postgres struct {
-	Cluster        *rds.Cluster
-	Writer         *rds.ClusterInstance
-	Reader         *rds.ClusterInstance
-	ClusterArn     pulumi.StringOutput
-	WriterEndpoint pulumi.StringOutput
-	ReaderEndpoint pulumi.StringOutput
-	ConnectionURL  pulumi.StringOutput
+	Cluster     *digitalocean.DatabaseCluster
+	Host        pulumi.StringOutput
+	Port        pulumi.IntOutput
+	PrivateHost pulumi.StringOutput
+	PrivatePort pulumi.IntOutput
+	URI         pulumi.StringOutput // public-facing, secret
+	PrivateURI  pulumi.StringOutput // VPC-only, secret — preferred by k8s workloads
 }
 
-// provisionPostgres builds an Aurora Postgres 16 cluster (multi-AZ, IAM
-// auth enabled, KMS-encrypted, 30-day PITR backups) with a writer +
-// reader, and an autoscaler that pushes the reader pool to 6 in prod.
-func provisionPostgres(ctx *pulumi.Context, env *stackEnv, deps Compute, k *KMSKeys, dataSG *ec2.SecurityGroup, secrets *Secrets) (*Postgres, error) {
-	// Allow the EKS cluster SG to talk to the data SG on 5432.
-	if _, err := ec2.NewSecurityGroupRule(ctx, name(env, "data-sg-ingress-pg"), &ec2.SecurityGroupRuleArgs{
-		Type:                  pulumi.String("ingress"),
-		FromPort:              pulumi.Int(5432),
-		ToPort:                pulumi.Int(5432),
-		Protocol:              pulumi.String("tcp"),
-		SecurityGroupId:       dataSG.ID(),
-		SourceSecurityGroupId: deps.ClusterSGID,
-		Description:           pulumi.String("Postgres from EKS cluster SG"),
+// provisionPostgres creates the managed Postgres cluster, a tenant
+// database + app user, a trusted-source firewall that only admits the
+// DOKS cluster, and a Kubernetes Job that installs the pgvector
+// extension on first apply.
+//
+// DO managed Postgres exposes pgvector as an available extension; the
+// provider SDK has no first-class DatabaseExtension resource at the
+// time of writing, so we run a one-shot k8s Job that connects via the
+// cluster's PrivateURI and issues `CREATE EXTENSION IF NOT EXISTS vector`.
+// The Job is idempotent (the IF NOT EXISTS guard) and lives in the
+// `ironflyer` namespace next to the orchestrator.
+func provisionPostgres(ctx *pulumi.Context, in Inputs, ns *corev1.Namespace) (*Postgres, error) {
+	cfg := in.Config
+	clusterName := cfg.ResourceName("pg")
+
+	cluster, err := digitalocean.NewDatabaseCluster(ctx, clusterName, &digitalocean.DatabaseClusterArgs{
+		Name:               pulumi.String(clusterName),
+		Engine:             pulumi.String("pg"),
+		Version:            pulumi.String(cfg.PostgresVersion),
+		Size:               pulumi.String(cfg.PostgresSize),
+		Region:             pulumi.String(cfg.Region),
+		NodeCount:          pulumi.Int(IfHA(cfg, 2, 1)),
+		PrivateNetworkUuid: in.Network.VpcID.ToStringOutput(),
+		Tags:               cfg.Tags("data", "postgres"),
+		MaintenanceWindows: digitalocean.DatabaseClusterMaintenanceWindowArray{
+			&digitalocean.DatabaseClusterMaintenanceWindowArgs{
+				Day:  pulumi.String("sunday"),
+				Hour: pulumi.String("03:00:00"),
+			},
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := digitalocean.NewDatabaseDb(ctx, cfg.ResourceName("pg-db"), &digitalocean.DatabaseDbArgs{
+		ClusterId: cluster.ID(),
+		Name:      pulumi.String("ironflyer"),
 	}); err != nil {
 		return nil, err
 	}
 
-	// Parameter group: tighten logging without going overboard on volume.
-	clusterPG, err := rds.NewClusterParameterGroup(ctx, name(env, "pg-cluster-params"), &rds.ClusterParameterGroupArgs{
-		Family:      pulumi.String("aurora-postgresql16"),
-		Description: pulumi.String("Ironflyer Aurora Postgres 16 cluster params"),
-		Parameters: rds.ClusterParameterGroupParameterArray{
-			&rds.ClusterParameterGroupParameterArgs{Name: pulumi.String("log_min_duration_statement"), Value: pulumi.String("500")},
-			&rds.ClusterParameterGroupParameterArgs{Name: pulumi.String("log_statement"), Value: pulumi.String("ddl")},
-			&rds.ClusterParameterGroupParameterArgs{Name: pulumi.String("pgaudit.log"), Value: pulumi.String("ddl,role")},
-			&rds.ClusterParameterGroupParameterArgs{Name: pulumi.String("shared_preload_libraries"), Value: pulumi.String("pgaudit"), ApplyMethod: pulumi.String("pending-reboot")},
-		},
-		Tags: env.tags,
-	})
-	if err != nil {
+	if _, err := digitalocean.NewDatabaseUser(ctx, cfg.ResourceName("pg-user"), &digitalocean.DatabaseUserArgs{
+		ClusterId: cluster.ID(),
+		Name:      pulumi.String("ironflyer_app"),
+	}); err != nil {
 		return nil, err
 	}
 
-	instancePG, err := rds.NewParameterGroup(ctx, name(env, "pg-instance-params"), &rds.ParameterGroupArgs{
-		Family:      pulumi.String("aurora-postgresql16"),
-		Description: pulumi.String("Ironflyer Aurora Postgres 16 instance params"),
-		Tags:        env.tags,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	// Pull username + password out of the Secrets Manager-backed JSON.
-	masterPassword := secrets.PostgresMasterVersion.SecretString.ApplyT(func(s string) (string, error) {
-		return extractJSONField(s, "password")
-	}).(pulumi.StringOutput)
-
-	backupRetention := 7
-	if env.isProd {
-		backupRetention = 30
-	}
-
-	cluster, err := rds.NewCluster(ctx, name(env, "pg-cluster"), &rds.ClusterArgs{
-		ClusterIdentifier:               pulumi.String(name(env, "pg")),
-		Engine:                          pulumi.String("aurora-postgresql"),
-		EngineVersion:                   pulumi.String("16.4"),
-		EngineMode:                      pulumi.String("provisioned"),
-		DatabaseName:                    pulumi.String("ironflyer"),
-		MasterUsername:                  pulumi.String("ironflyer_master"),
-		MasterPassword:                  masterPassword,
-		DbSubnetGroupName:               deps.DBSubnetGroupName,
-		VpcSecurityGroupIds:             pulumi.StringArray{dataSG.ID()},
-		StorageEncrypted:                pulumi.Bool(true),
-		KmsKeyId:                        k.RDSKey.Arn,
-		BackupRetentionPeriod:           pulumi.Int(backupRetention),
-		PreferredBackupWindow:           pulumi.String("02:00-03:00"),
-		PreferredMaintenanceWindow:      pulumi.String("sun:03:30-sun:05:00"),
-		DeletionProtection:              pulumi.Bool(env.isProd),
-		IamDatabaseAuthenticationEnabled: pulumi.Bool(true),
-		CopyTagsToSnapshot:              pulumi.Bool(true),
-		DbClusterParameterGroupName:     clusterPG.Name,
-		EnabledCloudwatchLogsExports:    pulumi.StringArray{pulumi.String("postgresql")},
-		SkipFinalSnapshot:               pulumi.Bool(!env.isProd),
-		FinalSnapshotIdentifier:         pulumi.String(name(env, "pg-final")),
-		ApplyImmediately:                pulumi.Bool(!env.isProd),
-		Tags:                            env.tags,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	writer, err := rds.NewClusterInstance(ctx, name(env, "pg-writer"), &rds.ClusterInstanceArgs{
-		Identifier:                  pulumi.String(name(env, "pg-writer")),
-		ClusterIdentifier:           cluster.ID(),
-		InstanceClass:               pulumi.String(env.postgresInstance),
-		Engine:                      pulumi.String("aurora-postgresql"),
-		EngineVersion:               cluster.EngineVersion,
-		DbParameterGroupName:        instancePG.Name,
-		DbSubnetGroupName:           deps.DBSubnetGroupName,
-		PerformanceInsightsEnabled:  pulumi.Bool(true),
-		PerformanceInsightsKmsKeyId: k.RDSKey.Arn,
-		PerformanceInsightsRetentionPeriod: pulumi.Int(7),
-		PubliclyAccessible:          pulumi.Bool(false),
-		PromotionTier:               pulumi.Int(0),
-		Tags:                        env.tags,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	reader, err := rds.NewClusterInstance(ctx, name(env, "pg-reader"), &rds.ClusterInstanceArgs{
-		Identifier:                  pulumi.String(name(env, "pg-reader")),
-		ClusterIdentifier:           cluster.ID(),
-		InstanceClass:               pulumi.String(env.postgresInstance),
-		Engine:                      pulumi.String("aurora-postgresql"),
-		EngineVersion:               cluster.EngineVersion,
-		DbParameterGroupName:        instancePG.Name,
-		DbSubnetGroupName:           deps.DBSubnetGroupName,
-		PerformanceInsightsEnabled:  pulumi.Bool(true),
-		PerformanceInsightsKmsKeyId: k.RDSKey.Arn,
-		PerformanceInsightsRetentionPeriod: pulumi.Int(7),
-		PubliclyAccessible:          pulumi.Bool(false),
-		PromotionTier:               pulumi.Int(1),
-		Tags:                        env.tags,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	// In prod we autoscale readers 2..6 by CPU. Dev stays at fixed 1+1.
-	if env.isProd {
-		target, err := appautoscaling.NewTarget(ctx, name(env, "pg-reader-target"), &appautoscaling.TargetArgs{
-			ServiceNamespace:  pulumi.String("rds"),
-			ScalableDimension: pulumi.String("rds:cluster:ReadReplicaCount"),
-			ResourceId:        pulumi.Sprintf("cluster:%s", cluster.ClusterIdentifier),
-			MinCapacity:       pulumi.Int(2),
-			MaxCapacity:       pulumi.Int(6),
-		})
-		if err != nil {
-			return nil, err
-		}
-		if _, err := appautoscaling.NewPolicy(ctx, name(env, "pg-reader-cpu"), &appautoscaling.PolicyArgs{
-			PolicyType:        pulumi.String("TargetTrackingScaling"),
-			ServiceNamespace:  target.ServiceNamespace,
-			ScalableDimension: target.ScalableDimension,
-			ResourceId:        target.ResourceId,
-			TargetTrackingScalingPolicyConfiguration: &appautoscaling.PolicyTargetTrackingScalingPolicyConfigurationArgs{
-				TargetValue: pulumi.Float64(60.0),
-				PredefinedMetricSpecification: &appautoscaling.PolicyTargetTrackingScalingPolicyConfigurationPredefinedMetricSpecificationArgs{
-					PredefinedMetricType: pulumi.String("RDSReaderAverageCPUUtilization"),
-				},
+	// Trusted-source firewall: only admit the DOKS cluster itself. DO
+	// resolves this to the cluster's worker droplets internally.
+	if _, err := digitalocean.NewDatabaseFirewall(ctx, cfg.ResourceName("pg-fw"), &digitalocean.DatabaseFirewallArgs{
+		ClusterId: cluster.ID(),
+		Rules: digitalocean.DatabaseFirewallRuleArray{
+			&digitalocean.DatabaseFirewallRuleArgs{
+				Type:  pulumi.String("k8s"),
+				Value: in.Cluster.ID().ToStringOutput(),
 			},
-		}); err != nil {
+		},
+	}); err != nil {
+		return nil, err
+	}
+
+	// pgvector extension via a one-shot k8s Job. Skipped when the
+	// kubernetes provider isn't wired in yet (compute agent still bringing
+	// the cluster online), which keeps `pulumi preview` working before
+	// the cluster exists.
+	if in.K8sProvider != nil && ns != nil {
+		if err := installPgVector(ctx, cfg, cluster, in, ns); err != nil {
 			return nil, err
 		}
 	}
-
-	url := pulumi.All(cluster.Endpoint, masterPassword).ApplyT(func(args []any) string {
-		host := args[0].(string)
-		pw := args[1].(string)
-		return fmt.Sprintf("postgres://ironflyer_master:%s@%s:5432/ironflyer?sslmode=require", pw, host)
-	}).(pulumi.StringOutput)
 
 	return &Postgres{
-		Cluster:        cluster,
-		Writer:         writer,
-		Reader:         reader,
-		ClusterArn:     cluster.Arn,
-		WriterEndpoint: cluster.Endpoint,
-		ReaderEndpoint: cluster.ReaderEndpoint,
-		ConnectionURL:  url,
+		Cluster:     cluster,
+		Host:        cluster.Host,
+		Port:        cluster.Port,
+		PrivateHost: cluster.PrivateHost,
+		PrivatePort: cluster.Port,
+		URI:         cluster.Uri,
+		PrivateURI:  cluster.PrivateUri,
 	}, nil
 }
 
-// extractJSONField is a tiny convenience parser: it pulls a single
-// top-level string field out of the placeholder JSON we wrote to Secrets
-// Manager. We don't pull in encoding/json + a struct because the secret
-// shape is fixed and the resource expects a Pulumi-side string.
-func extractJSONField(blob, field string) (string, error) {
-	key := fmt.Sprintf("%q:", field)
-	i := indexOf(blob, key)
-	if i < 0 {
-		return "", fmt.Errorf("field %q not found in secret JSON", field)
+// installPgVector creates a Kubernetes Job that runs `psql` against the
+// managed cluster's PrivateURI and installs the pgvector extension. The
+// Job runs once per `pulumi up` (resource name + image hash are stable);
+// the CREATE EXTENSION IF NOT EXISTS guard makes it idempotent if it
+// ever re-runs.
+func installPgVector(ctx *pulumi.Context, cfg *compute.Config, cluster *digitalocean.DatabaseCluster, in Inputs, ns *corev1.Namespace) error {
+	opts := []pulumi.ResourceOption{
+		pulumi.Provider(in.K8sProvider),
+		pulumi.DependsOn([]pulumi.Resource{cluster, ns}),
 	}
-	i += len(key)
-	// skip whitespace + opening quote.
-	for i < len(blob) && (blob[i] == ' ' || blob[i] == '\t') {
-		i++
-	}
-	if i >= len(blob) || blob[i] != '"' {
-		return "", fmt.Errorf("malformed secret JSON near field %q", field)
-	}
-	i++
-	end := i
-	for end < len(blob) && blob[end] != '"' {
-		if blob[end] == '\\' {
-			end++
-		}
-		end++
-	}
-	if end >= len(blob) {
-		return "", fmt.Errorf("unterminated string for field %q", field)
-	}
-	return blob[i:end], nil
-}
 
-func indexOf(s, sub string) int {
-	for i := 0; i+len(sub) <= len(s); i++ {
-		if s[i:i+len(sub)] == sub {
-			return i
-		}
+	// Wrap the cluster URI in a k8s Secret so we don't bake the password
+	// into the Job's command line / pod spec.
+	uriSecret, err := corev1.NewSecret(ctx, cfg.ResourceName("pg-bootstrap-uri"), &corev1.SecretArgs{
+		Metadata: &metav1.ObjectMetaArgs{
+			Name:      pulumi.String("ironflyer-pg-bootstrap-uri"),
+			Namespace: ns.Metadata.Name().Elem(),
+		},
+		StringData: pulumi.StringMap{
+			"DATABASE_URL": cluster.PrivateUri,
+		},
+	}, opts...)
+	if err != nil {
+		return err
 	}
-	return -1
+
+	_, err = batchv1.NewJob(ctx, cfg.ResourceName("pg-bootstrap"), &batchv1.JobArgs{
+		Metadata: &metav1.ObjectMetaArgs{
+			GenerateName: pulumi.String("ironflyer-pg-bootstrap-"),
+			Namespace:    ns.Metadata.Name().Elem(),
+			Labels: pulumi.StringMap{
+				"app.kubernetes.io/name":      pulumi.String("ironflyer-pg-bootstrap"),
+				"app.kubernetes.io/component": pulumi.String("data-bootstrap"),
+				"app.kubernetes.io/part-of":   pulumi.String("ironflyer"),
+			},
+		},
+		Spec: &batchv1.JobSpecArgs{
+			BackoffLimit:            pulumi.Int(6),
+			TtlSecondsAfterFinished: pulumi.Int(3600),
+			Template: &corev1.PodTemplateSpecArgs{
+				Metadata: &metav1.ObjectMetaArgs{
+					Labels: pulumi.StringMap{
+						"app.kubernetes.io/name": pulumi.String("ironflyer-pg-bootstrap"),
+					},
+				},
+				Spec: &corev1.PodSpecArgs{
+					RestartPolicy: pulumi.String("OnFailure"),
+					Containers: corev1.ContainerArray{
+						&corev1.ContainerArgs{
+							Name:  pulumi.String("psql"),
+							Image: pulumi.String("postgres:16-alpine"),
+							Env: corev1.EnvVarArray{
+								&corev1.EnvVarArgs{
+									Name: pulumi.String("DATABASE_URL"),
+									ValueFrom: &corev1.EnvVarSourceArgs{
+										SecretKeyRef: &corev1.SecretKeySelectorArgs{
+											Name: uriSecret.Metadata.Name().Elem(),
+											Key:  pulumi.String("DATABASE_URL"),
+										},
+									},
+								},
+							},
+							Command: pulumi.StringArray{
+								pulumi.String("/bin/sh"),
+								pulumi.String("-c"),
+							},
+							Args: pulumi.StringArray{
+								pulumi.String(`set -e
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "CREATE EXTENSION IF NOT EXISTS vector;"
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "CREATE EXTENSION IF NOT EXISTS pgcrypto;"
+echo "ironflyer: pgvector + pgcrypto installed."`),
+							},
+						},
+					},
+				},
+			},
+		},
+	}, opts...)
+	return err
 }

@@ -122,12 +122,11 @@ Tool scripts at `scripts/lint/run-*.sh`. Pre-deploy wrapper at
   envelope sender. 4 commands lazy-loaded.
 
 ### Deploy targets
-- **DigitalOcean Pulumi** at `infra/pulumi-do/` — `Pulumi.prod-ams3.yaml`
+- **DigitalOcean Pulumi** at `infra/pulumi/` — `Pulumi.prod.yaml`
   configured for `ironflyer.ai` (registrar DO → DNS Cloudflare).
 - **Helm chart** at `infra/helm/ironflyer/` — `values-prod.yaml`
   enables ClickHouse + Redpanda + KEDA + OPA by default; goRuntime
   block exposes GOMEMLIMIT/GOMAXPROCS/GOGC.
-- **AWS Pulumi** (`infra/pulumi/`) exists as optional alternate path.
 
 ### Templates
 - 6 mobile + web starters now tracked in git:
@@ -150,7 +149,7 @@ Key entry points:
 - `docs/SECURITY_HARDENING_2026-05-26.md` — 14 findings, 13 closed
 - `docs/MOBILE_STARTERS_AUDIT_2026-05-26.md`
 - `docs/ARCHITECTURE_DOMAIN_MODULES.md`
-- `docs/RUNBOOKS/{cold-start,upgrade,rollback,region-failover,cost-spike,workspace-saturation,graphql-incident}.md`
+- `docs/RUNBOOKS/{cold-start,upgrade,rollback,cost-spike,workspace-saturation,graphql-incident}.md`
 
 ## Build verification (current)
 

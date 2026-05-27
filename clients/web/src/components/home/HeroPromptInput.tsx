@@ -156,18 +156,28 @@ export const HeroPromptInput = forwardRef<HeroPromptInputHandle, HeroPromptInput
         sx={{
           position: "relative",
           width: "100%",
-          maxWidth: 984,
+          maxWidth: 846,
           mx: "auto",
-          minHeight: { xs: 214, sm: 222 },
-          borderRadius: "18px",
+          minHeight: { xs: 190, sm: 196 },
+          borderRadius: "22px",
           border: `1px solid ${c.border}`,
           bgcolor: c.surface,
-          backdropFilter: "saturate(145%) blur(18px)",
+          backdropFilter: "saturate(155%) blur(22px)",
           boxShadow: c.shadow,
           backgroundImage: light
-            ? "linear-gradient(135deg, rgba(255,255,255,0.94), rgba(255,255,255,0.70))"
-            : "linear-gradient(135deg, rgba(20,22,52,0.92), rgba(12,13,32,0.82))",
+            ? "linear-gradient(145deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78))"
+            : "linear-gradient(145deg, rgba(21,23,54,0.94), rgba(10,11,29,0.88))",
           transition: `border-color ${tokens.motion.fast} ease, box-shadow ${tokens.motion.base} ease`,
+          overflow: "hidden",
+          "&::before": {
+            content: '""',
+            position: "absolute",
+            inset: 0,
+            pointerEvents: "none",
+            background: light
+              ? "radial-gradient(360px 150px at 86% 18%, rgba(183,91,255,0.16), transparent 70%), radial-gradient(320px 170px at 9% 108%, rgba(255,102,92,0.12), transparent 72%)"
+              : "radial-gradient(360px 150px at 86% 18%, rgba(183,91,255,0.18), transparent 70%), radial-gradient(320px 170px at 9% 108%, rgba(255,102,92,0.12), transparent 72%)",
+          },
           "&:focus-within": {
             borderColor: tokens.color.border.accent,
             boxShadow: `${c.shadow}, 0 0 0 3px ${tokens.color.accent.purple}2e`,
@@ -181,21 +191,22 @@ export const HeroPromptInput = forwardRef<HeroPromptInputHandle, HeroPromptInput
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           multiline
-          minRows={3}
-          maxRows={5}
+          minRows={2}
+          maxRows={4}
           fullWidth
           variant="standard"
           slotProps={{
             input: {
               disableUnderline: true,
               sx: {
-                px: { xs: 2, sm: 3 },
-                pt: { xs: 2.1, sm: 2.55 },
+                px: { xs: 2, sm: 3.2 },
+                pt: { xs: 2.1, sm: 2.45 },
                 pb: 1.2,
-                fontSize: { xs: 20, sm: 24 },
-                lineHeight: 1.42,
+                fontSize: { xs: 18.5, sm: 21.5 },
+                lineHeight: 1.38,
                 color: c.text,
                 fontFamily: tokens.font.family,
+                fontWeight: 600,
                 "& textarea::placeholder": {
                   color: c.text,
                   opacity: 1,
@@ -212,8 +223,9 @@ export const HeroPromptInput = forwardRef<HeroPromptInputHandle, HeroPromptInput
           useFlexGap
           flexWrap="wrap"
           sx={{
-            px: { xs: 1.55, sm: 2.25 },
-            pb: { xs: 1.45, sm: 2.05 },
+            position: "relative",
+            px: { xs: 1.55, sm: 2.1 },
+            pb: { xs: 1.35, sm: 1.75 },
             pt: 0.7,
           }}
         >
@@ -241,11 +253,11 @@ export const HeroPromptInput = forwardRef<HeroPromptInputHandle, HeroPromptInput
                 color: c.secondary,
                 bgcolor: c.control,
                 border: `1px solid ${c.border}`,
-                px: 1.5,
+                px: 1.35,
                 py: 0.62,
-                minHeight: 42,
+                minHeight: 38,
                 fontFamily: tokens.font.mono,
-                fontSize: 13,
+                fontSize: 11.8,
                 borderRadius: 1.5,
                 "&:hover": { bgcolor: c.hover },
               }}
@@ -371,8 +383,8 @@ export const HeroPromptInput = forwardRef<HeroPromptInputHandle, HeroPromptInput
               disabled={!canSubmit}
               aria-label="Enhance prompt"
               sx={{
-                width: 48,
-                height: 48,
+                width: 44,
+                height: 44,
                 borderRadius: 1.5,
                 border: `1px solid ${c.border}`,
                 color: tokens.color.accent.violet,
@@ -394,9 +406,9 @@ export const HeroPromptInput = forwardRef<HeroPromptInputHandle, HeroPromptInput
             disabled={!canSubmit}
             endIcon={<ArrowForwardRounded sx={{ fontSize: 18 }} />}
             sx={{
-              minHeight: 48,
-              px: { xs: 2.4, sm: 3.4 },
-              fontSize: 17,
+              minHeight: 44,
+              px: { xs: 2.1, sm: 2.8 },
+              fontSize: 15.5,
               fontWeight: 900,
               letterSpacing: 0.2,
               ml: { xs: "auto", sm: 0 },

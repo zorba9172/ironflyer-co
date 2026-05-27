@@ -16,6 +16,13 @@ clients/web/tmp-screenshots/
 playwright-report/
 coverage/
 
+# Scratch screenshot/render dumps — never committed. Per 2026-05-27
+# closure pass: tmp/ accumulates throwaway visual diff PNGs (~50MB on
+# disk); they belong on the design reference folder when promoted, not
+# in the repo history.
+tmp/
+clients/web/tmp/
+
 # Build artifacts inside template starters — NEVER commit. The starters
 # themselves (sources, manifests, fastlane config) ARE tracked at
 # templates/starters/* per CLAUDE.md ("Real, runnable starters").

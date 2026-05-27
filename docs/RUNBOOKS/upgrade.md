@@ -40,7 +40,7 @@ healthy.
 
 ```bash
 cd infra/pulumi
-pulumi stack select <stack>            # e.g. prod-eu
+pulumi stack select prod
 
 # Bump the image tag.
 pulumi config set ironflyer:imageTag v0.X.Y
@@ -57,10 +57,8 @@ kubectl -n ironflyer rollout status deploy/runtime
 kubectl -n ironflyer rollout status deploy/web
 
 # Smoke.
-IRONFLYER_API_URL=https://api.<stack>.ironflyer.dev bash scripts/v22_smoke.sh
+IRONFLYER_API_URL=https://api.ironflyer.ai bash scripts/v22_smoke.sh
 ```
-
-Promote canary → staging → prod in order. Do **not** skip rings.
 
 ## Pre-flight checks
 
@@ -69,4 +67,4 @@ Promote canary → staging → prod in order. Do **not** skip rings.
 3. `bash scripts/v22_smoke.sh` exits 0 against the previous-tagged
    stack (otherwise you're upgrading a broken baseline).
 4. Pulumi `preview` shows no surprising deletes (especially in the
-   `data/` slice — Aurora/RDS replacement is not a rolling change).
+   `data/` slice — Managed Postgres replacement is not a rolling change).

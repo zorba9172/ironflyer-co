@@ -1,289 +1,160 @@
-// Package data provisions the Ironflyer data layer: KMS, RDS Aurora Postgres,
-// ElastiCache Redis, S3 buckets, Secrets Manager, EFS, SurrealDB (in-cluster),
-// CloudWatch observability, and the External Secrets operator wiring.
+// Package data is the data layer for the Ironflyer DigitalOcean Pulumi
+// project. It owns:
 //
-// It is intentionally split from the compute layer (compute/ + edge/): the
-// compute agent owns VPC, EKS, IAM/IRSA, Route53, ACM, CloudFront, and WAF;
-// this package consumes that side's outputs through the Compute struct and
-// provisions the persistent + secret state the orchestrator runs against.
+//   - Managed Postgres (with pgvector + pgcrypto installed via a one-shot
+//     Kubernetes Job; DO's provider has no first-class
+//     `DatabaseExtension` resource at the time of writing).
+//   - Managed Valkey/Redis.
+//   - Spaces buckets: `backups` (30d), `workspaces` (7d), `audit-exports`
+//     (180d, CORS-enabled for browser downloads).
+//   - A Spaces API key the orchestrator + backup CronJob use to sign
+//     S3-compatible requests.
+//   - Kubernetes Secrets in the `ironflyer` namespace surfacing the
+//     connection details to the orchestrator (POSTGRES_URL, REDIS_URL,
+//     R2_*-aliased Spaces creds — Spaces is wire-compatible with the
+//     orchestrator's existing R2 backend, see README in storage/).
+//   - Optional kube-prometheus-stack + loki-stack observability bundle.
+//
+// The Inputs / Outputs structs are the contract main.go holds with the
+// data layer; the compute + edge agents own the foundation and the
+// public surface, respectively.
 package data
 
 import (
 	"fmt"
-	"strings"
 
-	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/ec2"
-	kubernetes "github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes"
+	"github.com/pulumi/pulumi-digitalocean/sdk/v4/go/digitalocean"
+	"github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
-	"github.com/pulumi/pulumi/sdk/v3/go/pulumi/config"
+
+	"ironflyer/infra/pulumi-do/compute"
 )
 
-// Compute holds the public surface the compute/ + edge/ sibling packages
-// must publish. The compute agent assembles this struct in main.go and
-// hands it to data.Provision. If a field here is not yet produced by the
-// compute side, the compute agent must add it before this package can be
-// wired up end-to-end.
-type Compute struct {
-	// Networking — matches compute.Network field names + types so the
-	// caller in main.go can pass values straight through.
-	VpcID            pulumi.IDOutput
-	PrivateSubnetIDs pulumi.StringArrayOutput
-	PublicSubnetIDs  pulumi.StringArrayOutput
-	// DBSubnetGroupName is the name of an RDS DB subnet group the
-	// compute layer prepared from the dedicated DB subnets.
-	DBSubnetGroupName pulumi.StringOutput
-	// ClusterSGID is the EKS-managed cluster security group (workloads
-	// run inside it). All "ingress from the cluster" rules in the data
-	// layer reference this.
-	ClusterSGID pulumi.IDOutput
-
-	// EKS.
-	EksClusterName  pulumi.StringOutput
-	OidcProviderArn pulumi.StringOutput
-	OidcProviderURL pulumi.StringOutput
-
-	// Kubernetes provider already authenticated against the EKS cluster.
-	// The compute agent must construct this with the cluster's
-	// kubeconfig and pass it in. When nil, the data layer still works
-	// for AWS-side resources (RDS, Redis, S3, Secrets, EFS, KMS,
-	// CloudWatch) and skips the in-cluster pieces (SurrealDB,
-	// kube-prometheus, loki, external-secrets, ConfigMap mirrors). The
-	// compute agent owns adding this; documented in report.
+// Inputs is the compute-layer handoff the data package consumes. Every
+// field here is something only the compute layer can produce.
+type Inputs struct {
+	Config      *compute.Config
+	Network     *compute.Network
+	Cluster     *digitalocean.KubernetesCluster
 	K8sProvider *kubernetes.Provider
-
-	// IRSA role ARN for the orchestrator service account
-	// (ironflyer/orchestrator-sa). External Secrets uses this to read
-	// AWS Secrets Manager values into in-cluster Secrets.
-	OrchestratorRoleArn pulumi.StringOutput
 }
 
-// Outputs is the data-layer half of the unified stack outputs. main.go
-// merges it with the compute outputs.
+// Outputs are the data-layer outputs that main.go exports and the edge
+// layer consumes. Field set is a superset of the original stub's
+// contract so the foundation main.go keeps compiling while richer fields
+// (PostgresURI, PrivateHost, the SpacesBuckets map) are also exposed for
+// the edge layer + orchestrator Helm values.
 type Outputs struct {
-	// KMS.
-	KmsRdsKeyArn     pulumi.StringOutput
-	KmsS3KeyArn      pulumi.StringOutput
-	KmsSecretsKeyArn pulumi.StringOutput
-	KmsEbsKeyArn     pulumi.StringOutput
-
 	// Postgres.
-	PostgresClusterArn      pulumi.StringOutput
-	PostgresWriterEndpoint  pulumi.StringOutput
-	PostgresReaderEndpoint  pulumi.StringOutput
-	PostgresConnectionURL   pulumi.StringOutput
-	PostgresMasterSecretArn pulumi.StringOutput
+	PostgresHost          pulumi.StringOutput
+	PostgresPrivateHost   pulumi.StringOutput
+	PostgresPort          pulumi.IntOutput
+	PostgresDatabase      pulumi.StringOutput
+	PostgresUser          pulumi.StringOutput
+	PostgresPassword      pulumi.StringOutput // secret
+	PostgresConnectionURI pulumi.StringOutput // secret — public URI
+	PostgresURI           pulumi.StringOutput // alias, kept for the data-layer task contract
+	PostgresPrivateURI    pulumi.StringOutput // secret — VPC URI, preferred from in-cluster pods
 
-	// Redis.
-	RedisPrimaryEndpoint pulumi.StringOutput
-	RedisReaderEndpoint  pulumi.StringOutput
-	RedisAuthSecretArn   pulumi.StringOutput
+	// Redis (Valkey).
+	RedisHost          pulumi.StringOutput
+	RedisPort          pulumi.IntOutput
+	RedisPassword      pulumi.StringOutput // secret
+	RedisConnectionURI pulumi.StringOutput // secret
+	RedisURI           pulumi.StringOutput // alias
 
-	// S3.
-	BackupBucketArn         pulumi.StringOutput
-	BackupBucketName        pulumi.StringOutput
-	WorkspacesBucketArn     pulumi.StringOutput
-	WorkspacesBucketName    pulumi.StringOutput
-	WebSpaBucketArn         pulumi.StringOutput
-	WebSpaBucketName        pulumi.StringOutput
-	CloudFrontLogsBucketArn pulumi.StringOutput
-	CloudFrontLogsBucket    pulumi.StringOutput
-	SurrealExportBucketArn  pulumi.StringOutput
-	SurrealExportBucket     pulumi.StringOutput
-
-	// Secrets.
-	SecretArns pulumi.StringMapOutput
-
-	// EFS.
-	EfsFileSystemID  pulumi.StringOutput
-	EfsAccessPointID pulumi.StringOutput
-	EfsDnsName       pulumi.StringOutput
-
-	// SurrealDB.
-	SurrealService pulumi.StringOutput
+	// Spaces.
+	SpacesEndpoint  pulumi.StringOutput
+	SpacesRegion    pulumi.StringOutput
+	SpacesBucket    pulumi.StringOutput            // primary bucket name (backups) — kept for the stub contract
+	SpacesBuckets   map[string]pulumi.StringOutput // logical name → bucket domain name
+	SpacesAccessKey pulumi.StringOutput            // secret
+	SpacesSecretKey pulumi.StringOutput            // secret
 }
 
-// stackEnv captures everything Provision needs that depends on the active
-// Pulumi stack name / aws:region / infra:* config flags.
-type stackEnv struct {
-	stack            string // e.g. "dev", "prod-eu"
-	region           string
-	isProd           bool
-	logRetentionDays int
-	postgresInstance string
-	postgresReaders  int
-	redisShards      int
-	surrealEnabled   bool
-	datadogApiKey    string
-	dnsZoneRoot      string
-	tags             pulumi.StringMap
-}
-
-func resolveStackEnv(ctx *pulumi.Context) (*stackEnv, error) {
-	stack := ctx.Stack()
-	awsCfg := config.New(ctx, "aws")
-	region := awsCfg.Require("region")
-	infraCfg := config.New(ctx, "infra")
-
-	isProd := strings.HasPrefix(stack, "prod")
-
-	retention := 30
-	switch {
-	case isProd:
-		retention = 365
-	case stack == "staging":
-		retention = 90
+// Provision is the data layer's single entry point. main.go calls this
+// once the compute layer has produced the network, the DOKS cluster,
+// and an authenticated kubernetes provider.
+//
+// Order of operations:
+//
+//  1. Namespace (`ironflyer`) — every k8s resource the data layer
+//     creates lives here.
+//  2. Managed Postgres (with pgvector bootstrap Job).
+//  3. Managed Valkey/Redis.
+//  4. Spaces buckets (backups / workspaces / audit-exports) + API key.
+//  5. K8s Secrets that surface the connection strings to the
+//     orchestrator pods (POSTGRES_URL, REDIS_URL, R2_* for Spaces).
+//  6. Observability add-ons (kube-prometheus + loki) — gated on
+//     `ironflyer:observabilityEnabled`.
+//
+// All steps that touch the cluster are skipped when in.K8sProvider is
+// nil, which keeps `pulumi preview` healthy before the compute layer
+// has wired the kube provider through.
+func Provision(ctx *pulumi.Context, in Inputs) (*Outputs, error) {
+	if in.Config == nil {
+		return nil, fmt.Errorf("data.Provision: Inputs.Config is required")
+	}
+	if in.Network == nil {
+		return nil, fmt.Errorf("data.Provision: Inputs.Network is required")
+	}
+	if in.Cluster == nil {
+		return nil, fmt.Errorf("data.Provision: Inputs.Cluster is required")
 	}
 
-	postgresInstance := "db.t4g.medium"
-	postgresReaders := 1
-	redisShards := 1
-	if isProd {
-		postgresInstance = "db.r6g.large"
-		postgresReaders = 2
-		redisShards = 2
-	} else if stack == "staging" {
-		postgresInstance = "db.t4g.large"
-		postgresReaders = 1
-		redisShards = 1
-	}
-
-	surrealEnabled := isProd
-	if v, err := infraCfg.TryBool("surrealEnabled"); err == nil {
-		surrealEnabled = v
-	}
-
-	return &stackEnv{
-		stack:            stack,
-		region:           region,
-		isProd:           isProd,
-		logRetentionDays: retention,
-		postgresInstance: postgresInstance,
-		postgresReaders:  postgresReaders,
-		redisShards:      redisShards,
-		surrealEnabled:   surrealEnabled,
-		datadogApiKey:    infraCfg.Get("datadogApiKey"),
-		dnsZoneRoot:      infraCfg.Get("rootDomain"),
-		tags: pulumi.StringMap{
-			"Project":   pulumi.String("ironflyer"),
-			"Stack":     pulumi.String(stack),
-			"ManagedBy": pulumi.String("pulumi"),
-			"Layer":     pulumi.String("data"),
-		},
-	}, nil
-}
-
-// Provision builds the entire data layer in dependency order. It is the
-// one entry point main.go uses for this package.
-func Provision(ctx *pulumi.Context, deps Compute) (*Outputs, error) {
-	env, err := resolveStackEnv(ctx)
+	ns, err := provisionNamespace(ctx, in)
 	if err != nil {
-		return nil, fmt.Errorf("resolve stack env: %w", err)
+		return nil, fmt.Errorf("namespace: %w", err)
 	}
 
-	kms, err := provisionKMS(ctx, env)
-	if err != nil {
-		return nil, fmt.Errorf("kms: %w", err)
-	}
-
-	dataSG, err := provisionDataSecurityGroup(ctx, env, deps)
-	if err != nil {
-		return nil, fmt.Errorf("data security group: %w", err)
-	}
-
-	secrets, err := provisionSecrets(ctx, env, kms)
-	if err != nil {
-		return nil, fmt.Errorf("secrets: %w", err)
-	}
-
-	pg, err := provisionPostgres(ctx, env, deps, kms, dataSG, secrets)
+	pg, err := provisionPostgres(ctx, in, ns)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: %w", err)
 	}
 
-	redis, err := provisionRedis(ctx, env, deps, kms, dataSG, secrets)
+	redis, err := provisionRedis(ctx, in)
 	if err != nil {
 		return nil, fmt.Errorf("redis: %w", err)
 	}
 
-	buckets, err := provisionS3(ctx, env, kms)
+	spaces, err := provisionSpaces(ctx, in)
 	if err != nil {
-		return nil, fmt.Errorf("s3: %w", err)
+		return nil, fmt.Errorf("spaces: %w", err)
 	}
 
-	efs, err := provisionEFS(ctx, env, deps, kms, dataSG)
-	if err != nil {
-		return nil, fmt.Errorf("efs: %w", err)
+	if err := provisionSecrets(ctx, in, ns, pg, redis, spaces); err != nil {
+		return nil, fmt.Errorf("secrets: %w", err)
 	}
 
-	surreal, err := provisionSurreal(ctx, env, deps, secrets)
-	if err != nil {
-		return nil, fmt.Errorf("surrealdb: %w", err)
-	}
-
-	if err := provisionObservability(ctx, env, deps); err != nil {
+	if err := provisionObservability(ctx, in); err != nil {
 		return nil, fmt.Errorf("observability: %w", err)
 	}
 
-	if err := provisionConsumers(ctx, env, deps, secrets); err != nil {
-		return nil, fmt.Errorf("external-secrets: %w", err)
+	region := in.Config.SpacesRegion
+	if region == "" {
+		region = in.Config.Region
 	}
 
 	return &Outputs{
-		KmsRdsKeyArn:            kms.RDSKey.Arn.ToStringOutput(),
-		KmsS3KeyArn:             kms.S3Key.Arn.ToStringOutput(),
-		KmsSecretsKeyArn:        kms.SecretsKey.Arn.ToStringOutput(),
-		KmsEbsKeyArn:            kms.EBSKey.Arn.ToStringOutput(),
-		PostgresClusterArn:      pg.ClusterArn,
-		PostgresWriterEndpoint:  pg.WriterEndpoint,
-		PostgresReaderEndpoint:  pg.ReaderEndpoint,
-		PostgresConnectionURL:   pg.ConnectionURL,
-		PostgresMasterSecretArn: secrets.PostgresMaster.Arn.ToStringOutput(),
-		RedisPrimaryEndpoint:    redis.PrimaryEndpoint,
-		RedisReaderEndpoint:     redis.ReaderEndpoint,
-		RedisAuthSecretArn:      secrets.RedisAuth.Arn.ToStringOutput(),
-		BackupBucketArn:         buckets.Backup.Arn.ToStringOutput(),
-		BackupBucketName:        buckets.Backup.Bucket.ToStringOutput(),
-		WorkspacesBucketArn:     buckets.Workspaces.Arn.ToStringOutput(),
-		WorkspacesBucketName:    buckets.Workspaces.Bucket.ToStringOutput(),
-		WebSpaBucketArn:         buckets.WebSpa.Arn.ToStringOutput(),
-		WebSpaBucketName:        buckets.WebSpa.Bucket.ToStringOutput(),
-		CloudFrontLogsBucketArn: buckets.CFLogs.Arn.ToStringOutput(),
-		CloudFrontLogsBucket:    buckets.CFLogs.Bucket.ToStringOutput(),
-		SurrealExportBucketArn:  buckets.SurrealExport.Arn.ToStringOutput(),
-		SurrealExportBucket:     buckets.SurrealExport.Bucket.ToStringOutput(),
-		SecretArns:              secrets.ArnsByLogicalName(),
-		EfsFileSystemID:         efs.FileSystemID,
-		EfsAccessPointID:        efs.AccessPointID,
-		EfsDnsName:              efs.DnsName,
-		SurrealService:          surreal.Service,
+		PostgresHost:          pg.Host,
+		PostgresPrivateHost:   pg.PrivateHost,
+		PostgresPort:          pg.Port,
+		PostgresDatabase:      pulumi.String("ironflyer").ToStringOutput(),
+		PostgresUser:          pg.Cluster.User,
+		PostgresPassword:      pg.Cluster.Password,
+		PostgresConnectionURI: pg.URI,
+		PostgresURI:           pg.URI,
+		PostgresPrivateURI:    pg.PrivateURI,
+		RedisHost:             redis.PrivateHost,
+		RedisPort:             redis.Port,
+		RedisPassword:         redis.Password,
+		RedisConnectionURI:    redis.PrivateURI,
+		RedisURI:              redis.PrivateURI,
+		SpacesEndpoint:        spaces.Endpoint,
+		SpacesRegion:          pulumi.String(region).ToStringOutput(),
+		SpacesBucket:          spaces.Names["backups"],
+		SpacesBuckets:         spaces.Buckets,
+		SpacesAccessKey:       spaces.AccessKey,
+		SpacesSecretKey:       spaces.SecretKey,
 	}, nil
-}
-
-// provisionDataSecurityGroup builds the shared security group that fronts
-// stateful services (RDS, Redis, EFS). Ingress rules are layered per
-// service; egress is wide open since this SG is inside private subnets.
-func provisionDataSecurityGroup(ctx *pulumi.Context, env *stackEnv, deps Compute) (*ec2.SecurityGroup, error) {
-	sg, err := ec2.NewSecurityGroup(ctx, name(env, "data-sg"), &ec2.SecurityGroupArgs{
-		Name:        pulumi.String(name(env, "data-sg")),
-		Description: pulumi.String("Ironflyer data layer (RDS+Redis+EFS) ingress from the EKS cluster SG"),
-		VpcId:       deps.VpcID,
-		Egress: ec2.SecurityGroupEgressArray{
-			&ec2.SecurityGroupEgressArgs{
-				Protocol:   pulumi.String("-1"),
-				FromPort:   pulumi.Int(0),
-				ToPort:     pulumi.Int(0),
-				CidrBlocks: pulumi.StringArray{pulumi.String("0.0.0.0/0")},
-			},
-		},
-		Tags: env.tags,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return sg, nil
-}
-
-// name builds a deterministic resource name "ironflyer-<stack>-<suffix>".
-func name(env *stackEnv, suffix string) string {
-	return fmt.Sprintf("ironflyer-%s-%s", env.stack, suffix)
 }

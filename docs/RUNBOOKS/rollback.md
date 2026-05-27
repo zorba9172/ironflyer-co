@@ -62,11 +62,12 @@ pulumi up
 
 ## Data caveat
 
-Aurora and S3 are stateful. Reverting a Pulumi version that touches the
-`data/` slice is **not** automatically reversible. For schema changes,
-roll the application back first, then run `migrate down` against the
-new-but-failed schema. Point-in-time-recovery for Aurora and S3 lives
-under the broader DR plan — not in scope for a routine rollback.
+Managed Postgres and Spaces are stateful. Reverting a Pulumi version
+that touches the `data/` slice is **not** automatically reversible.
+For schema changes, roll the application back first, then run
+`migrate down` against the new-but-failed schema. Point-in-time-
+recovery for Postgres and Spaces lives under the broader DR plan —
+not in scope for a routine rollback.
 
 ## Verification
 

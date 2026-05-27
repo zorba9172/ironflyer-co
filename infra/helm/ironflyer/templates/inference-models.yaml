@@ -1,0 +1,184 @@
+{{- /*
+Local ONNX inference — optional Job + ConfigMap stack for shipping the
+small scoring models (completion-scorer, hallucination-detector,
+intent-classifier) onto the cluster without baking them into the
+orchestrator container image.
+
+How it fits together
+--------------------
+
+  1. `.Values.inference.enabled` flips the orchestrator into the
+     inference-aware path. When false this whole template renders
+     nothing — the orchestrator runs with the NoopService and every
+     scorer falls back to its heuristic prior. Hard requirement:
+     the orchestrator image must be built with `-tags onnx`; without
+     it the OnnxService constructor degrades to NoopService and the
+     scorers stay disabled (warning logged at boot).
+
+  2. A pre-install / pre-upgrade Job ("inference-models-fetch")
+     downloads each enabled model from its declared `source`
+     (s3:// / https://) into an emptyDir, validates the sha256, and
+     writes it to the orchestrator's `models` PVC. Operators in
+     airgapped clusters skip this Job and ship the models via their
+     own out-of-band sync.
+
+  3. The orchestrator Deployment (templates/orchestrator.yaml) mounts
+     the same PVC at IRONFLYER_MODELS_DIR (/var/ironflyer/models).
+     The orchestrator's main.go reads
+     IRONFLYER_COMPLETION_SCORER_MODEL / IRONFLYER_HALLUCINATION_MODEL
+     / IRONFLYER_INTENT_CLASSIFIER_MODEL and calls
+     inference.Service.LoadModel for each artefact that exists.
+
+  4. Per-model env vars below are added to orchestrator-config so the
+     orchestrator picks them up via standard envFrom: configMapRef.
+
+Operator runbook + privacy boundary live in docs/DEEP_LEARNING.md.
+*/ -}}
+{{- if .Values.inference.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orchestrator-inference-config
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: orchestrator
+data:
+  IRONFLYER_INFERENCE_ENABLED: "true"
+  IRONFLYER_MODELS_DIR: {{ .Values.inference.modelsDir | default "/var/ironflyer/models" | quote }}
+  {{- with .Values.inference.models.completionScorer }}
+  {{- if .enabled }}
+  IRONFLYER_COMPLETION_SCORER_MODEL: {{ .filename | default "completion-scorer-v1.onnx" | quote }}
+  {{- end }}
+  {{- end }}
+  {{- with .Values.inference.models.hallucinationDetector }}
+  {{- if .enabled }}
+  IRONFLYER_HALLUCINATION_MODEL: {{ .filename | default "hallucination-v1.onnx" | quote }}
+  {{- end }}
+  {{- end }}
+  {{- with .Values.inference.models.intentClassifier }}
+  {{- if .enabled }}
+  IRONFLYER_INTENT_CLASSIFIER_MODEL: {{ .filename | default "intent-classifier-v1.onnx" | quote }}
+  {{- end }}
+  {{- end }}
+---
+{{- if .Values.inference.modelsPVC.create }}
+# Backing volume for the model artefacts. ReadWriteMany so the fetch
+# Job can write while orchestrator pods read — set
+# `modelsPVC.storageClass` to one that supports RWX (EFS / Filestore /
+# Azure Files). Single-pod clusters can use RWO and rely on the
+# initContainer-only path instead (set modelsPVC.create=false and
+# bake the models into the orchestrator image at build time).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: orchestrator-models
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: orchestrator
+spec:
+  accessModes:
+    - {{ .Values.inference.modelsPVC.accessMode | default "ReadWriteMany" | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.inference.modelsPVC.size | default "2Gi" | quote }}
+  {{- with .Values.inference.modelsPVC.storageClass }}
+  storageClassName: {{ . | quote }}
+  {{- end }}
+---
+{{- end }}
+{{- if .Values.inference.fetch.enabled }}
+# Fetch Job. Runs once per helm install/upgrade — annotated as a Helm
+# hook so it runs BEFORE the orchestrator rollout, ensuring the PVC is
+# populated by the time the new pods read it.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: inference-models-fetch
+  labels:
+    {{- include "ironflyer.labels" . | nindent 4 }}
+    app.kubernetes.io/name: inference-models-fetch
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  ttlSecondsAfterFinished: 600
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: inference-models-fetch
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: {{ include "ironflyer.serviceAccountName" (dict "name" "orchestrator" "Values" .Values "Release" .Release "Chart" .Chart) }}
+      securityContext:
+        {{- include "ironflyer.podSecurityContext" . | nindent 8 }}
+      containers:
+        - name: fetch
+          image: {{ .Values.inference.fetch.image | default "amazon/aws-cli:2.15.0" | quote }}
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -euo pipefail
+              cd /models
+              {{- with .Values.inference.models.completionScorer }}
+              {{- if .enabled }}
+              echo "[fetch] completion-scorer: {{ .source }}"
+              {{- if hasPrefix "s3://" .source }}
+              aws s3 cp "{{ .source }}" "{{ .filename | default "completion-scorer-v1.onnx" }}"
+              {{- else }}
+              curl -fSL "{{ .source }}" -o "{{ .filename | default "completion-scorer-v1.onnx" }}"
+              {{- end }}
+              {{- with .hash }}
+              echo "{{ . | trimPrefix "sha256:" }}  {{ $.Values.inference.models.completionScorer.filename | default "completion-scorer-v1.onnx" }}" | sha256sum -c -
+              {{- end }}
+              {{- end }}
+              {{- end }}
+              {{- with .Values.inference.models.hallucinationDetector }}
+              {{- if .enabled }}
+              echo "[fetch] hallucination-detector: {{ .source }}"
+              {{- if hasPrefix "s3://" .source }}
+              aws s3 cp "{{ .source }}" "{{ .filename | default "hallucination-v1.onnx" }}"
+              {{- else }}
+              curl -fSL "{{ .source }}" -o "{{ .filename | default "hallucination-v1.onnx" }}"
+              {{- end }}
+              {{- with .hash }}
+              echo "{{ . | trimPrefix "sha256:" }}  {{ $.Values.inference.models.hallucinationDetector.filename | default "hallucination-v1.onnx" }}" | sha256sum -c -
+              {{- end }}
+              {{- end }}
+              {{- end }}
+              {{- with .Values.inference.models.intentClassifier }}
+              {{- if .enabled }}
+              echo "[fetch] intent-classifier: {{ .source }}"
+              {{- if hasPrefix "s3://" .source }}
+              aws s3 cp "{{ .source }}" "{{ .filename | default "intent-classifier-v1.onnx" }}"
+              {{- else }}
+              curl -fSL "{{ .source }}" -o "{{ .filename | default "intent-classifier-v1.onnx" }}"
+              {{- end }}
+              {{- with .hash }}
+              echo "{{ . | trimPrefix "sha256:" }}  {{ $.Values.inference.models.intentClassifier.filename | default "intent-classifier-v1.onnx" }}" | sha256sum -c -
+              {{- end }}
+              {{- end }}
+              {{- end }}
+              ls -lah /models
+          resources:
+            requests: { cpu: "100m", memory: "128Mi" }
+            limits:   { cpu: "500m", memory: "512Mi" }
+          volumeMounts:
+            - { name: models, mountPath: /models }
+          env:
+            {{- range $k, $v := .Values.inference.fetch.env }}
+            - { name: {{ $k | quote }}, value: {{ $v | quote }} }
+            {{- end }}
+      volumes:
+        - name: models
+          {{- if .Values.inference.modelsPVC.create }}
+          persistentVolumeClaim:
+            claimName: orchestrator-models
+          {{- else }}
+          emptyDir:
+            sizeLimit: {{ .Values.inference.modelsPVC.size | default "2Gi" | quote }}
+          {{- end }}
+{{- end }}
+{{- end }}

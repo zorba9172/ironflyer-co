@@ -42,8 +42,8 @@
 # guardrails; do not weaken either without the other.
 # ============================================================================
 
-# Production region — set per stack (overrides values.yaml's "unknown").
-# Examples: "eu" for prod-ams3, "us" for prod-nyc3, "sgp" for prod-sgp1.
+# Production region — set on the single `prod` stack (overrides
+# values.yaml's "unknown"). Ironflyer ships from ams3 (Amsterdam, EU).
 region: "eu"
 requireRegion: true
 
