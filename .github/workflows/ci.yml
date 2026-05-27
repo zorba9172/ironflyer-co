@@ -107,12 +107,25 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
-        with: { node-version: '20' }
-      - name: install typescript
-        run: npm i -g typescript@5.6
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: packages/sdk/package-lock.json
+      - name: install deps
+        working-directory: packages/sdk
+        # Without this step, tsc fails with `Cannot find module 'graphql-request'`
+        # because node_modules is never populated — the previous workflow only
+        # installed typescript globally and tried to typecheck against the SDK
+        # imports without their declaration files present.
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci --no-audit --no-fund
+          else
+            npm install --no-audit --no-fund
+          fi
       - name: typecheck
         working-directory: packages/sdk
-        run: tsc -p tsconfig.json --noEmit
+        run: npx tsc -p tsconfig.json --noEmit
 
   pulumi-build:
     # Fast feedback that the Pulumi Go programs still compile. This does NOT
