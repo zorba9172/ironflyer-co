@@ -7,14 +7,23 @@
 # paid execution -> executionFeed -> profitDashboard) is delegated to
 # scripts/v22_smoke.sh, which this script invokes as its tail.
 #
+# In production the orchestrator runs APQ-locked (PERSISTED_QUERY_REQUIRED
+# on every /graphql POST). The `gql` helper transparently wraps every
+# request in Apollo's persistedQuery extension so this script works
+# against locked + open-registration prod the same way the web client does.
+#
 # Usage:
 #
 #   IRONFLYER_API_URL=https://api.ironflyer.example.com \
+#       SMOKE_METRICS_TOKEN=<IRONFLYER_METRICS_TOKEN> \
 #       bash scripts/smoke.sh
 #
 # Environment:
-#   IRONFLYER_API_URL  Base URL of the orchestrator
-#                      (default http://localhost:8080).
+#   IRONFLYER_API_URL     Base URL of the orchestrator
+#                         (default http://localhost:8080).
+#   SMOKE_METRICS_TOKEN   Bearer for /metrics scrape. Optional; when
+#                         absent and /metrics is bearer-protected the
+#                         section is downgraded to a warn.
 #
 # Exit code: 0 on success, non-zero on the first hard failure.
 
@@ -40,9 +49,44 @@ if ! have jq; then
   err "jq is required for smoke.sh (install via brew/apt)"; exit 2
 fi
 
+# sha256_hex <text> — portable lowercase-hex sha256. Tries openssl first
+# (always present on macOS + every prod Linux image), then python3.
+sha256_hex() {
+  if have openssl; then
+    printf '%s' "$1" | openssl dgst -sha256 -hex | awk '{print $NF}'
+  elif have python3; then
+    python3 -c 'import hashlib,sys;print(hashlib.sha256(sys.argv[1].encode()).hexdigest())' "$1"
+  else
+    return 2
+  fi
+}
+
+# apq_wrap <query-json-body> — when the body has a top-level "query"
+# string, wrap it in Apollo's persistedQuery extension so the locked-mode
+# allowlist accepts the request (open-registration prod registers the
+# hash on first touch; locked prod requires it to be pre-seeded — same
+# protocol, server decides). Falls back to the original body if jq can't
+# extract a query (e.g. caller already supplied an extension).
+apq_wrap() {
+  local body="$1" q
+  q=$(printf '%s' "$body" | jq -r '.query // empty' 2>/dev/null || true)
+  if [ -z "$q" ]; then
+    printf '%s' "$body"
+    return 0
+  fi
+  local hash
+  hash=$(sha256_hex "$q") || { printf '%s' "$body"; return 0; }
+  printf '%s' "$body" | jq -c --arg h "$hash" '
+    .extensions = ((.extensions // {}) + {
+      persistedQuery: { version: 1, sha256Hash: $h }
+    })
+  '
+}
+
 gql() {
   # gql <query-json-body> [bearer]
   local body="$1" auth="${2:-}"
+  body=$(apq_wrap "$body")
   if [ -n "$auth" ]; then
     curl -sS -X POST "$API/graphql" \
       -H 'content-type: application/json' \
@@ -102,15 +146,35 @@ probe /livez   '"ok":true'
 probe /readyz  '"ready":true'
 probe /version '"service":"ironflyer-orchestrator"'
 
-if metrics=$(curl -sS "$API/metrics" 2>&1); then
-  if printf '%s' "$metrics" | head -5 | grep -qE '^# (HELP|TYPE) '; then
-    ok "/metrics serves Prometheus exposition format"
-  else
-    err "/metrics did not return a Prometheus header"
-  fi
-else
-  err "/metrics unreachable"
+metrics_args=(-sS -o /tmp/iron_metrics.$$ -w '%{http_code}')
+if [ -n "${SMOKE_METRICS_TOKEN:-}" ]; then
+  metrics_args+=(-H "authorization: Bearer $SMOKE_METRICS_TOKEN")
 fi
+metrics_code=$(curl "${metrics_args[@]}" "$API/metrics" 2>/dev/null || echo "000")
+metrics_body=$(head -5 /tmp/iron_metrics.$$ 2>/dev/null || true)
+rm -f /tmp/iron_metrics.$$
+case "$metrics_code" in
+  200)
+    if printf '%s' "$metrics_body" | grep -qE '^# (HELP|TYPE) '; then
+      ok "/metrics serves Prometheus exposition format"
+    else
+      err "/metrics returned 200 but body is not Prometheus: $metrics_body"
+    fi
+    ;;
+  401|403)
+    if [ -n "${SMOKE_METRICS_TOKEN:-}" ]; then
+      err "/metrics rejected provided bearer (HTTP $metrics_code) — IRONFLYER_METRICS_TOKEN mismatch"
+    else
+      warn "/metrics is bearer-protected (HTTP $metrics_code) — set SMOKE_METRICS_TOKEN to exercise it"
+    fi
+    ;;
+  000)
+    err "/metrics unreachable"
+    ;;
+  *)
+    err "/metrics returned HTTP $metrics_code"
+    ;;
+esac
 
 # ----------------------------------------------------------------------------
 # Section 2 — GraphQL handshake
@@ -157,83 +221,77 @@ fi
 section "3. schema reads (introspection-driven)"
 
 INTRO=$(gql '{"query":"{ __schema { queryType { fields { name } } } }"}')
+INTRO_DISABLED=$(printf '%s' "$INTRO" | jq -r '.errors[0].extensions.code // empty' 2>/dev/null)
 QUERY_FIELDS=$(printf '%s' "$INTRO" | jq -r '.data.__schema.queryType.fields[].name' 2>/dev/null || true)
-if [ -z "$QUERY_FIELDS" ]; then
+if [ "$INTRO_DISABLED" = "INTROSPECTION_DISABLED" ]; then
+  warn "introspection is disabled (production hardening) — schema reads probe fields directly"
+  QUERY_FIELDS=""
+elif [ -z "$QUERY_FIELDS" ]; then
   err "introspection on Query failed: $INTRO"
 else
   q_count=$(printf '%s\n' "$QUERY_FIELDS" | wc -l | tr -d ' ')
   ok "introspection lists $q_count Query fields"
 fi
 
-has_field() { printf '%s\n' "$QUERY_FIELDS" | grep -qx "$1"; }
+# has_field probes whether a Query field is present. When introspection
+# is disabled the answer is unknowable from the client — return true so
+# the downstream probe runs against the live resolver and reports its
+# own verdict, which is the only signal that matters anyway.
+has_field() {
+  if [ "$INTRO_DISABLED" = "INTROSPECTION_DISABLED" ]; then
+    return 0
+  fi
+  printf '%s\n' "$QUERY_FIELDS" | grep -qx "$1"
+}
 
-# 3a. plans { tier name priceUsd }
-if has_field plans; then
-  if data=$(gql_ok '{"query":"{ plans { tier name priceUsd } }"}'); then
-    n=$(printf '%s' "$data" | jq -r '.plans | length')
-    if [ "${n:-0}" -ge 1 ]; then
-      ok "plans { tier name priceUsd } -> $n rows"
-    else
-      warn "plans returned 0 rows"
-    fi
+# probe_field <label> <query> <jq-data-path> — try a resolver directly.
+# Returns 0 + echoes data on success; returns 1 on validation/resolver
+# error (which is the normal "field not on schema" path when
+# introspection is disabled). Logs nothing — caller decides.
+probe_field() {
+  local _label="$1" _query="$2"
+  gql_ok "{\"query\":\"$_query\"}" >/dev/null 2>&1
+}
+probe_field_data() {
+  local _query="$1"
+  gql_ok "{\"query\":\"$_query\"}"
+}
+
+# 3a. plans { tier name priceUsd } — billing plan visibility.
+if data=$(probe_field_data '{ plans { tier name priceUsd } }'); then
+  n=$(printf '%s' "$data" | jq -r '.plans | length')
+  if [ "${n:-0}" -ge 1 ]; then
+    ok "plans { tier name priceUsd } -> $n rows"
   else
-    warn "plans field present but resolver errored (errors masked by server)"
+    warn "plans returned 0 rows"
   fi
 else
-  warn "plans field not on schema (skipping)"
+  warn "plans resolver not reachable (field missing or degraded)"
 fi
 
-# 3b. agentTelemetry { provider model durationMs }
-if has_field agentTelemetry; then
-  if data=$(gql_ok '{"query":"{ agentTelemetry(limit: 5) { provider model durationMs } }"}'); then
-    n=$(printf '%s' "$data" | jq -r '.agentTelemetry | length')
-    ok "agentTelemetry(limit: 5) -> $n rows"
-  else
-    warn "agentTelemetry field present but resolver errored (errors masked)"
-  fi
+# 3b. agentTelemetry { provider model durationMs } — agent visibility.
+if data=$(probe_field_data '{ agentTelemetry(limit: 5) { provider model durationMs } }'); then
+  n=$(printf '%s' "$data" | jq -r '.agentTelemetry | length')
+  ok "agentTelemetry(limit: 5) -> $n rows"
 else
-  warn "agentTelemetry field not on schema (skipping)"
+  warn "agentTelemetry resolver not reachable (field missing or degraded)"
 fi
 
-# 3c. providersHealth { provider status }
-# The live V22 schema does not expose a top-level `providersHealth`
-# resolver; the closest neighbour is `rates { provider model ... }`
-# which advertises the active provider/model matrix. Use it when
-# providersHealth is absent so the smoke still asserts on
-# provider visibility.
-if has_field providersHealth; then
-  if data=$(gql_ok '{"query":"{ providersHealth { provider status } }"}'); then
-    n=$(printf '%s' "$data" | jq -r '.providersHealth | length')
-    bad=$(printf '%s' "$data" | jq -r '.providersHealth | map(select((.provider|not) or (.status|not))) | length')
-    if [ "$bad" = "0" ]; then
-      ok "providersHealth -> $n providers, all rows have provider+status"
-    else
-      err "providersHealth: $bad/$n rows missing provider or status"
-    fi
-  else
-    warn "providersHealth field present but resolver errored (errors masked)"
-  fi
-elif has_field rates; then
-  if data=$(gql_ok '{"query":"{ rates { provider model promptPerMTok completionPerMTok } }"}'); then
-    n=$(printf '%s' "$data" | jq -r '.rates | length')
-    ok "rates { provider model ... } -> $n rows (providersHealth absent on V22 schema; rates is the provider-visibility neighbour)"
-  else
-    warn "rates field present but resolver errored — falling back to blueprints for provider proxy"
-    if data=$(gql_ok '{"query":"{ blueprints { id name } }"}'); then
-      n=$(printf '%s' "$data" | jq -r '.blueprints | length')
-      ok "blueprints -> $n rows (final read fallback)"
-    else
-      err "providersHealth/rates/blueprints all failed — Query resolvers degraded"
-    fi
-  fi
+# 3c. provider visibility cascade — try providersHealth → rates →
+# blueprints. The V22 schema currently exposes `rates`; `providersHealth`
+# was retired. Cascade survives both introspection-on and
+# introspection-off deployments without lying about field presence.
+if data=$(probe_field_data '{ providersHealth { provider status } }'); then
+  n=$(printf '%s' "$data" | jq -r '.providersHealth | length')
+  ok "providersHealth -> $n providers"
+elif data=$(probe_field_data '{ rates { provider model promptPerMTok completionPerMTok } }'); then
+  n=$(printf '%s' "$data" | jq -r '.rates | length')
+  ok "rates { provider model ... } -> $n rows (providersHealth absent on V22 schema; rates is the provider-visibility neighbour)"
+elif data=$(probe_field_data '{ blueprints { id name } }'); then
+  n=$(printf '%s' "$data" | jq -r '.blueprints | length')
+  ok "blueprints -> $n rows (final provider-visibility fallback)"
 else
-  warn "neither providersHealth nor rates on schema — using blueprints as a read"
-  if data=$(gql_ok '{"query":"{ blueprints { id name } }"}'); then
-    n=$(printf '%s' "$data" | jq -r '.blueprints | length')
-    ok "blueprints -> $n rows"
-  else
-    err "blueprints resolver also failed"
-  fi
+  err "providersHealth/rates/blueprints all failed — Query resolvers degraded"
 fi
 
 # ----------------------------------------------------------------------------
@@ -331,8 +389,19 @@ url = os.environ["V22_WS_URL"]
 token = os.environ.get("V22_TOKEN", "")
 
 async def main():
+    # The graphql-transport-ws subscription path is exempt from the
+    # /graphql HTTP APQ-locked middleware (the lock intercepts POST
+    # bodies, not WS messages). We assert: connection_ack arrives
+    # within 5s, then the server accepts the subscription (no validation
+    # error on CostDelta fields). Field selection comes from
+    # core/orchestrator/internal/operations/graph/schema/agents.graphql.
     try:
-        async with websockets.connect(url, subprotocols=["graphql-transport-ws"], open_timeout=5) as ws:
+        async with websockets.connect(
+            url,
+            subprotocols=["graphql-transport-ws"],
+            open_timeout=5,
+            close_timeout=2,
+        ) as ws:
             init = {"type": "connection_init", "payload": {}}
             if token:
                 init["payload"]["authorization"] = f"Bearer {token}"
@@ -347,19 +416,24 @@ async def main():
                 "payload": {"query": "subscription { costStream { ts usdSpent provider model } }"},
             }
             await ws.send(json.dumps(sub))
+            # 2s of silence is fine — costStream emits only when an
+            # execution is burning provider cost. A validation error
+            # (server replies with type=error) is a real failure.
             try:
-                await asyncio.wait_for(ws.recv(), timeout=2)
+                reply = await asyncio.wait_for(ws.recv(), timeout=2)
+                m = json.loads(reply)
+                if m.get("type") == "error":
+                    print(f"WS_VALIDATION_ERR: {reply}", file=sys.stderr); return 4
             except asyncio.TimeoutError:
-                pass  # 2s of silence is fine
+                pass
             try:
                 await ws.send(json.dumps({"id": "1", "type": "complete"}))
             except Exception:
                 pass
-            await ws.close()
-            print("ACK_OK")
-            return 0
+        print("ACK_OK")
+        return 0
     except Exception as e:
-        print(f"WS_ERR: {e}", file=sys.stderr); return 2
+        print(f"WS_ERR: {type(e).__name__}: {e}", file=sys.stderr); return 2
 
 sys.exit(asyncio.run(main()))
 PY

@@ -18,6 +18,13 @@ cd "${REPO_ROOT}"
 TAG="${TAG:-dev}"
 NEXT_PUBLIC_IRONFLYER_API_URL="${NEXT_PUBLIC_IRONFLYER_API_URL:-http://localhost:8080}"
 
+# Build metadata for the orchestrator image. /version reads these
+# verbatim — fall back to TAG + current commit + now so local builds
+# stop returning "dev/unknown/unknown".
+BUILD_VERSION="${BUILD_VERSION:-$TAG}"
+BUILD_COMMIT="${BUILD_COMMIT:-$(git rev-parse HEAD 2>/dev/null || echo unknown)}"
+BUILD_TIME="${BUILD_TIME:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
+
 export DOCKER_BUILDKIT=1
 
 build() {
@@ -33,7 +40,10 @@ build() {
     .
 }
 
-build orchestrator infra/docker/orchestrator.Dockerfile
+build orchestrator infra/docker/orchestrator.Dockerfile \
+  --build-arg "BUILD_VERSION=${BUILD_VERSION}" \
+  --build-arg "BUILD_COMMIT=${BUILD_COMMIT}" \
+  --build-arg "BUILD_TIME=${BUILD_TIME}"
 build runtime      infra/docker/runtime.Dockerfile
 build web          infra/docker/web.Dockerfile \
   --build-arg "NEXT_PUBLIC_IRONFLYER_API_URL=${NEXT_PUBLIC_IRONFLYER_API_URL}"

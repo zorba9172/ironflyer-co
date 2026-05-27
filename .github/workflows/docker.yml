@@ -103,6 +103,21 @@ jobs:
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.licenses=Apache-2.0
 
+      - name: Resolve build metadata
+        id: bm
+        run: |
+          # BUILD_VERSION — git tag when the trigger is a tag push, otherwise
+          # short SHA. /version exposes this verbatim so operators can correlate
+          # a running container with a commit at a glance.
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            ver="$GITHUB_REF_NAME"
+          else
+            ver="sha-${GITHUB_SHA::7}"
+          fi
+          echo "version=$ver"     >> "$GITHUB_OUTPUT"
+          echo "commit=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+          echo "time=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+
       - name: Build and push (multi-arch)
         id: build
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8  # v6
@@ -115,7 +130,11 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: ${{ matrix.build_args }}
+          build-args: |
+            ${{ matrix.build_args }}
+            BUILD_VERSION=${{ steps.bm.outputs.version }}
+            BUILD_COMMIT=${{ steps.bm.outputs.commit }}
+            BUILD_TIME=${{ steps.bm.outputs.time }}
           # GHA cache backend keeps the orchestrator+runtime Go layers warm
           # between builds. mode=max also caches intermediate stages, which
           # halves wall-clock time on cold runs.

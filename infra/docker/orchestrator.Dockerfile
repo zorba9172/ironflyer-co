@@ -15,6 +15,13 @@
 FROM golang:1.25-alpine AS build
 WORKDIR /src
 RUN apk add --no-cache git gcc g++ musl-dev
+# Build metadata — pinned via --build-arg so /version returns the real
+# release tag + commit + ISO build time instead of dev/unknown. The CI
+# release workflow passes these; local docker build falls back to
+# dev/unknown/now so the build still succeeds.
+ARG BUILD_VERSION=dev
+ARG BUILD_COMMIT=unknown
+ARG BUILD_TIME=unknown
 COPY core/orchestrator/go.mod core/orchestrator/go.sum ./
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
@@ -23,10 +30,15 @@ COPY core/orchestrator/ ./
 # Production builds opt in to the tree-sitter AST adapters so symbol-level
 # patches resolve through real parsers instead of the no-op fallback. The
 # tree-sitter Go bindings require CGO, so CGO_ENABLED=1 is mandatory here.
+# ldflags inject build metadata into main.buildVersion/buildCommit/buildTime
+# so /version, /healthz, and the startup banner stop returning "dev/unknown".
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
     CGO_ENABLED=1 GOOS=linux go build -trimpath -tags treesitter \
-      -ldflags='-s -w -linkmode external -extldflags "-static"' \
+      -ldflags="-s -w -linkmode external -extldflags \"-static\" \
+        -X main.buildVersion=${BUILD_VERSION} \
+        -X main.buildCommit=${BUILD_COMMIT} \
+        -X main.buildTime=${BUILD_TIME}" \
       -o /out/orchestrator ./cmd/orchestrator
 
 FROM alpine:3.20

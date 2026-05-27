@@ -59,9 +59,41 @@ if ! have jq; then
   die "jq is required for v22_smoke.sh (install via brew/apt)" 2
 fi
 
+# sha256_hex <text> — portable lowercase-hex sha256 (openssl, python3).
+sha256_hex() {
+  if have openssl; then
+    printf '%s' "$1" | openssl dgst -sha256 -hex | awk '{print $NF}'
+  elif have python3; then
+    python3 -c 'import hashlib,sys;print(hashlib.sha256(sys.argv[1].encode()).hexdigest())' "$1"
+  else
+    return 2
+  fi
+}
+
+# apq_wrap <query-json-body> — wrap in Apollo persistedQuery extension.
+# Production runs APQ-locked; open-registration prod auto-registers on
+# first touch (same protocol). Bodies without a "query" field pass
+# through untouched.
+apq_wrap() {
+  local body="$1" q
+  q=$(printf '%s' "$body" | jq -r '.query // empty' 2>/dev/null || true)
+  if [ -z "$q" ]; then
+    printf '%s' "$body"
+    return 0
+  fi
+  local hash
+  hash=$(sha256_hex "$q") || { printf '%s' "$body"; return 0; }
+  printf '%s' "$body" | jq -c --arg h "$hash" '
+    .extensions = ((.extensions // {}) + {
+      persistedQuery: { version: 1, sha256Hash: $h }
+    })
+  '
+}
+
 gql() {
   # gql <query-json> [bearer]
   local body="$1" bearer="${2:-}"
+  body=$(apq_wrap "$body")
   if [ -n "$bearer" ]; then
     curl -sS -X POST "$API/graphql" \
       -H 'content-type: application/json' \
