@@ -16,6 +16,7 @@ import { tokens } from "../../theme";
 export interface SocialLoginButtonsProps {
   returnTo: string;
   disabled?: boolean;
+  timing?: "light" | "dark";
 }
 
 function apiBase(): string {
@@ -37,24 +38,38 @@ function startOAuth(provider: "google" | "github", returnTo: string): void {
   window.location.assign(url);
 }
 
-export function SocialLoginButtons({ returnTo, disabled }: SocialLoginButtonsProps) {
+export function SocialLoginButtons({
+  returnTo,
+  disabled,
+  timing = "dark",
+}: SocialLoginButtonsProps) {
+  const light = timing === "light";
   return (
     <Stack spacing={1.5}>
       <Stack spacing={1}>
         <ProviderButton
           disabled={disabled}
+          light={light}
           icon={<GoogleMark />}
           label="Continue with Google"
           onClick={() => startOAuth("google", returnTo)}
         />
         <ProviderButton
           disabled={disabled}
-          icon={<GitHubIcon sx={{ fontSize: 18, color: tokens.color.text.primary }} />}
+          light={light}
+          icon={
+            <GitHubIcon
+              sx={{
+                fontSize: 18,
+                color: light ? "#111633" : tokens.color.text.primary,
+              }}
+            />
+          }
           label="Continue with GitHub"
           onClick={() => startOAuth("github", returnTo)}
         />
       </Stack>
-      <OrDivider />
+      <OrDivider light={light} />
     </Stack>
   );
 }
@@ -64,8 +79,9 @@ function ProviderButton(props: {
   label: string;
   onClick: () => void;
   disabled?: boolean;
+  light: boolean;
 }) {
-  const { icon, label, onClick, disabled } = props;
+  const { icon, label, onClick, disabled, light } = props;
   return (
     <Button
       type="button"
@@ -79,17 +95,23 @@ function ProviderButton(props: {
         fontSize: 14,
         fontWeight: 500,
         justifyContent: "center",
-        color: tokens.color.text.primary,
-        bgcolor: tokens.color.bg.inset,
-        borderColor: tokens.color.border.subtle,
+        color: light ? "#111633" : tokens.color.text.primary,
+        bgcolor: light ? "#ffffff" : tokens.color.bg.inset,
+        borderColor: light ? "rgba(18,22,55,0.12)" : tokens.color.border.subtle,
         textTransform: "none",
         "&:hover": {
-          bgcolor: tokens.color.bg.surfaceHover,
-          borderColor: tokens.color.border.strong,
+          bgcolor: light
+            ? "rgba(143,77,255,0.06)"
+            : tokens.color.bg.surfaceHover,
+          borderColor: light
+            ? "rgba(143,77,255,0.24)"
+            : tokens.color.border.strong,
         },
         "&.Mui-disabled": {
-          color: tokens.color.text.muted,
-          borderColor: tokens.color.border.subtle,
+          color: light ? "#8a90a8" : tokens.color.text.muted,
+          borderColor: light
+            ? "rgba(18,22,55,0.08)"
+            : tokens.color.border.subtle,
         },
       }}
     >
@@ -98,21 +120,33 @@ function ProviderButton(props: {
   );
 }
 
-function OrDivider() {
+function OrDivider({ light }: { light: boolean }) {
   return (
     <Stack direction="row" alignItems="center" spacing={1.5} sx={{ py: 0.5 }}>
-      <Box sx={{ flex: 1, height: "1px", bgcolor: tokens.color.border.subtle }} />
+      <Box
+        sx={{
+          flex: 1,
+          height: "1px",
+          bgcolor: light ? "rgba(18,22,55,0.10)" : tokens.color.border.subtle,
+        }}
+      />
       <Typography
         sx={{
           fontSize: 11,
           letterSpacing: 0,
           textTransform: "uppercase",
-          color: tokens.color.text.muted,
+          color: light ? "#7c839b" : tokens.color.text.muted,
         }}
       >
         or
       </Typography>
-      <Box sx={{ flex: 1, height: "1px", bgcolor: tokens.color.border.subtle }} />
+      <Box
+        sx={{
+          flex: 1,
+          height: "1px",
+          bgcolor: light ? "rgba(18,22,55,0.10)" : tokens.color.border.subtle,
+        }}
+      />
     </Stack>
   );
 }

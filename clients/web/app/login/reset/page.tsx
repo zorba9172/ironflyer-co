@@ -4,7 +4,11 @@
 // a reset email; with ?token= we accept the new password and establish
 // the returned session.
 
-import { ArrowBackRounded, ArrowForwardRounded, EmailOutlined } from "@mui/icons-material";
+import {
+  ArrowBackRounded,
+  ArrowForwardRounded,
+  EmailOutlined,
+} from "@mui/icons-material";
 import { Box, Button, Stack, Typography } from "@mui/material";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -32,17 +36,19 @@ function PasswordResetInner() {
   const search = useSearchParams();
   const token = search?.get("token")?.trim() ?? "";
   const mode = token ? "set" : "request";
+  const timing = search?.get("theme") === "dark" ? "dark" : "light";
 
   return (
     <AuthShell
       mode="signin"
+      timing={timing}
       title="Reset your password"
       subtitle={
         mode === "set"
           ? "Choose a new password and return directly to your Studio workspace."
           : "Enter your account email and we will send a secure reset link."
       }
-      switchHref="/login"
+      switchHref={`/login?theme=${timing}`}
       switchPrompt="Remembered your password?"
       switchAction="Back to sign in"
     >
@@ -117,12 +123,16 @@ function RequestResetForm() {
                 bgcolor: tokens.color.bg.inset,
                 "& fieldset": { borderColor: tokens.color.border.subtle },
                 "&:hover fieldset": { borderColor: tokens.color.border.strong },
-                "&.Mui-focused fieldset": { borderColor: `${tokens.color.border.accent} !important` },
+                "&.Mui-focused fieldset": {
+                  borderColor: `${tokens.color.border.accent} !important`,
+                },
               },
             },
           }}
         />
-        {error ? <ErrorPanel error={error} title="Could not send reset link" /> : null}
+        {error ? (
+          <ErrorPanel error={error} title="Could not send reset link" />
+        ) : null}
         <Button
           type="submit"
           variant="contained"
@@ -130,7 +140,10 @@ function RequestResetForm() {
           disabled={!emailOk || requestState.loading}
           endIcon={
             requestState.loading ? (
-              <CircularProgress size={14} sx={{ color: tokens.color.text.primary }} />
+              <CircularProgress
+                size={14}
+                sx={{ color: tokens.color.text.primary }}
+              />
             ) : (
               <ArrowForwardRounded sx={{ fontSize: 18 }} />
             )
@@ -144,7 +157,13 @@ function RequestResetForm() {
   );
 }
 
-function SetPasswordForm({ token, onDone }: { token: string; onDone: () => void }) {
+function SetPasswordForm({
+  token,
+  onDone,
+}: {
+  token: string;
+  onDone: () => void;
+}) {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState<unknown>(null);
@@ -168,7 +187,8 @@ function SetPasswordForm({ token, onDone }: { token: string; onDone: () => void 
         variables: { token, newPassword: password },
       });
       const session = result.data?.resetPassword;
-      if (!session?.token) throw new Error("Reset completed without a session token.");
+      if (!session?.token)
+        throw new Error("Reset completed without a session token.");
       setToken(session.token);
       onDone();
     } catch (err) {
@@ -195,7 +215,9 @@ function SetPasswordForm({ token, onDone }: { token: string; onDone: () => void 
                 bgcolor: tokens.color.bg.inset,
                 "& fieldset": { borderColor: tokens.color.border.subtle },
                 "&:hover fieldset": { borderColor: tokens.color.border.strong },
-                "&.Mui-focused fieldset": { borderColor: `${tokens.color.border.accent} !important` },
+                "&.Mui-focused fieldset": {
+                  borderColor: `${tokens.color.border.accent} !important`,
+                },
               },
             },
           }}
@@ -215,12 +237,16 @@ function SetPasswordForm({ token, onDone }: { token: string; onDone: () => void 
                 bgcolor: tokens.color.bg.inset,
                 "& fieldset": { borderColor: tokens.color.border.subtle },
                 "&:hover fieldset": { borderColor: tokens.color.border.strong },
-                "&.Mui-focused fieldset": { borderColor: `${tokens.color.border.accent} !important` },
+                "&.Mui-focused fieldset": {
+                  borderColor: `${tokens.color.border.accent} !important`,
+                },
               },
             },
           }}
         />
-        {error ? <ErrorPanel error={error} title="Could not reset password" /> : null}
+        {error ? (
+          <ErrorPanel error={error} title="Could not reset password" />
+        ) : null}
         <Button
           type="submit"
           variant="contained"
@@ -228,7 +254,10 @@ function SetPasswordForm({ token, onDone }: { token: string; onDone: () => void 
           disabled={!canSubmit}
           endIcon={
             resetState.loading ? (
-              <CircularProgress size={14} sx={{ color: tokens.color.text.primary }} />
+              <CircularProgress
+                size={14}
+                sx={{ color: tokens.color.text.primary }}
+              />
             ) : (
               <ArrowForwardRounded sx={{ fontSize: 18 }} />
             )
@@ -253,12 +282,26 @@ function Notice({ title, body }: { title: string; body: string }) {
       }}
     >
       <Stack direction="row" alignItems="center" spacing={1.2}>
-        <EmailOutlined sx={{ color: tokens.color.accent.violet, fontSize: 20 }} />
+        <EmailOutlined
+          sx={{ color: tokens.color.accent.violet, fontSize: 20 }}
+        />
         <Box>
-          <Typography sx={{ fontSize: 13, fontWeight: 700, color: tokens.color.text.primary }}>
+          <Typography
+            sx={{
+              fontSize: 13,
+              fontWeight: 700,
+              color: tokens.color.text.primary,
+            }}
+          >
             {title}
           </Typography>
-          <Typography sx={{ fontSize: 12.5, color: tokens.color.text.secondary, mt: 0.25 }}>
+          <Typography
+            sx={{
+              fontSize: 12.5,
+              color: tokens.color.text.secondary,
+              mt: 0.25,
+            }}
+          >
             {body}
           </Typography>
         </Box>

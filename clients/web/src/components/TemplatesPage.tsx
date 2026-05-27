@@ -33,7 +33,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useAuth } from "../lib/auth";
 import { extractErrorMessage } from "../lib/errors";
 import * as swal from "../lib/swal";
@@ -59,15 +59,6 @@ const skelSx = {
 export function TemplatesPage() {
   const router = useRouter();
   const { authenticated, loading: authLoading } = useAuth();
-
-  useEffect(() => {
-    if (authLoading) return;
-    if (!authenticated) {
-      router.replace(
-        "/login?returnTo=" + encodeURIComponent("/templates"),
-      );
-    }
-  }, [authenticated, authLoading, router]);
 
   const skip = !authenticated;
   const blueprintsQ = useBlueprintsQuery({ skip });
@@ -137,7 +128,7 @@ export function TemplatesPage() {
     [describeIdea, router],
   );
 
-  if (authLoading || !authenticated) {
+  if (authLoading) {
     return (
       <>
         <PageHeader title="Templates" />
@@ -189,7 +180,12 @@ export function TemplatesPage() {
             }}
           >
             {Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} variant="rectangular" height={220} sx={skelSx} />
+              <Skeleton
+                key={i}
+                variant="rectangular"
+                height={220}
+                sx={skelSx}
+              />
             ))}
           </Box>
         ) : visible.length === 0 ? (
@@ -222,7 +218,6 @@ export function TemplatesPage() {
           </Box>
         )}
       </Stack>
-
     </Box>
   );
 }
@@ -250,7 +245,9 @@ function CategoryFilter({
                 ? tokens.color.accent.violet
                 : tokens.color.bg.surface,
               border: `1px solid ${
-                isActive ? tokens.color.accent.violet : tokens.color.border.subtle
+                isActive
+                  ? tokens.color.accent.violet
+                  : tokens.color.border.subtle
               }`,
               color: isActive
                 ? tokens.color.text.inverse
@@ -462,7 +459,10 @@ function RankingStrip({
   return (
     <Box>
       <Stack direction="row" alignItems="baseline" spacing={1} sx={{ mb: 1 }}>
-        <Typography variant="overline" sx={{ color: tokens.color.text.secondary }}>
+        <Typography
+          variant="overline"
+          sx={{ color: tokens.color.text.secondary }}
+        >
           Top performers this week
         </Typography>
         <Typography sx={{ color: tokens.color.text.muted, fontSize: 12 }}>

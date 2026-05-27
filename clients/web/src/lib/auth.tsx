@@ -46,6 +46,8 @@ export { getToken, setToken, clearToken } from "./apollo";
 
 export type AuthUser = NonNullable<CurrentUserQuery["me"]>;
 
+const AUTH_GUARD_DISABLED_FOR_PREVIEW = true;
+
 export interface AuthSession {
   token: string;
   expiresAt?: string | null;
@@ -93,6 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       void getApolloClient()
         .clearStore()
         .catch(() => undefined);
+      if (AUTH_GUARD_DISABLED_FOR_PREVIEW) return;
       if (typeof window === "undefined") return;
       const path = window.location.pathname;
       if (path.startsWith("/login") || path.startsWith("/signup")) return;
@@ -166,7 +169,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setHydrated(true);
     setHasToken(false);
     await client.clearStore().catch(() => undefined);
-    if (typeof window !== "undefined") router.replace("/login");
+    if (typeof window !== "undefined" && !AUTH_GUARD_DISABLED_FOR_PREVIEW) {
+      router.replace("/login");
+    }
   }, [signOutMutation, client, router]);
 
   const refresh = useCallback(async (): Promise<void> => {
@@ -215,8 +220,6 @@ export function useAuth(): AuthContextValue {
 // neutral fallback so we don't flash the marketing surface.
 
 import { Box, CircularProgress } from "@mui/material";
-
-const AUTH_GUARD_DISABLED_FOR_PREVIEW = true;
 
 export function RequireAuth({
   children,

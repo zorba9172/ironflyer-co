@@ -46,6 +46,7 @@ const COOKIE_EXPIRES_DAYS = 30;
 let cachedToken: string | null = null;
 let cacheHydrated = false;
 let csrfBootstrap: Promise<void> | null = null;
+const AUTH_REDIRECTS_DISABLED_FOR_PREVIEW = true;
 
 function hydrate(): void {
   if (cacheHydrated) return;
@@ -103,7 +104,8 @@ function wsEndpoint(): string {
   if (base) return trimSlash(base) + "/graphql";
   // derive from HTTP endpoint
   const http = httpEndpoint();
-  if (http.startsWith("https://")) return "wss://" + http.slice("https://".length);
+  if (http.startsWith("https://"))
+    return "wss://" + http.slice("https://".length);
   if (http.startsWith("http://")) return "ws://" + http.slice("http://".length);
   return DEFAULT_WS;
 }
@@ -125,20 +127,28 @@ let onUnauthorized: UnauthorizedHandler = () => {
   // Default: in the browser, clear the token and bounce to /login.
   if (typeof window === "undefined") return;
   clearToken();
+  if (AUTH_REDIRECTS_DISABLED_FOR_PREVIEW) return;
   // Avoid loop on the auth routes themselves.
-  if (!window.location.pathname.startsWith("/login") && !window.location.pathname.startsWith("/signup")) {
+  if (
+    !window.location.pathname.startsWith("/login") &&
+    !window.location.pathname.startsWith("/signup")
+  ) {
     window.location.assign("/login");
   }
 };
 
-export function registerUnauthorizedHandler(handler: UnauthorizedHandler): void {
+export function registerUnauthorizedHandler(
+  handler: UnauthorizedHandler,
+): void {
   onUnauthorized = handler;
 }
 
 function buildAuthLink(): ApolloLink {
   return setContext(async (_op, prev) => {
     const token = getToken();
-    const headers = { ...((prev as { headers?: Record<string, string> }).headers ?? {}) };
+    const headers = {
+      ...((prev as { headers?: Record<string, string> }).headers ?? {}),
+    };
     if (token) headers.Authorization = `Bearer ${token}`;
     // CSRF: the orchestrator's gqlhardening.CSRFMiddleware requires
     // double-submit (cookie + header) on every state-changing POST. The
@@ -147,7 +157,11 @@ function buildAuthLink(): ApolloLink {
     // auth requests are exempt server-side, but we still send the header
     // because token presence is determined per-request and the SPA may
     // make anonymous POSTs (signIn/signUp) before a token exists.
-    if (!token && typeof document !== "undefined" && !Cookies.get("ironflyer_csrf")) {
+    if (
+      !token &&
+      typeof document !== "undefined" &&
+      !Cookies.get("ironflyer_csrf")
+    ) {
       csrfBootstrap ??= fetch(httpEndpoint(), {
         method: "GET",
         credentials: "include",
@@ -226,7 +240,9 @@ function buildLink(): ApolloLink {
   return split(
     ({ query }) => {
       const def = getMainDefinition(query);
-      return def.kind === "OperationDefinition" && def.operation === "subscription";
+      return (
+        def.kind === "OperationDefinition" && def.operation === "subscription"
+      );
     },
     wsLink,
     httpChain,
@@ -292,8 +308,10 @@ function buildCache(): InMemoryCache {
               }
               const merged = Array.from(byRef.values());
               merged.sort((a, b) => {
-                const aT = (readField("createdAt", a) as string | undefined) ?? "";
-                const bT = (readField("createdAt", b) as string | undefined) ?? "";
+                const aT =
+                  (readField("createdAt", a) as string | undefined) ?? "";
+                const bT =
+                  (readField("createdAt", b) as string | undefined) ?? "";
                 if (aT === bT) return 0;
                 return aT < bT ? 1 : -1;
               });

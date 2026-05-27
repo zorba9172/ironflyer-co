@@ -26,10 +26,17 @@ export interface SignInFormProps {
   onSuccess: () => void;
   initialEmail?: string;
   returnTo?: string;
+  timing?: "light" | "dark";
 }
 
-export function SignInForm({ onSuccess, initialEmail = "", returnTo = "/" }: SignInFormProps) {
+export function SignInForm({
+  onSuccess,
+  initialEmail = "",
+  returnTo = "/",
+  timing = "dark",
+}: SignInFormProps) {
   const { signIn } = useAuth();
+  const light = timing === "light";
 
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
@@ -58,7 +65,11 @@ export function SignInForm({ onSuccess, initialEmail = "", returnTo = "/" }: Sig
   return (
     <Box component="form" onSubmit={handleSubmit}>
       <Stack spacing={2}>
-        <SocialLoginButtons returnTo={returnTo} disabled={submitting} />
+        <SocialLoginButtons
+          returnTo={returnTo}
+          disabled={submitting}
+          timing={timing}
+        />
         <Field
           label="Email"
           type="email"
@@ -67,6 +78,7 @@ export function SignInForm({ onSuccess, initialEmail = "", returnTo = "/" }: Sig
           value={email}
           onChange={setEmail}
           required
+          light={light}
         />
         <Field
           label="Password"
@@ -80,6 +92,7 @@ export function SignInForm({ onSuccess, initialEmail = "", returnTo = "/" }: Sig
               ? "Use at least 8 characters."
               : undefined
           }
+          light={light}
         />
         <Stack direction="row" justifyContent="flex-end">
           <Typography
@@ -87,7 +100,7 @@ export function SignInForm({ onSuccess, initialEmail = "", returnTo = "/" }: Sig
             href="/login/reset"
             sx={{
               fontSize: 12,
-              color: tokens.color.text.secondary,
+              color: light ? "#66708d" : tokens.color.text.secondary,
               textDecoration: "none",
               "&:hover": { color: tokens.color.accent.violet },
             }}
@@ -103,7 +116,10 @@ export function SignInForm({ onSuccess, initialEmail = "", returnTo = "/" }: Sig
           disabled={!canSubmit}
           endIcon={
             submitting ? (
-              <CircularProgress size={14} sx={{ color: tokens.color.text.primary }} />
+              <CircularProgress
+                size={14}
+                sx={{ color: tokens.color.text.primary }}
+              />
             ) : (
               <ArrowForwardRounded sx={{ fontSize: 18 }} />
             )
@@ -126,8 +142,19 @@ function Field(props: {
   autoFocus?: boolean;
   required?: boolean;
   helperText?: string;
+  light?: boolean;
 }) {
-  const { label, type = "text", value, onChange, autoComplete, autoFocus, required, helperText } = props;
+  const {
+    label,
+    type = "text",
+    value,
+    onChange,
+    autoComplete,
+    autoFocus,
+    required,
+    helperText,
+    light = false,
+  } = props;
   return (
     <TextField
       label={label}
@@ -142,14 +169,25 @@ function Field(props: {
       helperText={helperText}
       slotProps={{
         inputLabel: {
-          sx: { color: tokens.color.text.secondary },
+          sx: { color: light ? "#66708d" : tokens.color.text.secondary },
         },
         input: {
           sx: {
-            bgcolor: tokens.color.bg.inset,
-            "& fieldset": { borderColor: tokens.color.border.subtle },
-            "&:hover fieldset": { borderColor: tokens.color.border.strong },
-            "&.Mui-focused fieldset": { borderColor: `${tokens.color.border.accent} !important` },
+            color: light ? "#0b1040" : tokens.color.text.primary,
+            bgcolor: light ? "#ffffff" : tokens.color.bg.inset,
+            "& fieldset": {
+              borderColor: light
+                ? "rgba(18,22,55,0.12)"
+                : tokens.color.border.subtle,
+            },
+            "&:hover fieldset": {
+              borderColor: light
+                ? "rgba(143,77,255,0.24)"
+                : tokens.color.border.strong,
+            },
+            "&.Mui-focused fieldset": {
+              borderColor: `${tokens.color.border.accent} !important`,
+            },
           },
         },
       }}

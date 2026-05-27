@@ -31,16 +31,20 @@ function SignUpPageInner() {
   const router = useRouter();
   const search = useSearchParams();
   const { authenticated, loading } = useAuth();
+  const timing = search?.get("theme") === "dark" ? "dark" : "light";
 
   // Accept ?redirect= / ?next= / ?returnTo= — keeps the home composer's
   // "continue building" flow working end to end.
   const redirect = safeRedirect(
-    search?.get("redirect") ?? search?.get("next") ?? search?.get("returnTo") ?? null,
+    search?.get("redirect") ??
+      search?.get("next") ??
+      search?.get("returnTo") ??
+      null,
   );
   const loginHref =
     redirect && redirect !== "/studio"
-      ? `/login?redirect=${encodeURIComponent(redirect)}`
-      : "/login";
+      ? `/login?redirect=${encodeURIComponent(redirect)}&theme=${timing}`
+      : `/login?theme=${timing}`;
 
   useEffect(() => {
     if (loading) return;
@@ -50,13 +54,18 @@ function SignUpPageInner() {
   return (
     <AuthShell
       mode="signup"
+      timing={timing}
       title="Create your account"
       subtitle="Start a workspace, generate your first preview and keep every project connected to Studio."
       switchHref={loginHref}
       switchPrompt="Already have an account?"
       switchAction="Sign in"
     >
-      <SignUpForm onSuccess={() => router.replace(redirect)} returnTo={redirect} />
+      <SignUpForm
+        onSuccess={() => router.replace(redirect)}
+        returnTo={redirect}
+        timing={timing}
+      />
     </AuthShell>
   );
 }

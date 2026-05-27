@@ -24,8 +24,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useAuth } from "../lib/auth";
 import { extractErrorMessage } from "../lib/errors";
 import { formatDateTime, formatMoney, formatNumber } from "../lib/format";
@@ -64,15 +63,7 @@ const skelSx = {
 };
 
 export function WalletPage() {
-  const router = useRouter();
   const { authenticated, loading: authLoading } = useAuth();
-
-  useEffect(() => {
-    if (authLoading) return;
-    if (!authenticated) {
-      router.replace("/login?returnTo=" + encodeURIComponent("/wallet"));
-    }
-  }, [authenticated, authLoading, router]);
 
   const skip = !authenticated;
   const walletQ = useWalletQuery({ skip });
@@ -159,7 +150,7 @@ export function WalletPage() {
     return Array.from(map.values()).sort((a, b) => b.costUsd - a.costUsd);
   }, [budgetQ.data]);
 
-  if (authLoading || !authenticated) {
+  if (authLoading) {
     return (
       <>
         <PageHeader title="Wallet" />
@@ -188,7 +179,10 @@ export function WalletPage() {
               p: { xs: 3, md: 4 },
             }}
           >
-            <Typography variant="overline" sx={{ color: tokens.color.text.secondary }}>
+            <Typography
+              variant="overline"
+              sx={{ color: tokens.color.text.secondary }}
+            >
               Wallet available
             </Typography>
             {walletQ.loading ? (
@@ -277,7 +271,8 @@ export function WalletPage() {
             }}
           >
             {TOPUP_TIERS.map((amount) => {
-              const isPending = pendingAmount === amount && createTopUpM.loading;
+              const isPending =
+                pendingAmount === amount && createTopUpM.loading;
               const disabled = createTopUpM.loading && !isPending;
               return (
                 <Box
@@ -343,7 +338,9 @@ export function WalletPage() {
           </Box>
 
           <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 2 }}>
-            <LockOutlined sx={{ color: tokens.color.text.muted, fontSize: 14 }} />
+            <LockOutlined
+              sx={{ color: tokens.color.text.muted, fontSize: 14 }}
+            />
             <Typography sx={{ color: tokens.color.text.muted, fontSize: 12.5 }}>
               Powered by Stripe. You&apos;ll come back here on success.
             </Typography>
@@ -374,7 +371,6 @@ export function WalletPage() {
           onRefresh={() => topUpsQ.refetch()}
         />
       </Stack>
-
     </Box>
   );
 }
@@ -430,7 +426,10 @@ function SpendStripCard({
         sx={{ mb: 1.5 }}
       >
         <Box>
-          <Typography variant="overline" sx={{ color: tokens.color.text.secondary }}>
+          <Typography
+            variant="overline"
+            sx={{ color: tokens.color.text.secondary }}
+          >
             Spend — last 7 days
           </Typography>
           <Typography
@@ -554,8 +553,16 @@ function BreakdownTable({
               <BreakdownCell label="Provider" value={r.provider} bold />
               <BreakdownCell label="Model" value={r.model} />
               <BreakdownCell label="Spent" value={formatMoney(r.costUsd)} />
-              <BreakdownCell label="Tokens" value={formatNumber(r.tokens)} muted />
-              <BreakdownCell label="Calls" value={formatNumber(r.count)} muted />
+              <BreakdownCell
+                label="Tokens"
+                value={formatNumber(r.tokens)}
+                muted
+              />
+              <BreakdownCell
+                label="Calls"
+                value={formatNumber(r.count)}
+                muted
+              />
             </Box>
           ))}
         </Card>
@@ -592,7 +599,9 @@ function BreakdownCell({
       </Typography>
       <Typography
         sx={{
-          color: muted ? tokens.color.text.secondary : tokens.color.text.primary,
+          color: muted
+            ? tokens.color.text.secondary
+            : tokens.color.text.primary,
           fontFamily: bold ? tokens.font.mono : undefined,
           fontSize: 13.5,
           fontWeight: bold ? 700 : 500,
@@ -703,7 +712,11 @@ function TopUpHistoryTable({
               }}
             >
               <BreakdownCell label="Session" value={r.id} muted />
-              <BreakdownCell label="Amount" value={formatMoney(r.amountUSD)} bold />
+              <BreakdownCell
+                label="Amount"
+                value={formatMoney(r.amountUSD)}
+                bold
+              />
               <Box sx={{ display: { xs: "flex", md: "block" }, gap: 1.5 }}>
                 <Typography
                   sx={{

@@ -30,16 +30,20 @@ function LoginPageInner() {
   const router = useRouter();
   const search = useSearchParams();
   const { authenticated, loading } = useAuth();
+  const timing = search?.get("theme") === "dark" ? "dark" : "light";
 
   // Accept ?redirect= or ?next= — the brief uses next=, the prior
   // codebase uses redirect=. Honour either.
   const redirect = safeRedirect(
-    search?.get("redirect") ?? search?.get("next") ?? search?.get("returnTo") ?? null,
+    search?.get("redirect") ??
+      search?.get("next") ??
+      search?.get("returnTo") ??
+      null,
   );
   const signupHref =
     redirect && redirect !== "/"
-      ? `/signup?redirect=${encodeURIComponent(redirect)}`
-      : "/signup";
+      ? `/signup?redirect=${encodeURIComponent(redirect)}&theme=${timing}`
+      : `/signup?theme=${timing}`;
 
   useEffect(() => {
     if (loading) return;
@@ -49,13 +53,18 @@ function LoginPageInner() {
   return (
     <AuthShell
       mode="signin"
+      timing={timing}
       title="Sign in to continue"
       subtitle="Return to your Studio workspace, generated code, live previews and the deploy lane."
       switchHref={signupHref}
       switchPrompt="New here?"
       switchAction="Create an account"
     >
-      <SignInForm onSuccess={() => router.replace(redirect)} returnTo={redirect} />
+      <SignInForm
+        onSuccess={() => router.replace(redirect)}
+        returnTo={redirect}
+        timing={timing}
+      />
     </AuthShell>
   );
 }

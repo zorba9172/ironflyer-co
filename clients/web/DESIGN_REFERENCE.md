@@ -8,6 +8,8 @@ Restored Home rebaseline locked: 2026-05-27
 
 Hero timing rebaseline locked: 2026-05-27
 
+Clean hero and timing enforcement locked: 2026-05-27
+
 This document codifies the private dark IronFlyer screenshots supplied on 2026-05-25 as the mandatory visual reference for `clients/web`. Use it as the source of truth before changing web UI, CSS, theme tokens, layout primitives, or component density.
 
 ## Source Of Truth
@@ -42,6 +44,12 @@ This reference is binding for the Home route. It supersedes the rejected orbital
 Dark and light timings must share the same structure and interaction model. Dark is the primary pixel baseline; light inherits its layout and converts palette, surfaces and shadow treatment without inventing a new page.
 
 The Home Hero first viewport is now locked to the centered prompt-builder composition: nav, centered eyebrow, three-line headline, centered prompt composer, template chips, four-value capability rail, and trusted company logos. The light and dark timing toggle must preserve this exact hierarchy.
+
+The clean Hero amendment is binding: no descriptive paragraph is allowed between the headline and prompt composer, and no decorative ellipse, ring, blob, planet, egg-shaped glow, or abstract panel may sit behind the headline text. The headline must remain crisp on the page background; atmosphere may live in the surrounding section or composer glow only when it does not compete with the typography.
+
+Light and dark timing are product states, not alternate designs. `/`, public inner pages, `/login`, `/signup`, and `/login/reset` must respect `?theme=light|dark` with matching structure, spacing, copy density, CTA treatment, and footer behavior. A component that renders only in dark mode while the route is in light timing is a design drift bug.
+
+During active design review, route guards must not block visual inspection of Studio, wallet, deploy, execution, settings, and project routes. Auth redirects may be re-enabled only as an explicit product/security step after visual review is complete.
 
 The required route set is: `/`, `/product`, `/solutions`, `/resources`, `/enterprise`, `/login`, `/signup`, `/dashboard`, `/projects`, `/templates`, `/pricing`, `/studio`, `/studio/demo`, `/p/demo`, `/executions`, `/execution/demo`, `/execution/demo/security`, `/deploy`, `/deploy/demo`, `/wallet`, and `/wallet/topup`.
 

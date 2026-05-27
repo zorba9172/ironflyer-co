@@ -236,11 +236,12 @@ export function Nav() {
   );
   const visibleLinks = links.filter((l) => !l.operatorOnly || operator);
   const authReturn = pathname === "/" ? "/studio" : pathname;
-  const loginHref = `/login?returnTo=${encodeURIComponent(authReturn)}`;
-  const signupHref = `/signup?redirect=${encodeURIComponent(authReturn)}`;
   const marketingMode = !cockpitMode;
   const publicTiming =
     marketingMode && search?.get("theme") === "dark" ? "dark" : "light";
+  const authThemeParam = marketingMode ? `&theme=${publicTiming}` : "";
+  const loginHref = `/login?returnTo=${encodeURIComponent(authReturn)}${authThemeParam}`;
+  const signupHref = `/signup?redirect=${encodeURIComponent(authReturn)}${authThemeParam}`;
   const publicLight = marketingMode && publicTiming === "light";
   const navText = publicLight ? "#0b1040" : tokens.color.text.primary;
   const navSecondary = publicLight ? "#1f254f" : tokens.color.text.secondary;

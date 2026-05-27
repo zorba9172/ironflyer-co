@@ -26,10 +26,17 @@ export interface SignUpFormProps {
   onSuccess: () => void;
   initialEmail?: string;
   returnTo?: string;
+  timing?: "light" | "dark";
 }
 
-export function SignUpForm({ onSuccess, initialEmail = "", returnTo = "/" }: SignUpFormProps) {
+export function SignUpForm({
+  onSuccess,
+  initialEmail = "",
+  returnTo = "/",
+  timing = "dark",
+}: SignUpFormProps) {
   const { signUp } = useAuth();
+  const light = timing === "light";
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState(initialEmail);
@@ -65,12 +72,17 @@ export function SignUpForm({ onSuccess, initialEmail = "", returnTo = "/" }: Sig
   return (
     <Box component="form" onSubmit={handleSubmit}>
       <Stack spacing={2}>
-        <SocialLoginButtons returnTo={returnTo} disabled={submitting} />
+        <SocialLoginButtons
+          returnTo={returnTo}
+          disabled={submitting}
+          timing={timing}
+        />
         <Field
           label="What should we call you? (optional)"
           autoComplete="name"
           value={name}
           onChange={setName}
+          light={light}
         />
         <Field
           label="Email"
@@ -80,6 +92,7 @@ export function SignUpForm({ onSuccess, initialEmail = "", returnTo = "/" }: Sig
           value={email}
           onChange={setEmail}
           required
+          light={light}
         />
         <Field
           label="Password"
@@ -93,6 +106,7 @@ export function SignUpForm({ onSuccess, initialEmail = "", returnTo = "/" }: Sig
               ? "At least 8 characters."
               : "Use at least 8 characters."
           }
+          light={light}
         />
         <Field
           label="Confirm password"
@@ -106,12 +120,21 @@ export function SignUpForm({ onSuccess, initialEmail = "", returnTo = "/" }: Sig
               ? "Passwords do not match."
               : undefined
           }
+          light={light}
         />
-        <Typography sx={{ fontSize: 11.5, color: tokens.color.text.muted, lineHeight: 1.5 }}>
+        <Typography
+          sx={{
+            fontSize: 11.5,
+            color: light ? "#858ba5" : tokens.color.text.muted,
+            lineHeight: 1.5,
+          }}
+        >
           By creating an account you agree to use IronFlyer for lawful builds
           and keep your workspace data connected to the product flow.
         </Typography>
-        {error ? <ErrorPanel error={error} title="Could not create your account" /> : null}
+        {error ? (
+          <ErrorPanel error={error} title="Could not create your account" />
+        ) : null}
         <Button
           type="submit"
           variant="contained"
@@ -119,7 +142,10 @@ export function SignUpForm({ onSuccess, initialEmail = "", returnTo = "/" }: Sig
           disabled={!canSubmit}
           endIcon={
             submitting ? (
-              <CircularProgress size={14} sx={{ color: tokens.color.text.primary }} />
+              <CircularProgress
+                size={14}
+                sx={{ color: tokens.color.text.primary }}
+              />
             ) : (
               <ArrowForwardRounded sx={{ fontSize: 18 }} />
             )
@@ -142,8 +168,19 @@ function Field(props: {
   autoFocus?: boolean;
   required?: boolean;
   helperText?: string;
+  light?: boolean;
 }) {
-  const { label, type = "text", value, onChange, autoComplete, autoFocus, required, helperText } = props;
+  const {
+    label,
+    type = "text",
+    value,
+    onChange,
+    autoComplete,
+    autoFocus,
+    required,
+    helperText,
+    light = false,
+  } = props;
   return (
     <TextField
       label={label}
@@ -158,14 +195,25 @@ function Field(props: {
       helperText={helperText}
       slotProps={{
         inputLabel: {
-          sx: { color: tokens.color.text.secondary },
+          sx: { color: light ? "#66708d" : tokens.color.text.secondary },
         },
         input: {
           sx: {
-            bgcolor: tokens.color.bg.inset,
-            "& fieldset": { borderColor: tokens.color.border.subtle },
-            "&:hover fieldset": { borderColor: tokens.color.border.strong },
-            "&.Mui-focused fieldset": { borderColor: `${tokens.color.border.accent} !important` },
+            color: light ? "#0b1040" : tokens.color.text.primary,
+            bgcolor: light ? "#ffffff" : tokens.color.bg.inset,
+            "& fieldset": {
+              borderColor: light
+                ? "rgba(18,22,55,0.12)"
+                : tokens.color.border.subtle,
+            },
+            "&:hover fieldset": {
+              borderColor: light
+                ? "rgba(143,77,255,0.24)"
+                : tokens.color.border.strong,
+            },
+            "&.Mui-focused fieldset": {
+              borderColor: `${tokens.color.border.accent} !important`,
+            },
           },
         },
       }}
