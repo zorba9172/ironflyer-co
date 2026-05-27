@@ -231,7 +231,7 @@ func (rm *RouterModel) handleExecutionComplete(evt OutcomeEvent) {
 // Future extension: when ClickHouseStore grows an EventsByTenant
 // method, replace the snapshot fallback with a true replay loop.
 func (rm *RouterModel) LoadFromHistory(ctx context.Context, tenantID string, lookback time.Duration) error {
-	if rm == nil || rm.bandit == nil || rm.store == nil {
+	if rm == nil || rm.bandit.IsZero() || rm.store == nil {
 		return nil
 	}
 	// MemoryStore exposes raw events via a type assertion — the
