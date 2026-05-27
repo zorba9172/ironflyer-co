@@ -33,18 +33,18 @@ jobs:
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff  # v5
         with:
           go-version: '1.25'
-          cache-dependency-path: apps/${{ matrix.module }}/go.sum
+          cache-dependency-path: core/${{ matrix.module }}/go.sum
       - name: go mod download
-        working-directory: apps/${{ matrix.module }}
+        working-directory: core/${{ matrix.module }}
         run: go mod download
       - name: go vet
-        working-directory: apps/${{ matrix.module }}
+        working-directory: core/${{ matrix.module }}
         run: go vet ./...
       - name: go test
-        working-directory: apps/${{ matrix.module }}
+        working-directory: core/${{ matrix.module }}
         run: go test -race -count=1 ./...
       - name: go build
-        working-directory: apps/${{ matrix.module }}
+        working-directory: core/${{ matrix.module }}
         run: go build ./...
 
       # Post-build smoke for the orchestrator: boot the binary against an
