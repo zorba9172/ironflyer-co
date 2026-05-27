@@ -310,6 +310,14 @@ var (
 		Name: "ironflyer_wallet_holds_active",
 		Help: "Currently-active wallet holds (Hold +1, Release/Debit -1).",
 	})
+	walletReconcileRecovered = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "ironflyer_wallet_reconcile_recovered_total",
+		Help: "Wallet top-ups credited by the reconciliation cron after a missed webhook, partitioned by provider.",
+	}, []string{"provider"})
+	walletReconcileError = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "ironflyer_wallet_reconcile_error_total",
+		Help: "Errors encountered while reconciling a stale pending wallet top-up, partitioned by provider.",
+	}, []string{"provider"})
 	providerCostDollars = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "ironflyer_provider_cost_dollars_total",
 		Help: "Provider cost in USD charged through BillingGuard, partitioned by provider.",
@@ -353,6 +361,7 @@ func init() {
 		gateDurationSeconds, gateFindingsTotal,
 		billingEventTotal, billingDunningActiveUsers, billingInvoiceAmountCents,
 		executionsStarted, executionsCompleted, walletHoldsActive, providerCostDollars,
+		walletReconcileRecovered, walletReconcileError,
 		authEvents, authMfaEnrolledUsers, authSessionAgeSeconds,
 		// Stock collectors — Go runtime + process stats.
 		prometheus.NewGoCollector(),
@@ -801,6 +810,22 @@ func IncWalletHoldsActive() { walletHoldsActive.Inc() }
 // DecWalletHoldsActive decrements the active-hold gauge when a hold
 // closes via Release or Debit. Clamped at zero by Prometheus.
 func DecWalletHoldsActive() { walletHoldsActive.Dec() }
+
+// IncWalletReconcileRecovered counts a wallet top-up credit that the
+// reconciliation cron applied after detecting a missed webhook. Each
+// increment is also a warning-level log line — the metric exists so
+// an operator can SLO on it (e.g. alert when > 5/h indicates a
+// vendor webhook outage).
+func IncWalletReconcileRecovered(provider string) {
+	walletReconcileRecovered.WithLabelValues(provider).Inc()
+}
+
+// IncWalletReconcileError counts errors the reconciler hit while
+// trying to flip a stale pending row. Used to alert on persistent
+// vendor API failures.
+func IncWalletReconcileError(provider string) {
+	walletReconcileError.WithLabelValues(provider).Inc()
+}
 
 // ObserveProviderCost accumulates the USD cost of one BillingGuard
 // charge against the per-provider counter. Zero or negative amounts

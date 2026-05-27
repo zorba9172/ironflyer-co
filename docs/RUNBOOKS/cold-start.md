@@ -42,9 +42,6 @@ docker compose -f infra/compose/docker-compose.dev.yml --profile analytics up -d
 # Durable workflows (Temporal + UI on :8233)
 docker compose -f infra/compose/docker-compose.dev.yml --profile temporal up -d
 
-# Cloud IDE (openvscode on :3030)
-docker compose -f infra/compose/docker-compose.dev.yml --profile ide up -d
-
 # Stripe webhook forwarder (needs STRIPE_SECRET_KEY in env)
 docker compose -f infra/compose/docker-compose.dev.yml --profile stripe up -d
 ```

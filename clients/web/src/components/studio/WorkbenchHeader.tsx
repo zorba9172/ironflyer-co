@@ -99,12 +99,12 @@ export function WorkbenchHeader({
           px: { xs: 1, md: 1.6 },
         }}
       >
-        <Tooltip title="Back to Studio" arrow>
+        <Tooltip title="All projects" arrow>
           <IconButton
             component={Link}
-            href="/studio"
+            href="/projects"
             size="small"
-            aria-label="Back to Studio"
+            aria-label="All projects"
             sx={{
               color: tokens.color.text.secondary,
               "&:hover": { color: tokens.color.text.primary },
@@ -115,7 +115,7 @@ export function WorkbenchHeader({
         </Tooltip>
         <Stack
           component={Link}
-          href="/studio"
+          href="/projects"
           direction="row"
           spacing={0.7}
           sx={{
@@ -163,7 +163,7 @@ export function WorkbenchHeader({
         <Stack direction="row" spacing={0.6} sx={{ alignItems: "center", minWidth: 0 }}>
           <Box
             component={Link}
-            href="/studio"
+            href="/projects"
             sx={{
               color: tokens.color.text.muted,
               fontFamily: tokens.font.mono,

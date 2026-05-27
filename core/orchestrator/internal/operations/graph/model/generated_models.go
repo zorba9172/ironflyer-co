@@ -1304,6 +1304,7 @@ type Wallet struct {
 type WalletCheckoutSession struct {
 	URL       string `json:"url"`
 	SessionID string `json:"sessionID"`
+	Provider  string `json:"provider"`
 }
 
 type WalletLedgerEntry struct {
@@ -1320,8 +1321,15 @@ type WalletLedgerEntry struct {
 	CreatedAt      time.Time `json:"createdAt"`
 }
 
+type WalletProvider struct {
+	Name      string `json:"name"`
+	Label     string `json:"label"`
+	IsPrimary bool   `json:"isPrimary"`
+}
+
 type WalletTopUp struct {
 	ID          string     `json:"id"`
+	Provider    string     `json:"provider"`
 	AmountUsd   float64    `json:"amountUSD"`
 	Status      string     `json:"status"`
 	CreatedAt   time.Time  `json:"createdAt"`

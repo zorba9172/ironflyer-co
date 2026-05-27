@@ -1,6 +1,6 @@
 # Wallet operations — surfaces the prepaid credit balance and the
-# Stripe Checkout entrypoint. Consumed by the Nav wallet chip and the
-# /wallet page (A47).
+# multi-provider hosted-checkout entrypoint. Consumed by the Nav wallet
+# chip and the /wallet page.
 
 query Wallet {
   wallet {
@@ -17,6 +17,7 @@ query Wallet {
 query WalletTopUps($limit: Int) {
   walletTopUps(limit: $limit) {
     id
+    provider
     amountUSD
     status
     createdAt
@@ -24,9 +25,18 @@ query WalletTopUps($limit: Int) {
   }
 }
 
-mutation WalletCreateTopUp($amountUSD: Float!) {
-  walletCreateTopUp(amountUSD: $amountUSD) {
+query WalletAvailableProviders {
+  walletAvailableProviders {
+    name
+    label
+    isPrimary
+  }
+}
+
+mutation WalletCreateTopUp($amountUSD: Float!, $provider: String) {
+  walletCreateTopUp(amountUSD: $amountUSD, provider: $provider) {
     url
     sessionID
+    provider
   }
 }

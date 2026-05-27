@@ -7,6 +7,8 @@ package resolver
 
 import (
 	"context"
+	"errors"
+	"ironflyer/core/orchestrator/internal/business/wallet"
 	"ironflyer/core/orchestrator/internal/operations/graph/model"
 
 	"github.com/shopspring/decimal"
@@ -14,12 +16,13 @@ import (
 
 // WalletCreateTopUp is the resolver for the walletCreateTopUp field.
 //
-// Provisions a one-shot Stripe Checkout session for the supplied
-// amount, stages a pending wallet_topups row, and returns the URL the
-// browser should open. The webhook later flips the row to succeeded
-// and credits the wallet (see main.go stripeWebhook routing).
-func (r *mutationResolver) WalletCreateTopUp(ctx context.Context, amountUsd float64) (*model.WalletCheckoutSession, error) {
-	if r.WalletTopper == nil || !r.WalletTopper.Enabled() {
+// Provisions a one-shot hosted checkout for the supplied amount + provider,
+// stages a pending wallet_topups row, and returns the URL the browser should
+// open. The webhook later flips the row to succeeded and credits the wallet.
+// provider is optional — when null we use the configured primary so existing
+// clients (pre-multi-provider) keep working without a schema bump.
+func (r *mutationResolver) WalletCreateTopUp(ctx context.Context, amountUsd float64, provider *string) (*model.WalletCheckoutSession, error) {
+	if r.WalletToppers == nil || !r.WalletToppers.Enabled() {
 		return nil, gqlNotConfigured("wallet_topper")
 	}
 	u, err := currentUser(ctx)
@@ -28,13 +31,25 @@ func (r *mutationResolver) WalletCreateTopUp(ctx context.Context, amountUsd floa
 	}
 	tenant := tenantFor(u)
 	amount := decimal.NewFromFloat(amountUsd)
-	sess, err := r.WalletTopper.CreateCheckoutSession(ctx, tenant, amount)
+	var name string
+	if provider != nil {
+		name = *provider
+	}
+	topper, err := r.WalletToppers.ByName(name)
+	if err != nil {
+		if errors.Is(err, wallet.ErrTopperDisabled) {
+			return nil, gqlNotConfigured("wallet_topper")
+		}
+		return nil, err
+	}
+	sess, err := topper.CreateCheckoutSession(ctx, tenant, amount)
 	if err != nil {
 		return nil, err
 	}
 	return &model.WalletCheckoutSession{
 		URL:       sess.URL,
 		SessionID: sess.SessionID,
+		Provider:  sess.Provider,
 	}, nil
 }
 
@@ -82,12 +97,45 @@ func (r *queryResolver) WalletTopUps(ctx context.Context, limit *int) ([]model.W
 	}
 	out := make([]model.WalletTopUp, 0, len(rows))
 	for _, t := range rows {
+		prov := t.Provider
+		if prov == "" {
+			// Legacy rows pre-migration default to stripe — the
+			// migration backfills the column but the in-memory
+			// backend may still emit blank strings in dev.
+			prov = wallet.ProviderStripe
+		}
 		out = append(out, model.WalletTopUp{
 			ID:          t.ID,
+			Provider:    prov,
 			AmountUsd:   floatOfDecimal(t.AmountUSD),
 			Status:      t.Status,
 			CreatedAt:   t.CreatedAt,
 			CompletedAt: t.CompletedAt,
+		})
+	}
+	return out, nil
+}
+
+// WalletAvailableProviders is the resolver for the walletAvailableProviders
+// field. Returns the enabled set of payment providers, primary first, so the
+// /wallet/topup page can render the right CTA + alternative-checkout links.
+// Empty list when nothing is configured (dev boots).
+func (r *queryResolver) WalletAvailableProviders(ctx context.Context) ([]model.WalletProvider, error) {
+	if r.WalletToppers == nil {
+		return []model.WalletProvider{}, nil
+	}
+	active := r.WalletToppers.Active()
+	out := make([]model.WalletProvider, 0, len(active))
+	primary := r.WalletToppers.Primary()
+	var primaryName string
+	if primary != nil {
+		primaryName = primary.Name()
+	}
+	for _, t := range active {
+		out = append(out, model.WalletProvider{
+			Name:      t.Name(),
+			Label:     t.Label(),
+			IsPrimary: t.Name() == primaryName,
 		})
 	}
 	return out, nil

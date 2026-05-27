@@ -34,7 +34,6 @@ import {
 } from "react";
 import { LoadingPanel } from "../../../src/components/cockpit/LoadingPanel";
 import { ChatPanel } from "../../../src/components/studio/ChatPanel";
-import { CodeModeSwitcher } from "../../../src/components/studio/CodeModeSwitcher";
 import { MobilePreviewFrame } from "../../../src/components/studio/MobilePreviewFrame";
 import { PreviewPane } from "../../../src/components/studio/PreviewPane";
 import { StudioErrorPanel } from "../../../src/components/studio/StudioErrorPanel";
@@ -69,7 +68,6 @@ import {
 import { pushToast } from "../../../src/lib/stores/uiStore";
 import { tokens } from "../../../src/theme";
 import type { StudioAttachment } from "../../../src/components/studio/types";
-import StudioPreviewPage from "../../studio/page";
 
 // Heavy panes lazy-load. They share the same fallback so the shell
 // keeps a consistent loading skin while their JS chunk lands.
@@ -192,6 +190,7 @@ function ProjectStudioInner() {
   const appendIncoming = useChatStore((s) => s.appendIncoming);
   const appendLocal = useChatStore((s) => s.appendLocal);
   const updateLocal = useChatStore((s) => s.updateLocal);
+  const adoptBuffer = useChatStore((s) => s.adoptBuffer);
 
   // Streaming chat handle — exposed so the user can hit Stop mid-reply
   // (cancels the upstream provider call) and so unmounting cleans up.
@@ -233,6 +232,8 @@ function ProjectStudioInner() {
   //    events (gate verdicts, cost ticks) continue to flow via the
   //    executionFeed subscription wired above.
   const [refineIdea, refineState] = useRefineIdeaMutation();
+  const [createExecFromChat, createExecState] =
+    useCreatePaidExecutionMutation();
   const onSend = useCallback(
     async (text: string, attachments?: StudioAttachment[]) => {
       // Free-chat sentinel: when no execution has been admitted yet,
@@ -242,6 +243,56 @@ function ProjectStudioInner() {
       // an execution arrives.
       const chatID = executionID || "_";
       appendLocal(chatID, makeUserMessage(text, attachments));
+
+      // No execution yet → the first chat message starts the build.
+      // We call createPaidExecution with the prompt as promptSummary
+      // and a small default wallet hold; the resolver enforces budget
+      // → admit → start, and projectExecutionsQuery refetches so the
+      // page swaps into the full Studio layout without a hard reload.
+      // The "_" buffer gets adopted into the new execution so the
+      // user's first message stays visible.
+      if (!executionID && projectID) {
+        appendLocal(
+          chatID,
+          makeAssistantThinkingMessage(
+            "Starting your first execution — placing a $5 wallet hold and admitting the build.",
+          ),
+        );
+        try {
+          const res = await createExecFromChat({
+            variables: {
+              input: {
+                projectID,
+                budgetUSD: 5,
+                stopLossUSD: 5,
+                promptSummary: text.slice(0, 240),
+                metadata: { source: "studio.chat.create" },
+              },
+            },
+            refetchQueries: ["ProjectExecutions"],
+          });
+          const newID = res.data?.createPaidExecution?.id;
+          if (newID) {
+            adoptBuffer(chatID, newID);
+          }
+        } catch (e) {
+          const n = normalizeError(e);
+          if (
+            n.code === "INSUFFICIENT_FUNDS" ||
+            n.code === "PAYMENT_REQUIRED" ||
+            n.status === 402
+          ) {
+            pushToast({
+              message: "Wallet too low — top up to start this execution.",
+              severity: "warning",
+              href: "/wallet",
+              actionLabel: "Top up",
+            });
+          }
+          appendLocal(chatID, makeErrorMessage(extractErrorMessage(e)));
+        }
+        return;
+      }
 
       // Record the refinement on the running execution. Skipped in
       // free-chat mode — no execution exists to refine yet. Fire-and-
@@ -312,7 +363,15 @@ function ProjectStudioInner() {
         setStreaming(false);
       });
     },
-    [executionID, refineIdea, appendLocal, updateLocal],
+    [
+      executionID,
+      projectID,
+      refineIdea,
+      createExecFromChat,
+      appendLocal,
+      adoptBuffer,
+      updateLocal,
+    ],
   );
 
   const onStop = useCallback(() => {
@@ -342,7 +401,15 @@ function ProjectStudioInner() {
   }
 
   if (demoPreview) {
-    return <StudioPreviewPage />;
+    // The "demo" project ID used to bounce to a static showcase at
+    // /studio. The showcase is gone — send the operator to the real
+    // project list instead so they pick a live workspace.
+    if (typeof window !== "undefined") window.location.replace("/projects");
+    return (
+      <Box sx={{ height: "100%", width: "100%" }}>
+        <LoadingPanel label="Redirecting…" minHeight="100%" />
+      </Box>
+    );
   }
 
   if (
@@ -412,7 +479,7 @@ function ProjectStudioInner() {
           <ChatPanel
             messages={messages}
             status="idle"
-            pending={streaming || refineState.loading}
+            pending={streaming || refineState.loading || createExecState.loading}
             onSend={onSend}
             onStop={onStop}
             userInitials={initials}
@@ -465,17 +532,10 @@ function ProjectStudioInner() {
         </MobilePreviewFrame>
       }
       codeSlot={
-        <CodeModeSwitcher
-          mode={layout.codeMode}
-          onModeChange={layout.setCodeMode}
+        <CodePane
           projectID={projectID}
-          monacoSlot={
-            <CodePane
-              projectID={projectID}
-              executionID={execution.id}
-              executionStatus={execution.status}
-            />
-          }
+          executionID={execution.id}
+          executionStatus={execution.status}
         />
       }
       filesSlot={
@@ -508,7 +568,7 @@ function ProjectStudioInner() {
         <ChatPanel
           messages={messages}
           status={bucket}
-          pending={streaming || refineState.loading}
+          pending={streaming || refineState.loading || createExecState.loading}
           onSend={onSend}
           onStop={onStop}
           userInitials={initials}

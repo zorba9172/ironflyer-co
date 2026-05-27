@@ -1,12 +1,12 @@
 # V22 wallet domain. Maps onto internal/wallet.Service +
-# internal/wallet.Topper.
+# internal/wallet.TopperRegistry.
 #
 # The wallet is the hard contract behind law 1 ("no execution starts
 # without budget"): every paid execution Holds against availableUSD
 # before any expensive call runs, then Debits as cost materialises.
-# walletCreateTopUp routes the user through Stripe Checkout; the
-# orchestrator's existing /budget/webhook endpoint (REST exception)
-# delivers the credit back into the wallet via Topper.HandleWebhook.
+# walletCreateTopUp routes the user through the selected provider's
+# hosted checkout; both Stripe and Paddle deliver the credit back via
+# their respective webhook routes (REST exceptions per CLAUDE.md).
 
 extend type Query {
   # Current tenant's wallet (creates a zero-balance row on first read
@@ -16,13 +16,23 @@ extend type Query {
   # Recent top-up attempts for the current tenant, newest first.
   # Limit defaults to 50; resolver clamps at 500.
   walletTopUps(limit: Int = 50): [WalletTopUp!]!
+
+  # Enabled payment providers the user can pick at checkout. The
+  # primary provider is rendered as the main CTA; alternatives are
+  # shown as fallback links so a single PSP outage never stalls
+  # revenue. Empty list when no provider has credentials wired (dev
+  # boots return an empty list and the mutation 503's).
+  walletAvailableProviders: [WalletProvider!]!
 }
 
 extend type Mutation {
-  # Provision a Stripe Checkout session for a wallet top-up. amountUSD
+  # Provision a hosted checkout session for a wallet top-up. amountUSD
   # MUST be one of the supported tiers: 10, 25, 50, 100, 250, 500.
-  # Resolvers translate ErrInvalidAmount into a typed BadRequest error.
-  walletCreateTopUp(amountUSD: Float!): WalletCheckoutSession!
+  # provider selects between "stripe" and "paddle"; null falls back
+  # to the configured primary so existing clients (pre-multi-provider)
+  # keep working. Resolvers translate ErrInvalidAmount and unknown
+  # provider names into typed errors.
+  walletCreateTopUp(amountUSD: Float!, provider: String): WalletCheckoutSession!
 }
 
 # Wallet is the per-tenant prepaid credit balance. availableUSD =
@@ -40,9 +50,11 @@ type Wallet {
 
 # WalletTopUp is one row of the wallet_topups table. status is one of
 # pending | succeeded | failed | refunded; completedAt is non-null only
-# on succeeded / refunded rows.
+# on succeeded / refunded rows. provider distinguishes "stripe" /
+# "paddle" so the history table can render a chip per row.
 type WalletTopUp {
   id: ID!
+  provider: String!
   amountUSD: Float!
   status: String!
   createdAt: DateTime!
@@ -50,9 +62,23 @@ type WalletTopUp {
 }
 
 # WalletCheckoutSession is the result of walletCreateTopUp. The client
-# redirects the browser to `url`; `sessionID` is opaque and exists so
-# the dashboard can correlate a pending row with the in-flight checkout.
+# redirects the browser to `url`; `sessionID` is opaque (Stripe cs_*
+# or Paddle txn_*) and exists so the dashboard can correlate a pending
+# row with the in-flight checkout. provider tells the UI which return
+# query param to watch for ("session_id" for Stripe,
+# "_ptxn" for Paddle).
 type WalletCheckoutSession {
   url: String!
   sessionID: String!
+  provider: String!
+}
+
+# WalletProvider describes one enabled payment provider. name is the
+# stable identifier passed back as `provider` to walletCreateTopUp;
+# label is the human-readable CTA text. isPrimary marks the default
+# rendered as the main button.
+type WalletProvider {
+  name: String!
+  label: String!
+  isPrimary: Boolean!
 }

@@ -732,7 +732,7 @@ type ComplexityRoot struct {
 		UpdateNotificationPreferences func(childComplexity int, input model.NotificationPreferencesInput) int
 		UpdateProject                 func(childComplexity int, id string, input model.UpdateProjectInput) int
 		VerifyEmail                   func(childComplexity int, token string) int
-		WalletCreateTopUp             func(childComplexity int, amountUsd float64) int
+		WalletCreateTopUp             func(childComplexity int, amountUsd float64, provider *string) int
 		WriteProjectFiles             func(childComplexity int, id string, files []model.WriteProjectFileInput) int
 	}
 
@@ -1000,6 +1000,7 @@ type ComplexityRoot struct {
 		VerifyAudit              func(childComplexity int) int
 		Version                  func(childComplexity int) int
 		Wallet                   func(childComplexity int) int
+		WalletAvailableProviders func(childComplexity int) int
 		WalletTopUps             func(childComplexity int, limit *int) int
 	}
 
@@ -1174,6 +1175,7 @@ type ComplexityRoot struct {
 	}
 
 	WalletCheckoutSession struct {
+		Provider  func(childComplexity int) int
 		SessionID func(childComplexity int) int
 		URL       func(childComplexity int) int
 	}
@@ -1192,11 +1194,18 @@ type ComplexityRoot struct {
 		TenantID       func(childComplexity int) int
 	}
 
+	WalletProvider struct {
+		IsPrimary func(childComplexity int) int
+		Label     func(childComplexity int) int
+		Name      func(childComplexity int) int
+	}
+
 	WalletTopUp struct {
 		AmountUsd   func(childComplexity int) int
 		CompletedAt func(childComplexity int) int
 		CreatedAt   func(childComplexity int) int
 		ID          func(childComplexity int) int
+		Provider    func(childComplexity int) int
 		Status      func(childComplexity int) int
 	}
 
@@ -1271,7 +1280,7 @@ type MutationResolver interface {
 	WriteProjectFiles(ctx context.Context, id string, files []model.WriteProjectFileInput) ([]model.ProjectFile, error)
 	DescribeIdea(ctx context.Context, input model.DescribeIdeaInput) (*model.StudioBootstrap, error)
 	RefineIdea(ctx context.Context, executionID string, message string) (*model.StudioBootstrap, error)
-	WalletCreateTopUp(ctx context.Context, amountUsd float64) (*model.WalletCheckoutSession, error)
+	WalletCreateTopUp(ctx context.Context, amountUsd float64, provider *string) (*model.WalletCheckoutSession, error)
 }
 type QueryResolver interface {
 	Ping(ctx context.Context) (string, error)
@@ -1344,6 +1353,7 @@ type QueryResolver interface {
 	ExecutionSecurityReport(ctx context.Context, executionID string) (*model.SecurityReport, error)
 	Wallet(ctx context.Context) (*model.Wallet, error)
 	WalletTopUps(ctx context.Context, limit *int) ([]model.WalletTopUp, error)
+	WalletAvailableProviders(ctx context.Context) ([]model.WalletProvider, error)
 	ExecutionSupportBundle(ctx context.Context, executionID string) (*model.SupportBundle, error)
 }
 type SubscriptionResolver interface {
@@ -4719,7 +4729,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.ComplexityRoot.Mutation.WalletCreateTopUp(childComplexity, args["amountUSD"].(float64)), true
+		return e.ComplexityRoot.Mutation.WalletCreateTopUp(childComplexity, args["amountUSD"].(float64), args["provider"].(*string)), true
 	case "Mutation.writeProjectFiles":
 		if e.ComplexityRoot.Mutation.WriteProjectFiles == nil {
 			break
@@ -6211,6 +6221,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.Wallet(childComplexity), true
+	case "Query.walletAvailableProviders":
+		if e.ComplexityRoot.Query.WalletAvailableProviders == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Query.WalletAvailableProviders(childComplexity), true
 	case "Query.walletTopUps":
 		if e.ComplexityRoot.Query.WalletTopUps == nil {
 			break
@@ -6928,6 +6944,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.Wallet.UpdatedAt(childComplexity), true
 
+	case "WalletCheckoutSession.provider":
+		if e.ComplexityRoot.WalletCheckoutSession.Provider == nil {
+			break
+		}
+
+		return e.ComplexityRoot.WalletCheckoutSession.Provider(childComplexity), true
 	case "WalletCheckoutSession.sessionID":
 		if e.ComplexityRoot.WalletCheckoutSession.SessionID == nil {
 			break
@@ -7008,6 +7030,25 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.WalletLedgerEntry.TenantID(childComplexity), true
 
+	case "WalletProvider.isPrimary":
+		if e.ComplexityRoot.WalletProvider.IsPrimary == nil {
+			break
+		}
+
+		return e.ComplexityRoot.WalletProvider.IsPrimary(childComplexity), true
+	case "WalletProvider.label":
+		if e.ComplexityRoot.WalletProvider.Label == nil {
+			break
+		}
+
+		return e.ComplexityRoot.WalletProvider.Label(childComplexity), true
+	case "WalletProvider.name":
+		if e.ComplexityRoot.WalletProvider.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.WalletProvider.Name(childComplexity), true
+
 	case "WalletTopUp.amountUSD":
 		if e.ComplexityRoot.WalletTopUp.AmountUsd == nil {
 			break
@@ -7032,6 +7073,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.WalletTopUp.ID(childComplexity), true
+	case "WalletTopUp.provider":
+		if e.ComplexityRoot.WalletTopUp.Provider == nil {
+			break
+		}
+
+		return e.ComplexityRoot.WalletTopUp.Provider(childComplexity), true
 	case "WalletTopUp.status":
 		if e.ComplexityRoot.WalletTopUp.Status == nil {
 			break
@@ -9261,14 +9308,14 @@ type ParsedIdea {
 }
 `, BuiltIn: false},
 	{Name: "../schema/wallet.graphql", Input: `# V22 wallet domain. Maps onto internal/wallet.Service +
-# internal/wallet.Topper.
+# internal/wallet.TopperRegistry.
 #
 # The wallet is the hard contract behind law 1 ("no execution starts
 # without budget"): every paid execution Holds against availableUSD
 # before any expensive call runs, then Debits as cost materialises.
-# walletCreateTopUp routes the user through Stripe Checkout; the
-# orchestrator's existing /budget/webhook endpoint (REST exception)
-# delivers the credit back into the wallet via Topper.HandleWebhook.
+# walletCreateTopUp routes the user through the selected provider's
+# hosted checkout; both Stripe and Paddle deliver the credit back via
+# their respective webhook routes (REST exceptions per CLAUDE.md).
 
 extend type Query {
   # Current tenant's wallet (creates a zero-balance row on first read
@@ -9278,13 +9325,23 @@ extend type Query {
   # Recent top-up attempts for the current tenant, newest first.
   # Limit defaults to 50; resolver clamps at 500.
   walletTopUps(limit: Int = 50): [WalletTopUp!]!
+
+  # Enabled payment providers the user can pick at checkout. The
+  # primary provider is rendered as the main CTA; alternatives are
+  # shown as fallback links so a single PSP outage never stalls
+  # revenue. Empty list when no provider has credentials wired (dev
+  # boots return an empty list and the mutation 503's).
+  walletAvailableProviders: [WalletProvider!]!
 }
 
 extend type Mutation {
-  # Provision a Stripe Checkout session for a wallet top-up. amountUSD
+  # Provision a hosted checkout session for a wallet top-up. amountUSD
   # MUST be one of the supported tiers: 10, 25, 50, 100, 250, 500.
-  # Resolvers translate ErrInvalidAmount into a typed BadRequest error.
-  walletCreateTopUp(amountUSD: Float!): WalletCheckoutSession!
+  # provider selects between "stripe" and "paddle"; null falls back
+  # to the configured primary so existing clients (pre-multi-provider)
+  # keep working. Resolvers translate ErrInvalidAmount and unknown
+  # provider names into typed errors.
+  walletCreateTopUp(amountUSD: Float!, provider: String): WalletCheckoutSession!
 }
 
 # Wallet is the per-tenant prepaid credit balance. availableUSD =
@@ -9302,9 +9359,11 @@ type Wallet {
 
 # WalletTopUp is one row of the wallet_topups table. status is one of
 # pending | succeeded | failed | refunded; completedAt is non-null only
-# on succeeded / refunded rows.
+# on succeeded / refunded rows. provider distinguishes "stripe" /
+# "paddle" so the history table can render a chip per row.
 type WalletTopUp {
   id: ID!
+  provider: String!
   amountUSD: Float!
   status: String!
   createdAt: DateTime!
@@ -9312,11 +9371,25 @@ type WalletTopUp {
 }
 
 # WalletCheckoutSession is the result of walletCreateTopUp. The client
-# redirects the browser to ` + "`" + `url` + "`" + `; ` + "`" + `sessionID` + "`" + ` is opaque and exists so
-# the dashboard can correlate a pending row with the in-flight checkout.
+# redirects the browser to ` + "`" + `url` + "`" + `; ` + "`" + `sessionID` + "`" + ` is opaque (Stripe cs_*
+# or Paddle txn_*) and exists so the dashboard can correlate a pending
+# row with the in-flight checkout. provider tells the UI which return
+# query param to watch for ("session_id" for Stripe,
+# "_ptxn" for Paddle).
 type WalletCheckoutSession {
   url: String!
   sessionID: String!
+  provider: String!
+}
+
+# WalletProvider describes one enabled payment provider. name is the
+# stable identifier passed back as ` + "`" + `provider` + "`" + ` to walletCreateTopUp;
+# label is the human-readable CTA text. isPrimary marks the default
+# rendered as the main button.
+type WalletProvider {
+  name: String!
+  label: String!
+  isPrimary: Boolean!
 }
 `, BuiltIn: false},
 	{Name: "../schema/wowloop.graphql", Input: `# V22 Customer Wow Loop — Agent 34. One read-only endpoint that
@@ -11271,6 +11344,8 @@ func (ec *executionContext) childFields_WalletCheckoutSession(ctx context.Contex
 		return ec.fieldContext_WalletCheckoutSession_url(ctx, field)
 	case "sessionID":
 		return ec.fieldContext_WalletCheckoutSession_sessionID(ctx, field)
+	case "provider":
+		return ec.fieldContext_WalletCheckoutSession_provider(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type WalletCheckoutSession", field.Name)
 }
@@ -11303,10 +11378,24 @@ func (ec *executionContext) childFields_WalletLedgerEntry(ctx context.Context, f
 	return nil, fmt.Errorf("no field named %q was found under type WalletLedgerEntry", field.Name)
 }
 
+func (ec *executionContext) childFields_WalletProvider(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "name":
+		return ec.fieldContext_WalletProvider_name(ctx, field)
+	case "label":
+		return ec.fieldContext_WalletProvider_label(ctx, field)
+	case "isPrimary":
+		return ec.fieldContext_WalletProvider_isPrimary(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type WalletProvider", field.Name)
+}
+
 func (ec *executionContext) childFields_WalletTopUp(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 	switch field.Name {
 	case "id":
 		return ec.fieldContext_WalletTopUp_id(ctx, field)
+	case "provider":
+		return ec.fieldContext_WalletTopUp_provider(ctx, field)
 	case "amountUSD":
 		return ec.fieldContext_WalletTopUp_amountUSD(ctx, field)
 	case "status":
@@ -12386,6 +12475,14 @@ func (ec *executionContext) field_Mutation_walletCreateTopUp_args(ctx context.Co
 		return nil, err
 	}
 	args["amountUSD"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "provider",
+		func(ctx context.Context, v any) (*string, error) {
+			return ec.unmarshalOString2ᚖstring(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["provider"] = arg1
 	return args, nil
 }
 
@@ -26317,7 +26414,7 @@ func (ec *executionContext) _Mutation_walletCreateTopUp(ctx context.Context, fie
 		},
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.Resolvers.Mutation().WalletCreateTopUp(ctx, fc.Args["amountUSD"].(float64))
+			return ec.Resolvers.Mutation().WalletCreateTopUp(ctx, fc.Args["amountUSD"].(float64), fc.Args["provider"].(*string))
 		},
 		nil,
 		func(ctx context.Context, selections ast.SelectionSet, v *model.WalletCheckoutSession) graphql.Marshaler {
@@ -32298,6 +32395,38 @@ func (ec *executionContext) fieldContext_Query_walletTopUps(ctx context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_walletAvailableProviders(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Query_walletAvailableProviders(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Query().WalletAvailableProviders(ctx)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []model.WalletProvider) graphql.Marshaler {
+			return ec.marshalNWalletProvider2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐWalletProviderᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Query_walletAvailableProviders(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_WalletProvider(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_executionSupportBundle(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -35225,6 +35354,29 @@ func (ec *executionContext) fieldContext_WalletCheckoutSession_sessionID(_ conte
 	return graphql.NewScalarFieldContext("WalletCheckoutSession", field, false, false, errors.New("field of type String does not have child fields"))
 }
 
+func (ec *executionContext) _WalletCheckoutSession_provider(ctx context.Context, field graphql.CollectedField, obj *model.WalletCheckoutSession) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_WalletCheckoutSession_provider(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Provider, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_WalletCheckoutSession_provider(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("WalletCheckoutSession", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
 func (ec *executionContext) _WalletLedgerEntry_id(ctx context.Context, field graphql.CollectedField, obj *model.WalletLedgerEntry) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -35478,6 +35630,75 @@ func (ec *executionContext) fieldContext_WalletLedgerEntry_createdAt(_ context.C
 	return graphql.NewScalarFieldContext("WalletLedgerEntry", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
+func (ec *executionContext) _WalletProvider_name(ctx context.Context, field graphql.CollectedField, obj *model.WalletProvider) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_WalletProvider_name(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_WalletProvider_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("WalletProvider", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _WalletProvider_label(ctx context.Context, field graphql.CollectedField, obj *model.WalletProvider) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_WalletProvider_label(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Label, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_WalletProvider_label(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("WalletProvider", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _WalletProvider_isPrimary(ctx context.Context, field graphql.CollectedField, obj *model.WalletProvider) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_WalletProvider_isPrimary(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.IsPrimary, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v bool) graphql.Marshaler {
+			return ec.marshalNBoolean2bool(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_WalletProvider_isPrimary(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("WalletProvider", field, false, false, errors.New("field of type Boolean does not have child fields"))
+}
+
 func (ec *executionContext) _WalletTopUp_id(ctx context.Context, field graphql.CollectedField, obj *model.WalletTopUp) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -35499,6 +35720,29 @@ func (ec *executionContext) _WalletTopUp_id(ctx context.Context, field graphql.C
 }
 func (ec *executionContext) fieldContext_WalletTopUp_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("WalletTopUp", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
+func (ec *executionContext) _WalletTopUp_provider(ctx context.Context, field graphql.CollectedField, obj *model.WalletTopUp) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_WalletTopUp_provider(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Provider, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_WalletTopUp_provider(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("WalletTopUp", field, false, false, errors.New("field of type String does not have child fields"))
 }
 
 func (ec *executionContext) _WalletTopUp_amountUSD(ctx context.Context, field graphql.CollectedField, obj *model.WalletTopUp) (ret graphql.Marshaler) {
@@ -46172,6 +46416,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "walletAvailableProviders":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_walletAvailableProviders(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "executionSupportBundle":
 			field := field
 
@@ -47394,6 +47660,11 @@ func (ec *executionContext) _WalletCheckoutSession(ctx context.Context, sel ast.
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "provider":
+			out.Values[i] = ec._WalletCheckoutSession_provider(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -47500,6 +47771,55 @@ func (ec *executionContext) _WalletLedgerEntry(ctx context.Context, sel ast.Sele
 	return out
 }
 
+var walletProviderImplementors = []string{"WalletProvider"}
+
+func (ec *executionContext) _WalletProvider(ctx context.Context, sel ast.SelectionSet, obj *model.WalletProvider) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, walletProviderImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("WalletProvider")
+		case "name":
+			out.Values[i] = ec._WalletProvider_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "label":
+			out.Values[i] = ec._WalletProvider_label(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "isPrimary":
+			out.Values[i] = ec._WalletProvider_isPrimary(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var walletTopUpImplementors = []string{"WalletTopUp"}
 
 func (ec *executionContext) _WalletTopUp(ctx context.Context, sel ast.SelectionSet, obj *model.WalletTopUp) graphql.Marshaler {
@@ -47513,6 +47833,11 @@ func (ec *executionContext) _WalletTopUp(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = graphql.MarshalString("WalletTopUp")
 		case "id":
 			out.Values[i] = ec._WalletTopUp_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "provider":
+			out.Values[i] = ec._WalletTopUp_provider(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -49972,6 +50297,26 @@ func (ec *executionContext) marshalNWalletLedgerEntry2ᚕironflyerᚋcoreᚋorch
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
 		return ec.marshalNWalletLedgerEntry2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐWalletLedgerEntry(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNWalletProvider2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐWalletProvider(ctx context.Context, sel ast.SelectionSet, v model.WalletProvider) graphql.Marshaler {
+	return ec._WalletProvider(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNWalletProvider2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐWalletProviderᚄ(ctx context.Context, sel ast.SelectionSet, v []model.WalletProvider) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNWalletProvider2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐWalletProvider(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {

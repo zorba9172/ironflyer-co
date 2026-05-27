@@ -108,6 +108,17 @@ func (r *mutationResolver) DeleteProject(ctx context.Context, id string) (*model
 	if err != nil {
 		return nil, err
 	}
+	existing, err := r.Resolver.Projects.Get(id)
+	if err != nil {
+		if err == store.ErrNotFound {
+			msg := "project not found"
+			return &model.OperationResult{Ok: false, Message: &msg}, nil
+		}
+		return nil, err
+	}
+	if existing.OwnerID != u.ID {
+		return nil, errUnauthenticated
+	}
 	if err := r.Resolver.Projects.Delete(id); err != nil {
 		if err == store.ErrNotFound {
 			msg := "project not found"
@@ -135,6 +146,13 @@ func (r *mutationResolver) BulkDeleteProjects(ctx context.Context, ids []string)
 	}
 	deleted := 0
 	for _, id := range ids {
+		existing, err := r.Resolver.Projects.Get(id)
+		if err != nil {
+			continue
+		}
+		if existing.OwnerID != u.ID {
+			continue
+		}
 		if err := r.Resolver.Projects.Delete(id); err == nil {
 			deleted++
 			r.cascadeProjectGraph(u.ID, id)
@@ -148,6 +166,19 @@ func (r *mutationResolver) BulkDeleteProjects(ctx context.Context, ids []string)
 func (r *mutationResolver) RunFinisher(ctx context.Context, id string) (model.JSON, error) {
 	if r.Resolver.Engine == nil {
 		return nil, gqlNotConfigured("finisher")
+	}
+	u, err := currentUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if r.Resolver.Projects != nil {
+		existing, err := r.Resolver.Projects.Get(id)
+		if err != nil {
+			return nil, err
+		}
+		if existing.OwnerID != u.ID {
+			return nil, errUnauthenticated
+		}
 	}
 	report, err := r.Resolver.Engine.Run(ctx, id)
 	if err != nil {
@@ -169,6 +200,17 @@ func (r *mutationResolver) PromptPlan(ctx context.Context, id string, prompt str
 	if r.Resolver.Projects == nil {
 		return nil, gqlNotConfigured("projects")
 	}
+	u, err := currentUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	existing, err := r.Resolver.Projects.Get(id)
+	if err != nil {
+		return nil, err
+	}
+	if !existing.IsAccessibleBy(u.ID) {
+		return nil, errUnauthenticated
+	}
 	p, err := r.Resolver.Projects.Update(id, func(p *domain.Project) {
 		p.Spec.Idea = prompt
 	})
@@ -181,17 +223,16 @@ func (r *mutationResolver) PromptPlan(ctx context.Context, id string, prompt str
 // WriteProjectFiles is the resolver for the writeProjectFiles field.
 //
 // Replaces the project's Files slice with the supplied entries. Used by
-// the embedded openvscode IDE bidirectional sync: edits made by the
-// human operator inside the cloud editor are pushed back here so
-// Monaco + the finisher loop see the same state. AI-generated changes
-// still flow through patch.Engine.Propose; this is the operator
-// override path and intentionally bypasses the gate lifecycle.
+// the standalone Ironflyer VS Code Extension (clients/vscode-extension):
+// edits made by the human operator inside their local VS Code are
+// pushed back here so Monaco + the finisher loop see the same state.
+// AI-generated changes still flow through patch.Engine.Propose; this
+// is the operator override path and intentionally bypasses the gate
+// lifecycle.
 //
 // Guards: owner check (404-equivalent for non-owner), file count cap,
 // per-file size cap, total payload cap, path-traversal normalisation
-// (rejects `..`, absolute paths, empty paths, backslashes). These
-// mirror the limits in clients/web/app/api/ide/sync/route.ts so a direct
-// GraphQL caller can't bypass them.
+// (rejects `..`, absolute paths, empty paths, backslashes).
 func (r *mutationResolver) WriteProjectFiles(ctx context.Context, id string, files []model.WriteProjectFileInput) ([]model.ProjectFile, error) {
 	const (
 		maxFiles      = 1000
@@ -320,7 +361,17 @@ func (r *queryResolver) ProjectFiles(ctx context.Context, id string) ([]model.Pr
 	}
 	p, err := r.Resolver.Projects.Get(id)
 	if err != nil {
+		if err == store.ErrNotFound {
+			return nil, nil
+		}
 		return nil, err
+	}
+	userID := ""
+	if u, err := currentUser(ctx); err == nil {
+		userID = u.ID
+	}
+	if !p.IsAccessibleBy(userID) {
+		return nil, nil
 	}
 	out := make([]model.ProjectFile, 0, len(p.Files))
 	for _, f := range p.Files {
@@ -333,6 +384,19 @@ func (r *queryResolver) ProjectFiles(ctx context.Context, id string) ([]model.Pr
 func (r *subscriptionResolver) RunProject(ctx context.Context, projectID string) (<-chan model.RunEvent, error) {
 	if r.Resolver.Engine == nil {
 		return nil, gqlNotConfigured("finisher")
+	}
+	u, err := currentUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if r.Resolver.Projects != nil {
+		existing, err := r.Resolver.Projects.Get(projectID)
+		if err != nil {
+			return nil, err
+		}
+		if existing.OwnerID != u.ID {
+			return nil, errUnauthenticated
+		}
 	}
 	events, cancel := r.Resolver.Engine.Subscribe(projectID)
 	out := make(chan model.RunEvent, 64)

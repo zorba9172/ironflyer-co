@@ -1059,16 +1059,62 @@ func main() {
 			Float64("seed_usd", cfg.DevWalletSeedUSD).
 			Msg("dev seed: no superuser bootstrap configured; skipping shared wallet seed")
 	}
-	// Wallet Stripe topper (optional — keyed off STRIPE_SECRET_KEY).
-	var walletTopper *wallet.Topper
+	// Wallet topper registry — Stripe + Paddle, primary picked by
+	// IRONFLYER_WALLET_PRIMARY_PROVIDER. The user picks ("Card declined?
+	// Pay with the alternative checkout") in the UI; we do NOT do
+	// server-side auto-failover, which would create double-credit
+	// surface area on late webhook redelivery.
+	var (
+		stripeWalletTopper *wallet.StripeTopper
+		paddleWalletTopper *wallet.PaddleTopper
+	)
 	if cfg.StripeSecretKey != "" {
-		walletTopper = wallet.NewTopper(walletSvc, wallet.TopperOpts{
+		stripeWalletTopper = wallet.NewStripeTopper(walletSvc, wallet.StripeTopperOpts{
 			SecretKey:     cfg.StripeSecretKey,
 			WebhookSecret: cfg.StripeWebhookSecret,
 			SuccessURL:    cfg.StripeSuccessURL,
 			CancelURL:     cfg.StripeCancelURL,
 		})
 		logger.Info().Msg("V22 wallet topper: Stripe enabled")
+	}
+	if cfg.PaddleAPIKey != "" {
+		paddleWalletTopper = wallet.NewPaddleTopper(walletSvc, wallet.PaddleTopperOpts{
+			APIKey:        cfg.PaddleAPIKey,
+			WebhookSecret: cfg.PaddleWebhookSecret,
+			Environment:   cfg.PaddleEnv,
+			SuccessURL:    cfg.PaddleWalletSuccessURL,
+			CancelURL:     cfg.PaddleWalletCancelURL,
+		})
+		logger.Info().Str("paddle_env", cfg.PaddleEnv).Msg("V22 wallet topper: Paddle enabled")
+	}
+	// Build registry in primary order. Both Topper.Enabled methods are
+	// nil-safe so the typed-nil-into-interface conversion below filters
+	// itself out of Active() / Primary() without extra plumbing.
+	stripeWalletTopperIfc := wallet.Topper(stripeWalletTopper)
+	paddleWalletTopperIfc := wallet.Topper(paddleWalletTopper)
+	var walletToppers *wallet.TopperRegistry
+	switch cfg.WalletPrimaryProvider {
+	case wallet.ProviderPaddle:
+		walletToppers = wallet.NewTopperRegistry(paddleWalletTopperIfc, stripeWalletTopperIfc)
+	default:
+		walletToppers = wallet.NewTopperRegistry(stripeWalletTopperIfc, paddleWalletTopperIfc)
+	}
+	if !walletToppers.Enabled() {
+		logger.Warn().Msg("V22 wallet topper: no provider enabled (set STRIPE_SECRET_KEY or PADDLE_API_KEY)")
+	}
+
+	// Wallet reconciler — sweeps pending wallet_topups older than the
+	// vendor settlement window, queries the originating provider, and
+	// credits / fails the row accordingly. Closes the "missed webhook"
+	// gap so a vendor outage during deploy never silently drops a
+	// paid top-up.
+	if walletToppers.Enabled() {
+		reconciler := wallet.NewReconciler(walletSvc, walletToppers, wallet.ReconcilerOpts{
+			Threshold: 10 * time.Minute,
+			Interval:  5 * time.Minute,
+			Logger:    logger,
+		})
+		go reconciler.Start(ctx)
 	}
 
 	// Ledger.
@@ -1900,7 +1946,7 @@ func main() {
 
 		// V22 service surface.
 		Wallet:           walletSvc,
-		WalletTopper:     walletTopper,
+		WalletToppers:    walletToppers,
 		Ledger:           ledgerSvc,
 		Execution:        execSvc,
 		ExecutionSettler: executionSettler,

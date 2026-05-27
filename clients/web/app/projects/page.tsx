@@ -221,7 +221,7 @@ function ProjectsView() {
             </Button>
             <Button
               component={Link}
-              href="/studio"
+              href="/"
               variant="contained"
               color="primary"
               startIcon={<AddRounded sx={{ fontSize: 18 }} />}
@@ -286,7 +286,7 @@ function ProjectsView() {
         <EmptyState
           title="No projects yet"
           body="Start a new build from Studio and your first project lands here once Ironflyer admits the execution."
-          cta={{ label: "Start a project", href: "/studio" }}
+          cta={{ label: "Start a project", href: "/" }}
         />
       ) : visible.length === 0 ? (
         <EmptyState

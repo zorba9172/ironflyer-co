@@ -50,6 +50,7 @@ import {
 } from "@mui/material";
 import { useEffect, useState, type ReactNode } from "react";
 import { tokens } from "../../theme";
+import { ProjectTabsBar } from "./ProjectTabsBar";
 import { WorkbenchBottomDock } from "./WorkbenchBottomDock";
 import { WorkbenchHeader } from "./WorkbenchHeader";
 import { WorkbenchLeftRail } from "./WorkbenchLeftRail";
@@ -273,6 +274,7 @@ export function WorkbenchShell(props: WorkbenchShellProps) {
           overflow: "hidden",
         }}
       >
+        <ProjectTabsBar projectID={projectID} />
         <WorkbenchHeader
           projectName={projectName}
           projectID={projectID}
@@ -591,6 +593,7 @@ function MobileWorkbench(props: MobileWorkbenchProps) {
           overflow: "hidden",
         }}
       >
+        <ProjectTabsBar projectID={projectID} />
         <WorkbenchHeader
           projectName={projectName}
           projectID={projectID}

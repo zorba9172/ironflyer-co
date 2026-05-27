@@ -142,7 +142,7 @@ type Resolver struct {
 	// Each pointer is nil-safe — resolvers return gqlNotConfigured if
 	// the matching dependency was not wired by main.go.
 	WalletSvc         wallet.Service
-	WalletTopper      *wallet.Topper
+	WalletToppers     *wallet.TopperRegistry
 	LedgerSvc         ledger.Service
 	ExecutionSvc      execution.Service
 	ExecutionSettler  execution.Settler

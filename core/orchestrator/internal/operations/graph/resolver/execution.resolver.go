@@ -278,12 +278,16 @@ func (r *queryResolver) Execution(ctx context.Context, id string) (*model.Execut
 	if r.ExecutionSvc == nil {
 		return nil, gqlNotConfigured("execution")
 	}
-	if _, err := currentUser(ctx); err != nil {
+	u, err := currentUser(ctx)
+	if err != nil {
 		return nil, err
 	}
 	exec, err := r.ExecutionSvc.Get(ctx, id)
 	if err != nil {
 		return nil, err
+	}
+	if exec.TenantID != tenantFor(u) {
+		return nil, nil
 	}
 	return executionToGraphQL(exec), nil
 }
@@ -362,8 +366,16 @@ func (r *subscriptionResolver) ExecutionFeed(ctx context.Context, id string) (<-
 	if r.ExecutionSvc == nil {
 		return nil, gqlNotConfigured("execution")
 	}
-	if _, err := currentUser(ctx); err != nil {
+	u, err := currentUser(ctx)
+	if err != nil {
 		return nil, err
+	}
+	exec, err := r.ExecutionSvc.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if exec.TenantID != tenantFor(u) {
+		return nil, errUnauthenticated
 	}
 	upstream, err := r.ExecutionSvc.SubscribeEvents(ctx, id)
 	if err != nil {

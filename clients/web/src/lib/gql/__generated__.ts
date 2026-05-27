@@ -70,6 +70,20 @@ export type AppetizeUploadInput = {
   projectId: Scalars['String']['input'];
 };
 
+export type ArchRule = {
+  __typename?: 'ArchRule';
+  allow: Scalars['Boolean']['output'];
+  from: Scalars['String']['output'];
+  to: Scalars['String']['output'];
+};
+
+export type Architecture = {
+  __typename?: 'Architecture';
+  cycles: Scalars['String']['output'];
+  layers: Array<Scalars['String']['output']>;
+  rules: Array<ArchRule>;
+};
+
 export type AuditChainProof = {
   __typename?: 'AuditChainProof';
   brokenLinks: Array<BrokenAuditLink>;
@@ -204,6 +218,14 @@ export type BlueprintStats = {
   repairCount: Scalars['Int']['output'];
 };
 
+export type BlueprintSuccessRate = {
+  __typename?: 'BlueprintSuccessRate';
+  avgMargin: Scalars['Float']['output'];
+  blueprintID: Scalars['String']['output'];
+  blueprintName: Scalars['String']['output'];
+  successRate: Scalars['Float']['output'];
+};
+
 export type BrokenAuditLink = {
   __typename?: 'BrokenAuditLink';
   actualPrevHash: Scalars['String']['output'];
@@ -218,6 +240,17 @@ export type BudgetSummary = {
   spentUsd: Scalars['Decimal']['output'];
   tier: Scalars['String']['output'];
   userId: Scalars['ID']['output'];
+};
+
+export type ChannelPref = {
+  __typename?: 'ChannelPref';
+  email: Scalars['Boolean']['output'];
+  inApp: Scalars['Boolean']['output'];
+};
+
+export type ChannelPrefInput = {
+  email: Scalars['Boolean']['input'];
+  inApp: Scalars['Boolean']['input'];
 };
 
 export type Cohort = {
@@ -237,6 +270,12 @@ export type Cohort = {
 export type CohortDashboard = {
   __typename?: 'CohortDashboard';
   cohorts: Array<Cohort>;
+};
+
+export type ComplexityBucket = {
+  __typename?: 'ComplexityBucket';
+  count: Scalars['Int']['output'];
+  range: Scalars['String']['output'];
 };
 
 export type ConnectDeployDomainInput = {
@@ -434,6 +473,13 @@ export type DeviceCloudStartInput = {
   workspaceId: Scalars['String']['input'];
 };
 
+export type DirDup = {
+  __typename?: 'DirDup';
+  directory: Scalars['String']['output'];
+  dupPct: Scalars['Float']['output'];
+  files: Scalars['Int']['output'];
+};
+
 export type DomainAvailability = {
   __typename?: 'DomainAvailability';
   available: Scalars['Boolean']['output'];
@@ -507,6 +553,13 @@ export type ExecutionEvent = {
   eventType: Scalars['String']['output'];
   executionID: Scalars['ID']['output'];
   payload: Scalars['JSON']['output'];
+};
+
+export type GateFailureRate = {
+  __typename?: 'GateFailureRate';
+  failureRate: Scalars['Float']['output'];
+  gate: Scalars['String']['output'];
+  sampleSize: Scalars['Int']['output'];
 };
 
 export type GateIssue = {
@@ -584,6 +637,21 @@ export type GqlError = {
   message: Scalars['String']['output'];
 };
 
+export type HealthMetrics = {
+  __typename?: 'HealthMetrics';
+  architecture: Architecture;
+  atlasCapabilityCount: Scalars['Int']['output'];
+  bundleByRoute: Array<RouteBundle>;
+  complexityHistogram: Array<ComplexityBucket>;
+  deadCodeCount: Scalars['Int']['output'];
+  dedupRate: Scalars['Float']['output'];
+  dependencyCycles: Scalars['Int']['output'];
+  duplicationByDir: Array<DirDup>;
+  lastIndexedAt: Maybe<Scalars['DateTime']['output']>;
+  locPerCapability: Scalars['Float']['output'];
+  reuseRate: Scalars['Float']['output'];
+};
+
 export type HeartbeatEvent = {
   __typename?: 'HeartbeatEvent';
   message: Maybe<Scalars['String']['output']>;
@@ -650,6 +718,21 @@ export type InlineTextDelta = {
   text: Scalars['String']['output'];
 };
 
+export type LearningDashboard = {
+  __typename?: 'LearningDashboard';
+  averageCompletionScore: Scalars['Float']['output'];
+  averageMarginPctLast7d: Scalars['Float']['output'];
+  banditConfidence: Scalars['Float']['output'];
+  blueprintSuccessRates: Array<BlueprintSuccessRate>;
+  gateFailureRates: Array<GateFailureRate>;
+  lastIndexedAt: Maybe<Scalars['DateTime']['output']>;
+  outcomeEventsAllTime: Scalars['Int']['output'];
+  outcomeEventsToday: Scalars['Int']['output'];
+  repairRecipeHitsLast7d: Scalars['Int']['output'];
+  reuseRateLast7d: Scalars['Float']['output'];
+  weaknesses: Array<Weakness>;
+};
+
 export type LedgerEntry = {
   __typename?: 'LedgerEntry';
   agent: Maybe<Scalars['String']['output']>;
@@ -697,6 +780,26 @@ export type LogEntry = {
   requestID: Maybe<Scalars['String']['output']>;
   tenantID: Maybe<Scalars['String']['output']>;
   time: Scalars['DateTime']['output'];
+};
+
+export type McpRunningServer = {
+  __typename?: 'MCPRunningServer';
+  id: Scalars['String']['output'];
+  serverId: Scalars['String']['output'];
+  startedAt: Scalars['DateTime']['output'];
+};
+
+export type McpServerSpec = {
+  __typename?: 'MCPServerSpec';
+  capabilities: Array<Scalars['String']['output']>;
+  category: Scalars['String']['output'];
+  description: Scalars['String']['output'];
+  envKeys: Array<Scalars['String']['output']>;
+  iconUrl: Maybe<Scalars['String']['output']>;
+  id: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  requiresSecret: Scalars['Boolean']['output'];
+  vendor: Scalars['String']['output'];
 };
 
 export type MobileBuild = {
@@ -804,6 +907,10 @@ export type Mutation = {
   deviceCloudEndSession: Scalars['Boolean']['output'];
   deviceCloudStartSession: DeviceCloudSession;
   generateMobileAssets: GenerateMobileAssetsResult;
+  markAllNotificationsRead: Scalars['Int']['output'];
+  markNotificationRead: Notification;
+  mcpDisable: Scalars['Boolean']['output'];
+  mcpEnable: McpRunningServer;
   mobileCancelBuild: Scalars['Boolean']['output'];
   mobilePublishUpdate: MobileUpdate;
   mobileSubmitToStore: MobileSubmission;
@@ -837,6 +944,7 @@ export type Mutation = {
   signUp: Session;
   startCheckout: StripeCheckoutSession;
   stopExecution: Execution;
+  updateNotificationPreferences: NotificationPreferences;
   updateProject: Project;
   verifyEmail: Session;
   walletCreateTopUp: WalletCheckoutSession;
@@ -945,6 +1053,23 @@ export type MutationDeviceCloudStartSessionArgs = {
 
 export type MutationGenerateMobileAssetsArgs = {
   input: GenerateMobileAssetsInput;
+};
+
+
+export type MutationMarkNotificationReadArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationMcpDisableArgs = {
+  projectId: Scalars['String']['input'];
+  serverId: Scalars['String']['input'];
+};
+
+
+export type MutationMcpEnableArgs = {
+  projectId: Scalars['String']['input'];
+  serverId: Scalars['String']['input'];
 };
 
 
@@ -1107,6 +1232,11 @@ export type MutationStopExecutionArgs = {
 };
 
 
+export type MutationUpdateNotificationPreferencesArgs = {
+  input: NotificationPreferencesInput;
+};
+
+
 export type MutationUpdateProjectArgs = {
   id: Scalars['ID']['input'];
   input: UpdateProjectInput;
@@ -1120,6 +1250,7 @@ export type MutationVerifyEmailArgs = {
 
 export type MutationWalletCreateTopUpArgs = {
   amountUSD: Scalars['Float']['input'];
+  provider?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -1134,6 +1265,40 @@ export type NextAction = {
   kind: Scalars['String']['output'];
   reason: Scalars['String']['output'];
   title: Scalars['String']['output'];
+};
+
+export type Notification = {
+  __typename?: 'Notification';
+  body: Scalars['String']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['ID']['output'];
+  kind: Scalars['String']['output'];
+  link: Maybe<Scalars['String']['output']>;
+  readAt: Maybe<Scalars['DateTime']['output']>;
+  severity: Scalars['String']['output'];
+  title: Scalars['String']['output'];
+};
+
+export type NotificationPreferences = {
+  __typename?: 'NotificationPreferences';
+  onBudgetWarning: ChannelPref;
+  onDeployDone: ChannelPref;
+  onGateFailed: ChannelPref;
+  onReceipt: ChannelPref;
+  onRunComplete: ChannelPref;
+  pauseAll: Scalars['Boolean']['output'];
+  userId: Scalars['ID']['output'];
+  weeklyDigest: Scalars['Boolean']['output'];
+};
+
+export type NotificationPreferencesInput = {
+  onBudgetWarning?: InputMaybe<ChannelPrefInput>;
+  onDeployDone?: InputMaybe<ChannelPrefInput>;
+  onGateFailed?: InputMaybe<ChannelPrefInput>;
+  onReceipt?: InputMaybe<ChannelPrefInput>;
+  onRunComplete?: InputMaybe<ChannelPrefInput>;
+  pauseAll?: InputMaybe<Scalars['Boolean']['input']>;
+  weeklyDigest?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type OperationResult = {
@@ -1416,14 +1581,20 @@ export type Query = {
   executions: Array<Execution>;
   gate: Maybe<GateVerdict>;
   gates: Array<GateVerdict>;
+  healthDashboard: HealthMetrics;
+  learningDashboard: LearningDashboard;
   ledger: Array<WalletLedgerEntry>;
   ledgerRollup: LedgerRollup;
+  mcpCatalog: Array<McpServerSpec>;
+  mcpEnabled: Array<McpRunningServer>;
   me: Maybe<User>;
   mobileBuild: Maybe<MobileBuild>;
   mobileBuilds: Array<MobileBuild>;
   mobileSubmissions: Array<MobileSubmission>;
   myBudget: BudgetSummary;
   mySessions: Array<Session>;
+  notificationPreferences: NotificationPreferences;
+  notifications: Array<Notification>;
   operatorAbuseScore: AbuseScoreResult;
   operatorAuditCursor: Array<OperatorAuditEntry>;
   operatorPendingApprovals: Array<DeployApproval>;
@@ -1448,10 +1619,12 @@ export type Query = {
   stage: Maybe<PatchStage>;
   stages: Array<PatchStage>;
   tenantProfitToday: LedgerRollup;
+  unreadNotificationCount: Scalars['Int']['output'];
   vault: VaultSnapshot;
   verifyAudit: AuditVerifyResult;
   version: VersionInfo;
   wallet: Wallet;
+  walletAvailableProviders: Array<WalletProvider>;
   walletTopUps: Array<WalletTopUp>;
 };
 
@@ -1599,6 +1772,11 @@ export type QueryLedgerRollupArgs = {
 };
 
 
+export type QueryMcpEnabledArgs = {
+  projectId: Scalars['String']['input'];
+};
+
+
 export type QueryMobileBuildArgs = {
   buildId: Scalars['String']['input'];
 };
@@ -1611,6 +1789,11 @@ export type QueryMobileBuildsArgs = {
 
 export type QueryMobileSubmissionsArgs = {
   projectId: Scalars['String']['input'];
+};
+
+
+export type QueryNotificationsArgs = {
+  unreadOnly?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 
@@ -1741,6 +1924,13 @@ export type ReserveDeploySubdomainInput = {
   subdomain?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type RouteBundle = {
+  __typename?: 'RouteBundle';
+  firstLoadKB: Scalars['Float']['output'];
+  route: Scalars['String']['output'];
+  totalKB: Scalars['Float']['output'];
+};
+
 export type RunDoneEvent = {
   __typename?: 'RunDoneEvent';
   ok: Scalars['Boolean']['output'];
@@ -1859,6 +2049,7 @@ export type Subscription = {
   executionFeed: ExecutionEvent;
   inlineCompletion: InlineDelta;
   mobileBuildStatus: MobileBuild;
+  notificationStream: Notification;
   runProject: RunEvent;
 };
 
@@ -2005,6 +2196,7 @@ export type Wallet = {
 
 export type WalletCheckoutSession = {
   __typename?: 'WalletCheckoutSession';
+  provider: Scalars['String']['output'];
   sessionID: Scalars['String']['output'];
   url: Scalars['String']['output'];
 };
@@ -2024,19 +2216,40 @@ export type WalletLedgerEntry = {
   tenantID: Scalars['ID']['output'];
 };
 
+export type WalletProvider = {
+  __typename?: 'WalletProvider';
+  isPrimary: Scalars['Boolean']['output'];
+  label: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+};
+
 export type WalletTopUp = {
   __typename?: 'WalletTopUp';
   amountUSD: Scalars['Float']['output'];
   completedAt: Maybe<Scalars['DateTime']['output']>;
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['ID']['output'];
+  provider: Scalars['String']['output'];
   status: Scalars['String']['output'];
+};
+
+export type Weakness = {
+  __typename?: 'Weakness';
+  description: Scalars['String']['output'];
+  dimension: Scalars['String']['output'];
+  severity: Scalars['String']['output'];
+  suggestedAction: Scalars['String']['output'];
 };
 
 export type WriteProjectFileInput = {
   content: Scalars['String']['input'];
   path: Scalars['String']['input'];
 };
+
+export type LearningDashboardQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type LearningDashboardQuery = { __typename?: 'Query', learningDashboard: { __typename?: 'LearningDashboard', outcomeEventsToday: number, outcomeEventsAllTime: number, reuseRateLast7d: number, repairRecipeHitsLast7d: number, banditConfidence: number, averageCompletionScore: number, averageMarginPctLast7d: number, lastIndexedAt: string | null, gateFailureRates: Array<{ __typename?: 'GateFailureRate', gate: string, failureRate: number, sampleSize: number }>, blueprintSuccessRates: Array<{ __typename?: 'BlueprintSuccessRate', blueprintID: string, blueprintName: string, successRate: number, avgMargin: number }>, weaknesses: Array<{ __typename?: 'Weakness', dimension: string, description: string, severity: string, suggestedAction: string }> } };
 
 export type BanditRankingQueryVariables = Exact<{
   lookback?: InputMaybe<Scalars['Int']['input']>;
@@ -2415,6 +2628,42 @@ export type TenantProfitTodayQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type TenantProfitTodayQuery = { __typename?: 'Query', tenantProfitToday: { __typename?: 'LedgerRollup', revenueUSD: number, providerCostUSD: number, sandboxCostUSD: number, storageCostUSD: number, deploymentCostUSD: number, premiumReasoningCostUSD: number, refundsUSD: number, platformMarginUSD: number, grossMarginPct: number } };
 
+export type NotificationsQueryVariables = Exact<{
+  unreadOnly?: InputMaybe<Scalars['Boolean']['input']>;
+}>;
+
+
+export type NotificationsQuery = { __typename?: 'Query', unreadNotificationCount: number, notifications: Array<{ __typename?: 'Notification', id: string, kind: string, title: string, body: string, link: string | null, severity: string, readAt: string | null, createdAt: string }> };
+
+export type NotificationPreferencesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type NotificationPreferencesQuery = { __typename?: 'Query', notificationPreferences: { __typename?: 'NotificationPreferences', userId: string, pauseAll: boolean, weeklyDigest: boolean, onRunComplete: { __typename?: 'ChannelPref', email: boolean, inApp: boolean }, onGateFailed: { __typename?: 'ChannelPref', email: boolean, inApp: boolean }, onDeployDone: { __typename?: 'ChannelPref', email: boolean, inApp: boolean }, onBudgetWarning: { __typename?: 'ChannelPref', email: boolean, inApp: boolean }, onReceipt: { __typename?: 'ChannelPref', email: boolean, inApp: boolean } } };
+
+export type MarkNotificationReadMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type MarkNotificationReadMutation = { __typename?: 'Mutation', markNotificationRead: { __typename?: 'Notification', id: string, readAt: string | null } };
+
+export type MarkAllNotificationsReadMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MarkAllNotificationsReadMutation = { __typename?: 'Mutation', markAllNotificationsRead: number };
+
+export type UpdateNotificationPreferencesMutationVariables = Exact<{
+  input: NotificationPreferencesInput;
+}>;
+
+
+export type UpdateNotificationPreferencesMutation = { __typename?: 'Mutation', updateNotificationPreferences: { __typename?: 'NotificationPreferences', userId: string, pauseAll: boolean, weeklyDigest: boolean, onRunComplete: { __typename?: 'ChannelPref', email: boolean, inApp: boolean }, onGateFailed: { __typename?: 'ChannelPref', email: boolean, inApp: boolean }, onDeployDone: { __typename?: 'ChannelPref', email: boolean, inApp: boolean }, onBudgetWarning: { __typename?: 'ChannelPref', email: boolean, inApp: boolean }, onReceipt: { __typename?: 'ChannelPref', email: boolean, inApp: boolean } } };
+
+export type NotificationStreamSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type NotificationStreamSubscription = { __typename?: 'Subscription', notificationStream: { __typename?: 'Notification', id: string, kind: string, title: string, body: string, link: string | null, severity: string, readAt: string | null, createdAt: string } };
+
 export type OperatorPendingApprovalsQueryVariables = Exact<{
   tenantID?: InputMaybe<Scalars['ID']['input']>;
 }>;
@@ -2596,14 +2845,20 @@ export type WalletTopUpsQueryVariables = Exact<{
 }>;
 
 
-export type WalletTopUpsQuery = { __typename?: 'Query', walletTopUps: Array<{ __typename?: 'WalletTopUp', id: string, amountUSD: number, status: string, createdAt: string, completedAt: string | null }> };
+export type WalletTopUpsQuery = { __typename?: 'Query', walletTopUps: Array<{ __typename?: 'WalletTopUp', id: string, provider: string, amountUSD: number, status: string, createdAt: string, completedAt: string | null }> };
+
+export type WalletAvailableProvidersQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type WalletAvailableProvidersQuery = { __typename?: 'Query', walletAvailableProviders: Array<{ __typename?: 'WalletProvider', name: string, label: string, isPrimary: boolean }> };
 
 export type WalletCreateTopUpMutationVariables = Exact<{
   amountUSD: Scalars['Float']['input'];
+  provider?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type WalletCreateTopUpMutation = { __typename?: 'Mutation', walletCreateTopUp: { __typename?: 'WalletCheckoutSession', url: string, sessionID: string } };
+export type WalletCreateTopUpMutation = { __typename?: 'Mutation', walletCreateTopUp: { __typename?: 'WalletCheckoutSession', url: string, sessionID: string, provider: string } };
 
 export type ExecutionSupportBundleQueryVariables = Exact<{
   executionID: Scalars['ID']['input'];
@@ -2795,6 +3050,72 @@ export const ProjectCoreFragmentDoc = gql`
   updatedAt
 }
     `;
+export const LearningDashboardDocument = gql`
+    query LearningDashboard {
+  learningDashboard {
+    outcomeEventsToday
+    outcomeEventsAllTime
+    reuseRateLast7d
+    repairRecipeHitsLast7d
+    banditConfidence
+    averageCompletionScore
+    averageMarginPctLast7d
+    gateFailureRates {
+      gate
+      failureRate
+      sampleSize
+    }
+    blueprintSuccessRates {
+      blueprintID
+      blueprintName
+      successRate
+      avgMargin
+    }
+    weaknesses {
+      dimension
+      description
+      severity
+      suggestedAction
+    }
+    lastIndexedAt
+  }
+}
+    `;
+
+/**
+ * __useLearningDashboardQuery__
+ *
+ * To run a query within a React component, call `useLearningDashboardQuery` and pass it any options that fit your needs.
+ * When your component renders, `useLearningDashboardQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useLearningDashboardQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useLearningDashboardQuery(baseOptions?: Apollo.QueryHookOptions<LearningDashboardQuery, LearningDashboardQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<LearningDashboardQuery, LearningDashboardQueryVariables>(LearningDashboardDocument, options);
+      }
+export function useLearningDashboardLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<LearningDashboardQuery, LearningDashboardQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<LearningDashboardQuery, LearningDashboardQueryVariables>(LearningDashboardDocument, options);
+        }
+// @ts-ignore
+export function useLearningDashboardSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<LearningDashboardQuery, LearningDashboardQueryVariables>): Apollo.UseSuspenseQueryResult<LearningDashboardQuery, LearningDashboardQueryVariables>;
+export function useLearningDashboardSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<LearningDashboardQuery, LearningDashboardQueryVariables>): Apollo.UseSuspenseQueryResult<LearningDashboardQuery | undefined, LearningDashboardQueryVariables>;
+export function useLearningDashboardSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<LearningDashboardQuery, LearningDashboardQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<LearningDashboardQuery, LearningDashboardQueryVariables>(LearningDashboardDocument, options);
+        }
+export type LearningDashboardQueryHookResult = ReturnType<typeof useLearningDashboardQuery>;
+export type LearningDashboardLazyQueryHookResult = ReturnType<typeof useLearningDashboardLazyQuery>;
+export type LearningDashboardSuspenseQueryHookResult = ReturnType<typeof useLearningDashboardSuspenseQuery>;
+export type LearningDashboardQueryResult = Apollo.QueryResult<LearningDashboardQuery, LearningDashboardQueryVariables>;
 export const BanditRankingDocument = gql`
     query BanditRanking($lookback: Int) {
   banditRanking(lookback: $lookback) {
@@ -4976,6 +5297,276 @@ export type TenantProfitTodayQueryHookResult = ReturnType<typeof useTenantProfit
 export type TenantProfitTodayLazyQueryHookResult = ReturnType<typeof useTenantProfitTodayLazyQuery>;
 export type TenantProfitTodaySuspenseQueryHookResult = ReturnType<typeof useTenantProfitTodaySuspenseQuery>;
 export type TenantProfitTodayQueryResult = Apollo.QueryResult<TenantProfitTodayQuery, TenantProfitTodayQueryVariables>;
+export const NotificationsDocument = gql`
+    query Notifications($unreadOnly: Boolean) {
+  notifications(unreadOnly: $unreadOnly) {
+    id
+    kind
+    title
+    body
+    link
+    severity
+    readAt
+    createdAt
+  }
+  unreadNotificationCount
+}
+    `;
+
+/**
+ * __useNotificationsQuery__
+ *
+ * To run a query within a React component, call `useNotificationsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useNotificationsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useNotificationsQuery({
+ *   variables: {
+ *      unreadOnly: // value for 'unreadOnly'
+ *   },
+ * });
+ */
+export function useNotificationsQuery(baseOptions?: Apollo.QueryHookOptions<NotificationsQuery, NotificationsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<NotificationsQuery, NotificationsQueryVariables>(NotificationsDocument, options);
+      }
+export function useNotificationsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<NotificationsQuery, NotificationsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<NotificationsQuery, NotificationsQueryVariables>(NotificationsDocument, options);
+        }
+// @ts-ignore
+export function useNotificationsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<NotificationsQuery, NotificationsQueryVariables>): Apollo.UseSuspenseQueryResult<NotificationsQuery, NotificationsQueryVariables>;
+export function useNotificationsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<NotificationsQuery, NotificationsQueryVariables>): Apollo.UseSuspenseQueryResult<NotificationsQuery | undefined, NotificationsQueryVariables>;
+export function useNotificationsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<NotificationsQuery, NotificationsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<NotificationsQuery, NotificationsQueryVariables>(NotificationsDocument, options);
+        }
+export type NotificationsQueryHookResult = ReturnType<typeof useNotificationsQuery>;
+export type NotificationsLazyQueryHookResult = ReturnType<typeof useNotificationsLazyQuery>;
+export type NotificationsSuspenseQueryHookResult = ReturnType<typeof useNotificationsSuspenseQuery>;
+export type NotificationsQueryResult = Apollo.QueryResult<NotificationsQuery, NotificationsQueryVariables>;
+export const NotificationPreferencesDocument = gql`
+    query NotificationPreferences {
+  notificationPreferences {
+    userId
+    pauseAll
+    weeklyDigest
+    onRunComplete {
+      email
+      inApp
+    }
+    onGateFailed {
+      email
+      inApp
+    }
+    onDeployDone {
+      email
+      inApp
+    }
+    onBudgetWarning {
+      email
+      inApp
+    }
+    onReceipt {
+      email
+      inApp
+    }
+  }
+}
+    `;
+
+/**
+ * __useNotificationPreferencesQuery__
+ *
+ * To run a query within a React component, call `useNotificationPreferencesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useNotificationPreferencesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useNotificationPreferencesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useNotificationPreferencesQuery(baseOptions?: Apollo.QueryHookOptions<NotificationPreferencesQuery, NotificationPreferencesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<NotificationPreferencesQuery, NotificationPreferencesQueryVariables>(NotificationPreferencesDocument, options);
+      }
+export function useNotificationPreferencesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<NotificationPreferencesQuery, NotificationPreferencesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<NotificationPreferencesQuery, NotificationPreferencesQueryVariables>(NotificationPreferencesDocument, options);
+        }
+// @ts-ignore
+export function useNotificationPreferencesSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<NotificationPreferencesQuery, NotificationPreferencesQueryVariables>): Apollo.UseSuspenseQueryResult<NotificationPreferencesQuery, NotificationPreferencesQueryVariables>;
+export function useNotificationPreferencesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<NotificationPreferencesQuery, NotificationPreferencesQueryVariables>): Apollo.UseSuspenseQueryResult<NotificationPreferencesQuery | undefined, NotificationPreferencesQueryVariables>;
+export function useNotificationPreferencesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<NotificationPreferencesQuery, NotificationPreferencesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<NotificationPreferencesQuery, NotificationPreferencesQueryVariables>(NotificationPreferencesDocument, options);
+        }
+export type NotificationPreferencesQueryHookResult = ReturnType<typeof useNotificationPreferencesQuery>;
+export type NotificationPreferencesLazyQueryHookResult = ReturnType<typeof useNotificationPreferencesLazyQuery>;
+export type NotificationPreferencesSuspenseQueryHookResult = ReturnType<typeof useNotificationPreferencesSuspenseQuery>;
+export type NotificationPreferencesQueryResult = Apollo.QueryResult<NotificationPreferencesQuery, NotificationPreferencesQueryVariables>;
+export const MarkNotificationReadDocument = gql`
+    mutation MarkNotificationRead($id: ID!) {
+  markNotificationRead(id: $id) {
+    id
+    readAt
+  }
+}
+    `;
+export type MarkNotificationReadMutationFn = Apollo.MutationFunction<MarkNotificationReadMutation, MarkNotificationReadMutationVariables>;
+
+/**
+ * __useMarkNotificationReadMutation__
+ *
+ * To run a mutation, you first call `useMarkNotificationReadMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useMarkNotificationReadMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [markNotificationReadMutation, { data, loading, error }] = useMarkNotificationReadMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useMarkNotificationReadMutation(baseOptions?: Apollo.MutationHookOptions<MarkNotificationReadMutation, MarkNotificationReadMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<MarkNotificationReadMutation, MarkNotificationReadMutationVariables>(MarkNotificationReadDocument, options);
+      }
+export type MarkNotificationReadMutationHookResult = ReturnType<typeof useMarkNotificationReadMutation>;
+export type MarkNotificationReadMutationResult = Apollo.MutationResult<MarkNotificationReadMutation>;
+export type MarkNotificationReadMutationOptions = Apollo.BaseMutationOptions<MarkNotificationReadMutation, MarkNotificationReadMutationVariables>;
+export const MarkAllNotificationsReadDocument = gql`
+    mutation MarkAllNotificationsRead {
+  markAllNotificationsRead
+}
+    `;
+export type MarkAllNotificationsReadMutationFn = Apollo.MutationFunction<MarkAllNotificationsReadMutation, MarkAllNotificationsReadMutationVariables>;
+
+/**
+ * __useMarkAllNotificationsReadMutation__
+ *
+ * To run a mutation, you first call `useMarkAllNotificationsReadMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useMarkAllNotificationsReadMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [markAllNotificationsReadMutation, { data, loading, error }] = useMarkAllNotificationsReadMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useMarkAllNotificationsReadMutation(baseOptions?: Apollo.MutationHookOptions<MarkAllNotificationsReadMutation, MarkAllNotificationsReadMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<MarkAllNotificationsReadMutation, MarkAllNotificationsReadMutationVariables>(MarkAllNotificationsReadDocument, options);
+      }
+export type MarkAllNotificationsReadMutationHookResult = ReturnType<typeof useMarkAllNotificationsReadMutation>;
+export type MarkAllNotificationsReadMutationResult = Apollo.MutationResult<MarkAllNotificationsReadMutation>;
+export type MarkAllNotificationsReadMutationOptions = Apollo.BaseMutationOptions<MarkAllNotificationsReadMutation, MarkAllNotificationsReadMutationVariables>;
+export const UpdateNotificationPreferencesDocument = gql`
+    mutation UpdateNotificationPreferences($input: NotificationPreferencesInput!) {
+  updateNotificationPreferences(input: $input) {
+    userId
+    pauseAll
+    weeklyDigest
+    onRunComplete {
+      email
+      inApp
+    }
+    onGateFailed {
+      email
+      inApp
+    }
+    onDeployDone {
+      email
+      inApp
+    }
+    onBudgetWarning {
+      email
+      inApp
+    }
+    onReceipt {
+      email
+      inApp
+    }
+  }
+}
+    `;
+export type UpdateNotificationPreferencesMutationFn = Apollo.MutationFunction<UpdateNotificationPreferencesMutation, UpdateNotificationPreferencesMutationVariables>;
+
+/**
+ * __useUpdateNotificationPreferencesMutation__
+ *
+ * To run a mutation, you first call `useUpdateNotificationPreferencesMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateNotificationPreferencesMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateNotificationPreferencesMutation, { data, loading, error }] = useUpdateNotificationPreferencesMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateNotificationPreferencesMutation(baseOptions?: Apollo.MutationHookOptions<UpdateNotificationPreferencesMutation, UpdateNotificationPreferencesMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateNotificationPreferencesMutation, UpdateNotificationPreferencesMutationVariables>(UpdateNotificationPreferencesDocument, options);
+      }
+export type UpdateNotificationPreferencesMutationHookResult = ReturnType<typeof useUpdateNotificationPreferencesMutation>;
+export type UpdateNotificationPreferencesMutationResult = Apollo.MutationResult<UpdateNotificationPreferencesMutation>;
+export type UpdateNotificationPreferencesMutationOptions = Apollo.BaseMutationOptions<UpdateNotificationPreferencesMutation, UpdateNotificationPreferencesMutationVariables>;
+export const NotificationStreamDocument = gql`
+    subscription NotificationStream {
+  notificationStream {
+    id
+    kind
+    title
+    body
+    link
+    severity
+    readAt
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useNotificationStreamSubscription__
+ *
+ * To run a query within a React component, call `useNotificationStreamSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useNotificationStreamSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useNotificationStreamSubscription({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useNotificationStreamSubscription(baseOptions?: Apollo.SubscriptionHookOptions<NotificationStreamSubscription, NotificationStreamSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<NotificationStreamSubscription, NotificationStreamSubscriptionVariables>(NotificationStreamDocument, options);
+      }
+export type NotificationStreamSubscriptionHookResult = ReturnType<typeof useNotificationStreamSubscription>;
+export type NotificationStreamSubscriptionResult = Apollo.SubscriptionResult<NotificationStreamSubscription>;
 export const OperatorPendingApprovalsDocument = gql`
     query OperatorPendingApprovals($tenantID: ID) {
   operatorPendingApprovals(tenantID: $tenantID) {
@@ -6030,6 +6621,7 @@ export const WalletTopUpsDocument = gql`
     query WalletTopUps($limit: Int) {
   walletTopUps(limit: $limit) {
     id
+    provider
     amountUSD
     status
     createdAt
@@ -6073,11 +6665,56 @@ export type WalletTopUpsQueryHookResult = ReturnType<typeof useWalletTopUpsQuery
 export type WalletTopUpsLazyQueryHookResult = ReturnType<typeof useWalletTopUpsLazyQuery>;
 export type WalletTopUpsSuspenseQueryHookResult = ReturnType<typeof useWalletTopUpsSuspenseQuery>;
 export type WalletTopUpsQueryResult = Apollo.QueryResult<WalletTopUpsQuery, WalletTopUpsQueryVariables>;
+export const WalletAvailableProvidersDocument = gql`
+    query WalletAvailableProviders {
+  walletAvailableProviders {
+    name
+    label
+    isPrimary
+  }
+}
+    `;
+
+/**
+ * __useWalletAvailableProvidersQuery__
+ *
+ * To run a query within a React component, call `useWalletAvailableProvidersQuery` and pass it any options that fit your needs.
+ * When your component renders, `useWalletAvailableProvidersQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useWalletAvailableProvidersQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useWalletAvailableProvidersQuery(baseOptions?: Apollo.QueryHookOptions<WalletAvailableProvidersQuery, WalletAvailableProvidersQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<WalletAvailableProvidersQuery, WalletAvailableProvidersQueryVariables>(WalletAvailableProvidersDocument, options);
+      }
+export function useWalletAvailableProvidersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<WalletAvailableProvidersQuery, WalletAvailableProvidersQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<WalletAvailableProvidersQuery, WalletAvailableProvidersQueryVariables>(WalletAvailableProvidersDocument, options);
+        }
+// @ts-ignore
+export function useWalletAvailableProvidersSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<WalletAvailableProvidersQuery, WalletAvailableProvidersQueryVariables>): Apollo.UseSuspenseQueryResult<WalletAvailableProvidersQuery, WalletAvailableProvidersQueryVariables>;
+export function useWalletAvailableProvidersSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<WalletAvailableProvidersQuery, WalletAvailableProvidersQueryVariables>): Apollo.UseSuspenseQueryResult<WalletAvailableProvidersQuery | undefined, WalletAvailableProvidersQueryVariables>;
+export function useWalletAvailableProvidersSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<WalletAvailableProvidersQuery, WalletAvailableProvidersQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<WalletAvailableProvidersQuery, WalletAvailableProvidersQueryVariables>(WalletAvailableProvidersDocument, options);
+        }
+export type WalletAvailableProvidersQueryHookResult = ReturnType<typeof useWalletAvailableProvidersQuery>;
+export type WalletAvailableProvidersLazyQueryHookResult = ReturnType<typeof useWalletAvailableProvidersLazyQuery>;
+export type WalletAvailableProvidersSuspenseQueryHookResult = ReturnType<typeof useWalletAvailableProvidersSuspenseQuery>;
+export type WalletAvailableProvidersQueryResult = Apollo.QueryResult<WalletAvailableProvidersQuery, WalletAvailableProvidersQueryVariables>;
 export const WalletCreateTopUpDocument = gql`
-    mutation WalletCreateTopUp($amountUSD: Float!) {
-  walletCreateTopUp(amountUSD: $amountUSD) {
+    mutation WalletCreateTopUp($amountUSD: Float!, $provider: String) {
+  walletCreateTopUp(amountUSD: $amountUSD, provider: $provider) {
     url
     sessionID
+    provider
   }
 }
     `;
@@ -6097,6 +6734,7 @@ export type WalletCreateTopUpMutationFn = Apollo.MutationFunction<WalletCreateTo
  * const [walletCreateTopUpMutation, { data, loading, error }] = useWalletCreateTopUpMutation({
  *   variables: {
  *      amountUSD: // value for 'amountUSD'
+ *      provider: // value for 'provider'
  *   },
  * });
  */

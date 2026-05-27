@@ -55,15 +55,31 @@ type LifetimeStats struct {
 	LifetimeSpendUSD decimal.Decimal
 }
 
-// TopUp is one row of the wallet_topups table — a single Stripe
-// Checkout attempt. Status transitions: pending → succeeded | failed,
-// or succeeded → refunded.
+// TopUp is one row of the wallet_topups table — a single checkout
+// attempt from any payment provider. Status transitions: pending →
+// succeeded | failed, or succeeded → refunded. Provider distinguishes
+// "stripe" vs. "paddle" so the reconciliation cron can sweep per PSP.
+// StripeSessionID is named for legacy reasons but stores any
+// provider's transaction reference (Stripe cs_*, Paddle txn_*).
 type TopUp struct {
 	ID              string
 	TenantID        string
+	Provider        string
 	StripeSessionID string
 	AmountUSD       decimal.Decimal
 	Status          string
 	CreatedAt       time.Time
 	CompletedAt     *time.Time
+}
+
+// ProviderFromSessionID infers the payment provider from the
+// transaction reference id prefix. Stripe checkout sessions are
+// prefixed "cs_", Paddle transactions "txn_". Returns "stripe" for
+// anything else so legacy dev-seed rows (e.g. "dev-seed-…") classify
+// as Stripe — they predate Paddle.
+func ProviderFromSessionID(sessionID string) string {
+	if len(sessionID) >= 4 && sessionID[:4] == "txn_" {
+		return ProviderPaddle
+	}
+	return ProviderStripe
 }
