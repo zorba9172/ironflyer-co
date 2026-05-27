@@ -28,7 +28,7 @@ FROM golang:1.25-alpine AS gotools
 RUN apk add --no-cache git ca-certificates
 # AppSec scanners that ship as Go binaries.
 RUN go install golang.org/x/vuln/cmd/govulncheck@latest
-RUN go install github.com/gitleaks/gitleaks/v8@latest
+RUN go install github.com/zricethezav/gitleaks/v8@latest
 RUN go install github.com/trufflesecurity/trufflehog/v3@latest
 
 FROM alpine:3.20
