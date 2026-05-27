@@ -124,7 +124,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        project: [pulumi, pulumi-data]
+        # `pulumi-data` was retired in the 2026-05-27 Hetzner cutover —
+        # the directory no longer exists. `pulumi` is the only active
+        # Pulumi tree.
+        project: [pulumi]
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff  # v5

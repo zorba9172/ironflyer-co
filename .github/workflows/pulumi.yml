@@ -1,11 +1,14 @@
 name: Pulumi
 
-# Two-project Pulumi orchestration:
-#   - infra/pulumi       — compute, EKS, edge, DNS, Vercel binding
-#   - infra/pulumi-data  — RDS, ElastiCache, S3, KMS, EFS (StackReference source)
+# Single-project Pulumi orchestration:
+#   - infra/pulumi  — compute, DOKS, edge, DNS, Vercel binding
+#
+# (infra/pulumi-data was retired in the 2026-05-27 Hetzner cutover.
+#  Its RDS/ElastiCache/S3/KMS/EFS roles moved into the docker-compose
+#  stack on the AX102 host, owned by DEPLOY.md.)
 #
 # Behavior:
-#   - Pull request touching infra/pulumi(-data)/**: previews against the `dev`
+#   - Pull request touching infra/pulumi/**: previews against the `dev`
 #     stack and comments the diff on the PR.
 #   - Tag `pulumi-prod-{eu,us,il}-v*`: `pulumi up --yes` against the matching
 #     production stack.
@@ -16,7 +19,6 @@ on:
     branches: [main]
     paths:
       - 'infra/pulumi/**'
-      - 'infra/pulumi-data/**'
       - '.github/workflows/pulumi.yml'
   push:
     tags:
@@ -25,13 +27,6 @@ on:
       - 'pulumi-prod-il-v*'
   workflow_dispatch:
     inputs:
-      project:
-        description: 'Pulumi project directory'
-        required: true
-        type: choice
-        options:
-          - infra/pulumi
-          - infra/pulumi-data
       stack:
         description: 'Stack name (dev | staging | prod-eu | prod-us | prod-il)'
         required: true
@@ -110,47 +105,14 @@ jobs:
           esac
 
   # ---------------------------------------------------------------------------
-  # Run the data project first when both are in play — pulumi-data publishes
-  # outputs that pulumi (compute) consumes via StackReference. On a PR or a
-  # manual run for a single project we still execute both, but the compute
-  # job declares `needs: data` so order is deterministic.
+  # Only the compute project is left after the 2026-05-27 Hetzner cutover.
+  # The retired pulumi-data project used to publish RDS/ElastiCache/S3/KMS/EFS
+  # outputs that this project consumed via StackReference; those concerns
+  # moved into the docker-compose stack on AX102 (see DEPLOY.md).
   # ---------------------------------------------------------------------------
-  data:
-    name: pulumi-data (${{ needs.resolve.outputs.command }} ${{ needs.resolve.outputs.stack }})
-    needs: resolve
-    if: github.event_name != 'workflow_dispatch' || github.event.inputs.project == 'infra/pulumi-data'
-    runs-on: ubuntu-latest
-    env:
-      PULUMI_STACK_NAME: ${{ needs.resolve.outputs.stack }}
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff  # v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache-dependency-path: infra/pulumi-data/go.sum
-
-      - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a  # v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-          aws-region: ${{ needs.resolve.outputs.aws_region }}
-
-      - uses: pulumi/actions@cd99a7f8865434dd3532b586a26f9ebea596894f  # v5
-        with:
-          command: ${{ needs.resolve.outputs.command }}
-          stack-name: ${{ needs.resolve.outputs.stack }}
-          work-dir: infra/pulumi-data
-          comment-on-pr: ${{ github.event_name == 'pull_request' }}
-          # Approve on tag-driven prod deploys; previews never mutate.
-          upsert: false
-        env:
-          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
-
   compute:
     name: pulumi (${{ needs.resolve.outputs.command }} ${{ needs.resolve.outputs.stack }})
-    needs: [resolve, data]
-    # Compute always runs unless the manual dispatch is targeted only at data.
-    if: ${{ always() && (github.event_name != 'workflow_dispatch' || github.event.inputs.project == 'infra/pulumi') && needs.data.result != 'failure' }}
+    needs: resolve
     runs-on: ubuntu-latest
     env:
       PULUMI_STACK_NAME: ${{ needs.resolve.outputs.stack }}
