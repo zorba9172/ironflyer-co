@@ -47,6 +47,15 @@ jobs:
   build:
     name: ${{ matrix.image }}
     runs-on: ubuntu-latest
+    # `secrets.*` is not available inside step-level `if:` expressions —
+    # GitHub Actions explicitly rejects the workflow with
+    #   Unrecognized named-value: 'secrets'
+    # Bridge the SIGN_IMAGES toggle through job-level env so the cosign
+    # steps below can gate on it via `env.SIGN_IMAGES` instead. Empty
+    # repos/forks without the secret set fall through naturally — the
+    # expression evaluates to "" which is not equal to "true".
+    env:
+      SIGN_IMAGES: ${{ secrets.SIGN_IMAGES }}
     strategy:
       fail-fast: false
       matrix:
@@ -153,12 +162,13 @@ jobs:
 
       # Optional keyless cosign signing. Gated on SIGN_IMAGES so forks (or the
       # initial bootstrap before OIDC is wired into Fulcio) can still build.
+      # env.SIGN_IMAGES is bridged from secrets.SIGN_IMAGES at the job level.
       - name: Install cosign
-        if: github.event_name != 'pull_request' && secrets.SIGN_IMAGES == 'true'
+        if: github.event_name != 'pull_request' && env.SIGN_IMAGES == 'true'
         uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac  # v3
 
       - name: Sign image (cosign keyless)
-        if: github.event_name != 'pull_request' && secrets.SIGN_IMAGES == 'true'
+        if: github.event_name != 'pull_request' && env.SIGN_IMAGES == 'true'
         env:
           COSIGN_EXPERIMENTAL: '1'
           IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NS }}/ironflyer-${{ matrix.image }}@${{ steps.build.outputs.digest }}

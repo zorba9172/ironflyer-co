@@ -591,6 +591,8 @@ services:
       STRIPE_PRICE_PRO: ${STRIPE_PRICE_PRO:-}
       STRIPE_PRICE_TEAM: ${STRIPE_PRICE_TEAM:-}
       STRIPE_PRICE_ENTERPRISE: ${STRIPE_PRICE_ENTERPRISE:-}
+      STRIPE_SUCCESS_URL: ${STRIPE_SUCCESS_URL:-https://app.ironflyer.ai/wallet/topup?session_id={CHECKOUT_SESSION_ID}}
+      STRIPE_CANCEL_URL:  ${STRIPE_CANCEL_URL:-https://app.ironflyer.ai/wallet/topup?cancelled=1}
       # Paddle is the second leg of the wallet topper. wallet.TopperRegistry
       # holds both Stripe + Paddle in priority order; the active one is
       # selected per-request by the user, with IRONFLYER_WALLET_PRIMARY_PROVIDER
@@ -602,6 +604,8 @@ services:
       PADDLE_PRICE_PRO: ${PADDLE_PRICE_PRO:-}
       PADDLE_PRICE_TEAM: ${PADDLE_PRICE_TEAM:-}
       PADDLE_PRICE_ENTERPRISE: ${PADDLE_PRICE_ENTERPRISE:-}
+      PADDLE_WALLET_SUCCESS_URL: ${PADDLE_WALLET_SUCCESS_URL:-https://app.ironflyer.ai/wallet/topup}
+      PADDLE_WALLET_CANCEL_URL:  ${PADDLE_WALLET_CANCEL_URL:-https://app.ironflyer.ai/wallet/topup?cancelled=1}
       IRONFLYER_WALLET_PRIMARY_PROVIDER: ${IRONFLYER_WALLET_PRIMARY_PROVIDER:-stripe}
       GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
       GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
