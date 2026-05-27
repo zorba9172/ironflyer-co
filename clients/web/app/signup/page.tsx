@@ -13,10 +13,9 @@ import { SignUpForm } from "../../src/components/auth/SignUpForm";
 import { useAuth } from "../../src/lib/auth";
 
 function safeRedirect(value: string | null): string {
-  if (!value) return "/?welcome=1";
-  if (!value.startsWith("/") || value.startsWith("//")) return "/?welcome=1";
-  // Preserve welcome banner if redirect points at the home page.
-  if (value === "/" || value === "") return "/?welcome=1";
+  if (!value) return "/studio";
+  if (!value.startsWith("/") || value.startsWith("//")) return "/studio";
+  if (value === "/" || value === "") return "/studio";
   return value;
 }
 
@@ -39,7 +38,7 @@ function SignUpPageInner() {
     search?.get("redirect") ?? search?.get("next") ?? search?.get("returnTo") ?? null,
   );
   const loginHref =
-    redirect && redirect !== "/?welcome=1"
+    redirect && redirect !== "/studio"
       ? `/login?redirect=${encodeURIComponent(redirect)}`
       : "/login";
 

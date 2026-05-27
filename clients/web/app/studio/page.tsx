@@ -48,7 +48,7 @@ import {
   useDescribeIdeaMutation,
   useProjectsQuery,
 } from "../../src/lib/gql/__generated__";
-import { useAuth } from "../../src/lib/auth";
+import { RequireAuth, useAuth } from "../../src/lib/auth";
 
 type StudioMode = "preview" | "mobile" | "code";
 type RecentEntry = { id: string; name: string };
@@ -78,6 +78,14 @@ const CODE_LINES = [
 ];
 
 export default function StudioIndexPage() {
+  return (
+    <RequireAuth>
+      <StudioIndexInner />
+    </RequireAuth>
+  );
+}
+
+function StudioIndexInner() {
   const router = useRouter();
   const { authenticated } = useAuth();
   const [mode, setMode] = useState<StudioMode>("code");

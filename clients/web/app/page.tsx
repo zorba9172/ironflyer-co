@@ -175,7 +175,7 @@ function HomeInner() {
         } catch {
           // ignore quota / privacy errors — the redirect still works.
         }
-        router.push(`/signup?redirect=${encodeURIComponent("/?welcome=1")}`);
+        router.push(`/signup?redirect=${encodeURIComponent("/studio")}`);
         return;
       }
 
@@ -252,7 +252,7 @@ function HomeInner() {
     void handleSubmit({ text: prompt.trim(), budgetUSD, planFirst });
   }, [prompt, budgetUSD, planFirst, handleSubmit]);
 
-  const timing = search?.get("theme") === "light" ? "light" : "dark";
+  const timing = search?.get("theme") === "dark" ? "dark" : "light";
 
   return (
     <Box
@@ -1398,7 +1398,88 @@ function HeroTrustedLogos({
   timing: OrbitalTiming;
   colors: { muted: string; secondary: string };
 }) {
-  const logos = ["Google", "Microsoft", "airbnb", "amazon", "Spotify"];
+  const logos = [
+    {
+      name: "Google",
+      mark: (
+        <Box
+          sx={{
+            fontSize: 20,
+            fontWeight: 950,
+            background: "linear-gradient(90deg,#4285f4,#34a853,#fbbc05,#ea4335)",
+            backgroundClip: "text",
+            color: "transparent",
+          }}
+        >
+          G
+        </Box>
+      ),
+    },
+    {
+      name: "Microsoft",
+      mark: (
+        <Box sx={{ display: "grid", gap: "2px", gridTemplateColumns: "repeat(2, 8px)" }}>
+          {["#f25022", "#7fba00", "#00a4ef", "#ffb900"].map((color) => (
+            <Box key={color} sx={{ width: 8, height: 8, bgcolor: color }} />
+          ))}
+        </Box>
+      ),
+    },
+    {
+      name: "airbnb",
+      mark: (
+        <Box
+          sx={{
+            width: 18,
+            height: 22,
+            border: "3px solid currentColor",
+            borderRadius: "12px 12px 16px 16px",
+            borderBottomColor: "transparent",
+            transform: "rotate(45deg)",
+          }}
+        />
+      ),
+    },
+    {
+      name: "amazon",
+      mark: (
+        <Box
+          sx={{
+            width: 28,
+            height: 14,
+            borderBottom: "3px solid currentColor",
+            borderRadius: "0 0 50% 50%",
+            transform: "translateY(-3px)",
+          }}
+        />
+      ),
+    },
+    {
+      name: "Spotify",
+      mark: (
+        <Box
+          sx={{
+            width: 21,
+            height: 21,
+            borderRadius: "50%",
+            bgcolor: "currentColor",
+            position: "relative",
+            "&::before, &::after": {
+              content: '""',
+              position: "absolute",
+              left: 5,
+              right: 4,
+              height: 5,
+              borderTop: "2px solid #fff",
+              borderRadius: "50%",
+            },
+            "&::before": { top: 6 },
+            "&::after": { top: 11, left: 7 },
+          }}
+        />
+      ),
+    },
+  ];
   return (
     <Stack spacing={1.3} alignItems="center" sx={{ pt: { xs: 0.2, md: 0.8 } }}>
       <Typography sx={{ color: colors.muted, fontSize: 14, fontWeight: 700 }}>
@@ -1412,17 +1493,25 @@ function HeroTrustedLogos({
         sx={{ gap: { xs: 2.2, sm: 4.2 }, color: colors.secondary }}
       >
         {logos.map((logo) => (
-          <Typography
-            key={logo}
+          <Stack
+            key={logo.name}
+            direction="row"
+            alignItems="center"
+            sx={{ gap: 0.8, opacity: 0.88 }}
+          >
+            <Box sx={{ color: colors.secondary, display: "grid", placeItems: "center" }}>
+              {logo.mark}
+            </Box>
+            <Typography
             sx={{
               fontSize: { xs: 18, md: 21 },
               fontWeight: 900,
-              letterSpacing: logo === "airbnb" ? -0.2 : 0,
-              opacity: 0.88,
+              letterSpacing: 0,
             }}
           >
-            {logo}
-          </Typography>
+              {logo.name}
+            </Typography>
+          </Stack>
         ))}
       </Stack>
     </Stack>

@@ -13,8 +13,8 @@ import { useAuth } from "../../src/lib/auth";
 
 function safeRedirect(value: string | null): string {
   // Same-origin path only — never trust a callback URL.
-  if (!value) return "/";
-  if (!value.startsWith("/") || value.startsWith("//")) return "/";
+  if (!value) return "/studio";
+  if (!value.startsWith("/") || value.startsWith("//")) return "/studio";
   return value;
 }
 

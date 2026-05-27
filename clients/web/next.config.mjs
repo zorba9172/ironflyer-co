@@ -30,6 +30,19 @@ const nextConfig = {
 
   allowedDevOrigins: ["127.0.0.1", "localhost", "192.168.1.227"],
 
+  async redirects() {
+    return [
+      { source: "/product", destination: "/", permanent: false },
+      { source: "/showcase", destination: "/templates", permanent: false },
+      { source: "/mobile", destination: "/solutions", permanent: false },
+      { source: "/security", destination: "/enterprise", permanent: false },
+      { source: "/developers", destination: "/resources", permanent: false },
+      { source: "/changelog", destination: "/resources", permanent: false },
+      { source: "/blog", destination: "/resources", permanent: false },
+      { source: "/vs/:slug*", destination: "/solutions", permanent: false }
+    ];
+  },
+
   // Production same-origin proxy for openvscode-server. In production
   // we want /ide/* to flow through the web origin so cookies, clipboard,
   // popups, and X-Frame-Options are friction-free. This rewrite handles

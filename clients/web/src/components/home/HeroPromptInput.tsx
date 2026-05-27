@@ -15,8 +15,8 @@
 
 import {
   AccountBalanceWalletOutlined,
+  ArrowForwardRounded,
   AutoAwesomeRounded,
-  RocketLaunchRounded,
   TuneRounded,
 } from "@mui/icons-material";
 import {
@@ -365,24 +365,34 @@ export const HeroPromptInput = forwardRef<HeroPromptInputHandle, HeroPromptInput
 
           <Box sx={{ flex: 1 }} />
 
-          <Typography
-            sx={{
-              display: { xs: "none", md: "block" },
-              fontSize: 11,
-              color: c.muted,
-              fontFamily: tokens.font.mono,
-              mr: 1,
-            }}
-          >
-            ⌘↵
-          </Typography>
+          <Tooltip title="Enhance prompt" arrow>
+            <IconButton
+              onClick={() => handleSubmit()}
+              disabled={!canSubmit}
+              aria-label="Enhance prompt"
+              sx={{
+                width: 48,
+                height: 48,
+                borderRadius: 1.5,
+                border: `1px solid ${c.border}`,
+                color: tokens.color.accent.violet,
+                bgcolor: c.surface,
+                "&:hover": {
+                  bgcolor: c.hover,
+                  borderColor: c.border,
+                },
+              }}
+            >
+              <AutoAwesomeRounded sx={{ fontSize: 22 }} />
+            </IconButton>
+          </Tooltip>
 
           <Button
             type="submit"
             variant="contained"
             color="primary"
             disabled={!canSubmit}
-            endIcon={<RocketLaunchRounded sx={{ fontSize: 18 }} />}
+            endIcon={<ArrowForwardRounded sx={{ fontSize: 18 }} />}
             sx={{
               minHeight: 48,
               px: { xs: 2.4, sm: 3.4 },
@@ -397,37 +407,6 @@ export const HeroPromptInput = forwardRef<HeroPromptInputHandle, HeroPromptInput
             {submitting ? "Launching..." : "Build it"}
           </Button>
         </Stack>
-
-        {/* Floating "submit" affordance in the textarea top-right when
-            the user has typed something — gives a clear keyboard hint
-            on mobile too. */}
-        {value.trim().length > 0 && (
-          <Box
-            sx={{
-              position: "absolute",
-              top: 10,
-              right: 12,
-              display: { xs: "none", sm: "flex" },
-              alignItems: "center",
-              gap: 0.5,
-              pointerEvents: "none",
-            }}
-          >
-            <IconButton
-              size="small"
-              tabIndex={-1}
-              sx={{
-                pointerEvents: "auto",
-                color: tokens.color.accent.violet,
-                "&:hover": { bgcolor: `${tokens.color.accent.violet}1a` },
-              }}
-              onClick={() => handleSubmit()}
-              aria-label="Submit prompt"
-            >
-              <RocketLaunchRounded sx={{ fontSize: 18 }} />
-            </IconButton>
-          </Box>
-        )}
       </Box>
     );
   },

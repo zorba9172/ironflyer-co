@@ -61,7 +61,7 @@ interface NavLink {
 const MARKETING_LINKS: NavLink[] = [
   {
     label: "Product",
-    href: "/product",
+    href: "/",
     match: (p) => p === "/" || p.startsWith("/product"),
   },
   {
@@ -95,12 +95,9 @@ interface ResourceLink {
 }
 
 const RESOURCE_LINKS: ResourceLink[] = [
-  { label: "Showcase", href: "/showcase", description: "What people ship with Ironflyer." },
-  { label: "Developers", href: "/developers", description: "GraphQL, SSE, runtime API, @ironflyer/sdk." },
-  { label: "Security", href: "/security", description: "OwnerID isolation, wallet hard-block, ledger." },
-  { label: "Changelog", href: "/changelog", description: "What we shipped to the gate." },
-  { label: "Blog", href: "/blog", description: "Field notes on shipping AI-built software." },
-  { label: "Resources", href: "/resources", description: "Guides, templates, and references." },
+  { label: "Guides", href: "/resources", description: "Practical help for planning, building and launching apps." },
+  { label: "Templates", href: "/templates", description: "Start from proven app patterns." },
+  { label: "Enterprise", href: "/enterprise", description: "Security, teams and private deployment options." },
 ];
 
 // Cockpit nav — shown to authenticated callers on cockpit routes. The
@@ -108,8 +105,8 @@ const RESOURCE_LINKS: ResourceLink[] = [
 // /deploy, /settings, /operator so chrome stays stable as the user
 // moves between surfaces.
 const COCKPIT_LINKS: NavLink[] = [
-  { label: "Overview", href: "/dashboard", match: (p) => p === "/dashboard" || p.startsWith("/dashboard/") },
-  { label: "Projects", href: "/projects", match: (p) => p === "/projects" || p.startsWith("/projects/") || p.startsWith("/p/") },
+  { label: "Studio", href: "/studio", match: (p) => p === "/studio" },
+  { label: "Apps", href: "/projects", match: (p) => p === "/projects" || p.startsWith("/projects/") || p.startsWith("/p/") },
   { label: "Executions", href: "/executions", match: (p) => p.startsWith("/executions") || p.startsWith("/execution/") },
   { label: "Wallet", href: "/wallet", match: (p) => p.startsWith("/wallet") },
   { label: "Deploy", href: "/deploy", match: (p) => p.startsWith("/deploy") },
@@ -191,7 +188,7 @@ export function Nav() {
   const authReturn = pathname === "/" ? "/studio" : pathname;
   const loginHref = `/login?returnTo=${encodeURIComponent(authReturn)}`;
   const signupHref = `/signup?redirect=${encodeURIComponent(authReturn)}`;
-  const homeTiming = pathname === "/" && search?.get("theme") === "light" ? "light" : "dark";
+  const homeTiming = pathname === "/" && search?.get("theme") === "dark" ? "dark" : "light";
   const homeLight = pathname === "/" && homeTiming === "light";
   const navText = homeLight ? "#0b1040" : tokens.color.text.primary;
   const navSecondary = homeLight ? "#1f254f" : tokens.color.text.secondary;

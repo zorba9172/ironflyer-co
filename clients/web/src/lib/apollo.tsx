@@ -31,6 +31,7 @@ import {
 } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 import { onError } from "@apollo/client/link/error";
+import { createPersistedQueryLink } from "@apollo/client/link/persisted-queries";
 import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
 import { getMainDefinition } from "@apollo/client/utilities";
 import { createClient as createWsClient } from "graphql-ws";
@@ -44,6 +45,7 @@ const COOKIE_EXPIRES_DAYS = 30;
 
 let cachedToken: string | null = null;
 let cacheHydrated = false;
+let csrfBootstrap: Promise<void> | null = null;
 
 function hydrate(): void {
   if (cacheHydrated) return;
@@ -106,6 +108,14 @@ function wsEndpoint(): string {
   return DEFAULT_WS;
 }
 
+async function sha256(input: string): Promise<string> {
+  const bytes = new TextEncoder().encode(input);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(digest)]
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 // ----- links -----
 
 // Surfaced so the auth context can flip cookies + reset cache from one
@@ -126,7 +136,7 @@ export function registerUnauthorizedHandler(handler: UnauthorizedHandler): void 
 }
 
 function buildAuthLink(): ApolloLink {
-  return setContext((_op, prev) => {
+  return setContext(async (_op, prev) => {
     const token = getToken();
     const headers = { ...((prev as { headers?: Record<string, string> }).headers ?? {}) };
     if (token) headers.Authorization = `Bearer ${token}`;
@@ -137,6 +147,19 @@ function buildAuthLink(): ApolloLink {
     // auth requests are exempt server-side, but we still send the header
     // because token presence is determined per-request and the SPA may
     // make anonymous POSTs (signIn/signUp) before a token exists.
+    if (!token && typeof document !== "undefined" && !Cookies.get("ironflyer_csrf")) {
+      csrfBootstrap ??= fetch(httpEndpoint(), {
+        method: "GET",
+        credentials: "include",
+        mode: "cors",
+      })
+        .catch(() => undefined)
+        .then(() => undefined)
+        .finally(() => {
+          csrfBootstrap = null;
+        });
+      await csrfBootstrap;
+    }
     if (typeof document !== "undefined") {
       const csrf = Cookies.get("ironflyer_csrf");
       if (csrf) headers["X-Ironflyer-CSRF"] = csrf;
@@ -195,9 +218,10 @@ function buildWsLink(): ApolloLink | null {
 function buildLink(): ApolloLink {
   const authLink = buildAuthLink();
   const errorLink = buildErrorLink();
+  const persistedLink = createPersistedQueryLink({ sha256 });
   const httpLink = buildHttpLink();
   const wsLink = buildWsLink();
-  const httpChain = from([errorLink, authLink, httpLink]);
+  const httpChain = from([errorLink, authLink, persistedLink, httpLink]);
   if (!wsLink) return httpChain;
   return split(
     ({ query }) => {

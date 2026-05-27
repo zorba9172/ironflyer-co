@@ -50,9 +50,7 @@ func corsMiddleware(allowed []string) func(http.Handler) http.Handler {
 				if openMode || ok {
 					w.Header().Set("Access-Control-Allow-Origin", origin)
 					w.Header().Set("Vary", appendVary(w.Header().Get("Vary"), "Origin"))
-					if !openMode {
-						w.Header().Set("Access-Control-Allow-Credentials", "true")
-					}
+					w.Header().Set("Access-Control-Allow-Credentials", "true")
 					w.Header().Set("Access-Control-Expose-Headers", corsExposeHeaders)
 				}
 			}

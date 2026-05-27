@@ -94,7 +94,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (typeof window === "undefined") return;
       const path = window.location.pathname;
       if (path.startsWith("/login") || path.startsWith("/signup")) return;
-      router.replace("/login");
+      const current = `${window.location.pathname}${window.location.search}`;
+      router.replace(`/login?redirect=${encodeURIComponent(current || "/studio")}`);
     });
   }, [router]);
 
@@ -112,11 +113,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (input: SignInInput): Promise<AuthSession> => {
       try {
         const res = await signInMutation({ variables: { input } });
+        if (res.errors && res.errors.length > 0) {
+          throw new Error(res.errors.map((e) => e.message).join("\n"));
+        }
         const session = res.data?.signIn;
         if (!session) throw new Error("Sign-in failed: empty response");
-      setToken(session.token);
-      setHydrated(true);
-      setHasToken(true);
+        setToken(session.token);
+        setHydrated(true);
+        setHasToken(true);
         await client.resetStore().catch(() => undefined);
         return session as AuthSession;
       } catch (e) {
@@ -130,11 +134,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (input: SignUpInput): Promise<AuthSession> => {
       try {
         const res = await signUpMutation({ variables: { input } });
+        if (res.errors && res.errors.length > 0) {
+          throw new Error(res.errors.map((e) => e.message).join("\n"));
+        }
         const session = res.data?.signUp;
         if (!session) throw new Error("Sign-up failed: empty response");
-      setToken(session.token);
-      setHydrated(true);
-      setHasToken(true);
+        setToken(session.token);
+        setHydrated(true);
+        setHasToken(true);
         await client.resetStore().catch(() => undefined);
         return session as AuthSession;
       } catch (e) {
@@ -206,7 +213,13 @@ export function RequireAuth({
   const router = useRouter();
 
   useEffect(() => {
-    if (!authenticated && !loading) router.replace("/login");
+    if (authenticated || loading) return;
+    if (typeof window === "undefined") {
+      router.replace("/login?redirect=%2Fstudio");
+      return;
+    }
+    const current = `${window.location.pathname}${window.location.search}`;
+    router.replace(`/login?redirect=${encodeURIComponent(current || "/studio")}`);
   }, [authenticated, loading, router]);
 
   if (!authenticated || loading) {
