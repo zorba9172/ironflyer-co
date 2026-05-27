@@ -71,7 +71,7 @@ func gqlInsufficientFunds(webBaseURL string) *gqlerror.Error {
 		Message: "insufficient wallet balance",
 		Extensions: map[string]any{
 			"code":     "INSUFFICIENT_FUNDS",
-			"topUpURL": webBaseURL + "/app/wallet",
+			"topUpURL": webBaseURL + "/wallet",
 		},
 	}
 }
