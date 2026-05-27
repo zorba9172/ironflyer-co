@@ -32,13 +32,36 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import { BrandLogo } from "../../src/components/BrandLogo";
-import { getToken } from "../../src/lib/apollo";
-import { streamChat, type StreamChatHandle } from "../../src/lib/chat/stream";
+import { useAuth } from "../../src/lib/auth";
+import { extractErrorMessage } from "../../src/lib/errors";
+import {
+  useDescribeIdeaMutation,
+  useProjectsQuery,
+} from "../../src/lib/gql/__generated__";
+import * as swal from "../../src/lib/swal";
 import { tokens } from "../../../../packages/design-tokens";
 
+// /studio is the unauthenticated-friendly entry into the workbench.
+// On submit it behaves like the home composer: it calls describeIdea
+// to create a real project + execution, then redirects to the canonical
+// per-project workspace at /p/{projectID}. The local in-page demo
+// (steps, messages, sectionCopy) is kept so visitors who haven't sent
+// yet still see a populated, real-looking studio.
+const PENDING_PROMPT_KEY = "ironflyer.pendingPrompt.v1";
+
 type StageView = "browser" | "ide" | "android";
+type StudioSection =
+  | "command"
+  | "prompt"
+  | "browser"
+  | "ide"
+  | "android"
+  | "graph"
+  | "deploy";
 type BuildStepState = "done" | "running" | "queued";
 type ChatMessage = {
   id: string;
@@ -47,14 +70,56 @@ type ChatMessage = {
 };
 
 const NAV = [
-  ["Command", DashboardRounded],
-  ["Prompt", AutoAwesomeRounded],
-  ["Browser", LaptopMacRounded],
-  ["IDE", CodeRounded],
-  ["Android", PhoneAndroidRounded],
-  ["Graph", AccountTreeRounded],
-  ["Deploy", RocketLaunchRounded],
+  { id: "command", label: "Command", icon: DashboardRounded },
+  { id: "prompt", label: "Prompt", icon: AutoAwesomeRounded },
+  { id: "browser", label: "Browser", icon: LaptopMacRounded },
+  { id: "ide", label: "IDE", icon: CodeRounded },
+  { id: "android", label: "Android", icon: PhoneAndroidRounded },
+  { id: "graph", label: "Graph", icon: AccountTreeRounded },
+  { id: "deploy", label: "Deploy", icon: RocketLaunchRounded },
 ] as const;
+
+const SECTION_COPY: Record<
+  StudioSection,
+  { title: string; eyebrow: string; detail: string }
+> = {
+  command: {
+    title: "Production workspace",
+    eyebrow: "Studio / ClientFlow",
+    detail: "One command surface for prompt, code, preview and deploy state.",
+  },
+  prompt: {
+    title: "Prompt control",
+    eyebrow: "Studio / Prompt",
+    detail: "Shape the request, lock requirements and run the next pass.",
+  },
+  browser: {
+    title: "Browser preview",
+    eyebrow: "Studio / Browser",
+    detail: "Inspect the generated web app exactly where users will use it.",
+  },
+  ide: {
+    title: "Code workspace",
+    eyebrow: "Studio / IDE",
+    detail: "Review generated files, diffs, tests and implementation quality.",
+  },
+  android: {
+    title: "Android lab",
+    eyebrow: "Studio / Android",
+    detail: "Validate the mobile experience inside a native device frame.",
+  },
+  graph: {
+    title: "Build graph",
+    eyebrow: "Studio / Graph",
+    detail:
+      "Track what was created, what is running and what still blocks ship.",
+  },
+  deploy: {
+    title: "Deploy lane",
+    eyebrow: "Studio / Deploy",
+    detail: "Control gates, environments, release notes and publish readiness.",
+  },
+};
 
 const FILES = [
   "src/app/dashboard/page.tsx",
@@ -116,6 +181,7 @@ const INITIAL_STEPS: Array<{
 ];
 
 export default function StudioPage() {
+  const [activeSection, setActiveSection] = useState<StudioSection>("command");
   const [stageView, setStageView] = useState<StageView>("browser");
   const [prompt, setPrompt] = useState(
     "Build a client operations portal with projects, invoices, approvals, role-based access and team activity.",
@@ -129,7 +195,9 @@ export default function StudioPage() {
     },
   ]);
   const [chatPending, setChatPending] = useState(false);
-  const streamRef = useRef<StreamChatHandle | null>(null);
+  const router = useRouter();
+  const { authenticated } = useAuth();
+  const [describeIdea] = useDescribeIdeaMutation();
 
   const progress = useMemo(() => {
     const done = steps.filter((step) => step.state === "done").length;
@@ -154,20 +222,36 @@ export default function StudioPage() {
         body: "Build pass completed. Android rendering is now in review and the deploy gate is still visible.",
       },
     ]);
+    setActiveSection("android");
     setStageView("android");
+  };
+
+  const openSection = (section: StudioSection) => {
+    setActiveSection(section);
+    if (section === "browser" || section === "ide" || section === "android") {
+      setStageView(section);
+    }
+  };
+
+  const openStageView = (view: StageView) => {
+    setStageView(view);
+    setActiveSection(view);
   };
 
   const syncStudioIntent = (message: string) => {
     const lower = message.toLowerCase();
     if (lower.includes("android") || lower.includes("mobile")) {
+      setActiveSection("android");
       setStageView("android");
     } else if (
       lower.includes("code") ||
       lower.includes("ide") ||
       lower.includes("file")
     ) {
+      setActiveSection("ide");
       setStageView("ide");
     } else if (lower.includes("browser") || lower.includes("preview")) {
+      setActiveSection("browser");
       setStageView("browser");
     }
 
@@ -181,21 +265,25 @@ export default function StudioPage() {
           step.id === "deploy" ? { ...step, state: "running" } : step,
         ),
       );
+      setActiveSection("deploy");
     }
   };
 
-  const sendChat = (body: string) => {
+  const sendChat = async (body: string) => {
     const message = body.trim();
     if (!message || chatPending) return;
 
     syncStudioIntent(message);
-    streamRef.current?.abort();
     const userId = `u-${Date.now()}`;
     const assistantId = `a-${Date.now()}`;
     setMessages((current) => [
       ...current,
       { id: userId, role: "user", body: message },
-      { id: assistantId, role: "assistant", body: "" },
+      {
+        id: assistantId,
+        role: "assistant",
+        body: "Spinning up your workspace…",
+      },
     ]);
     setChatPending(true);
 
@@ -207,49 +295,80 @@ export default function StudioPage() {
       );
     };
 
-    const token = getToken();
-    if (!token) {
-      window.setTimeout(() => {
-        fillAssistant(previewReply(message));
-        setChatPending(false);
-      }, 420);
+    // Guest? Stash the prompt and route to signup. The /signup page
+    // bounces back to /?welcome=1 on success and the home page restores
+    // the prompt + composer state.
+    if (!authenticated) {
+      try {
+        window.sessionStorage.setItem(PENDING_PROMPT_KEY, message);
+      } catch {
+        // ignore quota / privacy errors — the redirect still works.
+      }
+      fillAssistant(
+        "Create an account to launch the build. Redirecting you to sign up…",
+      );
+      router.push(`/signup?redirect=${encodeURIComponent("/studio")}`);
       return;
     }
 
-    let buffer = "";
-    const handle = streamChat({ executionID: "_", message, token }, (event) => {
-      if (event.type === "delta") {
-        const chunk =
-          typeof event.data.text === "string" ? event.data.text : "";
-        if (!chunk) return;
-        buffer += chunk;
-        fillAssistant(buffer);
-        return;
+    try {
+      const result = await describeIdea({
+        variables: {
+          input: { text: message, startImmediately: true },
+        },
+      });
+      if (result.errors && result.errors.length > 0) {
+        throw new Error(
+          result.errors.map((e) => e.message).join("\n") ||
+            "Studio rejected the request.",
+        );
       }
-
-      if (event.type === "finish") {
-        fillAssistant(buffer || previewReply(message));
-        return;
+      const project = result.data?.describeIdea?.project;
+      const execution = result.data?.describeIdea?.execution;
+      if (!project?.id) {
+        const debugDump = JSON.stringify(result.data ?? null).slice(0, 240);
+        throw new Error(
+          `Studio did not return a project id.\nResponse: ${debugDump}`,
+        );
       }
-
-      if (event.type === "error") {
-        fillAssistant(previewReply(message));
+      const params = new URLSearchParams({ tab: "preview", autorun: "1" });
+      if (execution?.id) params.set("executionID", execution.id);
+      fillAssistant("Workspace is ready. Opening your project…");
+      router.push(
+        `/p/${encodeURIComponent(project.id)}?${params.toString()}`,
+      );
+    } catch (err) {
+      const errorMessage = extractErrorMessage(err);
+      fillAssistant(
+        `Could not start the build: ${errorMessage}. Top up your wallet or try a different prompt.`,
+      );
+      const isFunds =
+        /payment.required|insufficient|wallet|top.?up|budget/i.test(
+          errorMessage,
+        );
+      if (isFunds) {
+        const res = await swal.fire({
+          icon: "warning",
+          title: "Top up your wallet to launch",
+          text: errorMessage,
+          showCancelButton: true,
+          confirmButtonText: "Open wallet",
+          cancelButtonText: "Close",
+        });
+        if (res.isConfirmed) router.push("/wallet");
       }
-    });
-
-    streamRef.current = handle;
-    handle.done.finally(() => {
-      if (streamRef.current === handle) streamRef.current = null;
-      if (!buffer) fillAssistant(previewReply(message));
       setChatPending(false);
-    });
+    }
   };
 
   const stopChat = () => {
-    streamRef.current?.abort();
-    streamRef.current = null;
+    // describeIdea is a single short-lived mutation; cancelling mid-flight
+    // is not exposed. We only reset the local "pending" flag so the user
+    // can compose a fresh message if the redirect did not happen.
     setChatPending(false);
   };
+
+  const section = SECTION_COPY[activeSection];
 
   return (
     <Box
@@ -263,7 +382,10 @@ export default function StudioPage() {
         overflow: { xs: "visible", lg: "hidden" },
       }}
     >
-      <StudioSidebar />
+      <StudioSidebar
+        activeSection={activeSection}
+        onSectionChange={openSection}
+      />
       <Box
         sx={{
           display: "grid",
@@ -271,65 +393,470 @@ export default function StudioPage() {
           minWidth: 0,
         }}
       >
-        <StudioTopbar progress={progress} />
+        <StudioTopbar progress={progress} section={section} />
         <Box
           sx={{
             display: "grid",
             gap: 1.2,
-            gridTemplateColumns: {
-              xs: "1fr",
-              lg: "minmax(560px, 1.18fr) minmax(380px, 0.82fr)",
-            },
+            gridTemplateColumns: "1fr",
             minHeight: 0,
             minWidth: 0,
             overflow: { xs: "visible", lg: "auto" },
             p: { xs: 1.2, md: 1.4 },
           }}
         >
-          <Box
-            sx={{
-              display: "grid",
-              gap: 1.2,
-              gridTemplateRows: {
-                xs: "auto auto auto",
-                lg: "auto auto minmax(0, 1fr)",
-              },
-              minHeight: 0,
-              minWidth: 0,
-            }}
-          >
-            <PromptRunway
-              prompt={prompt}
-              onPromptChange={setPrompt}
-              onRun={runBuildPass}
-            />
-            <CommandChat
-              messages={messages}
-              pending={chatPending}
-              onSend={sendChat}
-              onStop={stopChat}
-            />
-            <IdePanel />
-          </Box>
-          <Box
-            sx={{
-              display: "grid",
-              gap: 1.2,
-              gridTemplateRows: { xs: "auto auto", lg: "minmax(0, 1fr) auto" },
-              minHeight: 0,
-              minWidth: 0,
-            }}
-          >
-            <StagePanel view={stageView} onViewChange={setStageView} />
-            <BuildGraph steps={steps} />
-          </Box>
+          <StudioWorkspace
+            activeSection={activeSection}
+            chatPending={chatPending}
+            messages={messages}
+            onPromptChange={setPrompt}
+            onRunBuildPass={runBuildPass}
+            onSendChat={sendChat}
+            onStageViewChange={openStageView}
+            onStopChat={stopChat}
+            prompt={prompt}
+            stageView={stageView}
+            steps={steps}
+          />
         </Box>
       </Box>
     </Box>
   );
 }
 
-function StudioSidebar() {
+type StudioWorkspaceProps = {
+  activeSection: StudioSection;
+  chatPending: boolean;
+  messages: ChatMessage[];
+  onPromptChange: (value: string) => void;
+  onRunBuildPass: () => void;
+  onSendChat: (message: string) => void;
+  onStageViewChange: (view: StageView) => void;
+  onStopChat: () => void;
+  prompt: string;
+  stageView: StageView;
+  steps: Array<{
+    id: string;
+    label: string;
+    detail: string;
+    state: BuildStepState;
+  }>;
+};
+
+function StudioWorkspace({
+  activeSection,
+  chatPending,
+  messages,
+  onPromptChange,
+  onRunBuildPass,
+  onSendChat,
+  onStageViewChange,
+  onStopChat,
+  prompt,
+  stageView,
+  steps,
+}: StudioWorkspaceProps) {
+  const chat = (
+    <CommandChat
+      messages={messages}
+      pending={chatPending}
+      onSend={onSendChat}
+      onStop={onStopChat}
+    />
+  );
+
+  if (activeSection === "prompt") {
+    return (
+      <SectionGrid>
+        <Stack spacing={1.2} sx={{ minHeight: 0, minWidth: 0 }}>
+          <PromptRunway
+            prompt={prompt}
+            onPromptChange={onPromptChange}
+            onRun={onRunBuildPass}
+          />
+          <PromptRulesPanel />
+        </Stack>
+        <Stack spacing={1.2} sx={{ minHeight: 0, minWidth: 0 }}>
+          {chat}
+          <PromptHistoryPanel />
+        </Stack>
+      </SectionGrid>
+    );
+  }
+
+  if (activeSection === "browser") {
+    return (
+      <SectionGrid wideLeft>
+        <StagePanel view="browser" onViewChange={onStageViewChange} />
+        <Stack spacing={1.2} sx={{ minHeight: 0, minWidth: 0 }}>
+          {chat}
+          <BrowserInspectorPanel />
+        </Stack>
+      </SectionGrid>
+    );
+  }
+
+  if (activeSection === "ide") {
+    return (
+      <SectionGrid wideLeft>
+        <IdePanel />
+        <Stack spacing={1.2} sx={{ minHeight: 0, minWidth: 0 }}>
+          {chat}
+          <IdeReviewPanel />
+        </Stack>
+      </SectionGrid>
+    );
+  }
+
+  if (activeSection === "android") {
+    return (
+      <SectionGrid wideLeft>
+        <StagePanel view="android" onViewChange={onStageViewChange} />
+        <Stack spacing={1.2} sx={{ minHeight: 0, minWidth: 0 }}>
+          {chat}
+          <AndroidControlPanel />
+        </Stack>
+      </SectionGrid>
+    );
+  }
+
+  if (activeSection === "graph") {
+    return (
+      <SectionGrid>
+        <GraphMapPanel steps={steps} />
+        <Stack spacing={1.2} sx={{ minHeight: 0, minWidth: 0 }}>
+          {chat}
+          <BuildGraph steps={steps} />
+        </Stack>
+      </SectionGrid>
+    );
+  }
+
+  if (activeSection === "deploy") {
+    return (
+      <SectionGrid>
+        <DeployControlPanel steps={steps} />
+        <Stack spacing={1.2} sx={{ minHeight: 0, minWidth: 0 }}>
+          {chat}
+          <BuildGraph steps={steps} />
+        </Stack>
+      </SectionGrid>
+    );
+  }
+
+  return (
+    <SectionGrid>
+      <Box
+        sx={{
+          display: "grid",
+          gap: 1.2,
+          gridTemplateRows: {
+            xs: "auto",
+            lg: "auto auto minmax(0, 1fr)",
+          },
+          minHeight: 0,
+          minWidth: 0,
+        }}
+      >
+        <PromptRunway
+          prompt={prompt}
+          onPromptChange={onPromptChange}
+          onRun={onRunBuildPass}
+        />
+        {chat}
+        <IdePanel />
+      </Box>
+      <Box
+        sx={{
+          display: "grid",
+          gap: 1.2,
+          gridTemplateRows: { xs: "auto", lg: "minmax(0, 1fr) auto" },
+          minHeight: 0,
+          minWidth: 0,
+        }}
+      >
+        <StagePanel view={stageView} onViewChange={onStageViewChange} />
+        <BuildGraph steps={steps} />
+      </Box>
+    </SectionGrid>
+  );
+}
+
+function SectionGrid({
+  children,
+  wideLeft = false,
+}: {
+  children: ReactNode;
+  wideLeft?: boolean;
+}) {
+  return (
+    <Box
+      sx={{
+        display: "grid",
+        gap: 1.2,
+        gridTemplateColumns: {
+          xs: "1fr",
+          lg: wideLeft
+            ? "minmax(680px, 1.35fr) minmax(320px, 0.65fr)"
+            : "minmax(560px, 1.05fr) minmax(380px, 0.95fr)",
+        },
+        minHeight: 0,
+        minWidth: 0,
+      }}
+    >
+      {children}
+    </Box>
+  );
+}
+
+function PromptRulesPanel() {
+  return (
+    <Panel title="Requirements" eyebrow="Acceptance criteria">
+      <Box sx={{ display: "grid", gap: 1 }}>
+        {[
+          ["User roles", "Owner, manager and reviewer permissions"],
+          ["Core flows", "Projects, invoices, approvals and activity"],
+          ["Data", "Seeded dashboard metrics with editable records"],
+          ["Quality", "Responsive web plus Android preview checks"],
+        ].map(([title, detail]) => (
+          <InsightRow key={title} title={title} detail={detail} />
+        ))}
+      </Box>
+    </Panel>
+  );
+}
+
+function PromptHistoryPanel() {
+  return (
+    <Panel title="Prompt versions" eyebrow="Run memory">
+      <Box sx={{ display: "grid", gap: 1 }}>
+        {[
+          ["v4", "Added approvals table and deploy gate", "current"],
+          ["v3", "Tightened Android spacing", "kept"],
+          ["v2", "Added billing model and manager role", "kept"],
+        ].map(([version, detail, status]) => (
+          <InsightRow
+            key={version}
+            title={version}
+            detail={detail}
+            meta={status}
+          />
+        ))}
+      </Box>
+    </Panel>
+  );
+}
+
+function BrowserInspectorPanel() {
+  return (
+    <Panel title="Browser QA" eyebrow="Viewport checks">
+      <Box sx={{ display: "grid", gap: 1 }}>
+        {[
+          ["1440 desktop", "No overflow, hero and dashboard stable", "pass"],
+          ["1024 tablet", "Cards collapse to two columns", "pass"],
+          ["390 mobile", "Navigation stacks without route jumps", "review"],
+          ["Console", "No runtime errors in preview surface", "pass"],
+        ].map(([title, detail, meta]) => (
+          <InsightRow key={title} title={title} detail={detail} meta={meta} />
+        ))}
+      </Box>
+    </Panel>
+  );
+}
+
+function IdeReviewPanel() {
+  return (
+    <Panel title="Code review" eyebrow="Files and checks">
+      <Box sx={{ display: "grid", gap: 1 }}>
+        {[
+          ["Diff", "4 files changed, 178 additions", "+178"],
+          ["Types", "TypeScript clean", "pass"],
+          ["Tests", "Client flow smoke ready", "queued"],
+          ["Risk", "Deploy gate still requires final pass", "medium"],
+        ].map(([title, detail, meta]) => (
+          <InsightRow key={title} title={title} detail={detail} meta={meta} />
+        ))}
+      </Box>
+    </Panel>
+  );
+}
+
+function AndroidControlPanel() {
+  return (
+    <Panel title="Device lab" eyebrow="Native preview">
+      <Box sx={{ display: "grid", gap: 1 }}>
+        {[
+          ["Pixel 8", "390 x 844, Android 15 baseline", "active"],
+          ["Safe areas", "Header and CTA avoid system bars", "pass"],
+          ["Touch targets", "Primary controls stay above 44px", "pass"],
+          ["Keyboard", "Prompt composer scrolls into view", "review"],
+        ].map(([title, detail, meta]) => (
+          <InsightRow key={title} title={title} detail={detail} meta={meta} />
+        ))}
+      </Box>
+    </Panel>
+  );
+}
+
+function GraphMapPanel({
+  steps,
+}: {
+  steps: Array<{
+    id: string;
+    label: string;
+    detail: string;
+    state: BuildStepState;
+  }>;
+}) {
+  return (
+    <Panel title="System map" eyebrow="Generated architecture" fill>
+      <Box
+        sx={{
+          display: "grid",
+          gap: 1,
+          gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" },
+        }}
+      >
+        {steps.map((step) => (
+          <Box
+            key={step.id}
+            sx={{
+              border: `1px solid ${tokens.color.border.subtle}`,
+              borderRadius: 1.2,
+              bgcolor: "rgba(255,255,255,0.035)",
+              minHeight: 118,
+              p: 1.3,
+            }}
+          >
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <Box
+                sx={{
+                  bgcolor: `${stepColor(step.state)}22`,
+                  borderRadius: 1,
+                  height: 34,
+                  width: 34,
+                  display: "grid",
+                  placeItems: "center",
+                }}
+              >
+                <AccountTreeRounded
+                  sx={{ color: stepColor(step.state), fontSize: 18 }}
+                />
+              </Box>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography sx={{ fontSize: 14, fontWeight: 950 }}>
+                  {step.label}
+                </Typography>
+                <Typography
+                  sx={{ color: tokens.color.text.muted, fontSize: 11 }}
+                >
+                  {step.state}
+                </Typography>
+              </Box>
+            </Stack>
+            <Typography
+              sx={{ color: tokens.color.text.secondary, fontSize: 12.5, mt: 1 }}
+            >
+              {step.detail}
+            </Typography>
+          </Box>
+        ))}
+      </Box>
+    </Panel>
+  );
+}
+
+function DeployControlPanel({
+  steps,
+}: {
+  steps: Array<{ state: BuildStepState }>;
+}) {
+  const deployRunning = steps.some((step) => step.state === "running");
+  return (
+    <Panel
+      title="Release control"
+      eyebrow="Production lane"
+      action={
+        <Button
+          variant="contained"
+          endIcon={<RocketLaunchRounded sx={{ fontSize: 18 }} />}
+        >
+          Publish
+        </Button>
+      }
+    >
+      <Box sx={{ display: "grid", gap: 1 }}>
+        {[
+          ["Preview URL", "clientflow.ironflyer.app", "live"],
+          [
+            "Build gate",
+            deployRunning ? "Deploy lane is running" : "Waiting for final pass",
+            deployRunning ? "running" : "queued",
+          ],
+          ["Rollback", "Snapshot retained for instant restore", "ready"],
+          ["Notes", "Client portal, Android pass, approval flow", "draft"],
+        ].map(([title, detail, meta]) => (
+          <InsightRow key={title} title={title} detail={detail} meta={meta} />
+        ))}
+      </Box>
+    </Panel>
+  );
+}
+
+function InsightRow({
+  title,
+  detail,
+  meta,
+}: {
+  title: string;
+  detail: string;
+  meta?: string;
+}) {
+  return (
+    <Stack
+      direction="row"
+      alignItems="center"
+      spacing={1}
+      sx={{
+        border: `1px solid ${tokens.color.border.subtle}`,
+        borderRadius: 1.2,
+        bgcolor: "rgba(255,255,255,0.035)",
+        px: 1,
+        py: 0.9,
+      }}
+    >
+      <CheckRounded sx={{ color: tokens.color.accent.success, fontSize: 17 }} />
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Typography sx={{ fontSize: 13, fontWeight: 900 }}>{title}</Typography>
+        <Typography sx={{ color: tokens.color.text.secondary, fontSize: 12 }}>
+          {detail}
+        </Typography>
+      </Box>
+      {meta ? (
+        <Chip
+          label={meta}
+          size="small"
+          sx={{
+            bgcolor: "rgba(143,77,255,0.18)",
+            color: tokens.color.accent.violet,
+            fontFamily: tokens.font.mono,
+            fontSize: 10,
+            fontWeight: 900,
+            height: 22,
+          }}
+        />
+      ) : null}
+    </Stack>
+  );
+}
+
+function StudioSidebar({
+  activeSection,
+  onSectionChange,
+}: {
+  activeSection: StudioSection;
+  onSectionChange: (section: StudioSection) => void;
+}) {
   return (
     <Box
       sx={{
@@ -355,7 +882,10 @@ function StudioSidebar() {
         <BrandLogo size={25} inverse href="/studio" />
         <Tooltip title="New project" arrow>
           <IconButton
+            component={Link}
+            href="/"
             size="small"
+            aria-label="New project"
             sx={{
               border: `1px solid ${tokens.color.border.subtle}`,
               borderRadius: 1.2,
@@ -402,69 +932,43 @@ function StudioSidebar() {
             pb: { xs: 0.2, lg: 0 },
           }}
         >
-          {NAV.map(([label, Icon], index) => (
-            <Button
-              key={label}
-              fullWidth={false}
-              startIcon={<Icon sx={{ fontSize: 18 }} />}
-              endIcon={index === 0 ? <ChevronRightRounded /> : null}
-              sx={{
-                borderRadius: 1.2,
-                color:
-                  index === 0
+          {NAV.map(({ id, label, icon: Icon }) => {
+            const active = activeSection === id;
+            return (
+              <Button
+                key={id}
+                fullWidth={false}
+                startIcon={<Icon sx={{ fontSize: 18 }} />}
+                endIcon={active ? <ChevronRightRounded /> : null}
+                onClick={() => onSectionChange(id)}
+                sx={{
+                  borderRadius: 1.2,
+                  color: active
                     ? tokens.color.text.primary
                     : tokens.color.text.secondary,
-                justifyContent: "flex-start",
-                minHeight: 39,
-                minWidth: { xs: 112, lg: "auto" },
-                px: 1.1,
-                textTransform: "none",
-                bgcolor:
-                  index === 0
+                  justifyContent: "flex-start",
+                  minHeight: 39,
+                  minWidth: { xs: 112, lg: "auto" },
+                  px: 1.1,
+                  textTransform: "none",
+                  bgcolor: active
                     ? `${tokens.color.accent.purple}45`
                     : "transparent",
-                border:
-                  index === 0
+                  border: active
                     ? `1px solid ${tokens.color.border.accent}`
                     : "1px solid transparent",
-                "& .MuiButton-endIcon": { ml: "auto" },
-              }}
-            >
-              {label}
-            </Button>
-          ))}
+                  "& .MuiButton-endIcon": { ml: "auto" },
+                }}
+              >
+                {label}
+              </Button>
+            );
+          })}
         </Stack>
 
         <Box sx={{ display: { xs: "none", lg: "block" } }}>
           <Typography sx={{ ...overlineSx, mt: 2 }}>Projects</Typography>
-          {["ClientFlow", "Marketplace", "FieldOps", "InvoicePro"].map(
-            (project, index) => (
-              <Stack
-                key={project}
-                direction="row"
-                alignItems="center"
-                spacing={1}
-                sx={{
-                  borderRadius: 1.2,
-                  color:
-                    index === 0
-                      ? tokens.color.text.primary
-                      : tokens.color.text.secondary,
-                  px: 1,
-                  py: 0.9,
-                  bgcolor:
-                    index === 0 ? "rgba(255,255,255,0.04)" : "transparent",
-                }}
-              >
-                <FolderRounded
-                  sx={{ color: tokens.color.accent.violet, fontSize: 17 }}
-                />
-                <Typography sx={{ fontSize: 13.5, fontWeight: 800 }}>
-                  {project}
-                </Typography>
-              </Stack>
-            ),
-          )}
+          <StudioSidebarProjects />
         </Box>
       </Box>
 
@@ -495,7 +999,88 @@ function StudioSidebar() {
   );
 }
 
-function StudioTopbar({ progress }: { progress: number }) {
+function StudioSidebarProjects() {
+  const { data, loading } = useProjectsQuery({
+    variables: { limit: 8, offset: 0 },
+    fetchPolicy: "cache-and-network",
+  });
+  const projects = useMemo(() => {
+    const rows = data?.projects ?? [];
+    return [...rows]
+      .sort(
+        (a, b) =>
+          new Date(b.updatedAt || b.createdAt).getTime() -
+          new Date(a.updatedAt || a.createdAt).getTime(),
+      )
+      .slice(0, 8);
+  }, [data]);
+
+  if (loading && projects.length === 0) {
+    return (
+      <Typography sx={{ color: tokens.color.text.muted, fontSize: 12, mt: 1 }}>
+        Loading…
+      </Typography>
+    );
+  }
+
+  if (projects.length === 0) {
+    return (
+      <Typography sx={{ color: tokens.color.text.muted, fontSize: 12, mt: 1 }}>
+        No projects yet. Start one from the prompt at home.
+      </Typography>
+    );
+  }
+
+  return (
+    <Stack spacing={0.3} sx={{ mt: 0.5 }}>
+      {projects.map((p) => (
+        <Box
+          component={Link}
+          key={p.id}
+          href={`/p/${encodeURIComponent(p.id)}`}
+          sx={{
+            alignItems: "center",
+            borderRadius: 1.2,
+            color: tokens.color.text.secondary,
+            display: "flex",
+            gap: 1,
+            px: 1,
+            py: 0.9,
+            textDecoration: "none",
+            "&:hover": {
+              bgcolor: tokens.color.bg.surfaceHover,
+              color: tokens.color.text.primary,
+            },
+          }}
+        >
+          <FolderRounded
+            sx={{ color: tokens.color.accent.violet, fontSize: 17 }}
+          />
+          <Typography
+            sx={{
+              fontSize: 13.5,
+              fontWeight: 800,
+              minWidth: 0,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {p.name || `Project ${p.id.slice(0, 6)}`}
+          </Typography>
+        </Box>
+      ))}
+    </Stack>
+  );
+}
+
+function StudioTopbar({
+  progress,
+  section,
+}: {
+  progress: number;
+  section: { title: string; eyebrow: string; detail: string };
+}) {
   return (
     <Stack
       direction="row"
@@ -511,10 +1096,20 @@ function StudioTopbar({ progress }: { progress: number }) {
     >
       <Box sx={{ minWidth: 0, width: { xs: "100%", md: "auto" } }}>
         <Typography sx={{ color: tokens.color.text.muted, fontSize: 12 }}>
-          Studio / ClientFlow
+          {section.eyebrow}
         </Typography>
         <Typography sx={{ fontSize: 18, fontWeight: 950 }}>
-          Production workspace
+          {section.title}
+        </Typography>
+        <Typography
+          sx={{
+            color: tokens.color.text.muted,
+            display: { xs: "none", md: "block" },
+            fontSize: 11.5,
+            mt: 0.25,
+          }}
+        >
+          {section.detail}
         </Typography>
       </Box>
       <Box sx={{ display: { xs: "none", md: "block" }, flex: 1 }} />
@@ -1330,20 +1925,6 @@ function CommandChat({
       </Stack>
     </Box>
   );
-}
-
-function previewReply(message: string) {
-  const lower = message.toLowerCase();
-  if (lower.includes("mobile") || lower.includes("android")) {
-    return "Android pass queued: I will tighten spacing, keep the preview inside the device frame, and preserve the studio layout.";
-  }
-  if (lower.includes("code") || lower.includes("ide")) {
-    return "IDE pass ready: I will keep the file tree stable, expose only the useful code pane, and avoid extra studio clutter.";
-  }
-  if (lower.includes("deploy") || lower.includes("publish")) {
-    return "Deploy pass ready: I will keep the gate visible, show blockers clearly, and avoid leaving the studio route.";
-  }
-  return "Got it. I will apply this inside the studio flow and keep the interface focused.";
 }
 
 function Panel({
