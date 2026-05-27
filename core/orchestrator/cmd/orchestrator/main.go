@@ -44,6 +44,7 @@ import (
 	"ironflyer/core/orchestrator/internal/business/budget"
 	"ironflyer/core/orchestrator/internal/business/budget/payments"
 	"ironflyer/core/orchestrator/internal/business/clickhouse"
+	"ironflyer/core/orchestrator/internal/business/compliance"
 	"ironflyer/core/orchestrator/internal/business/dashboards"
 	"ironflyer/core/orchestrator/internal/business/dashboards/adapters"
 	"ironflyer/core/orchestrator/internal/business/execution"
@@ -1118,6 +1119,33 @@ func main() {
 		go reconciler.Start(ctx)
 	}
 
+	// ComplianceGate verticals — premium per-project SKUs (PCI / HIPAA
+	// / SOC 2 / GDPR) sold at $199-$499/month and billed against the
+	// wallet via the compliance package. Backend is Postgres when
+	// wired, in-memory otherwise. Attestation secret is loaded once
+	// from env; absence disables the audit-bundle export with a typed
+	// NOT_CONFIGURED error rather than minting unsigned attestations.
+	var complianceBackend compliance.Backend
+	if pgPool != nil {
+		complianceBackend = compliance.NewPostgresBackend(pgPool)
+		logger.Info().Msg("V22 compliance: Postgres backend")
+	} else {
+		complianceBackend = compliance.NewMemoryBackend()
+		logger.Info().Msg("V22 compliance: in-memory backend")
+	}
+	complianceSvc := compliance.NewService(
+		complianceBackend,
+		projects,
+		walletSvc,
+		os.Getenv("IRONFLYER_ATTESTATION_SECRET"),
+		logger.With().Str("component", "compliance").Logger(),
+	)
+	complianceReconciler := compliance.NewReconciler(complianceSvc, compliance.ReconcilerOpts{})
+	go complianceReconciler.Start(ctx)
+	if os.Getenv("IRONFLYER_ATTESTATION_SECRET") == "" {
+		logger.Warn().Msg("V22 compliance: IRONFLYER_ATTESTATION_SECRET unset — audit bundle export will return NOT_CONFIGURED")
+	}
+
 	// ProvisioningVault — Ironflyer-as-issuer revenue rails (Stripe
 	// Connect, domain reseller, email partner, hosting). Mirrors the
 	// wallet pattern: Service + ConnectorRegistry + Reconciler. Env
@@ -2003,6 +2031,7 @@ func main() {
 		// V22 service surface.
 		Wallet:           walletSvc,
 		WalletToppers:    walletToppers,
+		Compliance:       complianceSvc,
 		Provisioning:     provisioningVault,
 		Ledger:           ledgerSvc,
 		Execution:        execSvc,

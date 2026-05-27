@@ -41,6 +41,7 @@ import (
 	"ironflyer/core/orchestrator/internal/business/blueprints"
 	"ironflyer/core/orchestrator/internal/business/budget"
 	"ironflyer/core/orchestrator/internal/business/budget/payments"
+	"ironflyer/core/orchestrator/internal/business/compliance"
 	"ironflyer/core/orchestrator/internal/business/dashboards"
 	"ironflyer/core/orchestrator/internal/business/execution"
 	"ironflyer/core/orchestrator/internal/business/forecast"
@@ -181,8 +182,13 @@ type Deps struct {
 	// ---------- V22 service surface --------------------------------
 	// Every field is optional. The resolver returns NOT_CONFIGURED
 	// for any V22 query that arrives without the matching dep.
-	Wallet           wallet.Service
-	WalletToppers    *wallet.TopperRegistry
+	Wallet        wallet.Service
+	WalletToppers *wallet.TopperRegistry
+	// Compliance powers the ComplianceGate vertical SKUs (PCI / HIPAA
+	// / SOC 2 / GDPR). Nil-safe — the resolver returns NOT_CONFIGURED
+	// when the orchestrator was booted without a Postgres pool /
+	// in-memory compliance backend.
+	Compliance       *compliance.Service
 	Ledger           ledger.Service
 	Execution        execution.Service
 	ExecutionSettler execution.Settler
@@ -471,6 +477,7 @@ func (a *API) newResolver() *resolver.Resolver {
 		// V22 service surface.
 		WalletSvc:         a.d.Wallet,
 		WalletToppers:     a.d.WalletToppers,
+		Compliance:        a.d.Compliance,
 		LedgerSvc:         a.d.Ledger,
 		ExecutionSvc:      a.d.Execution,
 		ExecutionSettler:  a.d.ExecutionSettler,
