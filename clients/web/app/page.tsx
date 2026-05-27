@@ -676,17 +676,6 @@ function HeroCopy({
           single prompt.
         </Box>
       </Typography>
-      <Typography
-        sx={{
-          color: t.secondary,
-          maxWidth: 440,
-          fontSize: 12.8,
-          lineHeight: 1.45,
-        }}
-      >
-        IronFlyer turns a plain-language idea into screens, data, code, tests
-        and deployments — in minutes.
-      </Typography>
       <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
         <Button
           component={Link}
@@ -1992,12 +1981,10 @@ function Hero(props: HeroProps) {
           ? [
               "radial-gradient(780px 360px at 4% 84%, rgba(230,70,199,0.14), transparent 72%)",
               "radial-gradient(780px 420px at 82% 34%, rgba(255,111,76,0.10), transparent 75%)",
-              "radial-gradient(740px 380px at 51% 53%, rgba(149,75,255,0.13), transparent 74%)",
             ].join(",")
           : [
               "radial-gradient(780px 360px at 4% 84%, rgba(181,108,255,0.16), transparent 72%)",
               "radial-gradient(780px 420px at 82% 34%, rgba(255,111,76,0.12), transparent 75%)",
-              "radial-gradient(740px 380px at 51% 53%, rgba(143,77,255,0.22), transparent 74%)",
             ].join(","),
       }}
     >
@@ -2005,7 +1992,6 @@ function Hero(props: HeroProps) {
         spacing={{ xs: 2.1, md: 2.25 }}
         sx={{ position: "relative", zIndex: 1 }}
       >
-        <HeroDepthScene timing={props.timing} />
         <Stack spacing={1.45} alignItems="center" sx={{ pt: { md: 0.8 } }}>
           {props.welcomeOpen && (
             <WelcomeBanner
@@ -2050,18 +2036,6 @@ function Hero(props: HeroProps) {
               single prompt.
             </Box>
           </Typography>
-          <Typography
-            sx={{
-              maxWidth: 470,
-              color: hero.secondary,
-              fontSize: { xs: 14.5, md: 16 },
-              lineHeight: 1.5,
-              textAlign: "center",
-            }}
-          >
-            IronFlyer turns a plain-language idea into screens, data, code,
-            tests and deployments — in minutes.
-          </Typography>
           <Box
             sx={{
               width: "100%",
@@ -2091,77 +2065,6 @@ function Hero(props: HeroProps) {
         </Stack>
       </Stack>
     </Section>
-  );
-}
-
-function HeroDepthScene({ timing }: { timing: OrbitalTiming }) {
-  const light = timing === "light";
-  return (
-    <Box
-      aria-hidden
-      sx={{
-        position: "absolute",
-        inset: { xs: "52px -18px auto", md: "70px -8px auto" },
-        height: { xs: 260, md: 430 },
-        pointerEvents: "none",
-        opacity: light ? 0.72 : 0.86,
-        zIndex: -1,
-        overflow: "hidden",
-      }}
-    >
-      <Box
-        sx={{
-          position: "absolute",
-          inset: 0,
-          backgroundImage: light
-            ? [
-                "radial-gradient(circle at 19% 24%, rgba(91,79,138,0.18) 0 1px, transparent 1.4px)",
-                "radial-gradient(circle at 74% 18%, rgba(91,79,138,0.16) 0 1px, transparent 1.4px)",
-                "radial-gradient(ellipse 620px 170px at 50% 45%, rgba(188,92,255,0.13), transparent 72%)",
-              ].join(",")
-            : [
-                "radial-gradient(circle at 18% 24%, rgba(210,220,255,0.45) 0 1px, transparent 1.4px)",
-                "radial-gradient(circle at 74% 18%, rgba(210,220,255,0.34) 0 1px, transparent 1.4px)",
-                "radial-gradient(ellipse 620px 170px at 50% 45%, rgba(159,83,255,0.21), transparent 72%)",
-              ].join(","),
-          backgroundSize: "92px 92px, 136px 136px, auto",
-        }}
-      />
-      <Box
-        sx={{
-          position: "absolute",
-          left: "50%",
-          top: "48%",
-          width: { xs: 360, md: 620 },
-          height: { xs: 110, md: 152 },
-          borderRadius: "50%",
-          transform: "translate(-50%, -50%) rotate(-4deg)",
-          background: light
-            ? "repeating-linear-gradient(96deg, rgba(255,111,76,0.00) 0 18px, rgba(255,111,76,0.12) 20px 28px, rgba(179,77,255,0.10) 31px 42px, rgba(255,255,255,0.0) 48px 66px)"
-            : "repeating-linear-gradient(96deg, rgba(255,111,76,0.00) 0 18px, rgba(255,111,76,0.17) 20px 28px, rgba(179,77,255,0.18) 31px 42px, rgba(11,13,35,0.0) 48px 66px)",
-          maskImage:
-            "radial-gradient(ellipse at center, black 0 54%, transparent 72%)",
-          filter: "blur(0.2px)",
-        }}
-      />
-      <Box
-        sx={{
-          position: "absolute",
-          left: "50%",
-          top: "49%",
-          width: { xs: 390, md: 680 },
-          height: { xs: 62, md: 82 },
-          borderRadius: "50%",
-          border: light
-            ? "1px solid rgba(127,77,255,0.13)"
-            : "1px solid rgba(170,108,255,0.24)",
-          transform: "translate(-50%, -50%) rotate(-5deg)",
-          boxShadow: light
-            ? "0 24px 80px rgba(174,91,255,0.10)"
-            : "0 30px 100px rgba(122,76,255,0.18)",
-        }}
-      />
-    </Box>
   );
 }
 
