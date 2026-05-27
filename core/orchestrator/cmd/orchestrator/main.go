@@ -76,6 +76,7 @@ import (
 	"ironflyer/core/orchestrator/internal/business/profitguard"
 	"ironflyer/core/orchestrator/internal/business/profitguardbridge"
 	"ironflyer/core/orchestrator/internal/business/profitguardctx"
+	"ironflyer/core/orchestrator/internal/business/guild"
 	"ironflyer/core/orchestrator/internal/business/provisioning"
 	"ironflyer/core/orchestrator/internal/business/sentinel"
 	"ironflyer/core/orchestrator/internal/business/shippass"
@@ -1276,6 +1277,26 @@ func main() {
 		logger.Info().Msg("V22 sentinel: forecast + Insured Ship SKU wired")
 	}
 
+	// Finisher Guild — two-sided marketplace for human finishers +
+	// templates. Gated on IRONFLYER_GUILD_ENABLED so a half-credentialed
+	// staging env can opt out cleanly. The router subscribes to the
+	// learning publisher's gate_outcome stream via AttachRouterObserver
+	// once both this bundle and the publisher exist (publisher is
+	// constructed downstream; we attach below where it lands).
+	var guildBundle *wireup.GuildBundle
+	if strings.EqualFold(strings.TrimSpace(os.Getenv("IRONFLYER_GUILD_ENABLED")), "true") {
+		guildBundle = wireup.WireGuild(wireup.GuildOpts{
+			Pool:         pgPool,
+			WalletSvc:    walletSvc,
+			ProjectStore: projects,
+			Logger:       logger.With().Str("component", "guild").Logger(),
+		})
+		if guildBundle != nil {
+			go guildBundle.Reconciler.Start(ctx)
+			logger.Info().Msg("V22 guild: coordinator + reconciler wired")
+		}
+	}
+
 	// Ledger.
 	var ledgerSvc ledger.Service
 	if pgPool != nil {
@@ -2111,6 +2132,12 @@ func main() {
 		ShipPass:         shipPassSvc,
 		ShipPassSettler:  shipPassSettler,
 		Sentinel:         sentinelSvc,
+		GuildCoord: func() *guild.Coordinator {
+			if guildBundle == nil {
+				return nil
+			}
+			return guildBundle.Coordinator
+		}(),
 		Ledger:           ledgerSvc,
 		Execution:        execSvc,
 		ExecutionSettler: executionSettler,
