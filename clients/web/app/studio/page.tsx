@@ -18,7 +18,6 @@ import {
   RocketLaunchRounded,
   SearchRounded,
   SendRounded,
-  SettingsRounded,
   ShieldRounded,
   TerminalRounded,
 } from "@mui/icons-material";
@@ -32,12 +31,19 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import { BrandLogo } from "../../src/components/BrandLogo";
+import { getToken } from "../../src/lib/apollo";
+import { streamChat, type StreamChatHandle } from "../../src/lib/chat/stream";
 import { tokens } from "../../../../packages/design-tokens";
 
 type StageView = "browser" | "ide" | "android";
 type BuildStepState = "done" | "running" | "queued";
+type ChatMessage = {
+  id: string;
+  role: "user" | "assistant";
+  body: string;
+};
 
 const NAV = [
   ["Command", DashboardRounded],
@@ -114,9 +120,15 @@ export default function StudioPage() {
     "Build a client operations portal with projects, invoices, approvals, role-based access and team activity.",
   );
   const [steps, setSteps] = useState(INITIAL_STEPS);
-  const [assistant, setAssistant] = useState(
-    "The browser preview is live. The Android pass is queued after the responsive UI check finishes.",
-  );
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      id: "m0",
+      role: "assistant",
+      body: "Ready. Ask for a UI change, a code patch, or an Android pass.",
+    },
+  ]);
+  const [chatPending, setChatPending] = useState(false);
+  const streamRef = useRef<StreamChatHandle | null>(null);
 
   const progress = useMemo(() => {
     const done = steps.filter((step) => step.state === "done").length;
@@ -133,10 +145,75 @@ export default function StudioPage() {
             : step,
       ),
     );
-    setAssistant(
-      "Build pass completed: responsive UI is ready, Android rendering is now in review, and deploy remains gated.",
-    );
+    setMessages((current) => [
+      ...current,
+      {
+        id: `a-${Date.now()}`,
+        role: "assistant",
+        body: "Build pass completed. Android rendering is now in review and the deploy gate is still visible.",
+      },
+    ]);
     setStageView("android");
+  };
+
+  const sendChat = (body: string) => {
+    const message = body.trim();
+    if (!message || chatPending) return;
+
+    streamRef.current?.abort();
+    const userId = `u-${Date.now()}`;
+    const assistantId = `a-${Date.now()}`;
+    setMessages((current) => [
+      ...current,
+      { id: userId, role: "user", body: message },
+      { id: assistantId, role: "assistant", body: "" },
+    ]);
+    setChatPending(true);
+
+    const fillAssistant = (nextBody: string) => {
+      setMessages((current) =>
+        current.map((item) =>
+          item.id === assistantId ? { ...item, body: nextBody } : item,
+        ),
+      );
+    };
+
+    const token = getToken();
+    if (!token) {
+      window.setTimeout(() => {
+        fillAssistant(previewReply(message));
+        setChatPending(false);
+      }, 420);
+      return;
+    }
+
+    let buffer = "";
+    const handle = streamChat({ executionID: "_", message, token }, (event) => {
+      if (event.type === "delta") {
+        const chunk =
+          typeof event.data.text === "string" ? event.data.text : "";
+        if (!chunk) return;
+        buffer += chunk;
+        fillAssistant(buffer);
+        return;
+      }
+
+      if (event.type === "finish") {
+        fillAssistant(buffer || previewReply(message));
+        return;
+      }
+
+      if (event.type === "error") {
+        fillAssistant(previewReply(message));
+      }
+    });
+
+    streamRef.current = handle;
+    handle.done.finally(() => {
+      if (streamRef.current === handle) streamRef.current = null;
+      if (!buffer) fillAssistant(previewReply(message));
+      setChatPending(false);
+    });
   };
 
   return (
@@ -178,7 +255,10 @@ export default function StudioPage() {
             sx={{
               display: "grid",
               gap: 1.2,
-              gridTemplateRows: { xs: "auto auto", lg: "auto minmax(0, 1fr)" },
+              gridTemplateRows: {
+                xs: "auto auto auto",
+                lg: "auto auto minmax(0, 1fr)",
+              },
               minHeight: 0,
               minWidth: 0,
             }}
@@ -187,6 +267,11 @@ export default function StudioPage() {
               prompt={prompt}
               onPromptChange={setPrompt}
               onRun={runBuildPass}
+            />
+            <CommandChat
+              messages={messages}
+              pending={chatPending}
+              onSend={sendChat}
             />
             <IdePanel />
           </Box>
@@ -202,7 +287,6 @@ export default function StudioPage() {
             <StagePanel view={stageView} onViewChange={setStageView} />
             <BuildGraph steps={steps} />
           </Box>
-          <AssistantStrip assistant={assistant} />
         </Box>
       </Box>
     </Box>
@@ -976,50 +1060,82 @@ function BuildGraph({
   );
 }
 
-function AssistantStrip({ assistant }: { assistant: string }) {
-  const [draft, setDraft] = useState("");
+function CommandChat({
+  messages,
+  pending,
+  onSend,
+}: {
+  messages: ChatMessage[];
+  pending: boolean;
+  onSend: (message: string) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const visibleMessages = messages.slice(-4);
+
   return (
     <Box
       sx={{
         border: `1px solid ${tokens.color.border.subtle}`,
         borderRadius: 1.5,
-        bgcolor: "rgba(17,19,42,0.86)",
+        bgcolor: "rgba(12,13,32,0.9)",
         display: "grid",
-        gridColumn: { xs: "1", xl: "1 / -1" },
-        gridTemplateColumns: {
-          xs: "1fr",
-          lg: "minmax(0, 1fr) minmax(320px, 0.72fr)",
-        },
-        gap: 1,
+        gap: 0.9,
         minWidth: 0,
-        p: 1.1,
+        p: 1,
       }}
     >
-      <Stack direction="row" alignItems="center" spacing={1}>
-        <AutoAwesomeRounded
-          sx={{ color: tokens.color.accent.violet, fontSize: 18 }}
-        />
-        <Typography sx={{ fontSize: 14.5, fontWeight: 950 }}>
-          Studio assistant
-        </Typography>
-        <Typography sx={{ color: tokens.color.text.secondary, fontSize: 13 }}>
-          {assistant}
-        </Typography>
-      </Stack>
+      <Box
+        sx={{
+          display: "grid",
+          gap: 0.65,
+          maxHeight: { xs: 132, lg: 122 },
+          overflow: "auto",
+          pr: 0.3,
+        }}
+      >
+        {visibleMessages.map((message) => (
+          <Box
+            key={message.id}
+            sx={{
+              alignSelf: message.role === "user" ? "end" : "start",
+              bgcolor:
+                message.role === "user"
+                  ? "rgba(143,77,255,0.24)"
+                  : "rgba(255,255,255,0.045)",
+              border: `1px solid ${
+                message.role === "user"
+                  ? "rgba(188,117,255,0.34)"
+                  : tokens.color.border.subtle
+              }`,
+              borderRadius: 1.2,
+              color: tokens.color.text.primary,
+              fontSize: 12.6,
+              lineHeight: 1.45,
+              maxWidth: "86%",
+              px: 1,
+              py: 0.75,
+            }}
+          >
+            {message.body || "Thinking..."}
+          </Box>
+        ))}
+      </Box>
       <Stack
         component="form"
         direction="row"
         spacing={1}
         onSubmit={(event) => {
           event.preventDefault();
-          setDraft("");
+          const nextMessage = inputRef.current?.value ?? "";
+          onSend(nextMessage);
+          if (inputRef.current) inputRef.current.value = "";
         }}
       >
         <Box
           component="input"
-          value={draft}
-          onChange={(event) => setDraft(event.target.value)}
-          placeholder="Ask about the current build..."
+          name="studio-chat"
+          ref={inputRef}
+          placeholder="Ask for a change..."
           sx={{
             bgcolor: "#080918",
             border: `1px solid ${tokens.color.border.subtle}`,
@@ -1035,6 +1151,7 @@ function AssistantStrip({ assistant }: { assistant: string }) {
         />
         <IconButton
           type="submit"
+          disabled={pending}
           sx={{ bgcolor: `${tokens.color.accent.purple}65`, borderRadius: 1.2 }}
         >
           <SendRounded sx={{ fontSize: 18 }} />
@@ -1042,6 +1159,20 @@ function AssistantStrip({ assistant }: { assistant: string }) {
       </Stack>
     </Box>
   );
+}
+
+function previewReply(message: string) {
+  const lower = message.toLowerCase();
+  if (lower.includes("mobile") || lower.includes("android")) {
+    return "Android pass queued: I will tighten spacing, keep the preview inside the device frame, and preserve the studio layout.";
+  }
+  if (lower.includes("code") || lower.includes("ide")) {
+    return "IDE pass ready: I will keep the file tree stable, expose only the useful code pane, and avoid extra studio clutter.";
+  }
+  if (lower.includes("deploy") || lower.includes("publish")) {
+    return "Deploy pass ready: I will keep the gate visible, show blockers clearly, and avoid leaving the studio route.";
+  }
+  return "Got it. I will apply this inside the studio flow and keep the interface focused.";
 }
 
 function Panel({
