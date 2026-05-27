@@ -24,11 +24,15 @@ import (
 	"ironflyer/core/orchestrator/internal/ai/repair"
 	"ironflyer/core/orchestrator/internal/business/blueprints"
 	"ironflyer/core/orchestrator/internal/business/budget"
+	"ironflyer/core/orchestrator/internal/business/compliance"
 	"ironflyer/core/orchestrator/internal/business/dashboards"
 	"ironflyer/core/orchestrator/internal/business/execution"
 	"ironflyer/core/orchestrator/internal/business/forecast"
+	"ironflyer/core/orchestrator/internal/business/guild"
 	"ironflyer/core/orchestrator/internal/business/ledger"
 	"ironflyer/core/orchestrator/internal/business/profitguard"
+	"ironflyer/core/orchestrator/internal/business/sentinel"
+	"ironflyer/core/orchestrator/internal/business/shippass"
 	"ironflyer/core/orchestrator/internal/business/wallet"
 	"ironflyer/core/orchestrator/internal/business/wowloop"
 	"ironflyer/core/orchestrator/internal/customer/auth"
@@ -143,6 +147,12 @@ type Resolver struct {
 	// the matching dependency was not wired by main.go.
 	WalletSvc         wallet.Service
 	WalletToppers     *wallet.TopperRegistry
+	// Compliance powers the ComplianceGate vertical SKUs (PCI / HIPAA
+	// / SOC 2 / GDPR). Nil-safe — when nil the compliance resolvers
+	// return NOT_CONFIGURED so the dashboard renders an "operator has
+	// not wired compliance yet" empty state without breaking the
+	// rest of the cockpit.
+	Compliance        *compliance.Service
 	LedgerSvc         ledger.Service
 	ExecutionSvc      execution.Service
 	ExecutionSettler  execution.Settler

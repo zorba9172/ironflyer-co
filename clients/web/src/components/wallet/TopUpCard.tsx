@@ -20,7 +20,7 @@ import { useWalletCreateTopUpMutation } from "../../lib/gql/__generated__";
 import { tokens } from "../../theme";
 
 const PRESETS = [10, 25, 50, 100, 250, 500];
-const MIN_CUSTOM = 5;
+const SUPPORTED_AMOUNTS_LABEL = PRESETS.map((value) => `$${value}`).join(", ");
 
 export function TopUpCard() {
   const [selected, setSelected] = useState<number>(25);
@@ -30,7 +30,10 @@ export function TopUpCard() {
 
   const useCustom = custom.trim().length > 0;
   const customAmount = Number(custom);
-  const customValid = useCustom && Number.isFinite(customAmount) && customAmount >= MIN_CUSTOM;
+  const customValid =
+    useCustom &&
+    Number.isFinite(customAmount) &&
+    PRESETS.includes(customAmount);
   const amount = useCustom ? customAmount : selected;
   const disabled = loading || (useCustom && !customValid);
 
@@ -67,13 +70,17 @@ export function TopUpCard() {
         <Stack spacing={0.5}>
           <Typography
             component="h2"
-            sx={{ fontSize: 18, fontWeight: 700, color: tokens.color.text.primary }}
+            sx={{
+              fontSize: 18,
+              fontWeight: 700,
+              color: tokens.color.text.primary,
+            }}
           >
             Add credits
           </Typography>
           <Typography sx={{ fontSize: 13, color: tokens.color.text.secondary }}>
-            Prepaid credits fund every paid execution. Pick a preset or set your own
-            amount.
+            Prepaid credits fund every paid execution. Pick a preset or set your
+            own amount.
           </Typography>
         </Stack>
 
@@ -91,10 +98,16 @@ export function TopUpCard() {
                 size="small"
                 sx={{
                   minWidth: 72,
-                  bgcolor: active ? tokens.color.accent.violet : tokens.color.bg.surfaceRaised,
-                  color: active ? tokens.color.text.inverse : tokens.color.text.primary,
+                  bgcolor: active
+                    ? tokens.color.accent.violet
+                    : tokens.color.bg.surfaceRaised,
+                  color: active
+                    ? tokens.color.text.inverse
+                    : tokens.color.text.primary,
                   border: `1px solid ${
-                    active ? tokens.color.accent.violet : tokens.color.border.subtle
+                    active
+                      ? tokens.color.accent.violet
+                      : tokens.color.border.subtle
                   }`,
                   fontFamily: tokens.font.mono,
                   fontWeight: 700,
@@ -117,7 +130,7 @@ export function TopUpCard() {
             variant="overline"
             sx={{ color: tokens.color.text.muted, letterSpacing: 1.2 }}
           >
-            Or custom amount (min ${MIN_CUSTOM})
+            Or custom amount
           </Typography>
           <TextField
             value={custom}
@@ -126,7 +139,7 @@ export function TopUpCard() {
               setCustom(next);
               setError(null);
             }}
-            placeholder="e.g. 75"
+            placeholder="10, 25, 50…"
             inputMode="decimal"
             sx={{
               maxWidth: 220,
@@ -152,8 +165,10 @@ export function TopUpCard() {
             }}
           />
           {useCustom && !customValid && (
-            <Typography sx={{ fontSize: 12, color: tokens.color.accent.warning }}>
-              Minimum top-up is ${MIN_CUSTOM}.
+            <Typography
+              sx={{ fontSize: 12, color: tokens.color.accent.warning }}
+            >
+              Supported top-ups are {SUPPORTED_AMOUNTS_LABEL}.
             </Typography>
           )}
         </Stack>
@@ -181,7 +196,11 @@ export function TopUpCard() {
             size="large"
             startIcon={
               loading ? (
-                <CircularProgress size={14} thickness={5} sx={{ color: "inherit" }} />
+                <CircularProgress
+                  size={14}
+                  thickness={5}
+                  sx={{ color: "inherit" }}
+                />
               ) : (
                 <OpenInNewRounded sx={{ fontSize: 16 }} />
               )

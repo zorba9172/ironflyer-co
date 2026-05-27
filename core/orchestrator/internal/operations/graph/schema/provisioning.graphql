@@ -1,0 +1,81 @@
+# Provisioning vault — Ironflyer-as-issuer revenue rails.
+#
+# When an Ironflyer-shipped app needs a third-party rail (Stripe Connect
+# for payments, Cloudflare/NameSilo for domains, Resend/Postmark for
+# transactional email, hosting for compute), Ironflyer provisions the
+# rail on the merchant's behalf and earns a configurable revenue-share
+# cut for the life of the relationship.
+#
+# Maps onto internal/business/provisioning.{Service,ConnectorRegistry}.
+# Owner isolation is enforced inline on every resolver — rows owned by
+# a different tenant surface as not-found, never as forbidden, so the
+# API never confirms a resource's existence to the wrong tenant.
+
+extend type Query {
+  # Every ProvisionedResource for the named project. Empty list is
+  # normal — projects without any rails wired return [] so the
+  # dashboard can render its "wire your first integration" CTA without
+  # a typed error.
+  provisionedResources(projectId: ID!): [ProvisionedResource!]!
+
+  # Recent RevenueEvent rows for one resource, newest first. limit
+  # defaults to 50; resolver clamps at 500. Used by the cockpit "rail
+  # revenue" timeline.
+  revenueEvents(resourceId: ID!, limit: Int = 50): [RevenueEvent!]!
+
+  # Enabled connectors the user can pick at provision time. Empty when
+  # no Connector is configured + enabled — the dashboard renders the
+  # provider chips disabled with a "wire credentials" hint.
+  availableConnectors: [ConnectorInfo!]!
+}
+
+extend type Mutation {
+  # Provision a new ProvisionedResource. kind MUST match one of the
+  # enabled connectors (see availableConnectors). Resolvers translate
+  # ErrConnectorDisabled into a NOT_CONFIGURED error so the UI can
+  # route the user to the integration-credentials page.
+  provisionResource(projectId: ID!, kind: String!): ProvisionedResource!
+
+  # Suspend an active ProvisionedResource. Idempotent — re-suspending
+  # an already-suspended row returns the row unchanged. Reactivation
+  # is a separate mutation (provisioning_reactivate) added when needed.
+  suspendResource(id: ID!): ProvisionedResource!
+}
+
+# ProvisionedResource is one third-party rail Ironflyer issued for a
+# (tenant, project) pair. status is one of: pending | active |
+# suspended | closed.
+type ProvisionedResource {
+  id: ID!
+  tenantId: ID!
+  projectId: ID!
+  kind: String!
+  externalId: String!
+  status: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+# RevenueEvent is one Ironflyer-cut line. grossAmountUSD is what
+# flowed through the rail; ironflyerCutUSD is the slice Ironflyer
+# took under the active RevenuePolicy at the time of the event.
+type RevenueEvent {
+  id: ID!
+  resourceId: ID!
+  occurredAt: DateTime!
+  grossAmountUSD: Float!
+  ironflyerCutUSD: Float!
+  externalRef: String!
+  ledgerEntryId: String!
+}
+
+# ConnectorInfo is the resolver-facing projection of one rail
+# Connector. sharePct is the active RevenuePolicy share (0.015 = 1.5%)
+# so the cockpit can render "1.5% per charge" next to the chip without
+# a second round-trip.
+type ConnectorInfo {
+  name: String!
+  label: String!
+  enabled: Boolean!
+  sharePct: Float!
+}

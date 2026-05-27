@@ -179,10 +179,10 @@ function ProjectStudioInner() {
     executionQuery.data?.execution ??
     (executionIDParam ? null : resolvedExecution);
   const executionID = execution?.id ?? "";
-  // chatStoreKey routes both modes through the same chat store: when
-  // an execution exists, messages key off its id; otherwise the free-
-  // chat sentinel "_" matches the orchestrator's chat_stream path.
-  const chatStoreKey = executionID || "_";
+  // chatStoreKey routes both modes through the same chat store. Before
+  // an execution exists, keep the draft chat scoped to the project so
+  // local messages never leak across projects.
+  const chatStoreKey = executionID || `project:${projectID}:draft`;
 
   // 2. Chat buffer.
   const messages = useChatStore(selectMessages(chatStoreKey));
@@ -190,7 +190,6 @@ function ProjectStudioInner() {
   const appendIncoming = useChatStore((s) => s.appendIncoming);
   const appendLocal = useChatStore((s) => s.appendLocal);
   const updateLocal = useChatStore((s) => s.updateLocal);
-  const adoptBuffer = useChatStore((s) => s.adoptBuffer);
 
   // Streaming chat handle — exposed so the user can hit Stop mid-reply
   // (cancels the upstream provider call) and so unmounting cleans up.
@@ -232,65 +231,25 @@ function ProjectStudioInner() {
   //    events (gate verdicts, cost ticks) continue to flow via the
   //    executionFeed subscription wired above.
   const [refineIdea, refineState] = useRefineIdeaMutation();
-  const [createExecFromChat, createExecState] =
-    useCreatePaidExecutionMutation();
   const onSend = useCallback(
     async (text: string, attachments?: StudioAttachment[]) => {
-      // Free-chat sentinel: when no execution has been admitted yet,
-      // the orchestrator's /executions/_/chat/stream path runs a
-      // general copilot reply without execution context. The chat
-      // store keys off the same id so messages stay coherent until
-      // an execution arrives.
-      const chatID = executionID || "_";
+      const chatID = chatStoreKey;
       appendLocal(chatID, makeUserMessage(text, attachments));
 
-      // No execution yet → the first chat message starts the build.
-      // We call createPaidExecution with the prompt as promptSummary
-      // and a small default wallet hold; the resolver enforces budget
-      // → admit → start, and projectExecutionsQuery refetches so the
-      // page swaps into the full Studio layout without a hard reload.
-      // The "_" buffer gets adopted into the new execution so the
-      // user's first message stays visible.
+      // No execution yet: keep chat local and require the explicit
+      // budget-confirming StartExecutionPanel before any wallet hold.
       if (!executionID && projectID) {
         appendLocal(
           chatID,
           makeAssistantThinkingMessage(
-            "Starting your first execution — placing a $5 wallet hold and admitting the build.",
+            "Choose a budget in Preview, then start the execution. I will not place a wallet hold from chat alone.",
           ),
         );
-        try {
-          const res = await createExecFromChat({
-            variables: {
-              input: {
-                projectID,
-                budgetUSD: 5,
-                stopLossUSD: 5,
-                promptSummary: text.slice(0, 240),
-                metadata: { source: "studio.chat.create" },
-              },
-            },
-            refetchQueries: ["ProjectExecutions"],
-          });
-          const newID = res.data?.createPaidExecution?.id;
-          if (newID) {
-            adoptBuffer(chatID, newID);
-          }
-        } catch (e) {
-          const n = normalizeError(e);
-          if (
-            n.code === "INSUFFICIENT_FUNDS" ||
-            n.code === "PAYMENT_REQUIRED" ||
-            n.status === 402
-          ) {
-            pushToast({
-              message: "Wallet too low — top up to start this execution.",
-              severity: "warning",
-              href: "/wallet",
-              actionLabel: "Top up",
-            });
-          }
-          appendLocal(chatID, makeErrorMessage(extractErrorMessage(e)));
-        }
+        pushToast({
+          message:
+            "Confirm a budget in Preview before starting a paid execution.",
+          severity: "info",
+        });
         return;
       }
 
@@ -366,10 +325,9 @@ function ProjectStudioInner() {
     [
       executionID,
       projectID,
+      chatStoreKey,
       refineIdea,
-      createExecFromChat,
       appendLocal,
-      adoptBuffer,
       updateLocal,
     ],
   );
@@ -479,7 +437,7 @@ function ProjectStudioInner() {
           <ChatPanel
             messages={messages}
             status="idle"
-            pending={streaming || refineState.loading || createExecState.loading}
+            pending={streaming || refineState.loading}
             onSend={onSend}
             onStop={onStop}
             userInitials={initials}
@@ -568,7 +526,7 @@ function ProjectStudioInner() {
         <ChatPanel
           messages={messages}
           status={bucket}
-          pending={streaming || refineState.loading || createExecState.loading}
+          pending={streaming || refineState.loading}
           onSend={onSend}
           onStop={onStop}
           userInitials={initials}

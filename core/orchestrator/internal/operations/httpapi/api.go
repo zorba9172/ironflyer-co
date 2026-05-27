@@ -46,6 +46,7 @@ import (
 	"ironflyer/core/orchestrator/internal/business/forecast"
 	"ironflyer/core/orchestrator/internal/business/ledger"
 	"ironflyer/core/orchestrator/internal/business/profitguard"
+	"ironflyer/core/orchestrator/internal/business/provisioning"
 	"ironflyer/core/orchestrator/internal/business/wallet"
 	"ironflyer/core/orchestrator/internal/business/wowloop"
 	"ironflyer/core/orchestrator/internal/customer/auth"
@@ -255,6 +256,13 @@ type Deps struct {
 	// learning.SetGlobal at boot) is used.
 	LearningStore     learning.Store
 	LearningPublisher *learning.Publisher
+
+	// Provisioning is the ProvisionedResource / RevenueEvent vault —
+	// Ironflyer-as-issuer revenue rails (Stripe Connect, domain
+	// reseller, email partner, hosting). nil-safe at the resolver
+	// layer; the /provisioning/webhook/stripe REST route 503s when
+	// the vault has no Stripe Connect connector wired.
+	Provisioning *provisioning.Vault
 }
 
 // API is the HTTP layer entry point. It assembles the chi router from
@@ -316,6 +324,12 @@ func New(d Deps) http.Handler {
 	r.Post("/budget/webhook", a.stripeWebhook)
 	// Paddle webhook — third-party callback, signature-verified inline.
 	r.Post("/budget/paddle/webhook", a.paddleWebhook)
+	// Stripe Connect webhook — distinct endpoint with its own signing
+	// secret (Connect events deliver application_fee.created /
+	// account.updated under a separate Stripe webhook). REST exception
+	// alongside /budget/webhook because the same constraints apply:
+	// third-party callback Stripe cannot drive over GraphQL.
+	r.Post("/provisioning/webhook/stripe", a.provisioningStripeWebhook)
 	// GitHub PR webhook — third-party callback. The path embeds the
 	// projectID + routing secret; the body is HMAC-verified against the
 	// per-project GITHUB_WEBHOOK_SECRET. See suppliers/github_pr for

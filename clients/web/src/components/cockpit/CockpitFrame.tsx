@@ -29,7 +29,9 @@ export function CockpitFrame({ children }: { children: ReactNode }) {
     pathname === "/pricing" ||
     pathname === "/resources" ||
     pathname === "/enterprise" ||
-    pathname === "/vscode";
+    pathname === "/vscode" ||
+    pathname === "/appsec" ||
+    pathname === "/compare";
   const isStudioEntry = pathname === "/studio";
   const isStudioWorkspace = pathname?.startsWith("/p/");
   // /login and /signup own their own full-bleed split layout (AuthShell)

@@ -47,9 +47,9 @@ import {
 import { useWalletBalance } from "../../../src/lib/hooks";
 import { tokens } from "../../../src/theme";
 
-const PRESETS = [20, 50, 100, 250, 500] as const;
+const PRESETS = [10, 25, 50, 100, 250, 500] as const;
 const DEFAULT_PRESET: (typeof PRESETS)[number] = 50;
-const MIN_CUSTOM = 5;
+const SUPPORTED_AMOUNTS_LABEL = PRESETS.map((value) => `$${value}`).join(", ");
 const POLL_INTERVAL_MS = 2_000;
 const POLL_TIMEOUT_MS = 30_000;
 const SUCCESS_REDIRECT_MS = 3_000;
@@ -68,8 +68,7 @@ function TopUpRouter() {
   const params = useSearchParams();
   // Stripe returns with ?session_id=cs_...; Paddle returns with
   // ?_ptxn=txn_...; both flows reach the same poll-and-confirm view.
-  const sessionId =
-    params?.get("session_id") || params?.get("_ptxn") || null;
+  const sessionId = params?.get("session_id") || params?.get("_ptxn") || null;
   const provider = sessionId?.startsWith("txn_") ? "paddle" : "stripe";
 
   return sessionId ? (
@@ -102,7 +101,9 @@ function PickerView() {
   const useCustom = custom.trim().length > 0;
   const customAmount = Number(custom);
   const customValid =
-    useCustom && Number.isFinite(customAmount) && customAmount >= MIN_CUSTOM;
+    useCustom &&
+    Number.isFinite(customAmount) &&
+    PRESETS.includes(customAmount as (typeof PRESETS)[number]);
   const amount = useCustom ? customAmount : selected;
   const validAmount = useCustom ? customValid : true;
 
@@ -119,7 +120,9 @@ function PickerView() {
       });
       const url = res.data?.walletCreateTopUp.url;
       if (!url) {
-        setSubmitError("Payment provider did not return a checkout URL. Try again.");
+        setSubmitError(
+          "Payment provider did not return a checkout URL. Try again.",
+        );
         setSubmittingProvider(null);
         return;
       }
@@ -249,7 +252,7 @@ function PickerView() {
                 fontWeight: 700,
               }}
             >
-              Custom amount (min ${MIN_CUSTOM})
+              Custom amount
             </Typography>
             <TextField
               value={custom}
@@ -258,7 +261,7 @@ function PickerView() {
                 setCustom(next);
                 setSubmitError(null);
               }}
-              placeholder="e.g. 75"
+              placeholder="10, 25, 50…"
               inputMode="decimal"
               size="small"
               sx={{
@@ -293,7 +296,7 @@ function PickerView() {
                   color: tokens.color.accent.warning,
                 }}
               >
-                Minimum top-up is ${MIN_CUSTOM}.
+                Supported top-ups are {SUPPORTED_AMOUNTS_LABEL}.
               </Typography>
             )}
           </Card>

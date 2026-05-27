@@ -1,0 +1,102 @@
+# Ship Pass — outcome-based SKU on top of the wallet.
+#
+# A Ship Pass is a fixed price that converts to revenue only when
+# every gate in a declared scope passes before the deadline. The
+# wallet holds the funds during the in-flight window; on a complete
+# pass set the hold debits, on expiry the hold releases. Maps onto
+# internal/business/shippass.Service.
+
+extend type Query {
+  # Tier catalogue. Pricing decisions live in shippass/tiers.go and
+  # never leak into the resolver — clients render whatever the
+  # backend returns.
+  shipPassTiers: [ShipPassTier!]!
+
+  # Quote previews the buy price + wallet shortfall without mutating
+  # anything. Renders the "top up $X to unlock" CTA on the buy modal.
+  shipPassQuote(projectId: ID!, tierKey: String!): ShipPassQuote!
+
+  # In-flight pass for a project; null when no pass is active.
+  activeShipPass(projectId: ID!): ShipPass
+
+  # Lifetime pass history for the current tenant, newest first.
+  shipPasses(limit: Int = 25): [ShipPass!]!
+
+  # Per-pass gate observation timeline. Resolver enforces owner check.
+  shipPassProgress(passId: ID!): [ShipPassGateProgress!]!
+
+  # Billing dashboard summary: purchased / shipped / refunded /
+  # cancelled counts plus lifetime revenue (USD across shipped rows).
+  shipPassStats: ShipPassLifetimeStats!
+}
+
+extend type Mutation {
+  # Reserve the tier price against the wallet and create an active
+  # pass. Fails with insufficient-balance when the wallet cannot
+  # cover the price; fails with already-active when the project
+  # already has an in-flight pass. requestID is the caller's
+  # idempotency handle — repeated calls with the same id return the
+  # original pass.
+  purchaseShipPass(projectId: ID!, tierKey: String!, requestID: String): ShipPass!
+
+  # Cancel an active pass. Releases the hold back to the wallet, no
+  # debit, audit row retained. Idempotent on passID — re-cancelling
+  # a cancelled pass returns the row without touching the wallet.
+  cancelShipPass(passId: ID!): ShipPass!
+}
+
+# ShipPassTier is one row in the static price catalogue.
+type ShipPassTier {
+  key: String!
+  label: String!
+  priceUSD: Float!
+  requiredGates: [String!]!
+  deadlineDays: Int!
+  description: String!
+}
+
+# ShipPassQuote is the buy preview. walletShortfallUSD is zero when
+# the buyer is fully funded and positive when the buyer must top up.
+type ShipPassQuote {
+  tierKey: String!
+  priceUSD: Float!
+  requiredGates: [String!]!
+  deadlineDays: Int!
+  walletShortfallUSD: Float!
+}
+
+# ShipPass is one outcome-based purchase. status is one of
+# "active" | "shipped" | "refunded" | "cancelled". settledAt is non-
+# null only on terminal rows. The op key fields exist so the billing
+# UI can deep-link the matching ledger entry.
+type ShipPass {
+  id: ID!
+  projectId: ID!
+  tierKey: String!
+  priceUSD: Float!
+  status: String!
+  deadlineAt: DateTime!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  settledAt: DateTime
+}
+
+# ShipPassGateProgress is one verdict observation. observedAt is the
+# verdict's authoritative timestamp; the resolver renders the rows in
+# observation order so the timeline reads naturally.
+type ShipPassGateProgress {
+  id: ID!
+  gate: String!
+  passed: Boolean!
+  reason: String!
+  observedAt: DateTime!
+}
+
+# ShipPassLifetimeStats is the billing dashboard headline.
+type ShipPassLifetimeStats {
+  totalPurchased: Int!
+  totalShipped: Int!
+  totalRefunded: Int!
+  totalCancelled: Int!
+  revenueUSD: Float!
+}

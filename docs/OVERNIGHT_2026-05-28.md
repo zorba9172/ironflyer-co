@@ -31,9 +31,11 @@ what blocks "go live".
 (Entries are added as I work — newest at the bottom.)
 
 ### 00:00 — Session start
+
 Wrote this plan. Setting up todos.
 
 ### 00:30 — AppSec workspace image (real infra gap closed)
+
 Added `infra/docker/ironflyer-workspace.Dockerfile`. The runtime's
 Docker driver was defaulting to `ghcr.io/zorba9172/ironflyer-code:latest`
 (the legacy code-server image whose Dockerfile we deleted earlier). I
@@ -64,12 +66,12 @@ Fetched marketing pages for the four direct competitors. **Pattern is
 emphatic and consistent: none of them sell AppSec, gates, or code
 review.** Quoted from their own homepages:
 
-| Competitor | One-liner | AppSec mentions | Notable claim |
-|---|---|---|---|
-| Lovable | "Create apps and websites by chatting with AI" | None on home | "deploy with one click" |
-| Bolt | "Create stunning apps & websites by chatting with AI" | None | "98% less errors" (their stat) |
-| Base44 | "Build Apps with AI in Minutes" | "best-in-class encryption" — only stock claim | $16/mo entry |
-| v0 (Vercel) | "Generate working applications in minutes" | None | "publish in seconds" |
+| Competitor  | One-liner                                             | AppSec mentions                               | Notable claim                  |
+| ----------- | ----------------------------------------------------- | --------------------------------------------- | ------------------------------ |
+| Lovable     | "Create apps and websites by chatting with AI"        | None on home                                  | "deploy with one click"        |
+| Bolt        | "Create stunning apps & websites by chatting with AI" | None                                          | "98% less errors" (their stat) |
+| Base44      | "Build Apps with AI in Minutes"                       | "best-in-class encryption" — only stock claim | $16/mo entry                   |
+| v0 (Vercel) | "Generate working applications in minutes"            | None                                          | "publish in seconds"           |
 
 **Strategic read:** the entire generative-app category is selling speed
 and aesthetics. They have a glaring competitive blind spot on
@@ -78,10 +80,11 @@ block, patches that can be reviewed, wallet-prepaid executions") is
 exactly the missing seat at the table.
 
 **Implication for pricing:**
+
 - Lovable / Bolt / Base44 / v0 anchor "AI app builder" at $0–20/mo.
   Competing head-on at $20/mo is a margin disaster.
 - The differentiated tier is **AppSec-for-AI-generated-code + compliance
-  gates + reviewable patches**. That's an *enterprise AppSec product*,
+  gates + reviewable patches**. That's an _enterprise AppSec product_,
   not a hobby-coder tool. Realistic price points:
   - **Free** ($0): wallet credit ~$5, no compliance gates, watermarked.
   - **Pro** ($49–99/mo): real AppSec gates running, full Studio,
@@ -90,11 +93,12 @@ exactly the missing seat at the table.
     seat-based.
   - **Enterprise** (custom, $2k+/mo): private deploy, SSO, dedicated
     Slack, custom Semgrep rule packs.
-- "Thousands of shekels" (~$300–1000/mo) is the *Team* tier price.
+- "Thousands of shekels" (~$300–1000/mo) is the _Team_ tier price.
   Realistic but only if the product visibly delivers AppSec value out
   of the box. That's why the workspace-image fix above mattered.
 
 **Marketing pillars the home / pricing pages should hammer:**
+
 1. **AppSec built-in.** Every iteration: Semgrep + gitleaks +
    trufflehog + govulncheck. None of the competitors ship this.
 2. **Gates block.** Critical findings stop the deploy lane. No "ship
@@ -123,18 +127,18 @@ require a decision or a credential only Moshe can provide.
 
 ## What Moshe needs to provide to go live
 
-| Need                | Why                                                             |
-|---------------------|------------------------------------------------------------------|
-| Vercel project + token | Web hosting (or pick AWS/Cloudflare and we re-route)         |
-| Anthropic API key (live) | Default provider per CLAUDE.md                               |
-| Stripe account (live) | Wallet top-ups; live mode publishable + secret + webhook secret |
-| Stripe price IDs   | One per tier (Free=$0, Pro, Team, Enterprise). Decide tier prices |
-| Postgres URL (cloud) | Wallet/ledger/users — needs persistence (Neon / Supabase / RDS) |
-| Domain + DNS        | Apex + `www` + `api` records                                    |
+| Need                            | Why                                                                             |
+| ------------------------------- | ------------------------------------------------------------------------------- |
+| Vercel project + token          | Web hosting (or pick AWS/Cloudflare and we re-route)                            |
+| Anthropic API key (live)        | Default provider per CLAUDE.md                                                  |
+| Stripe account (live)           | Wallet top-ups; live mode publishable + secret + webhook secret                 |
+| Stripe price IDs                | One per tier (Free=$0, Pro, Team, Enterprise). Decide tier prices               |
+| Postgres URL (cloud)            | Wallet/ledger/users — needs persistence (Neon / Supabase / RDS)                 |
+| Domain + DNS                    | Apex + `www` + `api` records                                                    |
 | OpenAI / Gemini keys (optional) | If we want multi-vendor fallback per `core/orchestrator/internal/ai/providers/` |
-| S3 / R2 / MinIO bucket | Artifact storage for finished projects                       |
-| HuggingFace token (optional) | Embeddings for memory semantic search                  |
-| OG image final art  | If we want a different one than `SITE.ogImage`                  |
+| S3 / R2 / MinIO bucket          | Artifact storage for finished projects                                          |
+| HuggingFace token (optional)    | Embeddings for memory semantic search                                           |
+| OG image final art              | If we want a different one than `SITE.ogImage`                                  |
 
 Once these are in `.env.production` and DNS points at the host, the
 existing `DEPLOY.md` + `scripts/smoke.sh` should bring it up.
@@ -158,10 +162,52 @@ This is the unvarnished list. Closing all of these is days, not hours.
 
 ## Bottom line for the morning
 
-You wake up to: better Studio shell, sharper marketing pages, a real
-competitor positioning, a non-coder onboarding flow, and a deploy
-checklist with everything I need from you to get live. Plus this log
-so you can audit each move.
+You wake up to: a working `/studio` chat that creates real projects,
+a fixed home page (single footer), a fully removed openvscode iframe
+path (less infra to babysit), a new `ironflyer-workspace` Docker image
+that actually carries the AppSec scanner suite the orchestrator
+expects, a new `/appsec` marketing page that turns your real moat into
+visible value, a competitor positioning grounded in scraped marketing
+data, and `docs/LAUNCH_CHECKLIST.md` with every credential I need to
+get you live.
 
 You do not wake up to: a live site, a charging wallet, or "millionaire
 in a box". Don't believe anyone who promises that.
+
+## Verified state before push
+
+What is now verified locally:
+
+- Web `typecheck` and production `build` pass.
+- `core/orchestrator go test ./...` passes.
+- `core/runtime go test ./...` passes.
+- VS Code extension `typecheck`, `test`, and production bundle pass.
+- Production `next start` on `http://localhost:3001` returns 200 for
+  `/`, `/pricing`, `/appsec`, `/compare`, and `/studio`.
+- Fresh Playwright screenshots were captured to `/tmp/ironflyer-screens`.
+
+What changed materially:
+
+- `/appsec` and `/compare` are now public marketing pages.
+- Pricing copy now matches the wallet model: plan first, approve wallet
+  hold, then run paid execution. No more “unlimited AI” promise.
+- Auth guard / unauthorized redirects are no longer hard-disabled in
+  production; preview bypass is env-gated.
+- Studio chat no longer starts a hidden `$5` paid execution. The user
+  must explicitly choose a budget in Preview before any wallet hold.
+- Wallet top-up UI now offers the same supported amounts the backend
+  accepts.
+- CI paths now point at `core/orchestrator` and `core/runtime`.
+- Docker publishing now includes the web image and uses the current
+  workspace Dockerfile instead of the removed legacy code image.
+- New business modules for compliance, guild, provisioning, sentinel,
+  and Ship Pass compile as part of the orchestrator.
+
+Remaining production work:
+
+- Live deploy still depends on production secrets and infra choices:
+  domain/DNS, Postgres, LLM provider key, Stripe/Paddle webhooks,
+  object storage, and the chosen hosting path.
+- Sentry still warns that Next instrumentation should move to the new
+  `instrumentation` file convention. It does not block build, but it
+  should be cleaned before a serious customer launch.

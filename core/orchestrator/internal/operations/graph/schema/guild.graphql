@@ -1,0 +1,116 @@
+# V22 FinisherGuild — two-sided monetization marketplace.
+#
+# Supply: vetted human finishers bid on AI-failed gates the orchestrator
+#         could not close on its own.
+# Demand: requestors crowd-source gate closure when the in-loop AI
+#         exhausts its budget / attempts.
+# Side surface: community-authored Templates (auth + payments + deploy
+#         pre-wired starters) earn the author a rev-share per install.
+#
+# Rakes: 20% on accepted task amounts; 15% on template installs.
+#
+# Wallet contract: every task Holds the floor at create time and
+# Debits the accepted price on accept; every template install
+# Holds + Debits the install price once artifacts land.
+#
+# TODO: run gqlgen generate after edits — `go run github.com/99designs/gqlgen generate` from the orchestrator root.
+
+type FinisherProfile {
+  id: ID!
+  displayName: String!
+  skills: [String!]!
+  hourlyRateUSD: String!
+  completedTaskCount: Int!
+  rating: String!
+  verified: Boolean!
+}
+
+type GuildTask {
+  id: ID!
+  project: Project!
+  title: String!
+  description: String!
+  priceUSDFloor: String!
+  slaHours: Int!
+  status: String!
+  assignedTo: FinisherProfile
+  bidCount: Int!
+  createdAt: DateTime!
+}
+
+type Bid {
+  id: ID!
+  task: GuildTask!
+  finisher: FinisherProfile!
+  priceUSD: String!
+  estimatedHours: Int!
+  note: String!
+  status: String!
+  createdAt: DateTime!
+}
+
+type Template {
+  id: ID!
+  slug: String!
+  name: String!
+  description: String!
+  priceUSD: String!
+  gatesPassed: [String!]!
+  installCount: Int!
+  verified: Boolean!
+  author: FinisherProfile!
+}
+
+extend type Query {
+  # Caller's own FinisherProfile (null if the caller has not enrolled).
+  myFinisherProfile: FinisherProfile
+
+  # All guild tasks the caller is allowed to see. status filters to a
+  # single FSM state; mine=true scopes to tasks the caller created
+  # (their own project).
+  guildTasks(status: String, mine: Boolean): [GuildTask!]!
+
+  # One task by id — null when missing or out-of-tenant (so the
+  # existence of another tenant's task stays unleakable).
+  guildTask(id: ID!): GuildTask
+
+  # Catalog of community-authored templates. verifiedOnly=true (the
+  # default) limits to Ironflyer-vetted entries; verifiedOnly=false
+  # surfaces the long tail for power users.
+  templates(verifiedOnly: Boolean = true): [Template!]!
+
+  # One template by slug. Null when missing.
+  template(slug: String!): Template
+}
+
+extend type Mutation {
+  # Create or update the caller's FinisherProfile so they can place
+  # bids. One profile per user; subsequent calls mutate the existing
+  # row.
+  upsertFinisherProfile(displayName: String!, skills: [String!]!, hourlyRateUSD: String!): FinisherProfile!
+
+  # Open a guild task on a project the caller owns. priceUSDFloor is
+  # held against the caller's wallet immediately so bids that come in
+  # within budget have guaranteed settlement headroom.
+  createGuildTask(projectId: ID!, title: String!, description: String!, priceUSDFloor: String!, slaHours: Int!): GuildTask!
+
+  # Place a bid on an open task. Caller must have a FinisherProfile.
+  # priceUSD must be <= the task's priceUSDFloor.
+  placeBid(taskId: ID!, priceUSD: String!, estimatedHours: Int!, note: String!): Bid!
+
+  # Accept a winning bid. Caller must own the task's project. Settles
+  # the wallet (releases the floor hold, debits the accepted price),
+  # queues the finisher payout (80% of the price), and flips the task
+  # to 'accepted'. Idempotent on bidId.
+  acceptBid(bidId: ID!): GuildTask!
+
+  # Reject an in-flight task and release the floor hold. Caller must
+  # own the task's project. reason is recorded on the OutcomeEvent for
+  # the Feedback Brain to mine common rejection causes.
+  rejectTask(taskId: ID!, reason: String!): GuildTask!
+
+  # Install a community template into the caller's project. Holds +
+  # debits the template price in one shot; records the rev-share split
+  # (85% author, 15% platform) and bumps the template's install count.
+  installTemplate(slug: String!, projectId: ID!): Template!
+}

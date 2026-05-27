@@ -75,6 +75,7 @@ import (
 	"ironflyer/core/orchestrator/internal/business/profitguard"
 	"ironflyer/core/orchestrator/internal/business/profitguardbridge"
 	"ironflyer/core/orchestrator/internal/business/profitguardctx"
+	"ironflyer/core/orchestrator/internal/business/provisioning"
 	"ironflyer/core/orchestrator/internal/business/wallet"
 	"ironflyer/core/orchestrator/internal/operations/ratelimit"
 	"ironflyer/core/orchestrator/internal/operations/redisbus"
@@ -1117,6 +1118,61 @@ func main() {
 		go reconciler.Start(ctx)
 	}
 
+	// ProvisioningVault — Ironflyer-as-issuer revenue rails (Stripe
+	// Connect, domain reseller, email partner, hosting). Mirrors the
+	// wallet pattern: Service + ConnectorRegistry + Reconciler. Env
+	// flag IRONFLYER_PROVISIONING_ENABLED gates registration so a
+	// half-credentialed staging env can opt out cleanly.
+	var provisioningVault *provisioning.Vault
+	if strings.EqualFold(strings.TrimSpace(os.Getenv("IRONFLYER_PROVISIONING_ENABLED")), "true") {
+		var provSvc provisioning.Service
+		if pgPool != nil {
+			provSvc = provisioning.NewPostgresService(pgPool)
+			logger.Info().Msg("V22 provisioning: Postgres backend")
+		} else {
+			provSvc = provisioning.NewMemoryService()
+			logger.Info().Msg("V22 provisioning: in-memory backend")
+		}
+		policies := provisioning.NewMemoryPolicyStore()
+		registry := provisioning.NewConnectorRegistry()
+		// Stripe Connect — Ironflyer-issued payment rail. Application
+		// fees are the cut; per-charge cadence; webhook lands events
+		// on /provisioning/webhook/stripe with STRIPE_CONNECT_WEBHOOK_SECRET.
+		registry.Register(provisioning.NewStripeConnect(provisioning.StripeConnectOpts{
+			SecretKey:     os.Getenv("STRIPE_CONNECT_SECRET_KEY"),
+			WebhookSecret: os.Getenv("STRIPE_CONNECT_WEBHOOK_SECRET"),
+			ReturnURL:     os.Getenv("STRIPE_CONNECT_RETURN_URL"),
+			RefreshURL:    os.Getenv("STRIPE_CONNECT_REFRESH_URL"),
+			Policies:      policies,
+		}))
+		// Domain reseller + email partner ship as connector skeletons
+		// until partner-program creds land. Enabled() short-circuits
+		// false so they register without exposing themselves to users.
+		registry.Register(provisioning.NewDomainReseller(provisioning.DomainResellerOpts{
+			APIKey:           os.Getenv("PROVISIONING_DOMAIN_API_KEY"),
+			ResellerProvider: os.Getenv("PROVISIONING_DOMAIN_RESELLER"),
+			WebhookSecret:    os.Getenv("PROVISIONING_DOMAIN_WEBHOOK_SECRET"),
+			Policies:         policies,
+		}))
+		registry.Register(provisioning.NewEmailPartner(provisioning.EmailPartnerOpts{
+			APIKey:        os.Getenv("PROVISIONING_EMAIL_API_KEY"),
+			Provider:      os.Getenv("PROVISIONING_EMAIL_PROVIDER"),
+			WebhookSecret: os.Getenv("PROVISIONING_EMAIL_WEBHOOK_SECRET"),
+			Policies:      policies,
+		}))
+		provisioningVault = provisioning.NewVault(provSvc, registry, policies)
+		if provisioningVault.Enabled() {
+			provReconciler := provisioning.NewReconciler(provisioningVault, provisioning.ReconcilerOpts{
+				Interval: time.Hour,
+				Logger:   logger,
+			})
+			go provReconciler.Start(ctx)
+			logger.Info().Int("connectors", len(registry.Active())).Msg("V22 provisioning: vault enabled")
+		} else {
+			logger.Warn().Msg("V22 provisioning: enabled but no connector credentials wired")
+		}
+	}
+
 	// Ledger.
 	var ledgerSvc ledger.Service
 	if pgPool != nil {
@@ -1947,6 +2003,7 @@ func main() {
 		// V22 service surface.
 		Wallet:           walletSvc,
 		WalletToppers:    walletToppers,
+		Provisioning:     provisioningVault,
 		Ledger:           ledgerSvc,
 		Execution:        execSvc,
 		ExecutionSettler: executionSettler,
