@@ -7,11 +7,14 @@
 #
 #   --profile analytics    redpanda + clickhouse   (~1.3 GB) — event stream → CH
 #   --profile temporal     temporal + temporal-ui  (~768 MB) — durable workflows
-#   --profile ide          openvscode-server       (~1 GB) — full VS Code in browser
-#   --profile ide-legacy   codeserver (Coder fork) — needs local image build
 #   --profile stripe       stripe-cli forwarder    — webhook tunnel
 #   --profile apps         orchestrator+runtime+web — run apps in containers
 #   --profile full         everything above        — kitchen-sink dev box
+#
+# Note: the embedded browser-IDE (openvscode-server + code-server) was
+# removed 2026-05-28. The Studio's Monaco pane is the in-product code
+# surface; pro IDE users install the standalone Ironflyer VS Code
+# Extension (clients/vscode-extension/).
 #
 # Most dev sessions only need the lean default + the apps on host. Apps on
 # host iterate fastest; switch to `--profile apps` only when you need to
@@ -197,71 +200,11 @@ services:
     depends_on:
       - temporal
 
-  # --- ide profile (opt-in: --profile ide) -----------------------------
-  # Two browser-IDE options. Pick one with `--profile ide`; both share
-  # the workspace volume so a user's project is reachable from either.
-  #
-  # openvscode-server (preferred): upstream VS Code in the browser, wrapped
-  # in a slim IronFlyer profile. The custom image keeps the real terminal,
-  # debugger and extension host, while hiding noisy workbench chrome and
-  # disabling recommendations/telemetry/update churn.
-  #
-  # Served at /ide so the Next.js dev server can same-origin-proxy it
-  # at clients/web /ide/* → http://openvscode:3000/ide/*. Same-origin
-  # removes the iframe friction (CORS, X-Frame-Options, clipboard
-  # grants, third-party cookie blocks). Dev intentionally has no nested
-  # IDE login; Studio/session auth owns access to the containing app.
-  #   Direct: http://localhost:3030/ide/?folder=/home/workspace
-  #   Proxy : http://localhost:3017/ide/?folder=/home/workspace
-  openvscode:
-    profiles: ["ide", "full"]
-    build:
-      context: ../..
-      dockerfile: infra/docker/ironflyer-openvscode.Dockerfile
-    image: ironflyer/openvscode:dev
-    environment:
-      OPENVSCODE_SERVER_ROOT: /home/.openvscode-server
-    ports:
-      - "127.0.0.1:3030:3000"
-    volumes:
-      - workspace-data:/home/workspace
-      # Studio sync writes project snapshots here so the IDE opens the
-      # same files Monaco shows, scoped by projectID.
-      - ../../.ironflyer/ide-sync/projects:/home/workspace/projects
-    # The Ironflyer assistant extension inside the container talks to
-    # the host-side orchestrator + runtime + web URLs (3000/8080/8090
-    # run on the dev host, not inside this container). Docker for
-    # Mac/Windows ships host.docker.internal out of the box; Linux
-    # needs the explicit host-gateway mapping below.
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    command:
-      # --without-connection-token is acceptable here ONLY because
-      # the host port is bound to 127.0.0.1 above. Without that
-      # loopback restriction this would let any process on the LAN
-      # open the IDE and run arbitrary commands. In production
-      # deployments add a connection token via env override or front
-      # this with an authenticated reverse proxy.
-      - --without-connection-token
-      - --server-base-path
-      - /ide
-      - /home/workspace
-    mem_limit: 1g
-    cpus: 1.5
-
-  # code-server (legacy): Coder's downstream fork, Ironflyer-branded build.
-  # Build the image via `scripts/build-docker.sh` (tags ironflyer/code:dev)
-  # before bringing this profile up.
-  codeserver:
-    profiles: ["ide-legacy", "full"]
-    image: ironflyer/code:dev
-    ports:
-      - "127.0.0.1:8443:8080"
-    volumes:
-      - codeserver-data:/home/coder/project
-    command: ["--auth", "none", "--bind-addr", "0.0.0.0:8080", "/home/coder/project"]
-    mem_limit: 1g
-    cpus: 1.5
+  # The embedded openvscode-server / code-server browser-IDE was removed
+  # 2026-05-28. Pro users get a real IDE through the standalone Ironflyer
+  # VS Code Extension (clients/vscode-extension/), which brings gates,
+  # patches, and the wallet into their local VS Code rather than running
+  # a per-user IDE container.
 
   # Stripe CLI — opt in with `--profile stripe` to forward webhook events
   # into the local orchestrator. Requires STRIPE_DEVICE_NAME +
@@ -429,7 +372,5 @@ volumes:
   redpanda-data:
   clickhouse-data:
   minio-data:
-  workspace-data:
-  codeserver-data:
   surreal-data:
   runtime-workspaces:

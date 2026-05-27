@@ -32,7 +32,8 @@ type PublicPageKind =
   | "pricing"
   | "resources"
   | "enterprise"
-  | "vscode";
+  | "vscode"
+  | "appsec";
 
 type Tone = "light" | "dark";
 
@@ -243,42 +244,43 @@ const pageData: Record<PublicPageKind, PageData> = {
   },
   pricing: {
     eyebrow: "Pricing",
-    title: "Start free. Scale when the product is real.",
-    accent: "Simple plans for prompt-to-product work.",
+    title: "Start with a plan. Pay when the build runs.",
+    accent: "Clear workspace plans with wallet controls for generation work.",
     subhead:
-      "Use IronFlyer free to shape an app. Upgrade when you need more projects, private workspaces, team controls and production deploys.",
+      "Shape ideas for free, then fund paid executions with a wallet hold you approve before code is generated. See how each plan compares to Lovable, Bolt, Base44 and v0 on the comparison page.",
     primary: "Start free",
-    secondary: "Talk to sales",
+    secondary: "Compare vs others",
     primaryHref: "/studio",
-    secondaryHref: "/enterprise",
+    secondaryHref: "/compare",
     chips: [
-      "No credit card",
+      "Plan first",
+      "Wallet controls",
+      "Budget holds",
       "Private projects",
       "Team roles",
-      "Exportable code",
-      "Priority support",
     ],
     sections: [
       {
         eyebrow: "plans",
-        title: "Pick the level of product work you need.",
-        subhead: "Clean pricing, clear limits, no mystery language.",
+        title: "Pick the workspace level, then control each build.",
+        subhead:
+          "No hidden execution starts. Every paid run has an explicit budget.",
         items: [
           {
             title: "Free",
-            body: "$0 forever. One workspace, two projects and community support.",
+            body: "$0 workspace access for shaping prompts, reviewing flows and starting small.",
             icon: <CheckCircleRounded />,
             meta: "$0",
           },
           {
             title: "Pro",
-            body: "Unlimited projects, AI generations and email support for founders.",
+            body: "More private projects, exports and founder support. Executions use wallet credits.",
             icon: <BoltRounded />,
             meta: "$29/mo",
           },
           {
             title: "Team",
-            body: "Roles, environments, shared workspaces and priority support.",
+            body: "Roles, shared workspaces, environments and priority launch support.",
             icon: <GroupsRounded />,
             meta: "$79/mo",
           },
@@ -303,7 +305,7 @@ const pageData: Record<PublicPageKind, PageData> = {
           },
           {
             title: "Budget controls",
-            body: "Set a budget per build instead of guessing later.",
+            body: "Approve the wallet hold before generation starts.",
             icon: <CheckCircleRounded />,
           },
           {
@@ -560,6 +562,121 @@ const pageData: Record<PublicPageKind, PageData> = {
     ],
     quote: "The best AI builder still respects the editor.",
   },
+  appsec: {
+    eyebrow: "AppSec",
+    title: "Every AI-generated change passes through real security gates.",
+    accent:
+      "Semgrep, gitleaks, trufflehog and govulncheck on every iteration. Critical findings block the deploy lane — they don't sit on a backlog.",
+    subhead:
+      "Lovable, Bolt, Base44 and v0 ship the prompt and the preview. Ironflyer ships the prompt, the preview, and the security verdict that says whether the change is allowed to leave the workspace. See the full feature comparison.",
+    primary: "Open Studio",
+    secondary: "Compare vs others",
+    primaryHref: "/studio",
+    secondaryHref: "/compare",
+    chips: [
+      "Semgrep SAST",
+      "Secret scanning",
+      "CVE checks",
+      "SOC2 gate",
+      "HIPAA gate",
+    ],
+    sections: [
+      {
+        eyebrow: "scanners that run",
+        title: "Four scanners, baked into every workspace.",
+        subhead:
+          "The runtime image ships with the binaries pre-installed. The SecurityGate runs them on every iteration and feeds findings back into the repair loop.",
+        items: [
+          {
+            title: "Semgrep",
+            body: "OWASP-Top-10 SAST. Maps findings to severity, file and line, then opens a patch.",
+            icon: <ShieldRounded />,
+            meta: "every iteration",
+          },
+          {
+            title: "gitleaks",
+            body: "Secrets in the working tree and history. Critical severity — the deploy lane refuses to proceed.",
+            icon: <LockRounded />,
+            meta: "blocks deploy",
+          },
+          {
+            title: "trufflehog",
+            body: "Entropy plus live provider verification. Catches secrets the regex scanners miss.",
+            icon: <LockRounded />,
+            meta: "verified secrets",
+          },
+          {
+            title: "govulncheck",
+            body: "Real CVE checks against module imports — only paths actually reachable get flagged.",
+            icon: <ShieldRounded />,
+            meta: "reachable CVEs",
+          },
+        ],
+      },
+      {
+        eyebrow: "compliance gates",
+        title: "SOC2 + HIPAA gates ship in the codebase.",
+        subhead:
+          "Most AI builders treat compliance as a sales conversation. Ironflyer's compliance gates run automatically when the project spec opts in.",
+        items: [
+          {
+            title: "SOC2 CC6/CC7/CC8",
+            body: "Auth declaration, HTTPS binding, audit log, monitoring tool. Each missing artefact opens a finding.",
+            icon: <ShieldRounded />,
+            meta: "Team tier",
+          },
+          {
+            title: "HIPAA 164.312",
+            body: "Access control, audit, integrity, transmission security, PHI tagging. Missing controls block ship.",
+            icon: <ShieldRounded />,
+            meta: "Team tier",
+          },
+          {
+            title: "Mobile MASVS",
+            body: "Android keystore + iOS keychain checks for mobile builds, layered on top of the generic SecurityGate.",
+            icon: <ShieldRounded />,
+            meta: "Pro tier",
+          },
+          {
+            title: "iOS Privacy Manifest",
+            body: "PrivacyInfo.xcprivacy enforcement so App Store review doesn't reject the binary.",
+            icon: <ShieldRounded />,
+            meta: "Pro tier",
+          },
+        ],
+      },
+      {
+        eyebrow: "what gates actually do",
+        title: "Findings open patches. Patches go through review.",
+        subhead:
+          "A finding is not a backlog item. The repair agent opens a patch that fixes the issue, the patch is reviewable, and only an approved patch lands.",
+        items: [
+          {
+            title: "Find",
+            body: "Scanner emits a finding with file, line, rule and remediation hint.",
+            icon: <CheckCircleRounded />,
+          },
+          {
+            title: "Repair",
+            body: "RoleSecurity agent proposes a concrete patch — not just a comment.",
+            icon: <AutoAwesomeRounded />,
+          },
+          {
+            title: "Review",
+            body: "Patch surface shows diff, gate verdict and ProfitGuard reservation.",
+            icon: <CodeRounded />,
+          },
+          {
+            title: "Ship",
+            body: "Deploy lane checks remaining critical findings — zero means green.",
+            icon: <RocketLaunchRounded />,
+          },
+        ],
+      },
+    ],
+    quote:
+      "The competitors ship the prompt. Ironflyer ships the prompt plus the verdict.",
+  },
 };
 
 function palette(mode: Tone) {
@@ -688,10 +805,13 @@ export function Base44PublicPage({ page }: { page: PublicPageKind }) {
           <Typography
             component="h1"
             sx={{
-              fontSize: { xs: 42, md: 76 },
+              fontSize: {
+                xs: 36,
+                md: page === "appsec" || page === "pricing" ? 62 : 68,
+              },
               fontWeight: 950,
               letterSpacing: 0,
-              lineHeight: 0.98,
+              lineHeight: 1.02,
               maxWidth: page === "vscode" ? 900 : 940,
             }}
           >

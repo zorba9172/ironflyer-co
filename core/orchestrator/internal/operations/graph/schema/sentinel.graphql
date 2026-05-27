@@ -1,0 +1,85 @@
+# Budget Sentinel — predictive complement to ProfitGuard + the
+# Insured Ship SKU.
+#
+# Sentinel is the project-wide forecast layer: at the current burn
+# rate, when does this project hit cap, and what is the cheapest
+# path to completion. Maps onto internal/business/sentinel.Service.
+
+extend type Query {
+  # Project trajectory + suggested reroutes. Always returns; a
+  # cold project (no ledger samples) returns Level=green with zero
+  # burn and an empty reroute list.
+  sentinelForecast(projectId: ID!): SentinelForecast!
+
+  # Suggested reroutes for the project, ranked by SavingsUSD desc.
+  # Returns an empty list when the forecast is green.
+  sentinelReroutes(projectId: ID!): [SentinelReroute!]!
+
+  # Insured Ship quote preview. capUSD is the hard ceiling the
+  # buyer wants Sentinel to insure against; hours is the coverage
+  # window. PremiumUSD is the quoted up-front cost.
+  insuranceQuote(projectId: ID!, capUSD: Float!, hours: Int!): InsuranceQuote!
+
+  # Active Insured Ship policy for a project; null when none.
+  activeInsurance(projectId: ID!): InsurancePolicy
+}
+
+extend type Mutation {
+  # Purchase an Insured Ship policy. Debits the premium immediately
+  # via the wallet; refunds occur only when actual spend exceeds
+  # capUSD inside the coverage window. requestID is the caller's
+  # idempotency handle.
+  purchaseInsurance(projectId: ID!, capUSD: Float!, hours: Int!, requestID: String): InsurancePolicy!
+}
+
+# SentinelForecast is the project trajectory snapshot. level is one
+# of "green" | "yellow" | "orange" | "red"; capBreachAt is non-null
+# when the trajectory crosses cap before the ETA.
+type SentinelForecast {
+  projectId: ID!
+  spentUSD: Float!
+  hardCapUSD: Float!
+  burnRatePerHourUSD: Float!
+  extrapolatedTotalUSD: Float!
+  etaCompletionAt: DateTime!
+  capBreachAt: DateTime
+  level: String!
+  remainingHeadroomUSD: Float!
+  projectionConfidence: Float!
+  computedAt: DateTime!
+}
+
+# SentinelReroute is one cheaper-completion suggestion. kind is one
+# of the closed catalogue ("cheaper_model" | "template_swap" |
+# "smaller_context" | "skip_mobile").
+type SentinelReroute {
+  kind: String!
+  label: String!
+  description: String!
+  savingsUSD: Float!
+  savingsConfidence: Float!
+  reversible: Boolean!
+}
+
+# InsuranceQuote is the resolver-facing price preview.
+type InsuranceQuote {
+  capUSD: Float!
+  premiumUSD: Float!
+  coverageWindowHours: Int!
+  sampleCount: Int!
+}
+
+# InsurancePolicy is one Insured Ship purchase. status is one of
+# "active" | "paid_out" | "expired" | "cancelled". expiresAt is the
+# end of the coverage window.
+type InsurancePolicy {
+  id: ID!
+  projectId: ID!
+  hardCapUSD: Float!
+  premiumUSD: Float!
+  coverageWindowHours: Int!
+  status: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  expiresAt: DateTime!
+}

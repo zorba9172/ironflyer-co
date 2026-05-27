@@ -29,7 +29,9 @@ export function CockpitFrame({ children }: { children: ReactNode }) {
     pathname === "/pricing" ||
     pathname === "/resources" ||
     pathname === "/enterprise" ||
-    pathname === "/vscode";
+    pathname === "/vscode" ||
+    pathname === "/appsec" ||
+    pathname === "/compare";
   const isStudioEntry = pathname === "/studio";
   const isStudioWorkspace = pathname?.startsWith("/p/");
   // /login and /signup own their own full-bleed split layout (AuthShell)
@@ -42,7 +44,11 @@ export function CockpitFrame({ children }: { children: ReactNode }) {
     pathname?.startsWith("/signup/") === true;
   const isFullBleed =
     isPublicMarketing || isStudioEntry || isStudioWorkspace || isAuthRoute;
-  const showFooter = !isAuthRoute && !isStudioEntry && !isStudioWorkspace;
+  // The marketing home renders its own bespoke <Footer> (orbital +
+  // proof bands + CTA). Suppress the shared ShellFooter on `/` so the
+  // page does not stack two footers.
+  const showFooter =
+    !isAuthRoute && !isStudioEntry && !isStudioWorkspace && !isMarketingHome;
 
   return (
     <Box

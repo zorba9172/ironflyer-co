@@ -168,6 +168,17 @@ type BanditWinner struct {
 	IsLeader   bool       `json:"isLeader"`
 }
 
+type Bid struct {
+	ID             string          `json:"id"`
+	Task           GuildTask       `json:"task"`
+	Finisher       FinisherProfile `json:"finisher"`
+	PriceUsd       string          `json:"priceUSD"`
+	EstimatedHours int             `json:"estimatedHours"`
+	Note           string          `json:"note"`
+	Status         string          `json:"status"`
+	CreatedAt      time.Time       `json:"createdAt"`
+}
+
 type Blueprint struct {
 	ID                       string   `json:"id"`
 	Name                     string   `json:"name"`
@@ -249,6 +260,38 @@ type ComplexityBucket struct {
 	Count int    `json:"count"`
 }
 
+type ComplianceAuditBundle struct {
+	GeneratedAt    time.Time           `json:"generatedAt"`
+	Framework      ComplianceFramework `json:"framework"`
+	DownloadURL    string              `json:"downloadURL"`
+	AttestationJwt string              `json:"attestationJWT"`
+}
+
+type ComplianceControlResult struct {
+	ControlKey  string    `json:"controlKey"`
+	Status      string    `json:"status"`
+	Severity    string    `json:"severity"`
+	Evidence    string    `json:"evidence"`
+	Path        *string   `json:"path,omitempty"`
+	EvaluatedAt time.Time `json:"evaluatedAt"`
+}
+
+type ComplianceEnrollment struct {
+	ID              string              `json:"id"`
+	ProjectID       string              `json:"projectId"`
+	Framework       ComplianceFramework `json:"framework"`
+	LastVerdict     string              `json:"lastVerdict"`
+	LastEvaluatedAt *time.Time          `json:"lastEvaluatedAt,omitempty"`
+	NextChargeAt    time.Time           `json:"nextChargeAt"`
+}
+
+type ComplianceFramework struct {
+	Key             string `json:"key"`
+	Label           string `json:"label"`
+	MonthlyPriceUsd string `json:"monthlyPriceUSD"`
+	ControlCount    int    `json:"controlCount"`
+}
+
 type ConnectDeployDomainInput struct {
 	ProjectID string  `json:"projectID"`
 	DeployID  *string `json:"deployID,omitempty"`
@@ -256,6 +299,13 @@ type ConnectDeployDomainInput struct {
 	Provider  *string `json:"provider,omitempty"`
 	Primary   *bool   `json:"primary,omitempty"`
 	Metadata  JSON    `json:"metadata,omitempty"`
+}
+
+type ConnectorInfo struct {
+	Name     string  `json:"name"`
+	Label    string  `json:"label"`
+	Enabled  bool    `json:"enabled"`
+	SharePct float64 `json:"sharePct"`
 }
 
 type CostDelta struct {
@@ -510,6 +560,16 @@ type ExecutionEvent struct {
 	CreatedAt   time.Time `json:"createdAt"`
 }
 
+type FinisherProfile struct {
+	ID                 string   `json:"id"`
+	DisplayName        string   `json:"displayName"`
+	Skills             []string `json:"skills"`
+	HourlyRateUsd      string   `json:"hourlyRateUSD"`
+	CompletedTaskCount int      `json:"completedTaskCount"`
+	Rating             string   `json:"rating"`
+	Verified           bool     `json:"verified"`
+}
+
 type GateFailureRate struct {
 	Gate        string  `json:"gate"`
 	FailureRate float64 `json:"failureRate"`
@@ -572,6 +632,19 @@ type GqlError struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
 	Details JSON   `json:"details,omitempty"`
+}
+
+type GuildTask struct {
+	ID            string           `json:"id"`
+	Project       Project          `json:"project"`
+	Title         string           `json:"title"`
+	Description   string           `json:"description"`
+	PriceUSDFloor string           `json:"priceUSDFloor"`
+	SLAHours      int              `json:"slaHours"`
+	Status        string           `json:"status"`
+	AssignedTo    *FinisherProfile `json:"assignedTo,omitempty"`
+	BidCount      int              `json:"bidCount"`
+	CreatedAt     time.Time        `json:"createdAt"`
 }
 
 type HealthMetrics struct {
@@ -654,6 +727,25 @@ type InlineTextDelta struct {
 }
 
 func (InlineTextDelta) IsInlineDelta() {}
+
+type InsurancePolicy struct {
+	ID                  string    `json:"id"`
+	ProjectID           string    `json:"projectId"`
+	HardCapUsd          float64   `json:"hardCapUSD"`
+	PremiumUsd          float64   `json:"premiumUSD"`
+	CoverageWindowHours int       `json:"coverageWindowHours"`
+	Status              string    `json:"status"`
+	CreatedAt           time.Time `json:"createdAt"`
+	UpdatedAt           time.Time `json:"updatedAt"`
+	ExpiresAt           time.Time `json:"expiresAt"`
+}
+
+type InsuranceQuote struct {
+	CapUsd              float64 `json:"capUSD"`
+	PremiumUsd          float64 `json:"premiumUSD"`
+	CoverageWindowHours int     `json:"coverageWindowHours"`
+	SampleCount         int     `json:"sampleCount"`
+}
 
 type LearningDashboard struct {
 	OutcomeEventsToday     int                    `json:"outcomeEventsToday"`
@@ -1050,6 +1142,17 @@ type ProposePatchInput struct {
 	Changes   []PatchChangeInput `json:"changes"`
 }
 
+type ProvisionedResource struct {
+	ID         string    `json:"id"`
+	TenantID   string    `json:"tenantId"`
+	ProjectID  string    `json:"projectId"`
+	Kind       string    `json:"kind"`
+	ExternalID string    `json:"externalId"`
+	Status     string    `json:"status"`
+	CreatedAt  time.Time `json:"createdAt"`
+	UpdatedAt  time.Time `json:"updatedAt"`
+}
+
 type PurchaseDeployDomainInput struct {
 	ProjectID        string   `json:"projectID"`
 	DeployID         *string  `json:"deployID,omitempty"`
@@ -1093,6 +1196,16 @@ type ReserveDeploySubdomainInput struct {
 	Provider  *string `json:"provider,omitempty"`
 	Primary   *bool   `json:"primary,omitempty"`
 	Metadata  JSON    `json:"metadata,omitempty"`
+}
+
+type RevenueEvent struct {
+	ID              string    `json:"id"`
+	ResourceID      string    `json:"resourceId"`
+	OccurredAt      time.Time `json:"occurredAt"`
+	GrossAmountUsd  float64   `json:"grossAmountUSD"`
+	IronflyerCutUsd float64   `json:"ironflyerCutUSD"`
+	ExternalRef     string    `json:"externalRef"`
+	LedgerEntryID   string    `json:"ledgerEntryId"`
 }
 
 type RouteBundle struct {
@@ -1167,6 +1280,29 @@ type SecurityReportFinding struct {
 	DetectedAt  time.Time `json:"detectedAt"`
 }
 
+type SentinelForecast struct {
+	ProjectID            string     `json:"projectId"`
+	SpentUsd             float64    `json:"spentUSD"`
+	HardCapUsd           float64    `json:"hardCapUSD"`
+	BurnRatePerHourUsd   float64    `json:"burnRatePerHourUSD"`
+	ExtrapolatedTotalUsd float64    `json:"extrapolatedTotalUSD"`
+	EtaCompletionAt      time.Time  `json:"etaCompletionAt"`
+	CapBreachAt          *time.Time `json:"capBreachAt,omitempty"`
+	Level                string     `json:"level"`
+	RemainingHeadroomUsd float64    `json:"remainingHeadroomUSD"`
+	ProjectionConfidence float64    `json:"projectionConfidence"`
+	ComputedAt           time.Time  `json:"computedAt"`
+}
+
+type SentinelReroute struct {
+	Kind              string  `json:"kind"`
+	Label             string  `json:"label"`
+	Description       string  `json:"description"`
+	SavingsUsd        float64 `json:"savingsUSD"`
+	SavingsConfidence float64 `json:"savingsConfidence"`
+	Reversible        bool    `json:"reversible"`
+}
+
 type Session struct {
 	User       User       `json:"user"`
 	Token      string     `json:"token"`
@@ -1176,6 +1312,51 @@ type Session struct {
 	UserAgent  *string    `json:"userAgent,omitempty"`
 	LastSeenAt *time.Time `json:"lastSeenAt,omitempty"`
 	Current    *bool      `json:"current,omitempty"`
+}
+
+type ShipPass struct {
+	ID         string     `json:"id"`
+	ProjectID  string     `json:"projectId"`
+	TierKey    string     `json:"tierKey"`
+	PriceUsd   float64    `json:"priceUSD"`
+	Status     string     `json:"status"`
+	DeadlineAt time.Time  `json:"deadlineAt"`
+	CreatedAt  time.Time  `json:"createdAt"`
+	UpdatedAt  time.Time  `json:"updatedAt"`
+	SettledAt  *time.Time `json:"settledAt,omitempty"`
+}
+
+type ShipPassGateProgress struct {
+	ID         string    `json:"id"`
+	Gate       string    `json:"gate"`
+	Passed     bool      `json:"passed"`
+	Reason     string    `json:"reason"`
+	ObservedAt time.Time `json:"observedAt"`
+}
+
+type ShipPassLifetimeStats struct {
+	TotalPurchased int     `json:"totalPurchased"`
+	TotalShipped   int     `json:"totalShipped"`
+	TotalRefunded  int     `json:"totalRefunded"`
+	TotalCancelled int     `json:"totalCancelled"`
+	RevenueUsd     float64 `json:"revenueUSD"`
+}
+
+type ShipPassQuote struct {
+	TierKey            string   `json:"tierKey"`
+	PriceUsd           float64  `json:"priceUSD"`
+	RequiredGates      []string `json:"requiredGates"`
+	DeadlineDays       int      `json:"deadlineDays"`
+	WalletShortfallUsd float64  `json:"walletShortfallUSD"`
+}
+
+type ShipPassTier struct {
+	Key           string   `json:"key"`
+	Label         string   `json:"label"`
+	PriceUsd      float64  `json:"priceUSD"`
+	RequiredGates []string `json:"requiredGates"`
+	DeadlineDays  int      `json:"deadlineDays"`
+	Description   string   `json:"description"`
 }
 
 type SignInInput struct {
@@ -1258,6 +1439,18 @@ type TelemetryPreferenceInput struct {
 	OptOut bool `json:"optOut"`
 }
 
+type Template struct {
+	ID           string          `json:"id"`
+	Slug         string          `json:"slug"`
+	Name         string          `json:"name"`
+	Description  string          `json:"description"`
+	PriceUsd     string          `json:"priceUSD"`
+	GatesPassed  []string        `json:"gatesPassed"`
+	InstallCount int             `json:"installCount"`
+	Verified     bool            `json:"verified"`
+	Author       FinisherProfile `json:"author"`
+}
+
 type UpdateProjectInput struct {
 	Name        *string `json:"name,omitempty"`
 	Description *string `json:"description,omitempty"`
@@ -1304,6 +1497,7 @@ type Wallet struct {
 type WalletCheckoutSession struct {
 	URL       string `json:"url"`
 	SessionID string `json:"sessionID"`
+	Provider  string `json:"provider"`
 }
 
 type WalletLedgerEntry struct {
@@ -1320,8 +1514,15 @@ type WalletLedgerEntry struct {
 	CreatedAt      time.Time `json:"createdAt"`
 }
 
+type WalletProvider struct {
+	Name      string `json:"name"`
+	Label     string `json:"label"`
+	IsPrimary bool   `json:"isPrimary"`
+}
+
 type WalletTopUp struct {
 	ID          string     `json:"id"`
+	Provider    string     `json:"provider"`
 	AmountUsd   float64    `json:"amountUSD"`
 	Status      string     `json:"status"`
 	CreatedAt   time.Time  `json:"createdAt"`

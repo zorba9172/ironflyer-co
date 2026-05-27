@@ -117,6 +117,7 @@ func (s *MemoryService) TopUp(_ context.Context, tenant string, amount decimal.D
 	row := TopUp{
 		ID:              uuid.NewString(),
 		TenantID:        tenant,
+		Provider:        ProviderFromSessionID(stripeSessionID),
 		StripeSessionID: stripeSessionID,
 		AmountUSD:       amount,
 		Status:          "succeeded",
@@ -216,6 +217,49 @@ func (s *MemoryService) ListTopUps(_ context.Context, tenant string, limit int) 
 	return rows, nil
 }
 
+// ListStalePending mirrors PostgresService.ListStalePending for the
+// in-memory backend. Returns pending rows older than threshold across
+// every tenant.
+func (s *MemoryService) ListStalePending(_ context.Context, threshold time.Duration) ([]TopUp, error) {
+	cutoff := time.Now().UTC().Add(-threshold)
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	out := []TopUp{}
+	for _, rows := range s.topups {
+		for _, t := range rows {
+			if t.Status != "pending" || !t.CreatedAt.Before(cutoff) {
+				continue
+			}
+			out = append(out, t)
+		}
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].CreatedAt.Before(out[j].CreatedAt) })
+	return out, nil
+}
+
+// MarkFailed flips a pending row to failed. No-op when the row is
+// missing or in a terminal state.
+func (s *MemoryService) MarkFailed(_ context.Context, stripeSessionID string) error {
+	if stripeSessionID == "" {
+		return ErrInvalidAmount
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	ref, ok := s.bySession[stripeSessionID]
+	if !ok {
+		return nil
+	}
+	row := s.topups[ref.tenant][ref.index]
+	if row.Status != "pending" {
+		return nil
+	}
+	now := time.Now().UTC()
+	row.Status = "failed"
+	row.CompletedAt = &now
+	s.topups[ref.tenant][ref.index] = row
+	return nil
+}
+
 // --- V22 opKey-aware idempotent variants -----------------------------
 //
 // Each *WithKey method consults s.opKeys before mutating. A prior
@@ -299,6 +343,7 @@ func (s *MemoryService) CreatePendingTopUp(_ context.Context, tenant string, amo
 	row := TopUp{
 		ID:              uuid.NewString(),
 		TenantID:        tenant,
+		Provider:        ProviderFromSessionID(stripeSessionID),
 		StripeSessionID: stripeSessionID,
 		AmountUSD:       amount,
 		Status:          "pending",

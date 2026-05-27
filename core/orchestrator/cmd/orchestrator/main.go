@@ -44,6 +44,7 @@ import (
 	"ironflyer/core/orchestrator/internal/business/budget"
 	"ironflyer/core/orchestrator/internal/business/budget/payments"
 	"ironflyer/core/orchestrator/internal/business/clickhouse"
+	"ironflyer/core/orchestrator/internal/business/compliance"
 	"ironflyer/core/orchestrator/internal/business/dashboards"
 	"ironflyer/core/orchestrator/internal/business/dashboards/adapters"
 	"ironflyer/core/orchestrator/internal/business/execution"
@@ -75,6 +76,10 @@ import (
 	"ironflyer/core/orchestrator/internal/business/profitguard"
 	"ironflyer/core/orchestrator/internal/business/profitguardbridge"
 	"ironflyer/core/orchestrator/internal/business/profitguardctx"
+	"ironflyer/core/orchestrator/internal/business/guild"
+	"ironflyer/core/orchestrator/internal/business/provisioning"
+	"ironflyer/core/orchestrator/internal/business/sentinel"
+	"ironflyer/core/orchestrator/internal/business/shippass"
 	"ironflyer/core/orchestrator/internal/business/wallet"
 	"ironflyer/core/orchestrator/internal/operations/ratelimit"
 	"ironflyer/core/orchestrator/internal/operations/redisbus"
@@ -1059,16 +1064,237 @@ func main() {
 			Float64("seed_usd", cfg.DevWalletSeedUSD).
 			Msg("dev seed: no superuser bootstrap configured; skipping shared wallet seed")
 	}
-	// Wallet Stripe topper (optional — keyed off STRIPE_SECRET_KEY).
-	var walletTopper *wallet.Topper
+	// Wallet topper registry — Stripe + Paddle, primary picked by
+	// IRONFLYER_WALLET_PRIMARY_PROVIDER. The user picks ("Card declined?
+	// Pay with the alternative checkout") in the UI; we do NOT do
+	// server-side auto-failover, which would create double-credit
+	// surface area on late webhook redelivery.
+	var (
+		stripeWalletTopper *wallet.StripeTopper
+		paddleWalletTopper *wallet.PaddleTopper
+	)
 	if cfg.StripeSecretKey != "" {
-		walletTopper = wallet.NewTopper(walletSvc, wallet.TopperOpts{
+		stripeWalletTopper = wallet.NewStripeTopper(walletSvc, wallet.StripeTopperOpts{
 			SecretKey:     cfg.StripeSecretKey,
 			WebhookSecret: cfg.StripeWebhookSecret,
 			SuccessURL:    cfg.StripeSuccessURL,
 			CancelURL:     cfg.StripeCancelURL,
 		})
 		logger.Info().Msg("V22 wallet topper: Stripe enabled")
+	}
+	if cfg.PaddleAPIKey != "" {
+		paddleWalletTopper = wallet.NewPaddleTopper(walletSvc, wallet.PaddleTopperOpts{
+			APIKey:        cfg.PaddleAPIKey,
+			WebhookSecret: cfg.PaddleWebhookSecret,
+			Environment:   cfg.PaddleEnv,
+			SuccessURL:    cfg.PaddleWalletSuccessURL,
+			CancelURL:     cfg.PaddleWalletCancelURL,
+		})
+		logger.Info().Str("paddle_env", cfg.PaddleEnv).Msg("V22 wallet topper: Paddle enabled")
+	}
+	// Build registry in primary order. Both Topper.Enabled methods are
+	// nil-safe so the typed-nil-into-interface conversion below filters
+	// itself out of Active() / Primary() without extra plumbing.
+	stripeWalletTopperIfc := wallet.Topper(stripeWalletTopper)
+	paddleWalletTopperIfc := wallet.Topper(paddleWalletTopper)
+	var walletToppers *wallet.TopperRegistry
+	switch cfg.WalletPrimaryProvider {
+	case wallet.ProviderPaddle:
+		walletToppers = wallet.NewTopperRegistry(paddleWalletTopperIfc, stripeWalletTopperIfc)
+	default:
+		walletToppers = wallet.NewTopperRegistry(stripeWalletTopperIfc, paddleWalletTopperIfc)
+	}
+	if !walletToppers.Enabled() {
+		logger.Warn().Msg("V22 wallet topper: no provider enabled (set STRIPE_SECRET_KEY or PADDLE_API_KEY)")
+	}
+
+	// Wallet reconciler — sweeps pending wallet_topups older than the
+	// vendor settlement window, queries the originating provider, and
+	// credits / fails the row accordingly. Closes the "missed webhook"
+	// gap so a vendor outage during deploy never silently drops a
+	// paid top-up.
+	if walletToppers.Enabled() {
+		reconciler := wallet.NewReconciler(walletSvc, walletToppers, wallet.ReconcilerOpts{
+			Threshold: 10 * time.Minute,
+			Interval:  5 * time.Minute,
+			Logger:    logger,
+		})
+		go reconciler.Start(ctx)
+	}
+
+	// ComplianceGate verticals — premium per-project SKUs (PCI / HIPAA
+	// / SOC 2 / GDPR) sold at $199-$499/month and billed against the
+	// wallet via the compliance package. Backend is Postgres when
+	// wired, in-memory otherwise. Attestation secret is loaded once
+	// from env; absence disables the audit-bundle export with a typed
+	// NOT_CONFIGURED error rather than minting unsigned attestations.
+	var complianceBackend compliance.Backend
+	if pgPool != nil {
+		complianceBackend = compliance.NewPostgresBackend(pgPool)
+		logger.Info().Msg("V22 compliance: Postgres backend")
+	} else {
+		complianceBackend = compliance.NewMemoryBackend()
+		logger.Info().Msg("V22 compliance: in-memory backend")
+	}
+	complianceSvc := compliance.NewService(
+		complianceBackend,
+		projects,
+		walletSvc,
+		os.Getenv("IRONFLYER_ATTESTATION_SECRET"),
+		logger.With().Str("component", "compliance").Logger(),
+	)
+	complianceReconciler := compliance.NewReconciler(complianceSvc, compliance.ReconcilerOpts{})
+	go complianceReconciler.Start(ctx)
+	if os.Getenv("IRONFLYER_ATTESTATION_SECRET") == "" {
+		logger.Warn().Msg("V22 compliance: IRONFLYER_ATTESTATION_SECRET unset — audit bundle export will return NOT_CONFIGURED")
+	}
+
+	// ProvisioningVault — Ironflyer-as-issuer revenue rails (Stripe
+	// Connect, domain reseller, email partner, hosting). Mirrors the
+	// wallet pattern: Service + ConnectorRegistry + Reconciler. Env
+	// flag IRONFLYER_PROVISIONING_ENABLED gates registration so a
+	// half-credentialed staging env can opt out cleanly.
+	var provisioningVault *provisioning.Vault
+	if strings.EqualFold(strings.TrimSpace(os.Getenv("IRONFLYER_PROVISIONING_ENABLED")), "true") {
+		var provSvc provisioning.Service
+		if pgPool != nil {
+			provSvc = provisioning.NewPostgresService(pgPool)
+			logger.Info().Msg("V22 provisioning: Postgres backend")
+		} else {
+			provSvc = provisioning.NewMemoryService()
+			logger.Info().Msg("V22 provisioning: in-memory backend")
+		}
+		policies := provisioning.NewMemoryPolicyStore()
+		registry := provisioning.NewConnectorRegistry()
+		// Stripe Connect — Ironflyer-issued payment rail. Application
+		// fees are the cut; per-charge cadence; webhook lands events
+		// on /provisioning/webhook/stripe with STRIPE_CONNECT_WEBHOOK_SECRET.
+		registry.Register(provisioning.NewStripeConnect(provisioning.StripeConnectOpts{
+			SecretKey:     os.Getenv("STRIPE_CONNECT_SECRET_KEY"),
+			WebhookSecret: os.Getenv("STRIPE_CONNECT_WEBHOOK_SECRET"),
+			ReturnURL:     os.Getenv("STRIPE_CONNECT_RETURN_URL"),
+			RefreshURL:    os.Getenv("STRIPE_CONNECT_REFRESH_URL"),
+			Policies:      policies,
+		}))
+		// Domain reseller + email partner ship as connector skeletons
+		// until partner-program creds land. Enabled() short-circuits
+		// false so they register without exposing themselves to users.
+		registry.Register(provisioning.NewDomainReseller(provisioning.DomainResellerOpts{
+			APIKey:           os.Getenv("PROVISIONING_DOMAIN_API_KEY"),
+			ResellerProvider: os.Getenv("PROVISIONING_DOMAIN_RESELLER"),
+			WebhookSecret:    os.Getenv("PROVISIONING_DOMAIN_WEBHOOK_SECRET"),
+			Policies:         policies,
+		}))
+		registry.Register(provisioning.NewEmailPartner(provisioning.EmailPartnerOpts{
+			APIKey:        os.Getenv("PROVISIONING_EMAIL_API_KEY"),
+			Provider:      os.Getenv("PROVISIONING_EMAIL_PROVIDER"),
+			WebhookSecret: os.Getenv("PROVISIONING_EMAIL_WEBHOOK_SECRET"),
+			Policies:      policies,
+		}))
+		provisioningVault = provisioning.NewVault(provSvc, registry, policies)
+		if provisioningVault.Enabled() {
+			provReconciler := provisioning.NewReconciler(provisioningVault, provisioning.ReconcilerOpts{
+				Interval: time.Hour,
+				Logger:   logger,
+			})
+			go provReconciler.Start(ctx)
+			logger.Info().Int("connectors", len(registry.Active())).Msg("V22 provisioning: vault enabled")
+		} else {
+			logger.Warn().Msg("V22 provisioning: enabled but no connector credentials wired")
+		}
+	}
+
+	// Ship Pass — outcome-based SKU on top of the wallet. The wallet
+	// service satisfies wallet.IdempotentService on both backends
+	// (memory + postgres), so the cast below is safe in dev and prod;
+	// a future backend that only satisfies wallet.Service would land
+	// as a nil cast and the resolver would surface NOT_CONFIGURED.
+	var (
+		shipPassSvc     shippass.Service
+		shipPassSettler *shippass.Settler
+	)
+	if walletIdem, ok := walletSvc.(wallet.IdempotentService); ok {
+		if pgPool != nil {
+			shipPassSvc = shippass.NewPostgresService(pgPool, walletIdem,
+				logger.With().Str("component", "shippass").Logger())
+			logger.Info().Msg("V22 shippass: Postgres backend")
+		} else {
+			shipPassSvc = shippass.NewMemoryService(walletIdem)
+			logger.Info().Msg("V22 shippass: in-memory backend")
+		}
+		shipPassSettler = shippass.NewSettler(shipPassSvc,
+			logger.With().Str("component", "shippass.settler").Logger())
+		// Periodic deadline sweep: expired active passes flip to
+		// refunded and the wallet hold is released back to the user.
+		go func() {
+			ticker := time.NewTicker(15 * time.Minute)
+			defer ticker.Stop()
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case t := <-ticker.C:
+					if _, err := shipPassSvc.ExpireDue(ctx, t); err != nil {
+						logger.Warn().Err(err).Msg("V22 shippass: expire sweep failed")
+					}
+				}
+			}
+		}()
+	} else {
+		logger.Warn().Msg("V22 shippass: wallet does not satisfy IdempotentService; disabled")
+	}
+
+	// Budget Sentinel — predictive forecast layer + Insured Ship SKU.
+	// Adapters (history, completion estimate, project context, spent
+	// loader) default to nil-loader stubs so the dashboard renders
+	// from boot before deeper integration lands; the Insured Ship SKU
+	// is fully live regardless via StaticUnderwriter.
+	var sentinelSvc *sentinel.Service
+	if walletIdem, ok := walletSvc.(wallet.IdempotentService); ok {
+		sentinelPolicy := sentinel.DefaultPolicy()
+		sentinelPredictor := sentinel.NewPredictor(sentinelPolicy, nil, nil)
+		sentinelSuggester := sentinel.NewSuggestionEngine(nil)
+		sentinelInsurance := sentinel.NewMemoryInsurance(sentinelPolicy,
+			sentinel.NewStaticUnderwriter(), walletIdem)
+		sentinelSvc = sentinel.NewService(sentinelPredictor, sentinelSuggester,
+			sentinelInsurance, nil)
+		// Hourly expiry sweep: policies past their coverage window
+		// flip to expired (no payout) so the active set stays clean.
+		go func() {
+			ticker := time.NewTicker(time.Hour)
+			defer ticker.Stop()
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case t := <-ticker.C:
+					if _, err := sentinelInsurance.ExpireDue(ctx, t); err != nil {
+						logger.Warn().Err(err).Msg("V22 sentinel: insurance expire sweep failed")
+					}
+				}
+			}
+		}()
+		logger.Info().Msg("V22 sentinel: forecast + Insured Ship SKU wired")
+	}
+
+	// Finisher Guild — two-sided marketplace for human finishers +
+	// templates. Gated on IRONFLYER_GUILD_ENABLED so a half-credentialed
+	// staging env can opt out cleanly. The router subscribes to the
+	// learning publisher's gate_outcome stream via AttachRouterObserver
+	// once both this bundle and the publisher exist (publisher is
+	// constructed downstream; we attach below where it lands).
+	var guildBundle *wireup.GuildBundle
+	if strings.EqualFold(strings.TrimSpace(os.Getenv("IRONFLYER_GUILD_ENABLED")), "true") {
+		guildBundle = wireup.WireGuild(wireup.GuildOpts{
+			Pool:         pgPool,
+			WalletSvc:    walletSvc,
+			ProjectStore: projects,
+			Logger:       logger.With().Str("component", "guild").Logger(),
+		})
+		if guildBundle != nil {
+			go guildBundle.Reconciler.Start(ctx)
+			logger.Info().Msg("V22 guild: coordinator + reconciler wired")
+		}
 	}
 
 	// Ledger.
@@ -1900,7 +2126,18 @@ func main() {
 
 		// V22 service surface.
 		Wallet:           walletSvc,
-		WalletTopper:     walletTopper,
+		WalletToppers:    walletToppers,
+		Compliance:       complianceSvc,
+		Provisioning:     provisioningVault,
+		ShipPass:         shipPassSvc,
+		ShipPassSettler:  shipPassSettler,
+		Sentinel:         sentinelSvc,
+		GuildCoord: func() *guild.Coordinator {
+			if guildBundle == nil {
+				return nil
+			}
+			return guildBundle.Coordinator
+		}(),
 		Ledger:           ledgerSvc,
 		Execution:        execSvc,
 		ExecutionSettler: executionSettler,

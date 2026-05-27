@@ -47,11 +47,12 @@ build orchestrator infra/docker/orchestrator.Dockerfile \
 build runtime      infra/docker/runtime.Dockerfile
 build web          infra/docker/web.Dockerfile \
   --build-arg "NEXT_PUBLIC_IRONFLYER_API_URL=${NEXT_PUBLIC_IRONFLYER_API_URL}"
-build openvscode   infra/docker/ironflyer-openvscode.Dockerfile
-build code         infra/docker/ironflyer-code.Dockerfile
+# Per-user workspace image with the AppSec scanner suite baked in.
+# Spawned by core/runtime when IRONFLYER_RUNTIME_DRIVER=docker.
+build workspace    infra/docker/ironflyer-workspace.Dockerfile
 
 echo
 echo "==> built images"
 docker images \
   --format 'table {{.Repository}}:{{.Tag}}\t{{.Size}}\t{{.CreatedSince}}' \
-  | (read -r header; echo "$header"; grep -E "^ironflyer/(orchestrator|runtime|web|openvscode|code):${TAG}\b" | sort)
+  | (read -r header; echo "$header"; grep -E "^ironflyer/(orchestrator|runtime|web|workspace):${TAG}\b" | sort)

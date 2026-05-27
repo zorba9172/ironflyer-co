@@ -247,6 +247,19 @@ type Config struct {
 	PaddlePricePro        string `env:"PADDLE_PRICE_PRO"`
 	PaddlePriceTeam       string `env:"PADDLE_PRICE_TEAM"`
 	PaddlePriceEnterprise string `env:"PADDLE_PRICE_ENTERPRISE"`
+	// Wallet top-up redirects for Paddle hosted checkout. Distinct
+	// from PaddleSuccessURL on the subscription path so the wallet
+	// page can run its own session-id polling without colliding with
+	// the settings page.
+	PaddleWalletSuccessURL string `env:"PADDLE_WALLET_SUCCESS_URL" envDefault:"http://localhost:3000/app/wallet?paddle=success"`
+	PaddleWalletCancelURL  string `env:"PADDLE_WALLET_CANCEL_URL" envDefault:"http://localhost:3000/app/wallet?paddle=cancel"`
+
+	// WalletPrimaryProvider selects which provider is rendered as the
+	// main CTA on /wallet/topup. "stripe" (default) | "paddle". When
+	// the selected provider is disabled at boot the registry falls
+	// through to the first enabled alternative so a misconfigured
+	// flag never leaves the UI without a checkout option.
+	WalletPrimaryProvider string `env:"IRONFLYER_WALLET_PRIMARY_PROVIDER" envDefault:"stripe" validate:"oneof=stripe paddle"`
 
 	// Superuser bootstrap — when both vars are set, main.go idempotently
 	// ensures a platform_operator account exists with the given email +

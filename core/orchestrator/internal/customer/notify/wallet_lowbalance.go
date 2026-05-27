@@ -3,6 +3,7 @@ package notify
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/rs/zerolog"
 	"github.com/shopspring/decimal"
@@ -108,6 +109,14 @@ func (s *LowBalanceWalletService) ListTopUps(ctx context.Context, tenant string,
 
 func (s *LowBalanceWalletService) CreatePendingTopUp(ctx context.Context, tenant string, amount decimal.Decimal, stripeSessionID string) (wallet.TopUp, error) {
 	return s.inner.CreatePendingTopUp(ctx, tenant, amount, stripeSessionID)
+}
+
+func (s *LowBalanceWalletService) ListStalePending(ctx context.Context, threshold time.Duration) ([]wallet.TopUp, error) {
+	return s.inner.ListStalePending(ctx, threshold)
+}
+
+func (s *LowBalanceWalletService) MarkFailed(ctx context.Context, stripeSessionID string) error {
+	return s.inner.MarkFailed(ctx, stripeSessionID)
 }
 
 // maybeAlert dispatches when the post-debit balance has just crossed

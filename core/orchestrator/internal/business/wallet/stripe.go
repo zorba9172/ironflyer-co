@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
 	"ironflyer/core/orchestrator/internal/pkg/httpclient"
@@ -45,10 +46,10 @@ func IsSupportedAmount(amount decimal.Decimal) bool {
 	return false
 }
 
-// TopperOpts wires the Stripe checkout machinery to a backing Service.
-// The orchestrator constructs one Topper at startup; resolvers borrow
-// the same instance for every checkout request.
-type TopperOpts struct {
+// StripeTopperOpts wires the Stripe checkout machinery to a backing
+// Service. The orchestrator constructs one StripeTopper at startup;
+// resolvers borrow the same instance for every checkout request.
+type StripeTopperOpts struct {
 	// SecretKey is the Stripe API secret used for the /v1/checkout/
 	// sessions call. Empty disables the Topper — CreateCheckoutSession
 	// returns an "stripe disabled" error so dev environments still
@@ -70,16 +71,22 @@ type TopperOpts struct {
 	HTTPClient *http.Client
 }
 
-// Topper turns Stripe Checkout sessions into wallet credits. It is the
-// only thing in the package that talks to the outside world.
-type Topper struct {
-	opts    TopperOpts
+// TopperOpts is retained as an alias for backwards compatibility with
+// callers that pre-date the multi-provider refactor (cmd/orchestrator,
+// historical fixtures). New code should use StripeTopperOpts.
+type TopperOpts = StripeTopperOpts
+
+// StripeTopper turns Stripe Checkout sessions into wallet credits. It
+// is the only thing in the package that talks to Stripe. Satisfies
+// Topper.
+type StripeTopper struct {
+	opts    StripeTopperOpts
 	service Service
 	http    *http.Client
 }
 
-// NewTopper constructs a Topper backed by the given Service.
-func NewTopper(service Service, opts TopperOpts) *Topper {
+// NewStripeTopper constructs a Topper backed by the given Service.
+func NewStripeTopper(service Service, opts StripeTopperOpts) *StripeTopper {
 	if opts.SuccessURL == "" {
 		opts.SuccessURL = "http://localhost:3000/app/wallet?stripe=success"
 	}
@@ -90,20 +97,25 @@ func NewTopper(service Service, opts TopperOpts) *Topper {
 	if httpClient == nil {
 		httpClient = httpclient.Standard(15 * time.Second)
 	}
-	return &Topper{opts: opts, service: service, http: httpClient}
+	return &StripeTopper{opts: opts, service: service, http: httpClient}
 }
+
+// NewTopper is retained as an alias for NewStripeTopper so existing
+// wireup keeps compiling through the multi-provider refactor.
+func NewTopper(service Service, opts StripeTopperOpts) *StripeTopper {
+	return NewStripeTopper(service, opts)
+}
+
+// Name implements Topper.
+func (t *StripeTopper) Name() string { return ProviderStripe }
+
+// Label implements Topper.
+func (t *StripeTopper) Label() string { return "Card (Stripe)" }
 
 // Enabled is true iff a Stripe secret key is configured. Resolvers
 // check this before exposing the walletCreateTopUp mutation so dev
 // environments fail loud and clear.
-func (t *Topper) Enabled() bool { return t != nil && t.opts.SecretKey != "" }
-
-// CheckoutSession is the typed result of CreateCheckoutSession. The
-// resolver maps it directly to the WalletCheckoutSession GraphQL type.
-type CheckoutSession struct {
-	URL       string
-	SessionID string
-}
+func (t *StripeTopper) Enabled() bool { return t != nil && t.opts.SecretKey != "" }
 
 // CreateCheckoutSession provisions a one-shot Stripe Checkout for the
 // given tenant + amount. We use mode=payment (not subscription)
@@ -112,7 +124,12 @@ type CheckoutSession struct {
 // the webhook can route the credit back without a customer-table
 // lookup. A wallet_topups row is staged in 'pending' state before we
 // return; the webhook flips it to 'succeeded' on payment.
-func (t *Topper) CreateCheckoutSession(ctx context.Context, tenant string, amountUSD decimal.Decimal) (CheckoutSession, error) {
+//
+// We pass a fresh Idempotency-Key per call so a transient HTTP
+// retry never opens a duplicate Stripe session for the same intent
+// (Stripe folds repeated calls with the same key into one session
+// for 24h).
+func (t *StripeTopper) CreateCheckoutSession(ctx context.Context, tenant string, amountUSD decimal.Decimal) (CheckoutSession, error) {
 	if !t.Enabled() {
 		return CheckoutSession{}, errors.New("wallet: stripe disabled")
 	}
@@ -127,6 +144,7 @@ func (t *Topper) CreateCheckoutSession(ctx context.Context, tenant string, amoun
 	form.Set("metadata[tenant_id]", tenant)
 	form.Set("metadata[amount_usd]", amountUSD.String())
 	form.Set("metadata[purpose]", "wallet_topup")
+	form.Set("metadata[provider]", ProviderStripe)
 	// price_data lets us send the amount inline instead of pre-creating
 	// a Price object per tier. unit_amount is in cents.
 	cents := amountUSD.Mul(decimal.NewFromInt(100)).IntPart()
@@ -149,6 +167,10 @@ func (t *Topper) CreateCheckoutSession(ctx context.Context, tenant string, amoun
 	}
 	req.Header.Set("Authorization", "Bearer "+t.opts.SecretKey)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	// Stripe officially supports Idempotency-Key on all POST endpoints.
+	// We use a per-call UUID; a transient retry of THIS exact call
+	// (same request object) would reuse the key and not double-create.
+	req.Header.Set("Idempotency-Key", "wallet-topup-"+tenant+"-"+uuid.NewString())
 	resp, err := t.http.Do(req)
 	if err != nil {
 		return CheckoutSession{}, err
@@ -175,9 +197,9 @@ func (t *Topper) CreateCheckoutSession(ctx context.Context, tenant string, amoun
 		// recover via the synthetic-row fallback in TopUp.
 		// Surfacing the error here would leave the user with a paid
 		// Stripe session and no way to retry.
-		return CheckoutSession{URL: out.URL, SessionID: out.ID}, nil
+		return CheckoutSession{URL: out.URL, SessionID: out.ID, Provider: ProviderStripe}, nil
 	}
-	return CheckoutSession{URL: out.URL, SessionID: out.ID}, nil
+	return CheckoutSession{URL: out.URL, SessionID: out.ID, Provider: ProviderStripe}, nil
 }
 
 // HandleWebhook verifies the Stripe-Signature header against the raw
@@ -188,7 +210,7 @@ func (t *Topper) CreateCheckoutSession(ctx context.Context, tenant string, amoun
 //
 // signatureHeader is the value of the Stripe-Signature HTTP header.
 // rawBody is the unmodified request body Stripe signed.
-func (t *Topper) HandleWebhook(ctx context.Context, rawBody []byte, signatureHeader string) error {
+func (t *StripeTopper) HandleWebhook(ctx context.Context, rawBody []byte, signatureHeader string) error {
 	if t.opts.WebhookSecret == "" {
 		return errors.New("wallet: stripe webhook secret not configured")
 	}
@@ -332,3 +354,65 @@ func stripeAmount(obj map[string]any) (decimal.Decimal, error) {
 	}
 	return decimal.Zero, errors.New("no amount on session")
 }
+
+// VerifySession queries Stripe's /v1/checkout/sessions/{id} endpoint
+// for the current state of a session. Maps Stripe's status +
+// payment_status pair onto the provider-neutral VerifyStatus enum:
+//
+//	status=complete + payment_status=paid               → VerifyPaid
+//	status=complete + payment_status=no_payment_required → VerifyPaid (zero-cost)
+//	status=expired                                       → VerifyExpired
+//	status=open                                          → VerifyOpen
+//	anything else                                        → VerifyFailed
+func (t *StripeTopper) VerifySession(ctx context.Context, sessionID string) (VerifyResult, error) {
+	if !t.Enabled() {
+		return VerifyResult{}, errors.New("wallet: stripe disabled")
+	}
+	if sessionID == "" {
+		return VerifyResult{}, errors.New("wallet: empty session id")
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet,
+		"https://api.stripe.com/v1/checkout/sessions/"+sessionID, nil)
+	if err != nil {
+		return VerifyResult{}, err
+	}
+	req.Header.Set("Authorization", "Bearer "+t.opts.SecretKey)
+	resp, err := t.http.Do(req)
+	if err != nil {
+		return VerifyResult{}, err
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode == http.StatusNotFound {
+		return VerifyResult{Status: VerifyFailed}, nil
+	}
+	if resp.StatusCode/100 != 2 {
+		return VerifyResult{}, fmt.Errorf("stripe verify %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
+	}
+	var out struct {
+		Status        string `json:"status"`
+		PaymentStatus string `json:"payment_status"`
+		AmountTotal   int64  `json:"amount_total"`
+	}
+	if err := json.Unmarshal(body, &out); err != nil {
+		return VerifyResult{}, fmt.Errorf("parse stripe session: %w", err)
+	}
+	result := VerifyResult{Amount: decimal.NewFromInt(out.AmountTotal).Div(decimal.NewFromInt(100))}
+	switch out.Status {
+	case "complete":
+		if out.PaymentStatus == "paid" || out.PaymentStatus == "no_payment_required" {
+			result.Status = VerifyPaid
+		} else {
+			result.Status = VerifyFailed
+		}
+	case "open":
+		result.Status = VerifyOpen
+	case "expired":
+		result.Status = VerifyExpired
+	default:
+		result.Status = VerifyFailed
+	}
+	return result, nil
+}
+
+var _ Topper = (*StripeTopper)(nil)

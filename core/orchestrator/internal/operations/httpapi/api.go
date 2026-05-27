@@ -41,11 +41,16 @@ import (
 	"ironflyer/core/orchestrator/internal/business/blueprints"
 	"ironflyer/core/orchestrator/internal/business/budget"
 	"ironflyer/core/orchestrator/internal/business/budget/payments"
+	"ironflyer/core/orchestrator/internal/business/compliance"
 	"ironflyer/core/orchestrator/internal/business/dashboards"
 	"ironflyer/core/orchestrator/internal/business/execution"
 	"ironflyer/core/orchestrator/internal/business/forecast"
+	"ironflyer/core/orchestrator/internal/business/guild"
 	"ironflyer/core/orchestrator/internal/business/ledger"
 	"ironflyer/core/orchestrator/internal/business/profitguard"
+	"ironflyer/core/orchestrator/internal/business/provisioning"
+	"ironflyer/core/orchestrator/internal/business/sentinel"
+	"ironflyer/core/orchestrator/internal/business/shippass"
 	"ironflyer/core/orchestrator/internal/business/wallet"
 	"ironflyer/core/orchestrator/internal/business/wowloop"
 	"ironflyer/core/orchestrator/internal/customer/auth"
@@ -180,8 +185,13 @@ type Deps struct {
 	// ---------- V22 service surface --------------------------------
 	// Every field is optional. The resolver returns NOT_CONFIGURED
 	// for any V22 query that arrives without the matching dep.
-	Wallet           wallet.Service
-	WalletTopper     *wallet.Topper
+	Wallet        wallet.Service
+	WalletToppers *wallet.TopperRegistry
+	// Compliance powers the ComplianceGate vertical SKUs (PCI / HIPAA
+	// / SOC 2 / GDPR). Nil-safe — the resolver returns NOT_CONFIGURED
+	// when the orchestrator was booted without a Postgres pool /
+	// in-memory compliance backend.
+	Compliance       *compliance.Service
 	Ledger           ledger.Service
 	Execution        execution.Service
 	ExecutionSettler execution.Settler
@@ -255,6 +265,27 @@ type Deps struct {
 	// learning.SetGlobal at boot) is used.
 	LearningStore     learning.Store
 	LearningPublisher *learning.Publisher
+
+	// Provisioning is the ProvisionedResource / RevenueEvent vault —
+	// Ironflyer-as-issuer revenue rails (Stripe Connect, domain
+	// reseller, email partner, hosting). nil-safe at the resolver
+	// layer; the /provisioning/webhook/stripe REST route 503s when
+	// the vault has no Stripe Connect connector wired.
+	Provisioning *provisioning.Vault
+
+	// ShipPass is the outcome-based pricing SKU. Settler binds
+	// project IDs to active pass IDs so gate verdicts route to the
+	// right pass; both pointers nil-safe at the resolver.
+	ShipPass        shippass.Service
+	ShipPassSettler *shippass.Settler
+
+	// Sentinel is the predictive budget forecast + Insured Ship SKU.
+	// Nil-safe at the resolver.
+	Sentinel *sentinel.Service
+
+	// GuildCoord drives every FinisherGuild mutation (task lifecycle,
+	// bid lifecycle, template installs). Nil-safe at the resolver.
+	GuildCoord *guild.Coordinator
 }
 
 // API is the HTTP layer entry point. It assembles the chi router from
@@ -316,6 +347,12 @@ func New(d Deps) http.Handler {
 	r.Post("/budget/webhook", a.stripeWebhook)
 	// Paddle webhook — third-party callback, signature-verified inline.
 	r.Post("/budget/paddle/webhook", a.paddleWebhook)
+	// Stripe Connect webhook — distinct endpoint with its own signing
+	// secret (Connect events deliver application_fee.created /
+	// account.updated under a separate Stripe webhook). REST exception
+	// alongside /budget/webhook because the same constraints apply:
+	// third-party callback Stripe cannot drive over GraphQL.
+	r.Post("/provisioning/webhook/stripe", a.provisioningStripeWebhook)
 	// GitHub PR webhook — third-party callback. The path embeds the
 	// projectID + routing secret; the body is HMAC-verified against the
 	// per-project GITHUB_WEBHOOK_SECRET. See suppliers/github_pr for
@@ -456,7 +493,8 @@ func (a *API) newResolver() *resolver.Resolver {
 
 		// V22 service surface.
 		WalletSvc:         a.d.Wallet,
-		WalletTopper:      a.d.WalletTopper,
+		WalletToppers:     a.d.WalletToppers,
+		Compliance:        a.d.Compliance,
 		LedgerSvc:         a.d.Ledger,
 		ExecutionSvc:      a.d.Execution,
 		ExecutionSettler:  a.d.ExecutionSettler,
@@ -499,6 +537,12 @@ func (a *API) newResolver() *resolver.Resolver {
 		// Feedback Brain — learning store + publisher.
 		LearningStore:     a.d.LearningStore,
 		LearningPublisher: a.d.LearningPublisher,
+
+		// Monetization SKUs — Ship Pass, Budget Sentinel, Finisher Guild.
+		ShipPass:        a.d.ShipPass,
+		ShipPassSettler: a.d.ShipPassSettler,
+		Sentinel:        a.d.Sentinel,
+		GuildCoord:      a.d.GuildCoord,
 	}
 }
 
@@ -615,11 +659,12 @@ func (a *API) version(w http.ResponseWriter, _ *http.Request) {
 // wallet_topup route to wallet.Topper.HandleWebhook, every other event
 // passes through to the budget package for plan updates.
 func (a *API) stripeWebhook(w http.ResponseWriter, r *http.Request) {
+	stripeWalletTopper, _ := a.lookupWalletTopper(wallet.ProviderStripe)
 	if a.d.Stripe == nil || !a.d.Stripe.Enabled() {
 		// Wallet-only deployments still need to accept the webhook —
 		// fall through to the wallet topper if the budget Stripe svc
 		// is disabled but a topper is configured.
-		if a.d.WalletTopper == nil || !a.d.WalletTopper.Enabled() {
+		if stripeWalletTopper == nil {
 			writeJSON(w, http.StatusServiceUnavailable, map[string]string{"error": "stripe disabled"})
 			return
 		}
@@ -636,11 +681,11 @@ func (a *API) stripeWebhook(w http.ResponseWriter, r *http.Request) {
 	// route. The peek is on the raw body so the byte slice the
 	// downstream verifier sees is identical to what Stripe signed.
 	if purpose := peekStripePurpose(body); purpose == "wallet_topup" {
-		if a.d.WalletTopper == nil || !a.d.WalletTopper.Enabled() {
+		if stripeWalletTopper == nil {
 			writeJSON(w, http.StatusServiceUnavailable, map[string]string{"error": "wallet topper not configured"})
 			return
 		}
-		if err := a.d.WalletTopper.HandleWebhook(r.Context(), body, sig); err != nil {
+		if err := stripeWalletTopper.HandleWebhook(r.Context(), body, sig); err != nil {
 			a.d.Logger.Warn().Err(err).Msg("wallet webhook: handle failed")
 			writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 			return
@@ -679,7 +724,8 @@ func (a *API) stripeWebhook(w http.ResponseWriter, r *http.Request) {
 // stays with Stripe today — Paddle ships behind the same wallet contract
 // once the V22 wallet topper grows a Paddle adapter.
 func (a *API) paddleWebhook(w http.ResponseWriter, r *http.Request) {
-	if a.d.Paddle == nil || !a.d.Paddle.Enabled() {
+	paddleWalletTopper, _ := a.lookupWalletTopper(wallet.ProviderPaddle)
+	if (a.d.Paddle == nil || !a.d.Paddle.Enabled()) && paddleWalletTopper == nil {
 		writeJSON(w, http.StatusServiceUnavailable, map[string]string{"error": "paddle disabled"})
 		return
 	}
@@ -690,6 +736,34 @@ func (a *API) paddleWebhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sig := r.Header.Get("Paddle-Signature")
+
+	// Peek at custom_data.purpose so wallet top-ups route to the wallet
+	// Paddle topper without going through the subscription billing
+	// path. The peek is cheap — only the first ~2KB of the JSON body
+	// needs parsing — and on the raw bytes Paddle signed, so the
+	// downstream verifier sees an identical slice.
+	if purpose := peekPaddlePurpose(body); purpose == "wallet_topup" {
+		if paddleWalletTopper == nil {
+			writeJSON(w, http.StatusServiceUnavailable, map[string]string{"error": "wallet topper not configured"})
+			return
+		}
+		if err := paddleWalletTopper.HandleWebhook(r.Context(), body, sig); err != nil {
+			a.d.Logger.Warn().Err(err).Msg("paddle wallet webhook: handle failed")
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+			return
+		}
+		// Receipt email mirrors the Stripe path. Failures don't fail the
+		// webhook — notifier outages must not block credit acknowledgement.
+		a.sendPaddleTopUpReceipt(r.Context(), body)
+		writeJSON(w, http.StatusOK, map[string]string{"received": "wallet_topup"})
+		return
+	}
+
+	// Pass-through for subscription plan events.
+	if a.d.Paddle == nil || !a.d.Paddle.Enabled() {
+		writeJSON(w, http.StatusOK, map[string]string{"received": "ignored"})
+		return
+	}
 	ev, err := a.d.Paddle.VerifyWebhook(body, sig)
 	if err != nil {
 		a.d.Logger.Warn().Err(err).Msg("paddle webhook: verify failed")
@@ -706,6 +780,38 @@ func (a *API) paddleWebhook(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	writeJSON(w, http.StatusOK, map[string]string{"received": ev.Type})
+}
+
+// lookupWalletTopper resolves the named provider in the topper
+// registry. Returns (nil, false) when the registry is unset or the
+// provider is disabled, so callers can fall through to a 503 cleanly.
+func (a *API) lookupWalletTopper(name string) (wallet.Topper, bool) {
+	if a.d.WalletToppers == nil {
+		return nil, false
+	}
+	t, err := a.d.WalletToppers.ByName(name)
+	if err != nil || t == nil {
+		return nil, false
+	}
+	return t, true
+}
+
+// peekPaddlePurpose decodes just enough of a Paddle webhook body to
+// find data.custom_data.purpose. Returns "" on parse failures so the
+// caller falls through to the subscription branch.
+func peekPaddlePurpose(body []byte) string {
+	if len(body) == 0 || !bytes.Contains(body, []byte("custom_data")) {
+		return ""
+	}
+	var peek struct {
+		Data struct {
+			CustomData map[string]string `json:"custom_data"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(body, &peek); err != nil {
+		return ""
+	}
+	return peek.Data.CustomData["purpose"]
 }
 
 // peekStripePurpose decodes just enough of the raw event body to find
@@ -806,6 +912,84 @@ func (a *API) sendTopUpReceipt(ctx context.Context, body []byte) {
 		StripeSessionID: obj.ID,
 	}); err != nil {
 		a.d.Logger.Warn().Err(err).Str("user_id", userID).Msg("wallet webhook: receipt dispatch failed")
+	}
+}
+
+// sendPaddleTopUpReceipt mirrors sendTopUpReceipt for the Paddle
+// path. Paddle's transaction.completed payload places the amount under
+// data.details.totals.grand_total (minor units, string) and the email
+// under data.customer.email; otherwise the routing is identical.
+func (a *API) sendPaddleTopUpReceipt(ctx context.Context, body []byte) {
+	if a.d.Notifier == nil {
+		a.d.Logger.Warn().Msg("wallet webhook: receipt skipped — notifier not configured")
+		return
+	}
+	if a.d.Auth == nil {
+		return
+	}
+	var peek struct {
+		Data struct {
+			ID         string            `json:"id"`
+			CustomData map[string]string `json:"custom_data"`
+			Customer   struct {
+				Email string `json:"email"`
+				Name  string `json:"name"`
+			} `json:"customer"`
+			Details struct {
+				Totals struct {
+					CurrencyCode string `json:"currency_code"`
+					GrandTotal   string `json:"grand_total"`
+				} `json:"totals"`
+			} `json:"details"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(body, &peek); err != nil {
+		a.d.Logger.Warn().Err(err).Msg("wallet webhook: paddle receipt parse failed")
+		return
+	}
+	d := peek.Data
+	userID := d.CustomData["tenant_id"]
+	if userID == "" {
+		return
+	}
+	currency := strings.ToLower(d.Details.Totals.CurrencyCode)
+	if currency == "" {
+		currency = "usd"
+	}
+	amountCents := 0
+	if d.Details.Totals.GrandTotal != "" {
+		if n, err := strconv.Atoi(d.Details.Totals.GrandTotal); err == nil {
+			amountCents = n
+		}
+	}
+	if amountCents == 0 {
+		if v, ok := d.CustomData["amount_usd"]; ok {
+			if f, err := strconv.ParseFloat(v, 64); err == nil {
+				amountCents = int(f * 100)
+			}
+		}
+	}
+	email := d.Customer.Email
+	name := d.Customer.Name
+	if email == "" {
+		u, err := a.d.Auth.GetByID(ctx, userID)
+		if err != nil {
+			a.d.Logger.Warn().Err(err).Str("user_id", userID).Msg("wallet webhook: paddle receipt user lookup failed")
+			return
+		}
+		email = u.Email
+		if name == "" {
+			name = u.Name
+		}
+	}
+	if err := a.d.Notifier.Dispatch(ctx, userID, email, notify.KindReceipt, notify.ReceiptPayload{
+		Name:            name,
+		Currency:        currency,
+		AmountCents:     amountCents,
+		TransactionID:   d.ID,
+		StripeSessionID: d.ID,
+	}); err != nil {
+		a.d.Logger.Warn().Err(err).Str("user_id", userID).Msg("wallet webhook: paddle receipt dispatch failed")
 	}
 }
 

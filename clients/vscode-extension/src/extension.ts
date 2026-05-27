@@ -39,7 +39,6 @@ import {
 // cost off the critical path.
 type ChatPanelMod = typeof import('./chatPanel');
 type GraphViewMod = typeof import('./graphView');
-type BootstrapMod = typeof import('./bootstrap');
 type MemoryTreeMod = typeof import('./memoryTree');
 
 export function activate(context: vscode.ExtensionContext): void {
@@ -76,17 +75,7 @@ export function activate(context: vscode.ExtensionContext): void {
   }, 300);
 
   // Push initial signedIn context so viewsWelcome resolves correctly.
-  // We do this AFTER consumeStudioHandoff (below) gets a chance to
-  // populate SecretStorage from the Studio sync handoff, otherwise the
-  // first context push would record "signed out" right before the
-  // bootstrap step writes the token.
   void (async () => {
-    try {
-      const { consumeStudioHandoff } = await import('./bootstrap') as BootstrapMod;
-      await consumeStudioHandoff(auth, api, activeProject);
-    } catch (err) {
-      log.warn('studio handoff failed', err);
-    }
     const t = await auth.getToken();
     void vscode.commands.executeCommand('setContext', 'ironflyer.signedIn', Boolean(t));
   })();

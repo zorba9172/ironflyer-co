@@ -122,6 +122,7 @@ func (s *PostgresService) topUpInTx(ctx context.Context, tx pgx.Tx, tenant strin
 
 	// Flip pending → succeeded (or insert a new succeeded row when the
 	// pending row didn't exist yet).
+	provider := ProviderFromSessionID(stripeSessionID)
 	if stripeSessionID != "" {
 		ct, err := tx.Exec(ctx, `
             UPDATE wallet_topups
@@ -136,16 +137,17 @@ func (s *PostgresService) topUpInTx(ctx context.Context, tx pgx.Tx, tenant strin
 			// synthetic succeeded row so the user-visible history is
 			// complete.
 			if _, err := tx.Exec(ctx, `
-                INSERT INTO wallet_topups(tenant_id, stripe_session_id, amount_usd, status, completed_at)
-                VALUES ($1, $2, $3::numeric, 'succeeded', now())
+                INSERT INTO wallet_topups(tenant_id, provider, stripe_session_id, amount_usd, status, completed_at)
+                VALUES ($1, $2, $3, $4::numeric, 'succeeded', now())
                 ON CONFLICT (stripe_session_id) DO NOTHING`,
-				tenant, stripeSessionID, amount.String()); err != nil {
+				tenant, provider, stripeSessionID, amount.String()); err != nil {
 				return fmt.Errorf("wallet: record topup: %w", err)
 			}
 		}
 	}
 	return s.emitWalletEvent(ctx, tx, tenant, "wallet.topup.v1", amount, map[string]any{
 		"stripe_session_id": stripeSessionID,
+		"provider":          provider,
 	})
 }
 
@@ -314,7 +316,7 @@ func (s *PostgresService) ListTopUps(ctx context.Context, tenant string, limit i
 		limit = 50
 	}
 	rows, err := s.pool.Query(ctx, `
-        SELECT id, tenant_id, COALESCE(stripe_session_id, ''),
+        SELECT id, tenant_id, provider, COALESCE(stripe_session_id, ''),
                amount_usd::text, status, created_at, completed_at
         FROM wallet_topups
         WHERE tenant_id = $1
@@ -329,7 +331,7 @@ func (s *PostgresService) ListTopUps(ctx context.Context, tenant string, limit i
 		var t TopUp
 		var amount string
 		var completed *time.Time
-		if err := rows.Scan(&t.ID, &t.TenantID, &t.StripeSessionID,
+		if err := rows.Scan(&t.ID, &t.TenantID, &t.Provider, &t.StripeSessionID,
 			&amount, &t.Status, &t.CreatedAt, &completed); err != nil {
 			return nil, fmt.Errorf("wallet: scan topup: %w", err)
 		}
@@ -346,21 +348,24 @@ func (s *PostgresService) ListTopUps(ctx context.Context, tenant string, limit i
 
 // CreatePendingTopUp records a Checkout session before the webhook
 // fires. The UNIQUE(stripe_session_id) constraint guarantees we never
-// stage two pending rows for the same session.
+// stage two pending rows for the same session. provider is derived
+// from the session-id prefix; new PSPs only need a branch in
+// ProviderFromSessionID to slot in.
 func (s *PostgresService) CreatePendingTopUp(ctx context.Context, tenant string, amount decimal.Decimal, stripeSessionID string) (TopUp, error) {
 	if amount.IsZero() || amount.IsNegative() {
 		return TopUp{}, ErrInvalidAmount
 	}
+	provider := ProviderFromSessionID(stripeSessionID)
 	row := s.pool.QueryRow(ctx, `
-        INSERT INTO wallet_topups(tenant_id, stripe_session_id, amount_usd, status)
-        VALUES ($1, $2, $3::numeric, 'pending')
-        RETURNING id, tenant_id, COALESCE(stripe_session_id, ''),
+        INSERT INTO wallet_topups(tenant_id, provider, stripe_session_id, amount_usd, status)
+        VALUES ($1, $2, $3, $4::numeric, 'pending')
+        RETURNING id, tenant_id, provider, COALESCE(stripe_session_id, ''),
                   amount_usd::text, status, created_at, completed_at`,
-		tenant, stripeSessionID, amount.String())
+		tenant, provider, stripeSessionID, amount.String())
 	var t TopUp
 	var amt string
 	var completed *time.Time
-	if err := row.Scan(&t.ID, &t.TenantID, &t.StripeSessionID,
+	if err := row.Scan(&t.ID, &t.TenantID, &t.Provider, &t.StripeSessionID,
 		&amt, &t.Status, &t.CreatedAt, &completed); err != nil {
 		return TopUp{}, fmt.Errorf("wallet: insert pending: %w", err)
 	}
@@ -371,6 +376,61 @@ func (s *PostgresService) CreatePendingTopUp(ctx context.Context, tenant string,
 	t.AmountUSD = parsed
 	t.CompletedAt = completed
 	return t, nil
+}
+
+// ListStalePending returns pending wallet_topups older than threshold,
+// across every tenant. Used by the reconciliation cron — see
+// reconcile.go. Output is bounded at 1000 rows per sweep so a runaway
+// outage doesn't OOM the reconciler.
+func (s *PostgresService) ListStalePending(ctx context.Context, threshold time.Duration) ([]TopUp, error) {
+	cutoff := time.Now().UTC().Add(-threshold)
+	rows, err := s.pool.Query(ctx, `
+        SELECT id, tenant_id, provider, COALESCE(stripe_session_id, ''),
+               amount_usd::text, status, created_at, completed_at
+        FROM wallet_topups
+        WHERE status = 'pending'
+          AND created_at < $1
+        ORDER BY created_at ASC
+        LIMIT 1000`, cutoff)
+	if err != nil {
+		return nil, fmt.Errorf("wallet: list stale pending: %w", err)
+	}
+	defer rows.Close()
+	out := []TopUp{}
+	for rows.Next() {
+		var t TopUp
+		var amount string
+		var completed *time.Time
+		if err := rows.Scan(&t.ID, &t.TenantID, &t.Provider, &t.StripeSessionID,
+			&amount, &t.Status, &t.CreatedAt, &completed); err != nil {
+			return nil, fmt.Errorf("wallet: scan stale pending: %w", err)
+		}
+		amt, err := decimal.NewFromString(amount)
+		if err != nil {
+			return nil, fmt.Errorf("wallet: parse amount: %w", err)
+		}
+		t.AmountUSD = amt
+		t.CompletedAt = completed
+		out = append(out, t)
+	}
+	return out, rows.Err()
+}
+
+// MarkFailed transitions a pending row to failed. No-op when the row
+// is already in a terminal state.
+func (s *PostgresService) MarkFailed(ctx context.Context, stripeSessionID string) error {
+	if stripeSessionID == "" {
+		return errors.New("wallet: empty session id")
+	}
+	_, err := s.pool.Exec(ctx, `
+        UPDATE wallet_topups
+           SET status = 'failed', completed_at = now()
+         WHERE stripe_session_id = $1
+           AND status = 'pending'`, stripeSessionID)
+	if err != nil {
+		return fmt.Errorf("wallet: mark failed: %w", err)
+	}
+	return nil
 }
 
 // --- V22 opKey-aware idempotent variants -----------------------------

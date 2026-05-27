@@ -40,15 +40,16 @@ import { TopUpHistory } from "../../../src/components/wallet/TopUpHistory";
 import { RequireAuth } from "../../../src/lib/auth";
 import { formatMoney } from "../../../src/lib/format";
 import {
+  useWalletAvailableProvidersQuery,
   useWalletCreateTopUpMutation,
   useWalletQuery,
 } from "../../../src/lib/gql/__generated__";
 import { useWalletBalance } from "../../../src/lib/hooks";
 import { tokens } from "../../../src/theme";
 
-const PRESETS = [20, 50, 100, 250, 500] as const;
+const PRESETS = [10, 25, 50, 100, 250, 500] as const;
 const DEFAULT_PRESET: (typeof PRESETS)[number] = 50;
-const MIN_CUSTOM = 5;
+const SUPPORTED_AMOUNTS_LABEL = PRESETS.map((value) => `$${value}`).join(", ");
 const POLL_INTERVAL_MS = 2_000;
 const POLL_TIMEOUT_MS = 30_000;
 const SUCCESS_REDIRECT_MS = 3_000;
@@ -65,10 +66,13 @@ export default function WalletTopUpPage() {
 
 function TopUpRouter() {
   const params = useSearchParams();
-  const sessionId = params?.get("session_id") || null;
+  // Stripe returns with ?session_id=cs_...; Paddle returns with
+  // ?_ptxn=txn_...; both flows reach the same poll-and-confirm view.
+  const sessionId = params?.get("session_id") || params?.get("_ptxn") || null;
+  const provider = sessionId?.startsWith("txn_") ? "paddle" : "stripe";
 
   return sessionId ? (
-    <StripeReturnView sessionId={sessionId} />
+    <CheckoutReturnView sessionId={sessionId} provider={provider} />
   ) : (
     <PickerView />
   );
@@ -83,26 +87,43 @@ function PickerView() {
   const [selected, setSelected] = useState<number>(DEFAULT_PRESET);
   const [custom, setCustom] = useState<string>("");
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [createTopUp, { loading: submitting }] = useWalletCreateTopUpMutation();
+  const [submittingProvider, setSubmittingProvider] = useState<string | null>(
+    null,
+  );
+  const [createTopUp] = useWalletCreateTopUpMutation();
+  const providersQuery = useWalletAvailableProvidersQuery();
+  const providers = providersQuery.data?.walletAvailableProviders ?? [];
+  const primaryProvider = providers.find((p) => p.isPrimary) ?? providers[0];
+  const alternativeProviders = providers.filter(
+    (p) => p.name !== primaryProvider?.name,
+  );
 
   const useCustom = custom.trim().length > 0;
   const customAmount = Number(custom);
   const customValid =
-    useCustom && Number.isFinite(customAmount) && customAmount >= MIN_CUSTOM;
+    useCustom &&
+    Number.isFinite(customAmount) &&
+    PRESETS.includes(customAmount as (typeof PRESETS)[number]);
   const amount = useCustom ? customAmount : selected;
   const validAmount = useCustom ? customValid : true;
 
   const balanceTone: "healthy" | "low" | "zero" =
     wallet.availableUSD <= 0 ? "zero" : wallet.lowBalance ? "low" : "healthy";
 
-  const onContinue = async () => {
-    if (submitting || !validAmount) return;
+  const onContinueWith = async (providerName: string | null) => {
+    if (submittingProvider !== null || !validAmount) return;
     setSubmitError(null);
+    setSubmittingProvider(providerName ?? "primary");
     try {
-      const res = await createTopUp({ variables: { amountUSD: amount } });
+      const res = await createTopUp({
+        variables: { amountUSD: amount, provider: providerName },
+      });
       const url = res.data?.walletCreateTopUp.url;
       if (!url) {
-        setSubmitError("Stripe did not return a checkout URL. Try again.");
+        setSubmitError(
+          "Payment provider did not return a checkout URL. Try again.",
+        );
+        setSubmittingProvider(null);
         return;
       }
       window.location.href = url;
@@ -110,8 +131,9 @@ function PickerView() {
       setSubmitError(
         err instanceof Error
           ? err.message
-          : "Could not open Stripe Checkout. Please try again.",
+          : "Could not open the hosted checkout. Please try again.",
       );
+      setSubmittingProvider(null);
     }
   };
 
@@ -230,7 +252,7 @@ function PickerView() {
                 fontWeight: 700,
               }}
             >
-              Custom amount (min ${MIN_CUSTOM})
+              Custom amount
             </Typography>
             <TextField
               value={custom}
@@ -239,7 +261,7 @@ function PickerView() {
                 setCustom(next);
                 setSubmitError(null);
               }}
-              placeholder="e.g. 75"
+              placeholder="10, 25, 50…"
               inputMode="decimal"
               size="small"
               sx={{
@@ -274,7 +296,7 @@ function PickerView() {
                   color: tokens.color.accent.warning,
                 }}
               >
-                Minimum top-up is ${MIN_CUSTOM}.
+                Supported top-ups are {SUPPORTED_AMOUNTS_LABEL}.
               </Typography>
             )}
           </Card>
@@ -318,7 +340,7 @@ function PickerView() {
                 color: tokens.color.text.muted,
               }}
             >
-              You will be redirected to Stripe Checkout to complete payment.
+              You will be redirected to a hosted checkout to complete payment.
               Credits land in your wallet as soon as the webhook fires.
             </Typography>
 
@@ -338,15 +360,19 @@ function PickerView() {
             )}
 
             <Button
-              onClick={onContinue}
-              disabled={submitting || !validAmount}
+              onClick={() => onContinueWith(primaryProvider?.name ?? null)}
+              disabled={
+                submittingProvider !== null ||
+                !validAmount ||
+                providers.length === 0
+              }
               variant="contained"
               color="primary"
               size="large"
               fullWidth
               sx={{ mt: 2 }}
               startIcon={
-                submitting ? (
+                submittingProvider !== null ? (
                   <CircularProgress
                     size={14}
                     thickness={5}
@@ -357,8 +383,57 @@ function PickerView() {
                 )
               }
             >
-              Continue to Stripe
+              {primaryProvider
+                ? `Pay with ${primaryProvider.label}`
+                : "Continue to checkout"}
             </Button>
+
+            {alternativeProviders.length > 0 && (
+              <Stack spacing={1} sx={{ mt: 2 }}>
+                <Typography
+                  sx={{
+                    fontSize: 11,
+                    color: tokens.color.text.muted,
+                    letterSpacing: 0.5,
+                    textTransform: "uppercase",
+                    fontWeight: 700,
+                  }}
+                >
+                  Card declined or in a blocked region?
+                </Typography>
+                {alternativeProviders.map((alt) => (
+                  <Button
+                    key={alt.name}
+                    onClick={() => onContinueWith(alt.name)}
+                    disabled={submittingProvider !== null || !validAmount}
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                    sx={{
+                      color: tokens.color.text.primary,
+                      borderColor: tokens.color.border.strong,
+                      "&:hover": {
+                        borderColor: tokens.color.accent.violet,
+                        bgcolor: "transparent",
+                      },
+                    }}
+                    startIcon={
+                      submittingProvider === alt.name ? (
+                        <CircularProgress
+                          size={12}
+                          thickness={5}
+                          sx={{ color: "inherit" }}
+                        />
+                      ) : (
+                        <OpenInNewRounded sx={{ fontSize: 14 }} />
+                      )
+                    }
+                  >
+                    Pay with {alt.label}
+                  </Button>
+                ))}
+              </Stack>
+            )}
           </Card>
 
           <Box sx={{ display: { xs: "none", lg: "block" } }}>
@@ -490,10 +565,16 @@ function SummaryRow({
 }
 
 // -----------------------------------------------------------------------------
-// Stripe return mode
+// Hosted-checkout return mode (Stripe + Paddle share the same poll flow)
 // -----------------------------------------------------------------------------
 
-function StripeReturnView({ sessionId }: { sessionId: string }) {
+function CheckoutReturnView({
+  sessionId,
+  provider,
+}: {
+  sessionId: string;
+  provider: string;
+}) {
   const router = useRouter();
 
   const walletQuery = useWalletQuery({
@@ -550,13 +631,14 @@ function StripeReturnView({ sessionId }: { sessionId: string }) {
     () => [{ label: "Wallet", href: "/wallet" }, { label: "Top up" }],
     [],
   );
+  const providerLabel = provider === "paddle" ? "Paddle" : "Stripe";
 
   return (
     <Box>
       <PageHeader
         eyebrow="Wallet"
         title="Top-up confirmation"
-        description={`Stripe session ${sessionId.slice(0, 14)}…`}
+        description={`${providerLabel} session ${sessionId.slice(0, 14)}…`}
         breadcrumbs={breadcrumbs}
       />
 
@@ -656,8 +738,8 @@ function TimeoutPanel() {
             textAlign: "center",
           }}
         >
-          Your balance will update shortly. Stripe and the orchestrator webhook
-          finalize the credit asynchronously.
+          Your balance will update shortly. The payment provider and the
+          orchestrator webhook finalize the credit asynchronously.
         </Typography>
         <Button
           component={Link}

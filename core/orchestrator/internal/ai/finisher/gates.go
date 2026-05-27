@@ -977,6 +977,7 @@ func DefaultGates() []Gate {
 		CodeGate{}, VerifierGate{}, DriftGate{}, LintGate{}, TestGate{},
 		SecurityGate{}, BudgetGate{},
 		ComplianceSOC2Gate{}, ComplianceHIPAAGate{},
+		CompliancePCIGate{}, ComplianceGDPRGate{},
 		MobileBuildGate{},
 		MobileExpoDoctorGate{},
 		MobileSizeBudgetGate{},

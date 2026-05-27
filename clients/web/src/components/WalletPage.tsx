@@ -81,7 +81,7 @@ export function WalletPage() {
       try {
         const res = await createTopUp({ variables: { amountUSD: amount } });
         const url = res.data?.walletCreateTopUp.url;
-        if (!url) throw new Error("Stripe Checkout did not return a URL.");
+        if (!url) throw new Error("Payment provider did not return a checkout URL.");
         window.location.href = url;
       } catch (err) {
         setPendingAmount(null);

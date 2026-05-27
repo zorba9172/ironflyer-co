@@ -48,6 +48,11 @@ interface ChatState {
     messageID: string,
     patch: Partial<StudioMessage>,
   ): void;
+  // Move every message from `fromID` to `toID` (used when the
+  // free-chat "_" buffer is promoted into a real execution after
+  // createPaidExecution resolves). No-op if `toID` already has
+  // messages — we never trample a real buffer.
+  adoptBuffer(fromID: string, toID: string): void;
   // Wipe an execution's buffer + clear localStorage.
   clear(executionID: string): void;
 }
@@ -102,6 +107,22 @@ export const useChatStore = create<ChatState>((set, get) => ({
       return {
         byExecution: { ...state.byExecution, [executionID]: next },
       };
+    });
+  },
+  adoptBuffer: (fromID, toID) => {
+    if (!fromID || !toID || fromID === toID) return;
+    set((state) => {
+      const prevFrom = state.byExecution[fromID] ?? EMPTY_MESSAGES;
+      if (prevFrom.length === 0) return state;
+      const prevTo = state.byExecution[toID] ?? EMPTY_MESSAGES;
+      if (prevTo.length > 0) return state;
+      saveMessages(toID, prevFrom);
+      saveMessages(fromID, []);
+      const nextBy = { ...state.byExecution, [toID]: prevFrom };
+      delete nextBy[fromID];
+      const nextH = { ...state.hydrated, [toID]: true as const };
+      delete nextH[fromID];
+      return { byExecution: nextBy, hydrated: nextH };
     });
   },
   clear: (executionID) => {

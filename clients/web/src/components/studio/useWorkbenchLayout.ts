@@ -34,13 +34,6 @@ export type WorkbenchPrimary =
 // layout of Problems / Output / Terminal / Debug.
 export type WorkbenchDockTab = "patches" | "logs" | "changes" | "terminal";
 
-// Code-pane rendering mode. `monaco` is the lightweight read-only file
-// viewer the studio has shipped with since day one; `ide` swaps in a
-// slim openvscode-server iframe so the operator gets a terminal,
-// source control and the debugger inside the same workbench
-// shell. The choice persists alongside the rest of the layout state.
-export type WorkbenchCodeMode = "monaco" | "ide";
-
 export interface WorkbenchLayoutState {
   primary: WorkbenchPrimary;
   leftOpen: boolean;
@@ -49,7 +42,6 @@ export interface WorkbenchLayoutState {
   dockTab: WorkbenchDockTab;
   dockHeight: number; // px
   focus: boolean;
-  codeMode: WorkbenchCodeMode;
 }
 
 // DEFAULT_STATE — landing layout for a fresh project.
@@ -58,10 +50,10 @@ export interface WorkbenchLayoutState {
 // First Contract (CLAUDE.md → "VISUALIZATION-FIRST, CODE-FOR-PROS"
 // and DESIGN_REFERENCE.md → "Visualization-First Contract"), every
 // operator surface must lead with a visual mirror of the AI's
-// technical state. Monaco / cloud IDE are the professional layer
-// reachable via the code-mode switcher; they MUST NOT become the
-// default landing pane. Do not change this default to "code" — flip
-// the constitution first.
+// technical state. The Monaco code pane is the professional layer
+// reachable via the left rail; it MUST NOT become the default landing
+// pane. Do not change this default to "code" — flip the constitution
+// first.
 const DEFAULT_STATE: WorkbenchLayoutState = {
   primary: "preview",
   leftOpen: true,
@@ -70,7 +62,6 @@ const DEFAULT_STATE: WorkbenchLayoutState = {
   dockTab: "patches",
   dockHeight: 240,
   focus: false,
-  codeMode: "monaco",
 };
 
 const MIN_DOCK_HEIGHT = 140;
@@ -94,17 +85,9 @@ function isValid(raw: unknown): raw is WorkbenchLayoutState {
     s.dockTab === "logs" ||
     s.dockTab === "changes" ||
     s.dockTab === "terminal";
-  // codeMode was added after the original schema shipped — accept a
-  // missing or invalid value and fall through to the default so we
-  // don't reject older persisted layouts.
-  const validCodeMode =
-    s.codeMode === undefined ||
-    s.codeMode === "monaco" ||
-    s.codeMode === "ide";
   return (
     validPrimary &&
     validDockTab &&
-    validCodeMode &&
     typeof s.leftOpen === "boolean" &&
     typeof s.rightOpen === "boolean" &&
     typeof s.dockOpen === "boolean" &&
@@ -121,7 +104,6 @@ export interface UseWorkbenchLayoutResult extends WorkbenchLayoutState {
   toggleFocus: () => void;
   setDockTab: (tab: WorkbenchDockTab) => void;
   setDockHeight: (px: number) => void;
-  setCodeMode: (mode: WorkbenchCodeMode) => void;
 }
 
 export function useWorkbenchLayout(
@@ -192,9 +174,6 @@ export function useWorkbenchLayout(
       dockHeight: Math.max(MIN_DOCK_HEIGHT, Math.min(MAX_DOCK_HEIGHT, px)),
     }));
   }, []);
-  const setCodeMode = useCallback((mode: WorkbenchCodeMode) => {
-    setState((s) => (s.codeMode === mode ? s : { ...s, codeMode: mode }));
-  }, []);
 
   return useMemo<UseWorkbenchLayoutResult>(
     () => ({
@@ -206,7 +185,6 @@ export function useWorkbenchLayout(
       toggleFocus,
       setDockTab,
       setDockHeight,
-      setCodeMode,
     }),
     [
       state,
@@ -217,7 +195,6 @@ export function useWorkbenchLayout(
       toggleFocus,
       setDockTab,
       setDockHeight,
-      setCodeMode,
     ],
   );
 }

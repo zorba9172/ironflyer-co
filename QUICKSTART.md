@@ -52,8 +52,6 @@ Optional profiles (opt-in, not part of the lean default):
   when `REDPANDA_BROKERS` / `CLICKHOUSE_URL` are unset.
 - `--profile temporal` — `temporal` + `temporal-ui` (~768 MB; UI on
   `:8233`). Needed for durable-workflow paths in production mode.
-- `--profile ide` — `openvscode-server` (~1 GB; on `:3030`). The
-  in-browser VS Code surface for the cloud IDE.
 - `--profile stripe` — `stripe listen` forwarding to
   `host.docker.internal:8080/budget/webhook` (requires
   `STRIPE_SECRET_KEY` in `.env`).

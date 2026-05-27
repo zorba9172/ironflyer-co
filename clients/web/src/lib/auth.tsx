@@ -46,7 +46,8 @@ export { getToken, setToken, clearToken } from "./apollo";
 
 export type AuthUser = NonNullable<CurrentUserQuery["me"]>;
 
-const AUTH_GUARD_DISABLED_FOR_PREVIEW = true;
+const AUTH_GUARD_DISABLED_FOR_PREVIEW =
+  process.env.NEXT_PUBLIC_AUTH_GUARD_DISABLED_FOR_PREVIEW === "1";
 
 export interface AuthSession {
   token: string;

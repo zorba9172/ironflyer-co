@@ -15,10 +15,13 @@ type Config struct {
 	LogLevel     string `env:"IRONFLYER_LOG_LEVEL" envDefault:"info"`
 	LogFormat    string `env:"IRONFLYER_LOG_FORMAT" envDefault:"console"`
 
-	// Docker driver: which image to spin up per user. Defaults to our
-	// Ironflyer-branded code-server build (see infra/docker/ironflyer-code.Dockerfile);
-	// override to `codercom/code-server:latest` for a vanilla container.
-	DockerImage string `env:"IRONFLYER_RUNTIME_DOCKER_IMAGE" envDefault:"ghcr.io/zorba9172/ironflyer-code:latest"`
+	// Docker driver: which image to spin up per user. Defaults to the
+	// Ironflyer workspace image (infra/docker/ironflyer-workspace.Dockerfile)
+	// which pre-installs the AppSec scanner suite (semgrep, gitleaks,
+	// trufflehog, govulncheck) plus the Node + Python + Go toolchain so
+	// generated projects build and SecurityGate has real binaries to run.
+	// Override to a custom image for tenants with their own hardened base.
+	DockerImage string `env:"IRONFLYER_RUNTIME_DOCKER_IMAGE" envDefault:"ghcr.io/zorba9172/ironflyer-workspace:latest"`
 
 	// CORS origin to allow (Next.js dev).
 	CORSOrigin string `env:"IRONFLYER_RUNTIME_CORS_ORIGIN" envDefault:"*"`

@@ -163,6 +163,22 @@ const (
 	// access control or audit log — the OCR ship-stoppers; everything
 	// else surfaces as Warning / Info.
 	GateComplianceHIPAA GateName = "compliance_hipaa"
+
+	// GateCompliancePCI enforces PCI-DSS v4 cardholder-data controls.
+	// Only fires when Project.Spec.Compliance contains "pci". Hard-fails
+	// on raw PAN exposure (Luhn-passing 13-16 digit sequences in
+	// source / migrations / logs) and on missing webhook signature
+	// verification at payment-handler routes. Sold as a premium
+	// per-project SKU through the compliance package.
+	GateCompliancePCI GateName = "compliance_pci"
+
+	// GateComplianceGDPR enforces the data-subject-rights surface of the
+	// GDPR for EU-serving apps. Only fires when Project.Spec.Compliance
+	// contains "gdpr". Checks cover cookie consent banner, privacy
+	// policy artefact, /data-export + /account/delete endpoints, and
+	// absence of PII in client-side analytics calls. Sold as a premium
+	// per-project SKU through the compliance package.
+	GateComplianceGDPR GateName = "compliance_gdpr"
 )
 
 func AllGates() []GateName {
@@ -171,6 +187,7 @@ func AllGates() []GateName {
 		GateCode, GateDrift, GateVerifier, GateLint, GateTest,
 		GateSecurity, GateBudget,
 		GateComplianceSOC2, GateComplianceHIPAA,
+		GateCompliancePCI, GateComplianceGDPR,
 		GateMobileBuild,
 		GateMobileExpoDoctor, GateMobileSize,
 		GateMobileSecurity, GateIOSPrivacyManifest,

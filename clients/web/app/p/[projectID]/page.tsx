@@ -34,7 +34,6 @@ import {
 } from "react";
 import { LoadingPanel } from "../../../src/components/cockpit/LoadingPanel";
 import { ChatPanel } from "../../../src/components/studio/ChatPanel";
-import { CodeModeSwitcher } from "../../../src/components/studio/CodeModeSwitcher";
 import { MobilePreviewFrame } from "../../../src/components/studio/MobilePreviewFrame";
 import { PreviewPane } from "../../../src/components/studio/PreviewPane";
 import { StudioErrorPanel } from "../../../src/components/studio/StudioErrorPanel";
@@ -69,7 +68,6 @@ import {
 import { pushToast } from "../../../src/lib/stores/uiStore";
 import { tokens } from "../../../src/theme";
 import type { StudioAttachment } from "../../../src/components/studio/types";
-import StudioPreviewPage from "../../studio/page";
 
 // Heavy panes lazy-load. They share the same fallback so the shell
 // keeps a consistent loading skin while their JS chunk lands.
@@ -181,10 +179,10 @@ function ProjectStudioInner() {
     executionQuery.data?.execution ??
     (executionIDParam ? null : resolvedExecution);
   const executionID = execution?.id ?? "";
-  // chatStoreKey routes both modes through the same chat store: when
-  // an execution exists, messages key off its id; otherwise the free-
-  // chat sentinel "_" matches the orchestrator's chat_stream path.
-  const chatStoreKey = executionID || "_";
+  // chatStoreKey routes both modes through the same chat store. Before
+  // an execution exists, keep the draft chat scoped to the project so
+  // local messages never leak across projects.
+  const chatStoreKey = executionID || `project:${projectID}:draft`;
 
   // 2. Chat buffer.
   const messages = useChatStore(selectMessages(chatStoreKey));
@@ -235,13 +233,25 @@ function ProjectStudioInner() {
   const [refineIdea, refineState] = useRefineIdeaMutation();
   const onSend = useCallback(
     async (text: string, attachments?: StudioAttachment[]) => {
-      // Free-chat sentinel: when no execution has been admitted yet,
-      // the orchestrator's /executions/_/chat/stream path runs a
-      // general copilot reply without execution context. The chat
-      // store keys off the same id so messages stay coherent until
-      // an execution arrives.
-      const chatID = executionID || "_";
+      const chatID = chatStoreKey;
       appendLocal(chatID, makeUserMessage(text, attachments));
+
+      // No execution yet: keep chat local and require the explicit
+      // budget-confirming StartExecutionPanel before any wallet hold.
+      if (!executionID && projectID) {
+        appendLocal(
+          chatID,
+          makeAssistantThinkingMessage(
+            "Choose a budget in Preview, then start the execution. I will not place a wallet hold from chat alone.",
+          ),
+        );
+        pushToast({
+          message:
+            "Confirm a budget in Preview before starting a paid execution.",
+          severity: "info",
+        });
+        return;
+      }
 
       // Record the refinement on the running execution. Skipped in
       // free-chat mode — no execution exists to refine yet. Fire-and-
@@ -312,7 +322,14 @@ function ProjectStudioInner() {
         setStreaming(false);
       });
     },
-    [executionID, refineIdea, appendLocal, updateLocal],
+    [
+      executionID,
+      projectID,
+      chatStoreKey,
+      refineIdea,
+      appendLocal,
+      updateLocal,
+    ],
   );
 
   const onStop = useCallback(() => {
@@ -342,7 +359,15 @@ function ProjectStudioInner() {
   }
 
   if (demoPreview) {
-    return <StudioPreviewPage />;
+    // The "demo" project ID used to bounce to a static showcase at
+    // /studio. The showcase is gone — send the operator to the real
+    // project list instead so they pick a live workspace.
+    if (typeof window !== "undefined") window.location.replace("/projects");
+    return (
+      <Box sx={{ height: "100%", width: "100%" }}>
+        <LoadingPanel label="Redirecting…" minHeight="100%" />
+      </Box>
+    );
   }
 
   if (
@@ -465,17 +490,10 @@ function ProjectStudioInner() {
         </MobilePreviewFrame>
       }
       codeSlot={
-        <CodeModeSwitcher
-          mode={layout.codeMode}
-          onModeChange={layout.setCodeMode}
+        <CodePane
           projectID={projectID}
-          monacoSlot={
-            <CodePane
-              projectID={projectID}
-              executionID={execution.id}
-              executionStatus={execution.status}
-            />
-          }
+          executionID={execution.id}
+          executionStatus={execution.status}
         />
       }
       filesSlot={

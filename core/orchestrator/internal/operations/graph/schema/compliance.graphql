@@ -1,0 +1,82 @@
+# V22 ComplianceGate verticals — premium per-app SKUs that turn the
+# finisher's framework-aware gates (PCI / HIPAA / SOC 2 / GDPR) into a
+# monthly subscription billed against the wallet. Maps onto
+# internal/business/compliance.Service.
+#
+# Sold at $199-$499/month per project. Idempotency on every charge so
+# a re-tick during the same calendar month never double-bills.
+
+# A compliance framework available for enrolment. Static catalogue in
+# compliance/frameworks.go — adding a framework is a code change so the
+# price + gate list stay reviewable.
+type ComplianceFramework {
+  key: String!
+  label: String!
+  monthlyPriceUSD: String!
+  controlCount: Int!
+}
+
+# One (tenant, project, framework) enrolment row. lastVerdict is one of
+# "pending" | "pass" | "fail"; lastEvaluatedAt is null until the first
+# EvaluateAll lands.
+type ComplianceEnrollment {
+  id: ID!
+  projectId: ID!
+  framework: ComplianceFramework!
+  lastVerdict: String!
+  lastEvaluatedAt: DateTime
+  nextChargeAt: DateTime!
+}
+
+# One control result. status is "pass" | "fail" | "n/a". evidence is the
+# operator-facing one-liner; path is the file the finding lives in (may
+# be empty for project-level controls).
+type ComplianceControlResult {
+  controlKey: String!
+  status: String!
+  severity: String!
+  evidence: String!
+  path: String
+  evaluatedAt: DateTime!
+}
+
+# The signed audit bundle. downloadURL is a data: URL the dashboard can
+# inline-download; attestationJWT is an HS256-signed token an external
+# auditor can verify against the published Ironflyer public key.
+type ComplianceAuditBundle {
+  generatedAt: DateTime!
+  framework: ComplianceFramework!
+  downloadURL: String!
+  attestationJWT: String!
+}
+
+extend type Query {
+  # The static framework catalogue (PCI, HIPAA, SOC 2, GDPR).
+  complianceFrameworks: [ComplianceFramework!]!
+
+  # The current tenant's active enrolments, optionally scoped to one
+  # project.
+  complianceEnrollments(projectId: ID): [ComplianceEnrollment!]!
+
+  # The most recently persisted control results for a (project,
+  # framework) pair. Empty when no evaluation has landed yet.
+  complianceControlResults(projectId: ID!, framework: String!): [ComplianceControlResult!]!
+}
+
+extend type Mutation {
+  # Enroll a project into a framework. Idempotent — re-enrolling
+  # returns the existing row.
+  enrollCompliance(projectId: ID!, framework: String!): ComplianceEnrollment!
+
+  # Cancel an enrolment. Past charges remain in the ledger; the next
+  # monthly tick simply skips the row.
+  unenrollCompliance(enrollmentId: ID!): Boolean!
+
+  # Run the framework's gate set against the project workspace and
+  # return the fresh control result set.
+  evaluateCompliance(projectId: ID!, framework: String!): [ComplianceControlResult!]!
+
+  # Re-evaluate, sign an attestation JWT, package everything into a
+  # tar.gz audit bundle, and return the inline download URL.
+  exportAuditBundle(projectId: ID!, framework: String!): ComplianceAuditBundle!
+}

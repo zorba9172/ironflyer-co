@@ -2,6 +2,7 @@ package wallet
 
 import (
 	"context"
+	"time"
 
 	"github.com/shopspring/decimal"
 )
@@ -64,4 +65,20 @@ type Service interface {
 	// succeeds, BEFORE we return the URL to the user. The webhook
 	// later flips it to succeeded via TopUp.
 	CreatePendingTopUp(ctx context.Context, tenant string, amount decimal.Decimal, stripeSessionID string) (TopUp, error)
+
+	// ListStalePending returns wallet_topups rows still in 'pending'
+	// state older than threshold. Used by the reconciliation cron to
+	// detect missed webhooks: any row older than the vendor's typical
+	// settlement window (~10 minutes) almost certainly indicates that
+	// a webhook delivery was dropped, the vendor is having an outage,
+	// or the user abandoned the checkout. The cron re-queries the
+	// vendor via Topper.VerifySession and lands the credit or marks
+	// the row failed accordingly.
+	ListStalePending(ctx context.Context, threshold time.Duration) ([]TopUp, error)
+
+	// MarkFailed transitions a 'pending' wallet_topups row to 'failed'.
+	// Called by the reconciler when the vendor reports the session as
+	// expired or terminally failed. Idempotent against repeated calls
+	// for the same session id.
+	MarkFailed(ctx context.Context, stripeSessionID string) error
 }

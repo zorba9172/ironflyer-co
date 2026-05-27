@@ -1,6 +1,19 @@
-# Cloud IDE Architecture
+# Cloud IDE Architecture (historical)
 
-Status: locked direction, implementation in progress.
+Status: **superseded 2026-05-28**. The embedded openvscode-server / code-server
+iframe was removed from Studio. The in-Studio code surface is now Monaco
+only; the professional IDE path is the standalone Ironflyer VS Code
+Extension at `clients/vscode-extension/`, which brings gates, patches,
+and the wallet into the operator's local VS Code rather than running a
+per-user IDE container.
+
+This document is kept as the rationale trail for the decision and the
+infra contract that lived in the codebase before removal. Do not
+re-introduce the iframe path without first revisiting that decision —
+the trade-off was: kill per-user container cost, keep Ironflyer chrome
+front-and-center, route pro users to the extension.
+
+---
 
 IronFlyer Studio is a cloud product builder. The web Studio remains the product cockpit, while each real workspace gets a VS Code-compatible cloud IDE backed by the runtime sandbox.
 

@@ -27,24 +27,28 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        module: [orchestrator, runtime]
+        include:
+          - module: orchestrator
+            path: core/orchestrator
+          - module: runtime
+            path: core/runtime
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff  # v5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          go-version: '1.25'
-          cache-dependency-path: core/${{ matrix.module }}/go.sum
+          go-version: "1.25"
+          cache-dependency-path: ${{ matrix.path }}/go.sum
       - name: go mod download
-        working-directory: core/${{ matrix.module }}
+        working-directory: ${{ matrix.path }}
         run: go mod download
       - name: go vet
-        working-directory: core/${{ matrix.module }}
+        working-directory: ${{ matrix.path }}
         run: go vet ./...
       - name: go test
-        working-directory: core/${{ matrix.module }}
+        working-directory: ${{ matrix.path }}
         run: go test -race -count=1 ./...
       - name: go build
-        working-directory: core/${{ matrix.module }}
+        working-directory: ${{ matrix.path }}
         run: go build ./...
 
       # Post-build smoke for the orchestrator: boot the binary against an
@@ -83,11 +87,11 @@ jobs:
     name: Web typecheck + build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
           cache-dependency-path: clients/web/package-lock.json
       - name: npm install
         working-directory: clients/web
@@ -142,10 +146,10 @@ jobs:
         # Pulumi tree.
         project: [pulumi]
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff  # v5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          go-version: '1.25'
+          go-version: "1.25"
           cache-dependency-path: infra/${{ matrix.project }}/go.sum
       - name: go mod download
         working-directory: infra/${{ matrix.project }}
@@ -178,15 +182,15 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff  # v5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          go-version: '1.25'
+          go-version: "1.25"
           cache-dependency-path: core/orchestrator/go.sum
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
           cache-dependency-path: clients/web/package-lock.json
       - name: install jq
         run: sudo apt-get update && sudo apt-get install -y jq
@@ -221,7 +225,7 @@ jobs:
         continue-on-error: true
       - name: upload reports
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: lint-health-reports
           path: tmp/reports/
@@ -232,9 +236,9 @@ jobs:
     name: VSCode extension build + package
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
-        with: { node-version: '20' }
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with: { node-version: "20" }
       - name: install
         working-directory: clients/vscode-extension
         run: npm install --no-audit --no-fund
@@ -253,7 +257,7 @@ jobs:
       - name: package (.vsix)
         working-directory: clients/vscode-extension
         run: npx --yes @vscode/vsce package --no-dependencies --out ironflyer.vsix
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: ironflyer-vsix
           path: clients/vscode-extension/ironflyer.vsix
@@ -271,10 +275,10 @@ jobs:
       matrix:
         module: [orchestrator, runtime]
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff  # v5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          go-version: '1.25'
+          go-version: "1.25"
           cache-dependency-path: core/${{ matrix.module }}/go.sum
       - name: Install govulncheck
         run: go install golang.org/x/vuln/cmd/govulncheck@latest
@@ -288,9 +292,9 @@ jobs:
     name: osv-scanner (npm lockfiles)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
-        with: { node-version: '20' }
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with: { node-version: "20" }
       - name: Scan npm lockfiles for HIGH/CRITICAL advisories
         shell: bash
         run: |
@@ -349,34 +353,42 @@ jobs:
     strategy:
       matrix:
         include:
-          - { image: orchestrator,    dockerfile: infra/docker/orchestrator.Dockerfile }
-          - { image: runtime,         dockerfile: infra/docker/runtime.Dockerfile }
-          - { image: web,             dockerfile: infra/docker/web.Dockerfile }
-          - { image: code,            dockerfile: infra/docker/ironflyer-code.Dockerfile }
+          - {
+              image: orchestrator,
+              dockerfile: infra/docker/orchestrator.Dockerfile,
+            }
+          - { image: runtime, dockerfile: infra/docker/runtime.Dockerfile }
+          - { image: web, dockerfile: infra/docker/web.Dockerfile }
+          - {
+              image: code,
+              dockerfile: infra/docker/ironflyer-workspace.Dockerfile,
+            }
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
-      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f  # v3
-      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9  # v3
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - id: meta
-        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051  # v5
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NS }}/ironflyer-${{ matrix.image }}
           tags: |
             type=sha,format=short
             type=ref,event=branch
             type=raw,value=latest,enable={{is_default_branch}}
-      - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8  # v6
+      - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
           context: .
           file: ${{ matrix.dockerfile }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            NEXT_PUBLIC_IRONFLYER_API_URL=${{ vars.NEXT_PUBLIC_IRONFLYER_API_URL || 'https://api.ironflyer.ai' }}
           # GitHub Actions cache backend is free for public repos and dramatically
           # shrinks the rebuild time for orchestrator + runtime layers.
           cache-from: type=gha,scope=${{ matrix.image }}
-          cache-to:   type=gha,scope=${{ matrix.image }},mode=max
+          cache-to: type=gha,scope=${{ matrix.image }},mode=max

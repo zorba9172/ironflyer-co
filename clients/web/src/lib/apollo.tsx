@@ -46,7 +46,8 @@ const COOKIE_EXPIRES_DAYS = 30;
 let cachedToken: string | null = null;
 let cacheHydrated = false;
 let csrfBootstrap: Promise<void> | null = null;
-const AUTH_REDIRECTS_DISABLED_FOR_PREVIEW = true;
+const AUTH_REDIRECTS_DISABLED_FOR_PREVIEW =
+  process.env.NEXT_PUBLIC_AUTH_REDIRECTS_DISABLED_FOR_PREVIEW === "1";
 
 function hydrate(): void {
   if (cacheHydrated) return;

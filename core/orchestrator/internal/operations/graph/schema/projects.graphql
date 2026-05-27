@@ -46,11 +46,12 @@ input UpdateProjectInput {
 }
 
 # Operator IDE write-back. Replaces the project's file set with the
-# supplied entries. Used by the embedded openvscode IDE to push edits
-# made directly in the editor back into projectFiles so Monaco + the
-# finisher loop see the same state. AI-generated changes still flow
-# through patch.Engine.Propose; this is the human-operator override
-# path and bypasses the finisher gate lifecycle by design.
+# supplied entries. Used by the standalone Ironflyer VS Code Extension
+# (clients/vscode-extension) to push edits made directly in the local
+# editor back into projectFiles so Monaco + the finisher loop see the
+# same state. AI-generated changes still flow through
+# patch.Engine.Propose; this is the human-operator override path and
+# bypasses the finisher gate lifecycle by design.
 input WriteProjectFileInput {
   path: String!
   content: String!
