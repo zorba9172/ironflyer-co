@@ -57,15 +57,9 @@ func newCloudflare(ctx *pulumi.Context, in Inputs, lbIP pulumi.StringOutput) err
 	// Resolve the zone ID by name. The zone itself is created out-of-band
 	// (Cloudflare requires a one-time NS hand-off to register name
 	// servers) — we don't manage `cloudflare.Zone` in Pulumi because the
-	// hand-off can't be rerun safely on every `pulumi up`.
-	zone, err := cloudflare.LookupZoneOutput(ctx, cloudflare.LookupZoneOutputArgs{
-		Name: pulumi.String(root),
-	}, provOpt).ID().ToStringOutput(), error(nil)
-	if err != nil {
-		return err
-	}
-	_ = zone
-
+	// hand-off can't be rerun safely on every `pulumi up`. The lookup is
+	// unwrapped via ApplyT so downstream RecordArgs can consume it as a
+	// pulumi.StringInput.
 	zoneID := cloudflare.LookupZoneOutput(ctx, cloudflare.LookupZoneOutputArgs{
 		Name: pulumi.String(root),
 	}, provOpt).ApplyT(func(z cloudflare.LookupZoneResult) string {

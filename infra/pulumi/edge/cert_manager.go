@@ -3,6 +3,7 @@ package edge
 import (
 	"github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes/apiextensions"
 	helmv3 "github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes/helm/v3"
+	metav1 "github.com/pulumi/pulumi-kubernetes/sdk/v4/go/kubernetes/meta/v1"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
@@ -58,7 +59,7 @@ func newClusterIssuer(ctx *pulumi.Context, in Inputs, cmRel, ingRel *helmv3.Rele
 	_, err := apiextensions.NewCustomResource(ctx, "letsencrypt-prod", &apiextensions.CustomResourceArgs{
 		ApiVersion: pulumi.String("cert-manager.io/v1"),
 		Kind:       pulumi.String("ClusterIssuer"),
-		Metadata: &apiextensions.CustomResourceMetadataArgs{
+		Metadata: &metav1.ObjectMetaArgs{
 			Name: pulumi.String("letsencrypt-prod"),
 		},
 		OtherFields: map[string]any{
