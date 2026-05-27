@@ -3,15 +3,15 @@
   "displayName": "Ironflyer — AI Product Finisher",
   "description": "Finish products end-to-end inside VSCode. Chat with the agent, watch Finisher gates pass or fail, review patches in a native diff, run a live preview of your project, and track budget — all without leaving your editor.",
   "publisher": "ironflyer",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "license": "Apache-2.0",
-  "homepage": "https://ironflyer.dev",
+  "homepage": "https://ironflyer.ai",
   "bugs": {
-    "url": "https://github.com/zorba9172/ironflyer/issues"
+    "url": "https://github.com/zorba9172/ironflyer-co/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/zorba9172/ironflyer"
+    "url": "https://github.com/zorba9172/ironflyer-co"
   },
   "icon": "media/icon.png",
   "galleryBanner": {
@@ -51,7 +51,7 @@
         "ironflyer.orchestratorUrl": {
           "type": "string",
           "default": "http://localhost:8080",
-          "description": "Base URL of the Ironflyer orchestrator. Set to https://api.ironflyer.dev for production."
+          "description": "Base URL of the Ironflyer orchestrator. Set to https://api.ironflyer.ai for production."
         },
         "ironflyer.apiUrl": {
           "type": "string",

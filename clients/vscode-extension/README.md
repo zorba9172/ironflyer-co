@@ -4,8 +4,6 @@
 > your idea into a working, gated, deployable app — and the VSCode
 > extension is your cockpit.
 
-![Ironflyer hero](media/hero.png)
-
 ---
 
 ## What it is
@@ -61,10 +59,10 @@ ext install ironflyer.ironflyer
 ```
 
 Or download the latest `.vsix` from
-[releases](https://github.com/zorba9172/ironflyer/releases) and run:
+[releases](https://github.com/zorba9172/ironflyer-co/releases) and run:
 
 ```
-code --install-extension ironflyer-0.3.0.vsix
+code --install-extension ironflyer-0.3.1.vsix
 ```
 
 > Cursor, VSCodium, Theia and other Open VSX-based editors are
@@ -228,21 +226,23 @@ to a GitHub Release.
 
 ## Media assets the extension expects
 
-The screenshots referenced above are not yet checked into the repo. To
-ship marketing-grade visuals, drop the following files into
-`clients/vscode-extension/media/`:
+## Marketing assets
 
-| Path | Purpose |
-| --- | --- |
-| `media/icon.png` | 128×128 PNG marketplace icon (matches `icon` in `package.json`). |
-| `media/hero.png` | ~1600×900 hero banner showcasing the activity-bar + preview + chat. |
-| `media/sign-in.png` | Screenshot of the sign-in handshake (browser → VSCode). |
-| `media/preview.png` | Screenshot of the Live Preview pane with the viewport toggle visible. |
-| `media/patches.png` | Screenshot of a proposed patch in the Patches view + diff editor. |
-| `media/gates.png` | Screenshot of the Finisher Gates view with a failed gate expanded. |
-| `media/status-bar.png` | Close-up of the status bar (project pill + gate badge + budget + Run). |
+The following images are referenced by the Marketplace listing and
+the Getting Started walkthrough. `media/icon.png` (128×128) and
+`media/icon.svg` are shipped; the screenshot set below is the marketing
+queue and lands when the screenshot capture pass runs:
 
-`media/icon.svg` and the walkthrough markdown under `media/walkthrough/`
-already exist and are used by the Getting Started walkthrough.
+| Path | Purpose | Status |
+| --- | --- | --- |
+| `media/icon.png` | 128×128 PNG marketplace icon (matches `icon` in `package.json`). | ✅ shipped |
+| `media/icon.svg` | Scalable mark for in-product chrome. | ✅ shipped |
+| `media/walkthrough/*.md` | Getting Started walkthrough copy. | ✅ shipped |
+| `media/hero.png` | ~1600×900 hero banner showcasing the activity-bar + preview + chat. | ⏳ queued |
+| `media/sign-in.png` | Screenshot of the sign-in handshake (browser → VSCode). | ⏳ queued |
+| `media/preview.png` | Screenshot of the Live Preview pane with the viewport toggle. | ⏳ queued |
+| `media/patches.png` | Screenshot of a proposed patch in the Patches view + diff editor. | ⏳ queued |
+| `media/gates.png` | Screenshot of the Finisher Gates view with a failed gate expanded. | ⏳ queued |
+| `media/status-bar.png` | Close-up of the status bar (project pill + gate badge + budget + Run). | ⏳ queued |
 
 See `clients/vscode-extension/src/extension.ts` for the entrypoint.

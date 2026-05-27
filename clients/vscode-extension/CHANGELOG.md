@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.3.1
+
+- Fix Marketplace listing metadata: homepage points at the live brand domain (`ironflyer.ai`), repository and bugs URLs point at the actual GitHub repo (`zorba9172/ironflyer-co`), and the production orchestrator URL in the configuration description is corrected.
+- README cleanup: remove the broken `media/hero.png` include so the Marketplace listing renders cleanly until the screenshot capture pass lands.
+- Bump install snippet to `ironflyer-0.3.1.vsix`.
+
+## 0.3.0
+
+- Apollo Client wiring: GraphQL operations now share a single Apollo Client with persisted-query support, matching the web cockpit's transport.
+- URI handler (`onUri`): the extension activates on the auth callback from the web sign-in flow and stores the JWT in `SecretStorage`.
+- Sentry integration: opt-in error reporting with safe defaults; user opt-out via `ironflyer.sentry.enabled = false`.
+- Apollo + SSE alignment with the orchestrator's new `executionFeed` subscription.
+- Audit / Memory / Telemetry tree views alongside the existing Projects / Gates / Patches sidebars.
+
 ## 0.2.0
 
 - **Quick Fix code actions** — every editor diagnostic offers "Ask Ironflyer to fix", which bundles the snippet + message + range and routes it to the coder agent in the pinned project.
