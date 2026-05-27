@@ -1,8 +1,13 @@
 export type Locale = "en" | "es";
 
-export const SUPPORTED_LOCALES: Array<{ code: Locale; label: string; short: string }> = [
-  { code: "en", label: "English", short: "EN" },
-  { code: "es", label: "Español", short: "ES" },
+export const SUPPORTED_LOCALES: Array<{
+  code: Locale;
+  label: string;
+  short: string;
+  flag: string;
+}> = [
+  { code: "en", label: "English", short: "EN", flag: "🇺🇸" },
+  { code: "es", label: "Español", short: "ES", flag: "🇪🇸" },
 ];
 
 export const DEFAULT_LOCALE: Locale = "en";
@@ -100,7 +105,8 @@ const en: ContentPlugin = {
       titleEnd: "",
       subhead:
         "Ironflyer turns a plain-language idea into screens, data, code, live preview and a launch lane. It is fast enough for non-technical founders and powerful enough for teams.",
-      launchNote: "No credit card · Setup in 60 seconds · SOC 2 ready · GDPR compliant",
+      launchNote:
+        "No credit card · Setup in 60 seconds · SOC 2 ready · GDPR compliant",
       proofChips: [
         "No-code to production",
         "Pro-grade codebase",
@@ -109,11 +115,31 @@ const en: ContentPlugin = {
       ],
     },
     proof: [
-      { label: "Time to working project", value: "30s", sub: "Prompt to active Studio workspace" },
-      { label: "Build velocity", value: "20x", sub: "From idea to first runnable version" },
-      { label: "Patches reviewable", value: "100%", sub: "Every change lands as a diff" },
-      { label: "Gates before deploy", value: "12", sub: "Security, build, typecheck, E2E" },
-      { label: "Cost control", value: "Live", sub: "Wallet and ProfitGuard visible" },
+      {
+        label: "Time to working project",
+        value: "30s",
+        sub: "Prompt to active Studio workspace",
+      },
+      {
+        label: "Build velocity",
+        value: "20x",
+        sub: "From idea to first runnable version",
+      },
+      {
+        label: "Patches reviewable",
+        value: "100%",
+        sub: "Every change lands as a diff",
+      },
+      {
+        label: "Gates before deploy",
+        value: "12",
+        sub: "Security, build, typecheck, E2E",
+      },
+      {
+        label: "Cost control",
+        value: "Live",
+        sub: "Wallet and ProfitGuard visible",
+      },
     ],
     templates: {
       title: "Start from a proven blueprint",
@@ -143,14 +169,12 @@ const en: ContentPlugin = {
     pricing: {
       eyebrow: "Wallet, not subscription",
       title: "Pay for progress, not promises.",
-      body:
-        "Top up once and start building. Each execution reserves a budget, releases unused funds, and keeps provider cost visible beside the work.",
+      body: "Top up once and start building. Each execution reserves a budget, releases unused funds, and keeps provider cost visible beside the work.",
       primary: "See pricing",
       secondary: "Start with $0 balance",
     },
     footer: {
-      body:
-        "Ironflyer is an AI execution engine for complete applications and end-to-end systems: no-code speed, professional code, gates that block, and deployments you can trust.",
+      body: "Ironflyer is an AI execution engine for complete applications and end-to-end systems: no-code speed, professional code, gates that block, and deployments you can trust.",
       copyright: "© 2026 Ironflyer. Build the future faster.",
     },
   },
@@ -163,7 +187,11 @@ const en: ContentPlugin = {
         "Ironflyer turns intent into a real product workspace: code, mobile, backend, gates, deploys and cost control. It feels instant for non-technical founders and serious for senior developers.",
       primary: "Start a project",
       secondary: "See the wallet model",
-      proofChips: ["No-code friendly", "Senior-engineer ready", "End-to-end systems"],
+      proofChips: [
+        "No-code friendly",
+        "Senior-engineer ready",
+        "End-to-end systems",
+      ],
     },
     solutions: {
       eyebrow: "Solutions",
@@ -173,7 +201,11 @@ const en: ContentPlugin = {
         "Launch SaaS products, Expo apps, native mobile, internal systems and marketing sites through the same professional execution engine.",
       primary: "Start a project",
       secondary: "How the engine works",
-      proofChips: ["6 production stacks", "1 gate chain", "1 append-only ledger"],
+      proofChips: [
+        "6 production stacks",
+        "1 gate chain",
+        "1 append-only ledger",
+      ],
     },
     enterprise: {
       eyebrow: "Enterprise",
@@ -213,7 +245,11 @@ const en: ContentPlugin = {
         "Owner isolation, wallet hard-blocks, reviewable patches, security scans and append-only ledger events protect every execution.",
       primary: "Start safely",
       secondary: "Read developers docs",
-      proofChips: ["OwnerID isolation", "GateSecurityScan", "Append-only ledger"],
+      proofChips: [
+        "OwnerID isolation",
+        "GateSecurityScan",
+        "Append-only ledger",
+      ],
     },
   },
 };
@@ -239,7 +275,8 @@ const es: ContentPlugin = {
       titleEnd: "",
       subhead:
         "Ironflyer convierte una idea en lenguaje natural en pantallas, datos, código, preview en vivo y un camino de lanzamiento. Es rápido para founders no técnicos y potente para equipos.",
-      launchNote: "Sin tarjeta · Configuración en 60 segundos · SOC 2 ready · GDPR compliant",
+      launchNote:
+        "Sin tarjeta · Configuración en 60 segundos · SOC 2 ready · GDPR compliant",
       proofChips: [
         "No-code a producción",
         "Código profesional",
@@ -248,11 +285,31 @@ const es: ContentPlugin = {
       ],
     },
     proof: [
-      { label: "Tiempo a proyecto activo", value: "30s", sub: "Del prompt al workspace de Studio" },
-      { label: "Velocidad de construcción", value: "20x", sub: "De idea a primera versión ejecutable" },
-      { label: "Patches revisables", value: "100%", sub: "Cada cambio llega como diff" },
-      { label: "Gates antes de deploy", value: "12", sub: "Seguridad, build, tipos y E2E" },
-      { label: "Control de coste", value: "Live", sub: "Wallet y ProfitGuard visibles" },
+      {
+        label: "Tiempo a proyecto activo",
+        value: "30s",
+        sub: "Del prompt al workspace de Studio",
+      },
+      {
+        label: "Velocidad de construcción",
+        value: "20x",
+        sub: "De idea a primera versión ejecutable",
+      },
+      {
+        label: "Patches revisables",
+        value: "100%",
+        sub: "Cada cambio llega como diff",
+      },
+      {
+        label: "Gates antes de deploy",
+        value: "12",
+        sub: "Seguridad, build, tipos y E2E",
+      },
+      {
+        label: "Control de coste",
+        value: "Live",
+        sub: "Wallet y ProfitGuard visibles",
+      },
     ],
     templates: {
       title: "Empieza desde una plantilla probada",
@@ -260,7 +317,8 @@ const es: ContentPlugin = {
     },
     how: {
       title: "Idea -> Producto activo -> Deploy",
-      subhead: "Un workspace desde prompt hasta producción. Sin pegar herramientas.",
+      subhead:
+        "Un workspace desde prompt hasta producción. Sin pegar herramientas.",
       steps: [
         {
           tag: "01",
@@ -282,14 +340,12 @@ const es: ContentPlugin = {
     pricing: {
       eyebrow: "Wallet, no suscripción",
       title: "Paga por progreso, no por promesas.",
-      body:
-        "Recarga una vez y empieza. Cada ejecución reserva presupuesto, libera lo no usado y muestra el coste del proveedor junto al trabajo.",
+      body: "Recarga una vez y empieza. Cada ejecución reserva presupuesto, libera lo no usado y muestra el coste del proveedor junto al trabajo.",
       primary: "Ver precios",
       secondary: "Empezar con balance $0",
     },
     footer: {
-      body:
-        "Ironflyer es un motor de ejecución con IA para aplicaciones completas y sistemas end-to-end: velocidad no-code, código profesional, gates que bloquean y deploys confiables.",
+      body: "Ironflyer es un motor de ejecución con IA para aplicaciones completas y sistemas end-to-end: velocidad no-code, código profesional, gates que bloquean y deploys confiables.",
       copyright: "© 2026 Ironflyer. Construye el futuro más rápido.",
     },
   },
@@ -302,7 +358,11 @@ const es: ContentPlugin = {
         "Ironflyer convierte intención en un workspace real: código, móvil, backend, gates, deploys y control de coste. Se siente instantáneo para founders y serio para developers senior.",
       primary: "Crear proyecto",
       secondary: "Ver modelo wallet",
-      proofChips: ["Amigable no-code", "Listo para seniors", "Sistemas end-to-end"],
+      proofChips: [
+        "Amigable no-code",
+        "Listo para seniors",
+        "Sistemas end-to-end",
+      ],
     },
     solutions: {
       eyebrow: "Soluciones",
@@ -312,7 +372,11 @@ const es: ContentPlugin = {
         "Lanza SaaS, apps Expo, móvil nativo, sistemas internos y sitios de marketing con el mismo motor profesional de ejecución.",
       primary: "Crear proyecto",
       secondary: "Cómo funciona",
-      proofChips: ["6 stacks de producción", "1 cadena de gates", "1 ledger append-only"],
+      proofChips: [
+        "6 stacks de producción",
+        "1 cadena de gates",
+        "1 ledger append-only",
+      ],
     },
     enterprise: {
       eyebrow: "Empresa",
@@ -352,13 +416,19 @@ const es: ContentPlugin = {
         "Aislamiento OwnerID, hard-blocks de wallet, patches revisables, security scans y ledger append-only protegen cada ejecución.",
       primary: "Empezar seguro",
       secondary: "Leer docs developers",
-      proofChips: ["OwnerID isolation", "GateSecurityScan", "Ledger append-only"],
+      proofChips: [
+        "OwnerID isolation",
+        "GateSecurityScan",
+        "Ledger append-only",
+      ],
     },
   },
 };
 
 const dictionaries: Record<Locale, ContentPlugin> = { en, es };
 
-export function getContentPlugin(locale: Locale = DEFAULT_LOCALE): ContentPlugin {
+export function getContentPlugin(
+  locale: Locale = DEFAULT_LOCALE,
+): ContentPlugin {
   return dictionaries[locale] ?? dictionaries.en;
 }

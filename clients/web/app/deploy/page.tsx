@@ -10,7 +10,7 @@
 
 import { Box, Stack, Tab, Tabs } from "@mui/material";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo } from "react";
+import { Suspense, useEffect, useMemo } from "react";
 import {
   EmptyState,
   ErrorPanel,
@@ -22,7 +22,10 @@ import {
   DeploysTable,
   type DeployRow,
 } from "../../src/components/deploy";
-import { FilterChips, type FilterChipOption } from "../../src/components/executions";
+import {
+  FilterChips,
+  type FilterChipOption,
+} from "../../src/components/executions";
 import { RequireAuth, useAuth } from "../../src/lib/auth";
 import {
   useDeploysQuery,
@@ -39,7 +42,11 @@ const DEPLOY_FILTERS: FilterChipOption<DeployFilter>[] = [
   { value: "failed", label: "Failed" },
 ];
 
-const PENDING_STATES = new Set(["preview_ready", "awaiting_approval", "approved"]);
+const PENDING_STATES = new Set([
+  "preview_ready",
+  "awaiting_approval",
+  "approved",
+]);
 const PROMOTED_STATES = new Set(["promoting", "live"]);
 const FAILED_STATES = new Set(["failed", "rolled_back", "cancelled"]);
 
@@ -67,7 +74,9 @@ function filterFromString(v: string | null): DeployFilter {
 export default function DeployListPage() {
   return (
     <RequireAuth>
-      <DeployListInner />
+      <Suspense fallback={null}>
+        <DeployListInner />
+      </Suspense>
     </RequireAuth>
   );
 }
@@ -148,8 +157,15 @@ function DeployListInner() {
           sx={{
             mb: 2,
             borderBottom: `1px solid ${tokens.color.border.subtle}`,
-            "& .MuiTab-root": { textTransform: "none", fontWeight: 700, fontSize: 13.5, minHeight: 40 },
-            "& .MuiTabs-indicator": { backgroundColor: tokens.color.accent.violet },
+            "& .MuiTab-root": {
+              textTransform: "none",
+              fontWeight: 700,
+              fontSize: 13.5,
+              minHeight: 40,
+            },
+            "& .MuiTabs-indicator": {
+              backgroundColor: tokens.color.accent.violet,
+            },
           }}
         >
           <Tab value="mine" label="My deploys" />

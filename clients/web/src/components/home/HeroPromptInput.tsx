@@ -160,7 +160,7 @@ export const HeroPromptInput = forwardRef<
         width: "100%",
         maxWidth: 846,
         mx: "auto",
-        minHeight: { xs: 190, sm: 196 },
+        minHeight: { xs: 198, sm: 206 },
         borderRadius: "22px",
         border: `1px solid ${c.border}`,
         bgcolor: c.surface,
@@ -202,10 +202,10 @@ export const HeroPromptInput = forwardRef<
             disableUnderline: true,
             sx: {
               px: { xs: 2, sm: 3.2 },
-              pt: { xs: 2.1, sm: 2.45 },
-              pb: 1.2,
-              fontSize: { xs: 18.5, sm: 21.5 },
-              lineHeight: 1.38,
+              pt: { xs: 2.1, sm: 2.5 },
+              pb: 1.8,
+              fontSize: { xs: 17.5, sm: 19.5 },
+              lineHeight: 1.42,
               color: c.text,
               fontFamily: tokens.font.family,
               fontWeight: 600,
@@ -228,7 +228,7 @@ export const HeroPromptInput = forwardRef<
           position: "relative",
           px: { xs: 1.55, sm: 2.1 },
           pb: { xs: 1.35, sm: 1.75 },
-          pt: 0.7,
+          pt: 1.1,
         }}
       >
         <Tooltip
@@ -392,7 +392,9 @@ export const HeroPromptInput = forwardRef<
               borderRadius: 1.5,
               border: `1px solid ${c.border}`,
               color: tokens.color.accent.violet,
-              bgcolor: c.surface,
+              bgcolor: light
+                ? "rgba(255,255,255,0.52)"
+                : "rgba(255,255,255,0.04)",
               "&:hover": {
                 bgcolor: c.hover,
                 borderColor: c.border,
@@ -417,7 +419,12 @@ export const HeroPromptInput = forwardRef<
             letterSpacing: 0.2,
             ml: { xs: "auto", sm: 0 },
             borderRadius: 1.5,
-            background: `linear-gradient(100deg, ${tokens.color.accent.coral}, ${tokens.color.brand.magenta} 52%, ${tokens.color.accent.violet})`,
+            background: light
+              ? `linear-gradient(100deg, ${tokens.color.accent.coral}, ${tokens.color.brand.magenta} 52%, ${tokens.color.accent.violet})`
+              : `linear-gradient(100deg, ${tokens.color.accent.coral}, ${tokens.color.brand.magenta} 52%, ${tokens.color.accent.violet})`,
+            boxShadow: light
+              ? "0 12px 30px rgba(183,78,255,0.18)"
+              : "0 14px 34px rgba(183,78,255,0.28)",
           }}
         >
           {submitting ? "Launching..." : "Build it"}

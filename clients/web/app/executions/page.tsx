@@ -9,7 +9,7 @@
 import { SearchRounded } from "@mui/icons-material";
 import { Box, InputAdornment, Stack, TextField } from "@mui/material";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import {
   EmptyState,
   ErrorPanel,
@@ -55,7 +55,9 @@ function statusFromString(v: string | null): StatusFilter {
 export default function ExecutionsListPage() {
   return (
     <RequireAuth>
-      <ExecutionsInner />
+      <Suspense fallback={null}>
+        <ExecutionsInner />
+      </Suspense>
     </RequireAuth>
   );
 }
@@ -130,7 +132,9 @@ function ExecutionsInner() {
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <SearchRounded sx={{ fontSize: 18, color: tokens.color.text.muted }} />
+                <SearchRounded
+                  sx={{ fontSize: 18, color: tokens.color.text.muted }}
+                />
               </InputAdornment>
             ),
           }}
@@ -148,7 +152,11 @@ function ExecutionsInner() {
       {loading && !data ? (
         <LoadingPanel label="Loading executions" />
       ) : error ? (
-        <ErrorPanel error={error} title="Executions unavailable" onRetry={() => void refetch()} />
+        <ErrorPanel
+          error={error}
+          title="Executions unavailable"
+          onRetry={() => void refetch()}
+        />
       ) : (data?.executions ?? []).length === 0 ? (
         <EmptyState
           title="No paid executions yet"

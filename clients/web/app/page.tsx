@@ -23,6 +23,7 @@
 
 import {
   AccountBalanceWalletOutlined,
+  ArrowBackRounded,
   ArrowForwardRounded,
   AutoAwesomeRounded,
   BoltRounded,
@@ -30,6 +31,7 @@ import {
   CheckCircleRounded,
   CodeRounded,
   DataObjectRounded,
+  ExpandMoreRounded,
   GitHub,
   HubRounded,
   LayersRounded,
@@ -42,12 +44,20 @@ import {
   SettingsSuggestRounded,
   ShieldOutlined,
   StorageRounded,
-  ThreeDRotationRounded,
   TimelineRounded,
   VerifiedRounded,
   VisibilityRounded,
 } from "@mui/icons-material";
-import { Box, Button, Card, Stack, Typography } from "@mui/material";
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Box,
+  Button,
+  Card,
+  Stack,
+  Typography,
+} from "@mui/material";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -76,7 +86,7 @@ import { formatMoney } from "../src/lib/format";
 import { useDescribeIdeaMutation } from "../src/lib/gql/__generated__";
 import type { HomeCopy } from "../src/lib/i18n/content";
 import { useI18n } from "../src/lib/i18n/useI18n";
-import { Autoplay } from "swiper/modules";
+import { Autoplay, Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 
 // sessionStorage key for the prompt the visitor typed before being
@@ -2086,11 +2096,6 @@ function Hero(props: HeroProps) {
 
 function HeroDepthScene({ timing }: { timing: OrbitalTiming }) {
   const light = timing === "light";
-  const panels = [
-    { left: "12%", top: "36%", rotate: "-18deg", delay: "0s" },
-    { left: "76%", top: "18%", rotate: "14deg", delay: "-1.2s" },
-    { left: "82%", top: "58%", rotate: "-10deg", delay: "-2.1s" },
-  ];
   return (
     <Box
       aria-hidden
@@ -2099,85 +2104,63 @@ function HeroDepthScene({ timing }: { timing: OrbitalTiming }) {
         inset: { xs: "52px -18px auto", md: "70px -8px auto" },
         height: { xs: 260, md: 430 },
         pointerEvents: "none",
-        perspective: "1100px",
-        opacity: light ? 0.84 : 0.92,
+        opacity: light ? 0.72 : 0.86,
         zIndex: -1,
+        overflow: "hidden",
       }}
     >
       <Box
         sx={{
           position: "absolute",
-          left: "50%",
-          top: "50%",
-          width: { xs: 360, md: 640 },
-          height: { xs: 148, md: 220 },
-          borderRadius: "50%",
-          border: light
-            ? "1px solid rgba(158,91,255,0.18)"
-            : "1px solid rgba(148,94,255,0.28)",
-          transform: "translate(-50%, -50%) rotateX(68deg) rotateZ(-8deg)",
-          boxShadow: light
-            ? "0 0 90px rgba(181,82,255,0.12), inset 0 0 44px rgba(255,255,255,0.74)"
-            : "0 0 120px rgba(131,71,255,0.22), inset 0 0 50px rgba(112,73,255,0.10)",
+          inset: 0,
+          backgroundImage: light
+            ? [
+                "radial-gradient(circle at 19% 24%, rgba(91,79,138,0.18) 0 1px, transparent 1.4px)",
+                "radial-gradient(circle at 74% 18%, rgba(91,79,138,0.16) 0 1px, transparent 1.4px)",
+                "radial-gradient(ellipse 620px 170px at 50% 45%, rgba(188,92,255,0.13), transparent 72%)",
+              ].join(",")
+            : [
+                "radial-gradient(circle at 18% 24%, rgba(210,220,255,0.45) 0 1px, transparent 1.4px)",
+                "radial-gradient(circle at 74% 18%, rgba(210,220,255,0.34) 0 1px, transparent 1.4px)",
+                "radial-gradient(ellipse 620px 170px at 50% 45%, rgba(159,83,255,0.21), transparent 72%)",
+              ].join(","),
+          backgroundSize: "92px 92px, 136px 136px, auto",
         }}
       />
       <Box
         sx={{
           position: "absolute",
           left: "50%",
-          top: "47%",
-          width: { xs: 104, md: 150 },
-          height: { xs: 104, md: 150 },
+          top: "48%",
+          width: { xs: 360, md: 620 },
+          height: { xs: 110, md: 152 },
           borderRadius: "50%",
-          transform: "translate(-50%, -50%)",
+          transform: "translate(-50%, -50%) rotate(-4deg)",
           background: light
-            ? "radial-gradient(circle at 34% 24%, #fff, rgba(146,98,255,0.30) 28%, rgba(255,93,177,0.38) 58%, rgba(255,255,255,0.04) 100%)"
-            : "radial-gradient(circle at 34% 24%, rgba(255,255,255,0.8), rgba(73,142,255,0.42) 28%, rgba(185,74,255,0.52) 58%, rgba(6,7,24,0.05) 100%)",
-          boxShadow: light
-            ? "0 24px 90px rgba(161,91,255,0.22)"
-            : "0 0 90px rgba(115,81,255,0.42)",
-          filter: "saturate(132%)",
+            ? "repeating-linear-gradient(96deg, rgba(255,111,76,0.00) 0 18px, rgba(255,111,76,0.12) 20px 28px, rgba(179,77,255,0.10) 31px 42px, rgba(255,255,255,0.0) 48px 66px)"
+            : "repeating-linear-gradient(96deg, rgba(255,111,76,0.00) 0 18px, rgba(255,111,76,0.17) 20px 28px, rgba(179,77,255,0.18) 31px 42px, rgba(11,13,35,0.0) 48px 66px)",
+          maskImage:
+            "radial-gradient(ellipse at center, black 0 54%, transparent 72%)",
+          filter: "blur(0.2px)",
         }}
       />
-      {panels.map((panel, index) => (
-        <Box
-          key={index}
-          sx={{
-            position: "absolute",
-            left: panel.left,
-            top: panel.top,
-            width: { xs: 66, md: 96 },
-            height: { xs: 54, md: 76 },
-            borderRadius: 2,
-            border: light
-              ? "1px solid rgba(149,94,255,0.18)"
-              : "1px solid rgba(154,108,255,0.28)",
-            bgcolor: light ? "rgba(255,255,255,0.58)" : "rgba(15,18,51,0.52)",
-            backdropFilter: "blur(16px)",
-            boxShadow: light
-              ? "0 20px 54px rgba(111,76,178,0.12)"
-              : "0 18px 68px rgba(0,0,0,0.32)",
-            transform: `rotateZ(${panel.rotate}) rotateY(${index % 2 ? "-18deg" : "18deg"})`,
-            animation: `ironflyerFloatPanel 7s ease-in-out ${panel.delay} infinite`,
-            "@keyframes ironflyerFloatPanel": {
-              "0%, 100%": { translate: "0 0" },
-              "50%": { translate: "0 -12px" },
-            },
-            "&::before, &::after": {
-              content: '""',
-              position: "absolute",
-              left: 12,
-              right: 12,
-              height: 7,
-              borderRadius: 999,
-              background:
-                "linear-gradient(90deg, rgba(255,106,95,0.85), rgba(179,77,255,0.85))",
-            },
-            "&::before": { top: 18 },
-            "&::after": { top: 34, right: 26, opacity: 0.55 },
-          }}
-        />
-      ))}
+      <Box
+        sx={{
+          position: "absolute",
+          left: "50%",
+          top: "49%",
+          width: { xs: 390, md: 680 },
+          height: { xs: 62, md: 82 },
+          borderRadius: "50%",
+          border: light
+            ? "1px solid rgba(127,77,255,0.13)"
+            : "1px solid rgba(170,108,255,0.24)",
+          transform: "translate(-50%, -50%) rotate(-5deg)",
+          boxShadow: light
+            ? "0 24px 80px rgba(174,91,255,0.10)"
+            : "0 30px 100px rgba(122,76,255,0.18)",
+        }}
+      />
     </Box>
   );
 }
@@ -2380,95 +2363,7 @@ function HeroTrustedLogos({
   timing: OrbitalTiming;
   colors: { muted: string; secondary: string };
 }) {
-  const logos = [
-    {
-      name: "Google",
-      mark: (
-        <Box
-          sx={{
-            fontSize: 20,
-            fontWeight: 950,
-            background:
-              "linear-gradient(90deg,#4285f4,#34a853,#fbbc05,#ea4335)",
-            backgroundClip: "text",
-            color: "transparent",
-          }}
-        >
-          G
-        </Box>
-      ),
-    },
-    {
-      name: "Microsoft",
-      mark: (
-        <Box
-          sx={{
-            display: "grid",
-            gap: "2px",
-            gridTemplateColumns: "repeat(2, 8px)",
-          }}
-        >
-          {["#f25022", "#7fba00", "#00a4ef", "#ffb900"].map((color) => (
-            <Box key={color} sx={{ width: 8, height: 8, bgcolor: color }} />
-          ))}
-        </Box>
-      ),
-    },
-    {
-      name: "airbnb",
-      mark: (
-        <Box
-          sx={{
-            width: 18,
-            height: 22,
-            border: "3px solid currentColor",
-            borderRadius: "12px 12px 16px 16px",
-            borderBottomColor: "transparent",
-            transform: "rotate(45deg)",
-          }}
-        />
-      ),
-    },
-    {
-      name: "amazon",
-      mark: (
-        <Box
-          sx={{
-            width: 28,
-            height: 14,
-            borderBottom: "3px solid currentColor",
-            borderRadius: "0 0 50% 50%",
-            transform: "translateY(-3px)",
-          }}
-        />
-      ),
-    },
-    {
-      name: "Spotify",
-      mark: (
-        <Box
-          sx={{
-            width: 21,
-            height: 21,
-            borderRadius: "50%",
-            bgcolor: "currentColor",
-            position: "relative",
-            "&::before, &::after": {
-              content: '""',
-              position: "absolute",
-              left: 5,
-              right: 4,
-              height: 5,
-              borderTop: "2px solid #fff",
-              borderRadius: "50%",
-            },
-            "&::before": { top: 6 },
-            "&::after": { top: 11, left: 7 },
-          }}
-        />
-      ),
-    },
-  ];
+  const logos = ["Google", "Microsoft", "Airbnb", "Amazon", "Spotify"];
   return (
     <Stack spacing={1.3} alignItems="center" sx={{ pt: { xs: 0.2, md: 0.8 } }}>
       <Typography sx={{ color: colors.muted, fontSize: 14, fontWeight: 700 }}>
@@ -2481,30 +2376,31 @@ function HeroTrustedLogos({
         justifyContent="center"
         sx={{ gap: { xs: 2.2, sm: 4.2 }, color: colors.secondary }}
       >
-        {logos.map((logo) => (
+        {logos.map((name) => (
           <Stack
-            key={logo.name}
+            key={name}
             direction="row"
             alignItems="center"
-            sx={{ gap: 0.8, opacity: 0.88 }}
+            sx={{ gap: 0.7, opacity: 0.86 }}
           >
             <Box
               sx={{
+                width: 7,
+                height: 7,
+                borderRadius: "50%",
+                bgcolor: "currentColor",
                 color: colors.secondary,
-                display: "grid",
-                placeItems: "center",
               }}
-            >
-              {logo.mark}
-            </Box>
+            />
             <Typography
               sx={{
-                fontSize: { xs: 18, md: 21 },
+                fontSize: { xs: 17, md: 20 },
                 fontWeight: 900,
                 letterSpacing: 0,
+                color: colors.secondary,
               }}
             >
-              {logo.name}
+              {name}
             </Typography>
           </Stack>
         ))}
@@ -3317,6 +3213,14 @@ function TemplateShowcase({
           >
             Browse all templates
           </Button>
+          <Stack direction="row" spacing={0.8}>
+            <IconSwiperButton className="template-prev">
+              <ArrowBackRounded sx={{ fontSize: 17 }} />
+            </IconSwiperButton>
+            <IconSwiperButton className="template-next">
+              <ArrowForwardRounded sx={{ fontSize: 17 }} />
+            </IconSwiperButton>
+          </Stack>
         </Stack>
         <Box
           sx={{
@@ -3337,10 +3241,14 @@ function TemplateShowcase({
           }}
         >
           <Swiper
-            modules={[Autoplay]}
+            modules={[Autoplay, Navigation]}
             slidesPerView={1.12}
             spaceBetween={14}
             autoplay={{ delay: 2800, disableOnInteraction: false }}
+            navigation={{
+              prevEl: ".template-prev",
+              nextEl: ".template-next",
+            }}
             breakpoints={{
               640: { slidesPerView: 2.2, spaceBetween: 14 },
               960: { slidesPerView: 3.2, spaceBetween: 16 },
@@ -3485,6 +3393,38 @@ function TemplateShowcase({
         </Box>
       </Box>
     </Section>
+  );
+}
+
+function IconSwiperButton({
+  className,
+  children,
+}: {
+  className: string;
+  children: ReactNode;
+}) {
+  return (
+    <Button
+      className={className}
+      aria-label={
+        className.includes("prev") ? "Previous templates" : "Next templates"
+      }
+      sx={{
+        minWidth: 34,
+        width: 34,
+        height: 34,
+        borderRadius: "50%",
+        border: `1px solid ${tokens.color.border.subtle}`,
+        color: tokens.color.accent.violet,
+        bgcolor: "rgba(255,255,255,0.10)",
+        p: 0,
+        "&:hover": {
+          bgcolor: `${tokens.color.accent.violet}16`,
+        },
+      }}
+    >
+      {children}
+    </Button>
   );
 }
 
@@ -3979,10 +3919,22 @@ function ProofFooterBand({ timing }: { timing: OrbitalTiming }) {
 function FaqShowcase({ timing }: { timing: OrbitalTiming }) {
   const c = homeTone(timing);
   const questions = [
-    "Can I export the code?",
-    "How does pricing work?",
-    "Is my data secure?",
-    "Do you offer onboarding?",
+    [
+      "Can I export the code?",
+      "Yes. Export clean React and TypeScript when the project is ready, including the generated app structure.",
+    ],
+    [
+      "How does pricing work?",
+      "Start free, then upgrade when you need more projects, private workspaces, team controls or production deploys.",
+    ],
+    [
+      "Is my data secure?",
+      "Projects stay scoped to your workspace. Team roles, audit logs and enterprise controls are available on paid plans.",
+    ],
+    [
+      "Do you offer onboarding?",
+      "Yes. Teams can get a guided setup for templates, roles, deploy targets and VS Code workflows.",
+    ],
   ];
   return (
     <Section sx={{ py: { xs: 4, md: 5.2 } }}>
@@ -4005,26 +3957,46 @@ function FaqShowcase({ timing }: { timing: OrbitalTiming }) {
           }}
         >
           <Stack spacing={1.1}>
-            {questions.map((question) => (
-              <Box
+            {questions.map(([question, answer]) => (
+              <Accordion
                 key={question}
+                disableGutters
                 sx={{
-                  p: 2,
                   borderRadius: 1,
                   border: `1px solid ${c.border}`,
                   bgcolor: c.surface,
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: 2,
+                  boxShadow: "none",
+                  color: c.text,
+                  overflow: "hidden",
+                  "&::before": { display: "none" },
                 }}
               >
-                <Typography
-                  sx={{ color: c.text, fontSize: 13, fontWeight: 900 }}
+                <AccordionSummary
+                  expandIcon={
+                    <ExpandMoreRounded
+                      sx={{ color: c.secondary, fontSize: 20 }}
+                    />
+                  }
+                  sx={{
+                    minHeight: 54,
+                    px: 2,
+                    "& .MuiAccordionSummary-content": { my: 1.2 },
+                  }}
                 >
-                  {question}
-                </Typography>
-                <Typography sx={{ color: c.secondary }}>+</Typography>
-              </Box>
+                  <Typography
+                    sx={{ color: c.text, fontSize: 13, fontWeight: 900 }}
+                  >
+                    {question}
+                  </Typography>
+                </AccordionSummary>
+                <AccordionDetails sx={{ px: 2, pt: 0, pb: 2 }}>
+                  <Typography
+                    sx={{ color: c.secondary, fontSize: 13, lineHeight: 1.55 }}
+                  >
+                    {answer}
+                  </Typography>
+                </AccordionDetails>
+              </Accordion>
             ))}
           </Stack>
           <Box

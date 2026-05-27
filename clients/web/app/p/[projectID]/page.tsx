@@ -24,7 +24,14 @@ import { Box, Button, Stack, Typography } from "@mui/material";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { LoadingPanel } from "../../../src/components/cockpit/LoadingPanel";
 import { ChatPanel } from "../../../src/components/studio/ChatPanel";
 import { CodeModeSwitcher } from "../../../src/components/studio/CodeModeSwitcher";
@@ -41,7 +48,10 @@ import {
 import type { StudioStatusBucket } from "../../../src/components/studio/SuggestionsRow";
 import { useWorkbenchLayout } from "../../../src/components/studio/useWorkbenchLayout";
 import { getToken, RequireAuth, useAuth } from "../../../src/lib/auth";
-import { streamChat, type StreamChatHandle } from "../../../src/lib/chat/stream";
+import {
+  streamChat,
+  type StreamChatHandle,
+} from "../../../src/lib/chat/stream";
 import { extractErrorMessage, normalizeError } from "../../../src/lib/errors";
 import {
   useCreatePaidExecutionMutation,
@@ -64,7 +74,8 @@ import type { StudioAttachment } from "../../../src/components/studio/types";
 // keeps a consistent loading skin while their JS chunk lands.
 const paneFallback = <LoadingPanel label="Loading pane" minHeight="100%" />;
 const CodePane = dynamic(
-  () => import("../../../src/components/studio/CodePane").then((m) => m.CodePane),
+  () =>
+    import("../../../src/components/studio/CodePane").then((m) => m.CodePane),
   { ssr: false, loading: () => paneFallback },
 );
 const DashboardPane = dynamic(
@@ -75,7 +86,8 @@ const DashboardPane = dynamic(
   { ssr: false, loading: () => paneFallback },
 );
 const FilesPane = dynamic(
-  () => import("../../../src/components/studio/FilesPane").then((m) => m.FilesPane),
+  () =>
+    import("../../../src/components/studio/FilesPane").then((m) => m.FilesPane),
   { ssr: false, loading: () => paneFallback },
 );
 
@@ -116,7 +128,9 @@ function userInitialsFrom(
 export default function ProjectStudioPage() {
   return (
     <RequireAuth>
-      <ProjectStudioInner />
+      <Suspense fallback={paneFallback}>
+        <ProjectStudioInner />
+      </Suspense>
     </RequireAuth>
   );
 }
@@ -162,7 +176,8 @@ function ProjectStudioInner() {
   });
 
   const execution: ExecutionCoreFragment | null =
-    executionQuery.data?.execution ?? (executionIDParam ? null : resolvedExecution);
+    executionQuery.data?.execution ??
+    (executionIDParam ? null : resolvedExecution);
   const executionID = execution?.id ?? "";
   // chatStoreKey routes both modes through the same chat store: when
   // an execution exists, messages key off its id; otherwise the free-
@@ -533,7 +548,11 @@ function PromptContextBar({
         py: 0.9,
       }}
     >
-      <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", minWidth: 0 }}>
+      <Stack
+        direction="row"
+        spacing={0.75}
+        sx={{ alignItems: "center", minWidth: 0 }}
+      >
         <Box
           sx={{
             bgcolor: `${tokens.color.accent.purple}22`,
@@ -584,7 +603,9 @@ function PromptContextBar({
       >
         <Box component="span">project {shortProject}</Box>
         <Box component="span">workspace {workspace}</Box>
-        <Box component="span">{execution ? "files mirrored" : "files pending"}</Box>
+        <Box component="span">
+          {execution ? "files mirrored" : "files pending"}
+        </Box>
       </Stack>
     </Box>
   );
@@ -696,15 +717,22 @@ function StartExecutionPanel({
         >
           First execution
         </Typography>
-        <Typography sx={{ mt: 0.5, fontSize: 22, fontWeight: 800, lineHeight: 1.2 }}>
+        <Typography
+          sx={{ mt: 0.5, fontSize: 22, fontWeight: 800, lineHeight: 1.2 }}
+        >
           Start the build for this project
         </Typography>
         <Typography
-          sx={{ mt: 1, fontSize: 13.5, color: tokens.color.text.secondary, lineHeight: 1.55 }}
+          sx={{
+            mt: 1,
+            fontSize: 13.5,
+            color: tokens.color.text.secondary,
+            lineHeight: 1.55,
+          }}
         >
           Describe what you want and set a wallet hold. The finisher plans,
-          generates, gates and previews — every dollar is debited from the
-          hold as cost materialises; unused funds release on commit.
+          generates, gates and previews — every dollar is debited from the hold
+          as cost materialises; unused funds release on commit.
         </Typography>
       </Box>
 
@@ -733,11 +761,19 @@ function StartExecutionPanel({
         }}
       />
 
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} alignItems={{ sm: "flex-end" }}>
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        spacing={1.5}
+        alignItems={{ sm: "flex-end" }}
+      >
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography
             variant="overline"
-            sx={{ color: tokens.color.text.muted, letterSpacing: 1.1, fontSize: 10.5 }}
+            sx={{
+              color: tokens.color.text.muted,
+              letterSpacing: 1.1,
+              fontSize: 10.5,
+            }}
           >
             Wallet hold (USD)
           </Typography>

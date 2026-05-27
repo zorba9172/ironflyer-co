@@ -28,7 +28,10 @@ import {
   Box,
   Button,
   Divider,
+  Drawer,
   IconButton,
+  List,
+  ListItemButton,
   ListItemIcon,
   ListItemText,
   Menu,
@@ -263,6 +266,9 @@ export function Nav() {
         bgcolor: publicLight ? "#ffffff" : `${tokens.color.bg.surface}c7`,
         backdropFilter: "blur(18px) saturate(140%)",
         borderBottom: `1px solid ${navBorder}`,
+        borderBottomLeftRadius: { xs: 14, md: 18 },
+        borderBottomRightRadius: { xs: 14, md: 18 },
+        overflow: "hidden",
         boxShadow: publicLight ? "0 1px 0 rgba(18,22,55,0.03)" : "none",
       }}
     >
@@ -297,44 +303,136 @@ export function Nav() {
         >
           <MenuRounded sx={{ fontSize: 20 }} />
         </IconButton>
-        <Menu
-          anchorEl={mobileNavAnchor}
+        <Drawer
+          anchor="left"
           open={!!mobileNavAnchor}
           onClose={() => setMobileNavAnchor(null)}
-          slotProps={{
-            paper: {
-              sx: {
-                mt: 1,
-                minWidth: 220,
-                border: `1px solid ${tokens.color.border.subtle}`,
-              },
+          PaperProps={{
+            sx: {
+              width: "min(88vw, 360px)",
+              bgcolor: publicLight ? "#ffffff" : tokens.color.bg.surface,
+              color: navText,
+              borderRight: `1px solid ${navBorder}`,
+              borderTopRightRadius: 18,
+              borderBottomRightRadius: 18,
+              overflow: "hidden",
             },
           }}
         >
-          {visibleLinks.map((l) => {
-            const active = l.match(pathname);
-            return (
-              <MenuItem
-                key={l.href}
+          <Stack spacing={2.2} sx={{ p: 2.2 }}>
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <BrandLogo
+                compact={false}
+                inverse={!publicLight}
+                size={28}
+                href="/"
+              />
+              <LanguageSwitcher />
+            </Stack>
+            <List disablePadding sx={{ display: "grid", gap: 0.6 }}>
+              {visibleLinks.map((l) => {
+                const active = l.match(pathname);
+                return (
+                  <ListItemButton
+                    key={l.href}
+                    component={Link}
+                    href={hrefWithTiming(l.href)}
+                    onClick={() => setMobileNavAnchor(null)}
+                    sx={{
+                      borderRadius: 2,
+                      px: 1.5,
+                      py: 1.1,
+                      color: active ? navText : navSecondary,
+                      bgcolor: active
+                        ? publicLight
+                          ? "rgba(143,77,255,0.10)"
+                          : `${tokens.color.accent.purple}24`
+                        : "transparent",
+                    }}
+                  >
+                    <ListItemText
+                      primary={marketingLabel(l.label)}
+                      secondary={
+                        !cockpitMode && l.label === "Product"
+                          ? "Prompt, plan, build and deploy"
+                          : !cockpitMode && l.label === "Templates"
+                            ? "Start from proven product shapes"
+                            : !cockpitMode && l.label === "Solutions"
+                              ? "Customer portals, ops and internal tools"
+                              : undefined
+                      }
+                      primaryTypographyProps={{ fontSize: 15, fontWeight: 900 }}
+                      secondaryTypographyProps={{
+                        color: navSecondary,
+                        fontSize: 12.5,
+                      }}
+                    />
+                  </ListItemButton>
+                );
+              })}
+            </List>
+            {!cockpitMode && (
+              <Box>
+                <Typography
+                  sx={{
+                    mb: 1,
+                    color: navSecondary,
+                    fontFamily: tokens.font.mono,
+                    fontSize: 11,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Resources
+                </Typography>
+                <Stack spacing={0.7}>
+                  {RESOURCE_LINKS.map((r) => (
+                    <Button
+                      key={r.href}
+                      component={Link}
+                      href={hrefWithTiming(r.href)}
+                      onClick={() => setMobileNavAnchor(null)}
+                      sx={{
+                        justifyContent: "flex-start",
+                        borderRadius: 2,
+                        color: navText,
+                        border: `1px solid ${navBorder}`,
+                        bgcolor: publicLight
+                          ? "rgba(255,255,255,0.72)"
+                          : "rgba(255,255,255,0.03)",
+                        textAlign: "left",
+                      }}
+                    >
+                      {r.label}
+                    </Button>
+                  ))}
+                </Stack>
+              </Box>
+            )}
+            <Stack spacing={1}>
+              <Button
                 component={Link}
-                href={hrefWithTiming(l.href)}
+                href={signupHref}
                 onClick={() => setMobileNavAnchor(null)}
-                sx={{
-                  fontWeight: 700,
-                  fontSize: 14,
-                  color: active
-                    ? tokens.color.text.primary
-                    : tokens.color.text.secondary,
-                  bgcolor: active
-                    ? `${tokens.color.accent.purple}24`
-                    : "transparent",
-                }}
+                variant="contained"
+                endIcon={<ArrowForwardRounded />}
               >
-                {marketingLabel(l.label)}
-              </MenuItem>
-            );
-          })}
-        </Menu>
+                Start a project
+              </Button>
+              <Button
+                component={Link}
+                href={loginHref}
+                onClick={() => setMobileNavAnchor(null)}
+                sx={{ color: navText }}
+              >
+                Log in
+              </Button>
+            </Stack>
+          </Stack>
+        </Drawer>
 
         <BrandLogo
           compact={false}

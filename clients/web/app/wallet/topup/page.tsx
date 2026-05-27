@@ -34,11 +34,8 @@ import {
 } from "@mui/material";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  LoadingPanel,
-  PageHeader,
-} from "../../../src/components/cockpit";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { LoadingPanel, PageHeader } from "../../../src/components/cockpit";
 import { TopUpHistory } from "../../../src/components/wallet/TopUpHistory";
 import { RequireAuth } from "../../../src/lib/auth";
 import { formatMoney } from "../../../src/lib/format";
@@ -59,7 +56,9 @@ const SUCCESS_REDIRECT_MS = 3_000;
 export default function WalletTopUpPage() {
   return (
     <RequireAuth>
-      <TopUpRouter />
+      <Suspense fallback={null}>
+        <TopUpRouter />
+      </Suspense>
     </RequireAuth>
   );
 }
@@ -84,8 +83,7 @@ function PickerView() {
   const [selected, setSelected] = useState<number>(DEFAULT_PRESET);
   const [custom, setCustom] = useState<string>("");
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [createTopUp, { loading: submitting }] =
-    useWalletCreateTopUpMutation();
+  const [createTopUp, { loading: submitting }] = useWalletCreateTopUpMutation();
 
   const useCustom = custom.trim().length > 0;
   const customAmount = Number(custom);
@@ -95,11 +93,7 @@ function PickerView() {
   const validAmount = useCustom ? customValid : true;
 
   const balanceTone: "healthy" | "low" | "zero" =
-    wallet.availableUSD <= 0
-      ? "zero"
-      : wallet.lowBalance
-        ? "low"
-        : "healthy";
+    wallet.availableUSD <= 0 ? "zero" : wallet.lowBalance ? "low" : "healthy";
 
   const onContinue = async () => {
     if (submitting || !validAmount) return;
@@ -127,7 +121,10 @@ function PickerView() {
         eyebrow="Wallet"
         title="Top up wallet"
         description="Add prepaid credits so every paid execution has the headroom it needs to admit and finish."
-        breadcrumbs={[{ label: "Wallet", href: "/wallet" }, { label: "Top up" }]}
+        breadcrumbs={[
+          { label: "Wallet", href: "/wallet" },
+          { label: "Top up" },
+        ]}
         actions={
           <Button
             component={Link}
@@ -305,11 +302,7 @@ function PickerView() {
                 label="Top-up amount"
                 value={formatMoney(validAmount ? amount : 0)}
               />
-              <SummaryRow
-                label="Processing fee"
-                value="Included"
-                muted
-              />
+              <SummaryRow label="Processing fee" value="Included" muted />
               <Divider />
               <SummaryRow
                 label="Total"
@@ -393,11 +386,7 @@ function BalanceCard({
         ? tokens.color.accent.warning
         : tokens.color.brand.mint;
   const toneLabel =
-    tone === "zero"
-      ? "no credits"
-      : tone === "low"
-        ? "running low"
-        : "healthy";
+    tone === "zero" ? "no credits" : tone === "low" ? "running low" : "healthy";
 
   return (
     <Card sx={{ p: { xs: 2.5, md: 3 } }}>
@@ -454,9 +443,7 @@ function BalanceCard({
             >
               {toneLabel}
             </Typography>
-            <Typography
-              sx={{ fontSize: 12, color: tokens.color.text.muted }}
-            >
+            <Typography sx={{ fontSize: 12, color: tokens.color.text.muted }}>
               available for paid executions
             </Typography>
           </Stack>
