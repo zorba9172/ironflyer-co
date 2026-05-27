@@ -10,12 +10,27 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+// openRegistration reports whether the IRONFLYER_PERSISTED_OPEN_REGISTRATION
+// env var lets non-operator callers register persisted queries on first
+// touch (auto-APQ). Useful when no build-time seed is shipped and the
+// SPA is the source of truth for the allow-list.
+func openRegistration() bool {
+	v := strings.TrimSpace(os.Getenv("IRONFLYER_PERSISTED_OPEN_REGISTRATION"))
+	switch strings.ToLower(v) {
+	case "1", "true", "yes", "on":
+		return true
+	}
+	return false
+}
 
 // Store is the persisted-query allowlist. In dev mode the in-memory
 // store is fine; production wires a Postgres-backed store against the
@@ -239,10 +254,13 @@ func PersistedQueriesMiddleware(store Store, prodMode bool, isOperator OperatorC
 					writePersistedError(w, http.StatusBadRequest, "HASH_MISMATCH", "persisted query hash does not match query")
 					return
 				}
-				if prodMode && !operatorAllowed(r.Context(), isOperator) {
+				if prodMode && !operatorAllowed(r.Context(), isOperator) && !openRegistration() {
 					// In strict prodMode the registration path is
 					// operator-only — applications should pre-register
-					// allowed shapes during build/deploy.
+					// allowed shapes during build/deploy. Set
+					// IRONFLYER_PERSISTED_OPEN_REGISTRATION=true to
+					// allow first-touch registration from any caller
+					// (auth-required mutations like signIn need this).
 					writePersistedError(w, http.StatusForbidden, "PERSISTED_QUERY_REGISTER_FORBIDDEN", "registering persisted queries requires operator role in production")
 					return
 				}
