@@ -39,17 +39,50 @@
 	}
 }
 
-# === Public: web app ========================================================
-app.{$ROOT_DOMAIN}, {$ROOT_DOMAIN} {
+# === Public: marketing apex =================================================
+# ironflyer.ai (+ www) serves the marketing pages: /, /pricing, /product,
+# /blog, /developers, /enterprise, /resources, /changelog, /security,
+# /solutions, /showcase, /mobile, /deploy, /docs, /api (marketing) plus
+# the auth flow (/login, /signup, /auth/*). Any request to a product
+# route (Studio, projects, dashboard, wallet, executions, operator,
+# templates, settings, /p/*) is 302'd to app.ironflyer.ai/{path}.
+{$ROOT_DOMAIN}, www.{$ROOT_DOMAIN} {
 	import security_headers
 	encode gzip zstd
 
-	# Round-robin across the two web replicas. health_uri matches the
-	# Next.js healthz endpoint; unhealthy upstreams are skipped.
+	# Product paths on the apex → bounce to app.* subdomain.
+	@product path /studio* /projects* /dashboard* /wallet* /executions* /execution* /operator* /cockpit* /templates* /settings* /p/*
+	redir @product https://app.{$ROOT_DOMAIN}{uri} 302
+
 	reverse_proxy web-1:3000 web-2:3000 {
 		lb_policy round_robin
 		lb_try_duration 5s
-		health_uri /api/healthz
+		health_uri /
+		health_interval 10s
+		fail_duration 30s
+	}
+}
+
+# === Public: product app on app.* ===========================================
+# app.ironflyer.ai serves the logged-in Studio. Bare `/` → /studio
+# (the Next.js app's own session middleware will bounce unauthenticated
+# requests to /login on the apex if needed). Marketing paths on app.*
+# are 302'd back to the apex so each surface stays canonical.
+app.{$ROOT_DOMAIN} {
+	import security_headers
+	encode gzip zstd
+
+	# Marketing paths on the app subdomain → bounce to apex.
+	@marketing path /pricing* /product* /blog* /developers* /enterprise* /resources* /changelog* /security* /solutions* /showcase* /mobile* /deploy*
+	redir @marketing https://{$ROOT_DOMAIN}{uri} 302
+
+	# Bare hostname → straight to Studio.
+	redir / /studio 302
+
+	reverse_proxy web-1:3000 web-2:3000 {
+		lb_policy round_robin
+		lb_try_duration 5s
+		health_uri /
 		health_interval 10s
 		fail_duration 30s
 	}
