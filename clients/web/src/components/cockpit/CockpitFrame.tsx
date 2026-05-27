@@ -54,7 +54,7 @@ export function CockpitFrame({ children }: { children: ReactNode }) {
         overflowX: "clip",
       }}
     >
-      {!isAuthRoute && (
+      {!isAuthRoute && !isStudioEntry && !isStudioWorkspace && (
         <Suspense fallback={null}>
           <Nav />
         </Suspense>

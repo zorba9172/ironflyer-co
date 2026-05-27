@@ -2,1011 +2,1153 @@
 
 import {
   AddRounded,
-  AppsRounded,
+  AccountTreeRounded,
   AutoAwesomeRounded,
   BoltRounded,
   CheckRounded,
+  ChevronRightRounded,
   CodeRounded,
-  ContentCopyRounded,
   DashboardRounded,
   FolderRounded,
   GitHub,
-  HomeRounded,
-  HubRounded,
-  IntegrationInstructionsRounded,
-  KeyboardArrowRightRounded,
   LaptopMacRounded,
   MoreHorizRounded,
-  NotificationsNoneRounded,
-  OpenInFullRounded,
-  PhoneIphoneRounded,
+  PhoneAndroidRounded,
   PlayArrowRounded,
-  RefreshRounded,
   RocketLaunchRounded,
+  SearchRounded,
   SendRounded,
   SettingsRounded,
-  StarRounded,
-  TabletMacRounded,
+  ShieldRounded,
+  TerminalRounded,
 } from "@mui/icons-material";
 import {
-  Alert,
   Box,
   Button,
   Chip,
-  CircularProgress,
   IconButton,
   Stack,
+  TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useMemo, useState, type ChangeEvent, type ElementType } from "react";
+import { useMemo, useState, type ReactNode } from "react";
+import { BrandLogo } from "../../src/components/BrandLogo";
 import { tokens } from "../../../../packages/design-tokens";
-import { extractErrorMessage } from "../../src/lib/errors";
-import * as swal from "../../src/lib/swal";
-import {
-  useDescribeIdeaMutation,
-  useProjectsQuery,
-} from "../../src/lib/gql/__generated__";
-import { RequireAuth, useAuth } from "../../src/lib/auth";
 
-type StudioMode = "preview" | "mobile" | "code";
-type RecentEntry = { id: string; name: string };
+type StageView = "browser" | "ide" | "android";
+type BuildStepState = "done" | "running" | "queued";
 
-const DEFAULT_PROMPT =
-  "Build a client operations portal with projects, invoices, approvals, role-based access and team activity dashboard.";
+const NAV = [
+  ["Command", DashboardRounded],
+  ["Prompt", AutoAwesomeRounded],
+  ["Browser", LaptopMacRounded],
+  ["IDE", CodeRounded],
+  ["Android", PhoneAndroidRounded],
+  ["Graph", AccountTreeRounded],
+  ["Deploy", RocketLaunchRounded],
+] as const;
+
+const FILES = [
+  "src/app/dashboard/page.tsx",
+  "src/components/StatsGrid.tsx",
+  "src/components/ApprovalTable.tsx",
+  "src/lib/roles.ts",
+  "src/lib/billing.ts",
+  "package.json",
+];
 
 const CODE_LINES = [
-  "import { Card, Stat, Table, Badge } from '@/ui'",
-  "import { useProjects } from '@/hooks/useProjects'",
+  "import { Badge, Card, Table } from '@/ui'",
+  "import { useApprovals, useRevenue } from '@/hooks/client-flow'",
   "",
   "export default function Dashboard() {",
-  "  const { data: projects } = useProjects()",
+  "  const revenue = useRevenue()",
+  "  const approvals = useApprovals()",
   "",
   "  return (",
-  "    <div className=\"p-6 space-y-6\">",
-  "      <StatsGrid>",
-  "        <Stat label=\"Revenue\" value=\"$18.2k\" />",
-  "        <Stat label=\"Open approvals\" value=\"27\" />",
-  "        <Stat label=\"Files\" value=\"1.4k\" />",
-  "        <Stat label=\"Deploy health\" value=\"99.9%\" />",
-  "      </StatsGrid>",
-  "      <ProjectsTable data={projects} />",
-  "    </div>",
+  '    <main className="space-y-6">',
+  "      <StatsGrid revenue={revenue} approvals={approvals} />",
+  "      <ApprovalTable rows={approvals.pending} />",
+  '      <DeployGate status="preview" score={92} />',
+  "    </main>",
   "  )",
   "}",
 ];
 
-export default function StudioIndexPage() {
-  return (
-    <RequireAuth>
-      <StudioIndexInner />
-    </RequireAuth>
-  );
-}
+const INITIAL_STEPS: Array<{
+  id: string;
+  label: string;
+  detail: string;
+  state: BuildStepState;
+}> = [
+  {
+    id: "model",
+    label: "Data model",
+    detail: "Clients, projects, invoices and approvals",
+    state: "done",
+  },
+  {
+    id: "roles",
+    label: "Roles",
+    detail: "Owner, manager and reviewer access",
+    state: "done",
+  },
+  {
+    id: "ui",
+    label: "Responsive UI",
+    detail: "Browser shell and Android layout",
+    state: "running",
+  },
+  {
+    id: "deploy",
+    label: "Deploy lane",
+    detail: "Preview checks, gate score and publish plan",
+    state: "queued",
+  },
+];
 
-function StudioIndexInner() {
-  const router = useRouter();
-  const { authenticated } = useAuth();
-  const [mode, setMode] = useState<StudioMode>("code");
-  const [prompt, setPrompt] = useState(DEFAULT_PROMPT);
-  const [assistantText, setAssistantText] = useState(
-    "Added project table, connected Stripe billing flow, generated role-based access, and prepared the preview shell.",
+export default function StudioPage() {
+  const [stageView, setStageView] = useState<StageView>("browser");
+  const [prompt, setPrompt] = useState(
+    "Build a client operations portal with projects, invoices, approvals, role-based access and team activity.",
   );
-  const [error, setError] = useState<string | null>(null);
-  const projectsQuery = useProjectsQuery({
-    variables: { limit: 6 },
-    skip: !authenticated,
-    fetchPolicy: "cache-and-network",
-  });
-  const [describeIdea, { loading: creating }] = useDescribeIdeaMutation();
-
-  const recents = useMemo(
-    () =>
-      (projectsQuery.data?.projects ?? [])
-        .slice()
-        .sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1))
-        .slice(0, 5),
-    [projectsQuery.data],
+  const [steps, setSteps] = useState(INITIAL_STEPS);
+  const [assistant, setAssistant] = useState(
+    "The browser preview is live. The Android pass is queued after the responsive UI check finishes.",
   );
 
-  const simulateGuestBuild = () => {
-    setError(null);
-    setMode("code");
-    setAssistantText(
-      "Guest build simulated: plan locked, app shell generated, preview data wired, and deployment checklist prepared. Sign in to run this against a live workspace.",
+  const progress = useMemo(() => {
+    const done = steps.filter((step) => step.state === "done").length;
+    return Math.round((done / steps.length) * 100);
+  }, [steps]);
+
+  const runBuildPass = () => {
+    setSteps((current) =>
+      current.map((step) =>
+        step.state === "running"
+          ? { ...step, state: "done" }
+          : step.state === "queued"
+            ? { ...step, state: "running" }
+            : step,
+      ),
     );
-  };
-
-  const onGenerate = async () => {
-    const text = prompt.trim();
-    if (!text || creating) return;
-    if (!authenticated) {
-      simulateGuestBuild();
-      return;
-    }
-    setError(null);
-    try {
-      const result = await describeIdea({
-        variables: { input: { text, startImmediately: true } },
-      });
-      if (result.errors && result.errors.length > 0) {
-        throw new Error(
-          result.errors.map((e) => e.message).join("\n") ||
-            "Studio rejected the request.",
-        );
-      }
-      const project = result.data?.describeIdea.project;
-      const execution = result.data?.describeIdea.execution;
-      if (!project?.id) {
-        const debugDump = JSON.stringify(result.data ?? null).slice(0, 240);
-        throw new Error(
-          `Studio did not return a project id.\nResponse: ${debugDump}`,
-        );
-      }
-      const params = new URLSearchParams({ autorun: "1", tab: "preview" });
-      if (execution?.id) params.set("executionID", execution.id);
-      void projectsQuery.refetch().catch(() => undefined);
-      router.push(`/p/${encodeURIComponent(project.id)}?${params.toString()}`);
-    } catch (err) {
-      const message = extractErrorMessage(err);
-      setError(message);
-      void swal.error("Could not generate", message);
-    }
+    setAssistant(
+      "Build pass completed: responsive UI is ready, Android rendering is now in review, and deploy remains gated.",
+    );
+    setStageView("android");
   };
 
   return (
     <Box
       sx={{
-        bgcolor: tokens.color.bg.base,
-        background: `radial-gradient(circle at 94% 18%, ${tokens.color.accent.purple}42, transparent 23%), radial-gradient(circle at 9% 90%, ${tokens.color.accent.violet}24, transparent 24%), ${tokens.color.bg.base}`,
+        bgcolor: "#070814",
         color: tokens.color.text.primary,
         display: "grid",
-        gridTemplateColumns: { xs: "1fr", lg: "250px minmax(0, 1fr)" },
-        minHeight: "calc(100vh - 58px)",
-        height: { xs: "auto", lg: "calc(100vh - 58px)" },
-        isolation: "isolate",
-        minWidth: 0,
+        gridTemplateColumns: { xs: "1fr", lg: "252px minmax(0, 1fr)" },
+        height: { xs: "auto", lg: "100dvh" },
+        minHeight: "100dvh",
         overflow: { xs: "visible", lg: "hidden" },
-        position: "relative",
-        "&::before": {
-          border: `1px solid ${tokens.color.accent.violet}66`,
-          borderRadius: "50%",
-          boxShadow: `0 0 48px ${tokens.color.accent.violet}55, inset 0 0 18px ${tokens.color.accent.purple}44`,
-          content: '""',
-          display: { xs: "none", xl: "block" },
-          height: 138,
-          pointerEvents: "none",
-          position: "absolute",
-          right: -92,
-          top: 76,
-          transform: "rotate(-17deg)",
-          width: 330,
-          zIndex: 0,
-        },
-        "&::after": {
-          background:
-            `radial-gradient(circle, ${tokens.color.accent.violet}e6 0 1px, transparent 1.8px) 12% 18% / 180px 120px, radial-gradient(circle, ${tokens.color.accent.sky}9e 0 1px, transparent 1.8px) 78% 20% / 210px 150px`,
-          content: '""',
-          display: { xs: "none", lg: "block" },
-          inset: 0,
-          opacity: 0.42,
-          pointerEvents: "none",
-          position: "absolute",
-          zIndex: 0,
-        },
       }}
     >
-      <StudioRail recents={recents} authenticated={authenticated} />
-      <Box sx={{ display: "flex", flexDirection: "column", minHeight: 0, minWidth: 0, position: "relative", zIndex: 1 }}>
-        <TopBar />
+      <StudioSidebar />
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateRows: { xs: "auto auto", lg: "64px minmax(0, 1fr)" },
+          minWidth: 0,
+        }}
+      >
+        <StudioTopbar progress={progress} />
         <Box
           sx={{
-            borderBottom: `1px solid ${tokens.color.border.subtle}`,
             display: "grid",
             gap: 1.2,
             gridTemplateColumns: {
               xs: "1fr",
-              md: "minmax(340px, 480px) minmax(0, 560px)",
+              lg: "minmax(560px, 1.18fr) minmax(380px, 0.82fr)",
             },
-            justifyContent: "space-between",
-            minWidth: 0,
-            px: { xs: 1.2, md: 1.8 },
-            py: 1.1,
-          }}
-        >
-          <ModeTabs mode={mode} onChange={setMode} />
-          <StatusCards />
-        </Box>
-        <Box
-          sx={{
-            display: "grid",
-            flex: 1,
-            gap: { xs: 1.2, xl: 1.6 },
-            gridTemplateColumns: {
-              xs: "1fr",
-              md: "minmax(250px, 0.62fr) minmax(0, 1.38fr)",
-              lg: "320px minmax(0, 1fr) 410px",
-              xl: "320px minmax(0, 1fr) 430px",
-            },
-            gridTemplateRows: { xs: "auto", lg: "minmax(0, 1fr) auto" },
             minHeight: 0,
             minWidth: 0,
-            overflow: { xs: "auto", lg: "hidden" },
-            p: { xs: 1.2, md: 1.6 },
+            overflow: { xs: "visible", lg: "auto" },
+            p: { xs: 1.2, md: 1.4 },
           }}
         >
-          <PromptPanel
-            prompt={prompt}
-            creating={creating}
-            error={error}
-            onPromptChange={setPrompt}
-            onImprove={(nextPrompt) => {
-              setPrompt(nextPrompt);
-              setAssistantText("Prompt improved with roles, billing, mobile, deploy gates, and admin coverage.");
+          <Box
+            sx={{
+              display: "grid",
+              gap: 1.2,
+              gridTemplateRows: { xs: "auto auto", lg: "auto minmax(0, 1fr)" },
+              minHeight: 0,
+              minWidth: 0,
             }}
-            onGenerate={onGenerate}
-            onSuggestion={(text) => {
-              setPrompt((current) => `${current.trim()}\n${text}`.trim());
-              setAssistantText(`Queued Studio suggestion: ${text}`);
+          >
+            <PromptRunway
+              prompt={prompt}
+              onPromptChange={setPrompt}
+              onRun={runBuildPass}
+            />
+            <IdePanel />
+          </Box>
+          <Box
+            sx={{
+              display: "grid",
+              gap: 1.2,
+              gridTemplateRows: { xs: "auto auto", lg: "minmax(0, 1fr) auto" },
+              minHeight: 0,
+              minWidth: 0,
             }}
-          />
-          <CodeWorkbench mode={mode} />
-          <PreviewWorkbench mode={mode} onModeChange={setMode} />
-          <AssistantDock
-            assistantText={assistantText}
-            onSend={(message) => {
-              setAssistantText(`Queued refinement: ${message}`);
-              setPrompt((current) => `${current.trim()}\nRefine: ${message}`.trim());
-            }}
-          />
+          >
+            <StagePanel view={stageView} onViewChange={setStageView} />
+            <BuildGraph steps={steps} />
+          </Box>
+          <AssistantStrip assistant={assistant} />
         </Box>
       </Box>
     </Box>
   );
 }
 
-function StudioRail({
-  recents,
-  authenticated,
-}: {
-  recents: { id: string; name: string }[];
-  authenticated: boolean;
-}) {
-  const nav = [
-    { label: "Home", icon: HomeRounded, href: "/" },
-    { label: "All apps", icon: AppsRounded, href: "/projects" },
-    { label: "Templates", icon: DashboardRounded, href: "/templates" },
-    { label: "Integrations", icon: IntegrationInstructionsRounded, href: "/resources" },
-    { label: "Studio", icon: HubRounded, href: "/studio", active: true },
-  ];
-  // When authenticated, render the real recents list — or an honest
-  // empty state if the user has no projects yet. When unauthenticated,
-  // we show a demo set so the marketing surface still feels alive.
-  const isEmptyForAuthedUser = authenticated && recents.length === 0;
-  const visibleRecents: RecentEntry[] = authenticated
-    ? recents.map((p) => ({ id: p.id, name: p.name }))
-    : ["MathQuest", "ClientFlow", "Fit booking", "InvoicePro", "TeamHub"].map(
-        (name) => ({ id: name, name }),
-      );
-
+function StudioSidebar() {
   return (
     <Box
       sx={{
-        borderRight: `1px solid ${tokens.color.border.subtle}`,
-        display: { xs: "none", lg: "flex" },
-        flexDirection: "column",
-        minHeight: 0,
-        overflow: "hidden",
-        p: 1.4,
-        position: "relative",
-        zIndex: 1,
+        bgcolor: "#080918",
+        borderBottom: {
+          xs: `1px solid ${tokens.color.border.subtle}`,
+          lg: 0,
+        },
+        borderRight: { lg: `1px solid ${tokens.color.border.subtle}` },
+        display: { xs: "block", lg: "grid" },
+        gridTemplateRows: { lg: "auto auto minmax(0, 1fr) auto" },
+        minHeight: { xs: "auto", lg: "100dvh" },
+        minWidth: 0,
+        p: 1.2,
       }}
     >
-      <Button
-        component={Link}
-        href="/studio"
-        startIcon={<AddRounded />}
-        sx={{
-          justifyContent: "flex-start",
-          border: `1px solid ${tokens.color.border.accent}`,
-          bgcolor: `${tokens.color.bg.surfaceRaised}a8`,
-          color: tokens.color.text.primary,
-          minHeight: 38,
-        }}
+      <Stack
+        direction="row"
+        alignItems="center"
+        justifyContent="space-between"
+        sx={{ px: 0.4, py: 0.4 }}
       >
-        New app
-      </Button>
-      <Stack spacing={0.65} sx={{ mt: 2 }}>
-        {nav.map((item) => {
-          const Icon = item.icon;
-          return (
-            <Box
-              key={item.label}
-              component={Link}
-              href={item.href}
-              sx={{
-                alignItems: "center",
-                bgcolor: item.active ? `${tokens.color.accent.purple}70` : "transparent",
-                border: item.active ? `1px solid ${tokens.color.border.accent}` : "1px solid transparent",
-                borderRadius: `${tokens.radius.sm}px`,
-                color: tokens.color.text.primary,
-                display: "flex",
-                fontSize: 14,
-                fontWeight: 800,
-                gap: 1,
-                minWidth: 0,
-                px: 1.1,
-                py: 1,
-                textDecoration: "none",
-              }}
-            >
-              <Icon sx={{ fontSize: 18 }} />
-              <Box sx={{ flex: 1 }}>{item.label}</Box>
-              {item.active ? <KeyboardArrowRightRounded sx={{ fontSize: 18 }} /> : null}
-            </Box>
-          );
-        })}
-      </Stack>
-      <Typography
-        sx={{
-          color: tokens.color.text.muted,
-          fontFamily: tokens.font.mono,
-          fontSize: 11,
-          letterSpacing: 0.6,
-          mt: 2.2,
-          textTransform: "uppercase",
-        }}
-      >
-        Recents
-      </Typography>
-      <Stack spacing={0.45} sx={{ flex: 1, minHeight: 0, mt: 0.7, overflow: "auto" }}>
-        {isEmptyForAuthedUser ? (
-          <Box
+        <BrandLogo size={25} inverse href="/studio" />
+        <Tooltip title="New project" arrow>
+          <IconButton
+            size="small"
             sx={{
-              border: `1px dashed ${tokens.color.border.subtle}`,
-              borderRadius: `${tokens.radius.sm}px`,
-              color: tokens.color.text.muted,
-              fontSize: 12,
-              lineHeight: 1.5,
-              px: 1.1,
-              py: 1.4,
-              textAlign: "center",
+              border: `1px solid ${tokens.color.border.subtle}`,
+              borderRadius: 1.2,
+              color: tokens.color.text.primary,
             }}
           >
-            No projects yet. Describe an app in the prompt area to create
-            your first build.
-          </Box>
-        ) : (
-          visibleRecents.map((entry) => {
-            const isDemoFlow = !authenticated && entry.name === "ClientFlow";
-            const hover = isDemoFlow || authenticated;
-            const EntryComponent: ElementType = authenticated ? Link : "div";
-            return (
-              <Box
-                key={entry.id}
-                component={EntryComponent}
-                {...(authenticated ? { href: `/p/${encodeURIComponent(entry.id)}` } : {})}
-                sx={{
-                  alignItems: "center",
-                  border: isDemoFlow
-                    ? `1px solid ${tokens.color.border.strong}`
-                    : "1px solid transparent",
-                  borderRadius: `${tokens.radius.sm}px`,
-                  bgcolor: isDemoFlow ? `${tokens.color.accent.purple}24` : "transparent",
-                  color: isDemoFlow
+            <AddRounded sx={{ fontSize: 18 }} />
+          </IconButton>
+        </Tooltip>
+      </Stack>
+
+      <Box
+        sx={{
+          alignItems: "center",
+          bgcolor: "#0d0f24",
+          border: `1px solid ${tokens.color.border.subtle}`,
+          borderRadius: 1.4,
+          display: { xs: "none", lg: "flex" },
+          gap: 1,
+          mt: 1.3,
+          px: 1.2,
+          py: 0.95,
+        }}
+      >
+        <SearchRounded sx={{ color: tokens.color.text.muted, fontSize: 18 }} />
+        <Typography sx={{ color: tokens.color.text.muted, fontSize: 13 }}>
+          Search project
+        </Typography>
+      </Box>
+
+      <Box
+        sx={{ mt: { xs: 1, lg: 1.4 }, minHeight: 0, overflow: "auto", pr: 0.2 }}
+      >
+        <Typography
+          sx={{ ...overlineSx, display: { xs: "none", lg: "block" } }}
+        >
+          Studio
+        </Typography>
+        <Stack
+          direction={{ xs: "row", lg: "column" }}
+          spacing={0.35}
+          sx={{
+            overflowX: { xs: "auto", lg: "visible" },
+            pb: { xs: 0.2, lg: 0 },
+          }}
+        >
+          {NAV.map(([label, Icon], index) => (
+            <Button
+              key={label}
+              fullWidth={false}
+              startIcon={<Icon sx={{ fontSize: 18 }} />}
+              endIcon={index === 0 ? <ChevronRightRounded /> : null}
+              sx={{
+                borderRadius: 1.2,
+                color:
+                  index === 0
                     ? tokens.color.text.primary
                     : tokens.color.text.secondary,
-                  cursor: hover ? "pointer" : "default",
-                  display: "flex",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  gap: 0.8,
-                  px: 0.9,
-                  py: 0.65,
-                  textDecoration: "none",
-                  "&:hover": hover
-                    ? {
-                        bgcolor: `${tokens.color.bg.surfaceHover}`,
-                        color: tokens.color.text.primary,
-                      }
-                    : undefined,
+                justifyContent: "flex-start",
+                minHeight: 39,
+                minWidth: { xs: 112, lg: "auto" },
+                px: 1.1,
+                textTransform: "none",
+                bgcolor:
+                  index === 0
+                    ? `${tokens.color.accent.purple}45`
+                    : "transparent",
+                border:
+                  index === 0
+                    ? `1px solid ${tokens.color.border.accent}`
+                    : "1px solid transparent",
+                "& .MuiButton-endIcon": { ml: "auto" },
+              }}
+            >
+              {label}
+            </Button>
+          ))}
+        </Stack>
+
+        <Box sx={{ display: { xs: "none", lg: "block" } }}>
+          <Typography sx={{ ...overlineSx, mt: 2 }}>Projects</Typography>
+          {["ClientFlow", "Marketplace", "FieldOps", "InvoicePro"].map(
+            (project, index) => (
+              <Stack
+                key={project}
+                direction="row"
+                alignItems="center"
+                spacing={1}
+                sx={{
+                  borderRadius: 1.2,
+                  color:
+                    index === 0
+                      ? tokens.color.text.primary
+                      : tokens.color.text.secondary,
+                  px: 1,
+                  py: 0.9,
+                  bgcolor:
+                    index === 0 ? "rgba(255,255,255,0.04)" : "transparent",
                 }}
               >
-                <StarRounded sx={{ color: tokens.color.accent.violet, fontSize: 15 }} />
-                <Box
-                  sx={{
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {entry.name}
-                </Box>
-              </Box>
-            );
-          })
-        )}
-      </Stack>
-      <Box
-        sx={{
-          border: `1px solid ${tokens.color.border.subtle}`,
-          borderRadius: `${tokens.radius.md}px`,
-          bgcolor: `${tokens.color.bg.surfaceRaised}b8`,
-          p: 1.4,
-        }}
-      >
-        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-          <BoltRounded sx={{ color: tokens.color.accent.violet, fontSize: 18 }} />
-          <Typography sx={{ fontSize: 13, fontWeight: 900 }}>Upgrade your plan</Typography>
-        </Stack>
-        <Typography sx={{ color: tokens.color.text.secondary, fontSize: 12.5, lineHeight: 1.45, mt: 0.8 }}>
-          Get more agent minutes and private deploys.
-        </Typography>
-        <Button component={Link} href="/pricing" fullWidth size="small" sx={{ mt: 1, border: `1px solid ${tokens.color.border.accent}` }}>
-          Upgrade now
-        </Button>
-      </Box>
-      <Stack spacing={0.6} sx={{ mt: 1.3 }}>
-        {[
-          ["Settings", SettingsRounded],
-          ["What's new", NotificationsNoneRounded],
-        ].map(([label, Icon]) => {
-          const NavIcon = Icon as typeof SettingsRounded;
-          return (
-            <Stack key={label as string} direction="row" sx={{ alignItems: "center", color: tokens.color.text.secondary, gap: 1, px: 0.8, py: 0.45 }}>
-              <NavIcon sx={{ fontSize: 17 }} />
-              <Typography sx={{ fontSize: 13, fontWeight: 700 }}>{label as string}</Typography>
-            </Stack>
-          );
-        })}
-      </Stack>
-      <Box
-        sx={{
-          border: `1px solid ${tokens.color.border.subtle}`,
-          borderRadius: `${tokens.radius.md}px`,
-          bgcolor: `${tokens.color.bg.inset}c7`,
-          mt: 1,
-          p: 1.1,
-        }}
-      >
-        <Typography sx={{ fontSize: 13, fontWeight: 900 }}>Pro plan</Typography>
-        <Typography sx={{ color: tokens.color.text.muted, fontSize: 12, mt: 0.2 }}>Resets in 12 days</Typography>
-        <Typography sx={{ color: tokens.color.text.secondary, fontSize: 12, mt: 1 }}>Agent minutes</Typography>
-        <Typography sx={{ fontSize: 13, fontWeight: 800 }}>2,420 / 5,000</Typography>
-        <Box sx={{ bgcolor: `${tokens.color.text.primary}12`, borderRadius: 999, height: 4, mt: 0.8 }}>
-          <Box sx={{ bgcolor: tokens.color.accent.purple, borderRadius: 999, height: 4, width: "48%" }} />
+                <FolderRounded
+                  sx={{ color: tokens.color.accent.violet, fontSize: 17 }}
+                />
+                <Typography sx={{ fontSize: 13.5, fontWeight: 800 }}>
+                  {project}
+                </Typography>
+              </Stack>
+            ),
+          )}
         </Box>
+      </Box>
+
+      <Box
+        sx={{
+          display: { xs: "none", lg: "block" },
+          border: `1px solid ${tokens.color.border.subtle}`,
+          borderRadius: 1.4,
+          bgcolor: "rgba(255,255,255,0.035)",
+          p: 1.2,
+        }}
+      >
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <ShieldRounded
+            sx={{ color: tokens.color.accent.success, fontSize: 17 }}
+          />
+          <Typography sx={{ fontSize: 13, fontWeight: 900 }}>
+            Preview access
+          </Typography>
+        </Stack>
+        <Typography
+          sx={{ color: tokens.color.text.secondary, fontSize: 12, mt: 0.8 }}
+        >
+          No route jumps. Work stays inside Studio.
+        </Typography>
       </Box>
     </Box>
   );
 }
 
-function TopBar() {
+function StudioTopbar({ progress }: { progress: number }) {
   return (
     <Stack
       direction="row"
+      alignItems="center"
       sx={{
-        alignItems: "center",
         borderBottom: `1px solid ${tokens.color.border.subtle}`,
-        gap: 1,
-        minHeight: 64,
+        flexWrap: { xs: "wrap", md: "nowrap" },
+        gap: 1.2,
         minWidth: 0,
-        px: { xs: 1.2, md: 1.8 },
+        px: { xs: 1.4, md: 1.8 },
+        py: 1,
       }}
     >
-      <Typography sx={{ color: tokens.color.text.secondary, fontSize: 13, minWidth: 0 }}>
-        Studio
-      </Typography>
-      <KeyboardArrowRightRounded sx={{ color: tokens.color.text.muted, fontSize: 17 }} />
-      <Typography sx={{ fontSize: 13, fontWeight: 800, minWidth: 0 }}>ClientFlow</Typography>
-      <KeyboardArrowRightRounded sx={{ color: tokens.color.text.muted, fontSize: 17 }} />
-      <Box sx={{ flex: 1 }} />
-      <Button component={Link} href="/resources" size="small" startIcon={<GitHub />} sx={{ display: { xs: "none", md: "inline-flex" }, border: `1px solid ${tokens.color.border.strong}` }}>
+      <Box sx={{ minWidth: 0, width: { xs: "100%", md: "auto" } }}>
+        <Typography sx={{ color: tokens.color.text.muted, fontSize: 12 }}>
+          Studio / ClientFlow
+        </Typography>
+        <Typography sx={{ fontSize: 18, fontWeight: 950 }}>
+          Production workspace
+        </Typography>
+      </Box>
+      <Box sx={{ display: { xs: "none", md: "block" }, flex: 1 }} />
+      <StatusPill label="Preview" value="Live" tone="success" />
+      <StatusPill label="Build" value={`${progress}%`} tone="violet" />
+      <StatusPill label="Gate" value="92" tone="violet" />
+      <Button
+        variant="outlined"
+        startIcon={<GitHub sx={{ fontSize: 18 }} />}
+        sx={{ display: { xs: "none", md: "inline-flex" } }}
+      >
         GitHub
       </Button>
-      <Button component="a" href="#studio-preview" size="small" startIcon={<PlayArrowRounded />} sx={{ display: { xs: "none", sm: "inline-flex" }, border: `1px solid ${tokens.color.border.strong}` }}>
-        Preview live
-      </Button>
-      <Button component={Link} href="/deploy" size="small" variant="contained" endIcon={<RocketLaunchRounded />}>
+      <Button
+        variant="contained"
+        endIcon={<RocketLaunchRounded sx={{ fontSize: 18 }} />}
+      >
         Publish
       </Button>
     </Stack>
   );
 }
 
-function ModeTabs({ mode, onChange }: { mode: StudioMode; onChange: (next: StudioMode) => void }) {
-  const tabs = [
-    { key: "preview" as const, label: "Preview", icon: LaptopMacRounded },
-    { key: "mobile" as const, label: "Mobile", icon: PhoneIphoneRounded },
-    { key: "code" as const, label: "Code", icon: CodeRounded },
-  ];
-  return (
-    <Stack direction="row" sx={{ gap: 0.8, minWidth: 0, overflowX: "auto", pb: 0.1 }}>
-      {tabs.map((tab) => {
-        const Icon = tab.icon;
-        const active = mode === tab.key;
-        return (
-          <Button
-            key={tab.key}
-            size="small"
-            onClick={() => onChange(tab.key)}
-            startIcon={<Icon sx={{ fontSize: 16 }} />}
-            sx={{
-              border: `1px solid ${active ? tokens.color.border.accent : tokens.color.border.subtle}`,
-              bgcolor: active ? `${tokens.color.accent.purple}70` : `${tokens.color.bg.surfaceRaised}80`,
-              color: tokens.color.text.primary,
-              flex: "0 0 auto",
-              minWidth: 104,
-            }}
-          >
-            {tab.label}
-          </Button>
-        );
-      })}
-    </Stack>
-  );
-}
-
-function StatusCards() {
-  const cards = [
-    ["Plan", "Locked"],
-    ["Web", "Live"],
-    ["Mobile", "Queued"],
-    ["Gate", "92/100"],
-    ["Deploy", "Preview"],
-  ];
-  return (
-    <Box
-      sx={{
-        display: "grid",
-        gap: 0.8,
-        gridTemplateColumns: { xs: "repeat(2, minmax(0, 1fr))", sm: "repeat(5, minmax(92px, 1fr))" },
-        minWidth: 0,
-      }}
-    >
-      {cards.map(([label, value]) => (
-        <Box
-          key={label}
-          sx={{
-            border: `1px solid ${label === "Gate" ? tokens.color.border.accent : tokens.color.border.subtle}`,
-            borderRadius: `${tokens.radius.sm}px`,
-            bgcolor: label === "Gate" ? `${tokens.color.accent.purple}55` : `${tokens.color.bg.inset}b0`,
-            minWidth: 0,
-            px: 1.2,
-            py: 0.8,
-          }}
-        >
-          <Typography sx={{ color: tokens.color.text.secondary, fontSize: 11 }}>{label}</Typography>
-          <Typography sx={{ fontSize: 14, fontWeight: 900 }}>{value}</Typography>
-        </Box>
-      ))}
-    </Box>
-  );
-}
-
-function PromptPanel({
+function PromptRunway({
   prompt,
-  creating,
-  error,
   onPromptChange,
-  onImprove,
-  onGenerate,
-  onSuggestion,
+  onRun,
 }: {
   prompt: string;
-  creating: boolean;
-  error: string | null;
-  onPromptChange: (next: string) => void;
-  onImprove: (nextPrompt: string) => void;
-  onGenerate: () => void;
-  onSuggestion: (text: string) => void;
+  onPromptChange: (value: string) => void;
+  onRun: () => void;
 }) {
-  const suggestions = [
-    "Add subscription billing flow with stripe",
-    "Add team chat and mentions",
-    "Add client portal notifications",
-    "Add advanced permissions",
-  ];
   return (
-    <Stack
-      spacing={1.15}
-      sx={{
-        border: `1px solid ${tokens.color.border.subtle}`,
-        borderRadius: `${tokens.radius.md}px`,
-        bgcolor: `${tokens.color.bg.surfaceRaised}bf`,
-        gridRow: { lg: 1 },
-        minHeight: { xs: 420, lg: 0 },
-        minWidth: 0,
-        overflow: { xs: "visible", lg: "hidden" },
-        p: 1.2,
-      }}
-    >
-      <Stack direction="row" sx={{ alignItems: "center", gap: 0.8 }}>
-        <Typography sx={{ fontSize: 16, fontWeight: 900 }}>AI Prompt</Typography>
-        <Box sx={{ flex: 1 }} />
+    <Panel
+      title="Prompt runway"
+      eyebrow="Build command"
+      action={
         <Button
-          size="small"
-          onClick={() => {
-            const base = prompt.trim() || DEFAULT_PROMPT;
-            onImprove(`${base}\nInclude authenticated roles, billing events, approval states, mobile breakpoints, deploy gates, and an admin dashboard.`);
-          }}
-          startIcon={<AutoAwesomeRounded sx={{ fontSize: 14 }} />}
-          sx={{ border: `1px solid ${tokens.color.border.subtle}`, color: tokens.color.text.secondary, minHeight: 30 }}
+          variant="contained"
+          startIcon={<PlayArrowRounded sx={{ fontSize: 18 }} />}
+          onClick={onRun}
         >
-          Improve prompt
+          Run pass
         </Button>
-      </Stack>
-      <Box
-        component="textarea"
+      }
+    >
+      <TextField
+        fullWidth
+        multiline
+        minRows={3}
         value={prompt}
-        onChange={(event: ChangeEvent<HTMLTextAreaElement>) => onPromptChange(event.target.value)}
-        aria-label="New project prompt"
+        onChange={(event) => onPromptChange(event.target.value)}
         sx={{
-          bgcolor: tokens.color.bg.inset,
-          border: `1px solid ${tokens.color.border.strong}`,
-          borderRadius: `${tokens.radius.sm}px`,
-          color: tokens.color.text.primary,
-          flex: "0 0 156px",
-          fontFamily: tokens.font.family,
-          fontSize: 13,
-          lineHeight: 1.55,
-          minWidth: 0,
-          outline: "none",
-          p: 1.2,
-          resize: "vertical",
-          width: "100%",
+          "& .MuiOutlinedInput-root": {
+            bgcolor: "#0a0b1b",
+            borderRadius: 1.4,
+            color: tokens.color.text.primary,
+            fontSize: { xs: 14, md: 15 },
+            lineHeight: 1.55,
+            "& fieldset": { borderColor: tokens.color.border.subtle },
+            "&:hover fieldset": { borderColor: tokens.color.border.strong },
+          },
         }}
       />
-      <Stack direction="row" flexWrap="wrap" useFlexGap sx={{ gap: 0.65 }}>
-        {["Add context", "Business goals", "Data models"].map((chip) => (
-          <Chip
-            key={chip}
-            size="small"
-            label={chip}
-            sx={{
-              bgcolor: chip === "Business goals" ? `${tokens.color.accent.warning}18` : `${tokens.color.text.primary}0c`,
-              color: chip === "Business goals" ? tokens.color.accent.warning : tokens.color.text.secondary,
-              fontSize: 11,
-            }}
-          />
-        ))}
+      <Stack direction="row" flexWrap="wrap" sx={{ gap: 0.8, mt: 1 }}>
+        {["Roles", "Billing", "Android", "Deploy gate", "Activity feed"].map(
+          (item) => (
+            <Chip
+              key={item}
+              label={item}
+              size="small"
+              sx={{
+                bgcolor: "rgba(255,255,255,0.04)",
+                border: `1px solid ${tokens.color.border.subtle}`,
+                color: tokens.color.text.secondary,
+                fontWeight: 800,
+              }}
+            />
+          ),
+        )}
       </Stack>
-      <Button fullWidth variant="contained" disabled={!prompt.trim() || creating} onClick={onGenerate} endIcon={creating ? <CircularProgress size={14} sx={{ color: tokens.color.text.primary }} /> : <AutoAwesomeRounded />}>
-        Generate
-      </Button>
-      {error ? <Alert severity="error" variant="outlined" sx={{ color: tokens.color.text.primary }}>{error}</Alert> : null}
-      <Typography sx={{ color: tokens.color.text.muted, fontSize: 12, mt: 0.4 }}>Suggestions</Typography>
-      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 0.8, minHeight: 0, overflow: "auto" }}>
-        {suggestions.map((item) => (
-          <Button
-            key={item}
-            onClick={() => onSuggestion(item)}
-            sx={{
-              alignItems: "flex-start",
-              border: `1px solid ${tokens.color.border.subtle}`,
-              bgcolor: `${tokens.color.bg.inset}9c`,
-              color: tokens.color.text.primary,
-              fontSize: 12,
-              justifyContent: "space-between",
-              minHeight: 74,
-              p: 1.1,
-              textAlign: "left",
-            }}
-            endIcon={<AddRounded />}
-          >
-            {item}
-          </Button>
-        ))}
-      </Box>
-    </Stack>
+    </Panel>
   );
 }
 
-function CodeWorkbench({ mode }: { mode: StudioMode }) {
+function IdePanel() {
   return (
-    <Box
-      sx={{
-        border: `1px solid ${tokens.color.border.subtle}`,
-        borderRadius: `${tokens.radius.md}px`,
-        bgcolor: `${tokens.color.bg.inset}d6`,
-        display: "flex",
-        flexDirection: "column",
-        gridRow: { lg: 1 },
-        minHeight: { xs: 460, lg: 0 },
-        minWidth: 0,
-        overflow: "hidden",
-      }}
+    <Panel
+      title="IDE"
+      eyebrow="Code and files"
+      fill
+      action={
+        <Stack direction="row" spacing={0.6}>
+          <IconButton size="small">
+            <TerminalRounded sx={{ fontSize: 18 }} />
+          </IconButton>
+          <IconButton size="small">
+            <MoreHorizRounded sx={{ fontSize: 18 }} />
+          </IconButton>
+        </Stack>
+      }
     >
-      <Stack direction="row" sx={{ alignItems: "center", borderBottom: `1px solid ${tokens.color.border.subtle}`, gap: 1, minHeight: 54, px: 1.6 }}>
-        <Typography sx={{ fontSize: 16, fontWeight: 900 }}>Code</Typography>
-        <Box sx={{ flex: 1 }} />
-        {[ContentCopyRounded, FolderRounded, OpenInFullRounded].map((Icon, index) => (
-          <IconButton key={index} size="small" disabled><Icon sx={{ fontSize: 16 }} /></IconButton>
-        ))}
-      </Stack>
-      <Box sx={{ display: "grid", flex: 1, gridTemplateColumns: { xs: "1fr", lg: "136px minmax(0, 1fr)" }, minHeight: 0, minWidth: 0 }}>
-        <Box sx={{ borderRight: { lg: `1px solid ${tokens.color.border.subtle}` }, display: { xs: "none", lg: "block" }, p: 1.4 }}>
-          <Typography sx={{ color: tokens.color.text.secondary, fontFamily: tokens.font.mono, fontSize: 12 }}>Files</Typography>
-          <Stack spacing={0.75} sx={{ mt: 1.2 }}>
-            {["src", "components", "pages", "hooks", "lib", "styles", ".env.local", "package.json", "README.md"].map((file, index) => (
-              <Stack key={file} direction="row" sx={{ alignItems: "center", gap: 0.7 }}>
-                <FolderRounded sx={{ color: index === 0 ? tokens.color.accent.violet : tokens.color.text.muted, fontSize: 16 }} />
-                <Typography sx={{ color: tokens.color.text.secondary, fontSize: 12.5 }}>{file}</Typography>
+      <Box
+        sx={{
+          border: `1px solid ${tokens.color.border.subtle}`,
+          borderRadius: 1.4,
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", md: "230px minmax(0, 1fr)" },
+          minHeight: { xs: 420, lg: 0 },
+          height: "100%",
+          overflow: "hidden",
+        }}
+      >
+        <Box
+          sx={{
+            bgcolor: "#080918",
+            borderRight: { md: `1px solid ${tokens.color.border.subtle}` },
+            display: { xs: "none", md: "block" },
+            p: 1.2,
+          }}
+        >
+          <Typography sx={overlineSx}>Explorer</Typography>
+          <Stack spacing={0.45}>
+            {FILES.map((file, index) => (
+              <Stack
+                key={file}
+                direction="row"
+                spacing={0.8}
+                alignItems="center"
+                sx={{
+                  borderRadius: 0.8,
+                  color:
+                    index === 0
+                      ? tokens.color.text.primary
+                      : tokens.color.text.secondary,
+                  bgcolor:
+                    index === 0 ? "rgba(143,77,255,0.18)" : "transparent",
+                  px: 0.8,
+                  py: 0.55,
+                }}
+              >
+                <CodeRounded
+                  sx={{ color: tokens.color.accent.violet, fontSize: 14 }}
+                />
+                <Typography
+                  sx={{ fontFamily: tokens.font.mono, fontSize: 11.5 }}
+                >
+                  {file}
+                </Typography>
               </Stack>
             ))}
           </Stack>
         </Box>
-        <Box sx={{ display: "flex", flexDirection: "column", minHeight: 0, minWidth: 0 }}>
-          <Stack direction="row" sx={{ alignItems: "center", borderBottom: `1px solid ${tokens.color.border.subtle}`, gap: 0.8, px: 1.2, py: 0.9 }}>
-            <CodeRounded sx={{ color: tokens.color.accent.sky, fontSize: 17 }} />
-            <Typography sx={{ fontSize: 13, fontWeight: 900 }}>{mode === "mobile" ? "MobilePreview.tsx" : "Dashboard.tsx"}</Typography>
+        <Box sx={{ bgcolor: "#060713", minWidth: 0, overflow: "auto" }}>
+          <Stack
+            direction="row"
+            alignItems="center"
+            sx={{
+              borderBottom: `1px solid ${tokens.color.border.subtle}`,
+              minHeight: 42,
+              px: 1.2,
+            }}
+          >
+            <Typography
+              sx={{
+                fontFamily: tokens.font.mono,
+                fontSize: 12,
+                fontWeight: 900,
+              }}
+            >
+              Dashboard.tsx
+            </Typography>
             <Box sx={{ flex: 1 }} />
-            <IconButton size="small" disabled><MoreHorizRounded /></IconButton>
+            <Typography
+              sx={{
+                color: tokens.color.accent.success,
+                fontFamily: tokens.font.mono,
+                fontSize: 11,
+              }}
+            >
+              no errors
+            </Typography>
           </Stack>
-          <Box component="pre" sx={{ color: tokens.color.text.secondary, flex: 1, fontFamily: tokens.font.mono, fontSize: { xs: 11, md: 12.5 }, lineHeight: 1.7, m: 0, minHeight: 0, overflow: "auto", p: 1.4 }}>
+          <Box component="pre" sx={{ m: 0, p: 2, minWidth: 620 }}>
             {CODE_LINES.map((line, index) => (
-              <Box component="code" key={`${line}-${index}`} sx={{ display: "block", whiteSpace: { xs: "pre-wrap", md: "pre" }, wordBreak: { xs: "break-word", md: "normal" } }}>
-                <Box component="span" sx={{ color: tokens.color.text.muted, display: "inline-block", pr: 1.5, textAlign: "right", width: 28 }}>{index + 1}</Box>
-                <Box component="span" sx={{ color: line.includes("import") || line.includes("export") ? tokens.color.accent.violet : line.includes("Stat") ? tokens.color.accent.success : tokens.color.text.secondary }}>{line || " "}</Box>
+              <Box
+                key={`${line}-${index}`}
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "36px minmax(0, 1fr)",
+                }}
+              >
+                <Box
+                  sx={{
+                    color: tokens.color.text.muted,
+                    fontFamily: tokens.font.mono,
+                    fontSize: 13,
+                    textAlign: "right",
+                    pr: 1.4,
+                  }}
+                >
+                  {index + 1}
+                </Box>
+                <Box
+                  sx={{
+                    color: codeColor(line),
+                    fontFamily: tokens.font.mono,
+                    fontSize: 13,
+                    lineHeight: 1.75,
+                    whiteSpace: "pre",
+                  }}
+                >
+                  {line || " "}
+                </Box>
               </Box>
             ))}
           </Box>
-          <Stack direction="row" sx={{ alignItems: "center", borderTop: `1px solid ${tokens.color.border.subtle}`, color: tokens.color.text.secondary, fontFamily: tokens.font.mono, fontSize: 11, gap: 1, px: 1.2, py: 0.8 }}>
-            TypeScript
-            <Box sx={{ width: 6, height: 6, borderRadius: "50%", bgcolor: tokens.color.accent.success }} />
-            No errors
-            <Box sx={{ flex: 1 }} />
-            Ln 14, Col 22
-          </Stack>
         </Box>
       </Box>
-    </Box>
+    </Panel>
   );
 }
 
-function PreviewWorkbench({
-  mode,
-  onModeChange,
+function StagePanel({
+  view,
+  onViewChange,
 }: {
-  mode: StudioMode;
-  onModeChange: (next: StudioMode) => void;
+  view: StageView;
+  onViewChange: (view: StageView) => void;
 }) {
-  const mobile = mode === "mobile";
-  const metrics = [
-    {
-      label: "Revenue",
-      value: "$18.2k",
-      accent: tokens.color.accent.violet,
-      icon: HubRounded,
-      path: "M2 30 C16 30 20 22 29 20 C38 18 42 8 56 12",
-    },
-    {
-      label: "Open approvals",
-      value: "27",
-      accent: tokens.color.accent.coral,
-      icon: DashboardRounded,
-      path: "M2 26 C9 20 15 27 22 22 C29 17 34 22 40 16 C47 9 51 8 56 20",
-    },
-    {
-      label: "Files",
-      value: "1.4k",
-      accent: tokens.color.accent.sky,
-      icon: FolderRounded,
-      path: "M2 28 C12 24 17 31 25 24 C32 18 37 29 44 20 C50 11 53 9 56 18",
-    },
-    {
-      label: "Deploy health",
-      value: "99.9%",
-      accent: tokens.color.accent.success,
-      icon: RocketLaunchRounded,
-      path: "M2 30 C12 28 17 24 24 25 C33 27 37 17 45 14 C51 12 54 19 56 24",
-    },
-  ];
   return (
-    <Box id="studio-preview" sx={{ border: `1px solid ${tokens.color.border.subtle}`, borderRadius: `${tokens.radius.md}px`, bgcolor: `${tokens.color.bg.surfaceRaised}c9`, display: { xs: "block", lg: "flex" }, flexDirection: "column", gridRow: { lg: 1 }, minHeight: { xs: 430, lg: 0 }, minWidth: 0, overflow: "hidden" }}>
-      <Stack direction="row" sx={{ alignItems: "center", borderBottom: `1px solid ${tokens.color.border.subtle}`, gap: 1, px: 1.3, py: 1 }}>
-        <Typography sx={{ fontSize: 16, fontWeight: 900 }}>Preview</Typography>
-        <Box sx={{ flex: 1 }} />
-        <Stack direction="row" sx={{ bgcolor: `${tokens.color.bg.inset}b8`, border: `1px solid ${tokens.color.border.subtle}`, borderRadius: `${tokens.radius.sm}px`, gap: 0.4, p: 0.35 }}>
-          {[
-            { icon: LaptopMacRounded, label: "Desktop preview", next: "preview" as const, active: !mobile },
-            { icon: TabletMacRounded, label: "Tablet preview", next: "preview" as const, active: false },
-            { icon: PhoneIphoneRounded, label: "Mobile preview", next: "mobile" as const, active: mobile },
-          ].map(({ icon: Icon, label, next, active }) => (
+    <Panel
+      title="Live stage"
+      eyebrow="Preview surface"
+      fill
+      action={
+        <Stack direction="row" spacing={0.5}>
+          {(
+            [
+              ["browser", LaptopMacRounded],
+              ["ide", CodeRounded],
+              ["android", PhoneAndroidRounded],
+            ] as const
+          ).map(([key, Icon]) => (
             <IconButton
-              key={label}
-              aria-label={label}
-              onClick={() => onModeChange(next)}
+              key={key}
               size="small"
+              onClick={() => onViewChange(key)}
               sx={{
-                bgcolor: active ? `${tokens.color.accent.purple}55` : "transparent",
-                height: 28,
-                width: 32,
+                bgcolor:
+                  view === key
+                    ? `${tokens.color.accent.purple}55`
+                    : "transparent",
+                border: `1px solid ${view === key ? tokens.color.border.accent : tokens.color.border.subtle}`,
               }}
             >
-              <Icon sx={{ fontSize: 15 }} />
+              <Icon sx={{ fontSize: 18 }} />
             </IconButton>
           ))}
         </Stack>
-        <IconButton size="small" onClick={() => onModeChange("preview")}><RefreshRounded sx={{ fontSize: 17 }} /></IconButton>
-        <IconButton size="small" disabled><MoreHorizRounded /></IconButton>
-      </Stack>
-      <Box sx={{ p: 1.4, minWidth: 0, overflow: "auto" }}>
-        <Box sx={{ mx: mobile ? "auto" : 0, maxWidth: mobile ? 300 : "none", border: `1px solid ${tokens.color.border.strong}`, borderRadius: `${tokens.radius.md}px`, bgcolor: tokens.color.bg.inset, boxShadow: `inset 0 1px 0 ${tokens.color.text.primary}10`, overflow: "hidden" }}>
-          <Stack direction="row" sx={{ alignItems: "center", gap: 1, px: 1.4, py: 1.2 }}>
-            <RocketLaunchRounded sx={{ color: tokens.color.accent.violet, fontSize: 18 }} />
-            <Typography sx={{ flex: 1, fontSize: 15, fontWeight: 900 }}>Client operations portal</Typography>
-            <Chip size="small" label="Live" sx={{ bgcolor: `${tokens.color.accent.success}22`, color: tokens.color.accent.success }} />
-            <IconButton size="small" disabled sx={{ height: 26, width: 26 }}><MoreHorizRounded sx={{ fontSize: 16 }} /></IconButton>
-          </Stack>
-          <Box sx={{ display: "grid", gap: 1, gridTemplateColumns: mobile ? "1fr" : "repeat(2, minmax(0, 1fr))", px: 1.4 }}>
-            {metrics.map(({ label, value, accent, icon: Icon, path }) => (
-              <Box
-                key={label}
-                sx={{
-                  border: `1px solid ${tokens.color.border.subtle}`,
-                  borderRadius: `${tokens.radius.sm}px`,
-                  bgcolor: `${tokens.color.text.primary}08`,
-                  p: 1.05,
-                  transition: `border-color ${tokens.motion.fast} ${tokens.motion.snap}, background-color ${tokens.motion.fast} ${tokens.motion.snap}`,
-                  "&:hover": {
-                    bgcolor: `${tokens.color.text.primary}0c`,
-                    borderColor: `${accent}72`,
-                  },
-                }}
-              >
-                <Stack direction="row" sx={{ alignItems: "center", gap: 0.7 }}>
-                  <Box sx={{ alignItems: "center", bgcolor: `${accent}1f`, borderRadius: `${tokens.radius.sm}px`, color: accent, display: "flex", height: 24, justifyContent: "center", width: 24 }}>
-                    <Icon sx={{ fontSize: 15 }} />
-                  </Box>
-                  <Typography sx={{ color: tokens.color.text.secondary, fontSize: 11 }}>{label}</Typography>
-                </Stack>
-                <Stack direction="row" sx={{ alignItems: "end", gap: 1 }}>
-                  <Typography sx={{ flex: 1, fontSize: 22, fontWeight: 900 }}>{value}</Typography>
-                  <MetricSparkline color={accent} path={path} />
-                </Stack>
-              </Box>
-            ))}
-          </Box>
-          <Box sx={{ m: 1.4, border: `1px solid ${tokens.color.border.subtle}`, borderRadius: `${tokens.radius.sm}px`, overflow: "hidden" }}>
-            <Stack direction="row" sx={{ alignItems: "center", borderBottom: `1px solid ${tokens.color.border.subtle}`, gap: 1, px: 1.1, py: 0.9 }}>
-              <Typography sx={{ flex: 1, fontSize: 14, fontWeight: 900 }}>Projects</Typography>
-              <Chip size="small" label="Live" sx={{ bgcolor: `${tokens.color.accent.success}22`, color: tokens.color.accent.success, fontWeight: 900 }} />
-            </Stack>
-            {!mobile ? (
-              <Box sx={{ borderBottom: `1px solid ${tokens.color.border.subtle}`, display: "grid", gap: 1, gridTemplateColumns: "minmax(0,1.4fr) 1fr auto 1fr", px: 1.1, py: 0.7 }}>
-                {["Project", "Owner", "Status", "Updated"].map((header) => (
-                  <Typography key={header} sx={{ color: tokens.color.text.secondary, fontSize: 11 }}>{header}</Typography>
-                ))}
-              </Box>
-            ) : null}
-            {[
-              ["Website redesign", "Maya P.", "Live", "2m ago"],
-              ["Mobile app", "Noah K.", "Preview", "10m ago"],
-              ["CRM integration", "Liam T.", "Live", "1h ago"],
-              ["Analytics dashboard", "Emma R.", "Queued", "2h ago"],
-            ].map((row, index) => (
-              <Box key={row[0]} sx={{ borderBottom: index === 3 ? 0 : `1px solid ${tokens.color.border.subtle}`, display: "grid", gap: 1, gridTemplateColumns: mobile ? "1fr auto" : "minmax(0,1.4fr) 1fr auto 1fr", px: 1.1, py: 0.85 }}>
-                <Typography sx={{ fontSize: 12.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{row[0]}</Typography>
-                {!mobile ? <Typography sx={{ color: tokens.color.text.secondary, fontSize: 12 }}>{row[1]}</Typography> : null}
-                <Typography sx={{ color: row[2] === "Live" ? tokens.color.accent.success : row[2] === "Preview" ? tokens.color.accent.violet : tokens.color.accent.warning, fontSize: 12, fontWeight: 900 }}>{row[2]}</Typography>
-                {!mobile ? <Typography sx={{ color: tokens.color.text.muted, fontSize: 12 }}>{row[3]}</Typography> : null}
-              </Box>
-            ))}
-          </Box>
-        </Box>
-      </Box>
-    </Box>
-  );
-}
-
-function MetricSparkline({ color, path }: { color: string; path: string }) {
-  return (
-    <Box
-      component="svg"
-      viewBox="0 0 58 34"
-      aria-hidden="true"
-      sx={{
-        display: "block",
-        flex: "0 0 58px",
-        height: 34,
-        overflow: "visible",
-        width: 58,
-      }}
+      }
     >
       <Box
-        component="path"
-        d={path}
-        fill="none"
-        stroke={color}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2.2"
         sx={{
-          filter: `drop-shadow(0 0 5px ${color}80)`,
+          alignItems: "center",
+          bgcolor: "#050610",
+          border: `1px solid ${tokens.color.border.subtle}`,
+          borderRadius: 1.4,
+          display: "grid",
+          height: "100%",
+          minHeight: { xs: 420, lg: 0 },
+          overflow: "hidden",
+          p: view === "android" ? 1.6 : 1.1,
         }}
-      />
-    </Box>
+      >
+        {view === "android" ? (
+          <AndroidPreview />
+        ) : (
+          <BrowserPreview compact={view === "ide"} />
+        )}
+      </Box>
+    </Panel>
   );
 }
 
-function AssistantDock({
-  assistantText,
-  onSend,
-}: {
-  assistantText: string;
-  onSend: (message: string) => void;
-}) {
-  const [draft, setDraft] = useState("");
-  const done = [
-    "Added project table with filters and search",
-    "Connected Stripe billing flow",
-    "Added role-based access control",
-    "Added activity feed and notifications",
-  ];
+function BrowserPreview({ compact }: { compact: boolean }) {
   return (
-    <Box sx={{ border: `1px solid ${tokens.color.border.subtle}`, borderRadius: `${tokens.radius.md}px`, bgcolor: `${tokens.color.bg.surfaceRaised}cc`, display: "grid", gap: 1, gridColumn: { xs: "1", md: "1 / -1" }, gridTemplateColumns: { xs: "1fr", lg: "minmax(0, 1.1fr) minmax(300px, 0.9fr)" }, minWidth: 0, p: 1.2 }}>
-      <Box sx={{ minWidth: 0 }}>
-        <Stack direction="row" sx={{ alignItems: "center", gap: 0.8 }}>
-          <AutoAwesomeRounded sx={{ color: tokens.color.accent.violet, fontSize: 18 }} />
-          <Typography sx={{ fontSize: 16, fontWeight: 900 }}>Studio Assistant</Typography>
+    <Box
+      sx={{
+        border: `1px solid ${tokens.color.border.strong}`,
+        borderRadius: 1.5,
+        bgcolor: "#0d1025",
+        minHeight: 0,
+        overflow: "hidden",
+      }}
+    >
+      <Stack
+        direction="row"
+        alignItems="center"
+        spacing={0.7}
+        sx={{
+          borderBottom: `1px solid ${tokens.color.border.subtle}`,
+          px: 1,
+          py: 0.8,
+        }}
+      >
+        {["#ff6d5f", "#ffbc4a", "#65e38b"].map((color) => (
+          <Box
+            key={color}
+            sx={{ bgcolor: color, borderRadius: "50%", height: 8, width: 8 }}
+          />
+        ))}
+        <Typography
+          sx={{
+            color: tokens.color.text.muted,
+            fontFamily: tokens.font.mono,
+            fontSize: 11,
+            ml: 0.5,
+          }}
+        >
+          clientflow.preview
+        </Typography>
+      </Stack>
+      <Box sx={{ p: compact ? 1.2 : 1.6 }}>
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <RocketLaunchRounded sx={{ color: tokens.color.accent.violet }} />
+          <Typography sx={{ fontSize: 18, fontWeight: 950 }}>
+            Client operations portal
+          </Typography>
+          <Box sx={{ flex: 1 }} />
+          <Chip
+            label="Live"
+            size="small"
+            sx={{
+              bgcolor: `${tokens.color.accent.success}24`,
+              color: tokens.color.accent.success,
+              fontWeight: 900,
+            }}
+          />
         </Stack>
-        <Box sx={{ display: "grid", gap: 0.8, gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))", lg: "repeat(4, minmax(0, 1fr))" }, mt: 1 }}>
-          {done.map((item) => (
-            <Stack key={item} direction="row" sx={{ alignItems: "center", border: `1px solid ${tokens.color.border.subtle}`, borderRadius: `${tokens.radius.sm}px`, gap: 0.8, minWidth: 0, px: 1, py: 0.9 }}>
-              <CheckRounded sx={{ color: tokens.color.accent.success, fontSize: 17 }} />
-              <Typography sx={{ fontSize: 12, minWidth: 0 }}>{item}</Typography>
+        <Box
+          sx={{
+            display: "grid",
+            gap: 1,
+            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+            mt: 1.5,
+          }}
+        >
+          {[
+            ["Revenue", "$18.2k", tokens.color.accent.violet],
+            ["Approvals", "27", tokens.color.accent.coral],
+            ["Files", "1.4k", tokens.color.accent.sky],
+            ["Deploy", "92", tokens.color.accent.success],
+          ].map(([label, value, color]) => (
+            <Box
+              key={label}
+              sx={{
+                border: `1px solid ${tokens.color.border.subtle}`,
+                borderRadius: 1.2,
+                bgcolor: "rgba(255,255,255,0.035)",
+                p: 1.2,
+              }}
+            >
+              <Typography
+                sx={{ color: tokens.color.text.secondary, fontSize: 12 }}
+              >
+                {label}
+              </Typography>
+              <Typography sx={{ color, fontSize: 26, fontWeight: 950 }}>
+                {value}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+        <Box
+          sx={{
+            border: `1px solid ${tokens.color.border.subtle}`,
+            borderRadius: 1.2,
+            mt: 1.2,
+            overflow: "hidden",
+          }}
+        >
+          {[
+            "Website redesign",
+            "Mobile app",
+            "CRM integration",
+            "Analytics dashboard",
+          ].map((row, index) => (
+            <Stack
+              key={row}
+              direction="row"
+              sx={{
+                borderTop: index
+                  ? `1px solid ${tokens.color.border.subtle}`
+                  : 0,
+                px: 1.2,
+                py: 1,
+              }}
+            >
+              <Typography sx={{ flex: 1, fontSize: 13 }}>{row}</Typography>
+              <Typography
+                sx={{
+                  color:
+                    index === 1
+                      ? tokens.color.accent.violet
+                      : tokens.color.accent.success,
+                  fontSize: 12,
+                  fontWeight: 900,
+                }}
+              >
+                {index === 1 ? "Preview" : "Live"}
+              </Typography>
             </Stack>
           ))}
         </Box>
       </Box>
-      <Box sx={{ border: `1px solid ${tokens.color.border.subtle}`, borderRadius: `${tokens.radius.md}px`, bgcolor: `${tokens.color.bg.inset}c7`, minWidth: 0, p: 1.2 }}>
-        <Typography sx={{ color: tokens.color.text.secondary, fontSize: 13 }}>{assistantText}</Typography>
-        <Stack
-          component="form"
-          onSubmit={(event) => {
-            event.preventDefault();
-            const message = draft.trim();
-            if (!message) return;
-            onSend(message);
-            setDraft("");
-          }}
-          direction="row"
-          sx={{ alignItems: "center", gap: 0.8, mt: 1.2 }}
-        >
-          <Box
-            component="input"
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-            placeholder="Ask anything..."
-            aria-label="Studio assistant message"
-            sx={{
-              bgcolor: "transparent",
-              border: 0,
-              color: tokens.color.text.primary,
-              flex: 1,
-              font: "inherit",
-              fontSize: 12,
-              minWidth: 0,
-              outline: "none",
-              "&::placeholder": { color: tokens.color.text.muted },
-            }}
-          />
-          <Box sx={{ flex: 1 }} />
-          <IconButton
-            type="submit"
-            aria-label="Send assistant message"
-            size="small"
-            sx={{
-              bgcolor: `${tokens.color.accent.purple}70`,
-              opacity: draft.trim() ? 1 : 0.55,
-            }}
-          >
-            <SendRounded sx={{ fontSize: 18 }} />
-          </IconButton>
-        </Stack>
+    </Box>
+  );
+}
+
+function AndroidPreview() {
+  return (
+    <Box
+      sx={{
+        border: "7px solid #111426",
+        borderRadius: 4,
+        bgcolor: "#070814",
+        boxShadow: "0 22px 70px rgba(0,0,0,0.42)",
+        height: "100%",
+        maxHeight: 590,
+        maxWidth: 292,
+        minHeight: 470,
+        mx: "auto",
+        overflow: "hidden",
+        width: "100%",
+      }}
+    >
+      <Stack direction="row" alignItems="center" sx={{ px: 1.3, py: 1.1 }}>
+        <Typography sx={{ fontSize: 12, fontWeight: 900 }}>9:41</Typography>
+        <Box sx={{ flex: 1 }} />
+        <BoltRounded
+          sx={{ fontSize: 15, color: tokens.color.accent.success }}
+        />
+      </Stack>
+      <Box sx={{ px: 1.4, pb: 1.4 }}>
+        <Typography sx={{ color: tokens.color.text.muted, fontSize: 11 }}>
+          Android Preview
+        </Typography>
+        <Typography sx={{ fontSize: 20, fontWeight: 950 }}>
+          ClientFlow
+        </Typography>
+        <Box sx={{ display: "grid", gap: 0.8, mt: 1.2 }}>
+          {["Approvals ready", "Revenue synced", "Files imported"].map(
+            (item) => (
+              <Stack
+                key={item}
+                direction="row"
+                alignItems="center"
+                sx={{
+                  border: `1px solid ${tokens.color.border.subtle}`,
+                  borderRadius: 1.2,
+                  bgcolor: "rgba(255,255,255,0.04)",
+                  px: 1,
+                  py: 1,
+                }}
+              >
+                <CheckRounded
+                  sx={{ color: tokens.color.accent.success, fontSize: 17 }}
+                />
+                <Typography sx={{ ml: 0.8, fontSize: 13, fontWeight: 800 }}>
+                  {item}
+                </Typography>
+              </Stack>
+            ),
+          )}
+        </Box>
       </Box>
     </Box>
   );
 }
+
+function BuildGraph({
+  steps,
+}: {
+  steps: Array<{
+    id: string;
+    label: string;
+    detail: string;
+    state: BuildStepState;
+  }>;
+}) {
+  return (
+    <Panel title="Build graph" eyebrow="What changed">
+      <Box sx={{ display: "grid", gap: 1 }}>
+        {steps.map((step, index) => (
+          <Stack
+            key={step.id}
+            direction="row"
+            spacing={1}
+            alignItems="flex-start"
+          >
+            <Box
+              sx={{
+                alignItems: "center",
+                display: "grid",
+                justifyItems: "center",
+              }}
+            >
+              <Box
+                sx={{
+                  alignItems: "center",
+                  bgcolor: stepColor(step.state),
+                  borderRadius: "50%",
+                  color:
+                    step.state === "queued" ? tokens.color.text.muted : "#fff",
+                  display: "grid",
+                  height: 28,
+                  placeItems: "center",
+                  width: 28,
+                }}
+              >
+                {step.state === "done" ? (
+                  <CheckRounded sx={{ fontSize: 17 }} />
+                ) : (
+                  index + 1
+                )}
+              </Box>
+              {index < steps.length - 1 ? (
+                <Box
+                  sx={{
+                    bgcolor: tokens.color.border.subtle,
+                    height: 36,
+                    width: 1,
+                  }}
+                />
+              ) : null}
+            </Box>
+            <Box
+              sx={{
+                flex: 1,
+                minWidth: 0,
+                pb: index < steps.length - 1 ? 0.4 : 0,
+              }}
+            >
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <Typography sx={{ fontSize: 14, fontWeight: 950 }}>
+                  {step.label}
+                </Typography>
+                <Chip
+                  label={step.state}
+                  size="small"
+                  sx={{
+                    bgcolor: `${stepColor(step.state)}22`,
+                    color:
+                      step.state === "queued"
+                        ? tokens.color.text.muted
+                        : stepColor(step.state),
+                    fontFamily: tokens.font.mono,
+                    fontSize: 10,
+                    fontWeight: 900,
+                    height: 21,
+                  }}
+                />
+              </Stack>
+              <Typography
+                sx={{
+                  color: tokens.color.text.secondary,
+                  fontSize: 12.5,
+                  mt: 0.25,
+                }}
+              >
+                {step.detail}
+              </Typography>
+            </Box>
+          </Stack>
+        ))}
+      </Box>
+    </Panel>
+  );
+}
+
+function AssistantStrip({ assistant }: { assistant: string }) {
+  const [draft, setDraft] = useState("");
+  return (
+    <Box
+      sx={{
+        border: `1px solid ${tokens.color.border.subtle}`,
+        borderRadius: 1.5,
+        bgcolor: "rgba(17,19,42,0.86)",
+        display: "grid",
+        gridColumn: { xs: "1", xl: "1 / -1" },
+        gridTemplateColumns: {
+          xs: "1fr",
+          lg: "minmax(0, 1fr) minmax(320px, 0.72fr)",
+        },
+        gap: 1,
+        minWidth: 0,
+        p: 1.1,
+      }}
+    >
+      <Stack direction="row" alignItems="center" spacing={1}>
+        <AutoAwesomeRounded
+          sx={{ color: tokens.color.accent.violet, fontSize: 18 }}
+        />
+        <Typography sx={{ fontSize: 14.5, fontWeight: 950 }}>
+          Studio assistant
+        </Typography>
+        <Typography sx={{ color: tokens.color.text.secondary, fontSize: 13 }}>
+          {assistant}
+        </Typography>
+      </Stack>
+      <Stack
+        component="form"
+        direction="row"
+        spacing={1}
+        onSubmit={(event) => {
+          event.preventDefault();
+          setDraft("");
+        }}
+      >
+        <Box
+          component="input"
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          placeholder="Ask about the current build..."
+          sx={{
+            bgcolor: "#080918",
+            border: `1px solid ${tokens.color.border.subtle}`,
+            borderRadius: 1.2,
+            color: tokens.color.text.primary,
+            flex: 1,
+            font: "inherit",
+            fontSize: 13,
+            minWidth: 0,
+            outline: 0,
+            px: 1.2,
+          }}
+        />
+        <IconButton
+          type="submit"
+          sx={{ bgcolor: `${tokens.color.accent.purple}65`, borderRadius: 1.2 }}
+        >
+          <SendRounded sx={{ fontSize: 18 }} />
+        </IconButton>
+      </Stack>
+    </Box>
+  );
+}
+
+function Panel({
+  title,
+  eyebrow,
+  action,
+  children,
+  fill = false,
+}: {
+  title: string;
+  eyebrow: string;
+  action?: ReactNode;
+  children: ReactNode;
+  fill?: boolean;
+}) {
+  return (
+    <Box
+      sx={{
+        border: `1px solid ${tokens.color.border.subtle}`,
+        borderRadius: 1.5,
+        bgcolor: "rgba(12,13,32,0.88)",
+        boxShadow: "0 18px 50px rgba(0,0,0,0.20)",
+        display: "grid",
+        gridTemplateRows: "auto minmax(0, 1fr)",
+        minHeight: fill ? 0 : "auto",
+        minWidth: 0,
+        overflow: "hidden",
+      }}
+    >
+      <Stack
+        direction="row"
+        alignItems="center"
+        spacing={1}
+        sx={{
+          borderBottom: `1px solid ${tokens.color.border.subtle}`,
+          px: 1.4,
+          py: 1.05,
+        }}
+      >
+        <Box sx={{ minWidth: 0 }}>
+          <Typography sx={overlineSx}>{eyebrow}</Typography>
+          <Typography sx={{ fontSize: 16, fontWeight: 950 }}>
+            {title}
+          </Typography>
+        </Box>
+        <Box sx={{ flex: 1 }} />
+        {action}
+      </Stack>
+      <Box sx={{ minHeight: 0, minWidth: 0, overflow: "hidden", p: 1.2 }}>
+        {children}
+      </Box>
+    </Box>
+  );
+}
+
+function StatusPill({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone: "success" | "violet";
+}) {
+  const color =
+    tone === "success"
+      ? tokens.color.accent.success
+      : tokens.color.accent.violet;
+  return (
+    <Box
+      sx={{
+        border: `1px solid ${tokens.color.border.subtle}`,
+        borderRadius: 1.2,
+        bgcolor: "rgba(255,255,255,0.035)",
+        minWidth: { xs: 68, md: 96 },
+        px: 1.1,
+        py: 0.7,
+      }}
+    >
+      <Typography sx={{ color: tokens.color.text.muted, fontSize: 10.5 }}>
+        {label}
+      </Typography>
+      <Typography sx={{ color, fontSize: 14, fontWeight: 950 }}>
+        {value}
+      </Typography>
+    </Box>
+  );
+}
+
+function stepColor(state: BuildStepState) {
+  if (state === "done") return tokens.color.accent.success;
+  if (state === "running") return tokens.color.accent.violet;
+  return "rgba(255,255,255,0.08)";
+}
+
+function codeColor(line: string) {
+  if (line.startsWith("import")) return tokens.color.accent.violet;
+  if (line.trim().startsWith("<")) return tokens.color.accent.success;
+  if (line.includes("return") || line.includes("const")) return "#e7d6ff";
+  return tokens.color.text.secondary;
+}
+
+const overlineSx = {
+  color: tokens.color.text.muted,
+  fontFamily: tokens.font.mono,
+  fontSize: 10.5,
+  fontWeight: 900,
+  letterSpacing: 0.6,
+  textTransform: "uppercase",
+} as const;
