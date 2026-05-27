@@ -125,7 +125,7 @@ type projectRow struct {
 
 // buildContent constructs the CREATE/UPDATE payload. Top-level fields mirror
 // the most-queried bits; `data` carries everything else. We deliberately do
-// NOT include an `id` key — `type::record('project', $id)` sets the record ID.
+// NOT include an `id` key — `type::thing('project', $id)` sets the record ID.
 func buildContent(p domain.Project) map[string]any {
 	doc := map[string]any{
 		"name":        p.Name,
@@ -191,7 +191,7 @@ func (s *SurrealStore) ListByOwner(_ context.Context, ownerID string, limit, off
 
 func (s *SurrealStore) Get(id string) (domain.Project, error) {
 	rows, err := surrealdb.Query[[]projectRow](s.ctx, s.db,
-		"SELECT data FROM type::record('project', $id)",
+		"SELECT data FROM type::thing('project', $id)",
 		map[string]any{"id": id})
 	if err != nil {
 		return domain.Project{}, err
@@ -232,7 +232,7 @@ func (s *SurrealStore) Create(p domain.Project) (domain.Project, error) {
 		p.Gates = emptyGates(time.Now().UTC())
 	}
 	res, err := surrealdb.Query[any](s.ctx, s.db,
-		"CREATE type::record('project', $id) CONTENT $doc",
+		"CREATE type::thing('project', $id) CONTENT $doc",
 		map[string]any{"id": p.ID, "doc": buildContent(p)})
 	if err != nil {
 		return domain.Project{}, fmt.Errorf("surreal create: %w", err)
@@ -257,7 +257,7 @@ func (s *SurrealStore) Update(id string, fn func(*domain.Project)) (domain.Proje
 	fn(&p)
 	p.UpdatedAt = time.Now().UTC()
 	res, err := surrealdb.Query[any](s.ctx, s.db,
-		"UPDATE type::record('project', $id) CONTENT $doc",
+		"UPDATE type::thing('project', $id) CONTENT $doc",
 		map[string]any{"id": id, "doc": buildContent(p)})
 	if err != nil {
 		return domain.Project{}, fmt.Errorf("surreal update: %w", err)
@@ -278,7 +278,7 @@ func (s *SurrealStore) Update(id string, fn func(*domain.Project)) (domain.Proje
 func (s *SurrealStore) Delete(id string) error {
 	s.mu.Lock()
 	res, err := surrealdb.Query[any](s.ctx, s.db,
-		"DELETE type::record('project', $id)",
+		"DELETE type::thing('project', $id)",
 		map[string]any{"id": id})
 	if err != nil {
 		s.mu.Unlock()
