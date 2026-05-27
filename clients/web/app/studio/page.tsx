@@ -19,6 +19,7 @@ import {
   SearchRounded,
   SendRounded,
   ShieldRounded,
+  StopRounded,
   TerminalRounded,
 } from "@mui/icons-material";
 import {
@@ -156,10 +157,38 @@ export default function StudioPage() {
     setStageView("android");
   };
 
+  const syncStudioIntent = (message: string) => {
+    const lower = message.toLowerCase();
+    if (lower.includes("android") || lower.includes("mobile")) {
+      setStageView("android");
+    } else if (
+      lower.includes("code") ||
+      lower.includes("ide") ||
+      lower.includes("file")
+    ) {
+      setStageView("ide");
+    } else if (lower.includes("browser") || lower.includes("preview")) {
+      setStageView("browser");
+    }
+
+    if (
+      lower.includes("deploy") ||
+      lower.includes("publish") ||
+      lower.includes("gate")
+    ) {
+      setSteps((current) =>
+        current.map((step) =>
+          step.id === "deploy" ? { ...step, state: "running" } : step,
+        ),
+      );
+    }
+  };
+
   const sendChat = (body: string) => {
     const message = body.trim();
     if (!message || chatPending) return;
 
+    syncStudioIntent(message);
     streamRef.current?.abort();
     const userId = `u-${Date.now()}`;
     const assistantId = `a-${Date.now()}`;
@@ -214,6 +243,12 @@ export default function StudioPage() {
       if (!buffer) fillAssistant(previewReply(message));
       setChatPending(false);
     });
+  };
+
+  const stopChat = () => {
+    streamRef.current?.abort();
+    streamRef.current = null;
+    setChatPending(false);
   };
 
   return (
@@ -272,6 +307,7 @@ export default function StudioPage() {
               messages={messages}
               pending={chatPending}
               onSend={sendChat}
+              onStop={stopChat}
             />
             <IdePanel />
           </Box>
@@ -756,8 +792,10 @@ function StagePanel({
       >
         {view === "android" ? (
           <AndroidPreview />
+        ) : view === "ide" ? (
+          <IdeStagePreview />
         ) : (
-          <BrowserPreview compact={view === "ide"} />
+          <BrowserPreview compact={false} />
         )}
       </Box>
     </Panel>
@@ -894,6 +932,110 @@ function BrowserPreview({ compact }: { compact: boolean }) {
             </Stack>
           ))}
         </Box>
+      </Box>
+    </Box>
+  );
+}
+
+function IdeStagePreview() {
+  return (
+    <Box
+      sx={{
+        border: `1px solid ${tokens.color.border.strong}`,
+        borderRadius: 1.5,
+        bgcolor: "#080918",
+        minHeight: 0,
+        overflow: "hidden",
+      }}
+    >
+      <Stack
+        direction="row"
+        alignItems="center"
+        sx={{
+          borderBottom: `1px solid ${tokens.color.border.subtle}`,
+          gap: 1,
+          px: 1,
+          py: 0.8,
+        }}
+      >
+        <TerminalRounded
+          sx={{ color: tokens.color.accent.violet, fontSize: 17 }}
+        />
+        <Typography
+          sx={{ fontFamily: tokens.font.mono, fontSize: 11.5, fontWeight: 900 }}
+        >
+          clientflow.workspace
+        </Typography>
+        <Box sx={{ flex: 1 }} />
+        <Typography
+          sx={{
+            color: tokens.color.accent.success,
+            fontFamily: tokens.font.mono,
+            fontSize: 10.5,
+            fontWeight: 900,
+          }}
+        >
+          clean
+        </Typography>
+      </Stack>
+      <Box sx={{ display: "grid", gap: 1, p: 1.2 }}>
+        {[
+          ["edited", "src/app/dashboard/page.tsx", "+38"],
+          ["created", "src/components/ApprovalTable.tsx", "+112"],
+          ["wired", "src/lib/roles.ts", "+24"],
+          ["ready", "tests/clientflow.spec.ts", "92"],
+        ].map(([state, file, score]) => (
+          <Stack
+            key={file}
+            direction="row"
+            alignItems="center"
+            sx={{
+              border: `1px solid ${tokens.color.border.subtle}`,
+              borderRadius: 1.2,
+              bgcolor: "rgba(255,255,255,0.035)",
+              gap: 1,
+              px: 1,
+              py: 0.9,
+            }}
+          >
+            <Chip
+              label={state}
+              size="small"
+              sx={{
+                bgcolor: "rgba(143,77,255,0.18)",
+                color: tokens.color.accent.violet,
+                fontFamily: tokens.font.mono,
+                fontSize: 10,
+                fontWeight: 900,
+                height: 22,
+                minWidth: 62,
+              }}
+            />
+            <Typography
+              sx={{
+                flex: 1,
+                fontFamily: tokens.font.mono,
+                fontSize: 12,
+                minWidth: 0,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {file}
+            </Typography>
+            <Typography
+              sx={{
+                color: tokens.color.accent.success,
+                fontFamily: tokens.font.mono,
+                fontSize: 11,
+                fontWeight: 900,
+              }}
+            >
+              {score}
+            </Typography>
+          </Stack>
+        ))}
       </Box>
     </Box>
   );
@@ -1064,10 +1206,12 @@ function CommandChat({
   messages,
   pending,
   onSend,
+  onStop,
 }: {
   messages: ChatMessage[];
   pending: boolean;
   onSend: (message: string) => void;
+  onStop: () => void;
 }) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const visibleMessages = messages.slice(-4);
@@ -1084,6 +1228,24 @@ function CommandChat({
         p: 1,
       }}
     >
+      <Stack direction="row" alignItems="center" spacing={1}>
+        <BoltRounded sx={{ color: tokens.color.accent.violet, fontSize: 16 }} />
+        <Typography sx={{ fontSize: 12.5, fontWeight: 950 }}>Chat</Typography>
+        <Box sx={{ flex: 1 }} />
+        <Typography
+          sx={{
+            color: pending
+              ? tokens.color.accent.violet
+              : tokens.color.text.muted,
+            fontFamily: tokens.font.mono,
+            fontSize: 10.5,
+            fontWeight: 900,
+            textTransform: "uppercase",
+          }}
+        >
+          {pending ? "Working" : "Ready"}
+        </Typography>
+      </Stack>
       <Box
         sx={{
           display: "grid",
@@ -1150,11 +1312,20 @@ function CommandChat({
           }}
         />
         <IconButton
-          type="submit"
-          disabled={pending}
-          sx={{ bgcolor: `${tokens.color.accent.purple}65`, borderRadius: 1.2 }}
+          type={pending ? "button" : "submit"}
+          aria-label={pending ? "Stop response" : "Send message"}
+          onClick={pending ? onStop : undefined}
+          sx={{
+            bgcolor: `${tokens.color.accent.purple}65`,
+            borderRadius: 1.2,
+            color: tokens.color.text.primary,
+          }}
         >
-          <SendRounded sx={{ fontSize: 18 }} />
+          {pending ? (
+            <StopRounded sx={{ fontSize: 18 }} />
+          ) : (
+            <SendRounded sx={{ fontSize: 18 }} />
+          )}
         </IconButton>
       </Stack>
     </Box>
