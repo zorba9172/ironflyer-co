@@ -591,6 +591,18 @@ services:
       STRIPE_PRICE_PRO: ${STRIPE_PRICE_PRO:-}
       STRIPE_PRICE_TEAM: ${STRIPE_PRICE_TEAM:-}
       STRIPE_PRICE_ENTERPRISE: ${STRIPE_PRICE_ENTERPRISE:-}
+      # Paddle is the second leg of the wallet topper. wallet.TopperRegistry
+      # holds both Stripe + Paddle in priority order; the active one is
+      # selected per-request by the user, with IRONFLYER_WALLET_PRIMARY_PROVIDER
+      # picking the default. Either provider can stand alone — an empty
+      # key disables that leg without breaking the other.
+      PADDLE_API_KEY: ${PADDLE_API_KEY:-}
+      PADDLE_WEBHOOK_SECRET: ${PADDLE_WEBHOOK_SECRET:-}
+      PADDLE_ENV: ${PADDLE_ENV:-live}
+      PADDLE_PRICE_PRO: ${PADDLE_PRICE_PRO:-}
+      PADDLE_PRICE_TEAM: ${PADDLE_PRICE_TEAM:-}
+      PADDLE_PRICE_ENTERPRISE: ${PADDLE_PRICE_ENTERPRISE:-}
+      IRONFLYER_WALLET_PRIMARY_PROVIDER: ${IRONFLYER_WALLET_PRIMARY_PROVIDER:-stripe}
       GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
       GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
       GITHUB_APP_PRIVATE_KEY: ${GITHUB_APP_PRIVATE_KEY:-}
