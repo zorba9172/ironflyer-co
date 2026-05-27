@@ -1,0 +1,43 @@
+# Temporal server dynamic config — production tuning.
+# Mounted into temporalio/auto-setup at
+# /etc/temporal/config/dynamicconfig/prod.yaml via DYNAMIC_CONFIG_FILE_PATH.
+
+# Increase batch sizes for the visibility store — Postgres handles
+# this fine at the volume we expect.
+system.advancedVisibilityWritingMode:
+  - value: "on"
+    constraints: {}
+
+# Raise per-namespace caps so the single-shard cluster doesn't throttle
+# the orchestrator under burst load.
+limit.namespaceCount:
+  - value: 100
+    constraints: {}
+
+frontend.namespaceRPS:
+  - value: 2400
+    constraints: {}
+
+frontend.namespaceCount:
+  - value: 100
+    constraints: {}
+
+# Persistence rate limits — generous since we have a beefy local Postgres.
+system.persistenceMaxQPS:
+  - value: 3000
+    constraints: {}
+
+system.persistenceGlobalMaxQPS:
+  - value: 6000
+    constraints: {}
+
+# History service — keep retention reasonable; 7 days of workflow history
+# is plenty for the finisher loop.
+history.defaultWorkflowRetentionDays:
+  - value: 7
+    constraints: {}
+
+# Metrics — emit to Prometheus on :9090 (scraped by vmagent).
+system.enableActivityLocalDispatchByDefault:
+  - value: true
+    constraints: {}

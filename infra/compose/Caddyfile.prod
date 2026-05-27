@@ -1,0 +1,156 @@
+# Ironflyer production Caddyfile — single source of truth for edge routing.
+#
+# Caddy auto-acquires Let's Encrypt certs for every hostname listed below.
+# Routing strategy: hostname-per-service so internal services (Grafana,
+# Temporal UI, MinIO console, GlitchTip) sit behind basic-auth on their
+# own subdomain rather than under path prefixes.
+#
+# Variables expanded from environment at startup:
+#   {$ROOT_DOMAIN}              - e.g. ironflyer.ai
+#   {$ACME_EMAIL}               - Let's Encrypt contact
+#   {$CADDY_BASIC_AUTH_HASH}    - bcrypt hash for ops subdomains:
+#                                  caddy hash-password --plaintext 'pwd'
+
+{
+	email {$ACME_EMAIL}
+	servers {
+		protocols h1 h2 h3
+	}
+	# Hot reload-friendly admin endpoint, container-local only.
+	admin off
+}
+
+# --- Snippet: ops auth (used by Grafana, Temporal UI, MinIO, GlitchTip) ---
+(ops_auth) {
+	basicauth {
+		ops {$CADDY_BASIC_AUTH_HASH}
+	}
+}
+
+# --- Snippet: security headers ---
+(security_headers) {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options    "nosniff"
+		X-Frame-Options           "DENY"
+		Referrer-Policy           "strict-origin-when-cross-origin"
+		Permissions-Policy        "geolocation=(), microphone=(), camera=()"
+		-Server
+	}
+}
+
+# === Public: web app ========================================================
+app.{$ROOT_DOMAIN}, {$ROOT_DOMAIN} {
+	import security_headers
+	encode gzip zstd
+
+	# Round-robin across the two web replicas. health_uri matches the
+	# Next.js healthz endpoint; unhealthy upstreams are skipped.
+	reverse_proxy web-1:3000 web-2:3000 {
+		lb_policy round_robin
+		lb_try_duration 5s
+		health_uri /api/healthz
+		health_interval 10s
+		fail_duration 30s
+	}
+}
+
+# === Public: orchestrator GraphQL + REST API ================================
+api.{$ROOT_DOMAIN} {
+	import security_headers
+
+	# CORS handled by the orchestrator itself (IRONFLYER_CORS_ORIGINS env).
+	# Caddy just terminates TLS + load-balances.
+	reverse_proxy orchestrator-1:8080 orchestrator-2:8080 {
+		lb_policy least_conn
+		lb_try_duration 5s
+		health_uri /healthz
+		health_interval 10s
+		fail_duration 30s
+
+		# SSE streaming endpoints — disable proxy buffering and bump timeouts.
+		flush_interval -1
+		transport http {
+			read_timeout    24h
+			write_timeout   24h
+			dial_timeout    5s
+		}
+	}
+}
+
+# === Public: runtime (PTY WebSocket + File API) =============================
+runtime.{$ROOT_DOMAIN} {
+	import security_headers
+
+	# PTY runs over WebSocket; the runtime accepts the upgrade itself.
+	# Long-lived: 24h idle timeout matches the orchestrator session cap.
+	reverse_proxy runtime:8090 {
+		flush_interval -1
+		transport http {
+			read_timeout    24h
+			write_timeout   24h
+			dial_timeout    5s
+		}
+	}
+}
+
+# === Public: S3 API (artifact downloads to authenticated clients) ===========
+s3.{$ROOT_DOMAIN} {
+	import security_headers
+
+	reverse_proxy minio:9000 {
+		header_up Host {http.reverse_proxy.upstream.hostport}
+		# MinIO needs the original Host header preserved for presigned URLs.
+	}
+}
+
+# === Ops: Grafana (metrics + logs dashboards) ===============================
+grafana.{$ROOT_DOMAIN} {
+	import security_headers
+	import ops_auth
+
+	reverse_proxy grafana:3000
+}
+
+# === Ops: Temporal UI =======================================================
+temporal.{$ROOT_DOMAIN} {
+	import security_headers
+	import ops_auth
+
+	reverse_proxy temporal-ui:8080
+}
+
+# === Ops: MinIO console =====================================================
+minio.{$ROOT_DOMAIN} {
+	import security_headers
+	import ops_auth
+
+	reverse_proxy minio:9001
+}
+
+# === Ops: GlitchTip (error tracking) ========================================
+# Public on /api/{project}/store/ for SDKs to ingest events,
+# basic-auth elsewhere.
+errors.{$ROOT_DOMAIN} {
+	import security_headers
+
+	# SDK ingest endpoints — public (DSN is the auth).
+	@sdk_ingest path /api/* /envelope/*
+	handle @sdk_ingest {
+		reverse_proxy glitchtip-web:8000
+	}
+
+	# Everything else (UI, admin) is behind basic-auth.
+	handle {
+		import ops_auth
+		reverse_proxy glitchtip-web:8000
+	}
+}
+
+# === Ops: VictoriaMetrics direct (rare; usually via Grafana) ================
+vm.{$ROOT_DOMAIN} {
+	import security_headers
+	import ops_auth
+
+	reverse_proxy victoriametrics:8428
+}

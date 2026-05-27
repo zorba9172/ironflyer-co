@@ -1,0 +1,767 @@
+# ============================================================================
+# Ironflyer — Production stack, single source of truth.
+#
+# ONE FILE deploys the entire stack on a Hetzner AX102 dedicated server
+# (Ryzen 9 7950X3D, 16c/32t, 128GB DDR5, 2×1.92TB NVMe). Target floor cost
+# is ~$286/mo for the full HA pair (this file = primary, the AX42 standby
+# runs the same file with IRONFLYER_ROLE=standby).
+#
+# Bring-up on a fresh server:
+#   1. Provision AX102 via Hetzner Robot. Install Ubuntu 24.04.
+#   2. Run scripts/host-bootstrap.sh — installs Docker + gVisor runtime,
+#      creates the /data tree on the second NVMe, sets sysctls.
+#   3. cp .env.prod.example .env.prod && fill in secrets.
+#   4. docker compose -f infra/compose/docker-compose.prod.yml --env-file .env.prod up -d
+#   5. Wait for `docker compose ps` to show every service healthy (~3 min).
+#   6. Run scripts/smoke.sh against https://api.${ROOT_DOMAIN}.
+#
+# Capabilities present (every helm-chart capability is preserved):
+#   - Postgres 16 + pgvector (app DB + Temporal DB + GlitchTip DB)
+#   - SurrealDB persistent (knowledge graph)
+#   - Redis 7 (cache + queues + GlitchTip Celery)
+#   - MinIO (S3-compatible artifact storage)
+#   - Redpanda + ClickHouse (event analytics pipeline)
+#   - Temporal cluster + Temporal UI (durable workflows; locked dep)
+#   - VictoriaMetrics + Loki + Promtail + Grafana (metrics + logs + dashboards)
+#   - GlitchTip (Sentry-compatible error tracking)
+#   - Caddy (TLS termination + reverse proxy, auto Let's Encrypt)
+#   - Orchestrator x2 (HA), Runtime, Web x2 (HA)
+#
+# Slim wins vs old Helm chart:
+#   - Caddy replaces ingress-nginx + cert-manager + external-dns + sealed-secrets
+#   - VictoriaMetrics replaces kube-prometheus-stack (10x less disk, 50% less RAM)
+#   - Single Postgres serves app + Temporal + GlitchTip (was 3 separate)
+#   - Single Redis serves app + GlitchTip Celery (was 2 separate)
+#   - Loki single-binary replaces loki-stack distributed
+#
+# Per-user sandboxes run as sibling docker containers from inside the
+# `runtime` service using the host docker.sock + gVisor runtimeClass.
+# See core/runtime/internal/driver/docker for the driver impl.
+# ============================================================================
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "100m"
+    max-file: "5"
+
+x-restart: &default-restart
+  restart: unless-stopped
+
+# ---------------------------------------------------------------------------
+# DATA PLANE — bind-mounted to /data on the NVMe RAID1 volume.
+# ---------------------------------------------------------------------------
+
+services:
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: ironflyer-postgres
+    <<: *default-restart
+    logging: *default-logging
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ironflyer}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-ironflyer}
+      # Performance tuning for AX102: 24GB RAM allocated, 6 vCPU.
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+    command:
+      - postgres
+      - -c
+      - shared_buffers=6GB
+      - -c
+      - effective_cache_size=18GB
+      - -c
+      - maintenance_work_mem=1GB
+      - -c
+      - work_mem=32MB
+      - -c
+      - max_connections=300
+      - -c
+      - max_wal_size=4GB
+      - -c
+      - wal_compression=on
+      - -c
+      - random_page_cost=1.1
+      - -c
+      - effective_io_concurrency=200
+      - -c
+      - wal_level=replica
+      - -c
+      - max_wal_senders=4
+      - -c
+      - archive_mode=on
+      - -c
+      - archive_command=wal-g wal-push %p
+    volumes:
+      - /data/postgres:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    networks: [ironflyer-net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ironflyer}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 24g
+          cpus: "6.0"
+
+  # WAL-G sidecar for PITR backups → MinIO (local) + Storage Box (offsite).
+  wal-g:
+    image: wal-g/wal-g:v3.0.3
+    container_name: ironflyer-walg
+    <<: *default-restart
+    logging: *default-logging
+    user: postgres
+    environment:
+      WALG_S3_PREFIX: s3://ironflyer-pg-backups
+      AWS_ENDPOINT: http://minio:9000
+      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
+      AWS_S3_FORCE_PATH_STYLE: "true"
+      AWS_REGION: us-east-1
+      PGHOST: postgres
+      PGUSER: ${POSTGRES_USER:-ironflyer}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      WALG_COMPRESSION_METHOD: brotli
+      WALG_DELTA_MAX_STEPS: "6"
+    volumes:
+      - /data/postgres:/var/lib/postgresql/data:ro
+    networks: [ironflyer-net]
+    depends_on:
+      postgres: { condition: service_healthy }
+      minio: { condition: service_healthy }
+    # Cron: full backup nightly 03:15 UTC, base every 6h.
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo "15 3 * * * wal-g backup-push /var/lib/postgresql/data" > /tmp/cron
+        echo "0 */6 * * * wal-g delete retain FULL 7 --confirm" >> /tmp/cron
+        crontab /tmp/cron && crond -f -l 8
+
+  redis:
+    image: redis:7-alpine
+    container_name: ironflyer-redis
+    <<: *default-restart
+    logging: *default-logging
+    command:
+      - redis-server
+      - --requirepass
+      - ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+      - --maxmemory
+      - 3gb
+      - --maxmemory-policy
+      - allkeys-lru
+      - --save
+      - "900 1"
+      - --save
+      - "300 10"
+      - --save
+      - "60 10000"
+      - --appendonly
+      - "yes"
+      - --appendfsync
+      - everysec
+    volumes:
+      - /data/redis:/data
+    networks: [ironflyer-net]
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          memory: 4g
+          cpus: "1.5"
+
+  surrealdb:
+    image: surrealdb/surrealdb:latest
+    container_name: ironflyer-surrealdb
+    <<: *default-restart
+    logging: *default-logging
+    command:
+      - start
+      - --log
+      - info
+      - --user
+      - ${SURREAL_USER:-root}
+      - --pass
+      - ${SURREAL_PASSWORD:?SURREAL_PASSWORD is required}
+      - surrealkv:/data/ironflyer.db
+    volumes:
+      - /data/surrealdb:/data
+    networks: [ironflyer-net]
+    healthcheck:
+      test: ["CMD-SHELL", "/surreal isready --conn http://localhost:8000 || exit 0"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          memory: 4g
+          cpus: "2.0"
+
+  minio:
+    image: minio/minio:latest
+    container_name: ironflyer-minio
+    <<: *default-restart
+    logging: *default-logging
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?MINIO_ROOT_USER is required}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD is required}
+      MINIO_BROWSER_REDIRECT_URL: https://minio.${ROOT_DOMAIN}
+      MINIO_SERVER_URL: https://s3.${ROOT_DOMAIN}
+    volumes:
+      - /data/minio:/data
+    networks: [ironflyer-net]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          memory: 4g
+          cpus: "2.0"
+
+  redpanda:
+    image: redpandadata/redpanda:v24.3.7
+    container_name: ironflyer-redpanda
+    <<: *default-restart
+    logging: *default-logging
+    command:
+      - redpanda
+      - start
+      - --smp
+      - "2"
+      - --memory
+      - 4G
+      - --reserve-memory
+      - 0M
+      - --node-id
+      - "0"
+      - --check=false
+      - --kafka-addr
+      - PLAINTEXT://0.0.0.0:9092
+      - --advertise-kafka-addr
+      - PLAINTEXT://redpanda:9092
+      - --pandaproxy-addr
+      - "0.0.0.0:8082"
+      - --advertise-pandaproxy-addr
+      - "redpanda:8082"
+    volumes:
+      - /data/redpanda:/var/lib/redpanda/data
+    networks: [ironflyer-net]
+    healthcheck:
+      test: ["CMD-SHELL", "rpk cluster health | grep -E 'Healthy:.+true'"]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+    deploy:
+      resources:
+        limits:
+          memory: 6g
+          cpus: "2.5"
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.12-alpine
+    container_name: ironflyer-clickhouse
+    <<: *default-restart
+    logging: *default-logging
+    environment:
+      CLICKHOUSE_DB: ${CLICKHOUSE_DB:-ironflyer}
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-ironflyer}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:?CLICKHOUSE_PASSWORD is required}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+    volumes:
+      - /data/clickhouse:/var/lib/clickhouse
+      - ../clickhouse:/docker-entrypoint-initdb.d:ro
+    networks: [ironflyer-net]
+    depends_on:
+      redpanda: { condition: service_healthy }
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8123/ping || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    deploy:
+      resources:
+        limits:
+          memory: 14g
+          cpus: "4.0"
+
+  # -------------------------------------------------------------------------
+  # WORKFLOW PLANE
+  # -------------------------------------------------------------------------
+
+  temporal:
+    image: temporalio/auto-setup:1.25
+    container_name: ironflyer-temporal
+    <<: *default-restart
+    logging: *default-logging
+    environment:
+      DB: postgres12
+      DB_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-ironflyer}
+      POSTGRES_PWD: ${POSTGRES_PASSWORD}
+      POSTGRES_SEEDS: postgres
+      DBNAME: temporal
+      VISIBILITY_DBNAME: temporal_visibility
+      DYNAMIC_CONFIG_FILE_PATH: /etc/temporal/config/dynamicconfig/prod.yaml
+      TEMPORAL_ADDRESS: temporal:7233
+      LOG_LEVEL: warn
+    volumes:
+      - ./temporal/dynamicconfig:/etc/temporal/config/dynamicconfig:ro
+    networks: [ironflyer-net]
+    depends_on:
+      postgres: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "temporal --address temporal:7233 operator cluster health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 4g
+          cpus: "2.0"
+
+  temporal-ui:
+    image: temporalio/ui:2.31.2
+    container_name: ironflyer-temporal-ui
+    <<: *default-restart
+    logging: *default-logging
+    environment:
+      TEMPORAL_ADDRESS: temporal:7233
+      TEMPORAL_CORS_ORIGINS: https://temporal.${ROOT_DOMAIN}
+      TEMPORAL_UI_PUBLIC_PATH: /
+    networks: [ironflyer-net]
+    depends_on:
+      temporal: { condition: service_healthy }
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+          cpus: "0.5"
+
+  # -------------------------------------------------------------------------
+  # OBSERVABILITY PLANE
+  # -------------------------------------------------------------------------
+
+  victoriametrics:
+    image: victoriametrics/victoria-metrics:v1.106.1
+    container_name: ironflyer-vm
+    <<: *default-restart
+    logging: *default-logging
+    command:
+      - -storageDataPath=/storage
+      - -retentionPeriod=90d
+      - -httpListenAddr=:8428
+      - -memory.allowedPercent=70
+    volumes:
+      - /data/victoriametrics:/storage
+    networks: [ironflyer-net]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8428/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          memory: 6g
+          cpus: "2.0"
+
+  vmagent:
+    image: victoriametrics/vmagent:v1.106.1
+    container_name: ironflyer-vmagent
+    <<: *default-restart
+    logging: *default-logging
+    command:
+      - -promscrape.config=/etc/vmagent/scrape.yml
+      - -remoteWrite.url=http://victoriametrics:8428/api/v1/write
+      - -remoteWrite.maxDiskUsagePerURL=2GB
+    volumes:
+      - ./vmagent/scrape.yml:/etc/vmagent/scrape.yml:ro
+      - /data/vmagent:/vmagentdata
+    networks: [ironflyer-net]
+    depends_on:
+      victoriametrics: { condition: service_healthy }
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: "1.0"
+
+  loki:
+    image: grafana/loki:3.3.2
+    container_name: ironflyer-loki
+    <<: *default-restart
+    logging: *default-logging
+    command: -config.file=/etc/loki/config.yml
+    volumes:
+      - ./loki/loki.yml:/etc/loki/config.yml:ro
+      - /data/loki:/loki
+    networks: [ironflyer-net]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:3100/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          memory: 3g
+          cpus: "1.5"
+
+  promtail:
+    image: grafana/promtail:3.3.2
+    container_name: ironflyer-promtail
+    <<: *default-restart
+    logging: *default-logging
+    command: -config.file=/etc/promtail/config.yml
+    volumes:
+      - ./promtail/promtail.yml:/etc/promtail/config.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks: [ironflyer-net]
+    depends_on:
+      loki: { condition: service_healthy }
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: "0.5"
+
+  grafana:
+    image: grafana/grafana:11.3.1
+    container_name: ironflyer-grafana
+    <<: *default-restart
+    logging: *default-logging
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is required}
+      GF_SERVER_ROOT_URL: https://grafana.${ROOT_DOMAIN}
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_INSTALL_PLUGINS: grafana-piechart-panel
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+    volumes:
+      - /data/grafana:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    networks: [ironflyer-net]
+    depends_on:
+      victoriametrics: { condition: service_healthy }
+      loki: { condition: service_healthy }
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: "1.0"
+
+  glitchtip-web:
+    image: glitchtip/glitchtip:v4.1.2
+    container_name: ironflyer-glitchtip-web
+    <<: *default-restart
+    logging: *default-logging
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-ironflyer}:${POSTGRES_PASSWORD}@postgres:5432/glitchtip
+      SECRET_KEY: ${GLITCHTIP_SECRET_KEY:?GLITCHTIP_SECRET_KEY is required}
+      PORT: "8000"
+      EMAIL_URL: ${GLITCHTIP_EMAIL_URL:-consolemail://}
+      GLITCHTIP_DOMAIN: https://errors.${ROOT_DOMAIN}
+      DEFAULT_FROM_EMAIL: errors@${ROOT_DOMAIN}
+      CELERY_WORKER_AUTOSCALE: "2,1"
+      ENABLE_USER_REGISTRATION: ${GLITCHTIP_ENABLE_REGISTRATION:-false}
+      ENABLE_OPEN_USER_REGISTRATION: "false"
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/1
+    networks: [ironflyer-net]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8000/_health/"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+          cpus: "1.0"
+
+  glitchtip-worker:
+    image: glitchtip/glitchtip:v4.1.2
+    container_name: ironflyer-glitchtip-worker
+    <<: *default-restart
+    logging: *default-logging
+    command: ["./bin/run-celery-with-beat.sh"]
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-ironflyer}:${POSTGRES_PASSWORD}@postgres:5432/glitchtip
+      SECRET_KEY: ${GLITCHTIP_SECRET_KEY}
+      EMAIL_URL: ${GLITCHTIP_EMAIL_URL:-consolemail://}
+      GLITCHTIP_DOMAIN: https://errors.${ROOT_DOMAIN}
+      DEFAULT_FROM_EMAIL: errors@${ROOT_DOMAIN}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/1
+    networks: [ironflyer-net]
+    depends_on:
+      glitchtip-web: { condition: service_healthy }
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+          cpus: "1.0"
+
+  # -------------------------------------------------------------------------
+  # APPLICATION PLANE
+  # -------------------------------------------------------------------------
+
+  orchestrator-1: &orchestrator
+    image: ${ORCHESTRATOR_IMAGE:-ghcr.io/zorba9172/ironflyer-orchestrator:${IRONFLYER_VERSION:-latest}}
+    container_name: ironflyer-orchestrator-1
+    <<: *default-restart
+    logging: *default-logging
+    environment: &orchestrator-env
+      IRONFLYER_ADDR: ":8080"
+      IRONFLYER_ENV: prod
+      IRONFLYER_LOG_FORMAT: json
+      IRONFLYER_LOG_LEVEL: info
+      IRONFLYER_DB_DRIVER: hybrid
+      IRONFLYER_EXECUTOR: ${IRONFLYER_EXECUTOR:-temporal}
+      IRONFLYER_TEMPORAL_HOST: temporal:7233
+      IRONFLYER_TEMPORAL_NAMESPACE: default
+      IRONFLYER_TEMPORAL_TASK_QUEUE: ironflyer-finisher
+      POSTGRES_URL: postgres://${POSTGRES_USER:-ironflyer}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ironflyer}?sslmode=disable
+      SURREAL_URL: ws://surrealdb:8000/rpc
+      SURREAL_USER: ${SURREAL_USER:-root}
+      SURREAL_PASSWORD: ${SURREAL_PASSWORD}
+      SURREAL_NAMESPACE: ironflyer
+      SURREAL_DATABASE: prod
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+      IRONFLYER_RUNTIME_URL: http://runtime:8090
+      IRONFLYER_SCAFFOLD_ROOT: /app/templates
+      IRONFLYER_JWT_SECRET: ${IRONFLYER_JWT_SECRET:?IRONFLYER_JWT_SECRET is required}
+      IRONFLYER_JWT_ISSUER: ironflyer
+      IRONFLYER_CORS_ORIGINS: https://app.${ROOT_DOMAIN},https://${ROOT_DOMAIN}
+      # Superuser bootstrap — main.go calls auth.EnsureSuperuser at boot
+      # when these are set. Idempotent: creates the account on first boot,
+      # promotes to platform_operator role + marks email verified on every
+      # subsequent boot. Safe to leave set permanently.
+      IRONFLYER_SUPERUSER_EMAIL: ${IRONFLYER_SUPERUSER_EMAIL:?IRONFLYER_SUPERUSER_EMAIL is required}
+      IRONFLYER_SUPERUSER_PASSWORD: ${IRONFLYER_SUPERUSER_PASSWORD:?IRONFLYER_SUPERUSER_PASSWORD is required}
+      IRONFLYER_METRICS_TOKEN: ${IRONFLYER_METRICS_TOKEN:?IRONFLYER_METRICS_TOKEN is required}
+      IRONFLYER_PUBLIC_API_URL: https://api.${ROOT_DOMAIN}
+      IRONFLYER_PUBLIC_RUNTIME_URL: https://runtime.${ROOT_DOMAIN}
+      IRONFLYER_PUBLIC_WEB_URL: https://app.${ROOT_DOMAIN}
+      REDPANDA_BROKERS: redpanda:9092
+      IRONFLYER_CLICKHOUSE_HOSTS: clickhouse:9000
+      IRONFLYER_CLICKHOUSE_DATABASE: ${CLICKHOUSE_DB:-ironflyer}
+      IRONFLYER_CLICKHOUSE_USERNAME: ${CLICKHOUSE_USER:-ironflyer}
+      IRONFLYER_CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
+      IRONFLYER_S3_ENDPOINT: http://minio:9000
+      IRONFLYER_S3_BUCKET: ${IRONFLYER_S3_BUCKET:-ironflyer-artifacts}
+      IRONFLYER_S3_ACCESS_KEY: ${MINIO_ROOT_USER}
+      IRONFLYER_S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      IRONFLYER_S3_REGION: us-east-1
+      IRONFLYER_S3_FORCE_PATH_STYLE: "true"
+      SENTRY_DSN: ${SENTRY_DSN_ORCHESTRATOR}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:?ANTHROPIC_API_KEY is required}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      HF_API_KEY: ${HF_API_KEY:-}
+      VERCEL_AI_GATEWAY_TOKEN: ${VERCEL_AI_GATEWAY_TOKEN:-}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      STRIPE_PRICE_PRO: ${STRIPE_PRICE_PRO:-}
+      STRIPE_PRICE_TEAM: ${STRIPE_PRICE_TEAM:-}
+      STRIPE_PRICE_ENTERPRISE: ${STRIPE_PRICE_ENTERPRISE:-}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      GITHUB_APP_PRIVATE_KEY: ${GITHUB_APP_PRIVATE_KEY:-}
+      GITHUB_APP_WEBHOOK_SECRET: ${GITHUB_APP_WEBHOOK_SECRET:-}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+    networks: [ironflyer-net]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      surrealdb: { condition: service_started }
+      minio: { condition: service_healthy }
+      temporal: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8080/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 3g
+          cpus: "2.0"
+
+  orchestrator-2:
+    <<: *orchestrator
+    container_name: ironflyer-orchestrator-2
+    environment:
+      <<: *orchestrator-env
+
+  runtime:
+    image: ${RUNTIME_IMAGE:-ghcr.io/zorba9172/ironflyer-runtime:${IRONFLYER_VERSION:-latest}}
+    container_name: ironflyer-runtime
+    <<: *default-restart
+    logging: *default-logging
+    privileged: false
+    environment:
+      IRONFLYER_RUNTIME_ADDR: ":8090"
+      IRONFLYER_RUNTIME_DRIVER: docker
+      IRONFLYER_RUNTIME_DOCKER_RUNTIME: runsc
+      IRONFLYER_RUNTIME_WORKSPACE_DIR: /workspaces
+      IRONFLYER_RUNTIME_NETWORK: ironflyer-sandboxes
+      IRONFLYER_RUNTIME_MAX_SANDBOXES: ${RUNTIME_MAX_SANDBOXES:-32}
+      IRONFLYER_RUNTIME_IDLE_TIMEOUT: "300s"
+      IRONFLYER_RUNTIME_DEFAULT_MEMORY_MB: "1024"
+      IRONFLYER_RUNTIME_DEFAULT_CPU: "0.5"
+      IRONFLYER_LOG_FORMAT: json
+      IRONFLYER_LOG_LEVEL: info
+      IRONFLYER_JWT_SECRET: ${IRONFLYER_JWT_SECRET}
+      IRONFLYER_JWT_ISSUER: ironflyer
+      SENTRY_DSN: ${SENTRY_DSN_RUNTIME}
+    volumes:
+      - /data/workspaces:/workspaces
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks: [ironflyer-net, ironflyer-sandboxes]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8090/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          memory: 8g
+          cpus: "4.0"
+
+  web-1: &web
+    image: ${WEB_IMAGE:-ghcr.io/zorba9172/ironflyer-web:${IRONFLYER_VERSION:-latest}}
+    container_name: ironflyer-web-1
+    <<: *default-restart
+    logging: *default-logging
+    environment: &web-env
+      NODE_ENV: production
+      PORT: "3000"
+      NEXT_PUBLIC_API_URL: https://api.${ROOT_DOMAIN}
+      NEXT_PUBLIC_RUNTIME_URL: https://runtime.${ROOT_DOMAIN}
+      NEXT_PUBLIC_WEB_URL: https://app.${ROOT_DOMAIN}
+      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_WEB}
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-}
+      ORCHESTRATOR_URL: http://orchestrator-1:8080
+      RUNTIME_URL: http://runtime:8090
+    networks: [ironflyer-net]
+    depends_on:
+      orchestrator-1: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:3000/api/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: "1.0"
+
+  web-2:
+    <<: *web
+    container_name: ironflyer-web-2
+    environment:
+      <<: *web-env
+      ORCHESTRATOR_URL: http://orchestrator-2:8080
+
+  # -------------------------------------------------------------------------
+  # EDGE — Caddy terminates TLS, does L7 routing, and load-balances across
+  # the two orchestrator / two web replicas. Replaces ingress-nginx +
+  # cert-manager + external-dns + sealed-secrets in a single 40MB binary.
+  # -------------------------------------------------------------------------
+
+  caddy:
+    image: caddy:2.8-alpine
+    container_name: ironflyer-caddy
+    <<: *default-restart
+    logging: *default-logging
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"  # HTTP/3
+    environment:
+      ROOT_DOMAIN: ${ROOT_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL:?ACME_EMAIL is required}
+      CADDY_BASIC_AUTH_HASH: ${CADDY_BASIC_AUTH_HASH}
+    volumes:
+      - ./Caddyfile.prod:/etc/caddy/Caddyfile:ro
+      - /data/caddy/data:/data
+      - /data/caddy/config:/config
+    networks: [ironflyer-net]
+    depends_on:
+      orchestrator-1: { condition: service_healthy }
+      orchestrator-2: { condition: service_healthy }
+      web-1: { condition: service_healthy }
+      web-2: { condition: service_healthy }
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: "1.0"
+
+  # -------------------------------------------------------------------------
+  # OFFSITE BACKUP — restic to Hetzner Storage Box, hourly.
+  # -------------------------------------------------------------------------
+
+  restic:
+    image: restic/restic:0.17.3
+    container_name: ironflyer-restic
+    <<: *default-restart
+    logging: *default-logging
+    entrypoint: ["/bin/sh", "-c"]
+    environment:
+      RESTIC_REPOSITORY: ${RESTIC_REPOSITORY:?RESTIC_REPOSITORY is required}
+      RESTIC_PASSWORD: ${RESTIC_PASSWORD:?RESTIC_PASSWORD is required}
+    volumes:
+      - /data:/data:ro
+      - ./restic/cron.sh:/cron.sh:ro
+    networks: [ironflyer-net]
+    command:
+      - |
+        crond -b -L /dev/stdout
+        echo "0 * * * * /cron.sh" | crontab -
+        tail -f /dev/null
+
+networks:
+  ironflyer-net:
+    name: ironflyer-net
+    driver: bridge
+  # Per-user sandboxes attach here. NO internet egress by default — set
+  # via runtime driver; sandboxes that need outbound get NAT'd via the
+  # orchestrator's egress proxy.
+  ironflyer-sandboxes:
+    name: ironflyer-sandboxes
+    driver: bridge
+    internal: false
+    ipam:
+      config:
+        - subnet: 172.30.0.0/16

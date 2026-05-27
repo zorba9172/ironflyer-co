@@ -1,72 +1,75 @@
 # Ironflyer — Production Deploy
 
-End-to-end runbook for taking an empty cloud account to live Ironflyer
-traffic. The application Helm chart is cloud-agnostic; the Pulumi
-program you run picks the substrate. Two cloud paths are supported,
-both production-grade:
+End-to-end runbook for taking empty Hetzner servers to live Ironflyer
+traffic.
 
-| Cloud           | Pulumi program       | Substrate                                                                                                                                  | Cold-start runbook                                                                                  |
-| --------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
-| AWS             | `infra/pulumi/`      | VPC + EKS + Aurora Postgres + ElastiCache Redis + S3 + Route53 + ACM + CloudFront + WAFv2 + Vercel edge                                    | [`docs/RUNBOOKS/cold-start.md`](docs/RUNBOOKS/cold-start.md)                                        |
-| DigitalOcean    | `infra/pulumi-do/`   | VPC + DOKS + Managed Postgres + Valkey (managed Redis) + Spaces + Cloudflare DNS/WAF + cert-manager + sealed-secrets + ingress-nginx + Vercel | follows the same Pulumi shape — config → `pulumi up` → smoke (see [`docs/RUNBOOKS/cold-start.md`](docs/RUNBOOKS/cold-start.md) §1–§7) |
+**The production stack is defined in a single source-of-truth file:
+[`infra/compose/docker-compose.prod.yml`](infra/compose/docker-compose.prod.yml).**
+That Compose file is the contract; Pulumi only provisions the servers
+the file runs on.
 
-The narrative below walks the **AWS path** in detail. The DO path is
-the same shape end-to-end (Pulumi config → `pulumi up` → smoke).
-Both paths read `RESEND_API_KEY` for transactional email — verify the
-production domain at Resend before traffic flows regardless of cloud.
+Substrate: Hetzner dedicated (AX102 + AX42) + Hetzner Cloud (3–4× CCX23)
++ Hetzner LB11 + Hetzner Storage Box + Cloudflare DNS/WAF (free tier).
+TLS terminates at Caddy on each app node — no separate cert-manager /
+ingress-nginx / external-dns / sealed-secrets layer.
 
-The application is layered on top via the **Helm chart** that the
-Pulumi program installs as a Kubernetes resource — identical chart,
-identical values surface, on both clouds.
+For the full per-service runbook (resource limits, day-2 ops, restore
+from backup, slim-wins explanation), read
+[`infra/compose/README.prod.md`](infra/compose/README.prod.md). That
+document is the canonical operational guide; this file is the
+**first install** + **happy-path upgrade/rollback** index.
 
-**Production security hardening** — before any prod deploy, work through
+## Production security hardening
+
+Before any prod traffic, work through
 [`docs/SECURITY_HARDENING_2026-05-26.md`](docs/SECURITY_HARDENING_2026-05-26.md) §6
-(the env-var checklist). The orchestrator now fails-fast at startup when
+(the env-var checklist). The orchestrator fails-fast at startup when
 `IRONFLYER_ENV=prod` and any of `IRONFLYER_JWT_SECRET`,
 `IRONFLYER_CORS_ORIGINS`, or `IRONFLYER_METRICS_TOKEN` is missing or
-unsafe.
+unsafe. All three are wired in the production
+[`.env.prod.example`](infra/compose/.env.prod.example).
 
-If you're paging in mid-incident, jump straight to the focused
-runbooks under [`docs/RUNBOOKS/`](docs/RUNBOOKS/):
+## Incident runbooks
+
+If you're paging in mid-incident, jump to:
 
 - [`cold-start.md`](docs/RUNBOOKS/cold-start.md) — first install / fresh boot
 - [`upgrade.md`](docs/RUNBOOKS/upgrade.md) — rolling upgrade
 - [`rollback.md`](docs/RUNBOOKS/rollback.md) — rollback
-- [`region-failover.md`](docs/RUNBOOKS/region-failover.md) — region failover
 - [`cost-spike.md`](docs/RUNBOOKS/cost-spike.md) — provider cost spike
 - [`workspace-saturation.md`](docs/RUNBOOKS/workspace-saturation.md) — sandbox saturation
 - [`graphql-incident.md`](docs/RUNBOOKS/graphql-incident.md) — GraphQL surface broken
 
-This document is the **first install** + **happy-path upgrade/rollback**
-guide.
+The cold-start runbook is the verbatim verified-against-the-live-stack
+version of what's below.
 
 ## TL;DR
 
-- Pick a stack: `dev`, `staging`, `prod-eu`, `prod-us`, or `prod-il`.
-- Set Pulumi config — secrets via `pulumi config set --secret`,
-  non-secrets via plain `pulumi config set`. See § 4 for the full table.
-- `cd infra/pulumi && pulumi stack select <stack> && pulumi up`.
-- Wait for the Helm release to settle: `kubectl -n ironflyer get pods`
-  should report every pod `1/1 Running`.
-- Run smoke: `IRONFLYER_API_URL=... SMOKE_BEARER=... scripts/smoke.sh`.
+1. Order **1× AX102** (primary) + **1× AX42** (warm-standby) from
+   [Hetzner Robot](https://robot.hetzner.com/) — Falkenstein, Ubuntu 24.04.
+2. `cd infra/pulumi && pulumi stack select prod && pulumi up` — provisions
+   the 3× CCX23 cloud nodes, LB11, vSwitch network, Cloudflare DNS records.
+3. On each server: `sudo bash scripts/host-bootstrap.sh --role <primary|standby|stateless|runtime> --domain ironflyer.ai`.
+4. Copy `infra/compose/.env.prod.example` → `infra/compose/.env.prod`,
+   fill in secrets (`chmod 600`).
+5. On the AX102: `docker compose -f infra/compose/docker-compose.prod.yml --env-file infra/compose/.env.prod up -d`.
+6. Wait for `docker compose ps` to show every service healthy (~3 min).
+7. Smoke: `IRONFLYER_API_URL=https://api.ironflyer.ai SMOKE_BEARER=… scripts/smoke.sh`.
 
 ## 1. Prerequisites
 
 | Need | Why | Where |
 | --- | --- | --- |
-| AWS account + admin IAM | Pulumi provisions VPC/EKS/RDS/Redis/S3/Route53/ACM/CloudFront/WAF | AWS Organizations |
-| Pulumi CLI ≥ 3.110 | runs the Go program | `brew install pulumi/tap/pulumi` |
-| `kubectl` ≥ 1.28 | post-install verification | `brew install kubectl` |
-| `helm` ≥ 3.13 | inspecting / debugging the chart Pulumi installs | `brew install helm` |
-| `aws` CLI v2 | kubeconfig via `aws eks update-kubeconfig` | `brew install awscli` |
-| Registered domain | Route53 hosted zone is provisioned by Pulumi; you delegate NS records at your registrar | Cloudflare / Gandi / Route53 Registrar |
-| GitHub PAT | GitHub App webhook secret + `Continue with GitHub` OAuth | https://github.com/settings/applications/new |
+| Hetzner account (Cloud + Robot) | Servers, LB, Storage Box | https://accounts.hetzner.com/ |
+| Cloudflare account | DNS + WAF (free tier) for `ironflyer.ai` | https://dash.cloudflare.com/ |
+| Pulumi CLI ≥ 3.110 | Provisions the Cloud nodes + DNS | `brew install pulumi/tap/pulumi` |
+| Docker CE ≥ 27 (installed on servers by `host-bootstrap.sh`) | Runs the Compose stack | n/a (bootstrap installs) |
+| Registered domain | Cloudflare hosts the zone | any registrar |
+| GitHub PAT | OAuth + GitHub App | https://github.com/settings/applications/new |
 | Stripe live keys | `/budget/checkout` + Stripe webhook | https://dashboard.stripe.com/ |
-| Anthropic API key | default provider | https://console.anthropic.com/ |
-| OpenAI / Gemini / HuggingFace / DeepSeek / Vercel AI Gateway | any subset of the additional providers you want enabled | each vendor's console |
-| Vercel API token | edge cache + preview deploys for `clients/web` | https://vercel.com/account/tokens |
-| Resend API key | transactional email (signup, password reset) | https://resend.com/api-keys |
-| Sentry DSN | error capture (Go + Next.js) | https://sentry.io/ |
+| Anthropic API key | Default provider | https://console.anthropic.com/ |
+| OpenAI / Gemini / HuggingFace / DeepSeek / Vercel AI Gateway | Optional providers | each vendor's console |
+| Resend API key | Transactional email | https://resend.com/api-keys |
 
 Only Anthropic + Stripe + GitHub OAuth are hard requirements for a
 useful production stack. The other AI providers are optional — the
@@ -74,367 +77,175 @@ bandit happily runs with a single provider.
 
 ## 2. Stack layout
 
-Pulumi stacks under `infra/pulumi/`:
-
-| Stack | Region | Purpose |
+| Layer | What | Where |
 | --- | --- | --- |
-| `dev` | eu-west-1 | Throwaway. Single-NAT, smallest nodes. |
-| `staging` | eu-west-1 | Pre-prod canary. |
-| `prod-eu` | eu-west-1 | EU production. |
-| `prod-us` | us-east-1 | US production. |
-| `prod-il` | il-central-1 | IL production. |
+| **Application stack** | All services (PG, Redis, Surreal, MinIO, Redpanda, ClickHouse, Temporal, Loki, VictoriaMetrics, Grafana, GlitchTip, orchestrator, runtime, web, Caddy) | [`infra/compose/docker-compose.prod.yml`](infra/compose/docker-compose.prod.yml) |
+| **Edge routing** | Caddy with auto Let's Encrypt | [`infra/compose/Caddyfile.prod`](infra/compose/Caddyfile.prod) |
+| **Secrets** | env file, chmod 600 | [`infra/compose/.env.prod.example`](infra/compose/.env.prod.example) |
+| **Server provisioning** | Hetzner Cloud + LB + DNS via Pulumi | [`infra/pulumi/`](infra/pulumi/) (`prod` stack) |
+| **Host bootstrap** | Docker + gVisor + sysctls + `/data` tree | [`scripts/host-bootstrap.sh`](scripts/host-bootstrap.sh) |
+| **Backups** | WAL-G (PG → MinIO) + restic (everything → Storage Box) | [`infra/compose/restic/cron.sh`](infra/compose/restic/cron.sh) |
 
-Per-stack config lives in `infra/pulumi/Pulumi.<stack>.yaml`. The
-Pulumi program composes three slices:
+## 3. Cold-start install
 
-- **Compute** (`compute/`) — VPC, EKS, IAM/IRSA, cluster autoscaling,
-  AWS Load Balancer Controller.
-- **Data** (`data/`) — Aurora Postgres, ElastiCache Redis, S3 buckets,
-  KMS, Secrets Manager, EFS, SurrealDB, External Secrets,
-  kube-prometheus-stack + Loki.
-- **Edge** (`edge/`) — Route53, ACM, CloudFront, WAFv2, external-dns,
-  cert-manager.
+### 3a. Order dedicated servers (manual)
 
-The application Helm chart at [`infra/helm/ironflyer/`](infra/helm/ironflyer/)
-is installed by Pulumi as a `helm.v3.Release` resource — there is no
-separate `helm install` step in steady state. Pulumi owns the release.
+Hetzner Robot does not have a first-class Pulumi provider. Order via
+the web console:
 
-> **Note on `infra/pulumi-data/`.** That separate program is the
-> data-only managed-service path: it provisions RDS + Redis + S3 without
-> EKS for operators who want to bring their own compute. The main
-> [`infra/pulumi/`](infra/pulumi/) program is what this guide uses.
+- **AX102** — Ryzen 9 7950X3D, 128GB DDR5, 2× 1.92TB NVMe, Falkenstein
+- **AX42** — Ryzen 5 7600, 64GB DDR5, 2× 512GB NVMe, Falkenstein
 
-## 3. Stack outputs you'll consume
+Both: Ubuntu 24.04 LTS, software RAID1 on the NVMe pair mounted at
+`/mnt/data`. Note each server's **public IPv4** and the assigned
+**private IP** on Hetzner's vSwitch (10.20.1.10 for AX102,
+10.20.1.11 for AX42).
 
-After `pulumi up`, `pulumi stack output` exposes:
-
-- `kubeconfig` — write to `~/.kube/config-ironflyer-<stack>` and export
-  `KUBECONFIG`.
-- `apiURL` / `webURL` / `runtimeURL` — public URLs the Helm release is
-  reachable at.
-- `postgresEndpoint` / `redisEndpoint` / `s3Bucket` — for out-of-band
-  ops work (psql, redis-cli, snapshots).
-- `route53ZoneID` — delegate this zone's NS records at your registrar
-  before traffic flows.
-
-## 4. Cold-start install
-
-The narrative walkthrough is below. The short, verified-against-the-
-live-stack version for first install + daily ops lives at
-[`docs/RUNBOOKS/cold-start.md`](docs/RUNBOOKS/cold-start.md).
+### 3b. Provision cloud tier via Pulumi
 
 ```bash
-# 1. Auth Pulumi (managed backend or self-hosted).
-pulumi login                  # or: pulumi login s3://your-state-bucket
+pulumi login                              # or self-hosted backend
 
-# 2. Auth AWS (named profile recommended).
-export AWS_PROFILE=ironflyer-prod
-aws sts get-caller-identity   # sanity check
-
-# 3. Select the stack.
 cd infra/pulumi
-pulumi stack select prod-eu   # or dev / staging / prod-us / prod-il
-```
+pulumi stack select prod
 
-Set non-secret config:
+# Drop in the dedicated-server IPs you just got.
+pulumi config set ironflyer:statefulPrimaryIP   <ax102-public-ipv4>
+pulumi config set ironflyer:statefulStandbyIP   <ax42-public-ipv4>
 
-```bash
-pulumi config set aws:region                  eu-west-1
-pulumi config set ironflyer:domain            ironflyer.dev
-pulumi config set ironflyer:imageRegistry     ghcr.io/zorba9172
-pulumi config set ironflyer:imageTag          v0.42.0
-pulumi config set ironflyer:replicas          3
-```
+# Provider credentials.
+pulumi config set --secret hetznerCloudToken    "$HCLOUD_TOKEN"
+pulumi config set --secret cloudflareApiToken   "$CF_TOKEN"
+pulumi config set --secret sshPublicKey         "$(cat ~/.ssh/id_ed25519.pub)"
 
-Set secrets — every one of these is enumerated so nothing is implicit:
-
-| Key | Source | Required? |
-| --- | --- | --- |
-| `ironflyer:jwtSecret` | `openssl rand -hex 32` | yes |
-| `ironflyer:anthropicApiKey` | Anthropic console | yes |
-| `ironflyer:stripeSecretKey` | Stripe live key | yes |
-| `ironflyer:stripeWebhookSecret` | Stripe webhook signing secret | yes |
-| `ironflyer:stripePricePro` | Stripe price ID, Pro tier | yes |
-| `ironflyer:stripePriceTeam` | Stripe price ID, Team tier | yes |
-| `ironflyer:stripePriceEnterprise` | Stripe price ID, Enterprise tier | yes |
-| `ironflyer:githubClientID` | GitHub OAuth App | yes |
-| `ironflyer:githubClientSecret` | GitHub OAuth App | yes |
-| `ironflyer:githubAppPrivateKey` | GitHub App (webhook receiver) | yes |
-| `ironflyer:githubAppWebhookSecret` | GitHub App | yes |
-| `ironflyer:openaiApiKey` | OpenAI console | optional |
-| `ironflyer:geminiApiKey` | Google AI Studio | optional |
-| `ironflyer:hfApiKey` | HuggingFace | optional |
-| `ironflyer:deepseekApiKey` | DeepSeek | optional |
-| `ironflyer:vercelAiGatewayToken` | Vercel AI Gateway | optional |
-| `ironflyer:vercelApiToken` | Vercel project deploy | yes if `clients/web` deploys to Vercel |
-| `ironflyer:resendApiKey` | Resend transactional email | yes |
-| `ironflyer:sentryDsnOrchestrator` | Sentry Go project | yes |
-| `ironflyer:sentryDsnWeb` | Sentry Next.js project | yes |
-| `ironflyer:datadogApiKey` | Datadog (optional metrics export) | optional |
-
-```bash
-# Each secret. Repeat per row in the table above.
-pulumi config set --secret ironflyer:jwtSecret               "$(openssl rand -hex 32)"
-pulumi config set --secret ironflyer:anthropicApiKey         sk-ant-...
-pulumi config set --secret ironflyer:stripeSecretKey         sk_live_...
-pulumi config set --secret ironflyer:stripeWebhookSecret     whsec_...
-pulumi config set --secret ironflyer:stripePricePro          price_...
-pulumi config set --secret ironflyer:stripePriceTeam         price_...
-pulumi config set --secret ironflyer:stripePriceEnterprise   price_...
-pulumi config set --secret ironflyer:githubClientID          Iv1...
-pulumi config set --secret ironflyer:githubClientSecret      ...
-pulumi config set --secret ironflyer:githubAppPrivateKey     "$(cat ironflyer-app.pem)"
-pulumi config set --secret ironflyer:githubAppWebhookSecret  ...
-pulumi config set --secret ironflyer:resendApiKey            re_...
-pulumi config set --secret ironflyer:sentryDsnOrchestrator   https://...
-pulumi config set --secret ironflyer:sentryDsnWeb            https://...
-# Optional providers — only the ones you've enabled.
-pulumi config set --secret ironflyer:openaiApiKey            sk-...
-pulumi config set --secret ironflyer:geminiApiKey            AI...
-pulumi config set --secret ironflyer:hfApiKey                hf_...
-pulumi config set --secret ironflyer:deepseekApiKey          sk-...
-pulumi config set --secret ironflyer:vercelAiGatewayToken    ...
-pulumi config set --secret ironflyer:vercelApiToken          ...
-```
-
-Run the install:
-
-```bash
-# Dry-run — read the diff before you commit.
-pulumi preview
-
-# Apply.
+pulumi preview                            # always read the diff first
 pulumi up
 ```
 
-Pulumi provisions cloud resources first, then installs the Helm release.
-On a cold stack expect 18–25 minutes (EKS control plane + Aurora cluster
-are the slow steps).
+This brings up: 2× CCX23 stateless + 1× CCX23 runtime baseline + 1×
+LB11 + vSwitch network + Cloudflare A records for every subdomain
+(`app`, `api`, `runtime`, `s3`, `grafana`, `temporal`, `minio`,
+`errors`, `vm`).
 
-Delegate the Route53 NS records at your registrar before the cert-manager
-order completes, or Let's Encrypt will fail HTTP-01:
-
-```bash
-pulumi stack output route53NameServers
-# Paste each NS record into your registrar's NS configuration.
-```
-
-Wire kubectl to the new cluster and watch the chart settle:
+### 3c. Bootstrap each server
 
 ```bash
-aws eks update-kubeconfig --name "$(pulumi stack output eksClusterName)" \
-  --region "$(pulumi stack output awsRegion)"
+# AX102 — primary
+ssh root@<ax102-ip> 'curl -fsSL https://raw.githubusercontent.com/zorba9172/ironflyer/main/scripts/host-bootstrap.sh \
+  | bash -s -- --role primary --domain ironflyer.ai'
 
-kubectl -n ironflyer get pods -w
-# Expect: orchestrator, runtime, web, code, postgres-sidecar (if any),
-#         redis-sentinel (if used), audit-verify (cron).
+# AX42 — standby
+ssh root@<ax42-ip> 'curl -fsSL https://raw.githubusercontent.com/zorba9172/ironflyer/main/scripts/host-bootstrap.sh \
+  | bash -s -- --role standby --domain ironflyer.ai'
+
+# Each CCX23 — stateless / runtime
+for ip in <stateless-1> <stateless-2>; do
+  ssh root@$ip 'curl -fsSL ...host-bootstrap.sh | bash -s -- --role stateless --domain ironflyer.ai'
+done
+ssh root@<runtime-baseline-ip> '... --role runtime ...'
 ```
 
-Run the post-install smoke (§ 6).
-
-## 5. GraphQL endpoint
-
-The orchestrator's API of record is **GraphQL**. After install:
-
-| Surface | Path | Notes |
-| --- | --- | --- |
-| Queries + mutations | `POST /graphql` | `content-type: application/json` |
-| Persisted queries / introspection GET | `GET /graphql` | APQ |
-| Subscriptions | `WS /graphql` | Subprotocol `graphql-transport-ws` |
-| Live documentation | `GET /graphql/sandbox` | Embedded Apollo Sandbox |
-
-Authentication: `Authorization: Bearer <jwt>` on HTTP; on WS, send the
-token in `connection_init.payload.authorization` as `Bearer <jwt>`.
-Browsers that can't set `connection_init` may fall back to `?token=`.
-
-APQ runs with an in-memory LRU; once your client registry is populated,
-set `GRAPHQL_APQ_LOCKED=true` so ad-hoc queries from production clients
-start erroring as designed.
-
-**Operator workflow — adding a new query to the locked allowlist:**
-
-1. Add or edit the operation under `GRAPHQL_APQ_REGISTRY_DIR` (default
-   `clients/web/src/lib/gql/operations/<surface>.graphql`). Every named
-   `query`, `mutation`, or `subscription` is registered at startup.
-2. Re-deploy the orchestrator. The boot log line
-   `graphql: APQ locked mode wired` reports `registry_size` so you can
-   see the new shape was picked up.
-3. Clients that compute the hash from the canonical operation text
-   (Apollo persisted-query link, codegen) now hit the registry on the
-   first request. Clients that send a raw query receive
-   `PERSISTED_QUERY_REQUIRED`; clients that send an unknown hash
-   receive `PERSISTED_QUERY_NOT_REGISTERED` (and MUST NOT fall back to
-   sending the full query — locked mode rejects that too).
-4. Operators (per the `IsOperator` predicate wired in `main.go`) bypass
-   the lock, so Sandbox + the CLI still ship ad-hoc queries through
-   `/graphql` without registration.
-
-GraphQL env knobs that govern the surface (all optional):
-
-| Variable | Default | What it does |
-| --- | --- | --- |
-| `GRAPHQL_TRACING` | `off` | Apollo tracing extension. Verbose — flip on while debugging. |
-| `GRAPHQL_COMPLEXITY_LIMIT` | `1000` | Hard cap on operation complexity. Rejects with `OPERATION_TOO_COMPLEX` and a WARN log carrying the operation name + measured score. |
-| `GRAPHQL_DEPTH_LIMIT` | `15` | Hard cap on selection-set depth. Rejects with `OPERATION_TOO_DEEP` and a WARN log carrying the operation name + measured depth. |
-| `GRAPHQL_INTROSPECTION` | `on` | Set `off` once clients are on a generated SDK. |
-| `GRAPHQL_APQ_LRU_SIZE` | `100` | In-memory APQ LRU. Raise on APQ miss-rate. Ignored when `GRAPHQL_APQ_LOCKED=true`. |
-| `GRAPHQL_APQ_LOCKED` | `false` | When `true`, the APQ surface only serves hashes seeded at startup from `GRAPHQL_APQ_REGISTRY_DIR`. Raw queries return `PERSISTED_QUERY_REQUIRED`; unknown hashes return `PERSISTED_QUERY_NOT_REGISTERED`. Operators (per `IsOperator`) bypass the lock so Sandbox / CLI keep working. |
-| `GRAPHQL_APQ_REGISTRY_DIR` | `clients/web/src/lib/gql/operations` | Directory scanned at startup; every `.graphql` / `.gql` file is parsed and each named operation is hashed + registered. Drop a new query into this tree, re-deploy, and the hash becomes live. |
-| `GRAPHQL_QUERY_CACHE_SIZE` | `1000` | LRU size for parsed query documents. |
-
-For deeper GraphQL ops (incident triage, subscription handshakes, APQ
-locking) see [`docs/RUNBOOKS/graphql-incident.md`](docs/RUNBOOKS/graphql-incident.md).
-The schema itself is the single source of truth — see
-`core/orchestrator/internal/operations/graph/schema/*.graphql`.
-
-## 6. Smoke
-
-There are two smoke scripts. Run both after every `pulumi up`.
+### 3d. Fill in `.env.prod` on the AX102
 
 ```bash
-# Canonical V22 paid-execution contract — signUp → wallet → paid
-# execution → executionFeed → wallet/ledger/execution/profitDashboard.
-# Exits 0 on the happy path (PASS-WITH-WARN is also exit 0; the warn
-# is the documented ledger row-scan mismatch).
-IRONFLYER_API_URL=https://api.ironflyer.dev bash scripts/v22_smoke.sh
-
-# Broader smoke — infra probes + GraphQL handshake + sample reads +
-# subscription handshake + REST deprecation banner. Auth-gated
-# sections warn-skip when SMOKE_BEARER is unset.
-IRONFLYER_API_URL=https://api.ironflyer.dev \
-SMOKE_BEARER=<operator-jwt> \
-  bash scripts/smoke.sh
+ssh root@<ax102-ip>
+cd /opt/ironflyer
+git clone https://github.com/zorba9172/ironflyer.git . || git pull
+cp infra/compose/.env.prod.example infra/compose/.env.prod
+chmod 600 infra/compose/.env.prod
+vim infra/compose/.env.prod
 ```
 
-`v22_smoke.sh` is the deploy gate. `smoke.sh` is the broader
-operability gate; some of its sections (e.g. `plans`,
-`providersHealth`, `verifyAudit`, `/projects`) require optional V22
-stores or REST surfaces that are not present on every build — those
-sections may report `FAIL` against a dev box without those stores
-wired. Treat `v22_smoke.sh` PASS as the hard prod gate; treat
-`smoke.sh` failures as triage data for the gap, not a deploy block,
-unless the failing surface is in scope for the stack you just
-shipped.
-
-Also gate every deploy on [`scripts/verify-headers.sh`](scripts/verify-headers.sh)
-which checks HSTS / CSP / X-Frame-Options / X-Content-Type-Options /
-Referrer-Policy / Permissions-Policy on both surfaces.
-
-### 6.1 Analytics ingestion smoke (ClickHouse + Redpanda)
-
-Production stacks ship ClickHouse + Redpanda as defaults (see
-`infra/helm/ironflyer/values-prod.yaml`). After `v22_smoke.sh` passes
-— which drives one paid execution end-to-end — confirm the outbox →
-Redpanda → ClickHouse projection actually landed rows in the fact
-tables the consumer writes to (see
-`core/orchestrator/internal/business/clickhouse/schema/02_facts.sql`).
-A passing v22 smoke with empty fact tables means the publisher or
-the projection consumer is wedged.
+Every placeholder ending in `CHANGE-ME` is required. Generate secrets:
 
 ```bash
-# Exec into the in-cluster ClickHouse and count rows in the cost
-# fact table written by the orchestrator's clickhouse package
-# (core/orchestrator/internal/business/clickhouse/). Expect count ≥ 1
-# after v22_smoke has run.
-kubectl -n ironflyer exec -it clickhouse-0 -- \
-  clickhouse-client --database=ironflyer --query \
-  "SELECT count() FROM fact_execution_costs"
-
-# If the count is 0, drop into triage:
-#   1. kubectl -n ironflyer logs deploy/orchestrator | grep -i 'outbox\|publisher\|clickhouse'
-#   2. Confirm REDPANDA_BROKERS and IRONFLYER_CLICKHOUSE_HOSTS are set
-#      on the orchestrator pod env (`kubectl describe pod`).
-#   3. Check publisher lag from Redpanda:
-#      kubectl -n ironflyer exec redpanda-0 -- \
-#        rpk group describe outbox-publisher --brokers redpanda:9092
-#   4. See docs/RUNBOOKS/analytics-bringup.md for the full triage path.
+openssl rand -hex 32                                            # 32-char hex (most passwords)
+openssl rand -hex 32                                            # 64-hex-chars JWT secret
+openssl rand -base64 36                                         # base64 36-char (PG, MinIO)
+docker run --rm caddy:2.8-alpine caddy hash-password --plaintext 'YOUR-PWD'  # Caddy ops basic-auth
 ```
 
-> **Follow-up — `profit_projection` is aspirational.** A prior pass
-> wired this smoke step against a `profit_projection` table that does
-> not exist in the schema (`schema/01_raw.sql`, `schema/02_facts.sql`)
-> and has no producer in `clickhouse/consumer.go`. The closest live
-> equivalent is the per-day rollup at `correction.go::profitDailySQL`
-> (`rollup_profit_daily`), recomputed from `fact_execution_costs` +
-> `fact_execution_completion`. Until a dedicated `profit_projection`
-> materialised view + consumer hook lands, the smoke check uses
-> `fact_execution_costs` above so it actually verifies the live
-> pipeline instead of failing on a missing table.
-
-Treat this as a hard prod gate: profit dashboards are read off
-ClickHouse, so an empty fact table means operators are flying blind
-on margin even if every paid execution succeeded.
-
-## 7. Upgrade (rolling)
-
-Full runbook with pre-checks and verification:
-[`docs/RUNBOOKS/upgrade.md`](docs/RUNBOOKS/upgrade.md).
-
-Happy path:
+### 3e. Bring up the stack
 
 ```bash
-# 1. Bump the image tag in Pulumi config.
-cd infra/pulumi
-pulumi stack select prod-eu
-pulumi config set ironflyer:imageTag v0.42.1
-
-# 2. Apply.
-pulumi up
-
-# 3. Watch the rollout.
-kubectl -n ironflyer rollout status deploy/orchestrator
-kubectl -n ironflyer rollout status deploy/runtime
-kubectl -n ironflyer rollout status deploy/web
-
-# 4. Smoke.
-IRONFLYER_API_URL=https://api.ironflyer.dev bash scripts/v22_smoke.sh
+docker compose -f infra/compose/docker-compose.prod.yml \
+  --env-file infra/compose/.env.prod up -d
 ```
 
-Canary first: bump the tag on `staging`, soak for 30 minutes against
-real traffic, then promote to `prod-eu` → `prod-us` → `prod-il`.
-
-## 8. Rollback
-
-Full runbook with database-migration considerations:
-[`docs/RUNBOOKS/rollback.md`](docs/RUNBOOKS/rollback.md).
-
-Fast path — re-pin the image tag and `pulumi up`:
+Watch settling:
 
 ```bash
-pulumi config set ironflyer:imageTag v0.42.0   # the previous-known-good
-pulumi up
+docker compose -f infra/compose/docker-compose.prod.yml ps
+docker compose -f infra/compose/docker-compose.prod.yml logs -f caddy
 ```
 
-Stack-history path — revert all Pulumi-managed resources to a prior
-version:
+Caddy auto-orders Let's Encrypt certs for every hostname in
+[`Caddyfile.prod`](infra/compose/Caddyfile.prod). Expect ~2 min until
+every service reports healthy and certs are issued.
+
+### 3f. Smoke
 
 ```bash
-pulumi stack history
-pulumi stack export --version <N> > stack-vN.json
-pulumi stack import --file stack-vN.json
-pulumi up
+IRONFLYER_API_URL=https://api.ironflyer.ai \
+  SMOKE_BEARER="$(curl -s -X POST https://api.ironflyer.ai/auth/token \
+                   -d 'email=ops@ironflyer.ai&password=…' | jq -r .token)" \
+  ./scripts/smoke.sh
 ```
 
-Data caveat: Aurora and S3 are stateful. Reverting a Pulumi version
-that touches `data/` is *not* automatically reversible. Schema
-migrations are managed by the `core/orchestrator/cmd/migrate` (goose-
-backed) binary; rolling them back is the `migrate down` path and
-should be done **after** the application is back on the previous tag.
+Then open https://app.ironflyer.ai and walk through:
 
-## 9. Cross-references
+1. Sign up + log in.
+2. Create a project with the Home prompt-first composer.
+3. Open the Studio surface (visual state mirror).
+4. Spin a sandbox via the runtime — confirm PTY WebSocket connects and
+   gVisor isolation kicks in (`docker exec ironflyer-runtime docker ps`
+   should show child containers with `Runtime: runsc`).
 
-- [`docs/RUNBOOKS/`](docs/RUNBOOKS/) — focused incident runbooks (cold-
-  start, upgrade, rollback, region-failover, cost-spike,
-  workspace-saturation, graphql-incident).
-- [`ARCHITECTURE.md`](ARCHITECTURE.md) — V22 locked spec.
-- [`QUICKSTART.md`](QUICKSTART.md) — fastest dev path from clone to
-  paid execution.
-- [`docs/V22_PLAN.md`](docs/V22_PLAN.md) — implementation contract.
-- [`docs/PROJECT_CLOSEOUT_PLAN.md`](docs/PROJECT_CLOSEOUT_PLAN.md) —
-  Definition of Done + verified state.
-- `core/orchestrator/internal/operations/graph/schema/*.graphql` — GraphQL schema,
-  single source of truth.
-- [`infra/pulumi/README.md`](infra/pulumi/README.md) — cross-stack
-  output contract.
-- [`.github/workflows/ci.yml`](.github/workflows/ci.yml) — image build
-  pipeline.
+## 4. Upgrade
+
+```bash
+# .env.prod
+IRONFLYER_VERSION=v0.43.0
+
+docker compose -f infra/compose/docker-compose.prod.yml \
+  --env-file infra/compose/.env.prod pull \
+    orchestrator-1 orchestrator-2 runtime web-1 web-2
+
+docker compose -f infra/compose/docker-compose.prod.yml \
+  --env-file infra/compose/.env.prod up -d \
+    orchestrator-1 orchestrator-2 runtime web-1 web-2
+```
+
+Caddy stays up across the rolling restart — `orchestrator-1` finishes
+its `/healthz` before `orchestrator-2` cycles, so requests keep
+flowing.
+
+## 5. Rollback
+
+Set `IRONFLYER_VERSION` to the previous tag, repeat § 4. Schema
+migrations are forward-only — the orchestrator image promises a
+single-version backward-compatible read.
+
+## 6. Restore from backup
+
+Postgres PITR via WAL-G + cross-host DR via restic — full procedure in
+[`infra/compose/README.prod.md`](infra/compose/README.prod.md#restore-from-backup).
+
+## 7. Legacy paths
+
+Three previous deployment targets are kept in-tree as reference only.
+None of them are the prod path anymore:
+
+- [`infra/helm/ironflyer/`](infra/helm/ironflyer/) — Helm chart for
+  Kubernetes deployments. Use only if you're running an existing k8s
+  cluster and don't want the Compose path.
+- [`infra/k8s/`](infra/k8s/) — Kustomize bundles. Same caveat.
+- [`infra/pulumi/compute/doks.go`](infra/pulumi/compute/doks.go) +
+  [`infra/pulumi/data/postgres.go`](infra/pulumi/data/postgres.go) +
+  [`infra/pulumi/data/redis.go`](infra/pulumi/data/redis.go) +
+  [`infra/pulumi/data/spaces.go`](infra/pulumi/data/spaces.go) +
+  [`infra/pulumi/data/observability.go`](infra/pulumi/data/observability.go) —
+  DigitalOcean DOKS + Managed PG/Valkey/Spaces. Superseded by Hetzner +
+  Compose. Keep until the Pulumi rewrite lands; the `prod` stack
+  currently fails when these files are wired in. Use the slim
+  Hetzner-only program (TBD: `infra/pulumi/compute/hetzner.go`).

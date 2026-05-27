@@ -1,0 +1,49 @@
+# Promtail — tails every container's json-file log driver output and
+# pushes to Loki with container_name + image as labels.
+
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+  log_level: warn
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 15s
+        filters:
+          - name: label
+            values: ["com.docker.compose.project=compose"]
+    relabel_configs:
+      - source_labels: [__meta_docker_container_name]
+        regex: "/(.*)"
+        target_label: container
+      - source_labels: [__meta_docker_container_log_stream]
+        target_label: stream
+      - source_labels: [__meta_docker_container_label_com_docker_compose_service]
+        target_label: service
+      - source_labels: [__meta_docker_container_label_com_docker_compose_project]
+        target_label: project
+    pipeline_stages:
+      # Drop noisy debug logs from third-party images.
+      - match:
+          selector: '{container=~"ironflyer-(temporal|clickhouse|redpanda)"} |~ "DEBUG"'
+          action: drop
+      # Parse Go orchestrator/runtime structured JSON to expose level/msg.
+      - match:
+          selector: '{container=~"ironflyer-(orchestrator|runtime)-?.*"}'
+          stages:
+            - json:
+                expressions:
+                  level: level
+                  msg: message
+                  trace_id: trace_id
+            - labels:
+                level:
+                trace_id:

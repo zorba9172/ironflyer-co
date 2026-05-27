@@ -1,0 +1,70 @@
+config:
+  # ============================================================================
+  # Ironflyer — production stack on Hetzner.
+  #
+  # Pulumi provisions the SERVERS + load balancer + private network +
+  # Cloudflare DNS. The application stack itself is deployed via Compose —
+  # see infra/compose/docker-compose.prod.yml (single source of truth).
+  #
+  # Topology:
+  #   - 1× AX102 dedicated (Robot, ordered manually) — stateful primary,
+  #     runs the full docker-compose.prod.yml stack.
+  #   - 1× AX42 dedicated (Robot, ordered manually) — warm-standby for
+  #     stateful tier (PG streaming replica + MinIO mirror + Redis sentinel).
+  #   - 2× CCX23 cloud nodes — stateless orchestrator/web replicas.
+  #   - 1× CCX23 cloud node — runtime sandbox baseline (always-on, no
+  #     cold-start for the first user of the day).
+  #   - 0→1 CCX23 burst nodes — runtime sandbox burst via Hetzner Cloud
+  #     autoscaler. Hard cap = 1 to keep monthly ceiling ≤ $316.
+  #   - 1× Hetzner LB11 — terminates the public IPs that DNS points at.
+  #     Caddy on each app node owns TLS.
+  #   - Storage Box BX21 — offsite restic + WAL-G backup target.
+  #
+  # Budget envelope: $286 floor / $316 ceiling. See
+  # infra/compose/README.prod.md § Cost reference for the breakdown.
+  # ============================================================================
+
+  # --- Region / network ------------------------------------------------------
+  ironflyer:region: fsn1                # Hetzner Falkenstein DE
+  ironflyer:networkCIDR: 10.20.0.0/16
+
+  # --- Dedicated servers (ordered out-of-band via Hetzner Robot) -------------
+  # The Pulumi program does NOT provision dedicated servers — Hetzner Robot
+  # has no first-class Pulumi provider. Order manually via robot.hetzner.com,
+  # then drop the public + private IPs here so the cloud nodes can mesh.
+  ironflyer:statefulPrimaryType: AX102
+  ironflyer:statefulStandbyType: AX42
+  ironflyer:statefulPrimaryIP: ""             # public IPv4 of the AX102
+  ironflyer:statefulStandbyIP: ""             # public IPv4 of the AX42
+  ironflyer:statefulPrimaryPrivateIP: "10.20.1.10"
+  ironflyer:statefulStandbyPrivateIP: "10.20.1.11"
+
+  # --- Hetzner Cloud node types & counts -------------------------------------
+  ironflyer:cloudNodeType: ccx23              # 4 dedicated vCPU, 16 GB RAM, 160 GB NVMe
+  ironflyer:cloudStatelessCount: "2"          # orchestrator + web pool
+  ironflyer:cloudRuntimeBaseline: "1"         # always-on sandbox node
+  ironflyer:cloudRuntimeMaxBurst: "1"         # autoscaler hard cap (cost ceiling)
+  ironflyer:cloudImage: ubuntu-24.04
+
+  # --- Load balancer ---------------------------------------------------------
+  ironflyer:lbType: lb11                      # $6/mo, 10 services, 25k connections
+
+  # --- Storage Box (offsite backup) ------------------------------------------
+  ironflyer:storageBoxSize: BX21              # 5 TB, ~$12/mo
+  ironflyer:storageBoxUser: ""                # filled by Hetzner after order
+
+  # --- Domain / TLS ----------------------------------------------------------
+  ironflyer:rootDomain: ironflyer.ai
+  ironflyer:acmeEmail: ops@ironflyer.ai
+  # Caddy on each node terminates TLS. Cloudflare DNS records (one A per
+  # subdomain) point at the LB public IP. Subdomains: app, api, runtime,
+  # s3, grafana, temporal, minio, errors, vm.
+
+  # --- Application version (image tag pulled from GHCR) ----------------------
+  ironflyer:appVersion: v0.42.0
+  ironflyer:imageRegistry: ghcr.io/zorba9172
+
+  # --- Provider tokens (set via `pulumi config set --secret`) ----------------
+  # hetznerCloudToken     — Hetzner Cloud API token (read+write)
+  # cloudflareApiToken    — Cloudflare zone:edit token (for DNS records)
+  # sshPublicKey          — ed25519 pubkey, deployed as authorized_keys
