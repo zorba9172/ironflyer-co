@@ -34,7 +34,7 @@ import {
 } from "@mui/material";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { BrandLogo } from "../../src/components/BrandLogo";
 import { useAuth } from "../../src/lib/auth";
 import { extractErrorMessage } from "../../src/lib/errors";
@@ -198,6 +198,23 @@ export default function StudioPage() {
   const router = useRouter();
   const { authenticated } = useAuth();
   const [describeIdea] = useDescribeIdeaMutation();
+
+  // Pick up any prompt the guest stashed before being bounced to
+  // /signup so the studio shows their original idea pre-filled. The
+  // user still has to hit Send — auto-launching a paid mutation on
+  // mount would surprise the operator.
+  useEffect(() => {
+    if (!authenticated) return;
+    try {
+      const pending = window.sessionStorage.getItem(PENDING_PROMPT_KEY);
+      if (pending && pending.trim()) {
+        setPrompt(pending);
+        window.sessionStorage.removeItem(PENDING_PROMPT_KEY);
+      }
+    } catch {
+      // ignore quota / privacy errors — first send still works.
+    }
+  }, [authenticated]);
 
   const progress = useMemo(() => {
     const done = steps.filter((step) => step.state === "done").length;
