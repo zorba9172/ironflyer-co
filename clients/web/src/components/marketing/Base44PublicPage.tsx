@@ -485,10 +485,10 @@ const pageData: Record<PublicPageKind, PageData> = {
   },
   vscode: {
     eyebrow: "VS Code Extension",
-    title: "Keep IronFlyer inside your editor.",
-    accent: "Review patches, gates and previews without leaving VS Code.",
+    title: "IronFlyer for VS Code.",
+    accent: "Review patches without leaving your editor.",
     subhead:
-      "The extension connects your local editor to IronFlyer projects. Pin a project, inspect generated patches, open diffs, ask for fixes and keep the launch loop close to the code.",
+      "Pin a project, inspect generated patches, open diffs, ask for fixes and keep the launch loop close to the code.",
     primary: "Get the extension",
     secondary: "Open Studio",
     primaryHref: "/signup?redirect=/studio",
@@ -580,11 +580,82 @@ function palette(mode: Tone) {
   };
 }
 
+function PublicHeroObject({ mode }: { mode: Tone }) {
+  const light = mode === "light";
+  return (
+    <Box
+      aria-hidden
+      sx={{
+        display: { xs: "none", md: "block" },
+        position: "relative",
+        width: 420,
+        height: 132,
+        mt: 1.2,
+        perspective: "1000px",
+      }}
+    >
+      <Box
+        sx={{
+          position: "absolute",
+          left: "50%",
+          top: "54%",
+          width: 300,
+          height: 88,
+          borderRadius: "50%",
+          border: light
+            ? "1px solid rgba(156,91,255,0.20)"
+            : "1px solid rgba(170,108,255,0.28)",
+          transform: "translate(-50%, -50%) rotateX(68deg) rotateZ(-7deg)",
+          boxShadow: light
+            ? "0 0 70px rgba(181,91,255,0.11)"
+            : "0 0 90px rgba(126,81,255,0.22)",
+        }}
+      />
+      {[0, 1, 2].map((i) => (
+        <Box
+          key={i}
+          sx={{
+            position: "absolute",
+            left: `${96 + i * 72}px`,
+            top: `${22 + (i % 2) * 24}px`,
+            width: 86,
+            height: 58,
+            borderRadius: 2,
+            border: light
+              ? "1px solid rgba(127,77,255,0.18)"
+              : "1px solid rgba(160,113,255,0.28)",
+            bgcolor: light ? "rgba(255,255,255,0.70)" : "rgba(14,16,45,0.70)",
+            backdropFilter: "blur(16px)",
+            transform: `rotateY(${-18 + i * 18}deg) rotateZ(${-8 + i * 5}deg)`,
+            boxShadow: light
+              ? "0 18px 52px rgba(103,65,180,0.10)"
+              : "0 20px 70px rgba(0,0,0,0.25)",
+            "&::before, &::after": {
+              content: '""',
+              position: "absolute",
+              left: 12,
+              height: 7,
+              borderRadius: 999,
+              background: `linear-gradient(90deg, ${tokens.color.accent.coral}, ${tokens.color.accent.violet})`,
+            },
+            "&::before": { top: 18, right: 16 },
+            "&::after": { top: 32, right: 32, opacity: 0.55 },
+          }}
+        />
+      ))}
+    </Box>
+  );
+}
+
 export function Base44PublicPage({ page }: { page: PublicPageKind }) {
   const search = useSearchParams();
   const mode: Tone = search?.get("theme") === "dark" ? "dark" : "light";
   const p = palette(mode);
   const data = pageData[page];
+  const withTheme = (href: string) =>
+    href.startsWith("/")
+      ? `${href}${href.includes("?") ? "&" : "?"}theme=${mode}`
+      : href;
 
   return (
     <Box
@@ -620,8 +691,8 @@ export function Base44PublicPage({ page }: { page: PublicPageKind }) {
               fontSize: { xs: 42, md: 76 },
               fontWeight: 950,
               letterSpacing: 0,
-              lineHeight: 0.94,
-              maxWidth: 980,
+              lineHeight: 0.98,
+              maxWidth: page === "vscode" ? 900 : 940,
             }}
           >
             {data.title}
@@ -655,7 +726,7 @@ export function Base44PublicPage({ page }: { page: PublicPageKind }) {
           >
             <Button
               component={Link}
-              href={data.primaryHref ?? "/studio"}
+              href={withTheme(data.primaryHref ?? "/studio")}
               variant="contained"
               endIcon={<ArrowForwardRounded />}
               sx={{
@@ -669,7 +740,7 @@ export function Base44PublicPage({ page }: { page: PublicPageKind }) {
             </Button>
             <Button
               component={Link}
-              href={data.secondaryHref ?? "/templates"}
+              href={withTheme(data.secondaryHref ?? "/templates")}
               variant="outlined"
               sx={{
                 minHeight: 52,
@@ -707,6 +778,7 @@ export function Base44PublicPage({ page }: { page: PublicPageKind }) {
               </Box>
             ))}
           </Stack>
+          <PublicHeroObject mode={mode} />
         </Stack>
 
         {data.sections.map((section) => (
@@ -847,7 +919,7 @@ export function Base44PublicPage({ page }: { page: PublicPageKind }) {
             </Typography>
             <Button
               component={Link}
-              href="/studio"
+              href={withTheme("/studio")}
               variant="contained"
               endIcon={<ArrowForwardRounded />}
             >

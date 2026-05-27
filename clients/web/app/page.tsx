@@ -289,33 +289,31 @@ function HomeInner() {
 
       <Box
         sx={{
-          color:
-            timing === "light" ? "#090d3d" : tokens.color.text.primary,
-          bgcolor:
-            timing === "light" ? "#fbfaff" : tokens.color.bg.base,
+          color: timing === "light" ? "#090d3d" : tokens.color.text.primary,
+          bgcolor: timing === "light" ? "#fbfaff" : tokens.color.bg.base,
           backgroundImage:
             timing === "light"
               ? "radial-gradient(820px 420px at 92% 12%, rgba(226,69,205,0.08), transparent 70%), radial-gradient(720px 360px at 6% 38%, rgba(127,77,255,0.07), transparent 72%)"
               : "radial-gradient(820px 420px at 92% 12%, rgba(145,75,255,0.13), transparent 70%), radial-gradient(720px 360px at 6% 38%, rgba(39,134,255,0.07), transparent 72%)",
         }}
       >
-        <FlowPanel />
+        <FlowPanel timing={timing} />
 
-        <CapabilityGrid />
+        <CapabilityGrid timing={timing} />
 
-        <TemplateShowcase onPick={pickSeed} />
+        <TemplateShowcase timing={timing} onPick={pickSeed} />
 
         <VscodeExtensionBand timing={timing} />
 
-        <TestimonialBand />
+        <TestimonialBand timing={timing} />
 
-        <PricingCards />
+        <PricingCards timing={timing} />
 
-        <ProofFooterBand />
+        <ProofFooterBand timing={timing} />
 
-        <FaqShowcase />
+        <FaqShowcase timing={timing} />
 
-        <FinalShipCTA />
+        <FinalShipCTA timing={timing} />
 
         <Footer copy={homeCopy.footer} />
       </Box>
@@ -331,6 +329,25 @@ function Section({ children, sx }: { children: ReactNode; sx?: object }) {
       <Box sx={{ maxWidth: 1280, minWidth: 0, mx: "auto" }}>{children}</Box>
     </Box>
   );
+}
+
+function homeTone(timing: OrbitalTiming) {
+  const light = timing === "light";
+  return {
+    light,
+    text: light ? "#080b3f" : tokens.color.text.primary,
+    secondary: light ? "#5e6689" : tokens.color.text.secondary,
+    muted: light ? "#858ca8" : tokens.color.text.muted,
+    border: light ? "rgba(127,77,255,0.18)" : tokens.color.border.subtle,
+    strong: light ? "rgba(127,77,255,0.30)" : tokens.color.border.strong,
+    surface: light
+      ? "rgba(255,255,255,0.78)"
+      : `${tokens.color.bg.surfaceRaised}d9`,
+    surfaceStrong: light
+      ? "rgba(255,255,255,0.92)"
+      : tokens.color.bg.surfaceRaised,
+    inset: light ? "rgba(248,246,255,0.92)" : tokens.color.bg.inset,
+  };
 }
 
 // ── 2026-05-27 Orbital Home ────────────────────────────────────────────
@@ -1978,6 +1995,7 @@ function Hero(props: HeroProps) {
         spacing={{ xs: 2.1, md: 2.25 }}
         sx={{ position: "relative", zIndex: 1 }}
       >
+        <HeroDepthScene timing={props.timing} />
         <Stack spacing={1.45} alignItems="center" sx={{ pt: { md: 0.8 } }}>
           {props.welcomeOpen && (
             <WelcomeBanner
@@ -1998,11 +2016,11 @@ function Hero(props: HeroProps) {
             component="h1"
             sx={{
               color: hero.text,
-              fontSize: { xs: 42, sm: 56, md: 60 },
+              fontSize: { xs: 39, sm: 52, md: 56 },
               fontWeight: 900,
               letterSpacing: 0,
-              lineHeight: 1.04,
-              maxWidth: 980,
+              lineHeight: 1.02,
+              maxWidth: 880,
               textAlign: "center",
             }}
           >
@@ -2024,9 +2042,9 @@ function Hero(props: HeroProps) {
           </Typography>
           <Typography
             sx={{
-              maxWidth: 510,
+              maxWidth: 470,
               color: hero.secondary,
-              fontSize: { xs: 15.5, md: 17 },
+              fontSize: { xs: 14.5, md: 16 },
               lineHeight: 1.5,
               textAlign: "center",
             }}
@@ -2037,9 +2055,9 @@ function Hero(props: HeroProps) {
           <Box
             sx={{
               width: "100%",
-              maxWidth: 984,
+              maxWidth: 846,
               mx: "auto",
-              pt: { xs: 1.2, md: 3.6 },
+              pt: { xs: 1.2, md: 3.1 },
             }}
           >
             <HeroPromptInput
@@ -2055,7 +2073,7 @@ function Hero(props: HeroProps) {
               onPlanFirstChange={props.onPlanFirstChange}
             />
           </Box>
-          <Box sx={{ width: "100%", maxWidth: 984 }}>
+          <Box sx={{ width: "100%", maxWidth: 900 }}>
             <CategoryChips timing={props.timing} onPick={props.onPickSeed} />
           </Box>
           <HeroCapabilityRail timing={props.timing} colors={hero} />
@@ -2063,6 +2081,104 @@ function Hero(props: HeroProps) {
         </Stack>
       </Stack>
     </Section>
+  );
+}
+
+function HeroDepthScene({ timing }: { timing: OrbitalTiming }) {
+  const light = timing === "light";
+  const panels = [
+    { left: "12%", top: "36%", rotate: "-18deg", delay: "0s" },
+    { left: "76%", top: "18%", rotate: "14deg", delay: "-1.2s" },
+    { left: "82%", top: "58%", rotate: "-10deg", delay: "-2.1s" },
+  ];
+  return (
+    <Box
+      aria-hidden
+      sx={{
+        position: "absolute",
+        inset: { xs: "52px -18px auto", md: "70px -8px auto" },
+        height: { xs: 260, md: 430 },
+        pointerEvents: "none",
+        perspective: "1100px",
+        opacity: light ? 0.84 : 0.92,
+        zIndex: -1,
+      }}
+    >
+      <Box
+        sx={{
+          position: "absolute",
+          left: "50%",
+          top: "50%",
+          width: { xs: 360, md: 640 },
+          height: { xs: 148, md: 220 },
+          borderRadius: "50%",
+          border: light
+            ? "1px solid rgba(158,91,255,0.18)"
+            : "1px solid rgba(148,94,255,0.28)",
+          transform: "translate(-50%, -50%) rotateX(68deg) rotateZ(-8deg)",
+          boxShadow: light
+            ? "0 0 90px rgba(181,82,255,0.12), inset 0 0 44px rgba(255,255,255,0.74)"
+            : "0 0 120px rgba(131,71,255,0.22), inset 0 0 50px rgba(112,73,255,0.10)",
+        }}
+      />
+      <Box
+        sx={{
+          position: "absolute",
+          left: "50%",
+          top: "47%",
+          width: { xs: 104, md: 150 },
+          height: { xs: 104, md: 150 },
+          borderRadius: "50%",
+          transform: "translate(-50%, -50%)",
+          background: light
+            ? "radial-gradient(circle at 34% 24%, #fff, rgba(146,98,255,0.30) 28%, rgba(255,93,177,0.38) 58%, rgba(255,255,255,0.04) 100%)"
+            : "radial-gradient(circle at 34% 24%, rgba(255,255,255,0.8), rgba(73,142,255,0.42) 28%, rgba(185,74,255,0.52) 58%, rgba(6,7,24,0.05) 100%)",
+          boxShadow: light
+            ? "0 24px 90px rgba(161,91,255,0.22)"
+            : "0 0 90px rgba(115,81,255,0.42)",
+          filter: "saturate(132%)",
+        }}
+      />
+      {panels.map((panel, index) => (
+        <Box
+          key={index}
+          sx={{
+            position: "absolute",
+            left: panel.left,
+            top: panel.top,
+            width: { xs: 66, md: 96 },
+            height: { xs: 54, md: 76 },
+            borderRadius: 2,
+            border: light
+              ? "1px solid rgba(149,94,255,0.18)"
+              : "1px solid rgba(154,108,255,0.28)",
+            bgcolor: light ? "rgba(255,255,255,0.58)" : "rgba(15,18,51,0.52)",
+            backdropFilter: "blur(16px)",
+            boxShadow: light
+              ? "0 20px 54px rgba(111,76,178,0.12)"
+              : "0 18px 68px rgba(0,0,0,0.32)",
+            transform: `rotateZ(${panel.rotate}) rotateY(${index % 2 ? "-18deg" : "18deg"})`,
+            animation: `ironflyerFloatPanel 7s ease-in-out ${panel.delay} infinite`,
+            "@keyframes ironflyerFloatPanel": {
+              "0%, 100%": { translate: "0 0" },
+              "50%": { translate: "0 -12px" },
+            },
+            "&::before, &::after": {
+              content: '""',
+              position: "absolute",
+              left: 12,
+              right: 12,
+              height: 7,
+              borderRadius: 999,
+              background:
+                "linear-gradient(90deg, rgba(255,106,95,0.85), rgba(179,77,255,0.85))",
+            },
+            "&::before": { top: 18 },
+            "&::after": { top: 34, right: 26, opacity: 0.55 },
+          }}
+        />
+      ))}
+    </Box>
   );
 }
 
@@ -2883,7 +2999,17 @@ function TrustedStrip() {
   );
 }
 
-function FlowPanel() {
+function FlowPanel({ timing }: { timing: OrbitalTiming }) {
+  const light = timing === "light";
+  const c = {
+    text: light ? "#080b3f" : tokens.color.text.primary,
+    secondary: light ? "#5e6689" : tokens.color.text.secondary,
+    border: light ? "rgba(127,77,255,0.18)" : tokens.color.border.subtle,
+    surface: light
+      ? "rgba(255,255,255,0.78)"
+      : `${tokens.color.bg.surfaceRaised}d9`,
+    icon: light ? "rgba(143,77,255,0.10)" : `${tokens.color.accent.violet}19`,
+  };
   const steps = [
     {
       title: "Plan",
@@ -2913,10 +3039,12 @@ function FlowPanel() {
           position: "relative",
           p: { xs: 3, md: 4 },
           borderRadius: 2,
-          border: `1px solid ${tokens.color.border.subtle}`,
-          bgcolor: `${tokens.color.bg.surfaceRaised}d9`,
+          border: `1px solid ${c.border}`,
+          bgcolor: c.surface,
           overflow: "hidden",
-          boxShadow: `0 26px 90px ${tokens.color.accent.purple}1c`,
+          boxShadow: light
+            ? "0 24px 90px rgba(103,65,180,0.08)"
+            : `0 26px 90px ${tokens.color.accent.purple}1c`,
         }}
       >
         <MiniPrism
@@ -2925,6 +3053,7 @@ function FlowPanel() {
         <Stack spacing={1} alignItems="center" sx={{ mb: { xs: 3, md: 4 } }}>
           <Typography
             sx={{
+              color: c.text,
               fontSize: { xs: 25, md: 32 },
               lineHeight: 1.05,
               fontWeight: 900,
@@ -2935,7 +3064,7 @@ function FlowPanel() {
           </Typography>
           <Typography
             sx={{
-              color: tokens.color.text.secondary,
+              color: c.secondary,
               fontSize: 13.5,
               textAlign: "center",
             }}
@@ -2969,8 +3098,8 @@ function FlowPanel() {
                   display: "grid",
                   placeItems: "center",
                   color: tokens.color.accent.violet,
-                  bgcolor: `${tokens.color.accent.violet}19`,
-                  border: `1px solid ${tokens.color.accent.violet}3d`,
+                  bgcolor: c.icon,
+                  border: `1px solid ${c.border}`,
                   "& svg": { fontSize: 21 },
                 }}
               >
@@ -2981,7 +3110,7 @@ function FlowPanel() {
               </Typography>
               <Typography
                 sx={{
-                  color: tokens.color.text.secondary,
+                  color: c.secondary,
                   fontSize: 12,
                   lineHeight: 1.55,
                   maxWidth: 210,
@@ -2997,7 +3126,16 @@ function FlowPanel() {
   );
 }
 
-function CapabilityGrid() {
+function CapabilityGrid({ timing }: { timing: OrbitalTiming }) {
+  const light = timing === "light";
+  const c = {
+    text: light ? "#080b3f" : tokens.color.text.primary,
+    secondary: light ? "#5e6689" : tokens.color.text.secondary,
+    border: light ? "rgba(127,77,255,0.18)" : tokens.color.border.subtle,
+    surface: light
+      ? "rgba(255,255,255,0.78)"
+      : `${tokens.color.bg.surfaceRaised}d9`,
+  };
   const capabilities = [
     {
       title: "AI Product Architect",
@@ -3048,6 +3186,7 @@ function CapabilityGrid() {
             fontSize: { xs: 25, md: 32 },
             fontWeight: 900,
             textAlign: "center",
+            color: c.text,
           }}
         >
           Everything you need to build and ship
@@ -3070,8 +3209,8 @@ function CapabilityGrid() {
                 p: 2.2,
                 minHeight: 118,
                 borderRadius: 1,
-                border: `1px solid ${tokens.color.border.subtle}`,
-                bgcolor: `${tokens.color.bg.surfaceRaised}d9`,
+                border: `1px solid ${c.border}`,
+                bgcolor: c.surface,
                 transition: `transform ${tokens.motion.fast} ${tokens.motion.snap}, border-color ${tokens.motion.fast} ${tokens.motion.snap}`,
                 "&:hover": {
                   transform: "translateY(-3px)",
@@ -3089,7 +3228,9 @@ function CapabilityGrid() {
                 >
                   {item.icon}
                 </Box>
-                <Typography sx={{ fontSize: 13.5, fontWeight: 900 }}>
+                <Typography
+                  sx={{ color: c.text, fontSize: 13.5, fontWeight: 900 }}
+                >
                   {item.title}
                 </Typography>
               </Stack>
@@ -3098,7 +3239,7 @@ function CapabilityGrid() {
                   mt: 1,
                   fontSize: 12,
                   lineHeight: 1.5,
-                  color: tokens.color.text.secondary,
+                  color: c.secondary,
                 }}
               >
                 {item.body}
@@ -3111,7 +3252,24 @@ function CapabilityGrid() {
   );
 }
 
-function TemplateShowcase({ onPick }: { onPick: (seed: string) => void }) {
+function TemplateShowcase({
+  timing,
+  onPick,
+}: {
+  timing: OrbitalTiming;
+  onPick: (seed: string) => void;
+}) {
+  const light = timing === "light";
+  const c = {
+    text: light ? "#080b3f" : tokens.color.text.primary,
+    secondary: light ? "#5e6689" : tokens.color.text.secondary,
+    border: light ? "rgba(127,77,255,0.18)" : tokens.color.border.subtle,
+    surface: light
+      ? "rgba(255,255,255,0.78)"
+      : `${tokens.color.bg.surfaceRaised}d4`,
+    card: light ? "rgba(255,255,255,0.86)" : tokens.color.bg.surface,
+    inset: light ? "rgba(247,244,255,0.92)" : tokens.color.bg.inset,
+  };
   const templates = [
     ["SaaS Starter", "Auth, billing, team settings", "92", "Live billing"],
     ["Client Portal", "Projects, files, approvals", "88", "Approvals queue"],
@@ -3125,8 +3283,12 @@ function TemplateShowcase({ onPick }: { onPick: (seed: string) => void }) {
         sx={{
           p: { xs: 2.4, md: 3 },
           borderRadius: 2,
-          border: `1px solid ${tokens.color.border.subtle}`,
-          bgcolor: `${tokens.color.bg.surfaceRaised}d4`,
+          border: `1px solid ${c.border}`,
+          bgcolor: c.surface,
+          boxShadow: light
+            ? "0 24px 90px rgba(103,65,180,0.09)"
+            : "0 24px 80px rgba(0,0,0,0.18)",
+          overflow: "hidden",
         }}
       >
         <Stack
@@ -3138,13 +3300,12 @@ function TemplateShowcase({ onPick }: { onPick: (seed: string) => void }) {
           sx={{ gap: 1.5, mb: 2 }}
         >
           <Box>
-            <Typography sx={{ fontSize: 20, fontWeight: 900 }}>
+            <Typography sx={{ color: c.text, fontSize: 20, fontWeight: 900 }}>
               Start from a proven template
             </Typography>
-            <Typography
-              sx={{ mt: 0.5, color: tokens.color.text.secondary, fontSize: 13 }}
-            >
-              Pre-built foundations for common product patterns.
+            <Typography sx={{ mt: 0.5, color: c.secondary, fontSize: 13 }}>
+              Swipe through polished starting points for common product
+              patterns.
             </Typography>
           </Box>
           <Button
@@ -3159,116 +3320,168 @@ function TemplateShowcase({ onPick }: { onPick: (seed: string) => void }) {
         </Stack>
         <Box
           sx={{
-            display: "grid",
-            gridTemplateColumns: {
-              xs: "1fr",
-              sm: "repeat(2, 1fr)",
-              lg: "repeat(5, 1fr)",
+            ".swiper": {
+              overflow: "visible",
+              width: "100%",
             },
-            gap: 1.4,
+            ".swiper-wrapper": {
+              alignItems: "stretch",
+              display: "flex",
+              width: "100%",
+            },
+            ".swiper-slide": {
+              display: "block",
+              flexShrink: 0,
+              height: "auto",
+            },
           }}
         >
-          {templates.map(([title, body, score, seed]) => (
-            <Box
-              key={title}
-              onClick={() =>
-                onPick(
-                  `Build a ${title.toLowerCase()} with ${body.toLowerCase()}, admin dashboard, roles, payments and deploy-ready code.`,
-                )
-              }
-              sx={{
-                cursor: "pointer",
-                borderRadius: 1,
-                border: `1px solid ${tokens.color.border.subtle}`,
-                bgcolor: tokens.color.bg.surface,
-                overflow: "hidden",
-                transition: `transform ${tokens.motion.fast} ${tokens.motion.snap}, border-color ${tokens.motion.fast} ${tokens.motion.snap}`,
-                "&:hover": {
-                  transform: "translateY(-3px)",
-                  borderColor: tokens.color.border.strong,
-                },
-              }}
-            >
-              <Box sx={{ p: 1, bgcolor: `${tokens.color.accent.purple}24` }}>
+          <Swiper
+            modules={[Autoplay]}
+            slidesPerView={1.12}
+            spaceBetween={14}
+            autoplay={{ delay: 2800, disableOnInteraction: false }}
+            breakpoints={{
+              640: { slidesPerView: 2.2, spaceBetween: 14 },
+              960: { slidesPerView: 3.2, spaceBetween: 16 },
+              1200: { slidesPerView: 4.25, spaceBetween: 16 },
+            }}
+          >
+            {templates.map(([title, body, score, seed]) => (
+              <SwiperSlide key={title}>
                 <Box
+                  onClick={() =>
+                    onPick(
+                      `Build a ${title.toLowerCase()} with ${body.toLowerCase()}, roles, payments and deploy-ready code.`,
+                    )
+                  }
                   sx={{
-                    height: 70,
-                    borderRadius: 1,
-                    bgcolor: tokens.color.bg.inset,
-                    p: 1,
+                    height: "100%",
+                    cursor: "pointer",
+                    borderRadius: 1.5,
+                    border: `1px solid ${c.border}`,
+                    bgcolor: c.card,
+                    overflow: "hidden",
+                    transition: `transform ${tokens.motion.fast} ${tokens.motion.snap}, border-color ${tokens.motion.fast} ${tokens.motion.snap}`,
+                    "&:hover": {
+                      transform: "translateY(-4px)",
+                      borderColor: tokens.color.border.strong,
+                    },
                   }}
                 >
-                  <Stack direction="row" spacing={0.5} sx={{ mb: 1 }}>
-                    {[0, 1, 2].map((dot) => (
-                      <Box
-                        key={dot}
-                        sx={{
-                          width: 6,
-                          height: 6,
-                          borderRadius: "50%",
-                          bgcolor: tokens.color.text.muted,
-                        }}
-                      />
-                    ))}
-                  </Stack>
                   <Box
                     sx={{
-                      width: "68%",
-                      height: 12,
-                      borderRadius: 0.7,
-                      bgcolor: `${tokens.color.accent.violet}80`,
-                      mb: 0.8,
-                    }}
-                  />
-                  <Box
-                    sx={{
-                      width: "52%",
-                      height: 12,
-                      borderRadius: 0.7,
-                      bgcolor: `${tokens.color.accent.violet}55`,
-                    }}
-                  />
-                  <Typography
-                    sx={{
-                      float: "right",
-                      mt: -2.5,
-                      mr: 1,
-                      color: tokens.color.accent.violet,
-                      fontFamily: tokens.font.mono,
-                      fontWeight: 900,
-                      fontSize: 14,
+                      p: 1,
+                      background: light
+                        ? "linear-gradient(135deg, rgba(143,77,255,0.12), rgba(255,91,184,0.10))"
+                        : `${tokens.color.accent.purple}24`,
                     }}
                   >
-                    {score}
-                  </Typography>
+                    <Box
+                      sx={{
+                        height: 88,
+                        borderRadius: 1.1,
+                        bgcolor: c.inset,
+                        p: 1.1,
+                        position: "relative",
+                        overflow: "hidden",
+                        transform: "perspective(700px) rotateX(4deg)",
+                        boxShadow: light
+                          ? "inset 0 0 0 1px rgba(255,255,255,0.8)"
+                          : "inset 0 0 0 1px rgba(255,255,255,0.04)",
+                      }}
+                    >
+                      <Stack direction="row" spacing={0.5} sx={{ mb: 1 }}>
+                        {[0, 1, 2].map((dot) => (
+                          <Box
+                            key={dot}
+                            sx={{
+                              width: 6,
+                              height: 6,
+                              borderRadius: "50%",
+                              bgcolor: light
+                                ? "rgba(83,89,123,0.36)"
+                                : tokens.color.text.muted,
+                            }}
+                          />
+                        ))}
+                      </Stack>
+                      <Box
+                        sx={{
+                          width: "70%",
+                          height: 12,
+                          borderRadius: 0.7,
+                          bgcolor: `${tokens.color.accent.violet}88`,
+                          mb: 0.8,
+                        }}
+                      />
+                      <Box
+                        sx={{
+                          width: "50%",
+                          height: 12,
+                          borderRadius: 0.7,
+                          bgcolor: `${tokens.color.accent.violet}55`,
+                        }}
+                      />
+                      <Box
+                        sx={{
+                          position: "absolute",
+                          right: 12,
+                          bottom: 12,
+                          width: 42,
+                          height: 30,
+                          borderRadius: "50%",
+                          background:
+                            "linear-gradient(135deg, rgba(255,105,93,0.75), rgba(179,77,255,0.9))",
+                          transform: "rotateX(64deg) rotateZ(-18deg)",
+                          filter: "blur(0.2px)",
+                        }}
+                      />
+                      <Typography
+                        sx={{
+                          position: "absolute",
+                          right: 13,
+                          top: 34,
+                          color: tokens.color.accent.violet,
+                          fontFamily: tokens.font.mono,
+                          fontWeight: 900,
+                          fontSize: 14,
+                        }}
+                      >
+                        {score}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Box sx={{ p: 1.55 }}>
+                    <Typography
+                      sx={{ color: c.text, fontSize: 13.5, fontWeight: 900 }}
+                    >
+                      {title}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        mt: 0.5,
+                        fontSize: 11.8,
+                        color: c.secondary,
+                      }}
+                    >
+                      {body}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        mt: 1,
+                        fontSize: 10.5,
+                        color: light ? "#8a91ad" : tokens.color.text.muted,
+                        fontFamily: tokens.font.mono,
+                      }}
+                    >
+                      {seed}
+                    </Typography>
+                  </Box>
                 </Box>
-              </Box>
-              <Box sx={{ p: 1.4 }}>
-                <Typography sx={{ fontSize: 13, fontWeight: 900 }}>
-                  {title}
-                </Typography>
-                <Typography
-                  sx={{
-                    mt: 0.5,
-                    fontSize: 11.5,
-                    color: tokens.color.text.secondary,
-                  }}
-                >
-                  {body}
-                </Typography>
-                <Typography
-                  sx={{
-                    mt: 1,
-                    fontSize: 10.5,
-                    color: tokens.color.text.muted,
-                    fontFamily: tokens.font.mono,
-                  }}
-                >
-                  {seed}
-                </Typography>
-              </Box>
-            </Box>
-          ))}
+              </SwiperSlide>
+            ))}
+          </Swiper>
         </Box>
       </Box>
     </Section>
@@ -3478,7 +3691,8 @@ function VscodeExtensionBand({ timing }: { timing: OrbitalTiming }) {
   );
 }
 
-function TestimonialBand() {
+function TestimonialBand({ timing }: { timing: OrbitalTiming }) {
+  const c = homeTone(timing);
   return (
     <Section sx={{ py: { xs: 4, md: 4.8 } }}>
       <Box
@@ -3486,8 +3700,8 @@ function TestimonialBand() {
           position: "relative",
           p: { xs: 3, md: 4 },
           borderRadius: 2,
-          border: `1px solid ${tokens.color.accent.violet}80`,
-          bgcolor: `${tokens.color.bg.surfaceRaised}cf`,
+          border: `1px solid ${c.strong}`,
+          bgcolor: c.surface,
           overflow: "hidden",
           boxShadow: `0 18px 80px ${tokens.color.accent.purple}20`,
         }}
@@ -3520,6 +3734,7 @@ function TestimonialBand() {
                 fontSize: { xs: 24, md: 32 },
                 lineHeight: 1.08,
                 fontWeight: 900,
+                color: c.text,
               }}
             >
               "We shipped our client portal in a week with Ironflyer. The AI
@@ -3548,9 +3763,7 @@ function TestimonialBand() {
                 >
                   {value}
                 </Typography>
-                <Typography
-                  sx={{ color: tokens.color.text.secondary, fontSize: 12 }}
-                >
+                <Typography sx={{ color: c.secondary, fontSize: 12 }}>
                   {label}
                 </Typography>
               </Stack>
@@ -3562,7 +3775,8 @@ function TestimonialBand() {
   );
 }
 
-function PricingCards() {
+function PricingCards({ timing }: { timing: OrbitalTiming }) {
+  const c = homeTone(timing);
   const plans = [
     [
       "Free",
@@ -3597,10 +3811,16 @@ function PricingCards() {
     <Section sx={{ py: { xs: 4, md: 5.2 } }}>
       <Stack spacing={3} alignItems="center">
         <Stack spacing={1} alignItems="center">
-          <Typography sx={{ fontSize: { xs: 25, md: 32 }, fontWeight: 900 }}>
+          <Typography
+            sx={{
+              color: c.text,
+              fontSize: { xs: 25, md: 32 },
+              fontWeight: 900,
+            }}
+          >
             Simple, transparent pricing
           </Typography>
-          <Typography sx={{ color: tokens.color.text.secondary, fontSize: 13 }}>
+          <Typography sx={{ color: c.secondary, fontSize: 13 }}>
             Start free. Scale on your terms.
           </Typography>
         </Stack>
@@ -3624,8 +3844,8 @@ function PricingCards() {
                 position: "relative",
                 p: 2.2,
                 borderRadius: 1,
-                border: `1px solid ${index === 2 ? tokens.color.accent.violet : tokens.color.border.subtle}`,
-                bgcolor: `${tokens.color.bg.surfaceRaised}e0`,
+                border: `1px solid ${index === 2 ? tokens.color.accent.violet : c.border}`,
+                bgcolor: c.surface,
               }}
             >
               {index === 2 && (
@@ -3638,6 +3858,7 @@ function PricingCards() {
                     py: 0.25,
                     borderRadius: 999,
                     bgcolor: tokens.color.accent.violet,
+                    color: "#fff",
                     fontSize: 10,
                     fontWeight: 900,
                   }}
@@ -3645,7 +3866,7 @@ function PricingCards() {
                   Most popular
                 </Box>
               )}
-              <Typography sx={{ fontSize: 12, fontWeight: 900 }}>
+              <Typography sx={{ color: c.text, fontSize: 12, fontWeight: 900 }}>
                 {name}
               </Typography>
               <Typography
@@ -3654,6 +3875,7 @@ function PricingCards() {
                   fontSize: price === "Custom" ? 29 : 34,
                   fontWeight: 900,
                   lineHeight: 1,
+                  color: c.text,
                 }}
               >
                 {price}
@@ -3661,7 +3883,7 @@ function PricingCards() {
               <Typography
                 sx={{
                   mt: 0.7,
-                  color: tokens.color.text.secondary,
+                  color: c.secondary,
                   fontSize: 11,
                 }}
               >
@@ -3671,7 +3893,7 @@ function PricingCards() {
                 {(features as string[]).map((feature) => (
                   <Typography
                     key={feature}
-                    sx={{ color: tokens.color.text.secondary, fontSize: 12 }}
+                    sx={{ color: c.secondary, fontSize: 12 }}
                   >
                     - {feature}
                   </Typography>
@@ -3698,7 +3920,8 @@ function PricingCards() {
   );
 }
 
-function ProofFooterBand() {
+function ProofFooterBand({ timing }: { timing: OrbitalTiming }) {
+  const c = homeTone(timing);
   const rows = [
     [
       "Build in natural language",
@@ -3714,8 +3937,8 @@ function ProofFooterBand() {
         sx={{
           p: 2.2,
           borderRadius: 2,
-          border: `1px solid ${tokens.color.border.subtle}`,
-          bgcolor: `${tokens.color.bg.surfaceRaised}d0`,
+          border: `1px solid ${c.border}`,
+          bgcolor: c.surface,
           display: "grid",
           gridTemplateColumns: {
             xs: "1fr",
@@ -3731,14 +3954,16 @@ function ProofFooterBand() {
               sx={{ fontSize: 16, color: tokens.color.accent.violet, mt: 0.25 }}
             />
             <Box>
-              <Typography sx={{ fontSize: 12.5, fontWeight: 900 }}>
+              <Typography
+                sx={{ color: c.text, fontSize: 12.5, fontWeight: 900 }}
+              >
                 {title}
               </Typography>
               <Typography
                 sx={{
                   mt: 0.4,
                   fontSize: 11.5,
-                  color: tokens.color.text.secondary,
+                  color: c.secondary,
                 }}
               >
                 {body}
@@ -3751,7 +3976,8 @@ function ProofFooterBand() {
   );
 }
 
-function FaqShowcase() {
+function FaqShowcase({ timing }: { timing: OrbitalTiming }) {
+  const c = homeTone(timing);
   const questions = [
     "Can I export the code?",
     "How does pricing work?",
@@ -3766,6 +3992,7 @@ function FaqShowcase() {
             textAlign: "center",
             fontSize: { xs: 25, md: 32 },
             fontWeight: 900,
+            color: c.text,
           }}
         >
           Frequently asked questions
@@ -3784,19 +4011,19 @@ function FaqShowcase() {
                 sx={{
                   p: 2,
                   borderRadius: 1,
-                  border: `1px solid ${tokens.color.border.subtle}`,
-                  bgcolor: `${tokens.color.bg.surfaceRaised}d9`,
+                  border: `1px solid ${c.border}`,
+                  bgcolor: c.surface,
                   display: "flex",
                   justifyContent: "space-between",
                   gap: 2,
                 }}
               >
-                <Typography sx={{ fontSize: 13, fontWeight: 900 }}>
+                <Typography
+                  sx={{ color: c.text, fontSize: 13, fontWeight: 900 }}
+                >
                   {question}
                 </Typography>
-                <Typography sx={{ color: tokens.color.text.secondary }}>
-                  +
-                </Typography>
+                <Typography sx={{ color: c.secondary }}>+</Typography>
               </Box>
             ))}
           </Stack>
@@ -3804,8 +4031,8 @@ function FaqShowcase() {
             sx={{
               p: 2,
               borderRadius: 1,
-              border: `1px solid ${tokens.color.border.subtle}`,
-              bgcolor: tokens.color.bg.inset,
+              border: `1px solid ${c.border}`,
+              bgcolor: c.inset,
               position: "relative",
               overflow: "hidden",
             }}
@@ -3817,7 +4044,7 @@ function FaqShowcase() {
               sx={{
                 mb: 2,
                 fontFamily: tokens.font.mono,
-                color: tokens.color.text.muted,
+                color: c.muted,
                 fontSize: 11,
               }}
             >
@@ -3831,7 +4058,7 @@ function FaqShowcase() {
                 p: 0,
                 border: 0,
                 bgcolor: `${tokens.color.bg.base}00`,
-                color: tokens.color.text.secondary,
+                color: c.secondary,
                 fontFamily: tokens.font.mono,
                 fontSize: 12,
                 lineHeight: 1.7,
@@ -3855,15 +4082,19 @@ function FaqShowcase() {
   );
 }
 
-function FinalShipCTA() {
+function FinalShipCTA({ timing }: { timing: OrbitalTiming }) {
+  const c = homeTone(timing);
   return (
     <Section sx={{ py: { xs: 3.5, md: 4.2 } }}>
       <Box
         sx={{
           p: { xs: 2, md: 3 },
           borderRadius: 2,
-          border: `1px solid ${tokens.color.border.subtle}`,
-          bgcolor: `${tokens.color.accent.purple}2e`,
+          border: `1px solid ${c.border}`,
+          bgcolor:
+            timing === "light"
+              ? "rgba(236,222,255,0.78)"
+              : `${tokens.color.accent.purple}2e`,
           display: "grid",
           gridTemplateColumns: { xs: "1fr", md: "160px 1fr auto" },
           gap: { xs: 2, md: 3 },
@@ -3881,12 +4112,16 @@ function FinalShipCTA() {
           }}
         />
         <Box>
-          <Typography sx={{ fontSize: { xs: 22, md: 28 }, fontWeight: 900 }}>
+          <Typography
+            sx={{
+              color: c.text,
+              fontSize: { xs: 22, md: 28 },
+              fontWeight: 900,
+            }}
+          >
             Stop stitching tools. Start shipping products.
           </Typography>
-          <Typography
-            sx={{ mt: 0.6, color: tokens.color.text.secondary, fontSize: 13 }}
-          >
+          <Typography sx={{ mt: 0.6, color: c.secondary, fontSize: 13 }}>
             One prompt. One workspace. One launch.
           </Typography>
         </Box>
@@ -3903,7 +4138,7 @@ function FinalShipCTA() {
           <Button
             component={Link}
             href="/enterprise"
-            sx={{ color: tokens.color.text.primary, fontWeight: 800 }}
+            sx={{ color: c.text, fontWeight: 800 }}
           >
             Talk to sales
           </Button>
