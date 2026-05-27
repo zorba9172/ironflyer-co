@@ -26,16 +26,22 @@ import {
   ArrowForwardRounded,
   AutoAwesomeRounded,
   BoltRounded,
+  CheckRounded,
   CheckCircleRounded,
   CodeRounded,
   DataObjectRounded,
   GitHub,
   HubRounded,
+  LayersRounded,
+  MailOutlineRounded,
+  MonitorHeartOutlined,
   RocketLaunchRounded,
   RuleFolderRounded,
   SecurityRounded,
+  SendRounded,
   SettingsSuggestRounded,
   ShieldOutlined,
+  StorageRounded,
   TimelineRounded,
   VerifiedRounded,
   VisibilityRounded,
@@ -49,6 +55,7 @@ import {
   useEffect,
   useRef,
   useState,
+  type MutableRefObject,
   type ReactNode,
 } from "react";
 import { tokens } from "../../../packages/design-tokens";
@@ -60,13 +67,7 @@ import {
   type HeroPromptSubmitPayload,
 } from "../src/components/home/HeroPromptInput";
 import * as swal from "../src/lib/swal";
-import { RecentsGrid } from "../src/components/home/RecentsGrid";
 import { TemplatesGalleryPreview } from "../src/components/home/TemplatesGalleryPreview";
-import { MechanicsBlock } from "../src/components/home/MechanicsBlock";
-import { ComparisonTable } from "../src/components/home/ComparisonTable";
-import { SocialProofStrip } from "../src/components/home/SocialProofStrip";
-import { HomeFAQ } from "../src/components/home/HomeFAQ";
-import { FinalCTABand } from "../src/components/home/FinalCTABand";
 import { BrandBackdrop, ProductTheater } from "../src/components/marketing";
 import { useAuth } from "../src/lib/auth";
 import { extractErrorMessage } from "../src/lib/errors";
@@ -100,9 +101,11 @@ function HomeInner() {
 
   // Hero composer state. Owned by the page so chips + templates can
   // drop seeds and focus the textarea.
-  const [prompt, setPrompt] = useState("");
-  const [budgetUSD, setBudgetUSD] = useState<number | null>(null);
-  const [planFirst, setPlanFirst] = useState(false);
+  const [prompt, setPrompt] = useState(
+    "A CRM with contacts, deals, and a kanban pipeline;\nnotes and follow-up reminders.",
+  );
+  const [budgetUSD, setBudgetUSD] = useState<number | null>(27);
+  const [planFirst, setPlanFirst] = useState(true);
 
   const [welcomeOpen, setWelcomeOpen] = useState(false);
 
@@ -249,9 +252,21 @@ function HomeInner() {
     void handleSubmit({ text: prompt.trim(), budgetUSD, planFirst });
   }, [prompt, budgetUSD, planFirst, handleSubmit]);
 
+  const timing = search?.get("theme") === "light" ? "light" : "dark";
+
   return (
-    <Box sx={{ position: "relative", width: "100%", minWidth: 0, overflow: "clip" }}>
+    <Box
+      data-home-timing={timing}
+      sx={{
+        position: "relative",
+        width: "100%",
+        minWidth: 0,
+        overflow: "clip",
+        bgcolor: timing === "light" ? "#fbfaff" : tokens.color.bg.base,
+      }}
+    >
       <Hero
+        timing={timing}
         copy={homeCopy.hero}
         prompt={prompt}
         onPromptChange={setPrompt}
@@ -268,19 +283,32 @@ function HomeInner() {
         onWelcomeDismiss={() => setWelcomeOpen(false)}
       />
 
-      <SocialProofStrip />
+      <Box
+        sx={{
+          filter: timing === "light" ? "invert(1) hue-rotate(180deg)" : "none",
+          "& img, & video": {
+            filter: timing === "light" ? "invert(1) hue-rotate(180deg)" : "none",
+          },
+        }}
+      >
+        <FlowPanel />
 
-      <MechanicsBlock />
+        <CapabilityGrid />
 
-      <ComparisonTable />
+        <TemplateShowcase onPick={pickSeed} />
 
-      <TemplatesGalleryPreview onPick={pickSeed} />
+        <TestimonialBand />
 
-      <HomeFAQ />
+        <PricingCards />
 
-      <FinalCTABand />
+        <ProofFooterBand />
 
-      <Footer copy={homeCopy.footer} />
+        <FaqShowcase />
+
+        <FinalShipCTA />
+
+        <Footer copy={homeCopy.footer} />
+      </Box>
     </Box>
   );
 }
@@ -306,9 +334,800 @@ function Section({
   );
 }
 
+// ── 2026-05-27 Orbital Home ────────────────────────────────────────────
+
+type OrbitalTiming = "dark" | "light";
+
+interface OrbitalPalette {
+  mode: OrbitalTiming;
+  bg: string;
+  surface: string;
+  surface2: string;
+  inset: string;
+  text: string;
+  secondary: string;
+  muted: string;
+  border: string;
+  strong: string;
+  glow: string;
+  purple: string;
+  pink: string;
+  orange: string;
+  blue: string;
+  cardShadow: string;
+}
+
+function orbitalPalette(mode: OrbitalTiming): OrbitalPalette {
+  if (mode === "light") {
+    return {
+      mode,
+      bg: "#fbfaff",
+      surface: "rgba(255,255,255,0.88)",
+      surface2: "rgba(255,255,255,0.74)",
+      inset: "#ffffff",
+      text: "#0b1040",
+      secondary: "#46507d",
+      muted: "#7e84a7",
+      border: "rgba(112,77,255,0.16)",
+      strong: "rgba(147,76,255,0.32)",
+      glow: "rgba(158,77,255,0.18)",
+      purple: "#8a35ff",
+      pink: "#ee46c8",
+      orange: "#ff6259",
+      blue: "#3b82ff",
+      cardShadow: "0 26px 80px rgba(70,51,160,0.12)",
+    };
+  }
+  return {
+    mode,
+    bg: "#030614",
+    surface: "rgba(13,16,44,0.78)",
+    surface2: "rgba(16,20,56,0.66)",
+    inset: "rgba(6,8,26,0.82)",
+    text: "#ffffff",
+    secondary: "#c9cdf5",
+    muted: "#858bb5",
+    border: "rgba(139,107,255,0.24)",
+    strong: "rgba(184,82,255,0.58)",
+    glow: "rgba(163,59,255,0.42)",
+    purple: "#a73dff",
+    pink: "#f03bce",
+    orange: "#ff6b4a",
+    blue: "#1fb6ff",
+    cardShadow: "0 26px 100px rgba(123,42,255,0.28)",
+  };
+}
+
+function gradient(t: OrbitalPalette) {
+  return `linear-gradient(100deg, ${t.orange}, ${t.pink} 52%, ${t.purple})`;
+}
+
+function OrbitalHome({
+  timing,
+  copy,
+  prompt,
+  onPromptChange,
+  onSubmit,
+  submitting,
+  onPickSeed,
+  inputRef,
+  welcomeOpen,
+  onWelcomeContinue,
+  onWelcomeDismiss,
+}: {
+  timing: OrbitalTiming;
+  copy: HomeCopy;
+  prompt: string;
+  onPromptChange: (next: string) => void;
+  onSubmit: (payload: HeroPromptSubmitPayload) => void;
+  submitting: boolean;
+  onPickSeed: (seed: string) => void;
+  inputRef: MutableRefObject<HeroPromptInputHandle | null>;
+  welcomeOpen: boolean;
+  onWelcomeContinue: () => void;
+  onWelcomeDismiss: () => void;
+}) {
+  const t = orbitalPalette(timing);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  useEffect(() => {
+    inputRef.current = {
+      focus: () => textareaRef.current?.focus(),
+    };
+    return () => {
+      inputRef.current = null;
+    };
+  }, [inputRef]);
+
+  const submitPrompt = useCallback(() => {
+    if (prompt.trim().length < 8 || submitting) return;
+    onSubmit({ text: prompt.trim(), budgetUSD: null, planFirst: false });
+  }, [onSubmit, prompt, submitting]);
+
+  return (
+    <Box
+      data-home-timing={timing}
+      sx={{
+        minHeight: "100vh",
+        overflow: "clip",
+        color: t.text,
+        bgcolor: t.bg,
+        backgroundImage:
+          timing === "light"
+            ? [
+                `radial-gradient(ellipse 760px 460px at 80% 2%, rgba(226,69,205,0.13), transparent 72%)`,
+                `radial-gradient(ellipse 780px 420px at 10% 14%, rgba(125,74,255,0.10), transparent 70%)`,
+                `radial-gradient(circle at 1px 1px, rgba(132,72,255,0.14) 1px, transparent 1.6px)`,
+              ].join(", ")
+            : [
+                `radial-gradient(ellipse 860px 520px at 78% 4%, rgba(128,63,255,0.33), transparent 72%)`,
+                `radial-gradient(ellipse 700px 380px at 4% 15%, rgba(0,128,255,0.12), transparent 70%)`,
+                `radial-gradient(circle at 1px 1px, rgba(126,183,255,0.22) 1px, transparent 1.6px)`,
+              ].join(", "),
+        backgroundSize: "auto, auto, 32px 32px",
+      }}
+    >
+      <Box sx={{ maxWidth: 1220, mx: "auto", px: { xs: 2, md: 2.4 }, pb: { xs: 4, md: timing === "dark" ? 1 : 3 } }}>
+        <OrbitalNav t={t} />
+
+        <Box
+          component="section"
+          sx={{
+            position: "relative",
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", md: "0.84fr 1.16fr" },
+            gap: { xs: 3, md: 3.5 },
+            alignItems: "center",
+            minHeight: { xs: "auto", md: 258 },
+            pt: { xs: 2, lg: 2 },
+          }}
+        >
+          <HeroCopy t={t} timing={timing} copy={copy.hero} />
+          <OrbitalVisual t={t} />
+        </Box>
+
+        {welcomeOpen && (
+          <Box sx={{ mt: 2 }}>
+            <WelcomeBanner
+              onContinue={onWelcomeContinue}
+              onDismiss={onWelcomeDismiss}
+            />
+          </Box>
+        )}
+
+        <OrbitalBuilderPanel
+          t={t}
+          prompt={prompt}
+          onPromptChange={onPromptChange}
+          onSubmit={submitPrompt}
+          submitting={submitting}
+          textareaRef={textareaRef}
+          onPickSeed={onPickSeed}
+        />
+
+        <OrbitalCapabilities t={t} />
+        <OrbitalTestimonial t={t} />
+        <OrbitalTemplates t={t} onPickSeed={onPickSeed} />
+        <OrbitalPricingFaq t={t} />
+        <OrbitalFinalCta t={t} />
+        {timing === "light" && <OrbitalFooter t={t} copy={copy.footer} />}
+      </Box>
+    </Box>
+  );
+}
+
+function OrbitalNav({ t }: { t: OrbitalPalette }) {
+  const links = ["Product", "Solutions", "Templates", "Pricing", "Resources", "Enterprise"];
+  return (
+    <Stack
+      component="nav"
+      direction="row"
+      alignItems="center"
+      sx={{
+        height: { xs: 58, md: 56 },
+        gap: { xs: 1, md: 3 },
+        color: t.text,
+      }}
+    >
+      <BrandLogo inverse={t.mode === "dark"} size={26} href="/" />
+      <Stack direction="row" spacing={2.3} sx={{ display: { xs: "none", md: "flex" }, ml: 2.6 }}>
+        {links.map((label) => (
+          <Box
+            key={label}
+            component={Link}
+            href={`/${label.toLowerCase() === "product" ? "product" : label.toLowerCase()}`}
+            sx={{
+              color: t.text,
+              opacity: 0.92,
+              fontSize: 12.4,
+              fontWeight: 800,
+              "&:hover": { color: t.pink },
+            }}
+          >
+            {label}{label === "Solutions" || label === "Resources" ? "⌄" : ""}
+          </Box>
+        ))}
+      </Stack>
+      <Box sx={{ flex: 1 }} />
+      <Button
+        component={Link}
+        href="/login"
+        size="small"
+        sx={{
+          color: t.text,
+          bgcolor: t.mode === "dark" ? "rgba(38,42,100,0.62)" : "rgba(255,255,255,0.58)",
+          border: `1px solid ${t.border}`,
+          minHeight: 34,
+          display: { xs: "none", sm: "inline-flex" },
+        }}
+      >
+        Log in
+      </Button>
+      <Button
+        component={Link}
+        href="/signup"
+        variant="contained"
+        endIcon={<ArrowForwardRounded sx={{ fontSize: 16 }} />}
+        sx={{
+          ml: 1,
+          minHeight: 38,
+          px: { xs: 1.6, md: 2 },
+          background: gradient(t),
+          color: "#fff",
+          fontWeight: 900,
+          borderRadius: 1.5,
+          boxShadow: `0 12px 34px ${t.glow}`,
+        }}
+      >
+        Start a project free
+      </Button>
+    </Stack>
+  );
+}
+
+function HeroCopy({ t, copy, timing }: { t: OrbitalPalette; copy: HomeCopy["hero"]; timing: OrbitalTiming }) {
+  return (
+    <Stack spacing={2.4} sx={{ pt: { xs: 2, lg: 0 }, maxWidth: 570 }}>
+      <Box sx={orbitalPillSx(t)}>
+        <AutoAwesomeRounded sx={{ fontSize: 15 }} />
+        AI-powered product builder
+      </Box>
+      <Typography
+        component="h1"
+        sx={{
+          fontSize: { xs: 38, md: 35 },
+          lineHeight: 1.04,
+          fontWeight: 900,
+          letterSpacing: 0,
+          color: t.text,
+          textShadow: timing === "dark" ? "0 10px 38px rgba(0,0,0,0.45)" : "none",
+        }}
+      >
+        Build, review and
+        <br />
+        ship production apps
+        <br />
+        from a{" "}
+        <Box
+          component="span"
+          sx={{
+            backgroundImage: gradient(t),
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+          }}
+        >
+          single prompt.
+        </Box>
+      </Typography>
+      <Typography sx={{ color: t.secondary, maxWidth: 440, fontSize: 12.8, lineHeight: 1.45 }}>
+        IronFlyer turns a plain-language idea into screens, data, code,
+        tests and deployments — in minutes.
+      </Typography>
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+        <Button
+          component={Link}
+          href="/signup"
+          variant="contained"
+          endIcon={<ArrowForwardRounded sx={{ fontSize: 18 }} />}
+          sx={{
+            minHeight: 44,
+            px: 2.4,
+            background: gradient(t),
+            color: "#fff",
+            borderRadius: 1.3,
+            fontWeight: 900,
+          }}
+        >
+          Start building for free
+        </Button>
+        <Button
+          component={Link}
+          href="/templates"
+          variant="outlined"
+          sx={{
+            minHeight: 44,
+            px: 2.4,
+            color: t.text,
+            borderColor: t.strong,
+            bgcolor: t.mode === "light" ? "rgba(255,255,255,0.55)" : "transparent",
+            fontWeight: 900,
+          }}
+        >
+          See templates
+        </Button>
+      </Stack>
+      <Stack direction="row" useFlexGap flexWrap="nowrap" gap={1.4} sx={{ overflow: "hidden" }}>
+        {["No credit card required", "Setup in 30 seconds", "SOC 2 compliant", "GDPR ready"].map((item) => (
+          <Stack key={item} direction="row" spacing={0.6} alignItems="center">
+            <CheckCircleRounded sx={{ fontSize: 13, color: t.mode === "light" ? t.purple : "#dfe4ff" }} />
+            <Typography sx={{ color: t.secondary, fontSize: 9.5, fontWeight: 800, whiteSpace: "nowrap" }}>{item}</Typography>
+          </Stack>
+        ))}
+      </Stack>
+      {t.mode === "light" && (
+        <Stack spacing={1.4} sx={{ pt: 1 }}>
+          <Typography sx={{ color: t.muted, fontSize: 12 }}>Trusted by modern teams worldwide</Typography>
+          <Stack direction="row" useFlexGap flexWrap="wrap" gap={3.2} sx={{ color: t.secondary, fontSize: 18, fontWeight: 800, opacity: 0.8 }}>
+            {["Google", "Microsoft", "airbnb", "amazon", "Spotify"].map((name) => <span key={name}>{name}</span>)}
+          </Stack>
+        </Stack>
+      )}
+    </Stack>
+  );
+}
+
+function OrbitalVisual({ t }: { t: OrbitalPalette }) {
+  const icons = [<CodeRounded key="code" />, <CheckRounded key="check" />, <DataObjectRounded key="data" />, <RocketLaunchRounded key="rocket" />, <SecurityRounded key="security" />, <HubRounded key="hub" />];
+  return (
+    <Box
+      aria-hidden
+      sx={{
+        position: "relative",
+        height: { xs: 420, md: 276 },
+        display: { xs: "none", md: "block" },
+        perspective: "1200px",
+      }}
+    >
+      <Box sx={{
+        position: "absolute",
+        inset: "6% 2% 0 4%",
+        borderRadius: "50%",
+        background: `radial-gradient(circle at 50% 58%, ${t.purple}66, transparent 26%), radial-gradient(circle at 50% 62%, ${t.blue}55, transparent 14%)`,
+        filter: "blur(0.2px)",
+      }} />
+      <Box sx={orbitSx(t, 18, 44, 112, 0)} />
+      <Box sx={orbitSx(t, 42, 42, 92, -18)} />
+      <Box sx={{
+        position: "absolute",
+        left: "36%",
+        top: "47%",
+        width: 138,
+        height: 138,
+        borderRadius: "50%",
+        background: `radial-gradient(circle at 34% 25%, #fff8, ${t.blue}66 13%, ${t.purple}8a 42%, ${t.pink}a3 68%, ${t.bg} 100%)`,
+        boxShadow: `0 0 44px ${t.blue}99, 0 0 86px ${t.pink}8a, inset -28px -32px 44px rgba(7,10,38,0.74)`,
+      }} />
+      <Box sx={{
+        position: "absolute",
+        left: "36%",
+        top: "47%",
+        width: 166,
+        height: 36,
+        borderRadius: "50%",
+        borderTop: `5px solid ${t.blue}`,
+        borderBottom: `5px solid ${t.pink}`,
+        transform: "rotate(-3deg)",
+        filter: "drop-shadow(0 0 18px #a93dff)",
+      }} />
+      {[0, 1, 2].map((idx) => (
+        <Box
+          key={idx}
+          sx={{
+            position: "absolute",
+            left: `${31 + idx * 10}%`,
+            top: `${20 - idx * 4}%`,
+            width: idx === 1 ? 108 : 82,
+            height: idx === 1 ? 120 : 96,
+            borderRadius: 3,
+            border: `1px solid ${idx === 1 ? t.pink : t.strong}`,
+            bgcolor: t.mode === "light" ? "rgba(255,255,255,0.72)" : "rgba(13,15,55,0.76)",
+            boxShadow: `0 0 38px ${idx === 1 ? t.pink : t.blue}66`,
+            transform: `rotateY(${-18 + idx * 12}deg) rotateZ(${-5 + idx * 5}deg) translateZ(${idx * 18}px)`,
+            p: 2,
+            overflow: "hidden",
+            "&::before": {
+              content: '""',
+              position: "absolute",
+              inset: 0,
+              background: `linear-gradient(135deg, ${t.blue}22, ${t.pink}22)`,
+            },
+          }}
+        >
+          <Stack spacing={1} sx={{ position: "relative" }}>
+            <Box sx={{ width: "48%", height: 8, borderRadius: 99, bgcolor: t.blue }} />
+            <Box sx={{ width: "82%", height: 7, borderRadius: 99, bgcolor: t.pink }} />
+            <Box sx={{ width: "70%", height: 7, borderRadius: 99, bgcolor: t.blue, opacity: 0.8 }} />
+            <Box sx={{ width: "56%", height: 7, borderRadius: 99, bgcolor: t.purple, opacity: 0.85 }} />
+          </Stack>
+        </Box>
+      ))}
+      {icons.map((icon, idx) => (
+        <Box
+          key={idx}
+          sx={{
+            position: "absolute",
+            left: `${18 + (idx % 3) * 23}%`,
+            top: `${16 + Math.floor(idx / 3) * 28}%`,
+            width: 40,
+            height: 40,
+            borderRadius: 2,
+            display: "grid",
+            placeItems: "center",
+            color: t.mode === "light" ? t.purple : "#79d5ff",
+            bgcolor: t.mode === "light" ? "rgba(255,255,255,0.82)" : "rgba(7,15,53,0.72)",
+            border: `1px solid ${t.strong}`,
+            boxShadow: `0 0 28px ${t.glow}`,
+            transform: `translateY(${idx % 2 ? 20 : -12}px)`,
+            "& svg": { fontSize: 21 },
+          }}
+        >
+          {icon}
+        </Box>
+      ))}
+    </Box>
+  );
+}
+
+function OrbitalBuilderPanel({
+  t,
+  prompt,
+  onPromptChange,
+  onSubmit,
+  submitting,
+  textareaRef,
+  onPickSeed,
+}: {
+  t: OrbitalPalette;
+  prompt: string;
+  onPromptChange: (next: string) => void;
+  onSubmit: () => void;
+  submitting: boolean;
+  textareaRef: MutableRefObject<HTMLTextAreaElement | null>;
+  onPickSeed: (seed: string) => void;
+}) {
+  const examples = [
+    "SaaS dashboard with users & billing",
+    "Marketplace with search & checkout",
+    "Internal tool for approvals",
+  ];
+  return (
+    <Box
+      sx={{
+        position: "relative",
+        mt: { xs: 3, md: 0.15 },
+        p: { xs: 1.8, md: 1.35 },
+        borderRadius: 4,
+        border: `1px solid ${t.strong}`,
+        bgcolor: t.surface,
+        boxShadow: `${t.cardShadow}, 0 0 0 1px ${t.mode === "dark" ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.8)"}, 0 0 45px ${t.glow}`,
+        backdropFilter: "blur(18px)",
+        overflow: "hidden",
+        "&::before": {
+          content: '""',
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+          background: `radial-gradient(ellipse 420px 150px at 12% 2%, ${t.pink}22, transparent 70%), radial-gradient(ellipse 500px 160px at 88% 96%, ${t.purple}24, transparent 72%)`,
+        },
+      }}
+    >
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ position: "relative", mb: 1.5, px: { xs: 0.5, md: 1.5 } }}>
+        <Stack direction="row" alignItems="center" spacing={1.2}>
+          <BoltRounded sx={{ color: t.pink, fontSize: 20 }} />
+          <Typography sx={{ fontSize: 16, fontWeight: 900, color: t.text }}>AI Product Builder</Typography>
+        </Stack>
+        <Button size="small" sx={{ color: t.text, border: `1px solid ${t.border}`, bgcolor: t.surface2, fontWeight: 800 }}>
+          Enhance prompt ✨
+        </Button>
+      </Stack>
+      <Box
+        sx={{
+          position: "relative",
+          p: { xs: 1.3, md: 2 },
+          minHeight: { xs: 155, md: 96 },
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", md: "1fr auto" },
+          gap: 1.5,
+          alignItems: "center",
+          borderRadius: 2,
+          border: `1px solid ${t.border}`,
+          bgcolor: t.inset,
+        }}
+      >
+        <Box>
+          <Box
+            component="textarea"
+            ref={textareaRef}
+            value={prompt}
+            onChange={(e) => onPromptChange(e.target.value)}
+            placeholder="Describe your app in plain English..."
+            onKeyDown={(e) => {
+              if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                e.preventDefault();
+                onSubmit();
+              }
+            }}
+            sx={{
+              width: "100%",
+              height: 32,
+              resize: "none",
+              border: 0,
+              outline: 0,
+              bgcolor: "transparent",
+              color: t.text,
+              font: "inherit",
+              fontSize: { xs: 20, md: 18 },
+              lineHeight: 1.3,
+              textAlign: "center",
+              "&::placeholder": { color: t.secondary, opacity: 0.95 },
+            }}
+          />
+          <Stack direction="row" justifyContent="center" useFlexGap flexWrap="wrap" gap={1}>
+            {["Include features", "Integrations", "Roles", "Data", "Workflows"].map((chip) => (
+              <Box key={chip} sx={{ px: 1.4, py: 0.55, borderRadius: 999, border: `1px solid ${t.border}`, bgcolor: t.surface2, color: t.secondary, fontSize: 12, fontWeight: 800 }}>
+                {chip}
+              </Box>
+            ))}
+          </Stack>
+        </Box>
+        <Button
+          disabled={submitting || prompt.trim().length < 8}
+          onClick={onSubmit}
+          sx={{
+            width: 50,
+            height: 50,
+            minWidth: 50,
+            borderRadius: "50%",
+            justifySelf: "center",
+            color: "#fff",
+            background: `linear-gradient(135deg, ${t.purple}, ${t.pink})`,
+            boxShadow: `0 0 34px ${t.glow}`,
+            "&.Mui-disabled": { opacity: 0.45, color: "#fff" },
+          }}
+        >
+          <SendRounded sx={{ fontSize: 21 }} />
+        </Button>
+      </Box>
+      <Stack direction={{ xs: "column", md: "row" }} spacing={1.4} alignItems={{ md: "center" }} sx={{ position: "relative", mt: 1.6, px: { md: 1.5 } }}>
+        <Typography sx={{ color: t.secondary, fontSize: 13, minWidth: 135 }}>Try an example:</Typography>
+        <Stack direction="row" useFlexGap flexWrap="wrap" gap={1}>
+          {examples.map((ex) => (
+            <Button key={ex} size="small" onClick={() => onPickSeed(ex)} sx={{ color: t.text, border: `1px solid ${t.border}`, bgcolor: t.surface2, fontSize: 12, fontWeight: 800 }}>
+              {ex}
+            </Button>
+          ))}
+        </Stack>
+      </Stack>
+      <Box sx={{ position: "relative", display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(4, 1fr)" }, gap: 1.1, mt: 1.25 }}>
+        {[
+          ["AI generates code", "Production-ready code from your prompt", <LayersRounded key="l" />],
+          ["Review & test", "Preview, test and refine before shipping", <CheckCircleRounded key="c" />],
+          ["Deploy anywhere", "One-click deploy to cloud or infrastructure", <RocketLaunchRounded key="r" />],
+          ["Monitor & iterate", "Logs, metrics and real-time observability.", <VisibilityRounded key="v" />],
+        ].map(([title, body, icon]) => (
+          <Stack key={title as string} direction="row" spacing={1} alignItems="center" sx={{ p: 1.1, minHeight: 68, borderRadius: 2, border: `1px solid ${t.border}`, bgcolor: t.surface2 }}>
+            <Box sx={{ width: 34, height: 34, display: "grid", placeItems: "center", borderRadius: 2, color: t.pink, background: `radial-gradient(circle, ${t.pink}38, ${t.purple}18)`, border: `1px solid ${t.strong}`, "& svg": { fontSize: 19 } }}>{icon}</Box>
+            <Box>
+              <Typography sx={{ color: t.text, fontSize: 11.4, fontWeight: 900 }}>{title}</Typography>
+              <Typography sx={{ color: t.secondary, mt: 0.2, fontSize: 9.5, lineHeight: 1.28 }}>{body}</Typography>
+            </Box>
+          </Stack>
+        ))}
+      </Box>
+    </Box>
+  );
+}
+
+function OrbitalCapabilities({ t }: { t: OrbitalPalette }) {
+  const items = [
+    ["AI Product Architect", "Plans, designs and generates your entire prompt", <RocketLaunchRounded key="a" />],
+    ["Visual App Builder", "Drag, drop and build with components", <VisibilityRounded key="b" />],
+    ["Code You Own", "Clean, production-ready React, TypeScript & APIs", <CodeRounded key="c" />],
+    ["Data & Integrations", "Connect databases, APIs and 3rd-party services", <DataObjectRounded key="d" />],
+    ["Team & Roles", "Invite teammates, set roles and manage access", <HubRounded key="e" />],
+    ["Environments", "Dev, staging and production with one click", <SettingsSuggestRounded key="f" />],
+    ["Observability", "Real-time logs, traces, metrics and alerts", <TimelineRounded key="g" />],
+    ["Enterprise Ready", "SSO, audit logs, RBAC, backups and compliance", <SecurityRounded key="h" />],
+  ];
+  return (
+    <OrbitalSection t={t} title="Everything you need to build and ship" sx={{ mt: { xs: 3, md: 1.6 } }}>
+      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(4, 1fr)" }, gap: 1.2 }}>
+        {items.map(([title, body, icon]) => <OrbitalFeatureCard key={title as string} t={t} title={title as string} body={body as string} icon={icon as ReactNode} />)}
+      </Box>
+    </OrbitalSection>
+  );
+}
+
+function OrbitalFeatureCard({ t, title, body, icon }: { t: OrbitalPalette; title: string; body: string; icon: ReactNode }) {
+  return (
+    <Stack direction="row" spacing={1.2} sx={{ p: 1.55, minHeight: 76, borderRadius: 2, border: `1px solid ${t.border}`, bgcolor: t.surface, boxShadow: t.mode === "light" ? "0 14px 34px rgba(51,46,130,0.06)" : "none" }}>
+      <Box sx={{ width: 38, height: 38, flexShrink: 0, borderRadius: 2, display: "grid", placeItems: "center", color: t.pink, bgcolor: t.mode === "light" ? "#fbf7ff" : "rgba(37,20,86,0.6)", border: `1px solid ${t.border}`, "& svg": { fontSize: 21 } }}>{icon}</Box>
+      <Box>
+        <Typography sx={{ color: t.text, fontSize: 12.7, fontWeight: 900 }}>{title}</Typography>
+        <Typography sx={{ color: t.secondary, mt: 0.3, fontSize: 11, lineHeight: 1.35 }}>{body}</Typography>
+      </Box>
+    </Stack>
+  );
+}
+
+function OrbitalTestimonial({ t }: { t: OrbitalPalette }) {
+  return (
+    <Box sx={{ mt: 2, p: { xs: 2.4, md: 2 }, borderRadius: 3, border: `1px solid ${t.strong}`, bgcolor: t.surface, display: "grid", gridTemplateColumns: { xs: "1fr", md: "1.35fr repeat(4, 0.7fr)" }, gap: 1.5, alignItems: "center", boxShadow: `0 0 40px ${t.glow}` }}>
+      <Box>
+        <Typography sx={{ color: t.pink, fontSize: 30, lineHeight: 0.6 }}>“</Typography>
+        <Typography sx={{ color: t.text, fontSize: { xs: 18, md: 14.5 }, fontWeight: 900, lineHeight: 1.22, maxWidth: 360 }}>
+          We shipped our client portal in a week with IronFlyer. The AI plan was spot-on and the code was clean and easy to extend.
+        </Typography>
+      </Box>
+      {[["7 days", "to production", <TimelineRounded key="t" />], ["92%", "code accuracy", <ShieldOutlined key="s" />], ["3x", "faster delivery", <RocketLaunchRounded key="r" />], ["10K+", "projects built", <MailOutlineRounded key="m" />]].map(([value, label, icon]) => (
+        <Stack key={value as string} spacing={0.45} alignItems="center" sx={{ borderLeft: { md: `1px solid ${t.border}` }, minHeight: 90, justifyContent: "center" }}>
+          <Box sx={{ color: t.pink, "& svg": { fontSize: 27 } }}>{icon}</Box>
+          <Typography sx={{ color: t.text, fontSize: 22, fontWeight: 900, lineHeight: 1 }}>{value}</Typography>
+          <Typography sx={{ color: t.secondary, fontSize: 10.8 }}>{label}</Typography>
+        </Stack>
+      ))}
+    </Box>
+  );
+}
+
+function OrbitalTemplates({ t, onPickSeed }: { t: OrbitalPalette; onPickSeed: (seed: string) => void }) {
+  const templates = [
+    ["SaaS Starter", "Auth", "Billing", "Roles", "/market/console.png"],
+    ["AI Chat App", "Chat", "OpenAI", "Pages", "/market/ai-replies-loop.mp4"],
+    ["Marketplace", "Listings", "Search", "Checkout", "/market/data-flow.jpg"],
+    ["Internal Tool", "Approvals", "Reports", "Workflows", "/market/repository.png"],
+    ["Admin Dashboard", "Analytics", "Charts", "Tables", "/market/ai-generated-code.png"],
+  ];
+  return (
+    <Box sx={{ mt: 1.5, p: { xs: 2, md: 1.25 }, borderRadius: 3, border: `1px solid ${t.border}`, bgcolor: t.surface }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.8 }}>
+        <Typography sx={{ color: t.text, fontSize: 16, fontWeight: 900 }}>Start from a proven template</Typography>
+        <Button component={Link} href="/templates" size="small" endIcon={<ArrowForwardRounded sx={{ fontSize: 15 }} />} sx={{ color: t.pink, fontWeight: 900 }}>View all templates</Button>
+      </Stack>
+      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(5, 1fr)" }, gap: 1.1 }}>
+        {templates.map(([title, a, b, c, media]) => (
+          <Box key={title} onClick={() => onPickSeed(`Build a ${title.toLowerCase()} with ${a}, ${b}, ${c}, admin analytics and deploy-ready code.`)} sx={{ cursor: "pointer", p: 1, borderRadius: 2, border: `1px solid ${t.strong}`, bgcolor: t.mode === "light" ? "#fff" : "rgba(8,11,34,0.75)" }}>
+            <Box sx={{ height: 54, borderRadius: 1.5, overflow: "hidden", backgroundImage: `linear-gradient(135deg, ${t.purple}33, ${t.blue}22), url('${media}')`, backgroundSize: "cover", backgroundPosition: "center", border: `1px solid ${t.border}` }} />
+            <Typography sx={{ color: t.text, mt: 0.65, fontSize: 11.2, fontWeight: 900 }}>{title}</Typography>
+            <Stack direction="row" gap={0.45} sx={{ mt: 0.6 }}>
+              {[a, b, c].map((tag) => <Box key={tag} sx={{ px: 0.65, py: 0.25, borderRadius: 999, bgcolor: t.surface2, color: t.secondary, fontSize: 8.5, fontWeight: 800 }}>{tag}</Box>)}
+            </Stack>
+          </Box>
+        ))}
+      </Box>
+    </Box>
+  );
+}
+
+function OrbitalPricingFaq({ t }: { t: OrbitalPalette }) {
+  const plans = [
+    ["Free", "$0", "Forever", ["1 workspace", "2 projects", "Community support"], "Get started"],
+    ["Pro", "$29", "per month", ["Unlimited projects", "AI generations", "Email support"], "Start free trial"],
+    ["Team", "$79", "per month", ["SSO & RBAC", "Environments", "Priority support"], "Start free trial"],
+    ["Enterprise", "Custom", "Let's talk", ["Advanced security", "SLA & support", "Custom integrations"], "Contact sales"],
+  ];
+  const faqs = ["Can I export the code?", "How does pricing work?", "Is my data secure?", "Do you offer onboarding?"];
+  return (
+    <Box sx={{ mt: 1.5, display: "grid", gridTemplateColumns: { xs: "1fr", md: "1fr 3fr 1.15fr" }, gap: 1.05 }}>
+      <Box sx={{ p: 1.1, borderRadius: 2.5, border: `1px solid ${t.border}`, bgcolor: t.surface, minHeight: 152 }}>
+        <Typography sx={{ color: t.text, fontSize: 16, lineHeight: 1.12, fontWeight: 900 }}>Simple,<br />transparent pricing</Typography>
+        <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+          <Box sx={{ px: 1.3, py: 0.55, borderRadius: 999, bgcolor: t.purple, color: "#fff", fontSize: 12, fontWeight: 900 }}>Monthly</Box>
+          <Box sx={{ px: 1.3, py: 0.55, borderRadius: 999, border: `1px solid ${t.border}`, color: t.secondary, fontSize: 12, fontWeight: 800 }}>Yearly</Box>
+        </Stack>
+      </Box>
+      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(4, 1fr)" }, gap: 1.1 }}>
+        {plans.map(([name, price, cadence, features, cta], idx) => (
+          <Box key={name as string} sx={{ position: "relative", p: 1, borderRadius: 2, border: `1px solid ${idx === 2 ? t.pink : t.border}`, bgcolor: t.surface, boxShadow: idx === 2 ? `0 0 34px ${t.glow}` : "none" }}>
+            {idx === 2 && <Box sx={{ position: "absolute", right: 12, top: -13, px: 1.2, py: 0.5, borderRadius: 999, bgcolor: t.purple, color: "#fff", fontSize: 11, fontWeight: 900 }}>Most popular</Box>}
+            <Typography sx={{ color: t.text, fontSize: 11.5, fontWeight: 900 }}>{name}</Typography>
+            <Typography sx={{ color: t.text, mt: 0.75, fontSize: price === "Custom" ? 18 : 23, fontWeight: 900, lineHeight: 1 }}>{price}</Typography>
+            <Typography sx={{ color: t.secondary, mt: 0.25, fontSize: 10 }}>{cadence}</Typography>
+            <Stack spacing={0.35} sx={{ my: 1.15 }}>{(features as string[]).map((f) => <Typography key={f} sx={{ color: t.secondary, fontSize: 8.9 }}>✓ {f}</Typography>)}</Stack>
+            <Button fullWidth component={Link} href="/signup" variant={idx === 2 ? "contained" : "outlined"} sx={{ minHeight: 32, px: 0.6, color: idx === 2 ? "#fff" : t.text, background: idx === 2 ? gradient(t) : "transparent", borderColor: t.border, fontWeight: 900, fontSize: 10.2, whiteSpace: "nowrap" }}>{cta}</Button>
+          </Box>
+        ))}
+      </Box>
+      <Box sx={{ p: 1.1, borderRadius: 2.5, border: `1px solid ${t.border}`, bgcolor: t.surface }}>
+        <Typography sx={{ color: t.text, fontSize: 14, fontWeight: 900, mb: 0.8 }}>Frequently asked questions</Typography>
+        <Stack spacing={0.55}>{faqs.map((q) => <Box key={q} sx={{ p: 0.85, display: "flex", justifyContent: "space-between", borderRadius: 1.3, bgcolor: t.surface2, border: `1px solid ${t.border}`, color: t.text, fontSize: 10, fontWeight: 900 }}><span>{q}</span><span>+</span></Box>)}</Stack>
+      </Box>
+    </Box>
+  );
+}
+
+function OrbitalFinalCta({ t }: { t: OrbitalPalette }) {
+  return (
+    <Box sx={{ mt: 0.9, p: { xs: 2.4, md: 0.8 }, borderRadius: 4, border: `1px solid ${t.strong}`, background: `linear-gradient(105deg, ${t.mode === "light" ? "#35128f" : "#16084f"}, ${t.purple}, ${t.pink})`, color: "#fff", display: "grid", gridTemplateColumns: { xs: "1fr", md: "58px 1fr auto" }, gap: 1.1, alignItems: "center", boxShadow: `0 0 40px ${t.glow}` }}>
+      <Box sx={{ width: 40, height: 40, borderRadius: "50%", display: "grid", placeItems: "center", border: "2px solid rgba(255,255,255,0.42)", boxShadow: "0 0 28px rgba(255,255,255,0.35)", bgcolor: "rgba(255,255,255,0.1)" }}><BoltRounded sx={{ fontSize: 21 }} /></Box>
+      <Box>
+        <Typography sx={{ fontSize: { xs: 24, md: 18 }, fontWeight: 900 }}>Stop stitching tools. Start shipping products.</Typography>
+        <Typography sx={{ opacity: 0.82, mt: 0.5 }}>One prompt. One workspace. One launch.</Typography>
+      </Box>
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={1.4}>
+        <Button component={Link} href="/signup" variant="contained" endIcon={<ArrowForwardRounded />} sx={{ bgcolor: "#fff", color: t.purple, fontWeight: 900 }}>Start building for free</Button>
+        <Button component={Link} href="/enterprise" variant="outlined" sx={{ color: "#fff", borderColor: "rgba(255,255,255,0.55)", fontWeight: 900 }}>Talk to sales</Button>
+      </Stack>
+    </Box>
+  );
+}
+
+function OrbitalFooter({ t, copy }: { t: OrbitalPalette; copy: HomeCopy["footer"] }) {
+  const cols = ["Product", "Solutions", "Resources", "Company", "Legal"];
+  return (
+    <Box component="footer" sx={{ pt: 2.2, pb: 1, display: "grid", gridTemplateColumns: { xs: "1fr", md: "1.5fr repeat(5, 1fr)" }, gap: 1.8, color: t.secondary }}>
+      <Box>
+        <BrandLogo inverse={t.mode === "dark"} size={26} href="/" />
+        <Typography sx={{ mt: 1.3, maxWidth: 280, fontSize: 12.5, lineHeight: 1.55 }}>{copy.body}</Typography>
+        <GitHub sx={{ mt: 1.5, fontSize: 18 }} />
+      </Box>
+      {cols.map((col) => <Stack key={col} spacing={0.8}><Typography sx={{ color: t.text, fontSize: 11, fontWeight: 900, textTransform: "uppercase" }}>{col}</Typography>{["Features", "Templates", "Pricing"].map((l) => <Typography key={l} sx={{ fontSize: 12 }}>{l}</Typography>)}</Stack>)}
+    </Box>
+  );
+}
+
+function OrbitalSection({ t, title, children, sx }: { t: OrbitalPalette; title: string; children: ReactNode; sx?: object }) {
+  return (
+    <Box sx={sx}>
+      <Typography sx={{ color: t.text, textAlign: "center", fontSize: { xs: 24, md: 20 }, fontWeight: 900, mb: 1.6 }}>
+        <Box component="span" sx={{ color: t.pink, mx: 1 }}>←</Box>
+        {title}
+        <Box component="span" sx={{ color: t.pink, mx: 1 }}>→</Box>
+      </Typography>
+      {children}
+    </Box>
+  );
+}
+
+function orbitalPillSx(t: OrbitalPalette) {
+  return {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 0.8,
+    alignSelf: "flex-start",
+    px: 1.5,
+    py: 0.65,
+    borderRadius: 999,
+    border: `1px solid ${t.strong}`,
+    bgcolor: t.mode === "light" ? "rgba(255,255,255,0.8)" : "rgba(73,28,124,0.38)",
+    color: t.purple,
+    fontSize: 12,
+    fontWeight: 900,
+    boxShadow: `0 0 24px ${t.glow}`,
+  };
+}
+
+function orbitSx(t: OrbitalPalette, top: number, left: number, width: number, rotate: number) {
+  return {
+    position: "absolute",
+    top: `${top}%`,
+    left: `${left - width / 2}%`,
+    width: `${width}%`,
+    height: 86,
+    borderRadius: "50%",
+    border: `2px solid ${t.blue}`,
+    borderLeftColor: t.pink,
+    borderRightColor: t.purple,
+    transform: `rotate(${rotate}deg)`,
+    filter: `drop-shadow(0 0 16px ${t.blue})`,
+    opacity: t.mode === "light" ? 0.55 : 0.95,
+  } as const;
+}
+
 // ── Hero ────────────────────────────────────────────────────────────────
 
 interface HeroProps {
+  timing: OrbitalTiming;
   copy: HomeCopy["hero"];
   prompt: string;
   onPromptChange: (next: string) => void;
@@ -326,138 +1145,287 @@ interface HeroProps {
 }
 
 function Hero(props: HeroProps) {
+  const light = props.timing === "light";
+  const hero = {
+    bg: light ? "#fbfaff" : tokens.color.bg.base,
+    text: light ? "#080b3f" : tokens.color.text.primary,
+    secondary: light ? "#5e6689" : tokens.color.text.secondary,
+    muted: light ? "#79809f" : tokens.color.text.muted,
+    border: light ? "rgba(127,77,255,0.18)" : tokens.color.border.subtle,
+    surface: light ? "rgba(255,255,255,0.74)" : "rgba(16,18,44,0.68)",
+    surfaceStrong: light ? "rgba(255,255,255,0.92)" : tokens.color.bg.surfaceRaised,
+    chip: light ? "rgba(255,255,255,0.68)" : "rgba(18,20,48,0.78)",
+    shadow: light
+      ? "0 26px 90px rgba(150,80,255,0.14), 0 18px 80px rgba(234,75,189,0.10)"
+      : "0 28px 110px rgba(104,42,255,0.28), 0 0 80px rgba(225,73,201,0.10)",
+  };
+
   return (
     <Section
       sx={{
-        pt: { xs: 3, md: 4 },
-        pb: { xs: 6, md: 7 },
+        pt: { xs: 2, md: 3.7 },
+        pb: { xs: 4, md: 4.4 },
         position: "relative",
         overflow: "hidden",
-        minHeight: { md: "calc(100vh - 70px)" },
+        minHeight: { md: 790 },
+        color: hero.text,
+        bgcolor: hero.bg,
+        backgroundImage: light
+          ? [
+              "radial-gradient(780px 360px at 4% 84%, rgba(230,70,199,0.14), transparent 72%)",
+              "radial-gradient(780px 420px at 82% 34%, rgba(255,111,76,0.10), transparent 75%)",
+              "radial-gradient(740px 380px at 51% 53%, rgba(149,75,255,0.13), transparent 74%)",
+            ].join(",")
+          : [
+              "radial-gradient(780px 360px at 4% 84%, rgba(181,108,255,0.16), transparent 72%)",
+              "radial-gradient(780px 420px at 82% 34%, rgba(255,111,76,0.12), transparent 75%)",
+              "radial-gradient(740px 380px at 51% 53%, rgba(143,77,255,0.22), transparent 74%)",
+            ].join(","),
       }}
     >
-      <BrandBackdrop />
-      <Stack spacing={{ xs: 3.2, md: 4.5 }} sx={{ position: "relative" }}>
-        <Stack spacing={1.6} alignItems="center">
+      <Stack spacing={{ xs: 2.1, md: 2.25 }} sx={{ position: "relative", zIndex: 1 }}>
+        <Stack spacing={1.45} alignItems="center" sx={{ pt: { md: 0.8 } }}>
           {props.welcomeOpen && (
             <WelcomeBanner
               onContinue={props.onWelcomeContinue}
               onDismiss={props.onWelcomeDismiss}
             />
           )}
-          <Box sx={{ width: "100%", maxWidth: 880, mx: "auto" }}>
+          <Stack direction="row" spacing={1} alignItems="center" sx={referencePillSx(hero)}>
+              <AutoAwesomeRounded sx={{ fontSize: 14 }} />
+              <span>{props.copy.eyebrow}</span>
+            </Stack>
+          <Typography
+            component="h1"
+            sx={{
+              color: hero.text,
+              fontSize: { xs: 42, sm: 56, md: 60 },
+              fontWeight: 900,
+              letterSpacing: 0,
+              lineHeight: 1.04,
+              maxWidth: 980,
+              textAlign: "center",
+            }}
+          >
+            Build, review and ship
+            <br />
+            production apps
+            <br />
+            from a{" "}
+            <Box
+              component="span"
+              sx={{
+                backgroundImage: `linear-gradient(100deg, ${tokens.color.accent.coral}, ${tokens.color.brand.magenta} 52%, ${tokens.color.accent.violet})`,
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              single prompt.
+            </Box>
+          </Typography>
+          <Typography
+            sx={{
+              maxWidth: 510,
+              color: hero.secondary,
+              fontSize: { xs: 15.5, md: 17 },
+              lineHeight: 1.5,
+              textAlign: "center",
+            }}
+          >
+            IronFlyer turns a plain-language idea into screens, data, code,
+            tests and deployments — in minutes.
+          </Typography>
+          <Box sx={{ width: "100%", maxWidth: 984, mx: "auto", pt: { xs: 1.2, md: 3.6 } }}>
             <HeroPromptInput
               ref={props.inputRef}
+              timing={props.timing}
               value={props.prompt}
               onChange={props.onPromptChange}
               onSubmit={props.onSubmit}
               submitting={props.submitting}
-              budgetUSD={props.budgetUSD}
+              budgetUSD={props.budgetUSD ?? 27}
               onBudgetChange={props.onBudgetChange}
               planFirst={props.planFirst}
               onPlanFirstChange={props.onPlanFirstChange}
             />
           </Box>
-          <Box sx={{ width: "100%", maxWidth: 880 }}>
-            <CategoryChips onPick={props.onPickSeed} />
+          <Box sx={{ width: "100%", maxWidth: 984 }}>
+            <CategoryChips timing={props.timing} onPick={props.onPickSeed} />
           </Box>
+          <HeroCapabilityRail timing={props.timing} colors={hero} />
+          <HeroTrustedLogos timing={props.timing} colors={hero} />
         </Stack>
-
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: { xs: "1fr", lg: "minmax(0, 0.88fr) minmax(420px, 0.84fr)" },
-            gap: { xs: 4, lg: 6 },
-            alignItems: "center",
-          }}
-        >
-          <Stack spacing={{ xs: 2.4, md: 2.8 }} alignItems="flex-start" sx={{ textAlign: "left" }}>
-            <Stack direction="row" spacing={1} alignItems="center" sx={pillSx}>
-              <AutoAwesomeRounded sx={{ fontSize: 14 }} />
-              <span>{props.copy.eyebrow}</span>
-            </Stack>
-            <Typography
-              component="h1"
-              sx={{
-                color: tokens.color.text.primary,
-                fontSize: { xs: 40, sm: 56, md: 72 },
-                fontWeight: 900,
-                letterSpacing: 0,
-                lineHeight: 0.98,
-                maxWidth: 680,
-              }}
-            >
-              {props.copy.titleStart}{" "}
-              <Box
-                component="span"
-                sx={{
-                  backgroundImage: `linear-gradient(100deg, ${tokens.color.accent.coral}, ${tokens.color.brand.magenta} 52%, ${tokens.color.accent.violet})`,
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                }}
-              >
-                {props.copy.titleAccent}
-              </Box>
-              {props.copy.titleEnd && ` ${props.copy.titleEnd}`}
-            </Typography>
-            <Typography
-              sx={{
-                maxWidth: 610,
-                color: tokens.color.text.secondary,
-                fontSize: { xs: 14.5, md: 16 },
-                lineHeight: 1.58,
-              }}
-            >
-              {props.copy.subhead}
-            </Typography>
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={1.3}>
-              <Button
-                component={Link}
-                href="/signup"
-                variant="contained"
-                color="primary"
-                endIcon={<ArrowForwardRounded sx={{ fontSize: 18 }} />}
-              >
-                Start building for free
-              </Button>
-              <Button component={Link} href="/templates" sx={{ color: tokens.color.accent.violet, fontWeight: 800 }}>
-                See templates
-              </Button>
-            </Stack>
-
-            <Stack
-              direction="row"
-              useFlexGap
-              flexWrap="wrap"
-              spacing={1}
-              sx={{
-                color: tokens.color.text.muted,
-                fontSize: 12,
-                fontFamily: tokens.font.mono,
-                justifyContent: "flex-start",
-              }}
-            >
-              {props.copy.proofChips.map((label, index) => {
-                const icons = [
-                  <AccountBalanceWalletOutlined key="wallet" sx={{ fontSize: 14 }} />,
-                  <ShieldOutlined key="shield" sx={{ fontSize: 14 }} />,
-                  <RuleFolderRounded key="patch" sx={{ fontSize: 14 }} />,
-                  <VerifiedRounded key="verified" sx={{ fontSize: 14 }} />,
-                ];
-                return <HeroProofChip key={label} icon={icons[index] ?? icons[0]} label={label} />;
-              })}
-            </Stack>
-
-            <Typography sx={{ fontFamily: tokens.font.mono, fontSize: 11, color: tokens.color.text.muted }}>
-              {props.copy.launchNote}
-            </Typography>
-          </Stack>
-          <Box sx={{ display: { xs: "none", lg: "block" } }}>
-            <ProductTheater />
-          </Box>
-        </Box>
       </Stack>
     </Section>
+  );
+}
+
+function HomeTimingToggle({ timing }: { timing: OrbitalTiming }) {
+  const light = timing === "light";
+  return (
+    <Stack
+      direction="row"
+      spacing={0.4}
+      sx={{
+        position: "absolute",
+        top: { xs: 8, md: 10 },
+        right: { xs: 0, md: 2 },
+        zIndex: 3,
+        p: 0.35,
+        borderRadius: 999,
+        border: `1px solid ${light ? "rgba(127,77,255,0.18)" : tokens.color.border.subtle}`,
+        bgcolor: light ? "rgba(255,255,255,0.78)" : "rgba(10,12,30,0.74)",
+        boxShadow: light ? "0 10px 30px rgba(89,59,160,0.10)" : "0 14px 36px rgba(0,0,0,0.24)",
+        backdropFilter: "blur(14px)",
+      }}
+    >
+      {(["light", "dark"] as const).map((mode) => {
+        const active = timing === mode;
+        return (
+          <Button
+            key={mode}
+            component={Link}
+            href={mode === "light" ? "/?theme=light" : "/?theme=dark"}
+            size="small"
+            sx={{
+              minHeight: 28,
+              px: 1.15,
+              borderRadius: 999,
+              fontSize: 11.5,
+              fontWeight: 900,
+              color: active ? "#fff" : light ? "#555d83" : tokens.color.text.secondary,
+              bgcolor: active ? tokens.color.accent.violet : "transparent",
+              "&:hover": {
+                bgcolor: active ? tokens.color.accent.violet : light ? "rgba(143,77,255,0.10)" : tokens.color.bg.surfaceHover,
+              },
+            }}
+          >
+            {mode === "light" ? "Light" : "Dark"}
+          </Button>
+        );
+      })}
+    </Stack>
+  );
+}
+
+function referencePillSx(hero: { border: string; surface: string }) {
+  return {
+    px: 1.65,
+    py: 0.75,
+    borderRadius: 999,
+    border: `1px solid ${hero.border}`,
+    bgcolor: hero.surface,
+    color: tokens.color.brand.magenta,
+    fontSize: 13,
+    fontWeight: 900,
+    boxShadow: "0 12px 30px rgba(181,108,255,0.10)",
+  } as const;
+}
+
+function HeroCapabilityRail({
+  timing,
+  colors,
+}: {
+  timing: OrbitalTiming;
+  colors: { border: string; surface: string; surfaceStrong: string; text: string; secondary: string; shadow: string };
+}) {
+  const items = [
+    { title: "AI generates code", body: "Production-ready code from your prompt", icon: <DataObjectRounded /> },
+    { title: "Review & test", body: "Preview, test and refine before shipping", icon: <MonitorHeartOutlined /> },
+    { title: "Deploy anywhere", body: "One-click deploy to cloud or your infrastructure", icon: <RocketLaunchRounded /> },
+    { title: "Monitor & iterate", body: "Logs, metrics and real-time observability", icon: <TimelineRounded /> },
+  ];
+  const light = timing === "light";
+  return (
+    <Box
+      sx={{
+        width: "100%",
+        maxWidth: 1090,
+        display: "grid",
+        gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))", lg: "repeat(4, minmax(0, 1fr))" },
+        border: `1px solid ${colors.border}`,
+        borderRadius: 2.2,
+        bgcolor: colors.surface,
+        boxShadow: light ? "0 14px 48px rgba(78,64,130,0.08)" : "0 18px 70px rgba(0,0,0,0.24)",
+        overflow: "hidden",
+      }}
+    >
+      {items.map((item, index) => (
+        <Stack
+          key={item.title}
+          direction="row"
+          spacing={1.4}
+          sx={{
+            minHeight: 92,
+            p: 2,
+            borderRight: { lg: index < items.length - 1 ? `1px solid ${colors.border}` : "none" },
+            borderBottom: { xs: index < items.length - 1 ? `1px solid ${colors.border}` : "none", sm: index < 2 ? `1px solid ${colors.border}` : "none", lg: "none" },
+          }}
+        >
+          <Box
+            sx={{
+              width: 50,
+              height: 50,
+              flex: "0 0 auto",
+              display: "grid",
+              placeItems: "center",
+              borderRadius: 1.8,
+              border: `1px solid ${colors.border}`,
+              bgcolor: colors.surfaceStrong,
+              color: tokens.color.accent.violet,
+              "& svg": { fontSize: 27 },
+            }}
+          >
+            {item.icon}
+          </Box>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography sx={{ color: colors.text, fontSize: 14, fontWeight: 900 }}>
+              {item.title}
+            </Typography>
+            <Typography sx={{ mt: 0.45, color: colors.secondary, fontSize: 12.4, lineHeight: 1.45 }}>
+              {item.body}
+            </Typography>
+          </Box>
+        </Stack>
+      ))}
+    </Box>
+  );
+}
+
+function HeroTrustedLogos({
+  colors,
+}: {
+  timing: OrbitalTiming;
+  colors: { muted: string; secondary: string };
+}) {
+  const logos = ["Google", "Microsoft", "airbnb", "amazon", "Spotify"];
+  return (
+    <Stack spacing={1.3} alignItems="center" sx={{ pt: { xs: 0.2, md: 0.8 } }}>
+      <Typography sx={{ color: colors.muted, fontSize: 14, fontWeight: 700 }}>
+        Trusted by modern teams worldwide
+      </Typography>
+      <Stack
+        direction="row"
+        useFlexGap
+        flexWrap="wrap"
+        justifyContent="center"
+        sx={{ gap: { xs: 2.2, sm: 4.2 }, color: colors.secondary }}
+      >
+        {logos.map((logo) => (
+          <Typography
+            key={logo}
+            sx={{
+              fontSize: { xs: 18, md: 21 },
+              fontWeight: 900,
+              letterSpacing: logo === "airbnb" ? -0.2 : 0,
+              opacity: 0.88,
+            }}
+          >
+            {logo}
+          </Typography>
+        ))}
+      </Stack>
+    </Stack>
   );
 }
 
@@ -859,7 +1827,7 @@ function FlowPanel() {
     { title: "Deploy", body: "One click deploys to staging or production with environments, logs and rollback.", icon: <RocketLaunchRounded /> },
   ];
   return (
-    <Section sx={{ py: { xs: 5, md: 6 } }}>
+    <Section sx={{ py: { xs: 4, md: 4.8 } }}>
       <Box
         sx={{
           position: "relative",
@@ -928,7 +1896,7 @@ function CapabilityGrid() {
     { title: "Enterprise Ready", body: "SSO, audit logs, RBAC and isolated backends.", icon: <SecurityRounded /> },
   ];
   return (
-    <Section sx={{ py: { xs: 5, md: 6 } }}>
+    <Section sx={{ py: { xs: 4, md: 4.8 } }}>
       <Stack spacing={3}>
         <Typography sx={{ fontSize: { xs: 25, md: 32 }, fontWeight: 900, textAlign: "center" }}>
           Everything you need to build and ship
@@ -980,7 +1948,7 @@ function TemplateShowcase({ onPick }: { onPick: (seed: string) => void }) {
     ["Education App", "Lessons, progress, analytics", "86", "Progress map"],
   ];
   return (
-    <Section sx={{ py: { xs: 5, md: 6 } }}>
+    <Section sx={{ py: { xs: 4, md: 4.8 } }}>
       <Box
         sx={{
           p: { xs: 2.4, md: 3 },
@@ -1050,7 +2018,7 @@ function TemplateShowcase({ onPick }: { onPick: (seed: string) => void }) {
 
 function TestimonialBand() {
   return (
-    <Section sx={{ py: { xs: 5, md: 6 } }}>
+    <Section sx={{ py: { xs: 4, md: 4.8 } }}>
       <Box
         sx={{
           position: "relative",
@@ -1098,7 +2066,7 @@ function PricingCards() {
     ["Enterprise", "Custom", "Let's talk", ["Advanced security", "SLA & support", "Custom integrations"], "Contact sales"],
   ];
   return (
-    <Section sx={{ py: { xs: 5, md: 7 } }}>
+    <Section sx={{ py: { xs: 4, md: 5.2 } }}>
       <Stack spacing={3} alignItems="center">
         <Stack spacing={1} alignItems="center">
           <Typography sx={{ fontSize: { xs: 25, md: 32 }, fontWeight: 900 }}>Simple, transparent pricing</Typography>
@@ -1150,7 +2118,7 @@ function ProofFooterBand() {
     ["Secure by default", "Enterprise-grade security and compliance."],
   ];
   return (
-    <Section sx={{ py: { xs: 3, md: 5 } }}>
+    <Section sx={{ py: { xs: 2.5, md: 3.8 } }}>
       <Box sx={{ p: 2.2, borderRadius: 2, border: `1px solid ${tokens.color.border.subtle}`, bgcolor: `${tokens.color.bg.surfaceRaised}d0`, display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }, gap: 2 }}>
         {rows.map(([title, body]) => (
           <Stack key={title} direction="row" spacing={1.2}>
@@ -1169,7 +2137,7 @@ function ProofFooterBand() {
 function FaqShowcase() {
   const questions = ["Can I export the code?", "How does pricing work?", "Is my data secure?", "Do you offer onboarding?"];
   return (
-    <Section sx={{ py: { xs: 5, md: 7 } }}>
+    <Section sx={{ py: { xs: 4, md: 5.2 } }}>
       <Stack spacing={3}>
         <Typography sx={{ textAlign: "center", fontSize: { xs: 25, md: 32 }, fontWeight: 900 }}>
           Frequently asked questions
@@ -1209,7 +2177,7 @@ function FaqShowcase() {
 
 function FinalShipCTA() {
   return (
-    <Section sx={{ py: { xs: 5, md: 7 } }}>
+    <Section sx={{ py: { xs: 3.5, md: 4.2 } }}>
       <Box sx={{ p: { xs: 2, md: 3 }, borderRadius: 2, border: `1px solid ${tokens.color.border.subtle}`, bgcolor: `${tokens.color.accent.purple}2e`, display: "grid", gridTemplateColumns: { xs: "1fr", md: "160px 1fr auto" }, gap: { xs: 2, md: 3 }, alignItems: "center" }}>
         <Box sx={{ height: 98, borderRadius: 1, backgroundImage: "url('/market/data-flow.jpg')", backgroundSize: "cover", backgroundPosition: "center", border: `1px solid ${tokens.color.border.subtle}` }} />
         <Box>
@@ -1281,7 +2249,7 @@ function Footer({ copy }: { copy: HomeCopy["footer"] }) {
     },
   ];
   return (
-    <Section sx={{ pt: { xs: 5, md: 7 }, pb: { xs: 5, md: 6 }, borderTop: `1px solid ${tokens.color.border.subtle}` }}>
+    <Section sx={{ pt: { xs: 4, md: 5 }, pb: { xs: 4, md: 4.5 }, borderTop: `1px solid ${tokens.color.border.subtle}` }}>
       <Stack
         direction={{ xs: "column", md: "row" }}
         spacing={{ xs: 4, md: 6 }}

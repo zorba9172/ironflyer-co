@@ -4,11 +4,17 @@ Last locked: 2026-05-25
 
 Prompt-first amendment locked: 2026-05-27
 
+Restored Home rebaseline locked: 2026-05-27
+
+Hero timing rebaseline locked: 2026-05-27
+
 This document codifies the private dark IronFlyer screenshots supplied on 2026-05-25 as the mandatory visual reference for `clients/web`. Use it as the source of truth before changing web UI, CSS, theme tokens, layout primitives, or component density.
 
 ## Source Of Truth
 
 - Canonical local reference folder: `design-reference/2026-05-25-private-ironflyer/`
+- Restored Home reference folder: `design-reference/2026-05-27-restored-prompt-home/`
+- Home Hero timing reference folder: `design-reference/2026-05-27-hero-timing-reference/`
 - Studio target spec: `design-reference/2026-05-25-private-ironflyer/references/STUDIO_VSCODE_CLOUD_TARGET.md`
 - Studio target board: `design-reference/2026-05-25-private-ironflyer/references/studio-vscode-cloud-target.html`
 - Primary reference: the private dark Home and Studio screenshots supplied in the product-design handoff conversation on 2026-05-25.
@@ -21,6 +27,21 @@ The canonical folder is the stable pointer all docs and implementation work must
 
 - Desktop: `desktop-1440/*.png`, captured at `1440x1100`, full page
 - Mobile: `mobile-390/*.png`, captured at `390x844`, full page
+
+## 2026-05-27 Restored Home Rebaseline
+
+The Home route `/` now follows the restored prompt-first reference requested by the product owner after rejecting the orbital redesign:
+
+- Dark primary: `design-reference/2026-05-27-restored-prompt-home/references/home-dark-restored-reference.png`
+- Light timing: same restored structure with light palette treatment
+- Hero light timing: `design-reference/2026-05-27-hero-timing-reference/references/home-hero-light-reference.png`
+- Hero dark timing: `design-reference/2026-05-27-hero-timing-reference/references/home-hero-dark-reference.png`
+
+This reference is binding for the Home route. It supersedes the rejected orbital Home redesign when they disagree on structure, density, hero composition, textures, builder panel, pricing/FAQ arrangement, CTA treatment, and footer behavior.
+
+Dark and light timings must share the same structure and interaction model. Dark is the primary pixel baseline; light inherits its layout and converts palette, surfaces and shadow treatment without inventing a new page.
+
+The Home Hero first viewport is now locked to the centered prompt-builder composition: nav, centered eyebrow, three-line headline, centered prompt composer, template chips, four-value capability rail, and trusted company logos. The light and dark timing toggle must preserve this exact hierarchy.
 
 The required route set is: `/`, `/product`, `/solutions`, `/resources`, `/enterprise`, `/login`, `/signup`, `/dashboard`, `/projects`, `/templates`, `/pricing`, `/studio`, `/studio/demo`, `/p/demo`, `/executions`, `/execution/demo`, `/execution/demo/security`, `/deploy`, `/deploy/demo`, `/wallet`, and `/wallet/topup`.
 

@@ -47,6 +47,9 @@ export const globalSx = {
     overflowX: "clip" as const,
   },
   "#__next": { minWidth: 0 },
+  "nextjs-portal": {
+    display: "none !important",
+  },
   "*": { boxSizing: "border-box" as const },
   "img, video, canvas, svg": { maxWidth: "100%" },
   a: { color: "inherit", textDecoration: "none" },

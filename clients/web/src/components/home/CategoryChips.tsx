@@ -1,22 +1,13 @@
 "use client";
 
-// CategoryChips — eight one-click seed prompts under the hero composer.
-// Clicking a chip writes a concrete starting line into the prompt
-// (lifted to the page) and focuses the textarea so the user can
-// immediately refine. The "More" chip opens a dialog with ten extra
-// seeds so we keep the row short on mobile.
-
 import {
-  ApiOutlined,
-  AppRegistrationOutlined,
-  CalendarMonthOutlined,
   CloseRounded,
-  EditNoteOutlined,
-  EventAvailableOutlined,
   HubOutlined,
+  Inventory2Outlined,
   PhoneIphoneOutlined,
-  PointOfSaleOutlined,
-  StackedLineChartOutlined,
+  SpaceDashboardOutlined,
+  StorefrontOutlined,
+  ViewKanbanOutlined,
 } from "@mui/icons-material";
 import {
   Box,
@@ -39,39 +30,29 @@ interface CategoryChip {
 
 const CHIPS: CategoryChip[] = [
   {
-    label: "Tasks & Workflows",
-    seed: "An internal task tracker with assignments, due dates, and a weekly digest email.",
-    Icon: AppRegistrationOutlined,
+    label: "SaaS dashboard",
+    seed: "A SaaS dashboard with users, billing, roles, and product analytics.",
+    Icon: SpaceDashboardOutlined,
   },
   {
-    label: "CRM & Sales",
-    seed: "A CRM with contacts, deals, and a kanban pipeline; notes and follow-up reminders.",
+    label: "Marketplace",
+    seed: "A marketplace with listings, search, checkout, seller profiles, and admin moderation.",
+    Icon: StorefrontOutlined,
+  },
+  {
+    label: "Internal tool",
+    seed: "An internal tool for approvals with workflows, comments, roles, and reporting.",
     Icon: HubOutlined,
   },
   {
-    label: "Content & Sites",
-    seed: "A blog with admin, Markdown posts, tag search, and an RSS feed.",
-    Icon: EditNoteOutlined,
+    label: "Admin panel",
+    seed: "An admin panel with tables, charts, filters, permissions, and audit logs.",
+    Icon: ViewKanbanOutlined,
   },
   {
-    label: "Finance",
-    seed: "An expense tracker for a small team with receipts, categories, and a monthly report.",
-    Icon: PointOfSaleOutlined,
-  },
-  {
-    label: "Booking",
-    seed: "An appointment booking site for my service business with deposits and calendar sync.",
-    Icon: EventAvailableOutlined,
-  },
-  {
-    label: "Mobile",
-    seed: "A mobile app to log daily meals with photo capture and a weekly summary (Expo).",
+    label: "Mobile app",
+    seed: "A mobile app with onboarding, profile, push notifications, and a synced dashboard.",
     Icon: PhoneIphoneOutlined,
-  },
-  {
-    label: "API",
-    seed: "A Go HTTP API for managing inventory with auth, audit log, and a CSV export.",
-    Icon: ApiOutlined,
   },
 ];
 
@@ -119,20 +100,27 @@ const MORE_IDEAS: { title: string; seed: string }[] = [
 ];
 
 export interface CategoryChipsProps {
+  timing?: "dark" | "light";
   onPick: (seed: string) => void;
 }
 
-export function CategoryChips({ onPick }: CategoryChipsProps) {
+export function CategoryChips({ timing = "dark", onPick }: CategoryChipsProps) {
   const [moreOpen, setMoreOpen] = useState(false);
+  const light = timing === "light";
 
   return (
     <>
       <Stack
         direction="row"
-        useFlexGap
-        flexWrap="wrap"
-        spacing={1}
-        sx={{ width: "100%", rowGap: 1, justifyContent: "center" }}
+        spacing={0.8}
+        sx={{
+          width: "100%",
+          justifyContent: "center",
+          overflowX: "auto",
+          overflowY: "hidden",
+          scrollbarWidth: "none",
+          "&::-webkit-scrollbar": { display: "none" },
+        }}
       >
         {CHIPS.map(({ label, seed, Icon }) => (
           <Button
@@ -140,7 +128,7 @@ export function CategoryChips({ onPick }: CategoryChipsProps) {
             size="small"
             onClick={() => onPick(seed)}
             startIcon={<Icon sx={{ fontSize: 16 }} />}
-            sx={chipSx()}
+            sx={chipSx(light)}
           >
             {label}
           </Button>
@@ -148,10 +136,10 @@ export function CategoryChips({ onPick }: CategoryChipsProps) {
         <Button
           size="small"
           onClick={() => setMoreOpen(true)}
-          startIcon={<StackedLineChartOutlined sx={{ fontSize: 16 }} />}
-          sx={chipSx()}
+          startIcon={<Inventory2Outlined sx={{ fontSize: 16 }} />}
+          sx={chipSx(light)}
         >
-          More
+          More templates
         </Button>
       </Stack>
 
@@ -163,8 +151,8 @@ export function CategoryChips({ onPick }: CategoryChipsProps) {
         slotProps={{
           paper: {
             sx: {
-              bgcolor: tokens.color.bg.surface,
-              border: `1px solid ${tokens.color.border.subtle}`,
+              bgcolor: light ? "#fff" : tokens.color.bg.surface,
+              border: `1px solid ${light ? "rgba(127,77,255,0.16)" : tokens.color.border.subtle}`,
               backgroundImage: "none",
             },
           },
@@ -178,7 +166,7 @@ export function CategoryChips({ onPick }: CategoryChipsProps) {
             sx={{
               px: 2.5,
               py: 1.5,
-              borderBottom: `1px solid ${tokens.color.border.subtle}`,
+              borderBottom: `1px solid ${light ? "rgba(127,77,255,0.16)" : tokens.color.border.subtle}`,
             }}
           >
             <Box>
@@ -200,12 +188,12 @@ export function CategoryChips({ onPick }: CategoryChipsProps) {
             <IconButton
               size="small"
               onClick={() => setMoreOpen(false)}
-              sx={{ color: tokens.color.text.secondary }}
+              sx={{ color: light ? "#677092" : tokens.color.text.secondary }}
             >
               <CloseRounded fontSize="small" />
             </IconButton>
           </Stack>
-          <Stack divider={<Box sx={{ height: 1, bgcolor: tokens.color.border.subtle }} />}>
+          <Stack divider={<Box sx={{ height: 1, bgcolor: light ? "rgba(127,77,255,0.12)" : tokens.color.border.subtle }} />}>
             {MORE_IDEAS.map((it) => (
               <Box
                 key={it.title}
@@ -226,7 +214,7 @@ export function CategoryChips({ onPick }: CategoryChipsProps) {
                   px: 2.5,
                   py: 1.5,
                   cursor: "pointer",
-                  "&:hover": { bgcolor: tokens.color.bg.surfaceHover },
+                  "&:hover": { bgcolor: light ? "rgba(143,77,255,0.08)" : tokens.color.bg.surfaceHover },
                 }}
               >
                 <Typography sx={{ fontSize: 13.5, fontWeight: 700 }}>
@@ -235,7 +223,7 @@ export function CategoryChips({ onPick }: CategoryChipsProps) {
                 <Typography
                   sx={{
                     fontSize: 12.5,
-                    color: tokens.color.text.secondary,
+                    color: light ? "#677092" : tokens.color.text.secondary,
                     mt: 0.25,
                   }}
                 >
@@ -244,42 +232,29 @@ export function CategoryChips({ onPick }: CategoryChipsProps) {
               </Box>
             ))}
           </Stack>
-          <Box
-            sx={{
-              px: 2.5,
-              py: 1,
-              borderTop: `1px solid ${tokens.color.border.subtle}`,
-              bgcolor: tokens.color.bg.inset,
-            }}
-          >
-            <Typography
-              sx={{ fontSize: 11, color: tokens.color.text.muted }}
-            >
-              These are seed prompts — refine the wording before launch.
-            </Typography>
-          </Box>
         </DialogContent>
       </Dialog>
     </>
   );
 }
 
-function chipSx() {
+function chipSx(light: boolean) {
   return {
-    color: tokens.color.text.secondary,
-    bgcolor: tokens.color.bg.surface,
-    border: `1px solid ${tokens.color.border.subtle}`,
+    color: light ? "#677092" : tokens.color.text.secondary,
+    bgcolor: light ? "rgba(255,255,255,0.72)" : tokens.color.bg.surface,
+    border: `1px solid ${light ? "rgba(127,77,255,0.16)" : tokens.color.border.subtle}`,
     borderRadius: 999,
-    px: 1.5,
-    py: 0.5,
-    minHeight: 32,
-    fontWeight: 600,
+    px: 1.65,
+    py: 0.58,
+    minHeight: 36,
+    flexShrink: 0,
+    fontWeight: 800,
     fontSize: 12.5,
     letterSpacing: 0.1,
     "&:hover": {
-      bgcolor: tokens.color.bg.surfaceHover,
+      bgcolor: light ? "rgba(143,77,255,0.08)" : tokens.color.bg.surfaceHover,
       borderColor: tokens.color.accent.violet,
-      color: tokens.color.text.primary,
+      color: light ? "#171b44" : tokens.color.text.primary,
     },
   };
 }

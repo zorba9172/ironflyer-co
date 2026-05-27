@@ -37,7 +37,7 @@ import {
   Typography,
 } from "@mui/material";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useExecutionsQuery } from "../../lib/gql/__generated__";
 import { useAuth } from "../../lib/auth";
@@ -69,7 +69,6 @@ const MARKETING_LINKS: NavLink[] = [
     href: "/templates",
     match: (p) => p.startsWith("/templates"),
   },
-  { label: "Mobile", href: "/mobile", match: (p) => p.startsWith("/mobile") },
   { label: "Solutions", href: "/solutions", match: (p) => p.startsWith("/solutions") },
   { label: "Pricing", href: "/pricing", match: (p) => p.startsWith("/pricing") },
   {
@@ -159,6 +158,7 @@ function isOperator(plan?: string | null): boolean {
 
 export function Nav() {
   const pathname = usePathname() || "/";
+  const search = useSearchParams();
   const { copy } = useI18n();
   const { user, authenticated, signOut } = useAuth();
   const operator = isOperator(user?.plan);
@@ -191,6 +191,12 @@ export function Nav() {
   const authReturn = pathname === "/" ? "/studio" : pathname;
   const loginHref = `/login?returnTo=${encodeURIComponent(authReturn)}`;
   const signupHref = `/signup?redirect=${encodeURIComponent(authReturn)}`;
+  const homeTiming = pathname === "/" && search?.get("theme") === "light" ? "light" : "dark";
+  const homeLight = pathname === "/" && homeTiming === "light";
+  const navText = homeLight ? "#0b1040" : tokens.color.text.primary;
+  const navSecondary = homeLight ? "#1f254f" : tokens.color.text.secondary;
+  const navBorder = homeLight ? "rgba(18,22,55,0.10)" : tokens.color.border.subtle;
+  const themeHref = homeLight ? "/?theme=dark" : "/?theme=light";
   const marketingLabel = (label: string) => {
     if (cockpitMode) return label;
     const key = label.toLowerCase() as keyof typeof copy.nav;
@@ -201,9 +207,10 @@ export function Nav() {
     <AppBar
       position="sticky"
       sx={{
-        bgcolor: `${tokens.color.bg.surface}c7`,
+        bgcolor: homeLight ? "#ffffff" : `${tokens.color.bg.surface}c7`,
         backdropFilter: "blur(18px) saturate(140%)",
-        borderBottom: `1px solid ${tokens.color.border.subtle}`,
+        borderBottom: `1px solid ${navBorder}`,
+        boxShadow: homeLight ? "0 1px 0 rgba(18,22,55,0.03)" : "none",
       }}
     >
       <Toolbar
@@ -272,7 +279,7 @@ export function Nav() {
           })}
         </Menu>
 
-        <BrandLogo compact={false} inverse size={30} href="/" />
+        <BrandLogo compact={false} inverse={!homeLight} size={30} href={homeLight ? "/?theme=light" : "/"} />
 
         <Stack
           direction="row"
@@ -291,16 +298,20 @@ export function Nav() {
               !cockpitMode && (l.label === "Solutions" || l.label === "Resources");
             const isResources = !cockpitMode && l.label === "Resources";
             const sxButton = {
-              color: active ? tokens.color.text.primary : tokens.color.text.secondary,
-              bgcolor: active ? `${tokens.color.accent.purple}24` : "transparent",
+              color: active ? navText : navSecondary,
+              bgcolor: active
+                ? homeLight
+                  ? "rgba(143,77,255,0.10)"
+                  : `${tokens.color.accent.purple}24`
+                : "transparent",
               borderRadius: 1,
               px: 1.5,
               py: 0.75,
               fontWeight: 700,
               letterSpacing: 0.1,
               "&:hover": {
-                bgcolor: tokens.color.bg.surfaceHover,
-                color: tokens.color.text.primary,
+                bgcolor: homeLight ? "rgba(143,77,255,0.08)" : tokens.color.bg.surfaceHover,
+                color: navText,
               },
             } as const;
             const inner = (
@@ -379,7 +390,31 @@ export function Nav() {
 
         <Box sx={{ flexGrow: 1 }} />
 
-        {!cockpitMode && <LanguageSwitcher />}
+        {!cockpitMode && pathname !== "/" && <LanguageSwitcher />}
+
+        {pathname === "/" && (
+          <Button
+            component={Link}
+            href={themeHref}
+            size="small"
+            sx={{
+              minWidth: 76,
+              minHeight: 34,
+              color: navText,
+              bgcolor: homeLight ? "rgba(255,255,255,0.72)" : tokens.color.bg.surfaceRaised,
+              border: `1px solid ${navBorder}`,
+              borderRadius: 999,
+              fontSize: 12,
+              fontWeight: 900,
+              display: { xs: "none", md: "inline-flex" },
+              "&:hover": {
+                bgcolor: homeLight ? "rgba(143,77,255,0.08)" : tokens.color.bg.surfaceHover,
+              },
+            }}
+          >
+            {homeLight ? "Dark" : "Light"}
+          </Button>
+        )}
 
         {authenticated && (
           <Tooltip
@@ -630,7 +665,7 @@ export function Nav() {
               size="small"
               variant="text"
               sx={{
-                color: tokens.color.text.primary,
+                color: navText,
                 display: { xs: "none", sm: "inline-flex" },
                 minWidth: 58,
                 whiteSpace: "nowrap",
@@ -656,7 +691,7 @@ export function Nav() {
               }}
             >
               <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
-                {copy.nav.startProject}
+                {pathname === "/" ? "Start a project free" : copy.nav.startProject}
               </Box>
               <Box component="span" sx={{ display: { xs: "inline", sm: "none" } }}>
                 {copy.nav.startShort}

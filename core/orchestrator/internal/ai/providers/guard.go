@@ -3,6 +3,7 @@ package providers
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/rs/zerolog"
@@ -47,6 +48,8 @@ type BillingGuard struct {
 
 	promptGuard *PromptGuard
 }
+
+var ErrMissingTenant = errors.New("billing: missing tenant id")
 
 // WithLogger attaches a zerolog instance the guard uses to surface
 // ProfitGuard verdicts that mutate the request. Returns the guard so
@@ -102,12 +105,28 @@ func (g *BillingGuard) WithCostAttribution(fn CostAttribFunc) *BillingGuard {
 	return g
 }
 
-// CompleteStream is the budgeted entry point. The Request.TenantID is used
-// as the userID for ledger purposes (rename later when multi-tenant auth lands).
+func billingTenantID(ctx context.Context, req Request) string {
+	if id := strings.TrimSpace(req.TenantID); id != "" {
+		return id
+	}
+	if id, ok := profitguardctx.TenantID(ctx); ok {
+		return id
+	}
+	return strings.TrimSpace(logctx.TenantID(ctx))
+}
+
+// CompleteStream is the budgeted entry point. The canonical tenant is
+// resolved from Request.TenantID, then active execution context, then
+// log context. We intentionally refuse unscoped calls instead of
+// charging an "anonymous" bucket so one visitor can never spend another
+// user's shared dev budget.
 func (g *BillingGuard) CompleteStream(ctx context.Context, req Request) (<-chan Delta, error) {
-	userID := req.TenantID
+	userID := billingTenantID(ctx, req)
 	if userID == "" {
-		userID = "anonymous"
+		return nil, ErrMissingTenant
+	}
+	if strings.TrimSpace(req.TenantID) == "" {
+		req.TenantID = userID
 	}
 	if g.promptGuard != nil {
 		newReq, res, perr := g.promptGuard.InspectRequest(ctx, req)
@@ -341,9 +360,12 @@ func (g *BillingGuard) attributeCost(ctx context.Context, provider, model string
 // produced tokens — failed attempts emit no DeltaDone and so cost
 // the caller nothing.
 func (g *BillingGuard) CompleteStreamWithFailover(ctx context.Context, req Request) (<-chan Delta, error) {
-	userID := req.TenantID
+	userID := billingTenantID(ctx, req)
 	if userID == "" {
-		userID = "anonymous"
+		return nil, ErrMissingTenant
+	}
+	if strings.TrimSpace(req.TenantID) == "" {
+		req.TenantID = userID
 	}
 	if g.promptGuard != nil {
 		newReq, res, perr := g.promptGuard.InspectRequest(ctx, req)

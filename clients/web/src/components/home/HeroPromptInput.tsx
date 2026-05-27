@@ -65,6 +65,7 @@ export interface HeroPromptSubmitPayload {
 }
 
 export interface HeroPromptInputProps {
+  timing?: "dark" | "light";
   value: string;
   onChange: (next: string) => void;
   onSubmit: (payload: HeroPromptSubmitPayload) => void;
@@ -83,6 +84,7 @@ export interface HeroPromptInputProps {
 export const HeroPromptInput = forwardRef<HeroPromptInputHandle, HeroPromptInputProps>(
   function HeroPromptInput(
     {
+      timing = "dark",
       value,
       onChange,
       onSubmit,
@@ -114,6 +116,19 @@ export const HeroPromptInput = forwardRef<HeroPromptInputHandle, HeroPromptInput
     const placeholder = PLACEHOLDERS[placeholderIndex];
 
     const canSubmit = value.trim().length >= 8 && !submitting;
+    const light = timing === "light";
+    const c = {
+      text: light ? "#111638" : tokens.color.text.primary,
+      secondary: light ? "#636b8e" : tokens.color.text.secondary,
+      muted: light ? "#858ca8" : tokens.color.text.muted,
+      surface: light ? "rgba(255,255,255,0.88)" : "rgba(15,17,42,0.86)",
+      control: light ? "rgba(255,255,255,0.72)" : tokens.color.bg.surfaceRaised,
+      border: light ? "rgba(128,84,255,0.20)" : tokens.color.border.subtle,
+      hover: light ? "rgba(143,77,255,0.08)" : tokens.color.bg.surfaceHover,
+      shadow: light
+        ? "0 34px 120px rgba(151,73,255,0.18), 0 18px 90px rgba(239,72,186,0.12)"
+        : "0 30px 110px rgba(92,34,214,0.34), 0 0 80px rgba(225,73,201,0.12)",
+    };
 
     const handleSubmit = (e?: FormEvent) => {
       e?.preventDefault();
@@ -141,17 +156,21 @@ export const HeroPromptInput = forwardRef<HeroPromptInputHandle, HeroPromptInput
         sx={{
           position: "relative",
           width: "100%",
-          maxWidth: 880,
+          maxWidth: 984,
           mx: "auto",
-          borderRadius: `${tokens.radius.lg}px`,
-          border: `1px solid ${tokens.color.border.subtle}`,
-          bgcolor: tokens.color.bg.surfaceRaised,
-          backdropFilter: "saturate(140%) blur(10px)",
-          boxShadow: tokens.shadow.md,
+          minHeight: { xs: 214, sm: 222 },
+          borderRadius: "18px",
+          border: `1px solid ${c.border}`,
+          bgcolor: c.surface,
+          backdropFilter: "saturate(145%) blur(18px)",
+          boxShadow: c.shadow,
+          backgroundImage: light
+            ? "linear-gradient(135deg, rgba(255,255,255,0.94), rgba(255,255,255,0.70))"
+            : "linear-gradient(135deg, rgba(20,22,52,0.92), rgba(12,13,32,0.82))",
           transition: `border-color ${tokens.motion.fast} ease, box-shadow ${tokens.motion.base} ease`,
           "&:focus-within": {
             borderColor: tokens.color.border.accent,
-            boxShadow: `${tokens.shadow.lg}, 0 0 0 3px ${tokens.color.accent.purple}2e`,
+            boxShadow: `${c.shadow}, 0 0 0 3px ${tokens.color.accent.purple}2e`,
           },
         }}
       >
@@ -163,22 +182,22 @@ export const HeroPromptInput = forwardRef<HeroPromptInputHandle, HeroPromptInput
           placeholder={placeholder}
           multiline
           minRows={3}
-          maxRows={8}
+          maxRows={5}
           fullWidth
           variant="standard"
           slotProps={{
             input: {
               disableUnderline: true,
               sx: {
-                px: { xs: 1.75, sm: 2.5 },
-                pt: { xs: 1.5, sm: 2 },
-                pb: 1,
-                fontSize: { xs: 15.5, sm: 18 },
-                lineHeight: 1.5,
-                color: tokens.color.text.primary,
+                px: { xs: 2, sm: 3 },
+                pt: { xs: 2.1, sm: 2.55 },
+                pb: 1.2,
+                fontSize: { xs: 20, sm: 24 },
+                lineHeight: 1.42,
+                color: c.text,
                 fontFamily: tokens.font.family,
                 "& textarea::placeholder": {
-                  color: tokens.color.text.muted,
+                  color: c.text,
                   opacity: 1,
                 },
               },
@@ -193,9 +212,9 @@ export const HeroPromptInput = forwardRef<HeroPromptInputHandle, HeroPromptInput
           useFlexGap
           flexWrap="wrap"
           sx={{
-            px: { xs: 1, sm: 1.5 },
-            py: 1,
-            borderTop: `1px solid ${tokens.color.border.subtle}`,
+            px: { xs: 1.55, sm: 2.25 },
+            pb: { xs: 1.45, sm: 2.05 },
+            pt: 0.7,
           }}
         >
           <Tooltip
@@ -219,15 +238,16 @@ export const HeroPromptInput = forwardRef<HeroPromptInputHandle, HeroPromptInput
               }
               endIcon={<TuneRounded sx={{ fontSize: 14 }} />}
               sx={{
-                color: tokens.color.text.secondary,
-                bgcolor: tokens.color.bg.surfaceRaised,
-                border: `1px solid ${tokens.color.border.subtle}`,
-                px: 1.25,
-                py: 0.5,
-                minHeight: 32,
+                color: c.secondary,
+                bgcolor: c.control,
+                border: `1px solid ${c.border}`,
+                px: 1.5,
+                py: 0.62,
+                minHeight: 42,
                 fontFamily: tokens.font.mono,
-                fontSize: 12,
-                "&:hover": { bgcolor: tokens.color.bg.surfaceHover },
+                fontSize: 13,
+                borderRadius: 1.5,
+                "&:hover": { bgcolor: c.hover },
               }}
             >
               {budgetUSD === null
@@ -247,8 +267,8 @@ export const HeroPromptInput = forwardRef<HeroPromptInputHandle, HeroPromptInput
                   mt: 1,
                   p: 2,
                   width: 280,
-                  border: `1px solid ${tokens.color.border.subtle}`,
-                  bgcolor: tokens.color.bg.surface,
+                  border: `1px solid ${c.border}`,
+                  bgcolor: light ? "#fff" : tokens.color.bg.surface,
                 },
               },
             }}
@@ -319,8 +339,8 @@ export const HeroPromptInput = forwardRef<HeroPromptInputHandle, HeroPromptInput
                 fontSize: 11.5,
                 fontFamily: tokens.font.mono,
                 color: planFirst
-                  ? tokens.color.text.primary
-                  : tokens.color.text.muted,
+                  ? c.text
+                  : c.muted,
                 letterSpacing: 0.4,
               }}
             >
@@ -349,7 +369,7 @@ export const HeroPromptInput = forwardRef<HeroPromptInputHandle, HeroPromptInput
             sx={{
               display: { xs: "none", md: "block" },
               fontSize: 11,
-              color: tokens.color.text.muted,
+              color: c.muted,
               fontFamily: tokens.font.mono,
               mr: 1,
             }}
@@ -362,16 +382,19 @@ export const HeroPromptInput = forwardRef<HeroPromptInputHandle, HeroPromptInput
             variant="contained"
             color="primary"
             disabled={!canSubmit}
-            startIcon={<RocketLaunchRounded sx={{ fontSize: 18 }} />}
+            endIcon={<RocketLaunchRounded sx={{ fontSize: 18 }} />}
             sx={{
-              minHeight: 44,
-              px: { xs: 2, sm: 2.5 },
-              fontWeight: 800,
+              minHeight: 48,
+              px: { xs: 2.4, sm: 3.4 },
+              fontSize: 17,
+              fontWeight: 900,
               letterSpacing: 0.2,
               ml: { xs: "auto", sm: 0 },
+              borderRadius: 1.5,
+              background: `linear-gradient(100deg, ${tokens.color.accent.coral}, ${tokens.color.brand.magenta} 52%, ${tokens.color.accent.violet})`,
             }}
           >
-            {submitting ? "Launching…" : planFirst ? "Plan it" : "Build it"}
+            {submitting ? "Launching..." : "Build it"}
           </Button>
         </Stack>
 
