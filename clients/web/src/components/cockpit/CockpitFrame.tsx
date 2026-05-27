@@ -13,13 +13,21 @@
 
 import { Box } from "@mui/material";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { tokens } from "../../theme";
 import { Nav } from "./Nav";
 
 export function CockpitFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isMarketingHome = pathname === "/";
+  const isPublicMarketing =
+    isMarketingHome ||
+    pathname === "/templates" ||
+    pathname === "/solutions" ||
+    pathname === "/pricing" ||
+    pathname === "/resources" ||
+    pathname === "/enterprise" ||
+    pathname === "/vscode";
   const isStudioEntry = pathname === "/studio";
   const isStudioWorkspace = pathname?.startsWith("/p/");
   // /login and /signup own their own full-bleed split layout (AuthShell)
@@ -31,7 +39,7 @@ export function CockpitFrame({ children }: { children: ReactNode }) {
     pathname?.startsWith("/login/") === true ||
     pathname?.startsWith("/signup/") === true;
   const isFullBleed =
-    isMarketingHome || isStudioEntry || isStudioWorkspace || isAuthRoute;
+    isPublicMarketing || isStudioEntry || isStudioWorkspace || isAuthRoute;
 
   return (
     <Box
@@ -43,7 +51,11 @@ export function CockpitFrame({ children }: { children: ReactNode }) {
         overflowX: "clip",
       }}
     >
-      {!isAuthRoute && <Nav />}
+      {!isAuthRoute && (
+        <Suspense fallback={null}>
+          <Nav />
+        </Suspense>
+      )}
       <Box
         component="main"
         sx={{

@@ -69,8 +69,16 @@ const MARKETING_LINKS: NavLink[] = [
     href: "/templates",
     match: (p) => p.startsWith("/templates"),
   },
-  { label: "Solutions", href: "/solutions", match: (p) => p.startsWith("/solutions") },
-  { label: "Pricing", href: "/pricing", match: (p) => p.startsWith("/pricing") },
+  {
+    label: "Solutions",
+    href: "/solutions",
+    match: (p) => p.startsWith("/solutions"),
+  },
+  {
+    label: "Pricing",
+    href: "/pricing",
+    match: (p) => p.startsWith("/pricing"),
+  },
   {
     label: "Resources",
     href: "/resources",
@@ -80,9 +88,14 @@ const MARKETING_LINKS: NavLink[] = [
       p.startsWith("/changelog") ||
       p.startsWith("/blog") ||
       p.startsWith("/security") ||
-      p.startsWith("/developers"),
+      p.startsWith("/developers") ||
+      p.startsWith("/vscode"),
   },
-  { label: "Enterprise", href: "/enterprise", match: (p) => p.startsWith("/enterprise") },
+  {
+    label: "Enterprise",
+    href: "/enterprise",
+    match: (p) => p.startsWith("/enterprise"),
+  },
 ];
 
 // Sub-links surfaced under the "Resources" dropdown on marketing nav.
@@ -95,9 +108,26 @@ interface ResourceLink {
 }
 
 const RESOURCE_LINKS: ResourceLink[] = [
-  { label: "Guides", href: "/resources", description: "Practical help for planning, building and launching apps." },
-  { label: "Templates", href: "/templates", description: "Start from proven app patterns." },
-  { label: "Enterprise", href: "/enterprise", description: "Security, teams and private deployment options." },
+  {
+    label: "Guides",
+    href: "/resources",
+    description: "Practical help for planning, building and launching apps.",
+  },
+  {
+    label: "Templates",
+    href: "/templates",
+    description: "Start from proven app patterns.",
+  },
+  {
+    label: "VS Code Extension",
+    href: "/vscode",
+    description: "Review patches, gates and previews in your editor.",
+  },
+  {
+    label: "Enterprise",
+    href: "/enterprise",
+    description: "Security, teams and private deployment options.",
+  },
 ];
 
 // Cockpit nav — shown to authenticated callers on cockpit routes. The
@@ -106,8 +136,17 @@ const RESOURCE_LINKS: ResourceLink[] = [
 // moves between surfaces.
 const COCKPIT_LINKS: NavLink[] = [
   { label: "Studio", href: "/studio", match: (p) => p === "/studio" },
-  { label: "Apps", href: "/projects", match: (p) => p === "/projects" || p.startsWith("/projects/") || p.startsWith("/p/") },
-  { label: "Executions", href: "/executions", match: (p) => p.startsWith("/executions") || p.startsWith("/execution/") },
+  {
+    label: "Apps",
+    href: "/projects",
+    match: (p) =>
+      p === "/projects" || p.startsWith("/projects/") || p.startsWith("/p/"),
+  },
+  {
+    label: "Executions",
+    href: "/executions",
+    match: (p) => p.startsWith("/executions") || p.startsWith("/execution/"),
+  },
   { label: "Wallet", href: "/wallet", match: (p) => p.startsWith("/wallet") },
   { label: "Deploy", href: "/deploy", match: (p) => p.startsWith("/deploy") },
   {
@@ -143,7 +182,9 @@ const COCKPIT_ROUTE_PREFIXES = [
 
 function isCockpitRoute(path: string): boolean {
   return COCKPIT_ROUTE_PREFIXES.some((prefix) =>
-    prefix.endsWith("/") ? path.startsWith(prefix) : path === prefix || path.startsWith(`${prefix}/`),
+    prefix.endsWith("/")
+      ? path.startsWith(prefix)
+      : path === prefix || path.startsWith(`${prefix}/`),
   );
 }
 
@@ -182,18 +223,26 @@ export function Nav() {
 
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const [notifAnchor, setNotifAnchor] = useState<HTMLElement | null>(null);
-  const [mobileNavAnchor, setMobileNavAnchor] = useState<HTMLElement | null>(null);
-  const [resourcesAnchor, setResourcesAnchor] = useState<HTMLElement | null>(null);
+  const [mobileNavAnchor, setMobileNavAnchor] = useState<HTMLElement | null>(
+    null,
+  );
+  const [resourcesAnchor, setResourcesAnchor] = useState<HTMLElement | null>(
+    null,
+  );
   const visibleLinks = links.filter((l) => !l.operatorOnly || operator);
   const authReturn = pathname === "/" ? "/studio" : pathname;
   const loginHref = `/login?returnTo=${encodeURIComponent(authReturn)}`;
   const signupHref = `/signup?redirect=${encodeURIComponent(authReturn)}`;
-  const homeTiming = pathname === "/" && search?.get("theme") === "dark" ? "dark" : "light";
-  const homeLight = pathname === "/" && homeTiming === "light";
-  const navText = homeLight ? "#0b1040" : tokens.color.text.primary;
-  const navSecondary = homeLight ? "#1f254f" : tokens.color.text.secondary;
-  const navBorder = homeLight ? "rgba(18,22,55,0.10)" : tokens.color.border.subtle;
-  const themeHref = homeLight ? "/?theme=dark" : "/?theme=light";
+  const marketingMode = !cockpitMode;
+  const publicTiming =
+    marketingMode && search?.get("theme") === "dark" ? "dark" : "light";
+  const publicLight = marketingMode && publicTiming === "light";
+  const navText = publicLight ? "#0b1040" : tokens.color.text.primary;
+  const navSecondary = publicLight ? "#1f254f" : tokens.color.text.secondary;
+  const navBorder = publicLight
+    ? "rgba(18,22,55,0.10)"
+    : tokens.color.border.subtle;
+  const themeHref = `${pathname === "/" ? "/" : pathname}?theme=${publicLight ? "dark" : "light"}`;
   const marketingLabel = (label: string) => {
     if (cockpitMode) return label;
     const key = label.toLowerCase() as keyof typeof copy.nav;
@@ -204,10 +253,10 @@ export function Nav() {
     <AppBar
       position="sticky"
       sx={{
-        bgcolor: homeLight ? "#ffffff" : `${tokens.color.bg.surface}c7`,
+        bgcolor: publicLight ? "#ffffff" : `${tokens.color.bg.surface}c7`,
         backdropFilter: "blur(18px) saturate(140%)",
         borderBottom: `1px solid ${navBorder}`,
-        boxShadow: homeLight ? "0 1px 0 rgba(18,22,55,0.03)" : "none",
+        boxShadow: publicLight ? "0 1px 0 rgba(18,22,55,0.03)" : "none",
       }}
     >
       <Toolbar
@@ -266,8 +315,12 @@ export function Nav() {
                 sx={{
                   fontWeight: 700,
                   fontSize: 14,
-                  color: active ? tokens.color.text.primary : tokens.color.text.secondary,
-                  bgcolor: active ? `${tokens.color.accent.purple}24` : "transparent",
+                  color: active
+                    ? tokens.color.text.primary
+                    : tokens.color.text.secondary,
+                  bgcolor: active
+                    ? `${tokens.color.accent.purple}24`
+                    : "transparent",
                 }}
               >
                 {marketingLabel(l.label)}
@@ -276,7 +329,12 @@ export function Nav() {
           })}
         </Menu>
 
-        <BrandLogo compact={false} inverse={!homeLight} size={30} href={homeLight ? "/?theme=light" : "/"} />
+        <BrandLogo
+          compact={false}
+          inverse={!publicLight}
+          size={30}
+          href={publicLight ? "/?theme=light" : "/"}
+        />
 
         <Stack
           direction="row"
@@ -292,12 +350,13 @@ export function Nav() {
           {visibleLinks.map((l) => {
             const active = l.match(pathname);
             const hasMenuCaret =
-              !cockpitMode && (l.label === "Solutions" || l.label === "Resources");
+              !cockpitMode &&
+              (l.label === "Solutions" || l.label === "Resources");
             const isResources = !cockpitMode && l.label === "Resources";
             const sxButton = {
               color: active ? navText : navSecondary,
               bgcolor: active
-                ? homeLight
+                ? publicLight
                   ? "rgba(143,77,255,0.10)"
                   : `${tokens.color.accent.purple}24`
                 : "transparent",
@@ -307,7 +366,9 @@ export function Nav() {
               fontWeight: 700,
               letterSpacing: 0.1,
               "&:hover": {
-                bgcolor: homeLight ? "rgba(143,77,255,0.08)" : tokens.color.bg.surfaceHover,
+                bgcolor: publicLight
+                  ? "rgba(143,77,255,0.08)"
+                  : tokens.color.bg.surfaceHover,
                 color: navText,
               },
             } as const;
@@ -374,11 +435,17 @@ export function Nav() {
               }}
             >
               <Typography
-                sx={{ fontWeight: 700, fontSize: 14, color: tokens.color.text.primary }}
+                sx={{
+                  fontWeight: 700,
+                  fontSize: 14,
+                  color: tokens.color.text.primary,
+                }}
               >
                 {r.label}
               </Typography>
-              <Typography sx={{ fontSize: 12.5, color: tokens.color.text.secondary }}>
+              <Typography
+                sx={{ fontSize: 12.5, color: tokens.color.text.secondary }}
+              >
                 {r.description}
               </Typography>
             </MenuItem>
@@ -389,7 +456,7 @@ export function Nav() {
 
         {!cockpitMode && pathname !== "/" && <LanguageSwitcher />}
 
-        {pathname === "/" && (
+        {marketingMode && (
           <Button
             component={Link}
             href={themeHref}
@@ -398,24 +465,32 @@ export function Nav() {
               minWidth: 76,
               minHeight: 34,
               color: navText,
-              bgcolor: homeLight ? "rgba(255,255,255,0.72)" : tokens.color.bg.surfaceRaised,
+              bgcolor: publicLight
+                ? "rgba(255,255,255,0.72)"
+                : tokens.color.bg.surfaceRaised,
               border: `1px solid ${navBorder}`,
               borderRadius: 999,
               fontSize: 12,
               fontWeight: 900,
               display: { xs: "none", md: "inline-flex" },
               "&:hover": {
-                bgcolor: homeLight ? "rgba(143,77,255,0.08)" : tokens.color.bg.surfaceHover,
+                bgcolor: publicLight
+                  ? "rgba(143,77,255,0.08)"
+                  : tokens.color.bg.surfaceHover,
               },
             }}
           >
-            {homeLight ? "Dark" : "Light"}
+            {publicLight ? "Dark" : "Light"}
           </Button>
         )}
 
         {authenticated && (
           <Tooltip
-            title={lowBalance ? "Wallet running low — top up to keep executions admitted" : "Top up wallet"}
+            title={
+              lowBalance
+                ? "Wallet running low — top up to keep executions admitted"
+                : "Top up wallet"
+            }
             arrow
           >
             <Button
@@ -435,10 +510,16 @@ export function Nav() {
                 fontSize: { xs: 12, md: 13 },
                 whiteSpace: "nowrap",
                 transition: `border-color ${tokens.motion.fast} ${tokens.motion.snap}, background-color ${tokens.motion.fast} ${tokens.motion.snap}`,
-                animation: lowBalance ? "ironflyerWalletPulse 2.4s ease-in-out infinite" : "none",
+                animation: lowBalance
+                  ? "ironflyerWalletPulse 2.4s ease-in-out infinite"
+                  : "none",
                 "@keyframes ironflyerWalletPulse": {
-                  "0%, 100%": { boxShadow: `0 0 0 0 ${tokens.color.accent.warning}00` },
-                  "50%": { boxShadow: `0 0 0 4px ${tokens.color.accent.warning}33` },
+                  "0%, 100%": {
+                    boxShadow: `0 0 0 0 ${tokens.color.accent.warning}00`,
+                  },
+                  "50%": {
+                    boxShadow: `0 0 0 4px ${tokens.color.accent.warning}33`,
+                  },
                 },
                 "&:hover": {
                   bgcolor: tokens.color.bg.surfaceHover,
@@ -464,7 +545,10 @@ export function Nav() {
               </Box>
               <Box
                 component="span"
-                sx={{ color: tokens.color.text.muted, display: { xs: "none", sm: "inline" } }}
+                sx={{
+                  color: tokens.color.text.muted,
+                  display: { xs: "none", sm: "inline" },
+                }}
               >
                 available
               </Box>
@@ -512,14 +596,19 @@ export function Nav() {
               }}
             >
               <Box sx={{ px: 2, py: 1.25 }}>
-                <Typography variant="overline" sx={{ color: tokens.color.text.muted, letterSpacing: 1.2 }}>
+                <Typography
+                  variant="overline"
+                  sx={{ color: tokens.color.text.muted, letterSpacing: 1.2 }}
+                >
                   Recent executions
                 </Typography>
               </Box>
               <Divider />
               {recentExecutions.length === 0 ? (
                 <Box sx={{ px: 2, py: 2.5 }}>
-                  <Typography sx={{ fontSize: 13, color: tokens.color.text.muted }}>
+                  <Typography
+                    sx={{ fontSize: 13, color: tokens.color.text.muted }}
+                  >
                     No executions yet. Start a build to see live events here.
                   </Typography>
                 </Box>
@@ -566,7 +655,12 @@ export function Nav() {
                 component={Link}
                 href="/executions"
                 onClick={() => setNotifAnchor(null)}
-                sx={{ justifyContent: "center", py: 1, fontSize: 13, fontWeight: 700 }}
+                sx={{
+                  justifyContent: "center",
+                  py: 1,
+                  fontSize: 13,
+                  fontWeight: 700,
+                }}
               >
                 View all executions
               </MenuItem>
@@ -603,7 +697,9 @@ export function Nav() {
               >
                 {(user?.name || user?.email || "?").slice(0, 1).toUpperCase()}
               </Avatar>
-              <ExpandMoreRounded sx={{ fontSize: 16, color: tokens.color.text.secondary }} />
+              <ExpandMoreRounded
+                sx={{ fontSize: 16, color: tokens.color.text.secondary }}
+              />
             </IconButton>
             <Menu
               anchorEl={anchor}
@@ -623,22 +719,42 @@ export function Nav() {
                 <Typography sx={{ fontWeight: 700, fontSize: 13 }}>
                   {user?.name || user?.email}
                 </Typography>
-                <Typography sx={{ fontSize: 12, color: tokens.color.text.secondary }}>
+                <Typography
+                  sx={{ fontSize: 12, color: tokens.color.text.secondary }}
+                >
                   {user?.email}
                 </Typography>
               </Box>
               <Divider />
-              <MenuItem component={Link} href="/settings" onClick={() => setAnchor(null)}>
-                <ListItemIcon><PersonOutlineRounded fontSize="small" /></ListItemIcon>
+              <MenuItem
+                component={Link}
+                href="/settings"
+                onClick={() => setAnchor(null)}
+              >
+                <ListItemIcon>
+                  <PersonOutlineRounded fontSize="small" />
+                </ListItemIcon>
                 <ListItemText primary="Profile" />
               </MenuItem>
-              <MenuItem component={Link} href="/wallet" onClick={() => setAnchor(null)}>
-                <ListItemIcon><AccountBalanceWalletOutlined fontSize="small" /></ListItemIcon>
+              <MenuItem
+                component={Link}
+                href="/wallet"
+                onClick={() => setAnchor(null)}
+              >
+                <ListItemIcon>
+                  <AccountBalanceWalletOutlined fontSize="small" />
+                </ListItemIcon>
                 <ListItemText primary="Wallet" />
               </MenuItem>
               {operator && (
-                <MenuItem component={Link} href="/operator" onClick={() => setAnchor(null)}>
-                  <ListItemIcon><SettingsOutlined fontSize="small" /></ListItemIcon>
+                <MenuItem
+                  component={Link}
+                  href="/operator"
+                  onClick={() => setAnchor(null)}
+                >
+                  <ListItemIcon>
+                    <SettingsOutlined fontSize="small" />
+                  </ListItemIcon>
                   <ListItemText primary="Operator console" />
                 </MenuItem>
               )}
@@ -649,7 +765,9 @@ export function Nav() {
                   void signOut();
                 }}
               >
-                <ListItemIcon><LogoutRounded fontSize="small" /></ListItemIcon>
+                <ListItemIcon>
+                  <LogoutRounded fontSize="small" />
+                </ListItemIcon>
                 <ListItemText primary="Sign out" />
               </MenuItem>
             </Menu>
@@ -687,10 +805,18 @@ export function Nav() {
                 },
               }}
             >
-              <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
-                {pathname === "/" ? "Start a project free" : copy.nav.startProject}
+              <Box
+                component="span"
+                sx={{ display: { xs: "none", sm: "inline" } }}
+              >
+                {pathname === "/"
+                  ? "Start a project free"
+                  : copy.nav.startProject}
               </Box>
-              <Box component="span" sx={{ display: { xs: "inline", sm: "none" } }}>
+              <Box
+                component="span"
+                sx={{ display: { xs: "inline", sm: "none" } }}
+              >
                 {copy.nav.startShort}
               </Box>
             </Button>

@@ -3,15 +3,15 @@ import { Suspense } from "react";
 import { Base44PublicPage } from "../../src/components/marketing/Base44PublicPage";
 
 export const metadata: Metadata = {
-  title: "Resources - IronFlyer",
+  title: "VS Code Extension - IronFlyer",
   description:
-    "Guides, examples, launch checklists and support for building apps with IronFlyer.",
+    "Review IronFlyer patches, gates, previews and run output directly inside VS Code.",
 };
 
-export default function ResourcesPage() {
+export default function VscodePage() {
   return (
     <Suspense fallback={null}>
-      <Base44PublicPage page="resources" />
+      <Base44PublicPage page="vscode" />
     </Suspense>
   );
 }

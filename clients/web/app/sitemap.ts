@@ -19,6 +19,7 @@ const staticRoutes: Array<{
   { path: "/pricing", priority: 0.9, changeFrequency: "weekly" },
   { path: "/resources", priority: 0.7, changeFrequency: "weekly" },
   { path: "/enterprise", priority: 0.8, changeFrequency: "weekly" },
+  { path: "/vscode", priority: 0.8, changeFrequency: "weekly" },
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
