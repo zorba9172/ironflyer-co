@@ -493,10 +493,15 @@ func main() {
 
 	// ---------------- Superuser bootstrap (privileged backdoor) -----------
 	if cfg.SuperuserEmail != "" && cfg.SuperuserPassword != "" {
-		if cfg.IsProd() {
+		// In prod the env bootstrap is gated by an explicit force flag
+		// so the credentials can't be accidentally promoted by a stray
+		// env var leak. Set IRONFLYER_SUPERUSER_FORCE=true in prod when
+		// you intentionally want the env bootstrap (e.g. first install,
+		// or rotating the superuser).
+		if cfg.IsProd() && !envBoolTrue("IRONFLYER_SUPERUSER_FORCE") {
 			logger.Warn().
 				Str("ignored_env", "IRONFLYER_SUPERUSER_EMAIL,IRONFLYER_SUPERUSER_PASSWORD").
-				Msg("superuser env bootstrap is disabled in prod; promote users via the operator console")
+				Msg("superuser env bootstrap disabled in prod; set IRONFLYER_SUPERUSER_FORCE=true to override")
 		} else {
 			verifier, _ := userStore.(auth.EmailVerifier)
 			roleSetter, _ := userStore.(auth.RoleSetter)

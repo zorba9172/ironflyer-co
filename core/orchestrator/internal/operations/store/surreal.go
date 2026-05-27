@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -90,11 +91,20 @@ DEFINE INDEX IF NOT EXISTS project_status ON TABLE project COLUMNS status;
 func BootstrapSurreal(ctx context.Context, db *surrealdb.DB) error {
 	res, err := surrealdb.Query[any](ctx, db, surrealSchema, nil)
 	if err != nil {
+		// SurrealDB v1.x rejects DEFINE TABLE/FIELD/INDEX when the
+		// target already exists, even with `IF NOT EXISTS` (added in
+		// v2). Treat "already exists" as a no-op so multiple
+		// orchestrator replicas can boot against the same store
+		// without racing on schema definition.
+		msg := err.Error()
+		if strings.Contains(msg, "already exists") {
+			return nil
+		}
 		return fmt.Errorf("schema query: %w", err)
 	}
 	if res != nil {
 		for _, r := range *res {
-			if r.Status != "OK" {
+			if r.Status != "OK" && !strings.Contains(r.Status, "already exists") {
 				return fmt.Errorf("schema statement failed: %s", r.Status)
 			}
 		}
