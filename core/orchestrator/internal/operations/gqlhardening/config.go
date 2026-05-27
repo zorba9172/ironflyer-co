@@ -57,6 +57,12 @@ type Config struct {
 	WSOrigins  []string
 	CSRFHeader string
 	CSRFCookie string
+	// CSRFCookieDomain, when non-empty, scopes the CSRF cookie so it
+	// is visible to all subdomains under a registrable domain (e.g.
+	// ".ironflyer.ai" lets app.* read the cookie set by api.* during
+	// the double-submit handshake). Leave empty to keep the cookie
+	// host-only on the origin that set it.
+	CSRFCookieDomain string
 
 	// Base rate limit knobs. The composed key is
 	// "<tenant>:<operation>:<abuse_tier>" and the abuse-tier multiplier
@@ -120,6 +126,9 @@ func Load() Config {
 	}
 	if v := env.String("IRONFLYER_GQL_CSRF_COOKIE", ""); v != "" {
 		c.CSRFCookie = v
+	}
+	if v := env.String("IRONFLYER_GQL_CSRF_DOMAIN", ""); v != "" {
+		c.CSRFCookieDomain = v
 	}
 	if v := env.Float64("IRONFLYER_GQL_RL_BASE_RPS", 0); v > 0 {
 		c.BaseRatePerSecond = v

@@ -52,6 +52,7 @@ func DefaultCSRFOptions(cfg Config) CSRFOptions {
 		Header:     header,
 		Cookie:     cookie,
 		CookiePath: "/",
+		Domain:     cfg.CSRFCookieDomain,
 		Secure:     cfg.ProdMode,
 		MaxAge:     12 * time.Hour,
 	}
