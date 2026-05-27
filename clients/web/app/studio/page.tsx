@@ -1017,9 +1017,11 @@ function StudioSidebar({
 }
 
 function StudioSidebarProjects() {
+  const { authenticated, loading: authLoading } = useAuth();
   const { data, loading } = useProjectsQuery({
     variables: { limit: 8, offset: 0 },
     fetchPolicy: "cache-and-network",
+    skip: !authenticated,
   });
   const projects = useMemo(() => {
     const rows = data?.projects ?? [];
@@ -1032,10 +1034,18 @@ function StudioSidebarProjects() {
       .slice(0, 8);
   }, [data]);
 
-  if (loading && projects.length === 0) {
+  if (authLoading || (loading && projects.length === 0)) {
     return (
       <Typography sx={{ color: tokens.color.text.muted, fontSize: 12, mt: 1 }}>
         Loading…
+      </Typography>
+    );
+  }
+
+  if (!authenticated) {
+    return (
+      <Typography sx={{ color: tokens.color.text.muted, fontSize: 12, mt: 1 }}>
+        Sign in to sync projects. The Studio preview stays open.
       </Typography>
     );
   }
