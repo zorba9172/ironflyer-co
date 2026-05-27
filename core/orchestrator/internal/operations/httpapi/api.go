@@ -45,9 +45,12 @@ import (
 	"ironflyer/core/orchestrator/internal/business/dashboards"
 	"ironflyer/core/orchestrator/internal/business/execution"
 	"ironflyer/core/orchestrator/internal/business/forecast"
+	"ironflyer/core/orchestrator/internal/business/guild"
 	"ironflyer/core/orchestrator/internal/business/ledger"
 	"ironflyer/core/orchestrator/internal/business/profitguard"
 	"ironflyer/core/orchestrator/internal/business/provisioning"
+	"ironflyer/core/orchestrator/internal/business/sentinel"
+	"ironflyer/core/orchestrator/internal/business/shippass"
 	"ironflyer/core/orchestrator/internal/business/wallet"
 	"ironflyer/core/orchestrator/internal/business/wowloop"
 	"ironflyer/core/orchestrator/internal/customer/auth"
@@ -269,6 +272,20 @@ type Deps struct {
 	// layer; the /provisioning/webhook/stripe REST route 503s when
 	// the vault has no Stripe Connect connector wired.
 	Provisioning *provisioning.Vault
+
+	// ShipPass is the outcome-based pricing SKU. Settler binds
+	// project IDs to active pass IDs so gate verdicts route to the
+	// right pass; both pointers nil-safe at the resolver.
+	ShipPass        shippass.Service
+	ShipPassSettler *shippass.Settler
+
+	// Sentinel is the predictive budget forecast + Insured Ship SKU.
+	// Nil-safe at the resolver.
+	Sentinel *sentinel.Service
+
+	// GuildCoord drives every FinisherGuild mutation (task lifecycle,
+	// bid lifecycle, template installs). Nil-safe at the resolver.
+	GuildCoord *guild.Coordinator
 }
 
 // API is the HTTP layer entry point. It assembles the chi router from
@@ -520,6 +537,12 @@ func (a *API) newResolver() *resolver.Resolver {
 		// Feedback Brain — learning store + publisher.
 		LearningStore:     a.d.LearningStore,
 		LearningPublisher: a.d.LearningPublisher,
+
+		// Monetization SKUs — Ship Pass, Budget Sentinel, Finisher Guild.
+		ShipPass:        a.d.ShipPass,
+		ShipPassSettler: a.d.ShipPassSettler,
+		Sentinel:        a.d.Sentinel,
+		GuildCoord:      a.d.GuildCoord,
 	}
 }
 
