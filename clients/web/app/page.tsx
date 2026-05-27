@@ -42,6 +42,7 @@ import {
   SettingsSuggestRounded,
   ShieldOutlined,
   StorageRounded,
+  ThreeDRotationRounded,
   TimelineRounded,
   VerifiedRounded,
   VisibilityRounded,
@@ -75,6 +76,8 @@ import { formatMoney } from "../src/lib/format";
 import { useDescribeIdeaMutation } from "../src/lib/gql/__generated__";
 import type { HomeCopy } from "../src/lib/i18n/content";
 import { useI18n } from "../src/lib/i18n/useI18n";
+import { Autoplay } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
 
 // sessionStorage key for the prompt the visitor typed before being
 // bounced to /signup. Read back on /?welcome=1 after sign-up succeeds.
@@ -102,7 +105,7 @@ function HomeInner() {
   // Hero composer state. Owned by the page so chips + templates can
   // drop seeds and focus the textarea.
   const [prompt, setPrompt] = useState(
-    "A CRM with contacts, deals, and a kanban pipeline;\nnotes and follow-up reminders.",
+    "CRM for contacts, deals, kanban, notes and follow-ups.",
   );
   const [budgetUSD, setBudgetUSD] = useState<number | null>(27);
   const [planFirst, setPlanFirst] = useState(true);
@@ -286,11 +289,14 @@ function HomeInner() {
 
       <Box
         sx={{
-          filter: timing === "light" ? "invert(1) hue-rotate(180deg)" : "none",
-          "& img, & video": {
-            filter:
-              timing === "light" ? "invert(1) hue-rotate(180deg)" : "none",
-          },
+          color:
+            timing === "light" ? "#090d3d" : tokens.color.text.primary,
+          bgcolor:
+            timing === "light" ? "#fbfaff" : tokens.color.bg.base,
+          backgroundImage:
+            timing === "light"
+              ? "radial-gradient(820px 420px at 92% 12%, rgba(226,69,205,0.08), transparent 70%), radial-gradient(720px 360px at 6% 38%, rgba(127,77,255,0.07), transparent 72%)"
+              : "radial-gradient(820px 420px at 92% 12%, rgba(145,75,255,0.13), transparent 70%), radial-gradient(720px 360px at 6% 38%, rgba(39,134,255,0.07), transparent 72%)",
         }}
       >
         <FlowPanel />

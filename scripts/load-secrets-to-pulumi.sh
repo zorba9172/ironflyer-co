@@ -4,11 +4,11 @@
 # into the named Pulumi stack as a --secret config value.
 #
 # Usage:
-#   bash scripts/load-secrets-to-pulumi.sh prod-ams3
+#   bash scripts/load-secrets-to-pulumi.sh prod
 #
 # Requirements:
 #   - Pulumi CLI logged in (`pulumi login`)
-#   - infra/pulumi-do/ as the working dir (handled automatically)
+#   - infra/pulumi/ as the working dir (handled automatically)
 #   - .env.production.local filled in at repo root
 #
 # Behaviour:
@@ -22,13 +22,13 @@ set -euo pipefail
 STACK="${1:-}"
 if [[ -z "$STACK" ]]; then
     echo "usage: $0 <stack-name>"
-    echo "example: $0 prod-ams3"
+    echo "example: $0 prod"
     exit 1
 fi
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 ENV_FILE="$REPO_ROOT/.env.production.local"
-PULUMI_DIR="$REPO_ROOT/infra/pulumi-do"
+PULUMI_DIR="$REPO_ROOT/infra/pulumi"
 
 if [[ ! -f "$ENV_FILE" ]]; then
     echo "ERROR: $ENV_FILE not found. Copy .env.example and fill it in first."

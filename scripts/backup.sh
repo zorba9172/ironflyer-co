@@ -75,7 +75,7 @@ esac
 # GDPR; warn loudly when ${IRONFLYER_REGION} is set but doesn't appear
 # anywhere in ${BACKUP_S3_URI}. We warn rather than die because operators
 # legitimately name buckets without the region substring (e.g.
-# `ironflyer-prod-eu-backups` doesn't contain "eu-west-1"). The warning
+# `ironflyer-prod-backups` doesn't contain "ams3"). The warning
 # is loud + structured so it lands in dashboards.
 if [ -n "${IRONFLYER_REGION:-}" ] && [ "${IRONFLYER_REGION}" != "unknown" ]; then
   case "$BACKUP_S3_URI" in
