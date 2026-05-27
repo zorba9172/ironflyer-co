@@ -136,13 +136,13 @@ func (cp *CompletionPredictor) Predict(_ context.Context, features ExecutionFeat
 	const blueprintMinSamples = 8
 	if features.BlueprintID != "" {
 		if head, ok := cp.blueprintHeads[features.BlueprintID]; ok && head.samples >= blueprintMinSamples {
-			return sigmoid(dot(head.weights[:], x) + head.bias)
+			return sigmoid(dot(head.weights[:], x[:]) + head.bias)
 		}
 	}
 	if cp.globalSamples == 0 {
 		return defaultPrior
 	}
-	return sigmoid(dot(cp.globalWeights[:], x) + cp.globalBias)
+	return sigmoid(dot(cp.globalWeights[:], x[:]) + cp.globalBias)
 }
 
 // Update applies one SGD step from a realised outcome. succeeded =
@@ -163,7 +163,7 @@ func (cp *CompletionPredictor) Update(features ExecutionFeatures, succeeded bool
 		y = 1.0
 	}
 	// Global update.
-	pred := sigmoid(dot(cp.globalWeights[:], x) + cp.globalBias)
+	pred := sigmoid(dot(cp.globalWeights[:], x[:]) + cp.globalBias)
 	err := pred - y
 	for i := 0; i < featureCount; i++ {
 		grad := err*x[i] + l2Regularisation*cp.globalWeights[i]
@@ -179,7 +179,7 @@ func (cp *CompletionPredictor) Update(features ExecutionFeatures, succeeded bool
 			head = &blueprintHead{}
 			cp.blueprintHeads[features.BlueprintID] = head
 		}
-		headPred := sigmoid(dot(head.weights[:], x) + head.bias)
+		headPred := sigmoid(dot(head.weights[:], x[:]) + head.bias)
 		headErr := headPred - y
 		for i := 0; i < featureCount; i++ {
 			grad := headErr*x[i] + l2Regularisation*head.weights[i]
@@ -445,6 +445,8 @@ func sigmoid(z float64) float64 {
 	return ez / (1 + ez)
 }
 
+// clamp01 is the package-shared NaN-safe [0,1] clip. adapter.go
+// references it under the same name.
 func clamp01(v float64) float64 {
 	if math.IsNaN(v) {
 		return 0

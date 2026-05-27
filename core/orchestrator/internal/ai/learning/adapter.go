@@ -105,12 +105,6 @@ func (a *Adapter) Apply(ctx context.Context, obs PatternObservation) bool {
 	return false
 }
 
-func clamp01(v float64) float64 {
-	if v < 0 {
-		return 0
-	}
-	if v > 1 {
-		return 1
-	}
-	return v
-}
+// clamp01 lives in completion_predictor.go (NaN-safe) and is shared
+// across the learning package.
+
