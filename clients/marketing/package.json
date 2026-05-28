@@ -19,6 +19,7 @@
     "@ironflyer/design-tokens": "workspace:*",
     "@ironflyer/ui-web": "workspace:*",
     "@mui/material": "^6.5.0",
+    "framer-motion": "^12.40.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^6.28.1"

@@ -9,24 +9,35 @@ interface ProviderConfig {
   persistedQueries?: Record<string, string>;
 }
 
-const RequestContext = createContext<GraphQLRequest | null>(null);
+export interface DataConfig {
+  request: GraphQLRequest | null;
+  endpoint?: string;
+  getToken?: () => string | null | undefined;
+}
+
+const DataContext = createContext<DataConfig>({ request: null });
 
 export function IronflyerDataProvider({ endpoint, getToken, persistedQueries, children }: ProviderConfig & { children: ReactNode }) {
   const [client] = useState(
     () => new QueryClient({ defaultOptions: { queries: { staleTime: 30_000, retry: 1, refetchOnWindowFocus: false } } }),
   );
-  const request = useMemo(
-    () => (endpoint ? createGraphQLClient({ endpoint, getToken, persistedQueries }) : null),
+  const value = useMemo<DataConfig>(
+    () => ({ request: endpoint ? createGraphQLClient({ endpoint, getToken, persistedQueries }) : null, endpoint, getToken }),
     [endpoint, getToken, persistedQueries],
   );
   return (
     <QueryClientProvider client={client}>
-      <RequestContext.Provider value={request}>{children}</RequestContext.Provider>
+      <DataContext.Provider value={value}>{children}</DataContext.Provider>
     </QueryClientProvider>
   );
 }
 
 /** The configured GraphQL request fn, or null when no endpoint is set. */
 export function useRequest(): GraphQLRequest | null {
-  return useContext(RequestContext);
+  return useContext(DataContext).request;
+}
+
+/** Endpoint + token for non-GraphQL transports (SSE). */
+export function useDataConfig(): DataConfig {
+  return useContext(DataContext);
 }

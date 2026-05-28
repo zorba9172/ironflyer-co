@@ -1,8 +1,17 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Button, Chip, IconButton, InputBase, Stack, Switch, Typography } from '@mui/material';
+import { Box, Button, Card, Chip, IconButton, InputBase, Stack, Switch, Typography } from '@mui/material';
+import { Carousel } from '@ironflyer/ui-web/fx';
 import { useStudio } from '../store';
 import { mockProject } from '../studioData';
+
+const templates = [
+  { name: 'SaaS dashboard', meta: 'Auth · billing · admin' },
+  { name: 'Marketplace', meta: 'Listings · payments · payouts' },
+  { name: 'AI chatbot', meta: 'Streaming · memory · usage' },
+  { name: 'Booking app', meta: 'Calendar · reminders · Stripe' },
+  { name: 'Internal tool', meta: 'Tables · roles · audit log' },
+];
 
 const categories = ['Import a build', 'Finish auth', 'Wire payments', 'Harden security', 'Ship to prod', 'More'];
 const recents = [
@@ -28,7 +37,7 @@ export function StudioHome() {
   };
 
   return (
-    <Box sx={{ flex: 1, overflowY: 'auto', height: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', px: 3, py: 8, maxWidth: 920, mx: 'auto', width: '100%' }}>
         <Typography variant="h2" sx={{ fontSize: { xs: '2.25rem', md: '3.25rem' }, textAlign: 'center', mb: 4 }}>
           What are we finishing today?
@@ -54,6 +63,8 @@ export function StudioHome() {
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="Paste a repo or Lovable/Bolt link to import — or describe the product you want to finish…"
+            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); start(); } }}
+            autoFocus
             sx={{ fontSize: '1rem', px: 1 }}
           />
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 1.5 }}>
@@ -101,6 +112,16 @@ export function StudioHome() {
               </Button>
             ))}
           </Box>
+
+          <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mt: 3, mb: 1.5 })}>Start from a template</Typography>
+          <Carousel slidesPerView="auto" gap={14} pagination={false}>
+            {templates.map((tpl) => (
+              <Card key={tpl.name} onClick={start} sx={{ width: 220, p: 2, cursor: 'pointer', '&:hover': { borderColor: 'text.disabled' } }}>
+                <Typography sx={{ fontWeight: 600 }}>{tpl.name}</Typography>
+                <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.72rem', color: 'text.disabled', mt: 0.5 })}>{tpl.meta}</Typography>
+              </Card>
+            ))}
+          </Carousel>
         </Box>
       </Box>
     </Box>

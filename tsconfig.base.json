@@ -23,6 +23,8 @@
       "@ironflyer/core": ["packages/core/src/index.ts"],
       "@ironflyer/data": ["packages/data/src/index.ts"],
       "@ironflyer/ui-web": ["packages/ui-web/src/index.ts"],
+      "@ironflyer/ui-web/fx": ["packages/ui-web/src/fx/index.ts"],
+      "@ironflyer/ui-web/motion": ["packages/ui-web/src/fx/motion.tsx"],
       "@ironflyer/ui-native": ["packages/ui-native/src/index.ts"],
       "@ironflyer/assets": ["packages/assets/src/index.ts"],
       "@ironflyer/sdk": ["packages/sdk/src/index.ts"]

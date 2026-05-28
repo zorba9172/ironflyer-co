@@ -38,6 +38,20 @@ export interface ArrangementBlock {
   state: GateStatus;
 }
 
+export interface ActivityEvent {
+  id: string;
+  ts: number;
+  kind: 'gate' | 'patch' | 'profitguard' | 'deploy' | 'ledger';
+  text: string;
+}
+
+export interface ProfitGuard {
+  reservedUSD: number;
+  expectedMarginPct: number;
+  // allow = run; hold = needs ROI; block = would push wallet negative (402)
+  verdict: 'allow' | 'hold' | 'block';
+}
+
 export interface StudioProject {
   id: string;
   name: string;
@@ -51,6 +65,8 @@ export interface StudioProject {
     marginPct: number;
     throughput: number; // runs/min
   };
+  profitGuard: ProfitGuard;
+  activity: ActivityEvent[];
 }
 
 export const mockProject: StudioProject = {
@@ -59,6 +75,15 @@ export const mockProject: StudioProject = {
   source: 'imported from lovable.dev',
   completion: 0.62,
   meters: { walletUsed: 18.4, walletBudget: 50, marginPct: 64, throughput: 3.2 },
+  profitGuard: { reservedUSD: 2.4, expectedMarginPct: 64, verdict: 'allow' },
+  activity: [
+    { id: 'e1', ts: Date.now() - 9000, kind: 'profitguard', text: 'ProfitGuard: allow — reserved $2.40, expected margin 64%' },
+    { id: 'e2', ts: Date.now() - 24000, kind: 'patch', text: 'Payments agent proposed patch: verify Stripe-Signature header' },
+    { id: 'e3', ts: Date.now() - 38000, kind: 'gate', text: 'Data gate → running: applying migration 0007' },
+    { id: 'e4', ts: Date.now() - 61000, kind: 'gate', text: 'Security gate → blocked: API key found in src/config.ts' },
+    { id: 'e5', ts: Date.now() - 90000, kind: 'ledger', text: 'Ledger: debited $0.31 for sandbox minutes' },
+    { id: 'e6', ts: Date.now() - 120000, kind: 'gate', text: 'Identity gate → closed' },
+  ],
   gates: [
     {
       id: 'identity', no: '01', name: 'Identity', status: 'closed', blocking: '', level: 1, costShare: 0.12,
@@ -125,9 +150,46 @@ export function newProjectFromPrompt(prompt: string): StudioProject {
     source: url ? `importing ${new URL(url).host}` : 'from your prompt',
     completion: 0,
     meters: { walletUsed: 0, walletBudget: 50, marginPct: 0, throughput: 0 },
+    profitGuard: { reservedUSD: 0, expectedMarginPct: 0, verdict: 'allow' },
+    activity: [{ id: 'seed', ts: Date.now(), kind: 'gate', text: 'Project created — mapping finisher gates' }],
     gates: GATE_NAMES.map((g) => ({ ...g, status: 'unstarted', blocking: 'not started', level: 0, costShare: 0, findings: [], patches: [] })),
     arrangement: [],
   };
+}
+
+// --- Agents -------------------------------------------------------------
+// The orchestrator runs a roster of specialist agents (see core agents.yaml).
+// Cross-cutting agents (Orchestrator, Coder) plus one specialist per gate.
+export type AgentStatus = 'idle' | 'working' | 'blocked' | 'done';
+
+export interface Agent {
+  id: string;
+  name: string;
+  role: string;
+  /** the finisher gate this agent owns, if any */
+  gateId?: string;
+}
+
+export const AGENTS: Agent[] = [
+  { id: 'orchestrator', name: 'Orchestrator', role: 'Plans the run and routes work to specialists' },
+  { id: 'coder', name: 'Coder', role: 'Writes and applies reviewed patches' },
+  { id: 'identity', name: 'Identity agent', role: 'Auth, sessions, roles, ownership', gateId: 'identity' },
+  { id: 'payments', name: 'Payments agent', role: 'Stripe/Paddle, webhooks, reconciliation', gateId: 'money' },
+  { id: 'data', name: 'Data agent', role: 'Migrations, indexes, backups', gateId: 'data' },
+  { id: 'security', name: 'Security agent', role: 'Secrets, scoped access, policy', gateId: 'security' },
+  { id: 'deployer', name: 'Deployer', role: 'Ships to a domain you own, rollbacks', gateId: 'deploy' },
+  { id: 'mobile', name: 'Mobile agent', role: 'iOS + Android build & signing', gateId: 'signal' },
+];
+
+export function agentStatus(agent: Agent, gates: Gate[]): AgentStatus {
+  if (!agent.gateId) return agent.id === 'orchestrator' || agent.id === 'coder' ? 'working' : 'idle';
+  const g = gates.find((x) => x.id === agent.gateId);
+  if (!g) return 'idle';
+  return g.status === 'closed' ? 'done' : g.status === 'blocked' ? 'blocked' : g.status === 'unstarted' ? 'idle' : 'working';
+}
+
+export function agentForGate(gateId: string): Agent | undefined {
+  return AGENTS.find((a) => a.gateId === gateId);
 }
 
 export const statusLabel: Record<GateStatus, string> = {

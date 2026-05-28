@@ -1,9 +1,18 @@
 import { useState } from 'react';
-import { Box, Card, Chip, Collapse, LinearProgress, Stack, Typography } from '@mui/material';
+import { Box, Button, Card, Chip, Collapse, LinearProgress, Stack, Typography } from '@mui/material';
 import { useGraphQLQuery } from '@ironflyer/data';
+import { confirmAction, toast } from '@ironflyer/ui-web/fx';
 import { formatUSD } from '@ironflyer/core';
-import { statusLabel, type Gate, type StudioProject } from '../studioData';
+import { statusLabel, agentForGate, type Gate, type StudioProject } from '../studioData';
 import { statusColor } from './statusColor';
+import { AgentsRail } from './AgentsRail';
+import { ActivityFeed } from './ActivityFeed';
+
+const pgLabel: Record<StudioProject['profitGuard']['verdict'], string> = {
+  allow: 'ProfitGuard: allow',
+  hold: 'ProfitGuard: hold',
+  block: 'ProfitGuard: block',
+};
 
 // Reads the live finisher snapshot from the orchestrator when a GraphQL
 // endpoint is configured; otherwise renders the passed-in project (offline).
@@ -47,9 +56,10 @@ function GateCard({ g }: { g: Gate }) {
         <Typography sx={{ fontSize: '0.82rem', color: 'success.main' }}>● Closed end-to-end</Typography>
       )}
 
-      <Stack direction="row" spacing={2} sx={{ pt: 0.5 }}>
-        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.72rem', color: 'text.disabled' })}>{g.findings.length} findings</Typography>
-        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.72rem', color: 'text.disabled' })}>{g.patches.length} patches</Typography>
+      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ pt: 0.5 }}>
+        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.72rem', color: 'text.secondary' })}>{agentForGate(g.id)?.name ?? 'Unassigned'}</Typography>
+        <Box sx={{ width: 3, height: 3, borderRadius: 99, bgcolor: 'text.disabled' }} />
+        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.72rem', color: 'text.disabled' })}>{g.findings.length}f · {g.patches.length}p</Typography>
         {hasDetail && <Typography sx={{ ml: 'auto', fontSize: '0.72rem', color: 'primary.main' }}>{open ? 'Hide' : 'Details'}</Typography>}
       </Stack>
 
@@ -64,8 +74,23 @@ function GateCard({ g }: { g: Gate }) {
           {g.patches.map((p) => (
             <Stack key={p.id} direction="row" alignItems="center" spacing={1}>
               <Chip size="small" label={p.state} sx={{ height: 18, fontSize: '0.62rem', bgcolor: 'action.hover' }} />
-              <Typography sx={{ fontSize: '0.82rem' }}>{p.title}</Typography>
-              <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.7rem', color: 'text.disabled', ml: 'auto' })}>+{p.lines}</Typography>
+              <Typography sx={{ fontSize: '0.82rem', flex: 1, minWidth: 0 }} noWrap>{p.title}</Typography>
+              <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.7rem', color: 'text.disabled' })}>+{p.lines}</Typography>
+              {p.state === 'proposed' && (
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="inherit"
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    const ok = await confirmAction({ title: 'Apply patch?', text: p.title, confirmText: 'Apply' });
+                    if (ok) toast('Patch applied — re-running the gate.', 'success');
+                  }}
+                  sx={{ py: 0, px: 1, minWidth: 0, fontSize: '0.7rem' }}
+                >
+                  Apply
+                </Button>
+              )}
             </Stack>
           ))}
         </Stack>
@@ -106,10 +131,20 @@ export function DashboardPane({ projectId, fallback }: { projectId: string; fall
               label={isLive ? 'live' : 'sample data'}
               sx={(t) => ({ height: 20, fontSize: '0.64rem', fontFamily: t.brand.font.mono, bgcolor: isLive ? `${t.palette.success.main}22` : 'action.hover', color: isLive ? 'success.main' : 'text.disabled' })}
             />
+            <Chip
+              size="small"
+              label={pgLabel[p.profitGuard.verdict]}
+              sx={(t) => {
+                const c = p.profitGuard.verdict === 'block' ? t.palette.error.main : p.profitGuard.verdict === 'hold' ? t.palette.warning.main : t.palette.success.main;
+                return { height: 20, fontSize: '0.64rem', fontFamily: t.brand.font.mono, bgcolor: `${c}22`, color: c };
+              }}
+            />
           </Stack>
           <Typography sx={{ color: 'text.secondary', fontSize: '0.9rem' }}>{open} of {p.gates.length} gates open · {Math.round(p.completion * 100)}% to shippable</Typography>
         </Stack>
         <LinearProgress variant="determinate" value={Math.round(p.completion * 100)} sx={{ height: 6, borderRadius: 99, bgcolor: 'action.hover', mb: 3, '& .MuiLinearProgress-bar': { borderRadius: 99, backgroundImage: (t) => t.brand.gradient.signature } }} />
+
+        <AgentsRail gates={p.gates} />
 
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mb: 3 }}>
           <Meter label="Wallet" value={formatUSD(p.meters.walletUsed)} sub={`of ${formatUSD(p.meters.walletBudget)} budget`} />
@@ -119,6 +154,10 @@ export function DashboardPane({ projectId, fallback }: { projectId: string; fall
 
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', lg: 'repeat(3, 1fr)' }, gap: 1.5 }}>
           {p.gates.map((g) => <GateCard key={g.id} g={g} />)}
+        </Box>
+
+        <Box sx={{ mt: 4 }}>
+          <ActivityFeed projectId={p.id} seed={p.activity} />
         </Box>
       </Box>
     </Box>

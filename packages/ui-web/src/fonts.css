@@ -1,0 +1,8 @@
+/* Brand typefaces, optimized. Variable fonts use the weight-only axis (no
+   opsz/wdth axes → smaller files); subsets download on demand via unicode-range.
+   Geist Mono is latin-only at the two weights we actually use. All ship
+   font-display: swap from fontsource. Import once per app. */
+@import '@fontsource-variable/bricolage-grotesque/wght.css';
+@import '@fontsource-variable/inter/wght.css';
+@import '@fontsource/geist-mono/latin-400.css';
+@import '@fontsource/geist-mono/latin-500.css';

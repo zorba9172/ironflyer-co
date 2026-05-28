@@ -3,8 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "exports": { ".": "./src/index.ts" },
-  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./fx": "./src/fx/index.ts",
+    "./motion": "./src/fx/motion.tsx",
+    "./fonts.css": "./src/fonts.css"
+  },
+  "sideEffects": ["**/*.css"],
   "scripts": { "typecheck": "tsc --noEmit" },
   "peerDependencies": {
     "@mui/material": "^6.0.0",
@@ -12,6 +17,18 @@
     "react-dom": "^18 || ^19"
   },
   "dependencies": {
-    "@ironflyer/design-tokens": "workspace:*"
+    "@fancyapps/ui": "^6.1.14",
+    "@fontsource-variable/bricolage-grotesque": "^5.1.1",
+    "@fontsource-variable/inter": "^5.1.1",
+    "@fontsource/geist-mono": "^5.2.5",
+    "@ironflyer/design-tokens": "workspace:*",
+    "@xyflow/react": "^12.10.2",
+    "framer-motion": "^12.40.0",
+    "sweetalert2": "^11.26.25",
+    "swiper": "^12.1.4",
+    "three": "^0.169.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.169.0"
   }
 }

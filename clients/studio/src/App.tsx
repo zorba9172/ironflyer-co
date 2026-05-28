@@ -1,23 +1,22 @@
-import { Box } from '@mui/material';
-import { Routes, Route, useNavigate } from 'react-router-dom';
-import { AppSidebar } from './components/AppSidebar';
+import { Routes, Route } from 'react-router-dom';
+import { AppShell } from './AppShell';
 import { StudioHome } from './pages/StudioHome';
+import { ProjectsPage } from './pages/ProjectsPage';
+import { TemplatesPage } from './pages/TemplatesPage';
+import { IntegrationsPage } from './pages/IntegrationsPage';
+import { AgentsPage } from './pages/AgentsPage';
 import { Editor } from './pages/Editor';
-
-function HomeLayout() {
-  const navigate = useNavigate();
-  return (
-    <Box sx={{ display: 'flex', height: '100vh', bgcolor: 'background.default' }}>
-      <AppSidebar onNewProject={() => navigate('/build')} />
-      <StudioHome />
-    </Box>
-  );
-}
 
 export function App() {
   return (
     <Routes>
-      <Route path="/" element={<HomeLayout />} />
+      <Route element={<AppShell />}>
+        <Route path="/" element={<StudioHome />} />
+        <Route path="/projects" element={<ProjectsPage />} />
+        <Route path="/templates" element={<TemplatesPage />} />
+        <Route path="/integrations" element={<IntegrationsPage />} />
+        <Route path="/agents" element={<AgentsPage />} />
+      </Route>
       <Route path="/build" element={<Editor />} />
     </Routes>
   );

@@ -1,6 +1,9 @@
 import { Avatar, Box, Button, Divider, IconButton, Stack, Typography } from '@mui/material';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useThemeMode } from '@ironflyer/ui-web';
 import { LogoMark } from './LogoMark';
+import { useStudio } from '../store';
+import { mockProject } from '../studioData';
 import type { ReactNode } from 'react';
 
 function NavItem({ icon, label, active, onClick }: { icon: ReactNode; label: string; active?: boolean; onClick?: () => void }) {
@@ -36,10 +39,16 @@ const icons = {
   templates: I('M4 5h16M4 12h10M4 19h7'),
   integrations: I('M9 7V4h6v3M7 7h10v5a5 5 0 01-10 0z M12 17v3'),
   community: I('M17 21v-2a4 4 0 00-3-3.87M9 21v-2a4 4 0 013-3.87M12 11a4 4 0 100-8 4 4 0 000 8z'),
+  agents: I('M12 8V4H8M4 8h16v12H4zM2 14h2M20 14h2M9 13v2M15 13v2'),
 };
 
 export function AppSidebar({ onNewProject }: { onNewProject?: () => void }) {
   const { mode, toggle } = useThemeMode();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const openProject = useStudio((s) => s.openProject);
+  const go = (to: string) => navigate(to);
+  const openRecent = () => { openProject(mockProject); navigate('/build'); };
   return (
     <Box component="aside" sx={{ width: 248, flexShrink: 0, height: '100vh', borderRight: 1, borderColor: 'divider', bgcolor: 'background.paper', display: 'flex', flexDirection: 'column', p: 1.5 }}>
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 1, mb: 2 }}>
@@ -64,18 +73,18 @@ export function AppSidebar({ onNewProject }: { onNewProject?: () => void }) {
       </Button>
 
       <Stack spacing={0.25}>
-        <NavItem icon={icons.home} label="Home" active />
-        <NavItem icon={icons.apps} label="All projects" />
-        <NavItem icon={icons.templates} label="Templates" />
-        <NavItem icon={icons.integrations} label="Integrations" />
-        <NavItem icon={icons.community} label="Community" />
+        <NavItem icon={icons.home} label="Home" active={pathname === '/'} onClick={() => go('/')} />
+        <NavItem icon={icons.apps} label="All projects" active={pathname === '/projects'} onClick={() => go('/projects')} />
+        <NavItem icon={icons.agents} label="Agents" active={pathname === '/agents'} onClick={() => go('/agents')} />
+        <NavItem icon={icons.templates} label="Templates" active={pathname === '/templates'} onClick={() => go('/templates')} />
+        <NavItem icon={icons.integrations} label="Integrations" active={pathname === '/integrations'} onClick={() => go('/integrations')} />
       </Stack>
 
       <Divider sx={{ my: 2 }} />
       <Typography sx={(t) => ({ px: 1.5, fontFamily: t.brand.font.mono, fontSize: '0.68rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled' })}>Recent</Typography>
       <Stack spacing={0.25} sx={{ mt: 1 }}>
-        <NavItem icon={<Box sx={{ width: 8, height: 8, borderRadius: 99, bgcolor: 'warning.main' }} />} label="Northwind Checkout" />
-        <NavItem icon={<Box sx={{ width: 8, height: 8, borderRadius: 99, bgcolor: 'success.main' }} />} label="MathQuest" />
+        <NavItem icon={<Box sx={{ width: 8, height: 8, borderRadius: 99, bgcolor: 'warning.main' }} />} label="Northwind Checkout" onClick={openRecent} />
+        <NavItem icon={<Box sx={{ width: 8, height: 8, borderRadius: 99, bgcolor: 'success.main' }} />} label="MathQuest" onClick={openRecent} />
       </Stack>
 
       <Box sx={{ flex: 1 }} />

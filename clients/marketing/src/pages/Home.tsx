@@ -1,5 +1,6 @@
 import { Box, Button, Card, Container, Stack, Typography } from '@mui/material';
 import { Head } from 'vite-react-ssg';
+import { Reveal } from '@ironflyer/ui-web/motion';
 import { Eyebrow, GradientText } from '../components/text';
 
 const entryCards = [
@@ -56,6 +57,7 @@ export function Home() {
 
       {/* Entry cards */}
       <Container maxWidth="lg" sx={{ py: 9 }}>
+        <Reveal>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 2.5 }}>
           {entryCards.map((c) => (
             <Card key={c.title} sx={{ p: 3.5, transition: 'transform .2s ease, border-color .2s ease', '&:hover': { transform: 'translateY(-3px)', borderColor: 'divider' } }}>
@@ -65,6 +67,7 @@ export function Home() {
             </Card>
           ))}
         </Box>
+        </Reveal>
       </Container>
 
       {/* Stats */}
@@ -111,11 +114,13 @@ export function Home() {
 
       {/* Final CTA */}
       <Container maxWidth="lg" sx={{ py: 9 }}>
+        <Reveal>
         <Card sx={{ textAlign: 'center', py: 9, px: 4 }}>
           <Typography variant="h2" sx={{ fontSize: { xs: '2rem', md: '3rem' } }}>Stop demoing. Start shipping.</Typography>
           <Typography sx={{ mt: 2, mb: 4, color: 'text.secondary', fontSize: '1.1rem' }}>Point Ironflyer at your build and watch the gates light up.</Typography>
           <Button variant="contained" size="large" href="https://app.ironflyer.com/start">Start building</Button>
         </Card>
+        </Reveal>
       </Container>
     </>
   );

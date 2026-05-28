@@ -66,6 +66,7 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
               <Stack key={m.id} direction="row" spacing={1.25}>
                 <Avatar sx={(t) => ({ width: 26, height: 26, backgroundImage: t.brand.gradient.signature })}> </Avatar>
                 <Box sx={{ minWidth: 0 }}>
+                  <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.7rem', color: 'text.disabled', mb: 0.5 })}>Orchestrator</Typography>
                   <Typography sx={{ fontSize: '0.9rem', lineHeight: 1.55 }}>{m.text}</Typography>
                   {m.steps && (
                     <Stack spacing={0.5} sx={{ mt: 1.25 }}>
