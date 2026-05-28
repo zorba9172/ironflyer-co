@@ -1,0 +1,150 @@
+name: Deploy to prod (Hetzner)
+
+# One-click rolling redeploy of the live docker-compose stack on the
+# AX102 host. This is the automation for DEPLOY.md §4 ("Upgrade") and
+# docs/RUNBOOKS/full-prod-redeploy.md — instead of SSHing in by hand
+# and typing the compose commands, dispatch this workflow.
+#
+# It SSHes into the prod host, pins IRONFLYER_VERSION in
+# infra/compose/.env.prod, pulls the app images from GHCR, and rolls the
+# five app containers (orchestrator-1/2, runtime, web-1/2). Caddy keeps
+# the surviving replica serving traffic, so the roll is zero-downtime.
+#
+# Manual only — prod deploys must be deliberate. There is no push/tag
+# trigger on purpose.
+#
+# Required repository secrets (Settings → Secrets and variables → Actions):
+#   PROD_SSH_HOST       AX102 public IP or hostname (e.g. api.ironflyer.ai's origin)
+#   PROD_SSH_USER       SSH user (e.g. ironflyer). Defaults to "ironflyer" if unset.
+#   PROD_SSH_KEY        Private key (full PEM) authorized on the host.
+#   PROD_DEPLOY_DIR     Absolute path to the checked-out repo on the host
+#                       (the dir that contains infra/compose/). Defaults to
+#                       /opt/ironflyer if unset.
+# Optional:
+#   PROD_SSH_KNOWN_HOSTS  Pre-seeded known_hosts line(s). When set, host-key
+#                         checking is strict; when unset we accept-new on
+#                         first connect.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'IRONFLYER_VERSION to deploy (image tag: latest | edge | sha-XXXXXXX | vX.Y.Z)'
+        required: true
+        default: latest
+      services:
+        description: 'Space-separated compose services to roll'
+        required: true
+        default: orchestrator-1 orchestrator-2 runtime web-1 web-2
+
+permissions:
+  contents: read
+
+# Never let two prod rolls race against the same host.
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Roll ${{ inputs.version }}
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Preflight — required secrets present
+        env:
+          PROD_SSH_HOST: ${{ secrets.PROD_SSH_HOST }}
+          PROD_SSH_KEY: ${{ secrets.PROD_SSH_KEY }}
+        run: |
+          missing=0
+          if [ -z "${PROD_SSH_HOST}" ]; then echo "::error::PROD_SSH_HOST secret is not set"; missing=1; fi
+          if [ -z "${PROD_SSH_KEY}" ];  then echo "::error::PROD_SSH_KEY secret is not set";  missing=1; fi
+          if [ "$missing" = "1" ]; then
+            echo "Add the secrets under Settings → Secrets and variables → Actions, then re-run."
+            exit 1
+          fi
+
+      - name: Configure SSH
+        env:
+          PROD_SSH_KEY: ${{ secrets.PROD_SSH_KEY }}
+          PROD_SSH_HOST: ${{ secrets.PROD_SSH_HOST }}
+          PROD_SSH_KNOWN_HOSTS: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "$PROD_SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          if [ -n "${PROD_SSH_KNOWN_HOSTS}" ]; then
+            printf '%s\n' "$PROD_SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
+            chmod 644 ~/.ssh/known_hosts
+            echo "STRICT_HOSTKEY=yes" >> "$GITHUB_ENV"
+          else
+            echo "STRICT_HOSTKEY=accept-new" >> "$GITHUB_ENV"
+          fi
+
+      - name: Roll containers
+        env:
+          PROD_SSH_HOST: ${{ secrets.PROD_SSH_HOST }}
+          PROD_SSH_USER: ${{ secrets.PROD_SSH_USER }}
+          PROD_DEPLOY_DIR: ${{ secrets.PROD_DEPLOY_DIR }}
+          DEPLOY_VERSION: ${{ inputs.version }}
+          DEPLOY_SERVICES: ${{ inputs.services }}
+        run: |
+          set -euo pipefail
+          user="${PROD_SSH_USER:-ironflyer}"
+          dir="${PROD_DEPLOY_DIR:-/opt/ironflyer}"
+          # Validate the version input — image tags are [A-Za-z0-9._-].
+          case "$DEPLOY_VERSION" in
+            *[!A-Za-z0-9._-]*) echo "::error::illegal version '$DEPLOY_VERSION'"; exit 1 ;;
+          esac
+          # Validate services — space-separated compose service names only.
+          case "$DEPLOY_SERVICES" in
+            *[!A-Za-z0-9._\ -]*) echo "::error::illegal services '$DEPLOY_SERVICES'"; exit 1 ;;
+          esac
+
+          # The remote script is rendered locally and piped over SSH so the
+          # version/services interpolate here (already validated) and never
+          # touch a remote shell unquoted.
+          remote_script=$(cat <<REMOTE
+          set -euo pipefail
+          cd "${dir}/infra/compose"
+          # Pin the version in .env.prod (idempotent — replaces the line if
+          # present, appends if not).
+          if grep -q '^IRONFLYER_VERSION=' .env.prod; then
+            sed -i "s/^IRONFLYER_VERSION=.*/IRONFLYER_VERSION=${DEPLOY_VERSION}/" .env.prod
+          else
+            echo "IRONFLYER_VERSION=${DEPLOY_VERSION}" >> .env.prod
+          fi
+          echo "==> pulling ${DEPLOY_SERVICES} @ ${DEPLOY_VERSION}"
+          docker compose -f docker-compose.prod.yml --env-file .env.prod pull ${DEPLOY_SERVICES}
+          echo "==> rolling ${DEPLOY_SERVICES}"
+          docker compose -f docker-compose.prod.yml --env-file .env.prod up -d ${DEPLOY_SERVICES}
+          echo "==> status"
+          docker compose -f docker-compose.prod.yml --env-file .env.prod ps ${DEPLOY_SERVICES}
+          REMOTE
+          )
+
+          ssh -o StrictHostKeyChecking="${STRICT_HOSTKEY}" \
+              -o ConnectTimeout=20 \
+              -i ~/.ssh/id_deploy \
+              "${user}@${PROD_SSH_HOST}" "bash -s" <<< "$remote_script"
+
+      - name: Verify /version is no longer dev
+        run: |
+          set -euo pipefail
+          # Give the rolling restart a moment to settle behind Caddy.
+          for _ in $(seq 1 24); do
+            body=$(curl -fsS -m 8 https://api.ironflyer.ai/version || true)
+            ver=$(printf '%s' "$body" | sed -n 's/.*"version":"\([^"]*\)".*/\1/p')
+            if [ -n "$ver" ] && [ "$ver" != "dev" ]; then
+              echo "live /version → $body"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::warning::/version still reports dev (or unreachable) after 120s — check the orchestrator logs on the host"
+          curl -sS -m 8 https://api.ironflyer.ai/version || true
+
+      - name: Cleanup key
+        if: always()
+        run: rm -f ~/.ssh/id_deploy
