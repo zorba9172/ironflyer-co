@@ -59,15 +59,17 @@ To pick up the changes in this closure pass against prod:
    `ghcr.io/zorba9172/ironflyer-orchestrator:v22.5.27` plus
    `:sha-<short>` / `:latest` / `:edge`.
 
-2. **On the AX102 prod host**, point `IRONFLYER_VERSION` at the tag, then roll the orchestrator + runtime containers:
+2. **On the AX102 prod host**, point `IRONFLYER_VERSION` at the tag, then roll the app containers. The service names are `orchestrator-1`, `orchestrator-2`, `runtime` (single — there is no `runtime-2`), `web-1`, `web-2`:
    ```
    cd infra/compose
    sed -i 's/^IRONFLYER_VERSION=.*/IRONFLYER_VERSION=v22.5.27/' .env.prod
-   docker compose -f docker-compose.prod.yml --env-file .env.prod pull orchestrator-1 orchestrator-2 runtime-1 runtime-2
-   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d orchestrator-1 orchestrator-2 runtime-1 runtime-2
+   docker compose -f docker-compose.prod.yml --env-file .env.prod pull orchestrator-1 orchestrator-2 runtime web-1 web-2
+   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d orchestrator-1 orchestrator-2 runtime web-1 web-2
    ```
    Watch `docker compose ps` for `healthy`. Total downtime: 0s (rolling
-   replace — Caddy keeps the other replica taking traffic).
+   replace — Caddy keeps the other replica taking traffic). The full
+   step-by-step version with verification is in
+   [`docs/RUNBOOKS/full-prod-redeploy.md`](docs/RUNBOOKS/full-prod-redeploy.md).
 
 3. **Verify the new build metadata is live:**
    ```
