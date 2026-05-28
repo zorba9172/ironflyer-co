@@ -1,17 +1,25 @@
 "use client";
 
-// ChatPanel — the left pane of the Studio split-view.
+// ChatPanel — DeepSeek-inspired studio chat.
 //
-// Composition: [header (agent identity + status pill)] → MessageList →
-// SuggestionsRow → ChatComposer. The panel itself owns no data; the
-// page resolves the execution + chat buffer and passes everything in.
+// The panel keeps the old data contract, but the UI is now a natural
+// assistant surface: quiet header, centered empty state, readable
+// conversation stream, and a large composer that owns the main action.
 
-import { Box, Chip, Stack, Typography } from "@mui/material";
+import {
+  AutoAwesomeRounded,
+  BoltRounded,
+  CodeRounded,
+  KeyboardArrowDownRounded,
+  RocketLaunchRounded,
+} from "@mui/icons-material";
+import { Box, Button, Chip, Stack, Typography } from "@mui/material";
+import type { SvgIconComponent } from "@mui/icons-material";
 import type { ReactNode } from "react";
 import { tokens } from "../../theme";
 import { ChatComposer } from "./ChatComposer";
 import { MessageList } from "./MessageList";
-import { SuggestionsRow, type StudioStatusBucket } from "./SuggestionsRow";
+import { suggestionsFor, type StudioStatusBucket } from "./SuggestionsRow";
 import type { StudioAttachment, StudioMessage } from "./types";
 
 export interface ChatPanelProps {
@@ -40,6 +48,12 @@ function statusLabel(s: StudioStatusBucket): { label: string; tone: "live" | "ok
   }
 }
 
+const PROMPT_ICONS: SvgIconComponent[] = [
+  AutoAwesomeRounded,
+  CodeRounded,
+  RocketLaunchRounded,
+];
+
 export function ChatPanel({
   messages,
   status,
@@ -49,17 +63,8 @@ export function ChatPanel({
   onRetry,
   userInitials,
   agentLabel = "Ironflyer",
-  contextBar,
 }: ChatPanelProps) {
   const s = statusLabel(status);
-  const pillBg =
-    s.tone === "live"
-      ? `${tokens.color.accent.success}1c`
-      : s.tone === "ok"
-      ? `${tokens.color.accent.success}1c`
-      : s.tone === "bad"
-      ? `${tokens.color.accent.danger}1c`
-      : tokens.color.bg.surfaceRaised;
   const pillFg =
     s.tone === "live"
       ? tokens.color.accent.success
@@ -68,54 +73,37 @@ export function ChatPanel({
       : s.tone === "bad"
       ? tokens.color.accent.danger
       : tokens.color.text.secondary;
+  const empty = messages.length === 0;
+  const suggestions = suggestionsFor(status).slice(0, 3);
 
   return (
     <Box
       sx={{
-        bgcolor: `${tokens.color.bg.surface}d6`,
+        bgcolor: "#070817",
         display: "flex",
         flexDirection: "column",
         height: "100%",
         minWidth: 0,
-        borderRight: `1px solid ${tokens.color.border.subtle}`,
+        overflow: "hidden",
       }}
     >
       <Stack
         direction="row"
-        spacing={1.25}
+        spacing={1}
         sx={{
           alignItems: "center",
           borderBottom: `1px solid ${tokens.color.border.subtle}`,
-          bgcolor: `${tokens.color.bg.surfaceRaised}eb`,
-          px: 1.75,
-          py: 1,
+          bgcolor: "rgba(11,12,28,0.92)",
+          minHeight: 56,
+          px: 1.5,
         }}
       >
-        <Box
-          sx={{
-            alignItems: "center",
-            bgcolor: tokens.color.bg.base,
-            border: `1px solid ${tokens.color.accent.violet}66`,
-            borderRadius: 1,
-            color: tokens.color.accent.violet,
-            display: "flex",
-            fontFamily: tokens.font.mono,
-            fontSize: 14,
-            fontWeight: 900,
-            height: 28,
-            justifyContent: "center",
-            width: 28,
-          }}
-        >
-          ◢
-        </Box>
         <Stack spacing={0.1} sx={{ flex: 1, minWidth: 0 }}>
           <Typography
             sx={{
               color: tokens.color.text.primary,
-              fontSize: 13,
-              fontWeight: 800,
-              letterSpacing: 0.2,
+              fontSize: 14,
+              fontWeight: 850,
             }}
           >
             {agentLabel}
@@ -123,47 +111,69 @@ export function ChatPanel({
           <Typography
             sx={{
               color: tokens.color.text.muted,
-              fontFamily: tokens.font.mono,
-              fontSize: 10.5,
-              letterSpacing: 0.4,
-              textTransform: "uppercase",
+              fontSize: 12,
             }}
           >
-            Finisher loop · gates enforced
+            Build, debug, explain, ship
           </Typography>
         </Stack>
+        <Button
+          size="small"
+          endIcon={<KeyboardArrowDownRounded sx={{ fontSize: 16 }} />}
+          sx={{
+            border: `1px solid ${tokens.color.border.subtle}`,
+            borderRadius: 999,
+            color: tokens.color.text.secondary,
+            fontSize: 11.5,
+            fontWeight: 750,
+            minHeight: 30,
+            px: 1,
+            textTransform: "none",
+            "&:hover": {
+              bgcolor: tokens.color.bg.surfaceHover,
+              borderColor: tokens.color.border.strong,
+              color: tokens.color.text.primary,
+            },
+          }}
+        >
+          Reasoner
+        </Button>
         <Chip
           size="small"
-          label={s.label.toUpperCase()}
+          label={s.label}
           sx={{
-            bgcolor: pillBg,
+            bgcolor: "transparent",
             color: pillFg,
-            border: `1px solid ${pillFg}55`,
-            fontFamily: tokens.font.mono,
-            fontSize: 10,
+            border: `1px solid ${pillFg}40`,
+            fontSize: 11,
             fontWeight: 800,
             height: 22,
-            letterSpacing: 0.8,
-            borderRadius: 0.75,
+            borderRadius: 999,
             "& .MuiChip-label": { px: 1 },
           }}
         />
       </Stack>
-      {contextBar}
-      <MessageList
-        messages={messages}
-        userInitials={userInitials}
-        onRetry={onRetry}
-      />
+      {empty ? (
+        <EmptyChatCanvas
+          suggestions={suggestions}
+          onPick={onSend}
+          disabled={pending}
+        />
+      ) : (
+        <MessageList
+          messages={messages}
+          userInitials={userInitials}
+          onRetry={onRetry}
+        />
+      )}
       {pending && (
         <Stack
           direction="row"
           spacing={1}
           sx={{
             alignItems: "center",
-            borderTop: `1px solid ${tokens.color.border.subtle}`,
             color: tokens.color.text.secondary,
-            px: 2,
+            px: 2.1,
             py: 0.85,
           }}
         >
@@ -192,18 +202,102 @@ export function ChatPanel({
             <span />
             <span />
           </Box>
-          <Typography sx={{ fontSize: 12.5 }}>
-            Ironflyer is checking the build and writing back...
+          <Typography sx={{ fontSize: 12.5, color: tokens.color.text.muted }}>
+            Ironflyer is thinking through the next change...
           </Typography>
         </Stack>
       )}
-      <SuggestionsRow status={status} onPick={onSend} disabled={pending} />
       <ChatComposer
         onSend={onSend}
         onStop={onStop}
         pending={pending}
         disabled={status === "failed" && !onRetry}
+        placeholder="Ask for a change, a fix, a feature, or an explanation..."
+        modelLabel="Ironflyer Reasoner"
       />
+    </Box>
+  );
+}
+
+function EmptyChatCanvas({
+  suggestions,
+  onPick,
+  disabled,
+}: {
+  suggestions: string[];
+  onPick: (text: string) => void | Promise<void>;
+  disabled?: boolean;
+}) {
+  return (
+    <Box
+      sx={{
+        alignItems: "center",
+        display: "flex",
+        flex: 1,
+        justifyContent: "center",
+        minHeight: 0,
+        px: 2.2,
+        py: 3,
+      }}
+    >
+      <Stack spacing={2.2} sx={{ maxWidth: 360, textAlign: "center", width: "100%" }}>
+        <Box
+          sx={{
+            alignItems: "center",
+            background: `linear-gradient(135deg, ${tokens.color.accent.coral}, ${tokens.color.brand.magenta} 48%, ${tokens.color.accent.purple})`,
+            borderRadius: 2,
+            boxShadow: `0 18px 48px ${tokens.color.accent.violet}26`,
+            color: tokens.color.text.primary,
+            display: "flex",
+            height: 44,
+            justifyContent: "center",
+            mx: "auto",
+            width: 44,
+          }}
+        >
+          <BoltRounded sx={{ fontSize: 22 }} />
+        </Box>
+        <Stack spacing={0.8}>
+          <Typography sx={{ color: tokens.color.text.primary, fontSize: 22, fontWeight: 900 }}>
+            What should we improve?
+          </Typography>
+          <Typography sx={{ color: tokens.color.text.muted, fontSize: 13.5, lineHeight: 1.55 }}>
+            Ask in plain English. Ironflyer will update the build, explain the work, and keep the studio in sync.
+          </Typography>
+        </Stack>
+        <Stack spacing={0.8}>
+          {suggestions.map((text, index) => {
+            const Icon = PROMPT_ICONS[index % PROMPT_ICONS.length];
+            return (
+              <Button
+                key={text}
+                disabled={disabled}
+                onClick={() => void onPick(text)}
+                startIcon={<Icon sx={{ fontSize: 17 }} />}
+                sx={{
+                  border: `1px solid ${tokens.color.border.subtle}`,
+                  borderRadius: 1.5,
+                  color: tokens.color.text.secondary,
+                  fontSize: 12.5,
+                  fontWeight: 750,
+                  justifyContent: "flex-start",
+                  minHeight: 40,
+                  px: 1.2,
+                  textAlign: "left",
+                  textTransform: "none",
+                  "&:hover": {
+                    bgcolor: "rgba(255,255,255,0.04)",
+                    borderColor: `${tokens.color.accent.violet}66`,
+                    color: tokens.color.text.primary,
+                  },
+                }}
+              >
+                {text}
+              </Button>
+            );
+          })}
+        </Stack>
+      </Stack>
     </Box>
   );
 }

@@ -42,7 +42,6 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import dynamic from "next/dynamic";
 // JSZip is ~30 KB gzip; importing it eagerly here ships the deflate
 // machinery into every cold load of the studio Code tab even though
 // it only runs when the operator clicks "Download project ZIP". The
@@ -57,36 +56,7 @@ import {
   type ProjectFilesQuery,
 } from "../../lib/gql/__generated__";
 import { tokens } from "../../theme";
-
-// Monaco is heavy (~1MB). We're already inside CodePane (which is
-// itself loaded via next/dynamic from the studio page), but going
-// one more level deep keeps the editor bundle out of the chunk that
-// loads when the user just opens the Code tab to look at the tree —
-// only flips on when an actual file is selected.
-const MonacoFileView = dynamic(
-  () => import("./MonacoFileView").then((m) => m.MonacoFileView),
-  {
-    ssr: false,
-    loading: () => (
-      <Box
-        sx={{
-          alignItems: "center",
-          bgcolor: tokens.color.bg.inset,
-          color: tokens.color.text.muted,
-          display: "flex",
-          fontFamily: tokens.font.mono,
-          fontSize: 11,
-          height: "100%",
-          justifyContent: "center",
-          letterSpacing: 1,
-          textTransform: "uppercase",
-        }}
-      >
-        Loading editor…
-      </Box>
-    ),
-  },
-);
+import { CodeTextView } from "./CodeTextView";
 
 type ProjectFile = ProjectFilesQuery["projectFiles"][number];
 type PatchLite = PatchCoreFragment;
@@ -801,13 +771,11 @@ function FileViewer({
             </Typography>
           </Stack>
         ) : (
-          <MonacoFileView
+          <CodeTextView
             value={file.content}
             language={language}
             path={file.path}
-            readOnly
             wordWrap={wordWrap}
-            minimap={minimap}
           />
         )}
       </Box>

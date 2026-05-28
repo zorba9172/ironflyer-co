@@ -191,7 +191,7 @@ lime-first chrome.
 
 ## Code-Editor-For-Pros Contract
 
-Monaco, the cloud IDE iframe, raw event payload viewers, GraphQL
+VS Code, the cloud IDE iframe, raw event payload viewers, GraphQL
 Sandbox, ledger CSV export, and any future code-grade pane are the
 professional layer of Ironflyer — reachable in one click from every
 relevant surface, but never the default landing experience.

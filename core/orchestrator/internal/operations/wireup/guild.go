@@ -41,11 +41,13 @@ type GuildBundle struct {
 
 // GuildOpts is the wireup input. WalletSvc may be nil (escrow no-ops);
 // pool may be nil (memory backend); ProjectStore is required for the
-// router's tenant lookup.
+// router's tenant lookup. Transferer is optional — when nil, finisher
+// payouts stay queued (no rail-side transfer).
 type GuildOpts struct {
 	Pool         *pgxpool.Pool
 	WalletSvc    wallet.Service
 	ProjectStore store.Store
+	Transferer   guild.PayoutTransferer
 	Logger       zerolog.Logger
 }
 
@@ -62,7 +64,7 @@ func WireGuild(opts GuildOpts) *GuildBundle {
 		opts.Logger.Info().Msg("V22 guild: in-memory backend")
 	}
 	escrow := guild.NewEscrow(opts.WalletSvc)
-	payouts := guild.NewPayouts(svc, opts.Logger)
+	payouts := guild.NewPayouts(svc, opts.Transferer, opts.Logger)
 	templates := guild.NewTemplateRegistry(svc, escrow, opts.Logger)
 	coord := guild.NewCoordinator(svc, escrow, payouts, templates, opts.Logger)
 	router := guild.NewGateFailureRouter(svc, escrow, projectLookup{opts.ProjectStore}, opts.Logger)

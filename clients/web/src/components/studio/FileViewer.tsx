@@ -13,38 +13,10 @@
 
 import { OpenInNewRounded } from "@mui/icons-material";
 import { Box, Skeleton, Stack, Typography } from "@mui/material";
-import dynamic from "next/dynamic";
 import { ErrorPanel } from "../cockpit/ErrorPanel";
 import { tokens } from "../../theme";
 import type { FileContent } from "../../lib/runtime";
-
-// Lazy-load the Monaco wrapper — keeps the ~1MB editor bundle out
-// of the FilesPane chunk until the user actually opens a file.
-const MonacoFileView = dynamic(
-  () => import("./MonacoFileView").then((m) => m.MonacoFileView),
-  { ssr: false, loading: () => <EditorFallback /> },
-);
-
-function EditorFallback() {
-  return (
-    <Box
-      sx={{
-        alignItems: "center",
-        bgcolor: tokens.color.bg.inset,
-        color: tokens.color.text.muted,
-        display: "flex",
-        fontFamily: tokens.font.mono,
-        fontSize: 11,
-        height: "100%",
-        justifyContent: "center",
-        letterSpacing: 1,
-        textTransform: "uppercase",
-      }}
-    >
-      Loading editor…
-    </Box>
-  );
-}
+import { CodeTextView } from "./CodeTextView";
 
 export interface FileViewerProps {
   workspaceID: string;
@@ -166,11 +138,10 @@ export function FileViewer({
             minHeight: 0,
           }}
         >
-          <MonacoFileView
+          <CodeTextView
             value={content.content || ""}
             language={languageFor(content.path)}
             path={content.path}
-            readOnly
           />
           {content.truncated && (
             <Box

@@ -22,7 +22,7 @@
 //   ⌘J — toggle bottom dock
 //   F  — focus mode (hides every rail)
 //   1  — primary = preview
-//   2  — primary = code
+//   2  — primary = VS Code
 //   3  — primary = files
 //   4  — primary = dashboard
 //
@@ -562,7 +562,7 @@ function MobileWorkbench(props: MobileWorkbenchProps) {
   const tabs: Array<{ key: MobileTab; label: string; icon: typeof CodeRounded }> = [
     { key: "chat", label: "Chat", icon: ChatBubbleOutlineRounded },
     { key: "preview", label: "Preview", icon: RocketLaunchRounded },
-    { key: "code", label: "Code", icon: CodeRounded },
+    { key: "code", label: "VS Code", icon: CodeRounded },
     { key: "files", label: "Files", icon: FolderRounded },
     { key: "dashboard", label: "Dashboard", icon: LayersRounded },
   ];

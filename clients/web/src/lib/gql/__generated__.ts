@@ -187,6 +187,18 @@ export type BanditWinner = {
   share: Scalars['Float']['output'];
 };
 
+export type Bid = {
+  __typename?: 'Bid';
+  createdAt: Scalars['DateTime']['output'];
+  estimatedHours: Scalars['Int']['output'];
+  finisher: FinisherProfile;
+  id: Scalars['ID']['output'];
+  note: Scalars['String']['output'];
+  priceUSD: Scalars['String']['output'];
+  status: Scalars['String']['output'];
+  task: GuildTask;
+};
+
 export type Blueprint = {
   __typename?: 'Blueprint';
   category: Scalars['String']['output'];
@@ -278,6 +290,42 @@ export type ComplexityBucket = {
   range: Scalars['String']['output'];
 };
 
+export type ComplianceAuditBundle = {
+  __typename?: 'ComplianceAuditBundle';
+  attestationJWT: Scalars['String']['output'];
+  downloadURL: Scalars['String']['output'];
+  framework: ComplianceFramework;
+  generatedAt: Scalars['DateTime']['output'];
+};
+
+export type ComplianceControlResult = {
+  __typename?: 'ComplianceControlResult';
+  controlKey: Scalars['String']['output'];
+  evaluatedAt: Scalars['DateTime']['output'];
+  evidence: Scalars['String']['output'];
+  path: Maybe<Scalars['String']['output']>;
+  severity: Scalars['String']['output'];
+  status: Scalars['String']['output'];
+};
+
+export type ComplianceEnrollment = {
+  __typename?: 'ComplianceEnrollment';
+  framework: ComplianceFramework;
+  id: Scalars['ID']['output'];
+  lastEvaluatedAt: Maybe<Scalars['DateTime']['output']>;
+  lastVerdict: Scalars['String']['output'];
+  nextChargeAt: Scalars['DateTime']['output'];
+  projectId: Scalars['ID']['output'];
+};
+
+export type ComplianceFramework = {
+  __typename?: 'ComplianceFramework';
+  controlCount: Scalars['Int']['output'];
+  key: Scalars['String']['output'];
+  label: Scalars['String']['output'];
+  monthlyPriceUSD: Scalars['String']['output'];
+};
+
 export type ConnectDeployDomainInput = {
   deployID?: InputMaybe<Scalars['ID']['input']>;
   hostname: Scalars['String']['input'];
@@ -285,6 +333,14 @@ export type ConnectDeployDomainInput = {
   primary?: InputMaybe<Scalars['Boolean']['input']>;
   projectID: Scalars['ID']['input'];
   provider?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type ConnectorInfo = {
+  __typename?: 'ConnectorInfo';
+  enabled: Scalars['Boolean']['output'];
+  label: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  sharePct: Scalars['Float']['output'];
 };
 
 export type CostDelta = {
@@ -555,6 +611,17 @@ export type ExecutionEvent = {
   payload: Scalars['JSON']['output'];
 };
 
+export type FinisherProfile = {
+  __typename?: 'FinisherProfile';
+  completedTaskCount: Scalars['Int']['output'];
+  displayName: Scalars['String']['output'];
+  hourlyRateUSD: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  rating: Scalars['String']['output'];
+  skills: Array<Scalars['String']['output']>;
+  verified: Scalars['Boolean']['output'];
+};
+
 export type GateFailureRate = {
   __typename?: 'GateFailureRate';
   failureRate: Scalars['Float']['output'];
@@ -637,6 +704,20 @@ export type GqlError = {
   message: Scalars['String']['output'];
 };
 
+export type GuildTask = {
+  __typename?: 'GuildTask';
+  assignedTo: Maybe<FinisherProfile>;
+  bidCount: Scalars['Int']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  description: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  priceUSDFloor: Scalars['String']['output'];
+  project: Project;
+  slaHours: Scalars['Int']['output'];
+  status: Scalars['String']['output'];
+  title: Scalars['String']['output'];
+};
+
 export type HealthMetrics = {
   __typename?: 'HealthMetrics';
   architecture: Architecture;
@@ -716,6 +797,27 @@ export type InlineTextDelta = {
   __typename?: 'InlineTextDelta';
   requestId: Scalars['ID']['output'];
   text: Scalars['String']['output'];
+};
+
+export type InsurancePolicy = {
+  __typename?: 'InsurancePolicy';
+  coverageWindowHours: Scalars['Int']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  expiresAt: Scalars['DateTime']['output'];
+  hardCapUSD: Scalars['Float']['output'];
+  id: Scalars['ID']['output'];
+  premiumUSD: Scalars['Float']['output'];
+  projectId: Scalars['ID']['output'];
+  status: Scalars['String']['output'];
+  updatedAt: Scalars['DateTime']['output'];
+};
+
+export type InsuranceQuote = {
+  __typename?: 'InsuranceQuote';
+  capUSD: Scalars['Float']['output'];
+  coverageWindowHours: Scalars['Int']['output'];
+  premiumUSD: Scalars['Float']['output'];
+  sampleCount: Scalars['Int']['output'];
 };
 
 export type LearningDashboard = {
@@ -887,6 +989,7 @@ export type MobileUpdate = {
 export type Mutation = {
   __typename?: 'Mutation';
   _empty: Maybe<Scalars['String']['output']>;
+  acceptBid: GuildTask;
   acceptInlineCompletion: OperationResult;
   appetizeDeleteApp: Scalars['Boolean']['output'];
   appetizeUploadBuild: AppetizeApp;
@@ -895,9 +998,11 @@ export type Mutation = {
   buildDeployPreview: Deploy;
   bulkDeleteProjects: OperationResult;
   cancelDeploy: Deploy;
+  cancelShipPass: ShipPass;
   checkDeployDomain: DeployDomain;
   confirmEmailChange: OperationResult;
   connectDeployDomain: DeployDomain;
+  createGuildTask: GuildTask;
   createPaidExecution: Execution;
   createProject: Project;
   createStage: PatchStage;
@@ -906,7 +1011,11 @@ export type Mutation = {
   describeIdea: StudioBootstrap;
   deviceCloudEndSession: Scalars['Boolean']['output'];
   deviceCloudStartSession: DeviceCloudSession;
+  enrollCompliance: ComplianceEnrollment;
+  evaluateCompliance: Array<ComplianceControlResult>;
+  exportAuditBundle: ComplianceAuditBundle;
   generateMobileAssets: GenerateMobileAssetsResult;
+  installTemplate: Template;
   markAllNotificationsRead: Scalars['Int']['output'];
   markNotificationRead: Notification;
   mcpDisable: Scalars['Boolean']['output'];
@@ -915,15 +1024,20 @@ export type Mutation = {
   mobilePublishUpdate: MobileUpdate;
   mobileSubmitToStore: MobileSubmission;
   mobileTriggerBuild: MobileBuild;
+  placeBid: Bid;
   planDeploy: Deploy;
   promoteDeploy: Deploy;
   promptPlan: Scalars['JSON']['output'];
   proposePatch: Patch;
   proposeSymbolPatch: Patch;
+  provisionResource: ProvisionedResource;
   purchaseDeployDomain: DeployDomain;
+  purchaseInsurance: InsurancePolicy;
+  purchaseShipPass: ShipPass;
   refineIdea: StudioBootstrap;
   refundExecution: Execution;
   rejectStage: PatchStage;
+  rejectTask: GuildTask;
   renameSymbol: Patch;
   requestDeployApproval: DeployApproval;
   requestEmailChange: OperationResult;
@@ -944,11 +1058,19 @@ export type Mutation = {
   signUp: Session;
   startCheckout: StripeCheckoutSession;
   stopExecution: Execution;
+  suspendResource: ProvisionedResource;
+  unenrollCompliance: Scalars['Boolean']['output'];
   updateNotificationPreferences: NotificationPreferences;
   updateProject: Project;
+  upsertFinisherProfile: FinisherProfile;
   verifyEmail: Session;
   walletCreateTopUp: WalletCheckoutSession;
   writeProjectFiles: Array<ProjectFile>;
+};
+
+
+export type MutationAcceptBidArgs = {
+  bidId: Scalars['ID']['input'];
 };
 
 
@@ -993,6 +1115,11 @@ export type MutationCancelDeployArgs = {
 };
 
 
+export type MutationCancelShipPassArgs = {
+  passId: Scalars['ID']['input'];
+};
+
+
 export type MutationCheckDeployDomainArgs = {
   id: Scalars['ID']['input'];
 };
@@ -1005,6 +1132,15 @@ export type MutationConfirmEmailChangeArgs = {
 
 export type MutationConnectDeployDomainArgs = {
   input: ConnectDeployDomainInput;
+};
+
+
+export type MutationCreateGuildTaskArgs = {
+  description: Scalars['String']['input'];
+  priceUSDFloor: Scalars['String']['input'];
+  projectId: Scalars['ID']['input'];
+  slaHours: Scalars['Int']['input'];
+  title: Scalars['String']['input'];
 };
 
 
@@ -1051,8 +1187,32 @@ export type MutationDeviceCloudStartSessionArgs = {
 };
 
 
+export type MutationEnrollComplianceArgs = {
+  framework: Scalars['String']['input'];
+  projectId: Scalars['ID']['input'];
+};
+
+
+export type MutationEvaluateComplianceArgs = {
+  framework: Scalars['String']['input'];
+  projectId: Scalars['ID']['input'];
+};
+
+
+export type MutationExportAuditBundleArgs = {
+  framework: Scalars['String']['input'];
+  projectId: Scalars['ID']['input'];
+};
+
+
 export type MutationGenerateMobileAssetsArgs = {
   input: GenerateMobileAssetsInput;
+};
+
+
+export type MutationInstallTemplateArgs = {
+  projectId: Scalars['ID']['input'];
+  slug: Scalars['String']['input'];
 };
 
 
@@ -1093,6 +1253,14 @@ export type MutationMobileTriggerBuildArgs = {
 };
 
 
+export type MutationPlaceBidArgs = {
+  estimatedHours: Scalars['Int']['input'];
+  note: Scalars['String']['input'];
+  priceUSD: Scalars['String']['input'];
+  taskId: Scalars['ID']['input'];
+};
+
+
 export type MutationPlanDeployArgs = {
   input: PlanDeployInput;
 };
@@ -1119,8 +1287,29 @@ export type MutationProposeSymbolPatchArgs = {
 };
 
 
+export type MutationProvisionResourceArgs = {
+  kind: Scalars['String']['input'];
+  projectId: Scalars['ID']['input'];
+};
+
+
 export type MutationPurchaseDeployDomainArgs = {
   input: PurchaseDeployDomainInput;
+};
+
+
+export type MutationPurchaseInsuranceArgs = {
+  capUSD: Scalars['Float']['input'];
+  hours: Scalars['Int']['input'];
+  projectId: Scalars['ID']['input'];
+  requestID?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationPurchaseShipPassArgs = {
+  projectId: Scalars['ID']['input'];
+  requestID?: InputMaybe<Scalars['String']['input']>;
+  tierKey: Scalars['String']['input'];
 };
 
 
@@ -1140,6 +1329,12 @@ export type MutationRefundExecutionArgs = {
 export type MutationRejectStageArgs = {
   reason?: InputMaybe<Scalars['String']['input']>;
   stageId: Scalars['ID']['input'];
+};
+
+
+export type MutationRejectTaskArgs = {
+  reason: Scalars['String']['input'];
+  taskId: Scalars['ID']['input'];
 };
 
 
@@ -1232,6 +1427,16 @@ export type MutationStopExecutionArgs = {
 };
 
 
+export type MutationSuspendResourceArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationUnenrollComplianceArgs = {
+  enrollmentId: Scalars['ID']['input'];
+};
+
+
 export type MutationUpdateNotificationPreferencesArgs = {
   input: NotificationPreferencesInput;
 };
@@ -1240,6 +1445,13 @@ export type MutationUpdateNotificationPreferencesArgs = {
 export type MutationUpdateProjectArgs = {
   id: Scalars['ID']['input'];
   input: UpdateProjectInput;
+};
+
+
+export type MutationUpsertFinisherProfileArgs = {
+  displayName: Scalars['String']['input'];
+  hourlyRateUSD: Scalars['String']['input'];
+  skills: Array<Scalars['String']['input']>;
 };
 
 
@@ -1538,6 +1750,18 @@ export type ProposePatchInput = {
   title?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type ProvisionedResource = {
+  __typename?: 'ProvisionedResource';
+  createdAt: Scalars['DateTime']['output'];
+  externalId: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  kind: Scalars['String']['output'];
+  projectId: Scalars['ID']['output'];
+  status: Scalars['String']['output'];
+  tenantId: Scalars['ID']['output'];
+  updatedAt: Scalars['DateTime']['output'];
+};
+
 export type PurchaseDeployDomainInput = {
   autoRenew?: InputMaybe<Scalars['Boolean']['input']>;
   contact?: InputMaybe<Scalars['JSON']['input']>;
@@ -1554,6 +1778,8 @@ export type PurchaseDeployDomainInput = {
 
 export type Query = {
   __typename?: 'Query';
+  activeInsurance: Maybe<InsurancePolicy>;
+  activeShipPass: Maybe<ShipPass>;
   agentTelemetry: Array<AgentCall>;
   agents: Array<Agent>;
   audit: Array<AuditEntry>;
@@ -1561,6 +1787,7 @@ export type Query = {
   auditExportCsvUrl: Scalars['String']['output'];
   auditExportPdfUrl: Scalars['String']['output'];
   auditExportPreview: AuditExportPreview;
+  availableConnectors: Array<ConnectorInfo>;
   banditRanking: BanditRanking;
   blueprint: Maybe<Blueprint>;
   blueprintDashboard: BlueprintDashboard;
@@ -1568,6 +1795,9 @@ export type Query = {
   blueprintStats: Maybe<BlueprintStats>;
   blueprints: Array<Blueprint>;
   cohortDashboard: CohortDashboard;
+  complianceControlResults: Array<ComplianceControlResult>;
+  complianceEnrollments: Array<ComplianceEnrollment>;
+  complianceFrameworks: Array<ComplianceFramework>;
   deploy: Maybe<Deploy>;
   deployDomains: Array<DeployDomain>;
   deploys: Array<Deploy>;
@@ -1581,7 +1811,10 @@ export type Query = {
   executions: Array<Execution>;
   gate: Maybe<GateVerdict>;
   gates: Array<GateVerdict>;
+  guildTask: Maybe<GuildTask>;
+  guildTasks: Array<GuildTask>;
   healthDashboard: HealthMetrics;
+  insuranceQuote: InsuranceQuote;
   learningDashboard: LearningDashboard;
   ledger: Array<WalletLedgerEntry>;
   ledgerRollup: LedgerRollup;
@@ -1592,6 +1825,7 @@ export type Query = {
   mobileBuilds: Array<MobileBuild>;
   mobileSubmissions: Array<MobileSubmission>;
   myBudget: BudgetSummary;
+  myFinisherProfile: Maybe<FinisherProfile>;
   mySessions: Array<Session>;
   notificationPreferences: NotificationPreferences;
   notifications: Array<Notification>;
@@ -1612,12 +1846,23 @@ export type Query = {
   projectExecutions: Array<Execution>;
   projectFiles: Array<ProjectFile>;
   projects: Array<Project>;
+  provisionedResources: Array<ProvisionedResource>;
   rates: Array<Rate>;
   recentErrors: Array<ErrorAggregate>;
   recentLogs: Array<LogEntry>;
+  revenueEvents: Array<RevenueEvent>;
   scaleDashboard: ScaleDashboard;
+  sentinelForecast: SentinelForecast;
+  sentinelReroutes: Array<SentinelReroute>;
+  shipPassProgress: Array<ShipPassGateProgress>;
+  shipPassQuote: ShipPassQuote;
+  shipPassStats: ShipPassLifetimeStats;
+  shipPassTiers: Array<ShipPassTier>;
+  shipPasses: Array<ShipPass>;
   stage: Maybe<PatchStage>;
   stages: Array<PatchStage>;
+  template: Maybe<Template>;
+  templates: Array<Template>;
   tenantProfitToday: LedgerRollup;
   unreadNotificationCount: Scalars['Int']['output'];
   vault: VaultSnapshot;
@@ -1626,6 +1871,16 @@ export type Query = {
   wallet: Wallet;
   walletAvailableProviders: Array<WalletProvider>;
   walletTopUps: Array<WalletTopUp>;
+};
+
+
+export type QueryActiveInsuranceArgs = {
+  projectId: Scalars['ID']['input'];
+};
+
+
+export type QueryActiveShipPassArgs = {
+  projectId: Scalars['ID']['input'];
 };
 
 
@@ -1686,6 +1941,17 @@ export type QueryBlueprintStatsArgs = {
 
 export type QueryCohortDashboardArgs = {
   sinceMonth: Scalars['DateTime']['input'];
+};
+
+
+export type QueryComplianceControlResultsArgs = {
+  framework: Scalars['String']['input'];
+  projectId: Scalars['ID']['input'];
+};
+
+
+export type QueryComplianceEnrollmentsArgs = {
+  projectId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 
@@ -1758,6 +2024,24 @@ export type QueryGateArgs = {
 export type QueryGatesArgs = {
   projectId: Scalars['ID']['input'];
   sub?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+export type QueryGuildTaskArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryGuildTasksArgs = {
+  mine?: InputMaybe<Scalars['Boolean']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryInsuranceQuoteArgs = {
+  capUSD: Scalars['Float']['input'];
+  hours: Scalars['Int']['input'];
+  projectId: Scalars['ID']['input'];
 };
 
 
@@ -1869,6 +2153,11 @@ export type QueryProjectsArgs = {
 };
 
 
+export type QueryProvisionedResourcesArgs = {
+  projectId: Scalars['ID']['input'];
+};
+
+
 export type QueryRecentErrorsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
 };
@@ -1881,6 +2170,38 @@ export type QueryRecentLogsArgs = {
 };
 
 
+export type QueryRevenueEventsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  resourceId: Scalars['ID']['input'];
+};
+
+
+export type QuerySentinelForecastArgs = {
+  projectId: Scalars['ID']['input'];
+};
+
+
+export type QuerySentinelReroutesArgs = {
+  projectId: Scalars['ID']['input'];
+};
+
+
+export type QueryShipPassProgressArgs = {
+  passId: Scalars['ID']['input'];
+};
+
+
+export type QueryShipPassQuoteArgs = {
+  projectId: Scalars['ID']['input'];
+  tierKey: Scalars['String']['input'];
+};
+
+
+export type QueryShipPassesArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
 export type QueryStageArgs = {
   id: Scalars['ID']['input'];
 };
@@ -1888,6 +2209,16 @@ export type QueryStageArgs = {
 
 export type QueryStagesArgs = {
   projectId: Scalars['ID']['input'];
+};
+
+
+export type QueryTemplateArgs = {
+  slug: Scalars['String']['input'];
+};
+
+
+export type QueryTemplatesArgs = {
+  verifiedOnly?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 
@@ -1922,6 +2253,17 @@ export type ReserveDeploySubdomainInput = {
   projectID: Scalars['ID']['input'];
   provider?: InputMaybe<Scalars['String']['input']>;
   subdomain?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type RevenueEvent = {
+  __typename?: 'RevenueEvent';
+  externalRef: Scalars['String']['output'];
+  grossAmountUSD: Scalars['Float']['output'];
+  id: Scalars['ID']['output'];
+  ironflyerCutUSD: Scalars['Float']['output'];
+  ledgerEntryId: Scalars['String']['output'];
+  occurredAt: Scalars['DateTime']['output'];
+  resourceId: Scalars['ID']['output'];
 };
 
 export type RouteBundle = {
@@ -1998,6 +2340,31 @@ export type SecurityReportFinding = {
   summary: Scalars['String']['output'];
 };
 
+export type SentinelForecast = {
+  __typename?: 'SentinelForecast';
+  burnRatePerHourUSD: Scalars['Float']['output'];
+  capBreachAt: Maybe<Scalars['DateTime']['output']>;
+  computedAt: Scalars['DateTime']['output'];
+  etaCompletionAt: Scalars['DateTime']['output'];
+  extrapolatedTotalUSD: Scalars['Float']['output'];
+  hardCapUSD: Scalars['Float']['output'];
+  level: Scalars['String']['output'];
+  projectId: Scalars['ID']['output'];
+  projectionConfidence: Scalars['Float']['output'];
+  remainingHeadroomUSD: Scalars['Float']['output'];
+  spentUSD: Scalars['Float']['output'];
+};
+
+export type SentinelReroute = {
+  __typename?: 'SentinelReroute';
+  description: Scalars['String']['output'];
+  kind: Scalars['String']['output'];
+  label: Scalars['String']['output'];
+  reversible: Scalars['Boolean']['output'];
+  savingsConfidence: Scalars['Float']['output'];
+  savingsUSD: Scalars['Float']['output'];
+};
+
 export type Session = {
   __typename?: 'Session';
   current: Maybe<Scalars['Boolean']['output']>;
@@ -2008,6 +2375,56 @@ export type Session = {
   token: Scalars['String']['output'];
   user: User;
   userAgent: Maybe<Scalars['String']['output']>;
+};
+
+export type ShipPass = {
+  __typename?: 'ShipPass';
+  createdAt: Scalars['DateTime']['output'];
+  deadlineAt: Scalars['DateTime']['output'];
+  id: Scalars['ID']['output'];
+  priceUSD: Scalars['Float']['output'];
+  projectId: Scalars['ID']['output'];
+  settledAt: Maybe<Scalars['DateTime']['output']>;
+  status: Scalars['String']['output'];
+  tierKey: Scalars['String']['output'];
+  updatedAt: Scalars['DateTime']['output'];
+};
+
+export type ShipPassGateProgress = {
+  __typename?: 'ShipPassGateProgress';
+  gate: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  observedAt: Scalars['DateTime']['output'];
+  passed: Scalars['Boolean']['output'];
+  reason: Scalars['String']['output'];
+};
+
+export type ShipPassLifetimeStats = {
+  __typename?: 'ShipPassLifetimeStats';
+  revenueUSD: Scalars['Float']['output'];
+  totalCancelled: Scalars['Int']['output'];
+  totalPurchased: Scalars['Int']['output'];
+  totalRefunded: Scalars['Int']['output'];
+  totalShipped: Scalars['Int']['output'];
+};
+
+export type ShipPassQuote = {
+  __typename?: 'ShipPassQuote';
+  deadlineDays: Scalars['Int']['output'];
+  priceUSD: Scalars['Float']['output'];
+  requiredGates: Array<Scalars['String']['output']>;
+  tierKey: Scalars['String']['output'];
+  walletShortfallUSD: Scalars['Float']['output'];
+};
+
+export type ShipPassTier = {
+  __typename?: 'ShipPassTier';
+  deadlineDays: Scalars['Int']['output'];
+  description: Scalars['String']['output'];
+  key: Scalars['String']['output'];
+  label: Scalars['String']['output'];
+  priceUSD: Scalars['Float']['output'];
+  requiredGates: Array<Scalars['String']['output']>;
 };
 
 export type SignInInput = {
@@ -2145,6 +2562,19 @@ export type SymbolPatchInput = {
 
 export type TelemetryPreferenceInput = {
   optOut: Scalars['Boolean']['input'];
+};
+
+export type Template = {
+  __typename?: 'Template';
+  author: FinisherProfile;
+  description: Scalars['String']['output'];
+  gatesPassed: Array<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  installCount: Scalars['Int']['output'];
+  name: Scalars['String']['output'];
+  priceUSD: Scalars['String']['output'];
+  slug: Scalars['String']['output'];
+  verified: Scalars['Boolean']['output'];
 };
 
 export type UpdateProjectInput = {
@@ -2352,6 +2782,57 @@ export type StartCheckoutMutationVariables = Exact<{
 
 
 export type StartCheckoutMutation = { __typename?: 'Mutation', startCheckout: { __typename?: 'StripeCheckoutSession', sessionId: string, url: string } };
+
+export type ComplianceFrameworksQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ComplianceFrameworksQuery = { __typename?: 'Query', complianceFrameworks: Array<{ __typename?: 'ComplianceFramework', key: string, label: string, monthlyPriceUSD: string, controlCount: number }> };
+
+export type ComplianceEnrollmentsQueryVariables = Exact<{
+  projectId?: InputMaybe<Scalars['ID']['input']>;
+}>;
+
+
+export type ComplianceEnrollmentsQuery = { __typename?: 'Query', complianceEnrollments: Array<{ __typename?: 'ComplianceEnrollment', id: string, projectId: string, lastVerdict: string, lastEvaluatedAt: string | null, nextChargeAt: string, framework: { __typename?: 'ComplianceFramework', key: string, label: string, monthlyPriceUSD: string, controlCount: number } }> };
+
+export type ComplianceControlResultsQueryVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+  framework: Scalars['String']['input'];
+}>;
+
+
+export type ComplianceControlResultsQuery = { __typename?: 'Query', complianceControlResults: Array<{ __typename?: 'ComplianceControlResult', controlKey: string, status: string, severity: string, evidence: string, path: string | null, evaluatedAt: string }> };
+
+export type EnrollComplianceMutationVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+  framework: Scalars['String']['input'];
+}>;
+
+
+export type EnrollComplianceMutation = { __typename?: 'Mutation', enrollCompliance: { __typename?: 'ComplianceEnrollment', id: string, projectId: string, lastVerdict: string, nextChargeAt: string, framework: { __typename?: 'ComplianceFramework', key: string, label: string, monthlyPriceUSD: string } } };
+
+export type UnenrollComplianceMutationVariables = Exact<{
+  enrollmentId: Scalars['ID']['input'];
+}>;
+
+
+export type UnenrollComplianceMutation = { __typename?: 'Mutation', unenrollCompliance: boolean };
+
+export type EvaluateComplianceMutationVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+  framework: Scalars['String']['input'];
+}>;
+
+
+export type EvaluateComplianceMutation = { __typename?: 'Mutation', evaluateCompliance: Array<{ __typename?: 'ComplianceControlResult', controlKey: string, status: string, severity: string, evidence: string, path: string | null, evaluatedAt: string }> };
+
+export type ExportAuditBundleMutationVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+  framework: Scalars['String']['input'];
+}>;
+
+
+export type ExportAuditBundleMutation = { __typename?: 'Mutation', exportAuditBundle: { __typename?: 'ComplianceAuditBundle', generatedAt: string, downloadURL: string, attestationJWT: string, framework: { __typename?: 'ComplianceFramework', key: string, label: string } } };
 
 export type ProfitDashboardQueryVariables = Exact<{
   since: Scalars['DateTime']['input'];
@@ -2604,6 +3085,99 @@ export type RerunGateMutationVariables = Exact<{
 
 export type RerunGateMutation = { __typename?: 'Mutation', rerunGate: { __typename?: 'GateVerdict', gate: string, status: GateStatus, startedAt: string | null, finishedAt: string | null, durationMs: number | null, notes: string | null, issues: Array<{ __typename?: 'GateIssue', path: string | null, line: number | null, rule: string | null, severity: string | null, message: string }> } };
 
+export type GuildTaskFieldsFragment = { __typename?: 'GuildTask', id: string, title: string, description: string, priceUSDFloor: string, slaHours: number, status: string, bidCount: number, createdAt: string, project: { __typename?: 'Project', id: string, name: string }, assignedTo: { __typename?: 'FinisherProfile', id: string, displayName: string, rating: string, verified: boolean } | null };
+
+export type FinisherProfileFieldsFragment = { __typename?: 'FinisherProfile', id: string, displayName: string, skills: Array<string>, hourlyRateUSD: string, completedTaskCount: number, rating: string, verified: boolean };
+
+export type TemplateFieldsFragment = { __typename?: 'Template', id: string, slug: string, name: string, description: string, priceUSD: string, gatesPassed: Array<string>, installCount: number, verified: boolean, author: { __typename?: 'FinisherProfile', id: string, displayName: string, rating: string } };
+
+export type MyFinisherProfileQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MyFinisherProfileQuery = { __typename?: 'Query', myFinisherProfile: { __typename?: 'FinisherProfile', id: string, displayName: string, skills: Array<string>, hourlyRateUSD: string, completedTaskCount: number, rating: string, verified: boolean } | null };
+
+export type GuildTasksQueryVariables = Exact<{
+  status?: InputMaybe<Scalars['String']['input']>;
+  mine?: InputMaybe<Scalars['Boolean']['input']>;
+}>;
+
+
+export type GuildTasksQuery = { __typename?: 'Query', guildTasks: Array<{ __typename?: 'GuildTask', id: string, title: string, description: string, priceUSDFloor: string, slaHours: number, status: string, bidCount: number, createdAt: string, project: { __typename?: 'Project', id: string, name: string }, assignedTo: { __typename?: 'FinisherProfile', id: string, displayName: string, rating: string, verified: boolean } | null }> };
+
+export type GuildTaskQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type GuildTaskQuery = { __typename?: 'Query', guildTask: { __typename?: 'GuildTask', id: string, title: string, description: string, priceUSDFloor: string, slaHours: number, status: string, bidCount: number, createdAt: string, project: { __typename?: 'Project', id: string, name: string }, assignedTo: { __typename?: 'FinisherProfile', id: string, displayName: string, rating: string, verified: boolean } | null } | null };
+
+export type TemplatesQueryVariables = Exact<{
+  verifiedOnly?: InputMaybe<Scalars['Boolean']['input']>;
+}>;
+
+
+export type TemplatesQuery = { __typename?: 'Query', templates: Array<{ __typename?: 'Template', id: string, slug: string, name: string, description: string, priceUSD: string, gatesPassed: Array<string>, installCount: number, verified: boolean, author: { __typename?: 'FinisherProfile', id: string, displayName: string, rating: string } }> };
+
+export type TemplateQueryVariables = Exact<{
+  slug: Scalars['String']['input'];
+}>;
+
+
+export type TemplateQuery = { __typename?: 'Query', template: { __typename?: 'Template', id: string, slug: string, name: string, description: string, priceUSD: string, gatesPassed: Array<string>, installCount: number, verified: boolean, author: { __typename?: 'FinisherProfile', id: string, displayName: string, rating: string } } | null };
+
+export type UpsertFinisherProfileMutationVariables = Exact<{
+  displayName: Scalars['String']['input'];
+  skills: Array<Scalars['String']['input']> | Scalars['String']['input'];
+  hourlyRateUSD: Scalars['String']['input'];
+}>;
+
+
+export type UpsertFinisherProfileMutation = { __typename?: 'Mutation', upsertFinisherProfile: { __typename?: 'FinisherProfile', id: string, displayName: string, skills: Array<string>, hourlyRateUSD: string, completedTaskCount: number, rating: string, verified: boolean } };
+
+export type CreateGuildTaskMutationVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+  title: Scalars['String']['input'];
+  description: Scalars['String']['input'];
+  priceUSDFloor: Scalars['String']['input'];
+  slaHours: Scalars['Int']['input'];
+}>;
+
+
+export type CreateGuildTaskMutation = { __typename?: 'Mutation', createGuildTask: { __typename?: 'GuildTask', id: string, title: string, description: string, priceUSDFloor: string, slaHours: number, status: string, bidCount: number, createdAt: string, project: { __typename?: 'Project', id: string, name: string }, assignedTo: { __typename?: 'FinisherProfile', id: string, displayName: string, rating: string, verified: boolean } | null } };
+
+export type PlaceBidMutationVariables = Exact<{
+  taskId: Scalars['ID']['input'];
+  priceUSD: Scalars['String']['input'];
+  estimatedHours: Scalars['Int']['input'];
+  note: Scalars['String']['input'];
+}>;
+
+
+export type PlaceBidMutation = { __typename?: 'Mutation', placeBid: { __typename?: 'Bid', id: string, priceUSD: string, estimatedHours: number, note: string, status: string, createdAt: string, task: { __typename?: 'GuildTask', id: string }, finisher: { __typename?: 'FinisherProfile', id: string, displayName: string } } };
+
+export type AcceptBidMutationVariables = Exact<{
+  bidId: Scalars['ID']['input'];
+}>;
+
+
+export type AcceptBidMutation = { __typename?: 'Mutation', acceptBid: { __typename?: 'GuildTask', id: string, title: string, description: string, priceUSDFloor: string, slaHours: number, status: string, bidCount: number, createdAt: string, project: { __typename?: 'Project', id: string, name: string }, assignedTo: { __typename?: 'FinisherProfile', id: string, displayName: string, rating: string, verified: boolean } | null } };
+
+export type RejectTaskMutationVariables = Exact<{
+  taskId: Scalars['ID']['input'];
+  reason: Scalars['String']['input'];
+}>;
+
+
+export type RejectTaskMutation = { __typename?: 'Mutation', rejectTask: { __typename?: 'GuildTask', id: string, title: string, description: string, priceUSDFloor: string, slaHours: number, status: string, bidCount: number, createdAt: string, project: { __typename?: 'Project', id: string, name: string }, assignedTo: { __typename?: 'FinisherProfile', id: string, displayName: string, rating: string, verified: boolean } | null } };
+
+export type InstallTemplateMutationVariables = Exact<{
+  slug: Scalars['String']['input'];
+  projectId: Scalars['ID']['input'];
+}>;
+
+
+export type InstallTemplateMutation = { __typename?: 'Mutation', installTemplate: { __typename?: 'Template', id: string, slug: string, name: string, description: string, priceUSD: string, gatesPassed: Array<string>, installCount: number, verified: boolean, author: { __typename?: 'FinisherProfile', id: string, displayName: string, rating: string } } };
+
 export type LedgerEntryCoreFragment = { __typename?: 'WalletLedgerEntry', id: string, tenantID: string, executionID: string | null, entryType: string, direction: string, amountUSD: number, provider: string | null, billable: boolean, marginRelevant: boolean, metadata: unknown, createdAt: string };
 
 export type ExecutionLedgerQueryVariables = Exact<{
@@ -2813,12 +3387,142 @@ export type WriteProjectFilesMutationVariables = Exact<{
 
 export type WriteProjectFilesMutation = { __typename?: 'Mutation', writeProjectFiles: Array<{ __typename?: 'ProjectFile', path: string, content: string | null, size: number | null, language: string | null, updatedAt: string | null }> };
 
+export type ProvisionedResourcesQueryVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+}>;
+
+
+export type ProvisionedResourcesQuery = { __typename?: 'Query', provisionedResources: Array<{ __typename?: 'ProvisionedResource', id: string, tenantId: string, projectId: string, kind: string, externalId: string, status: string, createdAt: string, updatedAt: string }> };
+
+export type RevenueEventsQueryVariables = Exact<{
+  resourceId: Scalars['ID']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type RevenueEventsQuery = { __typename?: 'Query', revenueEvents: Array<{ __typename?: 'RevenueEvent', id: string, resourceId: string, occurredAt: string, grossAmountUSD: number, ironflyerCutUSD: number, externalRef: string, ledgerEntryId: string }> };
+
+export type AvailableConnectorsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AvailableConnectorsQuery = { __typename?: 'Query', availableConnectors: Array<{ __typename?: 'ConnectorInfo', name: string, label: string, enabled: boolean, sharePct: number }> };
+
+export type ProvisionResourceMutationVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+  kind: Scalars['String']['input'];
+}>;
+
+
+export type ProvisionResourceMutation = { __typename?: 'Mutation', provisionResource: { __typename?: 'ProvisionedResource', id: string, projectId: string, kind: string, externalId: string, status: string, createdAt: string, updatedAt: string } };
+
+export type SuspendResourceMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type SuspendResourceMutation = { __typename?: 'Mutation', suspendResource: { __typename?: 'ProvisionedResource', id: string, status: string, updatedAt: string } };
+
 export type ExecutionSecurityReportQueryVariables = Exact<{
   executionID: Scalars['ID']['input'];
 }>;
 
 
 export type ExecutionSecurityReportQuery = { __typename?: 'Query', executionSecurityReport: { __typename?: 'SecurityReport', executionID: string, tenantID: string, status: string, overallScore: number, secretsFound: number, outdatedDeps: number, owaspCoverage: unknown, blockedDeploy: boolean, generatedAt: string, findings: Array<{ __typename?: 'SecurityReportFinding', id: string, severity: string, ruleID: string, category: string, path: string, line: number, summary: string, remediation: string, detectedAt: string }> } };
+
+export type SentinelForecastQueryVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+}>;
+
+
+export type SentinelForecastQuery = { __typename?: 'Query', sentinelForecast: { __typename?: 'SentinelForecast', projectId: string, spentUSD: number, hardCapUSD: number, burnRatePerHourUSD: number, extrapolatedTotalUSD: number, etaCompletionAt: string, capBreachAt: string | null, level: string, remainingHeadroomUSD: number, projectionConfidence: number, computedAt: string } };
+
+export type SentinelReroutesQueryVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+}>;
+
+
+export type SentinelReroutesQuery = { __typename?: 'Query', sentinelReroutes: Array<{ __typename?: 'SentinelReroute', kind: string, label: string, description: string, savingsUSD: number, savingsConfidence: number, reversible: boolean }> };
+
+export type InsuranceQuoteQueryVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+  capUSD: Scalars['Float']['input'];
+  hours: Scalars['Int']['input'];
+}>;
+
+
+export type InsuranceQuoteQuery = { __typename?: 'Query', insuranceQuote: { __typename?: 'InsuranceQuote', capUSD: number, premiumUSD: number, coverageWindowHours: number, sampleCount: number } };
+
+export type ActiveInsuranceQueryVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+}>;
+
+
+export type ActiveInsuranceQuery = { __typename?: 'Query', activeInsurance: { __typename?: 'InsurancePolicy', id: string, projectId: string, hardCapUSD: number, premiumUSD: number, coverageWindowHours: number, status: string, createdAt: string, updatedAt: string, expiresAt: string } | null };
+
+export type PurchaseInsuranceMutationVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+  capUSD: Scalars['Float']['input'];
+  hours: Scalars['Int']['input'];
+  requestID?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type PurchaseInsuranceMutation = { __typename?: 'Mutation', purchaseInsurance: { __typename?: 'InsurancePolicy', id: string, projectId: string, hardCapUSD: number, premiumUSD: number, coverageWindowHours: number, status: string, createdAt: string, updatedAt: string, expiresAt: string } };
+
+export type ShipPassTiersQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ShipPassTiersQuery = { __typename?: 'Query', shipPassTiers: Array<{ __typename?: 'ShipPassTier', key: string, label: string, priceUSD: number, requiredGates: Array<string>, deadlineDays: number, description: string }> };
+
+export type ShipPassQuoteQueryVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+  tierKey: Scalars['String']['input'];
+}>;
+
+
+export type ShipPassQuoteQuery = { __typename?: 'Query', shipPassQuote: { __typename?: 'ShipPassQuote', tierKey: string, priceUSD: number, requiredGates: Array<string>, deadlineDays: number, walletShortfallUSD: number } };
+
+export type ActiveShipPassQueryVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+}>;
+
+
+export type ActiveShipPassQuery = { __typename?: 'Query', activeShipPass: { __typename?: 'ShipPass', id: string, projectId: string, tierKey: string, priceUSD: number, status: string, deadlineAt: string, createdAt: string, updatedAt: string, settledAt: string | null } | null };
+
+export type ShipPassesQueryVariables = Exact<{
+  limit?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type ShipPassesQuery = { __typename?: 'Query', shipPasses: Array<{ __typename?: 'ShipPass', id: string, projectId: string, tierKey: string, priceUSD: number, status: string, deadlineAt: string, createdAt: string, updatedAt: string, settledAt: string | null }> };
+
+export type ShipPassProgressQueryVariables = Exact<{
+  passId: Scalars['ID']['input'];
+}>;
+
+
+export type ShipPassProgressQuery = { __typename?: 'Query', shipPassProgress: Array<{ __typename?: 'ShipPassGateProgress', id: string, gate: string, passed: boolean, reason: string, observedAt: string }> };
+
+export type ShipPassStatsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ShipPassStatsQuery = { __typename?: 'Query', shipPassStats: { __typename?: 'ShipPassLifetimeStats', totalPurchased: number, totalShipped: number, totalRefunded: number, totalCancelled: number, revenueUSD: number } };
+
+export type PurchaseShipPassMutationVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+  tierKey: Scalars['String']['input'];
+  requestID?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type PurchaseShipPassMutation = { __typename?: 'Mutation', purchaseShipPass: { __typename?: 'ShipPass', id: string, projectId: string, tierKey: string, priceUSD: number, status: string, deadlineAt: string, createdAt: string, updatedAt: string, settledAt: string | null } };
+
+export type CancelShipPassMutationVariables = Exact<{
+  passId: Scalars['ID']['input'];
+}>;
+
+
+export type CancelShipPassMutation = { __typename?: 'Mutation', cancelShipPass: { __typename?: 'ShipPass', id: string, status: string, settledAt: string | null, updatedAt: string } };
 
 export type DescribeIdeaMutationVariables = Exact<{
   input: DescribeIdeaInput;
@@ -2994,6 +3698,56 @@ export const GateVerdictCoreFragmentDoc = gql`
     rule
     severity
     message
+  }
+}
+    `;
+export const GuildTaskFieldsFragmentDoc = gql`
+    fragment GuildTaskFields on GuildTask {
+  id
+  project {
+    id
+    name
+  }
+  title
+  description
+  priceUSDFloor
+  slaHours
+  status
+  assignedTo {
+    id
+    displayName
+    rating
+    verified
+  }
+  bidCount
+  createdAt
+}
+    `;
+export const FinisherProfileFieldsFragmentDoc = gql`
+    fragment FinisherProfileFields on FinisherProfile {
+  id
+  displayName
+  skills
+  hourlyRateUSD
+  completedTaskCount
+  rating
+  verified
+}
+    `;
+export const TemplateFieldsFragmentDoc = gql`
+    fragment TemplateFields on Template {
+  id
+  slug
+  name
+  description
+  priceUSD
+  gatesPassed
+  installCount
+  verified
+  author {
+    id
+    displayName
+    rating
   }
 }
     `;
@@ -3845,6 +4599,305 @@ export function useStartCheckoutMutation(baseOptions?: Apollo.MutationHookOption
 export type StartCheckoutMutationHookResult = ReturnType<typeof useStartCheckoutMutation>;
 export type StartCheckoutMutationResult = Apollo.MutationResult<StartCheckoutMutation>;
 export type StartCheckoutMutationOptions = Apollo.BaseMutationOptions<StartCheckoutMutation, StartCheckoutMutationVariables>;
+export const ComplianceFrameworksDocument = gql`
+    query ComplianceFrameworks {
+  complianceFrameworks {
+    key
+    label
+    monthlyPriceUSD
+    controlCount
+  }
+}
+    `;
+
+/**
+ * __useComplianceFrameworksQuery__
+ *
+ * To run a query within a React component, call `useComplianceFrameworksQuery` and pass it any options that fit your needs.
+ * When your component renders, `useComplianceFrameworksQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useComplianceFrameworksQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useComplianceFrameworksQuery(baseOptions?: Apollo.QueryHookOptions<ComplianceFrameworksQuery, ComplianceFrameworksQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ComplianceFrameworksQuery, ComplianceFrameworksQueryVariables>(ComplianceFrameworksDocument, options);
+      }
+export function useComplianceFrameworksLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ComplianceFrameworksQuery, ComplianceFrameworksQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ComplianceFrameworksQuery, ComplianceFrameworksQueryVariables>(ComplianceFrameworksDocument, options);
+        }
+// @ts-ignore
+export function useComplianceFrameworksSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ComplianceFrameworksQuery, ComplianceFrameworksQueryVariables>): Apollo.UseSuspenseQueryResult<ComplianceFrameworksQuery, ComplianceFrameworksQueryVariables>;
+export function useComplianceFrameworksSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ComplianceFrameworksQuery, ComplianceFrameworksQueryVariables>): Apollo.UseSuspenseQueryResult<ComplianceFrameworksQuery | undefined, ComplianceFrameworksQueryVariables>;
+export function useComplianceFrameworksSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ComplianceFrameworksQuery, ComplianceFrameworksQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ComplianceFrameworksQuery, ComplianceFrameworksQueryVariables>(ComplianceFrameworksDocument, options);
+        }
+export type ComplianceFrameworksQueryHookResult = ReturnType<typeof useComplianceFrameworksQuery>;
+export type ComplianceFrameworksLazyQueryHookResult = ReturnType<typeof useComplianceFrameworksLazyQuery>;
+export type ComplianceFrameworksSuspenseQueryHookResult = ReturnType<typeof useComplianceFrameworksSuspenseQuery>;
+export type ComplianceFrameworksQueryResult = Apollo.QueryResult<ComplianceFrameworksQuery, ComplianceFrameworksQueryVariables>;
+export const ComplianceEnrollmentsDocument = gql`
+    query ComplianceEnrollments($projectId: ID) {
+  complianceEnrollments(projectId: $projectId) {
+    id
+    projectId
+    framework {
+      key
+      label
+      monthlyPriceUSD
+      controlCount
+    }
+    lastVerdict
+    lastEvaluatedAt
+    nextChargeAt
+  }
+}
+    `;
+
+/**
+ * __useComplianceEnrollmentsQuery__
+ *
+ * To run a query within a React component, call `useComplianceEnrollmentsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useComplianceEnrollmentsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useComplianceEnrollmentsQuery({
+ *   variables: {
+ *      projectId: // value for 'projectId'
+ *   },
+ * });
+ */
+export function useComplianceEnrollmentsQuery(baseOptions?: Apollo.QueryHookOptions<ComplianceEnrollmentsQuery, ComplianceEnrollmentsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ComplianceEnrollmentsQuery, ComplianceEnrollmentsQueryVariables>(ComplianceEnrollmentsDocument, options);
+      }
+export function useComplianceEnrollmentsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ComplianceEnrollmentsQuery, ComplianceEnrollmentsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ComplianceEnrollmentsQuery, ComplianceEnrollmentsQueryVariables>(ComplianceEnrollmentsDocument, options);
+        }
+// @ts-ignore
+export function useComplianceEnrollmentsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ComplianceEnrollmentsQuery, ComplianceEnrollmentsQueryVariables>): Apollo.UseSuspenseQueryResult<ComplianceEnrollmentsQuery, ComplianceEnrollmentsQueryVariables>;
+export function useComplianceEnrollmentsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ComplianceEnrollmentsQuery, ComplianceEnrollmentsQueryVariables>): Apollo.UseSuspenseQueryResult<ComplianceEnrollmentsQuery | undefined, ComplianceEnrollmentsQueryVariables>;
+export function useComplianceEnrollmentsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ComplianceEnrollmentsQuery, ComplianceEnrollmentsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ComplianceEnrollmentsQuery, ComplianceEnrollmentsQueryVariables>(ComplianceEnrollmentsDocument, options);
+        }
+export type ComplianceEnrollmentsQueryHookResult = ReturnType<typeof useComplianceEnrollmentsQuery>;
+export type ComplianceEnrollmentsLazyQueryHookResult = ReturnType<typeof useComplianceEnrollmentsLazyQuery>;
+export type ComplianceEnrollmentsSuspenseQueryHookResult = ReturnType<typeof useComplianceEnrollmentsSuspenseQuery>;
+export type ComplianceEnrollmentsQueryResult = Apollo.QueryResult<ComplianceEnrollmentsQuery, ComplianceEnrollmentsQueryVariables>;
+export const ComplianceControlResultsDocument = gql`
+    query ComplianceControlResults($projectId: ID!, $framework: String!) {
+  complianceControlResults(projectId: $projectId, framework: $framework) {
+    controlKey
+    status
+    severity
+    evidence
+    path
+    evaluatedAt
+  }
+}
+    `;
+
+/**
+ * __useComplianceControlResultsQuery__
+ *
+ * To run a query within a React component, call `useComplianceControlResultsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useComplianceControlResultsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useComplianceControlResultsQuery({
+ *   variables: {
+ *      projectId: // value for 'projectId'
+ *      framework: // value for 'framework'
+ *   },
+ * });
+ */
+export function useComplianceControlResultsQuery(baseOptions: Apollo.QueryHookOptions<ComplianceControlResultsQuery, ComplianceControlResultsQueryVariables> & ({ variables: ComplianceControlResultsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ComplianceControlResultsQuery, ComplianceControlResultsQueryVariables>(ComplianceControlResultsDocument, options);
+      }
+export function useComplianceControlResultsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ComplianceControlResultsQuery, ComplianceControlResultsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ComplianceControlResultsQuery, ComplianceControlResultsQueryVariables>(ComplianceControlResultsDocument, options);
+        }
+// @ts-ignore
+export function useComplianceControlResultsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ComplianceControlResultsQuery, ComplianceControlResultsQueryVariables>): Apollo.UseSuspenseQueryResult<ComplianceControlResultsQuery, ComplianceControlResultsQueryVariables>;
+export function useComplianceControlResultsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ComplianceControlResultsQuery, ComplianceControlResultsQueryVariables>): Apollo.UseSuspenseQueryResult<ComplianceControlResultsQuery | undefined, ComplianceControlResultsQueryVariables>;
+export function useComplianceControlResultsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ComplianceControlResultsQuery, ComplianceControlResultsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ComplianceControlResultsQuery, ComplianceControlResultsQueryVariables>(ComplianceControlResultsDocument, options);
+        }
+export type ComplianceControlResultsQueryHookResult = ReturnType<typeof useComplianceControlResultsQuery>;
+export type ComplianceControlResultsLazyQueryHookResult = ReturnType<typeof useComplianceControlResultsLazyQuery>;
+export type ComplianceControlResultsSuspenseQueryHookResult = ReturnType<typeof useComplianceControlResultsSuspenseQuery>;
+export type ComplianceControlResultsQueryResult = Apollo.QueryResult<ComplianceControlResultsQuery, ComplianceControlResultsQueryVariables>;
+export const EnrollComplianceDocument = gql`
+    mutation EnrollCompliance($projectId: ID!, $framework: String!) {
+  enrollCompliance(projectId: $projectId, framework: $framework) {
+    id
+    projectId
+    framework {
+      key
+      label
+      monthlyPriceUSD
+    }
+    lastVerdict
+    nextChargeAt
+  }
+}
+    `;
+export type EnrollComplianceMutationFn = Apollo.MutationFunction<EnrollComplianceMutation, EnrollComplianceMutationVariables>;
+
+/**
+ * __useEnrollComplianceMutation__
+ *
+ * To run a mutation, you first call `useEnrollComplianceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useEnrollComplianceMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [enrollComplianceMutation, { data, loading, error }] = useEnrollComplianceMutation({
+ *   variables: {
+ *      projectId: // value for 'projectId'
+ *      framework: // value for 'framework'
+ *   },
+ * });
+ */
+export function useEnrollComplianceMutation(baseOptions?: Apollo.MutationHookOptions<EnrollComplianceMutation, EnrollComplianceMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<EnrollComplianceMutation, EnrollComplianceMutationVariables>(EnrollComplianceDocument, options);
+      }
+export type EnrollComplianceMutationHookResult = ReturnType<typeof useEnrollComplianceMutation>;
+export type EnrollComplianceMutationResult = Apollo.MutationResult<EnrollComplianceMutation>;
+export type EnrollComplianceMutationOptions = Apollo.BaseMutationOptions<EnrollComplianceMutation, EnrollComplianceMutationVariables>;
+export const UnenrollComplianceDocument = gql`
+    mutation UnenrollCompliance($enrollmentId: ID!) {
+  unenrollCompliance(enrollmentId: $enrollmentId)
+}
+    `;
+export type UnenrollComplianceMutationFn = Apollo.MutationFunction<UnenrollComplianceMutation, UnenrollComplianceMutationVariables>;
+
+/**
+ * __useUnenrollComplianceMutation__
+ *
+ * To run a mutation, you first call `useUnenrollComplianceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUnenrollComplianceMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [unenrollComplianceMutation, { data, loading, error }] = useUnenrollComplianceMutation({
+ *   variables: {
+ *      enrollmentId: // value for 'enrollmentId'
+ *   },
+ * });
+ */
+export function useUnenrollComplianceMutation(baseOptions?: Apollo.MutationHookOptions<UnenrollComplianceMutation, UnenrollComplianceMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UnenrollComplianceMutation, UnenrollComplianceMutationVariables>(UnenrollComplianceDocument, options);
+      }
+export type UnenrollComplianceMutationHookResult = ReturnType<typeof useUnenrollComplianceMutation>;
+export type UnenrollComplianceMutationResult = Apollo.MutationResult<UnenrollComplianceMutation>;
+export type UnenrollComplianceMutationOptions = Apollo.BaseMutationOptions<UnenrollComplianceMutation, UnenrollComplianceMutationVariables>;
+export const EvaluateComplianceDocument = gql`
+    mutation EvaluateCompliance($projectId: ID!, $framework: String!) {
+  evaluateCompliance(projectId: $projectId, framework: $framework) {
+    controlKey
+    status
+    severity
+    evidence
+    path
+    evaluatedAt
+  }
+}
+    `;
+export type EvaluateComplianceMutationFn = Apollo.MutationFunction<EvaluateComplianceMutation, EvaluateComplianceMutationVariables>;
+
+/**
+ * __useEvaluateComplianceMutation__
+ *
+ * To run a mutation, you first call `useEvaluateComplianceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useEvaluateComplianceMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [evaluateComplianceMutation, { data, loading, error }] = useEvaluateComplianceMutation({
+ *   variables: {
+ *      projectId: // value for 'projectId'
+ *      framework: // value for 'framework'
+ *   },
+ * });
+ */
+export function useEvaluateComplianceMutation(baseOptions?: Apollo.MutationHookOptions<EvaluateComplianceMutation, EvaluateComplianceMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<EvaluateComplianceMutation, EvaluateComplianceMutationVariables>(EvaluateComplianceDocument, options);
+      }
+export type EvaluateComplianceMutationHookResult = ReturnType<typeof useEvaluateComplianceMutation>;
+export type EvaluateComplianceMutationResult = Apollo.MutationResult<EvaluateComplianceMutation>;
+export type EvaluateComplianceMutationOptions = Apollo.BaseMutationOptions<EvaluateComplianceMutation, EvaluateComplianceMutationVariables>;
+export const ExportAuditBundleDocument = gql`
+    mutation ExportAuditBundle($projectId: ID!, $framework: String!) {
+  exportAuditBundle(projectId: $projectId, framework: $framework) {
+    generatedAt
+    framework {
+      key
+      label
+    }
+    downloadURL
+    attestationJWT
+  }
+}
+    `;
+export type ExportAuditBundleMutationFn = Apollo.MutationFunction<ExportAuditBundleMutation, ExportAuditBundleMutationVariables>;
+
+/**
+ * __useExportAuditBundleMutation__
+ *
+ * To run a mutation, you first call `useExportAuditBundleMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useExportAuditBundleMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [exportAuditBundleMutation, { data, loading, error }] = useExportAuditBundleMutation({
+ *   variables: {
+ *      projectId: // value for 'projectId'
+ *      framework: // value for 'framework'
+ *   },
+ * });
+ */
+export function useExportAuditBundleMutation(baseOptions?: Apollo.MutationHookOptions<ExportAuditBundleMutation, ExportAuditBundleMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ExportAuditBundleMutation, ExportAuditBundleMutationVariables>(ExportAuditBundleDocument, options);
+      }
+export type ExportAuditBundleMutationHookResult = ReturnType<typeof useExportAuditBundleMutation>;
+export type ExportAuditBundleMutationResult = Apollo.MutationResult<ExportAuditBundleMutation>;
+export type ExportAuditBundleMutationOptions = Apollo.BaseMutationOptions<ExportAuditBundleMutation, ExportAuditBundleMutationVariables>;
 export const ProfitDashboardDocument = gql`
     query ProfitDashboard($since: DateTime!, $until: DateTime!) {
   profitDashboard(since: $since, until: $until) {
@@ -5150,6 +6203,457 @@ export function useRerunGateMutation(baseOptions?: Apollo.MutationHookOptions<Re
 export type RerunGateMutationHookResult = ReturnType<typeof useRerunGateMutation>;
 export type RerunGateMutationResult = Apollo.MutationResult<RerunGateMutation>;
 export type RerunGateMutationOptions = Apollo.BaseMutationOptions<RerunGateMutation, RerunGateMutationVariables>;
+export const MyFinisherProfileDocument = gql`
+    query MyFinisherProfile {
+  myFinisherProfile {
+    ...FinisherProfileFields
+  }
+}
+    ${FinisherProfileFieldsFragmentDoc}`;
+
+/**
+ * __useMyFinisherProfileQuery__
+ *
+ * To run a query within a React component, call `useMyFinisherProfileQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMyFinisherProfileQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMyFinisherProfileQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useMyFinisherProfileQuery(baseOptions?: Apollo.QueryHookOptions<MyFinisherProfileQuery, MyFinisherProfileQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MyFinisherProfileQuery, MyFinisherProfileQueryVariables>(MyFinisherProfileDocument, options);
+      }
+export function useMyFinisherProfileLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MyFinisherProfileQuery, MyFinisherProfileQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MyFinisherProfileQuery, MyFinisherProfileQueryVariables>(MyFinisherProfileDocument, options);
+        }
+// @ts-ignore
+export function useMyFinisherProfileSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MyFinisherProfileQuery, MyFinisherProfileQueryVariables>): Apollo.UseSuspenseQueryResult<MyFinisherProfileQuery, MyFinisherProfileQueryVariables>;
+export function useMyFinisherProfileSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyFinisherProfileQuery, MyFinisherProfileQueryVariables>): Apollo.UseSuspenseQueryResult<MyFinisherProfileQuery | undefined, MyFinisherProfileQueryVariables>;
+export function useMyFinisherProfileSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyFinisherProfileQuery, MyFinisherProfileQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MyFinisherProfileQuery, MyFinisherProfileQueryVariables>(MyFinisherProfileDocument, options);
+        }
+export type MyFinisherProfileQueryHookResult = ReturnType<typeof useMyFinisherProfileQuery>;
+export type MyFinisherProfileLazyQueryHookResult = ReturnType<typeof useMyFinisherProfileLazyQuery>;
+export type MyFinisherProfileSuspenseQueryHookResult = ReturnType<typeof useMyFinisherProfileSuspenseQuery>;
+export type MyFinisherProfileQueryResult = Apollo.QueryResult<MyFinisherProfileQuery, MyFinisherProfileQueryVariables>;
+export const GuildTasksDocument = gql`
+    query GuildTasks($status: String, $mine: Boolean) {
+  guildTasks(status: $status, mine: $mine) {
+    ...GuildTaskFields
+  }
+}
+    ${GuildTaskFieldsFragmentDoc}`;
+
+/**
+ * __useGuildTasksQuery__
+ *
+ * To run a query within a React component, call `useGuildTasksQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGuildTasksQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGuildTasksQuery({
+ *   variables: {
+ *      status: // value for 'status'
+ *      mine: // value for 'mine'
+ *   },
+ * });
+ */
+export function useGuildTasksQuery(baseOptions?: Apollo.QueryHookOptions<GuildTasksQuery, GuildTasksQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GuildTasksQuery, GuildTasksQueryVariables>(GuildTasksDocument, options);
+      }
+export function useGuildTasksLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GuildTasksQuery, GuildTasksQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GuildTasksQuery, GuildTasksQueryVariables>(GuildTasksDocument, options);
+        }
+// @ts-ignore
+export function useGuildTasksSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GuildTasksQuery, GuildTasksQueryVariables>): Apollo.UseSuspenseQueryResult<GuildTasksQuery, GuildTasksQueryVariables>;
+export function useGuildTasksSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GuildTasksQuery, GuildTasksQueryVariables>): Apollo.UseSuspenseQueryResult<GuildTasksQuery | undefined, GuildTasksQueryVariables>;
+export function useGuildTasksSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GuildTasksQuery, GuildTasksQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GuildTasksQuery, GuildTasksQueryVariables>(GuildTasksDocument, options);
+        }
+export type GuildTasksQueryHookResult = ReturnType<typeof useGuildTasksQuery>;
+export type GuildTasksLazyQueryHookResult = ReturnType<typeof useGuildTasksLazyQuery>;
+export type GuildTasksSuspenseQueryHookResult = ReturnType<typeof useGuildTasksSuspenseQuery>;
+export type GuildTasksQueryResult = Apollo.QueryResult<GuildTasksQuery, GuildTasksQueryVariables>;
+export const GuildTaskDocument = gql`
+    query GuildTask($id: ID!) {
+  guildTask(id: $id) {
+    ...GuildTaskFields
+  }
+}
+    ${GuildTaskFieldsFragmentDoc}`;
+
+/**
+ * __useGuildTaskQuery__
+ *
+ * To run a query within a React component, call `useGuildTaskQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGuildTaskQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGuildTaskQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGuildTaskQuery(baseOptions: Apollo.QueryHookOptions<GuildTaskQuery, GuildTaskQueryVariables> & ({ variables: GuildTaskQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GuildTaskQuery, GuildTaskQueryVariables>(GuildTaskDocument, options);
+      }
+export function useGuildTaskLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GuildTaskQuery, GuildTaskQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GuildTaskQuery, GuildTaskQueryVariables>(GuildTaskDocument, options);
+        }
+// @ts-ignore
+export function useGuildTaskSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GuildTaskQuery, GuildTaskQueryVariables>): Apollo.UseSuspenseQueryResult<GuildTaskQuery, GuildTaskQueryVariables>;
+export function useGuildTaskSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GuildTaskQuery, GuildTaskQueryVariables>): Apollo.UseSuspenseQueryResult<GuildTaskQuery | undefined, GuildTaskQueryVariables>;
+export function useGuildTaskSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GuildTaskQuery, GuildTaskQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GuildTaskQuery, GuildTaskQueryVariables>(GuildTaskDocument, options);
+        }
+export type GuildTaskQueryHookResult = ReturnType<typeof useGuildTaskQuery>;
+export type GuildTaskLazyQueryHookResult = ReturnType<typeof useGuildTaskLazyQuery>;
+export type GuildTaskSuspenseQueryHookResult = ReturnType<typeof useGuildTaskSuspenseQuery>;
+export type GuildTaskQueryResult = Apollo.QueryResult<GuildTaskQuery, GuildTaskQueryVariables>;
+export const TemplatesDocument = gql`
+    query Templates($verifiedOnly: Boolean) {
+  templates(verifiedOnly: $verifiedOnly) {
+    ...TemplateFields
+  }
+}
+    ${TemplateFieldsFragmentDoc}`;
+
+/**
+ * __useTemplatesQuery__
+ *
+ * To run a query within a React component, call `useTemplatesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTemplatesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTemplatesQuery({
+ *   variables: {
+ *      verifiedOnly: // value for 'verifiedOnly'
+ *   },
+ * });
+ */
+export function useTemplatesQuery(baseOptions?: Apollo.QueryHookOptions<TemplatesQuery, TemplatesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TemplatesQuery, TemplatesQueryVariables>(TemplatesDocument, options);
+      }
+export function useTemplatesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TemplatesQuery, TemplatesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TemplatesQuery, TemplatesQueryVariables>(TemplatesDocument, options);
+        }
+// @ts-ignore
+export function useTemplatesSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<TemplatesQuery, TemplatesQueryVariables>): Apollo.UseSuspenseQueryResult<TemplatesQuery, TemplatesQueryVariables>;
+export function useTemplatesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<TemplatesQuery, TemplatesQueryVariables>): Apollo.UseSuspenseQueryResult<TemplatesQuery | undefined, TemplatesQueryVariables>;
+export function useTemplatesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<TemplatesQuery, TemplatesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<TemplatesQuery, TemplatesQueryVariables>(TemplatesDocument, options);
+        }
+export type TemplatesQueryHookResult = ReturnType<typeof useTemplatesQuery>;
+export type TemplatesLazyQueryHookResult = ReturnType<typeof useTemplatesLazyQuery>;
+export type TemplatesSuspenseQueryHookResult = ReturnType<typeof useTemplatesSuspenseQuery>;
+export type TemplatesQueryResult = Apollo.QueryResult<TemplatesQuery, TemplatesQueryVariables>;
+export const TemplateDocument = gql`
+    query Template($slug: String!) {
+  template(slug: $slug) {
+    ...TemplateFields
+  }
+}
+    ${TemplateFieldsFragmentDoc}`;
+
+/**
+ * __useTemplateQuery__
+ *
+ * To run a query within a React component, call `useTemplateQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTemplateQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTemplateQuery({
+ *   variables: {
+ *      slug: // value for 'slug'
+ *   },
+ * });
+ */
+export function useTemplateQuery(baseOptions: Apollo.QueryHookOptions<TemplateQuery, TemplateQueryVariables> & ({ variables: TemplateQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TemplateQuery, TemplateQueryVariables>(TemplateDocument, options);
+      }
+export function useTemplateLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TemplateQuery, TemplateQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TemplateQuery, TemplateQueryVariables>(TemplateDocument, options);
+        }
+// @ts-ignore
+export function useTemplateSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<TemplateQuery, TemplateQueryVariables>): Apollo.UseSuspenseQueryResult<TemplateQuery, TemplateQueryVariables>;
+export function useTemplateSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<TemplateQuery, TemplateQueryVariables>): Apollo.UseSuspenseQueryResult<TemplateQuery | undefined, TemplateQueryVariables>;
+export function useTemplateSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<TemplateQuery, TemplateQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<TemplateQuery, TemplateQueryVariables>(TemplateDocument, options);
+        }
+export type TemplateQueryHookResult = ReturnType<typeof useTemplateQuery>;
+export type TemplateLazyQueryHookResult = ReturnType<typeof useTemplateLazyQuery>;
+export type TemplateSuspenseQueryHookResult = ReturnType<typeof useTemplateSuspenseQuery>;
+export type TemplateQueryResult = Apollo.QueryResult<TemplateQuery, TemplateQueryVariables>;
+export const UpsertFinisherProfileDocument = gql`
+    mutation UpsertFinisherProfile($displayName: String!, $skills: [String!]!, $hourlyRateUSD: String!) {
+  upsertFinisherProfile(
+    displayName: $displayName
+    skills: $skills
+    hourlyRateUSD: $hourlyRateUSD
+  ) {
+    ...FinisherProfileFields
+  }
+}
+    ${FinisherProfileFieldsFragmentDoc}`;
+export type UpsertFinisherProfileMutationFn = Apollo.MutationFunction<UpsertFinisherProfileMutation, UpsertFinisherProfileMutationVariables>;
+
+/**
+ * __useUpsertFinisherProfileMutation__
+ *
+ * To run a mutation, you first call `useUpsertFinisherProfileMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpsertFinisherProfileMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [upsertFinisherProfileMutation, { data, loading, error }] = useUpsertFinisherProfileMutation({
+ *   variables: {
+ *      displayName: // value for 'displayName'
+ *      skills: // value for 'skills'
+ *      hourlyRateUSD: // value for 'hourlyRateUSD'
+ *   },
+ * });
+ */
+export function useUpsertFinisherProfileMutation(baseOptions?: Apollo.MutationHookOptions<UpsertFinisherProfileMutation, UpsertFinisherProfileMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpsertFinisherProfileMutation, UpsertFinisherProfileMutationVariables>(UpsertFinisherProfileDocument, options);
+      }
+export type UpsertFinisherProfileMutationHookResult = ReturnType<typeof useUpsertFinisherProfileMutation>;
+export type UpsertFinisherProfileMutationResult = Apollo.MutationResult<UpsertFinisherProfileMutation>;
+export type UpsertFinisherProfileMutationOptions = Apollo.BaseMutationOptions<UpsertFinisherProfileMutation, UpsertFinisherProfileMutationVariables>;
+export const CreateGuildTaskDocument = gql`
+    mutation CreateGuildTask($projectId: ID!, $title: String!, $description: String!, $priceUSDFloor: String!, $slaHours: Int!) {
+  createGuildTask(
+    projectId: $projectId
+    title: $title
+    description: $description
+    priceUSDFloor: $priceUSDFloor
+    slaHours: $slaHours
+  ) {
+    ...GuildTaskFields
+  }
+}
+    ${GuildTaskFieldsFragmentDoc}`;
+export type CreateGuildTaskMutationFn = Apollo.MutationFunction<CreateGuildTaskMutation, CreateGuildTaskMutationVariables>;
+
+/**
+ * __useCreateGuildTaskMutation__
+ *
+ * To run a mutation, you first call `useCreateGuildTaskMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateGuildTaskMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createGuildTaskMutation, { data, loading, error }] = useCreateGuildTaskMutation({
+ *   variables: {
+ *      projectId: // value for 'projectId'
+ *      title: // value for 'title'
+ *      description: // value for 'description'
+ *      priceUSDFloor: // value for 'priceUSDFloor'
+ *      slaHours: // value for 'slaHours'
+ *   },
+ * });
+ */
+export function useCreateGuildTaskMutation(baseOptions?: Apollo.MutationHookOptions<CreateGuildTaskMutation, CreateGuildTaskMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateGuildTaskMutation, CreateGuildTaskMutationVariables>(CreateGuildTaskDocument, options);
+      }
+export type CreateGuildTaskMutationHookResult = ReturnType<typeof useCreateGuildTaskMutation>;
+export type CreateGuildTaskMutationResult = Apollo.MutationResult<CreateGuildTaskMutation>;
+export type CreateGuildTaskMutationOptions = Apollo.BaseMutationOptions<CreateGuildTaskMutation, CreateGuildTaskMutationVariables>;
+export const PlaceBidDocument = gql`
+    mutation PlaceBid($taskId: ID!, $priceUSD: String!, $estimatedHours: Int!, $note: String!) {
+  placeBid(
+    taskId: $taskId
+    priceUSD: $priceUSD
+    estimatedHours: $estimatedHours
+    note: $note
+  ) {
+    id
+    task {
+      id
+    }
+    finisher {
+      id
+      displayName
+    }
+    priceUSD
+    estimatedHours
+    note
+    status
+    createdAt
+  }
+}
+    `;
+export type PlaceBidMutationFn = Apollo.MutationFunction<PlaceBidMutation, PlaceBidMutationVariables>;
+
+/**
+ * __usePlaceBidMutation__
+ *
+ * To run a mutation, you first call `usePlaceBidMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePlaceBidMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [placeBidMutation, { data, loading, error }] = usePlaceBidMutation({
+ *   variables: {
+ *      taskId: // value for 'taskId'
+ *      priceUSD: // value for 'priceUSD'
+ *      estimatedHours: // value for 'estimatedHours'
+ *      note: // value for 'note'
+ *   },
+ * });
+ */
+export function usePlaceBidMutation(baseOptions?: Apollo.MutationHookOptions<PlaceBidMutation, PlaceBidMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<PlaceBidMutation, PlaceBidMutationVariables>(PlaceBidDocument, options);
+      }
+export type PlaceBidMutationHookResult = ReturnType<typeof usePlaceBidMutation>;
+export type PlaceBidMutationResult = Apollo.MutationResult<PlaceBidMutation>;
+export type PlaceBidMutationOptions = Apollo.BaseMutationOptions<PlaceBidMutation, PlaceBidMutationVariables>;
+export const AcceptBidDocument = gql`
+    mutation AcceptBid($bidId: ID!) {
+  acceptBid(bidId: $bidId) {
+    ...GuildTaskFields
+  }
+}
+    ${GuildTaskFieldsFragmentDoc}`;
+export type AcceptBidMutationFn = Apollo.MutationFunction<AcceptBidMutation, AcceptBidMutationVariables>;
+
+/**
+ * __useAcceptBidMutation__
+ *
+ * To run a mutation, you first call `useAcceptBidMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAcceptBidMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [acceptBidMutation, { data, loading, error }] = useAcceptBidMutation({
+ *   variables: {
+ *      bidId: // value for 'bidId'
+ *   },
+ * });
+ */
+export function useAcceptBidMutation(baseOptions?: Apollo.MutationHookOptions<AcceptBidMutation, AcceptBidMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<AcceptBidMutation, AcceptBidMutationVariables>(AcceptBidDocument, options);
+      }
+export type AcceptBidMutationHookResult = ReturnType<typeof useAcceptBidMutation>;
+export type AcceptBidMutationResult = Apollo.MutationResult<AcceptBidMutation>;
+export type AcceptBidMutationOptions = Apollo.BaseMutationOptions<AcceptBidMutation, AcceptBidMutationVariables>;
+export const RejectTaskDocument = gql`
+    mutation RejectTask($taskId: ID!, $reason: String!) {
+  rejectTask(taskId: $taskId, reason: $reason) {
+    ...GuildTaskFields
+  }
+}
+    ${GuildTaskFieldsFragmentDoc}`;
+export type RejectTaskMutationFn = Apollo.MutationFunction<RejectTaskMutation, RejectTaskMutationVariables>;
+
+/**
+ * __useRejectTaskMutation__
+ *
+ * To run a mutation, you first call `useRejectTaskMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRejectTaskMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [rejectTaskMutation, { data, loading, error }] = useRejectTaskMutation({
+ *   variables: {
+ *      taskId: // value for 'taskId'
+ *      reason: // value for 'reason'
+ *   },
+ * });
+ */
+export function useRejectTaskMutation(baseOptions?: Apollo.MutationHookOptions<RejectTaskMutation, RejectTaskMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RejectTaskMutation, RejectTaskMutationVariables>(RejectTaskDocument, options);
+      }
+export type RejectTaskMutationHookResult = ReturnType<typeof useRejectTaskMutation>;
+export type RejectTaskMutationResult = Apollo.MutationResult<RejectTaskMutation>;
+export type RejectTaskMutationOptions = Apollo.BaseMutationOptions<RejectTaskMutation, RejectTaskMutationVariables>;
+export const InstallTemplateDocument = gql`
+    mutation InstallTemplate($slug: String!, $projectId: ID!) {
+  installTemplate(slug: $slug, projectId: $projectId) {
+    ...TemplateFields
+  }
+}
+    ${TemplateFieldsFragmentDoc}`;
+export type InstallTemplateMutationFn = Apollo.MutationFunction<InstallTemplateMutation, InstallTemplateMutationVariables>;
+
+/**
+ * __useInstallTemplateMutation__
+ *
+ * To run a mutation, you first call `useInstallTemplateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useInstallTemplateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [installTemplateMutation, { data, loading, error }] = useInstallTemplateMutation({
+ *   variables: {
+ *      slug: // value for 'slug'
+ *      projectId: // value for 'projectId'
+ *   },
+ * });
+ */
+export function useInstallTemplateMutation(baseOptions?: Apollo.MutationHookOptions<InstallTemplateMutation, InstallTemplateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<InstallTemplateMutation, InstallTemplateMutationVariables>(InstallTemplateDocument, options);
+      }
+export type InstallTemplateMutationHookResult = ReturnType<typeof useInstallTemplateMutation>;
+export type InstallTemplateMutationResult = Apollo.MutationResult<InstallTemplateMutation>;
+export type InstallTemplateMutationOptions = Apollo.BaseMutationOptions<InstallTemplateMutation, InstallTemplateMutationVariables>;
 export const ExecutionLedgerDocument = gql`
     query ExecutionLedger($executionID: ID!, $limit: Int, $offset: Int) {
   executionLedger(executionID: $executionID, limit: $limit, offset: $offset) {
@@ -6377,6 +7881,226 @@ export function useWriteProjectFilesMutation(baseOptions?: Apollo.MutationHookOp
 export type WriteProjectFilesMutationHookResult = ReturnType<typeof useWriteProjectFilesMutation>;
 export type WriteProjectFilesMutationResult = Apollo.MutationResult<WriteProjectFilesMutation>;
 export type WriteProjectFilesMutationOptions = Apollo.BaseMutationOptions<WriteProjectFilesMutation, WriteProjectFilesMutationVariables>;
+export const ProvisionedResourcesDocument = gql`
+    query ProvisionedResources($projectId: ID!) {
+  provisionedResources(projectId: $projectId) {
+    id
+    tenantId
+    projectId
+    kind
+    externalId
+    status
+    createdAt
+    updatedAt
+  }
+}
+    `;
+
+/**
+ * __useProvisionedResourcesQuery__
+ *
+ * To run a query within a React component, call `useProvisionedResourcesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useProvisionedResourcesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useProvisionedResourcesQuery({
+ *   variables: {
+ *      projectId: // value for 'projectId'
+ *   },
+ * });
+ */
+export function useProvisionedResourcesQuery(baseOptions: Apollo.QueryHookOptions<ProvisionedResourcesQuery, ProvisionedResourcesQueryVariables> & ({ variables: ProvisionedResourcesQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ProvisionedResourcesQuery, ProvisionedResourcesQueryVariables>(ProvisionedResourcesDocument, options);
+      }
+export function useProvisionedResourcesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ProvisionedResourcesQuery, ProvisionedResourcesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ProvisionedResourcesQuery, ProvisionedResourcesQueryVariables>(ProvisionedResourcesDocument, options);
+        }
+// @ts-ignore
+export function useProvisionedResourcesSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ProvisionedResourcesQuery, ProvisionedResourcesQueryVariables>): Apollo.UseSuspenseQueryResult<ProvisionedResourcesQuery, ProvisionedResourcesQueryVariables>;
+export function useProvisionedResourcesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ProvisionedResourcesQuery, ProvisionedResourcesQueryVariables>): Apollo.UseSuspenseQueryResult<ProvisionedResourcesQuery | undefined, ProvisionedResourcesQueryVariables>;
+export function useProvisionedResourcesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ProvisionedResourcesQuery, ProvisionedResourcesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ProvisionedResourcesQuery, ProvisionedResourcesQueryVariables>(ProvisionedResourcesDocument, options);
+        }
+export type ProvisionedResourcesQueryHookResult = ReturnType<typeof useProvisionedResourcesQuery>;
+export type ProvisionedResourcesLazyQueryHookResult = ReturnType<typeof useProvisionedResourcesLazyQuery>;
+export type ProvisionedResourcesSuspenseQueryHookResult = ReturnType<typeof useProvisionedResourcesSuspenseQuery>;
+export type ProvisionedResourcesQueryResult = Apollo.QueryResult<ProvisionedResourcesQuery, ProvisionedResourcesQueryVariables>;
+export const RevenueEventsDocument = gql`
+    query RevenueEvents($resourceId: ID!, $limit: Int) {
+  revenueEvents(resourceId: $resourceId, limit: $limit) {
+    id
+    resourceId
+    occurredAt
+    grossAmountUSD
+    ironflyerCutUSD
+    externalRef
+    ledgerEntryId
+  }
+}
+    `;
+
+/**
+ * __useRevenueEventsQuery__
+ *
+ * To run a query within a React component, call `useRevenueEventsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useRevenueEventsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useRevenueEventsQuery({
+ *   variables: {
+ *      resourceId: // value for 'resourceId'
+ *      limit: // value for 'limit'
+ *   },
+ * });
+ */
+export function useRevenueEventsQuery(baseOptions: Apollo.QueryHookOptions<RevenueEventsQuery, RevenueEventsQueryVariables> & ({ variables: RevenueEventsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<RevenueEventsQuery, RevenueEventsQueryVariables>(RevenueEventsDocument, options);
+      }
+export function useRevenueEventsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<RevenueEventsQuery, RevenueEventsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<RevenueEventsQuery, RevenueEventsQueryVariables>(RevenueEventsDocument, options);
+        }
+// @ts-ignore
+export function useRevenueEventsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<RevenueEventsQuery, RevenueEventsQueryVariables>): Apollo.UseSuspenseQueryResult<RevenueEventsQuery, RevenueEventsQueryVariables>;
+export function useRevenueEventsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<RevenueEventsQuery, RevenueEventsQueryVariables>): Apollo.UseSuspenseQueryResult<RevenueEventsQuery | undefined, RevenueEventsQueryVariables>;
+export function useRevenueEventsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<RevenueEventsQuery, RevenueEventsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<RevenueEventsQuery, RevenueEventsQueryVariables>(RevenueEventsDocument, options);
+        }
+export type RevenueEventsQueryHookResult = ReturnType<typeof useRevenueEventsQuery>;
+export type RevenueEventsLazyQueryHookResult = ReturnType<typeof useRevenueEventsLazyQuery>;
+export type RevenueEventsSuspenseQueryHookResult = ReturnType<typeof useRevenueEventsSuspenseQuery>;
+export type RevenueEventsQueryResult = Apollo.QueryResult<RevenueEventsQuery, RevenueEventsQueryVariables>;
+export const AvailableConnectorsDocument = gql`
+    query AvailableConnectors {
+  availableConnectors {
+    name
+    label
+    enabled
+    sharePct
+  }
+}
+    `;
+
+/**
+ * __useAvailableConnectorsQuery__
+ *
+ * To run a query within a React component, call `useAvailableConnectorsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useAvailableConnectorsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useAvailableConnectorsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useAvailableConnectorsQuery(baseOptions?: Apollo.QueryHookOptions<AvailableConnectorsQuery, AvailableConnectorsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<AvailableConnectorsQuery, AvailableConnectorsQueryVariables>(AvailableConnectorsDocument, options);
+      }
+export function useAvailableConnectorsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AvailableConnectorsQuery, AvailableConnectorsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<AvailableConnectorsQuery, AvailableConnectorsQueryVariables>(AvailableConnectorsDocument, options);
+        }
+// @ts-ignore
+export function useAvailableConnectorsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<AvailableConnectorsQuery, AvailableConnectorsQueryVariables>): Apollo.UseSuspenseQueryResult<AvailableConnectorsQuery, AvailableConnectorsQueryVariables>;
+export function useAvailableConnectorsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AvailableConnectorsQuery, AvailableConnectorsQueryVariables>): Apollo.UseSuspenseQueryResult<AvailableConnectorsQuery | undefined, AvailableConnectorsQueryVariables>;
+export function useAvailableConnectorsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AvailableConnectorsQuery, AvailableConnectorsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<AvailableConnectorsQuery, AvailableConnectorsQueryVariables>(AvailableConnectorsDocument, options);
+        }
+export type AvailableConnectorsQueryHookResult = ReturnType<typeof useAvailableConnectorsQuery>;
+export type AvailableConnectorsLazyQueryHookResult = ReturnType<typeof useAvailableConnectorsLazyQuery>;
+export type AvailableConnectorsSuspenseQueryHookResult = ReturnType<typeof useAvailableConnectorsSuspenseQuery>;
+export type AvailableConnectorsQueryResult = Apollo.QueryResult<AvailableConnectorsQuery, AvailableConnectorsQueryVariables>;
+export const ProvisionResourceDocument = gql`
+    mutation ProvisionResource($projectId: ID!, $kind: String!) {
+  provisionResource(projectId: $projectId, kind: $kind) {
+    id
+    projectId
+    kind
+    externalId
+    status
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export type ProvisionResourceMutationFn = Apollo.MutationFunction<ProvisionResourceMutation, ProvisionResourceMutationVariables>;
+
+/**
+ * __useProvisionResourceMutation__
+ *
+ * To run a mutation, you first call `useProvisionResourceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useProvisionResourceMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [provisionResourceMutation, { data, loading, error }] = useProvisionResourceMutation({
+ *   variables: {
+ *      projectId: // value for 'projectId'
+ *      kind: // value for 'kind'
+ *   },
+ * });
+ */
+export function useProvisionResourceMutation(baseOptions?: Apollo.MutationHookOptions<ProvisionResourceMutation, ProvisionResourceMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ProvisionResourceMutation, ProvisionResourceMutationVariables>(ProvisionResourceDocument, options);
+      }
+export type ProvisionResourceMutationHookResult = ReturnType<typeof useProvisionResourceMutation>;
+export type ProvisionResourceMutationResult = Apollo.MutationResult<ProvisionResourceMutation>;
+export type ProvisionResourceMutationOptions = Apollo.BaseMutationOptions<ProvisionResourceMutation, ProvisionResourceMutationVariables>;
+export const SuspendResourceDocument = gql`
+    mutation SuspendResource($id: ID!) {
+  suspendResource(id: $id) {
+    id
+    status
+    updatedAt
+  }
+}
+    `;
+export type SuspendResourceMutationFn = Apollo.MutationFunction<SuspendResourceMutation, SuspendResourceMutationVariables>;
+
+/**
+ * __useSuspendResourceMutation__
+ *
+ * To run a mutation, you first call `useSuspendResourceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSuspendResourceMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [suspendResourceMutation, { data, loading, error }] = useSuspendResourceMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useSuspendResourceMutation(baseOptions?: Apollo.MutationHookOptions<SuspendResourceMutation, SuspendResourceMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SuspendResourceMutation, SuspendResourceMutationVariables>(SuspendResourceDocument, options);
+      }
+export type SuspendResourceMutationHookResult = ReturnType<typeof useSuspendResourceMutation>;
+export type SuspendResourceMutationResult = Apollo.MutationResult<SuspendResourceMutation>;
+export type SuspendResourceMutationOptions = Apollo.BaseMutationOptions<SuspendResourceMutation, SuspendResourceMutationVariables>;
 export const ExecutionSecurityReportDocument = gql`
     query ExecutionSecurityReport($executionID: ID!) {
   executionSecurityReport(executionID: $executionID) {
@@ -6439,6 +8163,628 @@ export type ExecutionSecurityReportQueryHookResult = ReturnType<typeof useExecut
 export type ExecutionSecurityReportLazyQueryHookResult = ReturnType<typeof useExecutionSecurityReportLazyQuery>;
 export type ExecutionSecurityReportSuspenseQueryHookResult = ReturnType<typeof useExecutionSecurityReportSuspenseQuery>;
 export type ExecutionSecurityReportQueryResult = Apollo.QueryResult<ExecutionSecurityReportQuery, ExecutionSecurityReportQueryVariables>;
+export const SentinelForecastDocument = gql`
+    query SentinelForecast($projectId: ID!) {
+  sentinelForecast(projectId: $projectId) {
+    projectId
+    spentUSD
+    hardCapUSD
+    burnRatePerHourUSD
+    extrapolatedTotalUSD
+    etaCompletionAt
+    capBreachAt
+    level
+    remainingHeadroomUSD
+    projectionConfidence
+    computedAt
+  }
+}
+    `;
+
+/**
+ * __useSentinelForecastQuery__
+ *
+ * To run a query within a React component, call `useSentinelForecastQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSentinelForecastQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSentinelForecastQuery({
+ *   variables: {
+ *      projectId: // value for 'projectId'
+ *   },
+ * });
+ */
+export function useSentinelForecastQuery(baseOptions: Apollo.QueryHookOptions<SentinelForecastQuery, SentinelForecastQueryVariables> & ({ variables: SentinelForecastQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SentinelForecastQuery, SentinelForecastQueryVariables>(SentinelForecastDocument, options);
+      }
+export function useSentinelForecastLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SentinelForecastQuery, SentinelForecastQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SentinelForecastQuery, SentinelForecastQueryVariables>(SentinelForecastDocument, options);
+        }
+// @ts-ignore
+export function useSentinelForecastSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SentinelForecastQuery, SentinelForecastQueryVariables>): Apollo.UseSuspenseQueryResult<SentinelForecastQuery, SentinelForecastQueryVariables>;
+export function useSentinelForecastSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SentinelForecastQuery, SentinelForecastQueryVariables>): Apollo.UseSuspenseQueryResult<SentinelForecastQuery | undefined, SentinelForecastQueryVariables>;
+export function useSentinelForecastSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SentinelForecastQuery, SentinelForecastQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SentinelForecastQuery, SentinelForecastQueryVariables>(SentinelForecastDocument, options);
+        }
+export type SentinelForecastQueryHookResult = ReturnType<typeof useSentinelForecastQuery>;
+export type SentinelForecastLazyQueryHookResult = ReturnType<typeof useSentinelForecastLazyQuery>;
+export type SentinelForecastSuspenseQueryHookResult = ReturnType<typeof useSentinelForecastSuspenseQuery>;
+export type SentinelForecastQueryResult = Apollo.QueryResult<SentinelForecastQuery, SentinelForecastQueryVariables>;
+export const SentinelReroutesDocument = gql`
+    query SentinelReroutes($projectId: ID!) {
+  sentinelReroutes(projectId: $projectId) {
+    kind
+    label
+    description
+    savingsUSD
+    savingsConfidence
+    reversible
+  }
+}
+    `;
+
+/**
+ * __useSentinelReroutesQuery__
+ *
+ * To run a query within a React component, call `useSentinelReroutesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSentinelReroutesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSentinelReroutesQuery({
+ *   variables: {
+ *      projectId: // value for 'projectId'
+ *   },
+ * });
+ */
+export function useSentinelReroutesQuery(baseOptions: Apollo.QueryHookOptions<SentinelReroutesQuery, SentinelReroutesQueryVariables> & ({ variables: SentinelReroutesQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SentinelReroutesQuery, SentinelReroutesQueryVariables>(SentinelReroutesDocument, options);
+      }
+export function useSentinelReroutesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SentinelReroutesQuery, SentinelReroutesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SentinelReroutesQuery, SentinelReroutesQueryVariables>(SentinelReroutesDocument, options);
+        }
+// @ts-ignore
+export function useSentinelReroutesSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SentinelReroutesQuery, SentinelReroutesQueryVariables>): Apollo.UseSuspenseQueryResult<SentinelReroutesQuery, SentinelReroutesQueryVariables>;
+export function useSentinelReroutesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SentinelReroutesQuery, SentinelReroutesQueryVariables>): Apollo.UseSuspenseQueryResult<SentinelReroutesQuery | undefined, SentinelReroutesQueryVariables>;
+export function useSentinelReroutesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SentinelReroutesQuery, SentinelReroutesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SentinelReroutesQuery, SentinelReroutesQueryVariables>(SentinelReroutesDocument, options);
+        }
+export type SentinelReroutesQueryHookResult = ReturnType<typeof useSentinelReroutesQuery>;
+export type SentinelReroutesLazyQueryHookResult = ReturnType<typeof useSentinelReroutesLazyQuery>;
+export type SentinelReroutesSuspenseQueryHookResult = ReturnType<typeof useSentinelReroutesSuspenseQuery>;
+export type SentinelReroutesQueryResult = Apollo.QueryResult<SentinelReroutesQuery, SentinelReroutesQueryVariables>;
+export const InsuranceQuoteDocument = gql`
+    query InsuranceQuote($projectId: ID!, $capUSD: Float!, $hours: Int!) {
+  insuranceQuote(projectId: $projectId, capUSD: $capUSD, hours: $hours) {
+    capUSD
+    premiumUSD
+    coverageWindowHours
+    sampleCount
+  }
+}
+    `;
+
+/**
+ * __useInsuranceQuoteQuery__
+ *
+ * To run a query within a React component, call `useInsuranceQuoteQuery` and pass it any options that fit your needs.
+ * When your component renders, `useInsuranceQuoteQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useInsuranceQuoteQuery({
+ *   variables: {
+ *      projectId: // value for 'projectId'
+ *      capUSD: // value for 'capUSD'
+ *      hours: // value for 'hours'
+ *   },
+ * });
+ */
+export function useInsuranceQuoteQuery(baseOptions: Apollo.QueryHookOptions<InsuranceQuoteQuery, InsuranceQuoteQueryVariables> & ({ variables: InsuranceQuoteQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<InsuranceQuoteQuery, InsuranceQuoteQueryVariables>(InsuranceQuoteDocument, options);
+      }
+export function useInsuranceQuoteLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<InsuranceQuoteQuery, InsuranceQuoteQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<InsuranceQuoteQuery, InsuranceQuoteQueryVariables>(InsuranceQuoteDocument, options);
+        }
+// @ts-ignore
+export function useInsuranceQuoteSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<InsuranceQuoteQuery, InsuranceQuoteQueryVariables>): Apollo.UseSuspenseQueryResult<InsuranceQuoteQuery, InsuranceQuoteQueryVariables>;
+export function useInsuranceQuoteSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<InsuranceQuoteQuery, InsuranceQuoteQueryVariables>): Apollo.UseSuspenseQueryResult<InsuranceQuoteQuery | undefined, InsuranceQuoteQueryVariables>;
+export function useInsuranceQuoteSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<InsuranceQuoteQuery, InsuranceQuoteQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<InsuranceQuoteQuery, InsuranceQuoteQueryVariables>(InsuranceQuoteDocument, options);
+        }
+export type InsuranceQuoteQueryHookResult = ReturnType<typeof useInsuranceQuoteQuery>;
+export type InsuranceQuoteLazyQueryHookResult = ReturnType<typeof useInsuranceQuoteLazyQuery>;
+export type InsuranceQuoteSuspenseQueryHookResult = ReturnType<typeof useInsuranceQuoteSuspenseQuery>;
+export type InsuranceQuoteQueryResult = Apollo.QueryResult<InsuranceQuoteQuery, InsuranceQuoteQueryVariables>;
+export const ActiveInsuranceDocument = gql`
+    query ActiveInsurance($projectId: ID!) {
+  activeInsurance(projectId: $projectId) {
+    id
+    projectId
+    hardCapUSD
+    premiumUSD
+    coverageWindowHours
+    status
+    createdAt
+    updatedAt
+    expiresAt
+  }
+}
+    `;
+
+/**
+ * __useActiveInsuranceQuery__
+ *
+ * To run a query within a React component, call `useActiveInsuranceQuery` and pass it any options that fit your needs.
+ * When your component renders, `useActiveInsuranceQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useActiveInsuranceQuery({
+ *   variables: {
+ *      projectId: // value for 'projectId'
+ *   },
+ * });
+ */
+export function useActiveInsuranceQuery(baseOptions: Apollo.QueryHookOptions<ActiveInsuranceQuery, ActiveInsuranceQueryVariables> & ({ variables: ActiveInsuranceQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ActiveInsuranceQuery, ActiveInsuranceQueryVariables>(ActiveInsuranceDocument, options);
+      }
+export function useActiveInsuranceLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ActiveInsuranceQuery, ActiveInsuranceQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ActiveInsuranceQuery, ActiveInsuranceQueryVariables>(ActiveInsuranceDocument, options);
+        }
+// @ts-ignore
+export function useActiveInsuranceSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ActiveInsuranceQuery, ActiveInsuranceQueryVariables>): Apollo.UseSuspenseQueryResult<ActiveInsuranceQuery, ActiveInsuranceQueryVariables>;
+export function useActiveInsuranceSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ActiveInsuranceQuery, ActiveInsuranceQueryVariables>): Apollo.UseSuspenseQueryResult<ActiveInsuranceQuery | undefined, ActiveInsuranceQueryVariables>;
+export function useActiveInsuranceSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ActiveInsuranceQuery, ActiveInsuranceQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ActiveInsuranceQuery, ActiveInsuranceQueryVariables>(ActiveInsuranceDocument, options);
+        }
+export type ActiveInsuranceQueryHookResult = ReturnType<typeof useActiveInsuranceQuery>;
+export type ActiveInsuranceLazyQueryHookResult = ReturnType<typeof useActiveInsuranceLazyQuery>;
+export type ActiveInsuranceSuspenseQueryHookResult = ReturnType<typeof useActiveInsuranceSuspenseQuery>;
+export type ActiveInsuranceQueryResult = Apollo.QueryResult<ActiveInsuranceQuery, ActiveInsuranceQueryVariables>;
+export const PurchaseInsuranceDocument = gql`
+    mutation PurchaseInsurance($projectId: ID!, $capUSD: Float!, $hours: Int!, $requestID: String) {
+  purchaseInsurance(
+    projectId: $projectId
+    capUSD: $capUSD
+    hours: $hours
+    requestID: $requestID
+  ) {
+    id
+    projectId
+    hardCapUSD
+    premiumUSD
+    coverageWindowHours
+    status
+    createdAt
+    updatedAt
+    expiresAt
+  }
+}
+    `;
+export type PurchaseInsuranceMutationFn = Apollo.MutationFunction<PurchaseInsuranceMutation, PurchaseInsuranceMutationVariables>;
+
+/**
+ * __usePurchaseInsuranceMutation__
+ *
+ * To run a mutation, you first call `usePurchaseInsuranceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePurchaseInsuranceMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [purchaseInsuranceMutation, { data, loading, error }] = usePurchaseInsuranceMutation({
+ *   variables: {
+ *      projectId: // value for 'projectId'
+ *      capUSD: // value for 'capUSD'
+ *      hours: // value for 'hours'
+ *      requestID: // value for 'requestID'
+ *   },
+ * });
+ */
+export function usePurchaseInsuranceMutation(baseOptions?: Apollo.MutationHookOptions<PurchaseInsuranceMutation, PurchaseInsuranceMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<PurchaseInsuranceMutation, PurchaseInsuranceMutationVariables>(PurchaseInsuranceDocument, options);
+      }
+export type PurchaseInsuranceMutationHookResult = ReturnType<typeof usePurchaseInsuranceMutation>;
+export type PurchaseInsuranceMutationResult = Apollo.MutationResult<PurchaseInsuranceMutation>;
+export type PurchaseInsuranceMutationOptions = Apollo.BaseMutationOptions<PurchaseInsuranceMutation, PurchaseInsuranceMutationVariables>;
+export const ShipPassTiersDocument = gql`
+    query ShipPassTiers {
+  shipPassTiers {
+    key
+    label
+    priceUSD
+    requiredGates
+    deadlineDays
+    description
+  }
+}
+    `;
+
+/**
+ * __useShipPassTiersQuery__
+ *
+ * To run a query within a React component, call `useShipPassTiersQuery` and pass it any options that fit your needs.
+ * When your component renders, `useShipPassTiersQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useShipPassTiersQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useShipPassTiersQuery(baseOptions?: Apollo.QueryHookOptions<ShipPassTiersQuery, ShipPassTiersQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ShipPassTiersQuery, ShipPassTiersQueryVariables>(ShipPassTiersDocument, options);
+      }
+export function useShipPassTiersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ShipPassTiersQuery, ShipPassTiersQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ShipPassTiersQuery, ShipPassTiersQueryVariables>(ShipPassTiersDocument, options);
+        }
+// @ts-ignore
+export function useShipPassTiersSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ShipPassTiersQuery, ShipPassTiersQueryVariables>): Apollo.UseSuspenseQueryResult<ShipPassTiersQuery, ShipPassTiersQueryVariables>;
+export function useShipPassTiersSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ShipPassTiersQuery, ShipPassTiersQueryVariables>): Apollo.UseSuspenseQueryResult<ShipPassTiersQuery | undefined, ShipPassTiersQueryVariables>;
+export function useShipPassTiersSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ShipPassTiersQuery, ShipPassTiersQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ShipPassTiersQuery, ShipPassTiersQueryVariables>(ShipPassTiersDocument, options);
+        }
+export type ShipPassTiersQueryHookResult = ReturnType<typeof useShipPassTiersQuery>;
+export type ShipPassTiersLazyQueryHookResult = ReturnType<typeof useShipPassTiersLazyQuery>;
+export type ShipPassTiersSuspenseQueryHookResult = ReturnType<typeof useShipPassTiersSuspenseQuery>;
+export type ShipPassTiersQueryResult = Apollo.QueryResult<ShipPassTiersQuery, ShipPassTiersQueryVariables>;
+export const ShipPassQuoteDocument = gql`
+    query ShipPassQuote($projectId: ID!, $tierKey: String!) {
+  shipPassQuote(projectId: $projectId, tierKey: $tierKey) {
+    tierKey
+    priceUSD
+    requiredGates
+    deadlineDays
+    walletShortfallUSD
+  }
+}
+    `;
+
+/**
+ * __useShipPassQuoteQuery__
+ *
+ * To run a query within a React component, call `useShipPassQuoteQuery` and pass it any options that fit your needs.
+ * When your component renders, `useShipPassQuoteQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useShipPassQuoteQuery({
+ *   variables: {
+ *      projectId: // value for 'projectId'
+ *      tierKey: // value for 'tierKey'
+ *   },
+ * });
+ */
+export function useShipPassQuoteQuery(baseOptions: Apollo.QueryHookOptions<ShipPassQuoteQuery, ShipPassQuoteQueryVariables> & ({ variables: ShipPassQuoteQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ShipPassQuoteQuery, ShipPassQuoteQueryVariables>(ShipPassQuoteDocument, options);
+      }
+export function useShipPassQuoteLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ShipPassQuoteQuery, ShipPassQuoteQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ShipPassQuoteQuery, ShipPassQuoteQueryVariables>(ShipPassQuoteDocument, options);
+        }
+// @ts-ignore
+export function useShipPassQuoteSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ShipPassQuoteQuery, ShipPassQuoteQueryVariables>): Apollo.UseSuspenseQueryResult<ShipPassQuoteQuery, ShipPassQuoteQueryVariables>;
+export function useShipPassQuoteSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ShipPassQuoteQuery, ShipPassQuoteQueryVariables>): Apollo.UseSuspenseQueryResult<ShipPassQuoteQuery | undefined, ShipPassQuoteQueryVariables>;
+export function useShipPassQuoteSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ShipPassQuoteQuery, ShipPassQuoteQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ShipPassQuoteQuery, ShipPassQuoteQueryVariables>(ShipPassQuoteDocument, options);
+        }
+export type ShipPassQuoteQueryHookResult = ReturnType<typeof useShipPassQuoteQuery>;
+export type ShipPassQuoteLazyQueryHookResult = ReturnType<typeof useShipPassQuoteLazyQuery>;
+export type ShipPassQuoteSuspenseQueryHookResult = ReturnType<typeof useShipPassQuoteSuspenseQuery>;
+export type ShipPassQuoteQueryResult = Apollo.QueryResult<ShipPassQuoteQuery, ShipPassQuoteQueryVariables>;
+export const ActiveShipPassDocument = gql`
+    query ActiveShipPass($projectId: ID!) {
+  activeShipPass(projectId: $projectId) {
+    id
+    projectId
+    tierKey
+    priceUSD
+    status
+    deadlineAt
+    createdAt
+    updatedAt
+    settledAt
+  }
+}
+    `;
+
+/**
+ * __useActiveShipPassQuery__
+ *
+ * To run a query within a React component, call `useActiveShipPassQuery` and pass it any options that fit your needs.
+ * When your component renders, `useActiveShipPassQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useActiveShipPassQuery({
+ *   variables: {
+ *      projectId: // value for 'projectId'
+ *   },
+ * });
+ */
+export function useActiveShipPassQuery(baseOptions: Apollo.QueryHookOptions<ActiveShipPassQuery, ActiveShipPassQueryVariables> & ({ variables: ActiveShipPassQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ActiveShipPassQuery, ActiveShipPassQueryVariables>(ActiveShipPassDocument, options);
+      }
+export function useActiveShipPassLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ActiveShipPassQuery, ActiveShipPassQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ActiveShipPassQuery, ActiveShipPassQueryVariables>(ActiveShipPassDocument, options);
+        }
+// @ts-ignore
+export function useActiveShipPassSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ActiveShipPassQuery, ActiveShipPassQueryVariables>): Apollo.UseSuspenseQueryResult<ActiveShipPassQuery, ActiveShipPassQueryVariables>;
+export function useActiveShipPassSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ActiveShipPassQuery, ActiveShipPassQueryVariables>): Apollo.UseSuspenseQueryResult<ActiveShipPassQuery | undefined, ActiveShipPassQueryVariables>;
+export function useActiveShipPassSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ActiveShipPassQuery, ActiveShipPassQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ActiveShipPassQuery, ActiveShipPassQueryVariables>(ActiveShipPassDocument, options);
+        }
+export type ActiveShipPassQueryHookResult = ReturnType<typeof useActiveShipPassQuery>;
+export type ActiveShipPassLazyQueryHookResult = ReturnType<typeof useActiveShipPassLazyQuery>;
+export type ActiveShipPassSuspenseQueryHookResult = ReturnType<typeof useActiveShipPassSuspenseQuery>;
+export type ActiveShipPassQueryResult = Apollo.QueryResult<ActiveShipPassQuery, ActiveShipPassQueryVariables>;
+export const ShipPassesDocument = gql`
+    query ShipPasses($limit: Int) {
+  shipPasses(limit: $limit) {
+    id
+    projectId
+    tierKey
+    priceUSD
+    status
+    deadlineAt
+    createdAt
+    updatedAt
+    settledAt
+  }
+}
+    `;
+
+/**
+ * __useShipPassesQuery__
+ *
+ * To run a query within a React component, call `useShipPassesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useShipPassesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useShipPassesQuery({
+ *   variables: {
+ *      limit: // value for 'limit'
+ *   },
+ * });
+ */
+export function useShipPassesQuery(baseOptions?: Apollo.QueryHookOptions<ShipPassesQuery, ShipPassesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ShipPassesQuery, ShipPassesQueryVariables>(ShipPassesDocument, options);
+      }
+export function useShipPassesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ShipPassesQuery, ShipPassesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ShipPassesQuery, ShipPassesQueryVariables>(ShipPassesDocument, options);
+        }
+// @ts-ignore
+export function useShipPassesSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ShipPassesQuery, ShipPassesQueryVariables>): Apollo.UseSuspenseQueryResult<ShipPassesQuery, ShipPassesQueryVariables>;
+export function useShipPassesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ShipPassesQuery, ShipPassesQueryVariables>): Apollo.UseSuspenseQueryResult<ShipPassesQuery | undefined, ShipPassesQueryVariables>;
+export function useShipPassesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ShipPassesQuery, ShipPassesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ShipPassesQuery, ShipPassesQueryVariables>(ShipPassesDocument, options);
+        }
+export type ShipPassesQueryHookResult = ReturnType<typeof useShipPassesQuery>;
+export type ShipPassesLazyQueryHookResult = ReturnType<typeof useShipPassesLazyQuery>;
+export type ShipPassesSuspenseQueryHookResult = ReturnType<typeof useShipPassesSuspenseQuery>;
+export type ShipPassesQueryResult = Apollo.QueryResult<ShipPassesQuery, ShipPassesQueryVariables>;
+export const ShipPassProgressDocument = gql`
+    query ShipPassProgress($passId: ID!) {
+  shipPassProgress(passId: $passId) {
+    id
+    gate
+    passed
+    reason
+    observedAt
+  }
+}
+    `;
+
+/**
+ * __useShipPassProgressQuery__
+ *
+ * To run a query within a React component, call `useShipPassProgressQuery` and pass it any options that fit your needs.
+ * When your component renders, `useShipPassProgressQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useShipPassProgressQuery({
+ *   variables: {
+ *      passId: // value for 'passId'
+ *   },
+ * });
+ */
+export function useShipPassProgressQuery(baseOptions: Apollo.QueryHookOptions<ShipPassProgressQuery, ShipPassProgressQueryVariables> & ({ variables: ShipPassProgressQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ShipPassProgressQuery, ShipPassProgressQueryVariables>(ShipPassProgressDocument, options);
+      }
+export function useShipPassProgressLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ShipPassProgressQuery, ShipPassProgressQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ShipPassProgressQuery, ShipPassProgressQueryVariables>(ShipPassProgressDocument, options);
+        }
+// @ts-ignore
+export function useShipPassProgressSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ShipPassProgressQuery, ShipPassProgressQueryVariables>): Apollo.UseSuspenseQueryResult<ShipPassProgressQuery, ShipPassProgressQueryVariables>;
+export function useShipPassProgressSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ShipPassProgressQuery, ShipPassProgressQueryVariables>): Apollo.UseSuspenseQueryResult<ShipPassProgressQuery | undefined, ShipPassProgressQueryVariables>;
+export function useShipPassProgressSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ShipPassProgressQuery, ShipPassProgressQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ShipPassProgressQuery, ShipPassProgressQueryVariables>(ShipPassProgressDocument, options);
+        }
+export type ShipPassProgressQueryHookResult = ReturnType<typeof useShipPassProgressQuery>;
+export type ShipPassProgressLazyQueryHookResult = ReturnType<typeof useShipPassProgressLazyQuery>;
+export type ShipPassProgressSuspenseQueryHookResult = ReturnType<typeof useShipPassProgressSuspenseQuery>;
+export type ShipPassProgressQueryResult = Apollo.QueryResult<ShipPassProgressQuery, ShipPassProgressQueryVariables>;
+export const ShipPassStatsDocument = gql`
+    query ShipPassStats {
+  shipPassStats {
+    totalPurchased
+    totalShipped
+    totalRefunded
+    totalCancelled
+    revenueUSD
+  }
+}
+    `;
+
+/**
+ * __useShipPassStatsQuery__
+ *
+ * To run a query within a React component, call `useShipPassStatsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useShipPassStatsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useShipPassStatsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useShipPassStatsQuery(baseOptions?: Apollo.QueryHookOptions<ShipPassStatsQuery, ShipPassStatsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ShipPassStatsQuery, ShipPassStatsQueryVariables>(ShipPassStatsDocument, options);
+      }
+export function useShipPassStatsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ShipPassStatsQuery, ShipPassStatsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ShipPassStatsQuery, ShipPassStatsQueryVariables>(ShipPassStatsDocument, options);
+        }
+// @ts-ignore
+export function useShipPassStatsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ShipPassStatsQuery, ShipPassStatsQueryVariables>): Apollo.UseSuspenseQueryResult<ShipPassStatsQuery, ShipPassStatsQueryVariables>;
+export function useShipPassStatsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ShipPassStatsQuery, ShipPassStatsQueryVariables>): Apollo.UseSuspenseQueryResult<ShipPassStatsQuery | undefined, ShipPassStatsQueryVariables>;
+export function useShipPassStatsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ShipPassStatsQuery, ShipPassStatsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ShipPassStatsQuery, ShipPassStatsQueryVariables>(ShipPassStatsDocument, options);
+        }
+export type ShipPassStatsQueryHookResult = ReturnType<typeof useShipPassStatsQuery>;
+export type ShipPassStatsLazyQueryHookResult = ReturnType<typeof useShipPassStatsLazyQuery>;
+export type ShipPassStatsSuspenseQueryHookResult = ReturnType<typeof useShipPassStatsSuspenseQuery>;
+export type ShipPassStatsQueryResult = Apollo.QueryResult<ShipPassStatsQuery, ShipPassStatsQueryVariables>;
+export const PurchaseShipPassDocument = gql`
+    mutation PurchaseShipPass($projectId: ID!, $tierKey: String!, $requestID: String) {
+  purchaseShipPass(
+    projectId: $projectId
+    tierKey: $tierKey
+    requestID: $requestID
+  ) {
+    id
+    projectId
+    tierKey
+    priceUSD
+    status
+    deadlineAt
+    createdAt
+    updatedAt
+    settledAt
+  }
+}
+    `;
+export type PurchaseShipPassMutationFn = Apollo.MutationFunction<PurchaseShipPassMutation, PurchaseShipPassMutationVariables>;
+
+/**
+ * __usePurchaseShipPassMutation__
+ *
+ * To run a mutation, you first call `usePurchaseShipPassMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePurchaseShipPassMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [purchaseShipPassMutation, { data, loading, error }] = usePurchaseShipPassMutation({
+ *   variables: {
+ *      projectId: // value for 'projectId'
+ *      tierKey: // value for 'tierKey'
+ *      requestID: // value for 'requestID'
+ *   },
+ * });
+ */
+export function usePurchaseShipPassMutation(baseOptions?: Apollo.MutationHookOptions<PurchaseShipPassMutation, PurchaseShipPassMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<PurchaseShipPassMutation, PurchaseShipPassMutationVariables>(PurchaseShipPassDocument, options);
+      }
+export type PurchaseShipPassMutationHookResult = ReturnType<typeof usePurchaseShipPassMutation>;
+export type PurchaseShipPassMutationResult = Apollo.MutationResult<PurchaseShipPassMutation>;
+export type PurchaseShipPassMutationOptions = Apollo.BaseMutationOptions<PurchaseShipPassMutation, PurchaseShipPassMutationVariables>;
+export const CancelShipPassDocument = gql`
+    mutation CancelShipPass($passId: ID!) {
+  cancelShipPass(passId: $passId) {
+    id
+    status
+    settledAt
+    updatedAt
+  }
+}
+    `;
+export type CancelShipPassMutationFn = Apollo.MutationFunction<CancelShipPassMutation, CancelShipPassMutationVariables>;
+
+/**
+ * __useCancelShipPassMutation__
+ *
+ * To run a mutation, you first call `useCancelShipPassMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCancelShipPassMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [cancelShipPassMutation, { data, loading, error }] = useCancelShipPassMutation({
+ *   variables: {
+ *      passId: // value for 'passId'
+ *   },
+ * });
+ */
+export function useCancelShipPassMutation(baseOptions?: Apollo.MutationHookOptions<CancelShipPassMutation, CancelShipPassMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CancelShipPassMutation, CancelShipPassMutationVariables>(CancelShipPassDocument, options);
+      }
+export type CancelShipPassMutationHookResult = ReturnType<typeof useCancelShipPassMutation>;
+export type CancelShipPassMutationResult = Apollo.MutationResult<CancelShipPassMutation>;
+export type CancelShipPassMutationOptions = Apollo.BaseMutationOptions<CancelShipPassMutation, CancelShipPassMutationVariables>;
 export const DescribeIdeaDocument = gql`
     mutation DescribeIdea($input: DescribeIdeaInput!) {
   describeIdea(input: $input) {

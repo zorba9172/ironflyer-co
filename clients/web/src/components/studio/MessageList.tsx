@@ -72,11 +72,10 @@ export function MessageList({ messages, userInitials, onRetry }: MessageListProp
               textTransform: "uppercase",
             }}
           >
-            Live execution feed
+            Ask anything
           </Typography>
           <Typography sx={{ color: tokens.color.text.muted, fontSize: 13, maxWidth: 320 }}>
-            Type a follow-up below — Ironflyer will refine the build, run the gates, and
-            stream every verdict here.
+            Ask for the next change. Ironflyer will keep the build and chat in the same workspace.
           </Typography>
         </Stack>
       </Box>
@@ -86,6 +85,7 @@ export function MessageList({ messages, userInitials, onRetry }: MessageListProp
   return (
     <Box
       sx={{
+        bgcolor: "#070817",
         flex: 1,
         minHeight: 0,
         // Virtuoso owns its own scroll container; we still style our
@@ -112,7 +112,7 @@ export function MessageList({ messages, userInitials, onRetry }: MessageListProp
         increaseViewportBy={{ top: 200, bottom: 200 }}
         style={{ height: "100%" }}
         itemContent={(_, message) => (
-          <Box sx={{ px: 2, py: 0.15 }}>
+          <Box sx={{ px: { xs: 1.5, md: 2.25 }, py: 0.2 }}>
             <MessageBubble
               message={message}
               userInitials={userInitials}

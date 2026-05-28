@@ -3,7 +3,7 @@
 // WorkbenchHeader — sticky top bar of the workbench shell.
 //
 //   Left   : breadcrumb back to /studio · project name · workspace chip
-//   Center : segmented "Preview / Mobile / Code" primary-pane selector
+//   Center : segmented "Preview / Mobile / VS Code" primary-pane selector
 //   Right  : focus-mode toggle, run controls, publish button
 //
 // A second sub-row sits beneath the header and renders the live status
@@ -59,7 +59,7 @@ interface PrimaryTab {
 const PRIMARY_TABS: PrimaryTab[] = [
   { key: "preview", label: "Preview", icon: LaptopMacRounded },
   { key: "mobile", label: "Mobile", icon: PhoneIphoneRounded },
-  { key: "code", label: "Code", icon: CodeRounded },
+  { key: "code", label: "VS Code", icon: CodeRounded },
 ];
 
 const TERMINAL = new Set(["succeeded", "failed", "stopped", "killed", "refunded"]);

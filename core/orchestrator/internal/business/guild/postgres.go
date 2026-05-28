@@ -374,6 +374,38 @@ func (s *PostgresService) RecordPayout(ctx context.Context, p Payout) (Payout, e
 	return p, nil
 }
 
+// UpdatePayoutStatus flips the payout status and stamps the transfer
+// ref + completed_at on a terminal status. Returns ErrNotFound when
+// the id is unknown.
+func (s *PostgresService) UpdatePayoutStatus(ctx context.Context, payoutID, status, externalRef string) (Payout, error) {
+	var completed any
+	if status == "paid" || status == "failed" {
+		completed = time.Now().UTC()
+	}
+	row := s.pool.QueryRow(ctx, `
+        UPDATE guild_payouts
+        SET status = $2,
+            external_ref = COALESCE(NULLIF($3, ''), external_ref),
+            completed_at = COALESCE($4, completed_at)
+        WHERE id = $1
+        RETURNING id, task_id, finisher_id, amount_usd, finisher_cut_usd,
+                  platform_cut_usd, status, COALESCE(external_ref, ''), created_at, completed_at`,
+		payoutID, status, externalRef, completed)
+	var p Payout
+	var amt, fcut, pcut string
+	if err := row.Scan(&p.ID, &p.TaskID, &p.FinisherID, &amt, &fcut, &pcut,
+		&p.Status, &p.ExternalRef, &p.CreatedAt, &p.CompletedAt); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return Payout{}, ErrNotFound
+		}
+		return Payout{}, err
+	}
+	p.AmountUSD, _ = decimal.NewFromString(amt)
+	p.FinisherCutUSD, _ = decimal.NewFromString(fcut)
+	p.PlatformCutUSD, _ = decimal.NewFromString(pcut)
+	return p, nil
+}
+
 // --- idempotency -------------------------------------------------------
 
 // RecallOp returns a prior outcome by op_key or (zero, false) when no

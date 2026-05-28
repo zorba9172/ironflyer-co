@@ -1,0 +1,130 @@
+# Finisher Guild operations — the two-sided marketplace (human
+# finishers bid on AI-failed gates) + the template marketplace.
+# Consumed by the guild dashboard (task board + bid panel), the
+# finisher profile editor, and the template catalog. Maps onto
+# guild.graphql in the orchestrator schema.
+
+fragment GuildTaskFields on GuildTask {
+  id
+  project {
+    id
+    name
+  }
+  title
+  description
+  priceUSDFloor
+  slaHours
+  status
+  assignedTo {
+    id
+    displayName
+    rating
+    verified
+  }
+  bidCount
+  createdAt
+}
+
+fragment FinisherProfileFields on FinisherProfile {
+  id
+  displayName
+  skills
+  hourlyRateUSD
+  completedTaskCount
+  rating
+  verified
+}
+
+fragment TemplateFields on Template {
+  id
+  slug
+  name
+  description
+  priceUSD
+  gatesPassed
+  installCount
+  verified
+  author {
+    id
+    displayName
+    rating
+  }
+}
+
+query MyFinisherProfile {
+  myFinisherProfile {
+    ...FinisherProfileFields
+  }
+}
+
+query GuildTasks($status: String, $mine: Boolean) {
+  guildTasks(status: $status, mine: $mine) {
+    ...GuildTaskFields
+  }
+}
+
+query GuildTask($id: ID!) {
+  guildTask(id: $id) {
+    ...GuildTaskFields
+  }
+}
+
+query Templates($verifiedOnly: Boolean) {
+  templates(verifiedOnly: $verifiedOnly) {
+    ...TemplateFields
+  }
+}
+
+query Template($slug: String!) {
+  template(slug: $slug) {
+    ...TemplateFields
+  }
+}
+
+mutation UpsertFinisherProfile($displayName: String!, $skills: [String!]!, $hourlyRateUSD: String!) {
+  upsertFinisherProfile(displayName: $displayName, skills: $skills, hourlyRateUSD: $hourlyRateUSD) {
+    ...FinisherProfileFields
+  }
+}
+
+mutation CreateGuildTask($projectId: ID!, $title: String!, $description: String!, $priceUSDFloor: String!, $slaHours: Int!) {
+  createGuildTask(projectId: $projectId, title: $title, description: $description, priceUSDFloor: $priceUSDFloor, slaHours: $slaHours) {
+    ...GuildTaskFields
+  }
+}
+
+mutation PlaceBid($taskId: ID!, $priceUSD: String!, $estimatedHours: Int!, $note: String!) {
+  placeBid(taskId: $taskId, priceUSD: $priceUSD, estimatedHours: $estimatedHours, note: $note) {
+    id
+    task {
+      id
+    }
+    finisher {
+      id
+      displayName
+    }
+    priceUSD
+    estimatedHours
+    note
+    status
+    createdAt
+  }
+}
+
+mutation AcceptBid($bidId: ID!) {
+  acceptBid(bidId: $bidId) {
+    ...GuildTaskFields
+  }
+}
+
+mutation RejectTask($taskId: ID!, $reason: String!) {
+  rejectTask(taskId: $taskId, reason: $reason) {
+    ...GuildTaskFields
+  }
+}
+
+mutation InstallTemplate($slug: String!, $projectId: ID!) {
+  installTemplate(slug: $slug, projectId: $projectId) {
+    ...TemplateFields
+  }
+}

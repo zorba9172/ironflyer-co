@@ -46,16 +46,12 @@ export interface WorkbenchLayoutState {
 
 // DEFAULT_STATE — landing layout for a fresh project.
 //
-// `primary: "preview"` is **constitutional**: per the Visualization-
-// First Contract (CLAUDE.md → "VISUALIZATION-FIRST, CODE-FOR-PROS"
-// and DESIGN_REFERENCE.md → "Visualization-First Contract"), every
-// operator surface must lead with a visual mirror of the AI's
-// technical state. The Monaco code pane is the professional layer
-// reachable via the left rail; it MUST NOT become the default landing
-// pane. Do not change this default to "code" — flip the constitution
-// first.
+// The Studio now lands on VS Code by default. Preview, mobile, files
+// and dashboard stay one shortcut away, but the operator's first
+// surface is the professional workspace where code and terminal work
+// happen.
 const DEFAULT_STATE: WorkbenchLayoutState = {
-  primary: "preview",
+  primary: "code",
   leftOpen: true,
   rightOpen: true,
   dockOpen: false,
@@ -68,7 +64,7 @@ const MIN_DOCK_HEIGHT = 140;
 const MAX_DOCK_HEIGHT = 560;
 
 function storageKey(projectID: string): string {
-  return `ironflyer.studio.layout.v2:${projectID || "_"}`;
+  return `ironflyer.studio.layout.v3:${projectID || "_"}`;
 }
 
 function isValid(raw: unknown): raw is WorkbenchLayoutState {

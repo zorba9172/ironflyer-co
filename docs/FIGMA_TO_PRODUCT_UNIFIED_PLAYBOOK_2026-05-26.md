@@ -44,7 +44,7 @@
 
 עיקרון Visual-First מתורגם לכך שכל מסך תפעולי (cockpit, studio, execution,
 profit, wallet) חייב לרנדר תחילה גרף-מצב חי שממפה את state המנוע, ורק
-אחריו לחשוף את שכבת ה-pros (Monaco, GraphQL Sandbox, ledger CSV) דרך
+אחריו לחשוף את שכבת ה-pros (VS Code, GraphQL Sandbox, ledger CSV) דרך
 toggle.
 
 ---
@@ -527,7 +527,7 @@ ProfitGuard מתעד `loc_added`, `loc_removed`, `loc_net` ב-`audit`.
 - **Reuse rate** — אחוז ה-patches שבחרו `reuse`/`extend` מתוך כלל
   ההזדמנויות.
 
-כל פאנל לחיץ → drill לקבצים → לחיץ → Monaco (opt-in) → אישור
+כל פאנל לחיץ → drill לקבצים → לחיץ → VS Code (opt-in) → אישור
 `refactor proposal` בקליק.
 
 ### 8.12 איך זה משפר את המוצר למשתמש
@@ -625,7 +625,7 @@ ProfitGuard מפעיל reservation דרך `operations/wireup/profitguard_mobile.
 - **What's not closed end-to-end.** מסך הריצה חייב לציין במפורש איזה gate
   פתוח / patch לא הוחל / cost line לא תוקצב.
 - **Collapsible.** ברירת מחדל גלאנס-בלבד; expand on hover/click.
-- **Code is opt-in.** Monaco, GraphQL Sandbox, JSON timeline — נגישים
+- **Code is opt-in.** VS Code, GraphQL Sandbox, JSON timeline — נגישים
   בקליק אחד אך לא הנחיתה.
 
 ### 10.2 חוזה ויזואלי

@@ -1,0 +1,81 @@
+# Compliance operations — the ComplianceGate vertical SKUs (PCI /
+# HIPAA / SOC 2 / GDPR). Consumed by the project compliance panel
+# (framework picker + control result table + audit bundle export).
+# Maps onto compliance.graphql in the orchestrator schema.
+
+query ComplianceFrameworks {
+  complianceFrameworks {
+    key
+    label
+    monthlyPriceUSD
+    controlCount
+  }
+}
+
+query ComplianceEnrollments($projectId: ID) {
+  complianceEnrollments(projectId: $projectId) {
+    id
+    projectId
+    framework {
+      key
+      label
+      monthlyPriceUSD
+      controlCount
+    }
+    lastVerdict
+    lastEvaluatedAt
+    nextChargeAt
+  }
+}
+
+query ComplianceControlResults($projectId: ID!, $framework: String!) {
+  complianceControlResults(projectId: $projectId, framework: $framework) {
+    controlKey
+    status
+    severity
+    evidence
+    path
+    evaluatedAt
+  }
+}
+
+mutation EnrollCompliance($projectId: ID!, $framework: String!) {
+  enrollCompliance(projectId: $projectId, framework: $framework) {
+    id
+    projectId
+    framework {
+      key
+      label
+      monthlyPriceUSD
+    }
+    lastVerdict
+    nextChargeAt
+  }
+}
+
+mutation UnenrollCompliance($enrollmentId: ID!) {
+  unenrollCompliance(enrollmentId: $enrollmentId)
+}
+
+mutation EvaluateCompliance($projectId: ID!, $framework: String!) {
+  evaluateCompliance(projectId: $projectId, framework: $framework) {
+    controlKey
+    status
+    severity
+    evidence
+    path
+    evaluatedAt
+  }
+}
+
+mutation ExportAuditBundle($projectId: ID!, $framework: String!) {
+  exportAuditBundle(projectId: $projectId, framework: $framework) {
+    generatedAt
+    framework {
+      key
+      label
+    }
+    downloadURL
+    attestationJWT
+  }
+}

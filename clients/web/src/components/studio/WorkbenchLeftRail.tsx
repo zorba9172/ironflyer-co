@@ -2,7 +2,7 @@
 
 // WorkbenchLeftRail — the IDE-style icon rail on the left side of the
 // workbench shell. Each toggle either swaps the active "primary" pane
-// in the center stage (preview / code / files / dashboard) or opens
+// in the center stage (preview / VS Code / files / dashboard) or opens
 // the right rail (chat) / the bottom dock (patches).
 //
 // Two render modes:
@@ -52,7 +52,7 @@ interface PrimaryRow {
 const PRIMARY_ROWS: PrimaryRow[] = [
   { key: "preview", label: "Preview", icon: RocketLaunchRounded, shortcut: "1" },
   { key: "mobile", label: "Mobile", icon: PhoneIphoneRounded, shortcut: "2" },
-  { key: "code", label: "Code", icon: CodeRounded, shortcut: "3" },
+  { key: "code", label: "VS Code", icon: CodeRounded, shortcut: "3" },
   { key: "files", label: "Files", icon: FolderRounded, shortcut: "4" },
   { key: "dashboard", label: "Dashboard", icon: LayersRounded, shortcut: "5" },
 ];

@@ -19,7 +19,6 @@
     "@fancyapps/ui": "^6.1.14",
     "@fontsource/geist-mono": "^5.2.8",
     "@fontsource/inter": "^5.2.8",
-    "@monaco-editor/react": "^4.7.0",
     "@mui/icons-material": "^6.5.0",
     "@mui/material": "^6.5.0",
     "@mui/material-nextjs": "^6.5.0",

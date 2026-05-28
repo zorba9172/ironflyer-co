@@ -11,10 +11,9 @@
 #   --profile apps         orchestrator+runtime+web — run apps in containers
 #   --profile full         everything above        — kitchen-sink dev box
 #
-# Note: the embedded browser-IDE (openvscode-server + code-server) was
-# removed 2026-05-28. The Studio's Monaco pane is the in-product code
-# surface; pro IDE users install the standalone Ironflyer VS Code
-# Extension (clients/vscode-extension/).
+# Note: Studio uses VS Code surfaces for code work. The lean dev
+# compose path keeps the apps fast on host; run an OpenVSCode service
+# separately when testing the embedded IDE route.
 #
 # Most dev sessions only need the lean default + the apps on host. Apps on
 # host iterate fastest; switch to `--profile apps` only when you need to
@@ -200,11 +199,36 @@ services:
     depends_on:
       - temporal
 
-  # The embedded openvscode-server / code-server browser-IDE was removed
-  # 2026-05-28. Pro users get a real IDE through the standalone Ironflyer
-  # VS Code Extension (clients/vscode-extension/), which brings gates,
-  # patches, and the wallet into their local VS Code rather than running
-  # a per-user IDE container.
+  # --- ide profile (opt-in: --profile ide) -----------------------------
+  # OpenVSCode Server: upstream VS Code in the browser, wrapped in a slim
+  # IronFlyer profile and mounted at /ide for the Studio iframe.
+  #
+  # Bring up with:
+  #   docker compose -f infra/compose/docker-compose.dev.yml --profile ide up -d openvscode
+  #
+  # Direct URL: http://localhost:3030/ide/?folder=/home/workspace/projects/demo
+  openvscode:
+    profiles: ["ide", "full"]
+    build:
+      context: ../..
+      dockerfile: infra/docker/ironflyer-openvscode.Dockerfile
+    image: ironflyer/openvscode:dev
+    environment:
+      OPENVSCODE_SERVER_ROOT: /home/.openvscode-server
+    ports:
+      - "127.0.0.1:3030:3000"
+    volumes:
+      - workspace-data:/home/workspace
+      - ../../.ironflyer/ide-sync/projects:/home/workspace/projects
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command:
+      - --without-connection-token
+      - --server-base-path
+      - /ide
+      - /home/workspace
+    mem_limit: 1g
+    cpus: 1.5
 
   # Stripe CLI — opt in with `--profile stripe` to forward webhook events
   # into the local orchestrator. Requires STRIPE_DEVICE_NAME +
@@ -374,3 +398,4 @@ volumes:
   minio-data:
   surreal-data:
   runtime-workspaces:
+  workspace-data:

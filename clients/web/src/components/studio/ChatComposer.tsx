@@ -101,7 +101,7 @@ export function ChatComposer({
   onStop,
   disabled,
   pending,
-  placeholder = "Tell Ironflyer what to change…",
+  placeholder = "Ask Ironflyer what to build or change...",
   modelLabel = "Claude Sonnet 4.6",
 }: ChatComposerProps) {
   const [value, setValue] = useState("");
@@ -205,10 +205,10 @@ export function ChatComposer({
   return (
     <Box
       sx={{
-        borderTop: `1px solid ${tokens.color.border.subtle}`,
-        bgcolor: tokens.color.bg.surface,
-        px: 1.5,
-        py: 1.25,
+        bgcolor: "#070817",
+        px: 1.6,
+        pb: 1.55,
+        pt: 0.8,
       }}
       onDragEnter={(e) => {
         e.preventDefault();
@@ -238,12 +238,16 @@ export function ChatComposer({
                 ? tokens.color.accent.violet + "55"
                 : tokens.color.border.subtle
           }`,
-          bgcolor: tokens.color.bg.inset,
-          borderRadius: 1.5,
-          boxShadow: dragging ? `0 0 0 3px ${tokens.color.accent.violet}26` : "none",
-          transition: "border-color 160ms ease",
+          bgcolor: "rgba(255,255,255,0.035)",
+          borderRadius: 2.5,
+          boxShadow: dragging
+            ? `0 0 0 3px ${tokens.color.accent.violet}26`
+            : "0 16px 42px rgba(0,0,0,0.22)",
+          transition: "border-color 160ms ease, box-shadow 160ms ease, background 160ms ease",
           "&:focus-within": {
+            bgcolor: "rgba(255,255,255,0.05)",
             borderColor: tokens.color.accent.violet,
+            boxShadow: `0 0 0 3px ${tokens.color.accent.violet}14, 0 18px 46px rgba(0,0,0,0.25)`,
           },
         }}
       >
@@ -265,11 +269,11 @@ export function ChatComposer({
             color: tokens.color.text.primary,
             display: "block",
             fontFamily: tokens.font.family,
-            fontSize: 14,
-            lineHeight: 1.5,
+            fontSize: 14.5,
+            lineHeight: 1.55,
             outline: "none",
-            px: 1.5,
-            py: 1.25,
+            px: 1.7,
+            py: 1.45,
             resize: "none",
             width: "100%",
             "&::placeholder": { color: tokens.color.text.muted },
@@ -337,9 +341,9 @@ export function ChatComposer({
           spacing={1}
           sx={{
             alignItems: "center",
-            borderTop: `1px solid ${tokens.color.border.subtle}`,
-            px: 1,
-            py: 0.5,
+            px: 1.1,
+            pb: 0.85,
+            pt: 0.35,
           }}
         >
           <input
@@ -359,7 +363,17 @@ export function ChatComposer({
                 size="small"
                 disabled={disabled || pending}
                 onClick={() => fileRef.current?.click()}
-                sx={{ color: tokens.color.text.secondary }}
+                sx={{
+                  bgcolor: "rgba(255,255,255,0.04)",
+                  border: `1px solid ${tokens.color.border.subtle}`,
+                  color: tokens.color.text.secondary,
+                  height: 30,
+                  width: 30,
+                  "&:hover": {
+                    bgcolor: "rgba(255,255,255,0.07)",
+                    color: tokens.color.text.primary,
+                  },
+                }}
                 aria-label="Attach files"
               >
                 <AttachFileRounded sx={{ fontSize: 16 }} />
@@ -368,10 +382,16 @@ export function ChatComposer({
           </Tooltip>
           <Box
             sx={{
+              alignItems: "center",
+              border: `1px solid ${tokens.color.border.subtle}`,
+              borderRadius: 999,
               color: tokens.color.text.muted,
+              display: { xs: "none", sm: "flex" },
               fontFamily: tokens.font.mono,
-              fontSize: 10.5,
+              fontSize: 10.8,
+              height: 30,
               letterSpacing: 0.4,
+              px: 1,
               textTransform: "uppercase",
             }}
           >
@@ -392,7 +412,12 @@ export function ChatComposer({
               <IconButton
                 size="small"
                 onClick={onStop}
-                sx={{ color: tokens.color.accent.danger }}
+                sx={{
+                  bgcolor: `${tokens.color.accent.danger}18`,
+                  color: tokens.color.accent.danger,
+                  height: 34,
+                  width: 34,
+                }}
                 aria-label="Stop"
               >
                 <StopCircleOutlined sx={{ fontSize: 18 }} />
@@ -411,9 +436,9 @@ export function ChatComposer({
                     ? `linear-gradient(100deg, ${tokens.color.accent.coral}, ${tokens.color.brand.magenta} 52%, ${tokens.color.accent.purple})`
                     : tokens.color.bg.surfaceRaised,
                   color: armed ? tokens.color.text.primary : tokens.color.text.muted,
-                  borderRadius: 1,
-                  width: 32,
-                  height: 32,
+                  borderRadius: 999,
+                  width: 34,
+                  height: 34,
                   "&:hover": {
                     background: armed
                       ? `linear-gradient(100deg, ${tokens.color.accent.coral}, ${tokens.color.brand.magenta} 52%, ${tokens.color.accent.purple})`

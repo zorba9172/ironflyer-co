@@ -150,6 +150,70 @@ func (s *StripeConnect) CreateOnboardingLink(ctx context.Context, resource Provi
 	return urlStr, nil
 }
 
+// CreateTransfer issues a Stripe Transfer of amountUSD from the
+// platform balance to the connected account `destinationAcct`
+// (acct_*). This is the payout rail the Finisher Guild uses to pay a
+// finisher their cut once a task is accepted.
+//
+// idempotencyKey dedupes retries: Stripe guarantees that two requests
+// with the same Idempotency-Key produce one transfer, so a guild
+// payout retry (or a Temporal activity replay) never double-pays. The
+// caller passes the guild payout id so the key is stable across
+// restarts.
+//
+// Returns the Stripe transfer id (tr_*) on success.
+func (s *StripeConnect) CreateTransfer(ctx context.Context, destinationAcct string, amountUSD decimal.Decimal, idempotencyKey string) (string, error) {
+	if !s.Enabled() {
+		return "", ErrConnectorDisabled
+	}
+	if destinationAcct == "" {
+		return "", errors.New("provisioning: stripe transfer missing destination account")
+	}
+	if !amountUSD.IsPositive() {
+		return "", ErrInvalidAmount
+	}
+	// Stripe amounts are in the smallest currency unit (cents).
+	cents := amountUSD.Mul(decimal.NewFromInt(100)).Round(0).IntPart()
+	form := url.Values{}
+	form.Set("amount", strconv.FormatInt(cents, 10))
+	form.Set("currency", "usd")
+	form.Set("destination", destinationAcct)
+
+	// Build the request directly (not via stripePOST) so we can pin a
+	// caller-supplied Idempotency-Key instead of a random one — the
+	// whole point of a payout transfer is replay safety.
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost,
+		"https://api.stripe.com/v1/transfers", strings.NewReader(form.Encode()))
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Authorization", "Bearer "+s.opts.SecretKey)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	if idempotencyKey == "" {
+		idempotencyKey = "ironflyer-payout-" + uuid.NewString()
+	}
+	req.Header.Set("Idempotency-Key", idempotencyKey)
+	resp, err := s.http.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode/100 != 2 {
+		return "", fmt.Errorf("stripe transfer %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
+	}
+	var out struct {
+		ID string `json:"id"`
+	}
+	if err := json.Unmarshal(body, &out); err != nil {
+		return "", fmt.Errorf("parse stripe transfer: %w", err)
+	}
+	if out.ID == "" {
+		return "", errors.New("provisioning: stripe transfer response missing id")
+	}
+	return out.ID, nil
+}
+
 // RecordRevenue implements Connector. Reads application_fees from
 // Stripe for the connected account since the last sweep. The cron in
 // reconcile.go drives this; the webhook path is the primary, faster

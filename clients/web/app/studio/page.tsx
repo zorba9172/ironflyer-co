@@ -36,6 +36,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { BrandLogo } from "../../src/components/BrandLogo";
+import { IDEFramePane } from "../../src/components/studio/IDEFramePane";
 import { useAuth } from "../../src/lib/auth";
 import { extractErrorMessage } from "../../src/lib/errors";
 import {
@@ -120,33 +121,6 @@ const SECTION_COPY: Record<
     detail: "Control gates, environments, release notes and publish readiness.",
   },
 };
-
-const FILES = [
-  "src/app/dashboard/page.tsx",
-  "src/components/StatsGrid.tsx",
-  "src/components/ApprovalTable.tsx",
-  "src/lib/roles.ts",
-  "src/lib/billing.ts",
-  "package.json",
-];
-
-const CODE_LINES = [
-  "import { Badge, Card, Table } from '@/ui'",
-  "import { useApprovals, useRevenue } from '@/hooks/client-flow'",
-  "",
-  "export default function Dashboard() {",
-  "  const revenue = useRevenue()",
-  "  const approvals = useApprovals()",
-  "",
-  "  return (",
-  '    <main className="space-y-6">',
-  "      <StatsGrid revenue={revenue} approvals={approvals} />",
-  "      <ApprovalTable rows={approvals.pending} />",
-  '      <DeployGate status="preview" score={92} />',
-  "    </main>",
-  "  )",
-  "}",
-];
 
 const INITIAL_STEPS: Array<{
   id: string;
@@ -1225,8 +1199,8 @@ function PromptRunway({
 function IdePanel() {
   return (
     <Panel
-      title="IDE"
-      eyebrow="Code and files"
+      title="VS Code"
+      eyebrow="Workspace IDE"
       fill
       action={
         <Stack direction="row" spacing={0.6}>
@@ -1243,118 +1217,13 @@ function IdePanel() {
         sx={{
           border: `1px solid ${tokens.color.border.subtle}`,
           borderRadius: 1.4,
-          display: "grid",
-          gridTemplateColumns: { xs: "1fr", md: "230px minmax(0, 1fr)" },
+          display: "flex",
           minHeight: { xs: 420, lg: 0 },
           height: "100%",
           overflow: "hidden",
         }}
       >
-        <Box
-          sx={{
-            bgcolor: "#080918",
-            borderRight: { md: `1px solid ${tokens.color.border.subtle}` },
-            display: { xs: "none", md: "block" },
-            p: 1.2,
-          }}
-        >
-          <Typography sx={overlineSx}>Explorer</Typography>
-          <Stack spacing={0.45}>
-            {FILES.map((file, index) => (
-              <Stack
-                key={file}
-                direction="row"
-                spacing={0.8}
-                alignItems="center"
-                sx={{
-                  borderRadius: 0.8,
-                  color:
-                    index === 0
-                      ? tokens.color.text.primary
-                      : tokens.color.text.secondary,
-                  bgcolor:
-                    index === 0 ? "rgba(143,77,255,0.18)" : "transparent",
-                  px: 0.8,
-                  py: 0.55,
-                }}
-              >
-                <CodeRounded
-                  sx={{ color: tokens.color.accent.violet, fontSize: 14 }}
-                />
-                <Typography
-                  sx={{ fontFamily: tokens.font.mono, fontSize: 11.5 }}
-                >
-                  {file}
-                </Typography>
-              </Stack>
-            ))}
-          </Stack>
-        </Box>
-        <Box sx={{ bgcolor: "#060713", minWidth: 0, overflow: "auto" }}>
-          <Stack
-            direction="row"
-            alignItems="center"
-            sx={{
-              borderBottom: `1px solid ${tokens.color.border.subtle}`,
-              minHeight: 42,
-              px: 1.2,
-            }}
-          >
-            <Typography
-              sx={{
-                fontFamily: tokens.font.mono,
-                fontSize: 12,
-                fontWeight: 900,
-              }}
-            >
-              Dashboard.tsx
-            </Typography>
-            <Box sx={{ flex: 1 }} />
-            <Typography
-              sx={{
-                color: tokens.color.accent.success,
-                fontFamily: tokens.font.mono,
-                fontSize: 11,
-              }}
-            >
-              no errors
-            </Typography>
-          </Stack>
-          <Box component="pre" sx={{ m: 0, p: 2, minWidth: 620 }}>
-            {CODE_LINES.map((line, index) => (
-              <Box
-                key={`${line}-${index}`}
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: "36px minmax(0, 1fr)",
-                }}
-              >
-                <Box
-                  sx={{
-                    color: tokens.color.text.muted,
-                    fontFamily: tokens.font.mono,
-                    fontSize: 13,
-                    textAlign: "right",
-                    pr: 1.4,
-                  }}
-                >
-                  {index + 1}
-                </Box>
-                <Box
-                  sx={{
-                    color: codeColor(line),
-                    fontFamily: tokens.font.mono,
-                    fontSize: 13,
-                    lineHeight: 1.75,
-                    whiteSpace: "pre",
-                  }}
-                >
-                  {line || " "}
-                </Box>
-              </Box>
-            ))}
-          </Box>
-        </Box>
+        <IDEFramePane projectID="demo" />
       </Box>
     </Panel>
   );
@@ -1841,28 +1710,28 @@ function CommandChat({
   return (
     <Box
       sx={{
-        border: `1px solid ${tokens.color.border.subtle}`,
-        borderRadius: 1.5,
-        bgcolor: "rgba(12,13,32,0.9)",
+        border: `1px solid rgba(180,130,255,0.18)`,
+        borderRadius: 2.4,
+        bgcolor: "#070817",
+        boxShadow: "0 18px 48px rgba(0,0,0,0.24)",
         display: "grid",
-        gap: 0.9,
+        gap: 1,
         minWidth: 0,
-        p: 1,
+        p: 1.2,
       }}
     >
       <Stack direction="row" alignItems="center" spacing={1}>
-        <BoltRounded sx={{ color: tokens.color.accent.violet, fontSize: 16 }} />
-        <Typography sx={{ fontSize: 12.5, fontWeight: 950 }}>Chat</Typography>
+        <Typography sx={{ fontSize: 13.5, fontWeight: 900 }}>
+          Ask Ironflyer
+        </Typography>
         <Box sx={{ flex: 1 }} />
         <Typography
           sx={{
             color: pending
               ? tokens.color.accent.violet
-              : tokens.color.text.muted,
-            fontFamily: tokens.font.mono,
-            fontSize: 10.5,
+            : tokens.color.text.muted,
+            fontSize: 11.5,
             fontWeight: 900,
-            textTransform: "uppercase",
           }}
         >
           {pending ? "Working" : "Ready"}
@@ -1884,19 +1753,20 @@ function CommandChat({
               alignSelf: message.role === "user" ? "end" : "start",
               bgcolor:
                 message.role === "user"
-                  ? "rgba(143,77,255,0.24)"
-                  : "rgba(255,255,255,0.045)",
+                  ? "rgba(143,77,255,0.18)"
+                  : "transparent",
               border: `1px solid ${
                 message.role === "user"
-                  ? "rgba(188,117,255,0.34)"
-                  : tokens.color.border.subtle
+                  ? "rgba(188,117,255,0.26)"
+                  : "transparent"
               }`,
-              borderRadius: 1.2,
+              borderRadius:
+                message.role === "user" ? "16px 16px 4px 16px" : 0,
               color: tokens.color.text.primary,
-              fontSize: 12.6,
-              lineHeight: 1.45,
-              maxWidth: "86%",
-              px: 1,
+              fontSize: 13.2,
+              lineHeight: 1.55,
+              maxWidth: message.role === "user" ? "86%" : "100%",
+              px: message.role === "user" ? 1.2 : 0.2,
               py: 0.75,
             }}
           >
@@ -1919,18 +1789,22 @@ function CommandChat({
           component="input"
           name="studio-chat"
           ref={inputRef}
-          placeholder="Ask for a change..."
+          placeholder="Ask Ironflyer what to change..."
           sx={{
-            bgcolor: "#080918",
-            border: `1px solid ${tokens.color.border.subtle}`,
-            borderRadius: 1.2,
+            bgcolor: "rgba(255,255,255,0.04)",
+            border: `1px solid rgba(180,130,255,0.18)`,
+            borderRadius: 999,
             color: tokens.color.text.primary,
             flex: 1,
             font: "inherit",
-            fontSize: 13,
+            fontSize: 13.5,
+            minHeight: 40,
             minWidth: 0,
             outline: 0,
-            px: 1.2,
+            px: 1.5,
+            "&:focus": {
+              borderColor: tokens.color.accent.violet,
+            },
           }}
         />
         <IconButton
@@ -1938,9 +1812,13 @@ function CommandChat({
           aria-label={pending ? "Stop response" : "Send message"}
           onClick={pending ? onStop : undefined}
           sx={{
-            bgcolor: `${tokens.color.accent.purple}65`,
-            borderRadius: 1.2,
+            bgcolor: pending
+              ? `${tokens.color.accent.danger}18`
+              : `linear-gradient(100deg, ${tokens.color.accent.coral}, ${tokens.color.brand.magenta} 52%, ${tokens.color.accent.purple})`,
+            borderRadius: 999,
             color: tokens.color.text.primary,
+            height: 40,
+            width: 40,
           }}
         >
           {pending ? (
@@ -2045,13 +1923,6 @@ function stepColor(state: BuildStepState) {
   if (state === "done") return tokens.color.accent.success;
   if (state === "running") return tokens.color.accent.violet;
   return "rgba(255,255,255,0.08)";
-}
-
-function codeColor(line: string) {
-  if (line.startsWith("import")) return tokens.color.accent.violet;
-  if (line.trim().startsWith("<")) return tokens.color.accent.success;
-  if (line.includes("return") || line.includes("const")) return "#e7d6ff";
-  return tokens.color.text.secondary;
 }
 
 const overlineSx = {

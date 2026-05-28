@@ -73,10 +73,10 @@ import (
 
 	"ironflyer/core/orchestrator/internal/ai/providers"
 	"ironflyer/core/orchestrator/internal/ai/repair"
+	"ironflyer/core/orchestrator/internal/business/guild"
 	"ironflyer/core/orchestrator/internal/business/profitguard"
 	"ironflyer/core/orchestrator/internal/business/profitguardbridge"
 	"ironflyer/core/orchestrator/internal/business/profitguardctx"
-	"ironflyer/core/orchestrator/internal/business/guild"
 	"ironflyer/core/orchestrator/internal/business/provisioning"
 	"ironflyer/core/orchestrator/internal/business/sentinel"
 	"ironflyer/core/orchestrator/internal/business/shippass"
@@ -1155,6 +1155,14 @@ func main() {
 	// flag IRONFLYER_PROVISIONING_ENABLED gates registration so a
 	// half-credentialed staging env can opt out cleanly.
 	var provisioningVault *provisioning.Vault
+	// Hoisted out of the gate block so the Finisher Guild payout
+	// bridge (below) can reuse the same Stripe Connect connector +
+	// service to pay finishers. Both stay nil when provisioning is
+	// disabled, which keeps the guild on queued-only payouts.
+	var (
+		provPayoutSvc     provisioning.Service
+		provPayoutConnect *provisioning.StripeConnect
+	)
 	if strings.EqualFold(strings.TrimSpace(os.Getenv("IRONFLYER_PROVISIONING_ENABLED")), "true") {
 		var provSvc provisioning.Service
 		if pgPool != nil {
@@ -1164,18 +1172,20 @@ func main() {
 			provSvc = provisioning.NewMemoryService()
 			logger.Info().Msg("V22 provisioning: in-memory backend")
 		}
+		provPayoutSvc = provSvc
 		policies := provisioning.NewMemoryPolicyStore()
 		registry := provisioning.NewConnectorRegistry()
 		// Stripe Connect — Ironflyer-issued payment rail. Application
 		// fees are the cut; per-charge cadence; webhook lands events
 		// on /provisioning/webhook/stripe with STRIPE_CONNECT_WEBHOOK_SECRET.
-		registry.Register(provisioning.NewStripeConnect(provisioning.StripeConnectOpts{
+		provPayoutConnect = provisioning.NewStripeConnect(provisioning.StripeConnectOpts{
 			SecretKey:     os.Getenv("STRIPE_CONNECT_SECRET_KEY"),
 			WebhookSecret: os.Getenv("STRIPE_CONNECT_WEBHOOK_SECRET"),
 			ReturnURL:     os.Getenv("STRIPE_CONNECT_RETURN_URL"),
 			RefreshURL:    os.Getenv("STRIPE_CONNECT_REFRESH_URL"),
 			Policies:      policies,
-		}))
+		})
+		registry.Register(provPayoutConnect)
 		// Domain reseller + email partner ship as connector skeletons
 		// until partner-program creds land. Enabled() short-circuits
 		// false so they register without exposing themselves to users.
@@ -1292,6 +1302,14 @@ func main() {
 			Logger:       logger.With().Str("component", "guild").Logger(),
 		})
 		if guildBundle != nil {
+			// Wire the Stripe Connect payout bridge using the bundle's
+			// own Service so finisher-profile lookups hit the same
+			// store the coordinator writes to. nil bridge (provisioning
+			// rail disabled) keeps payouts queued-only.
+			if bridge := wireup.NewStripeConnectPayout(guildBundle.Service, provPayoutSvc, provPayoutConnect); bridge != nil {
+				guildBundle.Payouts.SetTransferer(bridge)
+				logger.Info().Msg("V22 guild: Stripe Connect payout bridge wired")
+			}
 			go guildBundle.Reconciler.Start(ctx)
 			logger.Info().Msg("V22 guild: coordinator + reconciler wired")
 		}
@@ -2125,13 +2143,13 @@ func main() {
 		Logger:                    logger,
 
 		// V22 service surface.
-		Wallet:           walletSvc,
-		WalletToppers:    walletToppers,
-		Compliance:       complianceSvc,
-		Provisioning:     provisioningVault,
-		ShipPass:         shipPassSvc,
-		ShipPassSettler:  shipPassSettler,
-		Sentinel:         sentinelSvc,
+		Wallet:          walletSvc,
+		WalletToppers:   walletToppers,
+		Compliance:      complianceSvc,
+		Provisioning:    provisioningVault,
+		ShipPass:        shipPassSvc,
+		ShipPassSettler: shipPassSettler,
+		Sentinel:        sentinelSvc,
 		GuildCoord: func() *guild.Coordinator {
 			if guildBundle == nil {
 				return nil

@@ -185,8 +185,9 @@ type Install struct {
 
 // Payout is one queued cash-out to a finisher after a task accept.
 // PlatformCutUSD + FinisherCutUSD MUST sum to AmountUSD. Status
-// transitions: pending -> paid | failed. Real Stripe Connect transfer
-// is left as a TODO for the provisioning agent (see payouts.go).
+// transitions: pending -> paid | failed. The real Stripe Connect
+// transfer lands the rail-side transfer id in ExternalRef when the
+// PayoutTransferer is wired (see payouts.go).
 type Payout struct {
 	ID             string
 	TaskID         string
@@ -195,6 +196,7 @@ type Payout struct {
 	FinisherCutUSD decimal.Decimal
 	PlatformCutUSD decimal.Decimal
 	Status         string
+	ExternalRef    string
 	CreatedAt      time.Time
 	CompletedAt    *time.Time
 }

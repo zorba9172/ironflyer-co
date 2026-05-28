@@ -50,16 +50,6 @@ export interface MessageBubbleProps {
   onRetry?: () => void;
 }
 
-function initials(name: string | null | undefined): string {
-  if (!name) return "U";
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0].toUpperCase())
-    .join("");
-}
-
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -152,7 +142,7 @@ function AgentRow({ message }: { message: StudioMessage }) {
     <Stack
       direction="row"
       spacing={1.25}
-      sx={{ alignItems: "flex-start", py: 0.35, pl: 4.5 }}
+      sx={{ alignItems: "flex-start", py: 0.45, pl: 0.2 }}
     >
       <Box
         sx={{
@@ -241,7 +231,7 @@ function AgentRow({ message }: { message: StudioMessage }) {
   );
 }
 
-function MessageBubbleImpl({ message, userInitials, onRetry }: MessageBubbleProps) {
+function MessageBubbleImpl({ message, onRetry }: MessageBubbleProps) {
   const [thinkingOpen, setThinkingOpen] = useState(false);
 
   if (message.role === "costtick") {
@@ -309,10 +299,7 @@ function MessageBubbleImpl({ message, userInitials, onRetry }: MessageBubbleProp
         <Typography
           sx={{
             color: tokens.color.text.muted,
-            fontFamily: tokens.font.mono,
-            fontSize: 11.5,
-            fontStyle: "italic",
-            letterSpacing: 0.2,
+            fontSize: 12,
             textAlign: "center",
           }}
         >
@@ -326,22 +313,22 @@ function MessageBubbleImpl({ message, userInitials, onRetry }: MessageBubbleProp
     return (
       <Stack
         direction="row"
-        spacing={1.25}
-        sx={{ justifyContent: "flex-end", alignItems: "flex-start", py: 0.5 }}
+        sx={{ justifyContent: "flex-end", alignItems: "flex-start", py: 0.8 }}
       >
         <Box
           sx={{
-            maxWidth: "78%",
-            bgcolor: tokens.color.bg.surfaceRaised,
+            maxWidth: "86%",
+            bgcolor: "rgba(143,77,255,0.18)",
             color: tokens.color.text.primary,
-            border: `1px solid ${tokens.color.border.subtle}`,
-            borderRadius: 1.25,
-            px: 1.5,
-            py: 1,
+            border: `1px solid rgba(180,130,255,0.20)`,
+            borderRadius: "18px 18px 4px 18px",
+            px: 1.55,
+            py: 1.05,
             whiteSpace: "pre-wrap",
             wordBreak: "break-word",
-            fontSize: 13.5,
-            lineHeight: 1.5,
+            fontSize: 14,
+            lineHeight: 1.55,
+            boxShadow: "0 10px 30px rgba(0,0,0,0.12)",
           }}
         >
           {message.body}
@@ -351,28 +338,13 @@ function MessageBubbleImpl({ message, userInitials, onRetry }: MessageBubbleProp
             sx={{
               mt: 0.5,
               color: tokens.color.text.muted,
-              fontFamily: tokens.font.mono,
-              fontSize: 10,
-              letterSpacing: 0.4,
+              fontSize: 11,
               textAlign: "right",
             }}
           >
             {relativeTime(message.createdAt)}
           </Typography>
         </Box>
-        <Avatar
-          sx={{
-            width: 28,
-            height: 28,
-            background: `linear-gradient(135deg, ${tokens.color.accent.violet}, ${tokens.color.accent.purple})`,
-            color: tokens.color.text.primary,
-            fontSize: 11,
-            fontWeight: 800,
-            fontFamily: tokens.font.mono,
-          }}
-        >
-          {initials(userInitials)}
-        </Avatar>
       </Stack>
     );
   }
@@ -457,31 +429,15 @@ function MessageBubbleImpl({ message, userInitials, onRetry }: MessageBubbleProp
   return (
     <Stack
       direction="row"
-      spacing={1.25}
-      sx={{ alignItems: "flex-start", py: 0.75 }}
+      sx={{ alignItems: "flex-start", py: 1.05 }}
     >
-      <Avatar
-        sx={{
-          width: 28,
-          height: 28,
-          bgcolor: tokens.color.bg.surface,
-          color: tokens.color.accent.violet,
-          border: `1px solid ${tokens.color.accent.violet}55`,
-          fontFamily: tokens.font.mono,
-          fontSize: 13,
-          fontWeight: 900,
-        }}
-      >
-        ◢
-      </Avatar>
       <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Stack direction="row" spacing={1} sx={{ alignItems: "center", mb: 0.5 }}>
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center", mb: 0.65 }}>
           <Typography
             sx={{
-              color: tokens.color.text.primary,
-              fontSize: 12,
-              fontWeight: 800,
-              letterSpacing: 0.2,
+              color: tokens.color.text.secondary,
+              fontSize: 12.5,
+              fontWeight: 850,
             }}
           >
             Ironflyer
@@ -489,9 +445,7 @@ function MessageBubbleImpl({ message, userInitials, onRetry }: MessageBubbleProp
           <Typography
             sx={{
               color: tokens.color.text.muted,
-              fontFamily: tokens.font.mono,
-              fontSize: 10.5,
-              letterSpacing: 0.4,
+              fontSize: 11,
             }}
           >
             · {relativeTime(message.createdAt)}
@@ -555,8 +509,8 @@ function MessageBubbleImpl({ message, userInitials, onRetry }: MessageBubbleProp
         <Typography
           sx={{
             color: tokens.color.text.primary,
-            fontSize: 13.75,
-            lineHeight: 1.55,
+            fontSize: 14,
+            lineHeight: 1.65,
             whiteSpace: "pre-wrap",
             wordBreak: "break-word",
           }}

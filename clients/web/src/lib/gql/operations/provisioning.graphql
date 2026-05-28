@@ -1,0 +1,59 @@
+# Provisioning operations — Ironflyer-as-issuer revenue rails (Stripe
+# Connect, domain reseller, email partner, hosting). Consumed by the
+# project integrations panel (connector chips + provisioned resource
+# list) and the "rail revenue" timeline. Maps onto provisioning.graphql
+# in the orchestrator schema.
+
+query ProvisionedResources($projectId: ID!) {
+  provisionedResources(projectId: $projectId) {
+    id
+    tenantId
+    projectId
+    kind
+    externalId
+    status
+    createdAt
+    updatedAt
+  }
+}
+
+query RevenueEvents($resourceId: ID!, $limit: Int) {
+  revenueEvents(resourceId: $resourceId, limit: $limit) {
+    id
+    resourceId
+    occurredAt
+    grossAmountUSD
+    ironflyerCutUSD
+    externalRef
+    ledgerEntryId
+  }
+}
+
+query AvailableConnectors {
+  availableConnectors {
+    name
+    label
+    enabled
+    sharePct
+  }
+}
+
+mutation ProvisionResource($projectId: ID!, $kind: String!) {
+  provisionResource(projectId: $projectId, kind: $kind) {
+    id
+    projectId
+    kind
+    externalId
+    status
+    createdAt
+    updatedAt
+  }
+}
+
+mutation SuspendResource($id: ID!) {
+  suspendResource(id: $id) {
+    id
+    status
+    updatedAt
+  }
+}

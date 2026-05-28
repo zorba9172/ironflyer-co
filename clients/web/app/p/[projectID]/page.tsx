@@ -17,7 +17,7 @@
 //      executionID.
 //   4. Call refineIdea on chat send via the generated mutation hook.
 //   5. Compose the shell: ChatPanel on the right, PreviewPane /
-//      CodePane / FilesPane / DashboardPane in the center stage,
+//      IDEFramePane / FilesPane / DashboardPane in the center stage,
 //      PatchesPane / logs / changed-files in the bottom dock.
 
 import { Box, Button, Stack, Typography } from "@mui/material";
@@ -37,6 +37,7 @@ import { ChatPanel } from "../../../src/components/studio/ChatPanel";
 import { MobilePreviewFrame } from "../../../src/components/studio/MobilePreviewFrame";
 import { PreviewPane } from "../../../src/components/studio/PreviewPane";
 import { StudioErrorPanel } from "../../../src/components/studio/StudioErrorPanel";
+import { IDEFramePane } from "../../../src/components/studio/IDEFramePane";
 import { WorkbenchShell } from "../../../src/components/studio/WorkbenchShell";
 import {
   eventToMessage,
@@ -46,7 +47,7 @@ import {
 } from "../../../src/components/studio/eventToMessage";
 import type { StudioStatusBucket } from "../../../src/components/studio/SuggestionsRow";
 import { useWorkbenchLayout } from "../../../src/components/studio/useWorkbenchLayout";
-import { getToken, RequireAuth, useAuth } from "../../../src/lib/auth";
+import { getToken, useAuth } from "../../../src/lib/auth";
 import {
   streamChat,
   type StreamChatHandle,
@@ -72,11 +73,6 @@ import type { StudioAttachment } from "../../../src/components/studio/types";
 // Heavy panes lazy-load. They share the same fallback so the shell
 // keeps a consistent loading skin while their JS chunk lands.
 const paneFallback = <LoadingPanel label="Loading pane" minHeight="100%" />;
-const CodePane = dynamic(
-  () =>
-    import("../../../src/components/studio/CodePane").then((m) => m.CodePane),
-  { ssr: false, loading: () => paneFallback },
-);
 const DashboardPane = dynamic(
   () =>
     import("../../../src/components/studio/DashboardPane").then(
@@ -126,11 +122,9 @@ function userInitialsFrom(
 
 export default function ProjectStudioPage() {
   return (
-    <RequireAuth>
-      <Suspense fallback={paneFallback}>
-        <ProjectStudioInner />
-      </Suspense>
-    </RequireAuth>
+    <Suspense fallback={paneFallback}>
+      <ProjectStudioInner />
+    </Suspense>
   );
 }
 
@@ -358,18 +352,6 @@ function ProjectStudioInner() {
     );
   }
 
-  if (demoPreview) {
-    // The "demo" project ID used to bounce to a static showcase at
-    // /studio. The showcase is gone — send the operator to the real
-    // project list instead so they pick a live workspace.
-    if (typeof window !== "undefined") window.location.replace("/projects");
-    return (
-      <Box sx={{ height: "100%", width: "100%" }}>
-        <LoadingPanel label="Redirecting…" minHeight="100%" />
-      </Box>
-    );
-  }
-
   if (
     (executionIDParam
       ? executionQuery.loading
@@ -384,9 +366,11 @@ function ProjectStudioInner() {
   }
 
   const projectName =
-    projectQuery.data?.project?.name ??
-    execution?.promptSummary ??
-    `Project ${projectID.slice(0, 6)}`;
+    demoPreview
+      ? "IronFlyer Studio"
+      : projectQuery.data?.project?.name ??
+        execution?.promptSummary ??
+        `Project ${projectID.slice(0, 6)}`;
   const initials = userInitialsFrom(user?.name ?? null, user?.email ?? null);
   const bucket = statusBucket(execution?.status);
   const workspaceID = execution?.workspaceID ?? execution?.id ?? "";
@@ -430,7 +414,7 @@ function ProjectStudioInner() {
             }}
           />
         }
-        codeSlot={<NoExecutionPlaceholder />}
+        codeSlot={<IDEFramePane projectID={projectID} />}
         filesSlot={<NoExecutionPlaceholder />}
         dashboardSlot={<NoExecutionPlaceholder />}
         chatSlot={
@@ -490,10 +474,8 @@ function ProjectStudioInner() {
         </MobilePreviewFrame>
       }
       codeSlot={
-        <CodePane
+        <IDEFramePane
           projectID={projectID}
-          executionID={execution.id}
-          executionStatus={execution.status}
         />
       }
       filesSlot={

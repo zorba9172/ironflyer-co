@@ -1,0 +1,68 @@
+# Budget Sentinel operations — the predictive forecast panel + the
+# Insured Ship SKU. Consumed by the per-project cost cockpit (burn
+# trajectory gauge + reroute suggestions) and the Insured Ship modal.
+# Maps onto sentinel.graphql in the orchestrator schema.
+
+query SentinelForecast($projectId: ID!) {
+  sentinelForecast(projectId: $projectId) {
+    projectId
+    spentUSD
+    hardCapUSD
+    burnRatePerHourUSD
+    extrapolatedTotalUSD
+    etaCompletionAt
+    capBreachAt
+    level
+    remainingHeadroomUSD
+    projectionConfidence
+    computedAt
+  }
+}
+
+query SentinelReroutes($projectId: ID!) {
+  sentinelReroutes(projectId: $projectId) {
+    kind
+    label
+    description
+    savingsUSD
+    savingsConfidence
+    reversible
+  }
+}
+
+query InsuranceQuote($projectId: ID!, $capUSD: Float!, $hours: Int!) {
+  insuranceQuote(projectId: $projectId, capUSD: $capUSD, hours: $hours) {
+    capUSD
+    premiumUSD
+    coverageWindowHours
+    sampleCount
+  }
+}
+
+query ActiveInsurance($projectId: ID!) {
+  activeInsurance(projectId: $projectId) {
+    id
+    projectId
+    hardCapUSD
+    premiumUSD
+    coverageWindowHours
+    status
+    createdAt
+    updatedAt
+    expiresAt
+  }
+}
+
+mutation PurchaseInsurance($projectId: ID!, $capUSD: Float!, $hours: Int!, $requestID: String) {
+  purchaseInsurance(projectId: $projectId, capUSD: $capUSD, hours: $hours, requestID: $requestID) {
+    id
+    projectId
+    hardCapUSD
+    premiumUSD
+    coverageWindowHours
+    status
+    createdAt
+    updatedAt
+    expiresAt
+  }
+}

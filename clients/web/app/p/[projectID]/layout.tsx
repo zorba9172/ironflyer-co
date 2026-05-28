@@ -10,7 +10,9 @@
 //   2. Locks body scroll while the studio is mounted so the iframe
 //      and chat scrollers own their own overflow.
 //
-// The surrounding RequireAuth guard is delegated to the page itself.
+// Auth is no longer enforced at this layout level, so demo and review
+// workspaces can be inspected freely while authenticated sessions still
+// sync real project data.
 
 import { Box } from "@mui/material";
 import { useEffect, type ReactNode } from "react";

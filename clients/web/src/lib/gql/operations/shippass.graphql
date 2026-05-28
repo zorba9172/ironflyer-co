@@ -1,0 +1,96 @@
+# Ship Pass operations — the outcome-based SKU. Consumed by the
+# per-project "Ship Pass" panel (tier picker + live gate progress) and
+# the billing dashboard pass history. Maps onto shippass.graphql in the
+# orchestrator schema.
+
+query ShipPassTiers {
+  shipPassTiers {
+    key
+    label
+    priceUSD
+    requiredGates
+    deadlineDays
+    description
+  }
+}
+
+query ShipPassQuote($projectId: ID!, $tierKey: String!) {
+  shipPassQuote(projectId: $projectId, tierKey: $tierKey) {
+    tierKey
+    priceUSD
+    requiredGates
+    deadlineDays
+    walletShortfallUSD
+  }
+}
+
+query ActiveShipPass($projectId: ID!) {
+  activeShipPass(projectId: $projectId) {
+    id
+    projectId
+    tierKey
+    priceUSD
+    status
+    deadlineAt
+    createdAt
+    updatedAt
+    settledAt
+  }
+}
+
+query ShipPasses($limit: Int) {
+  shipPasses(limit: $limit) {
+    id
+    projectId
+    tierKey
+    priceUSD
+    status
+    deadlineAt
+    createdAt
+    updatedAt
+    settledAt
+  }
+}
+
+query ShipPassProgress($passId: ID!) {
+  shipPassProgress(passId: $passId) {
+    id
+    gate
+    passed
+    reason
+    observedAt
+  }
+}
+
+query ShipPassStats {
+  shipPassStats {
+    totalPurchased
+    totalShipped
+    totalRefunded
+    totalCancelled
+    revenueUSD
+  }
+}
+
+mutation PurchaseShipPass($projectId: ID!, $tierKey: String!, $requestID: String) {
+  purchaseShipPass(projectId: $projectId, tierKey: $tierKey, requestID: $requestID) {
+    id
+    projectId
+    tierKey
+    priceUSD
+    status
+    deadlineAt
+    createdAt
+    updatedAt
+    settledAt
+  }
+}
+
+mutation CancelShipPass($passId: ID!) {
+  cancelShipPass(passId: $passId) {
+    id
+    status
+    settledAt
+    updatedAt
+  }
+}

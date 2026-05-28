@@ -388,6 +388,27 @@ func (s *MemoryService) RecordPayout(_ context.Context, p Payout) (Payout, error
 	return p, nil
 }
 
+// UpdatePayoutStatus flips a payout row's status and stamps the
+// transfer ref + completed_at on success. Idempotent on (id, ref).
+func (s *MemoryService) UpdatePayoutStatus(_ context.Context, payoutID, status, externalRef string) (Payout, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	p, ok := s.payouts[payoutID]
+	if !ok {
+		return Payout{}, ErrNotFound
+	}
+	p.Status = status
+	if externalRef != "" {
+		p.ExternalRef = externalRef
+	}
+	if status == "paid" || status == "failed" {
+		now := time.Now().UTC()
+		p.CompletedAt = &now
+	}
+	s.payouts[payoutID] = p
+	return p, nil
+}
+
 // --- idempotency -------------------------------------------------------
 
 // RecallOp returns the prior outcome of an opKey-keyed mutation if one

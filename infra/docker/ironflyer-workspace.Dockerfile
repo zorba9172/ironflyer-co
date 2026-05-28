@@ -2,12 +2,12 @@
 #
 # Ironflyer workspace image — the per-user sandbox that the runtime's
 # Docker driver spawns when `IRONFLYER_RUNTIME_DRIVER=docker`. Replaces
-# the legacy `ironflyer-code` image (removed 2026-05-28 along with the
-# in-Studio openvscode iframe).
+# the legacy `ironflyer-code` scanner/runtime image. The in-Studio
+# VS Code experience is provided by infra/docker/ironflyer-openvscode.Dockerfile.
 #
 # Goals:
-#   • Clean, slim base (no VS Code chrome — code editing happens in
-#     Monaco in Studio or in the standalone VS Code Extension).
+#   • Clean, slim base. Code editing happens in VS Code surfaces, while
+#     this image provides the runtime workspace and scanner toolchain.
 #   • All AppSec scanners that core/orchestrator/internal/operations/appsec/
 #     expects to find in PATH:
 #       - semgrep        (Python; SAST per OWASP Top 10)

@@ -109,6 +109,7 @@ CREATE TABLE IF NOT EXISTS guild_payouts (
   finisher_cut_usd  NUMERIC(18,6) NOT NULL CHECK (finisher_cut_usd >= 0),
   platform_cut_usd  NUMERIC(18,6) NOT NULL CHECK (platform_cut_usd >= 0),
   status            TEXT          NOT NULL CHECK (status IN ('pending','paid','failed')),
+  external_ref      TEXT,
   created_at        TIMESTAMPTZ   NOT NULL DEFAULT now(),
   completed_at      TIMESTAMPTZ
 );

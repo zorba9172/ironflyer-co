@@ -702,7 +702,7 @@ export default async function ProductPage() {
       <MarketingSection
         eyebrow="visualization-first"
         title="The AI's state is the product. We show it."
-        subhead="Every cockpit, studio, execution, profit, and wallet surface lands on a visual mirror of orchestrator state first. Monaco and the cloud IDE are one click away, never the default."
+        subhead="Every cockpit, studio, execution, profit, and wallet surface lands on a visual mirror of orchestrator state first. VS Code is one click away, never the default."
       >
         <Box
           sx={{

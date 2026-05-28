@@ -44,6 +44,12 @@ type Service interface {
 	// --- installs / payouts ----------------------------------------
 	RecordInstall(ctx context.Context, i Install) (Install, error)
 	RecordPayout(ctx context.Context, p Payout) (Payout, error)
+	// UpdatePayoutStatus flips a payout row's status (pending → paid |
+	// failed) and stamps completed_at + the external transfer ref
+	// (Stripe tr_*) on success. Returns ErrNotFound when the id is
+	// unknown. Idempotent: re-marking an already-paid row with the
+	// same ref is a no-op.
+	UpdatePayoutStatus(ctx context.Context, payoutID, status, externalRef string) (Payout, error)
 
 	// --- idempotency ----------------------------------------------
 	RecallOp(ctx context.Context, opKey string) (OpOutcome, bool, error)

@@ -186,7 +186,7 @@ is a regression of the visual-first constitutional rule.
 
 Drill-down: click the gauge → expanded panel surfaces the
 per-factor sparkline (5-minute buckets) + the top three contributing
-events. Code mode (Monaco / raw GraphQL) is one click further, never
+events. Code mode (VS Code / raw GraphQL) is one click further, never
 the landing pane.
 
 ## GraphQL surface
