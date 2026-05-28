@@ -6,4 +6,6 @@ export { Carousel } from './Carousel';
 export { Lightbox } from './Lightbox';
 export { FlowCanvas, type FlowNode, type FlowEdge, type NodeMouseHandler } from './FlowCanvas';
 export { Scene3D } from './Scene3D';
+export { Chart, type EChartsOption } from './Chart';
+export { CodeEditor } from './CodeEditor';
 export { useMounted } from './useMounted';

@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { Avatar, Box, IconButton, InputBase, Stack, Typography } from '@mui/material';
-import { useChatStream } from '@ironflyer/data';
-import { useStudio } from '../store';
+import { useChatStream, useAuth } from '@ironflyer/data';
+import { useStudio, buildFocusContext } from '../store';
+import { Markdown } from './Markdown';
+import { useLiveProjectId } from '../hooks/useLiveProjectId';
 
 interface Msg { id: string; from: 'user' | 'agent'; text: string; steps?: string[] }
 
@@ -10,9 +12,45 @@ function offlineReply(prompt: string): string {
   return `“${q}” — that's exactly what the finisher is for. I'm in offline preview right now, so I'm not wired to the orchestrator. Bring it up locally and set VITE_GRAPHQL_ENDPOINT, and I'll do it for real: read the code, propose reviewable patches, and close the gates. Until then the Map, Security, and Dashboard show sample data.`;
 }
 
+function providerErrorMessage(raw: string): string {
+  const lower = raw.toLowerCase();
+  if (
+    lower.includes('api_key_invalid') ||
+    lower.includes('api key expired') ||
+    lower.includes('please renew the api key')
+  ) {
+    return 'The AI provider key has expired. The studio is still open; ask an operator to renew the Gemini API key, then retry this message.';
+  }
+  if (lower.includes('invalid api key') || lower.includes('api key')) {
+    return 'The AI provider key is not valid right now. The studio is still open; ask an operator to check the provider credentials, then retry.';
+  }
+  if (lower.includes('quota') || lower.includes('rate limit') || lower.includes('resource_exhausted')) {
+    return 'The AI provider is temporarily unavailable because of quota or rate limits. Wait a moment and retry.';
+  }
+  return '';
+}
+
+function normalizeChatError(error: unknown): string {
+  const raw = error instanceof Error ? error.message : String(error || 'Something went wrong.');
+  const provider = providerErrorMessage(raw);
+  if (provider) return provider;
+  if (/unauth/i.test(raw)) return 'Your session expired. Please sign in again to continue.';
+  if (/chat stream failed:\s*4\d\d/i.test(raw)) return 'The orchestrator rejected this chat request. Please retry, or refresh the studio if it keeps happening.';
+  if (/chat stream failed:\s*5\d\d/i.test(raw)) return 'The orchestrator had a temporary problem. Please retry in a moment.';
+  if (raw.trim().startsWith('{') || raw.length > 240) {
+    return 'The orchestrator returned an unreadable provider error. Please retry, or ask an operator to check the provider configuration.';
+  }
+  return raw;
+}
+
 export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
-  const projectId = useStudio((s) => s.current.id);
+  const mockProjectId = useStudio((s) => s.current.id);
+  const constitution = useStudio((s) => s.constitution);
+  const attachments = useStudio((s) => s.attachments);
   const { isLive, send: streamSend } = useChatStream();
+  const { signOut } = useAuth();
+  const liveProjectId = useLiveProjectId();
+  const contextSentRef = useRef(false);
   const [messages, setMessages] = useState<Msg[]>(() =>
     initialPrompt ? [{ id: 'p0', from: 'user', text: initialPrompt }] : [],
   );
@@ -21,18 +59,36 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const startedRef = useRef(false);
 
+  // When connected, chat against a real project (the first one) — not the mock.
+  const targetProjectId = liveProjectId ?? mockProjectId;
+
   // Stream a reply from the orchestrator when connected; honest offline note otherwise.
   const respond = async (prompt: string) => {
     setThinking(true);
     if (isLive) {
       const id = `a${Date.now()}`;
-      setMessages((m) => [...m, { id, from: 'agent', text: '' }]);
+      setMessages((m) => [...m, { id, from: 'agent', text: '', steps: [] }]);
+      const patch = (fn: (x: Msg) => Msg) => setMessages((m) => m.map((x) => (x.id === id ? fn(x) : x)));
+      // Ground the agent in the constitution + uploaded research on the first turn.
+      let serverPrompt = prompt;
+      if (!contextSentRef.current) {
+        const ctx = buildFocusContext(constitution, attachments);
+        if (ctx) {
+          serverPrompt = `${ctx}\n\n---\n\n# Request\n${prompt}`;
+          contextSentRef.current = true;
+        }
+      }
       try {
-        await streamSend(projectId, prompt, (delta) =>
-          setMessages((m) => m.map((x) => (x.id === id ? { ...x, text: x.text + delta } : x))),
-        );
-      } catch {
-        setMessages((m) => m.map((x) => (x.id === id && !x.text ? { ...x, text: 'Lost the connection to the orchestrator. Try again.' } : x)));
+        await streamSend(targetProjectId, serverPrompt, (ev) => {
+          if (ev.type === 'text') patch((x) => ({ ...x, text: x.text + ev.text }));
+          else if (ev.type === 'tool') patch((x) => ({ ...x, steps: [...(x.steps ?? []), ev.name] }));
+          else if (ev.type === 'error') patch((x) => ({ ...x, text: x.text || `⚠ ${normalizeChatError(ev.message)}` }));
+        });
+      } catch (e) {
+        const raw = e instanceof Error ? e.message : String(e || '');
+        const msg = normalizeChatError(e);
+        patch((x) => ({ ...x, text: x.text || `⚠ ${msg}` }));
+        if (/unauth/i.test(raw)) void signOut();
       } finally {
         setThinking(false);
       }
@@ -45,13 +101,15 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
   };
 
   // Respond to the prompt that started the session — once (guards StrictMode).
+  // When online, wait until the real project id resolves so the execution is
+  // created against a real project, not the mock id.
   useEffect(() => {
-    if (initialPrompt && !startedRef.current) {
-      startedRef.current = true;
-      void respond(initialPrompt);
-    }
+    if (!initialPrompt || startedRef.current) return;
+    if (isLive && liveProjectId === null) return;
+    startedRef.current = true;
+    void respond(initialPrompt);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialPrompt]);
+  }, [initialPrompt, isLive, liveProjectId]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
@@ -79,19 +137,19 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
             ) : (
               <Stack key={m.id} direction="row" spacing={1.25}>
                 <Avatar sx={(t) => ({ width: 26, height: 26, backgroundImage: t.brand.gradient.signature })}> </Avatar>
-                <Box sx={{ minWidth: 0 }}>
+                <Box sx={{ minWidth: 0, flex: 1 }}>
                   <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.7rem', color: 'text.disabled', mb: 0.5 })}>Orchestrator</Typography>
-                  <Typography sx={{ fontSize: '0.9rem', lineHeight: 1.55 }}>{m.text}</Typography>
-                  {m.steps && (
-                    <Stack spacing={0.5} sx={{ mt: 1.25 }}>
-                      {m.steps.map((s) => (
-                        <Stack key={s} direction="row" spacing={1} alignItems="center">
-                          <Box component="span" sx={{ color: 'success.main', fontSize: '0.8rem' }}>✓</Box>
-                          <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.78rem', color: 'text.secondary' })}>{s}</Typography>
+                  {m.steps && m.steps.length > 0 && (
+                    <Stack spacing={0.5} sx={{ mb: 1, p: 1, borderRadius: 2, bgcolor: 'action.hover' }}>
+                      {m.steps.map((s, i) => (
+                        <Stack key={`${s}-${i}`} direction="row" spacing={1} alignItems="center">
+                          <Box component="span" sx={{ color: 'secondary.main', fontSize: '0.8rem' }}>→</Box>
+                          <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.74rem', color: 'text.secondary' })}>{s}</Typography>
                         </Stack>
                       ))}
                     </Stack>
                   )}
+                  {m.text ? <Markdown>{m.text}</Markdown> : null}
                 </Box>
               </Stack>
             ),

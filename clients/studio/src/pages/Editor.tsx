@@ -8,6 +8,13 @@ import { DashboardPane } from '../components/DashboardPane';
 import { GateMap } from '../components/GateMap';
 import { SecurityPane } from '../components/SecurityPane';
 import { GateInspector } from '../components/GateInspector';
+import { IntelligencePane } from './IntelligencePane';
+import { GoalsPane } from './GoalsPane';
+import { LogsPane } from './LogsPane';
+import { UsagePane } from './UsagePane';
+import { CodePane } from './CodePane';
+import { PerformancePane } from './PerformancePane';
+import { QualityPane } from './QualityPane';
 import { useStudio } from '../store';
 
 export function Editor() {
@@ -57,7 +64,14 @@ export function Editor() {
             {tab === 'preview' && <PreviewPane />}
             {tab === 'map' && <GateMap project={project} />}
             {tab === 'security' && <SecurityPane security={project.security} />}
+            {tab === 'code' && <CodePane />}
             {tab === 'dashboard' && <DashboardPane projectId={project.id} fallback={project} />}
+            {tab === 'intelligence' && <IntelligencePane fallback={project} />}
+            {tab === 'usage' && <UsagePane fallback={project} />}
+            {tab === 'performance' && <PerformancePane />}
+            {tab === 'quality' && <QualityPane />}
+            {tab === 'logs' && <LogsPane fallback={project} />}
+            {tab === 'goals' && <GoalsPane />}
           </motion.div>
         </AnimatePresence>
       </Box>

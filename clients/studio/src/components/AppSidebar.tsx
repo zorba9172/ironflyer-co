@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useThemeMode } from '@ironflyer/ui-web';
 import { useAuth } from '@ironflyer/data';
 import { LogoMark } from './LogoMark';
+import { AccountMenu } from './AccountMenu';
 import { useStudio } from '../store';
 import { mockProject } from '../studioData';
 import type { ReactNode } from 'react';
@@ -47,7 +48,7 @@ export function AppSidebar({ onNewProject }: { onNewProject?: () => void }) {
   const { mode, toggle } = useThemeMode();
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const { user, online, signOut } = useAuth();
+  const { user, online } = useAuth();
   const openProject = useStudio((s) => s.openProject);
   const go = (to: string) => navigate(to);
   const openRecent = () => { openProject(mockProject); navigate('/build'); };
@@ -98,18 +99,13 @@ export function AppSidebar({ onNewProject }: { onNewProject?: () => void }) {
       </Box>
 
       <Stack direction="row" alignItems="center" spacing={1.25} sx={{ px: 1 }}>
-        <Avatar sx={{ width: 28, height: 28, fontSize: 13, bgcolor: 'action.selected', color: 'text.primary' }}>{(user?.email ?? 'M')[0]?.toUpperCase()}</Avatar>
+        <AccountMenu size={28} />
         <Box sx={{ minWidth: 0, flex: 1 }}>
           <Typography sx={{ fontSize: '0.85rem', fontWeight: 600 }} noWrap>{user?.email ?? 'Guest'}</Typography>
           <Typography sx={(t) => ({ fontSize: '0.72rem', color: online ? (user ? 'success.main' : 'warning.main') : 'text.disabled' })} noWrap>
             {online ? (user ? `${user.plan ?? 'free'} · connected` : 'connected') : 'offline preview'}
           </Typography>
         </Box>
-        {user && (
-          <IconButton size="small" aria-label="Sign out" onClick={() => void signOut()} sx={{ color: 'text.disabled' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" /></svg>
-          </IconButton>
-        )}
       </Stack>
     </Box>
   );

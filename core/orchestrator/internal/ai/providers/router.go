@@ -107,12 +107,12 @@ type ToolSpec struct {
 // Delta is one streamed update.
 type Delta struct {
 	Type     DeltaType
-	Text     string         // for DeltaText / DeltaThinking
-	ToolUse  *ToolUseDelta  // for DeltaToolUse
+	Text     string        // for DeltaText / DeltaThinking
+	ToolUse  *ToolUseDelta // for DeltaToolUse
 	Provider string
 	Model    string
-	Usage    *Usage         // for DeltaDone
-	Err      error          // for DeltaError
+	Usage    *Usage // for DeltaDone
+	Err      error  // for DeltaError
 }
 
 type DeltaType string
@@ -486,10 +486,10 @@ func (r *Router) RaceFirst(ctx context.Context, req Request, n int) (<-chan Delt
 	}
 
 	type firstFrame struct {
-		delta Delta
-		ch    <-chan Delta
+		delta  Delta
+		ch     <-chan Delta
 		cancel func()
-		idx   int
+		idx    int
 	}
 	firstCh := make(chan firstFrame, n)
 	cancellers := make([]func(), 0, n)
@@ -515,9 +515,17 @@ func (r *Router) RaceFirst(ctx context.Context, req Request, n int) (<-chan Delt
 				cancel()
 				return
 			}
-			if d.Type == DeltaError {
-				cancel()
-				return
+			for !isCommitDelta(d) {
+				if d.Type == DeltaError {
+					cancel()
+					return
+				}
+				next, ok := <-ch
+				if !ok {
+					cancel()
+					return
+				}
+				d = next
 			}
 			firstCh <- firstFrame{delta: d, ch: ch, cancel: cancel, idx: i}
 		}()
@@ -572,6 +580,9 @@ func runFallbackChain(ctx context.Context, out chan<- Delta, chain []Provider, r
 				lastErr = d.Err
 				break
 			}
+			if !committed && !isCommitDelta(d) {
+				continue
+			}
 			committed = true
 			out <- d
 		}
@@ -611,6 +622,15 @@ func (r *Router) Complete(ctx context.Context, req Request) (Response, error) {
 	}
 	resp.Text, resp.Thinking = text.String(), thinking.String()
 	return resp, nil
+}
+
+func isCommitDelta(d Delta) bool {
+	switch d.Type {
+	case DeltaText, DeltaThinking, DeltaToolUse, DeltaDone:
+		return true
+	default:
+		return false
+	}
 }
 
 func score(have, want []Capability) int {

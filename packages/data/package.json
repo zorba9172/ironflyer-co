@@ -11,6 +11,7 @@
     "react": "^18 || ^19"
   },
   "dependencies": {
-    "@ironflyer/core": "workspace:*"
+    "@ironflyer/core": "workspace:*",
+    "graphql-ws": "^6.0.0"
   }
 }

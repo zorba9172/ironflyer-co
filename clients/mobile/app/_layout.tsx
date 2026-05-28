@@ -16,7 +16,12 @@ export default function RootLayout() {
           contentStyle: { backgroundColor: theme.color.bg },
           headerTitleStyle: { fontWeight: '700' },
         }}
-      />
+      >
+        {/* The tab navigator owns its own header per screen. */}
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        {/* Project detail is pushed on top of the tabs. */}
+        <Stack.Screen name="project/[id]" options={{ title: 'Project' }} />
+      </Stack>
     </>
   );
 }

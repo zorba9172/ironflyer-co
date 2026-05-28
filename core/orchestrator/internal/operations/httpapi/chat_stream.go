@@ -30,9 +30,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"ironflyer/core/orchestrator/internal/customer/auth"
-	"ironflyer/core/orchestrator/internal/business/profitguardctx"
 	"ironflyer/core/orchestrator/internal/ai/providers"
+	"ironflyer/core/orchestrator/internal/business/profitguardctx"
+	"ironflyer/core/orchestrator/internal/customer/auth"
 	"ironflyer/core/orchestrator/internal/operations/sentryext"
 )
 
@@ -171,7 +171,7 @@ func (a *API) chatStream(w http.ResponseWriter, r *http.Request) {
 		req.PreferredProvider = m
 	}
 
-	in, err := a.d.Guard.CompleteStream(streamCtx, req)
+	in, err := a.d.Guard.CompleteStreamWithFailover(streamCtx, req)
 	if err != nil {
 		writeSSE(w, flusher, "error", map[string]any{
 			"code":    classifyErrorCode(err),

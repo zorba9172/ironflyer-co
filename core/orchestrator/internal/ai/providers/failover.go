@@ -258,6 +258,9 @@ func (r *Router) runFailoverChain(ctx context.Context, out chan<- Delta, chain [
 					streamErr = d.Err
 					return d.Err
 				}
+				if !committed && !isCommitDelta(d) {
+					continue
+				}
 				committed = true
 				select {
 				case out <- d:

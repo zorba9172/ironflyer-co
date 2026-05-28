@@ -1,5 +1,6 @@
 import { Box, Button, Card, Container, Stack, Typography } from '@mui/material';
 import { Head } from 'vite-react-ssg';
+import { Reveal } from '@ironflyer/ui-web/motion';
 import { Eyebrow, GradientText } from '../components/text';
 
 const panels = [
@@ -32,6 +33,7 @@ export function Studio() {
       </Container>
 
       <Container maxWidth="lg" sx={{ py: 8 }}>
+        <Reveal>
         <Card sx={{ overflow: 'hidden', boxShadow: (t) => t.brand.shadow.lg }}>
           <Stack direction="row" spacing={1} sx={{ px: 2.25, py: 1.75, borderBottom: 1, borderColor: 'divider' }}>
             {[0, 1, 2].map((i) => <Box key={i} sx={{ width: 11, height: 11, borderRadius: 99, bgcolor: 'divider' }} />)}
@@ -41,9 +43,11 @@ export function Studio() {
             <Box sx={(t) => ({ p: 3.5, borderLeft: { sm: 1 }, borderColor: { sm: 'divider' }, fontFamily: t.brand.font.mono, color: 'text.disabled' })}>agent</Box>
           </Box>
         </Card>
+        </Reveal>
       </Container>
 
       <Container maxWidth="lg" sx={{ py: 8 }}>
+        <Reveal>
         <Box sx={{ maxWidth: '62ch', mb: 6 }}>
           <Eyebrow>Inside</Eyebrow>
           <Typography variant="h2" sx={{ fontSize: { xs: '2rem', md: '2.75rem' }, mt: 1.75 }}>Four surfaces, one job: finish the product.</Typography>
@@ -56,6 +60,7 @@ export function Studio() {
             </Card>
           ))}
         </Box>
+        </Reveal>
       </Container>
     </>
   );

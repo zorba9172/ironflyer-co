@@ -24,6 +24,7 @@
       "@ironflyer/data": ["packages/data/src/index.ts"],
       "@ironflyer/ui-web": ["packages/ui-web/src/index.ts"],
       "@ironflyer/ui-web/fx": ["packages/ui-web/src/fx/index.ts"],
+      "@ironflyer/ui-web/data-grid": ["packages/ui-web/src/data-grid/index.ts"],
       "@ironflyer/ui-web/motion": ["packages/ui-web/src/fx/motion.tsx"],
       "@ironflyer/ui-native": ["packages/ui-native/src/index.ts"],
       "@ironflyer/assets": ["packages/assets/src/index.ts"],

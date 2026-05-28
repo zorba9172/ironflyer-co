@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { useRequest } from './provider';
-import { ME, SIGN_IN, SIGN_OUT } from './operations';
+import { ME, SIGN_IN, SIGN_UP, SIGN_OUT } from './operations';
 
 const TOKEN_KEY = 'if-token';
 
@@ -18,6 +18,7 @@ interface AuthContextValue {
   ready: boolean;
   user: AuthUser | null;
   signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, name?: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -56,6 +57,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(d.signIn.user);
   };
 
+  const signUp = async (email: string, password: string, name?: string) => {
+    if (!request) throw new Error('No orchestrator endpoint configured.');
+    const d = await request<{ signUp: { token: string; user: AuthUser } }>('SignUp', SIGN_UP, { input: { email, password, name } });
+    localStorage.setItem(TOKEN_KEY, d.signUp.token);
+    setUser(d.signUp.user);
+  };
+
   const signOut = async () => {
     try {
       if (request) await request('SignOut', SIGN_OUT);
@@ -66,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
-  return <AuthContext.Provider value={{ online: !!request, ready, user, signIn, signOut }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ online: !!request, ready, user, signIn, signUp, signOut }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth(): AuthContextValue {

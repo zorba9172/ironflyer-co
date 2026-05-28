@@ -1,17 +1,47 @@
-import { useDataConfig } from './provider';
+import { useRef } from 'react';
+import { useDataConfig, useRequest } from './provider';
+import { CREATE_PAID_EXECUTION } from './operations';
 
-// Streams assistant deltas from the orchestrator. Per the core's API contract
-// this is REST + Server-Sent Events (POST /executions/{id}/chat/stream), not
-// GraphQL. Returns isLive=false when no endpoint is configured.
+// Discriminated stream events the orchestrator emits over SSE.
+export type ChatStreamEvent =
+  | { type: 'text'; text: string }
+  | { type: 'thinking'; text: string }
+  | { type: 'tool'; id: string; name: string; args: unknown }
+  | { type: 'finish'; costUSD?: number; model?: string }
+  | { type: 'error'; message: string };
+
+// Real chat against the orchestrator:
+//   1. createPaidExecution(projectID, budgetUSD) → execution id (reused per project)
+//   2. POST /executions/{execId}/chat/stream → SSE `event: delta data: {"text":...}`
+// Returns isLive=false when no endpoint is configured.
 export function useChatStream() {
   const cfg = useDataConfig();
+  const request = useRequest();
   const isLive = !!cfg.endpoint;
+  const execByProject = useRef<Record<string, string>>({});
 
-  async function send(projectId: string, message: string, onDelta: (text: string) => void): Promise<void> {
-    if (!cfg.endpoint) throw new Error('offline: no orchestrator endpoint configured');
-    const base = cfg.endpoint.replace(/\/graphql\/?$/, '');
+  const EXEC_BUDGET_USD = 50;
+
+  async function createExecution(projectId: string): Promise<string> {
+    const d = await request!<{ createPaidExecution: { id: string } }>('CreatePaidExecution', CREATE_PAID_EXECUTION, {
+      input: { projectID: projectId, budgetUSD: EXEC_BUDGET_USD, promptSummary: 'studio chat' },
+    });
+    const id = d.createPaidExecution.id;
+    execByProject.current[projectId] = id;
+    return id;
+  }
+
+  function ensureExecution(projectId: string): Promise<string> {
+    const cached = execByProject.current[projectId];
+    return cached ? Promise.resolve(cached) : createExecution(projectId);
+  }
+
+  // One streaming pass. Returns whether a budget pause hit and whether any
+  // assistant text was emitted (so the caller can decide to retry cleanly).
+  async function runStream(execId: string, message: string, onEvent: (ev: ChatStreamEvent) => void): Promise<{ budgetHit: boolean; textEmitted: boolean }> {
+    const base = cfg.endpoint!.replace(/\/graphql\/?$/, '');
     const token = cfg.getToken?.();
-    const res = await fetch(`${base}/executions/${encodeURIComponent(projectId)}/chat/stream`, {
+    const res = await fetch(`${base}/executions/${encodeURIComponent(execId)}/chat/stream`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', accept: 'text/event-stream', ...(token ? { authorization: `Bearer ${token}` } : {}) },
       body: JSON.stringify({ message }),
@@ -21,6 +51,7 @@ export function useChatStream() {
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buf = '';
+    let textEmitted = false;
     for (;;) {
       const { value, done } = await reader.read();
       if (done) break;
@@ -28,18 +59,55 @@ export function useChatStream() {
       const frames = buf.split('\n\n');
       buf = frames.pop() ?? '';
       for (const frame of frames) {
-        const line = frame.split('\n').find((l) => l.startsWith('data:'));
-        if (!line) continue;
-        const payload = line.slice(5).trim();
-        if (payload === '[DONE]') return;
+        const lines = frame.split('\n');
+        const event = lines.find((l) => l.startsWith('event:'))?.slice(6).trim();
+        const dataLine = lines.find((l) => l.startsWith('data:'))?.slice(5).trim();
+        if (!dataLine) continue;
+        let json: Record<string, unknown>;
         try {
-          const json = JSON.parse(payload) as { delta?: string; text?: string };
-          const delta = json.delta ?? json.text;
-          if (delta) onDelta(delta);
+          json = JSON.parse(dataLine);
         } catch {
-          onDelta(payload);
+          continue;
+        }
+        switch (event) {
+          case 'delta':
+            if (typeof json.text === 'string') { textEmitted = true; onEvent({ type: 'text', text: json.text }); }
+            break;
+          case 'thinking':
+            if (typeof json.text === 'string') onEvent({ type: 'thinking', text: json.text });
+            break;
+          case 'tool_call':
+            onEvent({ type: 'tool', id: String(json.id ?? ''), name: String(json.name ?? 'tool'), args: json.args });
+            break;
+          case 'finish':
+            onEvent({ type: 'finish', costUSD: json.costUSD as number | undefined, model: json.model as string | undefined });
+            return { budgetHit: false, textEmitted };
+          case 'error': {
+            const msg = String(json.message ?? 'stream error');
+            if (/budget|profitguard/i.test(msg)) return { budgetHit: true, textEmitted };
+            onEvent({ type: 'error', message: msg });
+            return { budgetHit: false, textEmitted };
+          }
+          default:
+            if (typeof json.text === 'string') { textEmitted = true; onEvent({ type: 'text', text: json.text }); }
         }
       }
+    }
+    return { budgetHit: false, textEmitted };
+  }
+
+  // Streams a reply; if the execution's budget is exhausted before any text,
+  // transparently starts a fresh execution and retries once.
+  async function send(projectId: string, message: string, onEvent: (ev: ChatStreamEvent) => void): Promise<void> {
+    if (!cfg.endpoint || !request) throw new Error('offline: no orchestrator endpoint configured');
+    const first = await runStream(await ensureExecution(projectId), message, onEvent);
+    if (first.budgetHit && !first.textEmitted) {
+      delete execByProject.current[projectId];
+      const second = await runStream(await createExecution(projectId), message, onEvent);
+      if (second.budgetHit) onEvent({ type: 'error', message: 'Budget reached — top up your wallet to continue.' });
+    } else if (first.budgetHit) {
+      onEvent({ type: 'error', message: 'Budget reached mid-reply — top up to continue.' });
+      delete execByProject.current[projectId];
     }
   }
 

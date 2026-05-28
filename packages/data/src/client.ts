@@ -9,10 +9,24 @@ export interface GraphQLClientOptions {
 }
 
 export class GraphQLError extends Error {
+  readonly code?: string;
   constructor(message: string, public readonly errors: unknown) {
     super(message);
     this.name = 'GraphQLError';
+    const first = Array.isArray(errors) ? (errors[0] as { extensions?: { code?: string } }) : undefined;
+    this.code = first?.extensions?.code;
   }
+  get unauthenticated(): boolean {
+    return this.code === 'UNAUTHENTICATED';
+  }
+}
+
+function firstErrorMessage(errors: unknown, fallback: string): string {
+  if (Array.isArray(errors) && errors.length > 0) {
+    const m = (errors[0] as { message?: string }).message;
+    if (m) return m;
+  }
+  return fallback;
 }
 
 export function createGraphQLClient(opts: GraphQLClientOptions) {
@@ -36,7 +50,7 @@ export function createGraphQLClient(opts: GraphQLClientOptions) {
       body: JSON.stringify(body),
     });
     const json = (await res.json()) as { data?: T; errors?: unknown };
-    if (json.errors) throw new GraphQLError(`GraphQL request ${operationName} failed`, json.errors);
+    if (json.errors) throw new GraphQLError(firstErrorMessage(json.errors, `GraphQL request ${operationName} failed`), json.errors);
     return json.data as T;
   };
 }

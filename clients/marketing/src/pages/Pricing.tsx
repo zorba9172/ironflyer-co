@@ -1,5 +1,6 @@
 import { Box, Button, Card, Container, Stack, Typography } from '@mui/material';
 import { Head } from 'vite-react-ssg';
+import { Reveal } from '@ironflyer/ui-web/motion';
 import { Eyebrow } from '../components/text';
 
 const tiers = [
@@ -32,11 +33,12 @@ export function Pricing() {
       </Container>
 
       <Container maxWidth="lg" sx={{ py: 8 }}>
+        <Reveal>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 2.5, alignItems: 'start' }}>
           {tiers.map((t) => (
             <Card key={t.name} sx={(th) => ({ position: 'relative', p: 4, ...(t.featured ? { boxShadow: `0 0 0 1.5px ${th.palette.primary.main}`, border: 'none' } : {}) })}>
               {t.featured && (
-                <Box sx={(th) => ({ position: 'absolute', top: -11, left: 28, fontFamily: th.brand.font.mono, fontSize: '0.68rem', letterSpacing: '0.08em', textTransform: 'uppercase', px: 1.25, py: 0.6, borderRadius: 99, color: '#fff', backgroundImage: th.brand.gradient.signature })}>Most teams pick this</Box>
+                <Box sx={(th) => ({ position: 'absolute', top: -11, left: 28, fontFamily: th.brand.font.mono, fontSize: '0.68rem', letterSpacing: '0.08em', textTransform: 'uppercase', px: 1.25, py: 0.6, borderRadius: 99, color: 'primary.contrastText', backgroundImage: th.brand.gradient.signature })}>Most teams pick this</Box>
               )}
               <Typography variant="h3" sx={{ fontSize: '1.4rem' }}>{t.name}</Typography>
               <Stack direction="row" alignItems="baseline" spacing={1} sx={{ mt: 1.75, mb: 0.75 }}>
@@ -56,9 +58,11 @@ export function Pricing() {
             </Card>
           ))}
         </Box>
+        </Reveal>
       </Container>
 
       <Container maxWidth="lg" sx={{ py: 8 }}>
+        <Reveal>
         <Box sx={{ mb: 5 }}>
           <Eyebrow>Questions</Eyebrow>
           <Typography variant="h2" sx={{ fontSize: { xs: '2rem', md: '2.75rem' }, mt: 1.75 }}>The honest answers.</Typography>
@@ -71,6 +75,7 @@ export function Pricing() {
             </Card>
           ))}
         </Stack>
+        </Reveal>
       </Container>
     </>
   );

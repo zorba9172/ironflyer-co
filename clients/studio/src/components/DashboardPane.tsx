@@ -1,11 +1,12 @@
 import { Box, Card, Chip, LinearProgress, Stack, Typography } from '@mui/material';
-import { useGraphQLQuery } from '@ironflyer/data';
+import { useGraphQLQuery, operations } from '@ironflyer/data';
 import { formatUSD } from '@ironflyer/core';
-import { statusLabel, agentForGate, type Gate, type StudioProject } from '../studioData';
+import { statusLabel, agentForGate, type Gate, type GateStatus, type StudioProject } from '../studioData';
 import { statusColor } from './statusColor';
 import { AgentsRail } from './AgentsRail';
 import { ActivityFeed } from './ActivityFeed';
 import { useStudio } from '../store';
+import { useLiveProjectId } from '../hooks/useLiveProjectId';
 
 const pgLabel: Record<StudioProject['profitGuard']['verdict'], string> = {
   allow: 'ProfitGuard: allow',
@@ -13,21 +14,41 @@ const pgLabel: Record<StudioProject['profitGuard']['verdict'], string> = {
   block: 'ProfitGuard: block',
 };
 
-// Reads the live finisher snapshot from the orchestrator when a GraphQL
-// endpoint is configured; otherwise renders the passed-in project (offline).
-// NOTE: field names below must be reconciled with the orchestrator schema.
-const FINISHER_QUERY = /* GraphQL */ `
-  query FinisherSnapshot($projectId: ID!) {
-    project(id: $projectId) {
-      id name completion
-      meters { walletUsed walletBudget marginPct throughput }
-      gates { id no name status blocking level costShare
-        findings { id severity text }
-        patches { id title state lines }
-      }
-    }
+interface GateVerdict {
+  gate: string;
+  status: string;
+  notes?: string | null;
+  issues: { severity: string; message: string; path?: string | null; line?: number | null }[];
+}
+
+const titleCase = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+
+function mapStatus(s: string): GateStatus {
+  switch (s.toLowerCase()) {
+    case 'pass': case 'passed': return 'closed';
+    case 'running': return 'running';
+    case 'warn': return 'open';
+    case 'blocked': case 'fail': return 'blocked';
+    default: return 'unstarted';
   }
-`;
+}
+
+// Map a live GateVerdict to the studio Gate shape.
+function mapGate(v: GateVerdict, i: number): Gate {
+  const status = mapStatus(v.status);
+  const err = v.issues.find((x) => x.severity === 'error');
+  return {
+    id: v.gate,
+    no: String(i + 1).padStart(2, '0'),
+    name: titleCase(v.gate),
+    status,
+    blocking: status === 'closed' ? '' : err?.message ?? v.issues[0]?.message ?? (v.notes || (status === 'blocked' ? 'blocked' : 'pending')),
+    level: status === 'closed' ? 1 : status === 'running' ? 0.5 : status === 'open' ? 0.6 : status === 'blocked' ? 0.25 : 0,
+    costShare: 0,
+    findings: v.issues.map((x, j) => ({ id: `${v.gate}-${j}`, severity: x.severity === 'error' ? 'danger' : x.severity === 'warning' ? 'warning' : 'info', text: x.message })),
+    patches: [],
+  };
+}
 
 function GateCard({ g }: { g: Gate }) {
   const selectGate = useStudio((s) => s.selectGate);
@@ -74,15 +95,23 @@ function Meter({ label, value, sub }: { label: string; value: string; sub?: stri
   );
 }
 
-export function DashboardPane({ projectId, fallback }: { projectId: string; fallback: StudioProject }) {
-  const { data: p, isLive } = useGraphQLQuery<StudioProject, { project: StudioProject }>({
-    key: ['finisher', projectId],
-    operationName: 'FinisherSnapshot',
-    query: FINISHER_QUERY,
-    variables: { projectId },
-    fallbackData: fallback,
-    map: (raw) => raw.project,
+export function DashboardPane({ fallback }: { projectId: string; fallback: StudioProject }) {
+  const liveProjectId = useLiveProjectId();
+  const { data: liveGates, isLive } = useGraphQLQuery<Gate[], { gates: GateVerdict[] }>({
+    key: ['gates', liveProjectId ?? 'none'],
+    operationName: 'Gates',
+    query: operations.GATES,
+    variables: { projectId: liveProjectId },
+    fallbackData: [],
+    enabled: !!liveProjectId,
+    map: (raw) => raw.gates.map(mapGate),
   });
+
+  // Live gates when connected; otherwise the sample project. Meters/activity
+  // stay sample until the snapshot mapping lands.
+  const gates = isLive && liveGates.length > 0 ? liveGates : fallback.gates;
+  const completion = gates.length ? gates.filter((g) => !g.blocking).length / gates.length : 0;
+  const p = { ...fallback, gates, completion };
 
   const open = p.gates.filter((g) => g.blocking).length;
   return (

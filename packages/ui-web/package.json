@@ -5,24 +5,35 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./data-grid": "./src/data-grid/index.ts",
     "./fx": "./src/fx/index.ts",
     "./motion": "./src/fx/motion.tsx",
     "./fonts.css": "./src/fonts.css"
   },
-  "sideEffects": ["**/*.css"],
-  "scripts": { "typecheck": "tsc --noEmit" },
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
   "peerDependencies": {
     "@mui/material": "^6.0.0",
     "react": "^18 || ^19",
     "react-dom": "^18 || ^19"
   },
   "dependencies": {
+    "@codemirror/lang-javascript": "^6.2.2",
+    "@codemirror/lang-json": "^6.0.1",
     "@fancyapps/ui": "^6.1.14",
     "@fontsource-variable/bricolage-grotesque": "^5.1.1",
     "@fontsource-variable/inter": "^5.1.1",
     "@fontsource/geist-mono": "^5.2.5",
     "@ironflyer/design-tokens": "workspace:*",
+    "@uiw/react-codemirror": "^4.23.7",
     "@xyflow/react": "^12.10.2",
+    "ag-grid-community": "^35.3.0",
+    "ag-grid-react": "^35.3.0",
+    "echarts": "^5.5.1",
     "framer-motion": "^12.40.0",
     "sweetalert2": "^11.26.25",
     "swiper": "^12.1.4",

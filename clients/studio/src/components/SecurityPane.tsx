@@ -1,7 +1,9 @@
+import { useMemo, useState } from 'react';
 import { Box, Button, Card, Chip, Stack, Typography } from '@mui/material';
 import { useTheme, type Theme } from '@mui/material/styles';
+import { DataGrid, type DataGridCellParams, type DataGridColumn } from '@ironflyer/ui-web/data-grid';
 import { toast } from '@ironflyer/ui-web/fx';
-import { categoryLabel, severityRank, type SecurityState, type Severity } from '../studioData';
+import { categoryLabel, severityRank, type SecurityFinding, type SecurityState, type Severity } from '../studioData';
 
 function sevColor(t: Theme, s: Severity): string {
   switch (s) {
@@ -25,6 +27,73 @@ export function SecurityPane({ security }: { security: SecurityState }) {
   const t = useTheme();
   const findings = [...security.findings].sort((a, b) => severityRank[a.severity] - severityRank[b.severity]);
   const denied = security.policy.effect === 'deny';
+  const [selected, setSelected] = useState<SecurityFinding[]>([]);
+  const findingColumns = useMemo<DataGridColumn<SecurityFinding>[]>(
+    () => [
+      {
+        field: 'severity',
+        headerName: 'Severity',
+        width: 118,
+        comparator: (a, b) => severityRank[a as Severity] - severityRank[b as Severity],
+        cellRenderer: ({ data }: DataGridCellParams<SecurityFinding, Severity>) =>
+          data ? (
+            <Chip
+              size="small"
+              label={data.severity}
+              sx={{
+                height: 20,
+                fontSize: '0.62rem',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                bgcolor: `${sevColor(t, data.severity)}22`,
+                color: sevColor(t, data.severity),
+              }}
+            />
+          ) : null,
+      },
+      {
+        field: 'title',
+        headerName: 'Finding',
+        flex: 1.4,
+        minWidth: 260,
+        cellRenderer: ({ value }: DataGridCellParams<SecurityFinding, string>) => (
+          <Typography sx={{ fontSize: '0.86rem', overflow: 'hidden', textOverflow: 'ellipsis' }} noWrap>
+            {value}
+          </Typography>
+        ),
+      },
+      {
+        field: 'category',
+        headerName: 'Category',
+        width: 132,
+        valueFormatter: ({ value }) => categoryLabel[value as SecurityFinding['category']] ?? String(value ?? ''),
+      },
+      { field: 'location', headerName: 'Location', flex: 1, minWidth: 190 },
+      { field: 'scanner', headerName: 'Scanner', width: 142 },
+      {
+        colId: 'fix',
+        headerName: '',
+        width: 96,
+        sortable: false,
+        filter: false,
+        cellRenderer: ({ data }: DataGridCellParams<SecurityFinding>) =>
+          data ? (
+            <Button
+              size="small"
+              variant="outlined"
+              color="inherit"
+              onClick={(event) => {
+                event.stopPropagation();
+                toast(`${data.scanner} → drafting a fix for "${data.title}".`, 'info');
+              }}
+            >
+              Fix
+            </Button>
+          ) : null,
+      },
+    ],
+    [t],
+  );
 
   return (
     <Box sx={{ flex: 1, height: '100%', overflowY: 'auto', bgcolor: 'background.default', p: 3 }}>
@@ -82,22 +151,35 @@ export function SecurityPane({ security }: { security: SecurityState }) {
         </Box>
 
         {/* findings */}
-        <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>Findings</Typography>
-        <Stack spacing={1}>
-          {findings.length === 0 && <Typography sx={{ color: 'text.disabled' }}>No findings yet — run a scan.</Typography>}
-          {findings.map((f) => (
-            <Card key={f.id} sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Box sx={{ width: 64, flexShrink: 0 }}>
-                <Chip size="small" label={f.severity} sx={{ height: 20, fontSize: '0.62rem', fontWeight: 700, textTransform: 'uppercase', bgcolor: `${sevColor(t, f.severity)}22`, color: sevColor(t, f.severity) }} />
-              </Box>
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography sx={{ fontSize: '0.9rem' }} noWrap>{f.title}</Typography>
-                <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.72rem', color: 'text.disabled' })} noWrap>{f.location} · {categoryLabel[f.category]} · {f.scanner}</Typography>
-              </Box>
-              <Button size="small" variant="outlined" color="inherit" sx={{ flexShrink: 0 }} onClick={() => toast(`${f.scanner} → drafting a fix for "${f.title}".`, 'info')}>Fix</Button>
-            </Card>
-          ))}
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
+          <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled' })}>
+            Findings{selected.length > 0 ? ` · ${selected.length} selected` : ''}
+          </Typography>
+          <Button
+            size="small"
+            variant="contained"
+            disabled={selected.length === 0}
+            onClick={() => toast(`Dispatching agent to fix ${selected.length} finding${selected.length > 1 ? 's' : ''}.`, 'success')}
+          >
+            Fix selected{selected.length > 0 ? ` (${selected.length})` : ''}
+          </Button>
         </Stack>
+        <DataGrid
+          rows={findings}
+          columns={findingColumns}
+          getRowId={(row) => row.id}
+          density="compact"
+          emptyLabel="No findings yet — run a scan."
+          height={findings.length > 6 ? 420 : 280}
+          minHeight={240}
+          gridOptions={{
+            suppressPaginationPanel: findings.length <= 8,
+            rowSelection: { mode: 'multiRow' },
+            onSelectionChanged: (e) => setSelected(e.api.getSelectedRows()),
+          }}
+          pagination={findings.length > 8}
+          pageSize={8}
+        />
       </Box>
     </Box>
   );

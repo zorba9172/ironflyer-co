@@ -1,5 +1,6 @@
 import { Button, Container, Typography } from '@mui/material';
 import { Head } from 'vite-react-ssg';
+import { Reveal } from '@ironflyer/ui-web/motion';
 import { Eyebrow } from '../components/text';
 
 export function Manifesto() {
@@ -22,6 +23,7 @@ export function Manifesto() {
           Because the screen isn't the product. The product is the login that remembers you, the payment that clears, the database that survives a schema change, the secret that isn't sitting in the source, the deploy you can roll back at 2am. None of that demos well. All of it is the difference between a clip on social and a company.
         </Typography>
 
+        <Reveal>
         <Typography variant="h2" sx={{ fontSize: { xs: '1.6rem', md: '2.2rem' }, mt: 5.5, mb: 2 }}>So we built the other half.</Typography>
         <Typography sx={{ color: 'text.secondary', fontSize: '1.1rem', lineHeight: 1.7, mb: 2.25 }}>
           Ironflyer doesn't compete with the tool that made your prototype. It picks up where that tool quits. It reads what you have, tells you the truth about what's missing, and closes those gaps with you — one finisher gate at a time — until you're looking at something you can put a price on.
@@ -29,7 +31,9 @@ export function Manifesto() {
         <Typography sx={{ color: 'text.secondary', fontSize: '1.1rem', lineHeight: 1.7, mb: 2.25 }}>
           We made three promises to ourselves while building it. The product tells you the truth, even when the truth is "this isn't ready." The code is yours, exportable, every day. And nothing ships that we wouldn't ship ourselves.
         </Typography>
+        </Reveal>
 
+        <Reveal>
         <Typography variant="h2" sx={{ fontSize: { xs: '1.6rem', md: '2.2rem' }, mt: 5.5, mb: 2 }}>Finishing is a craft.</Typography>
         <Typography sx={{ color: 'text.secondary', fontSize: '1.1rem', lineHeight: 1.7, mb: 2.25 }}>
           Anyone can start. Starting feels like progress because the screen fills up. Finishing is quieter and harder — it's the unglamorous list nobody posts about. We think that list deserves a serious tool, built to an international standard, for people who intend to ship.
@@ -40,6 +44,7 @@ export function Manifesto() {
         </Typography>
 
         <Button variant="contained" size="large" href="https://app.ironflyer.com/start">Start building</Button>
+        </Reveal>
       </Container>
     </>
   );
