@@ -37,7 +37,26 @@ image — which is why, after a merge:
 > service named `runtime`. (An earlier draft of GAP_CLOSURE_2026-05-27.md
 > said `runtime-1 runtime-2`; that was wrong.)
 
-## Procedure
+## One-click path (GitHub Actions)
+
+If the prod SSH secrets are configured (`PROD_SSH_HOST`, `PROD_SSH_KEY`,
+optionally `PROD_SSH_USER` / `PROD_DEPLOY_DIR` / `PROD_SSH_KNOWN_HOSTS`),
+skip the manual SSH and dispatch the deploy workflow:
+
+```bash
+gh workflow run deploy-prod.yml \
+  -f version=latest \
+  -f "services=orchestrator-1 orchestrator-2 runtime web-1 web-2"
+# watch it:
+gh run watch "$(gh run list --workflow=deploy-prod.yml --limit 1 --json databaseId -q '.[0].databaseId')"
+```
+
+The workflow SSHes into the host, pins `IRONFLYER_VERSION` in
+`.env.prod`, pulls + rolls the services, and verifies `/version` is no
+longer `dev`. It is `workflow_dispatch`-only — prod deploys stay
+deliberate. Source: [`.github/workflows/deploy-prod.yml`](../../.github/workflows/deploy-prod.yml).
+
+## Manual path (SSH)
 
 ```bash
 ssh ironflyer@<AX102-IP>
