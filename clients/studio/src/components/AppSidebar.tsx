@@ -1,6 +1,7 @@
 import { Avatar, Box, Button, Divider, IconButton, Stack, Typography } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useThemeMode } from '@ironflyer/ui-web';
+import { useAuth } from '@ironflyer/data';
 import { LogoMark } from './LogoMark';
 import { useStudio } from '../store';
 import { mockProject } from '../studioData';
@@ -46,6 +47,7 @@ export function AppSidebar({ onNewProject }: { onNewProject?: () => void }) {
   const { mode, toggle } = useThemeMode();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const { user, online, signOut } = useAuth();
   const openProject = useStudio((s) => s.openProject);
   const go = (to: string) => navigate(to);
   const openRecent = () => { openProject(mockProject); navigate('/build'); };
@@ -92,15 +94,22 @@ export function AppSidebar({ onNewProject }: { onNewProject?: () => void }) {
       <Box sx={(t) => ({ p: 2, borderRadius: 3, border: 1, borderColor: 'divider', backgroundImage: t.brand.gradient.signatureSoft, mb: 1.5 })}>
         <Typography sx={{ fontWeight: 600, fontSize: '0.9rem' }}>Upgrade to Pro</Typography>
         <Typography sx={{ color: 'text.secondary', fontSize: '0.8rem', mt: 0.5 }}>Production deploys, mobile, and the spend board.</Typography>
-        <Button size="small" variant="contained" sx={{ mt: 1.5 }}>Upgrade</Button>
+        <Button size="small" variant="contained" sx={{ mt: 1.5 }} onClick={() => go('/plans')}>Upgrade</Button>
       </Box>
 
       <Stack direction="row" alignItems="center" spacing={1.25} sx={{ px: 1 }}>
-        <Avatar sx={{ width: 28, height: 28, fontSize: 13, bgcolor: 'action.selected', color: 'text.primary' }}>M</Avatar>
-        <Box sx={{ minWidth: 0 }}>
-          <Typography sx={{ fontSize: '0.85rem', fontWeight: 600 }} noWrap>Moshe</Typography>
-          <Typography sx={{ fontSize: '0.72rem', color: 'text.disabled' }} noWrap>Free plan</Typography>
+        <Avatar sx={{ width: 28, height: 28, fontSize: 13, bgcolor: 'action.selected', color: 'text.primary' }}>{(user?.email ?? 'M')[0]?.toUpperCase()}</Avatar>
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Typography sx={{ fontSize: '0.85rem', fontWeight: 600 }} noWrap>{user?.email ?? 'Guest'}</Typography>
+          <Typography sx={(t) => ({ fontSize: '0.72rem', color: online ? (user ? 'success.main' : 'warning.main') : 'text.disabled' })} noWrap>
+            {online ? (user ? `${user.plan ?? 'free'} · connected` : 'connected') : 'offline preview'}
+          </Typography>
         </Box>
+        {user && (
+          <IconButton size="small" aria-label="Sign out" onClick={() => void signOut()} sx={{ color: 'text.disabled' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" /></svg>
+          </IconButton>
+        )}
       </Stack>
     </Box>
   );

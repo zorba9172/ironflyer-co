@@ -1,3 +1,4 @@
+-- +goose Up
 -- Budget Sentinel Insured Ship policies.
 --
 -- Premium is debited from the wallet at purchase time; payout
@@ -31,3 +32,9 @@ CREATE INDEX IF NOT EXISTS ix_insurance_tenant_created
 CREATE INDEX IF NOT EXISTS ix_insurance_active_expires
     ON insurance_policies (expires_at)
     WHERE status = 'active';
+
+-- +goose Down
+DROP INDEX IF EXISTS ix_insurance_active_expires;
+DROP INDEX IF EXISTS ix_insurance_tenant_created;
+DROP INDEX IF EXISTS uq_insurance_active_per_project;
+DROP TABLE IF EXISTS insurance_policies;

@@ -6,6 +6,8 @@ import { ChatPanel } from '../components/ChatPanel';
 import { PreviewPane } from '../components/PreviewPane';
 import { DashboardPane } from '../components/DashboardPane';
 import { GateMap } from '../components/GateMap';
+import { SecurityPane } from '../components/SecurityPane';
+import { GateInspector } from '../components/GateInspector';
 import { useStudio } from '../store';
 
 export function Editor() {
@@ -54,10 +56,12 @@ export function Editor() {
           >
             {tab === 'preview' && <PreviewPane />}
             {tab === 'map' && <GateMap project={project} />}
+            {tab === 'security' && <SecurityPane security={project.security} />}
             {tab === 'dashboard' && <DashboardPane projectId={project.id} fallback={project} />}
           </motion.div>
         </AnimatePresence>
       </Box>
+      <GateInspector />
     </Box>
   );
 }

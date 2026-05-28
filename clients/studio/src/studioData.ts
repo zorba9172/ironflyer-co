@@ -52,11 +52,53 @@ export interface ProfitGuard {
   verdict: 'allow' | 'hold' | 'block';
 }
 
+// --- AppSec (mirrors core/orchestrator/internal/appsec) -----------------
+export type ScannerStatus = 'clean' | 'findings' | 'not_run';
+export type Severity = 'critical' | 'high' | 'medium' | 'low';
+export type FindingCategory = 'secret' | 'dependency' | 'code' | 'config' | 'policy';
+
+export interface SecurityScanner {
+  id: string;
+  name: string;
+  status: ScannerStatus;
+  count: number;
+  source: 'native' | 'oss';
+}
+
+export interface SecurityFinding {
+  id: string;
+  severity: Severity;
+  category: FindingCategory;
+  title: string;
+  location: string;
+  scanner: string;
+}
+
+// The PDP decision shape from the policy plane (deny by default).
+export interface PolicyDecision {
+  decisionId: string;
+  effect: 'allow' | 'deny';
+  risk: 'low' | 'medium' | 'high';
+  reason: string;
+  obligations: string[];
+}
+
+export interface SecurityState {
+  riskScore: number; // 0..100 (higher = riskier)
+  scanners: SecurityScanner[];
+  findings: SecurityFinding[];
+  policy: PolicyDecision;
+  sbom: { format: 'CycloneDX'; components: number };
+}
+
 export interface StudioProject {
   id: string;
+  /** orchestrator execution id this project maps to */
+  executionId: string;
   name: string;
   source: string;
   completion: number; // 0..1 overall
+  deploy: { status: 'none' | 'preview' | 'production' | 'failed'; url?: string };
   gates: Gate[];
   arrangement: ArrangementBlock[];
   meters: {
@@ -67,13 +109,32 @@ export interface StudioProject {
   };
   profitGuard: ProfitGuard;
   activity: ActivityEvent[];
+  security: SecurityState;
 }
+
+const SCANNER_NAMES: { id: string; name: string; source: 'native' | 'oss' }[] = [
+  { id: 'secrets', name: 'Secrets', source: 'native' },
+  { id: 'deps', name: 'Dependencies', source: 'native' },
+  { id: 'sbom', name: 'SBOM (CycloneDX)', source: 'native' },
+  { id: 'sast', name: 'SAST (Semgrep)', source: 'oss' },
+  { id: 'containers', name: 'Containers', source: 'native' },
+  { id: 'compose', name: 'Compose', source: 'native' },
+  { id: 'actions', name: 'GitHub Actions', source: 'native' },
+  { id: 'npm', name: 'npm scripts', source: 'native' },
+];
+
+export const severityRank: Record<Severity, number> = { critical: 0, high: 1, medium: 2, low: 3 };
+export const categoryLabel: Record<FindingCategory, string> = {
+  secret: 'Secret', dependency: 'Dependency', code: 'Code', config: 'Config', policy: 'Policy',
+};
 
 export const mockProject: StudioProject = {
   id: 'p_001',
+  executionId: 'exec_8f3a91',
   name: 'Northwind Checkout',
   source: 'imported from lovable.dev',
   completion: 0.62,
+  deploy: { status: 'preview', url: 'northwind.preview.ironflyer.app' },
   meters: { walletUsed: 18.4, walletBudget: 50, marginPct: 64, throughput: 3.2 },
   profitGuard: { reservedUSD: 2.4, expectedMarginPct: 64, verdict: 'allow' },
   activity: [
@@ -84,6 +145,34 @@ export const mockProject: StudioProject = {
     { id: 'e5', ts: Date.now() - 90000, kind: 'ledger', text: 'Ledger: debited $0.31 for sandbox minutes' },
     { id: 'e6', ts: Date.now() - 120000, kind: 'gate', text: 'Identity gate → closed' },
   ],
+  security: {
+    riskScore: 41,
+    sbom: { format: 'CycloneDX', components: 47 },
+    scanners: [
+      { id: 'secrets', name: 'Secrets', status: 'findings', count: 1, source: 'native' },
+      { id: 'deps', name: 'Dependencies', status: 'findings', count: 2, source: 'native' },
+      { id: 'sbom', name: 'SBOM (CycloneDX)', status: 'clean', count: 47, source: 'native' },
+      { id: 'sast', name: 'SAST (Semgrep)', status: 'findings', count: 1, source: 'oss' },
+      { id: 'containers', name: 'Containers', status: 'findings', count: 1, source: 'native' },
+      { id: 'compose', name: 'Compose', status: 'clean', count: 0, source: 'native' },
+      { id: 'actions', name: 'GitHub Actions', status: 'clean', count: 0, source: 'native' },
+      { id: 'npm', name: 'npm scripts', status: 'clean', count: 0, source: 'native' },
+    ],
+    findings: [
+      { id: 's1', severity: 'critical', category: 'secret', title: 'Stripe secret key committed in source', location: 'src/config.ts:14', scanner: 'Secrets' },
+      { id: 's2', severity: 'high', category: 'code', title: 'Unsigned webhook handler accepts arbitrary events', location: 'api/webhooks/stripe.ts:8', scanner: 'Semgrep' },
+      { id: 's3', severity: 'high', category: 'dependency', title: 'lodash 4.17.19 — prototype pollution (CVE)', location: 'package-lock.json', scanner: 'OSV' },
+      { id: 's4', severity: 'medium', category: 'dependency', title: 'axios 0.21.1 — SSRF advisory', location: 'package-lock.json', scanner: 'npm audit' },
+      { id: 's5', severity: 'medium', category: 'config', title: 'Dockerfile runs as root user', location: 'Dockerfile:1', scanner: 'Containers' },
+    ],
+    policy: {
+      decisionId: 'pdec_8f3a91',
+      effect: 'deny',
+      risk: 'high',
+      reason: 'secret_in_source_blocks_deploy',
+      obligations: ['rotate_secret', 'require_deploy_approval_id', 'audit.high_risk_allow', 'redact_model_context'],
+    },
+  },
   gates: [
     {
       id: 'identity', no: '01', name: 'Identity', status: 'closed', blocking: '', level: 1, costShare: 0.12,
@@ -144,14 +233,24 @@ export function newProjectFromPrompt(prompt: string): StudioProject {
   const url = prompt.match(URL_RE)?.[0];
   const words = prompt.replace(URL_RE, '').trim().split(/\s+/).filter(Boolean).slice(0, 4).join(' ');
   const name = words ? words.replace(/^\w/, (c) => c.toUpperCase()) : 'New project';
+  const id = `p_${Date.now().toString(36)}`;
   return {
-    id: `p_${Date.now().toString(36)}`,
+    id,
+    executionId: `exec_${Date.now().toString(36)}`,
     name: name.length > 40 ? `${name.slice(0, 40)}…` : name,
     source: url ? `importing ${new URL(url).host}` : 'from your prompt',
     completion: 0,
+    deploy: { status: 'none' },
     meters: { walletUsed: 0, walletBudget: 50, marginPct: 0, throughput: 0 },
     profitGuard: { reservedUSD: 0, expectedMarginPct: 0, verdict: 'allow' },
     activity: [{ id: 'seed', ts: Date.now(), kind: 'gate', text: 'Project created — mapping finisher gates' }],
+    security: {
+      riskScore: 0,
+      sbom: { format: 'CycloneDX', components: 0 },
+      scanners: SCANNER_NAMES.map((s) => ({ ...s, status: 'not_run', count: 0 })),
+      findings: [],
+      policy: { decisionId: 'pdec_pending', effect: 'allow', risk: 'low', reason: 'no_scan_yet', obligations: [] },
+    },
     gates: GATE_NAMES.map((g) => ({ ...g, status: 'unstarted', blocking: 'not started', level: 0, costShare: 0, findings: [], patches: [] })),
     arrangement: [],
   };
@@ -199,3 +298,23 @@ export const statusLabel: Record<GateStatus, string> = {
   blocked: 'Blocked',
   unstarted: 'Not started',
 };
+
+// Sample project list for the Projects page (offline). Replaced by the live
+// `Projects` query once the orchestrator is connected.
+export const recentProjects: { project: StudioProject; desc: string; tone: string }[] = [
+  { project: mockProject, desc: 'Checkout flow imported from Lovable. 2 gates open, deploy blocked on a secret.', tone: 'warning.main' },
+  {
+    project: {
+      ...mockProject,
+      id: 'p_math',
+      executionId: 'exec_math01',
+      name: 'MathQuest',
+      source: 'shipped',
+      completion: 1,
+      deploy: { status: 'production', url: 'mathquest.ironflyer.app' },
+      gates: mockProject.gates.map((g) => ({ ...g, status: 'closed', blocking: '', level: 1 })),
+    },
+    desc: 'Gamified math learning platform. Shipped — all gates closed.',
+    tone: 'success.main',
+  },
+];

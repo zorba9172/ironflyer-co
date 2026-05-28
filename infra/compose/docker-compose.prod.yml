@@ -188,7 +188,10 @@ services:
           cpus: "1.5"
 
   surrealdb:
-    image: surrealdb/surrealdb:latest
+    # Pinned to v2.x: the surrealdb.go v1.4.0 SDK emits v2 SurrealQL
+    # (type::thing, classic ORDER BY). v3 renamed those and the audit/seed
+    # queries fatal on it. Pin (not :latest) for reproducible, stable boots.
+    image: surrealdb/surrealdb:v2.3.7
     container_name: ironflyer-surrealdb
     <<: *default-restart
     logging: *default-logging
@@ -204,8 +207,11 @@ services:
     volumes:
       - /data/surrealdb:/data
     networks: [ironflyer-net]
+    # Distroless image (no /bin/sh) + v3 binary flag rename: the exec-form
+    # `surreal isready` probe is the only one that runs. The old CMD-SHELL
+    # probe always errored, leaving SurrealDB perpetually "unhealthy".
     healthcheck:
-      test: ["CMD-SHELL", "/surreal isready --conn http://localhost:8000 || exit 0"]
+      test: ["CMD", "/surreal", "isready"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -293,7 +299,10 @@ services:
     environment:
       CLICKHOUSE_DB: ${CLICKHOUSE_DB:-ironflyer}
       CLICKHOUSE_USER: ${CLICKHOUSE_USER:-ironflyer}
-      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:?CLICKHOUSE_PASSWORD is required}
+      # Not `:?` required — analytics is an opt-in profile, so the lean
+      # default must `config`/`up` without an analytics secret. Set a real
+      # CLICKHOUSE_PASSWORD in .env.prod when running `--profile analytics`.
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-ironflyer}
       CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
     volumes:
       - /data/clickhouse:/var/lib/clickhouse
@@ -561,11 +570,21 @@ services:
       IRONFLYER_TEMPORAL_NAMESPACE: default
       IRONFLYER_TEMPORAL_TASK_QUEUE: ironflyer-finisher
       POSTGRES_URL: postgres://${POSTGRES_USER:-ironflyer}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-ironflyer}?sslmode=disable
+      # SurrealDB is the production knowledge graph + AI memory + audit
+      # store. The orchestrator config reads SURREAL_NS/SURREAL_DB/
+      # SURREAL_USER/SURREAL_PASS (NOT *_NAMESPACE/*_DATABASE/*_PASSWORD) —
+      # the key names MUST match cfg or the dial silently falls back to the
+      # in-memory project store and the graph/memory/audit go dark.
       SURREAL_URL: ws://surrealdb:8000/rpc
       SURREAL_USER: ${SURREAL_USER:-root}
-      SURREAL_PASSWORD: ${SURREAL_PASSWORD}
-      SURREAL_NAMESPACE: ironflyer
-      SURREAL_DATABASE: prod
+      SURREAL_PASS: ${SURREAL_PASSWORD}
+      SURREAL_NS: ironflyer
+      SURREAL_DB: prod
+      # Persist the AI memory graph + audit hash-chain in SurrealDB (the
+      # "brain"), not the in-process ring buffer. Requires DB_DRIVER=hybrid
+      # (set above) so SurrealDB is dialed.
+      IRONFLYER_MEMORY_BACKEND: surreal
+      IRONFLYER_AUDIT_BACKEND: surreal
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
       # Two orchestrator replicas MUST coordinate through Redis or they
       # race on the same project (double-billing). The orchestrator reads
@@ -648,7 +667,10 @@ services:
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
-      surrealdb: { condition: service_started }
+      # SurrealDB is load-bearing (brain: graph + memory + audit), so wait
+      # for it healthy — otherwise the dial can race startup and silently
+      # fall back to the in-memory project store.
+      surrealdb: { condition: service_healthy }
       minio: { condition: service_healthy }
       temporal: { condition: service_healthy }
     healthcheck:

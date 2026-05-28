@@ -3,8 +3,9 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { ThemeModeProvider } from '@ironflyer/ui-web';
 import '@ironflyer/ui-web/fonts.css';
-import { IronflyerDataProvider } from '@ironflyer/data';
+import { IronflyerDataProvider, AuthProvider } from '@ironflyer/data';
 import { App } from './App';
+import { LoginGate } from './components/LoginGate';
 
 // Endpoint comes from env; when unset the data hooks fall back to local
 // sample data so the studio is fully usable offline.
@@ -15,9 +16,13 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <IronflyerDataProvider endpoint={endpoint} getToken={getToken}>
       <ThemeModeProvider>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
+        <AuthProvider>
+          <BrowserRouter>
+            <LoginGate>
+              <App />
+            </LoginGate>
+          </BrowserRouter>
+        </AuthProvider>
       </ThemeModeProvider>
     </IronflyerDataProvider>
   </StrictMode>,

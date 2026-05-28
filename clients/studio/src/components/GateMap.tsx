@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
 import { Box } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { FlowCanvas, toast, type FlowNode, type FlowEdge, type NodeMouseHandler } from '@ironflyer/ui-web/fx';
+import { FlowCanvas, type FlowNode, type FlowEdge, type NodeMouseHandler } from '@ironflyer/ui-web/fx';
 import { statusColor } from './statusColor';
-import { statusLabel, type StudioProject } from '../studioData';
+import { type StudioProject } from '../studioData';
+import { useStudio } from '../store';
 
 const POS: Record<string, { x: number; y: number }> = {
   identity: { x: 40, y: 170 },
@@ -27,6 +28,7 @@ const DEPS: [string, string][] = [
 // Viz-first project map: gates as nodes, dependency edges, status as color.
 export function GateMap({ project }: { project: StudioProject }) {
   const theme = useTheme();
+  const selectGate = useStudio((s) => s.selectGate);
 
   const nodes = useMemo<FlowNode[]>(
     () =>
@@ -68,10 +70,7 @@ export function GateMap({ project }: { project: StudioProject }) {
     [project, theme],
   );
 
-  const onNodeClick: NodeMouseHandler = (_e, node) => {
-    const d = node.data as { name: string; blocking: string };
-    toast(d.blocking ? `${d.name}: ${d.blocking}` : `${d.name}: closed end-to-end`, d.blocking ? 'info' : 'success');
-  };
+  const onNodeClick: NodeMouseHandler = (_e, node) => selectGate(node.id);
 
   return (
     <Box sx={{ flex: 1, height: '100%', bgcolor: 'background.default' }}>

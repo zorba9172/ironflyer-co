@@ -94,8 +94,11 @@ func bootstrapSurrealAudit(ctx context.Context, db *surrealdb.DB) error {
 // Record() call chains onto it instead of starting a new chain after a
 // process restart.
 func (s *SurrealStore) loadLastHash(ctx context.Context) error {
+	// createdAt must appear in the projection: SurrealDB v2 rejects an
+	// ORDER BY idiom that isn't selected ("Idiom missing here"). auditRow
+	// only decodes payload, so the extra column is harmless.
 	res, err := surrealdb.Query[[]auditRow](ctx, s.db,
-		"SELECT payload FROM audit_entry ORDER BY createdAt DESC LIMIT 1", nil)
+		"SELECT payload, createdAt FROM audit_entry ORDER BY createdAt DESC LIMIT 1", nil)
 	if err != nil {
 		return err
 	}
@@ -224,7 +227,7 @@ func (s *SurrealStore) Query(ctx context.Context, q Query) ([]Entry, error) {
 
 	var sqlBuf strings.Builder
 	sqlBuf.Grow(96)
-	sqlBuf.WriteString("SELECT payload FROM audit_entry")
+	sqlBuf.WriteString("SELECT payload, createdAt FROM audit_entry")
 	if len(where) > 0 {
 		sqlBuf.WriteString(" WHERE ")
 		sqlBuf.WriteString(strings.Join(where, " AND "))
@@ -257,7 +260,7 @@ func (s *SurrealStore) Query(ctx context.Context, q Query) ([]Entry, error) {
 // inconsistency or -1 if the log is intact.
 func (s *SurrealStore) Verify(ctx context.Context) (int, error) {
 	res, err := surrealdb.Query[[]auditRow](ctx, s.db,
-		"SELECT payload FROM audit_entry ORDER BY createdAt ASC", nil)
+		"SELECT payload, createdAt FROM audit_entry ORDER BY createdAt ASC", nil)
 	if err != nil {
 		return 0, fmt.Errorf("audit surreal verify: %w", err)
 	}

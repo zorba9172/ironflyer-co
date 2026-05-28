@@ -1,12 +1,11 @@
-import { useState } from 'react';
-import { Box, Button, Card, Chip, Collapse, LinearProgress, Stack, Typography } from '@mui/material';
+import { Box, Card, Chip, LinearProgress, Stack, Typography } from '@mui/material';
 import { useGraphQLQuery } from '@ironflyer/data';
-import { confirmAction, toast } from '@ironflyer/ui-web/fx';
 import { formatUSD } from '@ironflyer/core';
 import { statusLabel, agentForGate, type Gate, type StudioProject } from '../studioData';
 import { statusColor } from './statusColor';
 import { AgentsRail } from './AgentsRail';
 import { ActivityFeed } from './ActivityFeed';
+import { useStudio } from '../store';
 
 const pgLabel: Record<StudioProject['profitGuard']['verdict'], string> = {
   allow: 'ProfitGuard: allow',
@@ -31,12 +30,11 @@ const FINISHER_QUERY = /* GraphQL */ `
 `;
 
 function GateCard({ g }: { g: Gate }) {
-  const [open, setOpen] = useState(false);
-  const hasDetail = g.findings.length > 0 || g.patches.length > 0;
+  const selectGate = useStudio((s) => s.selectGate);
   return (
     <Card
-      onClick={() => hasDetail && setOpen((o) => !o)}
-      sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 1.25, cursor: hasDetail ? 'pointer' : 'default', transition: (t) => `border-color ${t.brand.motion.fast}`, '&:hover': hasDetail ? { borderColor: 'text.disabled' } : undefined }}
+      onClick={() => selectGate(g.id)}
+      sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 1.25, cursor: 'pointer', transition: (t) => `border-color ${t.brand.motion.fast}`, '&:hover': { borderColor: 'text.disabled' } }}
     >
       <Stack direction="row" alignItems="center" justifyContent="space-between">
         <Stack direction="row" alignItems="center" spacing={1.25}>
@@ -60,41 +58,8 @@ function GateCard({ g }: { g: Gate }) {
         <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.72rem', color: 'text.secondary' })}>{agentForGate(g.id)?.name ?? 'Unassigned'}</Typography>
         <Box sx={{ width: 3, height: 3, borderRadius: 99, bgcolor: 'text.disabled' }} />
         <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.72rem', color: 'text.disabled' })}>{g.findings.length}f · {g.patches.length}p</Typography>
-        {hasDetail && <Typography sx={{ ml: 'auto', fontSize: '0.72rem', color: 'primary.main' }}>{open ? 'Hide' : 'Details'}</Typography>}
+        <Typography sx={{ ml: 'auto', fontSize: '0.72rem', color: 'primary.main' }}>Open</Typography>
       </Stack>
-
-      <Collapse in={open} unmountOnExit>
-        <Stack spacing={1} sx={{ pt: 1, mt: 0.5, borderTop: 1, borderColor: 'divider' }}>
-          {g.findings.map((f) => (
-            <Stack key={f.id} direction="row" spacing={1} alignItems="flex-start">
-              <Box component="span" sx={{ color: f.severity === 'danger' ? 'error.main' : f.severity === 'warning' ? 'warning.main' : 'text.disabled', fontSize: '0.8rem', mt: '1px' }}>●</Box>
-              <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary' }}>{f.text}</Typography>
-            </Stack>
-          ))}
-          {g.patches.map((p) => (
-            <Stack key={p.id} direction="row" alignItems="center" spacing={1}>
-              <Chip size="small" label={p.state} sx={{ height: 18, fontSize: '0.62rem', bgcolor: 'action.hover' }} />
-              <Typography sx={{ fontSize: '0.82rem', flex: 1, minWidth: 0 }} noWrap>{p.title}</Typography>
-              <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.7rem', color: 'text.disabled' })}>+{p.lines}</Typography>
-              {p.state === 'proposed' && (
-                <Button
-                  size="small"
-                  variant="outlined"
-                  color="inherit"
-                  onClick={async (e) => {
-                    e.stopPropagation();
-                    const ok = await confirmAction({ title: 'Apply patch?', text: p.title, confirmText: 'Apply' });
-                    if (ok) toast('Patch applied — re-running the gate.', 'success');
-                  }}
-                  sx={{ py: 0, px: 1, minWidth: 0, fontSize: '0.7rem' }}
-                >
-                  Apply
-                </Button>
-              )}
-            </Stack>
-          ))}
-        </Stack>
-      </Collapse>
     </Card>
   );
 }

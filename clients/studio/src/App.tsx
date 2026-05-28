@@ -5,6 +5,7 @@ import { ProjectsPage } from './pages/ProjectsPage';
 import { TemplatesPage } from './pages/TemplatesPage';
 import { IntegrationsPage } from './pages/IntegrationsPage';
 import { AgentsPage } from './pages/AgentsPage';
+import { PlansPage } from './pages/PlansPage';
 import { Editor } from './pages/Editor';
 
 export function App() {
@@ -16,6 +17,7 @@ export function App() {
         <Route path="/templates" element={<TemplatesPage />} />
         <Route path="/integrations" element={<IntegrationsPage />} />
         <Route path="/agents" element={<AgentsPage />} />
+        <Route path="/plans" element={<PlansPage />} />
       </Route>
       <Route path="/build" element={<Editor />} />
     </Routes>

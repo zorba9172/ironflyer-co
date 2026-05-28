@@ -2,7 +2,7 @@ import { Avatar, Box, Button, IconButton, Stack, ToggleButton, ToggleButtonGroup
 import { useNavigate } from 'react-router-dom';
 import { LogoMark } from './LogoMark';
 
-export type EditorTab = 'preview' | 'map' | 'dashboard';
+export type EditorTab = 'preview' | 'map' | 'security' | 'dashboard';
 
 export function EditorTopBar({ projectName, tab, onTab, onDeploy }: { projectName: string; tab: EditorTab; onTab: (t: EditorTab) => void; onDeploy: () => void }) {
   const navigate = useNavigate();
@@ -25,6 +25,7 @@ export function EditorTopBar({ projectName, tab, onTab, onDeploy }: { projectNam
       >
         <ToggleButton value="preview">Preview</ToggleButton>
         <ToggleButton value="map">Map</ToggleButton>
+        <ToggleButton value="security">Security</ToggleButton>
         <ToggleButton value="dashboard">Dashboard</ToggleButton>
       </ToggleButtonGroup>
 

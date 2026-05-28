@@ -1,38 +1,56 @@
 import { useEffect, useRef, useState } from 'react';
 import { Avatar, Box, IconButton, InputBase, Stack, Typography } from '@mui/material';
+import { useChatStream } from '@ironflyer/data';
+import { useStudio } from '../store';
 
 interface Msg { id: string; from: 'user' | 'agent'; text: string; steps?: string[] }
 
-const demoSeed: Msg[] = [
-  { id: 'm1', from: 'user', text: 'Import the Northwind checkout from Lovable and tell me what is missing.' },
-  {
-    id: 'm2', from: 'agent',
-    text: 'Imported and ran it in a sandbox. Six finisher gates mapped — two are open and one is blocked. Start with Money: the Stripe webhook is unverified.',
-    steps: ['Read entities/Order', 'Read routes/checkout', 'Scanned secrets', 'Mapped gates'],
-  },
-];
+function offlineReply(prompt: string): string {
+  const q = prompt.length > 80 ? `${prompt.slice(0, 80)}…` : prompt;
+  return `“${q}” — that's exactly what the finisher is for. I'm in offline preview right now, so I'm not wired to the orchestrator. Bring it up locally and set VITE_GRAPHQL_ENDPOINT, and I'll do it for real: read the code, propose reviewable patches, and close the gates. Until then the Map, Security, and Dashboard show sample data.`;
+}
 
 export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
+  const projectId = useStudio((s) => s.current.id);
+  const { isLive, send: streamSend } = useChatStream();
   const [messages, setMessages] = useState<Msg[]>(() =>
-    initialPrompt ? [{ id: 'p0', from: 'user', text: initialPrompt }] : demoSeed,
+    initialPrompt ? [{ id: 'p0', from: 'user', text: initialPrompt }] : [],
   );
   const [draft, setDraft] = useState('');
   const [thinking, setThinking] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const startedRef = useRef(false);
 
-  // When the session started from a composer prompt, simulate the first read.
-  useEffect(() => {
-    if (!initialPrompt) return;
+  // Stream a reply from the orchestrator when connected; honest offline note otherwise.
+  const respond = async (prompt: string) => {
     setThinking(true);
-    const t = setTimeout(() => {
-      setMessages((m) => [...m, {
-        id: 'a0', from: 'agent',
-        text: 'Reading your project and mapping the six finisher gates. Switch to the Dashboard to watch them resolve — I will start with whatever is blocking the next deploy.',
-        steps: ['Cloned into sandbox', 'Detected stack', 'Mapped gates', 'Scored completion'],
-      }]);
-      setThinking(false);
-    }, 1100);
-    return () => clearTimeout(t);
+    if (isLive) {
+      const id = `a${Date.now()}`;
+      setMessages((m) => [...m, { id, from: 'agent', text: '' }]);
+      try {
+        await streamSend(projectId, prompt, (delta) =>
+          setMessages((m) => m.map((x) => (x.id === id ? { ...x, text: x.text + delta } : x))),
+        );
+      } catch {
+        setMessages((m) => m.map((x) => (x.id === id && !x.text ? { ...x, text: 'Lost the connection to the orchestrator. Try again.' } : x)));
+      } finally {
+        setThinking(false);
+      }
+    } else {
+      window.setTimeout(() => {
+        setMessages((m) => [...m, { id: `a${Date.now()}`, from: 'agent', text: offlineReply(prompt) }]);
+        setThinking(false);
+      }, 600);
+    }
+  };
+
+  // Respond to the prompt that started the session — once (guards StrictMode).
+  useEffect(() => {
+    if (initialPrompt && !startedRef.current) {
+      startedRef.current = true;
+      void respond(initialPrompt);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialPrompt]);
 
   useEffect(() => {
@@ -42,13 +60,9 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
   const send = () => {
     const text = draft.trim();
     if (!text) return;
-    setMessages((m) => [...m, { id: `u${m.length}`, from: 'user', text }]);
+    setMessages((m) => [...m, { id: `u${Date.now()}`, from: 'user', text }]);
     setDraft('');
-    setThinking(true);
-    setTimeout(() => {
-      setMessages((m) => [...m, { id: `a${m.length}`, from: 'agent', text: 'On it — proposing a patch against your workspace. Review the diff before it applies.' }]);
-      setThinking(false);
-    }, 900);
+    void respond(text);
   };
 
   return (
@@ -104,7 +118,7 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
             sx={{ fontSize: '0.9rem', px: 0.5 }}
           />
           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 0.5 }}>
-            <Typography sx={{ fontSize: '0.78rem', color: 'text.disabled' }}>Discuss · ⏎ to send</Typography>
+            <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.72rem', color: isLive ? 'success.main' : 'text.disabled' })}>{isLive ? '● connected to orchestrator' : '○ offline preview · ⏎ to send'}</Typography>
             <IconButton onClick={send} size="small" aria-label="Send" sx={(t) => ({ color: '#fff', backgroundImage: t.brand.gradient.signature, width: 30, height: 30 })}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
             </IconButton>

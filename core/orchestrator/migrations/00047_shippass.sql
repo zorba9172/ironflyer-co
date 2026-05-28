@@ -1,3 +1,4 @@
+-- +goose Up
 -- Ship Pass — outcome-based SKU on top of the wallet.
 --
 -- A pass is an atomic promise: hold the price until every gate in
@@ -49,3 +50,11 @@ CREATE TABLE IF NOT EXISTS ship_pass_progress (
 
 CREATE INDEX IF NOT EXISTS ix_ship_pass_progress_pass_observed
     ON ship_pass_progress (ship_pass_id, observed_at DESC);
+
+-- +goose Down
+DROP INDEX IF EXISTS ix_ship_pass_progress_pass_observed;
+DROP TABLE IF EXISTS ship_pass_progress;
+DROP INDEX IF EXISTS ix_ship_passes_active_due;
+DROP INDEX IF EXISTS ix_ship_passes_tenant_created;
+DROP INDEX IF EXISTS uq_ship_passes_active_per_project;
+DROP TABLE IF EXISTS ship_passes;
