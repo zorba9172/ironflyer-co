@@ -1,0 +1,17 @@
+{
+  "name": "@ironflyer/ui-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "sideEffects": false,
+  "scripts": { "typecheck": "tsc --noEmit" },
+  "peerDependencies": {
+    "@mui/material": "^6.0.0",
+    "react": "^18 || ^19",
+    "react-dom": "^18 || ^19"
+  },
+  "dependencies": {
+    "@ironflyer/design-tokens": "workspace:*"
+  }
+}

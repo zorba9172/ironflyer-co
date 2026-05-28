@@ -371,6 +371,11 @@ func main() {
 			logger.Info().Msg("event outbox enabled; Redpanda publisher disabled (set REDPANDA_BROKERS)")
 		}
 	}
+	// Only write to the outbox when a publisher exists to drain it.
+	// Without Redpanda, rows would pile up unbounded inside every
+	// business transaction; the dashboards read Postgres directly, not
+	// the outbox, so disabling the write loses nothing in lean mode.
+	outboxhooks.SetWritesEnabled(eventPublisher != nil)
 
 	// ---------------- Schema registry + V22 topic registration ------------
 	// Outbox hooks consult the registry to validate payloads before the

@@ -1,0 +1,10 @@
+<svg width="168" height="32" viewBox="0 0 168 32" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ironflyer">
+  <defs>
+    <linearGradient id="if-sig-w" x1="3" y1="27" x2="29" y2="5" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2F6BFF"/>
+      <stop offset="1" stop-color="#18C8E6"/>
+    </linearGradient>
+  </defs>
+  <path d="M5 27 L16 5 L27 27 L16 20 Z" fill="url(#if-sig-w)"/>
+  <text x="40" y="22" font-family="Bricolage Grotesque, Inter, sans-serif" font-size="20" font-weight="700" letter-spacing="-0.5" fill="currentColor">Ironflyer</text>
+</svg>

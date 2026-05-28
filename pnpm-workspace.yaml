@@ -1,0 +1,15 @@
+# New client monorepo. The existing npm-based clients/web (retiring) and
+# clients/vscode-extension, plus the Go clients/scrcpy-bridge, are intentionally
+# NOT members — they keep their own toolchains until web is deleted.
+packages:
+  - 'clients/studio'
+  - 'clients/backoffice'
+  - 'clients/marketing'
+  - 'clients/mobile'
+  - 'packages/design-tokens'
+  - 'packages/core'
+  - 'packages/data'
+  - 'packages/ui-web'
+  - 'packages/ui-native'
+  - 'packages/assets'
+  - 'packages/sdk'

@@ -16,8 +16,8 @@ provisioned by [`infra/pulumi/`](../pulumi/).
 | Knowledge graph | `surrealdb` (surrealkv backend) | 8000 |
 | Cache + queues + Celery broker | `redis` (db=0 app, db=1 glitchtip) | 6379 |
 | Object storage (S3-compat) | `minio` | 9000 / 9001 |
-| Event stream | `redpanda` | 9092 |
-| Analytics OLAP | `clickhouse` | 8123 / 9000 |
+| Event stream *(opt-in: `--profile analytics`)* | `redpanda` | 9092 |
+| Analytics OLAP *(opt-in: `--profile analytics`)* | `clickhouse` | 8123 / 9000 |
 | Durable workflows | `temporal` + `temporal-ui` | 7233 / 8080 |
 | Metrics | `victoriametrics` + `vmagent` | 8428 |
 | Logs | `loki` + `promtail` | 3100 |
@@ -30,13 +30,41 @@ provisioned by [`infra/pulumi/`](../pulumi/).
 | Offsite backup | `restic` → Hetzner Storage Box | — |
 | PG PITR | `wal-g` → MinIO + Storage Box | — |
 
+## Lean default vs. scale-up
+
+The stack ships **lean by default**. The OLAP analytics pipeline
+(Redpanda + ClickHouse, ~20 GB RAM) is gated behind the `analytics`
+Compose profile and is **not** started by a plain `up -d`. Nothing is
+lost in lean mode: the orchestrator degrades gracefully — it skips the
+event publisher and the profit / cohort / scale / blueprint dashboards
+read **live Postgres** through their fallback adapters. The only thing
+ClickHouse adds is faster aggregation at high event volume.
+
+```bash
+# Lean (recommended to start) — no Redpanda, no ClickHouse:
+docker compose -f infra/compose/docker-compose.prod.yml \
+  --env-file infra/compose/.env.prod up -d
+
+# Scale up to OLAP analytics later (zero downtime; additive):
+#   1. set REDPANDA_BROKERS + IRONFLYER_CLICKHOUSE_HOSTS in .env.prod
+#   2. bring the two services up under the profile:
+docker compose -f infra/compose/docker-compose.prod.yml \
+  --env-file infra/compose/.env.prod --profile analytics up -d
+```
+
+Redis is **on by default** and load-bearing: with two orchestrator
+replicas it provides the distributed finisher lock (prevents double
+billing), the cross-pod event bus (subscriptions see events from either
+pod), and shared rate-limit budgets. Dropping to a single orchestrator
+is the only configuration where Redis is optional.
+
 ## Resource budget (AX102 — Ryzen 9 7950X3D, 128GB DDR5, 16c/32t)
 
 | Tier | RAM committed | vCPU committed |
 | --- | --- | --- |
 | Postgres | 24 GB | 6.0 |
-| ClickHouse | 14 GB | 4.0 |
-| Redpanda | 6 GB | 2.5 |
+| ClickHouse *(opt-in: analytics)* | 14 GB | 4.0 |
+| Redpanda *(opt-in: analytics)* | 6 GB | 2.5 |
 | SurrealDB | 4 GB | 2.0 |
 | Redis | 4 GB | 1.5 |
 | MinIO | 4 GB | 2.0 |
@@ -48,7 +76,8 @@ provisioned by [`infra/pulumi/`](../pulumi/).
 | Runtime + sandbox headroom | 8 GB + dynamic | 4.0 |
 | Web × 2 | 2 GB | 2.0 |
 | Caddy | 0.5 GB | 1.0 |
-| **Total** | **~92 GB** committed, **~36 GB** IO cache | **~40 vCPU** committed, bursts to 32 threads |
+| **Total (lean default)** | **~72 GB** committed | **~33 vCPU** committed |
+| **Total (+ analytics profile)** | **~92 GB** committed, **~36 GB** IO cache | **~40 vCPU** committed |
 
 ## Cold-start runbook (~30 minutes)
 
@@ -115,6 +144,7 @@ want Cloudflare's WAF in front.
 ### Step 5 — bring it up
 
 ```bash
+# Lean default (no Redpanda/ClickHouse). See "Lean default vs. scale-up".
 docker compose -f infra/compose/docker-compose.prod.yml \
   --env-file infra/compose/.env.prod up -d
 ```

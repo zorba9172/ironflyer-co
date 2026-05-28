@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "moduleDetection": "force",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": false,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "baseUrl": ".",
+    "paths": {
+      "@ironflyer/design-tokens": ["packages/design-tokens/index.ts"],
+      "@ironflyer/design-tokens/brand": ["packages/design-tokens/brand.ts"],
+      "@ironflyer/core": ["packages/core/src/index.ts"],
+      "@ironflyer/data": ["packages/data/src/index.ts"],
+      "@ironflyer/ui-web": ["packages/ui-web/src/index.ts"],
+      "@ironflyer/ui-native": ["packages/ui-native/src/index.ts"],
+      "@ironflyer/assets": ["packages/assets/src/index.ts"],
+      "@ironflyer/sdk": ["packages/sdk/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "dist", ".next", ".astro", "build"]
+}

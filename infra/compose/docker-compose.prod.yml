@@ -11,16 +11,24 @@
 #   2. Run scripts/host-bootstrap.sh — installs Docker + gVisor runtime,
 #      creates the /data tree on the second NVMe, sets sysctls.
 #   3. cp .env.prod.example .env.prod && fill in secrets.
-#   4. docker compose -f infra/compose/docker-compose.prod.yml --env-file .env.prod up -d
+#   4. LEAN DEFAULT (recommended to start):
+#        docker compose -f infra/compose/docker-compose.prod.yml --env-file .env.prod up -d
+#      WITH OLAP ANALYTICS (once event volume warrants it):
+#        set REDPANDA_BROKERS + IRONFLYER_CLICKHOUSE_HOSTS in .env.prod, then
+#        docker compose -f infra/compose/docker-compose.prod.yml --env-file .env.prod --profile analytics up -d
 #   5. Wait for `docker compose ps` to show every service healthy (~3 min).
 #   6. Run scripts/smoke.sh against https://api.${ROOT_DOMAIN}.
 #
 # Capabilities present (every helm-chart capability is preserved):
 #   - Postgres 16 + pgvector (app DB + Temporal DB + GlitchTip DB)
 #   - SurrealDB persistent (knowledge graph)
-#   - Redis 7 (cache + queues + GlitchTip Celery)
-#   - MinIO (S3-compatible artifact storage)
-#   - Redpanda + ClickHouse (event analytics pipeline)
+#   - Redis 7 (cross-pod lock + bus + rate limits for the 2 orchestrators;
+#     also GlitchTip Celery)
+#   - MinIO (S3-compatible artifact storage + WAL-G backup target; the
+#     orchestrator snapshot target is overridable to R2/Spaces via env)
+#   - Redpanda + ClickHouse (OPT-IN OLAP analytics pipeline via
+#     `--profile analytics`; the lean default omits both and serves
+#     dashboards from live Postgres reads — ~20 GB RAM lighter)
 #   - Temporal cluster + Temporal UI (durable workflows; locked dep)
 #   - VictoriaMetrics + Loki + Promtail + Grafana (metrics + logs + dashboards)
 #   - GlitchTip (Sentry-compatible error tracking)
@@ -232,9 +240,14 @@ services:
           memory: 4g
           cpus: "2.0"
 
+  # Analytics pipeline (redpanda + clickhouse) is OPT-IN. The lean
+  # default omits it: dashboards fall back to live Postgres reads and the
+  # orchestrator skips the event publisher (REDPANDA_BROKERS empty). Bring
+  # it up with `--profile analytics` once event-volume warrants OLAP.
   redpanda:
     image: redpandadata/redpanda:v24.3.7
     container_name: ironflyer-redpanda
+    profiles: ["analytics"]
     <<: *default-restart
     logging: *default-logging
     command:
@@ -274,6 +287,7 @@ services:
   clickhouse:
     image: clickhouse/clickhouse-server:24.12-alpine
     container_name: ironflyer-clickhouse
+    profiles: ["analytics"]
     <<: *default-restart
     logging: *default-logging
     environment:
@@ -553,6 +567,15 @@ services:
       SURREAL_NAMESPACE: ironflyer
       SURREAL_DATABASE: prod
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+      # Two orchestrator replicas MUST coordinate through Redis or they
+      # race on the same project (double-billing). The orchestrator reads
+      # REDIS_ADDR/REDIS_PASSWORD/REDIS_DB (not REDIS_URL) and only
+      # activates the distributed lock + cross-pod bus + shared rate
+      # limits when IRONFLYER_REDIS_ENABLED=true.
+      IRONFLYER_REDIS_ENABLED: "true"
+      REDIS_ADDR: redis:6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_DB: "0"
       IRONFLYER_RUNTIME_URL: http://runtime:8090
       IRONFLYER_SCAFFOLD_ROOT: /app/templates
       IRONFLYER_JWT_SECRET: ${IRONFLYER_JWT_SECRET:?IRONFLYER_JWT_SECRET is required}
@@ -568,17 +591,26 @@ services:
       IRONFLYER_PUBLIC_API_URL: https://api.${ROOT_DOMAIN}
       IRONFLYER_PUBLIC_RUNTIME_URL: https://runtime.${ROOT_DOMAIN}
       IRONFLYER_PUBLIC_WEB_URL: https://app.${ROOT_DOMAIN}
-      REDPANDA_BROKERS: redpanda:9092
-      IRONFLYER_CLICKHOUSE_HOSTS: clickhouse:9000
+      # Analytics pipeline is opt-in. Empty by default → the orchestrator
+      # skips the Redpanda publisher and serves dashboards from live
+      # Postgres reads. To enable OLAP: run `--profile analytics` and set
+      # REDPANDA_BROKERS=redpanda:9092 + IRONFLYER_CLICKHOUSE_HOSTS=clickhouse:9000
+      # in .env.prod.
+      REDPANDA_BROKERS: ${REDPANDA_BROKERS:-}
+      IRONFLYER_CLICKHOUSE_HOSTS: ${IRONFLYER_CLICKHOUSE_HOSTS:-}
       IRONFLYER_CLICKHOUSE_DATABASE: ${CLICKHOUSE_DB:-ironflyer}
       IRONFLYER_CLICKHOUSE_USERNAME: ${CLICKHOUSE_USER:-ironflyer}
-      IRONFLYER_CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
-      IRONFLYER_S3_ENDPOINT: http://minio:9000
+      IRONFLYER_CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-}
+      # Object storage for workspace snapshots + exports. Defaults to the
+      # bundled minio container. To target Cloudflare R2 or DigitalOcean
+      # Spaces, override IRONFLYER_S3_ENDPOINT / REGION / FORCE_PATH_STYLE
+      # in .env.prod (minio still stays up as the WAL-G backup target).
+      IRONFLYER_S3_ENDPOINT: ${IRONFLYER_S3_ENDPOINT:-http://minio:9000}
       IRONFLYER_S3_BUCKET: ${IRONFLYER_S3_BUCKET:-ironflyer-artifacts}
-      IRONFLYER_S3_ACCESS_KEY: ${MINIO_ROOT_USER}
-      IRONFLYER_S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
-      IRONFLYER_S3_REGION: us-east-1
-      IRONFLYER_S3_FORCE_PATH_STYLE: "true"
+      IRONFLYER_S3_ACCESS_KEY: ${IRONFLYER_S3_ACCESS_KEY:-${MINIO_ROOT_USER}}
+      IRONFLYER_S3_SECRET_KEY: ${IRONFLYER_S3_SECRET_KEY:-${MINIO_ROOT_PASSWORD}}
+      IRONFLYER_S3_REGION: ${IRONFLYER_S3_REGION:-us-east-1}
+      IRONFLYER_S3_FORCE_PATH_STYLE: ${IRONFLYER_S3_FORCE_PATH_STYLE:-true}
       SENTRY_DSN: ${SENTRY_DSN_ORCHESTRATOR}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:?ANTHROPIC_API_KEY is required}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}

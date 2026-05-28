@@ -53,6 +53,9 @@ version of what's below.
 4. Copy `infra/compose/.env.prod.example` → `infra/compose/.env.prod`,
    fill in secrets (`chmod 600`).
 5. On the AX102: `docker compose -f infra/compose/docker-compose.prod.yml --env-file infra/compose/.env.prod up -d`.
+   This is the **lean default** — Redpanda + ClickHouse are opt-in via
+   `--profile analytics` (dashboards read live Postgres without them). See
+   [infra/compose/README.prod.md](infra/compose/README.prod.md#lean-default-vs-scale-up).
 6. Wait for `docker compose ps` to show every service healthy (~3 min).
 7. Smoke: `IRONFLYER_API_URL=https://api.ironflyer.ai SMOKE_BEARER=… scripts/smoke.sh`.
 

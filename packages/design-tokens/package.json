@@ -1,0 +1,13 @@
+{
+  "name": "@ironflyer/design-tokens",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Ironflyer design tokens. `.` = legacy identity (retiring web); `./brand` = new international brand.",
+  "exports": {
+    ".": "./index.ts",
+    "./brand": "./brand.ts",
+    "./languages": "./languages.ts"
+  },
+  "sideEffects": false
+}

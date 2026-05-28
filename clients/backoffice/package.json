@@ -1,0 +1,32 @@
+{
+  "name": "@ironflyer/backoffice",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 3100",
+    "build": "vite build",
+    "preview": "vite preview --port 3100",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@ironflyer/core": "workspace:*",
+    "@ironflyer/data": "workspace:*",
+    "@ironflyer/design-tokens": "workspace:*",
+    "@ironflyer/ui-web": "workspace:*",
+    "@mui/material": "^6.5.0",
+    "@tanstack/react-query": "^5.64.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^6.28.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.7.3",
+    "vite": "^6.0.7"
+  }
+}

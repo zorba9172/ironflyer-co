@@ -16,6 +16,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/google/uuid"
@@ -33,6 +34,22 @@ var (
 	registryMu sync.RWMutex
 	registry   events.Registry
 )
+
+// writesEnabled gates whether WriteEventInTx actually inserts a row.
+// The outbox only has value when a publisher drains it to Redpanda; in
+// the lean deployment (no REDPANDA_BROKERS) nothing drains it, so rows
+// would accumulate forever inside the business transactions. main.go
+// calls SetWritesEnabled(publisher != nil) at boot to keep writes on
+// only when the analytics pipeline is wired. Default true preserves
+// the original behaviour for any caller that never sets it.
+var writesEnabled atomic.Bool
+
+func init() { writesEnabled.Store(true) }
+
+// SetWritesEnabled toggles outbox row insertion. Pass false in lean
+// deployments where no Redpanda publisher exists so the event_outbox
+// table does not grow unbounded. Safe to call concurrently.
+func SetWritesEnabled(on bool) { writesEnabled.Store(on) }
 
 // SetRegistry installs the package-level Schema Registry used by
 // WriteEventInTx. Pass nil to disable validation. Safe to call
@@ -119,6 +136,11 @@ const ProducerName = "orchestrator/v22"
 func WriteEventInTx(ctx context.Context, tx pgx.Tx, e events.Event) error {
 	if tx == nil {
 		return fmt.Errorf("outboxhooks: nil tx")
+	}
+	// Lean mode: no publisher drains the outbox, so skip the insert
+	// rather than accumulate rows the business tx pays to write.
+	if !writesEnabled.Load() {
+		return nil
 	}
 	if err := events.ValidateTopic(e.Topic); err != nil {
 		return err

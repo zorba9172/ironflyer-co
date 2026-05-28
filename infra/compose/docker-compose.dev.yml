@@ -294,12 +294,16 @@ services:
       IRONFLYER_JWT_SECRET: "${IRONFLYER_JWT_SECRET:-dev-secret-change-me-please-32chars-minimum-for-hs256}"
       IRONFLYER_JWT_ISSUER: ironflyer-dev
       REDIS_URL: redis://redis:6379/0
-      # Analytics plane (--profile analytics). When the redpanda +
-      # clickhouse containers are up these wire the orchestrator's
-      # event publisher and the Redpanda→ClickHouse ingester. The
-      # publisher gracefully degrades when REDPANDA_BROKERS is unset.
-      REDPANDA_BROKERS: "${REDPANDA_BROKERS:-redpanda:9092}"
-      IRONFLYER_CLICKHOUSE_HOSTS: "${IRONFLYER_CLICKHOUSE_HOSTS:-clickhouse:9000}"
+      # Analytics plane (--profile analytics). Empty by default so the
+      # lean `--profile apps` path never dials a broker that isn't up —
+      # the orchestrator skips the publisher and reads dashboards from
+      # Postgres. To exercise the Redpanda→ClickHouse pipeline locally,
+      # run `--profile analytics` AND export the two vars, e.g.:
+      #   REDPANDA_BROKERS=redpanda:9092 \
+      #   IRONFLYER_CLICKHOUSE_HOSTS=clickhouse:9000 \
+      #   docker compose ... --profile apps --profile analytics up
+      REDPANDA_BROKERS: "${REDPANDA_BROKERS:-}"
+      IRONFLYER_CLICKHOUSE_HOSTS: "${IRONFLYER_CLICKHOUSE_HOSTS:-}"
       IRONFLYER_CLICKHOUSE_DATABASE: ironflyer
       IRONFLYER_CLICKHOUSE_USERNAME: ironflyer
       IRONFLYER_CLICKHOUSE_PASSWORD: ironflyer

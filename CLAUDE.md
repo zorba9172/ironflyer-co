@@ -65,6 +65,14 @@ Both Go modules use their own `go.mod`. Web is a single Next app under
 `clients/web`. The SDK + design tokens are imported from web via
 `../../../packages/*`.
 
+> **`clients/web` is LEGACY and disliked.** It is being retired in favor of the
+> new `clients/` surfaces (studio / backoffice / marketing / mobile — see
+> `docs/ARCHITECTURE_CLIENTS.md`). The owner explicitly dislikes this app,
+> *especially how it presents the Studio*. Do NOT copy its layout, flows,
+> component structure, or UX ideas into the new surfaces. Reusing
+> framework-agnostic libraries is fine; borrowing its design/presentation
+> decisions requires **asking the owner first**.
+
 ## GraphQL only
 
 The orchestrator's API of record is **GraphQL**. The schema lives at
@@ -241,6 +249,46 @@ or component density on any route:
 The user has explicitly stated this is constitutional: "תקבע בחוקה
 שאסור לגעת בעיצוב, הכל צריך להיות כמו ברפרנס". Treat structural drift
 the same way you treat raw-hex drift — revert immediately and flag.
+
+### Constitutional rule: STYLE MAPS THROUGH THE THEME, NEVER INLINE
+
+Asserted 2026-05-28 by the user: "אתה לא יכול לכתוב ולדרוס סטייל בקוד —
+הכל צריך להיות מיפוי לפי MUI theme."
+
+Styling is **never** written or overridden ad-hoc inside a component. It is
+declared once in the theme and *consumed* by components. This applies to the
+new `clients/` surfaces as much as to `clients/web`.
+
+**Hard rules:**
+
+- **MUI surfaces (`clients/studio`, `clients/backoffice`, `clients/marketing`,
+  any React+MUI app):** every color, font, radius, spacing, shadow, and
+  transition comes from the **MUI theme** in `@ironflyer/ui-web` (the
+  `extendTheme` CSS-variables `theme`, derived from
+  `@ironflyer/design-tokens/brand`; dark/light via `CssVarsProvider`).
+  Brand-specific values (gradients, mono font, motion) are carried on
+  `theme.brand.*`. Components reference
+  `theme.palette.*`, `theme.typography.*`, `theme.shape.*`, `theme.spacing()`,
+  and theme variants. Reusable visual changes go into the theme's
+  `components.*` overrides — **never** a one-off `sx`/`style` with a literal
+  value (no hardcoded `fontFamily`, hex, px font-size, or color).
+- **No raw values in `sx`/`style`.** Spacing uses the theme scale
+  (`sx={{ p: 3 }}`), not `px`. Typography uses `variant=`, not inline
+  `fontSize`/`fontFamily`. A literal style value in a component is a bug —
+  promote it to the theme.
+- **Non-MUI surface exception (`clients/mobile`, React Native).** MUI is
+  web-only, so native consumes the parallel theme from `@ironflyer/ui-native`
+  `makeNativeTheme()` — itself derived from the same `@ironflyer/design-tokens/brand`.
+  Same law: no hardcoded colors/fonts in screens; read them from the native
+  theme. (Marketing is React+MUI and follows the MUI rule above — it is NOT an
+  exception. It is statically generated with `vite-react-ssg`, so the MUI theme
+  is rendered to static HTML at build with no client framework cost.)
+- **One source of truth.** Whether the engine is MUI or CSS variables, the
+  values originate in `@ironflyer/design-tokens`. Changing a brand value is a
+  tokens edit, never a per-component edit.
+
+Treat inline-style drift exactly like raw-hex drift: revert immediately and move
+the value into the theme/tokens.
 
 ### Constitutional rule: VISUALIZATION-FIRST, CODE-FOR-PROS
 

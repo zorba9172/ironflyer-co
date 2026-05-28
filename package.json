@@ -1,0 +1,30 @@
+{
+  "name": "@ironflyer/clients",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.33.2",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev:marketing": "pnpm --filter @ironflyer/marketing dev",
+    "dev:studio": "pnpm --filter @ironflyer/studio dev",
+    "dev:backoffice": "pnpm --filter @ironflyer/backoffice dev",
+    "dev:mobile": "pnpm --filter @ironflyer/mobile start",
+    "build:packages": "pnpm --filter \"./packages/**\" -r build",
+    "build:web": "pnpm --filter @ironflyer/marketing --filter @ironflyer/studio --filter @ironflyer/backoffice -r build",
+    "typecheck": "pnpm -r --filter \"./clients/**\" --filter \"./packages/**\" exec tsc --noEmit"
+  },
+  "devDependencies": {
+    "nx": "^20.3.0",
+    "typescript": "^5.7.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "react": "19.0.0",
+      "react-dom": "19.0.0",
+      "react-router": "^6.28.1",
+      "react-router-dom": "^6.28.1"
+    }
+  }
+}

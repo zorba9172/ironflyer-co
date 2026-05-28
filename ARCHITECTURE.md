@@ -182,9 +182,13 @@ executions can reuse a known-good patch instead of regenerating it.
 - **Postgres** — wallets, ledger, executions, blueprints, repair
   recipes, ProfitGuard decisions, projects, users, gates, patches; the
   source of truth for wallet, ledger, and execution state.
-- **ClickHouse** — analytics read model for profit, cost, margin, cohort,
-  blueprint, and scale dashboards; never authoritative for wallet, ledger,
-  or execution state.
+- **ClickHouse** *(opt-in)* — analytics read model for profit, cost, margin,
+  cohort, blueprint, and scale dashboards; never authoritative for wallet,
+  ledger, or execution state. The lean deployment omits ClickHouse +
+  Redpanda entirely (`--profile analytics` enables them): the orchestrator
+  skips the event publisher and the dashboards fall back to live Postgres
+  reads via their adapter sources. ClickHouse is a performance tier for high
+  event volume, not a correctness dependency.
 - **SurrealDB** — AI Memory Graph for project/code graph, agent memory,
   repair-genome context, vector/hybrid retrieval, and spec → files →
   patches → failures relations. It stores derived retrieval context only;
