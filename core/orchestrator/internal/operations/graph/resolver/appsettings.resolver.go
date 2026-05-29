@@ -1,0 +1,53 @@
+package resolver
+
+import (
+	"context"
+
+	"ironflyer/core/orchestrator/internal/operations/appconsole"
+	"ironflyer/core/orchestrator/internal/operations/graph/model"
+)
+
+// AppSettings returns the deployed app's general settings + env vars (masked).
+func (r *queryResolver) AppSettings(ctx context.Context, projectID string) (*model.AppSettings, error) {
+	p, err := r.requireOperateProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	return appSettingsToModel(r.AppConsole.Settings(projectID, p.Name)), nil
+}
+
+// UpdateAppSettings patches the general settings.
+func (r *mutationResolver) UpdateAppSettings(ctx context.Context, projectID string, input model.UpdateAppSettingsInput) (*model.AppSettings, error) {
+	p, err := r.requireOperateProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	patch := appconsole.SettingsPatch{
+		DisplayName: input.DisplayName, Visibility: input.Visibility,
+		Region: input.Region, SupportEmail: input.SupportEmail,
+	}
+	return appSettingsToModel(r.AppConsole.UpdateSettings(projectID, p.Name, patch)), nil
+}
+
+// SetAppEnvVar upserts an environment variable. Secret values are masked on
+// the way back out — the plaintext never returns over the wire.
+func (r *mutationResolver) SetAppEnvVar(ctx context.Context, projectID string, key string, value string, secret *bool) (*model.AppSettings, error) {
+	p, err := r.requireOperateProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	isSecret := false
+	if secret != nil {
+		isSecret = *secret
+	}
+	return appSettingsToModel(r.AppConsole.SetEnvVar(projectID, p.Name, key, value, isSecret)), nil
+}
+
+// DeleteAppEnvVar removes an environment variable.
+func (r *mutationResolver) DeleteAppEnvVar(ctx context.Context, projectID string, key string) (*model.AppSettings, error) {
+	p, err := r.requireOperateProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	return appSettingsToModel(r.AppConsole.DeleteEnvVar(projectID, p.Name, key)), nil
+}

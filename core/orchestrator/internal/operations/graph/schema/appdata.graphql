@@ -1,0 +1,30 @@
+# Operate › Data — the deployed app's database, mirrored as a browsable
+# schema + sampled rows. Read-only here: schema changes flow through the
+# finisher patch lifecycle, never an ad-hoc DDL endpoint. Every resolver is
+# tenant + project scoped (owner check on the project).
+
+type AppColumn {
+  name: String!
+  type: String!
+  nullable: Boolean!
+  primaryKey: Boolean!
+  references: String
+}
+
+type AppTable {
+  name: String!
+  rowCount: Int!
+  columns: [AppColumn!]!
+}
+
+type AppTableRows {
+  table: String!
+  columns: [String!]!
+  rows: [JSON!]!
+  total: Int!
+}
+
+extend type Query {
+  appDataSchema(projectID: ID!): [AppTable!]!
+  appTableRows(projectID: ID!, table: String!, limit: Int = 25): AppTableRows!
+}

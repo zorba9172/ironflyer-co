@@ -37,6 +37,7 @@ import (
 	"ironflyer/core/orchestrator/internal/business/wowloop"
 	"ironflyer/core/orchestrator/internal/customer/auth"
 	"ironflyer/core/orchestrator/internal/customer/notify"
+	"ironflyer/core/orchestrator/internal/operations/appconsole"
 	"ironflyer/core/orchestrator/internal/operations/arch"
 	"ironflyer/core/orchestrator/internal/operations/audit"
 	"ironflyer/core/orchestrator/internal/operations/auditexport"
@@ -281,6 +282,12 @@ type Resolver struct {
 	// surface. Nil-safe — when unwired the sentinel* resolvers
 	// return NOT_CONFIGURED.
 	Sentinel *sentinel.Service
+
+	// AppConsole backs the studio's Operate surfaces (Data, Users,
+	// Analytics, Automations, API). Nil-safe — the app* resolvers
+	// return NOT_CONFIGURED until the feature's schema + resolvers
+	// are regenerated and wired.
+	AppConsole *appconsole.Store
 }
 
 // HealthReportPaths captures the file paths the resolver consults to

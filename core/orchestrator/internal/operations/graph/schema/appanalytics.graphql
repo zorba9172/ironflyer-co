@@ -1,0 +1,44 @@
+# Operate › Analytics — product usage of the deployed app: traffic, sessions,
+# top pages/referrers, and the conversion events the app emits. Read-only.
+
+type AppMetricPoint {
+  ts: DateTime!
+  visitors: Int!
+  pageViews: Int!
+  sessions: Int!
+}
+
+type AppPageStat {
+  path: String!
+  views: Int!
+  avgSeconds: Float!
+}
+
+type AppReferrerStat {
+  source: String!
+  visitors: Int!
+}
+
+type AppEventStat {
+  name: String!
+  count: Int!
+  conversionPct: Float!
+}
+
+type AppAnalytics {
+  rangeDays: Int!
+  visitors: Int!
+  pageViews: Int!
+  sessions: Int!
+  bounceRatePct: Float!
+  avgSessionSeconds: Float!
+  visitorsDeltaPct: Float!
+  series: [AppMetricPoint!]!
+  topPages: [AppPageStat!]!
+  topReferrers: [AppReferrerStat!]!
+  events: [AppEventStat!]!
+}
+
+extend type Query {
+  appAnalytics(projectID: ID!, days: Int = 30): AppAnalytics!
+}

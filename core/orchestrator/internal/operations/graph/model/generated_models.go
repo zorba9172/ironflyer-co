@@ -54,6 +54,149 @@ type AgentCall struct {
 	ProjectID        *string   `json:"projectId,omitempty"`
 }
 
+type AppAnalytics struct {
+	RangeDays         int               `json:"rangeDays"`
+	Visitors          int               `json:"visitors"`
+	PageViews         int               `json:"pageViews"`
+	Sessions          int               `json:"sessions"`
+	BounceRatePct     float64           `json:"bounceRatePct"`
+	AvgSessionSeconds float64           `json:"avgSessionSeconds"`
+	VisitorsDeltaPct  float64           `json:"visitorsDeltaPct"`
+	Series            []AppMetricPoint  `json:"series"`
+	TopPages          []AppPageStat     `json:"topPages"`
+	TopReferrers      []AppReferrerStat `json:"topReferrers"`
+	Events            []AppEventStat    `json:"events"`
+}
+
+type AppAPIKey struct {
+	ID         string     `json:"id"`
+	Name       string     `json:"name"`
+	Prefix     string     `json:"prefix"`
+	Scopes     []string   `json:"scopes"`
+	LastUsedAt *time.Time `json:"lastUsedAt,omitempty"`
+	CreatedAt  time.Time  `json:"createdAt"`
+	Revoked    bool       `json:"revoked"`
+}
+
+type AppAPIKeyWithSecret struct {
+	Key    AppAPIKey `json:"key"`
+	Secret string    `json:"secret"`
+}
+
+type AppColumn struct {
+	Name       string  `json:"name"`
+	Type       string  `json:"type"`
+	Nullable   bool    `json:"nullable"`
+	PrimaryKey bool    `json:"primaryKey"`
+	References *string `json:"references,omitempty"`
+}
+
+type AppEndUser struct {
+	ID         string     `json:"id"`
+	Email      string     `json:"email"`
+	Name       string     `json:"name"`
+	Role       string     `json:"role"`
+	Status     string     `json:"status"`
+	Provider   string     `json:"provider"`
+	LastSeenAt *time.Time `json:"lastSeenAt,omitempty"`
+	CreatedAt  time.Time  `json:"createdAt"`
+}
+
+type AppEndpoint struct {
+	Method      string `json:"method"`
+	Path        string `json:"path"`
+	Description string `json:"description"`
+	Auth        string `json:"auth"`
+}
+
+type AppEnvVar struct {
+	Key          string    `json:"key"`
+	ValuePreview string    `json:"valuePreview"`
+	Secret       bool      `json:"secret"`
+	UpdatedAt    time.Time `json:"updatedAt"`
+}
+
+type AppEventStat struct {
+	Name          string  `json:"name"`
+	Count         int     `json:"count"`
+	ConversionPct float64 `json:"conversionPct"`
+}
+
+type AppMetricPoint struct {
+	Ts        time.Time `json:"ts"`
+	Visitors  int       `json:"visitors"`
+	PageViews int       `json:"pageViews"`
+	Sessions  int       `json:"sessions"`
+}
+
+type AppPageStat struct {
+	Path       string  `json:"path"`
+	Views      int     `json:"views"`
+	AvgSeconds float64 `json:"avgSeconds"`
+}
+
+type AppReferrerStat struct {
+	Source   string `json:"source"`
+	Visitors int    `json:"visitors"`
+}
+
+type AppSeoAudit struct {
+	Score  int        `json:"score"`
+	Checks []SeoCheck `json:"checks"`
+}
+
+type AppSeoSettings struct {
+	ProjectID      string    `json:"projectID"`
+	Title          string    `json:"title"`
+	Description    string    `json:"description"`
+	Keywords       []string  `json:"keywords"`
+	OgImageURL     string    `json:"ogImageURL"`
+	TwitterHandle  string    `json:"twitterHandle"`
+	CanonicalURL   string    `json:"canonicalURL"`
+	Robots         string    `json:"robots"`
+	SitemapEnabled bool      `json:"sitemapEnabled"`
+	UpdatedAt      time.Time `json:"updatedAt"`
+}
+
+type AppSettings struct {
+	ProjectID    string      `json:"projectID"`
+	DisplayName  string      `json:"displayName"`
+	Visibility   string      `json:"visibility"`
+	Region       string      `json:"region"`
+	SupportEmail string      `json:"supportEmail"`
+	EnvVars      []AppEnvVar `json:"envVars"`
+	UpdatedAt    time.Time   `json:"updatedAt"`
+}
+
+type AppTable struct {
+	Name     string      `json:"name"`
+	RowCount int         `json:"rowCount"`
+	Columns  []AppColumn `json:"columns"`
+}
+
+type AppTableRows struct {
+	Table   string   `json:"table"`
+	Columns []string `json:"columns"`
+	Rows    []JSON   `json:"rows"`
+	Total   int      `json:"total"`
+}
+
+type AppUserStats struct {
+	Total       int         `json:"total"`
+	Active7d    int         `json:"active7d"`
+	NewThisWeek int         `json:"newThisWeek"`
+	Suspended   int         `json:"suspended"`
+	ByRole      []RoleCount `json:"byRole"`
+}
+
+type AppWebhook struct {
+	ID        string    `json:"id"`
+	URL       string    `json:"url"`
+	Events    []string  `json:"events"`
+	Enabled   bool      `json:"enabled"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
 type AppetizeApp struct {
 	PublicKey string    `json:"publicKey"`
 	EmbedURL  string    `json:"embedUrl"`
@@ -140,6 +283,20 @@ type AuditQueryInput struct {
 type AuditVerifyResult struct {
 	Intact        bool `json:"intact"`
 	FirstBadIndex int  `json:"firstBadIndex"`
+}
+
+type Automation struct {
+	ID            string     `json:"id"`
+	Name          string     `json:"name"`
+	TriggerKind   string     `json:"triggerKind"`
+	TriggerConfig string     `json:"triggerConfig"`
+	Action        string     `json:"action"`
+	Enabled       bool       `json:"enabled"`
+	LastRunAt     *time.Time `json:"lastRunAt,omitempty"`
+	LastStatus    string     `json:"lastStatus"`
+	Runs          int        `json:"runs"`
+	CreatedAt     time.Time  `json:"createdAt"`
+	UpdatedAt     time.Time  `json:"updatedAt"`
 }
 
 type BanditCapability struct {
@@ -335,6 +492,27 @@ type CostReport struct {
 	StorageCostUsd    float64 `json:"storageCostUSD"`
 	DeploymentCostUsd float64 `json:"deploymentCostUSD"`
 	GrossMarginPct    float64 `json:"grossMarginPct"`
+}
+
+type CreateAppAPIKeyInput struct {
+	ProjectID string   `json:"projectID"`
+	Name      string   `json:"name"`
+	Scopes    []string `json:"scopes"`
+}
+
+type CreateAppWebhookInput struct {
+	ProjectID string   `json:"projectID"`
+	URL       string   `json:"url"`
+	Events    []string `json:"events"`
+}
+
+type CreateAutomationInput struct {
+	ProjectID     string `json:"projectID"`
+	Name          string `json:"name"`
+	TriggerKind   string `json:"triggerKind"`
+	TriggerConfig string `json:"triggerConfig"`
+	Action        string `json:"action"`
+	Enabled       *bool  `json:"enabled,omitempty"`
 }
 
 type CreatePaidExecutionInput struct {
@@ -1208,6 +1386,11 @@ type RevenueEvent struct {
 	LedgerEntryID   string    `json:"ledgerEntryId"`
 }
 
+type RoleCount struct {
+	Role  string `json:"role"`
+	Count int    `json:"count"`
+}
+
 type RouteBundle struct {
 	Route       string  `json:"route"`
 	TotalKb     float64 `json:"totalKB"`
@@ -1301,6 +1484,13 @@ type SentinelReroute struct {
 	SavingsUsd        float64 `json:"savingsUSD"`
 	SavingsConfidence float64 `json:"savingsConfidence"`
 	Reversible        bool    `json:"reversible"`
+}
+
+type SeoCheck struct {
+	Key    string `json:"key"`
+	Label  string `json:"label"`
+	Passed bool   `json:"passed"`
+	Detail string `json:"detail"`
 }
 
 type Session struct {
@@ -1449,6 +1639,24 @@ type Template struct {
 	InstallCount int             `json:"installCount"`
 	Verified     bool            `json:"verified"`
 	Author       FinisherProfile `json:"author"`
+}
+
+type UpdateAppSeoSettingsInput struct {
+	Title          *string  `json:"title,omitempty"`
+	Description    *string  `json:"description,omitempty"`
+	Keywords       []string `json:"keywords,omitempty"`
+	OgImageURL     *string  `json:"ogImageURL,omitempty"`
+	TwitterHandle  *string  `json:"twitterHandle,omitempty"`
+	CanonicalURL   *string  `json:"canonicalURL,omitempty"`
+	Robots         *string  `json:"robots,omitempty"`
+	SitemapEnabled *bool    `json:"sitemapEnabled,omitempty"`
+}
+
+type UpdateAppSettingsInput struct {
+	DisplayName  *string `json:"displayName,omitempty"`
+	Visibility   *string `json:"visibility,omitempty"`
+	Region       *string `json:"region,omitempty"`
+	SupportEmail *string `json:"supportEmail,omitempty"`
 }
 
 type UpdateProjectInput struct {

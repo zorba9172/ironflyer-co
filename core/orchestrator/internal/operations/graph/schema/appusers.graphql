@@ -1,0 +1,37 @@
+# Operate › Users — the end-users of the DEPLOYED app (distinct from the
+# Ironflyer operator account). Role + suspension are real mutable state held
+# per project; the roster itself is sourced from the app's auth provider.
+
+type AppEndUser {
+  id: ID!
+  email: String!
+  name: String!
+  role: String!
+  status: String!
+  provider: String!
+  lastSeenAt: DateTime
+  createdAt: DateTime!
+}
+
+type RoleCount {
+  role: String!
+  count: Int!
+}
+
+type AppUserStats {
+  total: Int!
+  active7d: Int!
+  newThisWeek: Int!
+  suspended: Int!
+  byRole: [RoleCount!]!
+}
+
+extend type Query {
+  appEndUsers(projectID: ID!, limit: Int = 100, offset: Int = 0): [AppEndUser!]!
+  appUserStats(projectID: ID!): AppUserStats!
+}
+
+extend type Mutation {
+  setAppUserRole(projectID: ID!, userID: ID!, role: String!): AppEndUser!
+  setAppUserSuspended(projectID: ID!, userID: ID!, suspended: Boolean!): AppEndUser!
+}

@@ -1,0 +1,60 @@
+# Operate › API — the deployed app's own API surface: issued API keys, the
+# generated endpoint catalogue, and outbound webhooks. The plaintext key is
+# returned exactly once at creation (createAppApiKey.secret); thereafter only
+# the prefix is ever exposed.
+
+type AppApiKey {
+  id: ID!
+  name: String!
+  prefix: String!
+  scopes: [String!]!
+  lastUsedAt: DateTime
+  createdAt: DateTime!
+  revoked: Boolean!
+}
+
+type AppApiKeyWithSecret {
+  key: AppApiKey!
+  secret: String!
+}
+
+type AppEndpoint {
+  method: String!
+  path: String!
+  description: String!
+  auth: String!
+}
+
+type AppWebhook {
+  id: ID!
+  url: String!
+  events: [String!]!
+  enabled: Boolean!
+  createdAt: DateTime!
+}
+
+input CreateAppApiKeyInput {
+  projectID: ID!
+  name: String!
+  scopes: [String!]!
+}
+
+input CreateAppWebhookInput {
+  projectID: ID!
+  url: String!
+  events: [String!]!
+}
+
+extend type Query {
+  appApiKeys(projectID: ID!): [AppApiKey!]!
+  appEndpoints(projectID: ID!): [AppEndpoint!]!
+  appWebhooks(projectID: ID!): [AppWebhook!]!
+}
+
+extend type Mutation {
+  createAppApiKey(input: CreateAppApiKeyInput!): AppApiKeyWithSecret!
+  revokeAppApiKey(id: ID!): AppApiKey!
+  createAppWebhook(input: CreateAppWebhookInput!): AppWebhook!
+  setAppWebhookEnabled(id: ID!, enabled: Boolean!): AppWebhook!
+  deleteAppWebhook(id: ID!): OperationResult!
+}

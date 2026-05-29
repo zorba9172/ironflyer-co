@@ -1,0 +1,48 @@
+# Operate › Marketing — SEO / Open Graph metadata for the deployed app plus a
+# live audit of how complete that metadata is. Real mutable settings per
+# project; the audit is derived from the current settings.
+
+type AppSeoSettings {
+  projectID: ID!
+  title: String!
+  description: String!
+  keywords: [String!]!
+  ogImageURL: String!
+  twitterHandle: String!
+  canonicalURL: String!
+  robots: String!
+  sitemapEnabled: Boolean!
+  updatedAt: DateTime!
+}
+
+type SeoCheck {
+  key: String!
+  label: String!
+  passed: Boolean!
+  detail: String!
+}
+
+type AppSeoAudit {
+  score: Int!
+  checks: [SeoCheck!]!
+}
+
+input UpdateAppSeoSettingsInput {
+  title: String
+  description: String
+  keywords: [String!]
+  ogImageURL: String
+  twitterHandle: String
+  canonicalURL: String
+  robots: String
+  sitemapEnabled: Boolean
+}
+
+extend type Query {
+  appSeoSettings(projectID: ID!): AppSeoSettings!
+  appSeoAudit(projectID: ID!): AppSeoAudit!
+}
+
+extend type Mutation {
+  updateAppSeoSettings(projectID: ID!, input: UpdateAppSeoSettingsInput!): AppSeoSettings!
+}

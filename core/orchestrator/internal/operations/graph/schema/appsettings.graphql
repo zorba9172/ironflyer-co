@@ -1,0 +1,38 @@
+# Operate › Settings — per-app general settings, environment variables, and
+# the danger zone (visibility / archive). Secret env values are NEVER returned;
+# only a masked preview travels over the wire, mirroring the runtime contract
+# that secrets are never serialised.
+
+type AppEnvVar {
+  key: String!
+  valuePreview: String!
+  secret: Boolean!
+  updatedAt: DateTime!
+}
+
+type AppSettings {
+  projectID: ID!
+  displayName: String!
+  visibility: String!
+  region: String!
+  supportEmail: String!
+  envVars: [AppEnvVar!]!
+  updatedAt: DateTime!
+}
+
+input UpdateAppSettingsInput {
+  displayName: String
+  visibility: String
+  region: String
+  supportEmail: String
+}
+
+extend type Query {
+  appSettings(projectID: ID!): AppSettings!
+}
+
+extend type Mutation {
+  updateAppSettings(projectID: ID!, input: UpdateAppSettingsInput!): AppSettings!
+  setAppEnvVar(projectID: ID!, key: String!, value: String!, secret: Boolean = false): AppSettings!
+  deleteAppEnvVar(projectID: ID!, key: String!): AppSettings!
+}

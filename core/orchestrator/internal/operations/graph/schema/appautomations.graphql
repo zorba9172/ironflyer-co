@@ -1,0 +1,38 @@
+# Operate › Automations — scheduled / triggered workflows the deployed app
+# runs (cron, inbound webhook, or app event). Real mutable state per project.
+# Each automation is an obligation the runtime executes; ProfitGuard still
+# meters any paid work it triggers.
+
+type Automation {
+  id: ID!
+  name: String!
+  triggerKind: String!
+  triggerConfig: String!
+  action: String!
+  enabled: Boolean!
+  lastRunAt: DateTime
+  lastStatus: String!
+  runs: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+input CreateAutomationInput {
+  projectID: ID!
+  name: String!
+  triggerKind: String!
+  triggerConfig: String!
+  action: String!
+  enabled: Boolean = true
+}
+
+extend type Query {
+  automations(projectID: ID!): [Automation!]!
+}
+
+extend type Mutation {
+  createAutomation(input: CreateAutomationInput!): Automation!
+  setAutomationEnabled(id: ID!, enabled: Boolean!): Automation!
+  runAutomation(id: ID!): Automation!
+  deleteAutomation(id: ID!): OperationResult!
+}

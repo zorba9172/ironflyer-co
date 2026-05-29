@@ -119,3 +119,138 @@ export const SENTINEL_FORECAST = /* GraphQL */ `
       remainingHeadroomUSD etaCompletionAt
     }
   }`;
+
+// --- Operate › Domains (real deploy-domains plane already in the orchestrator) ---
+const DOMAIN_FIELDS = /* GraphQL */ `
+  id hostname kind status provider registrar primary verificationStatus
+  certificateStatus instructions createdAt verifiedAt liveAt
+  dnsRecords { type name value ttl }`;
+
+export const DEPLOY_DOMAINS = /* GraphQL */ `
+  query DeployDomains($projectID: ID!) {
+    deployDomains(projectID: $projectID) { ${DOMAIN_FIELDS} }
+  }`;
+
+export const CONNECT_DEPLOY_DOMAIN = /* GraphQL */ `
+  mutation ConnectDeployDomain($input: ConnectDeployDomainInput!) {
+    connectDeployDomain(input: $input) { ${DOMAIN_FIELDS} }
+  }`;
+
+export const CHECK_DEPLOY_DOMAIN = /* GraphQL */ `
+  mutation CheckDeployDomain($id: ID!) {
+    checkDeployDomain(id: $id) { ${DOMAIN_FIELDS} }
+  }`;
+
+export const SET_PRIMARY_DEPLOY_DOMAIN = /* GraphQL */ `
+  mutation SetPrimaryDeployDomain($id: ID!) {
+    setPrimaryDeployDomain(id: $id) { ${DOMAIN_FIELDS} }
+  }`;
+
+// --- Operate › Data ---
+export const APP_DATA_SCHEMA = /* GraphQL */ `
+  query AppDataSchema($projectID: ID!) {
+    appDataSchema(projectID: $projectID) {
+      name rowCount columns { name type nullable primaryKey references }
+    }
+  }`;
+export const APP_TABLE_ROWS = /* GraphQL */ `
+  query AppTableRows($projectID: ID!, $table: String!, $limit: Int = 25) {
+    appTableRows(projectID: $projectID, table: $table, limit: $limit) { table columns rows total }
+  }`;
+
+// --- Operate › Users ---
+const APP_END_USER_FIELDS = /* GraphQL */ `id email name role status provider lastSeenAt createdAt`;
+export const APP_END_USERS = /* GraphQL */ `
+  query AppEndUsers($projectID: ID!, $limit: Int = 100, $offset: Int = 0) {
+    appEndUsers(projectID: $projectID, limit: $limit, offset: $offset) { ${APP_END_USER_FIELDS} }
+  }`;
+export const APP_USER_STATS = /* GraphQL */ `
+  query AppUserStats($projectID: ID!) {
+    appUserStats(projectID: $projectID) { total active7d newThisWeek suspended byRole { role count } }
+  }`;
+export const SET_APP_USER_ROLE = /* GraphQL */ `
+  mutation SetAppUserRole($projectID: ID!, $userID: ID!, $role: String!) {
+    setAppUserRole(projectID: $projectID, userID: $userID, role: $role) { ${APP_END_USER_FIELDS} }
+  }`;
+export const SET_APP_USER_SUSPENDED = /* GraphQL */ `
+  mutation SetAppUserSuspended($projectID: ID!, $userID: ID!, $suspended: Boolean!) {
+    setAppUserSuspended(projectID: $projectID, userID: $userID, suspended: $suspended) { ${APP_END_USER_FIELDS} }
+  }`;
+
+// --- Operate › Analytics ---
+export const APP_ANALYTICS = /* GraphQL */ `
+  query AppAnalytics($projectID: ID!, $days: Int = 30) {
+    appAnalytics(projectID: $projectID, days: $days) {
+      rangeDays visitors pageViews sessions bounceRatePct avgSessionSeconds visitorsDeltaPct
+      series { ts visitors pageViews sessions }
+      topPages { path views avgSeconds }
+      topReferrers { source visitors }
+      events { name count conversionPct }
+    }
+  }`;
+
+// --- Operate › Automations ---
+const AUTOMATION_FIELDS = /* GraphQL */ `id name triggerKind triggerConfig action enabled lastRunAt lastStatus runs createdAt updatedAt`;
+export const AUTOMATIONS = /* GraphQL */ `
+  query Automations($projectID: ID!) { automations(projectID: $projectID) { ${AUTOMATION_FIELDS} } }`;
+export const CREATE_AUTOMATION = /* GraphQL */ `
+  mutation CreateAutomation($input: CreateAutomationInput!) { createAutomation(input: $input) { ${AUTOMATION_FIELDS} } }`;
+export const SET_AUTOMATION_ENABLED = /* GraphQL */ `
+  mutation SetAutomationEnabled($id: ID!, $enabled: Boolean!) { setAutomationEnabled(id: $id, enabled: $enabled) { ${AUTOMATION_FIELDS} } }`;
+export const RUN_AUTOMATION = /* GraphQL */ `
+  mutation RunAutomation($id: ID!) { runAutomation(id: $id) { ${AUTOMATION_FIELDS} } }`;
+export const DELETE_AUTOMATION = /* GraphQL */ `
+  mutation DeleteAutomation($id: ID!) { deleteAutomation(id: $id) { ok } }`;
+
+// --- Operate › API ---
+const APP_API_KEY_FIELDS = /* GraphQL */ `id name prefix scopes lastUsedAt createdAt revoked`;
+export const APP_API_KEYS = /* GraphQL */ `
+  query AppApiKeys($projectID: ID!) { appApiKeys(projectID: $projectID) { ${APP_API_KEY_FIELDS} } }`;
+export const APP_ENDPOINTS = /* GraphQL */ `
+  query AppEndpoints($projectID: ID!) { appEndpoints(projectID: $projectID) { method path description auth } }`;
+export const APP_WEBHOOKS = /* GraphQL */ `
+  query AppWebhooks($projectID: ID!) { appWebhooks(projectID: $projectID) { id url events enabled createdAt } }`;
+export const CREATE_APP_API_KEY = /* GraphQL */ `
+  mutation CreateAppApiKey($input: CreateAppApiKeyInput!) {
+    createAppApiKey(input: $input) { secret key { ${APP_API_KEY_FIELDS} } }
+  }`;
+export const REVOKE_APP_API_KEY = /* GraphQL */ `
+  mutation RevokeAppApiKey($id: ID!) { revokeAppApiKey(id: $id) { ${APP_API_KEY_FIELDS} } }`;
+export const CREATE_APP_WEBHOOK = /* GraphQL */ `
+  mutation CreateAppWebhook($input: CreateAppWebhookInput!) {
+    createAppWebhook(input: $input) { id url events enabled createdAt }
+  }`;
+export const SET_APP_WEBHOOK_ENABLED = /* GraphQL */ `
+  mutation SetAppWebhookEnabled($id: ID!, $enabled: Boolean!) {
+    setAppWebhookEnabled(id: $id, enabled: $enabled) { id url events enabled createdAt }
+  }`;
+export const DELETE_APP_WEBHOOK = /* GraphQL */ `
+  mutation DeleteAppWebhook($id: ID!) { deleteAppWebhook(id: $id) { ok } }`;
+
+// --- Operate › Marketing (SEO) ---
+const APP_SEO_FIELDS = /* GraphQL */ `projectID title description keywords ogImageURL twitterHandle canonicalURL robots sitemapEnabled updatedAt`;
+export const APP_SEO_SETTINGS = /* GraphQL */ `
+  query AppSeoSettings($projectID: ID!) { appSeoSettings(projectID: $projectID) { ${APP_SEO_FIELDS} } }`;
+export const APP_SEO_AUDIT = /* GraphQL */ `
+  query AppSeoAudit($projectID: ID!) { appSeoAudit(projectID: $projectID) { score checks { key label passed detail } } }`;
+export const UPDATE_APP_SEO_SETTINGS = /* GraphQL */ `
+  mutation UpdateAppSeoSettings($projectID: ID!, $input: UpdateAppSeoSettingsInput!) {
+    updateAppSeoSettings(projectID: $projectID, input: $input) { ${APP_SEO_FIELDS} }
+  }`;
+
+// --- Operate › Settings ---
+const APP_SETTINGS_FIELDS = /* GraphQL */ `projectID displayName visibility region supportEmail updatedAt envVars { key valuePreview secret updatedAt }`;
+export const APP_SETTINGS = /* GraphQL */ `
+  query AppSettings($projectID: ID!) { appSettings(projectID: $projectID) { ${APP_SETTINGS_FIELDS} } }`;
+export const UPDATE_APP_SETTINGS = /* GraphQL */ `
+  mutation UpdateAppSettings($projectID: ID!, $input: UpdateAppSettingsInput!) {
+    updateAppSettings(projectID: $projectID, input: $input) { ${APP_SETTINGS_FIELDS} }
+  }`;
+export const SET_APP_ENV_VAR = /* GraphQL */ `
+  mutation SetAppEnvVar($projectID: ID!, $key: String!, $value: String!, $secret: Boolean = false) {
+    setAppEnvVar(projectID: $projectID, key: $key, value: $value, secret: $secret) { ${APP_SETTINGS_FIELDS} }
+  }`;
+export const DELETE_APP_ENV_VAR = /* GraphQL */ `
+  mutation DeleteAppEnvVar($projectID: ID!, $key: String!) {
+    deleteAppEnvVar(projectID: $projectID, key: $key) { ${APP_SETTINGS_FIELDS} }
+  }`;
