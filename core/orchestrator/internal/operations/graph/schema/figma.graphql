@@ -1,0 +1,52 @@
+# Figma import. Decomposes a Figma file into a structured extract — design
+# tokens (colors / typography / spacing / radii), a component inventory, and
+# per-frame PNG renders — that the figma-translator agent turns into a
+# pixel-accurate UI in the project's stack. Backed by internal/suppliers/figma;
+# requires a configured FIGMA_TOKEN.
+
+type FigmaColorToken {
+  hex: String!
+  alpha: Float!
+}
+
+type FigmaTypographyToken {
+  fontFamily: String!
+  fontSize: Float!
+  fontWeight: Float!
+  lineHeight: Float!
+}
+
+type FigmaComponent {
+  id: String!
+  name: String!
+  type: String!
+  layoutMode: String
+  width: Float!
+  height: Float!
+  children: Int!
+}
+
+type FigmaFrame {
+  id: String!
+  name: String!
+  width: Float!
+  height: Float!
+  imageUrl: String
+}
+
+type FigmaExtract {
+  fileKey: String!
+  name: String!
+  colors: [FigmaColorToken!]!
+  typography: [FigmaTypographyToken!]!
+  spacing: [Float!]!
+  radii: [Float!]!
+  components: [FigmaComponent!]!
+  frames: [FigmaFrame!]!
+}
+
+extend type Mutation {
+  # Pull a Figma file (by file key) into a structured extract. Requires a
+  # configured FIGMA_TOKEN and access to the file.
+  importFigma(fileKey: String!): FigmaExtract!
+}

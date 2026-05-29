@@ -34,6 +34,7 @@ import (
 	"ironflyer/core/orchestrator/internal/ai/agents"
 	"ironflyer/core/orchestrator/internal/ai/atlas"
 	"ironflyer/core/orchestrator/internal/ai/completion"
+	"ironflyer/core/orchestrator/internal/ai/costcascade"
 	"ironflyer/core/orchestrator/internal/ai/embeddings"
 	"ironflyer/core/orchestrator/internal/ai/finisher"
 	"ironflyer/core/orchestrator/internal/ai/inference"
@@ -54,9 +55,9 @@ import (
 	"ironflyer/core/orchestrator/internal/customer/auth/oauth"
 	"ironflyer/core/orchestrator/internal/customer/notify"
 	"ironflyer/core/orchestrator/internal/operations/abuse"
+	"ironflyer/core/orchestrator/internal/operations/agentteam"
 	"ironflyer/core/orchestrator/internal/operations/appconsole"
 	"ironflyer/core/orchestrator/internal/operations/arch"
-	"ironflyer/core/orchestrator/internal/operations/agentteam"
 	"ironflyer/core/orchestrator/internal/operations/audit"
 	"ironflyer/core/orchestrator/internal/operations/auditexport"
 	"ironflyer/core/orchestrator/internal/operations/bus"
@@ -94,6 +95,7 @@ import (
 	"ironflyer/core/orchestrator/internal/operations/tracing"
 	"ironflyer/core/orchestrator/internal/operations/wireup"
 	"ironflyer/core/orchestrator/internal/suppliers/context7"
+	"ironflyer/core/orchestrator/internal/suppliers/figma"
 	"ironflyer/core/orchestrator/migrations"
 )
 
@@ -881,7 +883,30 @@ func main() {
 	}
 
 	// ---------------- Agents registry + patches + finisher ----------------
-	registry := agents.NewRegistry(guard)
+	// Cost cascade — the layered AI-cost-optimization front door. It wraps
+	// the BillingGuard and satisfies the same one-method completer the
+	// registry consumes, so on any miss it delegates verbatim (zero
+	// behavioural change). Default mode is observe + safe deterministic
+	// rules; response caching and tier downgrade are explicit opt-ins so a
+	// patch is never served from a stale near-match nor silently degraded.
+	var agentStreamer agents.Streamer = guard
+	if cfg.CostCascadeEnabled {
+		cascade := costcascade.New(guard, costcascade.Config{
+			Enabled:         true,
+			ResponseCache:   cfg.CostCascadeResponseCache,
+			CacheMaxEntries: cfg.CostCascadeCacheEntries,
+			CacheTTL:        time.Duration(cfg.CostCascadeCacheTTLMin) * time.Minute,
+			AllowDowngrade:  cfg.CostCascadeAllowDowngrade,
+			CostRatioTarget: cfg.CostCascadeCostRatioTarget,
+		}, logger)
+		agentStreamer = cascade
+		logger.Info().
+			Bool("response_cache", cfg.CostCascadeResponseCache).
+			Bool("allow_downgrade", cfg.CostCascadeAllowDowngrade).
+			Float64("cost_ratio_target", cfg.CostCascadeCostRatioTarget).
+			Msg("cost cascade: enabled (layered AI-cost-optimization front door)")
+	}
+	registry := agents.NewRegistry(agentStreamer)
 	registry.RegisterDefaults()
 
 	// Context7 live-docs grounding: when enabled (IRONFLYER_CONTEXT7_ENABLED,
@@ -2209,7 +2234,8 @@ func main() {
 	api := httpapi.New(httpapi.Deps{
 		Projects: projects, Engine: engine, Agents: registry, Patches: patches,
 		AgentTeam: agentteam.NewMemoryStore(nil),
-		Billing: billing, Stripe: stripeSvc, Paddle: paddleSvc, Guard: guard,
+		Figma:     figma.New(cfg.FigmaToken),
+		Billing:   billing, Stripe: stripeSvc, Paddle: paddleSvc, Guard: guard,
 		Auth: authSvc, AuthOptional: cfg.AuthOptional,
 		OAuth:          oauthHandler,
 		AllowedOrigins: cfg.CORSOrigins,

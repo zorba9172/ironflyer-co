@@ -60,6 +60,7 @@ import (
 	"ironflyer/core/orchestrator/internal/operations/arch"
 	"ironflyer/core/orchestrator/internal/operations/agentteam"
 	"ironflyer/core/orchestrator/internal/operations/audit"
+	"ironflyer/core/orchestrator/internal/suppliers/figma"
 	"ironflyer/core/orchestrator/internal/operations/auditexport"
 	"ironflyer/core/orchestrator/internal/operations/bus"
 	"ironflyer/core/orchestrator/internal/operations/deploy"
@@ -92,6 +93,8 @@ type Deps struct {
 	Patches  *patch.Engine
 	// AgentTeam persists operator-defined custom agents + crews.
 	AgentTeam agentteam.Store
+	// Figma is the Figma REST extractor backing the importFigma mutation.
+	Figma *figma.Client
 
 	// Budget + payments.
 	Billing *budget.Billing
@@ -481,6 +484,7 @@ func (a *API) newResolver() *resolver.Resolver {
 		Engine:                    a.d.Engine,
 		Agents:                    a.d.Agents,
 		AgentTeam:                 a.d.AgentTeam,
+		Figma:                     a.d.Figma,
 		Patches:                   a.d.Patches,
 		Guard:                     a.d.Guard,
 		Logger:                    a.d.Logger,

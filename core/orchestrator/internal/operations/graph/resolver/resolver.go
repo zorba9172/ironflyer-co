@@ -46,6 +46,7 @@ import (
 	"ironflyer/core/orchestrator/internal/operations/mobile/appetize"
 	"ironflyer/core/orchestrator/internal/operations/mobile/devicecloud"
 	"ironflyer/core/orchestrator/internal/operations/agentteam"
+	"ironflyer/core/orchestrator/internal/suppliers/figma"
 	"ironflyer/core/orchestrator/internal/operations/mobile/eas"
 	"ironflyer/core/orchestrator/internal/operations/operator"
 	"ironflyer/core/orchestrator/internal/operations/patch"
@@ -82,6 +83,11 @@ type Resolver struct {
 	// the studio's agent-management surface. Nil-safe — resolvers return
 	// gqlNotConfigured when the dependency was not wired.
 	AgentTeam agentteam.Store
+
+	// Figma is the Figma REST extractor backing the importFigma mutation.
+	// Nil-safe — the resolver returns gqlNotConfigured when FIGMA_TOKEN is
+	// unset.
+	Figma *figma.Client
 
 	// PublicBaseURL is forwarded into resolvers that emit external
 	// URLs (e.g. audit export links) so the URL matches the

@@ -704,6 +704,47 @@ type ComplexityRoot struct {
 		Payload     func(childComplexity int) int
 	}
 
+	FigmaColorToken struct {
+		Alpha func(childComplexity int) int
+		Hex   func(childComplexity int) int
+	}
+
+	FigmaComponent struct {
+		Children   func(childComplexity int) int
+		Height     func(childComplexity int) int
+		ID         func(childComplexity int) int
+		LayoutMode func(childComplexity int) int
+		Name       func(childComplexity int) int
+		Type       func(childComplexity int) int
+		Width      func(childComplexity int) int
+	}
+
+	FigmaExtract struct {
+		Colors     func(childComplexity int) int
+		Components func(childComplexity int) int
+		FileKey    func(childComplexity int) int
+		Frames     func(childComplexity int) int
+		Name       func(childComplexity int) int
+		Radii      func(childComplexity int) int
+		Spacing    func(childComplexity int) int
+		Typography func(childComplexity int) int
+	}
+
+	FigmaFrame struct {
+		Height   func(childComplexity int) int
+		ID       func(childComplexity int) int
+		ImageURL func(childComplexity int) int
+		Name     func(childComplexity int) int
+		Width    func(childComplexity int) int
+	}
+
+	FigmaTypographyToken struct {
+		FontFamily func(childComplexity int) int
+		FontSize   func(childComplexity int) int
+		FontWeight func(childComplexity int) int
+		LineHeight func(childComplexity int) int
+	}
+
 	FinisherProfile struct {
 		CompletedTaskCount func(childComplexity int) int
 		DisplayName        func(childComplexity int) int
@@ -1014,6 +1055,7 @@ type ComplexityRoot struct {
 		EvaluateCompliance            func(childComplexity int, projectID string, framework string) int
 		ExportAuditBundle             func(childComplexity int, projectID string, framework string) int
 		GenerateMobileAssets          func(childComplexity int, input model.GenerateMobileAssetsInput) int
+		ImportFigma                   func(childComplexity int, fileKey string) int
 		InstallTemplate               func(childComplexity int, slug string, projectID string) int
 		MarkAllNotificationsRead      func(childComplexity int) int
 		MarkNotificationRead          func(childComplexity int, id string) int
@@ -1768,6 +1810,7 @@ type MutationResolver interface {
 	CreatePaidExecution(ctx context.Context, input model.CreatePaidExecutionInput) (*model.Execution, error)
 	StopExecution(ctx context.Context, id string, reason string) (*model.Execution, error)
 	RefundExecution(ctx context.Context, id string, amountUsd *float64, reason *string) (*model.Execution, error)
+	ImportFigma(ctx context.Context, fileKey string) (*model.FigmaExtract, error)
 	RerunGate(ctx context.Context, input model.RerunGateInput) (*model.GateVerdict, error)
 	UpsertFinisherProfile(ctx context.Context, displayName string, skills []string, hourlyRateUsd string) (*model.FinisherProfile, error)
 	CreateGuildTask(ctx context.Context, projectID string, title string, description string, priceUSDFloor string, slaHours int) (*model.GuildTask, error)
@@ -4753,6 +4796,167 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.ExecutionEvent.Payload(childComplexity), true
 
+	case "FigmaColorToken.alpha":
+		if e.ComplexityRoot.FigmaColorToken.Alpha == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FigmaColorToken.Alpha(childComplexity), true
+	case "FigmaColorToken.hex":
+		if e.ComplexityRoot.FigmaColorToken.Hex == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FigmaColorToken.Hex(childComplexity), true
+
+	case "FigmaComponent.children":
+		if e.ComplexityRoot.FigmaComponent.Children == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FigmaComponent.Children(childComplexity), true
+	case "FigmaComponent.height":
+		if e.ComplexityRoot.FigmaComponent.Height == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FigmaComponent.Height(childComplexity), true
+	case "FigmaComponent.id":
+		if e.ComplexityRoot.FigmaComponent.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FigmaComponent.ID(childComplexity), true
+	case "FigmaComponent.layoutMode":
+		if e.ComplexityRoot.FigmaComponent.LayoutMode == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FigmaComponent.LayoutMode(childComplexity), true
+	case "FigmaComponent.name":
+		if e.ComplexityRoot.FigmaComponent.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FigmaComponent.Name(childComplexity), true
+	case "FigmaComponent.type":
+		if e.ComplexityRoot.FigmaComponent.Type == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FigmaComponent.Type(childComplexity), true
+	case "FigmaComponent.width":
+		if e.ComplexityRoot.FigmaComponent.Width == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FigmaComponent.Width(childComplexity), true
+
+	case "FigmaExtract.colors":
+		if e.ComplexityRoot.FigmaExtract.Colors == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FigmaExtract.Colors(childComplexity), true
+	case "FigmaExtract.components":
+		if e.ComplexityRoot.FigmaExtract.Components == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FigmaExtract.Components(childComplexity), true
+	case "FigmaExtract.fileKey":
+		if e.ComplexityRoot.FigmaExtract.FileKey == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FigmaExtract.FileKey(childComplexity), true
+	case "FigmaExtract.frames":
+		if e.ComplexityRoot.FigmaExtract.Frames == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FigmaExtract.Frames(childComplexity), true
+	case "FigmaExtract.name":
+		if e.ComplexityRoot.FigmaExtract.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FigmaExtract.Name(childComplexity), true
+	case "FigmaExtract.radii":
+		if e.ComplexityRoot.FigmaExtract.Radii == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FigmaExtract.Radii(childComplexity), true
+	case "FigmaExtract.spacing":
+		if e.ComplexityRoot.FigmaExtract.Spacing == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FigmaExtract.Spacing(childComplexity), true
+	case "FigmaExtract.typography":
+		if e.ComplexityRoot.FigmaExtract.Typography == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FigmaExtract.Typography(childComplexity), true
+
+	case "FigmaFrame.height":
+		if e.ComplexityRoot.FigmaFrame.Height == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FigmaFrame.Height(childComplexity), true
+	case "FigmaFrame.id":
+		if e.ComplexityRoot.FigmaFrame.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FigmaFrame.ID(childComplexity), true
+	case "FigmaFrame.imageUrl":
+		if e.ComplexityRoot.FigmaFrame.ImageURL == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FigmaFrame.ImageURL(childComplexity), true
+	case "FigmaFrame.name":
+		if e.ComplexityRoot.FigmaFrame.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FigmaFrame.Name(childComplexity), true
+	case "FigmaFrame.width":
+		if e.ComplexityRoot.FigmaFrame.Width == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FigmaFrame.Width(childComplexity), true
+
+	case "FigmaTypographyToken.fontFamily":
+		if e.ComplexityRoot.FigmaTypographyToken.FontFamily == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FigmaTypographyToken.FontFamily(childComplexity), true
+	case "FigmaTypographyToken.fontSize":
+		if e.ComplexityRoot.FigmaTypographyToken.FontSize == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FigmaTypographyToken.FontSize(childComplexity), true
+	case "FigmaTypographyToken.fontWeight":
+		if e.ComplexityRoot.FigmaTypographyToken.FontWeight == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FigmaTypographyToken.FontWeight(childComplexity), true
+	case "FigmaTypographyToken.lineHeight":
+		if e.ComplexityRoot.FigmaTypographyToken.LineHeight == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FigmaTypographyToken.LineHeight(childComplexity), true
+
 	case "FinisherProfile.completedTaskCount":
 		if e.ComplexityRoot.FinisherProfile.CompletedTaskCount == nil {
 			break
@@ -6284,6 +6488,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.GenerateMobileAssets(childComplexity, args["input"].(model.GenerateMobileAssetsInput)), true
+	case "Mutation.importFigma":
+		if e.ComplexityRoot.Mutation.ImportFigma == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_importFigma_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.ImportFigma(childComplexity, args["fileKey"].(string)), true
 	case "Mutation.installTemplate":
 		if e.ComplexityRoot.Mutation.InstallTemplate == nil {
 			break
@@ -11959,6 +12174,59 @@ type ExecutionEvent {
   createdAt: DateTime!
 }
 `, BuiltIn: false},
+	{Name: "../schema/figma.graphql", Input: `# Figma import. Decomposes a Figma file into a structured extract — design
+# tokens (colors / typography / spacing / radii), a component inventory, and
+# per-frame PNG renders — that the figma-translator agent turns into a
+# pixel-accurate UI in the project's stack. Backed by internal/suppliers/figma;
+# requires a configured FIGMA_TOKEN.
+
+type FigmaColorToken {
+  hex: String!
+  alpha: Float!
+}
+
+type FigmaTypographyToken {
+  fontFamily: String!
+  fontSize: Float!
+  fontWeight: Float!
+  lineHeight: Float!
+}
+
+type FigmaComponent {
+  id: String!
+  name: String!
+  type: String!
+  layoutMode: String
+  width: Float!
+  height: Float!
+  children: Int!
+}
+
+type FigmaFrame {
+  id: String!
+  name: String!
+  width: Float!
+  height: Float!
+  imageUrl: String
+}
+
+type FigmaExtract {
+  fileKey: String!
+  name: String!
+  colors: [FigmaColorToken!]!
+  typography: [FigmaTypographyToken!]!
+  spacing: [Float!]!
+  radii: [Float!]!
+  components: [FigmaComponent!]!
+  frames: [FigmaFrame!]!
+}
+
+extend type Mutation {
+  # Pull a Figma file (by file key) into a structured extract. Requires a
+  # configured FIGMA_TOKEN and access to the file.
+  importFigma(fileKey: String!): FigmaExtract!
+}
+`, BuiltIn: false},
 	{Name: "../schema/forecast.graphql", Input: `# V22 cost forecast — Agent 34. Lets the user ask "what would this
 # cost?" before any wallet hold lands. Backed by
 # ` + "`" + `internal/forecast/` + "`" + `; the resolver is forecast.resolver.go and the
@@ -14833,6 +15101,88 @@ func (ec *executionContext) childFields_ExecutionEvent(ctx context.Context, fiel
 	return nil, fmt.Errorf("no field named %q was found under type ExecutionEvent", field.Name)
 }
 
+func (ec *executionContext) childFields_FigmaColorToken(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "hex":
+		return ec.fieldContext_FigmaColorToken_hex(ctx, field)
+	case "alpha":
+		return ec.fieldContext_FigmaColorToken_alpha(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type FigmaColorToken", field.Name)
+}
+
+func (ec *executionContext) childFields_FigmaComponent(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "id":
+		return ec.fieldContext_FigmaComponent_id(ctx, field)
+	case "name":
+		return ec.fieldContext_FigmaComponent_name(ctx, field)
+	case "type":
+		return ec.fieldContext_FigmaComponent_type(ctx, field)
+	case "layoutMode":
+		return ec.fieldContext_FigmaComponent_layoutMode(ctx, field)
+	case "width":
+		return ec.fieldContext_FigmaComponent_width(ctx, field)
+	case "height":
+		return ec.fieldContext_FigmaComponent_height(ctx, field)
+	case "children":
+		return ec.fieldContext_FigmaComponent_children(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type FigmaComponent", field.Name)
+}
+
+func (ec *executionContext) childFields_FigmaExtract(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "fileKey":
+		return ec.fieldContext_FigmaExtract_fileKey(ctx, field)
+	case "name":
+		return ec.fieldContext_FigmaExtract_name(ctx, field)
+	case "colors":
+		return ec.fieldContext_FigmaExtract_colors(ctx, field)
+	case "typography":
+		return ec.fieldContext_FigmaExtract_typography(ctx, field)
+	case "spacing":
+		return ec.fieldContext_FigmaExtract_spacing(ctx, field)
+	case "radii":
+		return ec.fieldContext_FigmaExtract_radii(ctx, field)
+	case "components":
+		return ec.fieldContext_FigmaExtract_components(ctx, field)
+	case "frames":
+		return ec.fieldContext_FigmaExtract_frames(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type FigmaExtract", field.Name)
+}
+
+func (ec *executionContext) childFields_FigmaFrame(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "id":
+		return ec.fieldContext_FigmaFrame_id(ctx, field)
+	case "name":
+		return ec.fieldContext_FigmaFrame_name(ctx, field)
+	case "width":
+		return ec.fieldContext_FigmaFrame_width(ctx, field)
+	case "height":
+		return ec.fieldContext_FigmaFrame_height(ctx, field)
+	case "imageUrl":
+		return ec.fieldContext_FigmaFrame_imageUrl(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type FigmaFrame", field.Name)
+}
+
+func (ec *executionContext) childFields_FigmaTypographyToken(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "fontFamily":
+		return ec.fieldContext_FigmaTypographyToken_fontFamily(ctx, field)
+	case "fontSize":
+		return ec.fieldContext_FigmaTypographyToken_fontSize(ctx, field)
+	case "fontWeight":
+		return ec.fieldContext_FigmaTypographyToken_fontWeight(ctx, field)
+	case "lineHeight":
+		return ec.fieldContext_FigmaTypographyToken_lineHeight(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type FigmaTypographyToken", field.Name)
+}
+
 func (ec *executionContext) childFields_FinisherProfile(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 	switch field.Name {
 	case "id":
@@ -16918,6 +17268,20 @@ func (ec *executionContext) field_Mutation_generateMobileAssets_args(ctx context
 		return nil, err
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_importFigma_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "fileKey",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNString2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["fileKey"] = arg0
 	return args, nil
 }
 
@@ -30276,6 +30640,640 @@ func (ec *executionContext) fieldContext_ExecutionEvent_createdAt(_ context.Cont
 	return graphql.NewScalarFieldContext("ExecutionEvent", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
+func (ec *executionContext) _FigmaColorToken_hex(ctx context.Context, field graphql.CollectedField, obj *model.FigmaColorToken) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_FigmaColorToken_hex(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Hex, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_FigmaColorToken_hex(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("FigmaColorToken", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _FigmaColorToken_alpha(ctx context.Context, field graphql.CollectedField, obj *model.FigmaColorToken) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_FigmaColorToken_alpha(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Alpha, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_FigmaColorToken_alpha(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("FigmaColorToken", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _FigmaComponent_id(ctx context.Context, field graphql.CollectedField, obj *model.FigmaComponent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_FigmaComponent_id(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_FigmaComponent_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("FigmaComponent", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _FigmaComponent_name(ctx context.Context, field graphql.CollectedField, obj *model.FigmaComponent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_FigmaComponent_name(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_FigmaComponent_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("FigmaComponent", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _FigmaComponent_type(ctx context.Context, field graphql.CollectedField, obj *model.FigmaComponent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_FigmaComponent_type(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Type, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_FigmaComponent_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("FigmaComponent", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _FigmaComponent_layoutMode(ctx context.Context, field graphql.CollectedField, obj *model.FigmaComponent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_FigmaComponent_layoutMode(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.LayoutMode, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_FigmaComponent_layoutMode(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("FigmaComponent", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _FigmaComponent_width(ctx context.Context, field graphql.CollectedField, obj *model.FigmaComponent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_FigmaComponent_width(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Width, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_FigmaComponent_width(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("FigmaComponent", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _FigmaComponent_height(ctx context.Context, field graphql.CollectedField, obj *model.FigmaComponent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_FigmaComponent_height(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Height, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_FigmaComponent_height(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("FigmaComponent", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _FigmaComponent_children(ctx context.Context, field graphql.CollectedField, obj *model.FigmaComponent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_FigmaComponent_children(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Children, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int) graphql.Marshaler {
+			return ec.marshalNInt2int(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_FigmaComponent_children(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("FigmaComponent", field, false, false, errors.New("field of type Int does not have child fields"))
+}
+
+func (ec *executionContext) _FigmaExtract_fileKey(ctx context.Context, field graphql.CollectedField, obj *model.FigmaExtract) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_FigmaExtract_fileKey(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.FileKey, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_FigmaExtract_fileKey(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("FigmaExtract", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _FigmaExtract_name(ctx context.Context, field graphql.CollectedField, obj *model.FigmaExtract) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_FigmaExtract_name(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_FigmaExtract_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("FigmaExtract", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _FigmaExtract_colors(ctx context.Context, field graphql.CollectedField, obj *model.FigmaExtract) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_FigmaExtract_colors(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Colors, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []model.FigmaColorToken) graphql.Marshaler {
+			return ec.marshalNFigmaColorToken2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐFigmaColorTokenᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_FigmaExtract_colors(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FigmaExtract",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_FigmaColorToken(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FigmaExtract_typography(ctx context.Context, field graphql.CollectedField, obj *model.FigmaExtract) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_FigmaExtract_typography(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Typography, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []model.FigmaTypographyToken) graphql.Marshaler {
+			return ec.marshalNFigmaTypographyToken2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐFigmaTypographyTokenᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_FigmaExtract_typography(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FigmaExtract",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_FigmaTypographyToken(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FigmaExtract_spacing(ctx context.Context, field graphql.CollectedField, obj *model.FigmaExtract) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_FigmaExtract_spacing(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Spacing, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []float64) graphql.Marshaler {
+			return ec.marshalNFloat2ᚕfloat64ᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_FigmaExtract_spacing(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("FigmaExtract", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _FigmaExtract_radii(ctx context.Context, field graphql.CollectedField, obj *model.FigmaExtract) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_FigmaExtract_radii(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Radii, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []float64) graphql.Marshaler {
+			return ec.marshalNFloat2ᚕfloat64ᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_FigmaExtract_radii(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("FigmaExtract", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _FigmaExtract_components(ctx context.Context, field graphql.CollectedField, obj *model.FigmaExtract) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_FigmaExtract_components(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Components, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []model.FigmaComponent) graphql.Marshaler {
+			return ec.marshalNFigmaComponent2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐFigmaComponentᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_FigmaExtract_components(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FigmaExtract",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_FigmaComponent(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FigmaExtract_frames(ctx context.Context, field graphql.CollectedField, obj *model.FigmaExtract) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_FigmaExtract_frames(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Frames, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []model.FigmaFrame) graphql.Marshaler {
+			return ec.marshalNFigmaFrame2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐFigmaFrameᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_FigmaExtract_frames(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "FigmaExtract",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_FigmaFrame(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _FigmaFrame_id(ctx context.Context, field graphql.CollectedField, obj *model.FigmaFrame) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_FigmaFrame_id(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_FigmaFrame_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("FigmaFrame", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _FigmaFrame_name(ctx context.Context, field graphql.CollectedField, obj *model.FigmaFrame) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_FigmaFrame_name(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_FigmaFrame_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("FigmaFrame", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _FigmaFrame_width(ctx context.Context, field graphql.CollectedField, obj *model.FigmaFrame) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_FigmaFrame_width(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Width, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_FigmaFrame_width(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("FigmaFrame", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _FigmaFrame_height(ctx context.Context, field graphql.CollectedField, obj *model.FigmaFrame) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_FigmaFrame_height(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Height, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_FigmaFrame_height(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("FigmaFrame", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _FigmaFrame_imageUrl(ctx context.Context, field graphql.CollectedField, obj *model.FigmaFrame) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_FigmaFrame_imageUrl(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ImageURL, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_FigmaFrame_imageUrl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("FigmaFrame", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _FigmaTypographyToken_fontFamily(ctx context.Context, field graphql.CollectedField, obj *model.FigmaTypographyToken) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_FigmaTypographyToken_fontFamily(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.FontFamily, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_FigmaTypographyToken_fontFamily(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("FigmaTypographyToken", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _FigmaTypographyToken_fontSize(ctx context.Context, field graphql.CollectedField, obj *model.FigmaTypographyToken) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_FigmaTypographyToken_fontSize(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.FontSize, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_FigmaTypographyToken_fontSize(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("FigmaTypographyToken", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _FigmaTypographyToken_fontWeight(ctx context.Context, field graphql.CollectedField, obj *model.FigmaTypographyToken) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_FigmaTypographyToken_fontWeight(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.FontWeight, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_FigmaTypographyToken_fontWeight(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("FigmaTypographyToken", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _FigmaTypographyToken_lineHeight(ctx context.Context, field graphql.CollectedField, obj *model.FigmaTypographyToken) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_FigmaTypographyToken_lineHeight(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.LineHeight, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_FigmaTypographyToken_lineHeight(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("FigmaTypographyToken", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
 func (ec *executionContext) _FinisherProfile_id(ctx context.Context, field graphql.CollectedField, obj *model.FinisherProfile) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -37218,6 +38216,50 @@ func (ec *executionContext) fieldContext_Mutation_refundExecution(ctx context.Co
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_refundExecution_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_importFigma(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_importFigma(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().ImportFigma(ctx, fc.Args["fileKey"].(string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.FigmaExtract) graphql.Marshaler {
+			return ec.marshalNFigmaExtract2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐFigmaExtract(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_importFigma(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_FigmaExtract(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_importFigma_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -59771,6 +60813,300 @@ func (ec *executionContext) _ExecutionEvent(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var figmaColorTokenImplementors = []string{"FigmaColorToken"}
+
+func (ec *executionContext) _FigmaColorToken(ctx context.Context, sel ast.SelectionSet, obj *model.FigmaColorToken) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, figmaColorTokenImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FigmaColorToken")
+		case "hex":
+			out.Values[i] = ec._FigmaColorToken_hex(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "alpha":
+			out.Values[i] = ec._FigmaColorToken_alpha(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var figmaComponentImplementors = []string{"FigmaComponent"}
+
+func (ec *executionContext) _FigmaComponent(ctx context.Context, sel ast.SelectionSet, obj *model.FigmaComponent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, figmaComponentImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FigmaComponent")
+		case "id":
+			out.Values[i] = ec._FigmaComponent_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._FigmaComponent_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "type":
+			out.Values[i] = ec._FigmaComponent_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "layoutMode":
+			out.Values[i] = ec._FigmaComponent_layoutMode(ctx, field, obj)
+		case "width":
+			out.Values[i] = ec._FigmaComponent_width(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "height":
+			out.Values[i] = ec._FigmaComponent_height(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "children":
+			out.Values[i] = ec._FigmaComponent_children(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var figmaExtractImplementors = []string{"FigmaExtract"}
+
+func (ec *executionContext) _FigmaExtract(ctx context.Context, sel ast.SelectionSet, obj *model.FigmaExtract) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, figmaExtractImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FigmaExtract")
+		case "fileKey":
+			out.Values[i] = ec._FigmaExtract_fileKey(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._FigmaExtract_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "colors":
+			out.Values[i] = ec._FigmaExtract_colors(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "typography":
+			out.Values[i] = ec._FigmaExtract_typography(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "spacing":
+			out.Values[i] = ec._FigmaExtract_spacing(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "radii":
+			out.Values[i] = ec._FigmaExtract_radii(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "components":
+			out.Values[i] = ec._FigmaExtract_components(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "frames":
+			out.Values[i] = ec._FigmaExtract_frames(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var figmaFrameImplementors = []string{"FigmaFrame"}
+
+func (ec *executionContext) _FigmaFrame(ctx context.Context, sel ast.SelectionSet, obj *model.FigmaFrame) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, figmaFrameImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FigmaFrame")
+		case "id":
+			out.Values[i] = ec._FigmaFrame_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._FigmaFrame_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "width":
+			out.Values[i] = ec._FigmaFrame_width(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "height":
+			out.Values[i] = ec._FigmaFrame_height(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "imageUrl":
+			out.Values[i] = ec._FigmaFrame_imageUrl(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var figmaTypographyTokenImplementors = []string{"FigmaTypographyToken"}
+
+func (ec *executionContext) _FigmaTypographyToken(ctx context.Context, sel ast.SelectionSet, obj *model.FigmaTypographyToken) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, figmaTypographyTokenImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FigmaTypographyToken")
+		case "fontFamily":
+			out.Values[i] = ec._FigmaTypographyToken_fontFamily(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "fontSize":
+			out.Values[i] = ec._FigmaTypographyToken_fontSize(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "fontWeight":
+			out.Values[i] = ec._FigmaTypographyToken_fontWeight(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "lineHeight":
+			out.Values[i] = ec._FigmaTypographyToken_lineHeight(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var finisherProfileImplementors = []string{"FinisherProfile"}
 
 func (ec *executionContext) _FinisherProfile(ctx context.Context, sel ast.SelectionSet, obj *model.FinisherProfile) graphql.Marshaler {
@@ -61973,6 +63309,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "refundExecution":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_refundExecution(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "importFigma":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_importFigma(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -69859,6 +71202,100 @@ func (ec *executionContext) marshalNExecutionEvent2ᚖironflyerᚋcoreᚋorchest
 	return ec._ExecutionEvent(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNFigmaColorToken2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐFigmaColorToken(ctx context.Context, sel ast.SelectionSet, v model.FigmaColorToken) graphql.Marshaler {
+	return ec._FigmaColorToken(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNFigmaColorToken2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐFigmaColorTokenᚄ(ctx context.Context, sel ast.SelectionSet, v []model.FigmaColorToken) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNFigmaColorToken2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐFigmaColorToken(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNFigmaComponent2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐFigmaComponent(ctx context.Context, sel ast.SelectionSet, v model.FigmaComponent) graphql.Marshaler {
+	return ec._FigmaComponent(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNFigmaComponent2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐFigmaComponentᚄ(ctx context.Context, sel ast.SelectionSet, v []model.FigmaComponent) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNFigmaComponent2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐFigmaComponent(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNFigmaExtract2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐFigmaExtract(ctx context.Context, sel ast.SelectionSet, v model.FigmaExtract) graphql.Marshaler {
+	return ec._FigmaExtract(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNFigmaExtract2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐFigmaExtract(ctx context.Context, sel ast.SelectionSet, v *model.FigmaExtract) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._FigmaExtract(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNFigmaFrame2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐFigmaFrame(ctx context.Context, sel ast.SelectionSet, v model.FigmaFrame) graphql.Marshaler {
+	return ec._FigmaFrame(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNFigmaFrame2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐFigmaFrameᚄ(ctx context.Context, sel ast.SelectionSet, v []model.FigmaFrame) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNFigmaFrame2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐFigmaFrame(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNFigmaTypographyToken2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐFigmaTypographyToken(ctx context.Context, sel ast.SelectionSet, v model.FigmaTypographyToken) graphql.Marshaler {
+	return ec._FigmaTypographyToken(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNFigmaTypographyToken2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐFigmaTypographyTokenᚄ(ctx context.Context, sel ast.SelectionSet, v []model.FigmaTypographyToken) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNFigmaTypographyToken2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐFigmaTypographyToken(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) marshalNFinisherProfile2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐFinisherProfile(ctx context.Context, sel ast.SelectionSet, v model.FinisherProfile) graphql.Marshaler {
 	return ec._FinisherProfile(ctx, sel, &v)
 }
@@ -69887,6 +71324,36 @@ func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.S
 		}
 	}
 	return graphql.WrapContextMarshaler(ctx, res)
+}
+
+func (ec *executionContext) unmarshalNFloat2ᚕfloat64ᚄ(ctx context.Context, v any) ([]float64, error) {
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]float64, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNFloat2float64(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNFloat2ᚕfloat64ᚄ(ctx context.Context, sel ast.SelectionSet, v []float64) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNFloat2float64(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalNGateFailureRate2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐGateFailureRate(ctx context.Context, sel ast.SelectionSet, v model.GateFailureRate) graphql.Marshaler {
