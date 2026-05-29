@@ -8,7 +8,7 @@
   "dependencies": {
     "@ironflyer/theia-branding": "workspace:*",
     "@theia/core": "^1.60.0",
-    "@theia/editor": "^1.60.0",
+    "@theia/editor": "^1.72.1",
     "@theia/file-search": "^1.60.0",
     "@theia/filesystem": "^1.60.0",
     "@theia/markers": "^1.60.0",
