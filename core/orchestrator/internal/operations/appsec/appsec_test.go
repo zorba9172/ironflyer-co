@@ -2,9 +2,12 @@ package appsec
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"testing"
 	"time"
+
+	"ironflyer/core/orchestrator/internal/operations/runtime"
 )
 
 func TestNativeSecretScannerDetectsHighConfidenceSecrets(t *testing.T) {
@@ -93,7 +96,7 @@ func TestSARIFExportIncludesFindings(t *testing.T) {
 	}
 }
 
-func TestConfigWaiversAndOverrides(t *testing.T) {
+func TestProjectLocalConfigCannotWaiveOrDowngradeFindings(t *testing.T) {
 	result := DefaultEngine().Scan(context.Background(), Target{Files: []File{
 		{Path: ".ironflyer/appsec.json", Content: `{
 			"severityOverrides": {"dockerfile-unpinned-latest": "low"},
@@ -101,11 +104,49 @@ func TestConfigWaiversAndOverrides(t *testing.T) {
 		}`},
 		{Path: "Dockerfile", Content: "FROM node:latest\n"},
 	}})
-	if len(result.Findings) != 1 {
-		t.Fatalf("expected only unpinned latest after waiver, got %+v", result.Findings)
+	if len(result.Findings) != 2 {
+		t.Fatalf("expected project-local appsec config to be advisory only, got %+v", result.Findings)
 	}
-	if result.Findings[0].Severity != SeverityLow {
-		t.Fatalf("expected severity override to low, got %+v", result.Findings[0])
+	for _, f := range result.Findings {
+		if f.Severity == SeverityLow {
+			t.Fatalf("project-local severity override downgraded finding: %+v", f)
+		}
+	}
+}
+
+func TestScannerExecutionErrorFailsClosed(t *testing.T) {
+	result := NewEngine(failingScanner{id: "scanner-down"}).Scan(context.Background(), Target{ProjectID: "p1"})
+	if len(result.Findings) != 0 {
+		t.Fatalf("scanner failure should not create findings, got %+v", result.Findings)
+	}
+	if len(result.ScannerErrors) != 1 || result.ScannerErrors[0].Tool != "scanner-down" {
+		t.Fatalf("expected scanner error to be recorded, got %+v", result.ScannerErrors)
+	}
+	if result.Verdict.Status != "fail" || !result.Verdict.BlockedDeploy || result.Verdict.ScannerErrors != 1 {
+		t.Fatalf("expected fail-closed scanner error verdict, got %+v", result.Verdict)
+	}
+}
+
+func TestScannerExecutionErrorCanFailOpenWithoutPassing(t *testing.T) {
+	result := NewEngine(failingScanner{id: "optional-scanner"}).
+		WithPolicy(Policy{FailOpenOnScannerErrors: true}).
+		Scan(context.Background(), Target{ProjectID: "p1"})
+	if result.Verdict.Status != "warning" || result.Verdict.BlockedDeploy {
+		t.Fatalf("expected fail-open scanner error to warn without blocking, got %+v", result.Verdict)
+	}
+}
+
+func TestRuntimeScannerExecErrorIsReported(t *testing.T) {
+	result := NewEngine(SemgrepScanner{}).Scan(context.Background(), Target{
+		ProjectID:   "p1",
+		Runtime:     fakeExecutor{err: errors.New("runtime unavailable")},
+		WorkspaceID: "ws1",
+	})
+	if len(result.ScannerErrors) != 1 || !strings.Contains(result.ScannerErrors[0].Message, "runtime unavailable") {
+		t.Fatalf("expected runtime scanner error, got %+v", result.ScannerErrors)
+	}
+	if result.Verdict.Status != "fail" || !result.Verdict.BlockedDeploy {
+		t.Fatalf("expected runtime scanner error to fail closed, got %+v", result.Verdict)
 	}
 }
 
@@ -280,4 +321,25 @@ func TestRuntimeScannerParsersNormalizeEnterpriseTools(t *testing.T) {
 
 func fixedTime() time.Time {
 	return time.Date(2026, 5, 26, 12, 0, 0, 0, time.UTC)
+}
+
+type failingScanner struct {
+	id string
+}
+
+func (s failingScanner) ID() string { return s.id }
+
+func (failingScanner) Supports(Inventory) bool { return true }
+
+func (s failingScanner) Scan(context.Context, Target, Inventory) ([]Finding, error) {
+	return nil, errors.New(s.id + " failed")
+}
+
+type fakeExecutor struct {
+	res runtime.ExecResult
+	err error
+}
+
+func (f fakeExecutor) Exec(context.Context, string, string, runtime.ExecOpts) (runtime.ExecResult, error) {
+	return f.res, f.err
 }

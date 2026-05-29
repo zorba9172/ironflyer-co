@@ -109,9 +109,9 @@ export function useChatStream() {
     if (first.budgetHit && !first.textEmitted) {
       delete execByProject.current[projectId];
       const second = await runStream(await createExecution(projectId), message, onEvent, signal);
-      if (second.budgetHit) onEvent({ type: 'error', message: 'Budget reached — top up your wallet to continue.' });
+      if (second.budgetHit) onEvent({ type: 'error', code: 'BUDGET', message: 'Budget reached — top up your wallet to continue.' });
     } else if (first.budgetHit) {
-      onEvent({ type: 'error', message: 'Budget reached mid-reply — top up to continue.' });
+      onEvent({ type: 'error', code: 'BUDGET', message: 'Budget reached mid-reply — top up to continue.' });
       delete execByProject.current[projectId];
     }
   }

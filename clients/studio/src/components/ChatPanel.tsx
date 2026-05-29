@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type DragEvent as ReactDragEvent } from 'react';
 import { Avatar, Box, Chip, ClickAwayListener, IconButton, InputBase, MenuItem, Paper, Popover, Stack, TextField, ToggleButton, ToggleButtonGroup, Tooltip, Typography } from '@mui/material';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useChatStream, useAuth } from '@ironflyer/data';
@@ -8,7 +8,7 @@ import {
   VscEdit, VscChevronDown, VscChevronRight, VscRobot, VscLightbulb, VscShield,
   VscQuestion, VscChecklist, VscDebugStart, VscRocket, VscTerminal, VscPreview, VscSend,
 } from 'react-icons/vsc';
-import { useStudio, buildFocusContext, type ChatMsg } from '../store';
+import { useStudio, buildFocusContext, type ChatMsg, type Attachment } from '../store';
 import { AGENTS, type Agent } from '../studioData';
 import { Markdown } from './Markdown';
 import { PreflightDialog } from './PreflightDialog';
@@ -78,29 +78,231 @@ function TypingDots() {
   );
 }
 
+// The chat speaks the user's language: Hebrew when they write Hebrew, English
+// otherwise. Technical nouns (budget, plan, wallet, credits, gate, session)
+// stay in English in both.
+// Language is AUTO-DETECTED from the user's own text — never assumed. The
+// assistant's replies already follow the user's language via the model; these
+// client-rendered status/UI strings localize into a curated set (by Unicode
+// script + Latin stopwords) and fall back to English for anything else.
+// Technical nouns (budget, plan, wallet, credits, gate, session, context) stay
+// in English in every language.
+type Lang = string;
+
+const LATIN_HINTS: [Lang, RegExp][] = [
+  ['es', /\b(el|los|las|una|por favor|gracias|quiero|necesito|construir|aplicaci[oó]n|noticias|hola)\b/i],
+  ['pt', /\b(uma|por favor|obrigad|quero|preciso|construir|aplicativo|not[ií]cias|ol[aá])\b/i],
+  ['fr', /\b(le|les|une|s'il vous pla[iî]t|merci|je veux|construire|application|actualit[eé]s|bonjour)\b/i],
+  ['de', /\b(der|die|das|eine|bitte|danke|ich m[oö]chte|bauen|anwendung|nachrichten|hallo)\b/i],
+  ['it', /\b(gli|una|per favore|grazie|voglio|costruire|applicazione|notizie|ciao)\b/i],
+];
+
+function detectLang(text: string): Lang {
+  const s = (text || '').trim();
+  if (!s) return 'en';
+  if (/[֐-׿]/.test(s)) return 'he';
+  if (/[؀-ۿ]/.test(s)) return 'ar';
+  if (/[Ѐ-ӿ]/.test(s)) return 'ru';
+  if (/[぀-ヿ]/.test(s)) return 'ja';
+  if (/[가-힯]/.test(s)) return 'ko';
+  if (/[ऀ-ॿ]/.test(s)) return 'hi';
+  if (/[一-鿿]/.test(s)) return 'zh';
+  for (const [code, re] of LATIN_HINTS) if (re.test(s)) return code;
+  return 'en';
+}
+
+type MsgKey =
+  | 'budgetTooLow' | 'insufficientFunds' | 'budgetMid' | 'unauth' | 'unavailable'
+  | 'cancelled' | 'offline' | 'rejected' | 'offlineReply' | 'dropTitle' | 'dropSub'
+  | 'ctxFull' | 'newChat';
+
+// Curated translations; `en` is the guaranteed fallback for any undetected or
+// untranslated language. `{q}` in offlineReply is replaced with the prompt.
+const STATUS: Record<MsgKey, Record<Lang, string>> = {
+  budgetTooLow: {
+    en: 'The budget set for this build is too low for what you asked. To build it end to end, [upgrade your plan](/plans) or raise the budget, then run again.',
+    he: 'ה-budget שהוקצב נמוך מדי למה שביקשת לבנות. כדי שאבנה את זה מקצה-לקצה — [שדרג את ה-plan](/plans) או הגדל את ה-budget, ואריץ שוב.',
+    es: 'El budget asignado es demasiado bajo para lo que pediste. Para construirlo de principio a fin, [mejora tu plan](/plans) o aumenta el budget, y vuelve a ejecutar.',
+    pt: 'O budget definido é baixo demais para o que você pediu. Para construir de ponta a ponta, [atualize seu plan](/plans) ou aumente o budget e execute de novo.',
+    fr: 'Le budget défini est trop bas pour votre demande. Pour le construire de bout en bout, [améliorez votre plan](/plans) ou augmentez le budget, puis relancez.',
+    de: 'Das budget ist zu niedrig für deine Anfrage. Um es vollständig zu bauen, [aktualisiere deinen plan](/plans) oder erhöhe das budget und starte erneut.',
+    it: 'Il budget impostato è troppo basso per ciò che hai chiesto. Per costruirlo da cima a fondo, [aggiorna il plan](/plans) o aumenta il budget, poi riprova.',
+    ar: 'الـ budget المحدد منخفض جدًا لما طلبته. لبنائه بالكامل، [قم بترقية الـ plan](/plans) أو زِد الـ budget ثم أعد التشغيل.',
+    ru: 'Заданный budget слишком мал для запрошенного. Чтобы собрать всё целиком, [обновите plan](/plans) или увеличьте budget и запустите снова.',
+  },
+  insufficientFunds: {
+    en: 'Your wallet is empty. [Add credits](/plans) so I can start building.',
+    he: 'ה-wallet שלך ריק. [טען credits](/plans) כדי שאתחיל לבנות.',
+    es: 'Tu wallet está vacío. [Agrega credits](/plans) para que pueda empezar a construir.',
+    pt: 'Seu wallet está vazio. [Adicione credits](/plans) para eu começar a construir.',
+    fr: 'Votre wallet est vide. [Ajoutez des credits](/plans) pour que je commence à construire.',
+    de: 'Dein wallet ist leer. [Füge credits hinzu](/plans), damit ich anfangen kann.',
+    it: 'Il tuo wallet è vuoto. [Aggiungi credits](/plans) così posso iniziare a costruire.',
+    ar: 'الـ wallet فارغ. [أضف credits](/plans) لأبدأ البناء.',
+    ru: 'Ваш wallet пуст. [Добавьте credits](/plans), чтобы я начал сборку.',
+  },
+  budgetMid: {
+    en: 'This build ran out of budget partway through. [Top up your wallet](/plans) to continue.',
+    he: 'ה-budget של ההרצה אזל באמצע הבנייה. [טען את ה-wallet](/plans) כדי להמשיך.',
+    es: 'El build se quedó sin budget a mitad de camino. [Recarga tu wallet](/plans) para continuar.',
+    pt: 'O build ficou sem budget no meio. [Recarregue seu wallet](/plans) para continuar.',
+    fr: 'Le build a épuisé son budget en cours de route. [Rechargez votre wallet](/plans) pour continuer.',
+    de: 'Dem build ging mittendrin das budget aus. [Lade dein wallet auf](/plans), um fortzufahren.',
+    it: 'Il build ha esaurito il budget a metà. [Ricarica il wallet](/plans) per continuare.',
+    ar: 'نفد الـ budget في منتصف البناء. [اشحن الـ wallet](/plans) للمتابعة.',
+    ru: 'У сборки закончился budget на полпути. [Пополните wallet](/plans), чтобы продолжить.',
+  },
+  unauth: {
+    en: 'Your session expired. Please sign in again to continue.',
+    he: 'ה-session פג. התחבר מחדש כדי להמשיך.',
+    es: 'Tu session expiró. Inicia sesión de nuevo para continuar.',
+    pt: 'Sua session expirou. Faça login novamente para continuar.',
+    fr: 'Votre session a expiré. Reconnectez-vous pour continuer.',
+    de: 'Deine session ist abgelaufen. Bitte melde dich erneut an.',
+    it: 'La tua session è scaduta. Accedi di nuovo per continuare.',
+    ar: 'انتهت الـ session. سجّل الدخول من جديد للمتابعة.',
+    ru: 'Ваша session истекла. Войдите снова, чтобы продолжить.',
+  },
+  unavailable: {
+    en: 'The assistant is temporarily unavailable. Please try again in a moment.',
+    he: 'העוזר אינו זמין כרגע. נסה שוב בעוד רגע.',
+    es: 'El asistente no está disponible por ahora. Inténtalo de nuevo en un momento.',
+    pt: 'O assistente está indisponível no momento. Tente novamente em instantes.',
+    fr: "L'assistant est momentanément indisponible. Réessayez dans un instant.",
+    de: 'Der Assistent ist vorübergehend nicht verfügbar. Bitte versuche es gleich erneut.',
+    it: "L'assistente non è disponibile al momento. Riprova tra poco.",
+    ar: 'المساعد غير متاح مؤقتًا. حاول مرة أخرى بعد قليل.',
+    ru: 'Ассистент временно недоступен. Повторите попытку через мгновение.',
+  },
+  cancelled: {
+    en: 'The request was cancelled.', he: 'הבקשה בוטלה.', es: 'La solicitud fue cancelada.',
+    pt: 'A solicitação foi cancelada.', fr: 'La requête a été annulée.', de: 'Die Anfrage wurde abgebrochen.',
+    it: 'La richiesta è stata annullata.', ar: 'تم إلغاء الطلب.', ru: 'Запрос отменён.',
+  },
+  offline: {
+    en: "You're in preview mode — connect the studio to go live.",
+    he: 'אתה ב-preview mode — חבר את ה-studio כדי לעבוד חי.',
+    es: 'Estás en preview mode — conecta el studio para ir en vivo.',
+    pt: 'Você está em preview mode — conecte o studio para ir ao vivo.',
+    fr: 'Vous êtes en preview mode — connectez le studio pour passer en direct.',
+    de: 'Du bist im preview mode — verbinde das studio, um live zu gehen.',
+    it: 'Sei in preview mode — collega lo studio per andare in diretta.',
+    ar: 'أنت في preview mode — اربط الـ studio للعمل المباشر.',
+    ru: 'Вы в preview mode — подключите studio для работы вживую.',
+  },
+  rejected: {
+    en: 'That request was rejected. Please retry, or refresh the studio if it persists.',
+    he: 'הבקשה נדחתה. נסה שוב, או רענן את ה-studio אם זה חוזר.',
+    es: 'Esa solicitud fue rechazada. Reinténtalo o recarga el studio si persiste.',
+    pt: 'Essa solicitação foi rejeitada. Tente de novo ou recarregue o studio se persistir.',
+    fr: 'Cette requête a été rejetée. Réessayez, ou rafraîchissez le studio si cela persiste.',
+    de: 'Diese Anfrage wurde abgelehnt. Versuche es erneut oder lade das studio neu.',
+    it: 'Richiesta rifiutata. Riprova o ricarica lo studio se persiste.',
+    ar: 'تم رفض الطلب. أعد المحاولة أو حدّث الـ studio إذا استمر.',
+    ru: 'Запрос отклонён. Повторите или обновите studio, если повторится.',
+  },
+  offlineReply: {
+    en: '“{q}” is queued as a finisher request. The studio is in preview mode, so live runs are paused; the review, security, and economics surfaces are showing sample project state.',
+    he: '“{q}” נכנס כבקשת finisher. ה-studio ב-preview mode, אז live runs מושהים; משטחי ה-review, security וה-economics מציגים sample data של הפרויקט.',
+    es: '“{q}” quedó en cola como solicitud del finisher. El studio está en preview mode, así que los live runs están en pausa; las vistas de review, security y economics muestran datos de ejemplo.',
+    pt: '“{q}” entrou na fila como pedido do finisher. O studio está em preview mode, então live runs estão pausados; as telas de review, security e economics mostram dados de exemplo.',
+    fr: '“{q}” est mis en file comme requête finisher. Le studio est en preview mode, donc les live runs sont en pause ; les vues review, security et economics affichent des données d’exemple.',
+    de: '“{q}” ist als finisher-Anfrage eingereiht. Das studio ist im preview mode, daher pausieren live runs; die review-, security- und economics-Ansichten zeigen Beispieldaten.',
+    it: '“{q}” è in coda come richiesta del finisher. Lo studio è in preview mode, quindi i live runs sono in pausa; le viste review, security ed economics mostrano dati di esempio.',
+    ar: '“{q}” في قائمة الانتظار كطلب finisher. الـ studio في preview mode، لذا توقفت الـ live runs مؤقتًا؛ وتعرض شاشات review وsecurity وeconomics بيانات تجريبية.',
+    ru: '«{q}» поставлен в очередь как запрос finisher. Studio в preview mode, поэтому live runs приостановлены; экраны review, security и economics показывают демоданные.',
+  },
+  dropTitle: {
+    en: 'Drop to attach', he: 'שחרר כדי לצרף', es: 'Suelta para adjuntar', pt: 'Solte para anexar',
+    fr: 'Déposez pour joindre', de: 'Zum Anhängen ablegen', it: 'Rilascia per allegare',
+    ar: 'أفلت للإرفاق', ru: 'Отпустите, чтобы прикрепить',
+  },
+  dropSub: {
+    en: 'docs · images · zip · anything — used as build context',
+    he: 'מסמכים · תמונות · zip · הכל — ישמש כ-context לבנייה',
+    es: 'docs · imágenes · zip · cualquier cosa — se usa como context de build',
+    pt: 'docs · imagens · zip · qualquer coisa — usado como context do build',
+    fr: 'docs · images · zip · tout — utilisé comme context de build',
+    de: 'docs · Bilder · zip · alles — als build-context verwendet',
+    it: 'docs · immagini · zip · qualsiasi cosa — usato come context di build',
+    ar: 'مستندات · صور · zip · أي شيء — يُستخدم كـ context للبناء',
+    ru: 'docs · изображения · zip · что угодно — используется как build-context',
+  },
+  ctxFull: {
+    en: 'This chat is long and the context is filling up — open a new chat for sharper results.',
+    he: 'השיחה ארוכה וה-context מתחיל להתמלא — פתח chat חדש לתוצאות מדויקות.',
+    es: 'Este chat es largo y el context se está llenando — abre un chat nuevo para mejores resultados.',
+    pt: 'Este chat está longo e o context está enchendo — abra um chat novo para resultados melhores.',
+    fr: 'Ce chat est long et le context se remplit — ouvrez un nouveau chat pour de meilleurs résultats.',
+    de: 'Dieser chat ist lang und der context füllt sich — öffne einen neuen chat für bessere Ergebnisse.',
+    it: 'Questo chat è lungo e il context si sta riempiendo — apri un nuovo chat per risultati migliori.',
+    ar: 'هذه الـ chat طويلة والـ context يمتلئ — افتح chat جديدة لنتائج أدق.',
+    ru: 'Этот chat длинный, и context заполняется — откройте новый chat для точных результатов.',
+  },
+  newChat: {
+    en: 'New chat', he: 'chat חדש', es: 'Nuevo chat', pt: 'Novo chat', fr: 'Nouveau chat',
+    de: 'Neuer chat', it: 'Nuovo chat', ar: 'chat جديدة', ru: 'Новый chat',
+  },
+};
+
+function t(key: MsgKey, lang: Lang): string {
+  const row = STATUS[key];
+  return row[lang] ?? row.en ?? '';
+}
+
 function offlineReply(prompt: string): string {
   const q = prompt.length > 80 ? `${prompt.slice(0, 80)}…` : prompt;
-  return `“${q}” is queued as a finisher request. The studio is in preview mode, so live runs are paused; the review, security, and economics surfaces are showing sample project state.`;
+  return t('offlineReply', detectLang(prompt)).replace('{q}', q);
 }
 
 // Defense-in-depth vendor scrub. The orchestrator already sends provider-blind
 // messages; the studio must NEVER render a vendor/model name even if a raw
 // error somehow slips through. Any match collapses to a safe generic.
 const VENDOR_RE = /\b(gemini|google\s*ai|vertex|anthropic|claude|openai|gpt-?\d|deepseek|hugging\s?face|llama|qwen|mistral|mixtral|bedrock|azure)\b/i;
-const UNAVAILABLE = 'The assistant is temporarily unavailable. Please try again in a moment.';
 
-function normalizeChatError(error: unknown): string {
-  const raw = error instanceof Error ? error.message : String(error || '');
-  // Known client-side transport / account states — all provider-blind.
-  if (/insufficient wallet|budget_exhausted|payment required|402|out of (credit|budget)/i.test(raw)) return 'Your wallet is out of credit — top up to keep building.';
-  if (/unauth|session expired|\b401\b/i.test(raw)) return 'Your session expired. Please sign in again to continue.';
-  if (/offline|no orchestrator endpoint/i.test(raw)) return "You're in preview mode — connect the studio to go live.";
-  if (/chat stream failed:\s*4\d\d/i.test(raw)) return 'That request was rejected. Please retry, or refresh the studio if it persists.';
-  if (/chat stream failed:\s*5\d\d/i.test(raw)) return UNAVAILABLE;
-  // Anything that names a vendor, looks like a raw payload, or is suspiciously
-  // long is collapsed to a safe generic — never surfaced verbatim to the user.
-  if (!raw.trim() || VENDOR_RE.test(raw) || raw.trim().startsWith('{') || raw.length > 200) return UNAVAILABLE;
+// Clear, scenario-specific chat status copy. The chat must always say WHAT
+// happened and what to do — budget/funds scenarios point the user to upgrade.
+function chatStatusMessage(code: string, raw: string, lang: Lang): string {
+  switch (code) {
+    case 'BUDGET_TOO_LOW':
+    case 'PROFITGUARD_REFUSED':
+    case 'PROFITGUARD':
+      return t('budgetTooLow', lang);
+    case 'INSUFFICIENT_FUNDS':
+      return t('insufficientFunds', lang);
+    case 'BUDGET':
+      return t('budgetMid', lang);
+    case 'UNAUTHENTICATED':
+      return t('unauth', lang);
+    case 'NO_PROVIDER':
+    case 'UNAVAILABLE':
+      return t('unavailable', lang);
+    case 'CANCELLED':
+      return t('cancelled', lang);
+  }
+  // No/unknown code → infer from the raw text, provider-blind.
+  if (/insufficient wallet|budget_exhausted|payment required|402|out of (credit|budget)/i.test(raw)) return t('budgetMid', lang);
+  if (/unauth|session expired|\b401\b/i.test(raw)) return t('unauth', lang);
+  if (/offline|no orchestrator endpoint/i.test(raw)) return t('offline', lang);
+  if (/chat stream failed:\s*4\d\d/i.test(raw)) return t('rejected', lang);
+  if (/chat stream failed:\s*5\d\d/i.test(raw) || !raw.trim() || VENDOR_RE.test(raw) || raw.trim().startsWith('{') || raw.length > 200) return t('unavailable', lang);
   return raw;
+}
+
+function extractErrorCode(error: unknown): string {
+  if (error && typeof error === 'object' && 'code' in error) {
+    const c = (error as { code?: unknown }).code;
+    if (typeof c === 'string') return c;
+  }
+  return '';
+}
+
+// Unified resolver for both the SSE error frame (carries code+message) and a
+// thrown transport/GraphQL error (GraphQLError carries .code).
+function resolveChatError(input: { code?: string; message?: string; error?: unknown }, lang: Lang): string {
+  const code = input.code || extractErrorCode(input.error);
+  const raw = input.message ?? (input.error instanceof Error ? input.error.message : String(input.error ?? ''));
+  return chatStatusMessage(code, raw, lang);
 }
 
 const uid = (p: string) => `${p}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
@@ -111,6 +313,37 @@ const safeLabel = (value: string, fallback: string) => (VENDOR_RE.test(value) ? 
 
 function uniqueStrings(values: string[]): string[] {
   return [...new Set(values.map((v) => v.trim()).filter(Boolean))];
+}
+
+// Drag-and-drop ingest: text/code → extracted text (fed to the model as
+// research context), images → data-URL preview, everything else (zip, pdf,
+// binaries, oversize) → a safe reference entry (name + size, no content).
+const DROP_TEXT_RE = /\.(txt|md|markdown|json|ya?ml|csv|tsv|html?|xml|js|jsx|ts|tsx|css|scss|py|go|rs|java|rb|php|sh|sql|toml|ini|env|dockerfile|log)$/i;
+const DROP_MAX_TEXT_BYTES = 256 * 1024;
+
+function readFileAs(file: File, how: 'text' | 'dataURL'): Promise<string> {
+  return new Promise((resolve) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result ?? ''));
+    r.onerror = () => resolve('');
+    if (how === 'text') r.readAsText(file);
+    else r.readAsDataURL(file);
+  });
+}
+
+async function readDroppedFiles(list: FileList): Promise<Attachment[]> {
+  const out: Attachment[] = [];
+  for (const file of Array.from(list)) {
+    const base = { id: uid('att_'), name: file.name, size: file.size };
+    if (file.type.startsWith('image/')) {
+      out.push({ ...base, kind: 'image', dataUrl: await readFileAs(file, 'dataURL') });
+    } else if ((file.type.startsWith('text/') || DROP_TEXT_RE.test(file.name)) && file.size <= DROP_MAX_TEXT_BYTES) {
+      out.push({ ...base, kind: 'text', text: await readFileAs(file, 'text') });
+    } else {
+      out.push({ ...base, kind: 'file' }); // zip / pdf / binary / oversize — reference only
+    }
+  }
+  return out;
 }
 
 function modeInstruction(mode: WorkMode): string {
@@ -161,6 +394,7 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
   const launchPreflight = useStudio((s) => s.initialPreflight);
   const constitution = useStudio((s) => s.constitution);
   const attachments = useStudio((s) => s.attachments);
+  const addAttachments = useStudio((s) => s.addAttachments);
   const writeGeneratedFiles = useStudio((s) => s.writeGeneratedFiles);
   const customAgents = useStudio((s) => s.customAgents);
   const chatSessions = useStudio((s) => s.chatSessions);
@@ -189,6 +423,30 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
   const [messages, setMessages] = useState<TrustChatMsg[]>([]);
   const [draft, setDraft] = useState('');
   const [thinking, setThinking] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+
+  // UI-chrome language follows the conversation: Hebrew once the operator has
+  // written Hebrew (latest user turn or the current draft), English otherwise.
+  const uiLang: Lang = useMemo(() => {
+    const lastUser = [...messages].reverse().find((m) => m.from === 'user')?.text ?? '';
+    return detectLang(draft || lastUser);
+  }, [messages, draft]);
+
+  // Context-window awareness: the server grounds on the last ~8 turns trimmed
+  // to 2k chars each, so once the thread is long the earliest context drops and
+  // replies drift. Surface that and offer a fresh window before it bites.
+  const ctxChars = useMemo(() => messages.reduce((n, m) => n + m.text.length, 0), [messages]);
+  const ctxNearFull = messages.length >= 24 || ctxChars > 24000;
+
+  // Drag-and-drop ingest onto the whole panel — docs, images, zip, anything.
+  const onDropFiles = async (e: ReactDragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const files = e.dataTransfer?.files;
+    if (!files || files.length === 0) return;
+    const items = await readDroppedFiles(files);
+    if (items.length > 0) addAttachments(items);
+  };
   const [historyAnchor, setHistoryAnchor] = useState<HTMLElement | null>(null);
   const [slashOpen, setSlashOpen] = useState(false);
   const [workMode, setWorkMode] = useState<WorkMode>(launchWorkMode);
@@ -241,6 +499,7 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
       parts.push(`# Mode\n${modeInstruction(mode)}`);
       parts.push(`# Request\n${prompt}`);
       const serverPrompt = parts.join('\n\n---\n\n');
+      const lang = detectLang(prompt); // status/errors echo the user's language
       const controller = new AbortController();
       abortRef.current = controller;
       let acc = '';
@@ -257,14 +516,14 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
           } else if (ev.type === 'thinking') patch((x) => ({ ...x, thinking: (x.thinking ?? '') + ev.text }));
           else if (ev.type === 'tool') patch((x) => ({ ...x, steps: [...(x.steps ?? []), safeLabel(ev.name, 'tool step')] }));
           else if (ev.type === 'finish') patch((x) => ({ ...x, costUSD: typeof ev.costUSD === 'number' ? ev.costUSD : x.costUSD }));
-          else if (ev.type === 'error') patch((x) => ({ ...x, text: x.text || `⚠ ${normalizeChatError(ev.message)}` }));
+          else if (ev.type === 'error') patch((x) => ({ ...x, text: x.text || `⚠ ${resolveChatError({ code: ev.code, message: ev.message }, lang)}` }));
         }, controller.signal);
       } catch (e) {
         const raw = e instanceof Error ? e.message : String(e || '');
         if (controller.signal.aborted || /abort/i.test(raw)) {
           patch((x) => ({ ...x, text: x.text ? `${x.text}\n\n_⏹ stopped_` : '_⏹ stopped before any reply_' }));
         } else {
-          patch((x) => ({ ...x, text: x.text || `⚠ ${normalizeChatError(e)}` }));
+          patch((x) => ({ ...x, text: x.text || `⚠ ${resolveChatError({ error: e }, lang)}` }));
           if (/unauth/i.test(raw)) void signOut();
         }
       } finally {
@@ -444,7 +703,24 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
   });
 
   return (
-    <Box sx={{ width: 380, flexShrink: 0, height: '100%', borderRight: 1, borderColor: 'divider', display: 'flex', flexDirection: 'column', bgcolor: 'background.default' }}>
+    <Box
+      onDragOver={(e) => { e.preventDefault(); if (!dragOver) setDragOver(true); }}
+      onDragLeave={(e) => { if (e.currentTarget === e.target) setDragOver(false); }}
+      onDrop={(e) => { void onDropFiles(e); }}
+      sx={{ position: 'relative', width: 380, flexShrink: 0, height: '100%', borderRight: 1, borderColor: 'divider', display: 'flex', flexDirection: 'column', bgcolor: 'background.default' }}
+    >
+      {dragOver && (
+        <Box sx={(t) => ({ position: 'absolute', inset: 8, zIndex: 30, display: 'grid', placeItems: 'center', textAlign: 'center', p: 2, borderRadius: 3, border: `2px dashed ${t.palette.primary.main}`, bgcolor: `${t.palette.background.default}f2`, pointerEvents: 'none' })}>
+          <Box>
+            <Typography sx={{ fontSize: fontScale.s95, fontWeight: 700, color: 'primary.main', mb: 0.5 }}>
+              {t('dropTitle', uiLang)}
+            </Typography>
+            <Typography sx={{ fontSize: fontScale.s78, color: 'text.secondary' }}>
+              {t('dropSub', uiLang)}
+            </Typography>
+          </Box>
+        </Box>
+      )}
       <ChatHeader
         title={activeSession?.title ?? 'New chat'}
         onNew={handleNewChat}
@@ -588,6 +864,15 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
             </ToggleButton>
           ))}
         </ToggleButtonGroup>
+
+        {ctxNearFull && (
+          <Stack direction="row" alignItems="center" spacing={1} sx={(t) => ({ mb: 1, px: 1.25, py: 0.75, borderRadius: 2, border: 1, borderColor: 'warning.main', bgcolor: `${t.palette.warning.main}14` })}>
+            <Typography sx={{ flex: 1, fontSize: fontScale.s74, color: 'warning.main', lineHeight: 1.4 }}>
+              {t('ctxFull', uiLang)}
+            </Typography>
+            <Chip size="small" clickable color="warning" variant="outlined" label={t('newChat', uiLang)} onClick={handleNewChat} sx={{ fontSize: fontScale.s70, flexShrink: 0 }} />
+          </Stack>
+        )}
 
         <Box sx={{ border: 1, borderColor: 'divider', borderRadius: 3, bgcolor: 'background.paper', p: 1.25, '&:focus-within': { borderColor: 'primary.main' } }}>
           <InputBase

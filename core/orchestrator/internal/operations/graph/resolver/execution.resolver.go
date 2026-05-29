@@ -63,7 +63,7 @@ func (r *mutationResolver) CreatePaidExecution(ctx context.Context, input model.
 			if dec, derr := r.ProfitGuard.Decide(ctx, profitguard.BeforeExecutionAdmit, admit); derr == nil {
 				switch dec.Action {
 				case profitguard.Stop, profitguard.PauseForBudget, profitguard.KillBranch:
-					return nil, gqlProfitGuardRefused(dec.Reason)
+					return nil, gqlProfitGuardRefused(r.WebBaseURL)
 				}
 			}
 		}
