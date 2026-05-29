@@ -1,0 +1,21 @@
+/* GENERATED from packages/design-tokens/brand.ts — do not edit by hand. Run `npm run gen` (or the package build) after changing brand.ts. */
+:root {
+    /* Fonts (brand.ts typography) */
+    --ironflyer-font-ui: "Inter", system-ui, -apple-system, sans-serif;
+    --ironflyer-font-mono: "Geist Mono", ui-monospace, "SF Mono", monospace;
+
+    /* Signature gradient (cobalt -> cyan) */
+    --ironflyer-cobalt: #2F6BFF;
+    --ironflyer-cyan: #18C8E6;
+    --ironflyer-gradient: linear-gradient(100deg, #2F6BFF 0%, #18C8E6 100%);
+
+    /* Ink backgrounds (dark mode) */
+    --ironflyer-bg: #0A0B0D;
+    --ironflyer-surface: #111317;
+    --ironflyer-raised: #171A1F;
+
+    /* Text */
+    --ironflyer-text-primary: #F4F5F7;
+    --ironflyer-text-secondary: #A4A9B3;
+    --ironflyer-text-muted: #6B7280;
+}

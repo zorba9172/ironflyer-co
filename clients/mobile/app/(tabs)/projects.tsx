@@ -2,12 +2,8 @@ import { View, Text, Pressable, FlatList, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTheme, type NativeTheme } from '../../lib/theme';
-import {
-  projects,
-  openGateCount,
-  shippablePercent,
-  type Project,
-} from '../../lib/sampleData';
+import { openGateCount, shippablePercent, type Project } from '../../lib/sampleData';
+import { useProjects } from '../../hooks/useProjects';
 
 function ProgressBar({ percent, theme }: { percent: number; theme: NativeTheme }) {
   const color = percent === 100 ? theme.color.success : theme.color.primary;
@@ -80,6 +76,7 @@ function ProjectCard({ project }: { project: Project }) {
 
 export default function Projects() {
   const t = useTheme();
+  const { data: projects } = useProjects();
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: t.color.bg }]} edges={['bottom']}>
       <FlatList

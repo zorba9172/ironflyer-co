@@ -24,6 +24,7 @@
   "dependencies": {
     "@codemirror/lang-javascript": "^6.2.2",
     "@codemirror/lang-json": "^6.0.1",
+    "@codesandbox/sandpack-react": "^2.20.0",
     "@fancyapps/ui": "^6.1.14",
     "@fontsource-variable/bricolage-grotesque": "^5.1.1",
     "@fontsource-variable/inter": "^5.1.1",

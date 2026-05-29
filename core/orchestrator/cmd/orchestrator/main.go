@@ -1830,6 +1830,25 @@ func main() {
 	})
 	learningLog.Info().Msg("Feedback Brain online (publisher + store + miner)")
 
+	// V22 Feedback-Brain → ProfitGuard closure. The PolicyAdapter
+	// subscribes to the SAME PatternObservation feed the miner produces
+	// (Publisher.SetPatternObserver) and nudges ProfitGuard's
+	// completion-per-dollar floor from observed gate-failure rates —
+	// tightening when failures are high, loosening back toward the
+	// static default when they subside. Adjustments are clamped to a
+	// band around the boot default so a bad signal can never zero-out
+	// or explode the floor. Entirely opt-in: when the Guard is not a
+	// PolicyTuner (or the publisher is nil) this is a no-op.
+	if tuner, ok := profitguard.AsPolicyTuner(profitGuard); ok {
+		policyAdapter := learning.NewPolicyAdapter(tuner, learning.PolicyAdapterConfig{}, learningLog)
+		learningPublisher.SetPatternObserver(policyAdapter.Subscribe())
+		learningLog.Info().
+			Float64("default_completion_per_dollar_floor", tuner.DefaultCompletionPerDollarFloor()).
+			Msg("V22 ProfitGuard policy adapter wired (learns completion-per-dollar floor)")
+	} else {
+		learningLog.Debug().Msg("V22 ProfitGuard policy adapter skipped (guard not tunable)")
+	}
+
 	// V22 Completion Score Predictor (proprietary model #2). Logistic
 	// regression over execution features; online SGD on every
 	// KindExecutionComplete event. Predicts P(success) BEFORE expensive

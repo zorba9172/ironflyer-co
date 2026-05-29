@@ -1,0 +1,70 @@
+{
+  "private": true,
+  "name": "@ironflyer/ide",
+  "version": "0.1.0",
+  "description": "Ironflyer IDE — custom-branded Eclipse Theia browser application, served per-workspace and embedded as an iframe inside the studio.",
+  "license": "UNLICENSED",
+  "//comment-type": "Theia generates CommonJS output; unlike the other clients (studio/marketing) this package intentionally does NOT set \"type\": \"module\".",
+  "dependencies": {
+    "@ironflyer/theia-branding": "workspace:*",
+    "@theia/core": "^1.60.0",
+    "@theia/editor": "^1.60.0",
+    "@theia/file-search": "^1.60.0",
+    "@theia/filesystem": "^1.60.0",
+    "@theia/markers": "^1.60.0",
+    "@theia/messages": "^1.60.0",
+    "@theia/monaco": "^1.60.0",
+    "@theia/navigator": "^1.60.0",
+    "@theia/outline-view": "^1.60.0",
+    "@theia/preferences": "^1.60.0",
+    "@theia/search-in-workspace": "^1.60.0",
+    "@theia/terminal": "^1.60.0",
+    "@theia/workspace": "^1.60.0"
+  },
+  "devDependencies": {
+    "@theia/cli": "^1.60.0"
+  },
+  "scripts": {
+    "clean": "theia clean",
+    "build": "theia build --mode production",
+    "start": "theia start --hostname 0.0.0.0 --port 3030 --plugins=local-dir:plugins",
+    "watch": "theia build --watch --mode development"
+  },
+  "theia": {
+    "target": "browser",
+    "//target-comment": "browser target = served over HTTP and iframe-embeddable; no Electron shell.",
+    "frontend": {
+      "config": {
+        "applicationName": "Ironflyer IDE",
+        "preferences": {
+          "//workbench-comment": "Suppress the Getting Started / welcome editor on startup (Theia honors workbench.startupEditor like VS Code).",
+          "workbench.startupEditor": "none",
+          "//trust-comment": "Disable Workspace Trust entirely: the workspace is an isolated per-user sandbox provisioned by Ironflyer, so the 'Do you trust the authors of this folder?' modal is pure friction and blocks the editor until dismissed.",
+          "security.workspace.trust.enabled": false,
+          "security.workspace.trust.startupPrompt": "never",
+          "security.workspace.trust.banner": "never",
+          "security.workspace.trust.emptyWindow": true,
+          "//theme-comment": "Default to the custom dark theme contributed by @ironflyer/theia-branding.",
+          "workbench.colorTheme": "Ironflyer Dark",
+          "editor.fontFamily": "'Geist Mono', 'JetBrains Mono', 'SFMono-Regular', Menlo, Monaco, Consolas, monospace",
+          "editor.fontSize": 13,
+          "editor.minimap.enabled": false,
+          "editor.renderWhitespace": "selection",
+          "//telemetry-comment": "Theia has no remote telemetry by default; these keep notification clutter down.",
+          "notification.center.visible": false,
+          "files.autoSave": "afterDelay",
+          "files.autoSaveDelay": 1000,
+          "breadcrumbs.enabled": true,
+          "explorer.confirmDelete": false,
+          "//chrome-comment": "Menu bar is hidden for the embedded iframe look via branding.css (owned by the branding ext). 'window.menuBarVisibility' and 'workbench.activityBar.location' are NOT set here: they are not reliably honored by Theia 1.60 and the activity bar/sidebar must stay visible for file navigation."
+        }
+      }
+    },
+    "backend": {
+      "config": {
+        "startupTimeout": -1,
+        "//comment": "startupTimeout -1 disables the watchdog so large workspace mounts don't get killed during first scan."
+      }
+    }
+  }
+}

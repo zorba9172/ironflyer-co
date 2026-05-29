@@ -2,7 +2,8 @@ import { View, Text, FlatList, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '../../lib/theme';
-import { getProject, shippablePercent, type Gate } from '../../lib/sampleData';
+import { shippablePercent, type Gate } from '../../lib/sampleData';
+import { useProject } from '../../hooks/useProjects';
 import { gateStatusColor, gateStatusLabel } from '../../lib/gateStatus';
 
 function GateRow({ gate }: { gate: Gate }) {
@@ -46,7 +47,7 @@ function GateRow({ gate }: { gate: Gate }) {
 export default function ProjectDetail() {
   const t = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const project = id ? getProject(id) : undefined;
+  const { project } = useProject(id);
 
   if (!project) {
     return (

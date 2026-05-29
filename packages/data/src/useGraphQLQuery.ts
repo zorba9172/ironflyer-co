@@ -11,6 +11,8 @@ interface Options<T, R> {
   /** Map the raw GraphQL response to T. Defaults to identity. */
   map?: (raw: R) => T;
   enabled?: boolean;
+  /** Poll the orchestrator on an interval (ms) so the surface stays live. */
+  refetchInterval?: number;
 }
 
 interface Result<T> {
@@ -30,6 +32,7 @@ export function useGraphQLQuery<T, R = unknown>(opts: Options<T, R>): Result<T> 
   const q = useQuery({
     queryKey: opts.key,
     enabled,
+    refetchInterval: opts.refetchInterval,
     queryFn: async () => {
       const raw = await request!<R>(opts.operationName, opts.query, opts.variables);
       return opts.map ? opts.map(raw) : (raw as unknown as T);

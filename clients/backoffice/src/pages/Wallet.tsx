@@ -5,7 +5,8 @@ import { DataGrid, type DataGridCellParams, type DataGridColumn } from '@ironfly
 import { Chart, type EChartsOption } from '@ironflyer/ui-web/fx';
 import { palette } from '@ironflyer/design-tokens/brand';
 import { formatUSD, formatRelativeTime } from '@ironflyer/core';
-import { ledger, type LedgerRow } from '../data';
+import { useGraphQLQuery, operations } from '@ironflyer/data';
+import { ledger as SAMPLE, type LedgerRow } from '../data';
 
 function typeColor(t: Theme, type: LedgerRow['type']): string {
   switch (type) {
@@ -16,20 +17,82 @@ function typeColor(t: Theme, type: LedgerRow['type']): string {
   }
 }
 
+// Live ledger entry shape (subset of WalletLedgerEntry from operations.LEDGER).
+interface RawLedgerEntry {
+  id: string;
+  entryType: string;
+  direction: string;
+  amountUSD: number;
+  createdAt: string;
+}
+interface RawWallet {
+  balanceUSD: number;
+  lifetimeTopUpUSD: number;
+  lifetimeSpendUSD: number;
+}
+
+// Collapse the canonical orchestrator entry_type set onto the four buckets
+// the operator ledger renders. Anything else falls into 'execution'.
+function bucketType(entryType: string): LedgerRow['type'] {
+  if (entryType === 'wallet_topup') return 'topup';
+  if (entryType === 'refund' || entryType === 'credit_release') return 'refund';
+  if (entryType === 'platform_margin') return 'payout';
+  return 'execution';
+}
+
 export function Wallet() {
   const t = useTheme();
   const axis = t.palette.text.secondary;
   const grid = t.palette.divider;
 
+  // Wallet balance + lifetime credits/debits; live when an orchestrator is
+  // reachable, otherwise the seed totals derived below.
+  const { data: walletStats, isLive: walletLive } = useGraphQLQuery<RawWallet | null, { wallet: RawWallet }>({
+    key: ['bo-wallet'],
+    operationName: 'Wallet', query: operations.WALLET,
+    fallbackData: null,
+    map: (r) => r.wallet ?? null,
+  });
+
+  // Ledger entries, newest-first (the server orders created_at DESC). Map the
+  // raw WalletLedgerEntry rows into the operator LedgerRow shape with a running
+  // balance reconstructed chronologically; fall back to the seed when offline.
+  const { data: ledger, isLive: ledgerLive } = useGraphQLQuery<LedgerRow[], { ledger: RawLedgerEntry[] }>({
+    key: ['bo-ledger'],
+    operationName: 'Ledger', query: operations.LEDGER,
+    fallbackData: SAMPLE,
+    map: (r) => {
+      if (!r.ledger?.length) return SAMPLE;
+      // Re-sign amounts: amountUSD is always positive, direction carries sign.
+      const signed = r.ledger.map((e) => ({
+        id: e.id,
+        ts: Date.parse(e.createdAt) || Date.now(),
+        type: bucketType(e.entryType),
+        amount: e.direction === 'debit' ? -Math.abs(e.amountUSD) : Math.abs(e.amountUSD),
+      }));
+      // Walk oldest → newest to accumulate the running balance, then present
+      // newest-first to match the seed ordering.
+      const chrono = [...signed].reverse();
+      let bal = 0;
+      const withBalance = chrono.map((e) => {
+        bal += e.amount;
+        return { ...e, balance: bal };
+      });
+      return withBalance.reverse();
+    },
+  });
+
+  const isLive = walletLive || ledgerLive;
+
   // Daily spend = sum of debit magnitudes, charted oldest → newest.
   const spend = useMemo(() => {
     const chrono = [...ledger].reverse();
     return chrono.map((l) => ({ label: formatRelativeTime(l.ts), value: l.amount < 0 ? Math.abs(l.amount) : 0 }));
-  }, []);
+  }, [ledger]);
 
-  const credits = ledger.filter((l) => l.amount > 0).reduce((s, l) => s + l.amount, 0);
-  const debits = ledger.filter((l) => l.amount < 0).reduce((s, l) => s + Math.abs(l.amount), 0);
-  const balance = ledger[0]?.balance ?? 0;
+  const credits = walletStats?.lifetimeTopUpUSD ?? ledger.filter((l) => l.amount > 0).reduce((s, l) => s + l.amount, 0);
+  const debits = walletStats?.lifetimeSpendUSD ?? ledger.filter((l) => l.amount < 0).reduce((s, l) => s + Math.abs(l.amount), 0);
+  const balance = walletStats?.balanceUSD ?? ledger[0]?.balance ?? 0;
 
   const spendOption: EChartsOption = {
     color: [palette.cobalt],
@@ -56,7 +119,10 @@ export function Wallet() {
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ maxWidth: 1080, mx: 'auto' }}>
-        <Typography variant="h4" sx={{ fontSize: '1.6rem', mb: 0.5 }}>Wallet</Typography>
+        <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 0.5 }}>
+          <Typography variant="h4" sx={{ fontSize: '1.6rem' }}>Wallet</Typography>
+          <Chip size="small" label={isLive ? 'live' : 'sample'} sx={(th) => ({ height: 20, fontSize: '0.64rem', fontFamily: th.brand.font.mono, bgcolor: isLive ? `${th.palette.success.main}22` : 'action.hover', color: isLive ? 'success.main' : 'text.disabled' })} />
+        </Stack>
         <Typography sx={{ color: 'text.secondary', mb: 3 }}>Prepaid ledger — every paid execution reserves, then debits as cost materializes.</Typography>
 
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mb: 2 }}>

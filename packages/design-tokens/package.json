@@ -7,7 +7,8 @@
   "exports": {
     ".": "./index.ts",
     "./brand": "./brand.ts",
-    "./languages": "./languages.ts"
+    "./languages": "./languages.ts",
+    "./tech": "./tech.ts"
   },
   "sideEffects": false
 }

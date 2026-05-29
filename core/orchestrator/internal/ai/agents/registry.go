@@ -24,6 +24,13 @@ const (
 	RoleTester    Role = "tester"
 	RoleSecurity  Role = "security"
 	RoleDeployer  Role = "deployer"
+	// RoleIntegration wires the product to the outside world: third-party
+	// providers, auth (OAuth/OIDC), billing webhooks, and infrastructure
+	// connections. It owns the integration glue — signed webhook verifiers,
+	// SDK clients with timeouts/retries, env wiring — that the generic Coder
+	// handles ad-hoc. Defined in agents.yaml; available to the registry and
+	// the studio's execution-team roster.
+	RoleIntegration Role = "integration"
 	// RoleCritic is the post-Coder judge: it reads the proposed patch
 	// against the story + spec and returns structured "missing X, weak Y"
 	// findings the Coder can fix in a single retry without paying for a

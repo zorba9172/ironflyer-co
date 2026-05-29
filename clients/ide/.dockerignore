@@ -1,0 +1,13 @@
+# Keep the Docker build context lean and reproducible.
+node_modules
+ironflyer-branding/node_modules
+ironflyer-branding/lib
+lib
+plugins
+src-gen
+gen-webpack*.js
+.theia
+*.log
+npm-debug.log*
+.DS_Store
+README.md

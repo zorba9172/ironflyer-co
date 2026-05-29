@@ -55,6 +55,10 @@ func (a *API) archiveWorkspace(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusNotFound, errJSON("not found"))
 		return
 	}
+	if !recordAccessibleBy(rec, userIDFromCtx(r)) {
+		writeJSON(w, http.StatusNotFound, errJSON("not found"))
+		return
+	}
 	// Best-effort: stop the container if currently running on this pod.
 	if ws, err := a.mgr.Get(id); err == nil {
 		_ = a.mgr.Driver().Destroy(r.Context(), ws)
@@ -95,6 +99,10 @@ func (a *API) restoreWorkspace(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusNotFound, errJSON("not found"))
 		return
 	}
+	if !recordAccessibleBy(rec, userIDFromCtx(r)) {
+		writeJSON(w, http.StatusNotFound, errJSON("not found"))
+		return
+	}
 	if rec.Status != workspaces.StatusArchived {
 		writeJSON(w, http.StatusConflict, errJSON("workspace not archived"))
 		return
@@ -117,7 +125,12 @@ func (a *API) restoreWorkspace(w http.ResponseWriter, r *http.Request) {
 func (a *API) locateWorkspace(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	var status string
-	if rec, err := a.lc.lookupRecord(r.Context(), id); err == nil {
+	rec, err := a.lc.lookupRecord(r.Context(), id)
+	if err == nil {
+		if !recordAccessibleBy(rec, userIDFromCtx(r)) {
+			writeJSON(w, http.StatusNotFound, errJSON("not found"))
+			return
+		}
 		status = string(rec.Status)
 	}
 	var activePod string
@@ -221,6 +234,13 @@ func workspaceIDFromPath(path string) string {
 		return ""
 	}
 	return rest
+}
+
+// recordAccessibleBy mirrors sandbox.Workspace.IsAccessibleBy for durable
+// store records: an empty caller (no auth context, dev/single-pod) and an
+// empty owner (legacy record) both pass; otherwise the owner must match.
+func recordAccessibleBy(rec workspaces.Record, userID string) bool {
+	return userID == "" || rec.OwnerID == "" || rec.OwnerID == userID
 }
 
 // lookupRecord is the nil-safe Store accessor. When the Lifecycle has

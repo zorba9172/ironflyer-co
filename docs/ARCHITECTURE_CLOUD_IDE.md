@@ -1,32 +1,83 @@
-# Cloud IDE Architecture (historical)
+# Cloud IDE Architecture
 
-Status: **active again 2026-05-28**. Studio uses VS Code surfaces for
-code work. The embedded OpenVSCode route is `/ide`, and the standalone
-Ironflyer VS Code Extension at `clients/vscode-extension/` remains the
-local-editor path for teams that prefer desktop VS Code.
+Status: **active 2026-05-29**. The canonical embedded code IDE is a
+custom-branded **Eclipse Theia** browser app, built at `clients/ide/`,
+shipped as the image `ironflyer/theia-ide:latest` (listens on `:3030`,
+opens `/home/coder`). The runtime provisions one per workspace and the
+studio embeds it as an iframe in the `CodePane` via the runtime
+`GET /workspaces/{id}/ide` endpoint. The standalone Ironflyer VS Code
+Extension at `clients/vscode-extension/` remains the local-editor path
+for teams that prefer desktop VS Code.
 
-This document is kept as the rationale trail for the decision and the
-infra contract that lived in the codebase before removal. The current
-decision is: keep Ironflyer chrome front-and-center, but expose VS Code
-clearly from Studio when code work is requested.
+IronFlyer Studio is a cloud product builder. The web Studio is the
+product cockpit; each real workspace gets a branded cloud IDE backed by
+the runtime sandbox. Ironflyer stays visualization-first, so the IDE is
+the opt-in "open the hood" surface for professionals — reachable in one
+click but never the default landing pane.
 
 ---
 
-IronFlyer Studio is a cloud product builder. The web Studio remains the product cockpit, while each real workspace gets a VS Code-compatible cloud IDE backed by the runtime sandbox.
+## IDE base — custom-branded Eclipse Theia
 
-## Open-Source Base
+The embedded IDE is a custom Theia distribution under `clients/ide/`,
+not an off-the-shelf VS Code server. We assemble exactly the editor we
+want and theme it to the Ironflyer dark system end-to-end:
 
-The product direction is VS Code cloud, built on an open project:
+- **Full control over branding.** The chrome, splash, accent, and
+  product name are ours, not upstream VS Code's. No lime-first legacy
+  theme.
+- **Lean extension set.** Theia lets us bundle only the extensions a
+  generated workspace needs, instead of inheriting the full VS Code
+  surface.
+- **No marketplace / telemetry baggage.** We do not depend on the
+  Microsoft VS Code marketplace, and there is no upstream telemetry to
+  switch off — the distro never ships it.
 
-- Primary base: OpenVSCode Server for the Studio iframe, because it stays closest to upstream VS Code behavior and accepts the slim IronFlyer profile cleanly.
-- Legacy fallback: `code-server`, because the runtime already builds `infra/docker/ironflyer-code.Dockerfile`, the Docker driver returns `ideUrl`, and local compose can expose the same branded settings profile.
-- Not the current base: Eclipse Theia. Theia is powerful for custom IDE products, but IronFlyer already has a code-server runtime path and needs a VS Code-compatible workspace quickly.
+Image: `ironflyer/theia-ide:latest`, built from `clients/ide/`
+(`docker build -t ironflyer/theia-ide:latest clients/ide`). The
+container listens on `:3030` and opens `/home/coder` — the same
+host-path mount the runtime sandbox uses for files, terminal, exec, and
+preview.
 
-Reference notes:
+### History — why we moved off code-server / OpenVSCode
 
-- code-server runs VS Code in the browser and is designed for remote/self-hosted development.
-- OpenVSCode Server provides upstream VS Code on a remote machine through a browser.
-- Theia is an extensible cloud/desktop IDE framework, useful for a deeper future custom IDE but not the current fastest path.
+Earlier iterations targeted a VS Code-compatible browser editor:
+`code-server` (the runtime once built `infra/docker/ironflyer-code.Dockerfile`)
+and then OpenVSCode Server, chosen for staying close to upstream VS Code
+behavior and accepting the slim profile quickly. That path got us a
+working IDE fast, but it tied the product to upstream VS Code branding,
+the VS Code marketplace, and upstream telemetry/update plumbing we had
+to keep suppressing. We moved to a custom Theia distro for the control
+above. The runtime still keeps a registry-pullable code-server fallback
+(see "Runtime selection" below) so an unconfigured deployment boots a
+working IDE, but Theia is the canonical, intended surface.
+
+## Slim profile requirements
+
+The branded IDE image ships a slim profile (satisfied by `clients/ide/`):
+
+- hidden menubar / compact activity bar, compact tabs and status bar
+- no welcome page, no walkthroughs, no extension recommendations
+- telemetry and updates off
+- watcher/search excludes for heavy generated folders
+
+## Runtime selection
+
+The runtime Docker driver provisions the IDE container as part of
+workspace `Create`. Image and in-container port are env-selected:
+
+- `IRONFLYER_IDE_IMAGE=ironflyer/theia-ide:latest` — the canonical
+  branded Theia IDE.
+- `IRONFLYER_IDE_CONTAINER_PORT=3030` — Theia's in-container port.
+
+The compiled-in default stays `codercom/code-server:latest` on `8080`,
+because — unlike the locally-built Theia image — it is registry-pullable,
+so a deployment that relies on Docker pulling the default still boots a
+working IDE without any extra setup. The driver keys per-image run args
+off the image name: code-server receives `--auth none --disable-telemetry`,
+while Theia is launched bare (its entrypoint takes no such flags). Setting
+the two env vars above is the documented, non-breaking way to make Theia
+the active IDE once the image is built locally or pushed to your registry.
 
 ## Product Contract
 
@@ -34,15 +85,21 @@ The Studio surface must match `design-reference/2026-05-25-private-ironflyer/`:
 
 - `/studio` is a full IDE-style builder, not a marketing page.
 - `/p/[projectID]` is the live execution workspace.
-- The cloud IDE appears as an IDE action or tab in the Studio shell, using the execution/workspace identity.
-- The embedded or launched IDE uses the same IronFlyer dark-violet/coral design language. No lime-first legacy theme.
-- The IDE image ships a slim profile: hidden activity bar, compact tabs/status bar, no welcome walkthroughs, no extension recommendations, telemetry and updates off, and watcher/search excludes for heavy generated folders.
-- The IDE must open the same project snapshot as Studio. In local dev, `/api/ide/sync` mirrors `projectFiles` into `.ironflyer/ide-sync/projects/<projectID>` and OpenVSCode mounts that folder at `/home/workspace/projects/<projectID>`. The sync route keeps a hash manifest so later GraphQL refreshes do not overwrite files edited inside VS Code. In production, this responsibility moves to the runtime workspace/signed IDE route.
-- Preview, files, code, patches, deploy, wallet, ledger, ProfitGuard, and support bundle remain connected to the same execution.
+- The cloud IDE appears as a code tab in the Studio shell (the studio
+  `CodePane`), using the execution/workspace identity. The studio's
+  `IdeTopBar` owns the surrounding chrome (Ironflyer wordmark, project
+  name, Pro·code marker) so the embedded Theia frame stays bare.
+- The embedded IDE uses the same Ironflyer dark design language. No
+  lime-first legacy theme.
+- The IDE opens the same workspace files as Studio: it mounts the
+  runtime sandbox's `/home/coder`, so files, terminal, exec, and
+  preview all operate on one workspace — no separate file-sync layer.
+- Preview, files, code, patches, deploy, wallet, ledger, ProfitGuard,
+  and support bundle remain connected to the same execution.
 
 ## Runtime Contract
 
-Runtime already owns the primitives:
+Runtime owns the primitives:
 
 - workspace lifecycle
 - file operations
@@ -54,22 +111,40 @@ Runtime already owns the primitives:
 - archive/restore
 - `ideUrl` from the Docker workspace driver
 
-Cloud IDE production routing should formalize signed IDE URLs under a runtime or edge-owned route such as `/ide/{workspaceID}`. Direct host-mapped local URLs are acceptable only in development.
+The studio reaches the IDE through `GET /workspaces/{id}/ide`, which
+returns `{"url": <loopback host:port of the IDE container>, "ready":
+true}` (200) once the backend is up, or `{"url": "", "ready": false}`
+(202) while it boots, prompting the client to poll. In local dev,
+`IRONFLYER_IDE_URL` overrides the lookup so a developer can run the
+Theia app on `:3030` without Docker (e.g. `yarn start` in `clients/ide/`).
+This runtime IDE route is REST by design (the GraphQL-only rule governs
+the orchestrator, not the runtime). Production routing should keep
+signed, expiring IDE URLs scoped to tenant + workspace.
 
 ## Web Integration Contract
 
-The web app should expose the cloud IDE without breaking the cockpit:
+The studio exposes the cloud IDE without breaking the cockpit:
 
-1. Resolve the active `workspaceID` from the execution.
-2. Request or derive a signed IDE URL from runtime/orchestrator.
-3. Open the IDE in a contained Studio tab or a deliberate new-window action.
-4. Keep the Studio preview/code/files panels usable even when the full IDE is unavailable.
-5. Guest `/studio` may show an interactive IDE-style demo, but real workspace creation requires an authenticated paid/live execution.
+1. Resolve the active `workspaceID` from the execution / project.
+2. Request the IDE URL from the runtime (`GET /workspaces/{id}/ide`),
+   polling while `ready` is false.
+3. Embed the IDE in the contained Studio `CodePane` tab (iframe), with a
+   branded top accent and loading/offline lifecycle states.
+4. Keep the Studio preview/code/files panels usable even when the full
+   IDE is unavailable.
+5. Guest `/studio` may show an interactive IDE-style demo, but real
+   workspace creation requires an authenticated paid/live execution.
 
 ## Security And Cost
 
-- No public unauthenticated IDE URLs. Local dev removes the nested IDE login/token so the embedded editor opens cleanly after the IronFlyer app session; production must enforce access at the signed runtime/edge IDE route.
+- No public unauthenticated IDE URLs. The IDE container binds to
+  loopback only; the runtime reverse-proxy dials it. Local dev removes
+  the nested IDE login/token so the embedded editor opens cleanly after
+  the Ironflyer app session; production must enforce access at the
+  signed runtime/edge IDE route.
 - IDE URLs must be scoped to tenant, workspace, and expiration.
 - Workspace credentials must not be persisted into snapshots.
-- Idle IDE sessions are archived and destroyed under the runtime scale policy.
-- ProfitGuard and wallet rules still govern sandbox allocation for real workspaces.
+- Idle IDE sessions are archived and destroyed under the runtime scale
+  policy.
+- ProfitGuard and wallet rules still govern sandbox allocation for real
+  workspaces.

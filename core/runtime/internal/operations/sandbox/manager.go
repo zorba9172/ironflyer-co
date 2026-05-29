@@ -249,6 +249,10 @@ type Manager struct {
 	mu     sync.RWMutex
 	driver Driver
 	byID   map[string]Workspace
+	// byProject maps a ProjectID to its workspace ID. Drivers mint an opaque
+	// workspace ID, but callers (the studio) address a workspace by the
+	// project it belongs to, so we keep this secondary index for resolution.
+	byProject map[string]string
 	// ports tracks dev-server ports we've auto-detected per workspace, keyed
 	// by workspace ID then by port number.
 	ports map[string]map[int]DetectedPort
@@ -256,9 +260,10 @@ type Manager struct {
 
 func NewManager(d Driver) *Manager {
 	return &Manager{
-		driver: d,
-		byID:   make(map[string]Workspace),
-		ports:  make(map[string]map[int]DetectedPort),
+		driver:    d,
+		byID:      make(map[string]Workspace),
+		byProject: make(map[string]string),
+		ports:     make(map[string]map[int]DetectedPort),
 	}
 }
 
@@ -321,6 +326,9 @@ func (m *Manager) Create(ctx context.Context, opts CreateOpts) (Workspace, error
 	}
 	m.mu.Lock()
 	m.byID[ws.ID] = ws
+	if ws.ProjectID != "" {
+		m.byProject[ws.ProjectID] = ws.ID
+	}
 	m.mu.Unlock()
 	return ws, nil
 }
@@ -333,6 +341,23 @@ func (m *Manager) Get(id string) (Workspace, error) {
 		return Workspace{}, ErrNotFound
 	}
 	return ws, nil
+}
+
+// GetByProject resolves the live workspace for a project. Callers that address
+// a workspace by its project (rather than the driver-minted workspace ID) use
+// this. Returns false when no workspace has been provisioned for the project.
+func (m *Manager) GetByProject(projectID string) (Workspace, bool) {
+	if projectID == "" {
+		return Workspace{}, false
+	}
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	id, ok := m.byProject[projectID]
+	if !ok {
+		return Workspace{}, false
+	}
+	ws, ok := m.byID[id]
+	return ws, ok
 }
 
 func (m *Manager) List() []Workspace {
@@ -354,6 +379,9 @@ func (m *Manager) Destroy(ctx context.Context, id string) error {
 	}
 	delete(m.byID, id)
 	delete(m.ports, id)
+	if ws.ProjectID != "" && m.byProject[ws.ProjectID] == id {
+		delete(m.byProject, ws.ProjectID)
+	}
 	m.mu.Unlock()
 	return m.driver.Destroy(ctx, ws)
 }

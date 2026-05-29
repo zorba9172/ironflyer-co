@@ -23,6 +23,22 @@ type Config struct {
 	// Override to a custom image for tenants with their own hardened base.
 	DockerImage string `env:"IRONFLYER_RUNTIME_DOCKER_IMAGE" envDefault:"ghcr.io/zorba9172/ironflyer-workspace:latest"`
 
+	// Web IDE: which image the per-workspace browser IDE container runs and
+	// the in-container port it listens on. The CANONICAL IDE is the branded
+	// Eclipse Theia app (clients/ide/, image `ironflyer/theia-ide:latest`
+	// on 3030) embedded in the studio CodePane. Select it by setting
+	// IRONFLYER_IDE_IMAGE=ironflyer/theia-ide:latest with
+	// IRONFLYER_IDE_CONTAINER_PORT=3030 (the recommended .env / compose
+	// pairing once the image is built locally:
+	// `docker build -t ironflyer/theia-ide:latest clients/ide`).
+	//
+	// The compiled-in default stays code-server (`codercom/code-server:latest`
+	// on 8080) because, unlike the locally-built Theia image, it is
+	// registry-pullable — so an unconfigured deployment still boots a working
+	// IDE. Empty IDEImage falls through to that default in the driver.
+	IDEImage         string `env:"IRONFLYER_IDE_IMAGE"`
+	IDEContainerPort int    `env:"IRONFLYER_IDE_CONTAINER_PORT" envDefault:"8080"`
+
 	// CORS origin to allow (Next.js dev).
 	CORSOrigin string `env:"IRONFLYER_RUNTIME_CORS_ORIGIN" envDefault:"*"`
 

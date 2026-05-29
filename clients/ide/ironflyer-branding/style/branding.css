@@ -1,0 +1,130 @@
+/*
+ * Ironflyer brand chrome for the Theia browser shell.
+ *
+ * BRAND SOURCE OF TRUTH: packages/design-tokens/brand.ts
+ *   Theia CSS cannot import TypeScript, so the --ironflyer-* custom properties
+ *   are CODE-GENERATED from brand.ts into ./brand-tokens.generated.css (see
+ *   scripts/generate-brand-theme.mjs, run by the package build). Change a brand
+ *   value in brand.ts and rebuild — the IDE chrome AND the color themes retint
+ *   automatically. Never hand-edit the generated file or add bare color literals
+ *   here; use the --ironflyer-* vars.
+ *
+ * FONTS:
+ *   UI font   -> Inter      (with a system-first fallback stack)
+ *   Mono/code -> Geist Mono (also set via editor.fontFamily preference)
+ *
+ *   This shell runs inside a sandboxed per-workspace container that may have
+ *   NO outbound internet, so we deliberately do NOT @import web fonts at
+ *   runtime (blocked request / FOUT / privacy leak). The fallback stack below
+ *   keeps the shell clean with zero network: it prefers Inter / Geist Mono if
+ *   the host already has them, otherwise drops to robust system fonts.
+ *
+ *   To self-host (recommended for full brand fidelity offline): drop the font
+ *   files into ./fonts/ and uncomment the @font-face block below. No other
+ *   change is needed — the var stacks already list 'Inter' / 'Geist Mono'
+ *   first, so the faces take over automatically once present.
+ */
+
+/*
+ * @font-face scaffold — self-host fonts by dropping files in ./fonts/ and
+ * uncommenting. font-display:swap avoids invisible text while loading.
+ *
+ * @font-face {
+ *     font-family: 'Inter';
+ *     font-style: normal;
+ *     font-weight: 400 700;
+ *     font-display: swap;
+ *     src: url('./fonts/Inter.woff2') format('woff2');
+ * }
+ * @font-face {
+ *     font-family: 'Geist Mono';
+ *     font-style: normal;
+ *     font-weight: 400 600;
+ *     font-display: swap;
+ *     src: url('./fonts/GeistMono.woff2') format('woff2');
+ * }
+ */
+
+/*
+ * Brand CSS variables (--ironflyer-*) are GENERATED from
+ * packages/design-tokens/brand.ts into ./brand-tokens.generated.css by
+ * scripts/generate-brand-theme.mjs — the same tokens the MUI theme consumes.
+ * Never hand-edit the vars; change brand.ts and rebuild. Imported first so
+ * the rules below resolve against it.
+ */
+@import './brand-tokens.generated.css';
+
+/* Apply the brand UI font across the whole Theia shell. */
+body,
+.theia-ApplicationShell,
+.p-Widget,
+.lm-Widget,
+.theia-input,
+.theia-select,
+.monaco-workbench {
+    font-family: var(--ironflyer-font-ui) !important;
+}
+
+/* Code surfaces use the mono brand font (preference also sets this). */
+.monaco-editor,
+.monaco-editor .view-lines,
+.xterm,
+.theia-monaco-editor {
+    font-family: var(--ironflyer-font-mono) !important;
+}
+
+/*
+ * Lightweight Ironflyer mark + wordmark, pinned to the top-right of the shell.
+ * Sits in the menubar gutter so it never overlaps editor tabs. Non-interactive
+ * so it cannot steal clicks from the workbench beneath it.
+ */
+#ironflyer-wordmark {
+    position: fixed;
+    top: 0;
+    right: 10px;
+    height: var(--theia-private-menubar-height, 28px);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    pointer-events: none;
+    user-select: none;
+    z-index: 1000;
+}
+
+#ironflyer-wordmark .ironflyer-wordmark-svg {
+    display: block;
+    flex: none;
+}
+
+#ironflyer-wordmark .ironflyer-wordmark-text {
+    font-family: var(--ironflyer-font-ui);
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    /* cobalt -> cyan signature gradient as text fill */
+    background: var(--ironflyer-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: var(--ironflyer-cobalt); /* fallback where text-fill clip is unsupported */
+}
+
+/*
+ * De-clutter: hide the default Theia top menu bar in the browser shell so the
+ * IDE reads as a lightweight embedded panel inside the studio iframe (which
+ * already supplies its own top bar). The command palette / context menus
+ * remain fully available. The activity bar, sidebar, explorer, and search are
+ * intentionally left untouched — this is a real working IDE.
+ */
+.theia-menubar,
+#theia\:menubar {
+    display: none !important;
+}
+
+/* Trim the status bar to essentials feel by reducing its visual weight while
+ * keeping it legible (secondary-text color, not muted). */
+#theia-statusBar {
+    font-size: 11px;
+    color: var(--ironflyer-text-secondary);
+}

@@ -162,10 +162,9 @@ type Service interface {
 	// Returns ErrNotFound only when the execution itself is unknown
 	// — and callers MAY treat that as "no data" rather than fatal.
 	//
-	// TODO(wave-3): finisher.recordGateOutcome should emit
-	// gate.verdict.v1 events into execution_events so this path
-	// returns real data even on production. Until that lands the
-	// wow-loop gate panel renders as "no data yet".
+	// Wired: finisher.recordGateOutcome emits gate.verdict.v1 into
+	// execution_events (engine.go), so this path returns real data on
+	// the Postgres backend.
 	GateEventsByExecution(ctx context.Context, executionID string) ([]GateEvent, error)
 
 	// PatchAppliedEventsByExecution returns every patch.applied.v1
@@ -175,9 +174,9 @@ type Service interface {
 	// through the patch engine's in-memory store (which today has
 	// no per-execution indexing).
 	//
-	// TODO(wave-3): wire finisher.engine.Apply to emit
-	// patch.applied.v1 through RecordEvent on the execution so this
-	// path lights up.
+	// Wired: the finisher loop (loop.go) and recovery loop
+	// (recovery.go) emit patch.applied.v1 through emitExecutionEvent
+	// the moment a patch is applied, so this path lights up.
 	PatchAppliedEventsByExecution(ctx context.Context, executionID string) ([]PatchAppliedEvent, error)
 
 	// PendingRefinements returns refinements that have been recorded
@@ -202,9 +201,9 @@ type Service interface {
 	// than "failed" when a recipe successfully short-circuited the
 	// Coder loop.
 	//
-	// TODO(wave-3): wire finisher/recovery.go to call RecordEvent
-	// with recovery.recipe_hit.v1 / recovery.recipe_applied.v1 so
-	// the wow-loop repair panel lights up on production.
+	// Wired: finisher/recovery.go emits recovery.recipe_hit.v1 and
+	// recovery.recipe_applied.v1 through emitExecutionEvent, so the
+	// wow-loop repair panel lights up on the Postgres backend.
 	RecoveryAttemptsByExecution(ctx context.Context, executionID string) ([]RecoveryAttempt, error)
 
 	// SetWorkspaceID stamps the runtime sandbox workspace bound to the
@@ -272,6 +271,14 @@ const (
 	EventPatchAppliedV1  = "patch.applied.v1"
 	EventRecoveryHitV1   = "recovery.recipe_hit.v1"
 	EventRecoveryApplyV1 = "recovery.recipe_applied.v1"
+
+	// EventArtifactSBOMPublishedV1 records that the finisher generated a
+	// CycloneDX software bill-of-materials for the run and persisted it
+	// to .ironflyer/sbom.json. Payload: { format, spec_version,
+	// component_count, size_bytes, sha256, path, published_at }. The
+	// studio SecurityPane reads it back to enable the "Export SBOM"
+	// action and prove the AppSec/SBOM artifact is real per ship.
+	EventArtifactSBOMPublishedV1 = "artifact.sbom.published.v1"
 
 	// Agent-stage event vocabulary (A55) — emitted by the finisher
 	// engine + recovery loop so the studio chat surface can render

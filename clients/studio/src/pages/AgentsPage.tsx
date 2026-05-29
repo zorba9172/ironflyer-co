@@ -24,7 +24,7 @@ export function AgentsPage() {
             <Card key={a.id} sx={{ p: 2.5 }}>
               <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.25 }}>
                 <Stack direction="row" alignItems="center" spacing={1.5}>
-                  <Box sx={(t) => ({ width: 36, height: 36, borderRadius: 2, display: 'grid', placeItems: 'center', color: '#fff', backgroundImage: t.brand.gradient.signature, fontWeight: 700 })}>{a.name[0]}</Box>
+                  <Box sx={(t) => ({ width: 36, height: 36, borderRadius: 2, display: 'grid', placeItems: 'center', color: t.palette.primary.contrastText, backgroundImage: t.brand.gradient.signature, fontWeight: 700 })}>{a.name[0]}</Box>
                   <Typography variant="h6" sx={{ fontSize: '1.02rem' }}>{a.name}</Typography>
                 </Stack>
                 <Chip size="small" label={statusText[status]} sx={{ height: 20, fontSize: '0.66rem', bgcolor: `${color}22`, color }} />

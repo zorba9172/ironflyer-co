@@ -7,31 +7,40 @@ package resolver
 
 import (
 	"context"
-	"fmt"
+	"errors"
+
 	"ironflyer/core/orchestrator/internal/operations/graph/model"
 )
 
+// errProvisioningNotConfigured is returned by the provisioning mutations
+// until the resource-lifecycle backend (connectors + revenue tracking) is
+// wired. Returning a clean error rather than panicking keeps the resolver
+// goroutine alive and lets the cockpit CTA degrade gracefully.
+var errProvisioningNotConfigured = errors.New("provisioning: resource lifecycle not configured")
+
 // ProvisionResource is the resolver for the provisionResource field.
 func (r *mutationResolver) ProvisionResource(ctx context.Context, projectID string, kind string) (*model.ProvisionedResource, error) {
-	panic(fmt.Errorf("not implemented: ProvisionResource - provisionResource"))
+	return nil, errProvisioningNotConfigured
 }
 
 // SuspendResource is the resolver for the suspendResource field.
 func (r *mutationResolver) SuspendResource(ctx context.Context, id string) (*model.ProvisionedResource, error) {
-	panic(fmt.Errorf("not implemented: SuspendResource - suspendResource"))
+	return nil, errProvisioningNotConfigured
 }
 
 // ProvisionedResources is the resolver for the provisionedResources field.
+// Returns an empty set until the backend lands so dashboards render a clean
+// "no provisioned resources" empty state instead of an error toast.
 func (r *queryResolver) ProvisionedResources(ctx context.Context, projectID string) ([]model.ProvisionedResource, error) {
-	panic(fmt.Errorf("not implemented: ProvisionedResources - provisionedResources"))
+	return []model.ProvisionedResource{}, nil
 }
 
 // RevenueEvents is the resolver for the revenueEvents field.
 func (r *queryResolver) RevenueEvents(ctx context.Context, resourceID string, limit *int) ([]model.RevenueEvent, error) {
-	panic(fmt.Errorf("not implemented: RevenueEvents - revenueEvents"))
+	return []model.RevenueEvent{}, nil
 }
 
 // AvailableConnectors is the resolver for the availableConnectors field.
 func (r *queryResolver) AvailableConnectors(ctx context.Context) ([]model.ConnectorInfo, error) {
-	panic(fmt.Errorf("not implemented: AvailableConnectors - availableConnectors"))
+	return []model.ConnectorInfo{}, nil
 }

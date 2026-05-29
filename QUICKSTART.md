@@ -91,6 +91,20 @@ go run ./cmd/runtime
 # IRONFLYER_RUNTIME_DRIVER=docker once you want real sandboxes.
 ```
 
+The studio CodePane embeds the canonical branded Eclipse Theia IDE
+(`clients/ide/`). Build the image once, then point the docker driver at
+it:
+
+```bash
+docker build -t ironflyer/theia-ide:latest clients/ide
+export IRONFLYER_IDE_IMAGE=ironflyer/theia-ide:latest
+export IRONFLYER_IDE_CONTAINER_PORT=3030
+```
+
+Without those vars the runtime falls back to the registry-pullable
+code-server image (8080). For dev without Docker, set
+`IRONFLYER_IDE_URL` to a locally-running Theia (`:3030`).
+
 ## 6. Start the web cockpit
 
 ```bash

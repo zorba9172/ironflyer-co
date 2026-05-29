@@ -335,6 +335,53 @@ If a feature ships a new operator surface without a default visual
 that mirrors the underlying technical state, it works against the
 product even if the GraphQL plumbing is correct.
 
+### Constitutional rule: PERFORMANCE — LAZY, VIRTUALIZED, STABLE
+
+Asserted 2026-05-29 by the user: every surface must be optimized for
+performance, virtualization, and resilience under load. Performance is
+not a follow-up — it ships with the feature. These laws are
+non-negotiable and apply to every client surface (studio / backoffice /
+marketing / web / mobile).
+
+**Hard rules:**
+
+- **Heavy libraries always load behind a lazy boundary.** echarts,
+  `@xyflow/react`, three.js, `ag-grid`, the Monaco editor, Sandpack,
+  and any comparably heavy lib MUST be reached only through a lazy
+  wrapper + inner split (Next: `next/dynamic` `ssr:false`; Vite/SPA:
+  `React.lazy` + `Suspense`; the canonical pattern is
+  `packages/ui-web/src/fx/*` and `packages/ui-web/src/data-grid/`,
+  wrapper re-exports + a lazily-imported `*Inner`). They must NEVER be
+  statically imported on a cold path. **Type-only imports are fine**
+  (erased at build) — runtime values (components, enums like
+  `Position`/`MarkerType`, `Handle`) are not, and pull the lib into
+  the bundle. A build that puts one of these libs in the entry chunk
+  is a regression; verify with the chunk report.
+- **Route + pane code-splitting.** Editor panes, route screens, and
+  any tab whose content carries heavy deps load on demand via
+  `React.lazy` + `Suspense` with a non-blocking fallback. The app
+  shell (nav, chat, the always-visible chrome) is the only thing in
+  the initial chunk.
+- **Virtualize unbounded lists.** Any list that can grow without a
+  hard cap — chat transcripts, logs, ledgers, findings, file trees,
+  tables — MUST be virtualized. Use `ag-grid` (via the lazy `DataGrid`)
+  for tabular surfaces and `@tanstack/react-virtual` for custom lists.
+  Never render thousands of DOM nodes eagerly.
+- **Live-polled visualizations must be signature-memoized.** A surface
+  that re-fetches on an interval (gates, economics, forecasts) MUST
+  derive a content **signature** of exactly what it renders and gate
+  the expensive rebuild (React Flow node/edge graphs, chart options) on
+  that signature — so identical polls don't rebuild the graph or churn
+  the viewport. A polling surface that flickers or re-fits on every
+  tick is a regression. Callbacks passed into memoized builders MUST be
+  stable (`useCallback`); an unstable handler silently defeats the memo.
+- **Every lazy boundary needs a fallback** that holds layout (skeleton
+  / sized box / spinner), never a flash of collapsed content.
+
+Treat a perf regression — a heavy lib in the cold bundle, an
+un-virtualized unbounded list, a flickering polled graph — the same way
+you treat raw-hex drift: fix it before continuing.
+
 ### Constitutional rule: NO TESTS, EVER
 
 This repository does not carry tests and never will. The rule is

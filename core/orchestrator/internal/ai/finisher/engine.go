@@ -1261,6 +1261,9 @@ func (e *Engine) Run(ctx context.Context, projectID string) (RunReport, error) {
 		for _, g := range domain.AllGates() {
 			report.Gates = append(report.Gates, p.Gates[g])
 		}
+		// Generate + persist the CycloneDX SBOM artifact for the run.
+		// Best-effort: never affects the report or settlement.
+		e.publishSBOM(ctx, projectID, p)
 	}
 	report.FinishedAt = time.Now().UTC()
 

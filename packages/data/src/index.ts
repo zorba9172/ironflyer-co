@@ -6,5 +6,6 @@ export { useGraphQLQuery } from './useGraphQLQuery';
 export { useEventStream, type FeedEvent } from './eventStream';
 export { useRunProjectFeed, type RunLogEvent } from './runFeed';
 export { useChatStream, type ChatStreamEvent } from './chat';
+export { useWorkspaceIde, writeWorkspaceFile, runtimeFetch, RuntimeError, RUNTIME_BASE, type WorkspaceIde } from './runtime';
 export { AuthProvider, useAuth, type AuthUser } from './auth';
 export * as operations from './operations';

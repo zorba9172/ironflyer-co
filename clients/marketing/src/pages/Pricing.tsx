@@ -4,16 +4,16 @@ import { Reveal } from '@ironflyer/ui-web/motion';
 import { Eyebrow } from '../components/text';
 
 const tiers = [
-  { name: 'Builder', price: '$0', cadence: 'to start', line: 'For the first build you want to take seriously.', features: ['One project', 'All six finisher gates', 'Preview deploys', 'Usage-based agent runs', 'Community support'], cta: 'Start free', featured: false },
-  { name: 'Pro', price: '$39', cadence: 'per month', line: 'For shipping real products to real users.', features: ['Unlimited projects', 'Production deploys on your domain', 'Mobile (iOS + Android) target', 'Spend & error board', 'Priority agent throughput'], cta: 'Start 14-day trial', featured: true },
-  { name: 'Studio', price: "Let's talk", cadence: 'for teams', line: 'For teams running several products at once.', features: ['Everything in Pro', 'Shared workspaces & roles', 'Backoffice access', 'SSO & audit log', 'Spend controls per project'], cta: 'Contact us', featured: false },
+  { name: 'Builder', price: '$0', cadence: 'to start', line: 'For the first build you want to take seriously.', features: ['One project', 'All six finisher gates', 'Prepaid wallet + live cost', 'ProfitGuard on every run', 'Community support'], cta: 'Start free', featured: false },
+  { name: 'Pro', price: '$39', cadence: 'per month', line: 'For shipping real products to real users.', features: ['Unlimited projects', 'Production deploys on your domain', 'Mobile (iOS + Android) target', 'Per-project margin ledger', 'Priority agent throughput'], cta: 'Start 14-day trial', featured: true },
+  { name: 'Studio', price: "Let's talk", cadence: 'for teams', line: 'For teams running several products at once.', features: ['Everything in Pro', 'Shared workspaces & roles', 'Backoffice access', 'SSO & audit log', 'Wallet spend caps per project'], cta: 'Contact us', featured: false },
 ];
 
 const faqs = [
   { q: 'Do I have to start from scratch?', a: 'No. Import an existing build from Lovable, Bolt, v0, Cursor, or any Git repo. Ironflyer is built to finish what you already have.' },
-  { q: 'How does usage billing work?', a: 'Agent runs and deploys are metered against a wallet you top up. You see provider cost next to what you spend, so nothing is a surprise.' },
-  { q: 'Who owns the code?', a: 'You do. Export the repo any time. Ironflyer is a finisher, not a lock-in.' },
-  { q: 'Is the deploy really mine?', a: 'Yes — your domain, your environment variables, your database. We do not hold your production hostage.' },
+  { q: 'How does usage billing work?', a: 'Agent runs and deploys hold funds against a prepaid wallet before any expensive call runs. ProfitGuard refuses calls with negative expected ROI, and the ledger shows provider cost next to what you charge — so nothing is a surprise, ever.' },
+  { q: 'Who owns the code?', a: 'You do. There is an owner check on every resource and you can export the repo any time. Ironflyer is a finisher, not a lock-in.' },
+  { q: 'Is the deploy really mine?', a: 'Yes — your domain, your environment variables, your database. We do not hold your production hostage, and the security gate makes sure it does not ship exposed.' },
 ];
 
 export function Pricing() {
@@ -21,14 +21,14 @@ export function Pricing() {
     <>
       <Head>
         <title>Pricing — Ironflyer</title>
-        <meta name="description" content="Start free, ship on Pro, scale on Studio. Usage-based agent runs, deploys on a domain you own, and spend you can actually see." />
+        <meta name="description" content="Start free, ship on Pro, scale on Studio. A prepaid wallet with ProfitGuard on every run, a per-execution margin ledger, deploys on a domain you own, and spend you can actually see." />
       </Head>
 
       <Container maxWidth="lg" sx={{ pt: { xs: 11, md: 14 }, pb: 3 }}>
         <Eyebrow>Pricing</Eyebrow>
-        <Typography variant="h1" sx={{ fontSize: { xs: '2.5rem', md: '4rem' }, my: 2 }}>Pay to ship, not to demo.</Typography>
+        <Typography variant="h1" sx={{ fontSize: { xs: '2.5rem', md: '4rem' }, my: 2 }}>Pay to ship, never to be surprised.</Typography>
         <Typography sx={{ color: 'text.secondary', fontSize: '1.12rem', lineHeight: 1.6, maxWidth: '62ch' }}>
-          Start free. When a build becomes a product, the price tracks what you actually use — and you can see the provider cost behind every run.
+          Start free. Runs draw from a prepaid wallet, ProfitGuard gates each expensive call by expected ROI, and the ledger shows the provider cost behind every run. The surprise bill that comes standard with other AI builders is not on the menu.
         </Typography>
       </Container>
 

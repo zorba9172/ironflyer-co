@@ -1,25 +1,40 @@
+import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
+import { Box, CircularProgress } from '@mui/material';
 import { AppShell } from './AppShell';
-import { StudioHome } from './pages/StudioHome';
-import { ProjectsPage } from './pages/ProjectsPage';
-import { TemplatesPage } from './pages/TemplatesPage';
-import { IntegrationsPage } from './pages/IntegrationsPage';
-import { AgentsPage } from './pages/AgentsPage';
-import { PlansPage } from './pages/PlansPage';
-import { Editor } from './pages/Editor';
+
+// Every route is code-split: the initial load ships the shell only, and each
+// page (the Editor especially, with its heavy panes) loads on navigation.
+const StudioHome = lazy(() => import('./pages/StudioHome').then((m) => ({ default: m.StudioHome })));
+const ProjectsPage = lazy(() => import('./pages/ProjectsPage').then((m) => ({ default: m.ProjectsPage })));
+const TemplatesPage = lazy(() => import('./pages/TemplatesPage').then((m) => ({ default: m.TemplatesPage })));
+const IntegrationsPage = lazy(() => import('./pages/IntegrationsPage').then((m) => ({ default: m.IntegrationsPage })));
+const AgentsPage = lazy(() => import('./pages/AgentsPage').then((m) => ({ default: m.AgentsPage })));
+const PlansPage = lazy(() => import('./pages/PlansPage').then((m) => ({ default: m.PlansPage })));
+const Editor = lazy(() => import('./pages/Editor').then((m) => ({ default: m.Editor })));
+
+function RouteFallback() {
+  return (
+    <Box sx={{ minHeight: '60vh', display: 'grid', placeItems: 'center' }}>
+      <CircularProgress size={26} thickness={5} />
+    </Box>
+  );
+}
 
 export function App() {
   return (
-    <Routes>
-      <Route element={<AppShell />}>
-        <Route path="/" element={<StudioHome />} />
-        <Route path="/projects" element={<ProjectsPage />} />
-        <Route path="/templates" element={<TemplatesPage />} />
-        <Route path="/integrations" element={<IntegrationsPage />} />
-        <Route path="/agents" element={<AgentsPage />} />
-        <Route path="/plans" element={<PlansPage />} />
-      </Route>
-      <Route path="/build" element={<Editor />} />
-    </Routes>
+    <Suspense fallback={<RouteFallback />}>
+      <Routes>
+        <Route element={<AppShell />}>
+          <Route path="/" element={<StudioHome />} />
+          <Route path="/projects" element={<ProjectsPage />} />
+          <Route path="/templates" element={<TemplatesPage />} />
+          <Route path="/integrations" element={<IntegrationsPage />} />
+          <Route path="/agents" element={<AgentsPage />} />
+          <Route path="/plans" element={<PlansPage />} />
+        </Route>
+        <Route path="/build" element={<Editor />} />
+      </Routes>
+    </Suspense>
   );
 }

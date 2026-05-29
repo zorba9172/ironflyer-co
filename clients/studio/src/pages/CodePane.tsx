@@ -1,65 +1,64 @@
-import { useMemo, useState } from 'react';
-import { Box, Stack, Typography } from '@mui/material';
-import { useGraphQLQuery, operations } from '@ironflyer/data';
-import { CodeEditor } from '@ironflyer/ui-web/fx';
-import { useThemeMode } from '@ironflyer/ui-web';
+import { Box, Chip, Stack, Typography } from '@mui/material';
+import { LogoMark } from '../components/LogoMark';
+import { IdeFrame } from '../components/IdeFrame';
 import { useLiveProjectId } from '../hooks/useLiveProjectId';
+import { useStudio } from '../store';
 
-interface CodeFile { path: string; size: number; language: string; content?: string | null }
+// Code surface — the branded Eclipse Theia web IDE (clients/ide/, image
+// ironflyer/theia-ide:latest), served per-workspace by the runtime. Ironflyer
+// is visualization-first: this full IDE is the opt-in "for pros" layer,
+// reachable in one click but never the default pane. The viz surfaces
+// (Dashboard / Map / Preview) remain the landing experience; this is where a
+// professional opens the hood and edits the real workspace directly.
+//
+// This studio top bar is the canonical chrome for the IDE — it owns the
+// Ironflyer wordmark, the project name, and the Pro·code marker so the
+// embedded Theia frame can stay bare (its own wordmark is redundant here).
 
-const SAMPLE: CodeFile[] = [
-  { path: 'src/App.tsx', size: 0, language: 'tsx', content: "import { useState } from 'react';\n\nexport default function App() {\n  const [count, setCount] = useState(0);\n  return <button onClick={() => setCount((c) => c + 1)}>count is {count}</button>;\n}\n" },
-  { path: 'README.md', size: 0, language: 'md', content: '# Project\n\nConnect the orchestrator to load your real files here.\n' },
-];
-
-function langOf(path: string): string {
-  if (/\.json$/i.test(path)) return 'json';
-  return 'javascript';
+function IdeTopBar({ projectName }: { projectName: string }) {
+  return (
+    <Stack
+      direction="row"
+      alignItems="center"
+      justifyContent="space-between"
+      sx={{ px: 2, py: 1, borderBottom: 1, borderColor: 'divider', bgcolor: 'background.paper', flexShrink: 0 }}
+    >
+      <Stack direction="row" alignItems="center" spacing={1.25} sx={{ minWidth: 0 }}>
+        <LogoMark size={18} />
+        <Typography variant="subtitle2">Ironflyer IDE</Typography>
+        <Typography variant="subtitle2" sx={{ color: 'text.disabled' }}>/</Typography>
+        <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 400 }} noWrap>
+          {projectName}
+        </Typography>
+      </Stack>
+      <Chip
+        label="Pro · code"
+        size="small"
+        variant="outlined"
+        sx={(t) => ({
+          fontFamily: t.brand.font.mono,
+          letterSpacing: '0.06em',
+          textTransform: 'uppercase',
+          color: 'text.secondary',
+          '& .MuiChip-label': { ...t.typography.caption },
+        })}
+      />
+    </Stack>
+  );
 }
 
-// Code surface — CodeMirror 6 (not VS Code). Lists the project's files and
-// opens them in a light, fast editor. Save lands once the runtime File API is wired.
 export function CodePane() {
-  const liveProjectId = useLiveProjectId();
-  const { mode } = useThemeMode();
-  const [selected, setSelected] = useState(0);
-
-  const { data: files } = useGraphQLQuery<CodeFile[], { projectFiles: CodeFile[] }>({
-    key: ['code-files', liveProjectId ?? 'none'],
-    operationName: 'ProjectFiles', query: operations.PROJECT_FILES,
-    variables: { id: liveProjectId }, fallbackData: SAMPLE, enabled: !!liveProjectId,
-    map: (r) => (r.projectFiles?.length ? r.projectFiles : SAMPLE),
-  });
-
-  const file = files[Math.min(selected, files.length - 1)] ?? files[0];
-  const value = useMemo(() => file?.content ?? '// (empty file)\n', [file]);
+  const firstProjectId = useLiveProjectId();
+  const storeProjectId = useStudio((s) => s.liveProjectId);
+  const project = useStudio((s) => s.current);
+  // Prefer the session's bound backend project, else the first live project,
+  // else the in-session fixture id (so the IDE still has a workspace to target).
+  const projectId = storeProjectId ?? firstProjectId ?? project.id;
 
   return (
-    <Box sx={{ flex: 1, height: '100%', display: 'flex', minWidth: 0, bgcolor: 'background.default' }}>
-      {/* file list */}
-      <Box sx={{ width: 240, flexShrink: 0, borderRight: 1, borderColor: 'divider', overflowY: 'auto', py: 1 }}>
-        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.66rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'text.disabled', px: 2, py: 1 })}>Files</Typography>
-        {files.map((f, i) => (
-          <Box
-            key={f.path}
-            onClick={() => setSelected(i)}
-            sx={{ px: 2, py: 0.75, cursor: 'pointer', bgcolor: i === selected ? 'action.selected' : 'transparent', '&:hover': { bgcolor: 'action.hover' } }}
-          >
-            <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.8rem', color: i === selected ? 'text.primary' : 'text.secondary' })} noWrap>{f.path}</Typography>
-          </Box>
-        ))}
-      </Box>
-
-      {/* editor */}
-      <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 2, py: 1, borderBottom: 1, borderColor: 'divider' }}>
-          <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.8rem' })}>{file?.path}</Typography>
-          <Typography sx={{ fontSize: '0.72rem', color: 'text.disabled' }}>read-only · save lands with the runtime File API</Typography>
-        </Stack>
-        <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', '& .cm-editor': { height: '100%' } }}>
-          {file && <CodeEditor value={value} language={langOf(file.path)} dark={mode === 'dark'} readOnly height="100%" />}
-        </Box>
-      </Box>
+    <Box sx={{ flex: 1, height: '100%', display: 'flex', flexDirection: 'column', minWidth: 0, bgcolor: 'background.default' }}>
+      <IdeTopBar projectName={project.name} />
+      <IdeFrame projectId={projectId} />
     </Box>
   );
 }

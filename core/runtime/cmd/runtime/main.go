@@ -141,13 +141,24 @@ func main() {
 	var driver sandbox.Driver
 	switch cfg.Driver {
 	case "docker":
-		dd := sandbox.NewDockerDriver(cfg.DockerImage).WithEFS(cfg.EFSMount, cfg.WorkspaceDir)
+		dd := sandbox.NewDockerDriver(cfg.DockerImage).
+			WithEFS(cfg.EFSMount, cfg.WorkspaceDir).
+			// Web IDE image + container port. The canonical IDE is the
+			// branded Eclipse Theia app — select it with IRONFLYER_IDE_IMAGE=
+			// ironflyer/theia-ide:latest + IRONFLYER_IDE_CONTAINER_PORT=3030.
+			// Empty IDEImage falls through to the registry-pullable
+			// code-server fallback (8080) so an unconfigured runtime still
+			// boots a working IDE; behavior is unchanged unless these env
+			// vars are set.
+			WithIDEImage(cfg.IDEImage).
+			WithContainerPort(cfg.IDEContainerPort)
 		if scaleRes.Snapshots != nil {
 			dd = dd.WithSnapshotShim(wireup.SnapshotShimAdapter{Mgr: scaleRes.Snapshots})
 			logger.Info().Msg("docker driver: snapshot shim wired")
 		}
 		driver = dd
-		logger.Info().Str("image", cfg.DockerImage).Str("efs", cfg.EFSMount).Msg("docker driver enabled")
+		logger.Info().Str("image", dd.Image).Int("idePort", dd.ContainerPort).
+			Str("efs", cfg.EFSMount).Msg("docker driver enabled")
 	default:
 		driver = sandbox.NewMockDriver(cfg.WorkspaceDir)
 		logger.Info().Str("dir", cfg.WorkspaceDir).Msg("mock driver enabled")

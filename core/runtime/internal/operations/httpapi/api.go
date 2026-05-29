@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -147,6 +148,7 @@ func New(mgr *sandbox.Manager, opts Options, logger zerolog.Logger) http.Handler
 			r.Route("/{id}", func(r chi.Router) {
 				r.Get("/", a.get)
 				r.Delete("/", a.destroy)
+				r.Get("/ide", a.ide)
 				r.Get("/files", a.listFiles)
 				r.Get("/files/*", a.readFile)
 				r.Put("/files/*", a.writeFile)
@@ -198,14 +200,28 @@ func (a *API) authMode() string {
 }
 
 // requireWorkspace loads a workspace and 404s when the caller doesn't own it.
-func (a *API) requireWorkspace(w http.ResponseWriter, r *http.Request, id string) (sandbox.Workspace, bool) {
+// lookupWorkspace resolves a workspace by its driver-minted ID first, then by
+// the project it belongs to (the studio addresses workspaces by project, not
+// by the opaque sandbox ID). Returns false without writing a response when no
+// accessible workspace exists, so callers can layer their own fallback.
+func (a *API) lookupWorkspace(r *http.Request, id string) (sandbox.Workspace, bool) {
 	ws, err := a.mgr.Get(id)
 	if err != nil {
-		writeJSON(w, http.StatusNotFound, errJSON("not found"))
+		pws, ok := a.mgr.GetByProject(id)
+		if !ok {
+			return sandbox.Workspace{}, false
+		}
+		ws = pws
+	}
+	if !ws.IsAccessibleBy(userIDFromCtx(r)) {
 		return sandbox.Workspace{}, false
 	}
-	uid := userIDFromCtx(r)
-	if !ws.IsAccessibleBy(uid) {
+	return ws, true
+}
+
+func (a *API) requireWorkspace(w http.ResponseWriter, r *http.Request, id string) (sandbox.Workspace, bool) {
+	ws, ok := a.lookupWorkspace(r, id)
+	if !ok {
 		writeJSON(w, http.StatusNotFound, errJSON("not found"))
 		return sandbox.Workspace{}, false
 	}
@@ -455,6 +471,64 @@ func (a *API) get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, ws)
+}
+
+// ide returns the per-workspace web IDE URL so the studio can embed the
+// branded Theia (or code-server) container in an iframe / new tab.
+//
+// Contract:
+//   - 200 {"url": <url>, "ready": true}  when a backend URL is available.
+//   - 202 {"url": "",   "ready": false} when the IDE is still starting;
+//     the client polls until it flips to 200.
+//
+// The driver provisions the IDE container as part of workspace Create
+// (DockerDriver populates Workspace.IDEURL with the loopback host:port of
+// the code-server/Theia container; that step is idempotent because a
+// workspace maps to a single long-lived container). The Mock driver has
+// no real IDE container and leaves IDEURL empty, so dev runs the Theia
+// app locally and points the runtime at it via IRONFLYER_IDE_URL.
+func (a *API) ide(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	ws, ok := a.lookupWorkspace(r, id)
+	if !ok {
+		// Dev convenience: when IRONFLYER_RUNTIME_DEV_AUTOCREATE is set, lazily
+		// provision a workspace for the project so the studio's IDE pane works
+		// without first running a full execution. This bypasses the allocator /
+		// ProfitGuard create path, so it MUST stay off in production — in prod
+		// the orchestrator provisions the workspace through the gated flow and
+		// this returns 404 until it does.
+		if strings.TrimSpace(os.Getenv("IRONFLYER_RUNTIME_DEV_AUTOCREATE")) == "" {
+			writeJSON(w, http.StatusNotFound, errJSON("not found"))
+			return
+		}
+		uid := userIDFromCtx(r)
+		if uid == "" {
+			uid = "demo"
+		}
+		created, err := a.mgr.Create(r.Context(), sandbox.CreateOpts{UserID: uid, ProjectID: id})
+		if err != nil {
+			a.logger.Warn().Err(err).Str("project", id).Msg("dev-autocreate workspace failed")
+			writeJSON(w, http.StatusInternalServerError, errJSON(err.Error()))
+			return
+		}
+		a.logger.Info().Str("project", id).Str("ws", created.ID).Msg("dev-autocreate workspace for IDE")
+		ws = created
+	}
+	// Dev override: when IRONFLYER_IDE_URL is set we hand back that raw
+	// URL with ready=true regardless of driver. This lets a developer run
+	// the Theia app locally (e.g. `yarn start` on :3030) without Docker.
+	if override := strings.TrimSpace(os.Getenv("IRONFLYER_IDE_URL")); override != "" {
+		writeJSON(w, http.StatusOK, map[string]any{"url": override, "ready": true})
+		return
+	}
+	url := strings.TrimSpace(ws.IDEURL)
+	if url == "" {
+		// Backend not up yet (mock driver, or container still booting).
+		// 202 tells the client to keep polling.
+		writeJSON(w, http.StatusAccepted, map[string]any{"url": "", "ready": false})
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"url": url, "ready": true})
 }
 
 func (a *API) destroy(w http.ResponseWriter, r *http.Request) {

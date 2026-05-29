@@ -20,7 +20,7 @@ export function useChatStream() {
   const isLive = !!cfg.endpoint;
   const execByProject = useRef<Record<string, string>>({});
 
-  const EXEC_BUDGET_USD = 50;
+  const EXEC_BUDGET_USD = 2;
 
   async function createExecution(projectId: string): Promise<string> {
     const d = await request!<{ createPaidExecution: { id: string } }>('CreatePaidExecution', CREATE_PAID_EXECUTION, {
@@ -38,13 +38,14 @@ export function useChatStream() {
 
   // One streaming pass. Returns whether a budget pause hit and whether any
   // assistant text was emitted (so the caller can decide to retry cleanly).
-  async function runStream(execId: string, message: string, onEvent: (ev: ChatStreamEvent) => void): Promise<{ budgetHit: boolean; textEmitted: boolean }> {
+  async function runStream(execId: string, message: string, onEvent: (ev: ChatStreamEvent) => void, signal?: AbortSignal): Promise<{ budgetHit: boolean; textEmitted: boolean }> {
     const base = cfg.endpoint!.replace(/\/graphql\/?$/, '');
     const token = cfg.getToken?.();
     const res = await fetch(`${base}/executions/${encodeURIComponent(execId)}/chat/stream`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', accept: 'text/event-stream', ...(token ? { authorization: `Bearer ${token}` } : {}) },
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({ message, model: 'claude-opus-4-7' }),
+      signal,
     });
     if (!res.ok || !res.body) throw new Error(`chat stream failed: ${res.status}`);
 
@@ -98,12 +99,12 @@ export function useChatStream() {
 
   // Streams a reply; if the execution's budget is exhausted before any text,
   // transparently starts a fresh execution and retries once.
-  async function send(projectId: string, message: string, onEvent: (ev: ChatStreamEvent) => void): Promise<void> {
+  async function send(projectId: string, message: string, onEvent: (ev: ChatStreamEvent) => void, signal?: AbortSignal): Promise<void> {
     if (!cfg.endpoint || !request) throw new Error('offline: no orchestrator endpoint configured');
-    const first = await runStream(await ensureExecution(projectId), message, onEvent);
+    const first = await runStream(await ensureExecution(projectId), message, onEvent, signal);
     if (first.budgetHit && !first.textEmitted) {
       delete execByProject.current[projectId];
-      const second = await runStream(await createExecution(projectId), message, onEvent);
+      const second = await runStream(await createExecution(projectId), message, onEvent, signal);
       if (second.budgetHit) onEvent({ type: 'error', message: 'Budget reached — top up your wallet to continue.' });
     } else if (first.budgetHit) {
       onEvent({ type: 'error', message: 'Budget reached mid-reply — top up to continue.' });

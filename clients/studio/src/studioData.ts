@@ -261,27 +261,59 @@ export function newProjectFromPrompt(prompt: string): StudioProject {
 // Cross-cutting agents (Orchestrator, Coder) plus one specialist per gate.
 export type AgentStatus = 'idle' | 'working' | 'blocked' | 'done';
 
+// How a custom agent is run. Manual = only when dispatched; the rest fire on a
+// cadence or a project event (the orchestrator's webhook/trigger model).
+export type AgentScheduleMode = 'manual' | 'interval' | 'daily' | 'weekly' | 'on_event';
+
+export type AgentTrigger = 'gate_blocked' | 'patch_proposed' | 'deploy_started' | 'scan_findings';
+
+export interface AgentSchedule {
+  mode: AgentScheduleMode;
+  /** interval mode — human cadence, e.g. "6h", "30m" */
+  every?: string;
+  /** daily/weekly mode — "HH:MM" */
+  at?: string;
+  /** weekly mode — 0 (Sun) … 6 (Sat) */
+  weekday?: number;
+  /** on_event mode — the project event that fires the agent */
+  trigger?: AgentTrigger;
+  /** false pauses the schedule without deleting the agent */
+  enabled: boolean;
+}
+
 export interface Agent {
   id: string;
   name: string;
   role: string;
   /** the finisher gate this agent owns, if any */
   gateId?: string;
+  /** detailed task definition — what exactly the agent should do */
+  instructions?: string;
+  /** capabilities / tools the agent may use */
+  skills?: string[];
+  /** when and how the agent runs (custom agents only) */
+  schedule?: AgentSchedule;
+  /** true for operator-created agents (vs the built-in orchestrator roster) */
+  custom?: boolean;
 }
 
 export const AGENTS: Agent[] = [
-  { id: 'orchestrator', name: 'Orchestrator', role: 'Plans the run and routes work to specialists' },
-  { id: 'coder', name: 'Coder', role: 'Writes and applies reviewed patches' },
-  { id: 'identity', name: 'Identity agent', role: 'Auth, sessions, roles, ownership', gateId: 'identity' },
-  { id: 'payments', name: 'Payments agent', role: 'Stripe/Paddle, webhooks, reconciliation', gateId: 'money' },
-  { id: 'data', name: 'Data agent', role: 'Migrations, indexes, backups', gateId: 'data' },
-  { id: 'security', name: 'Security agent', role: 'Secrets, scoped access, policy', gateId: 'security' },
-  { id: 'deployer', name: 'Deployer', role: 'Ships to a domain you own, rollbacks', gateId: 'deploy' },
-  { id: 'mobile', name: 'Mobile agent', role: 'iOS + Android build & signing', gateId: 'signal' },
+  { id: 'orchestrator', name: 'Orchestrator', role: 'Plans the run and routes work to specialists', skills: ['planning', 'routing'] },
+  { id: 'coder', name: 'Coder', role: 'Writes and applies reviewed patches', skills: ['patch', 'review'] },
+  { id: 'identity', name: 'Identity agent', role: 'Auth, sessions, roles, ownership', gateId: 'identity', skills: ['auth', 'sessions', 'rbac'] },
+  { id: 'payments', name: 'Payments agent', role: 'Stripe/Paddle, webhooks, reconciliation', gateId: 'money', skills: ['stripe', 'webhooks', 'ledger'] },
+  { id: 'data', name: 'Data agent', role: 'Migrations, indexes, backups', gateId: 'data', skills: ['migrations', 'indexes', 'backups'] },
+  { id: 'security', name: 'Security agent', role: 'Secrets, scoped access, policy', gateId: 'security', skills: ['secrets', 'sast', 'policy'] },
+  { id: 'deployer', name: 'Deployer', role: 'Ships to a domain you own, rollbacks', gateId: 'deploy', skills: ['deploy', 'rollback', 'dns'] },
+  { id: 'mobile', name: 'Mobile agent', role: 'iOS + Android build & signing', gateId: 'signal', skills: ['expo', 'gradle', 'signing'] },
 ];
 
 export function agentStatus(agent: Agent, gates: Gate[]): AgentStatus {
-  if (!agent.gateId) return agent.id === 'orchestrator' || agent.id === 'coder' ? 'working' : 'idle';
+  if (!agent.gateId) {
+    if (agent.id === 'orchestrator' || agent.id === 'coder') return 'working';
+    if (agent.custom) return agent.schedule?.enabled ? 'working' : 'idle';
+    return 'idle';
+  }
   const g = gates.find((x) => x.id === agent.gateId);
   if (!g) return 'idle';
   return g.status === 'closed' ? 'done' : g.status === 'blocked' ? 'blocked' : g.status === 'unstarted' ? 'idle' : 'working';
@@ -289,6 +321,48 @@ export function agentStatus(agent: Agent, gates: Gate[]): AgentStatus {
 
 export function agentForGate(gateId: string): Agent | undefined {
   return AGENTS.find((a) => a.gateId === gateId);
+}
+
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const TRIGGER_LABELS: Record<AgentTrigger, string> = {
+  gate_blocked: 'a gate is blocked',
+  patch_proposed: 'a patch is proposed',
+  deploy_started: 'a deploy starts',
+  scan_findings: 'a scan has findings',
+};
+
+// Human-readable cadence for an agent's schedule — used on cards and map nodes.
+export function scheduleLabel(s?: AgentSchedule): string {
+  if (!s || s.mode === 'manual') return 'Manual';
+  const prefix = s.enabled ? '' : 'Paused · ';
+  switch (s.mode) {
+    case 'interval': return `${prefix}Every ${s.every || '6h'}`;
+    case 'daily': return `${prefix}Daily at ${s.at || '09:00'}`;
+    case 'weekly': return `${prefix}${WEEKDAYS[s.weekday ?? 1]} at ${s.at || '09:00'}`;
+    case 'on_event': return `${prefix}When ${TRIGGER_LABELS[s.trigger ?? 'gate_blocked']}`;
+  }
+}
+
+export const SCHEDULE_TRIGGERS: { value: AgentTrigger; label: string }[] = [
+  { value: 'gate_blocked', label: 'A gate is blocked' },
+  { value: 'patch_proposed', label: 'A patch is proposed' },
+  { value: 'deploy_started', label: 'A deploy starts' },
+  { value: 'scan_findings', label: 'A scan has findings' },
+];
+
+export const WEEKDAY_OPTIONS = WEEKDAYS.map((label, value) => ({ value, label }));
+
+// Factory for a fresh operator-created agent with sane defaults.
+export function newAgent(): Agent {
+  return {
+    id: `agent_${Date.now().toString(36)}`,
+    name: '',
+    role: '',
+    instructions: '',
+    skills: [],
+    custom: true,
+    schedule: { mode: 'manual', enabled: true },
+  };
 }
 
 export const statusLabel: Record<GateStatus, string> = {

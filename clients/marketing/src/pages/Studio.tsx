@@ -4,10 +4,10 @@ import { Reveal } from '@ironflyer/ui-web/motion';
 import { Eyebrow, GradientText } from '../components/text';
 
 const panels = [
-  { name: 'The map', body: 'A live diagram of your product — routes, models, integrations — with every unclosed gate marked in place. You read state before you read code.' },
-  { name: 'The agent', body: 'Describe the gap. It drafts the patch against your real workspace, shows the diff, and waits for you to apply. No silent edits.' },
-  { name: 'The terminal', body: 'A real shell into the sandbox when you want it. The studio is visual first, but the floor is never locked to pros.' },
-  { name: 'The board', body: 'Spend, errors, and traffic in one view, per project. The number you watch is the one that decides if you keep shipping.' },
+  { name: 'The map', body: 'A live diagram of your product — routes, models, integrations — with every gate verdict marked in place. You read state, and what is unclosed end-to-end, before you read code.' },
+  { name: 'The agent', body: 'Describe the gap. It drafts a patch against your real Docker workspace, shows the diff, and waits for you to apply. ProfitGuard prices the run first. No silent edits, no runaway spend.' },
+  { name: 'The terminal', body: 'A real shell into the workspace when you want it. The studio is visual first, but the floor is never locked to pros.' },
+  { name: 'The board', body: 'Live spend, margin, errors, and traffic in one view, per project, off the append-only ledger. The number you watch is the one that decides if you keep shipping.' },
 ];
 
 export function Studio() {
@@ -15,7 +15,7 @@ export function Studio() {
     <>
       <Head>
         <title>Studio — Ironflyer</title>
-        <meta name="description" content="The Ironflyer studio: a visual cockpit for AI-built products. See what's unfinished, close it with the agent, and ship — with the code editor one click away." />
+        <meta name="description" content="The Ironflyer studio: a visual cockpit for AI-built products. See gate verdicts and live margin, close gaps with the agent under ProfitGuard, and ship only what passes — with the code editor one click away." />
       </Head>
 
       <Container maxWidth="lg" sx={{ pt: { xs: 11, md: 14 }, pb: 3 }}>
@@ -24,7 +24,7 @@ export function Studio() {
           A cockpit that shows you the <GradientText>state</GradientText>, not just the code.
         </Typography>
         <Typography sx={{ color: 'text.secondary', fontSize: '1.12rem', lineHeight: 1.6, maxWidth: '62ch' }}>
-          Most tools drop you into a file tree and wish you luck. The Ironflyer studio opens on a picture of your whole product and names what's between you and shipping. Code is one click away when you want it — never the only way in.
+          Most tools drop you into a file tree and wish you luck — then send the bill later. The Ironflyer studio opens on a picture of your whole product, the gate verdicts blocking the ship, and the live cost of every run. Code is one click away when you want it — never the only way in.
         </Typography>
         <Stack direction="row" spacing={1.75} sx={{ mt: 3.75, flexWrap: 'wrap' }}>
           <Button variant="contained" size="large" href="https://app.ironflyer.com/start">Open the studio</Button>

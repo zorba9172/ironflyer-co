@@ -22,14 +22,31 @@ import (
 // We avoid the heavyweight `docker/docker` Go SDK to keep go.mod small;
 // the CLI is widely available on dev machines and the contract is stable.
 //
-// Each workspace = one container running code-server (default image
-// `codercom/code-server:latest`) with a host-path mount at /home/coder.
+// Each workspace = one container running the web IDE with a host-path
+// mount at /home/coder. The CANONICAL IDE is the custom-branded Eclipse
+// Theia app (clients/ide/, image `ironflyer/theia-ide:latest` on :3030).
+// Because that image is built locally and is NOT published to a public
+// registry, the compiled-in DEFAULT stays `codercom/code-server:latest`
+// (8080) — a registry-pullable fallback so any deployment that relies on
+// Docker pulling the default keeps booting. Select the branded IDE with
+// IRONFLYER_IDE_IMAGE=ironflyer/theia-ide:latest +
+// IRONFLYER_IDE_CONTAINER_PORT=3030 (see config.go / .env).
+//
 // In production the host path is on EFS (mounted at
 // `${RUNTIME_EFS_MOUNT}/<workspaceID>`), which lets any runtime pod
 // pick up an existing workspace's files without a per-pod volume.
 type DockerDriver struct {
 	Image       string
 	HostPortLow int
+
+	// ContainerPort is the in-container port the web IDE listens on. We
+	// publish it to the host via `-p 127.0.0.1:<hostPort>:<ContainerPort>`.
+	// The canonical branded Theia image listens on 3030; the code-server
+	// fallback defaults to 8080. Zero falls back to DefaultIDEContainerPort
+	// (8080) so an unconfigured deployment still boots the pullable
+	// fallback; set IRONFLYER_IDE_CONTAINER_PORT=3030 alongside the Theia
+	// image.
+	ContainerPort int
 
 	// EFSRoot is the host-side parent directory used for every workspace
 	// bind mount. Empty means "use Docker named volumes" (legacy path).
@@ -44,8 +61,77 @@ type DockerDriver struct {
 	snapshotShim SnapshotShim
 }
 
+// DefaultIDEImage is the web-IDE container image used when none is
+// configured. The CANONICAL IDE is the branded Eclipse Theia app
+// (theiaImageName below), but that image is built locally and is not on
+// a public registry, so hard-defaulting to it would break any deployment
+// that expects Docker to pull the default. We therefore keep the
+// registry-pullable code-server as the compiled-in default and select
+// the branded IDE explicitly via
+// IRONFLYER_IDE_IMAGE=ironflyer/theia-ide:latest.
+const DefaultIDEImage = "codercom/code-server:latest"
+
+// DefaultIDEContainerPort is the in-container port the fallback
+// code-server listens on. The canonical Theia image listens on 3030
+// instead — pair IRONFLYER_IDE_IMAGE=ironflyer/theia-ide:latest with
+// IRONFLYER_IDE_CONTAINER_PORT=3030.
+const DefaultIDEContainerPort = 8080
+
+// theiaImageName is the canonical branded Eclipse Theia image tag (built
+// from clients/ide/). We key the run-args off the image name so the
+// code-server-only flags (`--auth none`, `--disable-telemetry`) are NOT
+// passed to Theia — its entrypoint takes no such flags and would reject
+// the unknown args. This special-casing is what lets one driver serve
+// either IDE; see imageArgs.
+const theiaImageName = "ironflyer/theia-ide:latest"
+
 func NewDockerDriver(image string) *DockerDriver {
-	return &DockerDriver{Image: image, HostPortLow: 18000}
+	if strings.TrimSpace(image) == "" {
+		image = DefaultIDEImage
+	}
+	return &DockerDriver{Image: image, HostPortLow: 18000, ContainerPort: DefaultIDEContainerPort}
+}
+
+// WithIDEImage overrides the web-IDE container image. Empty is ignored so
+// callers can pass through an unset value without clobbering the default.
+// Returns the driver for chaining.
+func (d *DockerDriver) WithIDEImage(image string) *DockerDriver {
+	if strings.TrimSpace(image) != "" {
+		d.Image = image
+	}
+	return d
+}
+
+// WithContainerPort overrides the in-container IDE port (code-server
+// 8080 vs Theia 3030). Zero or negative is ignored so callers can pass
+// through an unset env without clobbering the default. Returns the
+// driver for chaining.
+func (d *DockerDriver) WithContainerPort(port int) *DockerDriver {
+	if port > 0 {
+		d.ContainerPort = port
+	}
+	return d
+}
+
+// containerPort returns the configured in-container IDE port, falling
+// back to the code-server default when unset.
+func (d *DockerDriver) containerPort() int {
+	if d.ContainerPort > 0 {
+		return d.ContainerPort
+	}
+	return DefaultIDEContainerPort
+}
+
+// imageArgs returns the image plus any image-specific trailing run args.
+// code-server takes `--auth none --disable-telemetry`; the Theia browser
+// app has no such flags, so for it we pass the image alone and let its
+// entrypoint open /home/coder. Keying off the image name keeps a single
+// driver serving either IDE without duplicating the whole Create path.
+func imageArgs(image string) []string {
+	if image == theiaImageName {
+		return []string{image}
+	}
+	return []string{image, "--auth", "none", "--disable-telemetry"}
 }
 
 // WithEFS configures the bind-mount roots. Returns the driver so this
@@ -88,10 +174,12 @@ func (d *DockerDriver) Create(ctx context.Context, opts CreateOpts) (Workspace, 
 	}
 	args := []string{
 		"run", "-d", "--name", name,
-		// Bind code-server to loopback only — the runtime reverse-proxy
+		// Bind the IDE to loopback only — the runtime reverse-proxy
 		// dials the container via PreviewTarget, never the host port,
 		// so leaving it on 0.0.0.0 would only invite public probes.
-		"-p", fmt.Sprintf("127.0.0.1:%d:8080", hostPort),
+		// The container-side port is configurable (code-server 8080,
+		// Theia 3030).
+		"-p", fmt.Sprintf("127.0.0.1:%d:%d", hostPort, d.containerPort()),
 		"-v", mountSpec,
 		"-e", "PASSWORD=" + password,
 		"--cap-drop=ALL",
@@ -102,8 +190,10 @@ func (d *DockerDriver) Create(ctx context.Context, opts CreateOpts) (Workspace, 
 		"--tmpfs", "/tmp:rw,size=512m,mode=1777",
 		"--tmpfs", "/run:rw,size=64m,mode=755",
 		"--restart=no",
-		d.Image,
 	}
+	// imageArgs appends the image plus any image-specific entrypoint args
+	// (code-server takes `--auth none --disable-telemetry`; Theia does not).
+	args = append(args, imageArgs(d.Image)...)
 	if out, err := d.run(ctx, args...); err != nil {
 		return Workspace{}, fmt.Errorf("run: %w (%s)", err, out)
 	}

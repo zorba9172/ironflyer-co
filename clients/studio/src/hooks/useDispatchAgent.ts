@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useRequest, operations } from '@ironflyer/data';
 import { toast } from '@ironflyer/ui-web/fx';
 import { useLiveProjectId } from './useLiveProjectId';
@@ -10,8 +11,10 @@ export function useDispatchAgent(): { online: boolean; dispatch: (scope?: string
   const liveProjectId = useLiveProjectId();
   const online = !!request && !!liveProjectId;
 
-  const dispatch = async (scope = 'the open work') => {
-    if (!online || !request || !liveProjectId) {
+  // Stable identity so consumers can keep it out of memo/effect deps — the map
+  // builds hundreds of nodes and must not rebuild on every render.
+  const dispatch = useCallback(async (scope = 'the open work') => {
+    if (!request || !liveProjectId) {
       toast(`Connect the orchestrator to dispatch an agent for ${scope}.`, 'info');
       return;
     }
@@ -21,7 +24,7 @@ export function useDispatchAgent(): { online: boolean; dispatch: (scope?: string
     } catch (e) {
       toast(e instanceof Error ? e.message : 'Could not dispatch agent.', 'error');
     }
-  };
+  }, [request, liveProjectId]);
 
   return { online, dispatch };
 }

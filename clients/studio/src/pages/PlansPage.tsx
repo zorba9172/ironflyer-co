@@ -22,7 +22,7 @@ export function PlansPage() {
         {tiers.map((t) => (
           <Card key={t.name} sx={(th) => ({ position: 'relative', p: 3, ...(t.popular ? { boxShadow: `0 0 0 1.5px ${th.palette.primary.main}`, border: 'none' } : {}) })}>
             {t.popular && (
-              <Box sx={(th) => ({ position: 'absolute', top: -11, left: '50%', transform: 'translateX(-50%)', fontFamily: th.brand.font.mono, fontSize: '0.64rem', letterSpacing: '0.08em', textTransform: 'uppercase', px: 1.5, py: 0.5, borderRadius: 99, color: '#fff', backgroundImage: th.brand.gradient.signature })}>Most popular</Box>
+              <Box sx={(th) => ({ position: 'absolute', top: -11, left: '50%', transform: 'translateX(-50%)', fontFamily: th.brand.font.mono, fontSize: '0.64rem', letterSpacing: '0.08em', textTransform: 'uppercase', px: 1.5, py: 0.5, borderRadius: 99, color: th.palette.primary.contrastText, backgroundImage: th.brand.gradient.signature })}>Most popular</Box>
             )}
             <Typography variant="h6" sx={{ fontSize: '1.2rem' }}>{t.name}</Typography>
             <Stack direction="row" alignItems="baseline" spacing={0.75} sx={{ mt: 1.5 }}>

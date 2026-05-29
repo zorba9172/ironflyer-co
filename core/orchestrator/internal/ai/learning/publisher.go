@@ -48,6 +48,14 @@ type Publisher struct {
 	obsMu    sync.RWMutex
 	observer func(OutcomeEvent)
 
+	// patternObserver is the in-process fan-out for miner-derived
+	// PatternObservations. PublishPattern always writes to the outbox
+	// (durable, cross-process); this hook lets same-process strategy
+	// adapters (e.g. the ProfitGuard PolicyAdapter) react without a
+	// Redpanda round-trip. Nil-safe: no observer → outbox-only.
+	patObsMu        sync.RWMutex
+	patternObserver func(PatternObservation)
+
 	// stats counters power the snapshot fallback when no ClickHouse is
 	// available — read by the memory store.
 	today    atomic.Int64
@@ -75,6 +83,20 @@ func (p *Publisher) SetObserver(fn func(OutcomeEvent)) {
 	p.obsMu.Lock()
 	p.observer = fn
 	p.obsMu.Unlock()
+}
+
+// SetPatternObserver registers a synchronous callback invoked on every
+// PublishPattern — used by same-process strategy adapters (the
+// ProfitGuard PolicyAdapter) to react to miner output without a
+// Redpanda round-trip. Pass nil to unregister. Nil-safe on a nil
+// Publisher.
+func (p *Publisher) SetPatternObserver(fn func(PatternObservation)) {
+	if p == nil {
+		return
+	}
+	p.patObsMu.Lock()
+	p.patternObserver = fn
+	p.patObsMu.Unlock()
 }
 
 // Publish enqueues evt onto the durable outbox. Missing fields are
@@ -132,6 +154,9 @@ func (p *Publisher) PublishPattern(ctx context.Context, obs PatternObservation) 
 	if obs.TenantID == "" {
 		obs.TenantID = outboxhooks.TenantID(ctx)
 	}
+	// In-process fan-out first so an observer-only (nil outbox) dev
+	// build still drives the strategy adapters.
+	p.fanoutPattern(obs)
 	if p.outbox == nil {
 		return
 	}
@@ -197,6 +222,19 @@ func (p *Publisher) fanout(evt OutcomeEvent) {
 		go func() {
 			defer func() { _ = recover() }()
 			fn(evt)
+		}()
+	}
+}
+
+func (p *Publisher) fanoutPattern(obs PatternObservation) {
+	p.patObsMu.RLock()
+	fn := p.patternObserver
+	p.patObsMu.RUnlock()
+	if fn != nil {
+		// Best-effort, never block the miner tick.
+		go func() {
+			defer func() { _ = recover() }()
+			fn(obs)
 		}()
 	}
 }

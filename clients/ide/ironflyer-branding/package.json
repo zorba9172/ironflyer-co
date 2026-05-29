@@ -1,0 +1,51 @@
+{
+  "private": true,
+  "name": "@ironflyer/theia-branding",
+  "version": "0.1.0",
+  "description": "Ironflyer branding extension for Theia: custom color themes, brand fonts, title/About cleanup, and de-cluttered shell.",
+  "license": "UNLICENSED",
+  "//type-comment": "Theia extensions are CommonJS; do not set \"type\": \"module\".",
+  "files": [
+    "lib",
+    "src",
+    "themes",
+    "style"
+  ],
+  "dependencies": {
+    "@theia/core": "^1.60.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.2",
+    "rimraf": "^5.0.0",
+    "typescript": "^5.7.3"
+  },
+  "scripts": {
+    "clean": "rimraf lib",
+    "gen": "node scripts/generate-brand-theme.mjs",
+    "//build-comment": "gen re-derives the CSS vars + dark/light themes from packages/design-tokens/brand.ts (single source of truth, shared with the MUI theme) before tsc. In the standalone Docker build brand.ts is absent and gen no-ops, using the committed generated files.",
+    "build": "node scripts/generate-brand-theme.mjs && tsc",
+    "watch": "tsc --watch"
+  },
+  "theiaExtensions": [
+    {
+      "frontend": "lib/browser/ironflyer-frontend-module"
+    }
+  ],
+  "//contributes-comment": "Theia (>=1.x, like VS Code) discovers color themes for an internal extension via the standard package.json contributes.themes block. This is the cleanest, most idiomatic approach for 1.60 — no programmatic ColorContribution needed for full themes. The referenced JSON files use the VS Code color-theme schema (colors + tokenColors).",
+  "contributes": {
+    "themes": [
+      {
+        "id": "Ironflyer Dark",
+        "label": "Ironflyer Dark",
+        "uiTheme": "vs-dark",
+        "path": "./themes/ironflyer-dark-color-theme.json"
+      },
+      {
+        "id": "Ironflyer Light",
+        "label": "Ironflyer Light",
+        "uiTheme": "vs",
+        "path": "./themes/ironflyer-light-color-theme.json"
+      }
+    ]
+  }
+}

@@ -1,21 +1,33 @@
-import { useState } from 'react';
-import { Box } from '@mui/material';
+import { lazy, Suspense, useState } from 'react';
+import { Box, CircularProgress } from '@mui/material';
 import { AnimatePresence, motion, confirmAction, toast } from '@ironflyer/ui-web/fx';
 import { EditorTopBar, type EditorTab } from '../components/EditorTopBar';
 import { ChatPanel } from '../components/ChatPanel';
-import { PreviewPane } from '../components/PreviewPane';
-import { DashboardPane } from '../components/DashboardPane';
-import { GateMap } from '../components/GateMap';
-import { SecurityPane } from '../components/SecurityPane';
 import { GateInspector } from '../components/GateInspector';
-import { IntelligencePane } from './IntelligencePane';
-import { GoalsPane } from './GoalsPane';
-import { LogsPane } from './LogsPane';
-import { UsagePane } from './UsagePane';
-import { CodePane } from './CodePane';
-import { PerformancePane } from './PerformancePane';
-import { QualityPane } from './QualityPane';
 import { useStudio } from '../store';
+
+// Each pane is code-split: opening a tab is the only thing that pulls its heavy
+// deps (echarts, ag-grid, monaco, react-flow) — the studio boots on the chat +
+// shell alone.
+const PreviewPane = lazy(() => import('../components/PreviewPane').then((m) => ({ default: m.PreviewPane })));
+const DashboardPane = lazy(() => import('../components/DashboardPane').then((m) => ({ default: m.DashboardPane })));
+const GateMap = lazy(() => import('../components/GateMap').then((m) => ({ default: m.GateMap })));
+const SecurityPane = lazy(() => import('../components/SecurityPane').then((m) => ({ default: m.SecurityPane })));
+const DocumentsPane = lazy(() => import('./DocumentsPane').then((m) => ({ default: m.DocumentsPane })));
+const LogsPane = lazy(() => import('./LogsPane').then((m) => ({ default: m.LogsPane })));
+const CodePane = lazy(() => import('./CodePane').then((m) => ({ default: m.CodePane })));
+const PerformancePane = lazy(() => import('./PerformancePane').then((m) => ({ default: m.PerformancePane })));
+const QualityPane = lazy(() => import('./QualityPane').then((m) => ({ default: m.QualityPane })));
+const AgentsManagerPane = lazy(() => import('./AgentsManagerPane').then((m) => ({ default: m.AgentsManagerPane })));
+const ExecutionTeamGraph = lazy(() => import('./ExecutionTeamGraph').then((m) => ({ default: m.ExecutionTeamGraph })));
+
+function PaneFallback() {
+  return (
+    <Box sx={{ flex: 1, display: 'grid', placeItems: 'center', bgcolor: 'background.default' }}>
+      <CircularProgress size={26} thickness={5} />
+    </Box>
+  );
+}
 
 export function Editor() {
   const project = useStudio((s) => s.current);
@@ -61,17 +73,19 @@ export function Editor() {
             transition={{ duration: 0.2 }}
             style={{ flex: 1, display: 'flex', minWidth: 0 }}
           >
-            {tab === 'preview' && <PreviewPane />}
-            {tab === 'map' && <GateMap project={project} />}
-            {tab === 'security' && <SecurityPane security={project.security} />}
-            {tab === 'code' && <CodePane />}
-            {tab === 'dashboard' && <DashboardPane projectId={project.id} fallback={project} />}
-            {tab === 'intelligence' && <IntelligencePane fallback={project} />}
-            {tab === 'usage' && <UsagePane fallback={project} />}
-            {tab === 'performance' && <PerformancePane />}
-            {tab === 'quality' && <QualityPane />}
-            {tab === 'logs' && <LogsPane fallback={project} />}
-            {tab === 'goals' && <GoalsPane />}
+            <Suspense fallback={<PaneFallback />}>
+              {tab === 'preview' && <PreviewPane />}
+              {tab === 'map' && <GateMap project={project} onOpenTab={setTab} />}
+              {tab === 'security' && <SecurityPane fallback={project.security} />}
+              {tab === 'code' && <CodePane />}
+              {tab === 'dashboard' && <DashboardPane projectId={project.id} fallback={project} />}
+              {tab === 'agents' && <AgentsManagerPane project={project} />}
+              {tab === 'team' && <ExecutionTeamGraph project={project} />}
+              {tab === 'performance' && <PerformancePane />}
+              {tab === 'quality' && <QualityPane />}
+              {tab === 'logs' && <LogsPane fallback={project} />}
+              {tab === 'documents' && <DocumentsPane />}
+            </Suspense>
           </motion.div>
         </AnimatePresence>
       </Box>

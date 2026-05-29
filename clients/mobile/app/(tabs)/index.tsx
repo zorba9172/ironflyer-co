@@ -2,11 +2,12 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../../lib/theme';
-import { projects } from '../../lib/sampleData';
+import { useProjects } from '../../hooks/useProjects';
 
 export default function Home() {
   const t = useTheme();
   const router = useRouter();
+  const { data: projects } = useProjects();
 
   const total = projects.length;
   const shippable = projects.filter((p) => p.gates.every((g) => g.status === 'closed')).length;

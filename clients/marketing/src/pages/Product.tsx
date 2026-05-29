@@ -4,16 +4,16 @@ import { Reveal } from '@ironflyer/ui-web/motion';
 import { Eyebrow, GradientText } from '../components/text';
 
 const flow = [
-  { step: '01', title: 'Connect a build', body: 'Paste a repo URL or import from Lovable, Bolt, v0, or Cursor. Ironflyer clones it into a sandbox and runs it — no local setup.' },
-  { step: '02', title: 'Read the gaps', body: 'A first pass maps every route, model, and integration against the six gates, and tells you what is mocked, missing, or unsafe.' },
-  { step: '03', title: 'Close gates with the agent', body: 'Pick a gate. The agent proposes patches you can read, edit, and apply — running against your real workspace, not a guess.' },
-  { step: '04', title: 'Deploy and watch', body: 'Ship to a domain you own. Spend, errors, and usage land on one board the moment traffic starts.' },
+  { step: '01', title: 'Connect a build', body: 'Paste a repo URL or import from Lovable, Bolt, v0, or Cursor. Ironflyer clones it into a real Docker workspace and runs it — no local setup.' },
+  { step: '02', title: 'Read the gaps', body: 'A first pass maps every route, model, and integration against the six gates, and tells you what is mocked, missing, exposed, or unsafe.' },
+  { step: '03', title: 'Close gates with the agent', body: 'Pick a gate. The agent proposes a patch you can read, edit, and apply against your real workspace. ProfitGuard prices the run before it spends — no guesses, no runaway bill.' },
+  { step: '04', title: 'Deploy and watch', body: 'A passing gate verdict ships to a domain you own. Live spend, margin, errors, and usage land on one board the moment traffic starts.' },
 ];
 
 const blocks = [
+  { tag: 'Economics', h: 'ProfitGuard gates every expensive call', p: 'A prepaid wallet holds funds before a premium model, sandbox, build, or deploy ever runs. ProfitGuard refuses the call if expected ROI is negative, and an append-only ledger records cost per execution. No surprise bill — the #1 complaint about every other AI builder.' },
   { tag: 'Deploy', h: 'Environments that match production', p: 'Staging and production with real secrets, managed migrations, and one-click rollback. The preview link is the real stack, scaled down — not a different codebase that drifts.' },
   { tag: 'Mobile', h: 'One product, every screen', p: 'The same build targets web and a native iOS + Android app. Shared design tokens and data layer mean a fix lands everywhere at once, not three times.' },
-  { tag: 'Budget', h: 'It pays for itself, on purpose', p: 'Every run is metered against your wallet. You see provider cost versus what you charge, per project, so a feature is never quietly losing money.' },
 ];
 
 const scanners = [
@@ -28,14 +28,14 @@ export function Product() {
     <>
       <Head>
         <title>Product — Ironflyer</title>
-        <meta name="description" content="How Ironflyer turns an AI prototype into a product you can charge for: six finisher gates, real deploys, and a single board for spend and signal." />
+        <meta name="description" content="How Ironflyer turns an AI prototype into a profitable product: ProfitGuard on every expensive call, a per-execution margin ledger, six finisher gates that block broken work, and real deploys on a domain you own." />
       </Head>
 
       <Container maxWidth="lg" sx={{ pt: { xs: 11, md: 14 }, pb: 4 }}>
         <Eyebrow>Product</Eyebrow>
-        <Typography variant="h1" sx={{ fontSize: { xs: '2.5rem', md: '4rem' }, my: 2, maxWidth: '18ch' }}>From a prototype that demos to a product that bills.</Typography>
+        <Typography variant="h1" sx={{ fontSize: { xs: '2.5rem', md: '4rem' }, my: 2, maxWidth: '18ch' }}>From a prototype that demos to a product that earns.</Typography>
         <Typography sx={{ color: 'text.secondary', fontSize: '1.12rem', lineHeight: 1.6, maxWidth: '62ch' }}>
-          Ironflyer is the layer between "the AI made something" and "people pay for it." It reads your build, names what's unfinished, and closes it with you — gate by gate.
+          Ironflyer is the execution engine between "the AI made something" and "people pay for it, and it makes money." It enforces cost with ProfitGuard, blocks broken or insecure work at the gates, and ships only what passes — gate by gate.
         </Typography>
       </Container>
 
@@ -82,7 +82,7 @@ export function Product() {
               Real AppSec, not a <GradientText>security</GradientText> sticker.
             </Typography>
             <Typography sx={{ color: 'text.secondary', fontSize: '1.12rem', lineHeight: 1.6 }}>
-              Generators hand you a prototype and call it done. Ironflyer runs the scanners a security team would run, behind a policy plane that refuses anything it wasn't told to allow. The findings are yours to export — they don't just live in our dashboard.
+              Generators ship apps with exposed databases and reversed auth by default, then call it done. Ironflyer runs the scanners a security team would run behind a policy plane that refuses anything it wasn't told to allow, and the security gate blocks the deploy until the findings clear. The evidence is yours to export — it doesn't just live in our dashboard.
             </Typography>
           </Box>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(4, 1fr)' }, gap: '1px', bgcolor: 'divider', border: 1, borderColor: 'divider', borderRadius: 4, overflow: 'hidden' }}>
@@ -115,7 +115,7 @@ export function Product() {
 
       <Container maxWidth="lg" sx={{ py: 9, textAlign: 'center' }}>
         <Reveal>
-        <Typography variant="h2" sx={{ fontSize: { xs: '1.8rem', md: '2.6rem' }, mb: 3.5 }}>See it on your own build.</Typography>
+        <Typography variant="h2" sx={{ fontSize: { xs: '1.8rem', md: '2.6rem' }, mb: 3.5 }}>See the gates and the ledger on your own build.</Typography>
         <Stack direction="row" justifyContent="center">
           <Button variant="contained" size="large" href="https://app.ironflyer.com/start">Start building</Button>
         </Stack>

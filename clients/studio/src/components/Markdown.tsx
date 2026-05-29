@@ -1,27 +1,63 @@
-import { Box, Link, Typography } from '@mui/material';
+import { useState } from 'react';
+import { Box, Collapse, Link, Stack, Typography } from '@mui/material';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { VscChevronRight, VscChevronDown, VscFileCode, VscCopy } from 'react-icons/vsc';
 import { toast } from '@ironflyer/ui-web/fx';
+import { TechIcon } from '../lib/techIcons';
 import type { ReactNode } from 'react';
 
-function CodeBlock({ className, children }: { className?: string; children?: ReactNode }) {
-  const lang = /language-(\w+)/.exec(className ?? '')?.[1];
+// Pull the "lang path" pair off a fenced block's info string so the header can
+// show a real filename + matching file-type icon (e.g. ```tsx src/App.tsx).
+function parseInfo(className?: string, raw?: string): { lang?: string; path?: string } {
+  const lang = /language-([\w.+-]+)/.exec(className ?? '')?.[1];
+  const tokens = (raw ?? '').trim().split(/\s+/).filter(Boolean);
+  const path = tokens.find((t) => /[\\/]/.test(t) || /\.\w{1,8}$/.test(t));
+  return { lang, path };
+}
+
+// Collapsed-by-default code block: the operator sees a compact file chip, not a
+// wall of open files. Click the header to expand; copy without expanding.
+function CodeBlock({ className, children, meta }: { className?: string; children?: ReactNode; meta?: string }) {
   const code = String(children ?? '').replace(/\n$/, '');
+  const { lang, path } = parseInfo(className, meta);
+  const title = path ?? lang ?? 'code';
+  const iconKey = path ? path.split('.').pop() ?? 'file' : lang ?? 'file';
+  const lines = code.split('\n').length;
+  const [open, setOpen] = useState(false);
+
   return (
-    <Box sx={{ position: 'relative', my: 1.5 }}>
-      <Box sx={(t) => ({ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 1.5, py: 0.5, bgcolor: 'action.hover', borderTopLeftRadius: 8, borderTopRightRadius: 8, border: 1, borderColor: 'divider', borderBottom: 0, fontFamily: t.brand.font.mono, fontSize: '0.66rem', color: 'text.disabled' })}>
-        <span>{lang ?? 'code'}</span>
-        <Box component="button" onClick={() => { navigator.clipboard?.writeText(code); toast('Copied', 'success'); }} sx={{ border: 0, background: 'none', color: 'text.secondary', cursor: 'pointer', fontSize: '0.66rem', fontFamily: 'inherit', '&:hover': { color: 'text.primary' } }}>copy</Box>
-      </Box>
-      <Box component="pre" sx={(t) => ({ m: 0, p: 1.5, overflow: 'auto', bgcolor: 'background.default', border: 1, borderColor: 'divider', borderBottomLeftRadius: 8, borderBottomRightRadius: 8, fontFamily: t.brand.font.mono, fontSize: '0.78rem', lineHeight: 1.5 })}>
-        <code>{code}</code>
-      </Box>
+    <Box sx={{ my: 1, borderRadius: 2, border: 1, borderColor: 'divider', overflow: 'hidden' }}>
+      <Stack
+        direction="row" alignItems="center" spacing={1}
+        onClick={() => setOpen((o) => !o)}
+        sx={{ px: 1.25, py: 0.75, bgcolor: 'action.hover', cursor: 'pointer', '&:hover': { bgcolor: 'action.selected' } }}
+      >
+        <Box sx={{ display: 'inline-flex', color: 'text.secondary' }}>{open ? <VscChevronDown size={14} /> : <VscChevronRight size={14} />}</Box>
+        <Box sx={{ display: 'inline-flex', color: 'text.secondary' }}>{path ? <TechIcon name={iconKey} size={14} title={title} /> : <VscFileCode size={14} />}</Box>
+        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.72rem', color: 'text.primary', flex: 1 })} noWrap>{title}</Typography>
+        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.64rem', color: 'text.disabled' })}>{lines} ln</Typography>
+        <Box
+          component="button"
+          onClick={(e) => { e.stopPropagation(); navigator.clipboard?.writeText(code); toast('Copied', 'success'); }}
+          sx={{ display: 'inline-flex', alignItems: 'center', border: 0, background: 'none', color: 'text.secondary', cursor: 'pointer', p: 0.25, '&:hover': { color: 'text.primary' } }}
+          aria-label="Copy code"
+        >
+          <VscCopy size={14} />
+        </Box>
+      </Stack>
+      <Collapse in={open} unmountOnExit>
+        <Box component="pre" sx={(t) => ({ m: 0, p: 1.5, overflow: 'auto', bgcolor: 'background.default', borderTop: 1, borderColor: 'divider', fontFamily: t.brand.font.mono, fontSize: '0.78rem', lineHeight: 1.5 })}>
+          <code>{code}</code>
+        </Box>
+      </Collapse>
     </Box>
   );
 }
 
-// Renders the agent's markdown cleanly, theme-mapped. Code blocks get a header
-// + copy button; inline code, headings, lists, and links are styled.
+// Renders the agent's markdown cleanly, theme-mapped. Code blocks collapse to a
+// file chip; images render inline (click to open full size); inline code,
+// headings, lists, and links are styled.
 export function Markdown({ children }: { children: string }) {
   return (
     <Box sx={{ '& > :first-of-type': { mt: 0 }, '& > :last-child': { mb: 0 } }}>
@@ -36,12 +72,22 @@ export function Markdown({ children }: { children: string }) {
           ol: ({ children }) => <Box component="ol" sx={{ pl: 2.5, my: 1, '& li': { fontSize: '0.9rem', lineHeight: 1.6, mb: 0.5 } }}>{children}</Box>,
           a: ({ children, href }) => <Link href={href} target="_blank" rel="noreferrer" sx={{ color: 'primary.main' }}>{children}</Link>,
           strong: ({ children }) => <Box component="strong" sx={{ fontWeight: 700 }}>{children}</Box>,
-          code: ({ className, children }) =>
-            className?.startsWith('language-') ? (
-              <CodeBlock className={className}>{children}</CodeBlock>
+          img: ({ src, alt }) => (
+            <Box
+              component="a" href={typeof src === 'string' ? src : undefined} target="_blank" rel="noreferrer"
+              sx={{ display: 'block', my: 1.25 }}
+            >
+              <Box component="img" src={src} alt={alt ?? ''} loading="lazy" sx={{ maxWidth: '100%', borderRadius: 2, border: 1, borderColor: 'divider', display: 'block' }} />
+            </Box>
+          ),
+          code: ({ node, className, children }) => {
+            const meta = (node?.data as { meta?: unknown } | undefined)?.meta;
+            return className?.startsWith('language-') ? (
+              <CodeBlock className={className} meta={typeof meta === 'string' ? meta : undefined}>{children}</CodeBlock>
             ) : (
               <Box component="code" sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.82em', bgcolor: 'action.hover', px: 0.5, py: 0.1, borderRadius: 0.5 })}>{children}</Box>
-            ),
+            );
+          },
           pre: ({ children }) => <>{children}</>,
         }}
       >

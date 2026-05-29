@@ -16,6 +16,8 @@ package execution
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -142,13 +144,22 @@ func (s *defaultSettler) Close(ctx context.Context, executionID string, finalSta
 		MarginUSD:   margin,
 	}
 
+	// errs accumulates per-leg failures. Every leg is still attempted so
+	// a partial failure settles what it can; the joined error is returned
+	// to the caller (and the unbalanced money loop is never swallowed).
+	var errs []error
+
 	// Wallet leg — actualise the spend, free the unused hold.
 	if s.wallet != nil && exec.TenantID != "" {
 		if exec.SpentUSD.IsPositive() {
-			_ = s.wallet.Debit(ctx, exec.TenantID, exec.SpentUSD)
+			if err := s.wallet.Debit(ctx, exec.TenantID, exec.SpentUSD); err != nil {
+				errs = append(errs, fmt.Errorf("wallet debit %s spent=%s: %w", executionID, exec.SpentUSD, err))
+			}
 		}
 		if release.IsPositive() {
-			_ = s.wallet.Release(ctx, exec.TenantID, release)
+			if err := s.wallet.Release(ctx, exec.TenantID, release); err != nil {
+				errs = append(errs, fmt.Errorf("wallet release %s amount=%s: %w", executionID, release, err))
+			}
 		}
 	}
 
@@ -158,7 +169,7 @@ func (s *defaultSettler) Close(ctx context.Context, executionID string, finalSta
 		if perr == nil {
 			tenantUUID := tenantToUUID(exec.TenantID)
 			if release.IsPositive() {
-				_, _ = s.ledger.Write(ctx, ledger.Entry{
+				if _, err := s.ledger.Write(ctx, ledger.Entry{
 					TenantID:    tenantUUID,
 					ExecutionID: &execUUID,
 					EntryType:   ledger.EntryCreditRelease,
@@ -167,7 +178,9 @@ func (s *defaultSettler) Close(ctx context.Context, executionID string, finalSta
 					Metadata: map[string]any{
 						"final_status": string(finalStatus),
 					},
-				})
+				}); err != nil {
+					errs = append(errs, fmt.Errorf("ledger credit_release %s: %w", executionID, err))
+				}
 			}
 			if !margin.IsZero() {
 				dir := ledger.CreditDirection
@@ -175,7 +188,7 @@ func (s *defaultSettler) Close(ctx context.Context, executionID string, finalSta
 					dir = ledger.DebitDirection
 				}
 				signed, _ := margin.Float64()
-				_, _ = s.ledger.Write(ctx, ledger.Entry{
+				if _, err := s.ledger.Write(ctx, ledger.Entry{
 					TenantID:       tenantUUID,
 					ExecutionID:    &execUUID,
 					EntryType:      ledger.EntryPlatformMargin,
@@ -186,7 +199,9 @@ func (s *defaultSettler) Close(ctx context.Context, executionID string, finalSta
 						"signed_usd":   signed,
 						"final_status": string(finalStatus),
 					},
-				})
+				}); err != nil {
+					errs = append(errs, fmt.Errorf("ledger platform_margin %s: %w", executionID, err))
+				}
 			}
 		}
 	}
@@ -196,7 +211,9 @@ func (s *defaultSettler) Close(ctx context.Context, executionID string, finalSta
 	// signal", which is the right thing for ad-hoc executions.
 	if s.blueprint != nil && exec.BlueprintID != "" {
 		previewSuccess := finalStatus == StatusSucceeded
-		_ = s.blueprint.RecordRun(ctx, blueprintRunFromExecution(exec, previewSuccess))
+		if err := s.blueprint.RecordRun(ctx, blueprintRunFromExecution(exec, previewSuccess)); err != nil {
+			errs = append(errs, fmt.Errorf("blueprint stats %s: %w", executionID, err))
+		}
 	}
 
 	// Outbox leg — record the terminal transition for downstream
@@ -206,7 +223,7 @@ func (s *defaultSettler) Close(ctx context.Context, executionID string, finalSta
 	// consistency fallback documented in ARCHITECTURE_EVENTS.md.
 	s.emitSettledEvent(ctx, executionID, exec.TenantID, finalStatus, settlement)
 
-	return settlement, nil
+	return settlement, errors.Join(errs...)
 }
 
 // emitSettledEvent writes one execution.settled.v1 outbox row in a

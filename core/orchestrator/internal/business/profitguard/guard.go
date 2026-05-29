@@ -84,6 +84,13 @@ type guard struct {
 	costModel   *forecast.LearnedCostModel
 	capResolver CapabilityResolver
 	costLog     zerolog.Logger
+
+	// cpdOverride is the runtime-mutable completion-per-dollar floor.
+	// A nil pointer means "no override" → Decide reads the static
+	// policy value, so behaviour is byte-identical when nothing adjusts
+	// it. The learning PolicyAdapter writes through SetCompletionPerDollarFloor
+	// (see adaptive.go). Accessed only via completionPerDollarFloor().
+	cpdOverride cpdOverrideSlot
 }
 
 // Decide implements the V22 ProfitGuard policy. The algorithm is
@@ -91,18 +98,18 @@ type guard struct {
 // hottest-spending failure modes (stop-loss, budget exhaustion) are
 // always reached first regardless of the rest of the inputs:
 //
-//   1. Stop-loss: spent + reserved + estStep > stopLoss → Stop
-//   2. Budget:    spent + reserved + estStep > userBudget → PauseForBudget
-//   3. Margin:    margin < minimumForWorkload →
-//                   a. blueprint available           → ReuseBlueprint
-//                   b. repair available + retry/model → ReuseRepair
-//                   c. cheaper-but-quality provider  → SwitchProvider
-//                   d. degrade legal for point       → Degrade
-//                   e. otherwise                     → Stop
-//   4. ROI:       completion_per_dollar < floor AND retry/premium/verify
-//                                                    → KillBranch
-//   5. Risk:      risk > ceiling AND deploy/mobile   → Stop
-//   6. otherwise                                     → Continue
+//  1. Stop-loss: spent + reserved + estStep > stopLoss → Stop
+//  2. Budget:    spent + reserved + estStep > userBudget → PauseForBudget
+//  3. Margin:    margin < minimumForWorkload →
+//     a. blueprint available           → ReuseBlueprint
+//     b. repair available + retry/model → ReuseRepair
+//     c. cheaper-but-quality provider  → SwitchProvider
+//     d. degrade legal for point       → Degrade
+//     e. otherwise                     → Stop
+//  4. ROI:       completion_per_dollar < floor AND retry/premium/verify
+//     → KillBranch
+//  5. Risk:      risk > ceiling AND deploy/mobile   → Stop
+//  6. otherwise                                     → Continue
 //
 // Numbered to match the spec verbatim — do not reorder without
 // updating the package doc and the audit dashboard.
@@ -231,12 +238,13 @@ func (g *guard) Decide(ctx context.Context, point EnforcementPoint, state ExecSt
 	// branch without killing the whole execution.
 	if estStep.IsPositive() {
 		cpd := state.ExpectedCompletionDelta / decimalToFloat(estStep)
-		if cpd < g.policy.CompletionPerDollarFloor &&
+		floor := g.completionPerDollarFloor()
+		if cpd < floor &&
 			(point == BeforeRetryLoop || point == BeforePremiumReasoning || point == BeforeLongVerification) {
 			return Decision{
 				Action: KillBranch,
 				Reason: fmt.Sprintf("completion_per_dollar %.4f < floor %.4f",
-					cpd, g.policy.CompletionPerDollarFloor),
+					cpd, floor),
 				ExpectedMarginPct: marginPct,
 			}, nil
 		}

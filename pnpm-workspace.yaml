@@ -6,6 +6,8 @@ packages:
   - 'clients/backoffice'
   - 'clients/marketing'
   - 'clients/mobile'
+  - 'clients/ide'
+  - 'clients/ide/ironflyer-branding'
   - 'packages/design-tokens'
   - 'packages/core'
   - 'packages/data'
