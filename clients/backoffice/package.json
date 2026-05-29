@@ -16,7 +16,7 @@
     "@ironflyer/data": "workspace:*",
     "@ironflyer/design-tokens": "workspace:*",
     "@ironflyer/ui-web": "workspace:*",
-    "@mui/material": "^6.5.0",
+    "@mui/material": "^9.0.1",
     "@tanstack/react-query": "^5.64.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
