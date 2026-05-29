@@ -13,7 +13,7 @@
     "@theia/filesystem": "^1.60.0",
     "@theia/markers": "^1.60.0",
     "@theia/messages": "^1.60.0",
-    "@theia/monaco": "^1.60.0",
+    "@theia/monaco": "^1.72.1",
     "@theia/navigator": "^1.60.0",
     "@theia/outline-view": "^1.60.0",
     "@theia/preferences": "^1.60.0",
