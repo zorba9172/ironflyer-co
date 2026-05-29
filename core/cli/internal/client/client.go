@@ -59,8 +59,9 @@ func New(host, token string) *Client {
 	httpClient := &http.Client{
 		Timeout: 30 * time.Second,
 		Transport: &authRoundTripper{
-			base:  http.DefaultTransport,
-			token: token,
+			base:        http.DefaultTransport,
+			token:       token,
+			allowedHost: parseAllowedOrigin(host),
 		},
 	}
 	endpoint := host + "/graphql"
@@ -72,22 +73,68 @@ func New(host, token string) *Client {
 	}
 }
 
-// authRoundTripper attaches a Bearer token + standard headers to every
-// outbound request.
+// authRoundTripper attaches a Bearer token only to the configured
+// orchestrator origin. The client also follows signed export URLs and
+// probes runtime health endpoints, so auth must not be ambient on the
+// shared http.Client.
 type authRoundTripper struct {
-	base  http.RoundTripper
-	token string
+	base        http.RoundTripper
+	token       string
+	allowedHost *url.URL
 }
 
 func (a *authRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	r := req.Clone(req.Context())
-	if a.token != "" {
-		r.Header.Set("Authorization", "Bearer "+a.token)
+	if sameOrigin(r.URL, a.allowedHost) {
+		if a.token != "" {
+			r.Header.Set("Authorization", "Bearer "+a.token)
+		}
+	} else {
+		r.Header.Del("Authorization")
 	}
 	if r.Header.Get("User-Agent") == "" {
 		r.Header.Set("User-Agent", "ironflyer-cli")
 	}
 	return a.base.RoundTrip(r)
+}
+
+func parseAllowedOrigin(raw string) *url.URL {
+	u, err := url.Parse(raw)
+	if err != nil || u.Scheme == "" || u.Host == "" {
+		return nil
+	}
+	return u
+}
+
+func sameOrigin(a, b *url.URL) bool {
+	if a == nil || b == nil {
+		return false
+	}
+	if !strings.EqualFold(a.Scheme, b.Scheme) {
+		return false
+	}
+	return strings.EqualFold(a.Hostname(), b.Hostname()) && effectivePort(a) == effectivePort(b)
+}
+
+func effectivePort(u *url.URL) string {
+	if port := u.Port(); port != "" {
+		return port
+	}
+	if p, ok := defaultPort(strings.ToLower(u.Scheme)); ok {
+		return p
+	}
+	return ""
+}
+
+func defaultPort(scheme string) (string, bool) {
+	switch scheme {
+	case "http", "ws":
+		return "80", true
+	case "https", "wss":
+		return "443", true
+	default:
+		return "", false
+	}
 }
 
 // ErrAPI carries a non-2xx HTTP status + the server's error body. We

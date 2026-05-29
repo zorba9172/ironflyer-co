@@ -482,6 +482,16 @@ type ComplexityRoot struct {
 		StorageCostUsd    func(childComplexity int) int
 	}
 
+	CoverageReport struct {
+		Enabled     func(childComplexity int) int
+		Files       func(childComplexity int) int
+		GeneratedAt func(childComplexity int) int
+		MinPct      func(childComplexity int) int
+		OverallPct  func(childComplexity int) int
+		ProjectID   func(childComplexity int) int
+		Tool        func(childComplexity int) int
+	}
+
 	Crew struct {
 		Goal      func(childComplexity int) int
 		ID        func(childComplexity int) int
@@ -743,6 +753,12 @@ type ComplexityRoot struct {
 		FontSize   func(childComplexity int) int
 		FontWeight func(childComplexity int) int
 		LineHeight func(childComplexity int) int
+	}
+
+	FileCoverage struct {
+		LinePct   func(childComplexity int) int
+		Path      func(childComplexity int) int
+		Uncovered func(childComplexity int) int
 	}
 
 	FinisherProfile struct {
@@ -1102,6 +1118,7 @@ type ComplexityRoot struct {
 		SetAppUserSuspended           func(childComplexity int, projectID string, userID string, suspended bool) int
 		SetAppWebhookEnabled          func(childComplexity int, id string, enabled bool) int
 		SetAutomationEnabled          func(childComplexity int, id string, enabled bool) int
+		SetCoverageEnabled            func(childComplexity int, projectID string, enabled bool, minPct *float64) int
 		SetPrimaryDeployDomain        func(childComplexity int, id string) int
 		SetTelemetryPreference        func(childComplexity int, input model.TelemetryPreferenceInput) int
 		SignIn                        func(childComplexity int, input model.SignInInput) int
@@ -1358,6 +1375,7 @@ type ComplexityRoot struct {
 		ComplianceControlResults func(childComplexity int, projectID string, framework string) int
 		ComplianceEnrollments    func(childComplexity int, projectID *string) int
 		ComplianceFrameworks     func(childComplexity int) int
+		CoverageReport           func(childComplexity int, projectID string) int
 		Crews                    func(childComplexity int) int
 		CustomAgents             func(childComplexity int) int
 		Deploy                   func(childComplexity int, id string) int
@@ -1793,6 +1811,7 @@ type MutationResolver interface {
 	UnenrollCompliance(ctx context.Context, enrollmentID string) (bool, error)
 	EvaluateCompliance(ctx context.Context, projectID string, framework string) ([]model.ComplianceControlResult, error)
 	ExportAuditBundle(ctx context.Context, projectID string, framework string) (*model.ComplianceAuditBundle, error)
+	SetCoverageEnabled(ctx context.Context, projectID string, enabled bool, minPct *float64) (*model.CoverageReport, error)
 	PlanDeploy(ctx context.Context, input model.PlanDeployInput) (*model.Deploy, error)
 	BuildDeployPreview(ctx context.Context, deployID string) (*model.Deploy, error)
 	RequestDeployApproval(ctx context.Context, deployID string, expiresInMinutes *int) (*model.DeployApproval, error)
@@ -1890,6 +1909,7 @@ type QueryResolver interface {
 	ComplianceFrameworks(ctx context.Context) ([]model.ComplianceFramework, error)
 	ComplianceEnrollments(ctx context.Context, projectID *string) ([]model.ComplianceEnrollment, error)
 	ComplianceControlResults(ctx context.Context, projectID string, framework string) ([]model.ComplianceControlResult, error)
+	CoverageReport(ctx context.Context, projectID string) (*model.CoverageReport, error)
 	ProfitDashboard(ctx context.Context, since time.Time, until time.Time) (*model.ProfitDashboard, error)
 	ScaleDashboard(ctx context.Context) (*model.ScaleDashboard, error)
 	CohortDashboard(ctx context.Context, sinceMonth time.Time) (*model.CohortDashboard, error)
@@ -3753,6 +3773,49 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.CostReport.StorageCostUsd(childComplexity), true
 
+	case "CoverageReport.enabled":
+		if e.ComplexityRoot.CoverageReport.Enabled == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CoverageReport.Enabled(childComplexity), true
+	case "CoverageReport.files":
+		if e.ComplexityRoot.CoverageReport.Files == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CoverageReport.Files(childComplexity), true
+	case "CoverageReport.generatedAt":
+		if e.ComplexityRoot.CoverageReport.GeneratedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CoverageReport.GeneratedAt(childComplexity), true
+	case "CoverageReport.minPct":
+		if e.ComplexityRoot.CoverageReport.MinPct == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CoverageReport.MinPct(childComplexity), true
+	case "CoverageReport.overallPct":
+		if e.ComplexityRoot.CoverageReport.OverallPct == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CoverageReport.OverallPct(childComplexity), true
+	case "CoverageReport.projectID":
+		if e.ComplexityRoot.CoverageReport.ProjectID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CoverageReport.ProjectID(childComplexity), true
+	case "CoverageReport.tool":
+		if e.ComplexityRoot.CoverageReport.Tool == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CoverageReport.Tool(childComplexity), true
+
 	case "Crew.goal":
 		if e.ComplexityRoot.Crew.Goal == nil {
 			break
@@ -4956,6 +5019,25 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.FigmaTypographyToken.LineHeight(childComplexity), true
+
+	case "FileCoverage.linePct":
+		if e.ComplexityRoot.FileCoverage.LinePct == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FileCoverage.LinePct(childComplexity), true
+	case "FileCoverage.path":
+		if e.ComplexityRoot.FileCoverage.Path == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FileCoverage.Path(childComplexity), true
+	case "FileCoverage.uncovered":
+		if e.ComplexityRoot.FileCoverage.Uncovered == nil {
+			break
+		}
+
+		return e.ComplexityRoot.FileCoverage.Uncovered(childComplexity), true
 
 	case "FinisherProfile.completedTaskCount":
 		if e.ComplexityRoot.FinisherProfile.CompletedTaskCount == nil {
@@ -6990,6 +7072,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.SetAutomationEnabled(childComplexity, args["id"].(string), args["enabled"].(bool)), true
+	case "Mutation.setCoverageEnabled":
+		if e.ComplexityRoot.Mutation.SetCoverageEnabled == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_setCoverageEnabled_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.SetCoverageEnabled(childComplexity, args["projectID"].(string), args["enabled"].(bool), args["minPct"].(*float64)), true
 	case "Mutation.setPrimaryDeployDomain":
 		if e.ComplexityRoot.Mutation.SetPrimaryDeployDomain == nil {
 			break
@@ -8367,6 +8460,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.ComplianceFrameworks(childComplexity), true
+	case "Query.coverageReport":
+		if e.ComplexityRoot.Query.CoverageReport == nil {
+			break
+		}
+
+		args, err := ec.field_Query_coverageReport_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.CoverageReport(childComplexity, args["projectID"].(string)), true
 	case "Query.crews":
 		if e.ComplexityRoot.Query.Crews == nil {
 			break
@@ -11609,6 +11713,46 @@ extend type Mutation {
   exportAuditBundle(projectId: ID!, framework: String!): ComplianceAuditBundle!
 }
 `, BuiltIn: false},
+	{Name: "../schema/coverage.graphql", Input: `# Test-coverage capability for USER projects. A project owner toggles coverage
+# on; the finisher's CoverageGate runs the project's own suite with coverage in
+# the sandbox and stores a normalized report. This surface exposes the toggle
+# and the latest report to the studio Coverage tab. (Unrelated to Ironflyer's
+# own "no tests" rule, which governs this repository only.)
+
+type FileCoverage {
+  path: String!
+  # 0..100 — line/statement coverage for this file.
+  linePct: Float!
+  # Count of uncovered lines/statements ("what is not closed" in this file).
+  uncovered: Int!
+}
+
+type CoverageReport {
+  projectID: ID!
+  # Whether the coverage capability is toggled on for this project.
+  enabled: Boolean!
+  # 0..100 overall line coverage from the latest run (0 when never run).
+  overallPct: Float!
+  # The project's coverage floor (0..100); 0 means report-only, never warn.
+  minPct: Float!
+  # Human label of the toolchain that produced the report (e.g. "go test -cover").
+  tool: String!
+  # Per-file breakdown, least-covered first.
+  files: [FileCoverage!]!
+  # When the latest report was produced; null when never run.
+  generatedAt: DateTime
+}
+
+extend type Query {
+  coverageReport(projectID: ID!): CoverageReport!
+}
+
+extend type Mutation {
+  # Toggle the coverage capability. minPct is optional; when provided it pins
+  # the project's overall-coverage floor.
+  setCoverageEnabled(projectID: ID!, enabled: Boolean!, minPct: Float): CoverageReport!
+}
+`, BuiltIn: false},
 	{Name: "../schema/dashboards.graphql", Input: `# V22 dashboards (Agent 7). Read-only operator views surfaced by the
 # ` + "`" + `internal/dashboards/` + "`" + ` aggregator. Resolvers and the concrete source
 # adapters are wired by Agent 8 — this schema file is declarative only.
@@ -14657,6 +14801,26 @@ func (ec *executionContext) childFields_CostReport(ctx context.Context, field gr
 	return nil, fmt.Errorf("no field named %q was found under type CostReport", field.Name)
 }
 
+func (ec *executionContext) childFields_CoverageReport(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "projectID":
+		return ec.fieldContext_CoverageReport_projectID(ctx, field)
+	case "enabled":
+		return ec.fieldContext_CoverageReport_enabled(ctx, field)
+	case "overallPct":
+		return ec.fieldContext_CoverageReport_overallPct(ctx, field)
+	case "minPct":
+		return ec.fieldContext_CoverageReport_minPct(ctx, field)
+	case "tool":
+		return ec.fieldContext_CoverageReport_tool(ctx, field)
+	case "files":
+		return ec.fieldContext_CoverageReport_files(ctx, field)
+	case "generatedAt":
+		return ec.fieldContext_CoverageReport_generatedAt(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type CoverageReport", field.Name)
+}
+
 func (ec *executionContext) childFields_Crew(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 	switch field.Name {
 	case "id":
@@ -15181,6 +15345,18 @@ func (ec *executionContext) childFields_FigmaTypographyToken(ctx context.Context
 		return ec.fieldContext_FigmaTypographyToken_lineHeight(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type FigmaTypographyToken", field.Name)
+}
+
+func (ec *executionContext) childFields_FileCoverage(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "path":
+		return ec.fieldContext_FileCoverage_path(ctx, field)
+	case "linePct":
+		return ec.fieldContext_FileCoverage_linePct(ctx, field)
+	case "uncovered":
+		return ec.fieldContext_FileCoverage_uncovered(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type FileCoverage", field.Name)
 }
 
 func (ec *executionContext) childFields_FinisherProfile(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
@@ -18135,6 +18311,36 @@ func (ec *executionContext) field_Mutation_setAutomationEnabled_args(ctx context
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_setCoverageEnabled_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "projectID",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNID2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["projectID"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "enabled",
+		func(ctx context.Context, v any) (bool, error) {
+			return ec.unmarshalNBoolean2bool(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["enabled"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "minPct",
+		func(ctx context.Context, v any) (*float64, error) {
+			return ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["minPct"] = arg2
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_setPrimaryDeployDomain_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -18900,6 +19106,20 @@ func (ec *executionContext) field_Query_complianceEnrollments_args(ctx context.C
 		return nil, err
 	}
 	args["projectId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_coverageReport_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "projectID",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNID2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["projectID"] = arg0
 	return args, nil
 }
 
@@ -26671,6 +26891,176 @@ func (ec *executionContext) fieldContext_CostReport_grossMarginPct(_ context.Con
 	return graphql.NewScalarFieldContext("CostReport", field, false, false, errors.New("field of type Float does not have child fields"))
 }
 
+func (ec *executionContext) _CoverageReport_projectID(ctx context.Context, field graphql.CollectedField, obj *model.CoverageReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CoverageReport_projectID(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ProjectID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNID2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CoverageReport_projectID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CoverageReport", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
+func (ec *executionContext) _CoverageReport_enabled(ctx context.Context, field graphql.CollectedField, obj *model.CoverageReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CoverageReport_enabled(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Enabled, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v bool) graphql.Marshaler {
+			return ec.marshalNBoolean2bool(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CoverageReport_enabled(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CoverageReport", field, false, false, errors.New("field of type Boolean does not have child fields"))
+}
+
+func (ec *executionContext) _CoverageReport_overallPct(ctx context.Context, field graphql.CollectedField, obj *model.CoverageReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CoverageReport_overallPct(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.OverallPct, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CoverageReport_overallPct(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CoverageReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _CoverageReport_minPct(ctx context.Context, field graphql.CollectedField, obj *model.CoverageReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CoverageReport_minPct(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.MinPct, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CoverageReport_minPct(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CoverageReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _CoverageReport_tool(ctx context.Context, field graphql.CollectedField, obj *model.CoverageReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CoverageReport_tool(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Tool, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CoverageReport_tool(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CoverageReport", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _CoverageReport_files(ctx context.Context, field graphql.CollectedField, obj *model.CoverageReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CoverageReport_files(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Files, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []model.FileCoverage) graphql.Marshaler {
+			return ec.marshalNFileCoverage2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐFileCoverageᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CoverageReport_files(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CoverageReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_FileCoverage(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CoverageReport_generatedAt(ctx context.Context, field graphql.CollectedField, obj *model.CoverageReport) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CoverageReport_generatedAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.GeneratedAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *time.Time) graphql.Marshaler {
+			return ec.marshalODateTime2ᚖtimeᚐTime(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_CoverageReport_generatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CoverageReport", field, false, false, errors.New("field of type DateTime does not have child fields"))
+}
+
 func (ec *executionContext) _Crew_id(ctx context.Context, field graphql.CollectedField, obj *model.Crew) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -31272,6 +31662,75 @@ func (ec *executionContext) _FigmaTypographyToken_lineHeight(ctx context.Context
 }
 func (ec *executionContext) fieldContext_FigmaTypographyToken_lineHeight(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("FigmaTypographyToken", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _FileCoverage_path(ctx context.Context, field graphql.CollectedField, obj *model.FileCoverage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_FileCoverage_path(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Path, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_FileCoverage_path(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("FileCoverage", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _FileCoverage_linePct(ctx context.Context, field graphql.CollectedField, obj *model.FileCoverage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_FileCoverage_linePct(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.LinePct, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_FileCoverage_linePct(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("FileCoverage", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _FileCoverage_uncovered(ctx context.Context, field graphql.CollectedField, obj *model.FileCoverage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_FileCoverage_uncovered(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Uncovered, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int) graphql.Marshaler {
+			return ec.marshalNInt2int(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_FileCoverage_uncovered(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("FileCoverage", field, false, false, errors.New("field of type Int does not have child fields"))
 }
 
 func (ec *executionContext) _FinisherProfile_id(ctx context.Context, field graphql.CollectedField, obj *model.FinisherProfile) (ret graphql.Marshaler) {
@@ -37468,6 +37927,50 @@ func (ec *executionContext) fieldContext_Mutation_exportAuditBundle(ctx context.
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_exportAuditBundle_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_setCoverageEnabled(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_setCoverageEnabled(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().SetCoverageEnabled(ctx, fc.Args["projectID"].(string), fc.Args["enabled"].(bool), fc.Args["minPct"].(*float64))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.CoverageReport) graphql.Marshaler {
+			return ec.marshalNCoverageReport2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCoverageReport(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_setCoverageEnabled(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_CoverageReport(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_setCoverageEnabled_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -44783,6 +45286,50 @@ func (ec *executionContext) fieldContext_Query_complianceControlResults(ctx cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_complianceControlResults_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_coverageReport(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Query_coverageReport(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().CoverageReport(ctx, fc.Args["projectID"].(string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.CoverageReport) graphql.Marshaler {
+			return ec.marshalNCoverageReport2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCoverageReport(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Query_coverageReport(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_CoverageReport(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_coverageReport_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -59515,6 +60062,72 @@ func (ec *executionContext) _CostReport(ctx context.Context, sel ast.SelectionSe
 	return out
 }
 
+var coverageReportImplementors = []string{"CoverageReport"}
+
+func (ec *executionContext) _CoverageReport(ctx context.Context, sel ast.SelectionSet, obj *model.CoverageReport) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, coverageReportImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CoverageReport")
+		case "projectID":
+			out.Values[i] = ec._CoverageReport_projectID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "enabled":
+			out.Values[i] = ec._CoverageReport_enabled(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "overallPct":
+			out.Values[i] = ec._CoverageReport_overallPct(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "minPct":
+			out.Values[i] = ec._CoverageReport_minPct(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "tool":
+			out.Values[i] = ec._CoverageReport_tool(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "files":
+			out.Values[i] = ec._CoverageReport_files(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "generatedAt":
+			out.Values[i] = ec._CoverageReport_generatedAt(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var crewImplementors = []string{"Crew"}
 
 func (ec *executionContext) _Crew(ctx context.Context, sel ast.SelectionSet, obj *model.Crew) graphql.Marshaler {
@@ -61081,6 +61694,55 @@ func (ec *executionContext) _FigmaTypographyToken(ctx context.Context, sel ast.S
 			}
 		case "lineHeight":
 			out.Values[i] = ec._FigmaTypographyToken_lineHeight(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var fileCoverageImplementors = []string{"FileCoverage"}
+
+func (ec *executionContext) _FileCoverage(ctx context.Context, sel ast.SelectionSet, obj *model.FileCoverage) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, fileCoverageImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("FileCoverage")
+		case "path":
+			out.Values[i] = ec._FileCoverage_path(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "linePct":
+			out.Values[i] = ec._FileCoverage_linePct(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "uncovered":
+			out.Values[i] = ec._FileCoverage_uncovered(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -63190,6 +63852,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "exportAuditBundle":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_exportAuditBundle(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "setCoverageEnabled":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_setCoverageEnabled(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -65779,6 +66448,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_complianceControlResults(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "coverageReport":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_coverageReport(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -70746,6 +71437,20 @@ func (ec *executionContext) marshalNCostReport2ironflyerᚋcoreᚋorchestrator�
 	return ec._CostReport(ctx, sel, &v)
 }
 
+func (ec *executionContext) marshalNCoverageReport2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCoverageReport(ctx context.Context, sel ast.SelectionSet, v model.CoverageReport) graphql.Marshaler {
+	return ec._CoverageReport(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCoverageReport2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCoverageReport(ctx context.Context, sel ast.SelectionSet, v *model.CoverageReport) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CoverageReport(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNCreateAppApiKeyInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCreateAppAPIKeyInput(ctx context.Context, v any) (model.CreateAppAPIKeyInput, error) {
 	res, err := ec.unmarshalInputCreateAppApiKeyInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -71285,6 +71990,26 @@ func (ec *executionContext) marshalNFigmaTypographyToken2ᚕironflyerᚋcoreᚋo
 		fc := graphql.GetFieldContext(ctx)
 		fc.Result = &v[i]
 		return ec.marshalNFigmaTypographyToken2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐFigmaTypographyToken(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNFileCoverage2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐFileCoverage(ctx context.Context, sel ast.SelectionSet, v model.FileCoverage) graphql.Marshaler {
+	return ec._FileCoverage(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNFileCoverage2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐFileCoverageᚄ(ctx context.Context, sel ast.SelectionSet, v []model.FileCoverage) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNFileCoverage2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐFileCoverage(ctx, sel, v[i])
 	})
 
 	for _, e := range ret {

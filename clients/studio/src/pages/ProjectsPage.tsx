@@ -6,6 +6,7 @@ import { useGraphQLQuery, useRequest, operations } from '@ironflyer/data';
 import { confirmAction, toast } from '@ironflyer/ui-web/fx';
 import { useStudio } from '../store';
 import { mockProject } from '../studioData';
+import { text } from '@ironflyer/design-tokens/brand';
 
 interface ApiProject { id: string; name: string; description?: string | null; status: string; idea?: string | null; updatedAt?: string | null }
 interface ApiFile { path: string; content?: string | null }
@@ -25,7 +26,7 @@ export function ProjectsPage() {
   const [q, setQ] = useState('');
   const [openingId, setOpeningId] = useState<string | null>(null);
 
-  const { data: projects, isLoading } = useGraphQLQuery<ApiProject[], { projects: ApiProject[] }>({
+  const { data: projects, isLoading, error } = useGraphQLQuery<ApiProject[], { projects: ApiProject[] }>({
     key: ['projects'],
     operationName: 'Projects', query: operations.PROJECTS,
     fallbackData: [], map: (r) => r.projects ?? [],
@@ -63,17 +64,25 @@ export function ProjectsPage() {
   return (
     <Box sx={{ p: { xs: 3, md: 5 }, maxWidth: 1100, mx: 'auto' }}>
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 4, flexWrap: 'wrap', gap: 2 }}>
-        <Typography variant="h3" sx={{ fontSize: '2.25rem' }}>Projects</Typography>
+        <Typography variant="h3" sx={{ fontSize: text.s225 }}>Projects</Typography>
         <Button variant="contained" onClick={() => navigate('/')} startIcon={<span>+</span>}>Create project</Button>
       </Stack>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, border: 1, borderColor: 'divider', borderRadius: 2, px: 2, py: 1, mb: 3, maxWidth: 420, bgcolor: 'background.paper' }}>
         <Box component="span" sx={{ color: 'text.disabled' }}>⌕</Box>
-        <InputBase fullWidth placeholder="Search projects" value={q} onChange={(e) => setQ(e.target.value)} sx={{ fontSize: '0.9rem' }} />
+        <InputBase fullWidth placeholder="Search projects" value={q} onChange={(e) => setQ(e.target.value)} sx={{ fontSize: text.s90 }} />
       </Box>
 
       {isLoading ? (
         <Stack alignItems="center" sx={{ py: 8 }}><CircularProgress size={24} /></Stack>
+      ) : error && projects.length === 0 ? (
+        <Card sx={{ p: 5, textAlign: 'center', borderStyle: 'dashed' }}>
+          <Typography variant="h6" sx={{ mb: 1 }}>Couldn't load projects</Typography>
+          <Typography sx={{ color: 'text.secondary', mb: 3 }}>
+            {error instanceof Error ? error.message : 'Connect the orchestrator and try again.'}
+          </Typography>
+          <Button variant="outlined" color="inherit" onClick={() => void qc.invalidateQueries({ queryKey: ['projects'] })}>Retry</Button>
+        </Card>
       ) : filtered.length === 0 ? (
         <Card sx={{ p: 5, textAlign: 'center', borderStyle: 'dashed' }}>
           <Typography variant="h6" sx={{ mb: 1 }}>{projects.length === 0 ? 'No projects yet' : 'No matches'}</Typography>
@@ -98,13 +107,13 @@ export function ProjectsPage() {
               <Box onClick={() => void open(p)} sx={{ cursor: 'pointer' }}>
                 <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1.5, pr: 3 }}>
                   <Box sx={{ width: 10, height: 10, borderRadius: 99, bgcolor: toneFor(p.status), flexShrink: 0 }} />
-                  <Typography variant="h6" sx={{ fontSize: '1.1rem' }} noWrap>{p.name}</Typography>
+                  <Typography variant="h6" sx={{ fontSize: text.s110 }} noWrap>{p.name}</Typography>
                   {openingId === p.id && <CircularProgress size={14} />}
                 </Stack>
-                <Typography sx={{ color: 'text.secondary', fontSize: '0.9rem', mb: 2, minHeight: '2.6em' }}>
+                <Typography sx={{ color: 'text.secondary', fontSize: text.s90, mb: 2, minHeight: '2.6em' }}>
                   {p.description || p.idea || 'No description yet.'}
                 </Typography>
-                <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.72rem', color: 'text.disabled' })}>
+                <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s72, color: 'text.disabled' })}>
                   {p.status}{p.updatedAt ? ` · updated ${new Date(p.updatedAt).toLocaleDateString()}` : ''}
                 </Typography>
               </Box>

@@ -70,14 +70,14 @@ type Broker interface {
 // brokerImpl is the production Broker. Construction goes through
 // New() so callers can mix backends without touching the impl.
 type brokerImpl struct {
-	store      Store
-	backends   map[Backend]BackendImpl
-	defaultBE  Backend
-	redactor   *Redactor
-	audit      audit.Store
-	logger     zerolog.Logger
-	clock      func() time.Time
-	mu         sync.RWMutex
+	store     Store
+	backends  map[Backend]BackendImpl
+	defaultBE Backend
+	redactor  *Redactor
+	audit     audit.Store
+	logger    zerolog.Logger
+	clock     func() time.Time
+	mu        sync.RWMutex
 	// capabilities indexes live capabilities by ID. The broker keeps
 	// only metadata + the decoded reference; the value is never cached.
 	capabilities map[string]Capability
@@ -183,12 +183,12 @@ func (b *brokerImpl) Release(ctx context.Context, ref SecretRef, releaseTo strin
 			ProjectID: ref.ProjectID,
 			Summary:   fmt.Sprintf("release blocked: %s/%s", ref.TenantID, ref.Name),
 			Attrs: map[string]any{
-				"secret_name":      ref.Name,
-				"secret_ref_id":    ref.ID,
-				"release_class":    string(ref.ReleaseClass),
-				"backend":          string(ref.Backend),
-				"policy_decision":  policyDecisionID,
-				"error":            err.Error(),
+				"secret_name":     ref.Name,
+				"secret_ref_id":   ref.ID,
+				"release_class":   string(ref.ReleaseClass),
+				"backend":         string(ref.Backend),
+				"policy_decision": policyDecisionID,
+				"error":           err.Error(),
 			},
 		})
 		return Capability{}, err
@@ -249,17 +249,17 @@ func (b *brokerImpl) Release(ctx context.Context, ref SecretRef, releaseTo strin
 		ProjectID: ref.ProjectID,
 		Summary:   fmt.Sprintf("released %s to %s", ref.Name, releaseTo),
 		Attrs: map[string]any{
-			"secret_name":      ref.Name,
-			"secret_ref_id":    ref.ID,
-			"release_class":    string(ref.ReleaseClass),
-			"capability_id":    cap.ID,
-			"released_to":      releaseTo,
-			"policy_decision":  policyDecisionID,
-			"expires_at":       cap.ExpiresAt.Format(time.RFC3339),
-			"redaction_proof":  cap.RedactionProof,
-			"execution_id":     scope.ExecutionID,
-			"workspace_id":     scope.WorkspaceID,
-			"deploy_target":    scope.DeployTarget,
+			"secret_name":     ref.Name,
+			"secret_ref_id":   ref.ID,
+			"release_class":   string(ref.ReleaseClass),
+			"capability_id":   cap.ID,
+			"released_to":     releaseTo,
+			"policy_decision": policyDecisionID,
+			"expires_at":      cap.ExpiresAt.Format(time.RFC3339),
+			"redaction_proof": cap.RedactionProof,
+			"execution_id":    scope.ExecutionID,
+			"workspace_id":    scope.WorkspaceID,
+			"deploy_target":   scope.DeployTarget,
 		},
 	})
 
@@ -308,8 +308,11 @@ func (b *brokerImpl) Resolve(ctx context.Context, cap Capability) ([]byte, error
 	if known.Expired(now) {
 		return nil, ErrCapabilityExpired
 	}
+	if cap.SecretRefID != known.SecretRefID || cap.Name != known.Name || cap.ReleasedTo != known.ReleasedTo || cap.PolicyDecisionID != known.PolicyDecisionID {
+		return nil, ErrCapabilityInvalid
+	}
 
-	ref, err := b.store.GetRef(ctx, cap.SecretRefID)
+	ref, err := b.store.GetRef(ctx, known.SecretRefID)
 	if err != nil {
 		return nil, err
 	}
@@ -330,13 +333,13 @@ func (b *brokerImpl) Resolve(ctx context.Context, cap Capability) ([]byte, error
 		Action:    audit.ActionSecretWritten,
 		Outcome:   audit.OutcomeSuccess,
 		ProjectID: ref.ProjectID,
-		Summary:   fmt.Sprintf("resolved %s via %s", ref.Name, cap.ReleasedTo),
+		Summary:   fmt.Sprintf("resolved %s via %s", ref.Name, known.ReleasedTo),
 		Attrs: map[string]any{
 			"secret_name":     ref.Name,
 			"secret_ref_id":   ref.ID,
-			"capability_id":   cap.ID,
-			"released_to":     cap.ReleasedTo,
-			"policy_decision": cap.PolicyDecisionID,
+			"capability_id":   known.ID,
+			"released_to":     known.ReleasedTo,
+			"policy_decision": known.PolicyDecisionID,
 			"redaction_proof": Proof(value),
 			"resolve_event":   true,
 		},

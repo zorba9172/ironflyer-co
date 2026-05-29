@@ -3,6 +3,7 @@ import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Typogra
 import { CodeEditor, toast } from '@ironflyer/ui-web/fx';
 import { useThemeMode } from '@ironflyer/ui-web';
 import type { Attachment } from '../store';
+import { text } from '@ironflyer/design-tokens/brand';
 
 function langOf(name: string): string | undefined {
   if (/\.json$/i.test(name)) return 'json';
@@ -24,8 +25,8 @@ export function DocDialog({ attachment, onClose, onSave }: { attachment: Attachm
   return (
     <Dialog open onClose={onClose} maxWidth="md" fullWidth slotProps={{ paper: { sx: { border: 1, borderColor: 'divider', backgroundImage: 'none' } } }}>
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Typography sx={{ fontWeight: 700, fontSize: '1.05rem' }} noWrap>{attachment.name}</Typography>
-        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.72rem', color: 'text.disabled' })}>{attachment.kind}</Typography>
+        <Typography sx={{ fontWeight: 700, fontSize: text.s105 }} noWrap>{attachment.name}</Typography>
+        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s72, color: 'text.disabled' })}>{attachment.kind}</Typography>
       </DialogTitle>
       <DialogContent dividers sx={{ p: editable ? 0 : 3 }}>
         {attachment.kind === 'image' && attachment.dataUrl ? (
@@ -37,7 +38,7 @@ export function DocDialog({ attachment, onClose, onSave }: { attachment: Attachm
         ) : (
           <Box sx={{ textAlign: 'center', py: 4 }}>
             <Typography sx={{ color: 'text.secondary', mb: 1 }}>No in-app viewer for <b>{attachment.name}</b> yet.</Typography>
-            <Typography sx={{ fontSize: '0.85rem', color: 'text.disabled' }}>Word/Excel view + edit lands when the office engine is wired (OnlyOffice or Univer).</Typography>
+            <Typography sx={{ fontSize: text.s85, color: 'text.disabled' }}>Word/Excel view + edit lands when the office engine is wired (OnlyOffice or Univer).</Typography>
           </Box>
         )}
       </DialogContent>

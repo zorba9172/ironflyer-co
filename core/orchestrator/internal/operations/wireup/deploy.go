@@ -8,7 +8,6 @@ package wireup
 
 import (
 	"context"
-	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -17,10 +16,10 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/shopspring/decimal"
 
-	"ironflyer/core/orchestrator/internal/operations/deploy"
 	"ironflyer/core/orchestrator/internal/business/execution"
 	"ironflyer/core/orchestrator/internal/business/profitguard"
 	"ironflyer/core/orchestrator/internal/business/profitguardbridge"
+	"ironflyer/core/orchestrator/internal/operations/deploy"
 	"ironflyer/core/orchestrator/internal/operations/secrets"
 )
 
@@ -51,7 +50,7 @@ func BuildDeployService(d DeployDeps) deploy.Service {
 	// adapter resolves VERCEL_TOKEN at call time per-tenant).
 	if d.SecretsBrk != nil {
 		resolver := &deploySecretResolverAdapter{broker: d.SecretsBrk}
-		adapters[deploy.TargetVercel] = deploy.NewVercelAdapter(resolver, http.DefaultClient, cfg.VercelAPIBase, d.Logger)
+		adapters[deploy.TargetVercel] = deploy.NewVercelAdapter(resolver, nil, cfg.VercelAPIBase, d.Logger)
 	}
 
 	guardChecker := &profitGuardCheckerAdapter{
@@ -117,7 +116,7 @@ func BuildDeployDomainService(d DeployDeps) deploy.DomainService {
 	}
 	if d.SecretsBrk != nil && cfg.CloudflareAccountID != "" {
 		resolver := &deploySecretResolverAdapter{broker: d.SecretsBrk}
-		registrars["cloudflare"] = deploy.NewCloudflareRegistrar(resolver, http.DefaultClient, cfg.CloudflareAccountID, "", d.Logger)
+		registrars["cloudflare"] = deploy.NewCloudflareRegistrar(resolver, nil, cfg.CloudflareAccountID, "", d.Logger)
 	}
 	purchasePolicy := deploy.DomainPurchasePolicy{
 		Enabled:                  cfg.DomainPurchaseEnabled,
@@ -170,7 +169,7 @@ func (a *deploySecretResolverAdapter) Resolve(ctx context.Context, tenantID, pro
 	// caller. We supply a synthetic policy decision id so the broker's
 	// Release pre-flight passes — production wiring should source this
 	// from a PEP.MustAllow call upstream of the deploy plane.
-	cap, err := a.broker.Release(ctx, ref, "deploy", "wireup-deploy-secret", 0, secrets.ReleaseScope{
+	cap, err := a.broker.Release(ctx, ref, secrets.ReleaseToDeployProvider, "wireup-deploy-secret", 0, secrets.ReleaseScope{
 		DeployTarget: "vercel",
 	})
 	if err != nil {

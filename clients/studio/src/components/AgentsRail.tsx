@@ -3,6 +3,7 @@ import { useTheme } from '@mui/material/styles';
 import { motion } from '@ironflyer/ui-web/fx';
 import { AGENTS, agentStatus, type Gate } from '../studioData';
 import { agentColor } from './statusColor';
+import { text } from '@ironflyer/design-tokens/brand';
 
 const MotionBox = motion.create(Box);
 
@@ -15,8 +16,8 @@ export function AgentsRail({ gates }: { gates: Gate[] }) {
   return (
     <Box sx={{ mb: 3 }}>
       <Stack direction="row" alignItems="baseline" spacing={1} sx={{ mb: 1.25 }}>
-        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled' })}>Agents</Typography>
-        <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary' }}>{working} working</Typography>
+        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s70, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled' })}>Agents</Typography>
+        <Typography sx={{ fontSize: text.s78, color: 'text.secondary' }}>{working} working</Typography>
       </Stack>
       <Stack direction="row" spacing={1.25} sx={{ overflowX: 'auto', pb: 1 }}>
         {AGENTS.map((a) => {
@@ -40,7 +41,7 @@ export function AgentsRail({ gates }: { gates: Gate[] }) {
                     />
                   )}
                 </Box>
-                <Typography sx={{ fontSize: '0.82rem', fontWeight: 500, whiteSpace: 'nowrap' }}>{a.name}</Typography>
+                <Typography sx={{ fontSize: text.s82, fontWeight: 500, whiteSpace: 'nowrap' }}>{a.name}</Typography>
               </Stack>
             </Tooltip>
           );

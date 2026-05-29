@@ -5,6 +5,7 @@ import { confirmAction, toast } from '@ironflyer/ui-web/fx';
 import { useGraphQLQuery, useRequest, operations } from '@ironflyer/data';
 import { useOperateProjectId } from '../hooks/useOperateProjectId';
 import { PaneHeader } from '../components/operate/PaneHeader';
+import { text } from '@ironflyer/design-tokens/brand';
 
 interface EnvVar { key: string; valuePreview: string; secret: boolean; updatedAt: string }
 interface Settings { projectID: string; displayName: string; visibility: string; region: string; supportEmail: string; envVars: EnvVar[]; updatedAt: string }
@@ -14,7 +15,7 @@ const SAMPLE: Settings = { projectID: '', displayName: 'TaskFlow', visibility: '
   { key: 'NEXT_PUBLIC_APP_NAME', valuePreview: 'TaskFlow', secret: false, updatedAt: '' },
 ], updatedAt: '' };
 const REGIONS = ['us-east', 'us-west', 'eu-central', 'ap-south'];
-const VIS = ['private', 'unlisted', 'public'];
+const VIS = ['private', 'unlisted', 'public', 'archived'];
 
 export function SettingsPane() {
   const request = useRequest();
@@ -61,8 +62,16 @@ export function SettingsPane() {
     finally { setBusy(false); }
   };
   const dangerArchive = async () => {
-    const ok = await confirmAction({ title: 'Archive this app?', text: 'The app stops serving traffic and is hidden from the dashboard. You can restore it later.', confirmText: 'Archive', danger: true });
-    if (ok) toast('Archive is owner-gated — wire the archive mutation to enable.', 'info');
+    if (!request || !liveProjectId) { toast('Connect the orchestrator to archive the app.', 'error'); return; }
+    const ok = await confirmAction({ title: 'Archive this app?', text: 'The app stops serving traffic and is hidden from the dashboard. You can restore it later by setting visibility back.', confirmText: 'Archive', danger: true });
+    if (!ok) return;
+    setBusy(true);
+    try {
+      // Archive = set visibility to "archived" through the settings mutation.
+      await request('UpdateAppSettings', operations.UPDATE_APP_SETTINGS, { projectID: liveProjectId, input: { visibility: 'archived' } });
+      refresh(); toast('App archived — it no longer serves traffic.', 'success');
+    } catch (e) { toast(e instanceof Error ? e.message : 'Archive failed.', 'error'); }
+    finally { setBusy(false); }
   };
 
   return (
@@ -71,7 +80,7 @@ export function SettingsPane() {
         <PaneHeader title="Settings" isLive={isLive} />
 
         <Card sx={{ p: 2.5, mb: 2 }}>
-          <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.66rem', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>General</Typography>
+          <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>General</Typography>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1.5 }}>
             <TextField size="small" label="Display name" value={d.displayName} onChange={(e) => set({ displayName: e.target.value })} />
             <TextField size="small" label="Support email" value={d.supportEmail} onChange={(e) => set({ supportEmail: e.target.value })} />
@@ -88,14 +97,14 @@ export function SettingsPane() {
         </Card>
 
         <Card sx={{ p: 2.5, mb: 2 }}>
-          <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.66rem', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>Environment variables</Typography>
+          <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>Environment variables</Typography>
           <Stack spacing={0.75} sx={{ mb: 1.5 }}>
-            {d.envVars.length === 0 && <Typography sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>No variables set.</Typography>}
+            {d.envVars.length === 0 && <Typography sx={{ fontSize: text.s80, color: 'text.disabled' }}>No variables set.</Typography>}
             {d.envVars.map((v) => (
               <Stack key={v.key} direction="row" alignItems="center" spacing={1} sx={{ py: 0.5, borderBottom: 1, borderColor: 'divider' }}>
-                <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.78rem', flex: 1 })} noWrap>{v.key}</Typography>
-                {v.secret && <Chip size="small" label="secret" sx={(th) => ({ height: 18, fontSize: '0.56rem', bgcolor: `${th.brand.accent.primary}1f`, color: th.brand.accent.primary })} />}
-                <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.76rem', color: 'text.secondary', width: 160, textAlign: 'right' })} noWrap>{v.valuePreview}</Typography>
+                <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s78, flex: 1 })} noWrap>{v.key}</Typography>
+                {v.secret && <Chip size="small" label="secret" sx={(th) => ({ height: 18, fontSize: text.s56, bgcolor: `${th.brand.accent.primary}1f`, color: th.brand.accent.primary })} />}
+                <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s76, color: 'text.secondary', width: 160, textAlign: 'right' })} noWrap>{v.valuePreview}</Typography>
                 <IconButton size="small" disabled={busy} onClick={() => void delEnv(v.key)} sx={{ color: 'text.secondary' }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" /></svg></IconButton>
               </Stack>
             ))}
@@ -106,14 +115,14 @@ export function SettingsPane() {
             <FormControlLabel control={<Switch size="small" checked={envSecret} onChange={(e) => setEnvSecret(e.target.checked)} />} label="Secret" />
             <Button variant="outlined" color="inherit" disabled={!envKey.trim() || busy || !liveProjectId} onClick={() => void addEnv()}>Set</Button>
           </Box>
-          <Typography sx={{ fontSize: '0.72rem', color: 'text.disabled', mt: 1 }}>Secret values are masked on the wire — the plaintext is never returned after it's set.</Typography>
+          <Typography sx={{ fontSize: text.s72, color: 'text.disabled', mt: 1 }}>Secret values are masked on the wire — the plaintext is never returned after it's set.</Typography>
         </Card>
 
         <Card sx={{ p: 2.5, borderColor: 'error.main', borderWidth: 1, borderStyle: 'solid' }}>
-          <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.66rem', textTransform: 'uppercase', color: 'error.main', mb: 1 })}>Danger zone</Typography>
+          <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'error.main', mb: 1 })}>Danger zone</Typography>
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ flexWrap: 'wrap', gap: 1 }}>
-            <Typography sx={{ fontSize: '0.84rem', color: 'text.secondary' }}>Archive the app — stops serving traffic, reversible.</Typography>
-            <Button variant="outlined" color="error" onClick={() => void dangerArchive()}>Archive app</Button>
+            <Typography sx={{ fontSize: text.s84, color: 'text.secondary' }}>Archive the app — stops serving traffic, reversible.</Typography>
+            <Button variant="outlined" color="error" disabled={busy || !liveProjectId} onClick={() => void dangerArchive()}>Archive app</Button>
           </Stack>
         </Card>
       </Box>

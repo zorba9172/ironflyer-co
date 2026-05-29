@@ -8,15 +8,19 @@ package resolver
 import (
 	"context"
 	"ironflyer/core/orchestrator/internal/operations/graph/model"
+	"ironflyer/core/orchestrator/internal/operations/operator"
 )
 
 // ProfitGuardDecisions is the resolver for the profitGuardDecisions field.
+// Operator-only: rows carry recommendedProvider (a vendor name) and the
+// no-execution branch returns fleet-wide recent decisions, so this must never
+// be reachable by an ordinary tenant.
 func (r *queryResolver) ProfitGuardDecisions(ctx context.Context, executionID *string, limit *int) ([]model.ProfitGuardDecision, error) {
 	if r.ProfitGuardStore == nil {
 		return nil, gqlNotConfigured("profitguard")
 	}
-	if _, err := currentUser(ctx); err != nil {
-		return nil, err
+	if !operator.IsOperator(ctx) {
+		return nil, gqlForbiddenOperator()
 	}
 	lim := 100
 	if limit != nil && *limit > 0 {

@@ -49,12 +49,13 @@ func (m *MockDriver) Create(_ context.Context, opts CreateOpts) (Workspace, erro
 		Status:    StatusRunning,
 		Driver:    "mock",
 		Root:      root,
+		HostPath:  root,
 		CreatedAt: now, UpdatedAt: now,
 	}, nil
 }
 
 func (m *MockDriver) Destroy(_ context.Context, ws Workspace) error {
-	if ws.Root == "" || !strings.HasPrefix(ws.Root, m.BaseDir) {
+	if ws.Root == "" || !pathInside(m.BaseDir, ws.Root) {
 		return errors.New("refusing to destroy: invalid root")
 	}
 	return os.RemoveAll(ws.Root)
@@ -63,10 +64,51 @@ func (m *MockDriver) Destroy(_ context.Context, ws Workspace) error {
 func (m *MockDriver) safePath(ws Workspace, p string) (string, error) {
 	cleaned := filepath.Clean("/" + p)
 	abs := filepath.Join(ws.Root, cleaned)
-	if !strings.HasPrefix(abs, ws.Root) {
+	if !pathInside(ws.Root, abs) {
 		return "", errors.New("path escape")
 	}
+	if resolved, err := filepath.EvalSymlinks(abs); err == nil {
+		if !pathInside(ws.Root, resolved) {
+			return "", errors.New("path escape via symlink")
+		}
+		return resolved, nil
+	}
+	parent, err := existingAncestor(ws.Root, filepath.Dir(abs))
+	if err != nil {
+		return "", err
+	}
+	if !pathInside(ws.Root, parent) {
+		return "", errors.New("path escape via symlink")
+	}
 	return abs, nil
+}
+
+func existingAncestor(root, path string) (string, error) {
+	for {
+		if pathInside(root, path) {
+			if resolved, err := filepath.EvalSymlinks(path); err == nil {
+				return resolved, nil
+			}
+		}
+		next := filepath.Dir(path)
+		if next == path {
+			return "", os.ErrNotExist
+		}
+		path = next
+	}
+}
+
+func pathInside(root, path string) bool {
+	rootAbs, err := filepath.Abs(root)
+	if err != nil {
+		return false
+	}
+	pathAbs, err := filepath.Abs(path)
+	if err != nil {
+		return false
+	}
+	rel, err := filepath.Rel(rootAbs, pathAbs)
+	return err == nil && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) && !filepath.IsAbs(rel)
 }
 
 func (m *MockDriver) ReadFile(_ context.Context, ws Workspace, p string) ([]byte, error) {
@@ -111,7 +153,12 @@ func (m *MockDriver) ListFiles(_ context.Context, ws Workspace) ([]FileEntry, er
 		info, _ := d.Info()
 		entries = append(entries, FileEntry{
 			Path: filepath.ToSlash(rel), IsDir: d.IsDir(),
-			Size: func() int64 { if info != nil { return info.Size() }; return 0 }(),
+			Size: func() int64 {
+				if info != nil {
+					return info.Size()
+				}
+				return 0
+			}(),
 		})
 		return nil
 	})
@@ -437,7 +484,7 @@ func (m *MockDriver) ReleasePreviewPort(_ context.Context, _ string) error { ret
 
 // Ensure interfaces are satisfied at compile time.
 var (
-	_ Driver  = (*MockDriver)(nil)
-	_ Session = (*ptySession)(nil)
+	_ Driver             = (*MockDriver)(nil)
+	_ Session            = (*ptySession)(nil)
 	_ io.ReadWriteCloser = (*ptySession)(nil)
 )

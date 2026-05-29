@@ -25,20 +25,21 @@ const (
 
 // Workspace describes one user sandbox.
 type Workspace struct {
-	ID         string    `json:"id"`
-	UserID     string    `json:"userId"`
-	ProjectID  string    `json:"projectId,omitempty"`
-	Status     Status    `json:"status"`
-	Driver     string    `json:"driver"`
-	Root       string    `json:"root"`              // path on host (mock) or container ID (docker)
-	PreviewURL string    `json:"previewUrl,omitempty"`
-	IDEURL     string    `json:"ideUrl,omitempty"`  // code-server URL
+	ID         string `json:"id"`
+	UserID     string `json:"userId"`
+	ProjectID  string `json:"projectId,omitempty"`
+	Status     Status `json:"status"`
+	Driver     string `json:"driver"`
+	Root       string `json:"root"`               // path on host (mock) or container ID (docker)
+	HostPath   string `json:"hostPath,omitempty"` // host-side workspace directory when known
+	PreviewURL string `json:"previewUrl,omitempty"`
+	IDEURL     string `json:"ideUrl,omitempty"` // code-server URL
 	// IDEPassword is the random per-workspace credential code-server boots
 	// with. Surfaced so the orchestrator can wrap it in a signed preview
 	// token; never log this value or echo it in error messages.
 	IDEPassword string    `json:"idePassword,omitempty"`
-	CreatedAt  time.Time `json:"createdAt"`
-	UpdatedAt  time.Time `json:"updatedAt"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
 }
 
 // IsAccessibleBy returns true when userID owns the workspace. Empty userID
@@ -188,12 +189,12 @@ type ExecOpts struct {
 
 // ExecResult is the (truncated) outcome of an Exec call.
 type ExecResult struct {
-	Stdout      string  `json:"stdout"`
-	Stderr      string  `json:"stderr"`
-	ExitCode    int     `json:"exitCode"`
-	DurationMS  int64   `json:"durationMs"`
-	TimedOut    bool    `json:"timedOut,omitempty"`
-	TruncatedAt int     `json:"truncatedAt,omitempty"` // bytes; 0 = not truncated
+	Stdout      string `json:"stdout"`
+	Stderr      string `json:"stderr"`
+	ExitCode    int    `json:"exitCode"`
+	DurationMS  int64  `json:"durationMs"`
+	TimedOut    bool   `json:"timedOut,omitempty"`
+	TruncatedAt int    `json:"truncatedAt,omitempty"` // bytes; 0 = not truncated
 }
 
 const (

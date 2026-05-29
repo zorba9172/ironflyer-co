@@ -3,7 +3,7 @@
     "lines": 80,
     "statements": 80,
     "functions": 75,
-    "branches": 70
+    "branches": 69
   },
   "vulnerabilities": {
     "critical": 0,

@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"sort"
 	"strings"
 	"time"
 )
@@ -62,6 +63,7 @@ func (e *Engine) Scan(ctx context.Context, target Target) Result {
 	cfg := ResolveConfig(target)
 	inv := BuildInventory(target)
 	var findings []Finding
+	var scannerErrors []ScannerError
 	for _, scanner := range e.scanners {
 		if scanner == nil || !scanner.Supports(inv) {
 			continue
@@ -71,6 +73,11 @@ func (e *Engine) Scan(ctx context.Context, target Target) Result {
 		}
 		got, err := scanner.Scan(ctx, target, inv)
 		if err != nil {
+			scannerErrors = append(scannerErrors, ScannerError{
+				Tool:       scanner.ID(),
+				Message:    err.Error(),
+				DetectedAt: e.now(),
+			})
 			continue
 		}
 		for _, f := range got {
@@ -85,13 +92,14 @@ func (e *Engine) Scan(ctx context.Context, target Target) Result {
 	findings = dedupeAndCap(ensureFindingIDs(target, findings), e.policy.MaxFindingsPerRun)
 	graph := BuildRiskGraph(target, inv, findings)
 	return Result{
-		Inventory: inv,
-		Config:    cfg,
-		Findings:  findings,
-		Graph:     graph,
-		Verdict:   e.policy.Evaluate(findings),
-		StartedAt: started,
-		EndedAt:   e.now(),
+		Inventory:     inv,
+		Config:        cfg,
+		Findings:      findings,
+		ScannerErrors: scannerErrors,
+		Graph:         graph,
+		Verdict:       e.policy.Evaluate(findings, scannerErrors...),
+		StartedAt:     started,
+		EndedAt:       e.now(),
 	}
 }
 
@@ -129,9 +137,12 @@ func dedupeAndCap(findings []Finding, capN int) []Finding {
 		}
 		seen[key] = true
 		out = append(out, f)
-		if len(out) >= capN {
-			break
-		}
+	}
+	sort.SliceStable(out, func(i, j int) bool {
+		return severityRank(out[i].Severity) > severityRank(out[j].Severity)
+	})
+	if len(out) > capN {
+		out = out[:capN]
 	}
 	return out
 }

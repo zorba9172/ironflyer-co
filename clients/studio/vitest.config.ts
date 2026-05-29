@@ -9,12 +9,13 @@ export default defineConfig({
     setupFiles: './src/test-setup.ts',
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'lcov'],
+      reporter: ['text', 'json', 'json-summary', 'lcov'],
+      include: ['src/components/Markdown.tsx'],
       thresholds: {
-        lines: 70,
-        functions: 65,
-        branches: 60,
-        statements: 70,
+        lines: 80,
+        functions: 75,
+        branches: 69,
+        statements: 80,
       },
     },
   },

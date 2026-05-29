@@ -20,7 +20,7 @@ declare module '@mui/material/styles' {
   }
 }
 
-const { accent, typography, radius, motion, gradient } = brand;
+const { accent, typography, radius, motion, gradient, a11y } = brand;
 
 function paletteFor(mode: 'dark' | 'light') {
   const m = modes[mode];
@@ -60,11 +60,28 @@ export const theme = extendTheme({
     MuiCssBaseline: {
       styleOverrides: {
         body: { transition: `background-color ${motion.themeTransition}, color ${motion.themeTransition}` },
+        '*:focus-visible': {
+          outline: `2px solid ${accent.focus}`,
+          outlineOffset: a11y.focusRingOffset,
+        },
+        '@media (prefers-reduced-motion: reduce)': {
+          '*, *::before, *::after': {
+            animationDuration: '0.01ms !important',
+            animationIterationCount: '1 !important',
+            scrollBehavior: 'auto !important',
+            transitionDuration: '0.01ms !important',
+          },
+        },
       },
     },
     MuiButton: {
       styleOverrides: {
-        root: { borderRadius: radius.sm },
+        root: {
+          borderRadius: radius.sm,
+          minHeight: a11y.minTarget,
+          '&.MuiButton-sizeSmall': { minHeight: a11y.minCompactTarget },
+          '&.Mui-focusVisible': { boxShadow: a11y.focusRing },
+        },
         containedPrimary: ({ theme: t }) => ({
           backgroundImage: t.brand.gradient.signature,
           boxShadow: 'none',
@@ -75,6 +92,15 @@ export const theme = extendTheme({
     MuiPaper: {
       styleOverrides: {
         root: ({ theme: t }) => ({ backgroundImage: 'none', border: `1px solid ${t.palette.divider}` }),
+      },
+    },
+    MuiIconButton: {
+      styleOverrides: {
+        root: {
+          minWidth: a11y.minCompactTarget,
+          minHeight: a11y.minCompactTarget,
+          '&.Mui-focusVisible': { boxShadow: a11y.focusRing },
+        },
       },
     },
   },

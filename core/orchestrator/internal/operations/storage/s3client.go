@@ -173,14 +173,3 @@ func LoadConfig() (Config, string, error) {
 		return Config{}, "", fmt.Errorf("storage: unknown S3_BACKEND=%q (expected aws|r2|spaces|minio)", backend)
 	}
 }
-
-// MustLoadConfig is the convenience wrapper for boot-time wiring that
-// would rather panic loudly than ship a half-configured object-store
-// path. Use LoadConfig from anything called after main().
-func MustLoadConfig() (Config, string) {
-	cfg, label, err := LoadConfig()
-	if err != nil {
-		panic(err)
-	}
-	return cfg, label
-}

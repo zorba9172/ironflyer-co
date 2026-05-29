@@ -19,9 +19,16 @@ func (r *queryResolver) ExecutionSecurityReport(ctx context.Context, executionID
 	if r.SecurityReportBuilder == nil {
 		return nil, fmt.Errorf("security report builder not configured")
 	}
+	u, err := currentUser(ctx)
+	if err != nil {
+		return nil, err
+	}
 	report, err := r.SecurityReportBuilder.Build(ctx, executionID)
 	if err != nil {
 		return nil, err
+	}
+	if !callerIsPlatformOperator(ctx) && report.TenantID != tenantFor(u) {
+		return nil, fmt.Errorf("security report not found")
 	}
 	findings := make([]model.SecurityReportFinding, 0, len(report.Findings))
 	for _, f := range report.Findings {

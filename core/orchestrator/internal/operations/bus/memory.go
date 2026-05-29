@@ -46,11 +46,7 @@ func (m *MemoryBus) Publish(_ context.Context, topic string, payload []byte) err
 	}
 	m.mu.RUnlock()
 	for _, ch := range chans {
-		select {
-		case ch <- payload:
-		default:
-			// Drop on slow consumer.
-		}
+		_ = safeSend(ch, payload)
 	}
 	return nil
 }

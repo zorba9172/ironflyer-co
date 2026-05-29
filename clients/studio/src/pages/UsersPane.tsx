@@ -7,6 +7,7 @@ import { useGraphQLQuery, operations } from '@ironflyer/data';
 import { useOperateProjectId } from '../hooks/useOperateProjectId';
 import { useOperateMutation } from '../hooks/useOperateMutation';
 import { PaneHeader } from '../components/operate/PaneHeader';
+import { text } from '@ironflyer/design-tokens/brand';
 
 interface EndUser { id: string; email: string; name: string; role: string; status: string; provider: string; lastSeenAt: string | null; createdAt: string }
 interface RoleCount { role: string; count: number }
@@ -36,7 +37,7 @@ export function UsersPane() {
     key: ['app-users', liveProjectId ?? 'none'],
     operationName: 'AppEndUsers', query: operations.APP_END_USERS,
     variables: { projectID: liveProjectId, limit: 200, offset: 0 }, fallbackData: SAMPLE_USERS, enabled: !!liveProjectId,
-    map: (r) => (r.appEndUsers?.length ? r.appEndUsers : SAMPLE_USERS),
+    map: (r) => r.appEndUsers ?? [],
   });
   const { data: stats } = useGraphQLQuery<UserStats, { appUserStats: UserStats }>({
     key: ['app-user-stats', liveProjectId ?? 'none'],
@@ -73,14 +74,14 @@ export function UsersPane() {
   const columns = useMemo<DataGridColumn<EndUser>[]>(() => [
     { field: 'name', headerName: 'User', flex: 1, minWidth: 200, cellRenderer: ({ data }: DataGridCellParams<EndUser>) => data ? (
       <Stack spacing={0} sx={{ lineHeight: 1.2, py: 0.5 }}>
-        <Typography sx={{ fontSize: '0.84rem' }} noWrap>{data.name}</Typography>
-        <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.68rem', color: 'text.secondary' })} noWrap>{data.email}</Typography>
+        <Typography sx={{ fontSize: text.s84 }} noWrap>{data.name}</Typography>
+        <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s68, color: 'text.secondary' })} noWrap>{data.email}</Typography>
       </Stack>
     ) : null },
-    { field: 'role', headerName: 'Role', width: 110, cellRenderer: ({ data }: DataGridCellParams<EndUser>) => data ? <Chip size="small" label={data.role} sx={(th) => ({ height: 20, fontSize: '0.62rem', textTransform: 'uppercase', bgcolor: `${th.brand.accent.primary}1f`, color: th.brand.accent.primary })} /> : null },
-    { field: 'status', headerName: 'Status', width: 116, cellRenderer: ({ data }: DataGridCellParams<EndUser>) => data ? <Chip size="small" label={data.status} sx={{ height: 20, fontSize: '0.62rem', textTransform: 'uppercase', bgcolor: `${statusColor(t, data.status)}22`, color: statusColor(t, data.status) }} /> : null },
-    { field: 'provider', headerName: 'Provider', width: 110, cellRenderer: ({ value }: DataGridCellParams<EndUser, string>) => <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>{value}</Typography> },
-    { field: 'lastSeenAt', headerName: 'Last seen', width: 120, cellRenderer: ({ value }: DataGridCellParams<EndUser, string>) => <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>{fmtWhen(value ?? null)}</Typography> },
+    { field: 'role', headerName: 'Role', width: 110, cellRenderer: ({ data }: DataGridCellParams<EndUser>) => data ? <Chip size="small" label={data.role} sx={(th) => ({ height: 20, fontSize: text.s62, textTransform: 'uppercase', bgcolor: `${th.brand.accent.primary}1f`, color: th.brand.accent.primary })} /> : null },
+    { field: 'status', headerName: 'Status', width: 116, cellRenderer: ({ data }: DataGridCellParams<EndUser>) => data ? <Chip size="small" label={data.status} sx={{ height: 20, fontSize: text.s62, textTransform: 'uppercase', bgcolor: `${statusColor(t, data.status)}22`, color: statusColor(t, data.status) }} /> : null },
+    { field: 'provider', headerName: 'Provider', width: 110, cellRenderer: ({ value }: DataGridCellParams<EndUser, string>) => <Typography sx={{ fontSize: text.s80, color: 'text.secondary' }}>{value}</Typography> },
+    { field: 'lastSeenAt', headerName: 'Last seen', width: 120, cellRenderer: ({ value }: DataGridCellParams<EndUser, string>) => <Typography sx={{ fontSize: text.s80, color: 'text.secondary' }}>{fmtWhen(value ?? null)}</Typography> },
     { colId: 'actions', headerName: '', width: 180, sortable: false, filter: false, cellRenderer: ({ data }: DataGridCellParams<EndUser>) => data ? (
       <Stack direction="row" spacing={0.75}>
         <Button size="small" variant="text" color="inherit" disabled={busy} onClick={(e) => { e.stopPropagation(); cycleRole(data); }}>Role</Button>
@@ -96,21 +97,21 @@ export function UsersPane() {
 
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '300px 1fr' }, gap: 1.5, mb: 3, alignItems: 'stretch' }}>
           <Card sx={{ p: 2 }}>
-            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.66rem', textTransform: 'uppercase', color: 'text.disabled', mb: 0.5 })}>By role</Typography>
+            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 0.5 })}>By role</Typography>
             <Chart option={roleDonut} height={200} />
           </Card>
           <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
             {metrics.map((m) => (
               <Card key={m.label} sx={{ p: 2.5, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.66rem', textTransform: 'uppercase', color: 'text.disabled' })}>{m.label}</Typography>
-                <Typography variant="h4" sx={{ fontSize: '1.8rem', mt: 0.5 }}>{m.value}</Typography>
-                <Typography sx={{ fontSize: '0.76rem', color: 'text.secondary' }}>{m.sub}</Typography>
+                <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled' })}>{m.label}</Typography>
+                <Typography variant="h4" sx={{ fontSize: text.s180, mt: 0.5 }}>{m.value}</Typography>
+                <Typography sx={{ fontSize: text.s76, color: 'text.secondary' }}>{m.sub}</Typography>
               </Card>
             ))}
           </Box>
         </Box>
 
-        <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>Roster</Typography>
+        <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s70, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>Roster</Typography>
         <DataGrid rows={users} columns={columns} getRowId={(row) => row.id} density="compact" emptyLabel="No users yet." height={460} minHeight={260} />
       </Box>
     </Box>

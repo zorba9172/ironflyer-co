@@ -47,6 +47,15 @@ export const GATES = /* GraphQL */ `
 
 export const RUN_FINISHER = /* GraphQL */ `mutation RunFinisher($id: ID!) { runFinisher(id: $id) }`;
 
+// Re-run a single gate against the current tree without the full finisher loop.
+export const RERUN_GATE = /* GraphQL */ `
+  mutation RerunGate($input: RerunGateInput!) {
+    rerunGate(input: $input) {
+      gate status durationMs notes
+      issues { severity message path line }
+    }
+  }`;
+
 export const RUN_PROJECT_SUB = /* GraphQL */ `
   subscription RunProject($projectId: ID!) {
     runProject(projectId: $projectId) {
@@ -63,8 +72,77 @@ export const CREATE_PAID_EXECUTION = /* GraphQL */ `
     createPaidExecution(input: $input) { ... on Execution { id status } }
   }`;
 
+export type PatchStatus = 'PROPOSED' | 'APPROVED' | 'APPLIED' | 'REJECTED' | 'ROLLED_BACK' | 'CONFLICTED';
+export type PatchStageStatus = 'OPEN' | 'REVIEWED' | 'APPLIED' | 'REJECTED';
+export type PatchChangeOp = 'CREATE' | 'REPLACE' | 'DELETE' | 'INSERT_BEFORE' | 'INSERT_AFTER' | 'ANCHOR_REPLACE' | 'SYMBOL_REPLACE';
+
+export interface PatchChange {
+  op: PatchChangeOp;
+  path: string;
+  content?: string | null;
+  anchor?: string | null;
+  replacement?: string | null;
+  symbol?: string | null;
+}
+
+export interface PatchConflict {
+  path: string;
+  base: string;
+  ours: string;
+  theirs: string;
+  markers: string;
+}
+
+export interface PatchStage {
+  id: string;
+  projectId: string;
+  name: string;
+  description?: string | null;
+  patchIds: string[];
+  status: PatchStageStatus;
+  rejectionReason?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Patch {
+  id: string;
+  projectId: string;
+  title?: string | null;
+  summary?: string | null;
+  author?: string | null;
+  status: PatchStatus;
+  createdAt: string;
+  appliedAt?: string | null;
+  changes: PatchChange[];
+  stageId?: string | null;
+  stage?: PatchStage | null;
+  conflicts?: PatchConflict[] | null;
+}
+
+const PATCH_FIELDS = /* GraphQL */ `
+  id projectId title summary author status createdAt appliedAt stageId
+  changes { op path content anchor replacement symbol }
+  stage { id projectId name description patchIds status rejectionReason createdAt updatedAt }
+  conflicts { path base ours theirs markers }`;
+
+export const PATCHES = /* GraphQL */ `
+  query Patches($projectId: ID!) {
+    patches(projectId: $projectId) { ${PATCH_FIELDS} }
+  }`;
+
+export const PROPOSE_PATCH = /* GraphQL */ `
+  mutation ProposePatch($input: ProposePatchInput!) {
+    proposePatch(input: $input) { ${PATCH_FIELDS} }
+  }`;
+
 export const APPLY_PATCH = /* GraphQL */ `
-  mutation ApplyPatch($patchId: ID!) { applyPatch(patchId: $patchId) { id title state lines } }`;
+  mutation ApplyPatch($patchId: ID!) {
+    applyPatch(patchId: $patchId) { ${PATCH_FIELDS} }
+  }`;
+
+export const ROLLBACK_PATCH = /* GraphQL */ `
+  mutation RollbackPatch($patchId: ID!) { rollbackPatch(patchId: $patchId) }`;
 
 // --- Economics: wallet + ledger rollup (Dashboard / Usage real meters) ---
 export const WALLET = /* GraphQL */ `
@@ -80,7 +158,19 @@ export const LEDGER_ROLLUP = /* GraphQL */ `
 
 export const LEDGER = /* GraphQL */ `
   query Ledger($filter: LedgerFilter) {
-    ledger(filter: $filter) { id executionID entryType direction amountUSD provider billable createdAt }
+    ledger(filter: $filter) { id executionID entryType direction amountUSD provider metadata billable createdAt }
+  }`;
+
+// --- Cost forecast: "what would this cost?" before any wallet hold (H2
+// plan-gate). Backed by internal/forecast via the estimateExecutionCost
+// resolver; powers the PreflightDialog's real estimate + the CostHUD
+// trajectory. All inputs optional — an empty input yields the tenant/global
+// baseline estimate.
+export const ESTIMATE_EXECUTION_COST = /* GraphQL */ `
+  query EstimateExecutionCost($input: EstimateInput!) {
+    estimateExecutionCost(input: $input) {
+      lowUSD medianUSD highUSD p95USD confidence basedOnRuns caveat
+    }
   }`;
 
 // --- Executions for a project (latest run drives the Security report) ---
@@ -156,6 +246,20 @@ export const APP_DATA_SCHEMA = /* GraphQL */ `
 export const APP_TABLE_ROWS = /* GraphQL */ `
   query AppTableRows($projectID: ID!, $table: String!, $limit: Int = 25) {
     appTableRows(projectID: $projectID, table: $table, limit: $limit) { table columns rows total }
+  }`;
+
+// --- Test coverage capability (Quality › Coverage). Toggle is per-project;
+// the report is the CoverageGate's latest run (empty until it runs). ---
+const COVERAGE_FIELDS = /* GraphQL */ `
+  projectID enabled overallPct minPct tool generatedAt
+  files { path linePct uncovered }`;
+export const COVERAGE_REPORT = /* GraphQL */ `
+  query CoverageReport($projectID: ID!) {
+    coverageReport(projectID: $projectID) { ${COVERAGE_FIELDS} }
+  }`;
+export const SET_COVERAGE_ENABLED = /* GraphQL */ `
+  mutation SetCoverageEnabled($projectID: ID!, $enabled: Boolean!, $minPct: Float) {
+    setCoverageEnabled(projectID: $projectID, enabled: $enabled, minPct: $minPct) { ${COVERAGE_FIELDS} }
   }`;
 
 // --- Operate › Users ---
@@ -298,7 +402,7 @@ export const RUN_CREW = /* GraphQL */ `
   mutation RunCrew($id: ID!, $projectId: ID!) {
     runCrew(id: $id, projectId: $projectId) {
       crewId process totalCostUsd
-      members { agentId name role output provider tokens costUsd error }
+      members { agentId name role output tokens costUsd error }
     }
   }`;
 

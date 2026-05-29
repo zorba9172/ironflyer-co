@@ -38,8 +38,8 @@ type Multiplexer struct {
 	bus   Bus
 	podID []byte
 
-	mu       sync.Mutex
-	subs     map[string]*muxTopic
+	mu   sync.Mutex
+	subs map[string]*muxTopic
 }
 
 type muxTopic struct {
@@ -209,9 +209,7 @@ func (m *Multiplexer) fanLocal(topic string, payload []byte, source string) {
 		metrics.ObserveBusReceive(kind, "local")
 	}
 	for _, ch := range chans {
-		select {
-		case ch <- payload:
-		default:
+		if !safeSend(ch, payload) {
 			metrics.ObserveBusSubscriberDrop(kind)
 		}
 	}

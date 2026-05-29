@@ -111,7 +111,7 @@ func (m *MemoryStore) List() []domain.Project {
 	defer m.mu.RUnlock()
 	out := make([]domain.Project, 0, len(m.order))
 	for _, id := range m.order {
-		out = append(out, m.byID[id])
+		out = append(out, cloneProject(m.byID[id]))
 	}
 	return out
 }
@@ -140,7 +140,7 @@ func (m *MemoryStore) ListByOwner(_ context.Context, ownerID string, limit, offs
 			skipped++
 			continue
 		}
-		out = append(out, p)
+		out = append(out, cloneProject(p))
 		if limit > 0 && len(out) >= limit {
 			break
 		}
@@ -155,7 +155,7 @@ func (m *MemoryStore) Get(id string) (domain.Project, error) {
 	if !ok {
 		return domain.Project{}, ErrNotFound
 	}
-	return p, nil
+	return cloneProject(p), nil
 }
 
 // GetByIDs batch-loads projects under a single read lock. Missing ids
@@ -167,7 +167,7 @@ func (m *MemoryStore) GetByIDs(_ context.Context, ids []string) (map[string]doma
 	defer m.mu.RUnlock()
 	for _, id := range ids {
 		if p, ok := m.byID[id]; ok {
-			out[id] = p
+			out[id] = cloneProject(p)
 		}
 	}
 	return out, nil
@@ -185,22 +185,25 @@ func (m *MemoryStore) Create(p domain.Project) (domain.Project, error) {
 	if p.Gates == nil {
 		p.Gates = emptyGates(time.Now().UTC())
 	}
-	m.byID[p.ID] = p
+	stored := cloneProject(p)
+	m.byID[p.ID] = stored
 	m.order = append(m.order, p.ID)
-	return p, nil
+	return cloneProject(stored), nil
 }
 
 func (m *MemoryStore) Update(id string, fn func(*domain.Project)) (domain.Project, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	p, ok := m.byID[id]
+	stored, ok := m.byID[id]
 	if !ok {
 		return domain.Project{}, ErrNotFound
 	}
+	p := cloneProject(stored)
 	fn(&p)
 	p.UpdatedAt = time.Now().UTC()
-	m.byID[id] = p
-	return p, nil
+	stored = cloneProject(p)
+	m.byID[id] = stored
+	return cloneProject(stored), nil
 }
 
 // Delete removes a project from the in-memory store. Idempotent: missing IDs

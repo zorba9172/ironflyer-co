@@ -10,6 +10,7 @@ import { useStudio } from '../store';
 import { useProjectExecutions } from '../hooks/useLatestExecution';
 import { useDispatchAgent } from '../hooks/useDispatchAgent';
 import { TechIcon } from '../lib/techIcons';
+import { text } from '@ironflyer/design-tokens/brand';
 
 interface Row { id: string; severity: Severity; title: string; category: string; location: string; scanner: string; remediation: string }
 interface RawFile { path: string; content?: string | null; size?: number | null }
@@ -40,6 +41,11 @@ function riskColor(t: Theme, score: number): string {
   return score >= 60 ? t.palette.error.main : score >= 30 ? t.palette.warning.main : t.palette.success.main;
 }
 const isPass = (s: string) => ['pass', 'passed', 'clean'].includes(s.toLowerCase());
+const scannerLabel = (status: string, live: boolean) => {
+  if (!live) return 'not connected';
+  if (!status) return 'waiting';
+  return status.replace(/_/g, ' ');
+};
 
 // Trigger a browser download for a generated text artifact (no backend round-trip).
 function downloadText(filename: string, text: string, mime = 'application/json') {
@@ -89,7 +95,7 @@ export function SecurityPane({ fallback }: { fallback: SecurityState }) {
   const storeProjectId = useStudio((s) => s.liveProjectId);
   const firstProjectId = useLiveProjectId();
   const projectId = storeProjectId ?? firstProjectId;
-  const { dispatch } = useDispatchAgent();
+  const { dispatch, repairGate } = useDispatchAgent();
 
   const { latest } = useProjectExecutions(projectId);
   const { data: report, isLive: reportLive } = useGraphQLQuery<Report, { executionSecurityReport: Report }>({
@@ -147,6 +153,9 @@ export function SecurityPane({ fallback }: { fallback: SecurityState }) {
   const riskScore = live ? Math.round((1 - report.overallScore) * 100) : fallback.riskScore;
   const denied = live ? report.blockedDeploy : fallback.policy.effect === 'deny';
   const owaspPairs = useMemo(() => Object.entries(report.owaspCoverage ?? {}).slice(0, 8), [report.owaspCoverage]);
+  const criticalRows = rows.filter((r) => r.severity === 'critical' || r.severity === 'high');
+  const scannerState = scannerLabel(report.status, live);
+  const generated = report.generatedAt ? new Date(report.generatedAt).toLocaleString() : 'pending';
 
   // Coverage cards from real gates + report counts.
   const secGate = gates.find((g) => g.gate === 'security');
@@ -164,14 +173,14 @@ export function SecurityPane({ fallback }: { fallback: SecurityState }) {
       field: 'severity', headerName: 'Severity', width: 118,
       comparator: (a, b) => severityRank[a as Severity] - severityRank[b as Severity],
       cellRenderer: ({ data }: DataGridCellParams<Row, Severity>) => data ? (
-        <Chip size="small" label={data.severity} sx={{ height: 20, fontSize: '0.62rem', fontWeight: 700, textTransform: 'uppercase', bgcolor: `${sevColor(t, data.severity)}22`, color: sevColor(t, data.severity) }} />
+        <Chip size="small" label={data.severity} sx={{ height: 20, fontSize: text.s62, fontWeight: 700, textTransform: 'uppercase', bgcolor: `${sevColor(t, data.severity)}22`, color: sevColor(t, data.severity) }} />
       ) : null,
     },
-    { field: 'title', headerName: 'Finding', flex: 1.4, minWidth: 260, cellRenderer: ({ value }: DataGridCellParams<Row, string>) => <Typography sx={{ fontSize: '0.86rem' }} noWrap>{value}</Typography> },
+    { field: 'title', headerName: 'Finding', flex: 1.4, minWidth: 260, cellRenderer: ({ value }: DataGridCellParams<Row, string>) => <Typography sx={{ fontSize: text.s86 }} noWrap>{value}</Typography> },
     { field: 'category', headerName: 'Category', width: 150, cellRenderer: ({ data }: DataGridCellParams<Row>) => data ? (
       <Stack direction="row" alignItems="center" spacing={0.75}>
         <Box component="span" sx={{ color: 'text.secondary', display: 'inline-flex' }}><TechIcon name={data.category} size={14} title={data.category} /></Box>
-        <Typography sx={{ fontSize: '0.82rem' }} noWrap>{data.category}</Typography>
+        <Typography sx={{ fontSize: text.s82 }} noWrap>{data.category}</Typography>
       </Stack>
     ) : null },
     { field: 'location', headerName: 'Location', flex: 1, minWidth: 190 },
@@ -179,7 +188,7 @@ export function SecurityPane({ fallback }: { fallback: SecurityState }) {
     {
       colId: 'fix', headerName: '', width: 96, sortable: false, filter: false,
       cellRenderer: ({ data }: DataGridCellParams<Row>) => data ? (
-        <Button size="small" variant="outlined" color="inherit" onClick={(e) => { e.stopPropagation(); dispatch('security'); toast(`Dispatching agent to fix "${data.title}".`, 'info'); }}>Fix</Button>
+        <Button size="small" variant="outlined" color="inherit" onClick={(e) => { e.stopPropagation(); void dispatch(`security finding ${data.scanner}: ${data.title}`); toast(`Dispatching agent to fix "${data.title}".`, 'info'); }}>Fix</Button>
       ) : null,
     },
   ], [t, dispatch]);
@@ -190,15 +199,19 @@ export function SecurityPane({ fallback }: { fallback: SecurityState }) {
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mb: 3 }}>
           <Card sx={{ p: 2.5, flex: 1, display: 'flex', alignItems: 'center', gap: 2.5 }}>
             <Box sx={{ textAlign: 'center' }}>
-              <Typography sx={(th) => ({ fontFamily: th.brand.font.display, fontSize: '2.6rem', fontWeight: 700, lineHeight: 1, color: riskColor(th, riskScore) })}>{riskScore}</Typography>
-              <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.62rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled' })}>risk score</Typography>
+              <Typography sx={(th) => ({ fontFamily: th.brand.font.display, fontSize: text.s260, fontWeight: 700, lineHeight: 1, color: riskColor(th, riskScore) })}>{riskScore}</Typography>
+              <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s62, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled' })}>risk score</Typography>
             </Box>
             <Box sx={{ flex: 1 }}>
               <Stack direction="row" alignItems="center" spacing={1}>
-                <Typography variant="h6" sx={{ fontSize: '1.1rem' }}>AppSec</Typography>
-                <Chip size="small" label={live ? 'live' : 'sample data'} sx={(th) => ({ height: 18, fontSize: '0.6rem', fontFamily: th.brand.font.mono, bgcolor: live ? `${th.palette.success.main}22` : 'action.hover', color: live ? 'success.main' : 'text.disabled' })} />
+                <Typography variant="h6" sx={{ fontSize: text.s110 }}>AppSec</Typography>
+                <Chip size="small" label={live ? 'live' : 'sample data'} sx={(th) => ({ height: 18, fontSize: text.s60, fontFamily: th.brand.font.mono, bgcolor: live ? `${th.palette.success.main}22` : 'action.hover', color: live ? 'success.main' : 'text.disabled' })} />
               </Stack>
-              <Typography sx={{ color: 'text.secondary', fontSize: '0.88rem' }}>{rows.length} findings · {report.secretsFound} secrets · {report.outdatedDeps} outdated deps</Typography>
+              <Typography sx={{ color: 'text.secondary', fontSize: text.s88 }}>{rows.length} findings · {report.secretsFound} secrets · {report.outdatedDeps} outdated deps</Typography>
+              <Stack direction="row" spacing={0.75} sx={{ mt: 1, flexWrap: 'wrap', gap: 0.75 }}>
+                <Chip size="small" label={`scanner: ${scannerState}`} sx={(th) => ({ height: 20, fontSize: text.s62, fontFamily: th.brand.font.mono, bgcolor: live ? `${th.palette.primary.main}18` : 'action.hover', color: live ? 'primary.main' : 'text.disabled' })} />
+                <Chip size="small" label={`generated: ${generated}`} sx={(th) => ({ height: 20, fontSize: text.s62, fontFamily: th.brand.font.mono, bgcolor: 'action.hover', color: 'text.secondary' })} />
+              </Stack>
             </Box>
             <Stack spacing={1}>
               <Button
@@ -219,46 +232,79 @@ export function SecurityPane({ fallback }: { fallback: SecurityState }) {
               >
                 Export SARIF
               </Button>
+              <Button size="small" variant="contained" onClick={() => void repairGate('security', 'Security')}>
+                Re-run security
+              </Button>
             </Stack>
           </Card>
 
           <Card sx={{ p: 2.5, flex: 1, borderColor: denied ? 'error.main' : 'divider', borderWidth: denied ? 1.5 : 1, borderStyle: 'solid' }}>
             <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-              <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.68rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled' })}>Policy plane</Typography>
-              <Chip size="small" label={denied ? 'DENY' : 'ALLOW'} sx={(th) => ({ height: 18, fontSize: '0.62rem', fontWeight: 700, bgcolor: `${denied ? th.palette.error.main : th.palette.success.main}22`, color: denied ? 'error.main' : 'success.main' })} />
+              <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s68, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled' })}>Policy plane</Typography>
+              <Chip size="small" label={denied ? 'DENY' : 'ALLOW'} sx={(th) => ({ height: 18, fontSize: text.s62, fontWeight: 700, bgcolor: `${denied ? th.palette.error.main : th.palette.success.main}22`, color: denied ? 'error.main' : 'success.main' })} />
             </Stack>
-            <Typography sx={{ fontSize: '0.9rem', mb: 0.5 }}>{denied ? 'Deploy blocked — unresolved security findings.' : 'Deploy allowed — security gates satisfied.'}</Typography>
-            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.7rem', color: 'text.disabled', mb: 1.25 })}>deny by default · scanner status {report.status || 'n/a'}</Typography>
+            <Typography sx={{ fontSize: text.s90, mb: 0.5 }}>{denied ? 'Deploy blocked — unresolved security findings.' : 'Deploy allowed — security gates satisfied.'}</Typography>
+            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s70, color: 'text.disabled', mb: 1.25 })}>deny by default · scanner status {report.status || 'n/a'}</Typography>
+            <Stack direction="row" spacing={1} sx={{ mb: 1.25, flexWrap: 'wrap', gap: 1 }}>
+              {criticalRows.length > 0 && (
+                <Button size="small" variant="contained" onClick={() => void dispatch(`${criticalRows.length} critical security finding${criticalRows.length === 1 ? '' : 's'}`)}>
+                  Fix critical first
+                </Button>
+              )}
+              {denied && (
+                <Button size="small" variant="outlined" color="inherit" onClick={() => void dispatch('the deploy-blocking security policy')}>
+                  Clear deploy block
+                </Button>
+              )}
+            </Stack>
             <Stack direction="row" spacing={0.75} sx={{ flexWrap: 'wrap', gap: 0.75 }}>
               {owaspPairs.map(([k, v]) => (
-                <Chip key={k} size="small" label={`${k}: ${String(v)}`} sx={{ height: 20, fontSize: '0.64rem', bgcolor: 'action.hover', fontFamily: 'var(--if-font-mono)' }} />
+                <Chip key={k} size="small" label={`${k}: ${String(v)}`} sx={(th) => ({ height: 20, fontSize: text.s64, bgcolor: 'action.hover', fontFamily: th.brand.font.mono })} />
               ))}
             </Stack>
           </Card>
         </Stack>
 
-        <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>Coverage</Typography>
+        <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s70, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>Coverage</Typography>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(4, 1fr)' }, gap: 1.5, mb: 4 }}>
           {coverage.map((s) => (
             <Card key={s.id} sx={{ p: 2 }}>
               <Stack direction="row" alignItems="center" spacing={1}>
                 <Box sx={{ width: 8, height: 8, borderRadius: 99, bgcolor: scannerColor(s.status) }} />
                 <Box component="span" sx={{ color: 'text.secondary', display: 'inline-flex' }}><TechIcon name={s.icon} size={15} title={s.name} /></Box>
-                <Typography sx={{ fontSize: '0.9rem', fontWeight: 600, flex: 1 }} noWrap>{s.name}</Typography>
+                <Typography sx={{ fontSize: text.s90, fontWeight: 600, flex: 1 }} noWrap>{s.name}</Typography>
               </Stack>
               <Stack direction="row" alignItems="baseline" justifyContent="space-between" sx={{ mt: 1 }}>
-                <Typography sx={{ fontSize: '0.8rem', color: s.status === 'findings' ? 'warning.main' : s.status === 'clean' ? 'success.main' : 'text.disabled' }}>{s.detail}</Typography>
-                <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.62rem', color: 'text.disabled' })}>{s.source}</Typography>
+                <Typography sx={{ fontSize: text.s80, color: s.status === 'findings' ? 'warning.main' : s.status === 'clean' ? 'success.main' : 'text.disabled' }}>{s.detail}</Typography>
+                <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s62, color: 'text.disabled' })}>{s.source}</Typography>
               </Stack>
             </Card>
           ))}
         </Box>
 
+        {criticalRows.length > 0 && (
+          <Card sx={{ p: 2, mb: 3, border: 1, borderColor: 'error.main' }}>
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+              <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s70, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'error.main' })}>Priority blockers</Typography>
+              <Chip size="small" label={criticalRows.length} sx={(th) => ({ height: 18, fontSize: text.s62, bgcolor: `${th.palette.error.main}22`, color: 'error.main' })} />
+            </Stack>
+            <Stack spacing={0.75}>
+              {criticalRows.slice(0, 3).map((r) => (
+                <Stack key={r.id} direction="row" spacing={1} alignItems="center">
+                  <Chip size="small" label={r.severity} sx={{ height: 20, fontSize: text.s62, fontWeight: 700, bgcolor: `${sevColor(t, r.severity)}22`, color: sevColor(t, r.severity) }} />
+                  <Typography sx={{ fontSize: text.s86, flex: 1 }} noWrap>{r.title}</Typography>
+                  <Button size="small" variant="outlined" color="inherit" onClick={() => void dispatch(`security finding ${r.scanner}: ${r.title}`)}>Fix</Button>
+                </Stack>
+              ))}
+            </Stack>
+          </Card>
+        )}
+
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
-          <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled' })}>
+          <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s70, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled' })}>
             Findings{selected.length > 0 ? ` · ${selected.length} selected` : ''}
           </Typography>
-          <Button size="small" variant="contained" disabled={selected.length === 0} onClick={() => { dispatch('security'); toast(`Dispatching agent to fix ${selected.length} finding${selected.length > 1 ? 's' : ''}.`, 'success'); }}>
+          <Button size="small" variant="contained" disabled={selected.length === 0} onClick={() => { void dispatch(`${selected.length} selected security finding${selected.length > 1 ? 's' : ''}`); toast(`Dispatching agent to fix ${selected.length} finding${selected.length > 1 ? 's' : ''}.`, 'success'); }}>
             Fix selected{selected.length > 0 ? ` (${selected.length})` : ''}
           </Button>
         </Stack>

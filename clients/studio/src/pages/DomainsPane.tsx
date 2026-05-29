@@ -7,6 +7,7 @@ import { useGraphQLQuery, operations } from '@ironflyer/data';
 import { useOperateProjectId } from '../hooks/useOperateProjectId';
 import { useOperateMutation } from '../hooks/useOperateMutation';
 import { PaneHeader } from '../components/operate/PaneHeader';
+import { text } from '@ironflyer/design-tokens/brand';
 
 interface DNSRecord { type: string; name: string; value: string; ttl: number | null }
 interface DeployDomain {
@@ -41,7 +42,7 @@ export function DomainsPane() {
     operationName: 'DeployDomains', query: operations.DEPLOY_DOMAINS,
     variables: { projectID: liveProjectId }, fallbackData: SAMPLE, enabled: !!liveProjectId,
     refetchInterval: 15000,
-    map: (r) => (r.deployDomains?.length ? r.deployDomains : SAMPLE),
+    map: (r) => r.deployDomains ?? [],
   });
 
   const invalidate = [['deploy-domains', liveProjectId ?? 'none']];
@@ -83,13 +84,13 @@ export function DomainsPane() {
   const columns = useMemo<DataGridColumn<DeployDomain>[]>(() => [
     { field: 'hostname', headerName: 'Hostname', flex: 1, minWidth: 220, cellRenderer: ({ data }: DataGridCellParams<DeployDomain>) => data ? (
       <Stack direction="row" alignItems="center" spacing={0.85}>
-        <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.82rem' })} noWrap>{data.hostname}</Typography>
-        {data.primary && <Chip size="small" label="primary" sx={(th) => ({ height: 18, fontSize: '0.58rem', textTransform: 'uppercase', bgcolor: `${th.palette.primary.main}22`, color: 'primary.main' })} />}
+        <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s82 })} noWrap>{data.hostname}</Typography>
+        {data.primary && <Chip size="small" label="primary" sx={(th) => ({ height: 18, fontSize: text.s58, textTransform: 'uppercase', bgcolor: `${th.palette.primary.main}22`, color: 'primary.main' })} />}
       </Stack>
     ) : null },
-    { field: 'kind', headerName: 'Kind', width: 100, cellRenderer: ({ value }: DataGridCellParams<DeployDomain, string>) => <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>{pretty(value ?? '')}</Typography> },
-    { field: 'status', headerName: 'Status', width: 168, cellRenderer: ({ data }: DataGridCellParams<DeployDomain>) => data ? <Chip size="small" label={pretty(data.status)} sx={{ height: 20, fontSize: '0.62rem', textTransform: 'uppercase', bgcolor: `${statusColor(t, data.status)}22`, color: statusColor(t, data.status) }} /> : null },
-    { field: 'certificateStatus', headerName: 'TLS', width: 110, cellRenderer: ({ data }: DataGridCellParams<DeployDomain>) => data ? <Chip size="small" label={pretty(data.certificateStatus)} sx={{ height: 20, fontSize: '0.6rem', textTransform: 'uppercase', bgcolor: `${statusColor(t, data.certificateStatus)}1a`, color: statusColor(t, data.certificateStatus) }} /> : null },
+    { field: 'kind', headerName: 'Kind', width: 100, cellRenderer: ({ value }: DataGridCellParams<DeployDomain, string>) => <Typography sx={{ fontSize: text.s80, color: 'text.secondary' }}>{pretty(value ?? '')}</Typography> },
+    { field: 'status', headerName: 'Status', width: 168, cellRenderer: ({ data }: DataGridCellParams<DeployDomain>) => data ? <Chip size="small" label={pretty(data.status)} sx={{ height: 20, fontSize: text.s62, textTransform: 'uppercase', bgcolor: `${statusColor(t, data.status)}22`, color: statusColor(t, data.status) }} /> : null },
+    { field: 'certificateStatus', headerName: 'TLS', width: 110, cellRenderer: ({ data }: DataGridCellParams<DeployDomain>) => data ? <Chip size="small" label={pretty(data.certificateStatus)} sx={{ height: 20, fontSize: text.s60, textTransform: 'uppercase', bgcolor: `${statusColor(t, data.certificateStatus)}1a`, color: statusColor(t, data.certificateStatus) }} /> : null },
     { colId: 'actions', headerName: '', width: 184, sortable: false, filter: false, cellRenderer: ({ data }: DataGridCellParams<DeployDomain>) => data ? (
       <Stack direction="row" spacing={0.75}>
         {!isLiveStatus(data.status) && <Button size="small" variant="outlined" color="inherit" disabled={busy} onClick={(e) => { e.stopPropagation(); check(data.id); }}>Verify</Button>}
@@ -107,11 +108,11 @@ export function DomainsPane() {
 
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '300px 1fr' }, gap: 1.5, mb: 3, alignItems: 'stretch' }}>
           <Card sx={{ p: 2 }}>
-            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.66rem', textTransform: 'uppercase', color: 'text.disabled', mb: 0.5 })}>Domain health</Typography>
+            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 0.5 })}>Domain health</Typography>
             <Chart option={donut} height={200} />
           </Card>
           <Card sx={{ p: 2.5, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.66rem', textTransform: 'uppercase', color: 'text.disabled', mb: 1 })}>Connect a custom domain</Typography>
+            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 1 })}>Connect a custom domain</Typography>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25} alignItems={{ sm: 'center' }}>
               <TextField
                 size="small" fullWidth placeholder="app.yourdomain.com" value={hostname}
@@ -120,16 +121,16 @@ export function DomainsPane() {
               />
               <Button variant="contained" disabled={!hostname.trim() || !liveProjectId || busy} onClick={connect}>Connect</Button>
             </Stack>
-            <Typography sx={{ fontSize: '0.76rem', color: 'text.disabled', mt: 1 }}>We issue the TLS certificate automatically once the DNS records below resolve.</Typography>
+            <Typography sx={{ fontSize: text.s76, color: 'text.disabled', mt: 1 }}>We issue the TLS certificate automatically once the DNS records below resolve.</Typography>
           </Card>
         </Box>
 
         {pendingDns && (
           <Card sx={{ p: 2, mb: 3, borderColor: 'warning.main', borderWidth: 1, borderStyle: 'solid' }}>
-            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.66rem', textTransform: 'uppercase', color: 'warning.main', mb: 1 })}>DNS records · {pendingDns.hostname}</Typography>
+            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'warning.main', mb: 1 })}>DNS records · {pendingDns.hostname}</Typography>
             <Stack spacing={0.75}>
               {pendingDns.dnsRecords.map((d, i) => (
-                <Stack key={i} direction="row" spacing={2} sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.78rem' })}>
+                <Stack key={i} direction="row" spacing={2} sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s78 })}>
                   <Box sx={{ width: 64, color: 'text.secondary' }}>{d.type}</Box>
                   <Box sx={{ width: 120 }}>{d.name}</Box>
                   <Box sx={{ flex: 1, color: 'text.secondary' }} component="span">{d.value}</Box>
@@ -140,12 +141,12 @@ export function DomainsPane() {
           </Card>
         )}
 
-        <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>All domains</Typography>
+        <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s70, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>All domains</Typography>
         <DataGrid
           rows={rows} columns={columns} getRowId={(row) => row.id}
           density="compact" emptyLabel="No domains yet — connect one above." height={360} minHeight={220}
         />
-        <Typography sx={{ fontSize: '0.76rem', color: 'text.disabled', mt: 1.5 }}>Managed subdomains go live instantly; custom domains move pending → verified → live once DNS resolves and the certificate is issued.</Typography>
+        <Typography sx={{ fontSize: text.s76, color: 'text.disabled', mt: 1.5 }}>Managed subdomains go live instantly; custom domains move pending → verified → live once DNS resolves and the certificate is issued.</Typography>
       </Box>
     </Box>
   );

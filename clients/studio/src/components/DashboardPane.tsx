@@ -4,7 +4,7 @@ import { useTheme } from '@mui/material/styles';
 import { useGraphQLQuery, operations } from '@ironflyer/data';
 import { Chart, type EChartsOption } from '@ironflyer/ui-web/fx';
 import { formatUSD } from '@ironflyer/core';
-import { palette, modes } from '@ironflyer/design-tokens/brand';
+import { palette, modes, text } from '@ironflyer/design-tokens/brand';
 import { statusLabel, agentForGate, type Gate, type GateStatus, type StudioProject } from '../studioData';
 import { mapGate, type GateVerdict } from '../lib/liveGates';
 import { statusColor } from './statusColor';
@@ -13,7 +13,7 @@ import { DefinitionOfDone } from './DefinitionOfDone';
 import { ActivityFeed } from './ActivityFeed';
 import { useStudio } from '../store';
 import { useLiveProjectId } from '../hooks/useLiveProjectId';
-import { useWallet } from '../hooks/useEconomics';
+import { useWallet, useSentinelForecast, buildActionCostPreview, buildGateSpendLabels, type GateSpendLabel } from '../hooks/useEconomics';
 import { useProjectExecutions } from '../hooks/useLatestExecution';
 
 const pgLabel: Record<StudioProject['profitGuard']['verdict'], string> = {
@@ -28,8 +28,9 @@ interface LedgerEntry { executionID?: string | null; entryType: string; directio
 const SERIES_COLORS = [palette.cobalt, palette.cyan, palette.amber, palette.emerald, palette.rose, modes.dark.textMuted];
 const titleCase = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
-function GateCard({ g }: { g: Gate }) {
+function GateCard({ g, spend }: { g: Gate; spend?: GateSpendLabel }) {
   const selectGate = useStudio((s) => s.selectGate);
+  const agentName = spend?.agentName ?? agentForGate(g.id)?.name ?? 'Unassigned';
   return (
     <Card
       onClick={() => selectGate(g.id)}
@@ -37,27 +38,29 @@ function GateCard({ g }: { g: Gate }) {
     >
       <Stack direction="row" alignItems="center" justifyContent="space-between">
         <Stack direction="row" alignItems="center" spacing={1.25}>
-          <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.78rem', color: 'text.disabled' })}>{g.no}</Typography>
-          <Typography variant="h6" sx={{ fontSize: '1.05rem' }}>{g.name}</Typography>
+          <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s78, color: 'text.disabled' })}>{g.no}</Typography>
+          <Typography variant="h6" sx={{ fontSize: text.s105 }}>{g.name}</Typography>
         </Stack>
-        <Chip size="small" label={statusLabel[g.status]} sx={(t) => ({ bgcolor: `${statusColor(t, g.status)}22`, color: statusColor(t, g.status), fontWeight: 600, fontSize: '0.7rem' })} />
+        <Chip size="small" label={statusLabel[g.status]} sx={(t) => ({ bgcolor: `${statusColor(t, g.status)}22`, color: statusColor(t, g.status), fontWeight: 600, fontSize: text.s70 })} />
       </Stack>
 
       <LinearProgress variant="determinate" value={Math.round(g.level * 100)} sx={(t) => ({ height: 5, borderRadius: 99, bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { borderRadius: 99, bgcolor: statusColor(t, g.status) } })} />
 
       {g.blocking ? (
-        <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary' }}>
+        <Typography sx={{ fontSize: text.s82, color: 'text.secondary' }}>
           <Box component="span" sx={{ color: g.status === 'blocked' ? 'error.main' : 'warning.main' }}>● </Box>{g.blocking}
         </Typography>
       ) : (
-        <Typography sx={{ fontSize: '0.82rem', color: 'success.main' }}>● Closed end-to-end</Typography>
+        <Typography sx={{ fontSize: text.s82, color: 'success.main' }}>● Closed end-to-end</Typography>
       )}
 
       <Stack direction="row" alignItems="center" spacing={1.5} sx={{ pt: 0.5 }}>
-        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.72rem', color: 'text.secondary' })}>{agentForGate(g.id)?.name ?? 'Unassigned'}</Typography>
+        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s72, color: 'text.secondary' })}>{agentName}</Typography>
         <Box sx={{ width: 3, height: 3, borderRadius: 99, bgcolor: 'text.disabled' }} />
-        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.72rem', color: 'text.disabled' })}>{g.findings.length}f · {g.patches.length}p</Typography>
-        <Typography sx={{ ml: 'auto', fontSize: '0.72rem', color: 'primary.main' }}>Open</Typography>
+        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s72, color: 'text.disabled' })}>
+          {spend ? `${formatUSD(spend.amountUSD)} · ${spend.sharePct}%` : `${g.findings.length}f · ${g.patches.length}p`}
+        </Typography>
+        <Typography sx={{ ml: 'auto', fontSize: text.s72, color: 'primary.main' }}>Open</Typography>
       </Stack>
     </Card>
   );
@@ -66,9 +69,9 @@ function GateCard({ g }: { g: Gate }) {
 function Meter({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <Card sx={{ p: 2.5, flex: 1 }}>
-      <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.68rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'text.disabled' })}>{label}</Typography>
-      <Typography variant="h4" sx={{ fontSize: '1.8rem', mt: 0.5 }}>{value}</Typography>
-      {sub && <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary' }}>{sub}</Typography>}
+      <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s68, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'text.disabled' })}>{label}</Typography>
+      <Typography variant="h4" sx={{ fontSize: text.s180, mt: 0.5 }}>{value}</Typography>
+      {sub && <Typography sx={{ fontSize: text.s78, color: 'text.secondary' }}>{sub}</Typography>}
     </Card>
   );
 }
@@ -81,6 +84,7 @@ export function DashboardPane({ fallback }: { projectId: string; fallback: Studi
   const liveProjectId = storeProjectId ?? firstProjectId;
   const { wallet } = useWallet();
   const { executions, economics } = useProjectExecutions(liveProjectId);
+  const { forecast } = useSentinelForecast(liveProjectId);
   const { data: liveGates, isLive } = useGraphQLQuery<Gate[], { gates: GateVerdict[] }>({
     key: ['gates', liveProjectId ?? 'none'],
     operationName: 'Gates',
@@ -123,7 +127,21 @@ export function DashboardPane({ fallback }: { projectId: string; fallback: Studi
   const p = { ...fallback, gates, completion };
 
   const open = p.gates.filter((g) => g.blocking).length;
-  const gatesClosed = p.gates.filter((g) => !g.blocking).length;
+  const displaySpendUSD = economics.spentUSD > 0 ? economics.spentUSD : fallback.meters.walletUsed;
+  const displayBudgetUSD = economics.budgetUSD > 0 ? economics.budgetUSD : fallback.meters.walletBudget;
+  const displayMarginPct = economics.runs > 0 || economics.revenueUSD > 0 ? economics.marginPct : fallback.meters.marginPct;
+  const actionPreview = useMemo(() => buildActionCostPreview({
+    wallet,
+    forecast,
+    recentExecutionSpendUSD: executions.map((e) => e.spentUSD || e.budgetUSD),
+    fallbackEstimateUSD: fallback.profitGuard.reservedUSD || 2.4,
+  }), [wallet, forecast, executions, fallback.profitGuard.reservedUSD]);
+  const gateSpend = useMemo(() => buildGateSpendLabels(
+    p.gates.map((g) => ({ ...g, agentName: agentForGate(g.id)?.name })),
+    economics.spentUSD,
+    fallback.meters.walletUsed,
+  ), [p.gates, economics.spentUSD, fallback.meters.walletUsed]);
+  const spendByGate = useMemo(() => new Map(gateSpend.map((g) => [g.gateId, g])), [gateSpend]);
 
   // --- Usage tab: spend breakdown + budget gauge (ported from UsagePane) ---
   const axis = theme.palette.text.secondary;
@@ -134,7 +152,10 @@ export function DashboardPane({ fallback }: { projectId: string; fallback: Studi
     const scoped = execIds.size > 0 ? ledger.filter((e) => e.executionID && execIds.has(e.executionID)) : ledger;
     const src = scoped.length > 0 ? scoped : ledger;
     const m = new Map<string, number>();
-    for (const e of src) m.set(e.entryType, (m.get(e.entryType) ?? 0) + 1);
+    for (const e of src) {
+      if (e.direction !== 'debit' || e.amountUSD <= 0) continue;
+      m.set(e.entryType, (m.get(e.entryType) ?? 0) + e.amountUSD);
+    }
     return [...m.entries()].map(([name, value]) => ({ name: titleCase(name), value }));
   }, [ledger, executions]);
 
@@ -149,7 +170,7 @@ export function DashboardPane({ fallback }: { projectId: string; fallback: Studi
     }],
   }), [byEntryType, axis, theme]);
 
-  const walletPct = economics.budgetUSD > 0 ? Math.min(100, Math.round((economics.spentUSD / economics.budgetUSD) * 100)) : 0;
+  const walletPct = displayBudgetUSD > 0 ? Math.min(100, Math.round((displaySpendUSD / displayBudgetUSD) * 100)) : 0;
   const walletOption = useMemo<EChartsOption>(() => ({
     series: [{
       type: 'gauge', startAngle: 210, endAngle: -30, min: 0, max: 100, radius: '92%',
@@ -180,22 +201,22 @@ export function DashboardPane({ fallback }: { projectId: string; fallback: Studi
       <Box sx={{ maxWidth: 1080, mx: 'auto' }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 0.5 }}>
           <Stack direction="row" alignItems="center" spacing={1.5}>
-            <Typography variant="h4" sx={{ fontSize: '1.6rem' }}>Finisher</Typography>
+            <Typography variant="h4" sx={{ fontSize: text.s160 }}>Finisher</Typography>
             <Chip
               size="small"
               label={isLive ? 'live' : 'sample data'}
-              sx={(t) => ({ height: 20, fontSize: '0.64rem', fontFamily: t.brand.font.mono, bgcolor: isLive ? `${t.palette.success.main}22` : 'action.hover', color: isLive ? 'success.main' : 'text.disabled' })}
+              sx={(t) => ({ height: 20, fontSize: text.s64, fontFamily: t.brand.font.mono, bgcolor: isLive ? `${t.palette.success.main}22` : 'action.hover', color: isLive ? 'success.main' : 'text.disabled' })}
             />
             <Chip
               size="small"
               label={pgLabel[p.profitGuard.verdict]}
               sx={(t) => {
                 const c = p.profitGuard.verdict === 'block' ? t.palette.error.main : p.profitGuard.verdict === 'hold' ? t.palette.warning.main : t.palette.success.main;
-                return { height: 20, fontSize: '0.64rem', fontFamily: t.brand.font.mono, bgcolor: `${c}22`, color: c };
+                return { height: 20, fontSize: text.s64, fontFamily: t.brand.font.mono, bgcolor: `${c}22`, color: c };
               }}
             />
           </Stack>
-          <Typography sx={{ color: 'text.secondary', fontSize: '0.9rem' }}>{open} of {p.gates.length} gates open · {Math.round(p.completion * 100)}% to shippable</Typography>
+          <Typography sx={{ color: 'text.secondary', fontSize: text.s90 }}>{open} of {p.gates.length} gates open · {Math.round(p.completion * 100)}% to shippable</Typography>
         </Stack>
         <LinearProgress variant="determinate" value={Math.round(p.completion * 100)} sx={{ height: 6, borderRadius: 99, bgcolor: 'action.hover', mb: 2, '& .MuiLinearProgress-bar': { borderRadius: 99, backgroundImage: (t) => t.brand.gradient.signature } }} />
 
@@ -211,12 +232,13 @@ export function DashboardPane({ fallback }: { projectId: string; fallback: Studi
           <>
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 1.5, mb: 1.5 }}>
               <Card sx={{ p: 2.5 }}>
-                <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.68rem', textTransform: 'uppercase', color: 'text.disabled' })}>Gate status</Typography>
+                <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s68, textTransform: 'uppercase', color: 'text.disabled' })}>Gate status</Typography>
                 <Chart option={gateDonut} height={240} />
               </Card>
               <Stack spacing={1.5}>
-                <Meter label="Project spend" value={formatUSD(economics.spentUSD)} sub={`of ${formatUSD(economics.budgetUSD)} reserved · wallet ${formatUSD(wallet.availableUSD)}`} />
-                <Meter label="Margin (project)" value={`${economics.marginPct}%`} sub="revenue − provider cost" />
+                <Meter label="Next paid action" value={formatUSD(actionPreview.estimateUSD)} sub={`${formatUSD(actionPreview.headroomAfterUSD)} headroom after · ${actionPreview.actionText}`} />
+                <Meter label="Project spend" value={formatUSD(displaySpendUSD)} sub={`of ${formatUSD(displayBudgetUSD)} reserved · wallet ${formatUSD(wallet.availableUSD)}`} />
+                <Meter label="Margin (project)" value={`${displayMarginPct}%`} sub="revenue - provider cost" />
                 <Meter label="Provider cost" value={formatUSD(economics.providerCostUSD)} sub={`${economics.runs} execution${economics.runs === 1 ? '' : 's'}`} />
               </Stack>
             </Box>
@@ -227,13 +249,13 @@ export function DashboardPane({ fallback }: { projectId: string; fallback: Studi
 
             {languages.length > 0 && (
               <Card sx={{ p: 2.5, mt: 1.5 }}>
-                <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.68rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>Composition</Typography>
+                <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s68, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>Composition</Typography>
                 <Stack spacing={1.25}>
                   {languages.map((l) => (
                     <Box key={l.name}>
                       <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
-                        <Typography sx={{ fontSize: '0.85rem', fontWeight: 600 }}>{l.name}</Typography>
-                        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.8rem', color: 'text.secondary' })}>{l.pct}%</Typography>
+                        <Typography sx={{ fontSize: text.s85, fontWeight: 600 }}>{l.name}</Typography>
+                        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s80, color: 'text.secondary' })}>{l.pct}%</Typography>
                       </Stack>
                       <LinearProgress variant="determinate" value={l.pct} sx={{ height: 6, borderRadius: 99, bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { borderRadius: 99, backgroundImage: (t) => t.brand.gradient.signature } }} />
                     </Box>
@@ -247,7 +269,7 @@ export function DashboardPane({ fallback }: { projectId: string; fallback: Studi
         {/* TAB 2 — gates */}
         {tab === 1 && (
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', lg: 'repeat(3, 1fr)' }, gap: 1.5 }}>
-            {p.gates.map((g) => <GateCard key={g.id} g={g} />)}
+            {p.gates.map((g) => <GateCard key={g.id} g={g} spend={spendByGate.get(g.id)} />)}
           </Box>
         )}
 
@@ -255,24 +277,43 @@ export function DashboardPane({ fallback }: { projectId: string; fallback: Studi
         {tab === 2 && (
           <>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mb: 1.5 }}>
-              <Meter label="Project spend" value={formatUSD(economics.spentUSD)} sub={`of ${formatUSD(economics.budgetUSD)} reserved`} />
+              <Meter label="Project spend" value={formatUSD(displaySpendUSD)} sub={`of ${formatUSD(displayBudgetUSD)} reserved`} />
               <Meter label="Provider cost" value={formatUSD(economics.providerCostUSD)} sub="metered to the ledger" />
-              <Meter label="Margin (project)" value={`${economics.marginPct}%`} sub={`revenue ${formatUSD(economics.revenueUSD)}`} />
-              <Meter label="Gates closed" value={`${gatesClosed}/${p.gates.length}`} sub="end-to-end" />
+              <Meter label="Headroom after next" value={formatUSD(actionPreview.headroomAfterUSD)} sub={actionPreview.detail} />
+              <Meter label="Margin (project)" value={`${displayMarginPct}%`} sub={`revenue ${formatUSD(economics.revenueUSD)}`} />
             </Stack>
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 1.5 }}>
               <Card sx={{ p: 2.5 }}>
                 <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ mb: 1 }}>
-                  <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.68rem', textTransform: 'uppercase', color: 'text.disabled' })}>Budget spent</Typography>
-                  <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.62rem', color: 'text.disabled' })}>account wallet {formatUSD(wallet.availableUSD)}</Typography>
+                  <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s68, textTransform: 'uppercase', color: 'text.disabled' })}>Budget spent</Typography>
+                  <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s62, color: 'text.disabled' })}>account wallet {formatUSD(wallet.availableUSD)}</Typography>
                 </Stack>
                 <Chart option={walletOption} height={240} />
               </Card>
               <Card sx={{ p: 2.5 }}>
-                <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.68rem', textTransform: 'uppercase', color: 'text.disabled', mb: 1 })}>Spend by ledger type</Typography>
+                <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s68, textTransform: 'uppercase', color: 'text.disabled', mb: 1 })}>Spend by ledger type</Typography>
                 <Chart option={ledgerOption} height={240} />
               </Card>
             </Box>
+            <Card sx={{ p: 2.5, mt: 1.5 }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ mb: 1.5 }}>
+                <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s68, textTransform: 'uppercase', color: 'text.disabled' })}>Spend by gate and agent</Typography>
+                <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s62, color: 'text.disabled' })}>
+                  {gateSpend[0]?.source === 'live' ? 'live execution spend' : 'fallback gate allocation'}
+                </Typography>
+              </Stack>
+              <Stack spacing={1.15}>
+                {gateSpend.map((g) => (
+                  <Box key={g.gateId}>
+                    <Stack direction="row" justifyContent="space-between" spacing={2} sx={{ mb: 0.5 }}>
+                      <Typography sx={{ fontSize: text.s82, color: 'text.secondary' }} noWrap>{g.agentName} · {g.gateName}</Typography>
+                      <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s78, color: 'text.primary', flexShrink: 0 })}>{formatUSD(g.amountUSD)}</Typography>
+                    </Stack>
+                    <LinearProgress variant="determinate" value={g.sharePct} sx={{ height: 5, borderRadius: 99, bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { borderRadius: 99, bgcolor: 'primary.main' } }} />
+                  </Box>
+                ))}
+              </Stack>
+            </Card>
           </>
         )}
 

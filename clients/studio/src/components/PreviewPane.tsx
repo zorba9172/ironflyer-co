@@ -4,6 +4,7 @@ import { VscWarning, VscWand, VscClose } from 'react-icons/vsc';
 import { Scene3D, Lightbox, LivePreview, toast, type LivePreviewTemplate } from '@ironflyer/ui-web/fx';
 import { useThemeMode } from '@ironflyer/ui-web';
 import { useStudio } from '../store';
+import { text } from '@ironflyer/design-tokens/brand';
 
 type Device = 'desktop' | 'mobile';
 
@@ -72,7 +73,7 @@ export function PreviewPane() {
 
         <Box sx={{ flex: 1 }} />
         {hasApp && (
-          <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.72rem', color: previewError ? 'error.main' : 'success.main' })}>
+          <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s72, color: previewError ? 'error.main' : 'success.main' })}>
             {previewError ? '● build failed' : `● live · ${count} file${count > 1 ? 's' : ''}`}
           </Typography>
         )}
@@ -108,8 +109,8 @@ export function PreviewPane() {
                 >
                   <Box component="span" sx={{ color: 'error.main', display: 'inline-flex' }}><VscWarning size={16} /></Box>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography sx={{ fontSize: '0.82rem', fontWeight: 600, color: 'error.main' }}>This preview didn't build</Typography>
-                    <Typography noWrap sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.68rem', color: 'text.secondary' })}>{previewError}</Typography>
+                    <Typography sx={{ fontSize: text.s82, fontWeight: 600, color: 'error.main' }}>This preview didn't build</Typography>
+                    <Typography noWrap sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s68, color: 'text.secondary' })}>{previewError}</Typography>
                   </Box>
                   <Button size="small" variant="contained" startIcon={<VscWand size={14} />} onClick={fixPreview} sx={{ flexShrink: 0 }}>Fix with agent</Button>
                   <IconButton size="small" aria-label="Dismiss" onClick={() => setPreviewError(null)} sx={{ color: 'text.secondary', flexShrink: 0 }}><VscClose size={14} /></IconButton>
@@ -123,7 +124,7 @@ export function PreviewPane() {
                 <Box sx={{ width: device === 'mobile' ? 240 : 360 }}><Scene3D height={device === 'mobile' ? 240 : 360} /></Box>
               </Box>
               <Stack alignItems="center" spacing={2} sx={{ position: 'relative', textAlign: 'center', px: 3 }}>
-                <Typography variant="h4" sx={{ fontSize: '1.5rem' }}>No preview yet</Typography>
+                <Typography variant="h4" sx={{ fontSize: text.s150 }}>No preview yet</Typography>
                 <Typography sx={{ color: 'text.secondary', maxWidth: 420 }}>
                   Ask the agent to build something in the chat. As it streams files, your app renders here live — and the source appears in <b>Code</b>.
                 </Typography>

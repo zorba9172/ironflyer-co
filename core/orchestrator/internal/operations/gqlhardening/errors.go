@@ -53,6 +53,10 @@ var (
 	// anything that looks like a JSON object so a provider error body
 	// can't reach the client untouched.
 	reJSONBody = regexp.MustCompile(`\{[^{}]{40,}\}`)
+	// LLM vendor + model identifiers. The orchestrator speaks for every
+	// provider, so a vendor/model name must NEVER survive into a client-facing
+	// error — in any mode. Replaced with a neutral token.
+	reVendor = regexp.MustCompile(`(?i)\b(anthropic|openai|google\s*ai|vertex\s*ai|gemini[-0-9.a-z]*|claude[-\s]?[0-9a-z.]*|gpt-?[0-9o][a-z0-9.\-]*|\bo[0-9](?:-(?:mini|preview))?\b|deepseek[-0-9a-z.]*|hugging\s?face|llama[-0-9.]*|qwen[0-9.]*|mistral|mixtral|bedrock|opus|sonnet|haiku)\b`)
 )
 
 func redact(msg string, prodMode bool) string {
@@ -63,6 +67,8 @@ func redact(msg string, prodMode bool) string {
 	out = reGoroutine.ReplaceAllString(out, "[goroutine]")
 	out = reHexAddr.ReplaceAllString(out, "[addr]")
 	out = reFilePath.ReplaceAllString(out, "[path]")
+	// Provider/model identity is scrubbed in EVERY mode — never leak a vendor.
+	out = reVendor.ReplaceAllString(out, "[provider]")
 	if prodMode {
 		out = reUUID.ReplaceAllString(out, "[id]")
 		out = reSQL.ReplaceAllString(out, "[sql]")

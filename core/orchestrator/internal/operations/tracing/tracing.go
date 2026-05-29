@@ -49,8 +49,11 @@ func Init(ctx context.Context, opts Opts) (func(context.Context) error, error) {
 	if opts.ServiceName == "" {
 		opts.ServiceName = "ironflyer-orchestrator"
 	}
-	if opts.SampleRatio <= 0 && opts.Exporter != "none" && opts.Exporter != "" {
-		opts.SampleRatio = 1.0
+	if opts.SampleRatio < 0 {
+		opts.SampleRatio = 0
+	}
+	if opts.SampleRatio > 1 {
+		opts.SampleRatio = 1
 	}
 
 	switch opts.Exporter {

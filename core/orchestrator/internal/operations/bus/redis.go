@@ -136,13 +136,10 @@ func (r *RedisBus) run(topic string, t *redisTopic) {
 			copy(snapshot, t.chans)
 			r.mu.Unlock()
 			for _, dst := range snapshot {
-				select {
-				case dst <- payload:
-				default:
-					// Slow consumer — drop. Metric is bumped at the
-					// Multiplexer layer where the topic-kind label is
-					// available.
-				}
+				// Slow consumer or raced unsubscribe — drop. Metric is
+				// bumped at the Multiplexer layer where the topic-kind label
+				// is available.
+				_ = safeSend(dst, payload)
 			}
 		}
 	}

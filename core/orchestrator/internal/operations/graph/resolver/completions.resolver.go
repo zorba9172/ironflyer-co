@@ -74,10 +74,12 @@ func (r *subscriptionResolver) InlineCompletion(ctx context.Context, input model
 	if err != nil {
 		go func() {
 			defer close(out)
+			// Provider-blind: never forward a raw upstream error (it can name a
+			// vendor/model) — emit a fixed generic message.
 			out <- model.InlineErrorDelta{
 				RequestID: stringPtr(reqID),
 				Code:      "STREAM_FAILED",
-				Message:   err.Error(),
+				Message:   inlineUnavailableMsg,
 			}
 		}()
 		metrics.ObserveInlineCompletionRequest("error")
@@ -86,10 +88,11 @@ func (r *subscriptionResolver) InlineCompletion(ctx context.Context, input model
 
 	go func() {
 		defer close(out)
+		// NOTE: Provider + Model are deliberately NOT populated on Start/Done.
+		// The orchestrator speaks for every vendor; the client (an IDE ghost-text
+		// surface) never learns which provider or model produced the completion.
 		var (
 			startedSent bool
-			provider    string
-			modelName   string
 			doneSent    bool
 			firstToken  bool
 		)
@@ -105,11 +108,7 @@ func (r *subscriptionResolver) InlineCompletion(ctx context.Context, input model
 			case d, ok := <-in:
 				if !ok {
 					if !doneSent {
-						out <- model.InlineDoneDelta{
-							RequestID: reqID,
-							Provider:  stringPtr(provider),
-							Model:     stringPtr(modelName),
-						}
+						out <- model.InlineDoneDelta{RequestID: reqID}
 					}
 					if firstToken {
 						metrics.ObserveInlineCompletionLatency(time.Since(started))
@@ -119,25 +118,13 @@ func (r *subscriptionResolver) InlineCompletion(ctx context.Context, input model
 				switch d.Type {
 				case providers.DeltaStart:
 					if !startedSent {
-						provider = d.Provider
-						modelName = d.Model
-						out <- model.InlineStartDelta{
-							RequestID: reqID,
-							Provider:  d.Provider,
-							Model:     d.Model,
-						}
+						out <- model.InlineStartDelta{RequestID: reqID}
 						startedSent = true
 					}
 				case providers.DeltaText:
 					if !startedSent {
-						out <- model.InlineStartDelta{
-							RequestID: reqID,
-							Provider:  d.Provider,
-							Model:     d.Model,
-						}
+						out <- model.InlineStartDelta{RequestID: reqID}
 						startedSent = true
-						provider = d.Provider
-						modelName = d.Model
 					}
 					if !firstToken {
 						metrics.ObserveInlineCompletionLatency(time.Since(started))
@@ -145,11 +132,7 @@ func (r *subscriptionResolver) InlineCompletion(ctx context.Context, input model
 					}
 					out <- model.InlineTextDelta{RequestID: reqID, Text: d.Text}
 				case providers.DeltaDone:
-					done := model.InlineDoneDelta{
-						RequestID: reqID,
-						Provider:  stringPtr(d.Provider),
-						Model:     stringPtr(d.Model),
-					}
+					done := model.InlineDoneDelta{RequestID: reqID}
 					if d.Usage != nil {
 						done.Usage = model.JSON{
 							"inputTokens":  d.Usage.InputTokens,
@@ -161,14 +144,10 @@ func (r *subscriptionResolver) InlineCompletion(ctx context.Context, input model
 					doneSent = true
 					metrics.ObserveInlineCompletionRequest("done")
 				case providers.DeltaError:
-					msg := "unknown error"
-					if d.Err != nil {
-						msg = d.Err.Error()
-					}
 					out <- model.InlineErrorDelta{
 						RequestID: stringPtr(reqID),
 						Code:      "PROVIDER_ERROR",
-						Message:   msg,
+						Message:   inlineUnavailableMsg,
 					}
 					metrics.ObserveInlineCompletionRequest("error")
 					doneSent = true
@@ -178,3 +157,7 @@ func (r *subscriptionResolver) InlineCompletion(ctx context.Context, input model
 	}()
 	return out, nil
 }
+
+// inlineUnavailableMsg is the single provider-blind error surfaced to inline
+// completion clients — a raw upstream error must never reach them.
+const inlineUnavailableMsg = "Completion is temporarily unavailable. Please try again."

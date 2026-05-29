@@ -23,11 +23,13 @@ export default defineConfig({
     target: 'es2022',
     rollupOptions: {
       output: {
-        // Keep heavy libs out of the main bundle so screens load lean.
-        manualChunks: {
-          mui: ['@mui/material', '@emotion/react', '@emotion/styled'],
-          query: ['@tanstack/react-query'],
-          router: ['react-router-dom'],
+        // Keep heavy libs out of page chunks so route-level lazy imports stay lean.
+        manualChunks(id: string) {
+          if (id.includes('/node_modules/@mui/material/') || id.includes('/node_modules/@emotion/')) return 'mui';
+          if (id.includes('/node_modules/@tanstack/react-query/')) return 'query';
+          if (id.includes('/node_modules/react-router') || id.includes('/node_modules/react-router-dom/')) return 'router';
+          if (id.includes('/node_modules/echarts/') || id.includes('/node_modules/zrender/')) return 'charts';
+          if (id.includes('/node_modules/ag-grid-community/') || id.includes('/node_modules/ag-grid-react/')) return 'data-grid';
         },
       },
     },

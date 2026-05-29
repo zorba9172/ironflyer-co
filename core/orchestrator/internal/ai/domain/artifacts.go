@@ -31,6 +31,17 @@ const (
 	// The cockpit reads this directly to render the bundle-size chart;
 	// the gate's []Issue output drives the repair loop.
 	ArtifactBundleAnalysis = "bundle_analysis"
+	// ArtifactCoverage is the per-iteration test-coverage report produced
+	// by CoverageGate when Settings.CoverageEnabled is on. The document is
+	// a JSON object shaped like:
+	//   {
+	//     "enabled": true, "overallPct": 78.0, "minPct": 80,
+	//     "tool": "go test", "generatedAt": "2026-05-29T00:00:00Z",
+	//     "files":[{"path":"src/checkout.ts","linePct":54.0,"uncovered":23}]
+	//   }
+	// The studio Coverage tab reads this directly; the gate's []Issue
+	// output names the not-closed files for the repair loop.
+	ArtifactCoverage = "coverage"
 )
 
 // GetArtifact returns the raw JSON document stored under name, if any. A

@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react';
-import { Box, Button, Card, Chip, IconButton, Stack, TextField, Typography } from '@mui/material';
+import { Box, Button, Card, Chip, IconButton, Stack, Switch, TextField, Typography } from '@mui/material';
 import { useTheme, type Theme } from '@mui/material/styles';
 import { useQueryClient } from '@tanstack/react-query';
 import { DataGrid, type DataGridCellParams, type DataGridColumn } from '@ironflyer/ui-web/data-grid';
-import { toast } from '@ironflyer/ui-web/fx';
+import { confirmAction, toast } from '@ironflyer/ui-web/fx';
 import { useGraphQLQuery, useRequest, operations } from '@ironflyer/data';
 import { useOperateProjectId } from '../hooks/useOperateProjectId';
 import { PaneHeader } from '../components/operate/PaneHeader';
+import { text } from '@ironflyer/design-tokens/brand';
 
 interface ApiKey { id: string; name: string; prefix: string; scopes: string[]; lastUsedAt: string | null; createdAt: string; revoked: boolean }
 interface Endpoint { method: string; path: string; description: string; auth: string }
@@ -40,18 +41,20 @@ export function ApiPane() {
   const [busy, setBusy] = useState(false);
   const [keyName, setKeyName] = useState('');
   const [freshSecret, setFreshSecret] = useState<string | null>(null);
+  const [hookUrl, setHookUrl] = useState('');
+  const [hookEvents, setHookEvents] = useState('');
 
   const { data: keys, isLive } = useGraphQLQuery<ApiKey[], { appApiKeys: ApiKey[] }>({
     key: ['app-api-keys', liveProjectId ?? 'none'], operationName: 'AppApiKeys', query: operations.APP_API_KEYS,
-    variables: { projectID: liveProjectId }, fallbackData: SAMPLE_KEYS, enabled: !!liveProjectId, map: (r) => r.appApiKeys ?? SAMPLE_KEYS,
+    variables: { projectID: liveProjectId }, fallbackData: SAMPLE_KEYS, enabled: !!liveProjectId, map: (r) => r.appApiKeys ?? [],
   });
   const { data: endpoints } = useGraphQLQuery<Endpoint[], { appEndpoints: Endpoint[] }>({
     key: ['app-endpoints', liveProjectId ?? 'none'], operationName: 'AppEndpoints', query: operations.APP_ENDPOINTS,
-    variables: { projectID: liveProjectId }, fallbackData: SAMPLE_EPS, enabled: !!liveProjectId, map: (r) => (r.appEndpoints?.length ? r.appEndpoints : SAMPLE_EPS),
+    variables: { projectID: liveProjectId }, fallbackData: SAMPLE_EPS, enabled: !!liveProjectId, map: (r) => r.appEndpoints ?? [],
   });
   const { data: hooks } = useGraphQLQuery<Webhook[], { appWebhooks: Webhook[] }>({
     key: ['app-webhooks', liveProjectId ?? 'none'], operationName: 'AppWebhooks', query: operations.APP_WEBHOOKS,
-    variables: { projectID: liveProjectId }, fallbackData: SAMPLE_HOOKS, enabled: !!liveProjectId, map: (r) => r.appWebhooks ?? SAMPLE_HOOKS,
+    variables: { projectID: liveProjectId }, fallbackData: SAMPLE_HOOKS, enabled: !!liveProjectId, map: (r) => r.appWebhooks ?? [],
   });
 
   const refresh = () => { void qc.invalidateQueries({ queryKey: ['app-api-keys', liveProjectId ?? 'none'] }); void qc.invalidateQueries({ queryKey: ['app-webhooks', liveProjectId ?? 'none'] }); };
@@ -75,11 +78,41 @@ export function ApiPane() {
   };
   const copy = (s: string) => { void navigator.clipboard?.writeText(s); toast('Copied.', 'success'); };
 
+  const refreshHooks = () => { void qc.invalidateQueries({ queryKey: ['app-webhooks', liveProjectId ?? 'none'] }); };
+  const createHook = async () => {
+    if (!hookUrl.trim() || !hookEvents.trim() || !liveProjectId) return;
+    if (!request) { toast('Connect the orchestrator to add webhooks.', 'error'); return; }
+    const events = hookEvents.split(',').map((e) => e.trim()).filter(Boolean);
+    if (events.length === 0) { toast('Add at least one event (comma-separated).', 'error'); return; }
+    setBusy(true);
+    try {
+      await request('CreateAppWebhook', operations.CREATE_APP_WEBHOOK, { input: { projectID: liveProjectId, url: hookUrl.trim(), events } });
+      setHookUrl(''); setHookEvents(''); refreshHooks(); toast('Webhook added.', 'success');
+    } catch (e) { toast(e instanceof Error ? e.message : 'Could not add webhook.', 'error'); }
+    finally { setBusy(false); }
+  };
+  const toggleHook = async (w: Webhook) => {
+    if (!request) return;
+    setBusy(true);
+    try { await request('SetAppWebhookEnabled', operations.SET_APP_WEBHOOK_ENABLED, { id: w.id, enabled: !w.enabled }); refreshHooks(); }
+    catch (e) { toast(e instanceof Error ? e.message : 'Update failed.', 'error'); }
+    finally { setBusy(false); }
+  };
+  const deleteHook = async (w: Webhook) => {
+    if (!request) return;
+    const ok = await confirmAction({ title: 'Delete webhook?', text: w.url, confirmText: 'Delete', danger: true });
+    if (!ok) return;
+    setBusy(true);
+    try { await request('DeleteAppWebhook', operations.DELETE_APP_WEBHOOK, { id: w.id }); refreshHooks(); toast('Webhook deleted.', 'success'); }
+    catch (e) { toast(e instanceof Error ? e.message : 'Delete failed.', 'error'); }
+    finally { setBusy(false); }
+  };
+
   const keyColumns = useMemo<DataGridColumn<ApiKey>[]>(() => [
-    { field: 'name', headerName: 'Name', flex: 1, minWidth: 150, cellRenderer: ({ value }: DataGridCellParams<ApiKey, string>) => <Typography sx={{ fontSize: '0.84rem' }}>{value}</Typography> },
-    { field: 'prefix', headerName: 'Key', width: 180, cellRenderer: ({ value }: DataGridCellParams<ApiKey, string>) => <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.76rem', color: 'text.secondary' })}>{value}••••••</Typography> },
-    { field: 'scopes', headerName: 'Scopes', width: 150, cellRenderer: ({ data }: DataGridCellParams<ApiKey>) => data ? <Stack direction="row" spacing={0.5}>{data.scopes.map((s) => <Chip key={s} size="small" label={s} sx={{ height: 18, fontSize: '0.58rem' }} />)}</Stack> : null },
-    { field: 'revoked', headerName: 'Status', width: 110, cellRenderer: ({ data }: DataGridCellParams<ApiKey>) => data ? <Chip size="small" label={data.revoked ? 'revoked' : 'active'} sx={(th) => ({ height: 20, fontSize: '0.62rem', textTransform: 'uppercase', bgcolor: data.revoked ? `${th.palette.error.main}22` : `${th.palette.success.main}22`, color: data.revoked ? 'error.main' : 'success.main' })} /> : null },
+    { field: 'name', headerName: 'Name', flex: 1, minWidth: 150, cellRenderer: ({ value }: DataGridCellParams<ApiKey, string>) => <Typography sx={{ fontSize: text.s84 }}>{value}</Typography> },
+    { field: 'prefix', headerName: 'Key', width: 180, cellRenderer: ({ value }: DataGridCellParams<ApiKey, string>) => <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s76, color: 'text.secondary' })}>{value}••••••</Typography> },
+    { field: 'scopes', headerName: 'Scopes', width: 150, cellRenderer: ({ data }: DataGridCellParams<ApiKey>) => data ? <Stack direction="row" spacing={0.5}>{data.scopes.map((s) => <Chip key={s} size="small" label={s} sx={{ height: 18, fontSize: text.s58 }} />)}</Stack> : null },
+    { field: 'revoked', headerName: 'Status', width: 110, cellRenderer: ({ data }: DataGridCellParams<ApiKey>) => data ? <Chip size="small" label={data.revoked ? 'revoked' : 'active'} sx={(th) => ({ height: 20, fontSize: text.s62, textTransform: 'uppercase', bgcolor: data.revoked ? `${th.palette.error.main}22` : `${th.palette.success.main}22`, color: data.revoked ? 'error.main' : 'success.main' })} /> : null },
     { colId: 'actions', headerName: '', width: 100, sortable: false, filter: false, cellRenderer: ({ data }: DataGridCellParams<ApiKey>) => data && !data.revoked ? <Button size="small" variant="text" color="inherit" disabled={busy} onClick={(e) => { e.stopPropagation(); void revoke(data); }}>Revoke</Button> : null },
   ], [busy]);
 
@@ -90,9 +123,9 @@ export function ApiPane() {
 
         {freshSecret && (
           <Card sx={{ p: 2, mb: 2, borderColor: 'success.main', borderWidth: 1, borderStyle: 'solid' }}>
-            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.66rem', textTransform: 'uppercase', color: 'success.main', mb: 0.75 })}>New key — copy it now, it won't be shown again</Typography>
+            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'success.main', mb: 0.75 })}>New key — copy it now, it won't be shown again</Typography>
             <Stack direction="row" alignItems="center" spacing={1}>
-              <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.82rem', flex: 1, wordBreak: 'break-all' })}>{freshSecret}</Typography>
+              <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s82, flex: 1, wordBreak: 'break-all' })}>{freshSecret}</Typography>
               <IconButton size="small" onClick={() => copy(freshSecret)} sx={{ color: 'text.secondary' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" /></svg></IconButton>
               <Button size="small" variant="outlined" color="inherit" onClick={() => setFreshSecret(null)}>Dismiss</Button>
             </Stack>
@@ -106,32 +139,42 @@ export function ApiPane() {
           </Stack>
         </Card>
 
-        <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>API keys</Typography>
+        <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s70, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>API keys</Typography>
         <DataGrid rows={keys} columns={keyColumns} getRowId={(row) => row.id} density="compact" emptyLabel="No keys yet." height={240} minHeight={160} />
 
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.3fr 1fr' }, gap: 1.5, mt: 3 }}>
           <Card sx={{ p: 2 }}>
-            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.66rem', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>Endpoints</Typography>
+            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>Endpoints</Typography>
             <Stack spacing={0.75}>
               {endpoints.map((e) => (
                 <Stack key={e.method + e.path} direction="row" alignItems="center" spacing={1}>
-                  <Chip size="small" label={e.method} sx={{ height: 20, minWidth: 52, fontSize: '0.6rem', fontWeight: 700, bgcolor: `${methodColor(t, e.method)}22`, color: methodColor(t, e.method) }} />
-                  <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.78rem', flex: 1 })} noWrap>{e.path}</Typography>
-                  <Chip size="small" label={e.auth} sx={{ height: 18, fontSize: '0.56rem' }} />
+                  <Chip size="small" label={e.method} sx={{ height: 20, minWidth: 52, fontSize: text.s60, fontWeight: 700, bgcolor: `${methodColor(t, e.method)}22`, color: methodColor(t, e.method) }} />
+                  <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s78, flex: 1 })} noWrap>{e.path}</Typography>
+                  <Chip size="small" label={e.auth} sx={{ height: 18, fontSize: text.s56 }} />
                 </Stack>
               ))}
             </Stack>
           </Card>
           <Card sx={{ p: 2 }}>
-            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.66rem', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>Webhooks</Typography>
+            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>Webhooks</Typography>
+            <Stack spacing={1} sx={{ mb: 1.5 }}>
+              <TextField size="small" label="Endpoint URL" placeholder="https://crm.acme.com/hooks/orders" value={hookUrl} onChange={(e) => setHookUrl(e.target.value)} />
+              <Stack direction="row" spacing={1}>
+                <TextField size="small" fullWidth label="Events (comma-separated)" placeholder="order.created, user.created" value={hookEvents} onChange={(e) => setHookEvents(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') void createHook(); }} />
+                <Button variant="contained" disabled={!hookUrl.trim() || !hookEvents.trim() || !liveProjectId || busy} onClick={() => void createHook()}>Add</Button>
+              </Stack>
+            </Stack>
             <Stack spacing={1}>
-              {hooks.length === 0 && <Typography sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>No webhooks configured.</Typography>}
+              {hooks.length === 0 && <Typography sx={{ fontSize: text.s80, color: 'text.disabled' }}>No webhooks configured.</Typography>}
               {hooks.map((w) => (
                 <Box key={w.id}>
-                  <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.76rem' })} noWrap>{w.url}</Typography>
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s76, flex: 1, minWidth: 0 })} noWrap>{w.url}</Typography>
+                    <Switch size="small" checked={w.enabled} disabled={busy} onChange={() => void toggleHook(w)} />
+                    <IconButton size="small" aria-label="Delete webhook" disabled={busy} onClick={() => void deleteHook(w)} sx={{ color: 'text.disabled' }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" /></svg></IconButton>
+                  </Stack>
                   <Stack direction="row" spacing={0.5} sx={{ mt: 0.5 }}>
-                    {w.events.map((ev) => <Chip key={ev} size="small" label={ev} sx={{ height: 18, fontSize: '0.56rem' }} />)}
-                    <Chip size="small" label={w.enabled ? 'on' : 'off'} sx={(th) => ({ height: 18, fontSize: '0.56rem', color: w.enabled ? 'success.main' : 'text.disabled' })} />
+                    {w.events.map((ev) => <Chip key={ev} size="small" label={ev} sx={{ height: 18, fontSize: text.s56 }} />)}
                   </Stack>
                 </Box>
               ))}

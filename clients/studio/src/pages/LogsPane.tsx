@@ -11,8 +11,9 @@ import { useDispatchAgent } from '../hooks/useDispatchAgent';
 import { useStudio } from '../store';
 import { useProjectExecutions } from '../hooks/useLatestExecution';
 import { TechIcon } from '../lib/techIcons';
+import { text } from '@ironflyer/design-tokens/brand';
 
-interface LedgerEntry { id: string; executionID?: string | null; entryType: string; direction: string; amountUSD: number; provider?: string | null; createdAt: string }
+interface LedgerEntry { id: string; executionID?: string | null; entryType: string; direction: string; amountUSD: number; createdAt: string }
 const titleCase = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
 function ledgerKind(entryType: string): ActivityEvent['kind'] {
@@ -60,7 +61,7 @@ export function LogsPane({ fallback }: { fallback: StudioProject }) {
       id: l.id,
       ts: Date.parse(l.createdAt) || Date.now(),
       kind: ledgerKind(l.entryType),
-      text: `${l.direction === 'debit' ? '−' : '+'}$${l.amountUSD.toFixed(4)} · ${titleCase(l.entryType)}${l.provider ? ` (${l.provider})` : ''}`,
+      text: `${l.direction === 'debit' ? '−' : '+'}$${l.amountUSD.toFixed(4)} · ${titleCase(l.entryType)}`,
     }));
   }, [ledger, executions]);
 
@@ -78,13 +79,13 @@ export function LogsPane({ fallback }: { fallback: StudioProject }) {
         data ? (
           <Stack direction="row" alignItems="center" spacing={0.85}>
             <Box component="span" sx={{ color: kindColor(t, data.kind), display: 'inline-flex' }}><TechIcon name={data.kind} size={15} title={data.kind} /></Box>
-            <Typography sx={{ fontSize: '0.74rem', textTransform: 'uppercase', letterSpacing: '0.04em', color: kindColor(t, data.kind) }}>{data.kind}</Typography>
+            <Typography sx={{ fontSize: text.s74, textTransform: 'uppercase', letterSpacing: '0.04em', color: kindColor(t, data.kind) }}>{data.kind}</Typography>
           </Stack>
         ) : null,
     },
     {
       field: 'text', headerName: 'Message', flex: 1, minWidth: 320,
-      cellRenderer: ({ value }: DataGridCellParams<ActivityEvent, string>) => <Typography sx={{ fontSize: '0.86rem' }} noWrap>{value}</Typography>,
+      cellRenderer: ({ value }: DataGridCellParams<ActivityEvent, string>) => <Typography sx={{ fontSize: text.s86 }} noWrap>{value}</Typography>,
     },
     {
       field: 'ts', headerName: 'When', width: 130,
@@ -93,7 +94,7 @@ export function LogsPane({ fallback }: { fallback: StudioProject }) {
     {
       colId: 'fix', headerName: '', width: 90, sortable: false, filter: false,
       cellRenderer: ({ data }: DataGridCellParams<ActivityEvent>) =>
-        data ? <Button size="small" variant="outlined" color="inherit" onClick={(e) => { e.stopPropagation(); void dispatch('this log'); }}>Fix</Button> : null,
+        data ? <Button size="small" variant="outlined" color="inherit" onClick={(e) => { e.stopPropagation(); void dispatch(`this ${data.kind} event`); }}>Fix</Button> : null,
     },
   ], [t, dispatch]);
 
@@ -126,9 +127,9 @@ export function LogsPane({ fallback }: { fallback: StudioProject }) {
       <Box sx={{ maxWidth: 1080, mx: 'auto' }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2, flexWrap: 'wrap', gap: 1 }}>
           <Stack direction="row" alignItems="center" spacing={1.5}>
-            <Typography variant="h4" sx={{ fontSize: '1.6rem' }}>Logs</Typography>
-            <Chip size="small" label={live ? 'live' : 'seed'} sx={(th) => ({ height: 20, fontSize: '0.64rem', fontFamily: th.brand.font.mono, bgcolor: live ? `${th.palette.success.main}22` : 'action.hover', color: live ? 'success.main' : 'text.disabled' })} />
-            <Typography sx={{ color: 'text.secondary', fontSize: '0.9rem' }}>
+            <Typography variant="h4" sx={{ fontSize: text.s160 }}>Logs</Typography>
+            <Chip size="small" label={live ? 'live' : 'seed'} sx={(th) => ({ height: 20, fontSize: text.s64, fontFamily: th.brand.font.mono, bgcolor: live ? `${th.palette.success.main}22` : 'action.hover', color: live ? 'success.main' : 'text.disabled' })} />
+            <Typography sx={{ color: 'text.secondary', fontSize: text.s90 }}>
               {rows.length} events{selected.length > 0 ? ` · ${selected.length} selected` : ''}
             </Typography>
           </Stack>
@@ -139,7 +140,7 @@ export function LogsPane({ fallback }: { fallback: StudioProject }) {
 
         {rows.length > 0 && (
           <Card sx={{ p: 2, mb: 2 }}>
-            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.66rem', textTransform: 'uppercase', color: 'text.disabled', mb: 0.5 })}>Events by source</Typography>
+            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 0.5 })}>Events by source</Typography>
             <Chart option={sourceBar} height={170} />
           </Card>
         )}

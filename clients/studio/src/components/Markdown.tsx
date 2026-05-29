@@ -6,6 +6,7 @@ import { VscChevronRight, VscChevronDown, VscFileCode, VscCopy } from 'react-ico
 import { toast } from '@ironflyer/ui-web/fx';
 import { TechIcon } from '../lib/techIcons';
 import type { ReactNode } from 'react';
+import { text } from '@ironflyer/design-tokens/brand';
 
 export function safeMarkdownUrl(raw?: string | null, kind: 'link' | 'image' = 'link'): string | undefined {
   if (!raw) return undefined;
@@ -49,8 +50,8 @@ function CodeBlock({ className, children, meta }: { className?: string; children
       >
         <Box sx={{ display: 'inline-flex', color: 'text.secondary' }}>{open ? <VscChevronDown size={14} /> : <VscChevronRight size={14} />}</Box>
         <Box sx={{ display: 'inline-flex', color: 'text.secondary' }}>{path ? <TechIcon name={iconKey} size={14} title={title} /> : <VscFileCode size={14} />}</Box>
-        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.72rem', color: 'text.primary', flex: 1 })} noWrap>{title}</Typography>
-        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.64rem', color: 'text.disabled' })}>{lines} ln</Typography>
+        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s72, color: 'text.primary', flex: 1 })} noWrap>{title}</Typography>
+        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s64, color: 'text.disabled' })}>{lines} ln</Typography>
         <Box
           component="button"
           onClick={(e) => { e.stopPropagation(); navigator.clipboard?.writeText(code); toast('Copied', 'success'); }}
@@ -61,7 +62,7 @@ function CodeBlock({ className, children, meta }: { className?: string; children
         </Box>
       </Stack>
       <Collapse in={open} unmountOnExit>
-        <Box component="pre" sx={(t) => ({ m: 0, p: 1.5, overflow: 'auto', bgcolor: 'background.default', borderTop: 1, borderColor: 'divider', fontFamily: t.brand.font.mono, fontSize: '0.78rem', lineHeight: 1.5 })}>
+        <Box component="pre" sx={(t) => ({ m: 0, p: 1.5, overflow: 'auto', bgcolor: 'background.default', borderTop: 1, borderColor: 'divider', fontFamily: t.brand.font.mono, fontSize: text.s78, lineHeight: 1.5 })}>
           <code>{code}</code>
         </Box>
       </Collapse>
@@ -78,12 +79,12 @@ export function Markdown({ children }: { children: string }) {
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          h1: ({ children }) => <Typography variant="h6" sx={{ fontSize: '1.05rem', mt: 2, mb: 1 }}>{children}</Typography>,
-          h2: ({ children }) => <Typography variant="h6" sx={{ fontSize: '1rem', mt: 2, mb: 1 }}>{children}</Typography>,
+          h1: ({ children }) => <Typography variant="h6" sx={{ fontSize: text.s105, mt: 2, mb: 1 }}>{children}</Typography>,
+          h2: ({ children }) => <Typography variant="h6" sx={{ fontSize: text.s100, mt: 2, mb: 1 }}>{children}</Typography>,
           h3: ({ children }) => <Typography sx={{ fontWeight: 700, mt: 1.5, mb: 0.75 }}>{children}</Typography>,
-          p: ({ children }) => <Typography sx={{ fontSize: '0.9rem', lineHeight: 1.6, my: 1 }}>{children}</Typography>,
-          ul: ({ children }) => <Box component="ul" sx={{ pl: 2.5, my: 1, '& li': { fontSize: '0.9rem', lineHeight: 1.6, mb: 0.5 } }}>{children}</Box>,
-          ol: ({ children }) => <Box component="ol" sx={{ pl: 2.5, my: 1, '& li': { fontSize: '0.9rem', lineHeight: 1.6, mb: 0.5 } }}>{children}</Box>,
+          p: ({ children }) => <Typography sx={{ fontSize: text.s90, lineHeight: 1.6, my: 1 }}>{children}</Typography>,
+          ul: ({ children }) => <Box component="ul" sx={{ pl: 2.5, my: 1, '& li': { fontSize: text.s90, lineHeight: 1.6, mb: 0.5 } }}>{children}</Box>,
+          ol: ({ children }) => <Box component="ol" sx={{ pl: 2.5, my: 1, '& li': { fontSize: text.s90, lineHeight: 1.6, mb: 0.5 } }}>{children}</Box>,
           a: ({ children, href }) => {
             const safe = safeMarkdownUrl(href, 'link');
             return <Link href={safe} target={safe?.startsWith('http') ? '_blank' : undefined} rel="noreferrer" sx={{ color: 'primary.main' }}>{children}</Link>;

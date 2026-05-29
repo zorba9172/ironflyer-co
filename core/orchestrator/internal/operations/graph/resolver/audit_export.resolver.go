@@ -21,6 +21,10 @@ func (r *queryResolver) AuditExportPreview(ctx context.Context, filter model.Aud
 	if r.AuditExporter == nil {
 		return nil, fmt.Errorf("audit export not configured")
 	}
+	u, err := currentUser(ctx)
+	if err != nil {
+		return nil, err
+	}
 	f := auditexport.Filter{
 		TenantID:     filter.TenantID,
 		Since:        filter.Since,
@@ -30,6 +34,9 @@ func (r *queryResolver) AuditExportPreview(ctx context.Context, filter model.Aud
 	}
 	if len(filter.EventTypes) > 0 {
 		f.EventTypes = append(f.EventTypes, filter.EventTypes...)
+	}
+	if !callerIsPlatformOperator(ctx) {
+		f.TenantID = tenantFor(u)
 	}
 	// Reject the platform-operator wildcard unless the caller has the
 	// platform_operator scope — surfaced as a permission error so the
@@ -76,6 +83,12 @@ func (r *queryResolver) AuditExportPreview(ctx context.Context, filter model.Aud
 func (r *queryResolver) AuditChainProof(ctx context.Context, since time.Time, until time.Time) (*model.AuditChainProof, error) {
 	if r.AuditExporter == nil {
 		return nil, fmt.Errorf("audit export not configured")
+	}
+	if _, err := currentUser(ctx); err != nil {
+		return nil, err
+	}
+	if !callerIsPlatformOperator(ctx) {
+		return nil, gqlForbiddenOperator()
 	}
 	proof, err := r.AuditExporter.ChainProof(ctx, since, until)
 	if err != nil {

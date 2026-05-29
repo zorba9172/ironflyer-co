@@ -975,6 +975,7 @@ func DefaultGates() []Gate {
 	base := []Gate{
 		SpecGate{}, UXGate{}, ArchGate{},
 		CodeGate{}, VerifierGate{}, DriftGate{}, LintGate{}, TestGate{},
+		CoverageGate{},
 		SecurityGate{}, BudgetGate{},
 		ComplianceSOC2Gate{}, ComplianceHIPAAGate{},
 		CompliancePCIGate{}, ComplianceGDPRGate{},

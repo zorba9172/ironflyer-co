@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Box, Button, Link, Stack, TextField, Typography } from '@mui/material';
 import { useAuth } from '@ironflyer/data';
 import { LogoMark } from '../components/LogoMark';
+import { text } from '@ironflyer/design-tokens/brand';
 
 // Shown only when an orchestrator endpoint is configured but there's no session.
 export function Login() {
@@ -33,19 +34,19 @@ export function Login() {
       <Box component="form" onSubmit={submit} sx={{ position: 'relative', width: '100%', maxWidth: 380, border: 1, borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper', p: 4 }}>
         <Stack alignItems="center" spacing={1.5} sx={{ mb: 3 }}>
           <LogoMark size={36} />
-          <Typography variant="h5" sx={{ fontSize: '1.4rem' }}>{mode === 'in' ? 'Sign in to Ironflyer' : 'Create your account'}</Typography>
-          <Typography sx={{ color: 'text.secondary', fontSize: '0.88rem', textAlign: 'center' }}>Finish what your AI started.</Typography>
+          <Typography variant="h5" sx={{ fontSize: text.s140 }}>{mode === 'in' ? 'Sign in to Ironflyer' : 'Create your account'}</Typography>
+          <Typography sx={{ color: 'text.secondary', fontSize: text.s88, textAlign: 'center' }}>Finish what your AI started.</Typography>
         </Stack>
 
         <Stack spacing={2}>
           {mode === 'up' && <TextField label="Name" value={name} onChange={(e) => setName(e.target.value)} fullWidth size="small" />}
           <TextField label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} fullWidth size="small" autoFocus required />
           <TextField label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} fullWidth size="small" required />
-          {error && <Typography sx={{ color: 'error.main', fontSize: '0.82rem' }}>{error}</Typography>}
+          {error && <Typography sx={{ color: 'error.main', fontSize: text.s82 }}>{error}</Typography>}
           <Button type="submit" variant="contained" disabled={busy || !email || !password} size="large">
             {busy ? 'Working…' : mode === 'in' ? 'Sign in' : 'Create account'}
           </Button>
-          <Typography sx={{ textAlign: 'center', fontSize: '0.82rem', color: 'text.secondary' }}>
+          <Typography sx={{ textAlign: 'center', fontSize: text.s82, color: 'text.secondary' }}>
             {mode === 'in' ? "No account? " : 'Have an account? '}
             <Link component="button" type="button" onClick={() => { setMode(mode === 'in' ? 'up' : 'in'); setError(''); }} sx={{ color: 'primary.main' }}>
               {mode === 'in' ? 'Create one' : 'Sign in'}

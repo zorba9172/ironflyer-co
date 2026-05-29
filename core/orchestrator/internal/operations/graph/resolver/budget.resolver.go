@@ -9,6 +9,7 @@ import (
 	"context"
 	"ironflyer/core/orchestrator/internal/business/budget"
 	"ironflyer/core/orchestrator/internal/operations/graph/model"
+	"ironflyer/core/orchestrator/internal/operations/operator"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -57,6 +58,11 @@ func (r *queryResolver) Plans(ctx context.Context) ([]model.Plan, error) {
 // Rates returns the provider/model rate sheet. Used by the wallet
 // dashboard's "cost per million tokens" table.
 func (r *queryResolver) Rates(ctx context.Context) ([]model.Rate, error) {
+	// The rate sheet names every vendor + model and their cost basis —
+	// operator-only. User-facing pricing is presented as Ironflyer tiers.
+	if !operator.IsOperator(ctx) {
+		return nil, gqlForbiddenOperator()
+	}
 	if r.Billing == nil || r.Billing.Rates == nil {
 		return nil, gqlNotConfigured("billing-rates")
 	}

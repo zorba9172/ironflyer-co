@@ -44,6 +44,13 @@ export interface ChatSession {
   archived: boolean;
 }
 
+export type LaunchWorkMode = 'ask' | 'plan' | 'execute' | 'autopilot';
+
+interface LaunchOptions {
+  workMode?: LaunchWorkMode;
+  preflight?: boolean;
+}
+
 function deriveTitle(messages: ChatMsg[]): string {
   const first = messages.find((m) => m.from === 'user');
   const t = (first?.text ?? '').trim().replace(/\s+/g, ' ');
@@ -60,8 +67,16 @@ interface StudioState {
   current: StudioProject;
   /** prompt that started the session, '' when opened from a recent project */
   initialPrompt: string;
+  /** transient launch preference consumed by ChatPanel on first mount */
+  initialWorkMode: LaunchWorkMode;
+  /** transient launch preference for the ChatPanel preflight gate */
+  initialPreflight: boolean;
   /** gate open in the inspector drawer, null when closed */
   selectedGateId: string | null;
+  /** transient: an inner sub-tab a deep-link wants a workspace pane to open on
+   *  (e.g. the Map's Performance facet → Quality › Performance). Read once by the
+   *  target workspace on mount, then cleared. Never persisted. */
+  innerTab: string | null;
   /** the project's goal / "constitution" — the rules the finisher must honor */
   constitution: string;
   /** research the user uploaded (docs/images/notes) that ground the chat */
@@ -83,17 +98,19 @@ interface StudioState {
   /** a prompt queued for the chat (e.g. "fix the broken preview"); the chat
    *  panel picks it up, sends it, and clears it. Transient — never persisted. */
   repairRequest: string | null;
-  startFromPrompt: (prompt: string) => void;
+  startFromPrompt: (prompt: string, options?: LaunchOptions) => void;
   openProject: (project: StudioProject) => void;
   /** open a real backend project: set its id, load its files, mark saved */
   openLiveProject: (project: StudioProject, backendId: string, files: { path: string; content: string }[]) => void;
   /** Instant-start: seed a runnable scaffold so the live preview renders in
    *  seconds, then the agent enhances it on top. The Base44 speed-feel, but
    *  on top of the finisher discipline (gates/cost/private). */
-  startFromTemplate: (prompt: string, files: { path: string; content: string }[]) => void;
+  startFromTemplate: (prompt: string, files: { path: string; content: string }[], options?: LaunchOptions) => void;
   setLiveProjectId: (id: string | null) => void;
   markSaved: () => void;
   selectGate: (id: string | null) => void;
+  /** queue an inner sub-tab for the next workspace pane to open on, then clear */
+  setInnerTab: (v: string | null) => void;
   addAttachments: (items: Attachment[]) => void;
   removeAttachment: (id: string) => void;
   updateAttachment: (id: string, text: string) => void;
@@ -133,7 +150,10 @@ export const useStudio = create<StudioState>()(
     (set, get) => ({
       current: mockProject,
       initialPrompt: '',
+      initialWorkMode: 'ask',
+      initialPreflight: false,
       selectedGateId: null,
+      innerTab: null,
       constitution: '',
       attachments: [],
       customAgents: [],
@@ -144,14 +164,14 @@ export const useStudio = create<StudioState>()(
       chatSessions: [],
       activeChatId: null,
       repairRequest: null,
-      startFromPrompt: (prompt) => set((s) => ({ initialPrompt: prompt.trim(), current: newProjectFromPrompt(prompt), selectedGateId: null, constitution: prompt.trim(), generatedFiles: [], liveProjectId: null, saved: false, ...freshChat(s.chatSessions) })),
-      openProject: (project) => set((s) => ({ initialPrompt: '', current: project, selectedGateId: null, generatedFiles: [], liveProjectId: null, saved: false, ...freshChat(s.chatSessions) })),
+      startFromPrompt: (prompt, options = {}) => set((s) => ({ initialPrompt: prompt.trim(), initialWorkMode: options.workMode ?? 'execute', initialPreflight: options.preflight ?? false, current: newProjectFromPrompt(prompt), selectedGateId: null, constitution: prompt.trim(), generatedFiles: [], liveProjectId: null, saved: false, ...freshChat(s.chatSessions) })),
+      openProject: (project) => set((s) => ({ initialPrompt: '', initialWorkMode: 'ask', initialPreflight: false, current: project, selectedGateId: null, generatedFiles: [], liveProjectId: null, saved: false, ...freshChat(s.chatSessions) })),
       openLiveProject: (project, backendId, files) => set((s) => ({
-        initialPrompt: '', current: project, selectedGateId: null, liveProjectId: backendId, saved: true,
+        initialPrompt: '', initialWorkMode: 'ask', initialPreflight: false, current: project, selectedGateId: null, liveProjectId: backendId, saved: true,
         generatedFiles: files.map((f) => ({ path: f.path, content: f.content, rev: 1 })), ...freshChat(s.chatSessions),
       })),
-      startFromTemplate: (prompt, files) => set((s) => ({
-        initialPrompt: prompt.trim(), current: newProjectFromPrompt(prompt), selectedGateId: null,
+      startFromTemplate: (prompt, files, options = {}) => set((s) => ({
+        initialPrompt: prompt.trim(), initialWorkMode: options.workMode ?? 'execute', initialPreflight: options.preflight ?? false, current: newProjectFromPrompt(prompt), selectedGateId: null,
         constitution: prompt.trim(), liveProjectId: null, saved: false,
         generatedFiles: files.map((f) => ({ path: f.path, content: f.content, rev: 1 })),
         ...freshChat(s.chatSessions),
@@ -159,6 +179,7 @@ export const useStudio = create<StudioState>()(
       setLiveProjectId: (id) => set({ liveProjectId: id }),
       markSaved: () => set({ saved: true }),
       selectGate: (id) => set({ selectedGateId: id }),
+      setInnerTab: (v) => set({ innerTab: v }),
       addAttachments: (items) => set((s) => ({ attachments: [...s.attachments, ...items] })),
       removeAttachment: (id) => set((s) => ({ attachments: s.attachments.filter((a) => a.id !== id) })),
       updateAttachment: (id, text) => set((s) => ({ attachments: s.attachments.map((a) => (a.id === id ? { ...a, text } : a)) })),

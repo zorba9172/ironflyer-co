@@ -17,6 +17,7 @@ import { useStudio } from '../store';
 import { useLiveProjectId } from '../hooks/useLiveProjectId';
 import { useProjectExecutions } from '../hooks/useLatestExecution';
 import { useDispatchAgent } from '../hooks/useDispatchAgent';
+import { text } from '@ironflyer/design-tokens/brand';
 
 // Geometry — agents sit in a top lane, the gates they own sit beneath them in
 // the pipeline lane, and unowned cross-cutting agents anchor to the run itself.
@@ -172,10 +173,10 @@ export function ExecutionTeamGraph({ project, onOpenGate }: { project: StudioPro
     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100%', bgcolor: 'background.default' }}>
       <Box sx={{ px: 3, py: 1.75, borderBottom: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
         <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1.25, flexWrap: 'wrap' }}>
-          <Typography variant="h5" sx={{ fontSize: '1.15rem' }}>Execution team graph</Typography>
-          <Chip size="small" label={isLive ? 'live' : 'sample data'} sx={(t) => ({ height: 20, fontSize: '0.62rem', fontFamily: t.brand.font.mono, bgcolor: isLive ? `${t.palette.success.main}22` : 'action.hover', color: isLive ? 'success.main' : 'text.disabled' })} />
+          <Typography variant="h5" sx={{ fontSize: text.s115 }}>Execution team graph</Typography>
+          <Chip size="small" label={isLive ? 'live' : 'sample data'} sx={(t) => ({ height: 20, fontSize: text.s62, fontFamily: t.brand.font.mono, bgcolor: isLive ? `${t.palette.success.main}22` : 'action.hover', color: isLive ? 'success.main' : 'text.disabled' })} />
           <Box sx={{ flex: 1 }} />
-          <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>
+          <Typography sx={{ color: 'text.secondary', fontSize: text.s85 }}>
             {counts.working} working · {counts.blocked} blocked · {blockedGates.length} of {gates.length} gates open
           </Typography>
         </Stack>
@@ -186,7 +187,7 @@ export function ExecutionTeamGraph({ project, onOpenGate }: { project: StudioPro
         />
         <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
           {(['working', 'blocked', 'idle', 'done'] as AgentStatus[]).map((s) => (
-            <Chip key={s} size="small" label={`${STATUS_TONE[s]} ${counts[s]}`} sx={(t) => ({ height: 22, fontSize: '0.66rem', fontFamily: t.brand.font.mono, bgcolor: `${agentColor(t, s)}22`, color: agentColor(t, s) })} />
+            <Chip key={s} size="small" label={`${STATUS_TONE[s]} ${counts[s]}`} sx={(t) => ({ height: 22, fontSize: text.s66, fontFamily: t.brand.font.mono, bgcolor: `${agentColor(t, s)}22`, color: agentColor(t, s) })} />
           ))}
         </Stack>
       </Box>
@@ -212,7 +213,7 @@ function AgentNode({ a, status, color, c, onRun }: { a: Agent; status: AgentStat
         <Tooltip title={`Dispatch ${a.name || 'agent'}`} arrow>
           <Box component="span" role="button" onClick={(e) => { e.stopPropagation(); onRun(); }} sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, cursor: 'pointer', color: status === 'blocked' ? 'primary.main' : 'success.main' }}>
             {status === 'blocked' ? <VscWand size={13} /> : <VscPlay size={13} />}
-            <Typography sx={{ fontSize: '0.66rem' }}>{status === 'blocked' ? 'Unblock' : 'Run'}</Typography>
+            <Typography sx={{ fontSize: text.s66 }}>{status === 'blocked' ? 'Unblock' : 'Run'}</Typography>
           </Box>
         </Tooltip>
       </Stack>

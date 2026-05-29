@@ -76,6 +76,24 @@ func gqlInsufficientFunds(webBaseURL string) *gqlerror.Error {
 	}
 }
 
+// gqlProfitGuardRefused is the typed GraphQL error returned when the
+// ProfitGuard BeforeExecutionAdmit gate projects a margin below the
+// platform floor and refuses the execution UP FRONT — before any wallet
+// hold is taken, so no funds are locked on a doomed run (law 2). The
+// reason carries the verdict math so the client can surface "would lose
+// money: projected cost vs your budget".
+func gqlProfitGuardRefused(reason string) *gqlerror.Error {
+	if reason == "" {
+		reason = "projected margin below the platform floor"
+	}
+	return &gqlerror.Error{
+		Message: "execution refused by ProfitGuard: " + reason,
+		Extensions: map[string]any{
+			"code": "PROFITGUARD_REFUSED",
+		},
+	}
+}
+
 // gqlNotConfigured is the typed GraphQL error returned when an
 // optional surface (Stripe, ProfitGuard, blueprints) is unwired. The
 // resolver is reachable but cannot serve the request.

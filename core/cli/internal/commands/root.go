@@ -26,27 +26,27 @@ var Version = "v0.1.0"
 // (Run != nil) or a parent (Subs non-empty). Each command registers its
 // own flag.FlagSet on demand so `--help` knows the exact flags.
 type Command struct {
-	Name        string
-	Short       string
-	Long        string
-	Usage       string
-	Examples    []string
-	Aliases     []string
-	Subs        []*Command
-	RegFlags    func(fs *flag.FlagSet)
-	Run         func(ctx context.Context, env *Env, fs *flag.FlagSet, args []string) error
+	Name     string
+	Short    string
+	Long     string
+	Usage    string
+	Examples []string
+	Aliases  []string
+	Subs     []*Command
+	RegFlags func(fs *flag.FlagSet)
+	Run      func(ctx context.Context, env *Env, fs *flag.FlagSet, args []string) error
 }
 
 // Env carries the resolved global flags + a constructed API client. Every
 // Run function receives one — there is no global state.
 type Env struct {
-	Host    string
-	Token   string
-	JSON    bool
-	Config  config.File
-	Client  *client.Client
-	Out     io.Writer
-	Err     io.Writer
+	Host   string
+	Token  string
+	JSON   bool
+	Config config.File
+	Client *client.Client
+	Out    io.Writer
+	Err    io.Writer
 }
 
 // Root builds the top-level Command. main() calls Execute on this.
@@ -210,11 +210,17 @@ func (c *Command) runLeaf(ctx context.Context, env *Env, args []string) int {
 	// can put them anywhere.
 	var localHost, localToken string
 	var localJSON bool
-	fs.StringVar(&localHost, "host", "", "orchestrator host (overrides config)")
-	fs.StringVar(&localToken, "token", "", "bearer token (overrides config)")
-	fs.BoolVar(&localJSON, "json", false, "emit machine-readable JSON")
 	if c.RegFlags != nil {
 		c.RegFlags(fs)
+	}
+	if fs.Lookup("host") == nil {
+		fs.StringVar(&localHost, "host", "", "orchestrator host (overrides config)")
+	}
+	if fs.Lookup("token") == nil {
+		fs.StringVar(&localToken, "token", "", "bearer token (overrides config)")
+	}
+	if fs.Lookup("json") == nil {
+		fs.BoolVar(&localJSON, "json", false, "emit machine-readable JSON")
 	}
 	if err := fs.Parse(args); err != nil {
 		ui.Errorf("%v", err)

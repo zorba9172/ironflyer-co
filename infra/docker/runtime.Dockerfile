@@ -21,9 +21,11 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags='-s -w' \
       -o /out/runtime ./cmd/runtime
 
-# Final image keeps `git` (for workspace clones) and `curl` (for HEALTHCHECK).
+# Final image keeps `git` (for workspace clones), `curl` (for HEALTHCHECK),
+# and `docker-cli` so IRONFLYER_RUNTIME_DRIVER=docker can spawn sibling
+# workspace containers through the mounted host socket.
 FROM alpine:3.20
-RUN apk add --no-cache git ca-certificates curl tzdata \
+RUN apk add --no-cache git ca-certificates curl docker-cli tzdata \
     && adduser -D -u 10001 iron
 USER iron
 WORKDIR /home/iron

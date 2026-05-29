@@ -512,6 +512,16 @@ type CostReport struct {
 	GrossMarginPct    float64 `json:"grossMarginPct"`
 }
 
+type CoverageReport struct {
+	ProjectID   string         `json:"projectID"`
+	Enabled     bool           `json:"enabled"`
+	OverallPct  float64        `json:"overallPct"`
+	MinPct      float64        `json:"minPct"`
+	Tool        string         `json:"tool"`
+	Files       []FileCoverage `json:"files"`
+	GeneratedAt *time.Time     `json:"generatedAt,omitempty"`
+}
+
 type CreateAppAPIKeyInput struct {
 	ProjectID string   `json:"projectID"`
 	Name      string   `json:"name"`
@@ -845,6 +855,12 @@ type FigmaTypographyToken struct {
 	FontSize   float64 `json:"fontSize"`
 	FontWeight float64 `json:"fontWeight"`
 	LineHeight float64 `json:"lineHeight"`
+}
+
+type FileCoverage struct {
+	Path      string  `json:"path"`
+	LinePct   float64 `json:"linePct"`
+	Uncovered int     `json:"uncovered"`
 }
 
 type FinisherProfile struct {

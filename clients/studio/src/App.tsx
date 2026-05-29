@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Box, CircularProgress } from '@mui/material';
 import { AppShell } from './AppShell';
 
@@ -34,6 +34,8 @@ export function App() {
           <Route path="/plans" element={<PlansPage />} />
         </Route>
         <Route path="/build" element={<Editor />} />
+        {/* Unknown paths fall back to the studio home rather than a blank screen. */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
   );

@@ -5,6 +5,7 @@ import { Chart, type EChartsOption } from '@ironflyer/ui-web/fx';
 import { useGraphQLQuery, operations } from '@ironflyer/data';
 import { useOperateProjectId } from '../hooks/useOperateProjectId';
 import { PaneHeader } from '../components/operate/PaneHeader';
+import { text } from '@ironflyer/design-tokens/brand';
 
 interface MetricPoint { ts: string; visitors: number; pageViews: number; sessions: number }
 interface PageStat { path: string; views: number; avgSeconds: number }
@@ -67,8 +68,8 @@ export function AnalyticsPane() {
       {rows.map((r) => (
         <Box key={r.label}>
           <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.25 }}>
-            <Typography sx={{ fontSize: '0.82rem' }} noWrap>{r.label}</Typography>
-            <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>{r.value}</Typography>
+            <Typography sx={{ fontSize: text.s82 }} noWrap>{r.label}</Typography>
+            <Typography sx={{ fontSize: text.s80, color: 'text.secondary' }}>{r.value}</Typography>
           </Stack>
           <Box sx={{ height: 5, borderRadius: 9, bgcolor: 'action.hover', overflow: 'hidden' }}>
             <Box sx={(th) => ({ height: '100%', width: `${Math.round((r.n / Math.max(max, 1)) * 100)}%`, backgroundImage: th.brand.gradient.signature })} />
@@ -94,29 +95,29 @@ export function AnalyticsPane() {
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(4, 1fr)' }, gap: 1.5, mb: 1.5 }}>
           {metrics.map((m) => (
             <Card key={m.label} sx={{ p: 2.5 }}>
-              <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.66rem', textTransform: 'uppercase', color: 'text.disabled' })}>{m.label}</Typography>
-              <Typography variant="h4" sx={{ fontSize: '1.7rem', mt: 0.5 }}>{m.value}</Typography>
-              <Typography sx={{ fontSize: '0.74rem', color: m.delta != null ? (m.delta >= 0 ? 'success.main' : 'error.main') : 'text.secondary' }}>{m.sub}</Typography>
+              <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled' })}>{m.label}</Typography>
+              <Typography variant="h4" sx={{ fontSize: text.s170, mt: 0.5 }}>{m.value}</Typography>
+              <Typography sx={{ fontSize: text.s74, color: m.delta != null ? (m.delta >= 0 ? 'success.main' : 'error.main') : 'text.secondary' }}>{m.sub}</Typography>
             </Card>
           ))}
         </Box>
 
         <Card sx={{ p: 2, mb: 1.5 }}>
-          <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.66rem', textTransform: 'uppercase', color: 'text.disabled', mb: 0.5 })}>Traffic</Typography>
+          <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 0.5 })}>Traffic</Typography>
           <Chart option={trend} height={260} />
         </Card>
 
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 1.5 }}>
           <Card sx={{ p: 2 }}>
-            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.66rem', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>Top pages</Typography>
+            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>Top pages</Typography>
             {ranked(data.topPages.map((p) => ({ label: p.path, value: fmt(p.views), n: p.views })), data.topPages[0]?.views ?? 1)}
           </Card>
           <Card sx={{ p: 2 }}>
-            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.66rem', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>Referrers</Typography>
+            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>Referrers</Typography>
             {ranked(data.topReferrers.map((p) => ({ label: p.source, value: fmt(p.visitors), n: p.visitors })), data.topReferrers[0]?.visitors ?? 1)}
           </Card>
           <Card sx={{ p: 2 }}>
-            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.66rem', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>Conversion events</Typography>
+            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>Conversion events</Typography>
             {ranked(data.events.map((e) => ({ label: e.name, value: `${e.count} · ${e.conversionPct}%`, n: e.count })), data.events[0]?.count ?? 1)}
           </Card>
         </Box>

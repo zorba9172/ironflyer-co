@@ -8,6 +8,7 @@ import { useLiveProjectId } from '../hooks/useLiveProjectId';
 import { useDispatchAgent } from '../hooks/useDispatchAgent';
 import { useStudio } from '../store';
 import { TechIcon } from '../lib/techIcons';
+import { text } from '@ironflyer/design-tokens/brand';
 
 interface RawGate { gate: string; status: string; issues: { severity: string; message: string }[] }
 interface PerfRow { id: string; area: 'Frontend' | 'Backend'; name: string; status: string; detail: string }
@@ -42,7 +43,7 @@ export function PerformancePane() {
   const storeProjectId = useStudio((s) => s.liveProjectId);
   const firstProjectId = useLiveProjectId();
   const liveProjectId = storeProjectId ?? firstProjectId;
-  const { dispatch } = useDispatchAgent();
+  const { dispatch, repairGate } = useDispatchAgent();
   const [selected, setSelected] = useState<PerfRow[]>([]);
 
   const { data: rows, isLive } = useGraphQLQuery<PerfRow[], { gates: RawGate[] }>({
@@ -80,19 +81,19 @@ export function PerformancePane() {
     { field: 'area', headerName: 'Area', width: 132, cellRenderer: ({ data }: DataGridCellParams<PerfRow>) => data ? (
       <Stack direction="row" alignItems="center" spacing={0.75}>
         <TechIcon name={data.area} size={15} title={`${data.area} (${data.area === 'Frontend' ? 'React' : 'Go'})`} />
-        <Typography sx={{ fontSize: '0.82rem' }}>{data.area}</Typography>
+        <Typography sx={{ fontSize: text.s82 }}>{data.area}</Typography>
       </Stack>
     ) : null },
     { field: 'name', headerName: 'Audit', width: 190, cellRenderer: ({ data }: DataGridCellParams<PerfRow>) => data ? (
       <Stack direction="row" alignItems="center" spacing={0.85}>
         <Box component="span" sx={{ color: 'text.secondary', display: 'inline-flex' }}><TechIcon name={data.id} size={15} title={data.name} /></Box>
-        <Typography sx={{ fontSize: '0.86rem' }} noWrap>{data.name}</Typography>
+        <Typography sx={{ fontSize: text.s86 }} noWrap>{data.name}</Typography>
       </Stack>
     ) : null },
-    { field: 'status', headerName: 'Status', width: 120, cellRenderer: ({ data }: DataGridCellParams<PerfRow>) => data ? <Chip size="small" label={data.status} sx={{ height: 20, fontSize: '0.62rem', textTransform: 'uppercase', bgcolor: `${statusColor(t, data.status)}22`, color: statusColor(t, data.status) }} /> : null },
-    { field: 'detail', headerName: 'Detail', flex: 1, minWidth: 280, cellRenderer: ({ value }: DataGridCellParams<PerfRow, string>) => <Typography sx={{ fontSize: '0.86rem' }} noWrap>{value}</Typography> },
-    { colId: 'fix', headerName: '', width: 90, sortable: false, filter: false, cellRenderer: ({ data }: DataGridCellParams<PerfRow>) => data && !isClosed(data.status) ? <Button size="small" variant="outlined" color="inherit" onClick={(e) => { e.stopPropagation(); void dispatch(`the ${data.name} audit`); }}>Fix</Button> : null },
-  ], [t, dispatch]);
+    { field: 'status', headerName: 'Status', width: 120, cellRenderer: ({ data }: DataGridCellParams<PerfRow>) => data ? <Chip size="small" label={data.status} sx={{ height: 20, fontSize: text.s62, textTransform: 'uppercase', bgcolor: `${statusColor(t, data.status)}22`, color: statusColor(t, data.status) }} /> : null },
+    { field: 'detail', headerName: 'Detail', flex: 1, minWidth: 280, cellRenderer: ({ value }: DataGridCellParams<PerfRow, string>) => <Typography sx={{ fontSize: text.s86 }} noWrap>{value}</Typography> },
+    { colId: 'fix', headerName: '', width: 90, sortable: false, filter: false, cellRenderer: ({ data }: DataGridCellParams<PerfRow>) => data && !isClosed(data.status) ? <Button size="small" variant="outlined" color="inherit" onClick={(e) => { e.stopPropagation(); void repairGate(data.id, data.name); }}>Fix</Button> : null },
+  ], [t, repairGate]);
 
   const open = rows.filter((r) => !isClosed(r.status)).length;
   const fix = () => { const n = selected.length || open; void dispatch(`${n} performance issue${n > 1 ? 's' : ''}`); };
@@ -100,8 +101,10 @@ export function PerformancePane() {
   // Headline visual — passing vs open audits per area, so the operator sees at
   // a glance which layer (frontend / backend) is still blocking the budget.
   const areaBar = useMemo<EChartsOption>(() => {
-    const fePass = fe.filter((r) => isClosed(r.status)).length;
-    const bePass = be.filter((r) => isClosed(r.status)).length;
+    const feRows = rows.filter((r) => r.area === 'Frontend');
+    const beRows = rows.filter((r) => r.area === 'Backend');
+    const fePass = feRows.filter((r) => isClosed(r.status)).length;
+    const bePass = beRows.filter((r) => isClosed(r.status)).length;
     return {
       tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
       legend: { bottom: 0, textStyle: { color: t.palette.text.secondary, fontSize: 11 } },
@@ -110,43 +113,43 @@ export function PerformancePane() {
       yAxis: { type: 'category', data: ['Backend', 'Frontend'], axisLabel: { color: t.palette.text.secondary } },
       series: [
         { name: 'Passing', type: 'bar', stack: 'a', itemStyle: { color: t.palette.success.main }, data: [bePass, fePass] },
-        { name: 'Needs work', type: 'bar', stack: 'a', itemStyle: { color: t.palette.warning.main }, data: [be.length - bePass, fe.length - fePass] },
+        { name: 'Needs work', type: 'bar', stack: 'a', itemStyle: { color: t.palette.warning.main }, data: [beRows.length - bePass, feRows.length - fePass] },
       ],
     };
-  }, [fe, be, t]);
+  }, [rows, t]);
 
   return (
     <Box sx={{ flex: 1, height: '100%', overflowY: 'auto', bgcolor: 'background.default', p: 3 }}>
       <Box sx={{ maxWidth: 1080, mx: 'auto' }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2, flexWrap: 'wrap', gap: 1 }}>
           <Stack direction="row" alignItems="center" spacing={1.5}>
-            <Typography variant="h4" sx={{ fontSize: '1.6rem' }}>Performance</Typography>
-            <Chip size="small" label={isLive ? 'live' : 'sample'} sx={(th) => ({ height: 20, fontSize: '0.64rem', fontFamily: th.brand.font.mono, bgcolor: isLive ? `${th.palette.success.main}22` : 'action.hover', color: isLive ? 'success.main' : 'text.disabled' })} />
-            <Typography sx={{ color: 'text.secondary', fontSize: '0.9rem' }}>{open} audits need work{selected.length > 0 ? ` · ${selected.length} selected` : ''}</Typography>
+            <Typography variant="h4" sx={{ fontSize: text.s160 }}>Performance</Typography>
+            <Chip size="small" label={isLive ? 'live' : 'sample'} sx={(th) => ({ height: 20, fontSize: text.s64, fontFamily: th.brand.font.mono, bgcolor: isLive ? `${th.palette.success.main}22` : 'action.hover', color: isLive ? 'success.main' : 'text.disabled' })} />
+            <Typography sx={{ color: 'text.secondary', fontSize: text.s90 }}>{open} audits need work{selected.length > 0 ? ` · ${selected.length} selected` : ''}</Typography>
           </Stack>
           <Button variant="contained" disabled={rows.length === 0} onClick={fix}>{selected.length > 0 ? `Fix selected (${selected.length})` : 'Fix all'}</Button>
         </Stack>
 
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '340px 1fr' }, gap: 1.5, mb: 3, alignItems: 'stretch' }}>
           <Card sx={{ p: 2 }}>
-            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.66rem', textTransform: 'uppercase', color: 'text.disabled', mb: 0.5 })}>Audits by layer</Typography>
+            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 0.5 })}>Audits by layer</Typography>
             <Chart option={areaBar} height={200} />
           </Card>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr' }, gap: 1.5 }}>
             {metrics.map((m) => (
               <Card key={m.label} sx={{ p: 2.5, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                 <Stack direction="row" justifyContent="space-between" alignItems="baseline">
-                  <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.66rem', textTransform: 'uppercase', color: 'text.disabled' })}>{m.label}</Typography>
-                  <Chip size="small" label={m.area} sx={{ height: 16, fontSize: '0.56rem', bgcolor: 'action.hover' }} />
+                  <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled' })}>{m.label}</Typography>
+                  <Chip size="small" label={m.area} sx={{ height: 16, fontSize: text.s56, bgcolor: 'action.hover' }} />
                 </Stack>
-                <Typography variant="h4" sx={{ fontSize: '1.8rem', mt: 0.5 }}>{m.value}</Typography>
-                <Typography sx={{ fontSize: '0.76rem', color: 'text.secondary' }}>{m.sub}</Typography>
+                <Typography variant="h4" sx={{ fontSize: text.s180, mt: 0.5 }}>{m.value}</Typography>
+                <Typography sx={{ fontSize: text.s76, color: 'text.secondary' }}>{m.sub}</Typography>
               </Card>
             ))}
           </Box>
         </Box>
 
-        <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>Audits</Typography>
+        <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s70, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>Audits</Typography>
         <DataGrid
           rows={rows}
           columns={columns}
@@ -157,7 +160,7 @@ export function PerformancePane() {
           minHeight={260}
           gridOptions={{ rowSelection: { mode: 'multiRow' }, onSelectionChanged: (e) => setSelected(e.api.getSelectedRows()) }}
         />
-        <Typography sx={{ fontSize: '0.76rem', color: 'text.disabled', mt: 1.5 }}>Tiles summarize the live perf gates and the Sentinel burn forecast; the table reflects each gate verdict.</Typography>
+        <Typography sx={{ fontSize: text.s76, color: 'text.disabled', mt: 1.5 }}>Tiles summarize the live perf gates and the Sentinel burn forecast; the table reflects each gate verdict.</Typography>
       </Box>
     </Box>
   );

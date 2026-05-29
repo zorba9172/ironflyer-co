@@ -48,27 +48,26 @@ func PeekOperationName(r *http.Request) string {
 	if ct != "" && strings.HasPrefix(strings.ToLower(ct), "multipart/") {
 		return ""
 	}
+	if r.ContentLength > peekBodyLimit {
+		return ""
+	}
 
 	// LimitReader caps the cost of the peek even when the client
 	// streams gigabytes. We read into a buffer so the body restore
 	// path always gets the exact bytes back.
 	buf, err := io.ReadAll(io.LimitReader(r.Body, peekBodyLimit+1))
 	if err != nil {
-		// On a read error we can't restore the body safely; the
-		// downstream handler will surface the IO failure with a
-		// proper error response.
-		_ = r.Body.Close()
-		r.Body = io.NopCloser(bytes.NewReader(buf))
+		r.Body = readCloser{
+			Reader: io.MultiReader(bytes.NewReader(buf), r.Body),
+			Closer: r.Body,
+		}
 		return ""
 	}
-	_ = r.Body.Close()
-	r.Body = io.NopCloser(bytes.NewReader(buf))
+	r.Body = readCloser{
+		Reader: io.MultiReader(bytes.NewReader(buf), r.Body),
+		Closer: r.Body,
+	}
 	if len(buf) > peekBodyLimit {
-		// Body exceeded the peek budget. Restore the prefix we read
-		// AND splice in a fresh reader for the rest... actually we
-		// can't, because the underlying body is now drained past the
-		// limit. Conservatively: drop the operationName hint rather
-		// than corrupting downstream parsing.
 		return ""
 	}
 
@@ -90,4 +89,9 @@ func PeekOperationName(r *http.Request) string {
 		name = name[:64]
 	}
 	return name
+}
+
+type readCloser struct {
+	io.Reader
+	io.Closer
 }

@@ -6,6 +6,7 @@ import { Chart, type EChartsOption, toast } from '@ironflyer/ui-web/fx';
 import { useGraphQLQuery, useRequest, operations } from '@ironflyer/data';
 import { useOperateProjectId } from '../hooks/useOperateProjectId';
 import { PaneHeader } from '../components/operate/PaneHeader';
+import { text } from '@ironflyer/design-tokens/brand';
 
 interface SeoSettings { projectID: string; title: string; description: string; keywords: string[]; ogImageURL: string; twitterHandle: string; canonicalURL: string; robots: string; sitemapEnabled: boolean; updatedAt: string }
 interface SeoCheck { key: string; label: string; passed: boolean; detail: string }
@@ -78,19 +79,19 @@ export function MarketingPane() {
 
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '300px 1fr' }, gap: 1.5, mb: 3, alignItems: 'stretch' }}>
           <Card sx={{ p: 2 }}>
-            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.66rem', textTransform: 'uppercase', color: 'text.disabled', mb: 0.5 })}>SEO score</Typography>
+            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 0.5 })}>SEO score</Typography>
             <Chart option={gauge} height={170} />
-            <Typography sx={{ textAlign: 'center', fontSize: '0.78rem', color: 'text.secondary', mt: -1 }}>{audit.checks.filter((c) => c.passed).length}/{audit.checks.length} checks passing</Typography>
+            <Typography sx={{ textAlign: 'center', fontSize: text.s78, color: 'text.secondary', mt: -1 }}>{audit.checks.filter((c) => c.passed).length}/{audit.checks.length} checks passing</Typography>
           </Card>
           <Card sx={{ p: 2 }}>
-            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.66rem', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>Audit</Typography>
+            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>Audit</Typography>
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1 }}>
               {audit.checks.map((c) => (
                 <Stack key={c.key} direction="row" alignItems="center" spacing={1}>
-                  <Box sx={{ color: c.passed ? 'success.main' : 'warning.main', fontSize: '0.9rem' }}>{c.passed ? '✓' : '○'}</Box>
+                  <Box sx={{ color: c.passed ? 'success.main' : 'warning.main', fontSize: text.s90 }}>{c.passed ? '✓' : '○'}</Box>
                   <Box sx={{ minWidth: 0 }}>
-                    <Typography sx={{ fontSize: '0.8rem' }}>{c.label}</Typography>
-                    <Typography sx={{ fontSize: '0.7rem', color: 'text.disabled' }} noWrap>{c.detail}</Typography>
+                    <Typography sx={{ fontSize: text.s80 }}>{c.label}</Typography>
+                    <Typography sx={{ fontSize: text.s70, color: 'text.disabled' }} noWrap>{c.detail}</Typography>
                   </Box>
                 </Stack>
               ))}
@@ -99,7 +100,7 @@ export function MarketingPane() {
         </Box>
 
         <Card sx={{ p: 2.5 }}>
-          <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.66rem', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>Metadata</Typography>
+          <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>Metadata</Typography>
           <Stack spacing={1.5}>
             <TextField size="small" label="Page title" value={d.title} onChange={(e) => set({ title: e.target.value })} helperText={`${d.title.length}/60`} />
             <TextField size="small" label="Meta description" value={d.description} onChange={(e) => set({ description: e.target.value })} multiline minRows={2} helperText={`${d.description.length}/160`} />

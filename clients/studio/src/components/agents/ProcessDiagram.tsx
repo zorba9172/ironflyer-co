@@ -1,5 +1,6 @@
 import { Box, Stack, Typography } from '@mui/material';
 import type { CrewProcess } from '../../studioData';
+import { text } from '@ironflyer/design-tokens/brand';
 
 // A compact, dependency-free diagram of how a crew's members collaborate.
 // Parallel = fan-out workers, Sequential = a chain, Hierarchical = a manager
@@ -11,7 +12,7 @@ export function ProcessDiagram({ process, members, manager, dense }: {
   dense?: boolean;
 }) {
   if (members.length === 0) {
-    return <Typography sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>Add members to see the topology.</Typography>;
+    return <Typography sx={{ fontSize: text.s80, color: 'text.disabled' }}>Add members to see the topology.</Typography>;
   }
   if (process === 'sequential') return <Sequential members={members} dense={dense} />;
   if (process === 'hierarchical') return <Hierarchical members={members} manager={manager} dense={dense} />;
@@ -25,7 +26,7 @@ const pillSx = (dense?: boolean) => (t: import('@mui/material/styles').Theme) =>
   border: 1,
   borderColor: 'divider',
   bgcolor: 'background.default',
-  fontSize: dense ? '0.68rem' : '0.76rem',
+  fontSize: dense ? text.s68 : text.s76,
   fontWeight: 500,
   whiteSpace: 'nowrap',
   color: t.palette.text.primary,
@@ -33,7 +34,7 @@ const pillSx = (dense?: boolean) => (t: import('@mui/material/styles').Theme) =>
 
 function HubNode({ label }: { label: string }) {
   return (
-    <Box sx={(t) => ({ px: 1.5, py: 0.7, borderRadius: 2, color: t.palette.primary.contrastText, backgroundImage: t.brand.gradient.signature, fontSize: '0.74rem', fontWeight: 700, whiteSpace: 'nowrap' })}>{label}</Box>
+    <Box sx={(t) => ({ px: 1.5, py: 0.7, borderRadius: 2, color: t.palette.primary.contrastText, backgroundImage: t.brand.gradient.signature, fontSize: text.s74, fontWeight: 700, whiteSpace: 'nowrap' })}>{label}</Box>
   );
 }
 

@@ -33,9 +33,15 @@ export function useSaveProject() {
         files: generatedFiles.map((f) => ({ path: f.path, content: f.content })),
       });
       markSaved();
-      // Invalidate so the projects list + this project's files re-fetch.
+      // Invalidate every surface keyed to this project so a save refreshes the
+      // projects list, the Code/Dashboard/Security file views, the gate map, and
+      // the executions that drive economics — not just the raw file query.
       void qc.invalidateQueries({ queryKey: ['projects'] });
       void qc.invalidateQueries({ queryKey: ['code-files', projectId] });
+      void qc.invalidateQueries({ queryKey: ['dash-files', projectId] });
+      void qc.invalidateQueries({ queryKey: ['security-files', projectId] });
+      void qc.invalidateQueries({ queryKey: ['gates', projectId] });
+      void qc.invalidateQueries({ queryKey: ['project-executions', projectId] });
       return { ok: true, projectId };
     } catch (e) {
       return { ok: false, error: e instanceof Error ? e.message : 'save failed' };

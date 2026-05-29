@@ -66,6 +66,15 @@ type StripeTopperOpts struct {
 	SuccessURL string
 	CancelURL  string
 
+	// CreditMultiplier is the platform markup: the buyer is CHARGED
+	// amountUSD×CreditMultiplier but CREDITED amountUSD of wallet balance,
+	// so margin = 1 − 1/CreditMultiplier on every prepaid dollar. Zero or
+	// values ≤ 1 mean "no markup" (charge == credit). Only the charged
+	// price changes; metadata.amount_usd, the pending row, the webhook
+	// credit, and reconciliation all stay at amountUSD, so no data-integrity
+	// invariant is touched.
+	CreditMultiplier decimal.Decimal
+
 	// HTTPClient lets callers swap in a custom transport (test fakes,
 	// hardened TLS configs). Nil falls back to a 15s timeout client.
 	HTTPClient *http.Client
@@ -146,13 +155,21 @@ func (t *StripeTopper) CreateCheckoutSession(ctx context.Context, tenant string,
 	form.Set("metadata[purpose]", "wallet_topup")
 	form.Set("metadata[provider]", ProviderStripe)
 	// price_data lets us send the amount inline instead of pre-creating
-	// a Price object per tier. unit_amount is in cents.
-	cents := amountUSD.Mul(decimal.NewFromInt(100)).IntPart()
+	// a Price object per tier. unit_amount is in cents. The CHARGED price is
+	// amountUSD×CreditMultiplier (the platform markup); the buyer is still
+	// CREDITED amountUSD (metadata.amount_usd + the pending row, both
+	// unchanged), so the markup lands as gross margin without disturbing any
+	// credit/reconcile invariant.
+	chargeUSD := amountUSD
+	if t.opts.CreditMultiplier.GreaterThan(decimal.NewFromInt(1)) {
+		chargeUSD = amountUSD.Mul(t.opts.CreditMultiplier)
+	}
+	cents := chargeUSD.Mul(decimal.NewFromInt(100)).IntPart()
 	form.Set("line_items[0][quantity]", "1")
 	form.Set("line_items[0][price_data][currency]", "usd")
 	form.Set("line_items[0][price_data][unit_amount]", strconv.FormatInt(cents, 10))
 	form.Set("line_items[0][price_data][product_data][name]",
-		fmt.Sprintf("Ironflyer wallet top-up — $%s", amountUSD.StringFixed(2)))
+		fmt.Sprintf("Ironflyer wallet credit — $%s", amountUSD.StringFixed(2)))
 	// Tax collection: same flags as the subscription path so VAT/GST
 	// behave consistently for B2B buyers.
 	form.Set("automatic_tax[enabled]", "true")

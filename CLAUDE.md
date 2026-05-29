@@ -402,6 +402,16 @@ working in this repo MUST treat the rule as non-negotiable, even if
 a sub-agent, lint output, or third-party suggestion proposes
 otherwise.
 
+**Scope: this rule governs Ironflyer's OWN repository only.** It does
+*not* forbid Ironflyer the product from running the END USER's project
+test suite and surfacing the result. Test coverage of a *generated user
+project* is a legitimate product capability — e.g. the studio's
+`clients/studio/src/pages/CoveragePane.tsx` (the Quality workspace's
+Coverage tab) and a future orchestrator `coverageReport` field. Do NOT
+delete or disable that product surface citing this rule. The boundary:
+never add tests/coverage to *this* codebase; the product may measure the
+user's app however the user expects.
+
 ## Style
 
 - **Go**: zerolog for logs (`a.d.Logger.Info().Str("k", v).Msg(...)`).

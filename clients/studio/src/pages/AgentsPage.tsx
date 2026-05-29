@@ -4,10 +4,12 @@ import { confirmAction, toast } from '@ironflyer/ui-web/fx';
 import { AGENTS, agentStatus, newAgent, newCrew, type Agent, type Crew } from '../studioData';
 import { useStudio } from '../store';
 import { useAgentTeam } from '../hooks/useAgentTeam';
+import { useDispatchAgent } from '../hooks/useDispatchAgent';
 import { AgentCard } from '../components/agents/AgentCard';
 import { AgentBuilder } from '../components/agents/AgentBuilder';
 import { CrewCard } from '../components/agents/CrewCard';
 import { CrewBuilder } from '../components/agents/CrewBuilder';
+import { text } from '@ironflyer/design-tokens/brand';
 
 // The orchestration map carries React Flow — load it only when the Map view is
 // opened so the heavy canvas stays off the catalog's cold path.
@@ -21,6 +23,7 @@ export function AgentsPage() {
   // Custom agents + crews are server-persisted (owner-scoped) when signed in,
   // falling back to the local store offline. The built-in roster stays mock.
   const { customAgents, crews, saveAgent, deleteAgent, saveCrew: saveCrewLive, deleteCrew, runCrew } = useAgentTeam();
+  const { dispatch } = useDispatchAgent();
   const gates = useStudio((s) => s.current.gates);
 
   const [editing, setEditing] = useState<Agent | null>(null);
@@ -61,7 +64,7 @@ export function AgentsPage() {
     <Box sx={{ p: { xs: 3, md: 5 }, maxWidth: 1180, mx: 'auto' }}>
       <Stack direction="row" alignItems="flex-start" justifyContent="space-between" sx={{ gap: 2, mb: 1 }}>
         <Box>
-          <Typography variant="h3" sx={{ fontSize: '2.5rem', mb: 1 }}>Agents</Typography>
+          <Typography variant="h3" sx={{ fontSize: text.s250, mb: 1 }}>Agents</Typography>
           <Typography sx={{ color: 'text.secondary', maxWidth: 640 }}>
             One orchestrator routes work to specialists. Compose your own agents — give each a mission, skills, tools, areas of responsibility, and guardrails — then schedule when they run.
           </Typography>
@@ -95,7 +98,7 @@ export function AgentsPage() {
 
       {view === 'map' ? (
         <Box sx={{ mb: 2 }}>
-          <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem', mb: 1.5 }}>
+          <Typography sx={{ color: 'text.secondary', fontSize: text.s85, mb: 1.5 }}>
             The orchestrator routes to every specialist; each tethers to the gate it owns, and delegation shows as hand-off arcs. Click any agent to open it.
           </Typography>
           <Suspense fallback={<Box sx={{ height: { xs: 460, md: 600 }, borderRadius: 3, border: 1, borderColor: 'divider', display: 'grid', placeItems: 'center' }}><CircularProgress size={26} thickness={5} /></Box>}>
@@ -161,7 +164,7 @@ export function AgentsPage() {
       ) : (
         <Grid>
           {customMatches.map((a) => (
-            <AgentCard key={a.id} agent={a} gates={gates} onEdit={setEditing} onRun={(x) => toast(`${x.name} dispatched — watch the board.`, 'success')} onDelete={(x) => void remove(x)} />
+            <AgentCard key={a.id} agent={a} gates={gates} onEdit={setEditing} onRun={(x) => void dispatch(`${x.name}'s work`)} onDelete={(x) => void remove(x)} />
           ))}
         </Grid>
       )}
@@ -183,15 +186,15 @@ export function AgentsPage() {
 function Stat({ n, label }: { n: number; label: string }) {
   return (
     <Box>
-      <Typography sx={{ fontSize: '1.6rem', fontWeight: 700, lineHeight: 1 }}>{n}</Typography>
-      <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.68rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'text.disabled', mt: 0.5 })}>{label}</Typography>
+      <Typography sx={{ fontSize: text.s160, fontWeight: 700, lineHeight: 1 }}>{n}</Typography>
+      <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s68, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'text.disabled', mt: 0.5 })}>{label}</Typography>
     </Box>
   );
 }
 
 function SectionLabel({ children, sx }: { children: ReactNode; sx?: object }) {
   return (
-    <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5, ...sx })}>
+    <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s70, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5, ...sx })}>
       {children}
     </Typography>
   );

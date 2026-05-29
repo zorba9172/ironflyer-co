@@ -27,6 +27,12 @@ const (
 	GateVerifier GateName = "verifier"
 	GateLint     GateName = "lint"
 	GateTest     GateName = "test"
+	// GateCoverage measures the user project's test coverage when the
+	// project opts in via Settings.CoverageEnabled. A no-op (returns no
+	// issues) when the toggle is off, so it is safe to register in the
+	// default set. Warns when overall coverage is below the project's
+	// floor and names the files that are not closed.
+	GateCoverage GateName = "coverage"
 	GateSecurity GateName = "security"
 	GateBudget   GateName = "budget"
 	GateDeploy   GateName = "deploy"
@@ -185,6 +191,7 @@ func AllGates() []GateName {
 	return []GateName{
 		GateSpec, GateUX, GateArch,
 		GateCode, GateDrift, GateVerifier, GateLint, GateTest,
+		GateCoverage,
 		GateSecurity, GateBudget,
 		GateComplianceSOC2, GateComplianceHIPAA,
 		GateCompliancePCI, GateComplianceGDPR,
@@ -300,6 +307,20 @@ type ProjectSettings struct {
 	// support inside the sandbox, and the merge step costs an extra
 	// Critic round.
 	EnableParallelBranches bool `json:"enableParallelBranches,omitempty"`
+
+	// CoverageEnabled opts this user project into the test-coverage
+	// capability: when true, the CoverageGate runs the project's suite
+	// with coverage instrumentation in the sandbox, parses the report,
+	// and surfaces which files are not closed (uncovered). Off by
+	// default so existing projects are unaffected. NOTE: this measures
+	// the USER's generated project — it is unrelated to Ironflyer's own
+	// "no tests" rule, which governs this repo only.
+	CoverageEnabled bool `json:"coverageEnabled,omitempty"`
+	// CoverageMinPct is the overall line-coverage floor (0..100). When
+	// CoverageEnabled and the measured overall falls below this, the
+	// CoverageGate raises a warning. Zero means "report only, never
+	// warn on the floor". Typical pin: 80.
+	CoverageMinPct float64 `json:"coverageMinPct,omitempty"`
 }
 
 // IsAccessibleBy returns true when userID owns the project or it is public.

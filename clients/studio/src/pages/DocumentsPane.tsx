@@ -6,6 +6,7 @@ import { Chart, type EChartsOption, CodeEditor, toast, Lightbox } from '@ironfly
 import { useThemeMode } from '@ironflyer/ui-web';
 import { useStudio, type Attachment } from '../store';
 import { DocDialog } from '../components/DocDialog';
+import { text } from '@ironflyer/design-tokens/brand';
 
 function readFile(file: File): Promise<Attachment> {
   const id = `${file.name}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
@@ -75,8 +76,8 @@ export function DocumentsPane() {
 
   const columns = useMemo<DataGridColumn<Attachment>[]>(() => [
     { field: 'name', headerName: 'Name', flex: 1, minWidth: 220 },
-    { field: 'kind', headerName: 'Type', width: 110, cellRenderer: ({ data }: DataGridCellParams<Attachment>) => data ? <Chip size="small" label={data.kind} sx={{ height: 20, fontSize: '0.64rem', bgcolor: 'action.hover' }} /> : null },
-    { colId: 'grounds', headerName: 'Grounds chat', width: 130, cellRenderer: ({ data }: DataGridCellParams<Attachment>) => data ? <Typography sx={{ fontSize: '0.8rem', color: data.text ? 'success.main' : 'text.disabled' }}>{data.text ? '● yes' : '— no'}</Typography> : null },
+    { field: 'kind', headerName: 'Type', width: 110, cellRenderer: ({ data }: DataGridCellParams<Attachment>) => data ? <Chip size="small" label={data.kind} sx={{ height: 20, fontSize: text.s64, bgcolor: 'action.hover' }} /> : null },
+    { colId: 'grounds', headerName: 'Grounds chat', width: 130, cellRenderer: ({ data }: DataGridCellParams<Attachment>) => data ? <Typography sx={{ fontSize: text.s80, color: data.text ? 'success.main' : 'text.disabled' }}>{data.text ? '● yes' : '— no'}</Typography> : null },
     { field: 'size', headerName: 'Size', width: 100, valueFormatter: ({ value }) => fmtSize(Number(value)) },
     { colId: 'remove', headerName: '', width: 70, sortable: false, filter: false, cellRenderer: ({ data }: DataGridCellParams<Attachment>) => data ? <Button size="small" color="inherit" onClick={(e) => { e.stopPropagation(); removeAttachment(data.id); }}>Remove</Button> : null },
   ], [removeAttachment]);
@@ -114,7 +115,7 @@ export function DocumentsPane() {
       <Box sx={{ maxWidth: 1040, mx: 'auto' }}>
         <Stack direction="row" alignItems="flex-start" justifyContent="space-between" sx={{ mb: 2.5, gap: 2 }}>
           <Box>
-            <Typography variant="h4" sx={{ fontSize: '1.6rem', mb: 0.5 }}>Documents</Typography>
+            <Typography variant="h4" sx={{ fontSize: text.s160, mb: 0.5 }}>Documents</Typography>
             <Typography sx={{ color: 'text.secondary' }}>
               Everything the build reads, in one place. Create a doc or upload files — text docs ground the chat and every agent.
             </Typography>
@@ -128,7 +129,7 @@ export function DocumentsPane() {
         {attachments.length > 0 && (
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '300px 1fr' }, gap: 1.5, mb: 3, alignItems: 'stretch' }}>
             <Card sx={{ p: 2 }}>
-              <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.66rem', textTransform: 'uppercase', color: 'text.disabled', mb: 0.5 })}>Documents by type</Typography>
+              <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 0.5 })}>Documents by type</Typography>
               <Chart option={typeDonut} height={200} />
             </Card>
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr' }, gap: 1.5 }}>
@@ -139,9 +140,9 @@ export function DocumentsPane() {
                 { label: 'Other files', value: String(attachments.filter((a) => a.kind === 'file').length), sub: 'attached, not parsed' },
               ].map((m) => (
                 <Card key={m.label} sx={{ p: 2.5, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                  <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: '0.66rem', textTransform: 'uppercase', color: 'text.disabled' })}>{m.label}</Typography>
-                  <Typography variant="h4" sx={{ fontSize: '1.8rem', mt: 0.5 }}>{m.value}</Typography>
-                  <Typography sx={{ fontSize: '0.76rem', color: 'text.secondary' }}>{m.sub}</Typography>
+                  <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled' })}>{m.label}</Typography>
+                  <Typography variant="h4" sx={{ fontSize: text.s180, mt: 0.5 }}>{m.value}</Typography>
+                  <Typography sx={{ fontSize: text.s76, color: 'text.secondary' }}>{m.sub}</Typography>
                 </Card>
               ))}
             </Box>
@@ -149,7 +150,7 @@ export function DocumentsPane() {
         )}
 
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-          <Typography sx={{ color: 'text.secondary', fontSize: '0.9rem' }}>
+          <Typography sx={{ color: 'text.secondary', fontSize: text.s90 }}>
             {attachments.length} document{attachments.length === 1 ? '' : 's'}{grounding > 0 ? ` · ${grounding} grounding the chat` : ''}
           </Typography>
           <ToggleButtonGroup exclusive size="small" value={view} onChange={(_, v) => v && setView(v)} sx={{ '& .MuiToggleButton-root': { px: 1.25, py: 0.5, textTransform: 'none', borderColor: 'divider' } }}>
@@ -173,7 +174,7 @@ export function DocumentsPane() {
             >
               <Box sx={{ color: 'text.disabled', mb: 1.5, display: 'flex', justifyContent: 'center' }}><UploadGlyph /></Box>
               <Typography sx={{ fontWeight: 600, mb: 0.5 }}>Drop files here, or use New document</Typography>
-              <Typography sx={{ fontSize: '0.85rem', color: 'text.disabled' }}>md, txt, json, csv, yaml, html, png, jpg — text files ground the chat.</Typography>
+              <Typography sx={{ fontSize: text.s85, color: 'text.disabled' }}>md, txt, json, csv, yaml, html, png, jpg — text files ground the chat.</Typography>
             </Card>
           ) : view === 'tiles' ? (
             <Lightbox>
@@ -189,8 +190,8 @@ export function DocumentsPane() {
                       <Box sx={(t) => ({ height: 120, display: 'grid', placeItems: 'center', color: 'text.disabled', backgroundImage: t.brand.gradient.signatureSoft })}><FileGlyph /></Box>
                     )}
                     <Box sx={{ p: 1.5 }}>
-                      <Typography sx={{ fontSize: '0.84rem', fontWeight: 600 }} noWrap>{a.name}</Typography>
-                      <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.68rem', color: 'text.disabled' })}>{a.kind}{a.text ? ' · grounds chat' : ''} · {fmtSize(a.size)}</Typography>
+                      <Typography sx={{ fontSize: text.s84, fontWeight: 600 }} noWrap>{a.name}</Typography>
+                      <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s68, color: 'text.disabled' })}>{a.kind}{a.text ? ' · grounds chat' : ''} · {fmtSize(a.size)}</Typography>
                     </Box>
                   </Card>
                 ))}
@@ -215,7 +216,7 @@ export function DocumentsPane() {
         <DocDialog attachment={openDoc} onClose={() => setOpenDoc(null)} onSave={updateAttachment} />
 
         <Dialog open={creating} onClose={() => setCreating(false)} maxWidth="md" fullWidth slotProps={{ paper: { sx: { border: 1, borderColor: 'divider', backgroundImage: 'none' } } }}>
-          <DialogTitle sx={{ fontWeight: 700, fontSize: '1.05rem' }}>New document</DialogTitle>
+          <DialogTitle sx={{ fontWeight: 700, fontSize: text.s105 }}>New document</DialogTitle>
           <DialogContent dividers sx={{ p: 0 }}>
             <Box sx={{ p: 2.5, pb: 1.5 }}>
               <TextField label="File name" value={newName} onChange={(e) => setNewName(e.target.value)} fullWidth size="small" placeholder="spec.md" />

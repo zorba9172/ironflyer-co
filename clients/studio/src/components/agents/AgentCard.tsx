@@ -3,6 +3,7 @@ import { useTheme } from '@mui/material/styles';
 import { agentStatus, scheduleLabel, type Agent, type AgentStatus, type Gate } from '../../studioData';
 import { autonomyLabel, skillLabel } from '../../agentLibrary';
 import { agentColor } from '../statusColor';
+import { text } from '@ironflyer/design-tokens/brand';
 
 const statusText: Record<AgentStatus, string> = { working: 'Working', done: 'Done', blocked: 'Blocked', idle: 'Idle' };
 
@@ -25,9 +26,9 @@ function MetaChips({ skills }: { skills?: string[] }) {
   return (
     <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.5, mt: 1.25 }}>
       {shown.map((s) => (
-        <Chip key={s} size="small" label={skillLabel(s)} sx={{ height: 20, fontSize: '0.66rem', bgcolor: 'action.hover' }} />
+        <Chip key={s} size="small" label={skillLabel(s)} sx={{ height: 20, fontSize: text.s66, bgcolor: 'action.hover' }} />
       ))}
-      {extra > 0 && <Chip size="small" label={`+${extra}`} sx={{ height: 20, fontSize: '0.66rem', bgcolor: 'action.hover', color: 'text.secondary' }} />}
+      {extra > 0 && <Chip size="small" label={`+${extra}`} sx={{ height: 20, fontSize: text.s66, bgcolor: 'action.hover', color: 'text.secondary' }} />}
     </Stack>
   );
 }
@@ -57,20 +58,20 @@ export function AgentCard({ agent, gates, builtIn, onEdit, onRun, onDelete }: Ag
         <Stack direction="row" alignItems="center" spacing={1.5} sx={{ minWidth: 0 }}>
           <Avatar name={agent.name || 'A'} />
           <Box sx={{ minWidth: 0 }}>
-            <Typography variant="h6" sx={{ fontSize: '1.02rem' }} noWrap>{agent.name || 'Untitled agent'}</Typography>
+            <Typography variant="h6" sx={{ fontSize: text.s102 }} noWrap>{agent.name || 'Untitled agent'}</Typography>
             {agent.autonomy && (
-              <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.62rem', color: 'text.disabled', textTransform: 'uppercase', letterSpacing: '0.08em' })}>
+              <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s62, color: 'text.disabled', textTransform: 'uppercase', letterSpacing: '0.08em' })}>
                 {autonomyLabel(agent.autonomy)}
               </Typography>
             )}
           </Box>
         </Stack>
-        <Chip size="small" label={statusText[status]} sx={{ height: 20, fontSize: '0.66rem', bgcolor: `${color}22`, color }} />
+        <Chip size="small" label={statusText[status]} sx={{ height: 20, fontSize: text.s66, bgcolor: `${color}22`, color }} />
       </Stack>
 
-      <Typography sx={{ color: 'text.secondary', fontSize: '0.88rem' }}>{agent.role || 'No objective set'}</Typography>
+      <Typography sx={{ color: 'text.secondary', fontSize: text.s88 }}>{agent.role || 'No objective set'}</Typography>
       {agent.description && (
-        <Typography sx={{ fontSize: '0.8rem', color: 'text.disabled', mt: 0.75, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{agent.description}</Typography>
+        <Typography sx={{ fontSize: text.s80, color: 'text.disabled', mt: 0.75, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{agent.description}</Typography>
       )}
 
       <MetaChips skills={agent.skills} />
@@ -83,13 +84,13 @@ export function AgentCard({ agent, gates, builtIn, onEdit, onRun, onDelete }: Ag
             size="small"
             icon={<Box sx={{ display: 'flex', color: 'inherit', ml: 0.5 }}><ClockGlyph /></Box>}
             label={scheduleLabel(agent.schedule)}
-            sx={(t) => ({ height: 22, fontSize: '0.66rem', fontFamily: t.brand.font.mono, bgcolor: 'action.hover', color: agent.schedule?.enabled === false ? 'text.disabled' : 'text.secondary' })}
+            sx={(t) => ({ height: 22, fontSize: text.s66, fontFamily: t.brand.font.mono, bgcolor: 'action.hover', color: agent.schedule?.enabled === false ? 'text.disabled' : 'text.secondary' })}
           />
         )}
         {(agent.tools?.length ?? 0) > 0 && (
-          <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.66rem', color: 'text.disabled' })}>{agent.tools!.length} tools</Typography>
+          <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s66, color: 'text.disabled' })}>{agent.tools!.length} tools</Typography>
         )}
-        {gate && <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.66rem', color: 'text.disabled' })}>owns {gate.name}</Typography>}
+        {gate && <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s66, color: 'text.disabled' })}>owns {gate.name}</Typography>}
       </Stack>
 
       {!builtIn && (

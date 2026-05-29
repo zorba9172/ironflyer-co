@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Box, Stack, Tooltip, Typography } from '@mui/material';
 import { useDataConfig } from '@ironflyer/data';
+import { text } from '@ironflyer/design-tokens/brand';
 
 interface Posture { private: boolean; selfHosted: boolean; privateModel: string }
 
@@ -37,7 +38,7 @@ export function PrivateModeChip() {
         sx={(t) => ({ px: 1, py: 0.5, borderRadius: 99, border: 1, borderColor: 'divider', bgcolor: `${t.palette.success.main}14`, color: 'success.main', userSelect: 'none' })}
       >
         <Box sx={{ width: 7, height: 7, borderRadius: 99, bgcolor: 'currentColor', flexShrink: 0 }} />
-        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.68rem', fontWeight: 600 })}>{label}</Typography>
+        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s68, fontWeight: 600 })}>{label}</Typography>
       </Stack>
     </Tooltip>
   );

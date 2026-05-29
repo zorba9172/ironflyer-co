@@ -44,6 +44,7 @@ RUN adduser -D -u 10001 iron
 RUN apk add --no-cache \
     bash \
     ca-certificates \
+    coreutils \
     curl \
     git \
     jq \

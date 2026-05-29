@@ -1,6 +1,7 @@
 import { Box, Card, Stack, Typography } from '@mui/material';
 import type { Gate, GateStatus } from '../studioData';
 import { statusColor } from './statusColor';
+import { text } from '@ironflyer/design-tokens/brand';
 
 // The vision's "Definition of Done" made legible: each item is backed by a real
 // finisher gate verdict, so "done" is never a vibe — it's a passing gate. An
@@ -33,18 +34,46 @@ function CheckGlyph() {
   );
 }
 
-export function DefinitionOfDone({ gates }: { gates: Gate[] }) {
-  const items = DOD_ITEMS.map((it) => ({ ...it, ...resolve(gates, it.gateIds) }));
+// H3 — ProfitGuard as a Definition-of-Done concern. "Done" is never just the
+// finisher gates: a paid execution is only shippable if it clears the economic
+// gate too (law 2). The verdict is derived live in PreviewWorkspace from the
+// orchestrator's trajectory + wallet headroom and passed in here so the DoD
+// names the budget/ROI block alongside the build blocks. Optional so callers
+// that have no economic context (e.g. the sample map) render gates only.
+export interface ProfitGuardItem {
+  /** allow → done, hold → open (warning), block → blocked (error) */
+  verdict: 'allow' | 'hold' | 'block';
+  reason: string;
+}
+
+function pgStatus(v: ProfitGuardItem['verdict']): GateStatus {
+  return v === 'allow' ? 'closed' : v === 'hold' ? 'open' : 'blocked';
+}
+
+export function DefinitionOfDone({ gates, profitGuard }: { gates: Gate[]; profitGuard?: ProfitGuardItem }) {
+  const gateItems = DOD_ITEMS.map((it) => ({ ...it, ...resolve(gates, it.gateIds) }));
+  const items = profitGuard
+    ? [
+        ...gateItems,
+        {
+          label: 'Within budget & ROI',
+          sub: 'ProfitGuard clears the next paid step',
+          gateIds: [] as string[],
+          status: pgStatus(profitGuard.verdict),
+          reason: profitGuard.verdict === 'allow' ? 'done' : profitGuard.reason,
+        },
+      ]
+    : gateItems;
   const done = items.filter((i) => i.status === 'closed').length;
   const blocked = items.find((i) => i.status === 'blocked' || i.status === 'open');
 
   return (
     <Card sx={{ p: 2.5, mt: 1.5 }}>
       <Stack direction="row" alignItems="baseline" justifyContent="space-between" sx={{ mb: 1.5 }}>
-        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.68rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'text.disabled' })}>
+        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s68, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'text.disabled' })}>
           Definition of Done
         </Typography>
-        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.8rem', color: done === items.length ? 'success.main' : 'text.secondary' })}>
+        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s80, color: done === items.length ? 'success.main' : 'text.secondary' })}>
           {done}/{items.length} {done === items.length ? '· shippable' : blocked ? `· blocked on ${blocked.label.toLowerCase()}` : '· in progress'}
         </Typography>
       </Stack>
@@ -64,11 +93,11 @@ export function DefinitionOfDone({ gates }: { gates: Gate[] }) {
                 {done ? <CheckGlyph /> : <Box sx={{ width: 6, height: 6, borderRadius: 99, bgcolor: 'currentColor' }} />}
               </Box>
               <Box sx={{ minWidth: 0, flex: 1 }}>
-                <Typography sx={{ fontSize: '0.86rem', fontWeight: 600 }} noWrap>{it.label}</Typography>
-                <Typography sx={{ fontSize: '0.74rem', color: 'text.secondary' }} noWrap>{it.sub}</Typography>
+                <Typography sx={{ fontSize: text.s86, fontWeight: 600 }} noWrap>{it.label}</Typography>
+                <Typography sx={{ fontSize: text.s74, color: 'text.secondary' }} noWrap>{it.sub}</Typography>
               </Box>
               <Typography
-                sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.72rem', color: done ? 'success.main' : statusColor(t, it.status), textTransform: 'uppercase', flexShrink: 0 })}
+                sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s72, color: done ? 'success.main' : statusColor(t, it.status), textTransform: 'uppercase', flexShrink: 0 })}
               >
                 {done ? 'done' : it.reason}
               </Typography>

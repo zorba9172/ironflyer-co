@@ -166,8 +166,11 @@ func (s RuntimeSecretScanner) Scan(ctx context.Context, target Target, _ Invento
 	res, err := target.Runtime.Exec(ctx, target.UserBearer, target.WorkspaceID, runtime.ExecOpts{
 		Shell: listCmd, TimeoutSeconds: 60,
 	})
-	if err != nil || res.ExitCode > 1 {
-		return nil, nil
+	if err := scannerTransportError(s.ID(), res, err); err != nil {
+		return nil, err
+	}
+	if res.ExitCode > 1 {
+		return nil, scannerExitError(s.ID(), res)
 	}
 	native := NativeSecretScanner{}
 	var out []Finding
@@ -179,8 +182,11 @@ func (s RuntimeSecretScanner) Scan(ctx context.Context, target Target, _ Invento
 		body, err := target.Runtime.Exec(ctx, target.UserBearer, target.WorkspaceID, runtime.ExecOpts{
 			Shell: "head -c 262144 -- " + shellQuote(path), TimeoutSeconds: 20,
 		})
-		if err != nil || body.ExitCode != 0 {
-			continue
+		if err := scannerTransportError(s.ID(), body, err); err != nil {
+			return nil, err
+		}
+		if body.ExitCode != 0 {
+			return nil, scannerExitError(s.ID(), body)
 		}
 		for _, f := range native.ScanContent(strings.TrimPrefix(path, "./"), body.Stdout) {
 			f.Tool = s.ID()

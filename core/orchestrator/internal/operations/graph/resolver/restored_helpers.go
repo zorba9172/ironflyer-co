@@ -64,13 +64,10 @@ func telemetryCallToGraphQL(c providers.AgentCall) model.AgentCall {
 }
 
 func agentCallToCostDelta(c providers.AgentCall) *model.CostDelta {
+	// User-facing live cost stream: cost/agent/duration only. Provider + model
+	// are deliberately NOT set — the orchestrator never names a vendor to the
+	// user (the schema fields stay nullable and are left nil here).
 	out := &model.CostDelta{Ts: c.StartedAt, UsdSpent: model.NewDecimal(decimal.NewFromFloat(c.CostUSD))}
-	if c.Model != "" {
-		out.Model = stringPtr(c.Model)
-	}
-	if c.Provider != "" {
-		out.Provider = stringPtr(c.Provider)
-	}
 	if c.Role != "" {
 		out.Agent = stringPtr(c.Role)
 	}
@@ -192,12 +189,8 @@ func ledgerEntryToGraphQL(e budget.LedgerEntry) model.LedgerEntry {
 	if e.ProjectID != "" {
 		out.ProjectID = stringPtr(e.ProjectID)
 	}
-	if e.Provider != "" {
-		out.Provider = stringPtr(e.Provider)
-	}
-	if e.Model != "" {
-		out.Model = stringPtr(e.Model)
-	}
+	// Provider + model are NOT surfaced on a user's own budget ledger — the
+	// orchestrator speaks for every vendor. Tokens + cost are enough.
 	return out
 }
 

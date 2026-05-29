@@ -10,7 +10,9 @@ import (
 	"encoding/json"
 	"ironflyer/core/orchestrator/internal/ai/domain"
 	"ironflyer/core/orchestrator/internal/business/execution"
+	"ironflyer/core/orchestrator/internal/business/forecast"
 	"ironflyer/core/orchestrator/internal/business/ledger"
+	"ironflyer/core/orchestrator/internal/business/profitguard"
 	"ironflyer/core/orchestrator/internal/business/wallet"
 	"ironflyer/core/orchestrator/internal/operations/graph/model"
 	"strings"
@@ -39,7 +41,35 @@ func (r *mutationResolver) CreatePaidExecution(ctx context.Context, input model.
 	tenant := tenantFor(u)
 	budgetDec := decimal.NewFromFloat(input.BudgetUsd)
 
-	// Hold first — law 1.
+	// Law 2 — ProfitGuard admission gate (BeforeExecutionAdmit). Before any
+	// funds are held, forecast the run's cost and refuse UP FRONT if the
+	// projected gross margin (revenue = the user's budget) sits below the
+	// platform floor. This rejects a loss-making execution at the door
+	// instead of locking a hold and then aborting mid-flight after burning
+	// partial cost. Best-effort: a missing forecaster/guard or a forecast
+	// error never blocks a legitimately-funded run — only a definite
+	// sub-floor verdict refuses.
+	if r.ProfitGuard != nil && r.Forecaster != nil && budgetDec.IsPositive() {
+		bpID := ""
+		if input.BlueprintID != nil {
+			bpID = strings.TrimSpace(*input.BlueprintID)
+		}
+		if est, ferr := r.Forecaster.Estimate(ctx, forecast.EstimateInput{TenantID: tenant, BlueprintID: bpID}); ferr == nil {
+			admit := profitguard.ExecState{
+				TenantID:                 tenant,
+				UserBudgetUSD:            budgetDec,
+				EstimatedPlatformCostUSD: est.MedianUSD,
+			}
+			if dec, derr := r.ProfitGuard.Decide(ctx, profitguard.BeforeExecutionAdmit, admit); derr == nil {
+				switch dec.Action {
+				case profitguard.Stop, profitguard.PauseForBudget, profitguard.KillBranch:
+					return nil, gqlProfitGuardRefused(dec.Reason)
+				}
+			}
+		}
+	}
+
+	// Hold — law 1.
 	if err := r.WalletSvc.Hold(ctx, tenant, budgetDec); err != nil {
 		if err == wallet.ErrInsufficient {
 			return nil, gqlInsufficientFunds(r.WebBaseURL)

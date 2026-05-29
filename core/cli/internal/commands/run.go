@@ -106,7 +106,7 @@ func streamAndRun(parent context.Context, env *Env, id string, trigger bool) err
 			if !ok {
 				events = nil
 				// drain run outcome if we triggered one
-				if trigger {
+				if trigger && runCh != nil {
 					out := <-runCh
 					if out.err != nil {
 						return out.err
