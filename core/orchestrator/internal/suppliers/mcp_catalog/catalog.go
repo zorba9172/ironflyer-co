@@ -80,6 +80,17 @@ type ServerSpec struct {
 func DefaultCatalog() []ServerSpec {
 	return []ServerSpec{
 		{
+			ID: "context7", Name: "Context7", Vendor: "Context7",
+			Description:    "Ground every code-writing agent against up-to-date, version-accurate library documentation — cuts hallucinated and stale third-party APIs.",
+			Command:        "npx",
+			Args:           []string{"-y", "@upstash/context7-mcp"},
+			EnvKeys:        nil, // public server; an optional CONTEXT7_API_KEY only raises the rate limit.
+			Capabilities:   []string{"read", "search"},
+			RequiresSecret: false,
+			Category:       "Devtools",
+			IconURL:        "https://cdn.simpleicons.org/readme/ffffff",
+		},
+		{
 			ID: "github", Name: "GitHub", Vendor: "GitHub",
 			Description:    "Read repositories, open pull requests, comment on issues, manage releases.",
 			Command:        "npx",

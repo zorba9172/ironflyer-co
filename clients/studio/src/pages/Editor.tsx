@@ -20,6 +20,16 @@ const PerformancePane = lazy(() => import('./PerformancePane').then((m) => ({ de
 const QualityPane = lazy(() => import('./QualityPane').then((m) => ({ default: m.QualityPane })));
 const AgentsManagerPane = lazy(() => import('./AgentsManagerPane').then((m) => ({ default: m.AgentsManagerPane })));
 const ExecutionTeamGraph = lazy(() => import('./ExecutionTeamGraph').then((m) => ({ default: m.ExecutionTeamGraph })));
+const TheaterPane = lazy(() => import('./TheaterPane').then((m) => ({ default: m.TheaterPane })));
+// Operate group — post-deploy surfaces, each code-split.
+const DataPane = lazy(() => import('./DataPane').then((m) => ({ default: m.DataPane })));
+const UsersPane = lazy(() => import('./UsersPane').then((m) => ({ default: m.UsersPane })));
+const AnalyticsPane = lazy(() => import('./AnalyticsPane').then((m) => ({ default: m.AnalyticsPane })));
+const DomainsPane = lazy(() => import('./DomainsPane').then((m) => ({ default: m.DomainsPane })));
+const AutomationsPane = lazy(() => import('./AutomationsPane').then((m) => ({ default: m.AutomationsPane })));
+const ApiPane = lazy(() => import('./ApiPane').then((m) => ({ default: m.ApiPane })));
+const MarketingPane = lazy(() => import('./MarketingPane').then((m) => ({ default: m.MarketingPane })));
+const SettingsPane = lazy(() => import('./SettingsPane').then((m) => ({ default: m.SettingsPane })));
 
 function PaneFallback() {
   return (
@@ -32,7 +42,10 @@ function PaneFallback() {
 export function Editor() {
   const project = useStudio((s) => s.current);
   const initialPrompt = useStudio((s) => s.initialPrompt);
-  const [tab, setTab] = useState<EditorTab>('dashboard');
+  // Land on the live preview when a scaffold is already seeded (instant-start
+  // from a template) so the running app is the first thing the operator sees.
+  const seededFiles = useStudio((s) => s.generatedFiles.length > 0);
+  const [tab, setTab] = useState<EditorTab>(seededFiles ? 'theater' : 'dashboard');
 
   const open = project.gates.filter((g) => g.blocking).length;
   const remaining = project.meters.walletBudget - project.meters.walletUsed;
@@ -75,6 +88,7 @@ export function Editor() {
           >
             <Suspense fallback={<PaneFallback />}>
               {tab === 'preview' && <PreviewPane />}
+              {tab === 'theater' && <TheaterPane project={project} />}
               {tab === 'map' && <GateMap project={project} onOpenTab={setTab} />}
               {tab === 'security' && <SecurityPane fallback={project.security} />}
               {tab === 'code' && <CodePane />}
@@ -85,6 +99,14 @@ export function Editor() {
               {tab === 'quality' && <QualityPane />}
               {tab === 'logs' && <LogsPane fallback={project} />}
               {tab === 'documents' && <DocumentsPane />}
+              {tab === 'data' && <DataPane />}
+              {tab === 'users' && <UsersPane />}
+              {tab === 'analytics' && <AnalyticsPane />}
+              {tab === 'domains' && <DomainsPane />}
+              {tab === 'automations' && <AutomationsPane />}
+              {tab === 'api' && <ApiPane />}
+              {tab === 'marketing' && <MarketingPane />}
+              {tab === 'settings' && <SettingsPane />}
             </Suspense>
           </motion.div>
         </AnimatePresence>

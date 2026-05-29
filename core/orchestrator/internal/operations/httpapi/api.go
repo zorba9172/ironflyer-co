@@ -56,6 +56,7 @@ import (
 	"ironflyer/core/orchestrator/internal/customer/auth"
 	"ironflyer/core/orchestrator/internal/customer/auth/oauth"
 	"ironflyer/core/orchestrator/internal/customer/notify"
+	"ironflyer/core/orchestrator/internal/operations/appconsole"
 	"ironflyer/core/orchestrator/internal/operations/arch"
 	"ironflyer/core/orchestrator/internal/operations/audit"
 	"ironflyer/core/orchestrator/internal/operations/auditexport"
@@ -151,6 +152,13 @@ type Deps struct {
 	Version   string
 	Commit    string
 	BuildTime string
+
+	// Inference posture surfaced by /version so the studio can render the
+	// "your code never leaves your infra" privacy moat without a GraphQL
+	// round trip. Derived from config at boot.
+	PrivateInference      bool
+	SelfHostedInference   bool
+	PrivateInferenceModel string
 
 	// Dev convenience: when DevEnv == "dev" and DevWalletSeedUSD > 0,
 	// the SignUp resolver credits the new user's own wallet so describeIdea
@@ -286,6 +294,12 @@ type Deps struct {
 	// GuildCoord drives every FinisherGuild mutation (task lifecycle,
 	// bid lifecycle, template installs). Nil-safe at the resolver.
 	GuildCoord *guild.Coordinator
+
+	// AppConsole backs the studio's Operate surfaces (Data, Users,
+	// Analytics, Automations, API, Marketing, Settings). Nil-safe at
+	// the resolver — when nil the operate resolvers return
+	// gqlNotConfigured("operate").
+	AppConsole *appconsole.Store
 }
 
 // API is the HTTP layer entry point. It assembles the chi router from
@@ -543,6 +557,9 @@ func (a *API) newResolver() *resolver.Resolver {
 		ShipPassSettler: a.d.ShipPassSettler,
 		Sentinel:        a.d.Sentinel,
 		GuildCoord:      a.d.GuildCoord,
+
+		// Operate console — post-deploy "run the app" surfaces.
+		AppConsole: a.d.AppConsole,
 	}
 }
 
@@ -649,6 +666,11 @@ func (a *API) version(w http.ResponseWriter, _ *http.Request) {
 		"commit":    a.d.Commit,
 		"buildTime": a.d.BuildTime,
 		"service":   "ironflyer-orchestrator",
+		"inference": map[string]any{
+			"private":      a.d.PrivateInference,
+			"selfHosted":   a.d.SelfHostedInference,
+			"privateModel": a.d.PrivateInferenceModel,
+		},
 	})
 }
 

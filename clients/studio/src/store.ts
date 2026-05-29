@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { mockProject, newProjectFromPrompt, type StudioProject, type Agent } from './studioData';
+import { mockProject, newProjectFromPrompt, type StudioProject, type Agent, type Crew } from './studioData';
 
 export interface Attachment {
   id: string;
@@ -68,6 +68,8 @@ interface StudioState {
   attachments: Attachment[];
   /** operator-created agents (the built-in roster lives in studioData AGENTS) */
   customAgents: Agent[];
+  /** operator-created crews — agents grouped to run together */
+  crews: Crew[];
   /** files the chat agent has written this session — shown live in the Code tab */
   generatedFiles: GeneratedFile[];
   /** backend id of the project this session edits, null until first save/open */
@@ -85,6 +87,10 @@ interface StudioState {
   openProject: (project: StudioProject) => void;
   /** open a real backend project: set its id, load its files, mark saved */
   openLiveProject: (project: StudioProject, backendId: string, files: { path: string; content: string }[]) => void;
+  /** Instant-start: seed a runnable scaffold so the live preview renders in
+   *  seconds, then the agent enhances it on top. The Base44 speed-feel, but
+   *  on top of the finisher discipline (gates/cost/private). */
+  startFromTemplate: (prompt: string, files: { path: string; content: string }[]) => void;
   setLiveProjectId: (id: string | null) => void;
   markSaved: () => void;
   selectGate: (id: string | null) => void;
@@ -94,6 +100,9 @@ interface StudioState {
   addAgent: (agent: Agent) => void;
   updateAgent: (agent: Agent) => void;
   removeAgent: (id: string) => void;
+  addCrew: (crew: Crew) => void;
+  updateCrew: (crew: Crew) => void;
+  removeCrew: (id: string) => void;
   writeGeneratedFiles: (files: { path: string; content: string }[]) => void;
   clearGeneratedFiles: () => void;
   // chat sessions
@@ -128,6 +137,7 @@ export const useStudio = create<StudioState>()(
       constitution: '',
       attachments: [],
       customAgents: [],
+      crews: [],
       generatedFiles: [],
       liveProjectId: null,
       saved: false,
@@ -140,6 +150,12 @@ export const useStudio = create<StudioState>()(
         initialPrompt: '', current: project, selectedGateId: null, liveProjectId: backendId, saved: true,
         generatedFiles: files.map((f) => ({ path: f.path, content: f.content, rev: 1 })), ...freshChat(s.chatSessions),
       })),
+      startFromTemplate: (prompt, files) => set((s) => ({
+        initialPrompt: prompt.trim(), current: newProjectFromPrompt(prompt), selectedGateId: null,
+        constitution: prompt.trim(), liveProjectId: null, saved: false,
+        generatedFiles: files.map((f) => ({ path: f.path, content: f.content, rev: 1 })),
+        ...freshChat(s.chatSessions),
+      })),
       setLiveProjectId: (id) => set({ liveProjectId: id }),
       markSaved: () => set({ saved: true }),
       selectGate: (id) => set({ selectedGateId: id }),
@@ -148,7 +164,10 @@ export const useStudio = create<StudioState>()(
       updateAttachment: (id, text) => set((s) => ({ attachments: s.attachments.map((a) => (a.id === id ? { ...a, text } : a)) })),
       addAgent: (agent) => set((s) => ({ customAgents: [...s.customAgents, agent] })),
       updateAgent: (agent) => set((s) => ({ customAgents: s.customAgents.map((a) => (a.id === agent.id ? agent : a)) })),
-      removeAgent: (id) => set((s) => ({ customAgents: s.customAgents.filter((a) => a.id !== id) })),
+      removeAgent: (id) => set((s) => ({ customAgents: s.customAgents.filter((a) => a.id !== id), crews: s.crews.map((c) => ({ ...c, memberIds: c.memberIds.filter((m) => m !== id), managerId: c.managerId === id ? undefined : c.managerId })) })),
+      addCrew: (crew) => set((s) => ({ crews: [...s.crews, crew] })),
+      updateCrew: (crew) => set((s) => ({ crews: s.crews.map((c) => (c.id === crew.id ? crew : c)) })),
+      removeCrew: (id) => set((s) => ({ crews: s.crews.filter((c) => c.id !== id) })),
       writeGeneratedFiles: (files) => set((s) => {
         if (files.length === 0) return s;
         const map = new Map(s.generatedFiles.map((f) => [f.path, f]));
@@ -202,7 +221,7 @@ export const useStudio = create<StudioState>()(
       storage: createJSONStorage(() => localStorage),
       // Persist only the work-in-progress so a refresh doesn't lose an unsaved
       // build. Transient UI (selected gate, inspector) is intentionally dropped.
-      partialize: (s) => ({ current: s.current, constitution: s.constitution, attachments: s.attachments, customAgents: s.customAgents, generatedFiles: s.generatedFiles, liveProjectId: s.liveProjectId, saved: s.saved, chatSessions: s.chatSessions, activeChatId: s.activeChatId }),
+      partialize: (s) => ({ current: s.current, constitution: s.constitution, attachments: s.attachments, customAgents: s.customAgents, crews: s.crews, generatedFiles: s.generatedFiles, liveProjectId: s.liveProjectId, saved: s.saved, chatSessions: s.chatSessions, activeChatId: s.activeChatId }),
     },
   ),
 );

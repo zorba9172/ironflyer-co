@@ -281,16 +281,39 @@ export interface AgentSchedule {
   enabled: boolean;
 }
 
+// How much rope the agent gets. Mirrors the orchestrator's patch lifecycle:
+// suggest = propose only; approval = apply behind a human gate; autonomous =
+// apply within its budget + guardrails without waiting.
+export type AgentAutonomy = 'suggest' | 'approval' | 'autonomous';
+
 export interface Agent {
   id: string;
   name: string;
   role: string;
+  /** one-line routing signal — what this agent is for / when to use it */
+  description?: string;
   /** the finisher gate this agent owns, if any */
   gateId?: string;
   /** detailed task definition — what exactly the agent should do */
   instructions?: string;
-  /** capabilities / tools the agent may use */
+  /** capabilities the agent may use — ids from SKILL_LIBRARY or free text */
   skills?: string[];
+  /** tools / connectors the agent may call — ids from TOOL_LIBRARY */
+  tools?: string[];
+  /** areas of responsibility — domains or path globs the agent owns */
+  responsibilities?: string[];
+  /** guardrail rule ids from GUARDRAILS the agent must honor */
+  guardrails?: string[];
+  /** knowledge sources attached to ground the agent (doc names / refs) */
+  knowledge?: string[];
+  /** model id from MODEL_OPTIONS the agent reasons with */
+  model?: string;
+  /** how much autonomy the agent has over applying changes */
+  autonomy?: AgentAutonomy;
+  /** may hand work off to other agents */
+  canDelegate?: boolean;
+  /** agent ids this agent may hand off to */
+  handoffTo?: string[];
   /** when and how the agent runs (custom agents only) */
   schedule?: AgentSchedule;
   /** true for operator-created agents (vs the built-in orchestrator roster) */
@@ -298,14 +321,14 @@ export interface Agent {
 }
 
 export const AGENTS: Agent[] = [
-  { id: 'orchestrator', name: 'Orchestrator', role: 'Plans the run and routes work to specialists', skills: ['planning', 'routing'] },
-  { id: 'coder', name: 'Coder', role: 'Writes and applies reviewed patches', skills: ['patch', 'review'] },
-  { id: 'identity', name: 'Identity agent', role: 'Auth, sessions, roles, ownership', gateId: 'identity', skills: ['auth', 'sessions', 'rbac'] },
-  { id: 'payments', name: 'Payments agent', role: 'Stripe/Paddle, webhooks, reconciliation', gateId: 'money', skills: ['stripe', 'webhooks', 'ledger'] },
-  { id: 'data', name: 'Data agent', role: 'Migrations, indexes, backups', gateId: 'data', skills: ['migrations', 'indexes', 'backups'] },
-  { id: 'security', name: 'Security agent', role: 'Secrets, scoped access, policy', gateId: 'security', skills: ['secrets', 'sast', 'policy'] },
-  { id: 'deployer', name: 'Deployer', role: 'Ships to a domain you own, rollbacks', gateId: 'deploy', skills: ['deploy', 'rollback', 'dns'] },
-  { id: 'mobile', name: 'Mobile agent', role: 'iOS + Android build & signing', gateId: 'signal', skills: ['expo', 'gradle', 'signing'] },
+  { id: 'orchestrator', name: 'Orchestrator', role: 'Plans the run and routes work to specialists', description: 'The conductor — decomposes the goal and dispatches every other agent.', skills: ['planning', 'spec'], tools: ['atlas'], model: 'opus', autonomy: 'autonomous', canDelegate: true },
+  { id: 'coder', name: 'Coder', role: 'Writes and applies reviewed patches', description: 'Implements stories end-to-end as small, reviewable patches.', skills: ['patch', 'review', 'refactor'], tools: ['fs_read', 'fs_write', 'atlas'], model: 'sonnet', autonomy: 'approval' },
+  { id: 'identity', name: 'Identity agent', role: 'Auth, sessions, roles, ownership', description: 'Owns who-can-do-what: auth wiring and ownership checks.', gateId: 'identity', skills: ['authz', 'backend'], tools: ['fs_write', 'atlas'], model: 'sonnet', autonomy: 'approval' },
+  { id: 'payments', name: 'Payments agent', role: 'Stripe/Paddle, webhooks, reconciliation', description: 'Handles money flows and verifies every webhook signature.', gateId: 'money', skills: ['backend', 'sql'], tools: ['stripe', 'http', 'fs_write'], model: 'sonnet', autonomy: 'approval' },
+  { id: 'data', name: 'Data agent', role: 'Migrations, indexes, backups', description: 'Evolves the schema safely with reversible migrations.', gateId: 'data', skills: ['migrations', 'indexes', 'sql'], tools: ['postgres', 'fs_write'], model: 'sonnet', autonomy: 'approval' },
+  { id: 'security', name: 'Security agent', role: 'Secrets, scoped access, policy', description: 'Audits every patch for secrets, OWASP issues, and policy.', gateId: 'security', skills: ['secrets', 'sast', 'policy', 'threat-model'], tools: ['fs_read', 'atlas'], model: 'opus', autonomy: 'suggest' },
+  { id: 'deployer', name: 'Deployer', role: 'Ships to a domain you own, rollbacks', description: 'Ships to production with health checks and a rollback path.', gateId: 'deploy', skills: ['deploy', 'rollback', 'dns', 'observability'], tools: ['shell', 'github'], model: 'sonnet', autonomy: 'approval' },
+  { id: 'mobile', name: 'Mobile agent', role: 'iOS + Android build & signing', description: 'Drives Expo/Gradle/Xcode builds and store signing.', gateId: 'signal', skills: ['expo', 'frontend'], tools: ['shell', 'fs_write'], model: 'sonnet', autonomy: 'approval' },
 ];
 
 export function agentStatus(agent: Agent, gates: Gate[]): AgentStatus {
@@ -358,9 +381,59 @@ export function newAgent(): Agent {
     id: `agent_${Date.now().toString(36)}`,
     name: '',
     role: '',
+    description: '',
     instructions: '',
     skills: [],
+    tools: [],
+    responsibilities: [],
+    guardrails: ['patch_review', 'no_secrets'],
+    knowledge: [],
+    model: 'sonnet',
+    autonomy: 'approval',
+    canDelegate: false,
+    handoffTo: [],
     custom: true,
+    schedule: { mode: 'manual', enabled: true },
+  };
+}
+
+// --- Crews (multi-agent teams) -----------------------------------------
+// A crew runs several agents together toward one goal. The process decides how
+// they collaborate: sequential = a chain, parallel = fan-out workers that run
+// at once, hierarchical = a manager that plans and delegates to the members.
+export type CrewProcess = 'sequential' | 'parallel' | 'hierarchical';
+
+export interface Crew {
+  id: string;
+  name: string;
+  /** the outcome the crew is responsible for, in one line */
+  goal: string;
+  process: CrewProcess;
+  /** agent ids that make up the crew */
+  memberIds: string[];
+  /** the managing agent for a hierarchical crew (plans + delegates) */
+  managerId?: string;
+  /** when the crew runs as a unit */
+  schedule?: AgentSchedule;
+}
+
+export const CREW_PROCESSES: { value: CrewProcess; label: string; desc: string }[] = [
+  { value: 'parallel', label: 'Parallel', desc: 'Every member runs at once as a worker. Fastest; best for independent tasks.' },
+  { value: 'sequential', label: 'Sequential', desc: 'Members run in order, each handing its output to the next.' },
+  { value: 'hierarchical', label: 'Hierarchical', desc: 'A manager agent plans the work and delegates to the members.' },
+];
+
+export function crewProcessLabel(p: CrewProcess): string {
+  return CREW_PROCESSES.find((x) => x.value === p)?.label ?? p;
+}
+
+export function newCrew(): Crew {
+  return {
+    id: `crew_${Date.now().toString(36)}`,
+    name: '',
+    goal: '',
+    process: 'parallel',
+    memberIds: [],
     schedule: { mode: 'manual', enabled: true },
   };
 }

@@ -54,6 +54,7 @@ import (
 	"ironflyer/core/orchestrator/internal/customer/auth/oauth"
 	"ironflyer/core/orchestrator/internal/customer/notify"
 	"ironflyer/core/orchestrator/internal/operations/abuse"
+	"ironflyer/core/orchestrator/internal/operations/appconsole"
 	"ironflyer/core/orchestrator/internal/operations/arch"
 	"ironflyer/core/orchestrator/internal/operations/audit"
 	"ironflyer/core/orchestrator/internal/operations/auditexport"
@@ -91,6 +92,7 @@ import (
 	"ironflyer/core/orchestrator/internal/operations/temporalworker"
 	"ironflyer/core/orchestrator/internal/operations/tracing"
 	"ironflyer/core/orchestrator/internal/operations/wireup"
+	"ironflyer/core/orchestrator/internal/suppliers/context7"
 	"ironflyer/core/orchestrator/migrations"
 )
 
@@ -575,9 +577,26 @@ func main() {
 		logger.Info().Str("model", cfg.GeminiModel).Msg("Gemini provider registered")
 		realProviders++
 	}
-	if cfg.HFAPIKey != "" {
-		router.Register(providers.NewHuggingFaceProvider(providers.HuggingFaceOpts{APIKey: cfg.HFAPIKey}))
-		logger.Info().Msg("HuggingFace provider registered")
+	// Register HuggingFace when either a hosted token (HF_API_KEY) or a
+	// self-hosted endpoint (HF_BASE_URL) is configured. A self-hosted base
+	// URL is the "data never leaves your infra" private path: the provider
+	// advertises CapPrivate, so privacy-sensitive traffic drains to YOUR
+	// TGI/vLLM/SGLang box instead of any cloud LLM.
+	if cfg.HFAPIKey != "" || cfg.HFBaseURL != "" {
+		router.Register(providers.NewHuggingFaceProvider(providers.HuggingFaceOpts{
+			APIKey:       cfg.HFAPIKey,
+			BaseURL:      cfg.HFBaseURL,
+			Model:        cfg.HFModel,
+			CheapModel:   cfg.HFCheapModel,
+			PowerModel:   cfg.HFPowerModel,
+			PrivateModel: cfg.HFPrivateModel,
+		}))
+		selfHosted := cfg.HFBaseURL != "" && !strings.Contains(cfg.HFBaseURL, "huggingface.co")
+		logger.Info().
+			Bool("self_hosted", selfHosted).
+			Bool("private", selfHosted || cfg.HFPrivateModel != "").
+			Str("private_model", cfg.HFPrivateModel).
+			Msg("HuggingFace provider registered")
 		realProviders++
 	}
 	if vp := providers.NewVercelAIGatewayProvider(providers.VercelAIGatewayOpts{
@@ -647,12 +666,28 @@ func main() {
 	// ---------------- Memory + audit stores -------------------------------
 	var memoryStore memory.Store
 	resolvedMemoryBackend := "memory"
+	surrealNativeVector := false
 	switch {
 	case cfg.MemoryBackend == "surreal" && surrealDB != nil:
 		if err := memory.BootstrapSurreal(ctx, surrealDB); err != nil {
 			logger.Fatal().Err(err).Msg("memory: surreal bootstrap")
 		}
-		memoryStore = memory.NewSurrealStore(surrealDB)
+		ss := memory.NewSurrealStore(surrealDB)
+		// Native SurrealDB HNSW semantic search: durable + cross-pod, unlike
+		// the in-process VectorStore cache. When the embedder is wired we
+		// define the HNSW index and let the store answer Substring queries
+		// with native KNN; a failed index definition degrades to substring.
+		if emb, label := selectEmbedder(cfg, logger); emb != nil {
+			dim := memory.DefaultVectorDim
+			if err := memory.BootstrapSurrealVectorIndex(ctx, surrealDB, dim); err != nil {
+				logger.Warn().Err(err).Msg("memory: surreal HNSW index — semantic search degraded to substring")
+			} else {
+				ss = ss.WithVectorSearch(embeddings.NewCachedEmbedder(emb), dim)
+				surrealNativeVector = true
+				logger.Info().Str("backend", label).Int("dim", dim).Msg("Memory store: native SurrealDB HNSW semantic search enabled")
+			}
+		}
+		memoryStore = ss
 		resolvedMemoryBackend = "surreal"
 	case cfg.MemoryBackend == "pgvector":
 		if pgPool == nil {
@@ -669,13 +704,17 @@ func main() {
 		memoryStore = memory.NewMemoryStore(4096)
 	}
 	logger.Info().Str("backend", resolvedMemoryBackend).Msg("memory backend resolved")
-	if resolvedMemoryBackend != "pgvector" {
+	// The in-process VectorStore wrapper is the fallback semantic layer for
+	// backends without native vector search. Skip it when SurrealDB is doing
+	// native HNSW (surrealNativeVector) or pgvector owns vectors — otherwise
+	// we'd embed twice and shadow the durable index with an ephemeral cache.
+	if resolvedMemoryBackend != "pgvector" && !surrealNativeVector {
 		if emb, label := selectEmbedder(cfg, logger); emb != nil {
 			memoryStore = &memory.VectorStore{
 				Inner:    memoryStore,
 				Embedder: embeddings.NewCachedEmbedder(emb),
 			}
-			logger.Info().Str("backend", label).Msg("Memory store: semantic re-ranking enabled")
+			logger.Info().Str("backend", label).Msg("Memory store: semantic re-ranking enabled (in-process)")
 		}
 	}
 
@@ -843,6 +882,44 @@ func main() {
 	// ---------------- Agents registry + patches + finisher ----------------
 	registry := agents.NewRegistry(guard)
 	registry.RegisterDefaults()
+
+	// Context7 live-docs grounding: when enabled (IRONFLYER_CONTEXT7_ENABLED,
+	// default true) and a token is present (IRONFLYER_CONTEXT7_TOKEN), give
+	// the code-writing agents a built-in `lookup_docs` tool that fetches
+	// up-to-date, version-accurate library documentation before they write
+	// code against a third-party API. This grounds generation against
+	// current APIs instead of training-cutoff memory — the capability fast
+	// studios lack. A lookup failure is non-fatal: the agent is told to
+	// proceed with its own knowledge and flag uncertain APIs for review.
+	if c7 := context7.New(cfg.Context7AuthToken); cfg.Context7Enabled && c7 != nil {
+		registry.WithBuiltinTool(providers.ToolSpec{
+			Name:        "lookup_docs",
+			Description: "Fetch up-to-date, version-accurate documentation and code examples for a library, framework, or API. Call this BEFORE writing code against any third-party dependency to avoid hallucinated or outdated APIs.",
+			InputSchema: map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"library": map[string]any{
+						"type":        "string",
+						"description": "Library/framework/API name (e.g. \"next.js\", \"stripe\", \"fastapi\") or a context7 id like \"/vercel/next.js\".",
+					},
+					"query": map[string]any{
+						"type":        "string",
+						"description": "What you need to know — the specific function, API, or task.",
+					},
+				},
+				"required": []any{"library", "query"},
+			},
+		}, func(toolCtx context.Context, _, _ string, args map[string]any) (string, error) {
+			library, _ := args["library"].(string)
+			query, _ := args["query"].(string)
+			docs, err := c7.Lookup(toolCtx, library, query)
+			if err != nil {
+				return "lookup_docs failed: " + err.Error() + " — proceed using your own knowledge and mark any uncertain API for review.", nil
+			}
+			return docs, nil
+		})
+		logger.Info().Msg("Context7 live-docs grounding enabled (lookup_docs tool)")
+	}
 
 	patches := patch.NewEngine(projects)
 	patches.
@@ -2149,6 +2226,9 @@ func main() {
 		Version:                   buildVersion,
 		Commit:                    buildCommit,
 		BuildTime:                 buildTime,
+		PrivateInference:          (cfg.HFBaseURL != "" && !strings.Contains(cfg.HFBaseURL, "huggingface.co")) || cfg.HFPrivateModel != "",
+		SelfHostedInference:       cfg.HFBaseURL != "" && !strings.Contains(cfg.HFBaseURL, "huggingface.co"),
+		PrivateInferenceModel:     cfg.HFPrivateModel,
 		DevEnv:                    cfg.Env,
 		DevWalletSeedUSD:          cfg.DevWalletSeedUSD,
 		Verifications:             verifications,
@@ -2180,6 +2260,11 @@ func main() {
 			}
 			return guildBundle.Coordinator
 		}(),
+
+		// Operate console — post-deploy "run the app" surfaces. In-memory
+		// store: config surfaces persist for the process lifetime; reflective
+		// surfaces derive from the project id.
+		AppConsole:       appconsole.NewStore(),
 		Ledger:           ledgerSvc,
 		Execution:        execSvc,
 		ExecutionSettler: executionSettler,

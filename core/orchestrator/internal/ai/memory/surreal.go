@@ -29,12 +29,26 @@ import (
 	"github.com/google/uuid"
 	surrealdb "github.com/surrealdb/surrealdb.go"
 	"github.com/surrealdb/surrealdb.go/pkg/models"
+
+	"ironflyer/core/orchestrator/internal/ai/embeddings"
 )
+
+// DefaultVectorDim is the embedding dimension assumed when none is
+// configured. Tracks embeddings.DefaultModel ("BAAI/bge-m3", 1024-dim).
+const DefaultVectorDim = 1024
 
 // SurrealStore is the persistent backend for memory.Record.
 // Safe for concurrent use — SurrealDB's connection handles serialisation.
+//
+// When an embedder is attached via WithVectorSearch, the store persists a
+// per-record embedding inside SurrealDB and answers Substring queries with a
+// native HNSW K-nearest-neighbour search (SurrealQL `<|K|>`). This makes
+// semantic memory durable and cross-pod — unlike the in-process VectorStore
+// wrapper whose vectors live in a sync.Map that dies with the process.
 type SurrealStore struct {
-	db *surrealdb.DB
+	db       *surrealdb.DB
+	embedder embeddings.Embedder
+	vecDim   int
 }
 
 // NewSurrealStore wraps an already-connected *surrealdb.DB. Call
@@ -42,6 +56,22 @@ type SurrealStore struct {
 func NewSurrealStore(db *surrealdb.DB) *SurrealStore {
 	return &SurrealStore{db: db}
 }
+
+// WithVectorSearch enables native HNSW semantic search. embedder produces the
+// per-record vectors; dim is the embedding dimension the HNSW index is defined
+// for (must match the embedder's output). A zero/negative dim falls back to
+// DefaultVectorDim. Nil embedder is a no-op (the store stays document-only).
+func (s *SurrealStore) WithVectorSearch(embedder embeddings.Embedder, dim int) *SurrealStore {
+	if dim <= 0 {
+		dim = DefaultVectorDim
+	}
+	s.embedder = embedder
+	s.vecDim = dim
+	return s
+}
+
+// vectorEnabled reports whether native semantic search is wired.
+func (s *SurrealStore) vectorEnabled() bool { return s.embedder != nil && s.vecDim > 0 }
 
 // surrealMemorySchema is permissive — we add new fields to Record
 // independently of operator-side migrations.
@@ -57,10 +87,37 @@ DEFINE FIELD IF NOT EXISTS body       ON TABLE memory_record TYPE option<string>
 DEFINE FIELD IF NOT EXISTS tags       ON TABLE memory_record TYPE option<array<string>>;
 DEFINE FIELD IF NOT EXISTS confidence ON TABLE memory_record TYPE option<number>;
 DEFINE FIELD IF NOT EXISTS createdAt  ON TABLE memory_record TYPE datetime;
+DEFINE FIELD IF NOT EXISTS embedding  ON TABLE memory_record TYPE option<array<float>>;
 DEFINE INDEX IF NOT EXISTS memory_byKindProject ON TABLE memory_record COLUMNS kind, projectId;
 DEFINE INDEX IF NOT EXISTS memory_byUser        ON TABLE memory_record COLUMNS userId;
 DEFINE INDEX IF NOT EXISTS memory_byCreatedAt   ON TABLE memory_record COLUMNS createdAt;
 `
+
+// BootstrapSurrealVectorIndex defines the HNSW index on memory_record.embedding
+// for native semantic search. Separate from the base schema because the index
+// requires a concrete DIMENSION that must match the embedder. Idempotent
+// (IF NOT EXISTS). COSINE distance + F32 matches the bge-m3 default; callers
+// pass the embedder's true dimension.
+func BootstrapSurrealVectorIndex(ctx context.Context, db *surrealdb.DB, dim int) error {
+	if dim <= 0 {
+		dim = DefaultVectorDim
+	}
+	stmt := fmt.Sprintf(
+		"DEFINE INDEX IF NOT EXISTS memory_vec ON TABLE memory_record FIELDS embedding HNSW DIMENSION %d DIST COSINE TYPE F32;",
+		dim)
+	res, err := surrealdb.Query[any](ctx, db, stmt, nil)
+	if err != nil {
+		return fmt.Errorf("memory surreal vector index: %w", err)
+	}
+	if res != nil {
+		for _, r := range *res {
+			if r.Status != "OK" {
+				return fmt.Errorf("memory surreal vector index status: %s", r.Status)
+			}
+		}
+	}
+	return nil
+}
 
 // BootstrapSurreal installs the memory_record table + indexes. Idempotent;
 // safe to call on every boot.
@@ -178,7 +235,37 @@ func (s *SurrealStore) Record(ctx context.Context, r Record) (Record, error) {
 			}
 		}
 	}
+	// Persist the embedding out-of-band so the write stays off the
+	// embedder's latency budget, but lands durably in SurrealDB (unlike the
+	// in-process VectorStore cache). A failed embed leaves the record
+	// searchable by substring — semantic search just skips it.
+	if s.vectorEnabled() {
+		if text := embedText(r); text != "" {
+			id := r.ID
+			go func() {
+				vec, err := s.embedder.Embed(context.Background(), text)
+				if err != nil || len(vec) == 0 {
+					return
+				}
+				_, _ = surrealdb.Query[any](context.Background(), s.db,
+					"UPDATE type::record('memory_record', $id) SET embedding = $vec",
+					map[string]any{"id": id, "vec": vec})
+			}()
+		}
+	}
 	return r, nil
+}
+
+// embedText is the canonical "what to embed" for a record: title then body.
+func embedText(r Record) string {
+	text := r.Title
+	if r.Body != "" {
+		if text != "" {
+			text += "\n\n"
+		}
+		text += r.Body
+	}
+	return text
 }
 
 // Query returns records newest-first that match every set field on q.
@@ -187,6 +274,17 @@ func (s *SurrealStore) Record(ctx context.Context, r Record) (Record, error) {
 func (s *SurrealStore) Query(ctx context.Context, q Query) ([]Record, error) {
 	if q.Kind == "" && q.ProjectID == "" && q.UserID == "" {
 		return nil, nil
+	}
+	// Native semantic path: embed the substring and run an HNSW KNN search
+	// in SurrealDB. Any failure (embedder down, KNN unsupported, no embedded
+	// matches yet) falls through to the substring path below, so the store
+	// never goes blind on a transient embedder/index hiccup.
+	if s.vectorEnabled() && q.Substring != "" {
+		if qvec, err := s.embedder.Embed(ctx, q.Substring); err == nil && len(qvec) > 0 {
+			if recs, err := s.semanticQuery(ctx, q, qvec); err == nil && len(recs) > 0 {
+				return recs, nil
+			}
+		}
 	}
 	limit := q.Limit
 	if limit <= 0 {
@@ -306,6 +404,69 @@ func (s *SurrealStore) Query(ctx context.Context, q Query) ([]Record, error) {
 
 	if len(out) == 0 {
 		return nil, nil
+	}
+	return out, nil
+}
+
+// semanticQuery runs a native HNSW K-nearest-neighbour search over
+// memory_record.embedding, scoped by the same filters as Query, ordered by
+// vector distance (closest first). qvec is the query embedding. Records
+// without a stored embedding simply don't match the KNN predicate.
+func (s *SurrealStore) semanticQuery(ctx context.Context, q Query, qvec []float32) ([]Record, error) {
+	limit := q.Limit
+	if limit <= 0 {
+		limit = 20
+	}
+	vars := map[string]any{"qvec": qvec}
+	var where []string
+	if q.Kind != "" {
+		where = append(where, "kind = $kind")
+		vars["kind"] = string(q.Kind)
+	}
+	if q.ProjectID != "" {
+		where = append(where, "projectId = $projectId")
+		vars["projectId"] = q.ProjectID
+	}
+	if q.UserID != "" {
+		where = append(where, "userId = $userId")
+		vars["userId"] = q.UserID
+	}
+	if q.StoryID != "" {
+		where = append(where, "storyId = $storyId")
+		vars["storyId"] = q.StoryID
+	}
+	if q.GateName != "" {
+		where = append(where, "gateName = $gateName")
+		vars["gateName"] = q.GateName
+	}
+	if q.Tag != "" {
+		where = append(where, "tags CONTAINS $tag")
+		vars["tag"] = q.Tag
+	}
+	// KNN predicate: SurrealDB 2.x HNSW form is `<|K,EF|>` — K results among
+	// EF dynamic candidates (a larger EF trades latency for recall). Scope
+	// predicates are placed BEFORE the operator (supported in 2.x). K and EF
+	// are int literals we control (page size + candidate pool), so formatting
+	// them into the statement is safe; the vector rides as a parameter.
+	ef := limit * 8
+	if ef < 64 {
+		ef = 64
+	}
+	where = append(where, fmt.Sprintf("embedding <|%d,%d|> $qvec", limit, ef))
+	// vector::distance::knn() returns the distance the KNN operator already
+	// computed (no recomputation) so we can order by closeness.
+	sql := "SELECT * FROM memory_record WHERE " + strings.Join(where, " AND ") +
+		" ORDER BY vector::distance::knn() LIMIT " + fmt.Sprintf("%d", limit)
+
+	res, err := surrealdb.Query[[]memoryRow](ctx, s.db, sql, vars)
+	if err != nil {
+		return nil, fmt.Errorf("memory surreal knn: %w", err)
+	}
+	out := make([]Record, 0, limit)
+	if res != nil && len(*res) > 0 {
+		for _, row := range (*res)[0].Result {
+			out = append(out, row.toRecord())
+		}
 	}
 	return out, nil
 }

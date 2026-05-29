@@ -128,13 +128,13 @@ func (h *HuggingFaceProvider) pickModel(req Request) string {
 // independently if HF ever drifts from the OpenAI shape.
 
 type hfChatRequest struct {
-	Model         string          `json:"model"`
-	Messages      []hfMessage     `json:"messages"`
-	Stream        bool            `json:"stream"`
-	StreamOptions *hfStreamOpts   `json:"stream_options,omitempty"`
-	MaxTokens     *int            `json:"max_tokens,omitempty"`
-	Temperature   *float32        `json:"temperature,omitempty"`
-	Tools         []hfTool        `json:"tools,omitempty"`
+	Model          string            `json:"model"`
+	Messages       []hfMessage       `json:"messages"`
+	Stream         bool              `json:"stream"`
+	StreamOptions  *hfStreamOpts     `json:"stream_options,omitempty"`
+	MaxTokens      *int              `json:"max_tokens,omitempty"`
+	Temperature    *float32          `json:"temperature,omitempty"`
+	Tools          []hfTool          `json:"tools,omitempty"`
 	ResponseFormat *hfResponseFormat `json:"response_format,omitempty"`
 }
 
@@ -170,22 +170,22 @@ type hfStreamFrame struct {
 }
 
 type hfStreamChoice struct {
-	Index        int             `json:"index"`
-	Delta        hfStreamDelta   `json:"delta"`
-	FinishReason *string         `json:"finish_reason,omitempty"`
+	Index        int           `json:"index"`
+	Delta        hfStreamDelta `json:"delta"`
+	FinishReason *string       `json:"finish_reason,omitempty"`
 }
 
 type hfStreamDelta struct {
-	Role      string             `json:"role,omitempty"`
-	Content   string             `json:"content,omitempty"`
-	ToolCalls []hfToolCallDelta  `json:"tool_calls,omitempty"`
+	Role      string            `json:"role,omitempty"`
+	Content   string            `json:"content,omitempty"`
+	ToolCalls []hfToolCallDelta `json:"tool_calls,omitempty"`
 }
 
 type hfToolCallDelta struct {
-	Index    int                  `json:"index"`
-	ID       string               `json:"id,omitempty"`
-	Type     string               `json:"type,omitempty"`
-	Function *hfToolCallFnDelta   `json:"function,omitempty"`
+	Index    int                `json:"index"`
+	ID       string             `json:"id,omitempty"`
+	Type     string             `json:"type,omitempty"`
+	Function *hfToolCallFnDelta `json:"function,omitempty"`
 }
 
 type hfToolCallFnDelta struct {
@@ -227,7 +227,13 @@ func (h *HuggingFaceProvider) CompleteStream(ctx context.Context, req Request) (
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
 	httpReq.Header.Set("Accept", "text/event-stream")
-	httpReq.Header.Set("Authorization", "Bearer "+h.apiKey)
+	// Self-hosted TGI/vLLM/SGLang endpoints accept (and often reject)
+	// auth headers; only send one when an operator actually configured a
+	// token. A keyless private endpoint ("data never leaves") works
+	// without it.
+	if h.apiKey != "" {
+		httpReq.Header.Set("Authorization", "Bearer "+h.apiKey)
+	}
 
 	go func() {
 		defer close(out)

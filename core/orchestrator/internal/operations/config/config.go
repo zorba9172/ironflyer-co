@@ -91,6 +91,19 @@ type Config struct {
 	// HF-backed provider. Leaving HF_API_KEY empty disables the
 	// embedder; memory.Query falls back to substring search.
 	HFAPIKey string `env:"HF_API_KEY"`
+	// Private / self-hosted HuggingFace inference. Set HF_BASE_URL to an
+	// OpenAI-compatible endpoint you control (TGI / vLLM / SGLang, e.g.
+	// "http://my-gpu-host:8000/v1") and the chat provider talks to YOUR
+	// box — code never leaves your infrastructure, the one thing
+	// Cursor/Lovable can't offer. No HF token is required for a keyless
+	// self-hosted endpoint. The model ids below pick which open-weights
+	// models serve each tier (recommended: Qwen/Qwen3-Coder-* — agentic,
+	// 256K context). HF_PRIVATE_MODEL pins the CapPrivate routing target.
+	HFBaseURL      string `env:"HF_BASE_URL"`
+	HFModel        string `env:"HF_MODEL"`
+	HFCheapModel   string `env:"HF_CHEAP_MODEL"`
+	HFPowerModel   string `env:"HF_POWER_MODEL"`
+	HFPrivateModel string `env:"HF_PRIVATE_MODEL"`
 	// HFEmbedModel is the HuggingFace model id used by the memory layer's
 	// semantic re-ranker. New code reads HF_EMBEDDINGS_MODEL; the legacy
 	// HF_EMBED_MODEL env var is honoured as a fallback so existing

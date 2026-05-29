@@ -4,14 +4,7 @@ import { Box, Button, Card, Chip, IconButton, InputBase, Stack, Switch, Typograp
 import { Carousel } from '@ironflyer/ui-web/fx';
 import { useStudio } from '../store';
 import { mockProject } from '../studioData';
-
-const templates = [
-  { name: 'SaaS dashboard', meta: 'Auth · billing · admin' },
-  { name: 'Marketplace', meta: 'Listings · payments · payouts' },
-  { name: 'AI chatbot', meta: 'Streaming · memory · usage' },
-  { name: 'Booking app', meta: 'Calendar · reminders · Stripe' },
-  { name: 'Internal tool', meta: 'Tables · roles · audit log' },
-];
+import { STARTERS, matchStarter } from '../lib/starters';
 
 const categories = ['Import a build', 'Finish auth', 'Wire payments', 'Harden security', 'Ship to prod', 'More'];
 const recents = [
@@ -21,13 +14,22 @@ const recents = [
 
 export function StudioHome() {
   const navigate = useNavigate();
-  const { startFromPrompt, openProject } = useStudio();
+  const { startFromTemplate, openProject } = useStudio();
   const [prompt, setPrompt] = useState('');
   const [planMode, setPlanMode] = useState(false);
 
-  // composer / chips → create a project from the prompt and open the editor
+  // composer / chips → instant-scaffold the closest runnable starter for the
+  // prompt so the app renders in seconds, then the agent enhances it. Falls
+  // back to a neutral app shell when no template clearly matches.
   const start = () => {
-    startFromPrompt(prompt || 'Finish my product');
+    const text = prompt.trim() || 'Finish my product';
+    startFromTemplate(text, matchStarter(text).files);
+    navigate('/build');
+  };
+  // template → instantly seed a runnable scaffold so the live preview renders
+  // in seconds, then drop into the editor where the agent enhances it.
+  const startTemplate = (s: (typeof STARTERS)[number]) => {
+    startFromTemplate(s.prompt, s.files);
     navigate('/build');
   };
   // recents → open the existing project (mock for now)
@@ -113,10 +115,13 @@ export function StudioHome() {
             ))}
           </Box>
 
-          <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mt: 3, mb: 1.5 })}>Start from a template</Typography>
+          <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 3, mb: 1.5 }}>
+            <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled' })}>Start from a template</Typography>
+            <Chip size="small" label="runs instantly" sx={(t) => ({ height: 18, fontSize: '0.6rem', fontFamily: t.brand.font.mono, bgcolor: `${t.palette.success.main}1f`, color: 'success.main' })} />
+          </Stack>
           <Carousel slidesPerView="auto" gap={14} pagination={false}>
-            {templates.map((tpl) => (
-              <Card key={tpl.name} onClick={start} sx={{ width: 220, p: 2, cursor: 'pointer', '&:hover': { borderColor: 'text.disabled' } }}>
+            {STARTERS.map((tpl) => (
+              <Card key={tpl.id} onClick={() => startTemplate(tpl)} sx={{ width: 220, p: 2, cursor: 'pointer', transition: (t) => `border-color ${t.brand.motion.fast}`, '&:hover': { borderColor: 'primary.main' } }}>
                 <Typography sx={{ fontWeight: 600 }}>{tpl.name}</Typography>
                 <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.72rem', color: 'text.disabled', mt: 0.5 })}>{tpl.meta}</Typography>
               </Card>
