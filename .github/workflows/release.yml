@@ -183,7 +183,7 @@ jobs:
 
       - name: Build changelog
         id: changelog
-        uses: mikepenz/release-changelog-builder-action@c9dc8369bccbc41e0ac887f8fd674f5925d315f7  # v5
+        uses: mikepenz/release-changelog-builder-action@348e88fab4c37338b1e803ceb2d4a7a5db6c0833  # v6.2.2
         with:
           toTag: ${{ steps.tag.outputs.name }}
           configurationJson: |
