@@ -54,6 +54,24 @@ type AgentCall struct {
 	ProjectID        *string   `json:"projectId,omitempty"`
 }
 
+type AgentSchedule struct {
+	Mode    string  `json:"mode"`
+	Every   *string `json:"every,omitempty"`
+	At      *string `json:"at,omitempty"`
+	Weekday *int    `json:"weekday,omitempty"`
+	Trigger *string `json:"trigger,omitempty"`
+	Enabled bool    `json:"enabled"`
+}
+
+type AgentScheduleInput struct {
+	Mode    string  `json:"mode"`
+	Every   *string `json:"every,omitempty"`
+	At      *string `json:"at,omitempty"`
+	Weekday *int    `json:"weekday,omitempty"`
+	Trigger *string `json:"trigger,omitempty"`
+	Enabled bool    `json:"enabled"`
+}
+
 type AppAnalytics struct {
 	RangeDays         int               `json:"rangeDays"`
 	Visitors          int               `json:"visitors"`
@@ -536,6 +554,56 @@ type CreateStageInput struct {
 	Name        string   `json:"name"`
 	Description *string  `json:"description,omitempty"`
 	PatchIds    []string `json:"patchIds"`
+}
+
+type Crew struct {
+	ID        string         `json:"id"`
+	Name      string         `json:"name"`
+	Goal      string         `json:"goal"`
+	Process   CrewProcess    `json:"process"`
+	MemberIds []string       `json:"memberIds"`
+	ManagerID *string        `json:"managerId,omitempty"`
+	Schedule  *AgentSchedule `json:"schedule,omitempty"`
+	UpdatedAt time.Time      `json:"updatedAt"`
+}
+
+type CrewMemberResult struct {
+	AgentID  string  `json:"agentId"`
+	Name     string  `json:"name"`
+	Role     string  `json:"role"`
+	Output   string  `json:"output"`
+	Provider *string `json:"provider,omitempty"`
+	Tokens   *int    `json:"tokens,omitempty"`
+	CostUsd  float64 `json:"costUsd"`
+	Error    *string `json:"error,omitempty"`
+}
+
+type CrewRunResult struct {
+	CrewID       string             `json:"crewId"`
+	Process      CrewProcess        `json:"process"`
+	Members      []CrewMemberResult `json:"members"`
+	TotalCostUsd float64            `json:"totalCostUsd"`
+}
+
+type CustomAgent struct {
+	ID               string         `json:"id"`
+	Name             string         `json:"name"`
+	Role             string         `json:"role"`
+	Description      *string        `json:"description,omitempty"`
+	Instructions     *string        `json:"instructions,omitempty"`
+	BaseRole         *string        `json:"baseRole,omitempty"`
+	GateID           *string        `json:"gateId,omitempty"`
+	Skills           []string       `json:"skills"`
+	Tools            []string       `json:"tools"`
+	Responsibilities []string       `json:"responsibilities"`
+	Guardrails       []string       `json:"guardrails"`
+	Knowledge        []string       `json:"knowledge"`
+	Model            *string        `json:"model,omitempty"`
+	Autonomy         AgentAutonomy  `json:"autonomy"`
+	CanDelegate      bool           `json:"canDelegate"`
+	HandoffTo        []string       `json:"handoffTo"`
+	Schedule         *AgentSchedule `json:"schedule,omitempty"`
+	UpdatedAt        time.Time      `json:"updatedAt"`
 }
 
 type DNSRecord struct {
@@ -1429,6 +1497,36 @@ type RunGateEvent struct {
 
 func (RunGateEvent) IsRunEvent() {}
 
+type SaveCrewInput struct {
+	ID        *string             `json:"id,omitempty"`
+	Name      string              `json:"name"`
+	Goal      string              `json:"goal"`
+	Process   CrewProcess         `json:"process"`
+	MemberIds []string            `json:"memberIds"`
+	ManagerID *string             `json:"managerId,omitempty"`
+	Schedule  *AgentScheduleInput `json:"schedule,omitempty"`
+}
+
+type SaveCustomAgentInput struct {
+	ID               *string             `json:"id,omitempty"`
+	Name             string              `json:"name"`
+	Role             string              `json:"role"`
+	Description      *string             `json:"description,omitempty"`
+	Instructions     *string             `json:"instructions,omitempty"`
+	BaseRole         *string             `json:"baseRole,omitempty"`
+	GateID           *string             `json:"gateId,omitempty"`
+	Skills           []string            `json:"skills,omitempty"`
+	Tools            []string            `json:"tools,omitempty"`
+	Responsibilities []string            `json:"responsibilities,omitempty"`
+	Guardrails       []string            `json:"guardrails,omitempty"`
+	Knowledge        []string            `json:"knowledge,omitempty"`
+	Model            *string             `json:"model,omitempty"`
+	Autonomy         *AgentAutonomy      `json:"autonomy,omitempty"`
+	CanDelegate      *bool               `json:"canDelegate,omitempty"`
+	HandoffTo        []string            `json:"handoffTo,omitempty"`
+	Schedule         *AgentScheduleInput `json:"schedule,omitempty"`
+}
+
 type ScaleDashboard struct {
 	ActiveExecutions     int     `json:"activeExecutions"`
 	QueuedExecutions     int     `json:"queuedExecutions"`
@@ -1749,6 +1847,63 @@ type WriteProjectFileInput struct {
 	Content string `json:"content"`
 }
 
+type AgentAutonomy string
+
+const (
+	AgentAutonomySuggest    AgentAutonomy = "suggest"
+	AgentAutonomyApproval   AgentAutonomy = "approval"
+	AgentAutonomyAutonomous AgentAutonomy = "autonomous"
+)
+
+var AllAgentAutonomy = []AgentAutonomy{
+	AgentAutonomySuggest,
+	AgentAutonomyApproval,
+	AgentAutonomyAutonomous,
+}
+
+func (e AgentAutonomy) IsValid() bool {
+	switch e {
+	case AgentAutonomySuggest, AgentAutonomyApproval, AgentAutonomyAutonomous:
+		return true
+	}
+	return false
+}
+
+func (e AgentAutonomy) String() string {
+	return string(e)
+}
+
+func (e *AgentAutonomy) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AgentAutonomy(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AgentAutonomy", str)
+	}
+	return nil
+}
+
+func (e AgentAutonomy) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *AgentAutonomy) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e AgentAutonomy) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
 type AuditOutcome string
 
 const (
@@ -1803,6 +1958,63 @@ func (e *AuditOutcome) UnmarshalJSON(b []byte) error {
 }
 
 func (e AuditOutcome) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type CrewProcess string
+
+const (
+	CrewProcessParallel     CrewProcess = "parallel"
+	CrewProcessSequential   CrewProcess = "sequential"
+	CrewProcessHierarchical CrewProcess = "hierarchical"
+)
+
+var AllCrewProcess = []CrewProcess{
+	CrewProcessParallel,
+	CrewProcessSequential,
+	CrewProcessHierarchical,
+}
+
+func (e CrewProcess) IsValid() bool {
+	switch e {
+	case CrewProcessParallel, CrewProcessSequential, CrewProcessHierarchical:
+		return true
+	}
+	return false
+}
+
+func (e CrewProcess) String() string {
+	return string(e)
+}
+
+func (e *CrewProcess) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CrewProcess(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CrewProcess", str)
+	}
+	return nil
+}
+
+func (e CrewProcess) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *CrewProcess) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e CrewProcess) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil

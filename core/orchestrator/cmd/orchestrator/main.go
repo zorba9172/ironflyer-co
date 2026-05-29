@@ -56,6 +56,7 @@ import (
 	"ironflyer/core/orchestrator/internal/operations/abuse"
 	"ironflyer/core/orchestrator/internal/operations/appconsole"
 	"ironflyer/core/orchestrator/internal/operations/arch"
+	"ironflyer/core/orchestrator/internal/operations/agentteam"
 	"ironflyer/core/orchestrator/internal/operations/audit"
 	"ironflyer/core/orchestrator/internal/operations/auditexport"
 	"ironflyer/core/orchestrator/internal/operations/bus"
@@ -2207,6 +2208,7 @@ func main() {
 
 	api := httpapi.New(httpapi.Deps{
 		Projects: projects, Engine: engine, Agents: registry, Patches: patches,
+		AgentTeam: agentteam.NewMemoryStore(nil),
 		Billing: billing, Stripe: stripeSvc, Paddle: paddleSvc, Guard: guard,
 		Auth: authSvc, AuthOptional: cfg.AuthOptional,
 		OAuth:          oauthHandler,

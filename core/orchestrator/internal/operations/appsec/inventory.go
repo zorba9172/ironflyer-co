@@ -7,6 +7,9 @@ type Inventory struct {
 	HasGoMod         bool
 	HasPackageLock   bool
 	HasPackageJSON   bool
+	HasPNPMLock      bool
+	HasYarnLock      bool
+	HasPythonDeps    bool
 	HasDockerfile    bool
 	HasCompose       bool
 	HasGitHubAction  bool
@@ -52,9 +55,18 @@ func BuildInventory(target Target) Inventory {
 			inv.PackageLockPaths = append(inv.PackageLockPaths, path)
 			inv.Components = append(inv.Components, parsePackageLockComponents(path, f.Content)...)
 			addService(&inv, serviceSeen, serviceRoot(path), "node", "")
+		case strings.HasSuffix(low, "pnpm-lock.yaml"):
+			inv.HasPNPMLock = true
+			addService(&inv, serviceSeen, serviceRoot(path), "node", "")
+		case strings.HasSuffix(low, "yarn.lock"):
+			inv.HasYarnLock = true
+			addService(&inv, serviceSeen, serviceRoot(path), "node", "")
 		case strings.HasSuffix(low, "package.json"):
 			inv.HasPackageJSON = true
 			addService(&inv, serviceSeen, serviceRoot(path), "node", "")
+		case strings.HasSuffix(low, "requirements.txt") || strings.HasSuffix(low, "pyproject.toml") || strings.HasSuffix(low, "poetry.lock") || strings.HasSuffix(low, "uv.lock"):
+			inv.HasPythonDeps = true
+			addService(&inv, serviceSeen, serviceRoot(path), "python", "")
 		case strings.HasSuffix(low, "dockerfile") || strings.Contains(low, ".dockerfile"):
 			inv.HasDockerfile = true
 		case strings.HasSuffix(low, "docker-compose.yml") || strings.HasSuffix(low, "docker-compose.yaml") || strings.Contains(low, "/compose/"):

@@ -1,0 +1,22 @@
+{
+  "coverage": {
+    "lines": 80,
+    "statements": 80,
+    "functions": 75,
+    "branches": 70
+  },
+  "vulnerabilities": {
+    "critical": 0,
+    "high": 2
+  },
+  "sonarqube": {
+    "rating": "A",
+    "duplicationPct": 5
+  },
+  "duplicationPct": 5,
+  "lintErrors": 0,
+  "license": {
+    "blocked": ["AGPL-*", "GPL-*"],
+    "review": ["LGPL-*", "MPL-*", "EPL-*", "CDDL-*"]
+  }
+}

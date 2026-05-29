@@ -1,0 +1,114 @@
+name: Security & Policy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "17 3 * * 1"
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write
+  checks: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  codeql:
+    name: CodeQL semantic analysis
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [go, javascript-typescript]
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: github/codeql-action/init@dc73d59c2d7bd4f8194098a91219eeee6d8a1719 # v4
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended,security-and-quality
+      - uses: github/codeql-action/analyze@dc73d59c2d7bd4f8194098a91219eeee6d8a1719 # v4
+        with:
+          category: /language:${{ matrix.language }}
+
+  scanners:
+    name: OSS scanners + policy gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version: "1.25"
+          cache-dependency-path: |
+            core/orchestrator/go.sum
+            core/runtime/go.sum
+            core/cli/go.sum
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+          cache-dependency-path: pnpm-lock.yaml
+      - name: install base tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq python3-pip
+          corepack enable
+      - name: install workspace deps
+        run: pnpm install --frozen-lockfile
+      - name: studio eslint report
+        run: mkdir -p tmp/reports && pnpm --filter @ironflyer/studio lint -- --format json --output-file ../../tmp/reports/eslint-studio.json
+      - name: studio coverage
+        run: pnpm --filter @ironflyer/studio test:coverage
+      - name: enterprise scanner stack
+        run: ./scripts/lint/run-enterprise-security.sh
+      - name: upload semgrep SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@dc73d59c2d7bd4f8194098a91219eeee6d8a1719 # v4
+        with:
+          sarif_file: tmp/reports/semgrep-latest.sarif
+        continue-on-error: true
+      - name: reviewdog PR feedback
+        if: github.event_name == 'pull_request'
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          go install github.com/reviewdog/reviewdog/cmd/reviewdog@latest
+          jq --arg root "$PWD/" '{
+            source: { name: "studio-eslint" },
+            diagnostics: [
+              .[] as $file | $file.messages[]? | {
+                message: .message,
+                severity: (if .severity == 2 then "ERROR" else "WARNING" end),
+                location: {
+                  path: ($file.filePath | sub($root; "")),
+                  range: { start: { line: (.line // 1), column: (.column // 1) } }
+                }
+              }
+            ]
+          }' tmp/reports/eslint-studio.json > tmp/reports/eslint-studio.rdjson
+          "$(go env GOPATH)/bin/reviewdog" -f=rdjson -name=studio-eslint -reporter=github-pr-review -fail-on-error=false < tmp/reports/eslint-studio.rdjson || true
+      - name: sonar scanner
+        if: ${{ secrets.SONAR_TOKEN != '' }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          docker run --rm \
+            -e SONAR_TOKEN \
+            -v "$PWD:/usr/src" \
+            sonarsource/sonar-scanner-cli:latest
+      - name: enforce policy
+        run: ./scripts/lint/enforce-quality-policy.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: security-policy-reports
+          path: |
+            tmp/reports/
+            clients/studio/coverage/
+          if-no-files-found: warn
+          retention-days: 14

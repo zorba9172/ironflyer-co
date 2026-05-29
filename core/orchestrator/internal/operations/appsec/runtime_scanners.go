@@ -165,6 +165,315 @@ func (s SemgrepScanner) Scan(ctx context.Context, target Target, _ Inventory) ([
 	return out, nil
 }
 
+type OSVScannerCLI struct{}
+
+func (OSVScannerCLI) ID() string { return "osv-scanner" }
+
+func (OSVScannerCLI) Supports(inv Inventory) bool {
+	return inv.RuntimeEnabled && (inv.HasGoMod || inv.HasPackageLock || inv.HasPNPMLock || inv.HasYarnLock || inv.HasPythonDeps)
+}
+
+func (s OSVScannerCLI) Scan(ctx context.Context, target Target, _ Inventory) ([]Finding, error) {
+	cmd := "command -v osv-scanner >/dev/null 2>&1 && " +
+		"osv-scanner --format json --recursive --skip-git . 2>/dev/null || true"
+	res, err := target.Runtime.Exec(ctx, target.UserBearer, target.WorkspaceID, runtime.ExecOpts{
+		Shell: cmd, TimeoutSeconds: 180,
+	})
+	if err != nil || res.TimedOut || strings.TrimSpace(res.Stdout) == "" {
+		return nil, nil
+	}
+	return parseOSVScannerOutput(s.ID(), res.Stdout), nil
+}
+
+func parseOSVScannerOutput(toolID, stdout string) []Finding {
+	var doc struct {
+		Results []struct {
+			Source struct {
+				Path string `json:"path"`
+			} `json:"source"`
+			Packages []struct {
+				Package struct {
+					Name      string `json:"name"`
+					Version   string `json:"version"`
+					Ecosystem string `json:"ecosystem"`
+				} `json:"package"`
+				Vulnerabilities []struct {
+					ID       string `json:"id"`
+					Summary  string `json:"summary"`
+					Details  string `json:"details"`
+					Severity []struct {
+						Type  string `json:"type"`
+						Score string `json:"score"`
+					} `json:"severity"`
+					DatabaseSpecific map[string]any `json:"database_specific"`
+				} `json:"vulnerabilities"`
+			} `json:"packages"`
+		} `json:"results"`
+	}
+	if err := json.Unmarshal([]byte(stdout), &doc); err != nil {
+		return nil
+	}
+	var out []Finding
+	for _, result := range doc.Results {
+		for _, pkg := range result.Packages {
+			for _, vuln := range pkg.Vulnerabilities {
+				id := strings.TrimSpace(vuln.ID)
+				if id == "" {
+					continue
+				}
+				out = append(out, Finding{
+					Tool:        toolID,
+					Category:    CategoryDeps,
+					Severity:    osvSeverity(vuln.DatabaseSpecific, vuln.Severity),
+					RuleID:      "osv-scanner-" + strings.ToLower(id),
+					Path:        cleanPath(result.Source.Path),
+					Package:     pkg.Package.Name + "@" + pkg.Package.Version,
+					Summary:     firstNonEmpty(vuln.Summary, firstSentence(vuln.Details), id+" affects "+pkg.Package.Name),
+					Remediation: "upgrade or replace the affected package and re-run osv-scanner",
+					Metadata: map[string]string{
+						"ecosystem":  pkg.Package.Ecosystem,
+						"dependency": pkg.Package.Name,
+						"version":    pkg.Package.Version,
+						"osv_id":     id,
+					},
+				})
+			}
+		}
+	}
+	return out
+}
+
+type TrivyScanner struct{}
+
+func (TrivyScanner) ID() string { return "trivy" }
+
+func (TrivyScanner) Supports(inv Inventory) bool { return inv.RuntimeEnabled }
+
+func (s TrivyScanner) Scan(ctx context.Context, target Target, _ Inventory) ([]Finding, error) {
+	cmd := "command -v trivy >/dev/null 2>&1 && " +
+		"trivy fs --format json --quiet --scanners vuln,secret,misconfig " +
+		"--skip-dirs node_modules --skip-dirs .git . 2>/dev/null || true"
+	res, err := target.Runtime.Exec(ctx, target.UserBearer, target.WorkspaceID, runtime.ExecOpts{
+		Shell: cmd, TimeoutSeconds: 240,
+	})
+	if err != nil || res.TimedOut || strings.TrimSpace(res.Stdout) == "" {
+		return nil, nil
+	}
+	return parseTrivyOutput(s.ID(), res.Stdout), nil
+}
+
+func parseTrivyOutput(toolID, stdout string) []Finding {
+	var doc struct {
+		Results []struct {
+			Target          string `json:"Target"`
+			Vulnerabilities []struct {
+				VulnerabilityID  string `json:"VulnerabilityID"`
+				PkgName          string `json:"PkgName"`
+				InstalledVersion string `json:"InstalledVersion"`
+				FixedVersion     string `json:"FixedVersion"`
+				Severity         string `json:"Severity"`
+				Title            string `json:"Title"`
+			} `json:"Vulnerabilities"`
+			Misconfigurations []struct {
+				ID         string `json:"ID"`
+				Severity   string `json:"Severity"`
+				Title      string `json:"Title"`
+				Message    string `json:"Message"`
+				Resolution string `json:"Resolution"`
+				PrimaryURL string `json:"PrimaryURL"`
+			} `json:"Misconfigurations"`
+			Secrets []struct {
+				RuleID    string `json:"RuleID"`
+				Category  string `json:"Category"`
+				Severity  string `json:"Severity"`
+				Title     string `json:"Title"`
+				StartLine int    `json:"StartLine"`
+			} `json:"Secrets"`
+		} `json:"Results"`
+	}
+	if err := json.Unmarshal([]byte(stdout), &doc); err != nil {
+		return nil
+	}
+	var out []Finding
+	for _, r := range doc.Results {
+		path := cleanPath(r.Target)
+		for _, v := range r.Vulnerabilities {
+			pkg := v.PkgName
+			if v.InstalledVersion != "" {
+				pkg += "@" + v.InstalledVersion
+			}
+			remediation := "upgrade or replace the affected dependency"
+			if strings.TrimSpace(v.FixedVersion) != "" {
+				remediation = "upgrade to " + v.FixedVersion
+			}
+			out = append(out, Finding{
+				Tool:        toolID,
+				Category:    CategoryDeps,
+				Severity:    mapScannerSeverity(v.Severity),
+				RuleID:      "trivy-" + strings.ToLower(v.VulnerabilityID),
+				Path:        path,
+				Package:     pkg,
+				Summary:     firstNonEmpty(v.Title, v.VulnerabilityID+" affects "+v.PkgName),
+				Remediation: remediation,
+			})
+		}
+		for _, m := range r.Misconfigurations {
+			out = append(out, Finding{
+				Tool:        toolID,
+				Category:    CategoryConfig,
+				Severity:    mapScannerSeverity(m.Severity),
+				RuleID:      "trivy-" + slug(m.ID),
+				Path:        path,
+				Summary:     firstNonEmpty(m.Title, m.Message, m.ID),
+				Remediation: firstNonEmpty(m.Resolution, m.PrimaryURL, "fix the misconfiguration and re-run Trivy"),
+			})
+		}
+		for _, sec := range r.Secrets {
+			out = append(out, Finding{
+				Tool:        toolID,
+				Category:    CategorySecrets,
+				Severity:    maxAppSecSeverity(mapScannerSeverity(sec.Severity), SeverityHigh),
+				RuleID:      "trivy-secret-" + slug(sec.RuleID),
+				Path:        path,
+				Line:        sec.StartLine,
+				Summary:     firstNonEmpty(sec.Title, sec.Category, sec.RuleID),
+				Remediation: "remove the secret, rotate it upstream, and re-run Trivy",
+			})
+		}
+	}
+	return out
+}
+
+type SyftSBOMScanner struct{}
+
+func (SyftSBOMScanner) ID() string { return "syft" }
+
+func (SyftSBOMScanner) Supports(inv Inventory) bool { return inv.RuntimeEnabled }
+
+func (s SyftSBOMScanner) Scan(ctx context.Context, target Target, _ Inventory) ([]Finding, error) {
+	cmd := "command -v syft >/dev/null 2>&1 && syft dir:. -o cyclonedx-json --quiet 2>/dev/null || true"
+	res, err := target.Runtime.Exec(ctx, target.UserBearer, target.WorkspaceID, runtime.ExecOpts{
+		Shell: cmd, TimeoutSeconds: 180,
+	})
+	if err != nil || res.TimedOut || strings.TrimSpace(res.Stdout) == "" {
+		return nil, nil
+	}
+	var doc struct {
+		Components []json.RawMessage `json:"components"`
+	}
+	if err := json.Unmarshal([]byte(res.Stdout), &doc); err != nil {
+		return nil, nil
+	}
+	return []Finding{{
+		Tool:     s.ID(),
+		Category: CategoryInventory,
+		Severity: SeverityInfo,
+		RuleID:   "sbom-syft-cyclonedx",
+		Path:     ".",
+		Summary:  "Syft generated CycloneDX SBOM with " + itoaPositive(len(doc.Components)) + " components",
+		Metadata: map[string]string{"components": itoaPositive(len(doc.Components)), "format": "CycloneDX JSON"},
+	}}, nil
+}
+
+type ScanCodeLicenseScanner struct{}
+
+func (ScanCodeLicenseScanner) ID() string { return "scancode" }
+
+func (ScanCodeLicenseScanner) Supports(inv Inventory) bool { return inv.RuntimeEnabled }
+
+func (s ScanCodeLicenseScanner) Scan(ctx context.Context, target Target, _ Inventory) ([]Finding, error) {
+	cmd := "command -v scancode >/dev/null 2>&1 && " +
+		"scancode --license --json-pp - --ignore node_modules --ignore .git . 2>/dev/null || true"
+	res, err := target.Runtime.Exec(ctx, target.UserBearer, target.WorkspaceID, runtime.ExecOpts{
+		Shell: cmd, TimeoutSeconds: 300,
+	})
+	if err != nil || res.TimedOut || strings.TrimSpace(res.Stdout) == "" {
+		return nil, nil
+	}
+	return parseScanCodeOutput(s.ID(), res.Stdout), nil
+}
+
+func parseScanCodeOutput(toolID, stdout string) []Finding {
+	var doc struct {
+		Files []struct {
+			Path     string `json:"path"`
+			Licenses []struct {
+				SPDXLicenseKey string  `json:"spdx_license_key"`
+				Key            string  `json:"key"`
+				Score          float64 `json:"score"`
+			} `json:"licenses"`
+		} `json:"files"`
+	}
+	if err := json.Unmarshal([]byte(stdout), &doc); err != nil {
+		return nil
+	}
+	seen := map[string]bool{}
+	var out []Finding
+	for _, file := range doc.Files {
+		for _, lic := range file.Licenses {
+			key := strings.ToUpper(firstNonEmpty(lic.SPDXLicenseKey, lic.Key))
+			if key == "" || key == "UNKNOWN" {
+				continue
+			}
+			sev, blocked := licenseSeverity(key)
+			if !blocked {
+				continue
+			}
+			dedupe := key + "\x00" + cleanPath(file.Path)
+			if seen[dedupe] {
+				continue
+			}
+			seen[dedupe] = true
+			out = append(out, Finding{
+				Tool:        toolID,
+				Category:    CategoryPolicy,
+				Severity:    sev,
+				RuleID:      "license-" + slug(key),
+				Path:        cleanPath(file.Path),
+				Summary:     "license policy review required: " + key,
+				Remediation: "replace the dependency or add an explicit tenant-approved license waiver",
+				Metadata:    map[string]string{"license": key},
+			})
+		}
+	}
+	return out
+}
+
+func licenseSeverity(key string) (Severity, bool) {
+	switch {
+	case strings.Contains(key, "AGPL"):
+		return SeverityHigh, true
+	case strings.Contains(key, "GPL"):
+		return SeverityHigh, true
+	case strings.Contains(key, "LGPL"), strings.Contains(key, "MPL"), strings.Contains(key, "EPL"), strings.Contains(key, "CDDL"):
+		return SeverityMedium, true
+	default:
+		return SeverityInfo, false
+	}
+}
+
+func mapScannerSeverity(s string) Severity {
+	switch strings.ToUpper(strings.TrimSpace(s)) {
+	case "CRITICAL":
+		return SeverityCritical
+	case "HIGH", "ERROR":
+		return SeverityHigh
+	case "MEDIUM", "MODERATE", "WARNING":
+		return SeverityMedium
+	case "LOW", "INFO", "INFORMATIONAL":
+		return SeverityLow
+	default:
+		return SeverityMedium
+	}
+}
+
+func maxAppSecSeverity(a, b Severity) Severity {
+	if severityRank(a) >= severityRank(b) {
+		return a
+	}
+	return b
+}
+
 func mapSemgrepSeverity(s string) Severity {
 	switch strings.ToUpper(strings.TrimSpace(s)) {
 	case "ERROR":

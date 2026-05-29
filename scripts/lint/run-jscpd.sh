@@ -35,7 +35,7 @@ if ! command -v npx >/dev/null 2>&1; then
   exit 1
 fi
 
-PATTERN="clients/web/src/**/*.{ts,tsx}"
+PATTERN="{clients/web/src,clients/studio/src,packages}/**/*.{ts,tsx}"
 
 echo "running jscpd on ${PATTERN}..." >&2
 # --silent keeps the console clean; --reporters json drops report into

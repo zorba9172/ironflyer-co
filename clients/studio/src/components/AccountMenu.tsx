@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Avatar, Box, Divider, ListItemIcon, Menu, MenuItem, Stack, Switch, Typography } from '@mui/material';
+import { Avatar, Box, Divider, ListItemIcon, Menu, MenuItem, Switch, Typography } from '@mui/material';
 import { useAuth } from '@ironflyer/data';
 import { useThemeMode } from '@ironflyer/ui-web';
 import { toast } from '@ironflyer/ui-web/fx';

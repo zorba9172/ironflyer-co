@@ -31,13 +31,17 @@ func DefaultScanners() []Scanner {
 		NativeSecretScanner{},
 		DependencyHealthScanner{},
 		OSVScanner{},
+		OSVScannerCLI{},
 		RuntimeSecretScanner{},
 		TrufflehogScanner{},
 		GitleaksScanner{},
 		SemgrepScanner{},
+		TrivyScanner{},
 		GovulncheckScanner{},
 		GoModuleDeprecationScanner{},
 		NpmAuditScanner{},
+		SyftSBOMScanner{},
+		ScanCodeLicenseScanner{},
 		ConfigScanner{},
 	}
 }

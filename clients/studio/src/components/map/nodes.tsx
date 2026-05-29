@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { Box, Button, Chip, IconButton, LinearProgress, MenuItem, Popover, Select, Stack, Tooltip, Typography } from '@mui/material';
+import { Box, Button, Chip, IconButton, MenuItem, Popover, Select, Stack, Tooltip, Typography } from '@mui/material';
 import { useTheme, type Theme } from '@mui/material/styles';
 import { VscPlay, VscDebugStop, VscInfo, VscWand, VscRobot, VscChevronRight } from 'react-icons/vsc';
 import { statusColor } from '../statusColor';

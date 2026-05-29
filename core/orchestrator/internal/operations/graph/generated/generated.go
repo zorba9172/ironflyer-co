@@ -72,6 +72,15 @@ type ComplexityRoot struct {
 		UserID           func(childComplexity int) int
 	}
 
+	AgentSchedule struct {
+		At      func(childComplexity int) int
+		Enabled func(childComplexity int) int
+		Every   func(childComplexity int) int
+		Mode    func(childComplexity int) int
+		Trigger func(childComplexity int) int
+		Weekday func(childComplexity int) int
+	}
+
 	AppAnalytics struct {
 		AvgSessionSeconds func(childComplexity int) int
 		BounceRatePct     func(childComplexity int) int
@@ -471,6 +480,56 @@ type ComplexityRoot struct {
 		RevenueUsd        func(childComplexity int) int
 		SandboxCostUsd    func(childComplexity int) int
 		StorageCostUsd    func(childComplexity int) int
+	}
+
+	Crew struct {
+		Goal      func(childComplexity int) int
+		ID        func(childComplexity int) int
+		ManagerID func(childComplexity int) int
+		MemberIds func(childComplexity int) int
+		Name      func(childComplexity int) int
+		Process   func(childComplexity int) int
+		Schedule  func(childComplexity int) int
+		UpdatedAt func(childComplexity int) int
+	}
+
+	CrewMemberResult struct {
+		AgentID  func(childComplexity int) int
+		CostUsd  func(childComplexity int) int
+		Error    func(childComplexity int) int
+		Name     func(childComplexity int) int
+		Output   func(childComplexity int) int
+		Provider func(childComplexity int) int
+		Role     func(childComplexity int) int
+		Tokens   func(childComplexity int) int
+	}
+
+	CrewRunResult struct {
+		CrewID       func(childComplexity int) int
+		Members      func(childComplexity int) int
+		Process      func(childComplexity int) int
+		TotalCostUsd func(childComplexity int) int
+	}
+
+	CustomAgent struct {
+		Autonomy         func(childComplexity int) int
+		BaseRole         func(childComplexity int) int
+		CanDelegate      func(childComplexity int) int
+		Description      func(childComplexity int) int
+		GateID           func(childComplexity int) int
+		Guardrails       func(childComplexity int) int
+		HandoffTo        func(childComplexity int) int
+		ID               func(childComplexity int) int
+		Instructions     func(childComplexity int) int
+		Knowledge        func(childComplexity int) int
+		Model            func(childComplexity int) int
+		Name             func(childComplexity int) int
+		Responsibilities func(childComplexity int) int
+		Role             func(childComplexity int) int
+		Schedule         func(childComplexity int) int
+		Skills           func(childComplexity int) int
+		Tools            func(childComplexity int) int
+		UpdatedAt        func(childComplexity int) int
 	}
 
 	DNSRecord struct {
@@ -944,6 +1003,8 @@ type ComplexityRoot struct {
 		DeleteAppEnvVar               func(childComplexity int, projectID string, key string) int
 		DeleteAppWebhook              func(childComplexity int, id string) int
 		DeleteAutomation              func(childComplexity int, id string) int
+		DeleteCrew                    func(childComplexity int, id string) int
+		DeleteCustomAgent             func(childComplexity int, id string) int
 		DeleteProject                 func(childComplexity int, id string) int
 		DescribeIdea                  func(childComplexity int, input model.DescribeIdeaInput) int
 		DeviceCloudEndSession         func(childComplexity int, sessionID string, provider string) int
@@ -990,7 +1051,10 @@ type ComplexityRoot struct {
 		RollbackDeploy                func(childComplexity int, deployID string, reason string) int
 		RollbackPatch                 func(childComplexity int, patchID string) int
 		RunAutomation                 func(childComplexity int, id string) int
+		RunCrew                       func(childComplexity int, id string, projectID string) int
 		RunFinisher                   func(childComplexity int, id string) int
+		SaveCrew                      func(childComplexity int, input model.SaveCrewInput) int
+		SaveCustomAgent               func(childComplexity int, input model.SaveCustomAgentInput) int
 		SetAppEnvVar                  func(childComplexity int, projectID string, key string, value string, secret *bool) int
 		SetAppUserRole                func(childComplexity int, projectID string, userID string, role string) int
 		SetAppUserSuspended           func(childComplexity int, projectID string, userID string, suspended bool) int
@@ -1252,6 +1316,8 @@ type ComplexityRoot struct {
 		ComplianceControlResults func(childComplexity int, projectID string, framework string) int
 		ComplianceEnrollments    func(childComplexity int, projectID *string) int
 		ComplianceFrameworks     func(childComplexity int) int
+		Crews                    func(childComplexity int) int
+		CustomAgents             func(childComplexity int) int
 		Deploy                   func(childComplexity int, id string) int
 		DeployDomains            func(childComplexity int, projectID string) int
 		Deploys                  func(childComplexity int, limit *int, offset *int) int
@@ -1644,6 +1710,11 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	Empty(ctx context.Context) (*string, error)
+	SaveCustomAgent(ctx context.Context, input model.SaveCustomAgentInput) (*model.CustomAgent, error)
+	DeleteCustomAgent(ctx context.Context, id string) (bool, error)
+	SaveCrew(ctx context.Context, input model.SaveCrewInput) (*model.Crew, error)
+	DeleteCrew(ctx context.Context, id string) (bool, error)
+	RunCrew(ctx context.Context, id string, projectID string) (*model.CrewRunResult, error)
 	CreateAppAPIKey(ctx context.Context, input model.CreateAppAPIKeyInput) (*model.AppAPIKeyWithSecret, error)
 	RevokeAppAPIKey(ctx context.Context, id string) (*model.AppAPIKey, error)
 	CreateAppWebhook(ctx context.Context, input model.CreateAppWebhookInput) (*model.AppWebhook, error)
@@ -1743,6 +1814,8 @@ type QueryResolver interface {
 	Agents(ctx context.Context) ([]model.Agent, error)
 	AgentTelemetry(ctx context.Context, limit *int, role *string, provider *string, modelName *string) ([]model.AgentCall, error)
 	BanditRanking(ctx context.Context, lookback *int) (*model.BanditRanking, error)
+	CustomAgents(ctx context.Context) ([]model.CustomAgent, error)
+	Crews(ctx context.Context) ([]model.Crew, error)
 	AppAnalytics(ctx context.Context, projectID string, days *int) (*model.AppAnalytics, error)
 	AppAPIKeys(ctx context.Context, projectID string) ([]model.AppAPIKey, error)
 	AppEndpoints(ctx context.Context, projectID string) ([]model.AppEndpoint, error)
@@ -2009,6 +2082,43 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.AgentCall.UserID(childComplexity), true
+
+	case "AgentSchedule.at":
+		if e.ComplexityRoot.AgentSchedule.At == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AgentSchedule.At(childComplexity), true
+	case "AgentSchedule.enabled":
+		if e.ComplexityRoot.AgentSchedule.Enabled == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AgentSchedule.Enabled(childComplexity), true
+	case "AgentSchedule.every":
+		if e.ComplexityRoot.AgentSchedule.Every == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AgentSchedule.Every(childComplexity), true
+	case "AgentSchedule.mode":
+		if e.ComplexityRoot.AgentSchedule.Mode == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AgentSchedule.Mode(childComplexity), true
+	case "AgentSchedule.trigger":
+		if e.ComplexityRoot.AgentSchedule.Trigger == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AgentSchedule.Trigger(childComplexity), true
+	case "AgentSchedule.weekday":
+		if e.ComplexityRoot.AgentSchedule.Weekday == nil {
+			break
+		}
+
+		return e.ComplexityRoot.AgentSchedule.Weekday(childComplexity), true
 
 	case "AppAnalytics.avgSessionSeconds":
 		if e.ComplexityRoot.AppAnalytics.AvgSessionSeconds == nil {
@@ -3599,6 +3709,238 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.CostReport.StorageCostUsd(childComplexity), true
+
+	case "Crew.goal":
+		if e.ComplexityRoot.Crew.Goal == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Crew.Goal(childComplexity), true
+	case "Crew.id":
+		if e.ComplexityRoot.Crew.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Crew.ID(childComplexity), true
+	case "Crew.managerId":
+		if e.ComplexityRoot.Crew.ManagerID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Crew.ManagerID(childComplexity), true
+	case "Crew.memberIds":
+		if e.ComplexityRoot.Crew.MemberIds == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Crew.MemberIds(childComplexity), true
+	case "Crew.name":
+		if e.ComplexityRoot.Crew.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Crew.Name(childComplexity), true
+	case "Crew.process":
+		if e.ComplexityRoot.Crew.Process == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Crew.Process(childComplexity), true
+	case "Crew.schedule":
+		if e.ComplexityRoot.Crew.Schedule == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Crew.Schedule(childComplexity), true
+	case "Crew.updatedAt":
+		if e.ComplexityRoot.Crew.UpdatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Crew.UpdatedAt(childComplexity), true
+
+	case "CrewMemberResult.agentId":
+		if e.ComplexityRoot.CrewMemberResult.AgentID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CrewMemberResult.AgentID(childComplexity), true
+	case "CrewMemberResult.costUsd":
+		if e.ComplexityRoot.CrewMemberResult.CostUsd == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CrewMemberResult.CostUsd(childComplexity), true
+	case "CrewMemberResult.error":
+		if e.ComplexityRoot.CrewMemberResult.Error == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CrewMemberResult.Error(childComplexity), true
+	case "CrewMemberResult.name":
+		if e.ComplexityRoot.CrewMemberResult.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CrewMemberResult.Name(childComplexity), true
+	case "CrewMemberResult.output":
+		if e.ComplexityRoot.CrewMemberResult.Output == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CrewMemberResult.Output(childComplexity), true
+	case "CrewMemberResult.provider":
+		if e.ComplexityRoot.CrewMemberResult.Provider == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CrewMemberResult.Provider(childComplexity), true
+	case "CrewMemberResult.role":
+		if e.ComplexityRoot.CrewMemberResult.Role == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CrewMemberResult.Role(childComplexity), true
+	case "CrewMemberResult.tokens":
+		if e.ComplexityRoot.CrewMemberResult.Tokens == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CrewMemberResult.Tokens(childComplexity), true
+
+	case "CrewRunResult.crewId":
+		if e.ComplexityRoot.CrewRunResult.CrewID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CrewRunResult.CrewID(childComplexity), true
+	case "CrewRunResult.members":
+		if e.ComplexityRoot.CrewRunResult.Members == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CrewRunResult.Members(childComplexity), true
+	case "CrewRunResult.process":
+		if e.ComplexityRoot.CrewRunResult.Process == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CrewRunResult.Process(childComplexity), true
+	case "CrewRunResult.totalCostUsd":
+		if e.ComplexityRoot.CrewRunResult.TotalCostUsd == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CrewRunResult.TotalCostUsd(childComplexity), true
+
+	case "CustomAgent.autonomy":
+		if e.ComplexityRoot.CustomAgent.Autonomy == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CustomAgent.Autonomy(childComplexity), true
+	case "CustomAgent.baseRole":
+		if e.ComplexityRoot.CustomAgent.BaseRole == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CustomAgent.BaseRole(childComplexity), true
+	case "CustomAgent.canDelegate":
+		if e.ComplexityRoot.CustomAgent.CanDelegate == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CustomAgent.CanDelegate(childComplexity), true
+	case "CustomAgent.description":
+		if e.ComplexityRoot.CustomAgent.Description == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CustomAgent.Description(childComplexity), true
+	case "CustomAgent.gateId":
+		if e.ComplexityRoot.CustomAgent.GateID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CustomAgent.GateID(childComplexity), true
+	case "CustomAgent.guardrails":
+		if e.ComplexityRoot.CustomAgent.Guardrails == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CustomAgent.Guardrails(childComplexity), true
+	case "CustomAgent.handoffTo":
+		if e.ComplexityRoot.CustomAgent.HandoffTo == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CustomAgent.HandoffTo(childComplexity), true
+	case "CustomAgent.id":
+		if e.ComplexityRoot.CustomAgent.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CustomAgent.ID(childComplexity), true
+	case "CustomAgent.instructions":
+		if e.ComplexityRoot.CustomAgent.Instructions == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CustomAgent.Instructions(childComplexity), true
+	case "CustomAgent.knowledge":
+		if e.ComplexityRoot.CustomAgent.Knowledge == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CustomAgent.Knowledge(childComplexity), true
+	case "CustomAgent.model":
+		if e.ComplexityRoot.CustomAgent.Model == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CustomAgent.Model(childComplexity), true
+	case "CustomAgent.name":
+		if e.ComplexityRoot.CustomAgent.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CustomAgent.Name(childComplexity), true
+	case "CustomAgent.responsibilities":
+		if e.ComplexityRoot.CustomAgent.Responsibilities == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CustomAgent.Responsibilities(childComplexity), true
+	case "CustomAgent.role":
+		if e.ComplexityRoot.CustomAgent.Role == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CustomAgent.Role(childComplexity), true
+	case "CustomAgent.schedule":
+		if e.ComplexityRoot.CustomAgent.Schedule == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CustomAgent.Schedule(childComplexity), true
+	case "CustomAgent.skills":
+		if e.ComplexityRoot.CustomAgent.Skills == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CustomAgent.Skills(childComplexity), true
+	case "CustomAgent.tools":
+		if e.ComplexityRoot.CustomAgent.Tools == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CustomAgent.Tools(childComplexity), true
+	case "CustomAgent.updatedAt":
+		if e.ComplexityRoot.CustomAgent.UpdatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CustomAgent.UpdatedAt(childComplexity), true
 
 	case "DNSRecord.name":
 		if e.ComplexityRoot.DNSRecord.Name == nil {
@@ -5826,6 +6168,28 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.DeleteAutomation(childComplexity, args["id"].(string)), true
+	case "Mutation.deleteCrew":
+		if e.ComplexityRoot.Mutation.DeleteCrew == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteCrew_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.DeleteCrew(childComplexity, args["id"].(string)), true
+	case "Mutation.deleteCustomAgent":
+		if e.ComplexityRoot.Mutation.DeleteCustomAgent == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteCustomAgent_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.DeleteCustomAgent(childComplexity, args["id"].(string)), true
 	case "Mutation.deleteProject":
 		if e.ComplexityRoot.Mutation.DeleteProject == nil {
 			break
@@ -6312,6 +6676,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.RunAutomation(childComplexity, args["id"].(string)), true
+	case "Mutation.runCrew":
+		if e.ComplexityRoot.Mutation.RunCrew == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_runCrew_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.RunCrew(childComplexity, args["id"].(string), args["projectId"].(string)), true
 	case "Mutation.runFinisher":
 		if e.ComplexityRoot.Mutation.RunFinisher == nil {
 			break
@@ -6323,6 +6698,28 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.RunFinisher(childComplexity, args["id"].(string)), true
+	case "Mutation.saveCrew":
+		if e.ComplexityRoot.Mutation.SaveCrew == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_saveCrew_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.SaveCrew(childComplexity, args["input"].(model.SaveCrewInput)), true
+	case "Mutation.saveCustomAgent":
+		if e.ComplexityRoot.Mutation.SaveCustomAgent == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_saveCustomAgent_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.SaveCustomAgent(childComplexity, args["input"].(model.SaveCustomAgentInput)), true
 	case "Mutation.setAppEnvVar":
 		if e.ComplexityRoot.Mutation.SetAppEnvVar == nil {
 			break
@@ -7755,6 +8152,18 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Query.ComplianceFrameworks(childComplexity), true
+	case "Query.crews":
+		if e.ComplexityRoot.Query.Crews == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Query.Crews(childComplexity), true
+	case "Query.customAgents":
+		if e.ComplexityRoot.Query.CustomAgents == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Query.CustomAgents(childComplexity), true
 	case "Query.deploy":
 		if e.ComplexityRoot.Query.Deploy == nil {
 			break
@@ -9750,6 +10159,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	opCtx := graphql.GetOperationContext(ctx)
 	ec := newExecutionContext(opCtx, e, make(chan graphql.DeferredResult))
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputAgentScheduleInput,
 		ec.unmarshalInputAppetizeUploadInput,
 		ec.unmarshalInputAuditExportFilter,
 		ec.unmarshalInputAuditQueryInput,
@@ -9779,6 +10189,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputRenameSymbolInput,
 		ec.unmarshalInputRerunGateInput,
 		ec.unmarshalInputReserveDeploySubdomainInput,
+		ec.unmarshalInputSaveCrewInput,
+		ec.unmarshalInputSaveCustomAgentInput,
 		ec.unmarshalInputSignInInput,
 		ec.unmarshalInputSignUpInput,
 		ec.unmarshalInputStartCheckoutInput,
@@ -9959,6 +10371,139 @@ extend type Query {
 
 extend type Subscription {
   costStream: CostDelta!
+}
+`, BuiltIn: false},
+	{Name: "../schema/agentteam.graphql", Input: `# Operator-defined agent layer: custom agents + crews. These sit on top of the
+# built-in finisher roster (see agents.graphql) and are owner-scoped, persisted
+# resources backed by internal/operations/agentteam. ` + "`" + `runCrew` + "`" + ` dispatches a
+# crew's members through the agent registry — in parallel, sequentially, or
+# under a manager — gated by a wallet hold so no run spends without budget.
+
+enum AgentAutonomy {
+  suggest
+  approval
+  autonomous
+}
+
+enum CrewProcess {
+  parallel
+  sequential
+  hierarchical
+}
+
+type AgentSchedule {
+  mode: String!
+  every: String
+  at: String
+  weekday: Int
+  trigger: String
+  enabled: Boolean!
+}
+
+input AgentScheduleInput {
+  mode: String!
+  every: String
+  at: String
+  weekday: Int
+  trigger: String
+  enabled: Boolean!
+}
+
+type CustomAgent {
+  id: ID!
+  name: String!
+  role: String!
+  description: String
+  instructions: String
+  baseRole: String
+  gateId: String
+  skills: [String!]!
+  tools: [String!]!
+  responsibilities: [String!]!
+  guardrails: [String!]!
+  knowledge: [String!]!
+  model: String
+  autonomy: AgentAutonomy!
+  canDelegate: Boolean!
+  handoffTo: [String!]!
+  schedule: AgentSchedule
+  updatedAt: DateTime!
+}
+
+input SaveCustomAgentInput {
+  id: ID
+  name: String!
+  role: String!
+  description: String
+  instructions: String
+  baseRole: String
+  gateId: String
+  skills: [String!]
+  tools: [String!]
+  responsibilities: [String!]
+  guardrails: [String!]
+  knowledge: [String!]
+  model: String
+  autonomy: AgentAutonomy
+  canDelegate: Boolean
+  handoffTo: [String!]
+  schedule: AgentScheduleInput
+}
+
+type Crew {
+  id: ID!
+  name: String!
+  goal: String!
+  process: CrewProcess!
+  memberIds: [String!]!
+  managerId: String
+  schedule: AgentSchedule
+  updatedAt: DateTime!
+}
+
+input SaveCrewInput {
+  id: ID
+  name: String!
+  goal: String!
+  process: CrewProcess!
+  memberIds: [String!]!
+  managerId: String
+  schedule: AgentScheduleInput
+}
+
+type CrewMemberResult {
+  agentId: String!
+  name: String!
+  role: String!
+  output: String!
+  provider: String
+  tokens: Int
+  costUsd: Float!
+  error: String
+}
+
+type CrewRunResult {
+  crewId: ID!
+  process: CrewProcess!
+  members: [CrewMemberResult!]!
+  totalCostUsd: Float!
+}
+
+extend type Query {
+  # The operator's own agents (owner-scoped). The built-in roster is ` + "`" + `agents` + "`" + `.
+  customAgents: [CustomAgent!]!
+  # The operator's crews (owner-scoped).
+  crews: [Crew!]!
+}
+
+extend type Mutation {
+  saveCustomAgent(input: SaveCustomAgentInput!): CustomAgent!
+  deleteCustomAgent(id: ID!): Boolean!
+  saveCrew(input: SaveCrewInput!): Crew!
+  deleteCrew(id: ID!): Boolean!
+  # Dispatch a crew against a project. Members run per the crew's process;
+  # parallel crews fan out with bounded concurrency. Gated by a wallet hold.
+  runCrew(id: ID!, projectId: ID!): CrewRunResult!
 }
 `, BuiltIn: false},
 	{Name: "../schema/appanalytics.graphql", Input: `# Operate › Analytics — product usage of the deployed app: traffic, sessions,
@@ -13024,6 +13569,24 @@ func (ec *executionContext) childFields_AgentCall(ctx context.Context, field gra
 	return nil, fmt.Errorf("no field named %q was found under type AgentCall", field.Name)
 }
 
+func (ec *executionContext) childFields_AgentSchedule(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "mode":
+		return ec.fieldContext_AgentSchedule_mode(ctx, field)
+	case "every":
+		return ec.fieldContext_AgentSchedule_every(ctx, field)
+	case "at":
+		return ec.fieldContext_AgentSchedule_at(ctx, field)
+	case "weekday":
+		return ec.fieldContext_AgentSchedule_weekday(ctx, field)
+	case "trigger":
+		return ec.fieldContext_AgentSchedule_trigger(ctx, field)
+	case "enabled":
+		return ec.fieldContext_AgentSchedule_enabled(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type AgentSchedule", field.Name)
+}
+
 func (ec *executionContext) childFields_AppAnalytics(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 	switch field.Name {
 	case "rangeDays":
@@ -13824,6 +14387,106 @@ func (ec *executionContext) childFields_CostReport(ctx context.Context, field gr
 		return ec.fieldContext_CostReport_grossMarginPct(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type CostReport", field.Name)
+}
+
+func (ec *executionContext) childFields_Crew(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "id":
+		return ec.fieldContext_Crew_id(ctx, field)
+	case "name":
+		return ec.fieldContext_Crew_name(ctx, field)
+	case "goal":
+		return ec.fieldContext_Crew_goal(ctx, field)
+	case "process":
+		return ec.fieldContext_Crew_process(ctx, field)
+	case "memberIds":
+		return ec.fieldContext_Crew_memberIds(ctx, field)
+	case "managerId":
+		return ec.fieldContext_Crew_managerId(ctx, field)
+	case "schedule":
+		return ec.fieldContext_Crew_schedule(ctx, field)
+	case "updatedAt":
+		return ec.fieldContext_Crew_updatedAt(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type Crew", field.Name)
+}
+
+func (ec *executionContext) childFields_CrewMemberResult(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "agentId":
+		return ec.fieldContext_CrewMemberResult_agentId(ctx, field)
+	case "name":
+		return ec.fieldContext_CrewMemberResult_name(ctx, field)
+	case "role":
+		return ec.fieldContext_CrewMemberResult_role(ctx, field)
+	case "output":
+		return ec.fieldContext_CrewMemberResult_output(ctx, field)
+	case "provider":
+		return ec.fieldContext_CrewMemberResult_provider(ctx, field)
+	case "tokens":
+		return ec.fieldContext_CrewMemberResult_tokens(ctx, field)
+	case "costUsd":
+		return ec.fieldContext_CrewMemberResult_costUsd(ctx, field)
+	case "error":
+		return ec.fieldContext_CrewMemberResult_error(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type CrewMemberResult", field.Name)
+}
+
+func (ec *executionContext) childFields_CrewRunResult(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "crewId":
+		return ec.fieldContext_CrewRunResult_crewId(ctx, field)
+	case "process":
+		return ec.fieldContext_CrewRunResult_process(ctx, field)
+	case "members":
+		return ec.fieldContext_CrewRunResult_members(ctx, field)
+	case "totalCostUsd":
+		return ec.fieldContext_CrewRunResult_totalCostUsd(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type CrewRunResult", field.Name)
+}
+
+func (ec *executionContext) childFields_CustomAgent(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "id":
+		return ec.fieldContext_CustomAgent_id(ctx, field)
+	case "name":
+		return ec.fieldContext_CustomAgent_name(ctx, field)
+	case "role":
+		return ec.fieldContext_CustomAgent_role(ctx, field)
+	case "description":
+		return ec.fieldContext_CustomAgent_description(ctx, field)
+	case "instructions":
+		return ec.fieldContext_CustomAgent_instructions(ctx, field)
+	case "baseRole":
+		return ec.fieldContext_CustomAgent_baseRole(ctx, field)
+	case "gateId":
+		return ec.fieldContext_CustomAgent_gateId(ctx, field)
+	case "skills":
+		return ec.fieldContext_CustomAgent_skills(ctx, field)
+	case "tools":
+		return ec.fieldContext_CustomAgent_tools(ctx, field)
+	case "responsibilities":
+		return ec.fieldContext_CustomAgent_responsibilities(ctx, field)
+	case "guardrails":
+		return ec.fieldContext_CustomAgent_guardrails(ctx, field)
+	case "knowledge":
+		return ec.fieldContext_CustomAgent_knowledge(ctx, field)
+	case "model":
+		return ec.fieldContext_CustomAgent_model(ctx, field)
+	case "autonomy":
+		return ec.fieldContext_CustomAgent_autonomy(ctx, field)
+	case "canDelegate":
+		return ec.fieldContext_CustomAgent_canDelegate(ctx, field)
+	case "handoffTo":
+		return ec.fieldContext_CustomAgent_handoffTo(ctx, field)
+	case "schedule":
+		return ec.fieldContext_CustomAgent_schedule(ctx, field)
+	case "updatedAt":
+		return ec.fieldContext_CustomAgent_updatedAt(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type CustomAgent", field.Name)
 }
 
 func (ec *executionContext) childFields_DNSRecord(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
@@ -16086,6 +16749,34 @@ func (ec *executionContext) field_Mutation_deleteAutomation_args(ctx context.Con
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_deleteCrew_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNID2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteCustomAgent_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNID2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_deleteProject_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -16874,6 +17565,28 @@ func (ec *executionContext) field_Mutation_runAutomation_args(ctx context.Contex
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_runCrew_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNID2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "projectId",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNID2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["projectId"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_runFinisher_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -16885,6 +17598,34 @@ func (ec *executionContext) field_Mutation_runFinisher_args(ctx context.Context,
 		return nil, err
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_saveCrew_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
+		func(ctx context.Context, v any) (model.SaveCrewInput, error) {
+			return ec.unmarshalNSaveCrewInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSaveCrewInput(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_saveCustomAgent_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
+		func(ctx context.Context, v any) (model.SaveCustomAgentInput, error) {
+			return ec.unmarshalNSaveCustomAgentInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSaveCustomAgentInput(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -19335,6 +20076,144 @@ func (ec *executionContext) _AgentCall_projectId(ctx context.Context, field grap
 }
 func (ec *executionContext) fieldContext_AgentCall_projectId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("AgentCall", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
+func (ec *executionContext) _AgentSchedule_mode(ctx context.Context, field graphql.CollectedField, obj *model.AgentSchedule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AgentSchedule_mode(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Mode, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AgentSchedule_mode(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AgentSchedule", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _AgentSchedule_every(ctx context.Context, field graphql.CollectedField, obj *model.AgentSchedule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AgentSchedule_every(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Every, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_AgentSchedule_every(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AgentSchedule", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _AgentSchedule_at(ctx context.Context, field graphql.CollectedField, obj *model.AgentSchedule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AgentSchedule_at(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.At, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_AgentSchedule_at(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AgentSchedule", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _AgentSchedule_weekday(ctx context.Context, field graphql.CollectedField, obj *model.AgentSchedule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AgentSchedule_weekday(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Weekday, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *int) graphql.Marshaler {
+			return ec.marshalOInt2ᚖint(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_AgentSchedule_weekday(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AgentSchedule", field, false, false, errors.New("field of type Int does not have child fields"))
+}
+
+func (ec *executionContext) _AgentSchedule_trigger(ctx context.Context, field graphql.CollectedField, obj *model.AgentSchedule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AgentSchedule_trigger(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Trigger, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_AgentSchedule_trigger(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AgentSchedule", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _AgentSchedule_enabled(ctx context.Context, field graphql.CollectedField, obj *model.AgentSchedule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_AgentSchedule_enabled(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Enabled, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v bool) graphql.Marshaler {
+			return ec.marshalNBoolean2bool(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_AgentSchedule_enabled(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("AgentSchedule", field, false, false, errors.New("field of type Boolean does not have child fields"))
 }
 
 func (ec *executionContext) _AppAnalytics_rangeDays(ctx context.Context, field graphql.CollectedField, obj *model.AppAnalytics) (ret graphql.Marshaler) {
@@ -25426,6 +26305,907 @@ func (ec *executionContext) _CostReport_grossMarginPct(ctx context.Context, fiel
 }
 func (ec *executionContext) fieldContext_CostReport_grossMarginPct(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("CostReport", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _Crew_id(ctx context.Context, field graphql.CollectedField, obj *model.Crew) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Crew_id(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNID2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Crew_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Crew", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
+func (ec *executionContext) _Crew_name(ctx context.Context, field graphql.CollectedField, obj *model.Crew) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Crew_name(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Crew_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Crew", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _Crew_goal(ctx context.Context, field graphql.CollectedField, obj *model.Crew) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Crew_goal(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Goal, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Crew_goal(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Crew", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _Crew_process(ctx context.Context, field graphql.CollectedField, obj *model.Crew) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Crew_process(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Process, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v model.CrewProcess) graphql.Marshaler {
+			return ec.marshalNCrewProcess2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCrewProcess(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Crew_process(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Crew", field, false, false, errors.New("field of type CrewProcess does not have child fields"))
+}
+
+func (ec *executionContext) _Crew_memberIds(ctx context.Context, field graphql.CollectedField, obj *model.Crew) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Crew_memberIds(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.MemberIds, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []string) graphql.Marshaler {
+			return ec.marshalNString2ᚕstringᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Crew_memberIds(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Crew", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _Crew_managerId(ctx context.Context, field graphql.CollectedField, obj *model.Crew) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Crew_managerId(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ManagerID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_Crew_managerId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Crew", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _Crew_schedule(ctx context.Context, field graphql.CollectedField, obj *model.Crew) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Crew_schedule(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Schedule, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.AgentSchedule) graphql.Marshaler {
+			return ec.marshalOAgentSchedule2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAgentSchedule(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_Crew_schedule(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Crew",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_AgentSchedule(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Crew_updatedAt(ctx context.Context, field graphql.CollectedField, obj *model.Crew) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Crew_updatedAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.UpdatedAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Crew_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("Crew", field, false, false, errors.New("field of type DateTime does not have child fields"))
+}
+
+func (ec *executionContext) _CrewMemberResult_agentId(ctx context.Context, field graphql.CollectedField, obj *model.CrewMemberResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CrewMemberResult_agentId(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.AgentID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CrewMemberResult_agentId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CrewMemberResult", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _CrewMemberResult_name(ctx context.Context, field graphql.CollectedField, obj *model.CrewMemberResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CrewMemberResult_name(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CrewMemberResult_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CrewMemberResult", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _CrewMemberResult_role(ctx context.Context, field graphql.CollectedField, obj *model.CrewMemberResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CrewMemberResult_role(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Role, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CrewMemberResult_role(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CrewMemberResult", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _CrewMemberResult_output(ctx context.Context, field graphql.CollectedField, obj *model.CrewMemberResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CrewMemberResult_output(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Output, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CrewMemberResult_output(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CrewMemberResult", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _CrewMemberResult_provider(ctx context.Context, field graphql.CollectedField, obj *model.CrewMemberResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CrewMemberResult_provider(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Provider, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_CrewMemberResult_provider(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CrewMemberResult", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _CrewMemberResult_tokens(ctx context.Context, field graphql.CollectedField, obj *model.CrewMemberResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CrewMemberResult_tokens(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Tokens, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *int) graphql.Marshaler {
+			return ec.marshalOInt2ᚖint(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_CrewMemberResult_tokens(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CrewMemberResult", field, false, false, errors.New("field of type Int does not have child fields"))
+}
+
+func (ec *executionContext) _CrewMemberResult_costUsd(ctx context.Context, field graphql.CollectedField, obj *model.CrewMemberResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CrewMemberResult_costUsd(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.CostUsd, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CrewMemberResult_costUsd(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CrewMemberResult", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _CrewMemberResult_error(ctx context.Context, field graphql.CollectedField, obj *model.CrewMemberResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CrewMemberResult_error(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Error, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_CrewMemberResult_error(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CrewMemberResult", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _CrewRunResult_crewId(ctx context.Context, field graphql.CollectedField, obj *model.CrewRunResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CrewRunResult_crewId(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.CrewID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNID2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CrewRunResult_crewId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CrewRunResult", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
+func (ec *executionContext) _CrewRunResult_process(ctx context.Context, field graphql.CollectedField, obj *model.CrewRunResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CrewRunResult_process(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Process, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v model.CrewProcess) graphql.Marshaler {
+			return ec.marshalNCrewProcess2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCrewProcess(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CrewRunResult_process(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CrewRunResult", field, false, false, errors.New("field of type CrewProcess does not have child fields"))
+}
+
+func (ec *executionContext) _CrewRunResult_members(ctx context.Context, field graphql.CollectedField, obj *model.CrewRunResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CrewRunResult_members(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Members, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []model.CrewMemberResult) graphql.Marshaler {
+			return ec.marshalNCrewMemberResult2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCrewMemberResultᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CrewRunResult_members(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CrewRunResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_CrewMemberResult(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CrewRunResult_totalCostUsd(ctx context.Context, field graphql.CollectedField, obj *model.CrewRunResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CrewRunResult_totalCostUsd(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.TotalCostUsd, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v float64) graphql.Marshaler {
+			return ec.marshalNFloat2float64(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CrewRunResult_totalCostUsd(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CrewRunResult", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _CustomAgent_id(ctx context.Context, field graphql.CollectedField, obj *model.CustomAgent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CustomAgent_id(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNID2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CustomAgent_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CustomAgent", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
+func (ec *executionContext) _CustomAgent_name(ctx context.Context, field graphql.CollectedField, obj *model.CustomAgent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CustomAgent_name(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CustomAgent_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CustomAgent", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _CustomAgent_role(ctx context.Context, field graphql.CollectedField, obj *model.CustomAgent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CustomAgent_role(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Role, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CustomAgent_role(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CustomAgent", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _CustomAgent_description(ctx context.Context, field graphql.CollectedField, obj *model.CustomAgent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CustomAgent_description(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Description, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_CustomAgent_description(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CustomAgent", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _CustomAgent_instructions(ctx context.Context, field graphql.CollectedField, obj *model.CustomAgent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CustomAgent_instructions(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Instructions, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_CustomAgent_instructions(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CustomAgent", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _CustomAgent_baseRole(ctx context.Context, field graphql.CollectedField, obj *model.CustomAgent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CustomAgent_baseRole(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.BaseRole, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_CustomAgent_baseRole(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CustomAgent", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _CustomAgent_gateId(ctx context.Context, field graphql.CollectedField, obj *model.CustomAgent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CustomAgent_gateId(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.GateID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_CustomAgent_gateId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CustomAgent", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _CustomAgent_skills(ctx context.Context, field graphql.CollectedField, obj *model.CustomAgent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CustomAgent_skills(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Skills, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []string) graphql.Marshaler {
+			return ec.marshalNString2ᚕstringᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CustomAgent_skills(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CustomAgent", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _CustomAgent_tools(ctx context.Context, field graphql.CollectedField, obj *model.CustomAgent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CustomAgent_tools(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Tools, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []string) graphql.Marshaler {
+			return ec.marshalNString2ᚕstringᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CustomAgent_tools(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CustomAgent", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _CustomAgent_responsibilities(ctx context.Context, field graphql.CollectedField, obj *model.CustomAgent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CustomAgent_responsibilities(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Responsibilities, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []string) graphql.Marshaler {
+			return ec.marshalNString2ᚕstringᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CustomAgent_responsibilities(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CustomAgent", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _CustomAgent_guardrails(ctx context.Context, field graphql.CollectedField, obj *model.CustomAgent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CustomAgent_guardrails(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Guardrails, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []string) graphql.Marshaler {
+			return ec.marshalNString2ᚕstringᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CustomAgent_guardrails(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CustomAgent", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _CustomAgent_knowledge(ctx context.Context, field graphql.CollectedField, obj *model.CustomAgent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CustomAgent_knowledge(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Knowledge, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []string) graphql.Marshaler {
+			return ec.marshalNString2ᚕstringᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CustomAgent_knowledge(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CustomAgent", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _CustomAgent_model(ctx context.Context, field graphql.CollectedField, obj *model.CustomAgent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CustomAgent_model(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Model, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_CustomAgent_model(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CustomAgent", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _CustomAgent_autonomy(ctx context.Context, field graphql.CollectedField, obj *model.CustomAgent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CustomAgent_autonomy(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Autonomy, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v model.AgentAutonomy) graphql.Marshaler {
+			return ec.marshalNAgentAutonomy2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAgentAutonomy(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CustomAgent_autonomy(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CustomAgent", field, false, false, errors.New("field of type AgentAutonomy does not have child fields"))
+}
+
+func (ec *executionContext) _CustomAgent_canDelegate(ctx context.Context, field graphql.CollectedField, obj *model.CustomAgent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CustomAgent_canDelegate(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.CanDelegate, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v bool) graphql.Marshaler {
+			return ec.marshalNBoolean2bool(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CustomAgent_canDelegate(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CustomAgent", field, false, false, errors.New("field of type Boolean does not have child fields"))
+}
+
+func (ec *executionContext) _CustomAgent_handoffTo(ctx context.Context, field graphql.CollectedField, obj *model.CustomAgent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CustomAgent_handoffTo(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.HandoffTo, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []string) graphql.Marshaler {
+			return ec.marshalNString2ᚕstringᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CustomAgent_handoffTo(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CustomAgent", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _CustomAgent_schedule(ctx context.Context, field graphql.CollectedField, obj *model.CustomAgent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CustomAgent_schedule(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Schedule, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.AgentSchedule) graphql.Marshaler {
+			return ec.marshalOAgentSchedule2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAgentSchedule(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_CustomAgent_schedule(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CustomAgent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_AgentSchedule(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CustomAgent_updatedAt(ctx context.Context, field graphql.CollectedField, obj *model.CustomAgent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CustomAgent_updatedAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.UpdatedAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
+			return ec.marshalNDateTime2timeᚐTime(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CustomAgent_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CustomAgent", field, false, false, errors.New("field of type DateTime does not have child fields"))
 }
 
 func (ec *executionContext) _DNSRecord_type(ctx context.Context, field graphql.CollectedField, obj *model.DNSRecord) (ret graphql.Marshaler) {
@@ -32928,6 +34708,226 @@ func (ec *executionContext) fieldContext_Mutation__empty(_ context.Context, fiel
 	return graphql.NewScalarFieldContext("Mutation", field, true, true, errors.New("field of type String does not have child fields"))
 }
 
+func (ec *executionContext) _Mutation_saveCustomAgent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_saveCustomAgent(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().SaveCustomAgent(ctx, fc.Args["input"].(model.SaveCustomAgentInput))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.CustomAgent) graphql.Marshaler {
+			return ec.marshalNCustomAgent2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCustomAgent(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_saveCustomAgent(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_CustomAgent(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_saveCustomAgent_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteCustomAgent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_deleteCustomAgent(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().DeleteCustomAgent(ctx, fc.Args["id"].(string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v bool) graphql.Marshaler {
+			return ec.marshalNBoolean2bool(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_deleteCustomAgent(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteCustomAgent_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_saveCrew(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_saveCrew(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().SaveCrew(ctx, fc.Args["input"].(model.SaveCrewInput))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.Crew) graphql.Marshaler {
+			return ec.marshalNCrew2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCrew(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_saveCrew(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Crew(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_saveCrew_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteCrew(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_deleteCrew(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().DeleteCrew(ctx, fc.Args["id"].(string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v bool) graphql.Marshaler {
+			return ec.marshalNBoolean2bool(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_deleteCrew(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteCrew_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_runCrew(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_runCrew(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().RunCrew(ctx, fc.Args["id"].(string), fc.Args["projectId"].(string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.CrewRunResult) graphql.Marshaler {
+			return ec.marshalNCrewRunResult2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCrewRunResult(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_runCrew(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_CrewRunResult(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_runCrew_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_createAppApiKey(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -40423,6 +42423,70 @@ func (ec *executionContext) fieldContext_Query_banditRanking(ctx context.Context
 	if fc.Args, err = ec.field_Query_banditRanking_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_customAgents(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Query_customAgents(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Query().CustomAgents(ctx)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []model.CustomAgent) graphql.Marshaler {
+			return ec.marshalNCustomAgent2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCustomAgentᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Query_customAgents(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_CustomAgent(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_crews(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Query_crews(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Query().Crews(ctx)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []model.Crew) graphql.Marshaler {
+			return ec.marshalNCrew2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCrewᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Query_crews(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_Crew(ctx, field)
+		},
 	}
 	return fc, nil
 }
@@ -50631,6 +52695,71 @@ func (ec *executionContext) fieldContext___Type_isOneOf(_ context.Context, field
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputAgentScheduleInput(ctx context.Context, obj any) (model.AgentScheduleInput, error) {
+	var it model.AgentScheduleInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"mode", "every", "at", "weekday", "trigger", "enabled"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "mode":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mode"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Mode = data
+		case "every":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("every"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Every = data
+		case "at":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("at"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.At = data
+		case "weekday":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("weekday"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Weekday = data
+		case "trigger":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("trigger"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Trigger = data
+		case "enabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enabled"))
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Enabled = data
+		}
+	}
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputAppetizeUploadInput(ctx context.Context, obj any) (model.AppetizeUploadInput, error) {
 	var it model.AppetizeUploadInput
 	if obj == nil {
@@ -52445,6 +54574,220 @@ func (ec *executionContext) unmarshalInputReserveDeploySubdomainInput(ctx contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputSaveCrewInput(ctx context.Context, obj any) (model.SaveCrewInput, error) {
+	var it model.SaveCrewInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "name", "goal", "process", "memberIds", "managerId", "schedule"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ID = data
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "goal":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("goal"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Goal = data
+		case "process":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("process"))
+			data, err := ec.unmarshalNCrewProcess2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCrewProcess(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Process = data
+		case "memberIds":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("memberIds"))
+			data, err := ec.unmarshalNString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MemberIds = data
+		case "managerId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("managerId"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ManagerID = data
+		case "schedule":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("schedule"))
+			data, err := ec.unmarshalOAgentScheduleInput2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAgentScheduleInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Schedule = data
+		}
+	}
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputSaveCustomAgentInput(ctx context.Context, obj any) (model.SaveCustomAgentInput, error) {
+	var it model.SaveCustomAgentInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "name", "role", "description", "instructions", "baseRole", "gateId", "skills", "tools", "responsibilities", "guardrails", "knowledge", "model", "autonomy", "canDelegate", "handoffTo", "schedule"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ID = data
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "role":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("role"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Role = data
+		case "description":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Description = data
+		case "instructions":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("instructions"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Instructions = data
+		case "baseRole":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("baseRole"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BaseRole = data
+		case "gateId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gateId"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GateID = data
+		case "skills":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skills"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Skills = data
+		case "tools":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tools"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Tools = data
+		case "responsibilities":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("responsibilities"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Responsibilities = data
+		case "guardrails":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("guardrails"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Guardrails = data
+		case "knowledge":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("knowledge"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Knowledge = data
+		case "model":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("model"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Model = data
+		case "autonomy":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("autonomy"))
+			data, err := ec.unmarshalOAgentAutonomy2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAgentAutonomy(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Autonomy = data
+		case "canDelegate":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("canDelegate"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CanDelegate = data
+		case "handoffTo":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("handoffTo"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.HandoffTo = data
+		case "schedule":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("schedule"))
+			data, err := ec.unmarshalOAgentScheduleInput2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAgentScheduleInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Schedule = data
+		}
+	}
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputSignInInput(ctx context.Context, obj any) (model.SignInInput, error) {
 	var it model.SignInInput
 	if obj == nil {
@@ -53222,6 +55565,58 @@ func (ec *executionContext) _AgentCall(ctx context.Context, sel ast.SelectionSet
 			out.Values[i] = ec._AgentCall_userId(ctx, field, obj)
 		case "projectId":
 			out.Values[i] = ec._AgentCall_projectId(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var agentScheduleImplementors = []string{"AgentSchedule"}
+
+func (ec *executionContext) _AgentSchedule(ctx context.Context, sel ast.SelectionSet, obj *model.AgentSchedule) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, agentScheduleImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AgentSchedule")
+		case "mode":
+			out.Values[i] = ec._AgentSchedule_mode(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "every":
+			out.Values[i] = ec._AgentSchedule_every(ctx, field, obj)
+		case "at":
+			out.Values[i] = ec._AgentSchedule_at(ctx, field, obj)
+		case "weekday":
+			out.Values[i] = ec._AgentSchedule_weekday(ctx, field, obj)
+		case "trigger":
+			out.Values[i] = ec._AgentSchedule_trigger(ctx, field, obj)
+		case "enabled":
+			out.Values[i] = ec._AgentSchedule_enabled(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -56078,6 +58473,299 @@ func (ec *executionContext) _CostReport(ctx context.Context, sel ast.SelectionSe
 	return out
 }
 
+var crewImplementors = []string{"Crew"}
+
+func (ec *executionContext) _Crew(ctx context.Context, sel ast.SelectionSet, obj *model.Crew) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, crewImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Crew")
+		case "id":
+			out.Values[i] = ec._Crew_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._Crew_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "goal":
+			out.Values[i] = ec._Crew_goal(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "process":
+			out.Values[i] = ec._Crew_process(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "memberIds":
+			out.Values[i] = ec._Crew_memberIds(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "managerId":
+			out.Values[i] = ec._Crew_managerId(ctx, field, obj)
+		case "schedule":
+			out.Values[i] = ec._Crew_schedule(ctx, field, obj)
+		case "updatedAt":
+			out.Values[i] = ec._Crew_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var crewMemberResultImplementors = []string{"CrewMemberResult"}
+
+func (ec *executionContext) _CrewMemberResult(ctx context.Context, sel ast.SelectionSet, obj *model.CrewMemberResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, crewMemberResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CrewMemberResult")
+		case "agentId":
+			out.Values[i] = ec._CrewMemberResult_agentId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._CrewMemberResult_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "role":
+			out.Values[i] = ec._CrewMemberResult_role(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "output":
+			out.Values[i] = ec._CrewMemberResult_output(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "provider":
+			out.Values[i] = ec._CrewMemberResult_provider(ctx, field, obj)
+		case "tokens":
+			out.Values[i] = ec._CrewMemberResult_tokens(ctx, field, obj)
+		case "costUsd":
+			out.Values[i] = ec._CrewMemberResult_costUsd(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "error":
+			out.Values[i] = ec._CrewMemberResult_error(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var crewRunResultImplementors = []string{"CrewRunResult"}
+
+func (ec *executionContext) _CrewRunResult(ctx context.Context, sel ast.SelectionSet, obj *model.CrewRunResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, crewRunResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CrewRunResult")
+		case "crewId":
+			out.Values[i] = ec._CrewRunResult_crewId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "process":
+			out.Values[i] = ec._CrewRunResult_process(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "members":
+			out.Values[i] = ec._CrewRunResult_members(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "totalCostUsd":
+			out.Values[i] = ec._CrewRunResult_totalCostUsd(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var customAgentImplementors = []string{"CustomAgent"}
+
+func (ec *executionContext) _CustomAgent(ctx context.Context, sel ast.SelectionSet, obj *model.CustomAgent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, customAgentImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CustomAgent")
+		case "id":
+			out.Values[i] = ec._CustomAgent_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._CustomAgent_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "role":
+			out.Values[i] = ec._CustomAgent_role(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "description":
+			out.Values[i] = ec._CustomAgent_description(ctx, field, obj)
+		case "instructions":
+			out.Values[i] = ec._CustomAgent_instructions(ctx, field, obj)
+		case "baseRole":
+			out.Values[i] = ec._CustomAgent_baseRole(ctx, field, obj)
+		case "gateId":
+			out.Values[i] = ec._CustomAgent_gateId(ctx, field, obj)
+		case "skills":
+			out.Values[i] = ec._CustomAgent_skills(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "tools":
+			out.Values[i] = ec._CustomAgent_tools(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "responsibilities":
+			out.Values[i] = ec._CustomAgent_responsibilities(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "guardrails":
+			out.Values[i] = ec._CustomAgent_guardrails(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "knowledge":
+			out.Values[i] = ec._CustomAgent_knowledge(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "model":
+			out.Values[i] = ec._CustomAgent_model(ctx, field, obj)
+		case "autonomy":
+			out.Values[i] = ec._CustomAgent_autonomy(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "canDelegate":
+			out.Values[i] = ec._CustomAgent_canDelegate(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "handoffTo":
+			out.Values[i] = ec._CustomAgent_handoffTo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "schedule":
+			out.Values[i] = ec._CustomAgent_schedule(ctx, field, obj)
+		case "updatedAt":
+			out.Values[i] = ec._CustomAgent_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var dNSRecordImplementors = []string{"DNSRecord"}
 
 func (ec *executionContext) _DNSRecord(ctx context.Context, sel ast.SelectionSet, obj *model.DNSRecord) graphql.Marshaler {
@@ -58883,6 +61571,41 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation__empty(ctx, field)
 			})
+		case "saveCustomAgent":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_saveCustomAgent(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deleteCustomAgent":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteCustomAgent(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "saveCrew":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_saveCrew(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deleteCrew":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteCrew(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "runCrew":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_runCrew(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "createAppApiKey":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createAppApiKey(ctx, field)
@@ -60996,6 +63719,50 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_banditRanking(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "customAgents":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_customAgents(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "crews":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_crews(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -65717,6 +68484,16 @@ func (ec *executionContext) marshalNAgent2ᚕironflyerᚋcoreᚋorchestratorᚋi
 	return ret
 }
 
+func (ec *executionContext) unmarshalNAgentAutonomy2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAgentAutonomy(ctx context.Context, v any) (model.AgentAutonomy, error) {
+	var res model.AgentAutonomy
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNAgentAutonomy2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAgentAutonomy(ctx context.Context, sel ast.SelectionSet, v model.AgentAutonomy) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNAgentCall2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAgentCall(ctx context.Context, sel ast.SelectionSet, v model.AgentCall) graphql.Marshaler {
 	return ec._AgentCall(ctx, sel, &v)
 }
@@ -66654,6 +69431,110 @@ func (ec *executionContext) unmarshalNCreateProjectInput2ironflyerᚋcoreᚋorch
 func (ec *executionContext) unmarshalNCreateStageInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCreateStageInput(ctx context.Context, v any) (model.CreateStageInput, error) {
 	res, err := ec.unmarshalInputCreateStageInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCrew2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCrew(ctx context.Context, sel ast.SelectionSet, v model.Crew) graphql.Marshaler {
+	return ec._Crew(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCrew2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCrewᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Crew) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNCrew2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCrew(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNCrew2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCrew(ctx context.Context, sel ast.SelectionSet, v *model.Crew) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Crew(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNCrewMemberResult2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCrewMemberResult(ctx context.Context, sel ast.SelectionSet, v model.CrewMemberResult) graphql.Marshaler {
+	return ec._CrewMemberResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCrewMemberResult2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCrewMemberResultᚄ(ctx context.Context, sel ast.SelectionSet, v []model.CrewMemberResult) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNCrewMemberResult2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCrewMemberResult(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalNCrewProcess2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCrewProcess(ctx context.Context, v any) (model.CrewProcess, error) {
+	var res model.CrewProcess
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCrewProcess2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCrewProcess(ctx context.Context, sel ast.SelectionSet, v model.CrewProcess) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) marshalNCrewRunResult2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCrewRunResult(ctx context.Context, sel ast.SelectionSet, v model.CrewRunResult) graphql.Marshaler {
+	return ec._CrewRunResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCrewRunResult2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCrewRunResult(ctx context.Context, sel ast.SelectionSet, v *model.CrewRunResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CrewRunResult(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNCustomAgent2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCustomAgent(ctx context.Context, sel ast.SelectionSet, v model.CustomAgent) graphql.Marshaler {
+	return ec._CustomAgent(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCustomAgent2ᚕironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCustomAgentᚄ(ctx context.Context, sel ast.SelectionSet, v []model.CustomAgent) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNCustomAgent2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCustomAgent(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNCustomAgent2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐCustomAgent(ctx context.Context, sel ast.SelectionSet, v *model.CustomAgent) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CustomAgent(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNDNSRecord2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐDNSRecord(ctx context.Context, sel ast.SelectionSet, v model.DNSRecord) graphql.Marshaler {
@@ -68074,6 +70955,16 @@ func (ec *executionContext) marshalNRunEvent2ironflyerᚋcoreᚋorchestratorᚋi
 	return ec._RunEvent(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNSaveCrewInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSaveCrewInput(ctx context.Context, v any) (model.SaveCrewInput, error) {
+	res, err := ec.unmarshalInputSaveCrewInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNSaveCustomAgentInput2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐSaveCustomAgentInput(ctx context.Context, v any) (model.SaveCustomAgentInput, error) {
+	res, err := ec.unmarshalInputSaveCustomAgentInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNScaleDashboard2ironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐScaleDashboard(ctx context.Context, sel ast.SelectionSet, v model.ScaleDashboard) graphql.Marshaler {
 	return ec._ScaleDashboard(ctx, sel, &v)
 }
@@ -68815,6 +71706,37 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalOAgentAutonomy2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAgentAutonomy(ctx context.Context, v any) (*model.AgentAutonomy, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.AgentAutonomy)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOAgentAutonomy2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAgentAutonomy(ctx context.Context, sel ast.SelectionSet, v *model.AgentAutonomy) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) marshalOAgentSchedule2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAgentSchedule(ctx context.Context, sel ast.SelectionSet, v *model.AgentSchedule) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._AgentSchedule(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOAgentScheduleInput2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAgentScheduleInput(ctx context.Context, v any) (*model.AgentScheduleInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputAgentScheduleInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOAuditOutcome2ᚖironflyerᚋcoreᚋorchestratorᚋinternalᚋoperationsᚋgraphᚋmodelᚐAuditOutcome(ctx context.Context, v any) (*model.AuditOutcome, error) {

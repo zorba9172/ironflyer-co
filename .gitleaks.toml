@@ -1,0 +1,14 @@
+title = "Ironflyer gitleaks policy"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Generated docs and fixture-only locations"
+paths = [
+  '''^design-reference/''',
+  '''^design-handoff-screenshots/''',
+  '''^templates/sites/''',
+  '''^tmp/''',
+  '''^clients/web/\.next/'''
+]

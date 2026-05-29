@@ -254,3 +254,50 @@ export const DELETE_APP_ENV_VAR = /* GraphQL */ `
   mutation DeleteAppEnvVar($projectID: ID!, $key: String!) {
     deleteAppEnvVar(projectID: $projectID, key: $key) { ${APP_SETTINGS_FIELDS} }
   }`;
+
+// --- Agents + crews (operator-defined agent layer) ---------------------
+// The built-in finisher roster (read-only).
+export const AGENTS = /* GraphQL */ `
+  query Agents { agents { role system capabilities enableThinking } }`;
+
+const CUSTOM_AGENT_FIELDS = /* GraphQL */ `
+  id name role description instructions baseRole gateId
+  skills tools responsibilities guardrails knowledge
+  model autonomy canDelegate handoffTo
+  schedule { mode every at weekday trigger enabled }
+  updatedAt`;
+
+const CREW_FIELDS = /* GraphQL */ `
+  id name goal process memberIds managerId
+  schedule { mode every at weekday trigger enabled }
+  updatedAt`;
+
+export const CUSTOM_AGENTS = /* GraphQL */ `
+  query CustomAgents { customAgents { ${CUSTOM_AGENT_FIELDS} } }`;
+
+export const CREWS = /* GraphQL */ `
+  query Crews { crews { ${CREW_FIELDS} } }`;
+
+export const SAVE_CUSTOM_AGENT = /* GraphQL */ `
+  mutation SaveCustomAgent($input: SaveCustomAgentInput!) {
+    saveCustomAgent(input: $input) { ${CUSTOM_AGENT_FIELDS} }
+  }`;
+
+export const DELETE_CUSTOM_AGENT = /* GraphQL */ `
+  mutation DeleteCustomAgent($id: ID!) { deleteCustomAgent(id: $id) }`;
+
+export const SAVE_CREW = /* GraphQL */ `
+  mutation SaveCrew($input: SaveCrewInput!) {
+    saveCrew(input: $input) { ${CREW_FIELDS} }
+  }`;
+
+export const DELETE_CREW = /* GraphQL */ `
+  mutation DeleteCrew($id: ID!) { deleteCrew(id: $id) }`;
+
+export const RUN_CREW = /* GraphQL */ `
+  mutation RunCrew($id: ID!, $projectId: ID!) {
+    runCrew(id: $id, projectId: $projectId) {
+      crewId process totalCostUsd
+      members { agentId name role output provider tokens costUsd error }
+    }
+  }`;

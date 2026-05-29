@@ -4,7 +4,7 @@
 # this directory). It loads the orchestrator's authoritative schema, parses
 # operations.graphql, and writes generated.go in this package.
 schema:
-  - ../../../orchestrator/internal/graph/schema/*.graphql
+  - ../../../orchestrator/internal/operations/graph/schema/*.graphql
 operations:
   - operations.graphql
 generated: generated.go

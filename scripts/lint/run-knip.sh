@@ -66,6 +66,7 @@ run_one() {
 
 run_one "clients/web"              "${TMP_RAW}/web.json"
 run_one "clients/vscode-extension" "${TMP_RAW}/vscode.json"
+run_one "clients/studio"           "${TMP_RAW}/studio.json"
 
 # knip JSON shape (v5+):
 #   {

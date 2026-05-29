@@ -7,6 +7,20 @@ import { toast } from '@ironflyer/ui-web/fx';
 import { TechIcon } from '../lib/techIcons';
 import type { ReactNode } from 'react';
 
+export function safeMarkdownUrl(raw?: string | null, kind: 'link' | 'image' = 'link'): string | undefined {
+  if (!raw) return undefined;
+  const value = raw.trim();
+  if (value === '' || value.startsWith('#') || value.startsWith('/')) return value;
+  try {
+    const url = new URL(value);
+    if (url.protocol === 'https:' || url.protocol === 'http:') return url.toString();
+    if (kind === 'link' && url.protocol === 'mailto:') return url.toString();
+  } catch {
+    return undefined;
+  }
+  return undefined;
+}
+
 // Pull the "lang path" pair off a fenced block's info string so the header can
 // show a real filename + matching file-type icon (e.g. ```tsx src/App.tsx).
 function parseInfo(className?: string, raw?: string): { lang?: string; path?: string } {
@@ -70,14 +84,17 @@ export function Markdown({ children }: { children: string }) {
           p: ({ children }) => <Typography sx={{ fontSize: '0.9rem', lineHeight: 1.6, my: 1 }}>{children}</Typography>,
           ul: ({ children }) => <Box component="ul" sx={{ pl: 2.5, my: 1, '& li': { fontSize: '0.9rem', lineHeight: 1.6, mb: 0.5 } }}>{children}</Box>,
           ol: ({ children }) => <Box component="ol" sx={{ pl: 2.5, my: 1, '& li': { fontSize: '0.9rem', lineHeight: 1.6, mb: 0.5 } }}>{children}</Box>,
-          a: ({ children, href }) => <Link href={href} target="_blank" rel="noreferrer" sx={{ color: 'primary.main' }}>{children}</Link>,
+          a: ({ children, href }) => {
+            const safe = safeMarkdownUrl(href, 'link');
+            return <Link href={safe} target={safe?.startsWith('http') ? '_blank' : undefined} rel="noreferrer" sx={{ color: 'primary.main' }}>{children}</Link>;
+          },
           strong: ({ children }) => <Box component="strong" sx={{ fontWeight: 700 }}>{children}</Box>,
           img: ({ src, alt }) => (
             <Box
-              component="a" href={typeof src === 'string' ? src : undefined} target="_blank" rel="noreferrer"
+              component="a" href={safeMarkdownUrl(typeof src === 'string' ? src : undefined, 'image')} target="_blank" rel="noreferrer"
               sx={{ display: 'block', my: 1.25 }}
             >
-              <Box component="img" src={src} alt={alt ?? ''} loading="lazy" sx={{ maxWidth: '100%', borderRadius: 2, border: 1, borderColor: 'divider', display: 'block' }} />
+              <Box component="img" src={safeMarkdownUrl(typeof src === 'string' ? src : undefined, 'image')} alt={alt ?? ''} loading="lazy" sx={{ maxWidth: '100%', borderRadius: 2, border: 1, borderColor: 'divider', display: 'block' }} />
             </Box>
           ),
           code: ({ node, className, children }) => {

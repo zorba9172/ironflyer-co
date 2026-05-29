@@ -1,0 +1,132 @@
+# Operator-defined agent layer: custom agents + crews. These sit on top of the
+# built-in finisher roster (see agents.graphql) and are owner-scoped, persisted
+# resources backed by internal/operations/agentteam. `runCrew` dispatches a
+# crew's members through the agent registry — in parallel, sequentially, or
+# under a manager — gated by a wallet hold so no run spends without budget.
+
+enum AgentAutonomy {
+  suggest
+  approval
+  autonomous
+}
+
+enum CrewProcess {
+  parallel
+  sequential
+  hierarchical
+}
+
+type AgentSchedule {
+  mode: String!
+  every: String
+  at: String
+  weekday: Int
+  trigger: String
+  enabled: Boolean!
+}
+
+input AgentScheduleInput {
+  mode: String!
+  every: String
+  at: String
+  weekday: Int
+  trigger: String
+  enabled: Boolean!
+}
+
+type CustomAgent {
+  id: ID!
+  name: String!
+  role: String!
+  description: String
+  instructions: String
+  baseRole: String
+  gateId: String
+  skills: [String!]!
+  tools: [String!]!
+  responsibilities: [String!]!
+  guardrails: [String!]!
+  knowledge: [String!]!
+  model: String
+  autonomy: AgentAutonomy!
+  canDelegate: Boolean!
+  handoffTo: [String!]!
+  schedule: AgentSchedule
+  updatedAt: DateTime!
+}
+
+input SaveCustomAgentInput {
+  id: ID
+  name: String!
+  role: String!
+  description: String
+  instructions: String
+  baseRole: String
+  gateId: String
+  skills: [String!]
+  tools: [String!]
+  responsibilities: [String!]
+  guardrails: [String!]
+  knowledge: [String!]
+  model: String
+  autonomy: AgentAutonomy
+  canDelegate: Boolean
+  handoffTo: [String!]
+  schedule: AgentScheduleInput
+}
+
+type Crew {
+  id: ID!
+  name: String!
+  goal: String!
+  process: CrewProcess!
+  memberIds: [String!]!
+  managerId: String
+  schedule: AgentSchedule
+  updatedAt: DateTime!
+}
+
+input SaveCrewInput {
+  id: ID
+  name: String!
+  goal: String!
+  process: CrewProcess!
+  memberIds: [String!]!
+  managerId: String
+  schedule: AgentScheduleInput
+}
+
+type CrewMemberResult {
+  agentId: String!
+  name: String!
+  role: String!
+  output: String!
+  provider: String
+  tokens: Int
+  costUsd: Float!
+  error: String
+}
+
+type CrewRunResult {
+  crewId: ID!
+  process: CrewProcess!
+  members: [CrewMemberResult!]!
+  totalCostUsd: Float!
+}
+
+extend type Query {
+  # The operator's own agents (owner-scoped). The built-in roster is `agents`.
+  customAgents: [CustomAgent!]!
+  # The operator's crews (owner-scoped).
+  crews: [Crew!]!
+}
+
+extend type Mutation {
+  saveCustomAgent(input: SaveCustomAgentInput!): CustomAgent!
+  deleteCustomAgent(id: ID!): Boolean!
+  saveCrew(input: SaveCrewInput!): Crew!
+  deleteCrew(id: ID!): Boolean!
+  # Dispatch a crew against a project. Members run per the crew's process;
+  # parallel crews fan out with bounded concurrency. Gated by a wallet hold.
+  runCrew(id: ID!, projectId: ID!): CrewRunResult!
+}

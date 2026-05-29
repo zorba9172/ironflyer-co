@@ -1,0 +1,56 @@
+rules:
+  - id: ironflyer.browser.localstorage-token
+    message: Browser auth tokens must go through the shared auth storage adapter.
+    severity: WARNING
+    languages: [typescript, tsx]
+    patterns:
+      - pattern-either:
+          - pattern: localStorage.setItem($KEY, $VALUE)
+          - pattern: localStorage.getItem($KEY)
+    paths:
+      include:
+        - clients/studio/src/**
+        - packages/data/src/**
+
+  - id: ironflyer.markdown.raw-url-without-sanitizer
+    message: Markdown-rendered href/src values must pass through safeMarkdownUrl.
+    severity: ERROR
+    languages: [typescript, tsx]
+    patterns:
+      - pattern-either:
+          - pattern: <Link href={$HREF} ... />
+          - pattern: <Box component="img" src={$SRC} ... />
+      - pattern-not: <Link href={safeMarkdownUrl(...)} ... />
+      - pattern-not: <Box component="img" src={safeMarkdownUrl(...)} ... />
+    paths:
+      include:
+        - clients/studio/src/components/Markdown.tsx
+
+  - id: ironflyer.github-actions-unpinned-action
+    message: GitHub Actions must be pinned to a full commit SHA for supply-chain stability.
+    severity: WARNING
+    languages: [yaml]
+    patterns:
+      - pattern: "uses: $ACTION"
+      - metavariable-regex:
+          metavariable: $ACTION
+          regex: ".*@[A-Za-z0-9_.-]+$"
+      - pattern-not-regex: "uses:\\s+[^\\s]+@[a-f0-9]{40}\\s*(#.*)?$"
+    paths:
+      include:
+        - .github/workflows/**
+
+  - id: ironflyer.go-goroutine-without-context
+    message: Long-lived goroutines in orchestrator/runtime code should accept or derive context cancellation.
+    severity: WARNING
+    languages: [go]
+    patterns:
+      - pattern: go func() { ... }()
+      - pattern-not-inside: |
+          func Test...( ... ) {
+            ...
+          }
+    paths:
+      include:
+        - core/orchestrator/internal/**
+        - core/runtime/internal/**

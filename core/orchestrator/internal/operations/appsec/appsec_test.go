@@ -238,6 +238,46 @@ func TestBuildOSVBatchRequestAndParseResponse(t *testing.T) {
 	}
 }
 
+func TestRuntimeScannerParsersNormalizeEnterpriseTools(t *testing.T) {
+	osv := parseOSVScannerOutput("osv-scanner", `{
+		"results": [{
+			"source": {"path": "pnpm-lock.yaml"},
+			"packages": [{
+				"package": {"name": "lodash", "version": "4.17.20", "ecosystem": "npm"},
+				"vulnerabilities": [{"id": "GHSA-test", "summary": "prototype pollution", "database_specific": {"severity": "HIGH"}}]
+			}]
+		}]
+	}`)
+	if len(osv) != 1 || osv[0].Tool != "osv-scanner" || osv[0].Severity != SeverityHigh || osv[0].Path != "pnpm-lock.yaml" {
+		t.Fatalf("unexpected osv-scanner finding: %+v", osv)
+	}
+
+	trivy := parseTrivyOutput("trivy", `{
+		"Results": [{
+			"Target": "Dockerfile",
+			"Vulnerabilities": [{"VulnerabilityID":"CVE-2026-0001","PkgName":"openssl","InstalledVersion":"1.0.0","FixedVersion":"1.0.1","Severity":"CRITICAL","Title":"openssl vuln"}],
+			"Misconfigurations": [{"ID":"DS002","Severity":"HIGH","Title":"root user","Resolution":"set USER"}],
+			"Secrets": [{"RuleID":"generic-api-key","Severity":"LOW","Title":"API key","StartLine":7}]
+		}]
+	}`)
+	if len(trivy) != 3 {
+		t.Fatalf("expected three trivy findings, got %+v", trivy)
+	}
+	if trivy[0].Severity != SeverityCritical || trivy[1].Category != CategoryConfig || trivy[2].Severity != SeverityHigh {
+		t.Fatalf("unexpected trivy normalization: %+v", trivy)
+	}
+
+	licenses := parseScanCodeOutput("scancode", `{
+		"files": [
+			{"path":"vendor/lib/COPYING","licenses":[{"spdx_license_key":"AGPL-3.0-only","score":100}]},
+			{"path":"vendor/ok/LICENSE","licenses":[{"spdx_license_key":"MIT","score":100}]}
+		]
+	}`)
+	if len(licenses) != 1 || licenses[0].Severity != SeverityHigh || licenses[0].Category != CategoryPolicy {
+		t.Fatalf("unexpected ScanCode license findings: %+v", licenses)
+	}
+}
+
 func fixedTime() time.Time {
 	return time.Date(2026, 5, 26, 12, 0, 0, 0, time.UTC)
 }

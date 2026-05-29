@@ -3,6 +3,7 @@ import { Box, Button, Card, CircularProgress, Stack, TextField, ToggleButton, To
 import { confirmAction, toast } from '@ironflyer/ui-web/fx';
 import { AGENTS, agentStatus, newAgent, newCrew, type Agent, type Crew } from '../studioData';
 import { useStudio } from '../store';
+import { useAgentTeam } from '../hooks/useAgentTeam';
 import { AgentCard } from '../components/agents/AgentCard';
 import { AgentBuilder } from '../components/agents/AgentBuilder';
 import { CrewCard } from '../components/agents/CrewCard';
@@ -17,15 +18,10 @@ const AgentTeamMap = lazy(() => import('../components/agents/AgentTeamMap').then
 // responsibility, guardrails, a model, and a schedule. This is the management
 // surface; the deep builder opens full-screen.
 export function AgentsPage() {
-  const customAgents = useStudio((s) => s.customAgents);
-  const crews = useStudio((s) => s.crews);
+  // Custom agents + crews are server-persisted (owner-scoped) when signed in,
+  // falling back to the local store offline. The built-in roster stays mock.
+  const { customAgents, crews, saveAgent, deleteAgent, saveCrew: saveCrewLive, deleteCrew, runCrew } = useAgentTeam();
   const gates = useStudio((s) => s.current.gates);
-  const addAgent = useStudio((s) => s.addAgent);
-  const updateAgent = useStudio((s) => s.updateAgent);
-  const removeAgent = useStudio((s) => s.removeAgent);
-  const addCrew = useStudio((s) => s.addCrew);
-  const updateCrew = useStudio((s) => s.updateCrew);
-  const removeCrew = useStudio((s) => s.removeCrew);
 
   const [editing, setEditing] = useState<Agent | null>(null);
   const [editingCrew, setEditingCrew] = useState<Crew | null>(null);
@@ -50,16 +46,16 @@ export function AgentsPage() {
 
   const remove = async (a: Agent) => {
     const ok = await confirmAction({ title: `Delete ${a.name}?`, text: 'This removes the agent and its schedule. Any running build keeps going.', confirmText: 'Delete', danger: true });
-    if (ok) { removeAgent(a.id); toast(`${a.name} deleted.`, 'success'); }
+    if (ok) { await deleteAgent(a.id); toast(`${a.name} deleted.`, 'success'); }
   };
 
-  const save = (a: Agent) => { if (editingExists) updateAgent(a); else addAgent(a); };
+  const save = (a: Agent) => { void saveAgent(a); };
 
   const removeCrewConfirm = async (c: Crew) => {
     const ok = await confirmAction({ title: `Delete ${c.name}?`, text: 'This removes the crew. The agents in it stay.', confirmText: 'Delete', danger: true });
-    if (ok) { removeCrew(c.id); toast(`${c.name} deleted.`, 'success'); }
+    if (ok) { await deleteCrew(c.id); toast(`${c.name} deleted.`, 'success'); }
   };
-  const saveCrew = (c: Crew) => { if (editingCrewExists) updateCrew(c); else addCrew(c); };
+  const saveCrew = (c: Crew) => { void saveCrewLive(c); };
 
   return (
     <Box sx={{ p: { xs: 3, md: 5 }, maxWidth: 1180, mx: 'auto' }}>
@@ -148,7 +144,7 @@ export function AgentsPage() {
       ) : (
         <Grid>
           {crews.map((c) => (
-            <CrewCard key={c.id} crew={c} agents={allAgents} onEdit={setEditingCrew} onRun={(x) => toast(`${x.name} dispatched — ${x.memberIds.length} agents running.`, 'success')} onDelete={(x) => void removeCrewConfirm(x)} />
+            <CrewCard key={c.id} crew={c} agents={allAgents} onEdit={setEditingCrew} onRun={(x) => void runCrew(x)} onDelete={(x) => void removeCrewConfirm(x)} />
           ))}
         </Grid>
       )}

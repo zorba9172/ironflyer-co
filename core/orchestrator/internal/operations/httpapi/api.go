@@ -58,6 +58,7 @@ import (
 	"ironflyer/core/orchestrator/internal/customer/notify"
 	"ironflyer/core/orchestrator/internal/operations/appconsole"
 	"ironflyer/core/orchestrator/internal/operations/arch"
+	"ironflyer/core/orchestrator/internal/operations/agentteam"
 	"ironflyer/core/orchestrator/internal/operations/audit"
 	"ironflyer/core/orchestrator/internal/operations/auditexport"
 	"ironflyer/core/orchestrator/internal/operations/bus"
@@ -89,6 +90,8 @@ type Deps struct {
 	Engine   *finisher.Engine
 	Agents   *agents.Registry
 	Patches  *patch.Engine
+	// AgentTeam persists operator-defined custom agents + crews.
+	AgentTeam agentteam.Store
 
 	// Budget + payments.
 	Billing *budget.Billing
@@ -477,6 +480,7 @@ func (a *API) newResolver() *resolver.Resolver {
 		Projects:                  a.d.Projects,
 		Engine:                    a.d.Engine,
 		Agents:                    a.d.Agents,
+		AgentTeam:                 a.d.AgentTeam,
 		Patches:                   a.d.Patches,
 		Guard:                     a.d.Guard,
 		Logger:                    a.d.Logger,
