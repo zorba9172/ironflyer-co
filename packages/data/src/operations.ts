@@ -301,3 +301,18 @@ export const RUN_CREW = /* GraphQL */ `
       members { agentId name role output provider tokens costUsd error }
     }
   }`;
+
+// --- Figma import ------------------------------------------------------
+// Decompose a Figma file into design tokens + component inventory + rendered
+// frames (backed by the orchestrator's Figma REST extractor).
+export const IMPORT_FIGMA = /* GraphQL */ `
+  mutation ImportFigma($fileKey: String!) {
+    importFigma(fileKey: $fileKey) {
+      fileKey name
+      colors { hex alpha }
+      typography { fontFamily fontSize fontWeight lineHeight }
+      spacing radii
+      components { id name type layoutMode width height children }
+      frames { id name width height imageUrl }
+    }
+  }`;
