@@ -5,12 +5,11 @@ import { studioTheme } from './studioTheme';
 
 const MODE_KEY = 'ifs-theme';
 
-// Wraps the studio in the Neon Intelligence CSS-variables theme. `defaultMode`
-// is "dark" — dark is the primary brand canvas (mx.md). The choice persists to
-// localStorage so the toggle survives reloads with no flash.
+// Wraps the studio in the product workspace CSS-variables theme. Light is the
+// primary canvas; the choice persists to localStorage so toggles survive reloads.
 export function StudioThemeProvider({ children }: { children: ReactNode }) {
   return (
-    <CssVarsProvider theme={studioTheme} defaultMode="dark" modeStorageKey={MODE_KEY}>
+    <CssVarsProvider theme={studioTheme} defaultMode="light" modeStorageKey={MODE_KEY}>
       <CssBaseline />
       {children}
     </CssVarsProvider>
@@ -21,7 +20,7 @@ export function StudioThemeProvider({ children }: { children: ReactNode }) {
 // machinery. This is the single hook the theme-toggle button consumes.
 export function useThemeMode() {
   const { mode, systemMode, setMode } = useColorScheme();
-  const resolved = (mode === 'system' ? systemMode : mode) ?? 'dark';
+  const resolved = (mode === 'system' ? systemMode : mode) ?? 'light';
   return {
     mode: resolved as 'light' | 'dark',
     toggle: () => setMode(resolved === 'dark' ? 'light' : 'dark'),

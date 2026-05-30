@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type DragEvent as ReactDragEvent } from 'react';
-import { Avatar, Box, Chip, ClickAwayListener, IconButton, InputBase, MenuItem, Paper, Popover, Stack, TextField, ToggleButton, ToggleButtonGroup, Tooltip, Typography } from '@mui/material';
+import {
+  Avatar, Box, Chip, ClickAwayListener, IconButton, InputBase, MenuItem, Paper,
+  Popover, Stack, TextField, ToggleButton, ToggleButtonGroup, Tooltip, Typography,
+} from '@mui/material';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useChatStream, useAuth } from '@ironflyer/data';
 import { formatRelativeTime, formatUSD } from '@ironflyer/core';
@@ -7,17 +10,19 @@ import {
   VscAdd, VscHistory, VscArchive, VscTrash, VscCopy, VscRefresh, VscDebugStop,
   VscEdit, VscChevronDown, VscChevronRight, VscRobot, VscLightbulb, VscShield,
   VscQuestion, VscChecklist, VscDebugStart, VscRocket, VscTerminal, VscPreview, VscSend,
+  VscSparkle,
 } from 'react-icons/vsc';
 import { useStudio, buildFocusContext, type ChatMsg, type Attachment } from '../store';
 import { AGENTS, type Agent } from '../studioData';
 import { Markdown } from './Markdown';
 import { PreflightDialog } from './PreflightDialog';
+import { LogoMark } from './LogoMark';
 import { useLiveProjectId } from '../hooks/useLiveProjectId';
 import { extractCodeFiles } from '../lib/extractCode';
 import { text as fontScale } from '@ironflyer/design-tokens/brand';
+import { studioTokens } from '../theme';
 
-// Quick starts shown on the empty chat — one tap dispatches a real request so
-// the operator starts building in seconds instead of staring at a blank box.
+// ── Quick-start suggestions shown on the empty chat ───────────────────────────
 const SUGGESTIONS = [
   'Scaffold a SaaS dashboard with auth',
   'Add Stripe checkout + webhook',
@@ -25,7 +30,7 @@ const SUGGESTIONS = [
   'Audit and close my security gates',
 ];
 
-// Follow-ups offered after a reply lands — the next move is always one tap away.
+// ── Follow-ups offered after a reply lands ────────────────────────────────────
 const FOLLOWUPS = [
   "What's still blocking shipping?",
   'Apply the proposed patches',
@@ -33,8 +38,7 @@ const FOLLOWUPS = [
   'Explain what just changed',
 ];
 
-// Slash commands, Copilot-style. `run` executes locally; `prompt` dispatches a
-// grounded request to the orchestrator.
+// ── Types ─────────────────────────────────────────────────────────────────────
 type WorkMode = 'ask' | 'plan' | 'execute' | 'autopilot';
 type TrustChatMsg = ChatMsg & {
   mode?: WorkMode;
@@ -43,7 +47,11 @@ type TrustChatMsg = ChatMsg & {
   riskHints?: string[];
 };
 
-interface SlashCommand { cmd: string; desc: string; prompt?: string; action?: 'new' | 'clear' | 'retry' | 'review' | 'stop'; mode?: WorkMode }
+interface SlashCommand {
+  cmd: string; desc: string; prompt?: string;
+  action?: 'new' | 'clear' | 'retry' | 'review' | 'stop'; mode?: WorkMode;
+}
+
 const SLASH: SlashCommand[] = [
   { cmd: '/new', desc: 'Start a new chat', action: 'new' },
   { cmd: '/clear', desc: 'Clear this conversation', action: 'clear' },
@@ -67,28 +75,19 @@ const MODES: { id: WorkMode; label: string; tip: string; Icon: typeof VscQuestio
   { id: 'autopilot', label: 'Autopilot', Icon: VscRocket, tip: 'Drive the work end-to-end after confirmation' },
 ];
 
-// ChatGPT-style pulsing dots while the assistant is thinking/streaming.
+// ── Pulsing "thinking" dots ────────────────────────────────────────────────────
 function TypingDots() {
   return (
-    <Stack direction="row" spacing={0.6} sx={{ py: 0.75, '@keyframes ifPulse': { '0%,80%,100%': { opacity: 0.25, transform: 'scale(0.7)' }, '40%': { opacity: 1, transform: 'scale(1)' } } }}>
+    <Stack direction="row" spacing={0.6} alignItems="center" sx={{ py: 0.75, '@keyframes ifPulse': { '0%,80%,100%': { opacity: 0.25, transform: 'scale(0.7)' }, '40%': { opacity: 1, transform: 'scale(1)' } } }}>
       {[0, 1, 2].map((i) => (
-        <Box key={i} sx={{ width: 7, height: 7, borderRadius: 99, bgcolor: 'text.secondary', animation: 'ifPulse 1.2s ease-in-out infinite', animationDelay: `${i * 0.18}s` }} />
+        <Box key={i} sx={(t) => ({ width: 6, height: 6, borderRadius: 99, bgcolor: t.palette.primary.main, opacity: 0.7, animation: 'ifPulse 1.2s ease-in-out infinite', animationDelay: `${i * 0.2}s` })} />
       ))}
     </Stack>
   );
 }
 
-// The chat speaks the user's language: Hebrew when they write Hebrew, English
-// otherwise. Technical nouns (budget, plan, wallet, credits, gate, session)
-// stay in English in both.
-// Language is AUTO-DETECTED from the user's own text — never assumed. The
-// assistant's replies already follow the user's language via the model; these
-// client-rendered status/UI strings localize into a curated set (by Unicode
-// script + Latin stopwords) and fall back to English for anything else.
-// Technical nouns (budget, plan, wallet, credits, gate, session, context) stay
-// in English in every language.
+// ── Language detection / i18n ─────────────────────────────────────────────────
 type Lang = string;
-
 const LATIN_HINTS: [Lang, RegExp][] = [
   ['es', /\b(el|los|las|una|por favor|gracias|quiero|necesito|construir|aplicaci[oó]n|noticias|hola)\b/i],
   ['pt', /\b(uma|por favor|obrigad|quero|preciso|construir|aplicativo|not[ií]cias|ol[aá])\b/i],
@@ -116,8 +115,6 @@ type MsgKey =
   | 'cancelled' | 'offline' | 'rejected' | 'offlineReply' | 'dropTitle' | 'dropSub'
   | 'ctxFull' | 'newChat';
 
-// Curated translations; `en` is the guaranteed fallback for any undetected or
-// untranslated language. `{q}` in offlineReply is replaced with the prompt.
 const STATUS: Record<MsgKey, Record<Lang, string>> = {
   budgetTooLow: {
     en: 'The budget set for this build is too low for what you asked. To build it end to end, [upgrade your plan](/plans) or raise the budget, then run again.',
@@ -202,14 +199,14 @@ const STATUS: Record<MsgKey, Record<Lang, string>> = {
     ru: 'Запрос отклонён. Повторите или обновите studio, если повторится.',
   },
   offlineReply: {
-    en: '“{q}” is queued as a finisher request. The studio is in preview mode, so live runs are paused; the review, security, and economics surfaces are showing sample project state.',
-    he: '“{q}” נכנס כבקשת finisher. ה-studio ב-preview mode, אז live runs מושהים; משטחי ה-review, security וה-economics מציגים sample data של הפרויקט.',
-    es: '“{q}” quedó en cola como solicitud del finisher. El studio está en preview mode, así que los live runs están en pausa; las vistas de review, security y economics muestran datos de ejemplo.',
-    pt: '“{q}” entrou na fila como pedido do finisher. O studio está em preview mode, então live runs estão pausados; as telas de review, security e economics mostram dados de exemplo.',
-    fr: '“{q}” est mis en file comme requête finisher. Le studio est en preview mode, donc les live runs sont en pause ; les vues review, security et economics affichent des données d’exemple.',
-    de: '“{q}” ist als finisher-Anfrage eingereiht. Das studio ist im preview mode, daher pausieren live runs; die review-, security- und economics-Ansichten zeigen Beispieldaten.',
-    it: '“{q}” è in coda come richiesta del finisher. Lo studio è in preview mode, quindi i live runs sono in pausa; le viste review, security ed economics mostrano dati di esempio.',
-    ar: '“{q}” في قائمة الانتظار كطلب finisher. الـ studio في preview mode، لذا توقفت الـ live runs مؤقتًا؛ وتعرض شاشات review وsecurity وeconomics بيانات تجريبية.',
+    en: '"{q}" is queued as a finisher request. The studio is in preview mode, so live runs are paused; the review, security, and economics surfaces are showing sample project state.',
+    he: '"{q}" נכנס כבקשת finisher. ה-studio ב-preview mode, אז live runs מושהים; משטחי ה-review, security וה-economics מציגים sample data של הפרויקט.',
+    es: '"{q}" quedó en cola como solicitud del finisher. El studio está en preview mode, así que los live runs están en pausa; las vistas de review, security y economics muestran datos de ejemplo.',
+    pt: '"{q}" entrou na fila como pedido do finisher. O studio está em preview mode, então live runs estão pausados; as telas de review, security e economics mostram dados de exemplo.',
+    fr: "\"{q}\" est mis en file comme requête finisher. Le studio est en preview mode, donc les live runs sont en pause ; les vues review, security et economics affichent des données d'exemple.",
+    de: '"{q}" ist als finisher-Anfrage eingereiht. Das studio ist im preview mode, daher pausieren live runs; die review-, security- und economics-Ansichten zeigen Beispieldaten.',
+    it: '"{q}" è in coda come richiesta del finisher. Lo studio è in preview mode, quindi i live runs sono in pausa; le viste review, security ed economics mostrano dati di esempio.',
+    ar: '"{q}" في قائمة الانتظار كطلب finisher. الـ studio في preview mode، لذا توقفت الـ live runs مؤقتًا؛ وتعرض شاشات review وsecurity وeconomics بيانات تجريبية.',
     ru: '«{q}» поставлен в очередь как запрос finisher. Studio в preview mode, поэтому live runs приостановлены; экраны review, security и economics показывают демоданные.',
   },
   dropTitle: {
@@ -255,13 +252,9 @@ function offlineReply(prompt: string): string {
   return t('offlineReply', detectLang(prompt)).replace('{q}', q);
 }
 
-// Defense-in-depth vendor scrub. The orchestrator already sends provider-blind
-// messages; the studio must NEVER render a vendor/model name even if a raw
-// error somehow slips through. Any match collapses to a safe generic.
+// ── Vendor scrub — never leak provider names to the UI ────────────────────────
 const VENDOR_RE = /\b(gemini|google\s*ai|vertex|anthropic|claude|openai|gpt-?\d|deepseek|hugging\s?face|llama|qwen|mistral|mixtral|bedrock|azure)\b/i;
 
-// Clear, scenario-specific chat status copy. The chat must always say WHAT
-// happened and what to do — budget/funds scenarios point the user to upgrade.
 function chatStatusMessage(code: string, raw: string, lang: Lang): string {
   switch (code) {
     case 'BUDGET_TOO_LOW':
@@ -280,7 +273,6 @@ function chatStatusMessage(code: string, raw: string, lang: Lang): string {
     case 'CANCELLED':
       return t('cancelled', lang);
   }
-  // No/unknown code → infer from the raw text, provider-blind.
   if (/insufficient wallet|budget_exhausted|payment required|402|out of (credit|budget)/i.test(raw)) return t('budgetMid', lang);
   if (/unauth|session expired|\b401\b/i.test(raw)) return t('unauth', lang);
   if (/offline|no orchestrator endpoint/i.test(raw)) return t('offline', lang);
@@ -297,27 +289,21 @@ function extractErrorCode(error: unknown): string {
   return '';
 }
 
-// Unified resolver for both the SSE error frame (carries code+message) and a
-// thrown transport/GraphQL error (GraphQLError carries .code).
 function resolveChatError(input: { code?: string; message?: string; error?: unknown }, lang: Lang): string {
   const code = input.code || extractErrorCode(input.error);
   const raw = input.message ?? (input.error instanceof Error ? input.error.message : String(input.error ?? ''));
   return chatStatusMessage(code, raw, lang);
 }
 
+// ── Utilities ─────────────────────────────────────────────────────────────────
 const uid = (p: string) => `${p}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
-
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '');
-
 const safeLabel = (value: string, fallback: string) => (VENDOR_RE.test(value) ? fallback : value);
-
 function uniqueStrings(values: string[]): string[] {
   return [...new Set(values.map((v) => v.trim()).filter(Boolean))];
 }
 
-// Drag-and-drop ingest: text/code → extracted text (fed to the model as
-// research context), images → data-URL preview, everything else (zip, pdf,
-// binaries, oversize) → a safe reference entry (name + size, no content).
+// ── File drop ingest ──────────────────────────────────────────────────────────
 const DROP_TEXT_RE = /\.(txt|md|markdown|json|ya?ml|csv|tsv|html?|xml|js|jsx|ts|tsx|css|scss|py|go|rs|java|rb|php|sh|sql|toml|ini|env|dockerfile|log)$/i;
 const DROP_MAX_TEXT_BYTES = 256 * 1024;
 
@@ -340,7 +326,7 @@ async function readDroppedFiles(list: FileList): Promise<Attachment[]> {
     } else if ((file.type.startsWith('text/') || DROP_TEXT_RE.test(file.name)) && file.size <= DROP_MAX_TEXT_BYTES) {
       out.push({ ...base, kind: 'text', text: await readFileAs(file, 'text') });
     } else {
-      out.push({ ...base, kind: 'file' }); // zip / pdf / binary / oversize — reference only
+      out.push({ ...base, kind: 'file' });
     }
   }
   return out;
@@ -348,14 +334,10 @@ async function readDroppedFiles(list: FileList): Promise<Attachment[]> {
 
 function modeInstruction(mode: WorkMode): string {
   switch (mode) {
-    case 'ask':
-      return 'Mode: Ask. Answer directly, explain tradeoffs, and do not claim to have changed files unless files are actually emitted.';
-    case 'plan':
-      return 'Mode: Plan. Produce a concise implementation plan, risks, files likely to change, and acceptance checks before any execution.';
-    case 'execute':
-      return 'Mode: Execute. Implement the requested bounded change, surface reviewable patches/evidence, and call out remaining checks.';
-    case 'autopilot':
-      return 'Mode: Autopilot. Drive the request end-to-end, route work to specialists when useful, and report evidence, cost, and risk at each gate.';
+    case 'ask': return 'Mode: Ask. Answer directly, explain tradeoffs, and do not claim to have changed files unless files are actually emitted.';
+    case 'plan': return 'Mode: Plan. Produce a concise implementation plan, risks, files likely to change, and acceptance checks before any execution.';
+    case 'execute': return 'Mode: Execute. Implement the requested bounded change, surface reviewable patches/evidence, and call out remaining checks.';
+    case 'autopilot': return 'Mode: Autopilot. Drive the request end-to-end, route work to specialists when useful, and report evidence, cost, and risk at each gate.';
   }
 }
 
@@ -381,12 +363,13 @@ function mentionables(custom: Agent[]): Mentionable[] {
     ...custom.map((a) => ({ token: slug(a.name || a.id), name: a.name || 'Untitled agent', role: a.role || 'custom agent' })),
   ];
 }
-// Pull @tokens out of a turn and resolve them to known agents.
+
 function resolveMentions(text: string, all: Mentionable[]): Mentionable[] {
   const tokens = new Set((text.match(/@([a-z0-9_]+)/gi) ?? []).map((m) => m.slice(1).toLowerCase()));
   return all.filter((m) => tokens.has(m.token.toLowerCase()));
 }
 
+// ── Main component ─────────────────────────────────────────────────────────────
 export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
   const mockProjectId = useStudio((s) => s.current.id);
   const storeProjectId = useStudio((s) => s.liveProjectId);
@@ -425,20 +408,14 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
   const [thinking, setThinking] = useState(false);
   const [dragOver, setDragOver] = useState(false);
 
-  // UI-chrome language follows the conversation: Hebrew once the operator has
-  // written Hebrew (latest user turn or the current draft), English otherwise.
   const uiLang: Lang = useMemo(() => {
     const lastUser = [...messages].reverse().find((m) => m.from === 'user')?.text ?? '';
     return detectLang(draft || lastUser);
   }, [messages, draft]);
 
-  // Context-window awareness: the server grounds on the last ~8 turns trimmed
-  // to 2k chars each, so once the thread is long the earliest context drops and
-  // replies drift. Surface that and offer a fresh window before it bites.
   const ctxChars = useMemo(() => messages.reduce((n, m) => n + m.text.length, 0), [messages]);
   const ctxNearFull = messages.length >= 24 || ctxChars > 24000;
 
-  // Drag-and-drop ingest onto the whole panel — docs, images, zip, anything.
   const onDropFiles = async (e: ReactDragEvent) => {
     e.preventDefault();
     setDragOver(false);
@@ -447,23 +424,18 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
     const items = await readDroppedFiles(files);
     if (items.length > 0) addAttachments(items);
   };
+
   const [historyAnchor, setHistoryAnchor] = useState<HTMLElement | null>(null);
   const [slashOpen, setSlashOpen] = useState(false);
   const [workMode, setWorkMode] = useState<WorkMode>(launchWorkMode);
-  // H2 — pre-spend plan/cost gate. When "Plan first" is on and we're connected,
-  // a paid dispatch pauses on a PreflightDialog (cost preview + ProfitGuard
-  // verdict) until the operator confirms. Off → the normal flow is unchanged.
   const [planMode, setPlanMode] = useState(launchPreflight);
   const [pending, setPending] = useState<{ text: string; history: TrustChatMsg[]; routed: Mentionable[]; mode: WorkMode } | null>(null);
 
   const activeSession = useMemo(() => chatSessions.find((c) => c.id === activeChatId) ?? null, [chatSessions, activeChatId]);
   const targetProjectId = storeProjectId ?? liveProjectId ?? mockProjectId;
 
-  // Ensure a conversation exists as soon as the panel is shown.
   useEffect(() => { ensureChat(); }, [ensureChat]);
 
-  // Load the active session into the live transcript whenever it changes
-  // (mount, switching from history, new chat). Cancels any in-flight stream.
   useEffect(() => {
     if (!activeChatId || activeChatId === loadedIdRef.current) return;
     abortRef.current?.abort();
@@ -475,7 +447,6 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
 
   const commit = (msgs: TrustChatMsg[]) => { if (loadedIdRef.current) commitChat(loadedIdRef.current, msgs); };
 
-  // Stream a reply from the orchestrator when connected; honest offline note otherwise.
   const respond = async (prompt: string, history: TrustChatMsg[], routed: Mentionable[] = [], mode: WorkMode = workMode) => {
     setThinking(true);
     if (isLive) {
@@ -499,7 +470,7 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
       parts.push(`# Mode\n${modeInstruction(mode)}`);
       parts.push(`# Request\n${prompt}`);
       const serverPrompt = parts.join('\n\n---\n\n');
-      const lang = detectLang(prompt); // status/errors echo the user's language
+      const lang = detectLang(prompt);
       const controller = new AbortController();
       abortRef.current = controller;
       let acc = '';
@@ -543,8 +514,6 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
     }
   };
 
-  // Seed the conversation with the prompt that launched the studio — once, and
-  // only into an empty session (so reopening history never re-fires it).
   useEffect(() => {
     if (!initialPrompt || startedRef.current) return;
     if (messages.length > 0 || (activeSession && activeSession.messages.length > 0)) { startedRef.current = true; return; }
@@ -563,8 +532,6 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
 
   const allMentions = useMemo(() => mentionables(customAgents), [customAgents]);
 
-  // Commit the user turn and dispatch the agent. Shared by the direct path and
-  // the post-confirmation path so the pre-spend gate only wraps the decision.
   const dispatchTurn = (text: string, history: TrustChatMsg[], routed: Mentionable[], mode: WorkMode) => {
     const user: TrustChatMsg = { id: uid('u'), from: 'user', text, ts: Date.now(), mode, routedTo: routed.length ? routed.map((r) => r.name) : undefined };
     const next = [...history, user];
@@ -581,8 +548,6 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
     const mode = workMode;
     setDraft('');
     setSlashOpen(false);
-    // Pre-spend gate: only when "Plan first" is armed and the orchestrator is
-    // connected (so the dialog can show a real verdict). Otherwise dispatch now.
     if (planMode && isLive) { setPending({ text, history, routed, mode }); return; }
     dispatchTurn(text, history, routed, mode);
   };
@@ -594,7 +559,6 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
     dispatchTurn(text, history, routed, mode);
   };
 
-  // Edit a prior user turn in place, then re-run from there (Copilot-style).
   const editUser = (id: string, newText: string) => {
     const idx = messages.findIndex((m) => m.id === id);
     if (idx < 0 || !newText.trim()) return;
@@ -610,8 +574,6 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
 
   const stop = () => { abortRef.current?.abort(); };
 
-  // A repair request (e.g. the Preview broke) is queued in the store from
-  // another pane; pick it up, send it through the normal chat flow, and clear.
   useEffect(() => {
     if (!repairRequest || thinking) return;
     clearRepairRequest();
@@ -621,7 +583,7 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
 
   const handleNewChat = () => {
     abortRef.current?.abort();
-    startedRef.current = true; // a manual new chat must not re-seed the launch prompt
+    startedRef.current = true;
     newChat();
   };
 
@@ -645,7 +607,7 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
     const user = messages[lastUser]!;
     const text = user.text;
     const history = messages.slice(0, lastUser);
-    const trimmed = messages.slice(0, lastUser + 1); // drop the previous reply
+    const trimmed = messages.slice(0, lastUser + 1);
     setMessages(trimmed);
     commit(trimmed);
     void respond(text, history, resolveMentions(text, allMentions), user.mode ?? workMode);
@@ -674,7 +636,6 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
     : [];
   const slashCommands = slashOpen ? SLASH : slashMatches;
 
-  // @-mention autocomplete on the token at the caret end (route to a specialist).
   const mentionQuery = draft.match(/@([a-z0-9_]*)$/i);
   const mentionMatches = !slashOpen && mentionQuery
     ? allMentions.filter((m) => m.token.toLowerCase().includes(mentionQuery[1]!.toLowerCase()) || slug(m.name).includes(mentionQuery[1]!.toLowerCase())).slice(0, 6)
@@ -691,9 +652,7 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
   const lastAgentId = useMemo(() => [...messages].reverse().find((m) => m.from === 'agent' && m.text)?.id, [messages]);
   const showFollowups = !thinking && messages.length > 0 && messages[messages.length - 1]?.from === 'agent' && !!messages[messages.length - 1]?.text;
 
-  // Virtualize the transcript: only the visible turns are in the DOM, so a long
-  // session (hundreds of messages) stays smooth. Heights are measured live, so
-  // markdown/streaming bubbles size correctly.
+  // Virtualize transcript — only visible rows are in DOM
   const rowVirtualizer = useVirtualizer({
     count: messages.length,
     getScrollElement: () => scrollRef.current,
@@ -707,11 +666,30 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
       onDragOver={(e) => { e.preventDefault(); if (!dragOver) setDragOver(true); }}
       onDragLeave={(e) => { if (e.currentTarget === e.target) setDragOver(false); }}
       onDrop={(e) => { void onDropFiles(e); }}
-      sx={{ position: 'relative', width: 380, flexShrink: 0, height: '100%', borderRight: 1, borderColor: 'divider', display: 'flex', flexDirection: 'column', bgcolor: 'background.default' }}
+      sx={(theme) => ({
+        position: 'relative',
+        width: { xs: 380, xl: 488 },
+        flexShrink: 0,
+        height: '100%',
+        borderRight: `1px solid ${theme.palette.divider}`,
+        display: { xs: 'none', md: 'flex' },
+        flexDirection: 'column',
+        bgcolor: 'background.paper',
+        transition: `background-color ${theme.studio.motion.base}`,
+      })}
     >
+      {/* Drop overlay */}
       {dragOver && (
-        <Box sx={(t) => ({ position: 'absolute', inset: 8, zIndex: 30, display: 'grid', placeItems: 'center', textAlign: 'center', p: 2, borderRadius: 3, border: `2px dashed ${t.palette.primary.main}`, bgcolor: `${t.palette.background.default}f2`, pointerEvents: 'none' })}>
+        <Box sx={(t) => ({
+          position: 'absolute', inset: 8, zIndex: 30, display: 'grid', placeItems: 'center',
+          textAlign: 'center', p: 2, borderRadius: `${t.studio.radius.lg}px`,
+          border: `2px dashed ${t.palette.primary.main}`,
+          bgcolor: `${t.palette.background.default}f2`,
+          backdropFilter: 'blur(8px)', pointerEvents: 'none',
+          boxShadow: '0 12px 30px rgba(24,22,20,0.08)',
+        })}>
           <Box>
+            <VscSparkle size={24} style={{ color: studioTokens.neon.violet, marginBottom: 8 }} />
             <Typography sx={{ fontSize: fontScale.s95, fontWeight: 700, color: 'primary.main', mb: 0.5 }}>
               {t('dropTitle', uiLang)}
             </Typography>
@@ -721,33 +699,19 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
           </Box>
         </Box>
       )}
+
+      {/* Header */}
       <ChatHeader
         title={activeSession?.title ?? 'New chat'}
         onNew={handleNewChat}
         onOpenHistory={(el) => setHistoryAnchor(el)}
-        onRename={(t) => activeChatId && renameChat(activeChatId, t)}
+        onRename={(ttl) => activeChatId && renameChat(activeChatId, ttl)}
       />
 
-      <Box ref={scrollRef} sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
+      {/* Transcript */}
+      <Box ref={scrollRef} sx={{ flex: 1, overflowY: 'auto', px: 2, pt: 2, pb: 0.5 }}>
         {messages.length === 0 && !thinking && (
-          <Box sx={{ pt: 1 }}>
-            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-              <Avatar sx={(t) => ({ width: 28, height: 28, backgroundImage: t.brand.gradient.signature })}> </Avatar>
-              <Typography variant="h6" sx={{ fontSize: fontScale.s105 }}>Build something real</Typography>
-            </Stack>
-            <Typography sx={{ fontSize: fontScale.s86, color: 'text.secondary', lineHeight: 1.55, mb: 1.5 }}>
-              Describe your product and I'll plan it, write the code, and drive it through the finisher gates — patches you can review, costs you can see.
-            </Typography>
-            <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75 }}>
-              {SUGGESTIONS.map((s) => (
-                <Chip
-                  key={s} label={s} clickable size="small" onClick={() => send(s)}
-                  sx={{ height: 'auto', py: 0.6, fontSize: fontScale.s76, bgcolor: 'background.paper', border: 1, borderColor: 'divider', '& .MuiChip-label': { whiteSpace: 'normal' }, '&:hover': { borderColor: 'primary.main' } }}
-                />
-              ))}
-            </Stack>
-            <Typography sx={(t) => ({ mt: 2, fontFamily: t.brand.font.mono, fontSize: fontScale.s70, color: 'text.disabled' })}>Type <b>/</b> for commands</Typography>
-          </Box>
+          <EmptyState onSuggest={send} />
         )}
 
         {messages.length > 0 && (
@@ -760,7 +724,7 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
                   sx={{ position: 'absolute', top: 0, left: 0, width: '100%', transform: `translateY(${vi.start}px)`, pb: 2.5 }}
                 >
                   {m.from === 'user'
-                    ? <UserBubble msg={m} disabled={thinking} onEdit={(t) => editUser(m.id, t)} />
+                    ? <UserBubble msg={m} disabled={thinking} onEdit={(newText) => editUser(m.id, newText)} />
                     : <AgentMessage msg={m} isLast={m.id === lastAgentId} thinking={thinking} onRetry={retryLast} onReview={() => send(reviewPromptFor(m))} onStop={stop} />}
                 </Box>
               );
@@ -770,9 +734,15 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
 
         <Stack spacing={2.5}>
           {thinking && messages[messages.length - 1]?.from === 'user' && (
-            <Stack direction="row" spacing={1.25}>
-              <Avatar sx={(t) => ({ width: 26, height: 26, backgroundImage: t.brand.gradient.signature })}> </Avatar>
-              <TypingDots />
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              <AgentAvatar />
+              <Box sx={(t) => ({
+                px: 1.5, py: 1, borderRadius: `${t.studio.radius.sm}px`,
+                bgcolor: 'background.paper',
+                border: `1px solid ${t.palette.divider}`,
+              })}>
+                <TypingDots />
+              </Box>
             </Stack>
           )}
 
@@ -780,161 +750,45 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
             <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75, pl: 4.5 }}>
               {FOLLOWUPS.map((f) => (
                 <Chip key={f} label={f} clickable size="small" onClick={() => send(f)}
-                  sx={{ height: 'auto', py: 0.5, fontSize: fontScale.s74, bgcolor: 'background.paper', border: 1, borderColor: 'divider', '& .MuiChip-label': { whiteSpace: 'normal' }, '&:hover': { borderColor: 'primary.main' } }} />
+                  sx={(t) => ({
+                    height: 'auto', py: 0.55, fontSize: fontScale.s74,
+                    bgcolor: 'background.paper',
+                    border: `1px solid ${t.palette.divider}`,
+                    '& .MuiChip-label': { whiteSpace: 'normal' },
+                    '&:hover': { borderColor: t.palette.primary.main, bgcolor: `${t.palette.primary.main}0d` },
+                    transition: `border-color ${t.studio.motion.fast}, background-color ${t.studio.motion.fast}`,
+                  })} />
               ))}
             </Stack>
           )}
         </Stack>
       </Box>
 
-      <Box sx={{ p: 1.5, borderTop: 1, borderColor: 'divider', position: 'relative' }}>
-        {slashCommands.length > 0 && (
-          <Paper elevation={0} sx={{ position: 'absolute', left: 12, right: 12, bottom: '100%', mb: 0.5, border: 1, borderColor: 'divider', borderRadius: 2, overflow: 'hidden', backgroundImage: 'none' }}>
-            <Typography sx={(t) => ({ px: 1.5, pt: 1, pb: 0.5, fontFamily: t.brand.font.mono, fontSize: fontScale.s62, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'text.disabled' })}>
-              Slash commands
-            </Typography>
-            {slashCommands.map((c) => (
-              <Box key={c.cmd} onClick={() => runSlash(c)} sx={{ px: 1.5, py: 1, cursor: 'pointer', '&:hover': { bgcolor: 'action.hover' } }}>
-                <Typography component="span" sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: fontScale.s80, color: 'primary.main', mr: 1 })}>{c.cmd}</Typography>
-                <Typography component="span" sx={{ fontSize: fontScale.s78, color: 'text.secondary' }}>{c.desc}</Typography>
-              </Box>
-            ))}
-          </Paper>
-        )}
+      {/* Composer */}
+      <Composer
+        draft={draft}
+        setDraft={setDraft}
+        thinking={thinking}
+        planMode={planMode}
+        isLive={isLive}
+        workMode={workMode}
+        slashCommands={slashCommands}
+        slashOpen={slashOpen}
+        setSlashOpen={setSlashOpen}
+        slashMatches={slashMatches}
+        mentionMatches={mentionMatches}
+        ctxChips={ctxChips}
+        ctxNearFull={ctxNearFull}
+        uiLang={uiLang}
+        onSend={send}
+        onStop={stop}
+        onRunSlash={runSlash}
+        onPickMention={pickMention}
+        onChooseMode={chooseMode}
+        onNewChat={handleNewChat}
+      />
 
-        {mentionMatches.length > 0 && (
-          <Paper elevation={0} sx={{ position: 'absolute', left: 12, right: 12, bottom: '100%', mb: 0.5, border: 1, borderColor: 'divider', borderRadius: 2, overflow: 'hidden', maxHeight: 240, overflowY: 'auto', backgroundImage: 'none' }}>
-            {mentionMatches.map((m) => (
-              <Stack key={m.token} direction="row" spacing={1} alignItems="center" onClick={() => pickMention(m)} sx={{ px: 1.5, py: 0.9, cursor: 'pointer', '&:hover': { bgcolor: 'action.hover' } }}>
-                <VscRobot size={13} />
-                <Typography component="span" sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: fontScale.s78, color: 'primary.main' })}>@{m.token}</Typography>
-                <Typography component="span" noWrap sx={{ fontSize: fontScale.s74, color: 'text.secondary', minWidth: 0 }}>{m.role}</Typography>
-              </Stack>
-            ))}
-          </Paper>
-        )}
-
-        {ctxChips.length > 0 && (
-          <Stack direction="row" spacing={0.5} sx={{ mb: 0.75, flexWrap: 'wrap', gap: 0.5 }}>
-            {ctxChips.map((c) => (
-              <Tooltip key={c.label} title={c.title} arrow>
-                <Chip size="small" label={c.label} sx={(t) => ({ height: 18, fontSize: fontScale.s60, fontFamily: t.brand.font.mono, bgcolor: 'action.hover', color: 'text.secondary' })} />
-              </Tooltip>
-            ))}
-            <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: fontScale.s60, color: 'text.disabled', alignSelf: 'center' })}>grounding this chat</Typography>
-          </Stack>
-        )}
-
-        <ToggleButtonGroup
-          exclusive
-          size="small"
-          value={workMode}
-          onChange={(_, next: WorkMode | null) => { if (next) chooseMode(next); }}
-          sx={{
-            mb: 0.75,
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-            border: 1,
-            borderColor: 'divider',
-            borderRadius: 2,
-            overflow: 'hidden',
-            '& .MuiToggleButtonGroup-grouped': { m: 0, border: 0, borderRadius: 0 },
-          }}
-        >
-          {MODES.map(({ id, label, tip, Icon }) => (
-            <ToggleButton
-              key={id}
-              value={id}
-              aria-label={`${label} mode`}
-              sx={(t) => ({
-                minWidth: 0,
-                px: 0.5,
-                py: 0.55,
-                gap: 0.45,
-                color: 'text.secondary',
-                '&.Mui-selected': { color: 'primary.main', bgcolor: `${t.palette.primary.main}14` },
-              })}
-            >
-              <Tooltip title={tip} arrow>
-                <Stack component="span" direction="row" spacing={0.4} alignItems="center" sx={{ minWidth: 0 }}>
-                  <Icon size={12} />
-                  <Typography component="span" noWrap sx={{ fontSize: fontScale.s68, fontWeight: 700 }}>{label}</Typography>
-                </Stack>
-              </Tooltip>
-            </ToggleButton>
-          ))}
-        </ToggleButtonGroup>
-
-        {ctxNearFull && (
-          <Stack direction="row" alignItems="center" spacing={1} sx={(t) => ({ mb: 1, px: 1.25, py: 0.75, borderRadius: 2, border: 1, borderColor: 'warning.main', bgcolor: `${t.palette.warning.main}14` })}>
-            <Typography sx={{ flex: 1, fontSize: fontScale.s74, color: 'warning.main', lineHeight: 1.4 }}>
-              {t('ctxFull', uiLang)}
-            </Typography>
-            <Chip size="small" clickable color="warning" variant="outlined" label={t('newChat', uiLang)} onClick={handleNewChat} sx={{ fontSize: fontScale.s70, flexShrink: 0 }} />
-          </Stack>
-        )}
-
-        <Box sx={{ border: 1, borderColor: 'divider', borderRadius: 3, bgcolor: 'background.paper', p: 1.25, '&:focus-within': { borderColor: 'primary.main' } }}>
-          <InputBase
-            fullWidth multiline maxRows={5}
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Escape' && thinking) { e.preventDefault(); stop(); return; }
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                if (mentionMatches.length >= 1) { pickMention(mentionMatches[0]!); return; }
-                if (slashMatches.length === 1) runSlash(slashMatches[0]!);
-                else send();
-              }
-            }}
-            placeholder="Ask, or @mention an agent · / for commands"
-            sx={{ fontSize: fontScale.s90, px: 0.5 }}
-          />
-          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 0.5 }}>
-            <Stack direction="row" alignItems="center" spacing={1.25} sx={{ minWidth: 0 }}>
-              <Typography noWrap sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: fontScale.s72, color: isLive ? 'success.main' : 'text.disabled' })}>{isLive ? '● connected' : '○ offline preview'}</Typography>
-              <Tooltip title="Show slash commands" arrow>
-                <IconButton
-                  size="small"
-                  aria-label="Show slash commands"
-                  onClick={() => setSlashOpen((v) => !v)}
-                  sx={{ color: slashOpen ? 'primary.main' : 'text.secondary', border: 1, borderColor: slashOpen ? 'primary.main' : 'divider', width: 24, height: 24 }}
-                >
-                  <VscTerminal size={12} />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title={planMode ? 'Preflight is armed for this mode' : 'This mode dispatches without the pre-spend gate'} arrow>
-                <Stack
-                  direction="row" alignItems="center" spacing={0.5}
-                  sx={(t) => ({
-                    px: 0.75, py: 0.25, borderRadius: 99, border: 1,
-                    borderColor: planMode ? 'primary.main' : 'divider',
-                    color: planMode ? 'primary.main' : 'text.disabled',
-                    userSelect: 'none',
-                    bgcolor: planMode ? `${t.palette.primary.main}14` : 'transparent',
-                  })}
-                >
-                  <VscShield size={11} />
-                  <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: fontScale.s66, fontWeight: 600 })}>{planMode ? 'preflight' : 'direct'}</Typography>
-                </Stack>
-              </Tooltip>
-            </Stack>
-            {thinking ? (
-              <Tooltip title="Stop generating" arrow>
-                <IconButton onClick={stop} size="small" aria-label="Stop" sx={{ color: 'text.primary', border: 1, borderColor: 'divider', width: 30, height: 30 }}>
-                  <VscDebugStop size={14} />
-                </IconButton>
-              </Tooltip>
-            ) : (
-              <IconButton onClick={() => send()} disabled={!draft.trim()} size="small" aria-label="Send" sx={(t) => ({ color: 'common.white', backgroundImage: t.brand.gradient.signature, width: 30, height: 30, '&.Mui-disabled': { backgroundImage: 'none', bgcolor: 'action.disabledBackground' } })}>
-                <VscSend size={14} />
-              </IconButton>
-            )}
-          </Stack>
-        </Box>
-      </Box>
-
+      {/* History popover */}
       <HistoryPopover
         anchorEl={historyAnchor}
         onClose={() => setHistoryAnchor(null)}
@@ -946,6 +800,7 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
         onDelete={deleteChat}
       />
 
+      {/* Pre-spend gate dialog */}
       <PreflightDialog
         open={!!pending}
         prompt={pending?.text ?? ''}
@@ -959,46 +814,334 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
   );
 }
 
-function AgentMessage({ msg, isLast, thinking, onRetry, onReview, onStop }: { msg: TrustChatMsg; isLast: boolean; thinking: boolean; onRetry: () => void; onReview: () => void; onStop: () => void }) {
+// ── Agent avatar ──────────────────────────────────────────────────────────────
+function AgentAvatar({ size = 26 }: { size?: number }) {
   return (
-    <Stack direction="row" spacing={1.25}>
-      <Avatar sx={(t) => ({ width: 26, height: 26, backgroundImage: t.brand.gradient.signature })}> </Avatar>
-      <Box sx={{ minWidth: 0, flex: 1 }}>
-        <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 0.5 }}>
-          <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: fontScale.s70, color: 'text.disabled' })}>Orchestrator</Typography>
-          {msg.mode && (
-            <Chip size="small" label={msg.mode} sx={(t) => ({ height: 17, fontFamily: t.brand.font.mono, fontSize: fontScale.s58, color: 'text.secondary', bgcolor: 'action.hover' })} />
+    <Avatar sx={(t) => ({
+      width: size, height: size, flexShrink: 0,
+      bgcolor: t.palette.background.paper,
+      border: `1px solid ${t.palette.divider}`,
+      boxShadow: '0 1px 2px rgba(24,22,20,0.04)',
+      fontSize: size * 0.45, fontWeight: 700,
+    })}>
+      <LogoMark size={Math.max(18, size - 8)} />
+    </Avatar>
+  );
+}
+
+// ── Empty state ───────────────────────────────────────────────────────────────
+function EmptyState({ onSuggest }: { onSuggest: (s: string) => void }) {
+  return (
+    <Box sx={{ pt: 1 }}>
+      <Stack direction="row" alignItems="center" spacing={1.25} sx={{ mb: 1.25 }}>
+        <AgentAvatar size={30} />
+        <Typography variant="h6" sx={{ fontWeight: 700, fontSize: fontScale.s105, letterSpacing: '-0.01em' }}>
+          Build something real
+        </Typography>
+      </Stack>
+      <Typography sx={{ fontSize: fontScale.s86, color: 'text.secondary', lineHeight: 1.6, mb: 2 }}>
+        Describe your product and I'll plan it, write the code, and drive it through the finisher gates — patches you can review, costs you can see.
+      </Typography>
+      <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75 }}>
+        {SUGGESTIONS.map((s) => (
+          <Chip
+            key={s} label={s} clickable size="small" onClick={() => onSuggest(s)}
+            sx={(t) => ({
+              height: 'auto', py: 0.65, fontSize: fontScale.s76,
+              bgcolor: 'background.paper',
+              border: `1px solid ${t.palette.divider}`,
+              '& .MuiChip-label': { whiteSpace: 'normal' },
+              '&:hover': { borderColor: t.palette.primary.main, bgcolor: `${t.palette.primary.main}0d` },
+              transition: `border-color ${t.studio.motion.fast}, background-color ${t.studio.motion.fast}`,
+            })}
+          />
+        ))}
+      </Stack>
+      <Typography sx={(t) => ({ mt: 2.5, fontFamily: t.brand.font.mono, fontSize: fontScale.s70, color: 'text.disabled' })}>
+        Type <strong>/</strong> for commands · @mention to route to a specialist
+      </Typography>
+    </Box>
+  );
+}
+
+// ── Composer ──────────────────────────────────────────────────────────────────
+interface ComposerProps {
+  draft: string; setDraft: (v: string) => void; thinking: boolean; planMode: boolean; isLive: boolean;
+  workMode: WorkMode; slashCommands: SlashCommand[]; slashOpen: boolean; setSlashOpen: (v: boolean) => void;
+  slashMatches: SlashCommand[]; mentionMatches: Mentionable[]; ctxChips: { label: string; title: string }[];
+  ctxNearFull: boolean; uiLang: Lang;
+  onSend: (s?: string) => void; onStop: () => void; onRunSlash: (c: SlashCommand) => void;
+  onPickMention: (m: Mentionable) => void; onChooseMode: (m: WorkMode) => void; onNewChat: () => void;
+}
+
+function Composer({ draft, setDraft, thinking, planMode, isLive, workMode, slashCommands, slashOpen, setSlashOpen, slashMatches, mentionMatches, ctxChips, ctxNearFull, uiLang, onSend, onStop, onRunSlash, onPickMention, onChooseMode, onNewChat }: ComposerProps) {
+  return (
+    <Box sx={(t) => ({
+      p: 1.25,
+      borderTop: `1px solid ${t.palette.divider}`,
+      position: 'relative',
+      bgcolor: 'background.paper',
+    })}>
+      {/* Slash command popover */}
+      {slashCommands.length > 0 && (
+        <Paper elevation={0} sx={(t) => ({
+          position: 'absolute', left: 10, right: 10, bottom: '100%', mb: 0.75,
+          border: `1px solid ${t.palette.divider}`,
+          borderRadius: `${t.studio.radius.sm}px`,
+          overflow: 'hidden', backgroundImage: 'none',
+          backdropFilter: 'blur(16px)',
+        })}>
+          <Typography sx={(t) => ({ px: 1.5, pt: 1, pb: 0.5, fontFamily: t.brand.font.mono, fontSize: fontScale.s62, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled' })}>
+            Slash commands
+          </Typography>
+          {slashCommands.map((c) => (
+            <Box key={c.cmd} onClick={() => onRunSlash(c)} sx={(t) => ({ px: 1.5, py: 0.9, cursor: 'pointer', '&:hover': { bgcolor: `${t.palette.primary.main}0d` } })}>
+              <Typography component="span" sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: fontScale.s80, color: 'primary.main', mr: 1 })}>{c.cmd}</Typography>
+              <Typography component="span" sx={{ fontSize: fontScale.s78, color: 'text.secondary' }}>{c.desc}</Typography>
+            </Box>
+          ))}
+        </Paper>
+      )}
+
+      {/* @-mention autocomplete */}
+      {mentionMatches.length > 0 && (
+        <Paper elevation={0} sx={(t) => ({
+          position: 'absolute', left: 10, right: 10, bottom: '100%', mb: 0.75,
+          border: `1px solid ${t.palette.divider}`,
+          borderRadius: `${t.studio.radius.sm}px`,
+          overflow: 'hidden', maxHeight: 240, overflowY: 'auto', backgroundImage: 'none',
+          backdropFilter: 'blur(16px)',
+        })}>
+          {mentionMatches.map((m) => (
+            <Stack key={m.token} direction="row" spacing={1} alignItems="center" onClick={() => onPickMention(m)} sx={(t) => ({ px: 1.5, py: 0.9, cursor: 'pointer', '&:hover': { bgcolor: `${t.palette.primary.main}0d` } })}>
+              <VscRobot size={13} />
+              <Typography component="span" sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: fontScale.s78, color: 'primary.main' })}>@{m.token}</Typography>
+              <Typography component="span" noWrap sx={{ fontSize: fontScale.s74, color: 'text.secondary', minWidth: 0 }}>{m.role}</Typography>
+            </Stack>
+          ))}
+        </Paper>
+      )}
+
+      {/* Context chips */}
+      {ctxChips.length > 0 && (
+        <Stack direction="row" spacing={0.5} sx={{ mb: 0.75, flexWrap: 'wrap', gap: 0.5 }}>
+          {ctxChips.map((c) => (
+            <Tooltip key={c.label} title={c.title} arrow>
+              <Chip size="small" label={c.label} sx={(t) => ({ height: 18, fontSize: fontScale.s60, fontFamily: t.brand.font.mono, bgcolor: `${t.palette.primary.main}14`, color: 'primary.main', border: `1px solid ${t.palette.primary.main}33` })} />
+            </Tooltip>
+          ))}
+          <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: fontScale.s60, color: 'text.disabled', alignSelf: 'center' })}>grounding this chat</Typography>
+        </Stack>
+      )}
+
+      {/* Mode selector */}
+      <ToggleButtonGroup
+        exclusive size="small" value={workMode}
+        onChange={(_, next: WorkMode | null) => { if (next) onChooseMode(next); }}
+        sx={(t) => ({
+          mb: 0.75, display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+          border: `1px solid ${t.palette.divider}`,
+          borderRadius: `${t.studio.radius.sm}px`, overflow: 'hidden',
+          bgcolor: t.palette.surfaceHover,
+          '& .MuiToggleButtonGroup-grouped': { m: 0, border: 0, borderRadius: 0 },
+        })}
+      >
+        {MODES.map(({ id, label, tip, Icon }) => (
+          <ToggleButton key={id} value={id} aria-label={`${label} mode`}
+            sx={(t) => ({
+              minWidth: 0, px: 0.5, py: 0.6, gap: 0.4, color: 'text.secondary',
+              '&.Mui-selected': {
+                color: 'text.primary',
+                bgcolor: 'background.paper',
+                fontWeight: 700,
+                boxShadow: '0 1px 2px rgba(24,22,20,0.05)',
+              },
+              transition: `color ${t.studio.motion.fast}, background-color ${t.studio.motion.fast}`,
+            })}
+          >
+            <Tooltip title={tip} arrow>
+              <Stack component="span" direction="row" spacing={0.4} alignItems="center" sx={{ minWidth: 0 }}>
+                <Icon size={12} />
+                <Typography component="span" noWrap sx={{ fontSize: fontScale.s68, fontWeight: 'inherit' }}>{label}</Typography>
+              </Stack>
+            </Tooltip>
+          </ToggleButton>
+        ))}
+      </ToggleButtonGroup>
+
+      {/* Context near-full warning */}
+      {ctxNearFull && (
+        <Stack direction="row" alignItems="center" spacing={1} sx={(t) => ({ mb: 0.75, px: 1.25, py: 0.75, borderRadius: `${t.studio.radius.sm}px`, border: `1px solid ${t.palette.warning.main}`, bgcolor: `${t.palette.warning.main}14` })}>
+          <Typography sx={{ flex: 1, fontSize: fontScale.s74, color: 'warning.main', lineHeight: 1.4 }}>
+            {t('ctxFull', uiLang)}
+          </Typography>
+          <Chip size="small" clickable color="warning" variant="outlined" label={t('newChat', uiLang)} onClick={onNewChat} sx={{ fontSize: fontScale.s70, flexShrink: 0 }} />
+        </Stack>
+      )}
+
+      {/* Input area */}
+      <Box sx={(t) => ({
+        border: `1px solid ${t.palette.divider}`,
+        borderRadius: `${t.studio.radius.sm}px`,
+        bgcolor: '#FFFEFC',
+        p: 1.25,
+        transition: `border-color ${t.studio.motion.fast}, box-shadow ${t.studio.motion.fast}`,
+        '&:focus-within': {
+          borderColor: t.palette.primary.main,
+          boxShadow: `0 0 0 2px ${t.palette.primary.main}18`,
+        },
+      })}>
+        <InputBase
+          fullWidth multiline maxRows={5}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape' && thinking) { e.preventDefault(); onStop(); return; }
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              if (mentionMatches.length >= 1) { onPickMention(mentionMatches[0]!); return; }
+              if (slashMatches.length === 1) onRunSlash(slashMatches[0]!);
+              else onSend();
+            }
+          }}
+          placeholder="Ask, or @mention an agent · / for commands"
+          sx={{ fontSize: fontScale.s90, px: 0.5, lineHeight: 1.6 }}
+        />
+        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 0.75 }}>
+          <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0 }}>
+            {/* Connection status */}
+            <Typography noWrap sx={(t) => ({
+              fontFamily: t.brand.font.mono, fontSize: fontScale.s70,
+              color: isLive ? 'success.main' : 'text.disabled',
+            })}>
+              {isLive ? '● connected' : '○ offline'}
+            </Typography>
+            {/* Slash toggle */}
+            <Tooltip title="Show slash commands" arrow>
+              <IconButton size="small" aria-label="Show slash commands" onClick={() => setSlashOpen(!slashOpen)}
+                sx={(t) => ({
+                  color: slashOpen ? 'primary.main' : 'text.secondary',
+                  border: `1px solid ${slashOpen ? t.palette.primary.main : t.palette.divider}`,
+                  width: 22, height: 22,
+                  transition: `border-color ${t.studio.motion.fast}, color ${t.studio.motion.fast}`,
+                })}>
+                <VscTerminal size={11} />
+              </IconButton>
+            </Tooltip>
+            {/* Preflight indicator */}
+            <Tooltip title={planMode ? 'Preflight is armed for this mode' : 'This mode dispatches without the pre-spend gate'} arrow>
+              <Stack direction="row" alignItems="center" spacing={0.4}
+                sx={(t) => ({
+                  px: 0.75, py: 0.2, borderRadius: 99,
+                  border: `1px solid ${planMode ? t.palette.primary.main : t.palette.divider}`,
+                  color: planMode ? 'primary.main' : 'text.disabled',
+                  userSelect: 'none', cursor: 'default',
+                  bgcolor: planMode ? `${t.palette.primary.main}14` : 'transparent',
+                  transition: `all ${t.studio.motion.fast}`,
+                })}
+              >
+                <VscShield size={10} />
+                <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: fontScale.s64, fontWeight: 600 })}>
+                  {planMode ? 'preflight' : 'direct'}
+                </Typography>
+              </Stack>
+            </Tooltip>
+          </Stack>
+          {/* Send / stop button */}
+          {thinking ? (
+            <Tooltip title="Stop generating (Esc)" arrow>
+              <IconButton onClick={onStop} size="small" aria-label="Stop"
+                sx={(t) => ({
+                  color: 'text.primary',
+                  border: `1px solid ${t.palette.divider}`,
+                  width: 28, height: 28,
+                  '&:hover': { borderColor: t.palette.error.main, color: 'error.main' },
+                })}>
+                <VscDebugStop size={13} />
+              </IconButton>
+            </Tooltip>
+          ) : (
+            <Tooltip title="Send (Enter)" arrow>
+              <Box component="span">
+                <IconButton onClick={() => onSend()} disabled={!draft.trim()} size="small" aria-label="Send"
+                  sx={(t) => ({
+                    color: 'common.white', bgcolor: 'text.primary', backgroundImage: 'none',
+                    width: 28, height: 28,
+                    transition: `transform ${t.studio.motion.fast}, box-shadow ${t.studio.motion.fast}`,
+                    '&:hover': { transform: 'scale(1.03)', bgcolor: 'text.primary', boxShadow: '0 6px 14px rgba(24,22,20,0.16)' },
+                    '&.Mui-disabled': { backgroundImage: 'none', bgcolor: 'action.disabledBackground', color: 'text.disabled' },
+                  })}>
+                  <VscSend size={13} />
+                </IconButton>
+              </Box>
+            </Tooltip>
           )}
         </Stack>
+      </Box>
+    </Box>
+  );
+}
+
+// ── Agent message ─────────────────────────────────────────────────────────────
+function AgentMessage({ msg, isLast, thinking, onRetry, onReview, onStop }: {
+  msg: TrustChatMsg; isLast: boolean; thinking: boolean; onRetry: () => void; onReview: () => void; onStop: () => void;
+}) {
+  return (
+    <Stack direction="row" spacing={1.25} alignItems="flex-start">
+      <AgentAvatar />
+      <Box sx={{ minWidth: 0, flex: 1 }}>
+        {/* Header row */}
+        <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mb: 0.75 }}>
+          <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: fontScale.s68, color: 'text.disabled', letterSpacing: '0.04em' })}>
+            Orchestrator
+          </Typography>
+          {msg.mode && (
+            <Chip size="small" label={msg.mode}
+              sx={(t) => ({
+                height: 16, fontFamily: t.brand.font.mono, fontSize: fontScale.s58,
+                color: 'text.secondary', bgcolor: 'action.hover',
+                border: `1px solid ${t.palette.divider}`,
+              })} />
+          )}
+        </Stack>
+
+        {/* Reasoning (collapsed by default) */}
         {msg.thinking && <ReasoningBlock text={msg.thinking} />}
-        {msg.steps && msg.steps.length > 0 && (
-          <Stack spacing={0.5} sx={{ mb: 1, p: 1, borderRadius: 2, bgcolor: 'action.hover' }}>
-            {msg.steps.map((s, i) => (
-              <Stack key={`${s}-${i}`} direction="row" spacing={1} alignItems="center">
-                <Box component="span" sx={{ color: 'secondary.main', fontSize: fontScale.s80 }}>→</Box>
-                <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: fontScale.s74, color: 'text.secondary' })}>{s}</Typography>
-              </Stack>
-            ))}
-          </Stack>
-        )}
+
+        {/* Tool steps */}
+        {msg.steps && msg.steps.length > 0 && <ToolSteps steps={msg.steps} />}
+
+        {/* Content */}
         {msg.text ? <Markdown>{msg.text}</Markdown> : <TypingDots />}
+
+        {/* Evidence footer */}
         <EvidenceFooter msg={msg} />
+
+        {/* Action row */}
         {msg.text && (
-          <Stack direction="row" spacing={0.25} sx={{ mt: 0.25, opacity: 0.55, '&:hover': { opacity: 1 } }}>
+          <Stack direction="row" spacing={0.25} sx={{ mt: 0.5, opacity: 0.5, '&:hover': { opacity: 1 }, transition: 'opacity 180ms' }}>
             <Tooltip title="Copy" arrow>
-              <IconButton size="small" onClick={() => void navigator.clipboard?.writeText(msg.text)} sx={{ color: 'text.secondary', p: 0.4 }}><VscCopy size={13} /></IconButton>
+              <IconButton size="small" onClick={() => void navigator.clipboard?.writeText(msg.text)} sx={{ color: 'text.secondary', p: 0.35 }}>
+                <VscCopy size={12} />
+              </IconButton>
             </Tooltip>
             <Tooltip title="Review this answer" arrow>
-              <IconButton size="small" onClick={onReview} sx={{ color: 'text.secondary', p: 0.4 }}><VscPreview size={13} /></IconButton>
+              <IconButton size="small" onClick={onReview} sx={{ color: 'text.secondary', p: 0.35 }}>
+                <VscPreview size={12} />
+              </IconButton>
             </Tooltip>
             {isLast && !thinking && (
               <Tooltip title="Retry this reply" arrow>
-                <IconButton size="small" onClick={onRetry} sx={{ color: 'text.secondary', p: 0.4 }}><VscRefresh size={13} /></IconButton>
+                <IconButton size="small" onClick={onRetry} sx={{ color: 'text.secondary', p: 0.35 }}>
+                  <VscRefresh size={12} />
+                </IconButton>
               </Tooltip>
             )}
             {isLast && thinking && (
               <Tooltip title="Stop generating" arrow>
-                <IconButton size="small" onClick={onStop} sx={{ color: 'text.secondary', p: 0.4 }}><VscDebugStop size={13} /></IconButton>
+                <IconButton size="small" onClick={onStop} sx={{ color: 'text.secondary', p: 0.35 }}>
+                  <VscDebugStop size={12} />
+                </IconButton>
               </Tooltip>
             )}
           </Stack>
@@ -1008,6 +1151,32 @@ function AgentMessage({ msg, isLast, thinking, onRetry, onReview, onStop }: { ms
   );
 }
 
+// ── Tool steps ────────────────────────────────────────────────────────────────
+function ToolSteps({ steps }: { steps: string[] }) {
+  const [open, setOpen] = useState(false);
+  const visible = open ? steps : steps.slice(-2);
+  return (
+    <Box sx={(t) => ({
+      mb: 1, p: 1, borderRadius: `${t.studio.radius.sm}px`,
+      bgcolor: `${t.palette.primary.main}08`,
+      border: `1px solid ${t.palette.primary.main}20`,
+    })}>
+      {visible.map((s, i) => (
+        <Stack key={`${s}-${i}`} direction="row" spacing={0.75} alignItems="center" sx={{ mb: i < visible.length - 1 ? 0.4 : 0 }}>
+          <Box component="span" sx={{ color: 'primary.main', fontSize: fontScale.s80, lineHeight: 1 }}>→</Box>
+          <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: fontScale.s72, color: 'text.secondary', lineHeight: 1.4 })}>{s}</Typography>
+        </Stack>
+      ))}
+      {steps.length > 2 && (
+        <Typography onClick={() => setOpen((v) => !v)} sx={{ fontSize: fontScale.s68, color: 'primary.main', cursor: 'pointer', mt: 0.5 }}>
+          {open ? 'Show fewer steps' : `+${steps.length - 2} more steps`}
+        </Typography>
+      )}
+    </Box>
+  );
+}
+
+// ── Evidence footer ───────────────────────────────────────────────────────────
 function EvidenceFooter({ msg }: { msg: TrustChatMsg }) {
   const files = msg.filesExtracted ?? [];
   const routed = msg.routedTo ?? [];
@@ -1020,29 +1189,35 @@ function EvidenceFooter({ msg }: { msg: TrustChatMsg }) {
     <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.5, mt: 0.75 }}>
       {files.length > 0 && (
         <Tooltip title={files.slice(0, 8).join('\n')} arrow>
-          <Chip size="small" label={`${files.length} file${files.length === 1 ? '' : 's'} extracted`} sx={(t) => ({ height: 19, fontFamily: t.brand.font.mono, fontSize: fontScale.s60, bgcolor: 'action.hover', color: 'text.secondary' })} />
+          <Chip size="small" label={`${files.length} file${files.length === 1 ? '' : 's'} extracted`}
+            sx={(t) => ({ height: 18, fontFamily: t.brand.font.mono, fontSize: fontScale.s58, bgcolor: `${t.palette.success.main}14`, color: 'success.main', border: `1px solid ${t.palette.success.main}33` })} />
         </Tooltip>
       )}
       {steps.length > 0 && (
         <Tooltip title={steps.slice(-8).join('\n')} arrow>
-          <Chip size="small" label={`${steps.length} tool step${steps.length === 1 ? '' : 's'}`} sx={(t) => ({ height: 19, fontFamily: t.brand.font.mono, fontSize: fontScale.s60, bgcolor: 'action.hover', color: 'text.secondary' })} />
+          <Chip size="small" label={`${steps.length} tool step${steps.length === 1 ? '' : 's'}`}
+            sx={(t) => ({ height: 18, fontFamily: t.brand.font.mono, fontSize: fontScale.s58, bgcolor: 'action.hover', color: 'text.secondary' })} />
         </Tooltip>
       )}
       {routed.length > 0 && (
         <Tooltip title={routed.join(', ')} arrow>
-          <Chip size="small" icon={<VscRobot size={11} />} label={`${routed.length} agent${routed.length === 1 ? '' : 's'} routed`} sx={(t) => ({ height: 19, fontFamily: t.brand.font.mono, fontSize: fontScale.s60, bgcolor: 'action.hover', color: 'text.secondary', '& .MuiChip-icon': { ml: 0.5 } })} />
+          <Chip size="small" icon={<VscRobot size={10} />} label={`${routed.length} agent${routed.length === 1 ? '' : 's'} routed`}
+            sx={(t) => ({ height: 18, fontFamily: t.brand.font.mono, fontSize: fontScale.s58, bgcolor: `${t.palette.secondary.main}14`, color: 'secondary.main', border: `1px solid ${t.palette.secondary.main}33`, '& .MuiChip-icon': { ml: 0.5 } })} />
         </Tooltip>
       )}
       {typeof msg.costUSD === 'number' && (
-        <Chip size="small" label={`cost ${formatUSD(msg.costUSD)}`} sx={(t) => ({ height: 19, fontFamily: t.brand.font.mono, fontSize: fontScale.s60, bgcolor: 'action.hover', color: 'text.secondary' })} />
+        <Chip size="small" label={`cost ${formatUSD(msg.costUSD)}`}
+          sx={(t) => ({ height: 18, fontFamily: t.brand.font.mono, fontSize: fontScale.s58, bgcolor: 'action.hover', color: 'text.secondary' })} />
       )}
       {risks.map((r) => (
-        <Chip key={r} size="small" icon={<VscShield size={11} />} label={r} sx={(t) => ({ height: 19, fontFamily: t.brand.font.mono, fontSize: fontScale.s60, bgcolor: `${t.palette.warning.main}16`, color: 'text.secondary', '& .MuiChip-icon': { ml: 0.5, color: 'warning.main' } })} />
+        <Chip key={r} size="small" icon={<VscShield size={10} />} label={r}
+          sx={(t) => ({ height: 18, fontFamily: t.brand.font.mono, fontSize: fontScale.s58, bgcolor: `${t.palette.warning.main}14`, color: 'text.secondary', border: `1px solid ${t.palette.warning.main}33`, '& .MuiChip-icon': { ml: 0.5, color: 'warning.main' } })} />
       ))}
     </Stack>
   );
 }
 
+// ── User bubble ───────────────────────────────────────────────────────────────
 function UserBubble({ msg, disabled, onEdit }: { msg: ChatMsg; disabled: boolean; onEdit: (text: string) => void }) {
   const [editing, setEditing] = useState(false);
   const [val, setVal] = useState(msg.text);
@@ -1052,12 +1227,17 @@ function UserBubble({ msg, disabled, onEdit }: { msg: ChatMsg; disabled: boolean
         <TextField
           value={val} autoFocus multiline fullWidth size="small"
           onChange={(e) => setVal(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); setEditing(false); onEdit(val); } if (e.key === 'Escape') { setEditing(false); setVal(msg.text); } }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); setEditing(false); onEdit(val); }
+            if (e.key === 'Escape') { setEditing(false); setVal(msg.text); }
+          }}
           sx={{ '& .MuiInputBase-input': { fontSize: fontScale.s90 } }}
         />
         <Stack direction="row" spacing={1} justifyContent="flex-end" sx={{ mt: 0.5 }}>
-          <Chip size="small" clickable label="Cancel" onClick={() => { setEditing(false); setVal(msg.text); }} sx={{ height: 22, fontSize: fontScale.s70, bgcolor: 'action.hover' }} />
-          <Chip size="small" clickable label="Send" onClick={() => { setEditing(false); onEdit(val); }} sx={(t) => ({ height: 22, fontSize: fontScale.s70, color: 'common.white', backgroundImage: t.brand.gradient.signature })} />
+          <Chip size="small" clickable label="Cancel" onClick={() => { setEditing(false); setVal(msg.text); }}
+            sx={{ height: 22, fontSize: fontScale.s70, bgcolor: 'action.hover' }} />
+          <Chip size="small" clickable label="Send" onClick={() => { setEditing(false); onEdit(val); }}
+            sx={{ height: 22, fontSize: fontScale.s70, color: 'common.white', bgcolor: 'text.primary' }} />
         </Stack>
       </Box>
     );
@@ -1065,40 +1245,56 @@ function UserBubble({ msg, disabled, onEdit }: { msg: ChatMsg; disabled: boolean
   return (
     <Stack direction="row" spacing={0.5} justifyContent="flex-end" alignItems="flex-start" sx={{ '&:hover .if-edit': { opacity: 1 } }}>
       <Tooltip title="Edit & resend" arrow>
-        <IconButton size="small" disabled={disabled} className="if-edit" onClick={() => { setVal(msg.text); setEditing(true); }} sx={{ opacity: 0, color: 'text.disabled', p: 0.4, mt: 0.5 }}><VscEdit size={12} /></IconButton>
+        <IconButton size="small" disabled={disabled} className="if-edit" onClick={() => { setVal(msg.text); setEditing(true); }}
+          sx={{ opacity: 0, color: 'text.disabled', p: 0.35, mt: 0.25 }}>
+          <VscEdit size={11} />
+        </IconButton>
       </Tooltip>
-      <Box sx={{ bgcolor: 'action.selected', borderRadius: 3, px: 2, py: 1.25, maxWidth: '85%' }}>
+      <Box sx={(t) => ({
+        bgcolor: 'surfaceHover',
+        border: `1px solid ${t.palette.divider}`,
+        borderRadius: `${t.studio.radius.sm}px`,
+        px: 1.75, py: 1, maxWidth: '85%',
+      })}>
         {msg.routedTo && msg.routedTo.length > 0 && (
           <Stack direction="row" spacing={0.5} sx={{ mb: 0.5, flexWrap: 'wrap', gap: 0.5 }}>
             {msg.routedTo.map((r) => (
-              <Chip key={r} size="small" icon={<VscRobot size={11} />} label={r} sx={(t) => ({ height: 18, fontSize: fontScale.s60, fontFamily: t.brand.font.mono, bgcolor: 'background.paper', '& .MuiChip-icon': { ml: 0.5 } })} />
+              <Chip key={r} size="small" icon={<VscRobot size={10} />} label={r}
+                sx={(t) => ({ height: 17, fontSize: fontScale.s58, fontFamily: t.brand.font.mono, bgcolor: 'background.paper', '& .MuiChip-icon': { ml: 0.5 } })} />
             ))}
           </Stack>
         )}
-        <Typography sx={{ fontSize: fontScale.s90, whiteSpace: 'pre-wrap' }}>{msg.text}</Typography>
+        <Typography sx={{ fontSize: fontScale.s90, whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>{msg.text}</Typography>
       </Box>
     </Stack>
   );
 }
 
+// ── Reasoning block ───────────────────────────────────────────────────────────
 function ReasoningBlock({ text }: { text: string }) {
   const [open, setOpen] = useState(false);
   return (
     <Box sx={{ mb: 1 }}>
-      <Stack direction="row" alignItems="center" spacing={0.75} onClick={() => setOpen((v) => !v)} sx={{ cursor: 'pointer', color: 'text.secondary', '&:hover': { color: 'text.primary' } }}>
-        <VscLightbulb size={13} />
+      <Stack direction="row" alignItems="center" spacing={0.75} onClick={() => setOpen((v) => !v)}
+        sx={(t) => ({ cursor: 'pointer', color: 'text.secondary', '&:hover': { color: 'text.primary' }, transition: `color ${t.studio.motion.fast}` })}>
+        <VscLightbulb size={12} />
         <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: fontScale.s68, letterSpacing: '0.04em' })}>Reasoning</Typography>
-        {open ? <VscChevronDown size={12} /> : <VscChevronRight size={12} />}
+        {open ? <VscChevronDown size={11} /> : <VscChevronRight size={11} />}
       </Stack>
       {open && (
-        <Box sx={{ mt: 0.5, p: 1, borderRadius: 2, borderLeft: 2, borderColor: 'divider', bgcolor: 'action.hover' }}>
-          <Typography sx={{ fontSize: fontScale.s78, color: 'text.secondary', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{text}</Typography>
+        <Box sx={(t) => ({
+          mt: 0.5, p: 1, borderRadius: `${t.studio.radius.sm}px`,
+          borderLeft: `2px solid ${t.palette.primary.main}`,
+          bgcolor: `${t.palette.primary.main}08`,
+        })}>
+          <Typography sx={{ fontSize: fontScale.s78, color: 'text.secondary', whiteSpace: 'pre-wrap', lineHeight: 1.55 }}>{text}</Typography>
         </Box>
       )}
     </Box>
   );
 }
 
+// ── Chat header ───────────────────────────────────────────────────────────────
 function ChatHeader({ title, onNew, onOpenHistory, onRename }: {
   title: string; onNew: () => void; onOpenHistory: (el: HTMLElement) => void; onRename: (t: string) => void;
 }) {
@@ -1107,34 +1303,49 @@ function ChatHeader({ title, onNew, onOpenHistory, onRename }: {
   useEffect(() => { setVal(title); }, [title]);
   const commit = () => { setEditing(false); if (val.trim() && val.trim() !== title) onRename(val.trim()); };
   return (
-    <Stack direction="row" alignItems="center" spacing={0.5} sx={{ px: 1.5, py: 1, borderBottom: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
+    <Stack direction="row" alignItems="center" spacing={0.5} sx={(t) => ({
+      px: 1.5, py: 1,
+      borderBottom: `1px solid ${t.palette.divider}`,
+      bgcolor: 'background.paper',
+    })}>
+      <Box sx={(t) => ({
+        width: 6, height: 6, borderRadius: 99, flexShrink: 0,
+        bgcolor: t.palette.primary.main,
+      })} />
       {editing ? (
         <ClickAwayListener onClickAway={commit}>
           <TextField
             value={val} autoFocus variant="standard"
             onChange={(e) => setVal(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') { setEditing(false); setVal(title); } }}
-            sx={{ flex: 1, '& .MuiInput-input': { fontSize: fontScale.s85, py: 0.25 } }}
+            sx={{ flex: 1, '& .MuiInput-input': { fontSize: fontScale.s85, py: 0.2 } }}
           />
         </ClickAwayListener>
       ) : (
         <>
           <Typography noWrap sx={{ flex: 1, fontSize: fontScale.s85, fontWeight: 600 }}>{title}</Typography>
           <Tooltip title="Rename chat" arrow>
-            <IconButton size="small" onClick={() => setEditing(true)} sx={{ color: 'text.disabled', p: 0.5 }}><VscEdit size={13} /></IconButton>
+            <IconButton size="small" onClick={() => setEditing(true)} sx={{ color: 'text.disabled', p: 0.4 }}>
+              <VscEdit size={12} />
+            </IconButton>
           </Tooltip>
         </>
       )}
       <Tooltip title="Chat history" arrow>
-        <IconButton size="small" onClick={(e) => onOpenHistory(e.currentTarget)} sx={{ color: 'text.secondary', p: 0.5 }}><VscHistory size={15} /></IconButton>
+        <IconButton size="small" onClick={(e) => onOpenHistory(e.currentTarget)} sx={{ color: 'text.secondary', p: 0.4 }}>
+          <VscHistory size={14} />
+        </IconButton>
       </Tooltip>
       <Tooltip title="New chat" arrow>
-        <IconButton size="small" onClick={onNew} sx={{ color: 'text.secondary', p: 0.5 }}><VscAdd size={15} /></IconButton>
+        <IconButton size="small" onClick={onNew} sx={{ color: 'text.secondary', p: 0.4 }}>
+          <VscAdd size={14} />
+        </IconButton>
       </Tooltip>
     </Stack>
   );
 }
 
+// ── History popover ───────────────────────────────────────────────────────────
 function HistoryPopover({ anchorEl, onClose, sessions, activeId, onSelect, onArchive, onRestore, onDelete }: {
   anchorEl: HTMLElement | null; onClose: () => void;
   sessions: ReturnType<typeof useStudio.getState>['chatSessions']; activeId: string | null;
@@ -1146,24 +1357,32 @@ function HistoryPopover({ anchorEl, onClose, sessions, activeId, onSelect, onArc
   return (
     <Popover
       open={!!anchorEl} anchorEl={anchorEl} onClose={onClose}
-      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       slotProps={{ paper: { sx: { width: 320, maxHeight: 460, border: 1, borderColor: 'divider', backgroundImage: 'none' } } }}
     >
-      <Typography sx={(t) => ({ px: 2, pt: 1.5, pb: 1, fontFamily: t.brand.font.mono, fontSize: fontScale.s62, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled' })}>Chats</Typography>
+      <Typography sx={(t) => ({ px: 2, pt: 1.5, pb: 1, fontFamily: t.brand.font.mono, fontSize: fontScale.s62, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled' })}>
+        Chats
+      </Typography>
       {live.length === 0 ? (
         <Typography sx={{ px: 2, pb: 1.5, fontSize: fontScale.s80, color: 'text.secondary' }}>No conversations yet.</Typography>
       ) : (
-        live.map((c) => <SessionRow key={c.id} session={c} active={c.id === activeId} onClick={() => onSelect(c.id)} action={<VscArchive size={13} />} actionTitle="Archive" onAction={() => onArchive(c.id)} />)
+        live.map((c) => (
+          <SessionRow key={c.id} session={c} active={c.id === activeId}
+            onClick={() => onSelect(c.id)} action={<VscArchive size={12} />}
+            actionTitle="Archive" onAction={() => onArchive(c.id)} />
+        ))
       )}
-
       {archived.length > 0 && (
         <Box sx={{ borderTop: 1, borderColor: 'divider', mt: 0.5 }}>
           <MenuItem onClick={() => setShowArchived((v) => !v)} sx={{ py: 0.75 }}>
-            {showArchived ? <VscChevronDown size={13} /> : <VscChevronRight size={13} />}
+            {showArchived ? <VscChevronDown size={12} /> : <VscChevronRight size={12} />}
             <Typography sx={{ ml: 1, fontSize: fontScale.s78, color: 'text.secondary' }}>Archived ({archived.length})</Typography>
           </MenuItem>
           {showArchived && archived.map((c) => (
-            <SessionRow key={c.id} session={c} active={false} muted onClick={() => onRestore(c.id)} action={<VscTrash size={13} />} actionTitle="Delete permanently" onAction={() => onDelete(c.id)} />
+            <SessionRow key={c.id} session={c} active={false} muted
+              onClick={() => onRestore(c.id)} action={<VscTrash size={12} />}
+              actionTitle="Delete permanently" onAction={() => onDelete(c.id)} />
           ))}
         </Box>
       )}
@@ -1176,15 +1395,22 @@ function SessionRow({ session, active, muted, onClick, action, actionTitle, onAc
   active: boolean; muted?: boolean; onClick: () => void; action: React.ReactNode; actionTitle: string; onAction: () => void;
 }) {
   return (
-    <Stack direction="row" alignItems="center" sx={{ px: 1, mx: 1, borderRadius: 1.5, bgcolor: active ? 'action.selected' : 'transparent', '&:hover': { bgcolor: 'action.hover' } }}>
-      <Box onClick={onClick} sx={{ flex: 1, minWidth: 0, py: 0.9, px: 1, cursor: 'pointer', opacity: muted ? 0.7 : 1 }}>
+    <Stack direction="row" alignItems="center" sx={(t) => ({
+      px: 1, mx: 1, borderRadius: `${t.studio.radius.sm}px`,
+      bgcolor: active ? `${t.palette.primary.main}14` : 'transparent',
+      '&:hover': { bgcolor: active ? `${t.palette.primary.main}1a` : 'action.hover' },
+      transition: `background-color ${t.studio.motion.fast}`,
+    })}>
+      <Box onClick={onClick} sx={{ flex: 1, minWidth: 0, py: 0.85, px: 1, cursor: 'pointer', opacity: muted ? 0.65 : 1 }}>
         <Typography noWrap sx={{ fontSize: fontScale.s82, fontWeight: active ? 600 : 400 }}>{session.title}</Typography>
-        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: fontScale.s62, color: 'text.disabled' })}>
+        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: fontScale.s60, color: 'text.disabled' })}>
           {session.messages.length} msg · {formatRelativeTime(session.updatedAt)}{muted ? ' · click to restore' : ''}
         </Typography>
       </Box>
       <Tooltip title={actionTitle} arrow>
-        <IconButton size="small" onClick={(e) => { e.stopPropagation(); onAction(); }} sx={{ color: 'text.disabled', p: 0.5 }}>{action}</IconButton>
+        <IconButton size="small" onClick={(e) => { e.stopPropagation(); onAction(); }} sx={{ color: 'text.disabled', p: 0.4 }}>
+          {action}
+        </IconButton>
       </Tooltip>
     </Stack>
   );

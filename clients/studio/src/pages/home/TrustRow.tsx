@@ -1,17 +1,6 @@
 import { Box, Stack, Typography } from '@mui/material';
-import { FaAirbnb, FaAmazon, FaGoogle, FaMicrosoft, FaSpotify } from 'react-icons/fa';
-import type { IconType } from 'react-icons';
 
-// Trust strip at the foot of the neon Home hero (mx.md › Trust Section).
-// Monochrome wordmarks at 40% opacity, lifting to 100% on hover. No logos,
-// no color — only typographic marks so the neon hero stays the hero.
-const WORDMARKS: readonly { label: string; Icon: IconType }[] = [
-  { label: 'Google', Icon: FaGoogle },
-  { label: 'Microsoft', Icon: FaMicrosoft },
-  { label: 'airbnb', Icon: FaAirbnb },
-  { label: 'amazon', Icon: FaAmazon },
-  { label: 'Spotify', Icon: FaSpotify },
-];
+const WORDMARKS = ['Google', 'Microsoft', 'Airbnb', 'Amazon', 'Spotify'] as const;
 
 export function TrustRow() {
   return (
@@ -34,26 +23,21 @@ export function TrustRow() {
           rowGap: 2.5,
         }}
       >
-        {WORDMARKS.map(({ label, Icon }) => (
-          <Box
+        {WORDMARKS.map((label) => (
+          <Typography
             key={label}
-            component="span"
+            variant="h6"
             sx={(theme) => ({
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 0.8,
               fontWeight: 700,
               color: 'text.primary',
-              fontSize: { xs: '1rem', sm: '1.2rem' },
-              opacity: 0.36,
+              opacity: 0.4,
               userSelect: 'none',
               transition: `opacity ${theme.studio.motion.base}`,
               '&:hover': { opacity: 1 },
             })}
           >
-            <Icon aria-hidden />
-            <Typography component="span" sx={{ font: 'inherit', fontWeight: 'inherit' }}>{label}</Typography>
-          </Box>
+            {label}
+          </Typography>
         ))}
       </Box>
     </Stack>

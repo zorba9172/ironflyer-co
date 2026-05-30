@@ -1,15 +1,16 @@
-import { useMemo } from 'react';
-import { Box, Card, Chip, FormControlLabel, Stack, Switch, Typography } from '@mui/material';
+import { useMemo, useState } from 'react';
+import { Box, Chip, FormControlLabel, Stack, Switch, Typography } from '@mui/material';
 import { useTheme, type Theme } from '@mui/material/styles';
 import { useGraphQLQuery, operations } from '@ironflyer/data';
 import { useOperateProjectId } from '../hooks/useOperateProjectId';
 import { useOperateMutation } from '../hooks/useOperateMutation';
-import { StudioChart, gaugeOption, type EChartsOption } from '../components/charts';
-import { StudioDataTable, type DataTableColumn } from '../components/tables';
+import { StudioChart, horizontalBarOption, type EChartsOption } from '../components/charts';
+import { StudioDataTable, type DataTableColumn, type StudioTableTab } from '../components/tables';
+import { GlassPanel, GaugeRing, SectionHeader, StatCard } from '../components/studio';
 import { text } from '@ironflyer/design-tokens/brand';
 
 // Test coverage for the operator's generated project (NOT Ironflyer's own
-// repo — that stays test-free by constitution). The CoverageGate runs the
+// repo that stays test-free by constitution). The CoverageGate runs the
 // project's suite with coverage when the toggle is on and stores a report;
 // this surface mirrors it and names what is not closed (uncovered files).
 interface FileCoverage { path: string; linePct: number; uncovered: number }
@@ -38,8 +39,7 @@ const SAMPLE: CoverageReport = {
   ],
 };
 
-// Coverage is healthy ≥80, watch 60–79, at-risk below 60 — resolved from the
-// theme so the thresholds read in the locked palette.
+// Coverage is healthy >= 80, watch 60-79, at-risk below 60.
 function covColor(t: Theme, pct: number) {
   if (pct >= 80) return t.palette.success.main;
   if (pct >= 60) return t.palette.warning.main;
@@ -50,6 +50,8 @@ export function CoveragePane() {
   const t = useTheme();
   const liveProjectId = useOperateProjectId();
   const { busy, run } = useOperateMutation();
+  const [tableView, setTableView] = useState('not_closed');
+  const [tableSearch, setTableSearch] = useState('');
 
   const { data: report, isLive } = useGraphQLQuery<CoverageReport, { coverageReport: CoverageReport }>({
     key: ['coverage-report', liveProjectId ?? 'none'],
@@ -62,6 +64,21 @@ export function CoveragePane() {
   const files = report.files ?? [];
   const notClosed = useMemo(() => files.filter((f) => f.linePct < 100).sort((a, b) => a.linePct - b.linePct), [files]);
   const belowFloor = notClosed.filter((f) => f.linePct < minPct);
+  const tableTabs = useMemo<StudioTableTab[]>(() => [
+    { value: 'all', label: 'All', count: files.length },
+    { value: 'not_closed', label: 'Not closed', count: notClosed.length, tone: notClosed.length ? 'warning' : 'success' },
+    { value: 'below_floor', label: 'Below floor', count: belowFloor.length, tone: belowFloor.length ? 'error' : 'success' },
+    { value: 'covered', label: 'Fully covered', count: files.filter((f) => f.linePct >= 100).length, tone: 'success' },
+  ], [belowFloor.length, files, notClosed.length]);
+  const tableRows = useMemo(() => {
+    const q = tableSearch.trim().toLowerCase();
+    return files.filter((file) => {
+      if (tableView === 'not_closed' && file.linePct >= 100) return false;
+      if (tableView === 'below_floor' && file.linePct >= minPct) return false;
+      if (tableView === 'covered' && file.linePct < 100) return false;
+      return !q || file.path.toLowerCase().includes(q) || String(file.linePct).includes(q) || String(file.uncovered).includes(q);
+    });
+  }, [files, minPct, tableSearch, tableView]);
 
   const onToggle = (enabled: boolean) => {
     if (!liveProjectId) return;
@@ -72,16 +89,11 @@ export function CoveragePane() {
     );
   };
 
-  const gauge = useMemo<EChartsOption>(() => gaugeOption(t, {
-    value: report.overallPct,
-    color: covColor(t, report.overallPct),
-  }), [report.overallPct, t]);
-
   const metrics = [
-    { label: 'Overall', value: `${report.overallPct}%`, color: covColor(t, report.overallPct) },
-    { label: 'Files measured', value: String(files.length), color: t.palette.text.primary },
-    { label: 'Not closed', value: String(notClosed.length), color: notClosed.length ? t.palette.warning.main : t.palette.success.main },
-    { label: `Below ${minPct}%`, value: String(belowFloor.length), color: belowFloor.length ? t.palette.error.main : t.palette.success.main },
+    { label: 'Overall', value: `${report.overallPct}%`, hint: 'line coverage', accent: covColor(t, report.overallPct) },
+    { label: 'Files measured', value: String(files.length), hint: 'tracked files', accent: t.palette.primary.main },
+    { label: 'Not closed', value: String(notClosed.length), hint: notClosed.length ? 'files below 100%' : 'all files covered', accent: notClosed.length ? t.palette.warning.main : t.palette.success.main },
+    { label: `Below ${minPct}%`, value: String(belowFloor.length), hint: `floor is ${minPct}%`, accent: belowFloor.length ? t.palette.error.main : t.palette.success.main },
   ];
 
   const columns = useMemo<DataTableColumn<FileCoverage>[]>(() => [
@@ -93,84 +105,116 @@ export function CoveragePane() {
     { field: 'uncovered', headerName: 'Uncovered lines', type: 'number', minWidth: 150, flex: 0 },
   ], [t]);
 
+  // Horizontal bar chart of the not-closed files (worst first) - data-bound
+  // to real coverage values so it names exactly what is not closed end-to-end.
+  const barChart = useMemo<EChartsOption>(() => horizontalBarOption(t, {
+    labels: notClosed.slice(0, 10).map((f) => f.path.split('/').slice(-1)[0] ?? f.path),
+    values: notClosed.slice(0, 10).map((f) => f.linePct),
+    colors: notClosed.slice(0, 10).map((f) => covColor(t, f.linePct)),
+  }), [notClosed, t]);
+
   const measured = report.generatedAt ? new Date(report.generatedAt) : null;
   const subtitle = !report.enabled
-    ? 'Toggle on to measure your app’s tests and see what’s not closed'
+    ? "Toggle on to measure your app's tests and see what's not closed"
     : measured && !Number.isNaN(measured.getTime())
-      ? `${report.tool || 'coverage'} · measured ${measured.toLocaleString()}`
-      : 'Enabled — runs on the next finisher pass';
+      ? `${report.tool || 'coverage'} measured ${measured.toLocaleString()}`
+      : 'Enabled - runs on the next finisher pass';
 
   return (
     <Box sx={{ flex: 1, height: '100%', overflowY: 'auto', bgcolor: 'background.default', p: 3 }}>
-      <Box sx={{ maxWidth: 1080, mx: 'auto' }}>
-        <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2, flexWrap: 'wrap', gap: 1 }}>
-          <Typography variant="h4" sx={{ fontSize: text.s160 }}>Coverage</Typography>
-          <Chip size="small" label={isLive ? 'live' : 'sample'} sx={(th) => ({ height: 20, fontSize: text.s64, fontFamily: th.brand.font.mono, bgcolor: isLive ? `${th.palette.success.main}22` : 'action.hover', color: isLive ? 'success.main' : 'text.disabled' })} />
-          <Typography sx={{ color: 'text.secondary', fontSize: text.s90 }}>{subtitle}</Typography>
-          <Box sx={{ flex: 1 }} />
-          <FormControlLabel
-            control={<Switch checked={report.enabled} disabled={busy || !liveProjectId} onChange={(e) => onToggle(e.target.checked)} />}
-            label={<Typography sx={{ fontSize: text.s84 }}>{report.enabled ? 'Coverage on' : 'Coverage off'}</Typography>}
-            sx={{ mr: 0 }}
-          />
-        </Stack>
+      <Box sx={{ maxWidth: 1100, mx: 'auto' }}>
+        <SectionHeader
+          eyebrow="Coverage gate"
+          title="Coverage"
+          subtitle={subtitle}
+          actions={
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              <Chip
+                size="small"
+                label={isLive ? 'live' : 'sample'}
+                sx={(th) => ({ height: 20, fontSize: text.s64, fontFamily: th.brand.font.mono, bgcolor: isLive ? `${th.palette.success.main}22` : 'action.hover', color: isLive ? 'success.main' : 'text.disabled' })}
+              />
+              <FormControlLabel
+                control={<Switch checked={report.enabled} disabled={busy || !liveProjectId} onChange={(e) => onToggle(e.target.checked)} size="small" />}
+                label={<Typography sx={{ fontSize: text.s84 }}>{report.enabled ? 'On' : 'Off'}</Typography>}
+                sx={{ mr: 0 }}
+              />
+            </Stack>
+          }
+        />
 
         {!report.enabled ? (
-          <Card sx={{ p: 4, textAlign: 'center' }}>
-            <Typography sx={{ fontSize: text.s120, fontWeight: 600, mb: 1 }}>Test coverage is off</Typography>
+          <GlassPanel pad={4} sx={{ textAlign: 'center' }}>
+            <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>Coverage is off</Typography>
             <Typography sx={{ color: 'text.secondary', fontSize: text.s90, maxWidth: 460, mx: 'auto' }}>
               Turn it on and the finisher runs your app&apos;s test suite with coverage each build, then shows your overall percentage and exactly which files are not closed.
             </Typography>
             {!liveProjectId && <Typography sx={{ fontSize: text.s76, color: 'text.disabled', mt: 2 }}>Open a live project to enable coverage.</Typography>}
-          </Card>
+          </GlassPanel>
         ) : (
           <>
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '300px 1fr' }, gap: 1.5, mb: 3, alignItems: 'stretch' }}>
-              <Card sx={{ p: 2 }}>
-                <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 0.5 })}>Overall coverage</Typography>
-                <StudioChart option={gauge} height={200} />
-              </Card>
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr' }, gap: 1.5 }}>
+            {/* Visual-first: GaugeRing (readiness dial) + stat cards */}
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '240px 1fr' }, gap: 1.5, mb: 2, alignItems: 'stretch' }}>
+              <GlassPanel pad={2} accent={covColor(t, report.overallPct)} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 0.5 })}>Overall</Typography>
+                <GaugeRing value={report.overallPct} color={covColor(t, report.overallPct)} height={180} />
+              </GlassPanel>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(4, 1fr)' }, gap: 1.5 }}>
                 {metrics.map((m) => (
-                  <Card key={m.label} sx={{ p: 2.5, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled' })}>{m.label}</Typography>
-                    <Typography variant="h4" sx={{ fontSize: text.s180, mt: 0.5, color: m.color }}>{m.value}</Typography>
-                  </Card>
+                  <StatCard key={m.label} label={m.label} value={m.value} hint={m.hint} accent={m.accent} />
                 ))}
               </Box>
             </Box>
 
-            {/* What's not closed — the headline the operator asked for. */}
+            {/* What's not closed - the headline the operator asked for */}
             <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s70, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>
               What&apos;s not closed {notClosed.length > 0 ? `(${notClosed.length})` : ''}
             </Typography>
+
             {notClosed.length === 0 ? (
-              <Card sx={{ p: 3, textAlign: 'center', mb: 3 }}>
-                <Typography sx={{ color: 'success.main', fontSize: text.s90 }}>Every measured file is fully covered. ✓</Typography>
-              </Card>
+              <GlassPanel pad={3} sx={{ textAlign: 'center', mb: 3 }} accent={t.palette.success.main}>
+                <Typography sx={{ color: 'success.main', fontSize: text.s90 }}>Every measured file is fully covered.</Typography>
+              </GlassPanel>
             ) : (
-              <Stack spacing={0.75} sx={{ mb: 3 }}>
-                {notClosed.slice(0, 8).map((f) => (
-                  <Card key={f.path} sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 1.25 }}>
-                    <Box sx={{ width: 8, height: 8, borderRadius: 99, bgcolor: covColor(t, f.linePct), flexShrink: 0 }} />
-                    <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s80, flex: 1, minWidth: 0 })} noWrap>{f.path}</Typography>
-                    <Typography sx={{ fontSize: text.s74, color: 'text.disabled' }}>{f.uncovered} uncovered</Typography>
-                    <Chip size="small" label={`${f.linePct}%`} sx={{ height: 20, fontSize: text.s66, fontWeight: 600, bgcolor: `${covColor(t, f.linePct)}22`, color: covColor(t, f.linePct) }} />
-                  </Card>
-                ))}
-                {notClosed.length > 8 && <Typography sx={{ fontSize: text.s76, color: 'text.disabled', pl: 0.5 }}>+{notClosed.length - 8} more below the table</Typography>}
-              </Stack>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 1.5, mb: 3 }}>
+                {/* Horizontal bars: worst-covered files at a glance */}
+                <GlassPanel pad={2} accent={t.palette.warning.main}>
+                  <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 0.5 })}>Worst covered (line %)</Typography>
+                  <StudioChart option={barChart} height={Math.min(280, notClosed.slice(0, 10).length * 28 + 40)} />
+                </GlassPanel>
+
+                {/* File list */}
+                <GlassPanel pad={2}>
+                  <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 1 })}>Files</Typography>
+                  <Stack spacing={0.65}>
+                    {notClosed.slice(0, 8).map((f) => (
+                      <Stack key={f.path} direction="row" alignItems="center" spacing={1}>
+                        <Box sx={{ width: 7, height: 7, borderRadius: 99, bgcolor: covColor(t, f.linePct), flexShrink: 0 }} />
+                        <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s76, flex: 1, minWidth: 0 })} noWrap>{f.path.split('/').slice(-2).join('/')}</Typography>
+                        <Typography sx={{ fontSize: text.s70, color: 'text.disabled' }}>{f.uncovered} lines</Typography>
+                        <Chip size="small" label={`${f.linePct}%`} sx={{ height: 18, fontSize: text.s62, fontWeight: 600, bgcolor: `${covColor(t, f.linePct)}22`, color: covColor(t, f.linePct) }} />
+                      </Stack>
+                    ))}
+                    {notClosed.length > 8 && <Typography sx={{ fontSize: text.s72, color: 'text.disabled' }}>+{notClosed.length - 8} more below</Typography>}
+                  </Stack>
+                </GlassPanel>
+              </Box>
             )}
 
-            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s70, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>By file</Typography>
             <StudioDataTable
-              rows={files} columns={columns}
+              title="Coverage files"
+              subtitle={`${tableRows.length.toLocaleString()} files in this view · ${minPct}% minimum floor`}
+              tabs={tableTabs}
+              activeTab={tableView}
+              onTabChange={setTableView}
+              searchValue={tableSearch}
+              onSearchChange={setTableSearch}
+              searchPlaceholder="Search files"
+              footer="Coverage is measured in the sandbox each finisher pass for the generated app, not Ironflyer's own repo."
+              rows={tableRows} columns={columns}
               getRowId={(row) => row.path}
-              density="compact" emptyLabel="No coverage report yet — run the finisher." height={360} minHeight={240}
+              density="compact" emptyLabel="No coverage report yet - run the finisher." height={360} minHeight={240}
             />
-            <Typography sx={{ fontSize: text.s76, color: 'text.disabled', mt: 1.5 }}>
-              Coverage of your generated app, measured in the sandbox each finisher pass — your project&apos;s tests, never Ironflyer&apos;s.
-            </Typography>
           </>
         )}
       </Box>

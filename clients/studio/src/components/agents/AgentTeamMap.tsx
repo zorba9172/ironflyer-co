@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import { Box } from '@mui/material';
+import { Box, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { FlowCanvas, type FlowNode, type FlowEdge, type NodeMouseHandler, type HandleSpec } from '@ironflyer/ui-web/fx';
 import { VscRobot, VscHubot, VscGitMerge } from 'react-icons/vsc';
@@ -7,6 +7,7 @@ import { agentStatus, statusLabel, type Agent, type AgentStatus, type Gate } fro
 import { autonomyLabel } from '../../agentLibrary';
 import { nodePalette, type MapColors } from '../map/nodes';
 import { agentColor, statusColor } from '../statusColor';
+import { text } from '@ironflyer/design-tokens/brand';
 
 // Layout lanes — orchestrator hub up top, the specialist + custom roster in the
 // middle, the finisher gates they own beneath. Hand-off edges arc agent→agent.
@@ -145,7 +146,42 @@ export function AgentTeamMap({ agents, gates, onEdit }: { agents: Agent[]; gates
   }, [roster, gates, gateIds, orchestrator, theme, c.accent]);
 
   return (
-    <Box sx={{ height: { xs: 460, md: 600 }, borderRadius: 3, border: 1, borderColor: 'divider', overflow: 'hidden', bgcolor: 'background.paper' }}>
+    <Box
+      sx={(t) => ({
+        height: { xs: 460, md: 600 },
+        borderRadius: `${t.studio.radius.lg}px`,
+        border: `1px solid ${t.palette.cardBorder}`,
+        overflow: 'hidden',
+        bgcolor: 'background.paper',
+        backdropFilter: `blur(${t.studio.effect.card.blur}px)`,
+        WebkitBackdropFilter: `blur(${t.studio.effect.card.blur}px)`,
+        boxShadow: `0 0 0 1px ${t.studio.neon.violet}18, 0 18px 48px ${t.studio.neon.violet}12`,
+      })}
+    >
+      {/* Lane header labels rendered as a glassmorphic overlay band */}
+      <Stack direction="row" sx={{ position: 'absolute', top: 8, right: 8, zIndex: 4, gap: 0.75 }}>
+        <Box
+          sx={(t) => ({
+            px: 1.25, py: 0.5,
+            borderRadius: `${t.studio.radius.sm}px`,
+            border: `1px solid ${t.studio.neon.blue}33`,
+            bgcolor: (t2) => t2.palette.cardBg,
+            backdropFilter: 'blur(8px)',
+          })}
+        >
+          <Typography
+            sx={(t) => ({
+              fontFamily: t.brand.font.mono,
+              fontSize: text.s60,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: 'text.disabled',
+            })}
+          >
+            Orchestrator · specialists · gates
+          </Typography>
+        </Box>
+      </Stack>
       <FlowCanvas nodes={nodes} edges={edges} onNodeClick={onNodeClick} minimap />
     </Box>
   );

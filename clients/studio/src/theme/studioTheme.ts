@@ -51,7 +51,7 @@ declare module '@mui/material/styles' {
 function paletteFor(mode: StudioMode) {
   const m = modes[mode];
   return {
-    primary: { main: neon.violet, dark: '#5546E6', contrastText: '#FFFFFF' },
+    primary: { main: '#F2672E', dark: '#D94F18', contrastText: '#FFFFFF' },
     secondary: { main: neon.blue },
     info: { main: neon.blue },
     success: { main: neon.success },
@@ -78,7 +78,7 @@ const brandCompat: BrandExtras = {
 
 export const studioTheme = extendTheme({
   cssVarPrefix: 'ifs',
-  defaultColorScheme: 'dark',
+  defaultColorScheme: 'light',
   colorSchemeSelector: 'data',
   colorSchemes: {
     dark: { palette: paletteFor('dark') },
@@ -115,16 +115,20 @@ export const studioTheme = extendTheme({
     MuiButton: {
       styleOverrides: {
         root: { borderRadius: radius.cta, fontWeight: font.weight.semibold },
-        // mx.md › CTA Button: neon gradient, hover scale 1.02 + glow increase.
         containedPrimary: {
           backgroundImage: gradient.cta,
-          boxShadow: '0 12px 34px rgba(107,92,255,0.38), 0 0 22px rgba(255,79,216,0.26)',
-          transition: `transform ${motion.base}, box-shadow ${motion.base}`,
+          boxShadow: '0 1px 2px rgba(24,22,20,0.12)',
+          transition: `background-color ${motion.base}, box-shadow ${motion.base}, transform ${motion.base}`,
           '&:hover': {
-            transform: 'scale(1.02)',
-            boxShadow: '0 16px 42px rgba(107,92,255,0.46), 0 0 30px rgba(255,79,216,0.38)',
+            transform: 'translateY(-1px)',
+            boxShadow: '0 8px 18px rgba(244,122,69,0.22)',
           },
         },
+        outlined: ({ theme }) => ({
+          borderColor: theme.palette.divider,
+          color: theme.palette.text.primary,
+          '&:hover': { borderColor: theme.palette.text.secondary, backgroundColor: theme.palette.surfaceHover },
+        }),
       },
     },
     MuiPaper: {

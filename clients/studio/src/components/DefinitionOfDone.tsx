@@ -1,6 +1,7 @@
-import { Box, Card, Stack, Typography } from '@mui/material';
+import { Box, LinearProgress, Stack, Typography } from '@mui/material';
 import type { Gate, GateStatus } from '../studioData';
 import { statusColor } from './statusColor';
+import { GlassPanel } from './studio';
 import { text } from '@ironflyer/design-tokens/brand';
 
 // The vision's "Definition of Done" made legible: each item is backed by a real
@@ -28,7 +29,16 @@ function resolve(gates: Gate[], ids: string[]): { status: GateStatus; reason: st
 
 function CheckGlyph() {
   return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M20 6L9 17l-5-5" />
     </svg>
   );
@@ -66,45 +76,119 @@ export function DefinitionOfDone({ gates, profitGuard }: { gates: Gate[]; profit
     : gateItems;
   const done = items.filter((i) => i.status === 'closed').length;
   const blocked = items.find((i) => i.status === 'blocked' || i.status === 'open');
+  const progressPct = items.length > 0 ? Math.round((done / items.length) * 100) : 0;
+  const allDone = done === items.length;
 
   return (
-    <Card sx={{ p: 2.5, mt: 1.5 }}>
-      <Stack direction="row" alignItems="baseline" justifyContent="space-between" sx={{ mb: 1.5 }}>
-        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s68, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'text.disabled' })}>
+    <GlassPanel pad={2.5}>
+      {/* Header row */}
+      <Stack
+        direction="row"
+        alignItems="baseline"
+        justifyContent="space-between"
+        sx={{ mb: 1.5 }}
+      >
+        <Typography
+          sx={(t) => ({
+            fontFamily: t.brand.font.mono,
+            fontSize: text.s68,
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            color: 'text.disabled',
+          })}
+        >
           Definition of Done
         </Typography>
-        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s80, color: done === items.length ? 'success.main' : 'text.secondary' })}>
-          {done}/{items.length} {done === items.length ? '· shippable' : blocked ? `· blocked on ${blocked.label.toLowerCase()}` : '· in progress'}
+        <Typography
+          sx={(t) => ({
+            fontFamily: t.brand.font.mono,
+            fontSize: text.s74,
+            fontWeight: 700,
+            color: allDone ? 'success.main' : blocked ? 'warning.main' : 'text.secondary',
+          })}
+        >
+          {done}/{items.length}
         </Typography>
       </Stack>
-      <Stack spacing={1}>
+
+      {/* Progress bar */}
+      <Box sx={{ mb: 2 }}>
+        <LinearProgress
+          variant="determinate"
+          value={progressPct}
+          color={allDone ? 'success' : blocked?.status === 'blocked' ? 'error' : 'warning'}
+          sx={{ height: 4, borderRadius: 99, bgcolor: 'action.hover' }}
+        />
+        <Typography
+          sx={(t) => ({
+            fontFamily: t.brand.font.mono,
+            fontSize: text.s66,
+            color: allDone ? 'success.main' : blocked ? 'text.secondary' : 'text.disabled',
+            mt: 0.75,
+          })}
+        >
+          {allDone
+            ? '· shippable'
+            : blocked
+            ? `· blocked on ${blocked.label.toLowerCase()}`
+            : '· in progress'}
+        </Typography>
+      </Box>
+
+      {/* Gate items */}
+      <Stack spacing={0.75}>
         {items.map((it) => {
-          const done = it.status === 'closed';
+          const isDone = it.status === 'closed';
           return (
             <Stack key={it.label} direction="row" alignItems="center" spacing={1.25}>
+              {/* Status glyph */}
               <Box
                 sx={(t) => ({
-                  width: 20, height: 20, borderRadius: 99, flexShrink: 0,
-                  display: 'grid', placeItems: 'center',
-                  color: done ? t.palette.success.contrastText : statusColor(t, it.status),
-                  bgcolor: done ? 'success.main' : `${statusColor(t, it.status)}22`,
+                  width: 20,
+                  height: 20,
+                  borderRadius: 99,
+                  flexShrink: 0,
+                  display: 'grid',
+                  placeItems: 'center',
+                  color: isDone ? t.palette.success.contrastText : statusColor(t, it.status),
+                  bgcolor: isDone ? 'success.main' : `${statusColor(t, it.status)}22`,
+                  transition: `background-color ${t.studio?.motion?.base ?? '300ms'}`,
                 })}
               >
-                {done ? <CheckGlyph /> : <Box sx={{ width: 6, height: 6, borderRadius: 99, bgcolor: 'currentColor' }} />}
+                {isDone ? (
+                  <CheckGlyph />
+                ) : (
+                  <Box sx={{ width: 5, height: 5, borderRadius: 99, bgcolor: 'currentColor' }} />
+                )}
               </Box>
+
+              {/* Label + sub */}
               <Box sx={{ minWidth: 0, flex: 1 }}>
-                <Typography sx={{ fontSize: text.s86, fontWeight: 600 }} noWrap>{it.label}</Typography>
-                <Typography sx={{ fontSize: text.s74, color: 'text.secondary' }} noWrap>{it.sub}</Typography>
+                <Typography sx={{ fontSize: text.s84, fontWeight: 600 }} noWrap>
+                  {it.label}
+                </Typography>
+                <Typography sx={{ fontSize: text.s72, color: 'text.secondary' }} noWrap>
+                  {it.sub}
+                </Typography>
               </Box>
+
+              {/* Status badge */}
               <Typography
-                sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s72, color: done ? 'success.main' : statusColor(t, it.status), textTransform: 'uppercase', flexShrink: 0 })}
+                sx={(t) => ({
+                  fontFamily: t.brand.font.mono,
+                  fontSize: text.s70,
+                  color: isDone ? 'success.main' : statusColor(t, it.status),
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                  flexShrink: 0,
+                })}
               >
-                {done ? 'done' : it.reason}
+                {isDone ? 'done' : it.reason}
               </Typography>
             </Stack>
           );
         })}
       </Stack>
-    </Card>
+    </GlassPanel>
   );
 }

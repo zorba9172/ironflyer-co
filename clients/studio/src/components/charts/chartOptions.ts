@@ -45,7 +45,7 @@ export function studioChartScaffold(theme: Theme): EChartsOption {
       borderWidth: 1,
       padding: [10, 12],
       textStyle: { color: theme.palette.text.primary, fontSize: 12 },
-      extraCssText: 'border-radius: 14px; box-shadow: 0 18px 46px rgba(0,0,0,0.18);',
+      extraCssText: 'border-radius: 8px; box-shadow: 0 8px 24px rgba(17,24,39,0.08);',
     },
     legend: {
       bottom: 0,
@@ -197,7 +197,7 @@ export function lineTrendOption(
         showSymbol: false,
         lineStyle: { width: 2.5, color: tone },
         itemStyle: { color: tone },
-        areaStyle: item.area ? { opacity: 0.14, color: tone } : undefined,
+      areaStyle: item.area ? { opacity: 0.08, color: tone } : undefined,
         data: item.data,
       };
     }),
@@ -225,7 +225,7 @@ export function horizontalBarOption(
     series: [{
       type: 'bar',
       barWidth: '54%',
-      data: values.map((value, index) => ({ value, itemStyle: { color: tones[index % tones.length], borderRadius: [0, 10, 10, 0] } })),
+      data: values.map((value, index) => ({ value, itemStyle: { color: tones[index % tones.length], borderRadius: [0, 4, 4, 0] } })),
       label: { show: true, position: 'right', color: theme.palette.text.secondary, fontSize: 11 },
     }],
   };

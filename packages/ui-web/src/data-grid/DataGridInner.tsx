@@ -34,6 +34,15 @@ export interface DataGridProps<TData extends object> {
   sx?: SxProps<Theme>;
 }
 
+function escapeHtml(value: string) {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
 // The real grid. ag-grid is heavy, so this module is only ever reached through
 // the lazy wrapper in DataGrid.tsx — it never lands in the cold bundle.
 export default function DataGridInner<TData extends object>({
@@ -79,6 +88,10 @@ export default function DataGridInner<TData extends object>({
     '--if-grid-header-bg': theme.palette.action.hover,
     '--if-grid-hover': theme.palette.action.hover,
     '--if-grid-selected': theme.palette.action.selected,
+    '--if-grid-accent': theme.palette.primary.main,
+    '--if-grid-accent-soft': theme.palette.action.hover,
+    '--if-grid-row-alt': theme.palette.action.hover,
+    '--if-grid-panel-bg': theme.palette.background.default,
     '--if-grid-font-family': theme.typography.fontFamily,
   } as CSSProperties;
   const rootSx = [
@@ -102,12 +115,12 @@ export default function DataGridInner<TData extends object>({
         pagination={pagination}
         paginationPageSize={pageSize}
         paginationPageSizeSelector={false}
-        rowHeight={density === 'compact' ? 36 : 42}
-        headerHeight={density === 'compact' ? 34 : 38}
+        rowHeight={density === 'compact' ? 46 : 52}
+        headerHeight={density === 'compact' ? 42 : 46}
         animateRows={false}
         suppressCellFocus
         suppressMovableColumns
-        overlayNoRowsTemplate={emptyLabel}
+        overlayNoRowsTemplate={`<div class="if-grid-empty">${escapeHtml(emptyLabel)}</div>`}
         onGridReady={onReady}
         onRowClicked={(event) => {
           if (event.data) onRowClick?.(event.data, event);

@@ -7,6 +7,7 @@
 // design and owns these workspace-local resources.
 
 import { useQuery } from '@tanstack/react-query';
+import { useDataConfig } from './provider';
 
 // `import.meta.env` is injected by Vite in the consuming apps; the cast keeps
 // this package type-checkable on its own (its tsconfig has no vite/client types).
@@ -110,12 +111,18 @@ export interface WorkspaceIde {
  * project id is provided.
  */
 export function useWorkspaceIde(projectId?: string) {
+  // The runtime's /workspaces tree sits behind JWT auth (it trusts the
+  // orchestrator's signature), so the IDE lookup MUST carry the same bearer
+  // token the GraphQL client uses — otherwise the runtime answers 401
+  // {"error":"missing token"} and the IDE pane reads as "offline".
+  const { getToken } = useDataConfig();
   const query = useQuery<WorkspaceIde>({
     queryKey: ['workspace-ide', projectId ?? 'none'],
     enabled: !!projectId,
     queryFn: async () => {
       const { data, status } = await runtimeFetch<Partial<WorkspaceIde>>(
         `/workspaces/${encodeURIComponent(projectId as string)}/ide`,
+        { token: getToken?.() },
       );
       const ready = status === 200 && !!data.ready;
       return { url: ready ? data.url ?? '' : '', ready };

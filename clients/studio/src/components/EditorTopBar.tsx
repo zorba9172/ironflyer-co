@@ -16,7 +16,7 @@ import { text } from '@ironflyer/design-tokens/brand';
 export type EditorTab =
   | 'preview' | 'map' | 'security' | 'code'
   | 'dashboard' | 'documents' | 'logs' | 'quality' | 'team'
-  | 'data' | 'users' | 'analytics' | 'domains' | 'automations' | 'api' | 'marketing' | 'settings';
+  | 'data' | 'users' | 'grow' | 'settings';
 
 type EditorTabGroupId = 'build' | 'preview' | 'review' | 'operate' | 'business';
 type EditorTabTone = 'success' | 'warning' | 'error' | 'info';
@@ -63,9 +63,6 @@ const TAB_GROUPS: { id: EditorTabGroupId; label: string; items: EditorTabItem[] 
     items: [
       { value: 'data', label: 'Data' },
       { value: 'users', label: 'Users' },
-      { value: 'domains', label: 'Domains' },
-      { value: 'automations', label: 'Automations' },
-      { value: 'api', label: 'API' },
       { value: 'settings', label: 'Settings' },
     ],
   },
@@ -73,8 +70,7 @@ const TAB_GROUPS: { id: EditorTabGroupId; label: string; items: EditorTabItem[] 
     id: 'business',
     label: 'Business',
     items: [
-      { value: 'analytics', label: 'Analytics' },
-      { value: 'marketing', label: 'Marketing' },
+      { value: 'grow', label: 'Grow' },
     ],
   },
 ];
@@ -97,10 +93,22 @@ export function EditorTopBar({ projectName, tab, onTab, onDeploy, deployReadines
   };
 
   return (
-    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', px: 2, height: 56, borderBottom: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: { xs: 'auto minmax(0, 1fr) auto', md: '1fr auto 1fr' },
+        gap: { xs: 0.5, md: 1 },
+        alignItems: 'center',
+        px: { xs: 0.75, md: 2 },
+        height: 56,
+        borderBottom: 1,
+        borderColor: 'divider',
+        bgcolor: 'background.paper',
+      }}
+    >
       <Stack direction="row" alignItems="center" spacing={1.5} sx={{ minWidth: 0 }}>
         <IconButton size="small" onClick={() => navigate('/')} aria-label="Home"><LogoMark size={22} /></IconButton>
-        <Box sx={{ minWidth: 0 }}>
+        <Box sx={{ minWidth: 0, display: { xs: 'none', md: 'block' } }}>
           <Typography sx={{ fontWeight: 600, fontSize: text.s90 }} noWrap>{projectName}</Typography>
           <Stack direction="row" alignItems="center" spacing={0.75} sx={{ minWidth: 0 }}>
             {fileCount > 0 && <Box sx={{ width: 6, height: 6, borderRadius: 99, bgcolor: saved ? 'success.main' : 'warning.main' }} />}
@@ -124,7 +132,20 @@ export function EditorTopBar({ projectName, tab, onTab, onDeploy, deployReadines
         </Box>
       </Stack>
 
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25, bgcolor: 'action.hover', borderRadius: 99, p: 0.5, minWidth: 0 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.25,
+          bgcolor: 'action.hover',
+          borderRadius: 99,
+          p: 0.5,
+          minWidth: 0,
+          overflowX: 'auto',
+          scrollbarWidth: 'none',
+          '&::-webkit-scrollbar': { display: 'none' },
+        }}
+      >
         {TAB_GROUPS.map((group) => {
           const selected = activeGroup.id === group.id;
           const activeLabel = group.items.length > 1 ? group.items.find((d) => d.value === tab)?.label : null;
@@ -142,16 +163,20 @@ export function EditorTopBar({ projectName, tab, onTab, onDeploy, deployReadines
               endIcon={group.items.length > 1 ? <VscChevronDown size={12} /> : undefined}
               sx={{
                 borderRadius: 99,
-                px: 1.4,
+                px: { xs: 0.9, md: 1.4 },
                 py: 0.5,
                 minWidth: 0,
+                flexShrink: 0,
+                order: { xs: selected ? -1 : 0, md: 0 },
                 textTransform: 'none',
+                fontSize: { xs: text.s74, md: text.s82 },
+                whiteSpace: 'nowrap',
                 color: selected ? 'text.primary' : 'text.secondary',
                 bgcolor: selected ? 'background.paper' : 'transparent',
                 boxShadow: selected ? 1 : 0,
               }}
             >
-              <Box component="span" sx={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{group.label}</Box>
+              <Box component="span" sx={{ minWidth: 0, whiteSpace: 'nowrap' }}>{group.label}</Box>
               {selected && activeLabel && (
                 <Box component="span" sx={{ display: { xs: 'none', lg: 'inline' }, ml: 0.75, color: 'text.secondary', maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {activeLabel}
@@ -167,10 +192,11 @@ export function EditorTopBar({ projectName, tab, onTab, onDeploy, deployReadines
         </Menu>
       </Box>
 
-      <Stack direction="row" alignItems="center" justifyContent="flex-end" spacing={1}>
-        <PrivateModeChip />
-        <CostHUD />
+      <Stack direction="row" alignItems="center" justifyContent="flex-end" spacing={{ xs: 0.5, md: 1 }} sx={{ minWidth: 0 }}>
+        <Box sx={{ display: { xs: 'none', lg: 'block' } }}><PrivateModeChip /></Box>
+        <Box sx={{ display: { xs: 'none', sm: 'block' } }}><CostHUD /></Box>
         <Button
+          sx={{ display: { xs: 'none', md: 'inline-flex' } }}
           variant="outlined"
           color="inherit"
           size="small"
@@ -187,6 +213,7 @@ export function EditorTopBar({ projectName, tab, onTab, onDeploy, deployReadines
             onClick={toggle}
             aria-label={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             sx={{
+              display: { xs: 'none', sm: 'inline-flex' },
               width: 30,
               height: 30,
               border: 1,

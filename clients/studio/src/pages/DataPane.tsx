@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react';
-import { Box, Card, Chip, Stack, Tooltip, Typography } from '@mui/material';
+import { Box, Chip, Stack, Tooltip } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { FlowCanvas, type FlowNode, type FlowEdge, type HandleSpec } from '@ironflyer/ui-web/fx';
 import { useGraphQLQuery, operations } from '@ironflyer/data';
 import { useOperateProjectId } from '../hooks/useOperateProjectId';
 import { PaneHeader } from '../components/operate/PaneHeader';
-import { StudioDataTable, type DataTableColumn } from '../components/tables';
+import { StudioChart, horizontalBarOption, type EChartsOption } from '../components/charts';
+import { StudioDataTable, type DataTableColumn, type StudioTableTab } from '../components/tables';
+import { GlassPanel, SectionHeader } from '../components/studio';
 import { text } from '@ironflyer/design-tokens/brand';
 
 interface AppColumn { name: string; type: string; nullable: boolean; primaryKey: boolean; references: string | null }
@@ -47,13 +48,7 @@ const SAMPLE_ROWS: Record<string, TableRows> = {
   },
 };
 
-const H_LEFT: HandleSpec[] = [{ id: 't', type: 'target', side: 'left' }];
-const H_RIGHT: HandleSpec[] = [{ id: 's', type: 'source', side: 'right' }];
-const H_BOTH: HandleSpec[] = [{ id: 't', type: 'target', side: 'left' }, { id: 's', type: 'source', side: 'right' }];
-
-// Classify a SQL column type into a render strategy. Keeps the grid type-aware
-// (booleans → check/×, numbers → right-aligned, timestamps → formatted dates,
-// json → readable, FK → linked) instead of one undifferentiated text column.
+// Classify a SQL column type into a render strategy.
 type Kind = 'bool' | 'number' | 'datetime' | 'json' | 'text';
 function classify(sqlType: string): Kind {
   const t = sqlType.toLowerCase();
@@ -64,44 +59,26 @@ function classify(sqlType: string): Kind {
   return 'text';
 }
 
-function TableCard({ t, accent, muted }: { t: AppTable; accent: string; muted: string }) {
-  return (
-    <Box sx={{ minWidth: 188 }}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 0.75 }}>
-        <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s82, fontWeight: 700, color: accent })}>{t.name}</Typography>
-        <Typography sx={{ fontSize: text.s66, color: 'text.disabled' }}>{t.rowCount.toLocaleString()} rows</Typography>
-      </Stack>
-      <Stack spacing={0.25}>
-        {t.columns.map((c) => (
-          <Stack key={c.name} direction="row" alignItems="center" spacing={0.5} sx={{ justifyContent: 'space-between' }}>
-            <Stack direction="row" alignItems="center" spacing={0.5}>
-              {c.primaryKey && <Box sx={{ fontSize: text.s60, color: accent }}>◆</Box>}
-              {c.references && <Box sx={{ fontSize: text.s60, color: muted }}>↗</Box>}
-              <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s70 })}>{c.name}</Typography>
-            </Stack>
-            <Typography sx={{ fontSize: text.s62, color: 'text.disabled' }}>{c.type}</Typography>
-          </Stack>
-        ))}
-      </Stack>
-    </Box>
-  );
-}
-
 export function DataPane() {
   const t = useTheme();
   const liveProjectId = useOperateProjectId();
   const [selected, setSelected] = useState<string | null>(null);
+  const [tableSearch, setTableSearch] = useState('');
 
   const { data: tables, isLive } = useGraphQLQuery<AppTable[], { appDataSchema: AppTable[] }>({
     key: ['app-data-schema', liveProjectId ?? 'none'],
     operationName: 'AppDataSchema', query: operations.APP_DATA_SCHEMA,
     variables: { projectID: liveProjectId }, fallbackData: SAMPLE, enabled: !!liveProjectId,
-    // Live (enabled requires a project) shows real data — empty included; the
-    // offline sample is served via fallbackData, never under a "live" chip.
     map: (r) => r.appDataSchema ?? [],
   });
 
   const activeTable = selected ?? tables[0]?.name ?? null;
+  const tableTabs = useMemo<StudioTableTab[]>(() => tables.map((tbl) => ({
+    value: tbl.name,
+    label: tbl.name,
+    count: tbl.rowCount,
+    tone: tbl.rowCount > 1000 ? 'info' : 'default',
+  })), [tables]);
   const { data: rowsData } = useGraphQLQuery<TableRows, { appTableRows: TableRows }>({
     key: ['app-table-rows', liveProjectId ?? 'none', activeTable ?? 'none'],
     operationName: 'AppTableRows', query: operations.APP_TABLE_ROWS,
@@ -111,36 +88,15 @@ export function DataPane() {
     map: (r) => r.appTableRows,
   });
 
-  const accent = t.brand.accent.primary;
+  const accent = t.palette.primary.main;
   const muted = t.palette.text.secondary;
 
-  const { nodes, edges } = useMemo(() => {
-    const ns: FlowNode[] = tables.map((tbl, i) => {
-      const hasRef = tbl.columns.some((c) => c.references);
-      const isRefd = tables.some((o) => o.columns.some((c) => c.references?.startsWith(tbl.name + '.')));
-      const handles = hasRef && isRefd ? H_BOTH : hasRef ? H_RIGHT : H_LEFT;
-      return {
-        id: tbl.name, type: 'card',
-        position: { x: (i % 2) * 320, y: Math.floor(i / 2) * 220 },
-        data: { label: <TableCard t={tbl} accent={accent} muted={muted} />, handles, tone: accent },
-      };
-    });
-    const es: FlowEdge[] = [];
-    tables.forEach((tbl) => {
-      tbl.columns.forEach((c) => {
-        if (!c.references) return;
-        const target = c.references.split('.')[0] ?? '';
-        if (target && tables.some((o) => o.name === target)) {
-          es.push({ id: `${tbl.name}-${c.name}-${target}`, source: tbl.name, target, sourceHandle: 's', targetHandle: 't', animated: false, style: { stroke: muted } });
-        }
-      });
-    });
-    return { nodes: ns, edges: es };
-  }, [tables, accent, muted]);
+  const volumeChart = useMemo<EChartsOption>(() => horizontalBarOption(t, {
+    labels: tables.map((tbl) => tbl.name),
+    values: tables.map((tbl) => tbl.rowCount),
+    colors: tables.map((_, index) => index === 0 ? t.palette.primary.main : index % 2 ? t.palette.text.secondary : t.palette.borderSubtle),
+  }), [tables, t]);
 
-  // Type-aware columns: prefer the table's schema (type/pk/references metadata)
-  // so each cell renders by its real type; fall back to bare column names when
-  // the rows arrive without a matching schema entry.
   const gridColumns = useMemo<DataTableColumn<Record<string, unknown>>[]>(() => {
     const schema = tables.find((tbl) => tbl.name === activeTable)?.columns ?? [];
     const byName = new Map(schema.map((c) => [c.name, c]));
@@ -185,13 +141,17 @@ export function DataPane() {
           },
         };
       }
-      // Foreign keys render as a linked chip so relationships read at a glance.
+      // Foreign key cells render as accent chips — relationships read at a glance
       if (meta?.references) {
         return {
           ...base, minWidth: 150,
           renderCell: (p) => p.value == null ? <Box component="span" sx={{ color: 'text.disabled' }}>null</Box> : (
-            <Chip size="small" label={String(p.value)} onClick={() => { const tgt = meta.references?.split('.')[0]; if (tgt && tables.some((o) => o.name === tgt)) setSelected(tgt); }}
-              sx={(th) => ({ height: 20, fontFamily: th.brand.font.mono, fontSize: text.s68, bgcolor: `${accent}1f`, color: accent, cursor: 'pointer' })} />
+            <Chip
+              size="small"
+              label={String(p.value)}
+              onClick={() => { const tgt = meta.references?.split('.')[0]; if (tgt && tables.some((o) => o.name === tgt)) setSelected(tgt); }}
+              sx={(th) => ({ height: 20, fontFamily: th.brand.font.mono, fontSize: text.s68, bgcolor: `${accent}1f`, color: accent, cursor: 'pointer' })}
+            />
           ),
         };
       }
@@ -199,30 +159,55 @@ export function DataPane() {
     });
   }, [tables, activeTable, rowsData.columns, accent, muted]);
 
+  const visibleRows = useMemo(() => {
+    const q = tableSearch.trim().toLowerCase();
+    const rows = rowsData.rows ?? [];
+    if (!q) return rows;
+    return rows.filter((row) => Object.values(row).some((value) => {
+      if (value == null) return false;
+      const textValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
+      return textValue.toLowerCase().includes(q);
+    }));
+  }, [rowsData.rows, tableSearch]);
+
   return (
     <Box sx={{ flex: 1, height: '100%', overflowY: 'auto', bgcolor: 'background.default', p: 3 }}>
       <Box sx={{ maxWidth: 1180, mx: 'auto' }}>
-        <PaneHeader title="Data" isLive={isLive} subtitle={`${tables.length} tables · schema changes flow through the finisher, never ad-hoc DDL`} />
+        <PaneHeader
+          title="Data"
+          isLive={isLive}
+          subtitle={`${tables.length} tables · schema changes flow through the finisher, never ad-hoc DDL`}
+        />
 
-        <Card sx={{ p: 1, mb: 2, height: 360 }}>
-          <FlowCanvas nodes={nodes} edges={edges} horizontal minimap fitViewPadding={0.2} />
-        </Card>
-
-        <Stack direction="row" spacing={1} sx={{ mb: 1.5, flexWrap: 'wrap', gap: 1 }}>
-          {tables.map((tbl) => (
-            <Chip key={tbl.name} label={tbl.name} onClick={() => setSelected(tbl.name)} variant={activeTable === tbl.name ? 'filled' : 'outlined'}
-              sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s74, ...(activeTable === tbl.name ? { bgcolor: `${accent}22`, color: accent } : {}) })} />
-          ))}
-        </Stack>
+        <GlassPanel accent={t.palette.primary.main} pad={2} sx={{ mb: 2.5 }}>
+          <SectionHeader
+            eyebrow="Row counts by table"
+            title="Data volume"
+            subtitle="Each bar maps to a real table. Width = row count."
+          />
+          <StudioChart option={volumeChart} height={280} />
+        </GlassPanel>
 
         <StudioDataTable
-          rows={rowsData.rows ?? []} columns={gridColumns}
+          title={activeTable ? `${activeTable} rows` : 'Rows'}
+          subtitle={activeTable ? `${rowsData.total.toLocaleString()} total rows · showing ${visibleRows.length.toLocaleString()} in the current view` : 'No table selected'}
+          tabs={tableTabs}
+          activeTab={activeTable ?? undefined}
+          onTabChange={(value) => setSelected(value)}
+          searchValue={tableSearch}
+          onSearchChange={setTableSearch}
+          searchPlaceholder={activeTable ? `Search ${activeTable}` : 'Search rows'}
+          footer={activeTable
+            ? `${rowsData.total.toLocaleString()} rows in ${activeTable} · schema metadata stays available through the table tabs.`
+            : 'No table selected.'}
+          rows={visibleRows}
+          columns={gridColumns}
           getRowId={(row) => String((row as Record<string, unknown>).id ?? JSON.stringify(row))}
-          density="compact" emptyLabel={activeTable ? `No rows in ${activeTable}.` : 'No tables in this app yet.'} height={420} minHeight={240}
+          density="compact"
+          emptyLabel={activeTable ? `No rows in ${activeTable}.` : 'No tables in this app yet.'}
+          height={420}
+          minHeight={240}
         />
-        <Typography sx={{ fontSize: text.s76, color: 'text.disabled', mt: 1.5 }}>
-          {activeTable ? `${rowsData.total.toLocaleString()} rows in ${activeTable} · showing first ${rowsData.rows?.length ?? 0}` : 'No table selected.'}
-        </Typography>
       </Box>
     </Box>
   );

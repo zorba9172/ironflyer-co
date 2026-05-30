@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Box, Chip, Stack, Typography } from '@mui/material';
 import { useTheme, type Theme } from '@mui/material/styles';
+import { motion } from '@ironflyer/ui-web/fx';
 import { useRunProjectFeed } from '@ironflyer/data';
 import { formatRelativeTime } from '@ironflyer/core';
 import { useLiveProjectId } from '../hooks/useLiveProjectId';
 import type { ActivityEvent } from '../studioData';
 import { text } from '@ironflyer/design-tokens/brand';
+
+const MotionBox = motion.create(Box);
 
 const SIM_LINES: Pick<ActivityEvent, 'kind' | 'text'>[] = [
   { kind: 'ledger', text: 'Ledger: debited $0.12 for premium model call' },
@@ -16,11 +19,22 @@ const SIM_LINES: Pick<ActivityEvent, 'kind' | 'text'>[] = [
 
 function kindColor(t: Theme, kind: ActivityEvent['kind']): string {
   switch (kind) {
-    case 'gate': return t.brand.accent.secondary;
+    case 'gate': return t.studio?.neon?.blue ?? t.brand.accent.secondary;
     case 'patch': return t.palette.primary.main;
     case 'profitguard': return t.palette.warning.main;
     case 'deploy': return t.palette.success.main;
     default: return t.palette.text.disabled;
+  }
+}
+
+function kindLabel(kind: ActivityEvent['kind']): string {
+  switch (kind) {
+    case 'gate': return 'Gate';
+    case 'patch': return 'Patch';
+    case 'profitguard': return 'ProfitGuard';
+    case 'deploy': return 'Deploy';
+    case 'ledger': return 'Ledger';
+    default: return kind;
   }
 }
 
@@ -51,18 +65,108 @@ export function ActivityFeed({ seed }: { projectId?: string; seed: ActivityEvent
 
   return (
     <Box>
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
-        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s70, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled' })}>Activity</Typography>
-        <Chip size="small" label={isLive ? 'live' : 'simulated'} sx={(t) => ({ height: 18, fontSize: text.s62, fontFamily: t.brand.font.mono, bgcolor: isLive ? `${t.palette.success.main}22` : 'action.hover', color: isLive ? 'success.main' : 'text.disabled' })} />
+      {/* Section header */}
+      <Stack direction="row" alignItems="center" spacing={1.25} sx={{ mb: 1.75 }}>
+        <Typography
+          sx={(t) => ({
+            fontFamily: t.brand.font.mono,
+            fontSize: text.s68,
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            color: 'text.disabled',
+          })}
+        >
+          Activity
+        </Typography>
+        <Chip
+          size="small"
+          label={isLive ? 'live' : 'simulated'}
+          sx={(t) => ({
+            height: 18,
+            fontSize: text.s62,
+            fontFamily: t.brand.font.mono,
+            bgcolor: isLive ? `${t.palette.success.main}22` : 'action.hover',
+            color: isLive ? 'success.main' : 'text.disabled',
+          })}
+        />
+        {isLive && (
+          <MotionBox
+            sx={(t) => ({
+              width: 6,
+              height: 6,
+              borderRadius: 99,
+              bgcolor: t.palette.success.main,
+              flexShrink: 0,
+            })}
+            animate={{ opacity: [1, 0.3, 1] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+          />
+        )}
       </Stack>
+
+      {/* Event rows */}
       <Stack spacing={0.5}>
-        {all.map((e) => (
-          <Stack key={e.id} direction="row" alignItems="center" spacing={1.5} sx={{ py: 0.75, borderBottom: 1, borderColor: 'divider' }}>
-            <Box sx={{ width: 7, height: 7, borderRadius: 99, flexShrink: 0, bgcolor: kindColor(theme, e.kind) }} />
-            <Typography sx={{ fontSize: text.s84, color: 'text.secondary', flex: 1, minWidth: 0 }} noWrap>{e.text}</Typography>
-            <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s70, color: 'text.disabled', flexShrink: 0 })}>{formatRelativeTime(e.ts)}</Typography>
-          </Stack>
-        ))}
+        {all.map((e) => {
+          const color = kindColor(theme, e.kind);
+          return (
+            <Stack
+              key={e.id}
+              direction="row"
+              alignItems="flex-start"
+              spacing={1.25}
+              sx={(t) => ({
+                py: 0.875,
+                borderBottom: `1px solid ${t.palette.divider}`,
+                '&:last-child': { borderBottom: 'none' },
+              })}
+            >
+              {/* Kind dot */}
+              <Box
+                sx={{
+                  width: 7,
+                  height: 7,
+                  borderRadius: 99,
+                  flexShrink: 0,
+                  bgcolor: color,
+                  mt: 0.6,
+                }}
+              />
+
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                {/* Kind label */}
+                <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.25 }}>
+                  <Typography
+                    sx={(t) => ({
+                      fontFamily: t.brand.font.mono,
+                      fontSize: text.s66,
+                      letterSpacing: '0.08em',
+                      textTransform: 'uppercase',
+                      color,
+                    })}
+                  >
+                    {kindLabel(e.kind)}
+                  </Typography>
+                  <Typography
+                    sx={(t) => ({
+                      fontFamily: t.brand.font.mono,
+                      fontSize: text.s66,
+                      color: 'text.disabled',
+                    })}
+                  >
+                    {formatRelativeTime(e.ts)}
+                  </Typography>
+                </Stack>
+                {/* Event text */}
+                <Typography
+                  sx={{ fontSize: text.s78, color: 'text.secondary', lineHeight: 1.4 }}
+                  noWrap
+                >
+                  {e.text}
+                </Typography>
+              </Box>
+            </Stack>
+          );
+        })}
       </Stack>
     </Box>
   );

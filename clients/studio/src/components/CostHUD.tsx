@@ -130,7 +130,7 @@ export function CostHUD() {
             border: 1, borderColor: open ? `${t.palette[tone].main}66` : 'divider', bgcolor: 'action.hover',
             cursor: 'pointer', userSelect: 'none',
             color: t.palette[tone].main,
-            transition: `border-color ${t.brand.motion.fast}`,
+            transition: `border-color ${t.studio?.motion?.fast ?? t.brand.motion.fast}`,
             '&:hover': { borderColor: `${t.palette[tone].main}66` },
           })}
         >

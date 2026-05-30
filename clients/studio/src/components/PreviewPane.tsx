@@ -1,10 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Box, Button, IconButton, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
+import { Box, Button, Chip, IconButton, Stack, ToggleButton, ToggleButtonGroup, Tooltip, Typography } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { VscWarning, VscWand, VscClose } from 'react-icons/vsc';
-import { Scene3D, Lightbox, LivePreview, toast, type LivePreviewTemplate } from '@ironflyer/ui-web/fx';
+import { Lightbox, LivePreview, toast, type LivePreviewTemplate } from '@ironflyer/ui-web/fx';
 import { useStudio } from '../store';
 import { useThemeMode } from '../theme';
+import { NeonConstellation3D } from './studio';
+import type { Gate } from '../studioData';
 import { text } from '@ironflyer/design-tokens/brand';
+import { studioTokens } from '../theme';
 
 type Device = 'desktop' | 'mobile';
 
@@ -30,13 +34,62 @@ function toSandpackFiles(files: { path: string; content: string }[]): { map: Rec
   return { map, template: hasReactEntry ? 'vite-react-ts' : 'static' };
 }
 
+// Build constellation nodes/links from real gate state so the ambient 3D
+// object mirrors what the orchestrator is actually running.
+function gatesToConstellation(gates: Gate[]) {
+  const { neon } = studioTokens;
+  const statusColor: Record<string, string> = {
+    closed: neon.success,
+    running: neon.blue,
+    open: neon.warning,
+    blocked: neon.danger,
+    unstarted: neon.violet,
+  };
+
+  // Orchestrator hub is the first node; gates fan out from it.
+  const nodes = [
+    { id: 'orchestrator', value: 0.9, color: neon.violet, x: 0, y: 0, z: 0 },
+    ...gates.map((g, i) => {
+      const angle = (i / gates.length) * Math.PI * 2;
+      const r = 0.65;
+      return {
+        id: g.id,
+        value: g.level > 0 ? 0.3 + g.level * 0.5 : 0.25,
+        color: statusColor[g.status] ?? neon.violet,
+        x: Math.cos(angle) * r,
+        y: (Math.sin(angle) * r * 0.5),
+        z: Math.sin(angle) * r * 0.4,
+      };
+    }),
+  ];
+
+  const links = gates.map((g) => ({
+    source: 'orchestrator',
+    target: g.id,
+    color: statusColor[g.status] ?? neon.violet,
+  }));
+
+  // Running gates get a cross-link to adjacent gates for a denser graph.
+  gates.forEach((g, i) => {
+    if (g.status === 'running' || g.status === 'open') {
+      const next = gates[(i + 1) % gates.length];
+      if (next && next.id !== g.id) {
+        links.push({ source: g.id, target: next.id, color: neon.blue });
+      }
+    }
+  });
+
+  return { nodes, links };
+}
+
 // Live preview: renders the generated project once the agent has streamed any
 // files; until then it shows the building placeholder.
-export function PreviewPane() {
+export function PreviewPane({ gates = [] }: { gates?: Gate[] }) {
   const [device, setDevice] = useState<Device>('desktop');
   const [nonce, setNonce] = useState(0);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const { mode } = useThemeMode();
+  const theme = useTheme();
   const generated = useStudio((s) => s.generatedFiles);
   const requestRepair = useStudio((s) => s.requestRepair);
 
@@ -56,36 +109,114 @@ export function PreviewPane() {
     return { map, template, count: Object.keys(map).length };
   }, [generated]);
 
+  // Build the ambient network from real gate state.
+  const { nodes: constellationNodes, links: constellationLinks } = useMemo(
+    () => gatesToConstellation(gates),
+    [gates],
+  );
+
   const hasApp = count > 0;
+  const constellationHeight = device === 'mobile' ? 240 : 320;
 
   return (
     <Box sx={{ flex: 1, height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.default', minWidth: 0 }}>
       {/* toolbar */}
-      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ px: 2, py: 1, borderBottom: 1, borderColor: 'divider' }}>
-        <ToggleButtonGroup exclusive size="small" value={device} onChange={(_, v) => v && setDevice(v)} sx={{ '& .MuiToggleButton-root': { px: 1, py: 0.5, border: 1, borderColor: 'divider' } }}>
-          <ToggleButton value="desktop" aria-label="Desktop">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M8 20h8M12 16v4" /></svg>
+      <Stack
+        direction="row"
+        alignItems="center"
+        spacing={1.5}
+        sx={{ px: 2, py: 1, borderBottom: 1, borderColor: 'divider' }}
+      >
+        <ToggleButtonGroup
+          exclusive
+          size="small"
+          value={device}
+          onChange={(_, v) => v && setDevice(v)}
+          sx={{ '& .MuiToggleButton-root': { px: 1, py: 0.5, border: 1, borderColor: 'divider' } }}
+        >
+          <ToggleButton value="desktop" aria-label="Desktop view">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <rect x="3" y="4" width="18" height="12" rx="2" />
+              <path d="M8 20h8M12 16v4" />
+            </svg>
           </ToggleButton>
-          <ToggleButton value="mobile" aria-label="Mobile">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="7" y="3" width="10" height="18" rx="2" /><path d="M11 18h2" /></svg>
+          <ToggleButton value="mobile" aria-label="Mobile view">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <rect x="7" y="3" width="10" height="18" rx="2" />
+              <path d="M11 18h2" />
+            </svg>
           </ToggleButton>
         </ToggleButtonGroup>
 
         <Box sx={{ flex: 1 }} />
+
         {hasApp && (
-          <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s72, color: previewError ? 'error.main' : 'success.main' })}>
-            {previewError ? '● build failed' : `● live · ${count} file${count > 1 ? 's' : ''}`}
-          </Typography>
+          <Tooltip title={previewError ? previewError : `${count} file${count > 1 ? 's' : ''} loaded`} arrow>
+            <Typography
+              sx={(t) => ({
+                fontFamily: t.brand.font.mono,
+                fontSize: text.s72,
+                color: previewError ? 'error.main' : 'success.main',
+                cursor: 'default',
+              })}
+            >
+              {previewError ? '● build failed' : `● live · ${count} file${count > 1 ? 's' : ''}`}
+            </Typography>
+          </Tooltip>
         )}
-        <IconButton size="small" aria-label="Refresh" onClick={() => setNonce((n) => n + 1)} sx={{ color: 'text.secondary' }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5" /></svg>
-        </IconButton>
+
+        {/* Gate summary pill when there are open gates */}
+        {gates.length > 0 && !hasApp && (
+          <Stack direction="row" spacing={0.75} alignItems="center">
+            {gates.filter((g) => g.status !== 'unstarted').slice(0, 4).map((g) => {
+              const dotColor =
+                g.status === 'closed'
+                  ? theme.studio.neon.success
+                  : g.status === 'running'
+                  ? theme.studio.neon.blue
+                  : g.status === 'open'
+                  ? theme.studio.neon.warning
+                  : g.status === 'blocked'
+                  ? theme.studio.neon.danger
+                  : theme.palette.text.disabled;
+              return (
+                <Tooltip key={g.id} title={`${g.name}: ${g.status}${g.blocking ? ` — ${g.blocking}` : ''}`} arrow>
+                  <Box
+                    sx={{ width: 8, height: 8, borderRadius: 99, bgcolor: dotColor, flexShrink: 0, cursor: 'default' }}
+                  />
+                </Tooltip>
+              );
+            })}
+          </Stack>
+        )}
+
+        <Tooltip title="Refresh preview" arrow>
+          <IconButton
+            size="small"
+            aria-label="Refresh preview"
+            onClick={() => setNonce((n) => n + 1)}
+            sx={{ color: 'text.secondary' }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5" />
+            </svg>
+          </IconButton>
+        </Tooltip>
       </Stack>
 
       {/* framed content */}
-      <Box sx={{ flex: 1, display: 'grid', placeItems: 'center', p: hasApp ? 2 : 3, overflow: 'auto', position: 'relative' }}>
+      <Box
+        sx={{
+          flex: 1,
+          display: 'grid',
+          placeItems: 'center',
+          p: hasApp ? 2 : 3,
+          overflow: 'auto',
+          position: 'relative',
+        }}
+      >
         <Box
-          sx={(t) => ({
+          sx={(_t) => ({
             width: device === 'mobile' ? 390 : '100%',
             maxWidth: device === 'mobile' ? 390 : 1100,
             height: '100%',
@@ -97,42 +228,177 @@ export function PreviewPane() {
             overflow: 'hidden',
             display: hasApp ? 'block' : 'grid',
             placeItems: 'center',
-            backgroundImage: hasApp ? 'none' : t.brand.gradient.signatureSoft,
           })}
         >
           {hasApp ? (
             <>
               {previewError && (
                 <Stack
-                  direction="row" alignItems="center" spacing={1.5}
-                  sx={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 5, px: 2, py: 1.25, bgcolor: (t) => `${t.palette.error.main}1f`, borderBottom: 1, borderColor: 'error.main', backdropFilter: 'blur(6px)' }}
+                  direction="row"
+                  alignItems="center"
+                  spacing={1.5}
+                  sx={(t) => ({
+                    position: 'absolute', top: 0, left: 0, right: 0, zIndex: 5,
+                    px: 2, py: 1.25,
+                    bgcolor: `${t.palette.error.main}1f`,
+                    borderBottom: 1,
+                    borderColor: 'error.main',
+                    backdropFilter: 'blur(6px)',
+                  })}
                 >
-                  <Box component="span" sx={{ color: 'error.main', display: 'inline-flex' }}><VscWarning size={16} /></Box>
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography sx={{ fontSize: text.s82, fontWeight: 600, color: 'error.main' }}>This preview didn't build</Typography>
-                    <Typography noWrap sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s68, color: 'text.secondary' })}>{previewError}</Typography>
+                  <Box component="span" sx={{ color: 'error.main', display: 'inline-flex' }}>
+                    <VscWarning size={16} />
                   </Box>
-                  <Button size="small" variant="contained" startIcon={<VscWand size={14} />} onClick={fixPreview} sx={{ flexShrink: 0 }}>Fix with agent</Button>
-                  <IconButton size="small" aria-label="Dismiss" onClick={() => setPreviewError(null)} sx={{ color: 'text.secondary', flexShrink: 0 }}><VscClose size={14} /></IconButton>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography sx={{ fontSize: text.s82, fontWeight: 600, color: 'error.main' }}>
+                      This preview didn't build
+                    </Typography>
+                    <Typography
+                      noWrap
+                      sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s68, color: 'text.secondary' })}
+                    >
+                      {previewError}
+                    </Typography>
+                  </Box>
+                  <Button
+                    size="small"
+                    variant="contained"
+                    startIcon={<VscWand size={14} />}
+                    onClick={fixPreview}
+                    sx={{ flexShrink: 0 }}
+                  >
+                    Fix with agent
+                  </Button>
+                  <IconButton
+                    size="small"
+                    aria-label="Dismiss error"
+                    onClick={() => setPreviewError(null)}
+                    sx={{ color: 'text.secondary', flexShrink: 0 }}
+                  >
+                    <VscClose size={14} />
+                  </IconButton>
                 </Stack>
               )}
               <LivePreview key={nonce} files={map} template={template} dark={mode === 'dark'} onError={setPreviewError} />
             </>
           ) : (
-            <>
-              <Box sx={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', opacity: 0.55 }}>
-                <Box sx={{ width: device === 'mobile' ? 240 : 360 }}><Scene3D height={device === 'mobile' ? 240 : 360} /></Box>
+            /* ── Empty state: calm AI-network visual bound to real gate state ── */
+            <Stack
+              alignItems="center"
+              spacing={0}
+              sx={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}
+            >
+              {/* Ambient constellation — real gate/agent network, slowly rotating */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  inset: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: 0.72,
+                  pointerEvents: 'none',
+                }}
+              >
+                <NeonConstellation3D
+                  nodes={constellationNodes}
+                  links={constellationLinks}
+                  height={constellationHeight}
+                  rotate
+                />
               </Box>
-              <Stack alignItems="center" spacing={2} sx={{ position: 'relative', textAlign: 'center', px: 3 }}>
-                <Typography variant="h4" sx={{ fontSize: text.s150 }}>No preview yet</Typography>
-                <Typography sx={{ color: 'text.secondary', maxWidth: 420 }}>
-                  Ask the agent to build something in the chat. As it streams files, your app renders here live — and the source appears in <b>Code</b>.
+
+              {/* Gate legend — anchored below the constellation */}
+              {gates.length > 0 && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    bottom: 80,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    display: 'flex',
+                    gap: 1,
+                    flexWrap: 'wrap',
+                    justifyContent: 'center',
+                    maxWidth: 360,
+                  }}
+                >
+                  {gates.map((g) => {
+                    const dotColor =
+                      g.status === 'closed'
+                        ? theme.studio.neon.success
+                        : g.status === 'running'
+                        ? theme.studio.neon.blue
+                        : g.status === 'open'
+                        ? theme.studio.neon.warning
+                        : g.status === 'blocked'
+                        ? theme.studio.neon.danger
+                        : theme.palette.text.disabled;
+                    return (
+                      <Chip
+                        key={g.id}
+                        size="small"
+                        label={g.name}
+                        icon={
+                          <Box
+                            component="span"
+                            sx={{ width: 6, height: 6, borderRadius: 99, bgcolor: dotColor, flexShrink: 0, ml: 0.75 }}
+                          />
+                        }
+                        sx={(t) => ({
+                          height: 22,
+                          fontSize: text.s70,
+                          fontFamily: t.brand.font.mono,
+                          bgcolor: `${dotColor}18`,
+                          border: `1px solid ${dotColor}33`,
+                          color: dotColor,
+                          '& .MuiChip-icon': { ml: 0.5 },
+                        })}
+                      />
+                    );
+                  })}
+                </Box>
+              )}
+
+              {/* Centered copy */}
+              <Stack
+                alignItems="center"
+                spacing={2}
+                sx={{
+                  position: 'absolute',
+                  bottom: gates.length > 0 ? 140 : 100,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  textAlign: 'center',
+                  px: 3,
+                  width: '100%',
+                  maxWidth: 480,
+                }}
+              >
+                <Typography
+                  variant="h4"
+                  sx={{ fontSize: text.s150, fontWeight: 700 }}
+                >
+                  No preview yet
+                </Typography>
+                <Typography sx={{ color: 'text.secondary', maxWidth: 400, fontSize: text.s86 }}>
+                  Ask the agent to build something in the chat. As it streams files, your app
+                  renders here live — and the source appears in <b>Code</b>.
                 </Typography>
                 <Lightbox>
-                  <Button component="a" href="/sample-preview.svg" data-fancybox variant="outlined" color="inherit" size="small">View a sample screen</Button>
+                  <Button
+                    component="a"
+                    href="/sample-preview.svg"
+                    data-fancybox
+                    variant="outlined"
+                    color="inherit"
+                    size="small"
+                  >
+                    View a sample screen
+                  </Button>
                 </Lightbox>
               </Stack>
-            </>
+            </Stack>
           )}
         </Box>
       </Box>

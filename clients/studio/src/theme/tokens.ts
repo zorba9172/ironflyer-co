@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────
-// IRONFLYER STUDIO — NEON INTELLIGENCE DESIGN TOKENS
+// IRONFLYER STUDIO — PRODUCT WORKSPACE DESIGN TOKENS
 // ─────────────────────────────────────────────────────────────────────────
 // Single source of truth for the studio surface. Derived verbatim from the
 // locked designer handoff:
@@ -26,24 +26,21 @@ export type StudioMode = 'dark' | 'light';
 // mx.md › Accent Colors. The recognizable signature is the blue→violet→pink
 // arc; success/warning/danger are tuned to read on both canvases.
 export const neon = {
-  blue: '#00D4FF', // AI Blue            — links, active, info
-  violet: '#6B5CFF', // brand violet      — gradient mid-stop, primary solid
-  purple: '#8B5CF6', // Intelligence Purple
-  pink: '#FF4FD8', // Neon Pink          — gradient end-stop, energy
-  success: '#00E6A7',
-  warning: '#FFB84D',
-  danger: '#FF5D73',
+  blue: '#2563EB',
+  violet: '#F47A45',
+  purple: '#FB8A4C',
+  pink: '#FFB088',
+  success: '#059669',
+  warning: '#D97706',
+  danger: '#DC2626',
 } as const;
 
 // mx.md › Neon Gradient + CTA Button. Never used on large flat surfaces —
 // only CTAs, the final headline phrase, active states, and energy edges.
 export const gradient = {
-  // Primary brand signature (blue → violet → pink).
-  signature: `linear-gradient(100deg, ${neon.blue} 0%, ${neon.violet} 48%, ${neon.pink} 100%)`,
-  // CTA button fill (blue → intelligence purple → pink) per mx.md › CTA Button.
-  cta: `linear-gradient(100deg, ${neon.blue} 0%, ${neon.purple} 50%, ${neon.pink} 100%)`,
-  // Subtle wash for hover/active glass fills (never opaque).
-  soft: 'linear-gradient(135deg, rgba(0,212,255,0.10), rgba(255,79,216,0.12))',
+  signature: 'linear-gradient(100deg, #F47A45 0%, #FB8A4C 52%, #FFB088 100%)',
+  cta: 'linear-gradient(100deg, #F47A45 0%, #F2672E 100%)',
+  soft: 'linear-gradient(180deg, rgba(244,122,69,0.10), rgba(244,122,69,0.02))',
 } as const;
 
 // ── Mode canvases (mapped into the MUI palette → flip on toggle) ────────────
@@ -66,30 +63,30 @@ type ModeColors = {
 
 export const modes: Record<StudioMode, ModeColors> = {
   dark: {
-    bg: '#050816',
-    bgRaised: '#0A1024',
-    surface: '#101936',
-    surfaceHover: '#152149',
-    border: 'rgba(255,255,255,0.12)',
-    borderSubtle: 'rgba(255,255,255,0.06)',
-    cardBg: 'rgba(255,255,255,0.03)',
-    cardBorder: 'rgba(255,255,255,0.06)',
-    textPrimary: '#F4F7FF',
-    textSecondary: '#B8C2E6',
-    textMuted: '#7C88B0',
+    bg: '#0B1220',
+    bgRaised: '#111827',
+    surface: '#111827',
+    surfaceHover: '#1F2937',
+    border: '#374151',
+    borderSubtle: '#1F2937',
+    cardBg: '#111827',
+    cardBorder: '#374151',
+    textPrimary: '#F9FAFB',
+    textSecondary: '#D1D5DB',
+    textMuted: '#9CA3AF',
   },
   light: {
-    bg: '#F7F9FF',
+    bg: '#F6F4F1',
     bgRaised: '#FFFFFF',
     surface: '#FFFFFF',
-    surfaceHover: '#EEF2FF',
-    border: 'rgba(17,25,54,0.12)',
-    borderSubtle: 'rgba(17,25,54,0.07)',
-    cardBg: 'rgba(255,255,255,0.78)',
-    cardBorder: 'rgba(17,25,54,0.08)',
-    textPrimary: '#080D27',
-    textSecondary: '#58627D',
-    textMuted: '#8A93AE',
+    surfaceHover: '#F1EFEC',
+    border: '#DEDAD4',
+    borderSubtle: '#E9E5DF',
+    cardBg: '#FFFFFF',
+    cardBorder: '#E7E2DA',
+    textPrimary: '#181614',
+    textSecondary: '#5F5B56',
+    textMuted: '#9C958D',
   },
 };
 
@@ -97,31 +94,30 @@ export const modes: Record<StudioMode, ModeColors> = {
 export const effect = {
   // mx.md › Prompt Builder — the centerpiece. Always dark, in both modes.
   promptBuilder: {
-    radius: 28,
-    borderColor: 'rgba(255,255,255,0.12)',
-    glow: '0 0 40px rgba(139,92,246,0.35)',
-    bg: 'rgba(8,12,30,0.85)',
-    blur: 24,
+    radius: 12,
+    borderColor: '#E7E2DA',
+    glow: '0 1px 2px rgba(17,24,39,0.04)',
+    bg: '#FFFFFF',
+    blur: 0,
   },
   // mx.md › Cards — "cards should not feel like cards."
   card: {
-    radius: 24,
-    bg: 'rgba(255,255,255,0.03)',
-    border: 'rgba(255,255,255,0.06)',
-    blur: 20,
+    radius: 8,
+    bg: '#FFFFFF',
+    border: '#E7E2DA',
+    blur: 0,
   },
   // mx.md › CTA Button.
-  cta: { height: 56, radius: 18 },
+  cta: { height: 44, radius: 8 },
   // mx.md › Ambient Effects — massive radial glows behind the hero, 5–15%
   // opacity, no visible circles, only atmosphere. Top-left blue, center
   // violet, bottom-right pink.
   ambient: {
-    dark: 'radial-gradient(900px 620px at 12% 4%, rgba(0,212,255,0.16), transparent 66%), radial-gradient(1000px 760px at 50% 42%, rgba(107,92,255,0.14), transparent 70%), radial-gradient(900px 640px at 88% 96%, rgba(255,79,216,0.16), transparent 68%)',
-    light:
-      'radial-gradient(900px 600px at 12% 0%, rgba(107,92,255,0.12), transparent 64%), radial-gradient(960px 720px at 52% 40%, rgba(0,212,255,0.10), transparent 70%), radial-gradient(900px 620px at 88% 98%, rgba(255,79,216,0.10), transparent 66%)',
+    dark: 'none',
+    light: 'linear-gradient(180deg, #F6F4F1 0%, #F2E8DC 44%, #F79A6E 100%)',
   },
   // Faint engineered grid texture overlaid on the canvas.
-  gridLine: 'rgba(255,255,255,0.05)',
+  gridLine: 'rgba(24,22,20,0.035)',
 } as const;
 
 // ── Charts & data-viz (reference: Performance Review render) ────────────────
@@ -130,23 +126,23 @@ export const effect = {
 // never uses lime as a primary series (mx.md › What To Avoid).
 export const chart = {
   // Ordered categorical series for bars, lines, donut slices.
-  series: [neon.violet, neon.blue, neon.pink, neon.purple, neon.success, neon.warning, neon.danger] as const,
+  series: ['#F47A45', '#181614', '#5F5B56', '#9C958D', '#2563EB', '#059669', '#D97706', '#DC2626'] as const,
   // Radial readiness gauge (the 72% dial) — neon arc sweep.
   gauge: {
     arc: `conic-gradient(from 180deg, ${neon.pink}, ${neon.purple} 42%, ${neon.blue} 84%, ${neon.pink})`,
-    trackDark: 'rgba(255,255,255,0.08)',
-    trackLight: 'rgba(17,25,54,0.08)',
+    trackDark: '#374151',
+    trackLight: '#E9E5DF',
   },
   // Horizontal meter track (unfilled portion of a progress bar).
-  trackDark: 'rgba(255,255,255,0.08)',
-  trackLight: 'rgba(17,25,54,0.07)',
+  trackDark: '#374151',
+  trackLight: '#E9E5DF',
   // Axis / gridline hairlines.
-  gridDark: 'rgba(255,255,255,0.06)',
-  gridLight: 'rgba(17,25,54,0.06)',
+  gridDark: '#1F2937',
+  gridLight: '#E9E5DF',
 } as const;
 
 // ── Radius scale (mx.md uses 14/18/24/28; pill for chips) ───────────────────
-export const radius = { sm: 14, cta: 18, lg: 24, xl: 28, pill: 999 } as const;
+export const radius = { sm: 8, cta: 8, lg: 10, xl: 12, pill: 999 } as const;
 
 // ── Motion (mx.md › Motion System) ──────────────────────────────────────────
 // Everything moves slowly. 200/300/500ms. Never bounce/elastic/gaming.

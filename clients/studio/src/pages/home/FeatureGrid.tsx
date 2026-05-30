@@ -1,7 +1,6 @@
-import { Box, Typography } from '@mui/material';
+import { Box, Stack, Typography } from '@mui/material';
 import { LuCode, LuShieldCheck, LuRocket, LuActivity } from 'react-icons/lu';
 import type { IconType } from 'react-icons';
-import { neon } from '../../theme';
 
 // ─────────────────────────────────────────────────────────────────────────
 // Feature Cards (mx.md › Feature Cards). Four glass tiles that "should not
@@ -16,75 +15,73 @@ type Feature = {
   title: string;
   body: string;
   Icon: IconType;
-  accent: string;
+  tone: 'primary' | 'success' | 'warning' | 'neutral';
 };
 
 const FEATURES: readonly Feature[] = [
   {
     title: 'AI generates code',
-    body: 'Production-ready code from your prompt.',
+    body: 'Production-ready code written before it ships.',
     Icon: LuCode,
-    accent: neon.blue,
+    tone: 'primary',
   },
   {
     title: 'Review & test',
-    body: 'Preview, test and refine before shipping.',
+    body: 'Gates check quality and security before deploy.',
     Icon: LuShieldCheck,
-    accent: neon.purple,
+    tone: 'warning',
   },
   {
     title: 'Deploy anywhere',
-    body: 'One-click deploy to cloud or your infrastructure.',
+    body: 'One-click deploy to prod or your own cloud.',
     Icon: LuRocket,
-    accent: neon.pink,
+    tone: 'primary',
   },
   {
     title: 'Monitor & iterate',
-    body: 'Logs, metrics and real-time observability.',
+    body: 'Live cost, gates and metrics with full observability.',
     Icon: LuActivity,
-    accent: neon.success,
+    tone: 'success',
   },
 ];
 
 export function FeatureGrid() {
   return (
     <Box
-      id="solutions"
-      sx={(theme) => ({
-        width: '100%',
-        maxWidth: 1180,
+      sx={{
         display: 'grid',
+        gap: 2.5,
         gridTemplateColumns: {
           xs: '1fr',
           sm: 'repeat(2, 1fr)',
           md: 'repeat(4, 1fr)',
         },
-        backgroundColor: theme.palette.cardBg,
-        border: `1px solid ${theme.palette.cardBorder}`,
-        borderRadius: `${theme.studio.effect.card.radius}px`,
-        backdropFilter: `blur(${theme.studio.effect.card.blur}px)`,
-        WebkitBackdropFilter: `blur(${theme.studio.effect.card.blur}px)`,
-        overflow: 'hidden',
-      })}
+      }}
     >
-      {FEATURES.map(({ title, body, Icon, accent }, index) => (
+      {FEATURES.map(({ title, body, Icon, tone }) => (
         <Box
           key={title}
           sx={(theme) => ({
+            '--feature-accent':
+              tone === 'success'
+                ? theme.palette.success.main
+                : tone === 'warning'
+                  ? theme.palette.warning.main
+                  : tone === 'neutral'
+                    ? theme.palette.text.secondary
+                    : theme.palette.primary.main,
             display: 'flex',
             alignItems: 'center',
-            gap: 2,
-            p: { xs: 2.5, md: 3 },
+            gap: 1.25,
+            p: 2,
             minWidth: 0,
-            borderRight: { md: index === FEATURES.length - 1 ? 0 : `1px solid ${theme.palette.borderSubtle}` },
-            borderBottom: {
-              xs: index === FEATURES.length - 1 ? 0 : `1px solid ${theme.palette.borderSubtle}`,
-              sm: index > 1 ? 0 : `1px solid ${theme.palette.borderSubtle}`,
-              md: 0,
-            },
-            transition: `background-color ${theme.studio.motion.base}`,
+            backgroundColor: theme.palette.cardBg,
+            border: `1px solid ${theme.palette.cardBorder}`,
+            borderRadius: `${theme.studio.radius.lg}px`,
+            transition: `transform ${theme.studio.motion.base}, border-color ${theme.studio.motion.base}`,
             '&:hover': {
-              backgroundColor: theme.palette.surfaceHover,
+              transform: 'translateY(-1px)',
+              borderColor: theme.palette.divider,
             },
           })}
         >
@@ -94,27 +91,27 @@ export function FeatureGrid() {
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: 44,
-              height: 44,
+              width: 38,
+              height: 38,
               flexShrink: 0,
               borderRadius: `${theme.studio.radius.sm}px`,
-              color: accent,
+              color: 'var(--feature-accent)',
               fontSize: 22,
-              background: `radial-gradient(120% 120% at 30% 20%, ${accent}33, ${accent}0D 70%)`,
-              border: `1px solid ${accent}33`,
+              backgroundColor: `${theme.palette.primary.main}0a`,
+              border: `1px solid ${theme.palette.divider}`,
             })}
           >
             <Icon strokeWidth={1.5} />
           </Box>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-            <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1rem' }}>
+          <Stack sx={{ minWidth: 0 }}>
+            <Typography variant="h6" sx={{ fontWeight: 800, fontSize: '0.95rem' }} noWrap>
               {title}
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.55 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }} noWrap>
               {body}
             </Typography>
-          </Box>
+          </Stack>
         </Box>
       ))}
     </Box>

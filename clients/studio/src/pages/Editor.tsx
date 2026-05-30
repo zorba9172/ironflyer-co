@@ -26,20 +26,19 @@ const CodePane = lazy(() => import('./CodePane').then((m) => ({ default: m.CodeP
 const QualityWorkspace = lazy(() => import('./QualityWorkspace').then((m) => ({ default: m.QualityWorkspace })));
 const ExecutionTeamWorkspace = lazy(() => import('./ExecutionTeamWorkspace').then((m) => ({ default: m.ExecutionTeamWorkspace })));
 const PreviewWorkspace = lazy(() => import('./PreviewWorkspace').then((m) => ({ default: m.PreviewWorkspace })));
-// Operate group — post-deploy surfaces, each code-split.
-const DataPane = lazy(() => import('./DataPane').then((m) => ({ default: m.DataPane })));
+// Operate group — consolidated workspace wrappers, each code-split.
+// DataWorkspace: [Records → DataPane] [API → ApiPane]
+// GrowWorkspace: [Analytics → AnalyticsPane] [Marketing → MarketingPane]
+// SettingsWorkspace: [General → SettingsPane] [Domains → DomainsPane] [Automations → AutomationsPane]
 const UsersPane = lazy(() => import('./UsersPane').then((m) => ({ default: m.UsersPane })));
-const AnalyticsPane = lazy(() => import('./AnalyticsPane').then((m) => ({ default: m.AnalyticsPane })));
-const DomainsPane = lazy(() => import('./DomainsPane').then((m) => ({ default: m.DomainsPane })));
-const AutomationsPane = lazy(() => import('./AutomationsPane').then((m) => ({ default: m.AutomationsPane })));
-const ApiPane = lazy(() => import('./ApiPane').then((m) => ({ default: m.ApiPane })));
-const MarketingPane = lazy(() => import('./MarketingPane').then((m) => ({ default: m.MarketingPane })));
-const SettingsPane = lazy(() => import('./SettingsPane').then((m) => ({ default: m.SettingsPane })));
+const DataWorkspace = lazy(() => import('./DataWorkspace').then((m) => ({ default: m.DataWorkspace })));
+const GrowWorkspace = lazy(() => import('./GrowWorkspace').then((m) => ({ default: m.GrowWorkspace })));
+const SettingsWorkspace = lazy(() => import('./SettingsWorkspace').then((m) => ({ default: m.SettingsWorkspace })));
 
 const EDITOR_TABS = new Set<EditorTab>([
   'preview', 'map', 'security', 'code',
   'dashboard', 'documents', 'logs', 'quality', 'team',
-  'data', 'users', 'analytics', 'domains', 'automations', 'api', 'marketing', 'settings',
+  'data', 'users', 'grow', 'settings',
 ]);
 
 function tabFromQuery(value: string | null): EditorTab {
@@ -141,14 +140,10 @@ export function Editor() {
               {tab === 'quality' && <QualityWorkspace />}
               {tab === 'logs' && <LogsPane fallback={project} />}
               {tab === 'documents' && <DocumentsPane />}
-              {tab === 'data' && <DataPane />}
+              {tab === 'data' && <DataWorkspace />}
               {tab === 'users' && <UsersPane />}
-              {tab === 'analytics' && <AnalyticsPane />}
-              {tab === 'domains' && <DomainsPane />}
-              {tab === 'automations' && <AutomationsPane />}
-              {tab === 'api' && <ApiPane />}
-              {tab === 'marketing' && <MarketingPane />}
-              {tab === 'settings' && <SettingsPane />}
+              {tab === 'grow' && <GrowWorkspace />}
+              {tab === 'settings' && <SettingsWorkspace />}
             </Suspense>
           </motion.div>
         </AnimatePresence>

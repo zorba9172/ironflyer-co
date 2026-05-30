@@ -19,22 +19,41 @@ export function ProcessDiagram({ process, members, manager, dense }: {
   return <Parallel members={members} dense={dense} />;
 }
 
+// Premium glass pill — the team member labels styled as neon-glass chips
 const pillSx = (dense?: boolean) => (t: import('@mui/material/styles').Theme) => ({
   px: dense ? 1 : 1.25,
   py: dense ? 0.4 : 0.6,
-  borderRadius: 99,
-  border: 1,
-  borderColor: 'divider',
-  bgcolor: 'background.default',
+  borderRadius: `${t.studio?.radius?.pill ?? 999}px`,
+  border: `1px solid ${t.palette.cardBorder ?? t.palette.divider}`,
+  bgcolor: t.palette.cardBg ?? 'background.default',
+  backdropFilter: 'blur(8px)',
   fontSize: dense ? text.s68 : text.s76,
-  fontWeight: 500,
+  fontWeight: 600,
   whiteSpace: 'nowrap',
   color: t.palette.text.primary,
+  transition: `border-color ${t.studio?.motion?.fast ?? '200ms'}`,
+  '&:hover': {
+    borderColor: t.studio?.neon?.blue ?? t.palette.primary.main,
+  },
 });
 
 function HubNode({ label }: { label: string }) {
   return (
-    <Box sx={(t) => ({ px: 1.5, py: 0.7, borderRadius: 2, color: t.palette.primary.contrastText, backgroundImage: t.brand.gradient.signature, fontSize: text.s74, fontWeight: 700, whiteSpace: 'nowrap' })}>{label}</Box>
+    <Box
+      sx={(t) => ({
+        px: 1.5,
+        py: 0.7,
+        borderRadius: `${t.studio?.radius?.sm ?? 14}px`,
+        color: t.palette.primary.contrastText,
+        backgroundImage: t.brand.gradient.signature,
+        fontSize: text.s74,
+        fontWeight: 700,
+        whiteSpace: 'nowrap',
+        boxShadow: `0 4px 18px ${t.studio?.neon?.violet ?? t.palette.primary.main}44`,
+      })}
+    >
+      {label}
+    </Box>
   );
 }
 

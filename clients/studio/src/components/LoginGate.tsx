@@ -13,7 +13,7 @@ export function LoginGate({ children }: { children: ReactNode }) {
   const { online, ready, user } = useAuth();
   const { pathname, search } = useLocation();
   const [showAuth, setShowAuth] = useState(false);
-  const publicRoute = pathname === '/' || pathname === '/welcome';
+  const publicRoute = ['/', '/welcome', '/build', '/studio', '/projects', '/templates', '/integrations', '/agents', '/plans'].includes(pathname);
   const authIntent = new URLSearchParams(search).get('auth') === '1';
   if (online && !ready) {
     return (

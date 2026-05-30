@@ -1,4 +1,6 @@
-import { Box, Chip, Stack, Tooltip, Typography } from '@mui/material';
+import { useMemo } from 'react';
+import { Box, Chip, Divider, Stack, Tooltip, Typography } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { useGraphQLQuery, operations } from '@ironflyer/data';
 import { formatUSD } from '@ironflyer/core';
 import { mapGate, type GateVerdict } from '../lib/liveGates';
@@ -9,6 +11,7 @@ import { useWallet, useSentinelForecast } from '../hooks/useEconomics';
 import { PreviewPane } from '../components/PreviewPane';
 import { AgentsRail } from '../components/AgentsRail';
 import { DefinitionOfDone } from '../components/DefinitionOfDone';
+import { GlassPanel, SectionHeader, GaugeRing } from '../components/studio';
 import { text } from '@ironflyer/design-tokens/brand';
 
 // Derive the visible ProfitGuard state from the economics signals available
@@ -28,7 +31,118 @@ function deriveProfitGuard(
   return { verdict: 'allow', tone: 'success', tip: `Clears the next step — ${formatUSD(forecast.remainingHeadroomUSD)} headroom, ${formatUSD(available)} available.` };
 }
 
+// Readiness score: fraction of non-blocking gates closed as a 0–100 integer.
+function readinessPct(gates: Gate[]): number {
+  if (gates.length === 0) return 0;
+  const closed = gates.filter((g) => g.status === 'closed').length;
+  return Math.round((closed / gates.length) * 100);
+}
+
+function ProfitGuardPanel({
+  pg,
+  forecast,
+  economicsLive,
+}: {
+  pg: ReturnType<typeof deriveProfitGuard>;
+  forecast: { remainingHeadroomUSD: number; burnRatePerHourUSD: number };
+  economicsLive: boolean;
+}) {
+  const theme = useTheme();
+  const accentColor =
+    pg.tone === 'success'
+      ? theme.studio.neon.success
+      : pg.tone === 'warning'
+      ? theme.studio.neon.warning
+      : theme.studio.neon.danger;
+
+  return (
+    <Tooltip
+      title={economicsLive ? pg.tip : 'Connect the orchestrator for live ProfitGuard verdicts'}
+      arrow
+    >
+      <GlassPanel
+        accent={accentColor}
+        pad={2}
+        sx={{ mb: 2, cursor: 'default', userSelect: 'none' }}
+      >
+        <Stack direction="row" alignItems="center" spacing={1.25} sx={{ mb: 1 }}>
+          {/* live pulse dot */}
+          <Box sx={{ position: 'relative', width: 10, height: 10, flexShrink: 0 }}>
+            <Box
+              sx={(t) => ({
+                position: 'absolute', inset: 0, borderRadius: 99,
+                bgcolor: t.palette[pg.tone].main,
+              })}
+            />
+          </Box>
+          <Typography
+            sx={(t) => ({
+              fontFamily: t.brand.font.mono,
+              fontSize: text.s68,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: 'text.disabled',
+              flex: 1,
+            })}
+          >
+            ProfitGuard
+          </Typography>
+          <Chip
+            size="small"
+            label={pg.verdict}
+            sx={(t) => ({
+              height: 20,
+              fontSize: text.s62,
+              fontFamily: t.brand.font.mono,
+              bgcolor: `${t.palette[pg.tone].main}22`,
+              color: t.palette[pg.tone].main,
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+            })}
+          />
+        </Stack>
+        <Stack direction="row" alignItems="baseline" justifyContent="space-between" spacing={1}>
+          <Stack spacing={0.25}>
+            <Typography
+              sx={(t) => ({
+                fontFamily: t.brand.font.mono,
+                fontSize: text.s95,
+                fontWeight: 700,
+                color: t.palette[pg.tone].main,
+              })}
+            >
+              {formatUSD(forecast.remainingHeadroomUSD)}
+            </Typography>
+            <Typography sx={{ fontSize: text.s74, color: 'text.secondary' }}>
+              remaining headroom
+            </Typography>
+          </Stack>
+          {forecast.burnRatePerHourUSD > 0 && (
+            <Stack spacing={0.25} alignItems="flex-end">
+              <Typography
+                sx={(t) => ({
+                  fontFamily: t.brand.font.mono,
+                  fontSize: text.s80,
+                  fontWeight: 600,
+                  color: 'text.primary',
+                })}
+              >
+                {formatUSD(forecast.burnRatePerHourUSD)}/h
+              </Typography>
+              <Typography sx={{ fontSize: text.s68, color: 'text.secondary' }}>
+                burn rate
+              </Typography>
+            </Stack>
+          )}
+        </Stack>
+      </GlassPanel>
+    </Tooltip>
+  );
+}
+
 export function PreviewWorkspace({ project }: { project: StudioProject }) {
+  const theme = useTheme();
   const storeProjectId = useStudio((s) => s.liveProjectId);
   const firstProjectId = useLiveProjectId();
   const liveProjectId = storeProjectId ?? firstProjectId;
@@ -41,60 +155,135 @@ export function PreviewWorkspace({ project }: { project: StudioProject }) {
   });
   const gates = isLive && liveGates.length > 0 ? liveGates : project.gates;
   const open = gates.filter((g) => g.blocking).length;
+  const readiness = readinessPct(gates);
 
   const { wallet } = useWallet();
   const { forecast, isLive: economicsLive } = useSentinelForecast(liveProjectId);
   const pg = deriveProfitGuard(forecast, wallet.availableUSD);
 
+  // Readiness arc color: full green when everything closed, orange when open, red when blocked.
+  const readinessColor = useMemo(() => {
+    const hasBlocked = gates.some((g) => g.status === 'blocked');
+    const hasOpen = gates.some((g) => g.status === 'open' || g.status === 'running');
+    if (hasBlocked) return theme.studio.neon.danger;
+    if (hasOpen) return theme.studio.neon.warning;
+    return theme.studio.neon.success;
+  }, [gates, theme]);
+
   return (
     <Box sx={{ flex: 1, display: 'flex', minWidth: 0 }}>
+      {/* ── Central preview canvas ── */}
       <Box sx={{ flex: 1.5, minWidth: 0, display: 'flex' }}>
-        <PreviewPane />
+        <PreviewPane gates={gates} />
       </Box>
 
-      <Box sx={{ width: 400, flexShrink: 0, borderLeft: 1, borderColor: 'divider', bgcolor: 'background.default', overflowY: 'auto', p: 2.5 }}>
-        <Stack direction="row" alignItems="center" spacing={1.25} sx={{ mb: 2 }}>
-          <Typography variant="h6" sx={{ fontSize: text.s105 }}>Live build</Typography>
-          <Chip
-            size="small"
-            label={isLive ? 'live' : 'sample'}
-            sx={(t) => ({ height: 20, fontSize: text.s62, fontFamily: t.brand.font.mono, bgcolor: isLive ? `${t.palette.success.main}22` : 'action.hover', color: isLive ? 'success.main' : 'text.disabled' })}
-          />
-          <Typography sx={{ ml: 'auto', fontSize: text.s82, color: open > 0 ? 'warning.main' : 'success.main' }}>
-            {open > 0 ? `${open} open` : 'all closed'}
-          </Typography>
-        </Stack>
+      {/* ── Right live-build column ── */}
+      <Box
+        sx={(t) => ({
+          width: 400,
+          flexShrink: 0,
+          borderLeft: `1px solid ${t.palette.divider}`,
+          bgcolor: 'background.default',
+          overflowY: 'auto',
+          p: 2,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 0,
+        })}
+      >
+        {/* Column header */}
+        <SectionHeader
+          eyebrow="Live build"
+          title={
+            <Stack direction="row" alignItems="center" spacing={1.25}>
+              <Box component="span">Live build</Box>
+              <Chip
+                size="small"
+                label={isLive ? 'live' : 'sample'}
+                sx={(t) => ({
+                  height: 20,
+                  fontSize: text.s62,
+                  fontFamily: t.brand.font.mono,
+                  bgcolor: isLive ? `${t.palette.success.main}22` : 'action.hover',
+                  color: isLive ? 'success.main' : 'text.disabled',
+                })}
+              />
+            </Stack>
+          }
+          subtitle={
+            open > 0
+              ? `${open} gate${open > 1 ? 's' : ''} open — blocking ship`
+              : 'All gates closed — ready to ship'
+          }
+        />
 
-        <Tooltip title={economicsLive ? pg.tip : 'Connect the orchestrator for live ProfitGuard verdicts'} arrow>
-          <Stack
-            direction="row"
-            alignItems="center"
-            spacing={1}
-            sx={(t) => ({
-              px: 1.25, py: 0.75, mb: 2, borderRadius: 2,
-              border: 1, borderColor: `${t.palette[pg.tone].main}55`, bgcolor: `${t.palette[pg.tone].main}14`,
-              cursor: 'default', userSelect: 'none',
-            })}
-          >
-            <Box sx={(t) => ({ width: 8, height: 8, borderRadius: 99, flexShrink: 0, bgcolor: t.palette[pg.tone].main })} />
-            <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s68, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'text.disabled' })}>
-              ProfitGuard
-            </Typography>
-            <Chip
-              size="small"
-              label={pg.verdict}
-              sx={(t) => ({ height: 18, fontSize: text.s62, fontFamily: t.brand.font.mono, bgcolor: `${t.palette[pg.tone].main}22`, color: t.palette[pg.tone].main, fontWeight: 600 })}
-            />
-            <Typography sx={(t) => ({ ml: 'auto', fontFamily: t.brand.font.mono, fontSize: text.s70, color: t.palette[pg.tone].main })}>
-              {formatUSD(forecast.remainingHeadroomUSD)} headroom
-            </Typography>
+        {/* Readiness gauge */}
+        <GlassPanel pad={2} sx={{ mb: 2 }}>
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <Box sx={{ flexShrink: 0 }}>
+              <GaugeRing
+                value={readiness}
+                color={readinessColor}
+                formatter="{value}%"
+                height={110}
+              />
+            </Box>
+            <Stack spacing={0.5} sx={{ flex: 1, minWidth: 0 }}>
+              <Typography
+                sx={(t) => ({
+                  fontFamily: t.brand.font.mono,
+                  fontSize: text.s66,
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  color: 'text.disabled',
+                })}
+              >
+                Readiness
+              </Typography>
+              <Typography
+                sx={(t) => ({
+                  fontFamily: t.brand.font.mono,
+                  fontSize: text.s95,
+                  fontWeight: 700,
+                  color: readinessColor,
+                  lineHeight: 1,
+                })}
+              >
+                {readiness}%
+              </Typography>
+              <Typography sx={{ fontSize: text.s74, color: 'text.secondary' }}>
+                {open > 0
+                  ? `${open} gate${open > 1 ? 's' : ''} still open`
+                  : 'All gates closed'}
+              </Typography>
+            </Stack>
           </Stack>
-        </Tooltip>
+        </GlassPanel>
 
+        {/* ProfitGuard status */}
+        <ProfitGuardPanel pg={pg} forecast={forecast} economicsLive={economicsLive} />
+
+        <Divider sx={{ mb: 2, opacity: 0.5 }} />
+
+        {/* Agents rail */}
         <AgentsRail gates={gates} />
+
+        <Divider sx={{ mb: 2, opacity: 0.5 }} />
+
+        {/* Definition of Done */}
         <DefinitionOfDone
           gates={gates}
-          profitGuard={economicsLive ? { verdict: pg.verdict, reason: pg.verdict === 'block' ? 'over budget' : 'tight ROI' } : undefined}
+          profitGuard={
+            economicsLive
+              ? {
+                  verdict: pg.verdict,
+                  reason:
+                    pg.verdict === 'block'
+                      ? 'over budget'
+                      : 'tight ROI',
+                }
+              : undefined
+          }
         />
       </Box>
     </Box>

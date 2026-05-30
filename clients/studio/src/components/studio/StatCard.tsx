@@ -1,6 +1,6 @@
 import { Box, Stack, Typography } from '@mui/material';
 import type { ReactNode } from 'react';
-import { GlassPanel } from './GlassPanel';
+import { GlassPanel, type GlassPanelProps } from './GlassPanel';
 
 export type StatCardProps = {
   label: string;
@@ -9,21 +9,19 @@ export type StatCardProps = {
   delta?: number;
   /** plain sub-line under the value when there is no numeric delta */
   hint?: string;
-  /** neon accent for the icon tile + rim */
+  /** semantic accent for the icon tile + focus edge */
   accent?: string;
   icon?: ReactNode;
   /** optional inline visual (sparkline / mini gauge) pinned to the right */
   visual?: ReactNode;
   onClick?: () => void;
+  sx?: GlassPanelProps['sx'];
 };
 
-// A KPI tile: tracked label, large value, signed delta or hint, optional neon
-// icon tile and a right-aligned mini visual. The repeated atom for every
-// metrics strip in the studio — built on GlassPanel so it shares the surface
-// language and accepts an accent rim.
-export function StatCard({ label, value, delta, hint, accent, icon, visual, onClick }: StatCardProps) {
+// A calm KPI tile for dense product pages.
+export function StatCard({ label, value, delta, hint, accent, icon, visual, onClick, sx }: StatCardProps) {
   return (
-    <GlassPanel accent={accent} interactive={!!onClick} pad={2.5} onClick={onClick}>
+    <GlassPanel accent={accent} interactive={!!onClick} pad={2.5} onClick={onClick} sx={sx}>
       <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={1.5}>
         <Box sx={{ minWidth: 0 }}>
           <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
@@ -41,8 +39,8 @@ export function StatCard({ label, value, delta, hint, accent, icon, visual, onCl
                     borderRadius: `${theme.studio.radius.sm}px`,
                     color: tone,
                     fontSize: 16,
-                    background: `radial-gradient(120% 120% at 30% 20%, ${tone}33, ${tone}0D 70%)`,
-                    border: `1px solid ${tone}33`,
+                    backgroundColor: theme.palette.surfaceHover,
+                    border: `1px solid ${theme.palette.divider}`,
                   };
                 }}
               >
@@ -61,7 +59,7 @@ export function StatCard({ label, value, delta, hint, accent, icon, visual, onCl
               {label}
             </Typography>
           </Stack>
-          <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: '-0.015em', lineHeight: 1.1 }}>
+          <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: 0, lineHeight: 1.1 }}>
             {value}
           </Typography>
           {delta != null ? (

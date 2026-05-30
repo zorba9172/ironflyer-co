@@ -12,9 +12,7 @@ export type SectionHeaderProps = {
   lead?: ReactNode;
 };
 
-// One consistent section header across every pane: optional eyebrow + title +
-// subtitle on the left, actions on the right. Mono tracked eyebrow per the
-// constitution; all type comes from theme variants, never inline sizes.
+// One consistent section header across every pane.
 export function SectionHeader({ eyebrow, title, subtitle, actions, lead }: SectionHeaderProps) {
   return (
     <Stack
@@ -42,7 +40,7 @@ export function SectionHeader({ eyebrow, title, subtitle, actions, lead }: Secti
               {eyebrow}
             </Typography>
           )}
-          <Typography variant="h5" sx={{ fontWeight: 800, letterSpacing: '-0.01em', lineHeight: 1.15 }}>
+          <Typography variant="h5" sx={{ fontWeight: 800, letterSpacing: 0, lineHeight: 1.15 }}>
             {title}
           </Typography>
           {subtitle && (

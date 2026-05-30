@@ -1,5 +1,5 @@
 import { Box, Button, IconButton, Stack, Tooltip, Typography } from '@mui/material';
-import { LuChevronDown, LuMoon, LuSun } from 'react-icons/lu';
+import { LuMoon, LuSun } from 'react-icons/lu';
 import { neon } from '../../theme';
 
 // IRONFLYER STUDIO — top navigation bar.
@@ -9,21 +9,7 @@ import { neon } from '../../theme';
 // on the right. Every color, blur, radius, and motion value is read from the
 // studio theme — no inline literals (constitutional law).
 
-type NavLink = {
-  label: string;
-  href: string;
-  active?: boolean;
-  menu?: boolean;
-};
-
-const NAV_LINKS: readonly NavLink[] = [
-  { label: 'Product', href: '#product', active: true },
-  { label: 'Templates', href: '/templates' },
-  { label: 'Solutions', href: '#solutions', menu: true },
-  { label: 'Pricing', href: '/plans' },
-  { label: 'Resources', href: '#resources', menu: true },
-  { label: 'Enterprise', href: '#enterprise' },
-] as const;
+const NAV_LINKS = ['Product', 'Templates', 'Solutions', 'Pricing', 'Enterprise'] as const;
 
 // Small neon triangle logomark. Filled by a linearGradient whose stops are the
 // brand blue → pink — imported from the theme (legal for SVG fill contexts).
@@ -31,20 +17,17 @@ function Logomark() {
   return (
     <Box
       component="svg"
-      viewBox="0 0 42 28"
-      sx={{ width: 36, height: 24, display: 'block', flexShrink: 0 }}
+      viewBox="0 0 26 26"
+      sx={{ width: 26, height: 26, display: 'block', flexShrink: 0 }}
       aria-hidden
     >
       <defs>
-        <linearGradient id="if-topnav-mark" x1="0" y1="0" x2="1" y2="0">
+        <linearGradient id="if-topnav-mark" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stopColor={neon.blue} />
-          <stop offset="45%" stopColor={neon.violet} />
           <stop offset="100%" stopColor={neon.pink} />
         </linearGradient>
       </defs>
-      <path d="M4 23 15 6" stroke="url(#if-topnav-mark)" strokeWidth="7" strokeLinecap="round" />
-      <path d="M17 23 28 6" stroke="url(#if-topnav-mark)" strokeWidth="7" strokeLinecap="round" opacity="0.92" />
-      <path d="M30 23 38 10" stroke="url(#if-topnav-mark)" strokeWidth="7" strokeLinecap="round" opacity="0.82" />
+      <path d="M13 1.6 24.4 22 a1.4 1.4 0 0 1-1.2 2.1 H2.8 A1.4 1.4 0 0 1 1.6 22 Z" fill="url(#if-topnav-mark)" />
     </Box>
   );
 }
@@ -61,10 +44,13 @@ export function TopNav(props: { onThemeToggle: () => void; mode: 'light' | 'dark
         alignItems: 'center',
         gap: 2,
         width: '100%',
-        minWidth: 0,
-        px: { xs: 0, md: 0.5 },
-        py: 0.25,
-        transition: `color ${theme.studio.motion.base}`,
+        px: { xs: 2.5, md: 4 },
+        py: 1.5,
+        bgcolor: theme.palette.background.paper,
+        border: `1px solid ${theme.palette.divider}`,
+        borderRadius: theme.studio.radius.lg,
+        backdropFilter: `blur(${theme.studio.effect.card.blur}px)`,
+        transition: `background-color ${theme.studio.motion.base}, border-color ${theme.studio.motion.base}`,
       })}
     >
       {/* Left — logomark + wordmark */}
@@ -72,15 +58,9 @@ export function TopNav(props: { onThemeToggle: () => void; mode: 'light' | 'dark
         <Logomark />
         <Typography
           variant="h6"
-          sx={(theme) => ({
-            display: { xs: 'none', sm: 'block' },
-            fontWeight: 800,
-            letterSpacing: 0,
-            color: theme.palette.text.primary,
-            lineHeight: 1,
-          })}
+          sx={(theme) => ({ fontWeight: 800, letterSpacing: 0, color: theme.palette.text.primary, lineHeight: 1 })}
         >
-          IronFlyer
+          Ironflyer
         </Typography>
       </Stack>
 
@@ -88,40 +68,25 @@ export function TopNav(props: { onThemeToggle: () => void; mode: 'light' | 'dark
       <Stack
         direction="row"
         alignItems="center"
-        spacing={1.25}
+        spacing={3}
         sx={{ display: { xs: 'none', md: 'flex' }, ml: 2 }}
       >
-        {NAV_LINKS.map(({ label, href, active, menu }) => (
+        {NAV_LINKS.map((label) => (
           <Typography
             key={label}
             component="a"
-            href={href}
+            href="#"
             variant="body2"
             sx={(theme) => ({
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 0.45,
-              height: 38,
-              px: active ? 2 : 1.15,
-              borderRadius: theme.studio.radius.pill,
-              color: active ? theme.palette.text.primary : theme.palette.text.secondary,
-              fontWeight: active ? 700 : 600,
+              color: theme.palette.text.secondary,
+              fontWeight: 500,
               textDecoration: 'none',
               cursor: 'pointer',
-              border: active ? `1px solid ${theme.palette.divider}` : '1px solid transparent',
-              backgroundColor: active ? theme.palette.cardBg : 'transparent',
-              boxShadow: active ? `0 0 24px ${theme.studio.neon.violet}33` : 'none',
-              backdropFilter: active ? `blur(${theme.studio.effect.card.blur}px)` : 'none',
-              transition: `color ${theme.studio.motion.fast}, background-color ${theme.studio.motion.fast}, border-color ${theme.studio.motion.fast}, box-shadow ${theme.studio.motion.fast}`,
-              '&:hover': {
-                color: theme.palette.text.primary,
-                borderColor: theme.palette.borderSubtle,
-                backgroundColor: theme.palette.cardBg,
-              },
+              transition: `color ${theme.studio.motion.fast}`,
+              '&:hover': { color: theme.palette.text.primary },
             })}
           >
             {label}
-            {menu && <LuChevronDown size={13} />}
           </Typography>
         ))}
       </Stack>
@@ -135,10 +100,6 @@ export function TopNav(props: { onThemeToggle: () => void; mode: 'light' | 'dark
             sx={(theme) => ({
               color: theme.palette.text.secondary,
               border: `1px solid ${theme.palette.divider}`,
-              width: 40,
-              height: 40,
-              bgcolor: theme.palette.cardBg,
-              backdropFilter: `blur(${theme.studio.effect.card.blur}px)`,
               transition: `color ${theme.studio.motion.fast}, background-color ${theme.studio.motion.fast}, border-color ${theme.studio.motion.fast}`,
               '&:hover': { color: theme.palette.text.primary, bgcolor: theme.palette.surfaceHover, borderColor: theme.palette.divider },
             })}
@@ -160,9 +121,8 @@ export function TopNav(props: { onThemeToggle: () => void; mode: 'light' | 'dark
           Log in
         </Button>
 
-        <Button onClick={onStart} variant="contained" color="primary" sx={{ whiteSpace: 'nowrap', px: { xs: 1.75, sm: 2.5 }, minWidth: 0 }}>
-          <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Start a project free</Box>
-          <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>Start free</Box>
+        <Button onClick={onStart} variant="contained" color="primary" sx={{ whiteSpace: 'nowrap', px: 2.5 }}>
+          Start a project free
         </Button>
       </Stack>
     </Box>

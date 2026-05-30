@@ -1,19 +1,15 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
-import Chip from '@mui/material/Chip';
 import Switch from '@mui/material/Switch';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import InputBase from '@mui/material/InputBase';
 import IconButton from '@mui/material/IconButton';
-import Tooltip from '@mui/material/Tooltip';
-import useMediaQuery from '@mui/material/useMediaQuery';
-import { LuArrowRight, LuChevronDown, LuInfo, LuWallet, LuWandSparkles } from 'react-icons/lu';
-import { studioTokens } from '../../theme';
+import { LuArrowRight, LuMic, LuPlus, LuSlidersHorizontal, LuWorkflow } from 'react-icons/lu';
 
 const PLACEHOLDER =
-  'A CRM with contacts, deals, and a kanban pipeline; notes and follow-up reminders.';
+  'Describe the app you want to create...';
 
 export function PromptComposer(props: {
   value: string;
@@ -25,7 +21,6 @@ export function PromptComposer(props: {
   inputRef?: React.Ref<HTMLTextAreaElement | HTMLInputElement>;
 }) {
   const { value, onChange, planFirst, onPlanFirstChange, budget = '$27.00', onSubmit, inputRef } = props;
-  const finePointer = useMediaQuery('(pointer: fine)');
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -34,26 +29,21 @@ export function PromptComposer(props: {
     }
   };
 
-  // The prompt builder is the always-dark neon centerpiece in BOTH modes.
-  const darkText = studioTokens.modes.dark.textPrimary;
-  const darkMuted = studioTokens.modes.dark.textSecondary;
-
   return (
     <Box
       sx={(theme) => ({
         position: 'relative',
         overflow: 'hidden',
-        maxWidth: 1036,
+        maxWidth: 1040,
         mx: 'auto',
         width: '100%',
-        minHeight: { xs: 252, md: 236 },
-        p: { xs: 2.5, sm: 3.5, md: 4 },
+        minHeight: { xs: 190, md: 218 },
+        p: { xs: 1.8, sm: 3 },
         borderRadius: `${theme.studio.effect.promptBuilder.radius}px`,
-        border: `1px solid ${theme.studio.effect.promptBuilder.borderColor}`,
-        background: theme.studio.effect.promptBuilder.bg,
-        backdropFilter: `blur(${theme.studio.effect.promptBuilder.blur}px)`,
-        WebkitBackdropFilter: `blur(${theme.studio.effect.promptBuilder.blur}px)`,
-        boxShadow: theme.studio.effect.promptBuilder.glow,
+        border: `1px solid ${theme.palette.cardBorder}`,
+        borderBottomColor: theme.palette.primary.main,
+        background: theme.palette.background.paper,
+        boxShadow: '0 18px 42px rgba(24,22,20,0.08)',
       })}
     >
       <InputBase
@@ -62,23 +52,20 @@ export function PromptComposer(props: {
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder={PLACEHOLDER}
-        autoFocus={finePointer}
+        autoFocus
         multiline
-        minRows={2}
-        sx={{
+        minRows={3}
+        sx={(theme) => ({
           width: '100%',
-          maxHeight: { xs: 132, md: 112 },
-          overflowY: 'auto',
-          color: darkText,
-          fontSize: { xs: '1.0625rem', md: '1.5rem' },
-          lineHeight: { xs: 1.5, md: 1.55 },
-          fontFamily: studioTokens.font.mono,
+          color: theme.palette.text.primary,
+          fontSize: { xs: '1rem', md: '1.32rem' },
+          lineHeight: 1.55,
           alignItems: 'flex-start',
           '& textarea::placeholder, & input::placeholder': {
-            color: darkMuted,
+            color: theme.palette.text.disabled,
             opacity: 1,
           },
-        }}
+        })}
       />
 
       <Stack
@@ -87,103 +74,73 @@ export function PromptComposer(props: {
         justifyContent="space-between"
         flexWrap="wrap"
         useFlexGap
-        sx={{ mt: 2.5, gap: 2 }}
+        sx={{ mt: { xs: 1, md: 1.5 }, gap: { xs: 1.25, md: 2 } }}
       >
-        <Stack direction="row" alignItems="center" useFlexGap sx={{ gap: 2, flexWrap: 'wrap' }}>
-          <Chip
-            icon={<LuWallet size={15} />}
-            deleteIcon={<LuChevronDown size={14} />}
-            onDelete={() => undefined}
-            label={`Budget ${budget}`}
-            sx={(theme) => ({
-              height: 42,
-              px: 0.5,
-              borderRadius: `${theme.studio.radius.pill}px`,
-              border: `1px solid ${studioTokens.modes.dark.cardBorder}`,
-              backgroundColor: studioTokens.modes.dark.cardBg,
-              color: darkText,
-              fontWeight: 600,
-              '& .MuiChip-icon': { color: theme.studio.neon.blue, ml: 0.75 },
-              '& .MuiChip-label': { px: 1, fontSize: '0.8125rem' },
-              '& .MuiChip-deleteIcon': { color: darkMuted, mr: 0.75 },
-            })}
-          />
+        <Stack direction="row" alignItems="center" useFlexGap sx={{ gap: 1, flexWrap: 'wrap' }}>
+          {[LuPlus, LuWorkflow, LuSlidersHorizontal].map((Icon, index) => (
+            <IconButton
+              key={index}
+              aria-label={index === 0 ? 'Add context' : index === 1 ? 'Choose workflow' : 'Prompt settings'}
+              sx={(theme) => ({
+                width: { xs: 38, md: 44 },
+                height: { xs: 38, md: 44 },
+                borderRadius: `${theme.studio.radius.sm}px`,
+                border: `1px solid ${theme.palette.divider}`,
+                bgcolor: theme.palette.background.paper,
+                color: theme.palette.text.primary,
+                boxShadow: '0 1px 2px rgba(24,22,20,0.05)',
+                '&:hover': { bgcolor: theme.palette.surfaceHover },
+              })}
+            >
+              <Icon size={20} />
+            </IconButton>
+          ))}
 
-          <Stack
-            direction="row"
-            alignItems="center"
-            sx={(theme) => ({
-              height: 42,
-              gap: 0.75,
-              px: 1.25,
-              borderRadius: `${theme.studio.radius.pill}px`,
-              border: `1px solid ${studioTokens.modes.dark.cardBorder}`,
-              backgroundColor: studioTokens.modes.dark.cardBg,
-            })}
-          >
+          <Stack direction="row" alignItems="center" sx={{ gap: 0.75 }}>
             <Typography
               variant="body2"
-              sx={{ color: darkMuted, fontWeight: 600 }}
+              sx={{ color: 'text.primary', fontWeight: 800 }}
             >
-              Plan-first
+              Plan
             </Typography>
-            <Tooltip title="Plan the app before executing changes">
-              <Box component="span" sx={{ display: 'inline-flex', color: darkMuted }}>
-                <LuInfo size={14} />
-              </Box>
-            </Tooltip>
             <Switch
               checked={planFirst}
               onChange={(e) => onPlanFirstChange(e.target.checked)}
               inputProps={{ 'aria-label': 'Plan-first mode' }}
               sx={(theme) => ({
                 '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                  backgroundImage: theme.studio.gradient.cta,
+                  backgroundColor: theme.palette.primary.main,
                   opacity: 1,
                 },
                 '& .MuiSwitch-track': {
-                  backgroundColor: studioTokens.modes.dark.surfaceHover,
+                  backgroundColor: theme.palette.divider,
                   opacity: 1,
                 },
-                '& .MuiSwitch-thumb': { color: darkText },
+                '& .MuiSwitch-thumb': { color: theme.palette.background.paper },
               })}
             />
           </Stack>
         </Stack>
 
-        <Stack direction="row" alignItems="center" spacing={1.25} sx={{ width: { xs: '100%', sm: 'auto' } }}>
-          <Tooltip title="Enhance prompt">
-            <IconButton
-              aria-label="Enhance prompt"
-              sx={(theme) => ({
-                display: { xs: 'none', sm: 'inline-flex' },
-                width: 56,
-                height: 56,
-                borderRadius: `${theme.studio.effect.cta.radius}px`,
-                color: theme.studio.neon.pink,
-                border: `1px solid ${studioTokens.modes.dark.cardBorder}`,
-                backgroundColor: studioTokens.modes.dark.cardBg,
-                boxShadow: `0 0 22px ${theme.studio.neon.pink}22`,
-                '&:hover': { backgroundColor: studioTokens.modes.dark.surfaceHover },
-              })}
-            >
-              <LuWandSparkles size={22} />
-            </IconButton>
-          </Tooltip>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Typography sx={{ display: { xs: 'none', md: 'block' }, color: 'text.disabled', fontSize: '0.8rem', fontWeight: 700 }}>
+            Budget {budget}
+          </Typography>
+          <IconButton aria-label="Voice input" sx={{ color: 'text.primary' }}><LuMic size={20} /></IconButton>
           <Button
             variant="contained"
             color="primary"
             endIcon={<LuArrowRight size={18} />}
             onClick={onSubmit}
             sx={(theme) => ({
-              height: `${theme.studio.effect.cta.height}px`,
+              height: { xs: 40, md: `${theme.studio.effect.cta.height}px` },
+              minWidth: 56,
               borderRadius: `${theme.studio.effect.cta.radius}px`,
-              px: 3.25,
+              px: 2,
               fontSize: '1rem',
-              width: { xs: '100%', sm: 'auto' },
             })}
           >
-            Build it
+            Build
           </Button>
         </Stack>
       </Stack>

@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { Box, CircularProgress, Tab, Tabs } from '@mui/material';
+import { Box, CircularProgress, Tab, Tabs, Tooltip } from '@mui/material';
 import { useStudio } from '../store';
 
 // Engineering-quality cluster, consolidated behind one menu entry with inner
@@ -12,11 +12,11 @@ const CoveragePane = lazy(() => import('./CoveragePane').then((m) => ({ default:
 const PerformancePane = lazy(() => import('./PerformancePane').then((m) => ({ default: m.PerformancePane })));
 
 type QTab = 'review' | 'health' | 'coverage' | 'performance';
-const TABS: { key: QTab; label: string }[] = [
-  { key: 'review', label: 'Review' },
-  { key: 'health', label: 'Code health' },
-  { key: 'coverage', label: 'Coverage' },
-  { key: 'performance', label: 'Performance' },
+const TABS: { key: QTab; label: string; title: string }[] = [
+  { key: 'review', label: 'Review', title: 'AI-guided production review — issues, fixes, and readiness' },
+  { key: 'health', label: 'Code health', title: 'Code quality gates — dedup, dead code, complexity, arch boundaries' },
+  { key: 'coverage', label: 'Coverage', title: 'Your app\'s test coverage — which files are not closed end-to-end' },
+  { key: 'performance', label: 'Performance', title: 'Lighthouse, bundle size, and perf budget audits' },
 ];
 
 function InnerFallback() {
@@ -45,9 +45,23 @@ export function QualityWorkspace() {
           onChange={(_, v) => setTab(v as QTab)}
           variant="scrollable"
           scrollButtons="auto"
-          sx={{ minHeight: 0, '& .MuiTab-root': { textTransform: 'none', minHeight: 44, fontSize: (t) => t.typography.body2.fontSize } }}
+          sx={{
+            minHeight: 0,
+            '& .MuiTab-root': {
+              textTransform: 'none',
+              minHeight: 44,
+              fontSize: (t) => t.typography.body2.fontSize,
+            },
+            '& .MuiTab-root.Mui-selected': {
+              fontWeight: 700,
+            },
+          }}
         >
-          {TABS.map((x) => <Tab key={x.key} value={x.key} label={x.label} />)}
+          {TABS.map((x) => (
+            <Tooltip key={x.key} title={x.title} arrow placement="bottom">
+              <Tab value={x.key} label={x.label} />
+            </Tooltip>
+          ))}
         </Tabs>
       </Box>
       <Box sx={{ flex: 1, minHeight: 0, display: 'flex' }}>

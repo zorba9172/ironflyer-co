@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+cd "$ROOT/core/runtime"
+go build -o /tmp/ironflyer-runtime ./cmd/runtime
+
+cd "$ROOT"
+exec env \
+  IRONFLYER_RUNTIME_ADDR="${IRONFLYER_RUNTIME_ADDR:-:8090}" \
+  IRONFLYER_RUNTIME_DRIVER="${IRONFLYER_RUNTIME_DRIVER:-docker}" \
+  IRONFLYER_RUNTIME_WORKSPACE_DIR="${IRONFLYER_RUNTIME_WORKSPACE_DIR:-$ROOT/tmp/workspaces}" \
+  IRONFLYER_RUNTIME_CORS_ORIGIN="${IRONFLYER_RUNTIME_CORS_ORIGIN:-http://localhost:3001}" \
+  IRONFLYER_RUNTIME_DEV_AUTOCREATE="${IRONFLYER_RUNTIME_DEV_AUTOCREATE:-1}" \
+  IRONFLYER_IDE_IMAGE="${IRONFLYER_IDE_IMAGE:-ironflyer/theia-ide:latest}" \
+  IRONFLYER_IDE_CONTAINER_PORT="${IRONFLYER_IDE_CONTAINER_PORT:-3030}" \
+  IRONFLYER_JWT_SECRET="${IRONFLYER_JWT_SECRET:-}" \
+  IRONFLYER_LOG_FORMAT="${IRONFLYER_LOG_FORMAT:-console}" \
+  /tmp/ironflyer-runtime
