@@ -1,5 +1,5 @@
 import { Box, Chip, Stack, Typography } from '@mui/material';
-import { Icon } from '../../icons';
+import { Icon, BrandAsset, type BrandAssetName } from '../../icons';
 import { GlassPanel } from '../../components/studio';
 import { recentProjects, type StudioProject } from '../../studioData';
 
@@ -25,13 +25,24 @@ function toneColor(theme: import('@mui/material').Theme, tone: Tone): string {
   }
 }
 
+// A build's status maps to a premium 3D badge that floats over its thumbnail —
+// a single tasteful brand moment per card (shipped → rocket, blocked → firewall).
+const BADGE_FOR: Record<Tone, BrandAssetName> = {
+  success: 'build.shipped',
+  danger: 'build.blocked',
+  warning: 'build.preview',
+  neutral: 'build.progress',
+};
+
 // A calm faux app-preview: a header bar + two stat blocks + ghost rows, tinted
-// with the project accent. No raw colors — every fill reads from the palette.
-function Thumb({ accent }: { accent: string }) {
+// with the project accent. No raw colors — every fill reads from the palette. A
+// branded 3D status badge floats in the top-right corner.
+function Thumb({ accent, badge }: { accent: string; badge: BrandAssetName }) {
   return (
     <Box
       aria-hidden
       sx={(theme) => ({
+        position: 'relative',
         height: 92,
         borderRadius: `${theme.studio.radius.md}px`,
         border: `1px solid ${theme.palette.borderSubtle}`,
@@ -40,6 +51,23 @@ function Thumb({ accent }: { accent: string }) {
         p: 1.25,
       })}
     >
+      <Box
+        sx={(theme) => ({
+          position: 'absolute',
+          top: 8,
+          right: 8,
+          width: 34,
+          height: 34,
+          borderRadius: `${theme.studio.radius.sm}px`,
+          display: 'grid',
+          placeItems: 'center',
+          bgcolor: theme.palette.background.paper,
+          border: `1px solid ${theme.palette.cardBorder}`,
+          boxShadow: theme.brand.shadow.sm,
+        })}
+      >
+        <BrandAsset name={badge} size={24} />
+      </Box>
       <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 1 }}>
         <Box sx={{ width: 8, height: 8, borderRadius: 99, bgcolor: accent, flexShrink: 0 }} />
         <Box sx={(theme) => ({ width: 56, height: 6, borderRadius: 99, bgcolor: theme.palette.divider })} />
@@ -120,7 +148,7 @@ export function RecentBuilds(props: { onOpen?: (p: StudioProject) => void; onVie
                   : theme.palette.primary.main,
               })}
             >
-              <Thumb accent="var(--build-accent)" />
+              <Thumb accent="var(--build-accent)" badge={BADGE_FOR[status.tone]} />
               <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={1} sx={{ mt: 1.5 }}>
                 <Box sx={{ minWidth: 0 }}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 700 }} noWrap>{p.name}</Typography>

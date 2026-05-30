@@ -37,6 +37,7 @@ import (
 	"ironflyer/core/orchestrator/internal/business/wowloop"
 	"ironflyer/core/orchestrator/internal/customer/auth"
 	"ironflyer/core/orchestrator/internal/customer/notify"
+	"ironflyer/core/orchestrator/internal/operations/agentteam"
 	"ironflyer/core/orchestrator/internal/operations/appconsole"
 	"ironflyer/core/orchestrator/internal/operations/arch"
 	"ironflyer/core/orchestrator/internal/operations/audit"
@@ -45,14 +46,13 @@ import (
 	"ironflyer/core/orchestrator/internal/operations/diagnostics"
 	"ironflyer/core/orchestrator/internal/operations/mobile/appetize"
 	"ironflyer/core/orchestrator/internal/operations/mobile/devicecloud"
-	"ironflyer/core/orchestrator/internal/operations/agentteam"
-	"ironflyer/core/orchestrator/internal/suppliers/figma"
 	"ironflyer/core/orchestrator/internal/operations/mobile/eas"
 	"ironflyer/core/orchestrator/internal/operations/operator"
 	"ironflyer/core/orchestrator/internal/operations/patch"
 	"ironflyer/core/orchestrator/internal/operations/ratelimit"
 	"ironflyer/core/orchestrator/internal/operations/securityreport"
 	"ironflyer/core/orchestrator/internal/operations/store"
+	"ironflyer/core/orchestrator/internal/suppliers/figma"
 	"ironflyer/core/orchestrator/internal/suppliers/mcp_catalog"
 )
 
@@ -152,6 +152,8 @@ type Resolver struct {
 	// immediately run describeIdea without Stripe being configured. Wired from
 	// config.Config.DevWalletSeedUSD (gated by Env=="dev").
 	DevWalletSeedUSD float64
+	// DevWalletFloorUSD — dev-only credit floor refreshed on SignIn/SignUp.
+	DevWalletFloorUSD float64
 	// DevEnv reflects config.Env so SignUp can gate the seed.
 	DevEnv string
 

@@ -306,6 +306,11 @@ services:
       # execution loop is reachable without configuring Stripe. Disable in
       # any non-dev environment.
       IRONFLYER_DEV_WALLET_SEED_USD: "50"
+      # Local builder account: login with dev@ironflyer.dev / ironflyer-dev-1234.
+      # Its wallet is topped back up to this floor at startup and on sign-in.
+      IRONFLYER_DEV_WALLET_FLOOR_USD: "200"
+      IRONFLYER_SUPERUSER_EMAIL: "${IRONFLYER_SUPERUSER_EMAIL:-dev@ironflyer.dev}"
+      IRONFLYER_SUPERUSER_PASSWORD: "${IRONFLYER_SUPERUSER_PASSWORD:-ironflyer-dev-1234}"
       IRONFLYER_JWT_SECRET: "${IRONFLYER_JWT_SECRET:-dev-secret-change-me-please-32chars-minimum-for-hs256}"
       IRONFLYER_JWT_ISSUER: ironflyer-dev
       REDIS_URL: redis://redis:6379/0
@@ -400,6 +405,9 @@ services:
       IRONFLYER_RUNTIME_URL: http://runtime:8090
       IRONFLYER_SCAFFOLD_ROOT: /app/templates
       IRONFLYER_DEV_WALLET_SEED_USD: "50"
+      IRONFLYER_DEV_WALLET_FLOOR_USD: "200"
+      IRONFLYER_SUPERUSER_EMAIL: "${IRONFLYER_SUPERUSER_EMAIL:-dev@ironflyer.dev}"
+      IRONFLYER_SUPERUSER_PASSWORD: "${IRONFLYER_SUPERUSER_PASSWORD:-ironflyer-dev-1234}"
       IRONFLYER_JWT_SECRET: "${IRONFLYER_JWT_SECRET:-dev-secret-change-me-please-32chars-minimum-for-hs256}"
       IRONFLYER_JWT_ISSUER: ironflyer-dev
       REDIS_URL: redis://redis:6379/0

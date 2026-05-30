@@ -25,8 +25,13 @@ type Config struct {
 	// and the boot path credits only the configured superuser tenant.
 	// There is no shared "demo" wallet pool. Ignored outside of dev.
 	DevWalletSeedUSD float64 `env:"IRONFLYER_DEV_WALLET_SEED_USD" envDefault:"50"`
-	LogLevel         string  `env:"IRONFLYER_LOG_LEVEL" envDefault:"info" validate:"oneof=debug info warn error"`
-	LogFormat        string  `env:"IRONFLYER_LOG_FORMAT" envDefault:"console" validate:"oneof=console json"`
+	// DevWalletFloorUSD — dev-only convenience. When > 0 AND Env == "dev",
+	// SignIn/SignUp top the authenticated user's own wallet back up to this
+	// available balance floor. This keeps local/internal builder accounts from
+	// getting stuck after repeated test runs. Ignored outside dev.
+	DevWalletFloorUSD float64 `env:"IRONFLYER_DEV_WALLET_FLOOR_USD" envDefault:"200"`
+	LogLevel          string  `env:"IRONFLYER_LOG_LEVEL" envDefault:"info" validate:"oneof=debug info warn error"`
+	LogFormat         string  `env:"IRONFLYER_LOG_FORMAT" envDefault:"console" validate:"oneof=console json"`
 
 	// Executor: "embedded" runs the finisher in-process (good for local dev,
 	// no extra infra). "temporal" runs it as a Temporal Workflow (production).

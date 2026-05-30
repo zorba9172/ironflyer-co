@@ -1241,7 +1241,23 @@ func main() {
 		walletSvc = wallet.NewMemoryService()
 		logger.Info().Msg("V22 wallet: in-memory backend")
 	}
-	if cfg.Env == "dev" && cfg.DevWalletSeedUSD > 0 && hasBootstrappedSuperuser {
+	if cfg.Env == "dev" && cfg.DevWalletFloorUSD > 0 && hasBootstrappedSuperuser {
+		seedTenant, credited, err := ensureDevSuperuserWalletFloor(ctx, walletSvc, bootstrappedSuperuser, cfg.DevWalletFloorUSD)
+		if err != nil {
+			logger.Warn().Err(err).
+				Str("tenant_id", seedTenant).
+				Str("user_id", bootstrappedSuperuser.ID).
+				Float64("floor_usd", cfg.DevWalletFloorUSD).
+				Msg("dev seed: superuser wallet floor failed")
+		} else {
+			logger.Info().
+				Str("tenant_id", seedTenant).
+				Str("user_id", bootstrappedSuperuser.ID).
+				Str("credited_usd", credited.String()).
+				Float64("floor_usd", cfg.DevWalletFloorUSD).
+				Msg("dev seed: superuser wallet floor ensured")
+		}
+	} else if cfg.Env == "dev" && cfg.DevWalletSeedUSD > 0 && hasBootstrappedSuperuser {
 		seedTenant, err := seedDevSuperuserWallet(ctx, walletSvc, bootstrappedSuperuser, cfg.DevWalletSeedUSD)
 		if err != nil {
 			logger.Warn().Err(err).
@@ -1256,9 +1272,10 @@ func main() {
 				Float64("seed_usd", cfg.DevWalletSeedUSD).
 				Msg("dev seed: superuser wallet seeded")
 		}
-	} else if cfg.Env == "dev" && cfg.DevWalletSeedUSD > 0 {
+	} else if cfg.Env == "dev" && (cfg.DevWalletSeedUSD > 0 || cfg.DevWalletFloorUSD > 0) {
 		logger.Info().
 			Float64("seed_usd", cfg.DevWalletSeedUSD).
+			Float64("floor_usd", cfg.DevWalletFloorUSD).
 			Msg("dev seed: no superuser bootstrap configured; skipping shared wallet seed")
 	}
 	// Wallet topper registry — Stripe + Paddle, primary picked by
@@ -2357,6 +2374,7 @@ func main() {
 		PrivateInferenceModel:     cfg.HFPrivateModel,
 		DevEnv:                    cfg.Env,
 		DevWalletSeedUSD:          cfg.DevWalletSeedUSD,
+		DevWalletFloorUSD:         cfg.DevWalletFloorUSD,
 		Verifications:             verifications,
 		PasswordResets:            passwordResets,
 		Sessions:                  sessionStore,
@@ -2582,6 +2600,24 @@ func seedDevSuperuserWallet(ctx context.Context, svc wallet.Service, u auth.User
 	}
 	amount := decimal.NewFromFloat(seedUSD)
 	return tenant, svc.TopUp(ctx, tenant, amount, "dev-seed-"+tenant)
+}
+
+func ensureDevSuperuserWalletFloor(ctx context.Context, svc wallet.Service, u auth.User, floorUSD float64) (string, decimal.Decimal, error) {
+	tenant := canonicalTenantForUser(u)
+	if tenant == "" {
+		return "", decimal.Zero, nil
+	}
+	floor := decimal.NewFromFloat(floorUSD)
+	w, err := svc.Get(ctx, tenant)
+	if err != nil {
+		return tenant, decimal.Zero, err
+	}
+	credit := floor.Sub(w.AvailableUSD())
+	if credit.LessThanOrEqual(decimal.Zero) {
+		return tenant, decimal.Zero, nil
+	}
+	op := "dev-floor-" + tenant + "-" + strconv.FormatInt(time.Now().UnixNano(), 10)
+	return tenant, credit, svc.TopUp(ctx, tenant, credit, op)
 }
 
 func canonicalTenantForUser(u auth.User) string {

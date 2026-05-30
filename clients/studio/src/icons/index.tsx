@@ -153,5 +153,7 @@ export function Icon({ name, size = 18, color, strokeWidth, className, title, ..
 
 export { AssetImage } from './AssetImage';
 export type { AssetImageProps } from './AssetImage';
+export { BrandAsset, BRAND_ASSET, brandAssetId } from './brandAssets';
+export type { BrandAssetName, BrandAssetProps } from './brandAssets';
 export { asset, assetUrl, assetsByPack, findAssets, assetStats, ASSET_MANIFEST, ASSET_PACKS } from './assets';
 export type { AssetEntry, AssetKind, AssetPack } from './assets';

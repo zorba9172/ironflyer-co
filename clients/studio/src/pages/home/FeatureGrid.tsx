@@ -1,5 +1,5 @@
-import { Avatar, Box, Stack, Tooltip, Typography } from '@mui/material';
-import { Icon, type IconName } from '../../icons';
+import { Box, Stack, Tooltip, Typography } from '@mui/material';
+import { Icon, BrandAsset, BRAND_ASSET, type IconName, type BrandAssetName } from '../../icons';
 import { AGENTS, agentStatus, mockProject, type Agent, type AgentStatus } from '../../studioData';
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -24,7 +24,14 @@ const STATUS_LABEL: Record<AgentStatus, string> = {
   idle: 'Idle',
 };
 
-// Map each agent to a glyph from the barrel (no inline svg / emoji).
+// Map each agent to a premium 3D role avatar (branded illustrated library) when
+// one exists; the Lucide glyph is the graceful fallback for custom agents.
+const AGENT_ASSET = (id: string): BrandAssetName | null => {
+  const key = `agent.${id}` as BrandAssetName;
+  return key in BRAND_ASSET ? key : null;
+};
+
+// Fallback glyph from the barrel (no inline svg / emoji) for unmapped agents.
 const AGENT_ICON: Record<string, IconName> = {
   orchestrator: 'network',
   coder: 'code',
@@ -47,6 +54,7 @@ function toneColor(theme: import('@mui/material').Theme, tone: 'success' | 'warn
 
 function AgentChip({ agent, status }: { agent: Agent; status: AgentStatus }) {
   const tone = STATUS_TONE[status];
+  const brand = AGENT_ASSET(agent.id);
   const icon = AGENT_ICON[agent.id] ?? 'bot';
   return (
     <Tooltip title={`${agent.role} · ${STATUS_LABEL[status]}`} arrow>
@@ -66,24 +74,32 @@ function AgentChip({ agent, status }: { agent: Agent; status: AgentStatus }) {
         })}
       >
         <Box sx={{ position: 'relative', flexShrink: 0 }}>
-          <Avatar
+          {/* Premium 3D role avatar floats on a soft tinted app-icon tile; the
+              Lucide glyph is the graceful fallback for custom agents. */}
+          <Box
             sx={(theme) => ({
-              width: 30,
-              height: 30,
+              width: 36,
+              height: 36,
+              borderRadius: `${theme.studio.radius.md}px`,
+              display: 'grid',
+              placeItems: 'center',
               color: theme.palette.primary.main,
-              bgcolor: `${theme.palette.primary.main}14`,
+              background: brand
+                ? `linear-gradient(160deg, ${theme.palette.primary.main}14, ${theme.studio.neon.violet}0F)`
+                : `${theme.palette.primary.main}14`,
+              border: `1px solid ${theme.palette.borderSubtle}`,
             })}
           >
-            <Icon name={icon} size={15} />
-          </Avatar>
+            {brand ? <BrandAsset name={brand} size={26} /> : <Icon name={icon} size={16} />}
+          </Box>
           <Box
             aria-hidden
             sx={(theme) => ({
               position: 'absolute',
-              right: -1,
-              bottom: -1,
-              width: 11,
-              height: 11,
+              right: -3,
+              bottom: -3,
+              width: 12,
+              height: 12,
               borderRadius: 99,
               bgcolor: toneColor(theme, tone),
               border: `2px solid ${theme.palette.background.paper}`,

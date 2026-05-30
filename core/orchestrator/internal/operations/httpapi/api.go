@@ -56,11 +56,10 @@ import (
 	"ironflyer/core/orchestrator/internal/customer/auth"
 	"ironflyer/core/orchestrator/internal/customer/auth/oauth"
 	"ironflyer/core/orchestrator/internal/customer/notify"
+	"ironflyer/core/orchestrator/internal/operations/agentteam"
 	"ironflyer/core/orchestrator/internal/operations/appconsole"
 	"ironflyer/core/orchestrator/internal/operations/arch"
-	"ironflyer/core/orchestrator/internal/operations/agentteam"
 	"ironflyer/core/orchestrator/internal/operations/audit"
-	"ironflyer/core/orchestrator/internal/suppliers/figma"
 	"ironflyer/core/orchestrator/internal/operations/auditexport"
 	"ironflyer/core/orchestrator/internal/operations/bus"
 	"ironflyer/core/orchestrator/internal/operations/deploy"
@@ -78,6 +77,7 @@ import (
 	"ironflyer/core/orchestrator/internal/operations/securityreport"
 	"ironflyer/core/orchestrator/internal/operations/store"
 	"ironflyer/core/orchestrator/internal/pkg/httputil"
+	"ironflyer/core/orchestrator/internal/suppliers/figma"
 	"ironflyer/core/orchestrator/internal/suppliers/github_pr"
 )
 
@@ -170,8 +170,9 @@ type Deps struct {
 	// the SignUp resolver credits the new user's own wallet so describeIdea
 	// works without Stripe. Wired from config.Config in main.go; ignored
 	// in staging / prod.
-	DevEnv           string
-	DevWalletSeedUSD float64
+	DevEnv            string
+	DevWalletSeedUSD  float64
+	DevWalletFloorUSD float64
 
 	// Public origin (e.g. https://app.ironflyer.dev). Forwarded to the
 	// resolver so generated URLs match the externally visible host.
@@ -510,8 +511,9 @@ func (a *API) newResolver() *resolver.Resolver {
 		ResendVerificationLimiter: a.d.ResendVerificationLimiter,
 
 		// Dev convenience wallet seed (no-op outside dev).
-		DevEnv:           a.d.DevEnv,
-		DevWalletSeedUSD: a.d.DevWalletSeedUSD,
+		DevEnv:            a.d.DevEnv,
+		DevWalletSeedUSD:  a.d.DevWalletSeedUSD,
+		DevWalletFloorUSD: a.d.DevWalletFloorUSD,
 
 		// V22 service surface.
 		WalletSvc:         a.d.Wallet,

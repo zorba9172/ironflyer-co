@@ -112,6 +112,7 @@ function detectLang(text: string): Lang {
 
 type MsgKey =
   | 'budgetTooLow' | 'insufficientFunds' | 'budgetMid' | 'unauth' | 'unavailable'
+  | 'askBudgetBlocked'
   | 'cancelled' | 'offline' | 'rejected' | 'offlineReply' | 'dropTitle' | 'dropSub'
   | 'ctxFull' | 'newChat';
 
@@ -148,6 +149,17 @@ const STATUS: Record<MsgKey, Record<Lang, string>> = {
     it: 'Il build ha esaurito il budget a metà. [Ricarica il wallet](/plans) per continuare.',
     ar: 'نفد الـ budget في منتصف البناء. [اشحن الـ wallet](/plans) للمتابعة.',
     ru: 'У сборки закончился budget на полпути. [Пополните wallet](/plans), чтобы продолжить.',
+  },
+  askBudgetBlocked: {
+    en: 'Ask mode does not change files, but a live orchestrator reply still needs wallet credit. Add credits or keep working locally in the editor.',
+    he: 'Ask mode לא משנה קבצים, אבל תשובת Orchestrator חיה עדיין דורשת credit ב-wallet. טען credits או המשך לעבוד מקומית באדיטור.',
+    es: 'Ask mode no cambia archivos, pero una respuesta live del orchestrator aún necesita credit en el wallet. Agrega credits o sigue trabajando localmente en el editor.',
+    pt: 'Ask mode não altera arquivos, mas uma resposta live do orchestrator ainda precisa de credit no wallet. Adicione credits ou continue localmente no editor.',
+    fr: 'Ask mode ne modifie pas les fichiers, mais une réponse live de l’orchestrator nécessite encore du credit dans le wallet. Ajoutez des credits ou continuez localement dans l’éditeur.',
+    de: 'Ask mode ändert keine Dateien, aber eine live Antwort des orchestrator braucht weiterhin credit im wallet. Füge credits hinzu oder arbeite lokal im Editor weiter.',
+    it: 'Ask mode non modifica file, ma una risposta live dell’orchestrator richiede comunque credit nel wallet. Aggiungi credits o continua localmente nell’editor.',
+    ar: 'Ask mode لا يغيّر الملفات، لكن رد orchestrator المباشر ما زال يحتاج credit في الـ wallet. أضف credits أو تابع العمل محليًا في المحرر.',
+    ru: 'Ask mode не меняет файлы, но live-ответ orchestrator всё равно требует credit в wallet. Добавьте credits или продолжайте локально в редакторе.',
   },
   unauth: {
     en: 'Your session expired. Please sign in again to continue.',
@@ -255,16 +267,17 @@ function offlineReply(prompt: string): string {
 // ── Vendor scrub — never leak provider names to the UI ────────────────────────
 const VENDOR_RE = /\b(gemini|google\s*ai|vertex|anthropic|claude|openai|gpt-?\d|deepseek|hugging\s?face|llama|qwen|mistral|mixtral|bedrock|azure)\b/i;
 
-function chatStatusMessage(code: string, raw: string, lang: Lang): string {
+function chatStatusMessage(code: string, raw: string, lang: Lang, mode?: WorkMode): string {
+  const budgetBlocked = mode === 'ask' ? t('askBudgetBlocked', lang) : null;
   switch (code) {
     case 'BUDGET_TOO_LOW':
     case 'PROFITGUARD_REFUSED':
     case 'PROFITGUARD':
-      return t('budgetTooLow', lang);
+      return budgetBlocked ?? t('budgetTooLow', lang);
     case 'INSUFFICIENT_FUNDS':
-      return t('insufficientFunds', lang);
+      return budgetBlocked ?? t('insufficientFunds', lang);
     case 'BUDGET':
-      return t('budgetMid', lang);
+      return budgetBlocked ?? t('budgetMid', lang);
     case 'UNAUTHENTICATED':
       return t('unauth', lang);
     case 'NO_PROVIDER':
@@ -273,7 +286,7 @@ function chatStatusMessage(code: string, raw: string, lang: Lang): string {
     case 'CANCELLED':
       return t('cancelled', lang);
   }
-  if (/insufficient wallet|budget_exhausted|payment required|402|out of (credit|budget)/i.test(raw)) return t('budgetMid', lang);
+  if (/insufficient wallet|budget_exhausted|payment required|402|out of (credit|budget)/i.test(raw)) return budgetBlocked ?? t('budgetMid', lang);
   if (/unauth|session expired|\b401\b/i.test(raw)) return t('unauth', lang);
   if (/offline|no orchestrator endpoint/i.test(raw)) return t('offline', lang);
   if (/chat stream failed:\s*4\d\d/i.test(raw)) return t('rejected', lang);
@@ -289,10 +302,10 @@ function extractErrorCode(error: unknown): string {
   return '';
 }
 
-function resolveChatError(input: { code?: string; message?: string; error?: unknown }, lang: Lang): string {
+function resolveChatError(input: { code?: string; message?: string; error?: unknown }, lang: Lang, mode?: WorkMode): string {
   const code = input.code || extractErrorCode(input.error);
   const raw = input.message ?? (input.error instanceof Error ? input.error.message : String(input.error ?? ''));
-  return chatStatusMessage(code, raw, lang);
+  return chatStatusMessage(code, raw, lang, mode);
 }
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
@@ -344,7 +357,7 @@ function modeInstruction(mode: WorkMode): string {
 function riskHintsFor(prompt: string, mode: WorkMode, planMode: boolean): string[] {
   const hints: string[] = [];
   if (planMode) hints.push('preflight gate');
-  if (mode === 'ask') hints.push('read-only mode');
+  if (mode === 'ask') hints.push('no file changes');
   if (mode === 'execute' || mode === 'autopilot') hints.push('review patches before apply');
   if (mode === 'autopilot') hints.push('higher autonomy');
   if (/(secret|token|key|auth|payment|stripe|billing|wallet|database|migration|delete|prod|security)/i.test(prompt)) hints.push('sensitive surface');
@@ -487,14 +500,14 @@ export function ChatPanel({ initialPrompt }: { initialPrompt?: string }) {
           } else if (ev.type === 'thinking') patch((x) => ({ ...x, thinking: (x.thinking ?? '') + ev.text }));
           else if (ev.type === 'tool') patch((x) => ({ ...x, steps: [...(x.steps ?? []), safeLabel(ev.name, 'tool step')] }));
           else if (ev.type === 'finish') patch((x) => ({ ...x, costUSD: typeof ev.costUSD === 'number' ? ev.costUSD : x.costUSD }));
-          else if (ev.type === 'error') patch((x) => ({ ...x, text: x.text || `⚠ ${resolveChatError({ code: ev.code, message: ev.message }, lang)}` }));
+          else if (ev.type === 'error') patch((x) => ({ ...x, text: x.text || `⚠ ${resolveChatError({ code: ev.code, message: ev.message }, lang, mode)}` }));
         }, controller.signal);
       } catch (e) {
         const raw = e instanceof Error ? e.message : String(e || '');
         if (controller.signal.aborted || /abort/i.test(raw)) {
           patch((x) => ({ ...x, text: x.text ? `${x.text}\n\n_⏹ stopped_` : '_⏹ stopped before any reply_' }));
         } else {
-          patch((x) => ({ ...x, text: x.text || `⚠ ${resolveChatError({ error: e }, lang)}` }));
+          patch((x) => ({ ...x, text: x.text || `⚠ ${resolveChatError({ error: e }, lang, mode)}` }));
           if (/unauth/i.test(raw)) void signOut();
         }
       } finally {
@@ -1303,8 +1316,10 @@ function ChatHeader({ title, onNew, onOpenHistory, onRename }: {
   useEffect(() => { setVal(title); }, [title]);
   const commit = () => { setEditing(false); if (val.trim() && val.trim() !== title) onRename(val.trim()); };
   return (
-    <Stack direction="row" alignItems="center" spacing={0.5} sx={(t) => ({
-      px: 1.5, py: 1,
+    <Stack data-testid="chat-header" direction="row" alignItems="center" spacing={0.5} sx={(t) => ({
+      height: 48,
+      px: 1.5,
+      py: 0,
       borderBottom: `1px solid ${t.palette.divider}`,
       bgcolor: 'background.paper',
     })}>

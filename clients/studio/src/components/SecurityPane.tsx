@@ -9,7 +9,7 @@ import { useStudio } from '../store';
 import { useProjectExecutions } from '../hooks/useLatestExecution';
 import { useDispatchAgent } from '../hooks/useDispatchAgent';
 import { TechIcon } from '../lib/techIcons';
-import { Icon } from '../icons';
+import { Icon, BrandAsset } from '../icons';
 import { StudioDataGrid, type DataGridCellParams, type DataGridColumn, type StudioTableTab } from './tables';
 import { text } from '@ironflyer/design-tokens/brand';
 import { GlassPanel, SectionHeader, GaugeRing } from './studio';
@@ -516,11 +516,27 @@ export function SecurityPane({ fallback }: { fallback: SecurityState }) {
         {/* ── Agent checklist ────────────────────────────────────────────── */}
         <GlassPanel pad={2.5} sx={{ mt: 3 }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Box sx={{ color: (th) => th.palette.primary.main }}>
-                <Icon name="sparkles" size={17} />
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              <Box
+                sx={(th) => ({
+                  width: 44,
+                  height: 44,
+                  borderRadius: `${th.studio.radius.md}px`,
+                  display: 'grid',
+                  placeItems: 'center',
+                  background: `linear-gradient(160deg, ${th.palette.primary.main}14, ${th.studio.neon.violet}0F)`,
+                  border: `1px solid ${th.palette.borderSubtle}`,
+                  flexShrink: 0,
+                })}
+              >
+                <BrandAsset name="security.hero" size={32} />
               </Box>
-              <Typography sx={{ fontWeight: 800, fontSize: text.s95 }}>AppSec Agent</Typography>
+              <Box>
+                <Typography sx={{ fontWeight: 800, fontSize: text.s95 }}>AppSec Agent</Typography>
+                <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s64, color: 'text.disabled' })}>
+                  deny-by-default · zero-trust
+                </Typography>
+              </Box>
             </Stack>
             <Chip size="small" label={live ? 'Live' : 'Standby'}
               sx={(th) => ({ height: 20, fontSize: text.s62, color: live ? 'success.main' : 'text.disabled',

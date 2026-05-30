@@ -11,6 +11,7 @@ import (
 	"ironflyer/core/orchestrator/internal/customer/auth"
 	"ironflyer/core/orchestrator/internal/customer/notify"
 	"ironflyer/core/orchestrator/internal/operations/graph/model"
+	"strconv"
 	"strings"
 	"time"
 
@@ -74,26 +75,7 @@ func (r *mutationResolver) SignUp(ctx context.Context, input model.SignUpInput) 
 			}
 		}
 	}
-	// Dev convenience: pre-fund the new wallet so describeIdea runs
-	// without Stripe being wired. Strictly Env=="dev" + seed > 0.
-	r.Logger.Info().Str("user_id", u.ID).
-		Str("dev_env", r.DevEnv).
-		Float64("seed_usd", r.DevWalletSeedUSD).
-		Bool("wallet_svc_present", r.WalletSvc != nil).
-		Msg("auth: signup dev-seed gate evaluation")
-	if r.DevEnv == "dev" && r.DevWalletSeedUSD > 0 && r.WalletSvc != nil {
-		amt := decimal.NewFromFloat(r.DevWalletSeedUSD)
-		if terr := r.WalletSvc.TopUp(ctx, u.ID, amt, "dev-seed-"+u.ID); terr != nil {
-			r.Logger.Warn().Err(terr).Str("user_id", u.ID).Float64("seed_usd", r.DevWalletSeedUSD).
-				Msg("auth: dev wallet seed failed (user will have $0 balance)")
-		} else {
-			r.Logger.Info().Str("user_id", u.ID).Float64("seed_usd", r.DevWalletSeedUSD).
-				Msg("auth: dev wallet seeded")
-		}
-	} else if r.DevEnv == "dev" && r.WalletSvc != nil {
-		r.Logger.Debug().Str("user_id", u.ID).Float64("seed_usd", r.DevWalletSeedUSD).
-			Msg("auth: dev wallet seed skipped (seed amount is 0)")
-	}
+	r.ensureDevWalletCredit(ctx, u, "signup", true)
 	return sess, nil
 }
 
@@ -110,8 +92,46 @@ func (r *mutationResolver) SignIn(ctx context.Context, input model.SignInInput) 
 		}
 		return nil, err
 	}
+	r.ensureDevWalletCredit(ctx, u, "signin", false)
 	r.maybeDispatchNewDeviceLogin(ctx, u)
 	return r.issueAndPersistSession(ctx, u)
+}
+
+func (r *Resolver) ensureDevWalletCredit(ctx context.Context, u auth.User, reason string, allowSeed bool) {
+	if r.DevEnv != "dev" || r.WalletSvc == nil {
+		return
+	}
+	tenant := tenantFor(u)
+	floor := decimal.NewFromFloat(r.DevWalletFloorUSD)
+	amount := decimal.Zero
+	op := ""
+	if floor.IsPositive() {
+		w, err := r.WalletSvc.Get(ctx, tenant)
+		if err != nil {
+			r.Logger.Warn().Err(err).Str("tenant_id", tenant).Msg("auth: dev wallet floor read failed")
+			return
+		}
+		amount = floor.Sub(w.AvailableUSD())
+		if amount.LessThanOrEqual(decimal.Zero) {
+			r.Logger.Debug().Str("tenant_id", tenant).Str("reason", reason).Float64("floor_usd", r.DevWalletFloorUSD).
+				Msg("auth: dev wallet floor already satisfied")
+			return
+		}
+		op = "dev-floor-" + tenant + "-" + strconv.FormatInt(time.Now().UnixNano(), 10)
+	} else if allowSeed && r.DevWalletSeedUSD > 0 {
+		amount = decimal.NewFromFloat(r.DevWalletSeedUSD)
+		op = "dev-seed-" + tenant
+	}
+	if amount.LessThanOrEqual(decimal.Zero) {
+		return
+	}
+	if err := r.WalletSvc.TopUp(ctx, tenant, amount, op); err != nil {
+		r.Logger.Warn().Err(err).Str("tenant_id", tenant).Str("reason", reason).Str("amount_usd", amount.String()).
+			Msg("auth: dev wallet credit failed")
+		return
+	}
+	r.Logger.Info().Str("tenant_id", tenant).Str("reason", reason).Str("amount_usd", amount.String()).
+		Float64("floor_usd", r.DevWalletFloorUSD).Msg("auth: dev wallet credit applied")
 }
 
 // SignOut revokes the caller's session row (when wired) and tells the
