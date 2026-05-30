@@ -2,9 +2,8 @@ import { useMemo, useState } from 'react';
 import { Box, Card, Chip, LinearProgress, Stack, Tab, Tabs, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useGraphQLQuery, operations } from '@ironflyer/data';
-import { Chart, type EChartsOption } from '@ironflyer/ui-web/fx';
 import { formatUSD } from '@ironflyer/core';
-import { palette, modes, text } from '@ironflyer/design-tokens/brand';
+import { text } from '@ironflyer/design-tokens/brand';
 import { statusLabel, agentForGate, type Gate, type GateStatus, type StudioProject } from '../studioData';
 import { mapGate, type GateVerdict } from '../lib/liveGates';
 import { statusColor } from './statusColor';
@@ -15,6 +14,7 @@ import { useStudio } from '../store';
 import { useLiveProjectId } from '../hooks/useLiveProjectId';
 import { useWallet, useSentinelForecast, buildActionCostPreview, buildGateSpendLabels, type GateSpendLabel } from '../hooks/useEconomics';
 import { useProjectExecutions } from '../hooks/useLatestExecution';
+import { StudioChart, donutOption, gaugeOption, type EChartsOption } from './charts';
 
 const pgLabel: Record<StudioProject['profitGuard']['verdict'], string> = {
   allow: 'ProfitGuard: allow',
@@ -25,7 +25,6 @@ const pgLabel: Record<StudioProject['profitGuard']['verdict'], string> = {
 interface RawFile { path: string; size: number; language: string }
 interface LedgerEntry { executionID?: string | null; entryType: string; direction: string; amountUSD: number }
 
-const SERIES_COLORS = [palette.cobalt, palette.cyan, palette.amber, palette.emerald, palette.rose, modes.dark.textMuted];
 const titleCase = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
 function GateCard({ g, spend }: { g: Gate; spend?: GateSpendLabel }) {
@@ -144,9 +143,6 @@ export function DashboardPane({ fallback }: { projectId: string; fallback: Studi
   const spendByGate = useMemo(() => new Map(gateSpend.map((g) => [g.gateId, g])), [gateSpend]);
 
   // --- Usage tab: spend breakdown + budget gauge (ported from UsagePane) ---
-  const axis = theme.palette.text.secondary;
-  const grid = theme.palette.divider;
-
   const byEntryType = useMemo(() => {
     const execIds = new Set(executions.map((e) => e.id));
     const scoped = execIds.size > 0 ? ledger.filter((e) => e.executionID && execIds.has(e.executionID)) : ledger;
@@ -159,29 +155,19 @@ export function DashboardPane({ fallback }: { projectId: string; fallback: Studi
     return [...m.entries()].map(([name, value]) => ({ name: titleCase(name), value }));
   }, [ledger, executions]);
 
-  const ledgerOption = useMemo<EChartsOption>(() => ({
-    color: SERIES_COLORS,
-    tooltip: { trigger: 'item' },
-    legend: { bottom: 0, type: 'scroll', textStyle: { color: axis, fontSize: 10 } },
-    series: [{
-      type: 'pie', radius: ['52%', '74%'], avoidLabelOverlap: true,
-      itemStyle: { borderColor: theme.palette.background.paper, borderWidth: 2 },
-      label: { show: false }, data: byEntryType.length ? byEntryType : [{ name: 'No ledger entries yet', value: 1 }],
-    }],
-  }), [byEntryType, axis, theme]);
+  const ledgerOption = useMemo<EChartsOption>(() => donutOption(theme, {
+    data: byEntryType,
+    emptyLabel: 'No ledger entries yet',
+    radius: ['52%', '74%'],
+  }), [byEntryType, theme]);
 
   const walletPct = displayBudgetUSD > 0 ? Math.min(100, Math.round((displaySpendUSD / displayBudgetUSD) * 100)) : 0;
-  const walletOption = useMemo<EChartsOption>(() => ({
-    series: [{
-      type: 'gauge', startAngle: 210, endAngle: -30, min: 0, max: 100, radius: '92%',
-      progress: { show: true, width: 14, itemStyle: { color: palette.cobalt } },
-      axisLine: { lineStyle: { width: 14, color: [[1, grid]] } },
-      axisTick: { show: false }, splitLine: { show: false }, axisLabel: { show: false }, pointer: { show: false },
-      anchor: { show: false },
-      detail: { valueAnimation: true, formatter: `${walletPct}%`, color: theme.palette.text.primary, fontSize: 26, offsetCenter: [0, 0] },
-      data: [{ value: walletPct }],
-    }],
-  }), [walletPct, grid, theme]);
+  const walletOption = useMemo<EChartsOption>(() => gaugeOption(theme, {
+    value: walletPct,
+    color: theme.palette.primary.main,
+    formatter: `${walletPct}%`,
+    radius: '92%',
+  }), [walletPct, theme]);
 
   // Visual summary: gate status distribution donut.
   const gateDonut = useMemo<EChartsOption>(() => {
@@ -189,11 +175,10 @@ export function DashboardPane({ fallback }: { projectId: string; fallback: Studi
     const counts = new Map<GateStatus, number>();
     for (const g of p.gates) counts.set(g.status, (counts.get(g.status) ?? 0) + 1);
     const data = order.filter((s) => (counts.get(s) ?? 0) > 0).map((s) => ({ name: statusLabel[s], value: counts.get(s) ?? 0, itemStyle: { color: statusColor(theme, s) } }));
-    return {
-      tooltip: { trigger: 'item' },
-      legend: { bottom: 0, textStyle: { color: theme.palette.text.secondary, fontSize: 11 } },
-      series: [{ type: 'pie', radius: ['55%', '78%'], avoidLabelOverlap: true, itemStyle: { borderColor: theme.palette.background.paper, borderWidth: 2 }, label: { show: false }, data }],
-    };
+    return donutOption(theme, {
+      data: data.map((d) => ({ value: d.value, name: d.name, color: d.itemStyle.color })),
+      radius: ['55%', '78%'],
+    });
   }, [p.gates, theme]);
 
   return (
@@ -233,7 +218,7 @@ export function DashboardPane({ fallback }: { projectId: string; fallback: Studi
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 1.5, mb: 1.5 }}>
               <Card sx={{ p: 2.5 }}>
                 <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s68, textTransform: 'uppercase', color: 'text.disabled' })}>Gate status</Typography>
-                <Chart option={gateDonut} height={240} />
+                <StudioChart option={gateDonut} height={240} />
               </Card>
               <Stack spacing={1.5}>
                 <Meter label="Next paid action" value={formatUSD(actionPreview.estimateUSD)} sub={`${formatUSD(actionPreview.headroomAfterUSD)} headroom after · ${actionPreview.actionText}`} />
@@ -288,11 +273,11 @@ export function DashboardPane({ fallback }: { projectId: string; fallback: Studi
                   <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s68, textTransform: 'uppercase', color: 'text.disabled' })}>Budget spent</Typography>
                   <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s62, color: 'text.disabled' })}>account wallet {formatUSD(wallet.availableUSD)}</Typography>
                 </Stack>
-                <Chart option={walletOption} height={240} />
+                <StudioChart option={walletOption} height={240} />
               </Card>
               <Card sx={{ p: 2.5 }}>
                 <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s68, textTransform: 'uppercase', color: 'text.disabled', mb: 1 })}>Spend by ledger type</Typography>
-                <Chart option={ledgerOption} height={240} />
+                <StudioChart option={ledgerOption} height={240} />
               </Card>
             </Box>
             <Card sx={{ p: 2.5, mt: 1.5 }}>

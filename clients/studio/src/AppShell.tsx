@@ -7,8 +7,8 @@ import { toast } from '@ironflyer/ui-web/fx';
 import { AppSidebar } from './components/AppSidebar';
 import { useStudio } from './store';
 
-// Persistent shell for the workspace pages (home, projects, templates,
-// integrations, agents). The editor route renders full-screen without it.
+// Persistent shell for authenticated workspace pages. The public home and the
+// full-screen editor live outside this shell.
 export function AppShell() {
   const navigate = useNavigate();
   const request = useRequest();
@@ -41,9 +41,9 @@ export function AppShell() {
     }
   };
   return (
-    <Box sx={{ display: 'flex', height: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={{ display: 'flex', height: '100dvh', bgcolor: 'background.default' }}>
       <AppSidebar onNewProject={createNewProject} newProjectBusy={creating} />
-      <Box sx={{ flex: 1, minWidth: 0, height: '100vh', overflowY: 'auto' }}>
+      <Box sx={{ flex: 1, minWidth: 0, height: '100dvh', overflowY: 'auto' }}>
         <Outlet />
       </Box>
     </Box>

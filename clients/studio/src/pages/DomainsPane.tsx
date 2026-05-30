@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
 import { Box, Button, Card, Chip, Stack, TextField, Typography } from '@mui/material';
 import { useTheme, type Theme } from '@mui/material/styles';
-import { DataGrid, type DataGridCellParams, type DataGridColumn } from '@ironflyer/ui-web/data-grid';
-import { Chart, type EChartsOption } from '@ironflyer/ui-web/fx';
 import { useGraphQLQuery, operations } from '@ironflyer/data';
 import { useOperateProjectId } from '../hooks/useOperateProjectId';
 import { useOperateMutation } from '../hooks/useOperateMutation';
 import { PaneHeader } from '../components/operate/PaneHeader';
+import { StudioChart, donutOption, type EChartsOption } from '../components/charts';
+import { StudioDataGrid, type DataGridCellParams, type DataGridColumn } from '../components/tables';
 import { text } from '@ironflyer/design-tokens/brand';
 
 interface DNSRecord { type: string; name: string; value: string; ttl: number | null }
@@ -69,16 +69,11 @@ export function DomainsPane() {
       { value: failed, name: 'Failed', itemStyle: { color: t.palette.error.main } },
     ].filter((d) => d.value > 0);
     const open = pending + failed;
-    return {
-      tooltip: { trigger: 'item' },
-      legend: { bottom: 0, textStyle: { color: t.palette.text.secondary, fontSize: 11 } },
-      series: [{
-        type: 'pie', radius: ['58%', '80%'], avoidLabelOverlap: true,
-        itemStyle: { borderColor: t.palette.background.paper, borderWidth: 2 },
-        label: { show: true, position: 'center', formatter: open > 0 ? `${open}\nopen` : 'all\nlive', color: open > 0 ? t.palette.warning.main : t.palette.success.main, fontSize: 22, lineHeight: 22 },
-        data,
-      }],
-    };
+    return donutOption(t, {
+      data: data.map((d) => ({ value: d.value, name: d.name, color: d.itemStyle.color })),
+      centerLabel: open > 0 ? `${open}\nopen` : 'all\nlive',
+      centerColor: open > 0 ? t.palette.warning.main : t.palette.success.main,
+    });
   }, [live, pending, failed, t]);
 
   const columns = useMemo<DataGridColumn<DeployDomain>[]>(() => [
@@ -109,7 +104,7 @@ export function DomainsPane() {
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '300px 1fr' }, gap: 1.5, mb: 3, alignItems: 'stretch' }}>
           <Card sx={{ p: 2 }}>
             <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 0.5 })}>Domain health</Typography>
-            <Chart option={donut} height={200} />
+            <StudioChart option={donut} height={200} />
           </Card>
           <Card sx={{ p: 2.5, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 1 })}>Connect a custom domain</Typography>
@@ -142,7 +137,7 @@ export function DomainsPane() {
         )}
 
         <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s70, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>All domains</Typography>
-        <DataGrid
+        <StudioDataGrid
           rows={rows} columns={columns} getRowId={(row) => row.id}
           density="compact" emptyLabel="No domains yet — connect one above." height={360} minHeight={220}
         />

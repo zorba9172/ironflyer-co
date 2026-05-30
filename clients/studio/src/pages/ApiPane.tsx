@@ -2,11 +2,12 @@ import { useMemo, useState } from 'react';
 import { Box, Button, Card, Chip, IconButton, Stack, Switch, TextField, Typography } from '@mui/material';
 import { useTheme, type Theme } from '@mui/material/styles';
 import { useQueryClient } from '@tanstack/react-query';
-import { DataGrid, type DataGridCellParams, type DataGridColumn } from '@ironflyer/ui-web/data-grid';
 import { confirmAction, toast } from '@ironflyer/ui-web/fx';
 import { useGraphQLQuery, useRequest, operations } from '@ironflyer/data';
 import { useOperateProjectId } from '../hooks/useOperateProjectId';
 import { PaneHeader } from '../components/operate/PaneHeader';
+import { StudioDataGrid, type DataGridCellParams, type DataGridColumn } from '../components/tables';
+import { StudioChart, donutOption, horizontalBarOption, type EChartsOption } from '../components/charts';
 import { text } from '@ironflyer/design-tokens/brand';
 
 interface ApiKey { id: string; name: string; prefix: string; scopes: string[]; lastUsedAt: string | null; createdAt: string; revoked: boolean }
@@ -32,6 +33,8 @@ function methodColor(t: Theme, m: string): string {
     default: return t.palette.warning.main;
   }
 }
+
+const methodOrder = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] as const;
 
 export function ApiPane() {
   const t = useTheme();
@@ -116,10 +119,46 @@ export function ApiPane() {
     { colId: 'actions', headerName: '', width: 100, sortable: false, filter: false, cellRenderer: ({ data }: DataGridCellParams<ApiKey>) => data && !data.revoked ? <Button size="small" variant="text" color="inherit" disabled={busy} onClick={(e) => { e.stopPropagation(); void revoke(data); }}>Revoke</Button> : null },
   ], [busy]);
 
+  const keyHealth = useMemo<EChartsOption>(() => {
+    const active = keys.filter((k) => !k.revoked).length;
+    const revoked = keys.length - active;
+    return donutOption(t, {
+      data: [
+        { name: 'Active', value: active, color: t.palette.success.main },
+        { name: 'Revoked', value: revoked, color: t.palette.error.main },
+      ],
+      centerLabel: `${active}\nactive`,
+      centerColor: active > 0 ? t.palette.success.main : t.palette.text.secondary,
+    });
+  }, [keys, t]);
+
+  const endpointMethods = useMemo<EChartsOption>(() => {
+    const counts = methodOrder
+      .map((method) => ({ method, count: endpoints.filter((endpoint) => endpoint.method === method).length }))
+      .filter((item) => item.count > 0);
+    const rows = counts.length ? counts : [{ method: 'GET', count: 0 }];
+    return horizontalBarOption(t, {
+      labels: rows.map((item) => item.method),
+      values: rows.map((item) => item.count),
+      colors: rows.map((item) => methodColor(t, item.method)),
+    });
+  }, [endpoints, t]);
+
   return (
     <Box sx={{ flex: 1, height: '100%', overflowY: 'auto', bgcolor: 'background.default', p: 3 }}>
       <Box sx={{ maxWidth: 1080, mx: 'auto' }}>
         <PaneHeader title="API" isLive={isLive} subtitle="the deployed app's API surface" />
+
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '300px 1fr' }, gap: 1.5, mb: 3, alignItems: 'stretch' }}>
+          <Card sx={{ p: 2 }}>
+            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 0.5 })}>Key health</Typography>
+            <StudioChart option={keyHealth} height={200} />
+          </Card>
+          <Card sx={{ p: 2 }}>
+            <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 0.5 })}>Endpoints by method</Typography>
+            <StudioChart option={endpointMethods} height={200} />
+          </Card>
+        </Box>
 
         {freshSecret && (
           <Card sx={{ p: 2, mb: 2, borderColor: 'success.main', borderWidth: 1, borderStyle: 'solid' }}>
@@ -140,7 +179,7 @@ export function ApiPane() {
         </Card>
 
         <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s70, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>API keys</Typography>
-        <DataGrid rows={keys} columns={keyColumns} getRowId={(row) => row.id} density="compact" emptyLabel="No keys yet." height={240} minHeight={160} />
+        <StudioDataGrid rows={keys} columns={keyColumns} getRowId={(row) => row.id} density="compact" emptyLabel="No keys yet." height={240} minHeight={160} />
 
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.3fr 1fr' }, gap: 1.5, mt: 3 }}>
           <Card sx={{ p: 2 }}>

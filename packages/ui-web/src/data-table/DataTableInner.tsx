@@ -20,6 +20,7 @@ export interface DataTableProps<TRow extends GridValidRowModel = GridValidRowMod
   emptyLabel?: string;
   /** when set, enables client pagination at this page size */
   pageSize?: number;
+  dataGridSx?: SxProps<Theme>;
   sx?: SxProps<Theme>;
 }
 
@@ -47,6 +48,7 @@ export default function DataTableInner<TRow extends GridValidRowModel = GridVali
   loading = false,
   emptyLabel = 'No rows',
   pageSize,
+  dataGridSx,
   sx,
 }: DataTableProps<TRow>) {
   const rootSx = [
@@ -69,15 +71,18 @@ export default function DataTableInner<TRow extends GridValidRowModel = GridVali
         pageSizeOptions={pageSize ? [pageSize] : []}
         hideFooter={!pageSize}
         slots={{ noRowsOverlay: () => <NoRows label={emptyLabel} /> }}
-        sx={{
-          border: 0,
-          '--DataGrid-rowBorderColor': (t) => t.palette.divider,
-          '& .MuiDataGrid-columnHeaders': { bgcolor: 'action.hover' },
-          '& .MuiDataGrid-columnHeaderTitle': { fontWeight: 600, color: 'text.secondary' },
-          '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within': { outline: 'none' },
-          '& .MuiDataGrid-columnSeparator': { color: 'divider' },
-          '& .MuiDataGrid-footerContainer': { borderColor: 'divider' },
-        }}
+        sx={[
+          {
+            border: 0,
+            '--DataGrid-rowBorderColor': (t) => t.palette.divider,
+            '& .MuiDataGrid-columnHeaders': { bgcolor: 'action.hover' },
+            '& .MuiDataGrid-columnHeaderTitle': { fontWeight: 600, color: 'text.secondary' },
+            '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within': { outline: 'none' },
+            '& .MuiDataGrid-columnSeparator': { color: 'divider' },
+            '& .MuiDataGrid-footerContainer': { borderColor: 'divider' },
+          },
+          ...(Array.isArray(dataGridSx) ? dataGridSx : dataGridSx ? [dataGridSx] : []),
+        ]}
       />
     </Box>
   );

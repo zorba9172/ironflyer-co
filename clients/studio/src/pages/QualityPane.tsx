@@ -1,13 +1,13 @@
 import { useMemo, useState } from 'react';
 import { Box, Button, Card, Chip, Stack, Typography } from '@mui/material';
 import { useTheme, type Theme } from '@mui/material/styles';
-import { DataGrid, type DataGridCellParams, type DataGridColumn } from '@ironflyer/ui-web/data-grid';
-import { Chart, type EChartsOption } from '@ironflyer/ui-web/fx';
 import { useGraphQLQuery, operations } from '@ironflyer/data';
 import { useLiveProjectId } from '../hooks/useLiveProjectId';
 import { useDispatchAgent } from '../hooks/useDispatchAgent';
 import { useStudio } from '../store';
 import { TechIcon } from '../lib/techIcons';
+import { StudioChart, donutOption, type EChartsOption } from '../components/charts';
+import { StudioDataGrid, type DataGridCellParams, type DataGridColumn } from '../components/tables';
 import { text } from '@ironflyer/design-tokens/brand';
 
 interface RawGate { gate: string; status: string; issues: { severity: string; message: string }[] }
@@ -94,16 +94,11 @@ export function QualityPane() {
       { value: review, name: 'Review', itemStyle: { color: t.palette.warning.main } },
       { value: blockedChecks, name: 'Blocked', itemStyle: { color: t.palette.error.main } },
     ].filter((d) => d.value > 0);
-    return {
-      tooltip: { trigger: 'item' },
-      legend: { bottom: 0, textStyle: { color: t.palette.text.secondary, fontSize: 11 } },
-      series: [{
-        type: 'pie', radius: ['58%', '80%'], avoidLabelOverlap: true,
-        itemStyle: { borderColor: t.palette.background.paper, borderWidth: 2 },
-        label: { show: true, position: 'center', formatter: open > 0 ? `${open}\nopen` : 'all\nclean', color: open > 0 ? t.palette.warning.main : t.palette.success.main, fontSize: 22, lineHeight: 22 },
-        data,
-      }],
-    };
+    return donutOption(t, {
+      data: data.map((d) => ({ value: d.value, name: d.name, color: d.itemStyle.color })),
+      centerLabel: open > 0 ? `${open}\nopen` : 'all\nclean',
+      centerColor: open > 0 ? t.palette.warning.main : t.palette.success.main,
+    });
   }, [rows.length, passedChecks, blockedChecks, open, t]);
 
   const columns = useMemo<DataGridColumn<QualityRow>[]>(() => [
@@ -150,7 +145,7 @@ export function QualityPane() {
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '300px 1fr' }, gap: 1.5, mb: 3, alignItems: 'stretch' }}>
           <Card sx={{ p: 2 }}>
             <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 0.5 })}>Check verdicts</Typography>
-            <Chart option={statusDonut} height={200} />
+            <StudioChart option={statusDonut} height={200} />
           </Card>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr' }, gap: 1.5 }}>
             {metrics.map((m) => (
@@ -184,7 +179,7 @@ export function QualityPane() {
         )}
 
         <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s70, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>Checks</Typography>
-        <DataGrid
+        <StudioDataGrid
           rows={rows}
           columns={columns}
           getRowId={(row) => row.id}

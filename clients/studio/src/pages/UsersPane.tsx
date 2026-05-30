@@ -1,12 +1,12 @@
 import { useMemo } from 'react';
 import { Box, Button, Card, Chip, Stack, Typography } from '@mui/material';
 import { useTheme, type Theme } from '@mui/material/styles';
-import { DataGrid, type DataGridCellParams, type DataGridColumn } from '@ironflyer/ui-web/data-grid';
-import { Chart, type EChartsOption } from '@ironflyer/ui-web/fx';
 import { useGraphQLQuery, operations } from '@ironflyer/data';
 import { useOperateProjectId } from '../hooks/useOperateProjectId';
 import { useOperateMutation } from '../hooks/useOperateMutation';
 import { PaneHeader } from '../components/operate/PaneHeader';
+import { StudioChart, donutOption, type EChartsOption } from '../components/charts';
+import { StudioDataGrid, type DataGridCellParams, type DataGridColumn } from '../components/tables';
 import { text } from '@ironflyer/design-tokens/brand';
 
 interface EndUser { id: string; email: string; name: string; role: string; status: string; provider: string; lastSeenAt: string | null; createdAt: string }
@@ -53,15 +53,10 @@ export function UsersPane() {
   };
   const toggleSuspend = (u: EndUser) => void run(u.status === 'suspended' ? 'Restored' : 'Suspended', (req) => req('SetAppUserSuspended', operations.SET_APP_USER_SUSPENDED, { projectID: liveProjectId, userID: u.id, suspended: u.status !== 'suspended' }), invalidate);
 
-  const roleDonut = useMemo<EChartsOption>(() => ({
-    tooltip: { trigger: 'item' },
-    legend: { bottom: 0, textStyle: { color: t.palette.text.secondary, fontSize: 11 } },
-    series: [{
-      type: 'pie', radius: ['58%', '80%'],
-      itemStyle: { borderColor: t.palette.background.paper, borderWidth: 2 },
-      label: { show: true, position: 'center', formatter: `${stats.total.toLocaleString()}\nusers`, color: t.palette.text.primary, fontSize: 20, lineHeight: 20 },
-      data: stats.byRole.map((r, i) => ({ value: r.count, name: r.role, itemStyle: { color: [t.brand.accent.primary, t.brand.accent.secondary, t.palette.warning.main, t.palette.info.main][i % 4] } })),
-    }],
+  const roleDonut = useMemo<EChartsOption>(() => donutOption(t, {
+    centerLabel: `${stats.total.toLocaleString()}\nusers`,
+    centerColor: t.palette.text.primary,
+    data: stats.byRole.map((r) => ({ value: r.count, name: r.role })),
   }), [stats, t]);
 
   const metrics = [
@@ -98,7 +93,7 @@ export function UsersPane() {
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '300px 1fr' }, gap: 1.5, mb: 3, alignItems: 'stretch' }}>
           <Card sx={{ p: 2 }}>
             <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 0.5 })}>By role</Typography>
-            <Chart option={roleDonut} height={200} />
+            <StudioChart option={roleDonut} height={200} />
           </Card>
           <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
             {metrics.map((m) => (
@@ -112,7 +107,7 @@ export function UsersPane() {
         </Box>
 
         <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s70, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>Roster</Typography>
-        <DataGrid rows={users} columns={columns} getRowId={(row) => row.id} density="compact" emptyLabel="No users yet." height={460} minHeight={260} />
+        <StudioDataGrid rows={users} columns={columns} getRowId={(row) => row.id} density="compact" emptyLabel="No users yet." height={460} minHeight={260} />
       </Box>
     </Box>
   );

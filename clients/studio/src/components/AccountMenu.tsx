@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, Box, Divider, ListItemIcon, Menu, MenuItem, Switch, Typography } from '@mui/material';
 import { useAuth } from '@ironflyer/data';
-import { useThemeMode } from '@ironflyer/ui-web';
+import { useThemeMode } from '../theme';
 import { text } from '@ironflyer/design-tokens/brand';
 
 const icon = (d: string) => (

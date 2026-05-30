@@ -1,11 +1,11 @@
 import { Box, Button, CircularProgress, Divider, IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useThemeMode } from '@ironflyer/ui-web';
 import { toast } from '@ironflyer/ui-web/fx';
 import { useAuth, useGraphQLQuery, useRequest, operations } from '@ironflyer/data';
 import { LogoMark } from './LogoMark';
 import { AccountMenu } from './AccountMenu';
 import { useStudio } from '../store';
+import { useThemeMode, studioTokens, neon } from '../theme';
 import { mockProject, recentProjects, type StudioProject } from '../studioData';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
@@ -13,6 +13,13 @@ import { text } from '@ironflyer/design-tokens/brand';
 
 interface RecentProject { id: string; name: string; status?: string | null; description?: string | null; idea?: string | null; project?: StudioProject }
 interface ApiFile { path: string; content?: string | null }
+
+// The rail is the studio's always-dark anchor in BOTH theme modes
+// (DESIGN_CONSTITUTION › sidebar stays dark). It therefore reads its surface
+// colors from the dark-mode tokens — the documented legal source-of-truth
+// pattern — and its accents from the neon marks. No raw literals.
+const DK = studioTokens.modes.dark;
+const R = studioTokens.radius;
 
 function toneFor(status?: string | null): string {
   const s = (status ?? '').toLowerCase();
@@ -28,15 +35,20 @@ function NavItem({ icon, label, active, onClick }: { icon: ReactNode; label: str
       fullWidth
       startIcon={icon}
       sx={{
+        minHeight: 42,
         justifyContent: 'flex-start',
-        gap: 0.5,
-        px: 1.5,
-        py: 1,
-        color: active ? 'text.primary' : 'text.secondary',
-        bgcolor: active ? 'action.selected' : 'transparent',
-        fontWeight: active ? 600 : 500,
-        '&:hover': { bgcolor: 'action.hover', color: 'text.primary' },
-        '& .MuiButton-startIcon': { color: active ? 'primary.main' : 'inherit' },
+        gap: 0.75,
+        px: 1.55,
+        py: 0.95,
+        borderRadius: `${R.sm}px`,
+        color: active ? DK.textPrimary : DK.textSecondary,
+        bgcolor: active ? DK.surfaceHover : 'transparent',
+        border: '1px solid',
+        borderColor: active ? `${neon.violet}55` : 'transparent',
+        boxShadow: active ? `inset 0 1px 0 ${neon.blue}14, 0 0 24px ${neon.violet}29` : 'none',
+        fontWeight: active ? 700 : 600,
+        '&:hover': { bgcolor: `${neon.blue}14`, color: DK.textPrimary, borderColor: `${neon.blue}29` },
+        '& .MuiButton-startIcon': { color: active ? neon.blue : DK.textSecondary, minWidth: 18 },
       }}
     >
       {label}
@@ -81,13 +93,14 @@ function projectShell(p: RecentProject): StudioProject {
 export function AppSidebar({ onNewProject, newProjectBusy }: { onNewProject?: () => void | Promise<void>; newProjectBusy?: boolean }) {
   const { mode, toggle } = useThemeMode();
   const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const { user, online } = useAuth();
   const request = useRequest();
   const openProject = useStudio((s) => s.openProject);
   const openLiveProject = useStudio((s) => s.openLiveProject);
   const [openingId, setOpeningId] = useState<string | null>(null);
   const go = (to: string) => navigate(to);
+  const editorTab = new URLSearchParams(search).get('tab');
 
   // Recent projects mirror the real Projects query when an orchestrator is
   // connected; offline (sample mode) falls back to the bundled demo projects so
@@ -119,37 +132,71 @@ export function AppSidebar({ onNewProject, newProjectBusy }: { onNewProject?: ()
     }
   };
   return (
-    <Box component="aside" sx={{ width: 248, flexShrink: 0, height: '100vh', borderRight: 1, borderColor: 'divider', bgcolor: 'background.paper', display: 'flex', flexDirection: 'column', p: 1.5 }}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 1, mb: 2 }}>
+    <Box
+      component="aside"
+      sx={{
+        width: 252,
+        flexShrink: 0,
+        height: '100dvh',
+        borderRight: `1px solid ${DK.borderSubtle}`,
+        bgcolor: DK.bg,
+        color: DK.textPrimary,
+        display: 'flex',
+        flexDirection: 'column',
+        p: 1.75,
+        position: 'relative',
+        overflow: 'hidden',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          inset: 0,
+          pointerEvents: 'none',
+          background: `radial-gradient(360px 260px at 0% 0%, ${neon.blue}29, transparent 68%), radial-gradient(360px 320px at 100% 22%, ${neon.pink}1f, transparent 72%)`,
+        },
+        '& > *': { position: 'relative', zIndex: 1 },
+      }}
+    >
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 0.5, mb: 1.8 }}>
         <Stack direction="row" alignItems="center" spacing={1}>
           <LogoMark size={26} />
-          <Typography variant="h6" sx={{ fontSize: text.s100 }}>Ironflyer</Typography>
+          <Typography variant="h6" sx={{ fontSize: text.s105, color: DK.textPrimary, letterSpacing: 0 }}>Ironflyer</Typography>
         </Stack>
         <Tooltip title={mode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} arrow>
-          <IconButton size="small" onClick={toggle} aria-label={mode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} sx={{ color: 'text.secondary' }}>{mode === 'dark' ? icons.sun : icons.moon}</IconButton>
+          <IconButton
+            size="small"
+            onClick={toggle}
+            aria-label={mode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+            sx={{ color: DK.textSecondary, border: `1px solid ${DK.border}`, bgcolor: `${neon.blue}10`, '&:hover': { bgcolor: DK.surfaceHover } }}
+          >
+            {mode === 'dark' ? icons.sun : icons.moon}
+          </IconButton>
         </Tooltip>
       </Stack>
 
       <Button
         variant="contained"
+        color="primary"
         onClick={() => { void onNewProject?.(); }}
         disabled={newProjectBusy}
-        sx={{ mb: 2, justifyContent: 'flex-start' }}
+        sx={{ mb: 2, justifyContent: 'flex-start', minHeight: 50, borderRadius: `${R.sm}px` }}
         startIcon={newProjectBusy ? <CircularProgress color="inherit" size={14} /> : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>}
       >
         <Typography sx={{ fontSize: text.s90, fontWeight: 600 }}>New project</Typography>
       </Button>
 
       <Stack spacing={0.25}>
-        <NavItem icon={icons.home} label="Home" active={pathname === '/'} onClick={() => go('/')} />
-        <NavItem icon={icons.apps} label="All projects" active={pathname === '/projects'} onClick={() => go('/projects')} />
+        <NavItem icon={icons.home} label="Studio" active={pathname === '/studio'} onClick={() => go('/studio')} />
+        <NavItem icon={icons.apps} label="Projects" active={pathname === '/projects'} onClick={() => go('/projects')} />
         <NavItem icon={icons.agents} label="Agents" active={pathname === '/agents'} onClick={() => go('/agents')} />
+        <NavItem icon={icons.integrations} label="Deployments" active={pathname === '/build' && editorTab === 'domains'} onClick={() => go('/build?tab=domains')} />
         <NavItem icon={icons.templates} label="Templates" active={pathname === '/templates'} onClick={() => go('/templates')} />
         <NavItem icon={icons.integrations} label="Integrations" active={pathname === '/integrations'} onClick={() => go('/integrations')} />
+        <NavItem icon={icons.apps} label="Assets" active={pathname === '/build' && editorTab === 'documents'} onClick={() => go('/build?tab=documents')} />
+        <NavItem icon={icons.templates} label="Settings" active={pathname === '/build' && editorTab === 'settings'} onClick={() => go('/build?tab=settings')} />
       </Stack>
 
-      <Divider sx={{ my: 2 }} />
-      <Typography sx={(t) => ({ px: 1.5, fontFamily: t.brand.font.mono, fontSize: text.s68, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled' })}>Recent</Typography>
+      <Divider sx={{ my: 2, borderColor: DK.borderSubtle }} />
+      <Typography sx={(t) => ({ px: 1.5, fontFamily: t.brand.font.mono, fontSize: text.s68, letterSpacing: '0.1em', textTransform: 'uppercase', color: DK.textMuted })}>Recent Projects</Typography>
       <Stack spacing={0.25} sx={{ mt: 1 }}>
         {recentItems.map((p) => (
           <NavItem
@@ -163,17 +210,20 @@ export function AppSidebar({ onNewProject, newProjectBusy }: { onNewProject?: ()
 
       <Box sx={{ flex: 1 }} />
 
-      <Box sx={(t) => ({ p: 2, borderRadius: 3, border: 1, borderColor: 'divider', backgroundImage: t.brand.gradient.signatureSoft, mb: 1.5 })}>
-        <Typography sx={{ fontWeight: 600, fontSize: text.s90 }}>Upgrade to Pro</Typography>
-        <Typography sx={{ color: 'text.secondary', fontSize: text.s80, mt: 0.5 }}>Production deploys, mobile, and the spend board.</Typography>
-        <Button size="small" variant="contained" sx={{ mt: 1.5 }} onClick={() => go('/plans')}>Upgrade</Button>
+      <Box sx={{ p: 2, borderRadius: `${R.lg}px`, border: `1px solid ${DK.border}`, bgcolor: `${neon.blue}10`, boxShadow: `inset 0 1px 0 ${neon.blue}14`, mb: 1.5 }}>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Box sx={{ color: neon.blue }}>{icons.home}</Box>
+          <Typography sx={{ fontWeight: 800, fontSize: text.s88, color: DK.textPrimary }}>Upgrade to Pro</Typography>
+        </Stack>
+        <Typography sx={{ color: DK.textSecondary, fontSize: text.s76, mt: 1 }}>Unlock production deploys, mobile builds and more.</Typography>
+        <Button size="small" variant="contained" color="primary" sx={{ mt: 1.4, minHeight: 34, borderRadius: `${R.sm}px` }} onClick={() => go('/plans')}>Upgrade now</Button>
       </Box>
 
-      <Stack direction="row" alignItems="center" spacing={1.25} sx={{ px: 1 }}>
+      <Stack direction="row" alignItems="center" spacing={1.25} sx={{ px: 1, py: 1, borderRadius: `${R.sm}px`, border: `1px solid ${DK.borderSubtle}` }}>
         <AccountMenu size={28} />
         <Box sx={{ minWidth: 0, flex: 1 }}>
-          <Typography sx={{ fontSize: text.s85, fontWeight: 600 }} noWrap>{user?.email ?? 'Guest'}</Typography>
-          <Typography sx={{ fontSize: text.s72, color: online ? (user ? 'success.main' : 'warning.main') : 'text.disabled' }} noWrap>
+          <Typography sx={{ fontSize: text.s85, fontWeight: 700, color: DK.textPrimary }} noWrap>{user?.email ?? 'Guest'}</Typography>
+          <Typography sx={{ fontSize: text.s72, color: online ? (user ? neon.success : neon.warning) : DK.textMuted }} noWrap>
             {online ? (user ? `${user.plan ?? 'free'} · connected` : 'connected') : 'offline preview'}
           </Typography>
         </Box>

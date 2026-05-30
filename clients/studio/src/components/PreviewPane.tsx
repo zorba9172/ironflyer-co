@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Box, Button, IconButton, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import { VscWarning, VscWand, VscClose } from 'react-icons/vsc';
 import { Scene3D, Lightbox, LivePreview, toast, type LivePreviewTemplate } from '@ironflyer/ui-web/fx';
-import { useThemeMode } from '@ironflyer/ui-web';
 import { useStudio } from '../store';
+import { useThemeMode } from '../theme';
 import { text } from '@ironflyer/design-tokens/brand';
 
 type Device = 'desktop' | 'mobile';

@@ -1,8 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Box, Button, Card, Chip, Stack, Typography } from '@mui/material';
 import { useTheme, type Theme } from '@mui/material/styles';
-import { DataGrid, type DataGridCellParams, type DataGridColumn } from '@ironflyer/ui-web/data-grid';
-import { Chart, type EChartsOption } from '@ironflyer/ui-web/fx';
 import { useRunProjectFeed, useGraphQLQuery, operations } from '@ironflyer/data';
 import { formatRelativeTime } from '@ironflyer/core';
 import type { ActivityEvent, StudioProject } from '../studioData';
@@ -11,6 +9,8 @@ import { useDispatchAgent } from '../hooks/useDispatchAgent';
 import { useStudio } from '../store';
 import { useProjectExecutions } from '../hooks/useLatestExecution';
 import { TechIcon } from '../lib/techIcons';
+import { StudioChart, horizontalBarOption, type EChartsOption } from '../components/charts';
+import { StudioDataGrid, type DataGridCellParams, type DataGridColumn } from '../components/tables';
 import { text } from '@ironflyer/design-tokens/brand';
 
 interface LedgerEntry { id: string; executionID?: string | null; entryType: string; direction: string; amountUSD: number; createdAt: string }
@@ -110,16 +110,11 @@ export function LogsPane({ fallback }: { fallback: StudioProject }) {
     const order: ActivityEvent['kind'][] = ['gate', 'patch', 'profitguard', 'deploy', 'ledger'];
     const counts = order.map((k) => rows.filter((r) => r.kind === k).length);
     const labels = ['Gate', 'Patch', 'ProfitGuard', 'Deploy', 'Ledger'];
-    return {
-      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-      grid: { left: 8, right: 16, top: 12, bottom: 8, containLabel: true },
-      xAxis: { type: 'value', axisLabel: { color: t.palette.text.secondary }, splitLine: { lineStyle: { color: t.palette.divider } } },
-      yAxis: { type: 'category', data: labels, axisLabel: { color: t.palette.text.secondary } },
-      series: [{
-        type: 'bar', barWidth: '56%', data: counts.map((value, i) => ({ value, itemStyle: { color: kindColor(t, order[i]!) } })),
-        label: { show: true, position: 'right', color: t.palette.text.secondary, fontSize: 11 },
-      }],
-    };
+    return horizontalBarOption(t, {
+      labels,
+      values: counts,
+      colors: order.map((kind) => kindColor(t, kind)),
+    });
   }, [rows, t]);
 
   return (
@@ -141,11 +136,11 @@ export function LogsPane({ fallback }: { fallback: StudioProject }) {
         {rows.length > 0 && (
           <Card sx={{ p: 2, mb: 2 }}>
             <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 0.5 })}>Events by source</Typography>
-            <Chart option={sourceBar} height={170} />
+            <StudioChart option={sourceBar} height={170} />
           </Card>
         )}
 
-        <DataGrid
+        <StudioDataGrid
           rows={rows}
           columns={columns}
           getRowId={(row) => row.id}

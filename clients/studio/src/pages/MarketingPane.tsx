@@ -2,10 +2,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { Box, Button, Card, FormControlLabel, Stack, Switch, TextField, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useQueryClient } from '@tanstack/react-query';
-import { Chart, type EChartsOption, toast } from '@ironflyer/ui-web/fx';
+import { toast } from '@ironflyer/ui-web/fx';
 import { useGraphQLQuery, useRequest, operations } from '@ironflyer/data';
 import { useOperateProjectId } from '../hooks/useOperateProjectId';
 import { PaneHeader } from '../components/operate/PaneHeader';
+import { StudioChart, gaugeOption, type EChartsOption } from '../components/charts';
 import { text } from '@ironflyer/design-tokens/brand';
 
 interface SeoSettings { projectID: string; title: string; description: string; keywords: string[]; ogImageURL: string; twitterHandle: string; canonicalURL: string; robots: string; sitemapEnabled: boolean; updatedAt: string }
@@ -60,16 +61,11 @@ export function MarketingPane() {
   };
 
   const scoreColor = audit.score >= 80 ? t.palette.success.main : audit.score >= 50 ? t.palette.warning.main : t.palette.error.main;
-  const gauge = useMemo<EChartsOption>(() => ({
-    series: [{
-      type: 'gauge', startAngle: 210, endAngle: -30, min: 0, max: 100, radius: '100%',
-      progress: { show: true, width: 14, itemStyle: { color: scoreColor } },
-      axisLine: { lineStyle: { width: 14, color: [[1, t.palette.action.hover]] } },
-      axisTick: { show: false }, splitLine: { show: false }, axisLabel: { show: false }, pointer: { show: false },
-      anchor: { show: false },
-      detail: { valueAnimation: true, fontSize: 30, offsetCenter: [0, 0], color: scoreColor, formatter: '{value}' },
-      data: [{ value: audit.score }],
-    }],
+  const gauge = useMemo<EChartsOption>(() => gaugeOption(t, {
+    value: audit.score,
+    color: scoreColor,
+    formatter: '{value}',
+    radius: '100%',
   }), [audit.score, scoreColor, t]);
 
   return (
@@ -80,7 +76,7 @@ export function MarketingPane() {
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '300px 1fr' }, gap: 1.5, mb: 3, alignItems: 'stretch' }}>
           <Card sx={{ p: 2 }}>
             <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 0.5 })}>SEO score</Typography>
-            <Chart option={gauge} height={170} />
+            <StudioChart option={gauge} height={170} />
             <Typography sx={{ textAlign: 'center', fontSize: text.s78, color: 'text.secondary', mt: -1 }}>{audit.checks.filter((c) => c.passed).length}/{audit.checks.length} checks passing</Typography>
           </Card>
           <Card sx={{ p: 2 }}>

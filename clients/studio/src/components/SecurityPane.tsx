@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Box, Button, Card, Chip, Stack, Typography } from '@mui/material';
 import { useTheme, type Theme } from '@mui/material/styles';
-import { DataGrid, type DataGridCellParams, type DataGridColumn } from '@ironflyer/ui-web/data-grid';
 import { toast } from '@ironflyer/ui-web/fx';
 import { useGraphQLQuery, operations } from '@ironflyer/data';
 import { severityRank, type SecurityState, type Severity } from '../studioData';
@@ -10,6 +9,7 @@ import { useStudio } from '../store';
 import { useProjectExecutions } from '../hooks/useLatestExecution';
 import { useDispatchAgent } from '../hooks/useDispatchAgent';
 import { TechIcon } from '../lib/techIcons';
+import { StudioDataGrid, type DataGridCellParams, type DataGridColumn } from './tables';
 import { text } from '@ironflyer/design-tokens/brand';
 
 interface Row { id: string; severity: Severity; title: string; category: string; location: string; scanner: string; remediation: string }
@@ -308,7 +308,7 @@ export function SecurityPane({ fallback }: { fallback: SecurityState }) {
             Fix selected{selected.length > 0 ? ` (${selected.length})` : ''}
           </Button>
         </Stack>
-        <DataGrid
+        <StudioDataGrid
           rows={rows}
           columns={columns}
           getRowId={(row) => row.id}

@@ -1,11 +1,11 @@
 import { useMemo } from 'react';
 import { Box, Card, Chip, FormControlLabel, Stack, Switch, Typography } from '@mui/material';
 import { useTheme, type Theme } from '@mui/material/styles';
-import { Chart, type EChartsOption } from '@ironflyer/ui-web/fx';
-import { DataTable, type DataTableColumn } from '@ironflyer/ui-web/data-table';
 import { useGraphQLQuery, operations } from '@ironflyer/data';
 import { useOperateProjectId } from '../hooks/useOperateProjectId';
 import { useOperateMutation } from '../hooks/useOperateMutation';
+import { StudioChart, gaugeOption, type EChartsOption } from '../components/charts';
+import { StudioDataTable, type DataTableColumn } from '../components/tables';
 import { text } from '@ironflyer/design-tokens/brand';
 
 // Test coverage for the operator's generated project (NOT Ironflyer's own
@@ -72,16 +72,9 @@ export function CoveragePane() {
     );
   };
 
-  const gauge = useMemo<EChartsOption>(() => ({
-    series: [{
-      type: 'gauge', startAngle: 210, endAngle: -30, min: 0, max: 100,
-      progress: { show: true, width: 14, itemStyle: { color: covColor(t, report.overallPct) } },
-      axisLine: { lineStyle: { width: 14, color: [[1, t.palette.action.hover]] } },
-      axisTick: { show: false }, splitLine: { show: false }, axisLabel: { show: false }, pointer: { show: false },
-      anchor: { show: false },
-      detail: { valueAnimation: true, formatter: '{value}%', color: covColor(t, report.overallPct), fontSize: 30, offsetCenter: [0, 0] },
-      data: [{ value: report.overallPct }],
-    }],
+  const gauge = useMemo<EChartsOption>(() => gaugeOption(t, {
+    value: report.overallPct,
+    color: covColor(t, report.overallPct),
   }), [report.overallPct, t]);
 
   const metrics = [
@@ -135,7 +128,7 @@ export function CoveragePane() {
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '300px 1fr' }, gap: 1.5, mb: 3, alignItems: 'stretch' }}>
               <Card sx={{ p: 2 }}>
                 <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 0.5 })}>Overall coverage</Typography>
-                <Chart option={gauge} height={200} />
+                <StudioChart option={gauge} height={200} />
               </Card>
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr' }, gap: 1.5 }}>
                 {metrics.map((m) => (
@@ -170,7 +163,7 @@ export function CoveragePane() {
             )}
 
             <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s70, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>By file</Typography>
-            <DataTable
+            <StudioDataTable
               rows={files} columns={columns}
               getRowId={(row) => row.path}
               density="compact" emptyLabel="No coverage report yet — run the finisher." height={360} minHeight={240}

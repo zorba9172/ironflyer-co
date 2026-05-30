@@ -3,12 +3,14 @@ import { Box, Button, CircularProgress, IconButton, Menu, MenuItem, Stack, Toolt
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@ironflyer/ui-web/fx';
 import { VscChevronDown } from 'react-icons/vsc';
+import { LuMoon, LuSun } from 'react-icons/lu';
 import { LogoMark } from './LogoMark';
 import { AccountMenu } from './AccountMenu';
 import { CostHUD } from './CostHUD';
 import { PrivateModeChip } from './PrivateModeChip';
 import { useStudio } from '../store';
 import { useSaveProject } from '../hooks/useSaveProject';
+import { useThemeMode } from '../theme';
 import { text } from '@ironflyer/design-tokens/brand';
 
 export type EditorTab =
@@ -16,7 +18,7 @@ export type EditorTab =
   | 'dashboard' | 'documents' | 'logs' | 'quality' | 'team'
   | 'data' | 'users' | 'analytics' | 'domains' | 'automations' | 'api' | 'marketing' | 'settings';
 
-type EditorTabGroupId = 'build' | 'review' | 'operate' | 'business';
+type EditorTabGroupId = 'build' | 'preview' | 'review' | 'operate' | 'business';
 type EditorTabTone = 'success' | 'warning' | 'error' | 'info';
 
 export interface EditorDeployReadiness {
@@ -32,10 +34,16 @@ const TAB_GROUPS: { id: EditorTabGroupId; label: string; items: EditorTabItem[] 
     id: 'build',
     label: 'Build',
     items: [
-      { value: 'preview', label: 'Preview' },
       { value: 'code', label: 'Code' },
       { value: 'team', label: 'Execution team' },
       { value: 'documents', label: 'Documents' },
+    ],
+  },
+  {
+    id: 'preview',
+    label: 'Preview',
+    items: [
+      { value: 'preview', label: 'Live build' },
     ],
   },
   {
@@ -79,6 +87,7 @@ export function EditorTopBar({ projectName, tab, onTab, onDeploy, deployReadines
   const fileCount = useStudio((s) => s.generatedFiles.length);
   const saved = useStudio((s) => s.saved);
   const { save, saving } = useSaveProject();
+  const { mode, toggle } = useThemeMode();
   const readinessColor = deployReadiness ? `${deployReadiness.tone}.main` : 'text.disabled';
 
   const onSave = async () => {
@@ -118,13 +127,19 @@ export function EditorTopBar({ projectName, tab, onTab, onDeploy, deployReadines
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25, bgcolor: 'action.hover', borderRadius: 99, p: 0.5, minWidth: 0 }}>
         {TAB_GROUPS.map((group) => {
           const selected = activeGroup.id === group.id;
-          const activeLabel = group.items.find((d) => d.value === tab)?.label;
+          const activeLabel = group.items.length > 1 ? group.items.find((d) => d.value === tab)?.label : null;
           return (
             <Button
               key={group.id}
               size="small"
-              onClick={(e) => setGroupAnchor({ id: group.id, el: e.currentTarget })}
-              endIcon={<VscChevronDown size={12} />}
+              onClick={(e) => {
+                if (group.items.length === 1) {
+                  onTab(group.items[0]!.value);
+                  return;
+                }
+                setGroupAnchor({ id: group.id, el: e.currentTarget });
+              }}
+              endIcon={group.items.length > 1 ? <VscChevronDown size={12} /> : undefined}
               sx={{
                 borderRadius: 99,
                 px: 1.4,
@@ -166,6 +181,24 @@ export function EditorTopBar({ projectName, tab, onTab, onDeploy, deployReadines
           {saving ? 'Saving' : saved && fileCount > 0 ? 'Saved' : 'Save'}
         </Button>
         <Button variant="contained" size="small" onClick={onDeploy}>Deploy</Button>
+        <Tooltip title={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
+          <IconButton
+            size="small"
+            onClick={toggle}
+            aria-label={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            sx={{
+              width: 30,
+              height: 30,
+              border: 1,
+              borderColor: 'divider',
+              color: 'text.secondary',
+              bgcolor: 'action.hover',
+              '&:hover': { color: 'text.primary', bgcolor: 'background.paper' },
+            }}
+          >
+            {mode === 'dark' ? <LuSun size={15} /> : <LuMoon size={15} />}
+          </IconButton>
+        </Tooltip>
         <AccountMenu size={28} />
       </Stack>
     </Box>

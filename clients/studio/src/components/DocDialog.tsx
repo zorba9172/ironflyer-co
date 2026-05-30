@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material';
 import { CodeEditor, toast } from '@ironflyer/ui-web/fx';
-import { useThemeMode } from '@ironflyer/ui-web';
+import { useThemeMode } from '../theme';
 import type { Attachment } from '../store';
 import { text } from '@ironflyer/design-tokens/brand';
 

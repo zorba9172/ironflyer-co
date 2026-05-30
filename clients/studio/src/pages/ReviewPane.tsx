@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react';
 import { Box, Card, Chip, Stack, Typography } from '@mui/material';
 import { useTheme, type Theme } from '@mui/material/styles';
-import { Chart, type EChartsOption, confirmAction, toast } from '@ironflyer/ui-web/fx';
+import { confirmAction, toast } from '@ironflyer/ui-web/fx';
 import { useRequest, operations } from '@ironflyer/data';
 import { PatchDiff } from '../components/PatchDiff';
 import { useLiveGates } from '../hooks/useLiveGates';
 import { agentForGate } from '../studioData';
 import type { Finding, Patch } from '../studioData';
+import { StudioChart, donutOption, type EChartsOption } from '../components/charts';
 import { text } from '@ironflyer/design-tokens/brand';
 
 interface PatchRow extends Patch { gateId: string; gateName: string }
@@ -61,16 +62,12 @@ export function ReviewPane() {
       { value: proposed.length, name: 'To review', itemStyle: { color: t.palette.warning.main } },
       { value: applied.length, name: 'Applied', itemStyle: { color: t.palette.success.main } },
     ].filter((d) => d.value > 0);
-    return {
-      tooltip: { trigger: 'item' },
-      legend: { bottom: 0, textStyle: { color: t.palette.text.secondary, fontSize: 11 } },
-      series: [{
-        type: 'pie', radius: ['58%', '80%'], avoidLabelOverlap: true,
-        itemStyle: { borderColor: t.palette.background.paper, borderWidth: 2 },
-        label: { show: true, position: 'center', formatter: proposed.length > 0 ? `${proposed.length}\nto review` : 'all\nreviewed', color: proposed.length > 0 ? t.palette.warning.main : t.palette.success.main, fontSize: 22, lineHeight: 22 },
-        data: data.length ? data : [{ value: 1, name: 'No patches', itemStyle: { color: t.palette.action.hover } }],
-      }],
-    };
+    return donutOption(t, {
+      data: data.map((d) => ({ value: d.value, name: d.name, color: d.itemStyle.color })),
+      centerLabel: proposed.length > 0 ? `${proposed.length}\nto review` : 'all\nreviewed',
+      centerColor: proposed.length > 0 ? t.palette.warning.main : t.palette.success.main,
+      emptyLabel: 'No patches',
+    });
   }, [proposed.length, applied.length, t]);
 
   const metrics = [
@@ -94,7 +91,7 @@ export function ReviewPane() {
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '300px 1fr' }, gap: 1.5, mb: 3, alignItems: 'stretch' }}>
           <Card sx={{ p: 2 }}>
             <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 0.5 })}>Patch states</Typography>
-            <Chart option={donut} height={200} />
+            <StudioChart option={donut} height={200} />
           </Card>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr' }, gap: 1.5 }}>
             {metrics.map((m) => (

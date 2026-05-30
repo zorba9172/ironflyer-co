@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import { Box, Card, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { Chart, type EChartsOption } from '@ironflyer/ui-web/fx';
 import { useGraphQLQuery, operations } from '@ironflyer/data';
 import { useOperateProjectId } from '../hooks/useOperateProjectId';
 import { PaneHeader } from '../components/operate/PaneHeader';
+import { StudioChart, lineTrendOption, type EChartsOption } from '../components/charts';
 import { text } from '@ironflyer/design-tokens/brand';
 
 interface MetricPoint { ts: string; visitors: number; pageViews: number; sessions: number }
@@ -43,15 +43,11 @@ export function AnalyticsPane() {
     map: (r) => r.appAnalytics ?? sample(days),
   });
 
-  const trend = useMemo<EChartsOption>(() => ({
-    grid: { left: 44, right: 16, top: 24, bottom: 28 },
-    tooltip: { trigger: 'axis' },
-    legend: { top: 0, right: 0, textStyle: { color: t.palette.text.secondary, fontSize: 11 } },
-    xAxis: { type: 'category', boundaryGap: false, data: data.series.map((p) => new Date(p.ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })), axisLabel: { color: t.palette.text.disabled, fontSize: 10 }, axisLine: { lineStyle: { color: t.palette.divider } } },
-    yAxis: { type: 'value', axisLabel: { color: t.palette.text.disabled, fontSize: 10 }, splitLine: { lineStyle: { color: t.palette.divider } } },
+  const trend = useMemo<EChartsOption>(() => lineTrendOption(t, {
+    categories: data.series.map((p) => new Date(p.ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })),
     series: [
-      { name: 'Visitors', type: 'line', smooth: true, showSymbol: false, areaStyle: { opacity: 0.12 }, lineStyle: { width: 2, color: t.brand.accent.primary }, itemStyle: { color: t.brand.accent.primary }, data: data.series.map((p) => p.visitors) },
-      { name: 'Page views', type: 'line', smooth: true, showSymbol: false, lineStyle: { width: 2, color: t.brand.accent.secondary }, itemStyle: { color: t.brand.accent.secondary }, data: data.series.map((p) => p.pageViews) },
+      { name: 'Visitors', data: data.series.map((p) => p.visitors), area: true },
+      { name: 'Page views', data: data.series.map((p) => p.pageViews) },
     ],
   }), [data, t]);
 
@@ -104,7 +100,7 @@ export function AnalyticsPane() {
 
         <Card sx={{ p: 2, mb: 1.5 }}>
           <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 0.5 })}>Traffic</Typography>
-          <Chart option={trend} height={260} />
+          <StudioChart option={trend} height={260} />
         </Card>
 
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 1.5 }}>

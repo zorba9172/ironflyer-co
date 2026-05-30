@@ -1,5 +1,6 @@
 import { lazy, Suspense, useState } from 'react';
 import { Box, CircularProgress } from '@mui/material';
+import { useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion, confirmAction } from '@ironflyer/ui-web/fx';
 import { formatUSD } from '@ironflyer/core';
 import { EditorTopBar, type EditorTab, type EditorDeployReadiness } from '../components/EditorTopBar';
@@ -35,6 +36,16 @@ const ApiPane = lazy(() => import('./ApiPane').then((m) => ({ default: m.ApiPane
 const MarketingPane = lazy(() => import('./MarketingPane').then((m) => ({ default: m.MarketingPane })));
 const SettingsPane = lazy(() => import('./SettingsPane').then((m) => ({ default: m.SettingsPane })));
 
+const EDITOR_TABS = new Set<EditorTab>([
+  'preview', 'map', 'security', 'code',
+  'dashboard', 'documents', 'logs', 'quality', 'team',
+  'data', 'users', 'analytics', 'domains', 'automations', 'api', 'marketing', 'settings',
+]);
+
+function tabFromQuery(value: string | null): EditorTab {
+  return value && EDITOR_TABS.has(value as EditorTab) ? value as EditorTab : 'preview';
+}
+
 function PaneFallback() {
   return (
     <Box sx={{ flex: 1, display: 'grid', placeItems: 'center', bgcolor: 'background.default' }}>
@@ -46,10 +57,10 @@ function PaneFallback() {
 export function Editor() {
   const project = useStudio((s) => s.current);
   const initialPrompt = useStudio((s) => s.initialPrompt);
-  // Land on the live preview when a scaffold is already seeded (instant-start
-  // from a template) so the running app is the first thing the operator sees.
-  const seededFiles = useStudio((s) => s.generatedFiles.length > 0);
-  const [tab, setTab] = useState<EditorTab>(seededFiles ? 'preview' : 'dashboard');
+  const [searchParams] = useSearchParams();
+  // Preview is the proof surface. Even before files stream in, the empty state
+  // shows exactly where the app will render live.
+  const [tab, setTab] = useState<EditorTab>(() => tabFromQuery(searchParams.get('tab')));
 
   const { wallet, isLive: walletLive } = useWallet();
   const { dispatch } = useDispatchAgent();
@@ -107,7 +118,7 @@ export function Editor() {
   };
 
   return (
-    <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ height: '100dvh', display: 'flex', flexDirection: 'column', bgcolor: 'background.default' }}>
       <EditorTopBar projectName={project.name} tab={tab} onTab={setTab} onDeploy={onDeploy} deployReadiness={deployReadiness} />
       <Box sx={{ flex: 1, display: 'flex', minHeight: 0 }}>
         <ChatPanel initialPrompt={initialPrompt} />

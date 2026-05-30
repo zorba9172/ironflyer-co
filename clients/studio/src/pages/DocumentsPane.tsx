@@ -1,11 +1,12 @@
 import { useMemo, useRef, useState } from 'react';
 import { Box, Button, Card, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { DataGrid, type DataGridCellParams, type DataGridColumn } from '@ironflyer/ui-web/data-grid';
-import { Chart, type EChartsOption, CodeEditor, toast, Lightbox } from '@ironflyer/ui-web/fx';
-import { useThemeMode } from '@ironflyer/ui-web';
+import { CodeEditor, toast, Lightbox } from '@ironflyer/ui-web/fx';
+import { useThemeMode } from '../theme';
 import { useStudio, type Attachment } from '../store';
 import { DocDialog } from '../components/DocDialog';
+import { StudioChart, donutOption, type EChartsOption } from '../components/charts';
+import { StudioDataGrid, type DataGridCellParams, type DataGridColumn } from '../components/tables';
 import { text } from '@ironflyer/design-tokens/brand';
 
 function readFile(file: File): Promise<Attachment> {
@@ -96,18 +97,15 @@ export function DocumentsPane() {
       file: t.palette.text.disabled,
     };
     const data = Object.entries(byKind).map(([kind, value]) => ({
-      value, name: kind, itemStyle: { color: tone[kind] ?? t.palette.primary.main },
+      value,
+      name: kind,
+      color: tone[kind] ?? t.palette.primary.main,
     }));
-    return {
-      tooltip: { trigger: 'item' },
-      legend: { bottom: 0, textStyle: { color: t.palette.text.secondary, fontSize: 11 } },
-      series: [{
-        type: 'pie', radius: ['58%', '80%'], avoidLabelOverlap: true,
-        itemStyle: { borderColor: t.palette.background.paper, borderWidth: 2 },
-        label: { show: true, position: 'center', formatter: grounding > 0 ? `${grounding}\ngrounding` : `${attachments.length}\ndocs`, color: grounding > 0 ? t.palette.success.main : t.palette.text.secondary, fontSize: 22, lineHeight: 22 },
-        data,
-      }],
-    };
+    return donutOption(t, {
+      data,
+      centerLabel: grounding > 0 ? `${grounding}\ngrounding` : `${attachments.length}\ndocs`,
+      centerColor: grounding > 0 ? t.palette.success.main : t.palette.text.secondary,
+    });
   }, [attachments, grounding, t]);
 
   return (
@@ -130,7 +128,7 @@ export function DocumentsPane() {
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '300px 1fr' }, gap: 1.5, mb: 3, alignItems: 'stretch' }}>
             <Card sx={{ p: 2 }}>
               <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s66, textTransform: 'uppercase', color: 'text.disabled', mb: 0.5 })}>Documents by type</Typography>
-              <Chart option={typeDonut} height={200} />
+              <StudioChart option={typeDonut} height={200} />
             </Card>
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr' }, gap: 1.5 }}>
               {[
@@ -198,7 +196,7 @@ export function DocumentsPane() {
               </Box>
             </Lightbox>
           ) : (
-            <DataGrid
+            <StudioDataGrid
               rows={attachments}
               columns={columns}
               getRowId={(row) => row.id}

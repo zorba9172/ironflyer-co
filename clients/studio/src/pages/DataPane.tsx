@@ -2,10 +2,10 @@ import { useMemo, useState } from 'react';
 import { Box, Card, Chip, Stack, Tooltip, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { FlowCanvas, type FlowNode, type FlowEdge, type HandleSpec } from '@ironflyer/ui-web/fx';
-import { DataTable, type DataTableColumn } from '@ironflyer/ui-web/data-table';
 import { useGraphQLQuery, operations } from '@ironflyer/data';
 import { useOperateProjectId } from '../hooks/useOperateProjectId';
 import { PaneHeader } from '../components/operate/PaneHeader';
+import { StudioDataTable, type DataTableColumn } from '../components/tables';
 import { text } from '@ironflyer/design-tokens/brand';
 
 interface AppColumn { name: string; type: string; nullable: boolean; primaryKey: boolean; references: string | null }
@@ -215,7 +215,7 @@ export function DataPane() {
           ))}
         </Stack>
 
-        <DataTable
+        <StudioDataTable
           rows={rowsData.rows ?? []} columns={gridColumns}
           getRowId={(row) => String((row as Record<string, unknown>).id ?? JSON.stringify(row))}
           density="compact" emptyLabel={activeTable ? `No rows in ${activeTable}.` : 'No tables in this app yet.'} height={420} minHeight={240}

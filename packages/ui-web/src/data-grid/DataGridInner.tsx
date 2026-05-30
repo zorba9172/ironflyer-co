@@ -30,6 +30,7 @@ export interface DataGridProps<TData extends object> {
   onReady?: (event: GridReadyEvent<TData>) => void;
   onRowClick?: (row: TData, event: RowClickedEvent<TData>) => void;
   gridOptions?: Partial<AgGridReactProps<TData>>;
+  cssVars?: CSSProperties;
   sx?: SxProps<Theme>;
 }
 
@@ -49,6 +50,7 @@ export default function DataGridInner<TData extends object>({
   onReady,
   onRowClick,
   gridOptions,
+  cssVars,
   sx,
 }: DataGridProps<TData>) {
   const theme = useTheme();
@@ -88,7 +90,7 @@ export default function DataGridInner<TData extends object>({
     <Box
       className={`if-data-grid ag-theme-quartz${density === 'compact' ? ' if-data-grid--compact' : ''}`}
       sx={rootSx}
-      style={vars}
+      style={{ ...vars, ...cssVars }}
     >
       <AgGridReact<TData>
         modules={communityModules}
