@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Box, Button, Chip, InputBase, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { LuSearch, LuPlug, LuX } from 'react-icons/lu';
+import { Icon } from '../icons';
 import { toast } from '@ironflyer/ui-web/fx';
 import { useGraphQLQuery, operations } from '@ironflyer/data';
 import { useLiveProjectId } from '../hooks/useLiveProjectId';
@@ -99,7 +99,7 @@ export function IntegrationsPage() {
       >
         <Box sx={{ minWidth: 0 }}>
           <Chip
-            icon={<LuPlug size={15} />}
+            icon={<Icon name="plug" size={15} />}
             label="Connectors"
             sx={(theme) => ({
               height: 28,
@@ -166,7 +166,7 @@ export function IntegrationsPage() {
           })}
         >
           <Box component="span" sx={{ display: 'flex', color: 'text.disabled' }}>
-            <LuSearch size={17} />
+            <Icon name="search" size={17} />
           </Box>
           <InputBase
             fullWidth
@@ -194,7 +194,7 @@ export function IntegrationsPage() {
                 '&:hover': { color: theme.palette.text.primary },
               })}
             >
-              <LuX size={15} />
+              <Icon name="close" size={15} />
             </Box>
           )}
         </Box>
@@ -279,9 +279,9 @@ export function IntegrationsPage() {
               border: `1px solid ${theme.palette.borderSubtle}`,
             })}
           >
-            <LuSearch size={22} />
+            <Icon name="search" size={22} />
           </Box>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+          <Typography variant="subtitle1" sx={(theme) => ({ fontWeight: theme.typography.fontWeightBold })}>
             No integrations found
           </Typography>
           <Typography color="text.secondary" sx={{ maxWidth: 360 }}>

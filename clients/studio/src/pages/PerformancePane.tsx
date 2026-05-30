@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import type { ReactElement } from 'react';
 import { Box, Button, Chip, Stack, Typography } from '@mui/material';
 import { useTheme, type Theme } from '@mui/material/styles';
 import { useGraphQLQuery, operations } from '@ironflyer/data';
@@ -7,6 +6,7 @@ import { useLiveProjectId } from '../hooks/useLiveProjectId';
 import { useDispatchAgent } from '../hooks/useDispatchAgent';
 import { useStudio } from '../store';
 import { text } from '@ironflyer/design-tokens/brand';
+import { Icon, type IconName } from '../icons';
 import { GlassPanel, SectionHeader, GaugeRing } from '../components/studio';
 import { StudioTableShell, type StudioTableTab } from '../components/tables';
 
@@ -34,30 +34,6 @@ const SAMPLE: PerfRow[] = [
   { id: 'unused_js', area: 'Frontend', name: 'Unused JavaScript', status: 'warning', detail: '240KB of unused JS detected' },
 ];
 
-function icon(paths: string[], size = 17) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-      {paths.map((d) => <path key={d} d={d} />)}
-    </svg>
-  );
-}
-
-const icons = {
-  spark: icon(['M12 3l1.5 5.5L17 10l-3.5 1.5L12 17l-1.5-5.5L7 10l3.5-1.5z', 'M19 15l.7 2.3L22 18l-2.3.7L19 21l-.7-2.3L16 18l2.3-.7z']),
-  cube: icon(['M12 3l8 4.5v9L12 21l-8-4.5v-9z', 'M12 12l8-4.5', 'M12 12v9', 'M12 12L4 7.5']),
-  pulse: icon(['M3 12h4l2-5 4 10 2-5h6']),
-  chip: icon(['M8 3v3M16 3v3M8 18v3M16 18v3M3 8h3M18 8h3M3 16h3M18 16h3', 'M7 7h10v10H7z']),
-  braces: icon(['M8 4H7a3 3 0 00-3 3v2a2 2 0 01-2 2 2 2 0 012 2v2a3 3 0 003 3h1', 'M16 4h1a3 3 0 013 3v2a2 2 0 002 2 2 2 0 00-2 2v2a3 3 0 01-3 3h-1']),
-  doc: icon(['M7 3h7l5 5v13H7z', 'M14 3v6h5', 'M10 13h6', 'M10 17h4']),
-  desktop: icon(['M4 5h16v11H4z', 'M9 21h6', 'M12 16v5']),
-  server: icon(['M4 5h16v5H4z', 'M4 14h16v5H4z', 'M7 7h.01M7 16h.01']),
-  shield: icon(['M12 3l7 3v5c0 5-3.4 8.4-7 10-3.6-1.6-7-5-7-10V6z']),
-  filter: icon(['M4 6h16', 'M7 12h10', 'M10 18h4']),
-  fix: icon(['M14.7 6.3a3 3 0 00-4 4L4 17v3h3l6.7-6.7a3 3 0 004-4z', 'M16 5l3 3']),
-  arrow: icon(['M5 12h14', 'M13 6l6 6-6 6']),
-  check: icon(['M20 6L9 17l-5-5']),
-};
-
 const titleCase = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 const isClosed = (s: string) => ['pass', 'passed'].includes(s.toLowerCase());
 
@@ -81,19 +57,19 @@ function metricFor(row: PerfRow) {
   return { current: '240KB', target: '<= 50KB', impactPct: '+4%' };
 }
 
-function issueIcon(id: string) {
-  if (id.includes('bundle')) return icons.cube;
-  if (id.includes('lighthouse')) return icons.pulse;
-  if (id.includes('mem')) return icons.chip;
-  if (id.includes('complexity')) return icons.braces;
-  return icons.doc;
+function issueIcon(id: string): IconName {
+  if (id.includes('bundle')) return 'box';
+  if (id.includes('lighthouse')) return 'activity';
+  if (id.includes('mem')) return 'layers';
+  if (id.includes('complexity')) return 'code';
+  return 'info';
 }
 
-function LayerRow({ iconNode, label, issues, tone, value }: { iconNode: ReactElement; label: string; issues: string; tone: string; value: number }) {
+function LayerRow({ iconName, label, issues, tone, value }: { iconName: IconName; label: string; issues: string; tone: string; value: number }) {
   return (
     <Stack direction="row" alignItems="center" spacing={2} sx={{ py: 1.65, borderBottom: '1px solid', borderColor: 'divider' }}>
-      <Box sx={{ width: 26, color: 'text.secondary', display: 'grid', placeItems: 'center' }}>{iconNode}</Box>
-      <Typography sx={{ flex: 1, fontWeight: 800, fontSize: text.s90 }}>{label}</Typography>
+      <Box sx={{ width: 26, color: 'text.secondary', display: 'grid', placeItems: 'center' }}><Icon name={iconName} size={17} /></Box>
+      <Typography variant="body2" sx={{ flex: 1, fontWeight: 700, color: 'text.primary' }}>{label}</Typography>
       <Typography sx={{ width: 82, color: tone, fontSize: text.s78, fontWeight: 700 }}>{issues}</Typography>
       <Box sx={{ width: 140, height: 7, borderRadius: 99, bgcolor: 'action.hover', overflow: 'hidden' }}>
         <Box sx={{ width: `${value}%`, height: '100%', borderRadius: 99, bgcolor: tone }} />
@@ -134,7 +110,7 @@ function IssueRow({ row, onFix }: { row: PerfRow; onFix: (row: PerfRow) => void 
           flexShrink: 0,
         }}
       >
-        {issueIcon(row.id)}
+        <Icon name={issueIcon(row.id)} size={18} />
       </Box>
       <Box sx={{ minWidth: 0, flex: 1 }}>
         <Stack direction="row" spacing={1} alignItems="center">
@@ -155,7 +131,7 @@ function IssueRow({ row, onFix }: { row: PerfRow; onFix: (row: PerfRow) => void 
         <Typography sx={{ color: 'text.disabled', fontSize: text.s62 }}>Impact</Typography>
         <Typography sx={{ color: tone, fontSize: text.s78, fontWeight: 700 }}>{metric.impactPct}</Typography>
       </Box>
-      <Button size="small" variant="outlined" onClick={() => onFix(row)} startIcon={icons.spark} sx={{ borderRadius: 999, minWidth: 74 }}>
+      <Button size="small" variant="outlined" onClick={() => onFix(row)} startIcon={<Icon name="sparkles" size={15} />} sx={{ borderRadius: 999, minWidth: 74 }}>
         Fix
       </Button>
     </Stack>
@@ -260,7 +236,7 @@ export function PerformancePane() {
                 variant="contained"
                 onClick={fixAll}
                 disabled={open === 0}
-                startIcon={icons.spark}
+                startIcon={<Icon name="sparkles" size={17} />}
                 sx={{ minHeight: 46, px: 3.5, borderRadius: '12px' }}
               >
                 Fix {open} issues automatically
@@ -276,7 +252,7 @@ export function PerformancePane() {
             <GlassPanel pad={3} sx={{ mb: 3 }}>
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '280px 1fr' }, gap: 3, alignItems: 'center' }}>
                 <Box sx={{ textAlign: 'center', borderRight: { md: '1px solid' }, borderColor: { md: 'divider' }, pr: { md: 3 } }}>
-                  <Typography sx={{ fontWeight: 800, fontSize: text.s105, mb: 1.5 }}>Production Readiness</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 800, mb: 1.5 }}>Production Readiness</Typography>
                   <GaugeRing
                     value={score}
                     color={gaugeColor}
@@ -293,10 +269,10 @@ export function PerformancePane() {
                 </Box>
 
                 <Box>
-                  <LayerRow iconNode={icons.desktop} label="Frontend" issues={`${frontendIssues} issue${frontendIssues !== 1 ? 's' : ''}`} tone={t.palette.primary.main} value={62} />
-                  <LayerRow iconNode={icons.server} label="Backend" issues={`${backendIssues} issue${backendIssues !== 1 ? 's' : ''}`} tone={t.palette.warning.main} value={80} />
-                  <LayerRow iconNode={icons.pulse} label="Memory" issues={`${memoryIssues} issue${memoryIssues !== 1 ? 's' : ''}`} tone={memoryTone} value={memoryValue} />
-                  <LayerRow iconNode={icons.shield} label="Security" issues="0 issues" tone={t.palette.success.main} value={100} />
+                  <LayerRow iconName="dashboard" label="Frontend" issues={`${frontendIssues} issue${frontendIssues !== 1 ? 's' : ''}`} tone={t.palette.primary.main} value={62} />
+                  <LayerRow iconName="data" label="Backend" issues={`${backendIssues} issue${backendIssues !== 1 ? 's' : ''}`} tone={t.palette.warning.main} value={80} />
+                  <LayerRow iconName="activity" label="Memory" issues={`${memoryIssues} issue${memoryIssues !== 1 ? 's' : ''}`} tone={memoryTone} value={memoryValue} />
+                  <LayerRow iconName="shieldCheck" label="Security" issues="0 issues" tone={t.palette.success.main} value={100} />
                 </Box>
               </Box>
             </GlassPanel>
@@ -328,8 +304,8 @@ export function PerformancePane() {
             <GlassPanel pad={2.6}>
               <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
                 <Stack direction="row" spacing={1} alignItems="center">
-                  <Box sx={(theme) => ({ color: theme.palette.primary.main })}>{icons.spark}</Box>
-                  <Typography sx={{ fontWeight: 800 }}>AI Analysis</Typography>
+                  <Box sx={(theme) => ({ color: theme.palette.primary.main, display: 'inline-flex' })}><Icon name="sparkles" size={18} /></Box>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>AI Analysis</Typography>
                 </Stack>
                 <Chip
                   size="small"
@@ -377,7 +353,7 @@ export function PerformancePane() {
                 fullWidth
                 variant="outlined"
                 onClick={() => fixOne(largestIssue)}
-                startIcon={icons.fix}
+                startIcon={<Icon name="wrench" size={16} />}
                 sx={{ mt: 2.2, borderRadius: '12px', minHeight: 42 }}
               >
                 Preview Fix
@@ -391,8 +367,8 @@ export function PerformancePane() {
             <GlassPanel pad={2.6}>
               <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
                 <Stack direction="row" spacing={1} alignItems="center">
-                  <Box sx={(theme) => ({ color: theme.palette.primary.main })}>{icons.spark}</Box>
-                  <Typography sx={{ fontWeight: 800 }}>AI Optimization Agent</Typography>
+                  <Box sx={(theme) => ({ color: theme.palette.primary.main, display: 'inline-flex' })}><Icon name="bot" size={18} /></Box>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>AI Optimization Agent</Typography>
                 </Stack>
                 <Chip
                   size="small"
@@ -418,7 +394,7 @@ export function PerformancePane() {
                       placeItems: 'center',
                     })}
                   >
-                    {icons.check}
+                    <Icon name="check" size={11} />
                   </Box>
                   <Typography sx={{ color: 'text.secondary', fontSize: text.s82 }}>{item}</Typography>
                 </Stack>
@@ -434,8 +410,8 @@ export function PerformancePane() {
                 />
                 <Typography sx={{ color: 'text.secondary', fontSize: text.s82 }}>Ready to apply fixes</Typography>
               </Stack>
-              <Button fullWidth endIcon={icons.arrow} sx={(theme) => ({ mt: 1.4, color: theme.palette.primary.main })}>
-                Learn last scan logs
+              <Button fullWidth endIcon={<Icon name="arrowRight" size={16} />} sx={(theme) => ({ mt: 1.4, color: theme.palette.primary.main })}>
+                View last scan logs
               </Button>
               <Typography sx={{ color: 'text.disabled', fontSize: text.s68, mt: 1, textAlign: 'center' }}>
                 Sentinel burn rate: ${forecast.burnRatePerHourUSD.toFixed(2)}/h

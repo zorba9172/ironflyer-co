@@ -6,7 +6,7 @@ import { text } from '@ironflyer/design-tokens/brand';
 function MemberAvatar({ name, manager }: { name: string; manager?: boolean }) {
   return (
     <Tooltip title={manager ? `${name} · manager` : name} arrow>
-      <Box sx={(t) => ({ width: 28, height: 28, borderRadius: '50%', display: 'grid', placeItems: 'center', fontSize: text.s70, fontWeight: 700, color: t.palette.primary.contrastText, backgroundImage: t.brand.gradient.signature, border: manager ? `2px solid ${t.palette.warning.main}` : 'none', marginLeft: '-6px', boxShadow: `0 0 0 2px ${t.palette.background.paper}` })}>
+      <Box sx={(t) => ({ width: 28, height: 28, borderRadius: '50%', display: 'grid', placeItems: 'center', fontSize: text.s70, fontWeight: t.typography.fontWeightBold, color: t.palette.primary.contrastText, backgroundImage: t.studio.gradient.signature, border: manager ? `2px solid ${t.palette.warning.main}` : 'none', marginLeft: '-6px', boxShadow: `0 0 0 2px ${t.palette.background.paper}` })}>
         {(name.trim()[0] ?? 'A').toUpperCase()}
       </Box>
     </Tooltip>

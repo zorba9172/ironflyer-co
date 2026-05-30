@@ -51,8 +51,8 @@ declare module '@mui/material/styles' {
 function paletteFor(mode: StudioMode) {
   const m = modes[mode];
   return {
-    primary: { main: '#F2672E', dark: '#D94F18', contrastText: '#FFFFFF' },
-    secondary: { main: neon.blue },
+    primary: { main: neon.indigo, dark: '#4F46E5', contrastText: '#FFFFFF' },
+    secondary: { main: neon.violet },
     info: { main: neon.blue },
     success: { main: neon.success },
     warning: { main: neon.warning },
@@ -89,13 +89,46 @@ export const studioTheme = extendTheme({
   shape: { borderRadius: radius.sm },
   typography: {
     fontFamily: font.family,
-    h1: { fontWeight: font.weight.heavy, letterSpacing: 0, lineHeight: 1.04 },
-    h2: { fontWeight: font.weight.heavy, letterSpacing: 0, lineHeight: 1.1 },
-    h3: { fontWeight: font.weight.bold, lineHeight: 1.2 },
-    h4: { fontWeight: font.weight.bold },
-    h5: { fontWeight: font.weight.bold },
-    h6: { fontWeight: font.weight.bold },
-    button: { textTransform: 'none', fontWeight: font.weight.semibold },
+    // ── Display (Bricolage Grotesque) — editorial, tight, characterful ──
+    h1: {
+      fontFamily: font.display,
+      fontWeight: font.weight.bold,
+      fontSize: '3rem', // 48px
+      lineHeight: 1.04,
+      letterSpacing: font.tracking.display,
+    },
+    h2: {
+      fontFamily: font.display,
+      fontWeight: font.weight.bold,
+      fontSize: '2.25rem', // 36px
+      lineHeight: 1.08,
+      letterSpacing: font.tracking.display,
+    },
+    h3: {
+      fontFamily: font.display,
+      fontWeight: font.weight.semibold,
+      fontSize: '1.75rem', // 28px
+      lineHeight: 1.16,
+      letterSpacing: font.tracking.tight,
+    },
+    // ── Section headers (Inter, precise) ──
+    h4: { fontWeight: font.weight.bold, fontSize: '1.375rem', lineHeight: 1.25, letterSpacing: font.tracking.tight }, // 22
+    h5: { fontWeight: font.weight.semibold, fontSize: '1.125rem', lineHeight: 1.3 }, // 18
+    h6: { fontWeight: font.weight.semibold, fontSize: '1rem', lineHeight: 1.4 }, // 16
+    subtitle1: { fontWeight: font.weight.semibold, fontSize: '0.9375rem', lineHeight: 1.45 },
+    subtitle2: { fontWeight: font.weight.semibold, fontSize: '0.8125rem', lineHeight: 1.4 },
+    // ── Body (Inter, comfortable air) ──
+    body1: { fontSize: '0.9375rem', lineHeight: 1.55 }, // 15
+    body2: { fontSize: '0.8125rem', lineHeight: 1.5 }, // 13
+    caption: { fontSize: '0.75rem', lineHeight: 1.4 }, // 12
+    overline: {
+      fontSize: '0.6875rem', // 11
+      fontWeight: font.weight.semibold,
+      lineHeight: 1.3,
+      letterSpacing: font.tracking.label,
+      textTransform: 'uppercase',
+    },
+    button: { textTransform: 'none', fontWeight: font.weight.semibold, letterSpacing: 0 },
   },
   components: {
     MuiCssBaseline: {
@@ -117,11 +150,11 @@ export const studioTheme = extendTheme({
         root: { borderRadius: radius.cta, fontWeight: font.weight.semibold },
         containedPrimary: {
           backgroundImage: gradient.cta,
-          boxShadow: '0 1px 2px rgba(24,22,20,0.12)',
+          boxShadow: '0 1px 2px rgba(16,24,40,0.10)',
           transition: `background-color ${motion.base}, box-shadow ${motion.base}, transform ${motion.base}`,
           '&:hover': {
             transform: 'translateY(-1px)',
-            boxShadow: '0 8px 18px rgba(244,122,69,0.22)',
+            boxShadow: '0 8px 20px rgba(99,102,241,0.28)',
           },
         },
         outlined: ({ theme }) => ({

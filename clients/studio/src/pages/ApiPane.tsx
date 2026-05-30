@@ -6,6 +6,7 @@ import { confirmAction, toast } from '@ironflyer/ui-web/fx';
 import { useGraphQLQuery, useRequest, operations } from '@ironflyer/data';
 import { useOperateProjectId } from '../hooks/useOperateProjectId';
 import { PaneHeader } from '../components/operate/PaneHeader';
+import { Icon } from '../icons';
 import { StudioDataGrid, type DataGridCellParams, type DataGridColumn, type StudioTableTab } from '../components/tables';
 import { StudioChart, donutOption, horizontalBarOption, type EChartsOption } from '../components/charts';
 import { GlassPanel, SectionHeader } from '../components/studio';
@@ -29,7 +30,7 @@ const SAMPLE_HOOKS: Webhook[] = [{ id: 'w1', url: 'https://crm.acme.com/hooks/or
 function methodColor(t: Theme, m: string): string {
   switch (m) {
     case 'GET': return t.palette.success.main;
-    case 'POST': return t.brand.accent.primary;
+    case 'POST': return t.palette.primary.main;
     case 'DELETE': return t.palette.error.main;
     default: return t.palette.warning.main;
   }
@@ -46,24 +47,6 @@ const fmtRelative = (iso: string | null): string => {
   if (hrs < 24) return `${hrs}h ago`;
   return `${Math.floor(hrs / 24)}d ago`;
 };
-
-// Inline copy icon — no external dep
-function CopyIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <rect x="9" y="9" width="13" height="13" rx="2" />
-      <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-    </svg>
-  );
-}
-
-function TrashIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" />
-    </svg>
-  );
-}
 
 export function ApiPane() {
   const t = useTheme();
@@ -279,7 +262,7 @@ export function ApiPane() {
             </Typography>
             <Stack direction="row" alignItems="center" spacing={1}>
               <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s82, flex: 1, wordBreak: 'break-all' })}>{freshSecret}</Typography>
-              <IconButton size="small" onClick={() => copy(freshSecret)} sx={{ color: 'text.secondary' }}><CopyIcon /></IconButton>
+              <IconButton size="small" aria-label="Copy secret" onClick={() => copy(freshSecret)} sx={{ color: 'text.secondary' }}><Icon name="copy" size={14} /></IconButton>
               <Button size="small" variant="outlined" color="inherit" onClick={() => setFreshSecret(null)}>Dismiss</Button>
             </Stack>
           </GlassPanel>
@@ -387,7 +370,7 @@ export function ApiPane() {
                     <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s76, flex: 1, minWidth: 0 })} noWrap>{w.url}</Typography>
                     <Switch size="small" checked={w.enabled} disabled={busy} onChange={() => void toggleHook(w)} />
                     <IconButton size="small" aria-label="Delete webhook" disabled={busy} onClick={() => void deleteHook(w)} sx={{ color: 'text.disabled' }}>
-                      <TrashIcon />
+                      <Icon name="trash" size={14} />
                     </IconButton>
                   </Stack>
                   <Stack direction="row" spacing={0.5} sx={{ mt: 0.75 }}>

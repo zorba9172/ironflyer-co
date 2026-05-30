@@ -9,6 +9,7 @@ import { useStudio } from '../store';
 import { useProjectExecutions } from '../hooks/useLatestExecution';
 import { useDispatchAgent } from '../hooks/useDispatchAgent';
 import { TechIcon } from '../lib/techIcons';
+import { Icon } from '../icons';
 import { StudioDataGrid, type DataGridCellParams, type DataGridColumn, type StudioTableTab } from './tables';
 import { text } from '@ironflyer/design-tokens/brand';
 import { GlassPanel, SectionHeader, GaugeRing } from './studio';
@@ -82,32 +83,6 @@ function buildSarif(rows: Row[]) {
   };
 }
 
-// Shield glyph — inline, no external lib dependency.
-function ShieldIcon({ size = 18 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 3l7 3v5c0 5-3.4 8.4-7 10-3.6-1.6-7-5-7-10V6z" />
-    </svg>
-  );
-}
-
-function SparkIcon({ size = 16 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 3l1.5 5.5L17 10l-3.5 1.5L12 17l-1.5-5.5L7 10l3.5-1.5z" />
-      <path d="M19 15l.7 2.3L22 18l-2.3.7L19 21l-.7-2.3L16 18l2.3-.7z" />
-    </svg>
-  );
-}
-
-function CheckIcon({ size = 14 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20 6L9 17l-5-5" />
-    </svg>
-  );
-}
-
 // A single scanner coverage tile — GlassPanel with live status dot + detail.
 function ScannerTile({
   name, detail, status, source, iconName,
@@ -147,7 +122,7 @@ function PolicyPanel({
     <GlassPanel accent={accent} pad={2.5} sx={{ flex: 1 }}>
       <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1.5 }}>
         <Box sx={{ color: accent, display: 'inline-flex' }}>
-          <ShieldIcon size={20} />
+          <Icon name="shield" size={20} />
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Stack direction="row" alignItems="center" spacing={1}>
@@ -181,7 +156,7 @@ function PolicyPanel({
 
       <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
         {criticalCount > 0 && (
-          <Button size="small" variant="contained" startIcon={<SparkIcon />} onClick={() => onDispatch(`${criticalCount} critical security finding${criticalCount === 1 ? '' : 's'}`)}>
+          <Button size="small" variant="contained" startIcon={<Icon name="sparkles" size={16} />} onClick={() => onDispatch(`${criticalCount} critical security finding${criticalCount === 1 ? '' : 's'}`)}>
             Fix critical first
           </Button>
         )}
@@ -385,7 +360,7 @@ export function SecurityPane({ fallback }: { fallback: SecurityState }) {
                 onClick={() => { downloadText('findings.sarif', JSON.stringify(buildSarif(rows), null, 2)); toast('Findings exported (SARIF 2.1.0).', 'success'); }}>
                 Export SARIF
               </Button>
-              <Button size="small" variant="contained" startIcon={<SparkIcon />} onClick={() => void repairGate('security', 'Security')}>
+              <Button size="small" variant="contained" startIcon={<Icon name="sparkles" size={16} />} onClick={() => void repairGate('security', 'Security')}>
                 Re-run security
               </Button>
             </Stack>
@@ -513,7 +488,7 @@ export function SecurityPane({ fallback }: { fallback: SecurityState }) {
           searchPlaceholder="Search findings"
           actions={
             <Button size="small" variant="contained" disabled={selected.length === 0}
-              startIcon={<SparkIcon />}
+              startIcon={<Icon name="sparkles" size={16} />}
               onClick={() => {
                 void dispatch(`${selected.length} selected security finding${selected.length > 1 ? 's' : ''}`);
                 toast(`Dispatching agent to fix ${selected.length} finding${selected.length > 1 ? 's' : ''}.`, 'success');
@@ -543,7 +518,7 @@ export function SecurityPane({ fallback }: { fallback: SecurityState }) {
           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
             <Stack direction="row" spacing={1} alignItems="center">
               <Box sx={{ color: (th) => th.palette.primary.main }}>
-                <SparkIcon size={17} />
+                <Icon name="sparkles" size={17} />
               </Box>
               <Typography sx={{ fontWeight: 800, fontSize: text.s95 }}>AppSec Agent</Typography>
             </Stack>
@@ -567,7 +542,7 @@ export function SecurityPane({ fallback }: { fallback: SecurityState }) {
                   border: item.done ? 'none' : `2px solid ${th.palette.primary.main}`,
                   color: item.done ? th.palette.background.paper : 'transparent',
                 })}>
-                  {item.done && <CheckIcon size={10} />}
+                  {item.done && <Icon name="check" size={10} />}
                 </Box>
                 <Typography sx={{ fontSize: text.s84, color: item.done ? 'text.primary' : 'text.secondary' }}>
                   {item.label}

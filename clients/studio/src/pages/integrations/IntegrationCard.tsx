@@ -1,5 +1,5 @@
 import { Box, Button, Chip, Stack, Typography } from '@mui/material';
-import { LuCheck, LuPlus } from 'react-icons/lu';
+import { Icon } from '../../icons';
 import { TechIcon } from '../../lib/techIcons';
 
 // One connector tile. Glass surface that "should not feel like a card":
@@ -110,7 +110,7 @@ export function IntegrationCard(props: {
               border: `1px solid ${theme.studio.neon.success}55`,
             })}
           >
-            <LuCheck size={13} strokeWidth={2.5} />
+            <Icon name="check" size={13} strokeWidth={2.5} />
           </Box>
         ) : null}
       </Stack>
@@ -128,7 +128,7 @@ export function IntegrationCard(props: {
         variant={isOn ? 'outlined' : 'contained'}
         color={isOn ? 'inherit' : 'primary'}
         onClick={onToggle}
-        startIcon={isOn ? <LuCheck size={16} strokeWidth={2.5} /> : <LuPlus size={16} strokeWidth={2.5} />}
+        startIcon={isOn ? <Icon name="check" size={16} strokeWidth={2.5} /> : <Icon name="add" size={16} strokeWidth={2.5} />}
         sx={(theme) => ({
           mt: 'auto',
           fontWeight: 600,

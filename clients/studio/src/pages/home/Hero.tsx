@@ -1,26 +1,20 @@
 import { Stack, Typography } from '@mui/material';
 
-export function Hero() {
+// Warm editorial greeting — the first thing the operator reads. Bricolage
+// display weight via the h2 variant (never an inline font); calm muted subline.
+export function Hero(props: { name?: string }) {
+  const name = props.name?.trim() || 'there';
   return (
-    <Stack alignItems="center" textAlign="center" spacing={{ xs: 1.05, md: 1.35 }} sx={{ px: { xs: 1, md: 2 } }}>
-      <Typography
-        variant="h1"
-        sx={{
-          fontWeight: 900,
-          fontSize: { xs: '2rem', sm: '2.8rem', md: '3.55rem' },
-          lineHeight: { xs: 1.04, md: 1.02 },
-          maxWidth: 760,
-          letterSpacing: 0,
-        }}
-      >
-        What will you build next?
+    <Stack spacing={0.75}>
+      <Typography variant="h2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        Good morning, {name}
+        <Typography component="span" variant="h2" aria-hidden role="img">
+          👋
+        </Typography>
       </Typography>
-
-      <Typography
-        color="text.secondary"
-        sx={{ maxWidth: 610, mx: 'auto', fontSize: { xs: '0.94rem', md: '1.02rem' }, lineHeight: 1.5 }}
-      >
-        Describe the app you want to create. Ironflyer plans, builds, reviews, and ships it with your agent team.
+      <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 560 }}>
+        Build, ship, and scale your ideas with agents. Describe what you want and
+        Ironflyer plans, reviews, and ships it.
       </Typography>
     </Stack>
   );

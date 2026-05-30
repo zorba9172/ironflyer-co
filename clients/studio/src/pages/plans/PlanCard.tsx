@@ -1,5 +1,5 @@
 import { Box, Button, Stack, Typography } from '@mui/material';
-import { LuCheck, LuSparkles } from 'react-icons/lu';
+import { Icon } from '../../icons';
 
 // ─────────────────────────────────────────────────────────────────────────
 // A single pricing tier. Glass tile that "doesn't feel like a card": faint
@@ -57,7 +57,7 @@ export function PlanCard({ tier, onSelect }: { tier: PlanTier; onSelect: (name: 
           },
         })}
       >
-        {/* Soft violet bloom behind the recommended tier header. */}
+        {/* Soft violet bloom behind the recommended tier header (token gradient). */}
         {popular && (
           <Box
             aria-hidden
@@ -65,7 +65,7 @@ export function PlanCard({ tier, onSelect }: { tier: PlanTier; onSelect: (name: 
               position: 'absolute',
               inset: 0,
               pointerEvents: 'none',
-              background: `radial-gradient(120% 70% at 50% 0%, ${theme.studio.neon.purple}1F, transparent 62%)`,
+              backgroundImage: theme.studio.gradient.soft,
             })}
           />
         )}
@@ -85,7 +85,7 @@ export function PlanCard({ tier, onSelect }: { tier: PlanTier; onSelect: (name: 
               color: theme.palette.common.white,
             })}
           >
-            <LuSparkles size={13} strokeWidth={2} />
+            <Icon name="sparkles" size={13} strokeWidth={2} />
             <Typography
               variant="caption"
               sx={(theme) => ({ fontWeight: theme.typography.fontWeightBold, letterSpacing: '0.06em', textTransform: 'uppercase' })}
@@ -150,7 +150,7 @@ export function PlanCard({ tier, onSelect }: { tier: PlanTier; onSelect: (name: 
                   backgroundColor: `${theme.studio.neon.success}1F`,
                 })}
               >
-                <LuCheck size={12} strokeWidth={2.5} />
+                <Icon name="check" size={12} strokeWidth={2.5} />
               </Box>
               <Typography variant="body2" color="text.secondary">
                 {f}

@@ -4,6 +4,7 @@ import {
   MenuItem, Select, Stack, Switch, TextField, Tooltip, Typography,
 } from '@mui/material';
 import { toast } from '@ironflyer/ui-web/fx';
+import { Icon } from '../../icons';
 import { newAgent, type Agent, type Gate } from '../../studioData';
 import {
   AUTONOMY_LEVELS, GUARDRAILS, MODEL_OPTIONS, SKILL_CATEGORIES, SKILL_LIBRARY, TOOL_LIBRARY,
@@ -54,7 +55,7 @@ export function AgentBuilder({ agent, gates, allAgents, exists, onClose, onSave 
       {/* Header */}
       <Stack direction="row" alignItems="center" spacing={2} sx={{ px: { xs: 2, md: 4 }, py: 1.75, borderBottom: 1, borderColor: 'divider', flexShrink: 0 }}>
         <IconButton onClick={onClose} size="small" aria-label="close" sx={{ color: 'text.secondary' }}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+          <Icon name="close" size={20} />
         </IconButton>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography variant="h5" sx={{ fontSize: fontScale.s120 }} noWrap>{exists ? 'Edit agent' : 'New agent'}</Typography>
@@ -240,7 +241,7 @@ function Section({ title, hint, children }: { title: string; hint: string; child
 function ScaffoldBanner({ onScaffold }: { onScaffold: (prompt: string) => void }) {
   const [text, setText] = useState('');
   return (
-    <Box sx={(t) => ({ p: 2, mb: 3.5, borderRadius: 3, border: 1, borderColor: 'divider', backgroundImage: t.brand.gradient.signatureSoft })}>
+    <Box sx={(t) => ({ p: 2, mb: 3.5, borderRadius: 3, border: 1, borderColor: 'divider', backgroundImage: t.studio.gradient.soft })}>
       <Typography sx={{ fontWeight: 600, fontSize: fontScale.s92, mb: 0.25 }}>Draft from a sentence</Typography>
       <Typography sx={{ color: 'text.secondary', fontSize: fontScale.s80, mb: 1.5 }}>Describe the agent and we'll pre-fill its skills, tools, guardrails, and gate. Tune from there.</Typography>
       <Stack direction="row" spacing={1}>

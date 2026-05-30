@@ -1,52 +1,63 @@
 // ─────────────────────────────────────────────────────────────────────────
-// IRONFLYER STUDIO — PRODUCT WORKSPACE DESIGN TOKENS
+// IRONFLYER STUDIO — PRODUCT WORKSPACE DESIGN TOKENS  ·  "AURORA" SYSTEM
 // ─────────────────────────────────────────────────────────────────────────
 // Single source of truth for the studio surface. Derived verbatim from the
-// locked designer handoff:
-//   clients/studio/design_refernce/mx.md  (the design system spec)
-//   clients/studio/design_refernce/*.png  (the three locked renders)
+// locked designer references:
+//   clients/studio/design_refernce/image.png          (light Home — newest)
+//   clients/studio/design_refernce/image copy.png      (light Review — newest)
+//   clients/studio/design_refernce/ChatGPT…01_32_05…   (workbench / IDE shell)
+//   clients/studio/design_refernce/ChatGPT…01_48_34…   (Performance Review)
+//   clients/studio/design_refernce/ChatGPT…01_57_49…   (Preview / live build)
 //
-// CONSTITUTIONAL LAW (see clients/studio/DESIGN_CONSTITUTION.md):
+// DESIGN DNA (see clients/studio/DESIGN_CONSTITUTION.md):
+//   Clean, light, expensive, intelligent. Linear × Lovable × Figma × Vercel.
+//   The product is LIGHT-FIRST with an indigo→violet signature; dark mode is a
+//   first-class peer (the toggle). Functional zones (sidebar, workbench, code,
+//   and the dark prompt variant) may go dark inside light mode for focus.
+//
+// CONSTITUTIONAL LAW:
 //   • This file is the ONLY place raw hex / rgba literals may live for the
 //     studio. Components NEVER inline a color, gradient, blur, radius, or
-//     motion value — they read it from the MUI theme (theme.palette.*) or by
-//     importing `studioTokens` directly (legal for non-sx contexts: keyframes,
-//     SVG fills, canvas).
-//   • Mode-aware values (canvas / surface / text / border) live in `modes`
-//     and are mapped into the MUI palette so they flip on the dark/light
-//     toggle automatically.
-//   • Mode-INDEPENDENT brand marks (the neon gradient, the accent hues, the
-//     ambient glow recipe, the prompt-builder glow, motion) live here and read
-//     identically in both schemes — the neon signature never changes.
+//     motion value — they read it from the MUI theme (theme.palette.* /
+//     theme.studio.*) or by importing `studioTokens` (legal only for non-sx
+//     contexts: keyframes, SVG fills, canvas).
+//   • Mode-aware values (canvas / surface / text / border) live in `modes` and
+//     are mapped into the MUI palette so they flip on the dark/light toggle.
+//   • Mode-INDEPENDENT brand marks (the aurora gradient, accent hues, glow
+//     recipes, motion) live here and read identically in both schemes — the
+//     indigo→violet signature never changes.
 // ─────────────────────────────────────────────────────────────────────────
 
 export type StudioMode = 'dark' | 'light';
 
-// ── Neon brand marks (mode-independent) ────────────────────────────────────
-// mx.md › Accent Colors. The recognizable signature is the blue→violet→pink
-// arc; success/warning/danger are tuned to read on both canvases.
+// ── Brand marks (mode-independent) ──────────────────────────────────────────
+// The recognizable signature is the indigo → violet → pink arc. Semantic
+// success/warning/danger/info are tuned to read on both canvases. Key names are
+// semantic (a `violet` is violet) — never let a name lie about its value.
 export const neon = {
-  blue: '#2563EB',
-  violet: '#F47A45',
-  purple: '#FB8A4C',
-  pink: '#FFB088',
-  success: '#059669',
-  warning: '#D97706',
-  danger: '#DC2626',
+  indigo: '#6366F1', // primary brand hue (CTA, active nav, focus)
+  blue: '#3B82F6',
+  violet: '#8B5CF6',
+  purple: '#7C5CF6', // gradient mid-stop (indigo↔violet blend)
+  pink: '#EC4899',
+  cyan: '#22CCEE', // donut / data accent
+  success: '#16B364',
+  warning: '#F79009',
+  danger: '#F04438',
+  info: '#2E90FA',
 } as const;
 
-// mx.md › Neon Gradient + CTA Button. Never used on large flat surfaces —
-// only CTAs, the final headline phrase, active states, and energy edges.
+// Aurora gradient. Never on large flat surfaces — only CTAs, the final headline
+// phrase, active states, focus rims, and thin energy edges.
 export const gradient = {
-  signature: 'linear-gradient(100deg, #F47A45 0%, #FB8A4C 52%, #FFB088 100%)',
-  cta: 'linear-gradient(100deg, #F47A45 0%, #F2672E 100%)',
-  soft: 'linear-gradient(180deg, rgba(244,122,69,0.10), rgba(244,122,69,0.02))',
+  signature: 'linear-gradient(100deg, #4F6BF5 0%, #7C5CF6 50%, #D96BD8 100%)',
+  cta: 'linear-gradient(100deg, #5B6CF6 0%, #7C5CF6 100%)',
+  soft: 'linear-gradient(180deg, rgba(99,102,241,0.10), rgba(124,92,246,0.02))',
 } as const;
 
 // ── Mode canvases (mapped into the MUI palette → flip on toggle) ────────────
-// mx.md › Color System. Dark is the primary brand canvas (#050816). Light is
-// the daytime counterpart shown in the dashboard render; the prompt builder
-// stays dark in BOTH modes (it is the always-neon centerpiece).
+// Light is the daytime product canvas (the newest references). Dark is the
+// cinematic peer. Greys follow a calibrated cool-neutral ramp.
 type ModeColors = {
   bg: string; // page canvas
   bgRaised: string; // secondary canvas / inset
@@ -54,110 +65,147 @@ type ModeColors = {
   surfaceHover: string; // panel hover
   border: string; // strong hairline
   borderSubtle: string; // faint hairline
-  cardBg: string; // floating glass card fill
-  cardBorder: string; // floating glass card edge
+  cardBg: string; // floating card fill
+  cardBorder: string; // floating card edge
   textPrimary: string;
   textSecondary: string;
   textMuted: string;
 };
 
 export const modes: Record<StudioMode, ModeColors> = {
-  dark: {
-    bg: '#0B1220',
-    bgRaised: '#111827',
-    surface: '#111827',
-    surfaceHover: '#1F2937',
-    border: '#374151',
-    borderSubtle: '#1F2937',
-    cardBg: '#111827',
-    cardBorder: '#374151',
-    textPrimary: '#F9FAFB',
-    textSecondary: '#D1D5DB',
-    textMuted: '#9CA3AF',
-  },
   light: {
-    bg: '#F6F4F1',
+    bg: '#F7F8FA',
     bgRaised: '#FFFFFF',
     surface: '#FFFFFF',
-    surfaceHover: '#F1EFEC',
-    border: '#DEDAD4',
-    borderSubtle: '#E9E5DF',
+    surfaceHover: '#F2F4F7',
+    border: '#EAECF0',
+    borderSubtle: '#F2F4F7',
     cardBg: '#FFFFFF',
-    cardBorder: '#E7E2DA',
-    textPrimary: '#181614',
-    textSecondary: '#5F5B56',
-    textMuted: '#9C958D',
+    cardBorder: '#EAECF0',
+    textPrimary: '#101828',
+    textSecondary: '#475467',
+    textMuted: '#98A2B3',
+  },
+  dark: {
+    bg: '#0A0F1C',
+    bgRaised: '#111827',
+    surface: '#111827',
+    surfaceHover: '#1C2536',
+    border: '#283142',
+    borderSubtle: '#1A2233',
+    cardBg: '#111827',
+    cardBorder: '#283142',
+    textPrimary: '#F9FAFB',
+    textSecondary: '#CBD5E1',
+    textMuted: '#8B96A8',
   },
 };
 
-// ── Effect recipes (mode-independent specs, verbatim from mx.md) ────────────
+// ── Effect recipes (mode-independent specs) ─────────────────────────────────
 export const effect = {
-  // mx.md › Prompt Builder — the centerpiece. Always dark, in both modes.
+  // The prompt builder — the hero. In light mode it is a clean white card with
+  // a soft violet focus glow; the dark variant uses dark glass. Components read
+  // these as the resting spec and overlay the active scheme.
   promptBuilder: {
-    radius: 12,
-    borderColor: '#E7E2DA',
-    glow: '0 1px 2px rgba(17,24,39,0.04)',
+    radius: 16,
+    borderColor: '#EAECF0',
+    glow: '0 12px 32px rgba(99,102,241,0.14)',
     bg: '#FFFFFF',
     blur: 0,
   },
-  // mx.md › Cards — "cards should not feel like cards."
+  // Cards — soft, bordered, never bubbly. "Calm, not boxed."
   card: {
-    radius: 8,
+    radius: 12,
     bg: '#FFFFFF',
-    border: '#E7E2DA',
+    border: '#EAECF0',
     blur: 0,
   },
-  // mx.md › CTA Button.
-  cta: { height: 44, radius: 8 },
-  // mx.md › Ambient Effects — massive radial glows behind the hero, 5–15%
-  // opacity, no visible circles, only atmosphere. Top-left blue, center
-  // violet, bottom-right pink.
+  // CTA button geometry.
+  cta: { height: 44, radius: 10 },
+  // Ambient atmosphere behind heroes — radial aurora glows at 5–12% opacity,
+  // no visible circles, only light. Light mode keeps a barely-there wash.
   ambient: {
-    dark: 'none',
-    light: 'linear-gradient(180deg, #F6F4F1 0%, #F2E8DC 44%, #F79A6E 100%)',
+    dark: 'radial-gradient(60% 70% at 18% 12%, rgba(99,102,241,0.16), transparent 60%), radial-gradient(50% 60% at 82% 8%, rgba(217,107,216,0.10), transparent 60%)',
+    light:
+      'radial-gradient(60% 60% at 16% 0%, rgba(99,102,241,0.07), transparent 60%), radial-gradient(50% 50% at 88% 4%, rgba(217,107,216,0.05), transparent 60%)',
   },
   // Faint engineered grid texture overlaid on the canvas.
-  gridLine: 'rgba(24,22,20,0.035)',
+  gridLine: 'rgba(16,24,40,0.04)',
 } as const;
 
-// ── Charts & data-viz (reference: Performance Review render) ────────────────
+// ── Charts & data-viz (reference: the rainbow "Provider spend" bar + donut) ──
 // Viz-first law: every chart pulls its colors from here — never an inline hex.
-// The categorical series leads with the neon arc (violet → blue → pink) and
-// never uses lime as a primary series (mx.md › What To Avoid).
+// The categorical series is a friendly, soft rainbow led by indigo; lime is
+// never a primary series. Use the FULL range — pie, bar, donut, line, gauge,
+// radar — not one chart type everywhere.
 export const chart = {
-  // Ordered categorical series for bars, lines, donut slices.
-  series: ['#F47A45', '#181614', '#5F5B56', '#9C958D', '#2563EB', '#059669', '#D97706', '#DC2626'] as const,
-  // Radial readiness gauge (the 72% dial) — neon arc sweep.
+  // Ordered categorical series for bars, lines, donut & pie slices.
+  series: ['#6366F1', '#22CCEE', '#16B364', '#F79009', '#F04438', '#8B5CF6', '#EC4899', '#3B82F6'] as const,
+  // Radial readiness gauge (the 72% dial) — aurora arc sweep.
   gauge: {
-    arc: `conic-gradient(from 180deg, ${neon.pink}, ${neon.purple} 42%, ${neon.blue} 84%, ${neon.pink})`,
-    trackDark: '#374151',
-    trackLight: '#E9E5DF',
+    arc: `conic-gradient(from 180deg, ${neon.pink}, ${neon.violet} 38%, ${neon.indigo} 70%, ${neon.cyan})`,
+    trackDark: '#283142',
+    trackLight: '#EAECF0',
   },
   // Horizontal meter track (unfilled portion of a progress bar).
-  trackDark: '#374151',
-  trackLight: '#E9E5DF',
+  trackDark: '#283142',
+  trackLight: '#EAECF0',
   // Axis / gridline hairlines.
-  gridDark: '#1F2937',
-  gridLight: '#E9E5DF',
+  gridDark: '#1A2233',
+  gridLight: '#F2F4F7',
 } as const;
 
-// ── Radius scale (mx.md uses 14/18/24/28; pill for chips) ───────────────────
-export const radius = { sm: 8, cta: 8, lg: 10, xl: 12, pill: 999 } as const;
+// ── Radius scale ────────────────────────────────────────────────────────────
+// Compact controls 8–10, cards 12–14, panels 16–20, pills fully round.
+export const radius = { sm: 8, md: 10, cta: 10, lg: 14, xl: 18, pill: 999 } as const;
 
-// ── Motion (mx.md › Motion System) ──────────────────────────────────────────
-// Everything moves slowly. 200/300/500ms. Never bounce/elastic/gaming.
+// ── Motion & Timing ─────────────────────────────────────────────────────────
+// A deliberate motion system, synchronized with the type/space scale and living
+// in this same single source of truth. Everything moves calmly — never bounce,
+// elastic, or gaming. Four intents, one duration ramp:
+//   • standard   — symmetric in/out (most state changes)
+//   • decelerate — enter: fast-in, soft-settle (elements arriving)
+//   • accelerate — exit: ease-out of view (elements leaving)
+//   • emphasized — expressive enter for hero/CTA moments
+// Duration ramp mirrors the type scale's discipline: instant→fast→base→slow.
+const E_STANDARD = 'cubic-bezier(0.22, 0.61, 0.36, 1)';
+const E_DECEL = 'cubic-bezier(0, 0, 0.2, 1)';
+const E_ACCEL = 'cubic-bezier(0.4, 0, 1, 1)';
+const E_EMPH = 'cubic-bezier(0.2, 0, 0, 1)';
+
 export const motion = {
-  easing: 'cubic-bezier(0.22, 0.61, 0.36, 1)',
-  fast: '200ms cubic-bezier(0.22, 0.61, 0.36, 1)',
-  base: '300ms cubic-bezier(0.22, 0.61, 0.36, 1)',
-  slow: '500ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+  // Back-compat string shorthands (consumed widely as `transition: motion.fast`).
+  easing: E_STANDARD,
+  fast: `180ms ${E_STANDARD}`,
+  base: `280ms ${E_STANDARD}`,
+  slow: `460ms ${E_STANDARD}`,
+  // Intent-named transitions — prefer these for new work.
+  hover: `180ms ${E_STANDARD}`, // micro-interactions, hover lift, focus rim
+  enter: `280ms ${E_DECEL}`, // mount / reveal
+  exit: `180ms ${E_ACCEL}`, // unmount / dismiss
+  emphasis: `420ms ${E_EMPH}`, // hero / CTA expressive moment
+  theme: `420ms ${E_EMPH}`, // dark/light canvas swap
+  // Raw axes for custom keyframes / staggering.
+  ease: { standard: E_STANDARD, decelerate: E_DECEL, accelerate: E_ACCEL, emphasized: E_EMPH },
+  duration: { instant: 80, fast: 180, base: 280, slow: 460, hero: 620 },
+  stagger: 56, // ms between successive items in a list/grid reveal
 } as const;
 
-// ── Typography (mx.md › Typography: Inter, weights 500–800) ──────────────────
+// ── Typography ──────────────────────────────────────────────────────────────
+// A two-typeface editorial system — the differentiator from generic bold-Inter
+// SaaS (Base44 et al.):
+//   • DISPLAY → Bricolage Grotesque: characterful, editorial, young. Used for
+//     h1–h3 with tight negative tracking. This carries the brand voice.
+//   • TEXT    → Inter: calm, neutral UI/body at comfortable line-height.
+//   • MONO    → Geist Mono: code, metrics, tiny operational labels.
+// Inspired by output.com's refined editorial hierarchy — on WHITE, never beige.
 export const font = {
+  display: '"Bricolage Grotesque Variable", "Inter Variable", system-ui, sans-serif',
   family: '"Inter Variable", "Inter", system-ui, -apple-system, sans-serif',
   mono: '"Geist Mono", ui-monospace, "SF Mono", monospace',
-  weight: { medium: 500, semibold: 600, bold: 700, heavy: 800 },
+  weight: { regular: 400, medium: 500, semibold: 600, bold: 700, heavy: 800 },
+  // Precise tracking — tight on display, neutral on text, open on labels.
+  tracking: { display: '-0.022em', tight: '-0.014em', normal: '0', label: '0.08em' },
 } as const;
 
 // Aggregate token bag for non-sx contexts (SVG, keyframes, canvas) and for the

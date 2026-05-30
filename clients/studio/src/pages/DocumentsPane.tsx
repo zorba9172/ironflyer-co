@@ -11,6 +11,7 @@ import { DocDialog } from '../components/DocDialog';
 import { StudioChart, donutOption, type EChartsOption } from '../components/charts';
 import { StudioDataGrid, StudioTableShell, type DataGridCellParams, type DataGridColumn, type StudioTableTab } from '../components/tables';
 import { text } from '@ironflyer/design-tokens/brand';
+import { Icon, type IconName } from '../icons';
 import { GlassPanel, SectionHeader, StatCard } from '../components/studio';
 
 function readFile(file: File): Promise<Attachment> {
@@ -33,50 +34,10 @@ function readFile(file: File): Promise<Attachment> {
 
 const fmtSize = (n: number) => (n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(0)} KB` : `${(n / 1048576).toFixed(1)} MB`);
 
-// --- Inline glyphs (no external lib) ----------------------------------------
-
-function FileGlyph({ size = 32 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-      <path d="M14 2v6h6" />
-      <path d="M10 13h6M10 17h4" />
-    </svg>
-  );
-}
-
-function ImageGlyph({ size = 32 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="18" height="18" rx="3" />
-      <circle cx="8.5" cy="8.5" r="1.5" />
-      <path d="M21 15l-5-5L5 21" />
-    </svg>
-  );
-}
-
-function PlusGlyph() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-      <path d="M12 5v14M5 12h14" />
-    </svg>
-  );
-}
-
-function UploadGlyph() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
-    </svg>
-  );
-}
-
-function RemoveGlyph() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-      <path d="M18 6L6 18M6 6l12 12" />
-    </svg>
-  );
+// Semantic glyph for a document by its kind — routed through the icon barrel.
+function DocGlyph({ kind, size = 32 }: { kind: Attachment['kind']; size?: number }) {
+  const name: IconName = kind === 'image' ? 'eye' : kind === 'text' ? 'code' : 'folder';
+  return <Icon name={name} size={size} strokeWidth={1.5} />;
 }
 
 // An empty-state drop zone — large, calm, action-ready.
@@ -89,7 +50,7 @@ function EmptyDropZone({ onClick }: { onClick: () => void }) {
       onClick={onClick}
     >
       <Box sx={{ color: 'text.disabled', mb: 2, display: 'flex', justifyContent: 'center' }}>
-        <UploadGlyph />
+        <Icon name="download" size={28} />
       </Box>
       <Typography sx={{ fontWeight: 700, fontSize: text.s95, mb: 0.75 }}>
         Drop files here, or click to upload
@@ -126,7 +87,7 @@ function DocTile({ attachment, onOpen, onRemove }: { attachment: Attachment; onO
           '&:hover': { color: 'error.main', borderColor: 'error.main' },
         }}
       >
-        <RemoveGlyph />
+        <Icon name="close" size={12} />
       </IconButton>
 
       {/* Thumbnail / icon area */}
@@ -135,13 +96,13 @@ function DocTile({ attachment, onOpen, onRemove }: { attachment: Attachment; onO
           <Box component="img" src={attachment.dataUrl} alt={attachment.name} sx={{ width: '100%', height: 110, objectFit: 'cover', display: 'block' }} />
         </Box>
       ) : (
-        <Box sx={(_th) => ({
+        <Box sx={{
           height: 110, display: 'grid', placeItems: 'center',
-          background: `radial-gradient(120% 120% at 30% 20%, ${glyphColor}18, ${glyphColor}06 70%)`,
+          bgcolor: `${glyphColor}12`,
           color: glyphColor,
           borderBottom: '1px solid', borderColor: 'borderSubtle',
-        })}>
-          {isImage ? <ImageGlyph /> : <FileGlyph />}
+        }}>
+          <DocGlyph kind={attachment.kind} />
         </Box>
       )}
 
@@ -252,7 +213,7 @@ export function DocumentsPane() {
       cellRenderer: ({ data }: DataGridCellParams<Attachment>) => data ? (
         <Stack direction="row" alignItems="center" spacing={0.75}>
           <Box sx={{ color: data.kind === 'text' ? 'success.main' : data.kind === 'image' ? 'info.main' : 'text.disabled', display: 'inline-flex' }}>
-            {data.kind === 'image' ? <ImageGlyph size={14} /> : <FileGlyph size={14} />}
+            <DocGlyph kind={data.kind} size={14} />
           </Box>
           <Typography sx={{ fontSize: text.s86 }} noWrap>{data.name}</Typography>
         </Stack>
@@ -292,10 +253,10 @@ export function DocumentsPane() {
           subtitle="Everything the build reads, in one place. Create a doc or upload files — text docs ground the chat and every agent."
           actions={
             <Stack direction="row" spacing={1}>
-              <Button variant="outlined" color="inherit" startIcon={<UploadGlyph />} onClick={() => inputRef.current?.click()}>
+              <Button variant="outlined" color="inherit" startIcon={<Icon name="download" size={16} />} onClick={() => inputRef.current?.click()}>
                 Upload
               </Button>
-              <Button variant="contained" startIcon={<PlusGlyph />} onClick={() => setCreating(true)}>
+              <Button variant="contained" startIcon={<Icon name="add" size={16} />} onClick={() => setCreating(true)}>
                 New document
               </Button>
             </Stack>

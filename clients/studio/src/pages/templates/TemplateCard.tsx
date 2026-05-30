@@ -1,19 +1,21 @@
 import { Box, Button, Chip, Stack, Typography } from '@mui/material';
-import { LuArrowRight, LuShieldCheck, LuZap } from 'react-icons/lu';
+import { Icon, AssetImage } from '../../icons';
 import { studioTokens } from '../../theme';
 import type { Template } from './data';
 
 // ─────────────────────────────────────────────────────────────────────────
-// TemplateCard — a single starter blueprint, rendered as a floating glass
-// proof surface (mx.md › Cards: "cards should not feel like cards"). It mirrors
-// the home TemplateRail energy at full-page scale: a neon-washed thumbnail with
-// the blueprint glyph, a readiness meter (viz-first), a gate proof chip, the
-// stack line, and a clear "Use template" CTA.
+// TemplateCard — a single starter blueprint, rendered as one uniform glass
+// proof surface (Component Law: soft border, 12–14px radius, hover lift). It
+// mirrors the home TemplateRail energy at full-page scale: a neon-washed
+// thumbnail carrying an illustrated 3D mark (AssetImage) with a blueprint glyph
+// (Icon), a readiness meter (viz-first), a gate proof chip, the stack line, and
+// a clear "Use template" CTA.
 //
 // Interaction follows the Vercel guideline that hover/active raise contrast and
 // only touch GPU-cheap transform/opacity. The whole card is clickable; the CTA
 // is the explicit affordance. The click contract is unchanged: onUse() drives
-// startFromPrompt + navigate from the parent.
+// startFromPrompt + navigate from the parent. All glyphs route through the Icon
+// barrel; all color/radius/blur/motion flow through the studio theme.
 // ─────────────────────────────────────────────────────────────────────────
 
 export function TemplateCard(props: { template: Template; onUse: () => void }) {
@@ -47,21 +49,22 @@ export function TemplateCard(props: { template: Template; onUse: () => void }) {
         '&:hover, &:focus-visible': {
           transform: 'translateY(-4px)',
           borderColor: `${t.accent}66`,
-          boxShadow: `0 18px 48px -24px ${t.accent}59`,
+          boxShadow: theme.studio.effect.promptBuilder.glow,
           outline: 'none',
         },
-        '&:hover .tpl-thumb-glyph, &:focus-visible .tpl-thumb-glyph': {
+        '&:hover .tpl-thumb-art, &:focus-visible .tpl-thumb-art': {
           transform: 'scale(1.06)',
         },
         '&:hover .tpl-cta, &:focus-visible .tpl-cta': { opacity: 1 },
       })}
     >
-      {/* Thumbnail — neon-washed atmosphere + blueprint glyph (no raw circles). */}
+      {/* Thumbnail — neon-washed atmosphere + illustrated 3D mark + blueprint
+          glyph corner. No raw circles; the wash derives from the accent token. */}
       <Box
         aria-hidden
         sx={(theme) => ({
           position: 'relative',
-          height: 132,
+          height: 144,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -81,31 +84,44 @@ export function TemplateCard(props: { template: Template; onUse: () => void }) {
         })}
       >
         <Box
-          className="tpl-thumb-glyph"
+          className="tpl-thumb-art"
           sx={(theme) => ({
             position: 'relative',
             zIndex: 1,
             display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 56,
-            height: 56,
-            borderRadius: `${theme.studio.radius.sm}px`,
-            color: t.accent,
-            fontSize: 26,
-            background: `radial-gradient(120% 120% at 30% 20%, ${t.accent}3D, ${t.accent}0D 70%)`,
-            border: `1px solid ${t.accent}40`,
             transition: `transform ${theme.studio.motion.base}`,
           })}
         >
-          <t.Icon strokeWidth={1.5} />
+          <AssetImage id={t.art} size={76} alt={`${t.name} template`} />
+        </Box>
+
+        {/* Blueprint glyph chip, top-left — the semantic mark for the category. */}
+        <Box
+          aria-hidden
+          sx={(theme) => ({
+            position: 'absolute',
+            top: 12,
+            left: 12,
+            zIndex: 1,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 32,
+            height: 32,
+            borderRadius: `${theme.studio.radius.sm}px`,
+            color: t.accent,
+            backgroundColor: theme.palette.surfaceRaised,
+            border: `1px solid ${t.accent}40`,
+          })}
+        >
+          <Icon name={t.icon} size={17} strokeWidth={1.6} />
         </Box>
 
         {/* Ship-horizon tag, top-right. */}
         <Chip
           size="small"
           label={t.ships}
-          icon={<LuZap size={12} aria-hidden />}
+          icon={<Icon name="zap" size={12} />}
           sx={(theme) => ({
             position: 'absolute',
             top: 12,
@@ -118,7 +134,7 @@ export function TemplateCard(props: { template: Template; onUse: () => void }) {
             color: theme.palette.text.secondary,
             fontWeight: 600,
             '& .MuiChip-icon': { color: theme.studio.neon.warning, ml: 0.5, mr: -0.25 },
-            '& .MuiChip-label': { px: 0.75, fontSize: '0.6875rem' },
+            '& .MuiChip-label': { px: 0.75 },
           })}
         />
       </Box>
@@ -126,9 +142,7 @@ export function TemplateCard(props: { template: Template; onUse: () => void }) {
       {/* Body. */}
       <Box sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 1.25, flex: 1 }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
-          <Typography variant="h6" sx={{ fontSize: '1.05rem' }}>
-            {t.name}
-          </Typography>
+          <Typography variant="h6">{t.name}</Typography>
           <Chip
             size="small"
             label={t.cat}
@@ -138,7 +152,7 @@ export function TemplateCard(props: { template: Template; onUse: () => void }) {
               backgroundColor: theme.palette.surfaceHover,
               color: theme.palette.text.secondary,
               fontWeight: 600,
-              '& .MuiChip-label': { px: 1, fontSize: '0.6875rem' },
+              '& .MuiChip-label': { px: 1 },
             })}
           />
         </Stack>
@@ -152,10 +166,10 @@ export function TemplateCard(props: { template: Template; onUse: () => void }) {
         <Stack spacing={0.75} sx={{ mt: 0.25 }}>
           <Stack direction="row" alignItems="center" justifyContent="space-between">
             <Typography
-              variant="caption"
-              sx={(theme) => ({ color: theme.palette.text.secondary, fontWeight: 600, letterSpacing: '0.04em' })}
+              variant="overline"
+              sx={(theme) => ({ color: theme.palette.text.secondary, lineHeight: 1 })}
             >
-              READINESS
+              Readiness
             </Typography>
             <Typography variant="caption" sx={{ color: t.accent, fontWeight: 700 }}>
               {t.readiness}%
@@ -196,7 +210,9 @@ export function TemplateCard(props: { template: Template; onUse: () => void }) {
             borderTop: `1px solid ${theme.palette.borderSubtle}`,
           })}
         >
-          <LuShieldCheck size={14} aria-hidden style={{ flexShrink: 0 }} />
+          <Box aria-hidden sx={{ display: 'inline-flex', flexShrink: 0 }}>
+            <Icon name="shieldCheck" size={14} color="muted" />
+          </Box>
           <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, flexShrink: 0 }}>
             {t.gates} gates
           </Typography>
@@ -219,7 +235,7 @@ export function TemplateCard(props: { template: Template; onUse: () => void }) {
           variant="contained"
           color="primary"
           fullWidth
-          endIcon={<LuArrowRight size={16} />}
+          endIcon={<Icon name="arrowRight" size={16} />}
           className="tpl-cta"
           onClick={(e) => {
             e.stopPropagation();

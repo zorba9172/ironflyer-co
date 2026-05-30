@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { Box, Button, CircularProgress, IconButton, Menu, MenuItem, Stack, Tooltip, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@ironflyer/ui-web/fx';
-import { VscChevronDown } from 'react-icons/vsc';
-import { LuMoon, LuSun } from 'react-icons/lu';
+import { Icon } from '../icons';
 import { LogoMark } from './LogoMark';
 import { AccountMenu } from './AccountMenu';
 import { CostHUD } from './CostHUD';
@@ -160,7 +159,7 @@ export function EditorTopBar({ projectName, tab, onTab, onDeploy, deployReadines
                 }
                 setGroupAnchor({ id: group.id, el: e.currentTarget });
               }}
-              endIcon={group.items.length > 1 ? <VscChevronDown size={12} /> : undefined}
+              endIcon={group.items.length > 1 ? <Icon name="chevronDown" size={12} /> : undefined}
               sx={{
                 borderRadius: 99,
                 px: { xs: 0.9, md: 1.4 },
@@ -223,7 +222,7 @@ export function EditorTopBar({ projectName, tab, onTab, onDeploy, deployReadines
               '&:hover': { color: 'text.primary', bgcolor: 'background.paper' },
             }}
           >
-            {mode === 'dark' ? <LuSun size={15} /> : <LuMoon size={15} />}
+            {mode === 'dark' ? <Icon name="sun" size={15} /> : <Icon name="moon" size={15} />}
           </IconButton>
         </Tooltip>
         <AccountMenu size={28} />

@@ -5,7 +5,7 @@ import { FlowCanvas, type FlowNode, type FlowEdge, type NodeMouseHandler, type H
 import type { Constellation3DNode, Constellation3DLink } from '@ironflyer/ui-web/fx';
 import { useGraphQLQuery, operations } from '@ironflyer/data';
 import { formatUSD, formatRelativeTime } from '@ironflyer/core';
-import { VscRobot } from 'react-icons/vsc';
+import { Icon } from '../icons';
 import { statusColor, agentColor } from './statusColor';
 import { ActivityFeed } from './ActivityFeed';
 import { GateNodeLabel, FacetNodeLabel, VisionBody, ShipBody, nodePalette, type FacetNodeData } from './map/nodes';
@@ -457,8 +457,8 @@ export function GateMap({ project, onOpenTab }: { project: StudioProject; onOpen
 function AgentBody({ a, color, c, onRun }: { a: Agent; color: string; c: ReturnType<typeof nodePalette>; onRun: () => void }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 5, textAlign: 'left', width: '100%' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <VscRobot size={12} color={color} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, color }}>
+        <Icon name="bot" size={12} />
         <span style={{ fontFamily: c.mono, fontSize: 8.5, fontWeight: 700, letterSpacing: '0.1em', color }}>AGENT</span>
       </div>
       <div style={{ fontSize: 12.5, fontWeight: 600, color: c.primary, lineHeight: 1.15 }}>{a.name || 'Untitled agent'}</div>
@@ -466,7 +466,7 @@ function AgentBody({ a, color, c, onRun }: { a: Agent; color: string; c: ReturnT
       <div style={{ fontFamily: c.mono, fontSize: 8.5, color: c.muted }}>⏱ {scheduleLabel(a.schedule)}</div>
       <Box className="nodrag nopan" sx={{ mt: 0.25 }}>
         <Tooltip title="Run this agent now" arrow>
-          <IconButton size="small" onClick={(e) => { e.stopPropagation(); onRun(); }} sx={{ color: 'success.main', p: 0.4 }}><VscRobot size={13} /></IconButton>
+          <IconButton size="small" onClick={(e) => { e.stopPropagation(); onRun(); }} sx={{ color: 'success.main', p: 0.4 }}><Icon name="play" size={13} /></IconButton>
         </Tooltip>
       </Box>
     </div>
@@ -560,7 +560,7 @@ function GapsRail({ projectId, gaps, seed, onPick, onDispatch, inline }: {
     return (
       <Box sx={{ width: 44, borderLeft: 1, borderColor: 'divider', bgcolor: 'background.paper', display: 'flex', flexDirection: 'column', alignItems: 'center', pt: 1.5 }}>
         <Tooltip title="Show what's not closed" arrow placement="left">
-          <IconButton size="small" onClick={() => setOpen(true)} sx={{ color: 'text.secondary' }}>‹</IconButton>
+          <IconButton size="small" aria-label="Show what's not closed" onClick={() => setOpen(true)} sx={{ color: 'text.secondary', transform: 'rotate(180deg)' }}><Icon name="chevronRight" size={16} /></IconButton>
         </Tooltip>
         {gaps.length > 0 && (
           <Box sx={{ mt: 1, width: 22, height: 22, borderRadius: 99, display: 'grid', placeItems: 'center', bgcolor: (t) => `${t.palette.error.main}22`, color: 'error.main', fontSize: text.s70, fontWeight: 700 }}>{gaps.length}</Box>
@@ -577,7 +577,10 @@ function GapsRail({ projectId, gaps, seed, onPick, onDispatch, inline }: {
           <Chip size="small" label={gaps.length} sx={(t) => ({ height: 18, fontSize: text.s62, fontWeight: 700, bgcolor: gaps.length ? `${t.palette.error.main}22` : `${t.palette.success.main}22`, color: gaps.length ? 'error.main' : 'success.main' })} />
         </Stack>
         {gaps.length === 0 ? (
-          <Typography sx={{ fontSize: text.s85, color: 'success.main' }}>● Every gate is closed — nothing blocks shipping.</Typography>
+          <Stack direction="row" alignItems="center" spacing={0.85}>
+            <Icon name="check" size={15} color="success" />
+            <Typography sx={{ fontSize: text.s85, color: 'success.main' }}>Every gate is closed — nothing blocks shipping.</Typography>
+          </Stack>
         ) : (
           <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', mb: 1.5 }}>
             {gaps.slice(0, 4).map((g) => (
@@ -601,12 +604,15 @@ function GapsRail({ projectId, gaps, seed, onPick, onDispatch, inline }: {
         <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s70, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'text.disabled' })}>Not closed end-to-end</Typography>
         <Chip size="small" label={gaps.length} sx={(t) => ({ height: 18, fontSize: text.s62, fontWeight: 700, bgcolor: gaps.length ? `${t.palette.error.main}22` : `${t.palette.success.main}22`, color: gaps.length ? 'error.main' : 'success.main' })} />
         <Box sx={{ flex: 1 }} />
-        <IconButton size="small" onClick={() => setOpen(false)} sx={{ color: 'text.secondary' }}>›</IconButton>
+        <IconButton size="small" aria-label="Collapse" onClick={() => setOpen(false)} sx={{ color: 'text.secondary' }}><Icon name="chevronRight" size={16} /></IconButton>
       </Stack>
 
       <Box sx={{ overflowY: 'auto', p: 2, flexShrink: 0, maxHeight: '52%' }}>
         {gaps.length === 0 ? (
-          <Typography sx={{ fontSize: text.s85, color: 'success.main' }}>● Every gate is closed — nothing blocks shipping.</Typography>
+          <Stack direction="row" alignItems="center" spacing={0.85}>
+            <Icon name="check" size={15} color="success" />
+            <Typography sx={{ fontSize: text.s85, color: 'success.main' }}>Every gate is closed — nothing blocks shipping.</Typography>
+          </Stack>
         ) : (
           <Stack spacing={1}>
             {gaps.map((g) => (

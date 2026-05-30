@@ -6,6 +6,7 @@ import { toast } from '@ironflyer/ui-web/fx';
 import { useGraphQLQuery, useRequest, operations } from '@ironflyer/data';
 import { useOperateProjectId } from '../hooks/useOperateProjectId';
 import { PaneHeader } from '../components/operate/PaneHeader';
+import { Icon } from '../icons';
 import { StudioChart, gaugeOption, type EChartsOption } from '../components/charts';
 import { GlassPanel, StatCard, SectionHeader } from '../components/studio';
 import { text } from '@ironflyer/design-tokens/brand';
@@ -26,20 +27,7 @@ const SAMPLE_AUDIT: SeoAudit = { score: 43, checks: [
 ] };
 
 function CheckIcon({ passed }: { passed: boolean }) {
-  if (passed) {
-    return (
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="20 6 9 17 4 12" />
-      </svg>
-    );
-  }
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="9" />
-      <line x1="12" y1="8" x2="12" y2="12" />
-      <line x1="12" y1="16" x2="12.01" y2="16" />
-    </svg>
-  );
+  return <Icon name={passed ? 'check' : 'alert'} size={15} strokeWidth={passed ? 2.5 : 2} />;
 }
 
 export function MarketingPane() {

@@ -1,6 +1,6 @@
 import { Box, Button, Chip, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { LuWallet, LuPlus } from 'react-icons/lu';
+import { Icon } from '../../icons';
 import { StudioChart, donutOption } from '../../components/charts';
 import type { Wallet } from '../../hooks/useEconomics';
 
@@ -82,7 +82,7 @@ export function WalletPanel({
                 backgroundColor: `${t.studio.neon.blue}1F`,
               })}
             >
-              <LuWallet size={16} strokeWidth={2} />
+              <Icon name="wallet" size={16} strokeWidth={2} />
             </Box>
             <Typography variant="h6" sx={(t) => ({ fontWeight: t.typography.fontWeightBold })}>
               Build wallet
@@ -134,7 +134,7 @@ export function WalletPanel({
                   key={amount}
                   variant={isRecommended ? 'contained' : 'outlined'}
                   color={isRecommended ? 'primary' : 'inherit'}
-                  startIcon={<LuPlus size={15} strokeWidth={2.25} />}
+                  startIcon={<Icon name="add" size={15} strokeWidth={2.25} />}
                   onClick={() => onTopUp(amount)}
                   sx={(t) =>
                     isRecommended

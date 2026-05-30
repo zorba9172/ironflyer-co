@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Chip, Stack, Typography } from '@mui/material';
-import { LuLayoutGrid, LuSparkles } from 'react-icons/lu';
+import { Box, Button, Chip, Stack, Typography } from '@mui/material';
+import { Icon, AssetImage } from '../icons';
 import { useStudio } from '../store';
 import { AmbientBackdrop } from './home/AmbientBackdrop';
 import { TemplateCard } from './templates/TemplateCard';
@@ -51,7 +51,7 @@ export function TemplatesPage() {
         {/* Header — AI badge → headline (final phrase gradient) → subhead. */}
         <Stack spacing={2.5} sx={{ mb: { xs: 4, md: 5 } }}>
           <Chip
-            icon={<LuSparkles size={15} />}
+            icon={<Icon name="sparkles" size={15} />}
             label="Production-ready starters"
             sx={(theme) => ({
               alignSelf: 'flex-start',
@@ -67,10 +67,7 @@ export function TemplatesPage() {
             })}
           />
 
-          <Typography
-            variant="h2"
-            sx={{ fontSize: { xs: '2rem', md: '2.75rem' }, maxWidth: 760 }}
-          >
+          <Typography variant="h2" sx={{ maxWidth: 760 }}>
             Start from a proven build and{' '}
             <Box
               component="span"
@@ -86,7 +83,7 @@ export function TemplatesPage() {
             </Box>
           </Typography>
 
-          <Typography color="text.secondary" sx={{ maxWidth: 640, fontSize: '1.0625rem' }}>
+          <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 640 }}>
             Every template lands with real data, gates, and a deploy path. Pick one and
             the finisher takes it the rest of the way.
           </Typography>
@@ -143,7 +140,7 @@ export function TemplatesPage() {
                   key={c}
                   label={c}
                   onClick={() => setCat(c)}
-                  icon={c === 'All' ? <LuLayoutGrid size={14} aria-hidden /> : undefined}
+                  icon={c === 'All' ? <Icon name="templates" size={14} /> : undefined}
                   sx={(theme) => ({
                     height: 34,
                     px: 0.5,
@@ -170,18 +167,54 @@ export function TemplatesPage() {
           </Stack>
         </Box>
 
-        {/* Card grid. */}
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' },
-            gap: { xs: 2, md: 2.5 },
-          }}
-        >
-          {list.map((t) => (
-            <TemplateCard key={t.name} template={t} onUse={() => use(t.name)} />
-          ))}
-        </Box>
+        {/* Card grid — or a calm, consistent empty state per category. */}
+        {list.length === 0 ? (
+          <Box
+            sx={(theme) => ({
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              textAlign: 'center',
+              gap: 2,
+              px: 3,
+              py: { xs: 6, md: 8 },
+              backgroundColor: theme.palette.cardBg,
+              border: `1px dashed ${theme.palette.divider}`,
+              borderRadius: `${theme.studio.effect.card.radius}px`,
+              backdropFilter: `blur(${theme.studio.effect.card.blur}px)`,
+            })}
+          >
+            <AssetImage id="strategy-3d/2-rocket" size={88} alt="No templates" />
+            <Stack spacing={1} sx={{ maxWidth: 420 }}>
+              <Typography variant="h5">No {cat} templates yet</Typography>
+              <Typography color="text.secondary">
+                We are still adding starters to this category. Browse all blueprints in the
+                meantime.
+              </Typography>
+            </Stack>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<Icon name="templates" size={17} />}
+              onClick={() => setCat('All')}
+              sx={{ mt: 1 }}
+            >
+              Browse all templates
+            </Button>
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' },
+              gap: { xs: 2, md: 2.5 },
+            }}
+          >
+            {list.map((t) => (
+              <TemplateCard key={t.name} template={t} onUse={() => use(t.name)} />
+            ))}
+          </Box>
+        )}
       </Box>
     </Box>
   );

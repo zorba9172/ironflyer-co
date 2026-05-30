@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Box, Button, Chip, IconButton, Stack, ToggleButton, ToggleButtonGroup, Tooltip, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { VscWarning, VscWand, VscClose } from 'react-icons/vsc';
 import { Lightbox, LivePreview, toast, type LivePreviewTemplate } from '@ironflyer/ui-web/fx';
 import { useStudio } from '../store';
 import { useThemeMode } from '../theme';
 import { NeonConstellation3D } from './studio';
+import { Icon } from '../icons';
 import type { Gate } from '../studioData';
 import { text } from '@ironflyer/design-tokens/brand';
 import { studioTokens } from '../theme';
@@ -132,19 +132,30 @@ export function PreviewPane({ gates = [] }: { gates?: Gate[] }) {
           size="small"
           value={device}
           onChange={(_, v) => v && setDevice(v)}
-          sx={{ '& .MuiToggleButton-root': { px: 1, py: 0.5, border: 1, borderColor: 'divider' } }}
+          sx={{
+            bgcolor: 'action.hover',
+            borderRadius: 99,
+            p: 0.25,
+            '& .MuiToggleButtonGroup-grouped': {
+              border: 0,
+              borderRadius: '99px !important',
+              px: 1,
+              py: 0.5,
+              color: 'text.secondary',
+              '&.Mui-selected': {
+                color: 'text.primary',
+                bgcolor: 'background.paper',
+                boxShadow: 1,
+                '&:hover': { bgcolor: 'background.paper' },
+              },
+            },
+          }}
         >
           <ToggleButton value="desktop" aria-label="Desktop view">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-              <rect x="3" y="4" width="18" height="12" rx="2" />
-              <path d="M8 20h8M12 16v4" />
-            </svg>
+            <Icon name="dashboard" size={15} />
           </ToggleButton>
           <ToggleButton value="mobile" aria-label="Mobile view">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-              <rect x="7" y="3" width="10" height="18" rx="2" />
-              <path d="M11 18h2" />
-            </svg>
+            <Icon name="smartphone" size={15} />
           </ToggleButton>
         </ToggleButtonGroup>
 
@@ -152,16 +163,19 @@ export function PreviewPane({ gates = [] }: { gates?: Gate[] }) {
 
         {hasApp && (
           <Tooltip title={previewError ? previewError : `${count} file${count > 1 ? 's' : ''} loaded`} arrow>
-            <Typography
-              sx={(t) => ({
-                fontFamily: t.brand.font.mono,
-                fontSize: text.s72,
-                color: previewError ? 'error.main' : 'success.main',
-                cursor: 'default',
-              })}
+            <Stack
+              direction="row"
+              alignItems="center"
+              spacing={0.75}
+              sx={{ cursor: 'default', color: previewError ? 'error.main' : 'success.main' }}
             >
-              {previewError ? '● build failed' : `● live · ${count} file${count > 1 ? 's' : ''}`}
-            </Typography>
+              <Box sx={{ width: 7, height: 7, borderRadius: 99, bgcolor: 'currentColor', flexShrink: 0 }} />
+              <Typography
+                sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s72, color: 'inherit' })}
+              >
+                {previewError ? 'build failed' : `live · ${count} file${count > 1 ? 's' : ''}`}
+              </Typography>
+            </Stack>
           </Tooltip>
         )}
 
@@ -195,11 +209,9 @@ export function PreviewPane({ gates = [] }: { gates?: Gate[] }) {
             size="small"
             aria-label="Refresh preview"
             onClick={() => setNonce((n) => n + 1)}
-            sx={{ color: 'text.secondary' }}
+            sx={{ color: 'text.secondary', '&:hover': { color: 'text.primary' } }}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-              <path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5" />
-            </svg>
+            <Icon name="refresh" size={15} />
           </IconButton>
         </Tooltip>
       </Stack>
@@ -247,10 +259,10 @@ export function PreviewPane({ gates = [] }: { gates?: Gate[] }) {
                   })}
                 >
                   <Box component="span" sx={{ color: 'error.main', display: 'inline-flex' }}>
-                    <VscWarning size={16} />
+                    <Icon name="alert" size={16} />
                   </Box>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography sx={{ fontSize: text.s82, fontWeight: 600, color: 'error.main' }}>
+                    <Typography variant="subtitle2" sx={{ color: 'error.main' }}>
                       This preview didn't build
                     </Typography>
                     <Typography
@@ -263,7 +275,7 @@ export function PreviewPane({ gates = [] }: { gates?: Gate[] }) {
                   <Button
                     size="small"
                     variant="contained"
-                    startIcon={<VscWand size={14} />}
+                    startIcon={<Icon name="sparkles" size={14} />}
                     onClick={fixPreview}
                     sx={{ flexShrink: 0 }}
                   >
@@ -275,7 +287,7 @@ export function PreviewPane({ gates = [] }: { gates?: Gate[] }) {
                     onClick={() => setPreviewError(null)}
                     sx={{ color: 'text.secondary', flexShrink: 0 }}
                   >
-                    <VscClose size={14} />
+                    <Icon name="close" size={14} />
                   </IconButton>
                 </Stack>
               )}
@@ -375,13 +387,8 @@ export function PreviewPane({ gates = [] }: { gates?: Gate[] }) {
                   maxWidth: 480,
                 }}
               >
-                <Typography
-                  variant="h4"
-                  sx={{ fontSize: text.s150, fontWeight: 700 }}
-                >
-                  No preview yet
-                </Typography>
-                <Typography sx={{ color: 'text.secondary', maxWidth: 400, fontSize: text.s86 }}>
+                <Typography variant="h3">No preview yet</Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary', maxWidth: 400, lineHeight: 1.55 }}>
                   Ask the agent to build something in the chat. As it streams files, your app
                   renders here live — and the source appears in <b>Code</b>.
                 </Typography>

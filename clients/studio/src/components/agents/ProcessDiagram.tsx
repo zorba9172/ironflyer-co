@@ -1,4 +1,5 @@
 import { Box, Stack, Typography } from '@mui/material';
+import { Icon } from '../../icons';
 import type { CrewProcess } from '../../studioData';
 import { text } from '@ironflyer/design-tokens/brand';
 
@@ -45,9 +46,9 @@ function HubNode({ label }: { label: string }) {
         py: 0.7,
         borderRadius: `${t.studio?.radius?.sm ?? 14}px`,
         color: t.palette.primary.contrastText,
-        backgroundImage: t.brand.gradient.signature,
+        backgroundImage: t.studio.gradient.signature,
         fontSize: text.s74,
-        fontWeight: 700,
+        fontWeight: t.typography.fontWeightBold,
         whiteSpace: 'nowrap',
         boxShadow: `0 4px 18px ${t.studio?.neon?.violet ?? t.palette.primary.main}44`,
       })}
@@ -60,11 +61,7 @@ function HubNode({ label }: { label: string }) {
 function Arrow({ vertical }: { vertical?: boolean }) {
   return (
     <Box sx={{ display: 'flex', color: 'text.disabled' }}>
-      {vertical ? (
-        <svg width="14" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 4v14M6 13l6 6 6-6" /></svg>
-      ) : (
-        <svg width="16" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 12h14M13 6l6 6-6 6" /></svg>
-      )}
+      <Icon name={vertical ? 'chevronDown' : 'chevronRight'} size={15} />
     </Box>
   );
 }

@@ -5,6 +5,7 @@ import { useGraphQLQuery, operations } from '@ironflyer/data';
 import { useOperateProjectId } from '../hooks/useOperateProjectId';
 import { useOperateMutation } from '../hooks/useOperateMutation';
 import { PaneHeader } from '../components/operate/PaneHeader';
+import { Icon } from '../icons';
 import { StudioChart, donutOption, type EChartsOption } from '../components/charts';
 import { StudioDataGrid, type DataGridCellParams, type DataGridColumn, type StudioTableTab } from '../components/tables';
 import { GlassPanel, StatCard } from '../components/studio';
@@ -32,36 +33,6 @@ function statusColor(t: Theme, s: string): string {
 }
 
 const fmtWhen = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString() : '—');
-
-// User icon (inline, no external dep)
-function UserIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-    </svg>
-  );
-}
-function ActivityIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-    </svg>
-  );
-}
-function PlusIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-    </svg>
-  );
-}
-function BanIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="12" cy="12" r="10" /><line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
-    </svg>
-  );
-}
 
 export function UsersPane() {
   const t = useTheme();
@@ -218,7 +189,7 @@ export function UsersPane() {
               value={stats.total.toLocaleString()}
               hint="all time"
               accent={t.palette.primary.main}
-              icon={<UserIcon />}
+              icon={<Icon name="users" size={16} />}
               sx={{ scrollSnapAlign: 'start', p: { xs: 1.75, sm: 2.5 } }}
             />
             <StatCard
@@ -226,7 +197,7 @@ export function UsersPane() {
               value={stats.active7d.toLocaleString()}
               hint="seen this week"
               accent={t.studio.neon.success}
-              icon={<ActivityIcon />}
+              icon={<Icon name="activity" size={16} />}
               sx={{ scrollSnapAlign: 'start', p: { xs: 1.75, sm: 2.5 } }}
             />
             <StatCard
@@ -234,7 +205,7 @@ export function UsersPane() {
               value={stats.newThisWeek.toLocaleString()}
               hint="sign-ups"
               accent={t.palette.primary.main}
-              icon={<PlusIcon />}
+              icon={<Icon name="add" size={16} />}
               sx={{ scrollSnapAlign: 'start', p: { xs: 1.75, sm: 2.5 } }}
             />
             <StatCard
@@ -242,7 +213,7 @@ export function UsersPane() {
               value={String(stats.suspended)}
               hint="blocked accounts"
               accent={t.palette.error.main}
-              icon={<BanIcon />}
+              icon={<Icon name="close" size={16} />}
               sx={{ scrollSnapAlign: 'start', p: { xs: 1.75, sm: 2.5 } }}
             />
           </Box>

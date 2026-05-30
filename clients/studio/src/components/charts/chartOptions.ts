@@ -204,6 +204,127 @@ export function lineTrendOption(
   };
 }
 
+export function pieOption(
+  theme: Theme,
+  {
+    data,
+    radius = '72%',
+    roseType = false,
+  }: {
+    data: StudioChartDatum[];
+    radius?: string;
+    roseType?: boolean;
+  },
+): EChartsOption {
+  const series = [...theme.studio.chart.series];
+  const cleaned = data.filter((d) => d.value > 0);
+  return {
+    tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
+    legend: { bottom: 0, type: cleaned.length > 6 ? 'scroll' : undefined },
+    series: [{
+      type: 'pie',
+      radius,
+      roseType: roseType ? 'radius' : undefined,
+      itemStyle: { borderColor: theme.palette.background.paper, borderWidth: 2, borderRadius: 4 },
+      label: { color: theme.palette.text.secondary, fontSize: 11 },
+      data: cleaned.map((d, i) => ({ value: d.value, name: d.name, itemStyle: { color: d.color ?? series[i % series.length] } })),
+    }],
+  };
+}
+
+export function barOption(
+  theme: Theme,
+  {
+    categories,
+    series,
+    multicolor = false,
+  }: {
+    categories: string[];
+    // one series → single bar set; many → grouped bars
+    series: StudioLineSeries[];
+    // when a single series, tint each bar from the categorical palette
+    multicolor?: boolean;
+  },
+): EChartsOption {
+  const tones = [...theme.studio.chart.series];
+  return {
+    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+    legend: series.length > 1 ? { top: 0, right: 0 } : { show: false },
+    xAxis: { type: 'category', data: categories },
+    yAxis: { type: 'value' },
+    series: series.map((s, si) => ({
+      name: s.name,
+      type: 'bar',
+      barMaxWidth: 28,
+      itemStyle: { borderRadius: [4, 4, 0, 0], color: s.color ?? tones[si % tones.length] },
+      data: multicolor && series.length === 1
+        ? s.data.map((value, i) => ({ value, itemStyle: { color: tones[i % tones.length], borderRadius: [4, 4, 0, 0] } }))
+        : s.data,
+    })),
+  };
+}
+
+export function stackedBarOption(
+  theme: Theme,
+  {
+    categories,
+    series,
+  }: {
+    categories: string[];
+    series: StudioLineSeries[];
+  },
+): EChartsOption {
+  const tones = [...theme.studio.chart.series];
+  return {
+    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+    legend: { top: 0, right: 0 },
+    xAxis: { type: 'category', data: categories },
+    yAxis: { type: 'value' },
+    series: series.map((s, si) => ({
+      name: s.name,
+      type: 'bar',
+      stack: 'total',
+      barMaxWidth: 32,
+      itemStyle: { color: s.color ?? tones[si % tones.length] },
+      emphasis: { focus: 'series' },
+      data: s.data,
+    })),
+  };
+}
+
+export function radarOption(
+  theme: Theme,
+  {
+    indicators,
+    series,
+  }: {
+    indicators: { name: string; max: number }[];
+    series: { name: string; data: number[]; color?: string }[];
+  },
+): EChartsOption {
+  const tones = [...theme.studio.chart.series];
+  const split = theme.palette.mode === 'dark' ? theme.studio.chart.gridDark : theme.studio.chart.gridLight;
+  return {
+    tooltip: { trigger: 'item' },
+    legend: { bottom: 0 },
+    radar: {
+      indicator: indicators,
+      splitNumber: 4,
+      axisName: { color: theme.palette.text.secondary, fontSize: 11 },
+      splitLine: { lineStyle: { color: split } },
+      splitArea: { show: false },
+      axisLine: { lineStyle: { color: split } },
+    },
+    series: [{
+      type: 'radar',
+      data: series.map((s, i) => {
+        const tone = s.color ?? tones[i % tones.length];
+        return { name: s.name, value: s.data, areaStyle: { opacity: 0.12, color: tone }, lineStyle: { color: tone, width: 2 }, itemStyle: { color: tone } };
+      }),
+    }],
+  };
+}
+
 export function horizontalBarOption(
   theme: Theme,
   {

@@ -6,6 +6,7 @@ import { confirmAction, toast } from '@ironflyer/ui-web/fx';
 import { useGraphQLQuery, useRequest, operations } from '@ironflyer/data';
 import { useOperateProjectId } from '../hooks/useOperateProjectId';
 import { PaneHeader } from '../components/operate/PaneHeader';
+import { Icon } from '../icons';
 import { GlassPanel, SectionHeader } from '../components/studio';
 import { text } from '@ironflyer/design-tokens/brand';
 
@@ -29,32 +30,6 @@ const VIS_DESC: Record<string, string> = {
   public: 'Listed in the public directory.',
   archived: 'Stopped serving traffic.',
 };
-
-function TrashIcon() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
-    </svg>
-  );
-}
-
-function LockIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="11" width="18" height="11" rx="2" />
-      <path d="M7 11V7a5 5 0 0110 0v4" />
-    </svg>
-  );
-}
-
-function EyeIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  );
-}
 
 function VisibilityBadge({ vis }: { vis: string }) {
   const colorMap: Record<string, 'default' | 'success' | 'warning' | 'error'> = {
@@ -198,7 +173,7 @@ export function SettingsPane() {
                 }}
               >
                 <Box sx={{ display: 'inline-flex', color: v.secret ? 'primary.main' : 'text.disabled', opacity: 0.7 }}>
-                  {v.secret ? <LockIcon /> : <EyeIcon />}
+                  <Icon name={v.secret ? 'shield' : 'eye'} size={14} />
                 </Box>
                 <Typography
                   sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s80, flex: 1, fontWeight: 700 })}
@@ -227,7 +202,7 @@ export function SettingsPane() {
                     onClick={() => void delEnv(v.key)}
                     sx={{ color: 'text.secondary', '&:hover': { color: 'error.main' } }}
                   >
-                    <TrashIcon />
+                    <Icon name="trash" size={15} />
                   </IconButton>
                 </Tooltip>
               </Stack>

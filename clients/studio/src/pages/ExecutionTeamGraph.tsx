@@ -4,7 +4,7 @@ import { useTheme } from '@mui/material/styles';
 import { FlowCanvas, type FlowNode, type FlowEdge, type NodeMouseHandler, type HandleSpec } from '@ironflyer/ui-web/fx';
 import { useGraphQLQuery, operations } from '@ironflyer/data';
 import { formatUSD } from '@ironflyer/core';
-import { VscRobot, VscPlay, VscWand } from 'react-icons/vsc';
+import { Icon } from '../icons';
 import { statusColor, agentColor } from '../components/statusColor';
 import { nodePalette, type MapColors } from '../components/map/nodes';
 import { TechIcon } from '../lib/techIcons';
@@ -284,7 +284,7 @@ export function ExecutionTeamGraph({
         <LinearProgress
           variant="determinate"
           value={total ? Math.round((counts.done / total) * 100) : 0}
-          sx={{ height: 5, borderRadius: 99, bgcolor: 'action.hover', mb: 1.5, '& .MuiLinearProgress-bar': { borderRadius: 99, backgroundImage: (t) => t.brand.gradient.signature } }}
+          sx={{ height: 5, borderRadius: 99, bgcolor: 'action.hover', mb: 1.5, '& .MuiLinearProgress-bar': { borderRadius: 99, backgroundImage: (t) => t.studio.gradient.signature } }}
         />
         <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
           {(['working', 'blocked', 'idle', 'done'] as AgentStatus[]).map((s) => (
@@ -364,7 +364,7 @@ function AgentNode({ a, status, color, c, onRun }: { a: Agent; status: AgentStat
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, textAlign: 'left', width: '100%' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <VscRobot size={13} color={color} />
+        <span style={{ display: 'inline-flex', color }}><Icon name="bot" size={13} /></span>
         <span style={{ fontFamily: c.mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', color }}>{STATUS_TONE[status].toUpperCase()}</span>
         <span style={{ flex: 1 }} />
         {a.custom && <span style={{ fontFamily: c.mono, fontSize: 8, color: c.muted }}>CUSTOM</span>}
@@ -374,7 +374,7 @@ function AgentNode({ a, status, color, c, onRun }: { a: Agent; status: AgentStat
       <Stack className="nodrag nopan" direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.25 }}>
         <Tooltip title={`Dispatch ${a.name || 'agent'}`} arrow>
           <Box component="span" role="button" onClick={(e) => { e.stopPropagation(); onRun(); }} sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, cursor: 'pointer', color: status === 'blocked' ? 'primary.main' : 'success.main' }}>
-            {status === 'blocked' ? <VscWand size={13} /> : <VscPlay size={13} />}
+            <Icon name={status === 'blocked' ? 'wrench' : 'play'} size={13} />
             <Typography sx={{ fontSize: text.s66 }}>{status === 'blocked' ? 'Unblock' : 'Run'}</Typography>
           </Box>
         </Tooltip>

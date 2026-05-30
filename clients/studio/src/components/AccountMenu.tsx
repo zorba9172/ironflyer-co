@@ -2,12 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, Box, Divider, ListItemIcon, Menu, MenuItem, Switch, Typography } from '@mui/material';
 import { useAuth } from '@ironflyer/data';
+import { Icon } from '../icons';
 import { useThemeMode } from '../theme';
 import { text } from '@ironflyer/design-tokens/brand';
-
-const icon = (d: string) => (
-  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={d} /></svg>
-);
 
 // Avatar → dropdown with account info, theme, preferences, and sign out.
 export function AccountMenu({ size = 28 }: { size?: number }) {

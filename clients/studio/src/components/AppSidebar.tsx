@@ -4,8 +4,9 @@ import { toast } from '@ironflyer/ui-web/fx';
 import { useAuth, useGraphQLQuery, useRequest, operations } from '@ironflyer/data';
 import { LogoMark } from './LogoMark';
 import { AccountMenu } from './AccountMenu';
+import { Icon, type IconName } from '../icons';
 import { useStudio } from '../store';
-import { useThemeMode, neon } from '../theme';
+import { useThemeMode } from '../theme';
 import { mockProject, recentProjects, type StudioProject } from '../studioData';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
@@ -27,21 +28,27 @@ function NavItem({ icon, label, active, onClick }: { icon: ReactNode; label: str
       onClick={onClick}
       fullWidth
       startIcon={icon}
+      disableRipple
       sx={(theme) => ({
-        minHeight: 44,
+        minHeight: 42,
         justifyContent: 'flex-start',
         gap: 0.75,
         px: 1.35,
-        py: 0.85,
+        py: 0.8,
         borderRadius: `${theme.studio.radius.sm}px`,
-        color: active ? theme.palette.text.primary : theme.palette.text.secondary,
-        bgcolor: active ? theme.palette.surfaceHover : 'transparent',
-        border: '1px solid',
-        borderColor: active ? theme.palette.cardBorder : 'transparent',
-        boxShadow: active ? '0 1px 2px rgba(24,22,20,0.04)' : 'none',
-        fontWeight: active ? 700 : 600,
-        '&:hover': { bgcolor: theme.palette.surfaceHover, color: theme.palette.text.primary, borderColor: theme.palette.cardBorder },
-        '& .MuiButton-startIcon': { color: active ? theme.palette.text.primary : theme.palette.text.secondary, minWidth: 18 },
+        // Active nav reads in the signature indigo: tinted fill + indigo ink.
+        color: active ? theme.palette.primary.main : theme.palette.text.secondary,
+        bgcolor: active ? `${theme.palette.primary.main}14` : 'transparent',
+        fontWeight: active ? theme.typography.fontWeightBold : theme.typography.fontWeightMedium,
+        transition: `background-color ${theme.studio.motion.fast}, color ${theme.studio.motion.fast}`,
+        '&:hover': {
+          bgcolor: active ? `${theme.palette.primary.main}1F` : theme.palette.surfaceHover,
+          color: active ? theme.palette.primary.main : theme.palette.text.primary,
+        },
+        '& .MuiButton-startIcon': {
+          color: active ? theme.palette.primary.main : theme.palette.text.secondary,
+          minWidth: 18,
+        },
       })}
     >
       {label}
@@ -49,25 +56,8 @@ function NavItem({ icon, label, active, onClick }: { icon: ReactNode; label: str
   );
 }
 
-// 16px stroke icons — no icon dep.
-const I = (d: string) => (
-  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{<path d={d} />}</svg>
-);
-const icons = {
-  home: I('M3 11l9-8 9 8M5 10v10h14V10'),
-  apps: I('M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z'),
-  templates: I('M4 5h16M4 12h10M4 19h7'),
-  integrations: I('M9 7V4h6v3M7 7h10v5a5 5 0 01-10 0z M12 17v3'),
-  agents: I('M12 8V4H8M4 8h16v12H4zM2 14h2M20 14h2M9 13v2M15 13v2'),
-  search: I('M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35'),
-  community: I('M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75'),
-  gift: I('M20 12v10H4V12M22 7H2v5h20zM12 22V7M12 7H7.5a2.5 2.5 0 110-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 100-5C13 2 12 7 12 7z'),
-  bell: I('M18 8a6 6 0 10-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M13.73 21a2 2 0 01-3.46 0'),
-  sun: I('M12 2v2M12 20v2M4.9 4.9l1.4 1.4M2 12h2M20 12h2M5 19l1.4-1.4M12 8a4 4 0 100 8 4 4 0 000-8z'),
-  moon: I('M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z'),
-  panel: I('M4 4h7v16H4zM13 4h7v16h-7z'),
-  chevron: I('M6 9l6 6 6-6'),
-};
+// Sidebar glyphs route through the one Icon barrel (Lucide) — no inline SVG.
+const glyph = (name: IconName) => <Icon name={name} size={17} strokeWidth={1.8} />;
 
 function fallbackRecents(): RecentProject[] {
   return recentProjects.map(({ project }) => ({
@@ -157,18 +147,18 @@ export function AppSidebar({ onNewProject, newProjectBusy }: { onNewProject?: ()
               size="small"
               onClick={() => { void onNewProject?.(); }}
               aria-label="Search"
-              sx={(theme) => ({ color: 'text.primary', border: `1px solid transparent`, '&:hover': { bgcolor: 'surfaceHover', borderColor: theme.palette.divider } })}
+              sx={(theme) => ({ color: 'text.secondary', border: `1px solid transparent`, '&:hover': { bgcolor: 'surfaceHover', color: 'text.primary', borderColor: theme.palette.divider } })}
             >
-              {icons.search}
+              <Icon name="search" size={17} />
             </IconButton>
           </Tooltip>
           <Tooltip title="Collapse sidebar" arrow>
             <IconButton
               size="small"
               aria-label="Collapse sidebar"
-              sx={(theme) => ({ color: 'text.primary', border: `1px solid transparent`, '&:hover': { bgcolor: 'surfaceHover', borderColor: theme.palette.divider } })}
+              sx={(theme) => ({ color: 'text.secondary', border: `1px solid transparent`, '&:hover': { bgcolor: 'surfaceHover', color: 'text.primary', borderColor: theme.palette.divider } })}
             >
-              {icons.panel}
+              <Icon name="collapse" size={17} />
             </IconButton>
           </Tooltip>
           <Tooltip title={mode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} arrow>
@@ -176,9 +166,9 @@ export function AppSidebar({ onNewProject, newProjectBusy }: { onNewProject?: ()
               size="small"
               onClick={toggle}
               aria-label={mode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-              sx={(theme) => ({ color: 'text.secondary', border: `1px solid ${theme.palette.divider}`, '&:hover': { bgcolor: 'surfaceHover' } })}
+              sx={(theme) => ({ color: 'text.secondary', border: `1px solid ${theme.palette.divider}`, '&:hover': { bgcolor: 'surfaceHover', color: 'text.primary' } })}
             >
-              {mode === 'dark' ? icons.sun : icons.moon}
+              <Icon name={mode === 'dark' ? 'sun' : 'moon'} size={17} />
             </IconButton>
           </Tooltip>
         </Stack>
@@ -187,7 +177,7 @@ export function AppSidebar({ onNewProject, newProjectBusy }: { onNewProject?: ()
       <Button
         fullWidth
         color="inherit"
-        endIcon={icons.chevron}
+        endIcon={<Icon name="chevronDown" size={16} />}
         sx={(theme) => ({
           justifyContent: 'space-between',
           minHeight: 56,
@@ -196,8 +186,8 @@ export function AppSidebar({ onNewProject, newProjectBusy }: { onNewProject?: ()
           borderRadius: `${theme.studio.radius.lg}px`,
           border: `1px solid ${theme.palette.cardBorder}`,
           bgcolor: 'background.paper',
-          boxShadow: '0 1px 2px rgba(24,22,20,0.04)',
-          '& .MuiButton-endIcon': { color: 'text.primary', ml: 1 },
+          boxShadow: 1,
+          '& .MuiButton-endIcon': { color: 'text.secondary', ml: 1 },
           '&:hover': { bgcolor: 'surfaceHover' },
         })}
       >
@@ -209,9 +199,9 @@ export function AppSidebar({ onNewProject, newProjectBusy }: { onNewProject?: ()
               borderRadius: `${theme.studio.radius.sm}px`,
               display: 'grid',
               placeItems: 'center',
-              bgcolor: `${theme.palette.primary.main}24`,
+              bgcolor: `${theme.palette.primary.main}1F`,
               color: 'primary.main',
-              fontWeight: 900,
+              fontWeight: theme.typography.fontWeightBold,
               fontSize: text.s76,
               flexShrink: 0,
             })}
@@ -219,7 +209,7 @@ export function AppSidebar({ onNewProject, newProjectBusy }: { onNewProject?: ()
             Mw
           </Box>
           <Box sx={{ minWidth: 0, textAlign: 'left' }}>
-            <Typography sx={{ fontWeight: 900, fontSize: text.s92, lineHeight: 1.1 }} noWrap>Moshe's Workspace</Typography>
+            <Typography sx={(theme) => ({ fontWeight: theme.typography.fontWeightBold, fontSize: text.s92, lineHeight: 1.1 })} noWrap>Moshe's Workspace</Typography>
             <Typography sx={{ color: 'text.secondary', fontSize: text.s68, lineHeight: 1.2 }} noWrap>Ironflyer apps</Typography>
           </Box>
         </Stack>
@@ -227,19 +217,19 @@ export function AppSidebar({ onNewProject, newProjectBusy }: { onNewProject?: ()
 
       <Box sx={(theme) => ({ p: 0.55, border: `1px solid ${theme.palette.cardBorder}`, borderRadius: `${theme.studio.radius.lg}px`, mb: 1.15, bgcolor: 'background.paper' })}>
         <Stack spacing={0.25}>
-          <Button fullWidth startIcon={icons.apps} sx={(theme) => ({ justifyContent: 'flex-start', bgcolor: theme.palette.surfaceHover, color: 'text.primary', minHeight: 40, borderRadius: `${theme.studio.radius.sm}px`, fontWeight: 900 })}>Apps</Button>
-          <Button fullWidth startIcon={icons.agents} sx={(theme) => ({ justifyContent: 'flex-start', color: 'text.primary', minHeight: 40, borderRadius: `${theme.studio.radius.sm}px`, fontWeight: 800, '&:hover': { bgcolor: 'surfaceHover' } })}>Superagents</Button>
+          <Button fullWidth disableRipple startIcon={<Icon name="projects" size={17} />} sx={(theme) => ({ justifyContent: 'flex-start', bgcolor: theme.palette.surfaceHover, color: 'text.primary', minHeight: 40, borderRadius: `${theme.studio.radius.sm}px`, fontWeight: theme.typography.fontWeightBold })}>Apps</Button>
+          <Button fullWidth disableRipple startIcon={<Icon name="bot" size={17} />} sx={(theme) => ({ justifyContent: 'flex-start', color: 'text.secondary', minHeight: 40, borderRadius: `${theme.studio.radius.sm}px`, fontWeight: theme.typography.fontWeightMedium, '&:hover': { bgcolor: 'surfaceHover', color: 'text.primary' } })}>Superagents</Button>
         </Stack>
       </Box>
 
       <Stack spacing={0.25}>
-        <NavItem icon={newProjectBusy ? <CircularProgress color="inherit" size={12} /> : icons.search} label="Search" onClick={() => { void onNewProject?.(); }} />
-        <NavItem icon={icons.home} label="Home" active={pathname === '/' || pathname === '/studio'} onClick={() => go('/')} />
-        <NavItem icon={icons.apps} label="All apps" active={pathname === '/projects'} onClick={() => go('/projects')} />
-        <NavItem icon={icons.templates} label="Templates" active={pathname === '/templates'} onClick={() => go('/templates')} />
-        <NavItem icon={icons.integrations} label="Integrations" active={pathname === '/integrations'} onClick={() => go('/integrations')} />
-        <NavItem icon={icons.community} label="Community" active={pathname === '/agents'} onClick={() => go('/agents')} />
-        <NavItem icon={icons.integrations} label="Deployments" active={pathname === '/build' && editorTab === 'domains'} onClick={() => go('/build?tab=domains')} />
+        <NavItem icon={newProjectBusy ? <CircularProgress color="inherit" size={12} /> : glyph('search')} label="Search" onClick={() => { void onNewProject?.(); }} />
+        <NavItem icon={glyph('home')} label="Home" active={pathname === '/' || pathname === '/studio'} onClick={() => go('/')} />
+        <NavItem icon={glyph('projects')} label="All apps" active={pathname === '/projects'} onClick={() => go('/projects')} />
+        <NavItem icon={glyph('templates')} label="Templates" active={pathname === '/templates'} onClick={() => go('/templates')} />
+        <NavItem icon={glyph('integrations')} label="Integrations" active={pathname === '/integrations'} onClick={() => go('/integrations')} />
+        <NavItem icon={glyph('users')} label="Community" active={pathname === '/agents'} onClick={() => go('/agents')} />
+        <NavItem icon={glyph('deployments')} label="Deployments" active={pathname === '/build' && editorTab === 'domains'} onClick={() => go('/build?tab=domains')} />
       </Stack>
 
       <Divider sx={{ my: 2, borderColor: 'borderSubtle' }} />
@@ -273,11 +263,41 @@ export function AppSidebar({ onNewProject, newProjectBusy }: { onNewProject?: ()
 
       <Box sx={{ flex: 1 }} />
 
-      <Box sx={(theme) => ({ p: 1.6, borderRadius: `${theme.studio.radius.lg}px`, border: `1px solid ${theme.palette.cardBorder}`, bgcolor: 'background.paper', boxShadow: '0 1px 2px rgba(24,22,20,0.04)', mb: 1.5 })}>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <Box sx={{ color: neon.violet }}>{icons.gift}</Box>
+      <Box
+        role="button"
+        tabIndex={0}
+        onClick={() => go('/plans')}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go('/plans'); } }}
+        sx={(theme) => ({
+          p: 1.6,
+          borderRadius: `${theme.studio.radius.lg}px`,
+          border: `1px solid ${theme.palette.cardBorder}`,
+          bgcolor: 'background.paper',
+          boxShadow: 1,
+          mb: 1.5,
+          cursor: 'pointer',
+          outline: 'none',
+          transition: `border-color ${theme.studio.motion.fast}, background-color ${theme.studio.motion.fast}`,
+          '&:hover, &:focus-visible': { borderColor: `${theme.palette.primary.main}66`, bgcolor: 'surfaceHover' },
+        })}
+      >
+        <Stack direction="row" spacing={1.25} alignItems="center">
+          <Box
+            sx={(theme) => ({
+              display: 'grid',
+              placeItems: 'center',
+              width: 32,
+              height: 32,
+              borderRadius: `${theme.studio.radius.sm}px`,
+              color: theme.studio.neon.violet,
+              bgcolor: `${theme.studio.neon.violet}1F`,
+              flexShrink: 0,
+            })}
+          >
+            <Icon name="sparkles" size={17} />
+          </Box>
           <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontWeight: 800, fontSize: text.s88 }}>Upgrade your plan</Typography>
+            <Typography sx={(theme) => ({ fontWeight: theme.typography.fontWeightBold, fontSize: text.s88 })}>Upgrade your plan</Typography>
             <Typography sx={{ color: 'text.secondary', fontSize: text.s76 }}>Get more out of your apps</Typography>
           </Box>
         </Stack>
@@ -291,7 +311,11 @@ export function AppSidebar({ onNewProject, newProjectBusy }: { onNewProject?: ()
             {online ? (user ? `${user.plan ?? 'free'} · connected` : 'connected') : 'offline preview'}
           </Typography>
         </Box>
-        <IconButton size="small" sx={{ color: 'text.secondary' }}>{icons.bell}</IconButton>
+        <Tooltip title="Notifications" arrow>
+          <IconButton size="small" aria-label="Notifications" sx={{ color: 'text.secondary', '&:hover': { color: 'text.primary' } }}>
+            <Icon name="bell" size={17} />
+          </IconButton>
+        </Tooltip>
       </Stack>
     </Box>
   );

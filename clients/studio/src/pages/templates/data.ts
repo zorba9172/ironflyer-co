@@ -1,23 +1,19 @@
-import type { IconType } from 'react-icons';
-import {
-  LuLayoutDashboard,
-  LuStore,
-  LuBot,
-  LuCalendarClock,
-  LuWrench,
-  LuRocket,
-} from 'react-icons/lu';
+import type { IconName } from '../../icons';
 import { neon } from '../../theme';
 
 // ─────────────────────────────────────────────────────────────────────────
 // Templates page data model.
 //
-// The six starter blueprints are unchanged from the original page (name,
-// category, description, stack) — the live `use(name)` handler still calls
-// startFromPrompt(`Start from the ${name} template`). This module only adds
-// presentational metadata (a neon accent + icon + glanceable stats) so each
-// card can read as a proof surface instead of a flat list row. No new app
-// structure, routes, or data flow.
+// The six starter blueprints are unchanged in meaning from the original page
+// (name, category, description, stack) — the live `use(name)` handler still
+// calls startFromPrompt(`Start from the ${name} template`). This module only
+// carries presentational metadata so each card reads as a proof surface:
+//   • `icon`  — a semantic name resolved through the studio Icon barrel
+//               (Iconography Law: never a vendor glyph import in a component).
+//   • `art`   — an illustrated 3D asset id for the card thumbnail (AssetImage).
+//   • `accent`— a studio `neon` token value (the sanctioned non-sx token bag),
+//               used only to tint card chrome through the theme.
+// No new app structure, routes, or data flow.
 // ─────────────────────────────────────────────────────────────────────────
 
 export type Template = {
@@ -25,9 +21,13 @@ export type Template = {
   cat: string;
   desc: string;
   stack: string;
-  Icon: IconType;
+  /** semantic glyph name from the studio Icon barrel */
+  icon: IconName;
+  /** illustrated 3D asset id (pack/name) for the card thumbnail */
+  art: string;
+  /** studio neon accent token used to tint the card chrome */
   accent: string;
-  /** Glanceable proof stats shown on the card footer. */
+  /** Glanceable proof stat shown on the card footer. */
   gates: number;
   /** Relative readiness of the starter (drives the meter + sort weight). */
   readiness: number;
@@ -50,7 +50,8 @@ export const TEMPLATES: readonly Template[] = [
     cat: 'SaaS',
     desc: 'Auth, billing, team roles, and an admin panel.',
     stack: 'React · Go · Postgres',
-    Icon: LuLayoutDashboard,
+    icon: 'dashboard',
+    art: 'strategy-3d/8-monitor',
     accent: neon.violet,
     gates: 6,
     readiness: 92,
@@ -61,7 +62,8 @@ export const TEMPLATES: readonly Template[] = [
     cat: 'Commerce',
     desc: 'Listings, Stripe payments, and seller payouts.',
     stack: 'React · Stripe · Postgres',
-    Icon: LuStore,
+    icon: 'store',
+    art: 'strategy-3d/3-wallet',
     accent: neon.blue,
     gates: 7,
     readiness: 88,
@@ -72,7 +74,8 @@ export const TEMPLATES: readonly Template[] = [
     cat: 'AI',
     desc: 'Streaming chat, memory, and usage metering.',
     stack: 'React · streaming · ledger',
-    Icon: LuBot,
+    icon: 'bot',
+    art: 'chatbot/17143-script-builder',
     accent: neon.pink,
     gates: 5,
     readiness: 95,
@@ -83,7 +86,8 @@ export const TEMPLATES: readonly Template[] = [
     cat: 'Commerce',
     desc: 'Calendar, reminders, and Stripe checkout.',
     stack: 'React · Stripe · email',
-    Icon: LuCalendarClock,
+    icon: 'schedule',
+    art: 'strategy-3d/1-calendar',
     accent: neon.purple,
     gates: 6,
     readiness: 86,
@@ -94,7 +98,8 @@ export const TEMPLATES: readonly Template[] = [
     cat: 'Internal',
     desc: 'Tables, roles, and an audit log.',
     stack: 'React · RBAC · audit log',
-    Icon: LuWrench,
+    icon: 'wrench',
+    art: 'strategy-3d/4-gear',
     accent: neon.success,
     gates: 5,
     readiness: 90,
@@ -105,7 +110,8 @@ export const TEMPLATES: readonly Template[] = [
     cat: 'Marketing',
     desc: 'SEO pages, email capture, and analytics.',
     stack: 'React · SEO · analytics',
-    Icon: LuRocket,
+    icon: 'build',
+    art: 'strategy-3d/2-rocket',
     accent: neon.warning,
     gates: 4,
     readiness: 97,

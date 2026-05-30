@@ -1,7 +1,7 @@
 import { lazy, Suspense, useMemo, useState, type ReactNode } from 'react';
 import { Box, Button, Card, Chip, CircularProgress, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { LuBot, LuSearch, LuNetwork, LuLayoutGrid, LuPlus, LuUsers } from 'react-icons/lu';
+import { Icon } from '../icons';
 import { confirmAction, toast } from '@ironflyer/ui-web/fx';
 import { AGENTS, agentStatus, newAgent, newCrew, type Agent, type AgentStatus, type Crew } from '../studioData';
 import { useStudio } from '../store';
@@ -119,7 +119,7 @@ export function AgentsPage() {
         <Stack direction="row" alignItems="flex-start" justifyContent="space-between" sx={{ gap: 2, mb: 3 }}>
           <Box sx={{ minWidth: 0 }}>
             <Chip
-              icon={<LuBot size={15} />}
+              icon={<Icon name="bot" size={15} />}
               label="Agent team"
               sx={(t) => ({
                 height: 30,
@@ -134,15 +134,15 @@ export function AgentsPage() {
                 '& .MuiChip-label': { px: 1 },
               })}
             />
-            <Typography variant="h3" sx={{ fontSize: { xs: text.s225, md: text.s250 }, fontWeight: 800, letterSpacing: '-0.02em', mb: 1 }}>
+            <Typography variant="h2" sx={{ mb: 1 }}>
               Your AI{' '}
               <Box component="span" sx={(t) => ({ backgroundImage: t.studio.gradient.signature, WebkitBackgroundClip: 'text', backgroundClip: 'text', WebkitTextFillColor: 'transparent', color: 'transparent' })}>agent team</Box>
             </Typography>
-            <Typography sx={{ color: 'text.secondary', maxWidth: 640, lineHeight: 1.55 }}>
+            <Typography variant="body1" sx={{ color: 'text.secondary', maxWidth: 640 }}>
               One orchestrator routes work to specialists. Compose your own agents — give each a mission, skills, tools, areas of responsibility, and guardrails — then schedule when they run.
             </Typography>
           </Box>
-          <Button variant="contained" color="primary" startIcon={<LuPlus size={18} />} sx={{ flexShrink: 0 }} onClick={() => setEditing(newAgent())}>New agent</Button>
+          <Button variant="contained" color="primary" startIcon={<Icon name="add" size={18} />} sx={{ flexShrink: 0 }} onClick={() => setEditing(newAgent())}>New agent</Button>
         </Stack>
 
         {/* Viz-first status panel: donut mirror of the live roster + stat readout. */}
@@ -177,8 +177,8 @@ export function AgentsPage() {
         {/* Controls — segmented view switch + (catalog) search & status filter. */}
         <Stack direction="row" alignItems="center" sx={{ mb: 3, gap: 2, flexWrap: 'wrap' }}>
           <ToggleButtonGroup size="small" exclusive value={view} onChange={(_e, v) => v && setView(v)} sx={{ flexShrink: 0 }}>
-            <ToggleButton value="map" sx={{ textTransform: 'none', px: 2, gap: 0.75 }}><LuNetwork size={15} /> Map</ToggleButton>
-            <ToggleButton value="catalog" sx={{ textTransform: 'none', px: 2, gap: 0.75 }}><LuLayoutGrid size={15} /> Catalog</ToggleButton>
+            <ToggleButton value="map" sx={{ textTransform: 'none', px: 2, gap: 0.75 }}><Icon name="network" size={15} /> Map</ToggleButton>
+            <ToggleButton value="catalog" sx={{ textTransform: 'none', px: 2, gap: 0.75 }}><Icon name="projects" size={15} /> Catalog</ToggleButton>
           </ToggleButtonGroup>
           {view === 'catalog' && (
             <>
@@ -187,7 +187,7 @@ export function AgentsPage() {
                 onChange={(e) => setQuery(e.target.value)}
                 size="small"
                 placeholder="Search by name, skill, or responsibility"
-                InputProps={{ startAdornment: <Box sx={{ display: 'flex', color: 'text.disabled', mr: 1 }}><LuSearch size={16} /></Box> }}
+                InputProps={{ startAdornment: <Box sx={{ display: 'flex', color: 'text.disabled', mr: 1 }}><Icon name="search" size={16} /></Box> }}
                 sx={{ flex: 1, minWidth: 240, maxWidth: 460 }}
               />
               <ToggleButtonGroup size="small" exclusive value={status} onChange={(_e, v) => v && setStatus(v)} sx={{ flexWrap: 'wrap' }}>
@@ -242,11 +242,11 @@ export function AgentsPage() {
       {/* Crews */}
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
         <SectionLabel sx={{ mb: 0 }} accent={theme.studio.neon.pink}>Crews ({crews.length})</SectionLabel>
-        <Button size="small" color="inherit" startIcon={<LuUsers size={15} />} onClick={() => setEditingCrew(newCrew())} sx={{ borderColor: 'divider' }} variant="outlined">New crew</Button>
+        <Button size="small" color="inherit" startIcon={<Icon name="users" size={15} />} onClick={() => setEditingCrew(newCrew())} sx={{ borderColor: 'divider' }} variant="outlined">New crew</Button>
       </Stack>
       {crews.length === 0 ? (
         <EmptyState
-          icon={<LuUsers size={22} />}
+          icon={<Icon name="users" size={22} />}
           accent={theme.studio.neon.pink}
           text="No crews yet. Group agents to run together — in parallel as workers, in a chain, or under a manager."
           action={<Button variant="outlined" color="inherit" onClick={() => setEditingCrew(newCrew())}>Create your first crew</Button>}
@@ -263,7 +263,7 @@ export function AgentsPage() {
       <SectionLabel accent={theme.studio.neon.blue}>Your agents ({customAgents.length})</SectionLabel>
       {customAgents.length === 0 ? (
         <EmptyState
-          icon={<LuBot size={22} />}
+          icon={<Icon name="bot" size={22} />}
           accent={theme.studio.neon.blue}
           text={'No custom agents yet. Create one — e.g. an "Einstein" research agent that runs daily and grounds the build.'}
           action={<Button variant="outlined" color="inherit" onClick={() => setEditing(newAgent())}>Create your first agent</Button>}
@@ -331,7 +331,7 @@ function EmptyState({ icon, accent, text: body, action }: { icon: ReactNode; acc
         backgroundColor: t.palette.cardBg,
       })}
     >
-      <Box sx={{ width: 48, height: 48, borderRadius: 2, display: 'grid', placeItems: 'center', color: accent, background: `radial-gradient(120% 120% at 30% 20%, ${accent}33, ${accent}0D 70%)`, border: `1px solid ${accent}33` }}>
+      <Box sx={{ width: 48, height: 48, borderRadius: 2, display: 'grid', placeItems: 'center', color: accent, backgroundColor: `${accent}1f`, border: `1px solid ${accent}33` }}>
         {icon}
       </Box>
       <Typography sx={{ color: 'text.secondary', maxWidth: 420 }}>{body}</Typography>

@@ -7,7 +7,8 @@ import { PatchDiff } from '../components/PatchDiff';
 import { useLiveGates } from '../hooks/useLiveGates';
 import { agentForGate } from '../studioData';
 import type { Finding, Patch } from '../studioData';
-import { StudioChart, donutOption, type EChartsOption } from '../components/charts';
+import { Icon, AssetImage } from '../icons';
+import { StudioChart, donutOption, barOption, type EChartsOption } from '../components/charts';
 import { GlassPanel, SectionHeader, StatCard } from '../components/studio';
 import { text } from '@ironflyer/design-tokens/brand';
 
@@ -16,22 +17,6 @@ interface FindingRow extends Finding { gateId: string; gateName: string }
 
 const sevColor = (t: Theme, s: Finding['severity']) =>
   s === 'danger' ? t.palette.error.main : s === 'warning' ? t.palette.warning.main : t.palette.info.main;
-
-function icon(paths: string[], size = 16) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-      {paths.map((d) => <path key={d} d={d} />)}
-    </svg>
-  );
-}
-
-const icons = {
-  proposed: icon(['M5 12h14', 'M13 6l6 6-6 6']),
-  applied: icon(['M20 6L9 17l-5-5']),
-  danger: icon(['M12 2l10 17H2z', 'M12 9v5', 'M12 16h.01']),
-  warning: icon(['M12 9v4', 'M12 16h.01', 'M10.3 3.3L1.7 17.5A2 2 0 003.4 21h17.2a2 2 0 001.7-3.5L13.7 3.3a2 2 0 00-3.4 0z']),
-  spark: icon(['M12 3l1.5 5.5L17 10l-3.5 1.5L12 17l-1.5-5.5L7 10l3.5-1.5z']),
-};
 
 function FindingRow({ f }: { f: FindingRow }) {
   const t = useTheme();
@@ -117,6 +102,19 @@ export function ReviewPane() {
     });
   }, [proposed.length, applied.length, t]);
 
+  // Multi-color bar: how many reviewable patches each gate produced — bound to
+  // the real gate verdicts so the operator sees where review effort concentrates.
+  const byGate = useMemo<EChartsOption>(() => {
+    const counts = new Map<string, number>();
+    for (const p of patches) counts.set(p.gateName, (counts.get(p.gateName) ?? 0) + 1);
+    const entries = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 7);
+    return barOption(t, {
+      categories: entries.map(([name]) => name),
+      series: [{ name: 'Patches', data: entries.map(([, n]) => n) }],
+      multicolor: true,
+    });
+  }, [patches, t]);
+
   const ordered = [...proposed, ...applied];
 
   return (
@@ -151,7 +149,7 @@ export function ReviewPane() {
                 variant="contained"
                 color="primary"
                 size="small"
-                startIcon={icons.spark}
+                startIcon={<Icon name="sparkles" size={15} />}
                 sx={{ borderRadius: 999 }}
               >
                 Apply all {proposed.length} patches
@@ -160,8 +158,8 @@ export function ReviewPane() {
           }
         />
 
-        {/* Visual summary: donut + StatCards */}
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '280px 1fr' }, gap: 1.5, mb: 3, alignItems: 'stretch' }}>
+        {/* Visual-first lead: patch-state donut + per-gate review bar + KPI rail */}
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '240px 1fr' }, gap: 1.5, mb: 1.5, alignItems: 'stretch' }}>
           <GlassPanel pad={2.5}>
             <Typography
               sx={(th) => ({
@@ -177,36 +175,51 @@ export function ReviewPane() {
             <StudioChart option={donut} height={200} />
           </GlassPanel>
 
-          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
-            <StatCard
-              label="To review"
-              value={String(proposed.length)}
-              hint="proposed patches"
-              accent={t.palette.warning.main}
-              icon={icons.proposed}
-            />
-            <StatCard
-              label="Applied"
-              value={String(applied.length)}
-              hint="through the gates"
-              accent={t.palette.success.main}
-              icon={icons.applied}
-            />
-            <StatCard
-              label="Blocking findings"
-              value={String(dangers)}
-              hint="must close to ship"
-              accent={t.palette.error.main}
-              icon={icons.danger}
-            />
-            <StatCard
-              label="Warnings"
-              value={String(warnings)}
-              hint="review recommended"
-              accent={t.palette.warning.main}
-              icon={icons.warning}
-            />
-          </Box>
+          <GlassPanel pad={2.5}>
+            <Typography
+              sx={(th) => ({
+                fontFamily: th.brand.font.mono,
+                fontSize: text.s66,
+                textTransform: 'uppercase',
+                color: 'text.disabled',
+                mb: 0.5,
+              })}
+            >
+              Review queue by gate
+            </Typography>
+            <StudioChart option={byGate} height={200} />
+          </GlassPanel>
+        </Box>
+
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(4, 1fr)' }, gap: 1.5, mb: 3 }}>
+          <StatCard
+            label="To review"
+            value={String(proposed.length)}
+            hint="proposed patches"
+            accent={t.palette.warning.main}
+            icon={<Icon name="pullRequest" size={16} />}
+          />
+          <StatCard
+            label="Applied"
+            value={String(applied.length)}
+            hint="through the gates"
+            accent={t.palette.success.main}
+            icon={<Icon name="checkAll" size={16} />}
+          />
+          <StatCard
+            label="Blocking findings"
+            value={String(dangers)}
+            hint="must close to ship"
+            accent={t.palette.error.main}
+            icon={<Icon name="alert" size={16} />}
+          />
+          <StatCard
+            label="Warnings"
+            value={String(warnings)}
+            hint="review recommended"
+            accent={t.palette.warning.main}
+            icon={<Icon name="info" size={16} />}
+          />
         </Box>
 
         <Typography

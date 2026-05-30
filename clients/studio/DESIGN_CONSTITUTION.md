@@ -2,266 +2,236 @@
 
 This document is binding for `clients/studio`. New Studio UI must follow the
 reference direction in `design_refernce/` and must not introduce a competing
-visual language.
+visual language. **When a reference image exists for a surface, the reference
+wins over any prose, any prior build, and any sub-agent suggestion.**
 
-## References
+## References (source of truth — in priority order)
 
-- Primary home target:
-  `design_refernce/ChatGPT Image May 30, 2026, 01_32_18 AM.png`
-- Studio shell target:
-  `design_refernce/ChatGPT Image May 30, 2026, 01_31_54 AM.png`
-- IDE/workbench target:
-  `design_refernce/ChatGPT Image May 30, 2026, 01_32_05 AM.png`
-- Review-quality target:
-  `design_refernce/ChatGPT Image May 30, 2026, 01_48_34 AM.png`
-- Preview/live-build target:
-  `design_refernce/ChatGPT Image May 30, 2026, 01_57_49 AM.png`
-- Source notes:
-  `design_refernce/mx.md`
+The **newest** references define the law. Older renders are kept for structural
+guidance only where the newer set is silent.
+
+1. `design_refernce/image.png` — **Home (light)**, the primary target. Left
+   rail, friendly greeting ("Good morning, Meir 👋"), white prompt card with an
+   indigo **Start building** CTA, Recent Builds gallery, Active Agents row, and
+   a right **Live Build** column.
+2. `design_refernce/image copy.png` — **Review (light)**. Indigo progress to
+   "Deploy", a stat-card rail with sparklines, a multi-color **Provider spend**
+   bar chart, and a teal/violet **donut** with a named center.
+3. `design_refernce/ChatGPT…01_32_05….png` — workbench / IDE shell.
+4. `design_refernce/ChatGPT…01_48_34….png` — Performance Review (readiness
+   gauge + layer rows + issue list + AI panels).
+5. `design_refernce/ChatGPT…01_57_49….png` — Preview / live-build three-column.
+
+`design_refernce/mx.md` is **superseded** by this document and the tokens. Its
+dark-neon-cyber and warm-orange directions are retired drift; do not revive them.
 
 ## Design DNA
 
-Ironflyer Studio is premium AI infrastructure: Gemini, OpenAI, Linear, Arc
-Browser, and Apple Vision Pro, with soft cyber energy. It must feel calm,
-expensive, intelligent, and production-grade.
+Ironflyer Studio is a premium AI product-builder for non-engineers. It must feel
+**clean, light, calm, expensive, and intelligent** — the love-child of Linear,
+Lovable, Figma, and Vercel with a soft indigo→violet aurora signature.
 
-Avoid hacker, crypto, gaming, Matrix green, heavy terminal, and generic MUI
-dashboard aesthetics.
+- **Light-first.** The product canvas is light. Dark mode is a first-class peer
+  reached by the toggle — not the default.
+- **Focus zones may go dark.** The left rail, the workbench/code surface, and
+  the dark prompt variant may use the dark canvas inside light mode for focus.
+- Avoid: hacker / crypto / gaming, Matrix green, heavy terminal, neon-cyber
+  overload, warm-orange identity, and generic MUI dashboard aesthetics.
 
 ## Hierarchy
 
-The prompt is the product.
+The prompt is the product. Home page hierarchy:
 
-Home page hierarchy:
-
-1. Product headline.
-2. Active AI system state.
-3. Large prompt builder.
-4. Primary build CTA.
-5. Template and recent-project accelerators.
-
-Nothing should visually compete with the prompt builder.
+1. Warm greeting + product headline.
+2. The large prompt builder (the hero — nothing competes with it).
+3. Primary build CTA.
+4. Recent builds + template accelerators.
+5. The ambient Live Build / system-state column as supporting context.
 
 ## Color
 
-Dark foundation:
+The studio runs its **own** theme. Every value originates in `src/theme/tokens.ts`
+(the "Aurora" system) — the sole place a raw hex/rgba may live.
 
-- Primary background: `#050816`
-- Secondary background: `#0A1024`
-- Surface: `#101936`
-- Surface hover: `#152149`
+Signature (mode-independent):
 
-Neon gradient:
+- Primary indigo: `#6366F1` (CTA, active nav, focus, primary series)
+- Violet: `#8B5CF6` · Blue: `#3B82F6` · Pink: `#EC4899` · Cyan: `#22CCEE`
+- Aurora gradient: `#4F6BF5 → #7C5CF6 → #D96BD8` (CTAs, final headline phrase,
+  active states, focus rims, thin energy edges — **never** large flat surfaces)
+- Success `#16B364` · Warning `#F79009` · Danger `#F04438` · Info `#2E90FA`
 
-- `#00D4FF -> #6B5CFF -> #FF4FD8`
+Light canvas: bg `#F7F8FA`, surfaces `#FFFFFF`, hairlines `#EAECF0`, ink
+`#101828 / #475467 / #98A2B3`.
 
-Accents:
+Dark canvas: bg `#0A0F1C`, surfaces `#111827`, hairlines `#283142`, ink
+`#F9FAFB / #CBD5E1 / #8B96A8`.
 
-- AI blue: `#00D4FF`
-- Intelligence purple: `#8B5CF6`
-- Neon pink: `#FF4FD8`
-- Success: `#00E6A7`
-- Warning: `#FFB84D`
-- Danger: `#FF5D73`
+## Typography (editorial two-typeface system — the Base44 differentiator)
 
-Light Studio screens use near-white backgrounds, cool blue-gray borders, dark
-navy text, and restrained neon accents. A dark sidebar or dark prompt module is
-allowed and encouraged as the visual anchor.
+Inspired by output.com's refined editorial hierarchy — on WHITE, never beige.
+Generic bold-Inter-everywhere is forbidden; that is the look we are leaving.
 
-## Typography
-
-- Font: Inter for UI and product text.
-- Allowed weights: 500, 600, 700, 800.
-- Headlines are bold, tight, and high-contrast.
-- Body text is calm blue-gray.
-- Mono fonts are only for code/editor contexts or tiny operational labels.
-- Letter spacing is `0` for normal text; use tracked uppercase only for short
-  section labels.
+- **Display → Bricolage Grotesque** (`font.display`) for `h1`–`h3`: characterful,
+  editorial, young. Tight negative tracking (`font.tracking.display` −0.022em on
+  h1/h2, `tight` −0.014em on h3). Weights 600–700, NOT 800-everywhere.
+- **Text → Inter** (`font.family`) for `h4`–`h6`, body, UI. Body at comfortable
+  line-height (1.5–1.55). Section headers precise, not heavy.
+- **Mono → Geist Mono** only for code/editor or tiny operational labels.
+- **Overline/labels:** Inter 600, uppercase, `font.tracking.label` (0.08em), 11px.
+- Precise modular scale lives in `studioTheme.ts` typography (h1 48 / h2 36 /
+  h3 28 / h4 22 / h5 18 / h6 16 / body1 15 / body2 13 / caption 12 / overline 11).
+  Use `variant=` — never an inline `fontSize`/`fontFamily`/`fontWeight`.
+- All three faces load once via `@ironflyer/ui-web/fonts.css` (already imported
+  in `main.tsx`). Headlines must render in Bricolage, not the system fallback.
 
 ## Shape
 
-- Compact controls: 10-14px radius.
-- Operational panels: 16-24px radius.
-- Prompt builder: 24-28px radius.
-- Pills: fully rounded.
-- Corners are soft and premium, never bubbly.
+- Compact controls: 8–10px radius.
+- Cards: 12–14px radius.
+- Operational panels / prompt builder: 16–20px radius.
+- Pills: fully rounded. Corners are soft and premium, never bubbly.
 
 ## Glow
 
-Glow is reserved for:
+Glow is reserved for: the prompt builder, primary CTAs, active navigation, AI
+status icons, and focus states. Use a soft indigo/violet bloom. Never put the
+full aurora gradient on a large surface. Atmosphere may use radial light
+(`effect.ambient`); visible decorative circles or blobs are forbidden.
 
-- The prompt builder.
-- Primary CTA buttons.
-- Active navigation.
-- AI status icons.
-- Focus states.
+## Iconography Law (single source of truth)
 
-Use cyan rim light plus purple/pink bloom. Do not put the full brand gradient
-on large surfaces. Atmosphere may use radial light, but visible decorative
-circles, blobs, or excessive neon are forbidden.
+There is **one** UI glyph system and **one** illustrated-asset registry. Both
+live in `src/icons/`. No component imports `react-icons/*` directly anymore.
 
-## Theme And Tokens Law (single source of truth)
-
-The studio runs its **own** Neon Intelligence theme — NOT the shared
-international brand. Everything maps through it:
-
-- Values originate ONLY in `src/theme/tokens.ts`. That file is the sole place a
-  raw hex/rgba may live. A literal color/gradient/blur/radius/shadow/font in any
-  component `sx`/`style` is a bug — revert it.
-- Mode-aware surfaces → `theme.palette.*` (`background.default`,
-  `background.paper`, `text.primary/secondary`, `divider`, and the studio
-  additions `surfaceRaised`, `surfaceHover`, `borderSubtle`, `cardBg`,
-  `cardBorder`).
-- Neon marks + effect recipes → `theme.studio.*`
-  (`neon`, `gradient`, `effect`, `chart`, `radius`, `motion`), or import
-  `studioTokens`/`neon`/`gradient`/`effect` from `../theme` for non-`sx`
-  contexts (SVG fills, keyframes).
-- Primary CTA → `<Button variant="contained" color="primary">`; the neon
-  gradient comes from the theme. Never set `background` on a CTA.
-- Dark/light is provided by `StudioThemeProvider` + `useThemeMode()` exported
-  from `src/theme` (a CSS-variables theme carrying both schemes; default dark).
-  The always-dark prompt builder legally reads `studioTokens.modes.dark.*`.
-
-## Motion And Theme Timing
-
-Required timing:
-
-- Fast interactions: 120-220ms.
-- Theme/background swaps: 180-420ms.
-- Easing: `cubic-bezier(.22,.61,.36,1)` or the brand motion tokens.
-
-No bounce, elastic, or playful game animation.
-
-## Component Rules
-
-- Use real buttons, inputs, switches, chips, and icon buttons for interaction.
-- Icon-only controls need accessible labels and tooltips when meaning is not
-  obvious.
-- Use the existing data flow and routes before adding new app structure.
-- Floating panels should use translucent surfaces, thin borders, blur, and
-  soft depth.
-- Cards are for repeated items and tool modules. Do not nest cards inside
-  cards.
-- The sidebar stays dark and visually connected to the Studio references in
-  both light and dark timing.
-- All ECharts work goes through `src/components/charts`. Components must not
-  import `Chart` directly from `@ironflyer/ui-web/fx`.
-- All app tables go through `src/components/tables`. Components must not import
-  DataGrid/DataTable directly from `@ironflyer/ui-web`.
+- **UI glyphs → `import { Icon } from 'src/icons'`** (relative, e.g.
+  `../icons`; or the named exports it re-exports). The UI set is **Lucide**
+  (`react-icons/lu`); the editor
+  surface may use VS Code glyphs (`react-icons/vsc`) **only through the same
+  barrel**. Brand/tech marks come from `src/lib/techIcons.tsx` (Simple Icons).
+- **Illustrated / 3D / animated assets → `import { asset } from '../icons/assets'`**,
+  the typed manifest mapping `public/icons/**` and `ironflyer/assets/market/**`
+  (SVG line sets, 3D animated `.mp4/.gif`, illustration packs). Use these for
+  feature tiles, empty states, onboarding, and marketing — never as control
+  glyphs. Prefer SVG; reach for animated 3D only on hero/empty surfaces.
+- A raw `<svg>` path, an inline emoji used as an icon, or a direct
+  `react-icons` import in a component is drift — route it through `src/icons/`.
 
 ## Data Visualization Law
 
-Graphs are product controls, not decoration.
+Graphs are product controls, not decoration. **Use the full range** — pie,
+donut, vertical & horizontal bar, grouped/stacked bar, line/area, gauge, and
+radar. Do not lock onto one chart type, and **not everything is 3D** — reserve
+3D for at most one signature moment per surface.
 
-- Colors come from `theme.studio.chart` and semantic palette values.
+- All ECharts work goes through `src/components/charts`. Never import `Chart`
+  from `@ironflyer/ui-web/fx` outside that wrapper.
+- Colors come from `theme.studio.chart` + semantic palette. Never an inline hex,
+  never lime as a primary series.
 - Tooltips, legends, axes, split lines, empty states, gauges, and donut centers
   are standardized by the shared Studio chart helpers.
-- Donut centers must name the operator decision: open, live, users, reviewed,
-  grounding, clean, or a similarly concrete state.
-- Gauges must use a quiet track plus one semantic neon arc.
-- Horizontal bars use rounded bar ends and never invent a new palette.
-- Tables use Studio chrome: soft border, mode-aware glass fill, compact rows,
-  uppercase headers, and hover state tied to the active neon.
+- Donut centers must name the operator decision (open, live, users, reviewed,
+  clean, …). Gauges use a quiet track + one semantic aurora arc. Bars use
+  rounded ends.
 
-## Landing Lock (Neon Hero — APPROVED 2026-05-30)
+## Component Law
 
-The logged-out entry is the Neon Intelligence hero, owner-approved on
-2026-05-30 ("מאוד יפה דף הבית שמור אותו"). Pixel target:
-`design_refernce/…01_32_18….png`. Implementation: `pages/Landing.tsx` composing
-seven self-contained sections under `pages/home/`, shown by `LoginGate` to
-logged-out users (its CTAs reveal the sign-in form) and at `/welcome`.
-Structure — do not regress:
+- **Uniform card.** Repeated items and tool modules use the shared Studio card
+  chrome (soft border, mode-aware fill, 12–14px radius, hover lift `-2px`).
+  Never nest a card inside a card.
+- **Uniform box/panel.** Operational panels use the shared GlassPanel /
+  SectionHeader chrome — one panel language across every surface.
+- **Uniform table.** Every table goes through `src/components/tables`
+  (`StudioDataGrid` / `StudioDataTable` / `StudioTableShell`): soft border,
+  mode-aware glass fill, compact rows, uppercase headers, hover tied to the
+  active indigo. Never import DataGrid/DataTable directly.
+- Use real buttons, inputs, switches, chips, and icon buttons. Icon-only
+  controls need accessible labels + tooltips.
+- The sidebar stays visually anchored across both modes.
 
-1. `AmbientBackdrop` — radial blue/violet/pink glows (5–15%) + faint grid.
-2. `TopNav` — logomark + wordmark, nav links, theme toggle, Log in, primary
-   "Start a project free".
-3. `Hero` — AI badge pill, headline with ONLY the final phrase gradient-filled,
-   one-line subhead.
-4. `PromptComposer` — the always-dark glowing centerpiece (28px radius, violet
-   bloom, blur 24): multiline prompt, budget pill, Plan-first switch, "Build it"
-   CTA. Nothing competes with it.
-5. `TemplateRail` — quick-start chips.
-6. `FeatureGrid` — four "doesn't feel like a card" feature cards.
-7. `TrustRow` — monochrome wordmarks at 40% → 100% on hover.
+## Theme And Tokens Law
 
-This landing is locked. Edits go through the `pages/home/` sections + the studio
-theme — never inline literals.
+- Values originate ONLY in `src/theme/tokens.ts`. A literal
+  color/gradient/blur/radius/shadow/font in any component `sx`/`style` is a bug
+  — revert it.
+- Mode-aware surfaces → `theme.palette.*` (`background.default/paper`,
+  `text.*`, `divider`, and the studio additions `surfaceRaised`,
+  `surfaceHover`, `borderSubtle`, `cardBg`, `cardBorder`).
+- Brand marks + recipes → `theme.studio.*` (`neon`, `gradient`, `effect`,
+  `chart`, `radius`, `motion`), or import `studioTokens`/`neon`/`gradient`/
+  `effect` from `../theme` for non-`sx` contexts (SVG fills, keyframes).
+- Primary CTA → `<Button variant="contained" color="primary">`; the aurora
+  gradient comes from the theme. Never set `background` on a CTA.
+- Dark/light comes from `StudioThemeProvider` + `useThemeMode()` exported from
+  `src/theme` (CSS-variables theme carrying both schemes; default **light**).
 
-## Public Home Lock
+## Motion And Theme Timing (synchronized with type + color in one source)
 
-The public `/` route is the neon product-builder hero. It must keep:
+Motion is a designed layer of the system, not an afterthought — and it lives in
+the SAME single source of truth as color and typography (`src/theme/tokens.ts`
+› `motion`). All three are read through the theme; never hand-roll a duration or
+easing in a component.
 
-- Transparent top nav with `IronFlyer`, active Product pill, real destinations,
-  log-in action, dark/light timing, and gradient start CTA.
-- Centered AI-powered product-builder badge.
-- Hero headline with controlled line breaks:
-  `Build, review and ship` / `production apps` /
-  `from a single prompt.`
-- Wide always-dark glowing prompt builder with budget, plan-first, enhance, and
-  build controls.
-- Template chips, a single segmented feature band, and trust wordmarks visible
-  as the first viewport resolves.
-- Ambient neon atmosphere with engineered grid, side energy streaks, and bottom
-  horizon depth.
+- **Four intents, one ramp.** Easings: `standard` (symmetric), `decelerate`
+  (enter), `accelerate` (exit), `emphasized` (hero/CTA, theme swap). Duration
+  ramp: instant 80 · fast 180 · base 280 · slow 460 · hero 620 ms.
+- **Use named transitions** from `theme.studio.motion`: `hover` (micro/lift/focus
+  rim), `enter` (mount/reveal), `exit` (dismiss), `emphasis`/`theme` (canvas
+  swap), `stagger` (56ms between list/grid items). Back-compat `fast/base/slow`
+  strings remain.
+- Fast interactions 120–220ms; theme/background swaps 180–460ms.
+- No bounce, elastic, or game animation. Honor `prefers-reduced-motion`.
+- **The IDE / workbench consumes this same system** — its chrome transitions,
+  panel reveals, and gate-state changes use `theme.studio.motion`, so the editor
+  feels continuous with the rest of the studio, not a foreign surface.
 
-## Authenticated Studio Home Lock
+## Surface Locks
 
-Authenticated product workspaces use the light dashboard reference. They must
-keep:
+Structure to preserve unless the reference files are explicitly replaced.
 
-- Dark left rail.
-- Welcome headline: "What will we build today?"
-- Active AI System row.
-- Dark glowing prompt builder.
-- Prompt actions under the composer.
-- Recent projects panel.
-- Template carousel with visual thumbnails.
-- Theme timing button that toggles dark/light.
+**Home (`image.png`).** Left rail (collapsible, anchored). Warm greeting
+headline. Dominant prompt builder (white card in light, dark glass in dark,
+violet focus glow, gradient CTA). Recent Builds gallery + Active Agents row as
+secondary accelerators. Right Live Build column showing real gate/agent state.
 
-Any redesign must preserve this structure unless the reference files are
-explicitly replaced.
+**Review (`image copy.png` + `…01_48_34…`).** Bright operational canvas. Lead
+with a **visual** read, not a raw grid: a production-readiness **gauge**, a
+stat-card rail with sparklines, the multi-color provider-spend **bar**, and a
+named-center **donut**. Layer rows (Frontend, Backend, Memory, Security). A
+scannable issue list with severity / current / target / impact / Fix. Right-side
+AI Analysis + AI Optimization Agent panels. A primary AI-fix CTA in the aurora
+gradient that opens a safe reviewable change path — never an opaque destructive
+action.
 
-`/welcome` is a preview-only legacy landing route and must not replace `/`.
+**Preview (`…01_57_49…`).** Three-column IDE surface: chat rail, central
+preview canvas (large, centered, softly bordered, desktop/mobile toggles), right
+live-build column (ProfitGuard, active agents, Definition of Done). Empty state:
+calm AI-network visual + "No preview yet" + one sample-screen action. Gate
+states read as real blockers, not decorative badges.
+
+**Workbench (`…01_32_05…`).** Chat rail + file tree + code center + right status,
+dark functional canvas permitted inside light mode.
 
 ## Drift Prevention
 
-Forbidden in `clients/studio/src` except inside approved wrappers or theme
-builders:
+Forbidden in `clients/studio/src` except inside the theme/chart/table/icon
+wrappers:
 
-- New raw `#hex`, `rgba(...)`, `linear-gradient(...)`, or `radial-gradient(...)`
-  values.
-- New `theme.brand.*` usage. Existing legacy compatibility should be migrated
-  toward `theme.studio.*`.
-- `useThemeMode` from `@ironflyer/ui-web`; Studio uses `src/theme`.
-- Direct chart/table primitive imports outside `src/components/charts` and
-  `src/components/tables`.
+- New raw `#hex`, `rgba(...)`, `linear-gradient(...)`, `radial-gradient(...)`.
+- Direct `react-icons/*` imports in components (route through `src/icons/`).
+- Direct chart/table primitive imports outside `src/components/{charts,tables}`.
+- `useThemeMode` from `@ironflyer/ui-web` (Studio uses `src/theme`).
+- New `theme.brand.*` usage (migrate toward `theme.studio.*`).
 
-## Review Quality Lock
+If a change makes the home page look like a generic dashboard, or revives the
+orange / dark-neon identities, it fails this gate even if it typechecks.
 
-The quality/performance review surface must keep:
+## Review Gate (before merging a Studio visual change)
 
-- A bright operational canvas with soft blue-gray borders.
-- Top project context and a clear review-mode signal.
-- A primary AI fix CTA in the blue-purple-pink gradient.
-- A production-readiness gauge as the main visual.
-- Layer rows for Frontend, Backend, Memory, and Security.
-- A scannable issue list with severity, current value, target value, impact,
-  and Fix action.
-- Right-side AI Analysis and AI Optimization Agent panels.
-
-Tables alone are not enough for review-quality screens. The first read must be
-visual, guided, and action-ready.
-
-## Preview Live Build Lock
-
-The preview workspace must keep:
-
-- A light operational IDE shell with clear top project context.
-- Left chat rail, central preview canvas, and right live-build status column.
-- A large centered preview frame with desktop/mobile toggles.
-- Empty preview state with calm AI-network visual and one sample-screen action.
-- Right column showing ProfitGuard, active agents, and Definition of Done.
-- Gate states that read as real blockers, not decorative status badges.
-
-The preview area is the product proof surface. It must feel quiet, inspectable,
-and trustworthy.
+1. Compare against the locked references in `design_refernce/` (newest first).
+2. `pnpm --filter @ironflyer/studio typecheck`
+3. `pnpm --filter @ironflyer/studio lint`
+4. `pnpm --filter @ironflyer/studio build`
+5. Manually verify light **and** dark timing from the toggle.
+6. Grep for drift: raw hex/rgba, direct `react-icons`/chart/table imports,
+   `theme.brand.*`.

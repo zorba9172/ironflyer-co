@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Box, Chip, Stack, Typography } from '@mui/material';
-import { LuSparkles } from 'react-icons/lu';
+import { Icon } from '../icons';
 import { toast } from '@ironflyer/ui-web/fx';
 import { formatUSD } from '@ironflyer/core';
 import { useWallet } from '../hooks/useEconomics';
@@ -53,7 +53,7 @@ export function PlansPage() {
         {/* Headline — final phrase gradient-filled, per the locked formula. */}
         <Stack alignItems="center" textAlign="center" spacing={2.5}>
           <Chip
-            icon={<LuSparkles size={15} />}
+            icon={<Icon name="sparkles" size={15} />}
             label="Prepaid wallet credits — no seats, no surprises"
             sx={(theme) => ({
               height: 34,

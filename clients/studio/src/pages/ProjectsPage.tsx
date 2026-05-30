@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Box, Button, Chip, CircularProgress, IconButton, InputBase, Stack, Typography } from '@mui/material';
-import { LuFolderPlus, LuRefreshCw, LuRocket, LuSearch, LuSparkles, LuTriangleAlert, LuX } from 'react-icons/lu';
+import { Icon, AssetImage } from '../icons';
 import { useGraphQLQuery, useRequest, operations } from '@ironflyer/data';
 import { confirmAction, toast } from '@ironflyer/ui-web/fx';
 import { useStudio } from '../store';
@@ -89,7 +89,7 @@ export function ProjectsPage() {
         <Stack direction="row" alignItems="flex-start" justifyContent="space-between" sx={{ mb: 4, flexWrap: 'wrap', gap: 2 }}>
           <Stack spacing={1}>
             <Chip
-              icon={<LuSparkles size={15} />}
+              icon={<Icon name="sparkles" size={15} />}
               label="Your workspace"
               sx={(theme) => ({
                 alignSelf: 'flex-start',
@@ -104,14 +104,12 @@ export function ProjectsPage() {
                 '& .MuiChip-label': { px: 1 },
               })}
             />
-            <Typography variant="h2" sx={{ fontWeight: 800, fontSize: { xs: '2rem', md: '2.6rem' } }}>
-              Projects
-            </Typography>
+            <Typography variant="h2">Projects</Typography>
             <Typography color="text.secondary" sx={{ maxWidth: 560 }}>
               Every idea you have shipped, are building, or have parked — in one place.
             </Typography>
           </Stack>
-          <Button variant="contained" color="primary" onClick={() => navigate('/')} startIcon={<LuFolderPlus size={18} />}>
+          <Button variant="contained" color="primary" onClick={() => navigate('/')} startIcon={<Icon name="newProject" size={18} />}>
             Create project
           </Button>
         </Stack>
@@ -149,7 +147,7 @@ export function ProjectsPage() {
               })}
             >
               <Box component="span" sx={(theme) => ({ display: 'inline-flex', color: theme.palette.text.disabled })}>
-                <LuSearch size={17} />
+                <Icon name="search" size={17} />
               </Box>
               <InputBase
                 fullWidth
@@ -161,7 +159,7 @@ export function ProjectsPage() {
               />
               {q && (
                 <IconButton size="small" aria-label="Clear search" onClick={() => setQ('')} sx={(theme) => ({ color: theme.palette.text.disabled })}>
-                  <LuX size={15} />
+                  <Icon name="close" size={15} />
                 </IconButton>
               )}
             </Box>
@@ -207,11 +205,11 @@ export function ProjectsPage() {
         ) : error && projects.length === 0 ? (
           <EmptyPanel
             tone="danger"
-            icon={<LuTriangleAlert size={26} strokeWidth={1.8} />}
+            glyph={<Icon name="alert" size={26} strokeWidth={1.8} />}
             title="Couldn't load projects"
             body={error instanceof Error ? error.message : 'Connect the orchestrator and try again.'}
             action={
-              <Button variant="contained" color="primary" startIcon={<LuRefreshCw size={17} />} onClick={() => void qc.invalidateQueries({ queryKey: ['projects'] })}>
+              <Button variant="contained" color="primary" startIcon={<Icon name="refresh" size={17} />} onClick={() => void qc.invalidateQueries({ queryKey: ['projects'] })}>
                 Retry
               </Button>
             }
@@ -219,7 +217,8 @@ export function ProjectsPage() {
         ) : filtered.length === 0 ? (
           <EmptyPanel
             tone="brand"
-            icon={<LuRocket size={26} strokeWidth={1.8} />}
+            art={!hasProjects ? 'animated-3d/folder-2' : undefined}
+            glyph={hasProjects ? <Icon name="search" size={26} strokeWidth={1.8} /> : undefined}
             title={!hasProjects ? 'No projects yet' : 'Nothing matches'}
             body={
               !hasProjects
@@ -228,7 +227,7 @@ export function ProjectsPage() {
             }
             action={
               !hasProjects ? (
-                <Button variant="contained" color="primary" startIcon={<LuSparkles size={17} />} onClick={() => navigate('/')}>
+                <Button variant="contained" color="primary" startIcon={<Icon name="sparkles" size={17} />} onClick={() => navigate('/')}>
                   Start building
                 </Button>
               ) : (
@@ -262,53 +261,56 @@ export function ProjectsPage() {
   );
 }
 
-// Shared empty / error panel — single glass card, semantic neon halo on the
-// icon, centered copy and one action. No nested cards, no raw literals.
+// Shared empty / error panel — one consistent glass card, centered copy, one
+// action. It leads with an illustrated 3D asset when one fits (the inviting
+// empty state) or a semantic neon glyph tile otherwise. No nested cards.
 function EmptyPanel(props: {
   tone: 'brand' | 'danger';
-  icon: React.ReactNode;
+  /** illustrated 3D asset id for the inviting hero empty state */
+  art?: string;
+  /** semantic glyph fallback when no illustration fits (e.g. error) */
+  glyph?: React.ReactNode;
   title: string;
   body: string;
   action: React.ReactNode;
 }) {
-  const { tone, icon, title, body, action } = props;
+  const { tone, art, glyph, title, body, action } = props;
   return (
     <Box
-      sx={(theme) => {
-        const accent = tone === 'danger' ? theme.studio.neon.danger : theme.studio.neon.violet;
-        return {
-          display: 'flex',
-          flexDirection: 'column',
+      sx={(theme) => ({
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        textAlign: 'center',
+        gap: 2,
+        px: 3,
+        py: { xs: 6, md: 8 },
+        backgroundColor: theme.palette.cardBg,
+        border: `1px dashed ${theme.palette.divider}`,
+        borderRadius: `${theme.studio.effect.card.radius}px`,
+        backdropFilter: `blur(${theme.studio.effect.card.blur}px)`,
+        '& .if-empty-glyph': {
+          display: 'inline-flex',
           alignItems: 'center',
-          textAlign: 'center',
-          gap: 2,
-          px: 3,
-          py: { xs: 6, md: 8 },
-          backgroundColor: theme.palette.cardBg,
-          border: `1px dashed ${theme.palette.divider}`,
-          borderRadius: `${theme.studio.effect.card.radius}px`,
-          backdropFilter: `blur(${theme.studio.effect.card.blur}px)`,
-          '& .if-empty-icon': {
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 64,
-            height: 64,
-            borderRadius: `${theme.studio.radius.lg}px`,
-            color: accent,
-            border: `1px solid ${accent}33`,
-            background: `radial-gradient(120% 120% at 30% 20%, ${accent}29, ${accent}0D 70%)`,
-          },
-        };
-      }}
+          justifyContent: 'center',
+          width: 64,
+          height: 64,
+          borderRadius: `${theme.studio.radius.lg}px`,
+          color: tone === 'danger' ? theme.studio.neon.danger : theme.studio.neon.violet,
+          backgroundColor: theme.palette.surfaceHover,
+          border: `1px solid ${theme.palette.divider}`,
+        },
+      })}
     >
-      <Box className="if-empty-icon" aria-hidden>
-        {icon}
-      </Box>
+      {art ? (
+        <AssetImage id={art} size={96} alt={title} />
+      ) : (
+        <Box className="if-empty-glyph" aria-hidden>
+          {glyph}
+        </Box>
+      )}
       <Stack spacing={1} sx={{ maxWidth: 460 }}>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          {title}
-        </Typography>
+        <Typography variant="h5">{title}</Typography>
         <Typography color="text.secondary">{body}</Typography>
       </Stack>
       <Box sx={{ mt: 1 }}>{action}</Box>

@@ -5,6 +5,7 @@ import { useGraphQLQuery, operations } from '@ironflyer/data';
 import { useOperateProjectId } from '../hooks/useOperateProjectId';
 import { useOperateMutation } from '../hooks/useOperateMutation';
 import { PaneHeader } from '../components/operate/PaneHeader';
+import { Icon } from '../icons';
 import { StudioChart, donutOption, type EChartsOption } from '../components/charts';
 import { StudioDataGrid, type DataGridCellParams, type DataGridColumn, type StudioTableTab } from '../components/tables';
 import { GlassPanel, StatCard, SectionHeader } from '../components/studio';
@@ -33,33 +34,6 @@ function statusColor(t: Theme, s: string): string {
 }
 
 const pretty = (s: string) => s.replace(/_/g, ' ');
-
-function GlobeIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 3c-2.5 3-2.5 6 0 9s2.5 6 0 9" />
-      <path d="M3 12h18" />
-    </svg>
-  );
-}
-
-function ShieldIcon() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 3l7 3v5c0 5-3.4 8.4-7 10-3.6-1.6-7-5-7-10V6z" />
-    </svg>
-  );
-}
-
-function CopyIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="9" y="9" width="13" height="13" rx="2" />
-      <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-    </svg>
-  );
-}
 
 export function DomainsPane() {
   const t = useTheme();
@@ -119,7 +93,7 @@ export function DomainsPane() {
       field: 'hostname', headerName: 'Hostname', flex: 1, minWidth: 220,
       cellRenderer: ({ data: row }: DataGridCellParams<DeployDomain>) => row ? (
         <Stack direction="row" alignItems="center" spacing={0.85}>
-          <Box sx={{ color: isLiveStatus(row.status) ? 'success.main' : 'text.disabled', display: 'inline-flex', opacity: 0.7 }}><GlobeIcon /></Box>
+          <Box sx={{ color: isLiveStatus(row.status) ? 'success.main' : 'text.disabled', display: 'inline-flex', opacity: 0.7 }}><Icon name="domains" size={16} /></Box>
           <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s82 })} noWrap>{row.hostname}</Typography>
           {row.primary && (
             <Chip size="small" label="primary" sx={(th) => ({ height: 18, fontSize: text.s58, textTransform: 'uppercase', bgcolor: `${th.palette.primary.main}22`, color: 'primary.main' })} />
@@ -147,7 +121,7 @@ export function DomainsPane() {
       field: 'certificateStatus', headerName: 'TLS', width: 110,
       cellRenderer: ({ data: row }: DataGridCellParams<DeployDomain>) => row ? (
         <Stack direction="row" alignItems="center" spacing={0.5}>
-          <Box sx={{ color: statusColor(t, row.certificateStatus), display: 'inline-flex', opacity: 0.8 }}><ShieldIcon /></Box>
+          <Box sx={{ color: statusColor(t, row.certificateStatus), display: 'inline-flex', opacity: 0.8 }}><Icon name="shieldCheck" size={15} /></Box>
           <Chip
             size="small"
             label={pretty(row.certificateStatus)}
@@ -268,7 +242,7 @@ export function DomainsPane() {
                       onClick={() => void navigator.clipboard.writeText(rec.value)}
                       sx={{ display: 'inline-flex', alignItems: 'center', border: 'none', bgcolor: 'transparent', cursor: 'pointer', color: 'text.disabled', p: 0.5, '&:hover': { color: 'text.primary' } }}
                     >
-                      <CopyIcon />
+                      <Icon name="copy" size={14} />
                     </Box>
                   </Tooltip>
                 </Stack>

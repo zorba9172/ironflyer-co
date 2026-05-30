@@ -2,12 +2,11 @@ import { useMemo, useState } from 'react';
 import { Box, Button, MenuItem, Stack, Switch, TextField, Tooltip, Typography } from '@mui/material';
 import { useTheme, type Theme } from '@mui/material/styles';
 import { confirmAction } from '@ironflyer/ui-web/fx';
-import { LuClock3, LuRadioTower, LuWebhook } from 'react-icons/lu';
-import type { IconType } from 'react-icons';
 import { useGraphQLQuery, operations } from '@ironflyer/data';
 import { useOperateProjectId } from '../hooks/useOperateProjectId';
 import { useOperateMutation } from '../hooks/useOperateMutation';
 import { PaneHeader } from '../components/operate/PaneHeader';
+import { Icon, type IconName } from '../icons';
 import { StudioDataGrid, type DataGridCellParams, type DataGridColumn, type StudioTableTab } from '../components/tables';
 import { StudioChart, donutOption, horizontalBarOption, type EChartsOption } from '../components/charts';
 import { GlassPanel, StatCard, SectionHeader } from '../components/studio';
@@ -32,27 +31,10 @@ function statusColor(t: Theme, s: string): string {
   return t.palette.text.disabled;
 }
 
-const TRIGGER_ICONS: Record<string, IconType> = { cron: LuClock3, webhook: LuWebhook, event: LuRadioTower };
+const TRIGGER_ICONS: Record<string, IconName> = { cron: 'schedule', webhook: 'webhook', event: 'radio' };
 
 function TriggerIcon({ kind }: { kind: string }) {
-  const Icon = TRIGGER_ICONS[kind] ?? LuRadioTower;
-  return <Icon size={17} strokeWidth={1.7} />;
-}
-
-function RunIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polygon points="5 3 19 12 5 21 5 3" />
-    </svg>
-  );
-}
-
-function TrashIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
-    </svg>
-  );
+  return <Icon name={TRIGGER_ICONS[kind] ?? 'radio'} size={17} strokeWidth={1.7} />;
 }
 
 export function AutomationsPane() {
@@ -171,7 +153,7 @@ export function AutomationsPane() {
               onClick={(e) => { e.stopPropagation(); run(row); }}
               sx={{ minWidth: 0, p: 0.75 }}
             >
-              <RunIcon />
+              <Icon name="play" size={14} />
             </Button>
           </Tooltip>
           <Tooltip title="Delete">
@@ -182,7 +164,7 @@ export function AutomationsPane() {
               onClick={(e) => { e.stopPropagation(); void remove(row); }}
               sx={{ minWidth: 0, p: 0.75 }}
             >
-              <TrashIcon />
+              <Icon name="trash" size={14} />
             </Button>
           </Tooltip>
         </Stack>

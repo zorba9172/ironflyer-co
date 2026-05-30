@@ -10,10 +10,11 @@ import { useDispatchAgent } from '../hooks/useDispatchAgent';
 import { useStudio } from '../store';
 import { useProjectExecutions } from '../hooks/useLatestExecution';
 import { TechIcon } from '../lib/techIcons';
+import { PaneHeader } from '../components/operate/PaneHeader';
 import { StudioChart, horizontalBarOption, type EChartsOption } from '../components/charts';
 import { StudioTableShell, type StudioTableTab } from '../components/tables';
 import { text } from '@ironflyer/design-tokens/brand';
-import { GlassPanel, SectionHeader, StatCard } from '../components/studio';
+import { GlassPanel, StatCard } from '../components/studio';
 import { toast } from '@ironflyer/ui-web/fx';
 
 interface LedgerEntry { id: string; executionID?: string | null; entryType: string; direction: string; amountUSD: number; createdAt: string }
@@ -211,21 +212,10 @@ export function LogsPane({ fallback }: { fallback: StudioProject }) {
       <Box sx={{ maxWidth: 1160, mx: 'auto' }}>
 
         {/* ── Header ─────────────────────────────────────────────────────── */}
-        <SectionHeader
-          eyebrow="Orchestrator logs"
-          title={
-            <Stack direction="row" alignItems="center" spacing={1.5}>
-              <Typography variant="h5" sx={{ fontWeight: 800 }}>Logs</Typography>
-              <Chip size="small" label={live ? 'live' : 'seed'}
-                sx={(th) => ({ height: 20, fontSize: text.s62, fontFamily: th.brand.font.mono,
-                  bgcolor: live ? `${th.palette.success.main}22` : 'action.hover',
-                  color: live ? 'success.main' : 'text.disabled' })} />
-              <Typography sx={{ color: 'text.secondary', fontSize: text.s88 }}>
-                {allRows.length} events
-              </Typography>
-            </Stack>
-          }
-          subtitle="Gate transitions, patches, ProfitGuard verdicts, ledger debits, deploys — everything the orchestrator emitted."
+        <PaneHeader
+          title="Logs"
+          isLive={live}
+          subtitle={`${allRows.length.toLocaleString()} events · gate transitions, patches, ProfitGuard verdicts, ledger debits, deploys`}
         />
 
         {/* ── Stats strip ────────────────────────────────────────────────── */}

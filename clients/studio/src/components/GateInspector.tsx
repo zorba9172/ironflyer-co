@@ -11,6 +11,7 @@ import { useWallet, useSentinelForecast } from '../hooks/useEconomics';
 import { useLiveProjectId } from '../hooks/useLiveProjectId';
 import { statusColor } from './statusColor';
 import { PatchDiff } from './PatchDiff';
+import { Icon } from '../icons';
 import { text } from '@ironflyer/design-tokens/brand';
 
 // H3 — ProfitGuard verdict derived from the LIVE economic signals the
@@ -101,7 +102,7 @@ export function GateInspector() {
               <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, color: 'text.disabled' })}>{gate.no}</Typography>
               <Typography variant="h5" sx={{ fontSize: text.s140 }}>{gate.name}</Typography>
             </Stack>
-            <IconButton onClick={close} size="small" aria-label="Close" sx={{ color: 'text.secondary' }}>✕</IconButton>
+            <IconButton onClick={close} size="small" aria-label="Close" sx={{ color: 'text.secondary' }}><Icon name="close" size={16} /></IconButton>
           </Stack>
 
           <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
@@ -130,7 +131,10 @@ export function GateInspector() {
               <Typography sx={{ fontSize: text.s90 }}>{gate.blocking}</Typography>
             </Box>
           ) : (
-            <Typography sx={{ color: 'success.main', mb: 2 }}>● Closed end-to-end</Typography>
+            <Stack direction="row" alignItems="center" spacing={0.75} sx={{ color: 'success.main', mb: 2 }}>
+              <Icon name="shieldCheck" size={16} color="success" />
+              <Typography sx={{ color: 'success.main' }}>Closed end-to-end</Typography>
+            </Stack>
           )}
 
           {/* H3 — ProfitGuard co-located with the gate. Law 2: no expensive
@@ -179,8 +183,17 @@ export function GateInspector() {
                 <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s68, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 1 })}>Findings</Typography>
                 <Stack spacing={1} sx={{ mb: 3 }}>
                   {gate.findings.map((f) => (
-                    <Stack key={f.id} direction="row" spacing={1} alignItems="flex-start">
-                      <Box component="span" sx={{ mt: 0.25, color: f.severity === 'danger' ? 'error.main' : f.severity === 'warning' ? 'warning.main' : 'text.disabled' }}>●</Box>
+                    <Stack key={f.id} direction="row" spacing={1.25} alignItems="flex-start">
+                      <Box
+                        sx={{
+                          mt: 0.7,
+                          width: 6,
+                          height: 6,
+                          borderRadius: 99,
+                          flexShrink: 0,
+                          bgcolor: f.severity === 'danger' ? 'error.main' : f.severity === 'warning' ? 'warning.main' : 'text.disabled',
+                        }}
+                      />
                       <Typography sx={{ fontSize: text.s88, color: 'text.secondary' }}>{f.text}</Typography>
                     </Stack>
                   ))}
@@ -189,9 +202,10 @@ export function GateInspector() {
             )}
 
             {gate.findings.length === 0 && (
-              <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: 'action.hover', mb: 2 }}>
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ p: 1.5, borderRadius: 2, bgcolor: 'action.hover', mb: 2 }}>
+                <Icon name="check" size={15} color="success" />
                 <Typography sx={{ fontSize: text.s86, color: 'success.main' }}>No open findings on this gate.</Typography>
-              </Box>
+              </Stack>
             )}
 
             {gate.patches.length > 0 && (

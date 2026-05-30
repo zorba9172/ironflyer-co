@@ -1,5 +1,5 @@
 import { Box, CircularProgress, IconButton, Stack, Tooltip, Typography } from '@mui/material';
-import { LuArrowUpRight, LuClock, LuTrash2 } from 'react-icons/lu';
+import { Icon } from '../../icons';
 import { BUCKET_LABEL, bucketColor, bucketFor } from './projectStatus';
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -120,7 +120,7 @@ export function ProjectCard(props: {
               '&:hover': { color: theme.studio.neon.danger },
             })}
           >
-            <LuTrash2 size={16} strokeWidth={1.8} />
+            <Icon name="trash" size={16} strokeWidth={1.8} />
           </IconButton>
         </Stack>
       </Stack>
@@ -139,7 +139,7 @@ export function ProjectCard(props: {
             transition: `transform ${theme.studio.motion.base}, color ${theme.studio.motion.base}`,
           })}
         >
-          <LuArrowUpRight size={18} strokeWidth={2} />
+          <Icon name="arrowUpRight" size={18} strokeWidth={2} />
         </Box>
       </Stack>
 
@@ -176,7 +176,7 @@ export function ProjectCard(props: {
           <>
             <Box aria-hidden sx={(theme) => ({ width: 3, height: 3, borderRadius: theme.studio.radius.pill, backgroundColor: theme.palette.text.disabled })} />
             <Stack direction="row" alignItems="center" spacing={0.5} sx={(theme) => ({ color: theme.palette.text.disabled })}>
-              <LuClock size={12} strokeWidth={1.8} />
+              <Icon name="clock" size={12} strokeWidth={1.8} />
               <Typography variant="caption" color="inherit">
                 {updated}
               </Typography>

@@ -27,12 +27,11 @@ Use existing theme and token sources where possible:
 - `src/components/charts` for every ECharts surface.
 - `src/components/tables` for every AG Grid or MUI DataGrid surface.
 
-When the reference requires exact Studio neon values, these are allowed in the
-Studio surface:
-
-- `#050816`, `#0A1024`, `#101936`, `#152149`
-- `#00D4FF`, `#6B5CFF`, `#8B5CF6`, `#FF4FD8`
-- `#00E6A7`, `#FFB84D`, `#FF5D73`
+Exact Studio values live ONLY in `src/theme/tokens.ts` (the Aurora system).
+Components read them through `theme.palette.*` / `theme.studio.*`; never inline.
+The signature is indigo `#6366F1` → violet `#8B5CF6` → pink `#EC4899` on a
+light `#F7F8FA` canvas (dark peer `#0A0F1C`). The retired orange and dark-neon
+values must not reappear in any component.
 
 ## Interaction Rules
 

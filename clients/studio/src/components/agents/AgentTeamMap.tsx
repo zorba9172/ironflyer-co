@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { Box, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { FlowCanvas, type FlowNode, type FlowEdge, type NodeMouseHandler, type HandleSpec } from '@ironflyer/ui-web/fx';
-import { VscRobot, VscHubot, VscGitMerge } from 'react-icons/vsc';
+import { Icon } from '../../icons';
 import { agentStatus, statusLabel, type Agent, type AgentStatus, type Gate } from '../../studioData';
 import { autonomyLabel } from '../../agentLibrary';
 import { nodePalette, type MapColors } from '../map/nodes';
@@ -191,7 +191,7 @@ function OrchestratorBody({ a, c, color }: { a: Agent; c: MapColors; color: stri
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, textAlign: 'left', width: '100%' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <VscHubot size={14} color={color} />
+        <span style={{ display: 'inline-flex', color }}><Icon name="bot" size={14} /></span>
         <span style={{ fontFamily: c.mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', color }}>ORCHESTRATOR</span>
       </div>
       <div style={{ fontSize: 13.5, fontWeight: 600, color: c.primary, lineHeight: 1.15 }}>{a.name}</div>
@@ -204,10 +204,10 @@ function AgentBody({ a, status, color, c }: { a: Agent; status: AgentStatus; col
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 5, textAlign: 'left', width: '100%' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <VscRobot size={12} color={color} />
+        <span style={{ display: 'inline-flex', color }}><Icon name="bot" size={12} /></span>
         <span style={{ fontFamily: c.mono, fontSize: 8.5, fontWeight: 700, letterSpacing: '0.08em', color }}>{STATUS_TONE[status].toUpperCase()}</span>
         <span style={{ flex: 1 }} />
-        {a.canDelegate && <VscGitMerge size={11} color={c.accent} />}
+        {a.canDelegate && <span style={{ display: 'inline-flex', color: c.accent }}><Icon name="network" size={11} /></span>}
         {a.custom && <span style={{ fontFamily: c.mono, fontSize: 8, color: c.muted }}>CUSTOM</span>}
       </div>
       <div style={{ fontSize: 12.5, fontWeight: 600, color: c.primary, lineHeight: 1.15 }}>{a.name || 'Untitled agent'}</div>

@@ -1,5 +1,6 @@
 import { Box, Button, Card, Chip, Divider, Stack, Tooltip, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import { Icon } from '../../icons';
 import { agentStatus, scheduleLabel, type Agent, type AgentStatus, type Gate } from '../../studioData';
 import { autonomyLabel, skillLabel } from '../../agentLibrary';
 import { agentColor } from '../statusColor';
@@ -9,14 +10,10 @@ const statusText: Record<AgentStatus, string> = { working: 'Working', done: 'Don
 
 function Avatar({ name }: { name: string }) {
   return (
-    <Box sx={(t) => ({ width: 38, height: 38, borderRadius: 2, display: 'grid', placeItems: 'center', color: t.palette.primary.contrastText, backgroundImage: t.brand.gradient.signature, fontWeight: 700, flexShrink: 0 })}>
+    <Box sx={(t) => ({ width: 38, height: 38, borderRadius: 2, display: 'grid', placeItems: 'center', color: t.palette.primary.contrastText, backgroundImage: t.studio.gradient.signature, fontWeight: t.typography.fontWeightBold, flexShrink: 0 })}>
       {(name.trim()[0] ?? 'A').toUpperCase()}
     </Box>
   );
-}
-
-function ClockGlyph() {
-  return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>;
 }
 
 function MetaChips({ skills }: { skills?: string[] }) {
@@ -82,7 +79,7 @@ export function AgentCard({ agent, gates, builtIn, onEdit, onRun, onDelete }: Ag
         {agent.custom && (
           <Chip
             size="small"
-            icon={<Box sx={{ display: 'flex', color: 'inherit', ml: 0.5 }}><ClockGlyph /></Box>}
+            icon={<Box sx={{ display: 'flex', color: 'inherit', ml: 0.5 }}><Icon name="clock" size={12} /></Box>}
             label={scheduleLabel(agent.schedule)}
             sx={(t) => ({ height: 22, fontSize: text.s66, fontFamily: t.brand.font.mono, bgcolor: 'action.hover', color: agent.schedule?.enabled === false ? 'text.disabled' : 'text.secondary' })}
           />

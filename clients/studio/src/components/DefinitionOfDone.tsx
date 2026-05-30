@@ -2,6 +2,7 @@ import { Box, LinearProgress, Stack, Typography } from '@mui/material';
 import type { Gate, GateStatus } from '../studioData';
 import { statusColor } from './statusColor';
 import { GlassPanel } from './studio';
+import { Icon } from '../icons';
 import { text } from '@ironflyer/design-tokens/brand';
 
 // The vision's "Definition of Done" made legible: each item is backed by a real
@@ -25,23 +26,6 @@ function resolve(gates: Gate[], ids: string[]): { status: GateStatus; reason: st
   found.sort((a, b) => SEVERITY.indexOf(a.status) - SEVERITY.indexOf(b.status));
   const worst = found[0]!;
   return { status: worst.status, reason: worst.status === 'closed' ? 'done' : worst.blocking || worst.status };
-}
-
-function CheckGlyph() {
-  return (
-    <svg
-      width="12"
-      height="12"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="3"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M20 6L9 17l-5-5" />
-    </svg>
-  );
 }
 
 // H3 — ProfitGuard as a Definition-of-Done concern. "Done" is never just the
@@ -156,7 +140,7 @@ export function DefinitionOfDone({ gates, profitGuard }: { gates: Gate[]; profit
                 })}
               >
                 {isDone ? (
-                  <CheckGlyph />
+                  <Icon name="check" size={12} strokeWidth={3} />
                 ) : (
                   <Box sx={{ width: 5, height: 5, borderRadius: 99, bgcolor: 'currentColor' }} />
                 )}
