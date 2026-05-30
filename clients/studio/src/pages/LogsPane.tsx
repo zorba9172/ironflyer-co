@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { Box, Button, Chip, Stack, Typography } from '@mui/material';
+import { Box, Button, Stack, Typography } from '@mui/material';
 import { useTheme, type Theme } from '@mui/material/styles';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useRunProjectFeed, useGraphQLQuery, operations } from '@ironflyer/data';

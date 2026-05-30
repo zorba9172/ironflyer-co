@@ -39,21 +39,21 @@ const STATUS_TONE: Record<AgentStatus, string> = {
 };
 
 // Map agent status to a neon series color index from the studio chart palette
-// so the constellation always uses the locked neon arc, never raw values.
+// so the network graph always uses the locked neon arc, never raw values.
 const STATUS_IDX: Record<AgentStatus, number> = { working: 1, blocked: 6, done: 4, idle: 3 };
 
 // Live execution-team graph: the orchestrator's specialist roster rendered as
-// either a living NeonConstellation3D (default glanceable mode) or the classic
-// FlowCanvas tether view. Both are mirrors of real gate state — who is working,
-// who is blocked, what is not closed end-to-end.
+// either the FlowCanvas tether view (default — the clearest who-routes-to-which
+// mirror) or a calm 2D node network. Both are mirrors of real gate state — who
+// is working, who is blocked, what is not closed end-to-end.
 export function ExecutionTeamGraph({
   project,
   onOpenGate,
-  constellationMode = false,
+  networkMode = false,
 }: {
   project: StudioProject;
   onOpenGate?: (gateId: string) => void;
-  constellationMode?: boolean;
+  networkMode?: boolean;
 }) {
   const theme = useTheme();
   const c = useMemo(() => nodePalette(theme), [theme]);
@@ -61,7 +61,7 @@ export function ExecutionTeamGraph({
   const selectedGateId = useStudio((s) => s.selectedGateId);
   const customAgents = useStudio((s) => s.customAgents);
   const { dispatch } = useDispatchAgent();
-  const [viewMode, setViewMode] = useState<'constellation' | 'flow'>(constellationMode ? 'constellation' : 'flow');
+  const [viewMode, setViewMode] = useState<'network' | 'flow'>(networkMode ? 'network' : 'flow');
 
   const firstProjectId = useLiveProjectId();
   const storeProjectId = useStudio((s) => s.liveProjectId);
@@ -95,13 +95,13 @@ export function ExecutionTeamGraph({
   }, [team, gates]);
   const blockedGates = gates.filter((g) => g.blocking);
 
-  // ── Constellation data ───────────────────────────────────────────────────
+  // ── Network data ─────────────────────────────────────────────────────────
   // Each agent is a node sized by activity level; gate nodes are smaller and
   // positioned below. Links = ownership (agent→gate) and handoffs (agent→agent).
-  // Colors from the locked neon chart series so the 3D world matches the rest.
+  // Colors from the locked neon chart series so the 2D network matches the rest.
   const series = theme.studio.chart.series as unknown as string[];
 
-  const constellationData = useMemo<{ nodes: Constellation3DNode[]; links: Constellation3DLink[] }>(() => {
+  const networkData = useMemo<{ nodes: Constellation3DNode[]; links: Constellation3DLink[] }>(() => {
     const nodes: Constellation3DNode[] = [];
     const links: Constellation3DLink[] = [];
     const cols = team.length;
@@ -254,7 +254,7 @@ export function ExecutionTeamGraph({
       <Box sx={{ px: 3, py: 1.75, borderBottom: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
         <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1.25, flexWrap: 'wrap' }}>
           <Typography variant="h5" sx={{ fontSize: text.s115 }}>
-            {viewMode === 'constellation' ? 'Execution team constellation' : 'Execution team flow'}
+            {viewMode === 'network' ? 'Execution team network' : 'Execution team flow'}
           </Typography>
           <Chip
             size="small"
@@ -265,19 +265,19 @@ export function ExecutionTeamGraph({
           <Typography sx={{ color: 'text.secondary', fontSize: text.s85 }}>
             {counts.working} working · {counts.blocked} blocked · {open} of {gates.length} gates open
           </Typography>
-          <Tooltip title={viewMode === 'constellation' ? 'Switch to flow canvas' : 'Switch to constellation view'} arrow>
+          <Tooltip title={viewMode === 'network' ? 'Switch to flow canvas' : 'Switch to network view'} arrow>
             <Button
               size="small"
               variant="outlined"
               color="inherit"
-              onClick={() => setViewMode((v) => v === 'constellation' ? 'flow' : 'constellation')}
+              onClick={() => setViewMode((v) => v === 'network' ? 'flow' : 'network')}
               sx={(t) => ({
                 fontSize: text.s70,
                 borderColor: t.palette.divider,
                 '&:hover': { borderColor: t.studio.neon.blue },
               })}
             >
-              {viewMode === 'constellation' ? 'Flow view' : 'Constellation'}
+              {viewMode === 'network' ? 'Flow view' : 'Network view'}
             </Button>
           </Tooltip>
         </Stack>
@@ -294,12 +294,14 @@ export function ExecutionTeamGraph({
       </Box>
 
       {/* ── Main content ────────────────────────────────────────────────── */}
-      {viewMode === 'constellation' ? (
+      {viewMode === 'network' ? (
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, p: 2, gap: 2 }}>
-          {/* 3D constellation — the living mirror of the AI team */}
+          {/* 2D node network — the calm, glanceable mirror of the AI team.
+              Right-sized: the SVG scales via its viewBox so the graph stays
+              centered and dense, never a sea of empty space. */}
           <GlassPanel
             accent={theme.studio.neon.violet}
-            sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+            sx={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
           >
             <Typography
               sx={(t) => ({
@@ -313,12 +315,11 @@ export function ExecutionTeamGraph({
             >
               Agents · gates · handoffs — live
             </Typography>
-            <Box sx={{ flex: 1, minHeight: 280 }}>
+            <Box>
               <NeonConstellation3D
-                nodes={constellationData.nodes}
-                links={constellationData.links}
-                height={420}
-                rotate
+                nodes={networkData.nodes}
+                links={networkData.links}
+                height={320}
               />
             </Box>
           </GlassPanel>

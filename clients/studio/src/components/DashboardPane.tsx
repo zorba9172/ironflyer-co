@@ -229,10 +229,10 @@ export function DashboardPane({ fallback }: { projectId: string; fallback: Studi
       value: counts.get(s) ?? 0,
       color: statusColor(theme, s),
     }));
-    return donutOption(theme, { data, radius: ['55%', '78%'] });
+    return donutOption(theme, { data, radius: ['60%', '82%'] });
   }, [p.gates, theme]);
 
-  // NeonBars3D: cost share per gate — data-bound, not decoration
+  // Cost-share bars: each bar = one gate's share of total provider cost (2D, data-bound)
   const bars3dData = useMemo<Bar3DDatum[]>(() =>
     gateSpend.map((g, i) => ({
       label: g.gateName,
@@ -242,7 +242,7 @@ export function DashboardPane({ fallback }: { projectId: string; fallback: Studi
     [gateSpend, theme.studio.chart.series],
   );
 
-  // NeonConstellation3D: gate/agent topology — each node = real gate or agent
+  // Topology network: each node = a real gate or agent, each link = an orchestrator dispatch path (2D)
   const constellationNodes = useMemo<Constellation3DNode[]>(() => {
     const nodes: Constellation3DNode[] = [];
     p.gates.forEach((g, i) => {
@@ -327,7 +327,7 @@ export function DashboardPane({ fallback }: { projectId: string; fallback: Studi
             height: 6,
             borderRadius: 99,
             bgcolor: 'action.hover',
-            mb: 3,
+            mb: 2.5,
             '& .MuiLinearProgress-bar': { borderRadius: 99, backgroundImage: (t) => t.brand.gradient.signature },
           }}
         />
@@ -336,7 +336,7 @@ export function DashboardPane({ fallback }: { projectId: string; fallback: Studi
           value={tab}
           onChange={(_, v: number) => setTab(v)}
           sx={{
-            mb: 3,
+            mb: 2,
             minHeight: 0,
             borderBottom: 1,
             borderColor: 'divider',
@@ -351,7 +351,7 @@ export function DashboardPane({ fallback }: { projectId: string; fallback: Studi
 
         {tab === 0 && (
           <>
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(4, 1fr)' }, gap: 1.5, mb: 2 }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(4, 1fr)' }, gap: 1.5, mb: 1.5 }}>
               <StatCard
                 label="Wallet balance"
                 value={formatUSD(wallet.availableUSD)}
@@ -382,17 +382,17 @@ export function DashboardPane({ fallback }: { projectId: string; fallback: Studi
               />
             </Box>
 
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 340px' }, gap: 2, mb: 2 }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 320px' }, gap: 1.5, mb: 1.5 }}>
               <GlassPanel pad={2.5}>
                 <SectionHeader
                   eyebrow="Cost share by gate"
                   title="Provider spend"
-                  subtitle="Each 3D bar maps to a gate's share of total provider cost, bound to the live ledger"
+                  subtitle="Each bar is a gate's share of total provider cost, bound to the live ledger"
                 />
                 {bars3dData.length > 0
-                  ? <NeonBars3D data={bars3dData} height={280} />
+                  ? <NeonBars3D data={bars3dData} height={220} />
                   : (
-                    <Box sx={{ height: 280, display: 'grid', placeItems: 'center' }}>
+                    <Box sx={{ height: 120, display: 'grid', placeItems: 'center' }}>
                       <Typography sx={{ color: 'text.disabled', fontSize: text.s82 }}>No spend data yet</Typography>
                     </Box>
                   )
@@ -403,17 +403,17 @@ export function DashboardPane({ fallback }: { projectId: string; fallback: Studi
                 <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s68, textTransform: 'uppercase', color: 'text.disabled', mb: 1 })}>
                   Gate status
                 </Typography>
-                <StudioChart option={gateDonut} height={250} />
+                <StudioChart option={gateDonut} height={220} />
               </GlassPanel>
             </Box>
 
-            <GlassPanel pad={2.5} sx={{ mb: 2 }}>
+            <GlassPanel pad={2.5} sx={{ mb: 1.5 }}>
               <SectionHeader
                 eyebrow="Gate and agent graph"
                 title="Execution topology"
-                subtitle="Each node maps to a real gate or agent; links mirror the orchestrator dispatch paths"
+                subtitle="Each node is a real gate or agent; links mirror the orchestrator dispatch paths"
               />
-              <NeonConstellation3D nodes={constellationNodes} links={constellationLinks} height={320} />
+              <NeonConstellation3D nodes={constellationNodes} links={constellationLinks} height={240} />
             </GlassPanel>
 
             <AgentsRail gates={p.gates} />

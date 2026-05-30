@@ -19,7 +19,7 @@ const SIM_LINES: Pick<ActivityEvent, 'kind' | 'text'>[] = [
 
 function kindColor(t: Theme, kind: ActivityEvent['kind']): string {
   switch (kind) {
-    case 'gate': return t.studio?.neon?.blue ?? t.brand.accent.secondary;
+    case 'gate': return t.studio.neon.blue;
     case 'patch': return t.palette.primary.main;
     case 'profitguard': return t.palette.warning.main;
     case 'deploy': return t.palette.success.main;

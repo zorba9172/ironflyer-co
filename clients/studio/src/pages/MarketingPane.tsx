@@ -73,7 +73,7 @@ export function MarketingPane() {
     value: audit.score,
     color: scoreColor,
     formatter: '{value}',
-    radius: '100%',
+    radius: '92%',
   }), [audit.score, scoreColor, t]);
 
   return (
@@ -90,19 +90,19 @@ export function MarketingPane() {
             >
               SEO score
             </Typography>
-            <StudioChart option={gauge} height={160} />
-            <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: -1 }}>
+            <StudioChart option={gauge} height={148} />
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: -0.5 }}>
               <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: scoreColor }} />
               <Typography sx={{ fontSize: text.s78, color: 'text.secondary' }}>{passing}/{total} checks passing</Typography>
             </Stack>
             <Box sx={{ mt: 1.5, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, width: '100%' }}>
-              <Box sx={(th) => ({ borderRadius: `${th.studio.radius.sm}px`, p: 1.2, bgcolor: `${th.studio.neon.success}12`, textAlign: 'center' })}>
-                <Typography sx={{ fontSize: text.s130, fontWeight: 800, color: 'success.main' }}>{passing}</Typography>
-                <Typography sx={{ fontSize: text.s64, color: 'text.disabled' }}>Passing</Typography>
+              <Box sx={(th) => ({ borderRadius: `${th.studio.radius.sm}px`, py: 0.85, bgcolor: `${th.studio.neon.success}12`, textAlign: 'center' })}>
+                <Typography sx={{ fontSize: text.s115, fontWeight: 800, color: 'success.main', lineHeight: 1.1 }}>{passing}</Typography>
+                <Typography sx={{ fontSize: text.s62, color: 'text.disabled' }}>Passing</Typography>
               </Box>
-              <Box sx={(th) => ({ borderRadius: `${th.studio.radius.sm}px`, p: 1.2, bgcolor: `${th.palette.warning.main}12`, textAlign: 'center' })}>
-                <Typography sx={{ fontSize: text.s130, fontWeight: 800, color: 'warning.main' }}>{total - passing}</Typography>
-                <Typography sx={{ fontSize: text.s64, color: 'text.disabled' }}>Open</Typography>
+              <Box sx={(th) => ({ borderRadius: `${th.studio.radius.sm}px`, py: 0.85, bgcolor: `${th.palette.warning.main}12`, textAlign: 'center' })}>
+                <Typography sx={{ fontSize: text.s115, fontWeight: 800, color: 'warning.main', lineHeight: 1.1 }}>{total - passing}</Typography>
+                <Typography sx={{ fontSize: text.s62, color: 'text.disabled' }}>Open</Typography>
               </Box>
             </Box>
           </GlassPanel>

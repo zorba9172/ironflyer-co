@@ -46,7 +46,7 @@ export function PromptComposer(props: {
         borderRadius: `${theme.studio.effect.promptBuilder.radius}px`,
         border: `1px solid ${focused ? theme.palette.primary.main : theme.palette.cardBorder}`,
         backgroundColor: theme.palette.background.paper,
-        boxShadow: focused ? theme.studio.effect.glow.focus : theme.studio.effect.card.shadow,
+        boxShadow: focused ? theme.studio.effect.promptBuilder.glow : theme.shadows[1],
         transition: `border-color ${theme.studio.motion.base}, box-shadow ${theme.studio.motion.base}`,
       })}
     >

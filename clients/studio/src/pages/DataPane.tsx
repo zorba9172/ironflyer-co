@@ -6,7 +6,8 @@ import { useOperateProjectId } from '../hooks/useOperateProjectId';
 import { PaneHeader } from '../components/operate/PaneHeader';
 import { StudioChart, horizontalBarOption, type EChartsOption } from '../components/charts';
 import { StudioDataTable, type DataTableColumn, type StudioTableTab } from '../components/tables';
-import { GlassPanel, SectionHeader } from '../components/studio';
+import { GlassPanel, SectionHeader, StatCard } from '../components/studio';
+import { Icon } from '../icons';
 import { text } from '@ironflyer/design-tokens/brand';
 
 interface AppColumn { name: string; type: string; nullable: boolean; primaryKey: boolean; references: string | null }
@@ -91,11 +92,23 @@ export function DataPane() {
   const accent = t.palette.primary.main;
   const muted = t.palette.text.secondary;
 
+  // One hue per table row from the categorical Aurora palette — never flat grey.
   const volumeChart = useMemo<EChartsOption>(() => horizontalBarOption(t, {
     labels: tables.map((tbl) => tbl.name),
     values: tables.map((tbl) => tbl.rowCount),
-    colors: tables.map((_, index) => index === 0 ? t.palette.primary.main : index % 2 ? t.palette.text.secondary : t.palette.borderSubtle),
   }), [tables, t]);
+
+  // Compact operator summary: counts that frame the chart below it.
+  const summary = useMemo(() => {
+    const totalRows = tables.reduce((sum, tbl) => sum + tbl.rowCount, 0);
+    const totalCols = tables.reduce((sum, tbl) => sum + tbl.columns.length, 0);
+    const largest = tables.reduce<AppTable | null>((top, tbl) => (!top || tbl.rowCount > top.rowCount ? tbl : top), null);
+    return { totalRows, totalCols, largest };
+  }, [tables]);
+
+  // Right-size the bar chart to its row count so it never floats in empty space:
+  // ~38px per bar, clamped to a tight band rather than a fixed 280px void.
+  const chartHeight = Math.min(260, Math.max(132, tables.length * 38 + 28));
 
   const gridColumns = useMemo<DataTableColumn<Record<string, unknown>>[]>(() => {
     const schema = tables.find((tbl) => tbl.name === activeTable)?.columns ?? [];
@@ -179,13 +192,44 @@ export function DataPane() {
           subtitle={`${tables.length} tables · schema changes flow through the finisher, never ad-hoc DDL`}
         />
 
-        <GlassPanel accent={t.palette.primary.main} pad={2} sx={{ mb: 2.5 }}>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: 'repeat(3, 1fr)' },
+            gap: 1.5,
+            mb: 1.5,
+          }}
+        >
+          <StatCard
+            label="Tables"
+            value={tables.length}
+            hint="live in this app"
+            accent={t.studio.neon.indigo}
+            icon={<Icon name="data" size={16} />}
+          />
+          <StatCard
+            label="Total rows"
+            value={summary.totalRows.toLocaleString()}
+            hint={`across ${summary.totalCols} columns`}
+            accent={t.studio.neon.cyan}
+            icon={<Icon name="layers" size={16} />}
+          />
+          <StatCard
+            label="Largest table"
+            value={summary.largest?.name ?? '—'}
+            hint={summary.largest ? `${summary.largest.rowCount.toLocaleString()} rows` : 'no tables yet'}
+            accent={t.studio.neon.violet}
+            icon={<Icon name="chartBar" size={16} />}
+          />
+        </Box>
+
+        <GlassPanel accent={t.palette.primary.main} pad={2} sx={{ mb: 2 }}>
           <SectionHeader
             eyebrow="Row counts by table"
             title="Data volume"
-            subtitle="Each bar maps to a real table. Width = row count."
+            subtitle="Each bar maps to a real table — one hue per table, width = row count."
           />
-          <StudioChart option={volumeChart} height={280} />
+          <StudioChart option={volumeChart} height={chartHeight} />
         </GlassPanel>
 
         <StudioDataTable

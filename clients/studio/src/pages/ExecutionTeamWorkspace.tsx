@@ -3,17 +3,18 @@ import { Box, CircularProgress, Tab, Tabs, Tooltip } from '@mui/material';
 import { useStudio } from '../store';
 import type { StudioProject } from '../studioData';
 
-// The execution team in three views behind one menu entry: the constellation
-// (default glanceable 3D living graph), the roster (list + management), and
-// the legacy flow graph. Code-split so heavy deps only load on demand.
+// The execution team in three views behind one menu entry: the flow graph
+// (default — the clearest mirror of who routes to which gate), the network
+// map (glanceable 2D node graph), and the roster (list + management). Code-split
+// so heavy deps only load on demand.
 const AgentsManagerPane = lazy(() => import('./AgentsManagerPane').then((m) => ({ default: m.AgentsManagerPane })));
 const ExecutionTeamGraph = lazy(() => import('./ExecutionTeamGraph').then((m) => ({ default: m.ExecutionTeamGraph })));
 
-type TTab = 'constellation' | 'list' | 'graph';
+type TTab = 'graph' | 'network' | 'list';
 const TABS: { key: TTab; label: string; title: string }[] = [
-  { key: 'constellation', label: 'Live map', title: 'Agent constellation — living 3D mirror of the execution team' },
+  { key: 'graph', label: 'Flow', title: 'Execution flow — who routes to which finisher gate' },
+  { key: 'network', label: 'Network', title: 'Agent network — 2D mirror of agents, gates, and handoffs' },
   { key: 'list', label: 'Roster', title: 'Agent roster — manage the team' },
-  { key: 'graph', label: 'Flow', title: 'Execution flow — finisher gate tethers' },
 ];
 
 function InnerFallback() {
@@ -27,7 +28,7 @@ function InnerFallback() {
 export function ExecutionTeamWorkspace({ project }: { project: StudioProject }) {
   const [tab, setTab] = useState<TTab>(() => {
     const req = useStudio.getState().innerTab;
-    return TABS.some((x) => x.key === req) ? (req as TTab) : 'constellation';
+    return TABS.some((x) => x.key === req) ? (req as TTab) : 'graph';
   });
   const setInnerTab = useStudio((s) => s.setInnerTab);
   const selectGate = useStudio((s) => s.selectGate);
@@ -57,9 +58,9 @@ export function ExecutionTeamWorkspace({ project }: { project: StudioProject }) 
       </Box>
       <Box sx={{ flex: 1, minHeight: 0, display: 'flex' }}>
         <Suspense fallback={<InnerFallback />}>
-          {tab === 'constellation' && <ExecutionTeamGraph project={project} onOpenGate={(id) => selectGate(id)} constellationMode />}
-          {tab === 'list' && <AgentsManagerPane project={project} />}
           {tab === 'graph' && <ExecutionTeamGraph project={project} onOpenGate={(id) => selectGate(id)} />}
+          {tab === 'network' && <ExecutionTeamGraph project={project} onOpenGate={(id) => selectGate(id)} networkMode />}
+          {tab === 'list' && <AgentsManagerPane project={project} />}
         </Suspense>
       </Box>
     </Box>

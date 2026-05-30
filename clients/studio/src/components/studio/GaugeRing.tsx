@@ -15,7 +15,7 @@ export type GaugeRingProps = {
 // The production-readiness dial (reference: Performance Review 72% gauge),
 // wrapped as a one-prop primitive over the themed gaugeOption. Lazy echarts via
 // StudioChart; color comes from the neon palette, never inline.
-export function GaugeRing({ value, color, formatter, height = 200 }: GaugeRingProps) {
+export function GaugeRing({ value, color, formatter, height = 168 }: GaugeRingProps) {
   const theme = useTheme();
   const option = useMemo(
     () => gaugeOption(theme, { value, color, formatter }),

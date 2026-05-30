@@ -75,12 +75,13 @@ export function IntegrationsPage() {
         centerLabel: `${connectedCount}/${connectors.length}`,
         centerColor: theme.studio.neon.success,
         emptyLabel: 'None connected',
+        radius: ['62%', '84%'],
       }),
     [theme, connectedCount, availableCount],
   );
 
   return (
-    <Box sx={{ p: { xs: 3, md: 5 }, maxWidth: 1180, mx: 'auto' }}>
+    <Box sx={{ p: { xs: 3, md: 4 }, maxWidth: 1180, mx: 'auto' }}>
       {/* Header — title + intent, with a donut that mirrors connect coverage. */}
       <Box
         sx={(theme) => ({
@@ -108,12 +109,12 @@ export function IntegrationsPage() {
               border: `1px solid ${theme.palette.divider}`,
               backgroundColor: theme.palette.surfaceRaised,
               color: theme.palette.text.secondary,
-              fontWeight: 600,
+              fontWeight: theme.typography.fontWeightMedium,
               '& .MuiChip-icon': { color: theme.studio.neon.blue, ml: 0.5 },
               '& .MuiChip-label': { px: 1 },
             })}
           />
-          <Typography variant="h4" sx={{ fontWeight: 800, lineHeight: 1.1, mb: 1 }}>
+          <Typography variant="h3" sx={{ lineHeight: 1.1, mb: 1 }}>
             Integrations
           </Typography>
           <Typography color="text.secondary" sx={{ maxWidth: 560, lineHeight: 1.5 }}>
@@ -130,8 +131,8 @@ export function IntegrationsPage() {
             justifySelf: { xs: 'center', md: 'end' },
           }}
         >
-          <Box sx={{ width: 180 }}>
-            <StudioChart option={overviewOption} height={150} />
+          <Box sx={{ width: 132 }}>
+            <StudioChart option={overviewOption} height={132} />
           </Box>
           <Typography variant="caption" color="text.secondary" sx={{ mt: -0.5 }}>
             services connected
@@ -210,7 +211,7 @@ export function IntegrationsPage() {
                 variant="outlined"
                 sx={(theme) => ({
                   borderRadius: theme.studio.radius.pill,
-                  fontWeight: 600,
+                  fontWeight: theme.typography.fontWeightMedium,
                   transition: `all ${theme.studio.motion.fast}`,
                   color: active ? theme.palette.text.primary : theme.palette.text.secondary,
                   borderColor: active ? theme.studio.neon.violet : theme.palette.divider,
@@ -232,7 +233,7 @@ export function IntegrationsPage() {
           sx={{
             display: 'grid',
             gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', lg: 'repeat(3, 1fr)' },
-            gap: 2.5,
+            gap: 2,
           }}
         >
           {list.map((c) => {
@@ -259,7 +260,7 @@ export function IntegrationsPage() {
             alignItems: 'center',
             textAlign: 'center',
             gap: 1.5,
-            py: 8,
+            py: { xs: 4.5, md: 5.5 },
             px: 3,
             borderRadius: `${theme.studio.radius.lg}px`,
             border: `1px dashed ${theme.palette.divider}`,
@@ -294,7 +295,7 @@ export function IntegrationsPage() {
               setQ('');
               setCategory(ALL);
             }}
-            sx={{ mt: 1, fontWeight: 600 }}
+            sx={(theme) => ({ mt: 1, fontWeight: theme.typography.fontWeightMedium })}
           >
             Clear filters
           </Button>

@@ -7,24 +7,16 @@ import { useSyncWorkspaceFiles } from '../hooks/useSyncWorkspaceFiles';
 // "open the hood" surface for professionals — Ironflyer stays
 // visualization-first, so this full IDE is reachable in one click but is never
 // the default landing pane. The Theia distro themes its own interior; the
-// studio's IdeTopBar (see CodePane) owns the surrounding chrome, so our job
-// here is only the branded top accent + lifecycle states, never the editor.
+// studio's IdeTopBar (see CodePane) owns the surrounding chrome (the plain
+// divider that aligns with the chat rail), so our job here is only the
+// lifecycle states + the edge-to-edge iframe, never the editor itself.
 
 const SANDBOX =
   'allow-scripts allow-same-origin allow-forms allow-popups allow-downloads allow-modals';
 
-/** Cobalt → cyan signature hairline, pulled from the theme (never literals). */
-function AccentBar() {
-  return (
-    <Box
-      sx={(t) => ({
-        height: 2,
-        flexShrink: 0,
-        background: `linear-gradient(90deg, ${t.palette.primary.main}, ${t.palette.secondary.main})`,
-      })}
-    />
-  );
-}
+// No decorative accent bar: the IDE chrome aligns to the same plain divider
+// hairline the chat rail uses, so the toolbar border reads continuous with the
+// rest of the studio (owner request 2026-05-30) rather than a colored stripe.
 
 function CenteredPanel({ children }: { children: React.ReactNode }) {
   return (
@@ -54,7 +46,6 @@ export function IdeFrame({ projectId }: { projectId?: string }) {
   if (isError) {
     return (
       <Box sx={{ flex: 1, height: '100%', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <AccentBar />
         <CenteredPanel>
           <Stack spacing={1.5} sx={{ maxWidth: 460, textAlign: 'center' }} alignItems="center">
             <Typography variant="h6">Workspace IDE is offline</Typography>
@@ -87,7 +78,6 @@ export function IdeFrame({ projectId }: { projectId?: string }) {
   if (!ready || !url) {
     return (
       <Box sx={{ flex: 1, height: '100%', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <AccentBar />
         <CenteredPanel>
           <Stack spacing={2} alignItems="center">
             <CircularProgress size={32} thickness={4} color="primary" />
@@ -104,7 +94,6 @@ export function IdeFrame({ projectId }: { projectId?: string }) {
   // (b) Ready — full-height, edge-to-edge Theia iframe.
   return (
     <Box sx={{ flex: 1, height: '100%', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-      <AccentBar />
       <Box sx={{ flex: 1, minHeight: 0, bgcolor: 'background.default' }}>
         <Box
           component="iframe"

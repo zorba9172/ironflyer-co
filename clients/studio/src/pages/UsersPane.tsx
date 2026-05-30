@@ -93,7 +93,7 @@ export function UsersPane() {
         <Chip
           size="small"
           label={row.role}
-          sx={(th) => ({ height: 20, fontSize: text.s62, textTransform: 'uppercase', bgcolor: `${th.brand.accent.primary}1f`, color: th.brand.accent.primary })}
+          sx={(th) => ({ height: 20, fontSize: text.s62, textTransform: 'uppercase', bgcolor: `${th.palette.primary.main}1f`, color: 'primary.main' })}
         />
       ) : null,
     },

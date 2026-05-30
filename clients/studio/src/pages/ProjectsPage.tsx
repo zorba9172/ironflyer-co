@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Box, Button, Chip, CircularProgress, IconButton, InputBase, Stack, Typography } from '@mui/material';
-import { Icon, AssetImage } from '../icons';
+import { Icon } from '../icons';
 import { useGraphQLQuery, useRequest, operations } from '@ironflyer/data';
 import { confirmAction, toast } from '@ironflyer/ui-web/fx';
 import { useStudio } from '../store';
@@ -84,9 +84,9 @@ export function ProjectsPage() {
     <Box sx={{ position: 'relative', minHeight: '100%', isolation: 'isolate' }}>
       <AmbientBackdrop />
 
-      <Box sx={{ position: 'relative', zIndex: 1, p: { xs: 3, md: 5 }, maxWidth: 1180, mx: 'auto' }}>
+      <Box sx={{ position: 'relative', zIndex: 1, p: { xs: 3, md: 4 }, maxWidth: 1180, mx: 'auto' }}>
         {/* Header */}
-        <Stack direction="row" alignItems="flex-start" justifyContent="space-between" sx={{ mb: 4, flexWrap: 'wrap', gap: 2 }}>
+        <Stack direction="row" alignItems="flex-start" justifyContent="space-between" sx={{ mb: 3.5, flexWrap: 'wrap', gap: 2 }}>
           <Stack spacing={1}>
             <Chip
               icon={<Icon name="sparkles" size={15} />}
@@ -217,8 +217,7 @@ export function ProjectsPage() {
         ) : filtered.length === 0 ? (
           <EmptyPanel
             tone="brand"
-            art={!hasProjects ? 'animated-3d/folder-2' : undefined}
-            glyph={hasProjects ? <Icon name="search" size={26} strokeWidth={1.8} /> : undefined}
+            glyph={<Icon name={hasProjects ? 'search' : 'folder'} size={24} strokeWidth={1.8} />}
             title={!hasProjects ? 'No projects yet' : 'Nothing matches'}
             body={
               !hasProjects
@@ -242,7 +241,7 @@ export function ProjectsPage() {
             sx={{
               display: 'grid',
               gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' },
-              gap: 2.5,
+              gap: 2,
             }}
           >
             {filtered.map((p) => (
@@ -261,20 +260,18 @@ export function ProjectsPage() {
   );
 }
 
-// Shared empty / error panel — one consistent glass card, centered copy, one
-// action. It leads with an illustrated 3D asset when one fits (the inviting
-// empty state) or a semantic neon glyph tile otherwise. No nested cards.
+// Shared empty / error panel — one consistent, tight card: a compact semantic
+// glyph tile, centered copy, one action. Clean flat 2D (no illustrated/3D art),
+// sized to its content so it never reads as a giant empty box.
 function EmptyPanel(props: {
   tone: 'brand' | 'danger';
-  /** illustrated 3D asset id for the inviting hero empty state */
-  art?: string;
-  /** semantic glyph fallback when no illustration fits (e.g. error) */
+  /** semantic glyph for the state (e.g. search / folder / alert) */
   glyph?: React.ReactNode;
   title: string;
   body: string;
   action: React.ReactNode;
 }) {
-  const { tone, art, glyph, title, body, action } = props;
+  const { tone, glyph, title, body, action } = props;
   return (
     <Box
       sx={(theme) => ({
@@ -282,9 +279,9 @@ function EmptyPanel(props: {
         flexDirection: 'column',
         alignItems: 'center',
         textAlign: 'center',
-        gap: 2,
+        gap: 1.75,
         px: 3,
-        py: { xs: 6, md: 8 },
+        py: { xs: 4.5, md: 5.5 },
         backgroundColor: theme.palette.cardBg,
         border: `1px dashed ${theme.palette.divider}`,
         borderRadius: `${theme.studio.effect.card.radius}px`,
@@ -293,8 +290,8 @@ function EmptyPanel(props: {
           display: 'inline-flex',
           alignItems: 'center',
           justifyContent: 'center',
-          width: 64,
-          height: 64,
+          width: 52,
+          height: 52,
           borderRadius: `${theme.studio.radius.lg}px`,
           color: tone === 'danger' ? theme.studio.neon.danger : theme.studio.neon.violet,
           backgroundColor: theme.palette.surfaceHover,
@@ -302,18 +299,14 @@ function EmptyPanel(props: {
         },
       })}
     >
-      {art ? (
-        <AssetImage id={art} size={96} alt={title} />
-      ) : (
-        <Box className="if-empty-glyph" aria-hidden>
-          {glyph}
-        </Box>
-      )}
-      <Stack spacing={1} sx={{ maxWidth: 460 }}>
-        <Typography variant="h5">{title}</Typography>
-        <Typography color="text.secondary">{body}</Typography>
+      <Box className="if-empty-glyph" aria-hidden>
+        {glyph}
+      </Box>
+      <Stack spacing={0.75} sx={{ maxWidth: 440 }}>
+        <Typography variant="h6">{title}</Typography>
+        <Typography variant="body2" color="text.secondary">{body}</Typography>
       </Stack>
-      <Box sx={{ mt: 1 }}>{action}</Box>
+      <Box sx={{ mt: 0.5 }}>{action}</Box>
     </Box>
   );
 }

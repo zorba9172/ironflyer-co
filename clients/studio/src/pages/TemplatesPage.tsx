@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Button, Chip, Stack, Typography } from '@mui/material';
-import { Icon, AssetImage } from '../icons';
+import { Icon } from '../icons';
 import { useStudio } from '../store';
 import { AmbientBackdrop } from './home/AmbientBackdrop';
 import { TemplateCard } from './templates/TemplateCard';
@@ -42,14 +42,14 @@ export function TemplatesPage() {
         sx={{
           position: 'relative',
           zIndex: 1,
-          px: { xs: 3, md: 6 },
-          py: { xs: 4, md: 6 },
+          px: { xs: 3, md: 5 },
+          py: { xs: 4, md: 5 },
           maxWidth: 1180,
           mx: 'auto',
         }}
       >
         {/* Header — AI badge → headline (final phrase gradient) → subhead. */}
-        <Stack spacing={2.5} sx={{ mb: { xs: 4, md: 5 } }}>
+        <Stack spacing={2} sx={{ mb: { xs: 3, md: 4 } }}>
           <Chip
             icon={<Icon name="sparkles" size={15} />}
             label="Production-ready starters"
@@ -175,19 +175,33 @@ export function TemplatesPage() {
               flexDirection: 'column',
               alignItems: 'center',
               textAlign: 'center',
-              gap: 2,
+              gap: 1.75,
               px: 3,
-              py: { xs: 6, md: 8 },
+              py: { xs: 4.5, md: 5.5 },
               backgroundColor: theme.palette.cardBg,
               border: `1px dashed ${theme.palette.divider}`,
               borderRadius: `${theme.studio.effect.card.radius}px`,
               backdropFilter: `blur(${theme.studio.effect.card.blur}px)`,
             })}
           >
-            <AssetImage id="strategy-3d/2-rocket" size={88} alt="No templates" />
-            <Stack spacing={1} sx={{ maxWidth: 420 }}>
-              <Typography variant="h5">No {cat} templates yet</Typography>
-              <Typography color="text.secondary">
+            <Box
+              aria-hidden
+              sx={(theme) => ({
+                display: 'grid',
+                placeItems: 'center',
+                width: 52,
+                height: 52,
+                borderRadius: `${theme.studio.radius.lg}px`,
+                color: theme.studio.neon.violet,
+                backgroundColor: theme.palette.surfaceHover,
+                border: `1px solid ${theme.palette.divider}`,
+              })}
+            >
+              <Icon name="templates" size={24} strokeWidth={1.8} />
+            </Box>
+            <Stack spacing={0.75} sx={{ maxWidth: 420 }}>
+              <Typography variant="h6">No {cat} templates yet</Typography>
+              <Typography variant="body2" color="text.secondary">
                 We are still adding starters to this category. Browse all blueprints in the
                 meantime.
               </Typography>
@@ -197,7 +211,7 @@ export function TemplatesPage() {
               color="primary"
               startIcon={<Icon name="templates" size={17} />}
               onClick={() => setCat('All')}
-              sx={{ mt: 1 }}
+              sx={{ mt: 0.5 }}
             >
               Browse all templates
             </Button>

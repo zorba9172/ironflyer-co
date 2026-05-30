@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Box, Button, Chip, IconButton, Stack, ToggleButton, ToggleButtonGroup, Tooltip, Typography } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
+import { Box, Button, IconButton, Stack, ToggleButton, ToggleButtonGroup, Tooltip, Typography } from '@mui/material';
 import { Lightbox, LivePreview, toast, type LivePreviewTemplate } from '@ironflyer/ui-web/fx';
 import { useStudio } from '../store';
 import { useThemeMode } from '../theme';
@@ -34,8 +33,8 @@ function toSandpackFiles(files: { path: string; content: string }[]): { map: Rec
   return { map, template: hasReactEntry ? 'vite-react-ts' : 'static' };
 }
 
-// Build constellation nodes/links from real gate state so the ambient 3D
-// object mirrors what the orchestrator is actually running.
+// Build the 2D network nodes/links from real gate state so the ambient graph
+// mirrors what the orchestrator is actually running (no 3D, no rotation).
 function gatesToConstellation(gates: Gate[]) {
   const { neon } = studioTokens;
   const statusColor: Record<string, string> = {
@@ -89,7 +88,6 @@ export function PreviewPane({ gates = [] }: { gates?: Gate[] }) {
   const [nonce, setNonce] = useState(0);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const { mode } = useThemeMode();
-  const theme = useTheme();
   const generated = useStudio((s) => s.generatedFiles);
   const requestRepair = useStudio((s) => s.requestRepair);
 
@@ -116,7 +114,8 @@ export function PreviewPane({ gates = [] }: { gates?: Gate[] }) {
   );
 
   const hasApp = count > 0;
-  const constellationHeight = device === 'mobile' ? 240 : 320;
+  // Compact, calm network — sits subtly behind the centered copy, not a hero.
+  const constellationHeight = device === 'mobile' ? 220 : 280;
 
   return (
     <Box sx={{ flex: 1, height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.default', minWidth: 0 }}>
@@ -177,31 +176,6 @@ export function PreviewPane({ gates = [] }: { gates?: Gate[] }) {
               </Typography>
             </Stack>
           </Tooltip>
-        )}
-
-        {/* Gate summary pill when there are open gates */}
-        {gates.length > 0 && !hasApp && (
-          <Stack direction="row" spacing={0.75} alignItems="center">
-            {gates.filter((g) => g.status !== 'unstarted').slice(0, 4).map((g) => {
-              const dotColor =
-                g.status === 'closed'
-                  ? theme.studio.neon.success
-                  : g.status === 'running'
-                  ? theme.studio.neon.blue
-                  : g.status === 'open'
-                  ? theme.studio.neon.warning
-                  : g.status === 'blocked'
-                  ? theme.studio.neon.danger
-                  : theme.palette.text.disabled;
-              return (
-                <Tooltip key={g.id} title={`${g.name}: ${g.status}${g.blocking ? ` — ${g.blocking}` : ''}`} arrow>
-                  <Box
-                    sx={{ width: 8, height: 8, borderRadius: 99, bgcolor: dotColor, flexShrink: 0, cursor: 'default' }}
-                  />
-                </Tooltip>
-              );
-            })}
-          </Stack>
         )}
 
         <Tooltip title="Refresh preview" arrow>
@@ -294,13 +268,22 @@ export function PreviewPane({ gates = [] }: { gates?: Gate[] }) {
               <LivePreview key={nonce} files={map} template={template} dark={mode === 'dark'} onError={setPreviewError} />
             </>
           ) : (
-            /* ── Empty state: calm AI-network visual bound to real gate state ── */
-            <Stack
-              alignItems="center"
-              spacing={0}
-              sx={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}
+            /* ── Empty state: a calm centered network behind one clean message.
+               The reference (01_57_49) shows the inspectable AI-network sitting
+               quietly behind the heading — no floating gate pills, no legend,
+               nothing else. Gate state still drives the network shape; it is
+               just not labelled here. ── */
+            <Box
+              sx={{
+                position: 'relative',
+                width: '100%',
+                height: '100%',
+                display: 'grid',
+                placeItems: 'center',
+                overflow: 'hidden',
+              }}
             >
-              {/* Ambient constellation — real gate/agent network, slowly rotating */}
+              {/* Ambient network — real gate/agent graph, rendered subtly behind the copy. */}
               <Box
                 sx={{
                   position: 'absolute',
@@ -308,7 +291,7 @@ export function PreviewPane({ gates = [] }: { gates?: Gate[] }) {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  opacity: 0.72,
+                  opacity: 0.5,
                   pointerEvents: 'none',
                 }}
               >
@@ -316,79 +299,17 @@ export function PreviewPane({ gates = [] }: { gates?: Gate[] }) {
                   nodes={constellationNodes}
                   links={constellationLinks}
                   height={constellationHeight}
-                  rotate
                 />
               </Box>
 
-              {/* Gate legend — anchored below the constellation */}
-              {gates.length > 0 && (
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    bottom: 80,
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    display: 'flex',
-                    gap: 1,
-                    flexWrap: 'wrap',
-                    justifyContent: 'center',
-                    maxWidth: 360,
-                  }}
-                >
-                  {gates.map((g) => {
-                    const dotColor =
-                      g.status === 'closed'
-                        ? theme.studio.neon.success
-                        : g.status === 'running'
-                        ? theme.studio.neon.blue
-                        : g.status === 'open'
-                        ? theme.studio.neon.warning
-                        : g.status === 'blocked'
-                        ? theme.studio.neon.danger
-                        : theme.palette.text.disabled;
-                    return (
-                      <Chip
-                        key={g.id}
-                        size="small"
-                        label={g.name}
-                        icon={
-                          <Box
-                            component="span"
-                            sx={{ width: 6, height: 6, borderRadius: 99, bgcolor: dotColor, flexShrink: 0, ml: 0.75 }}
-                          />
-                        }
-                        sx={(t) => ({
-                          height: 22,
-                          fontSize: text.s70,
-                          fontFamily: t.brand.font.mono,
-                          bgcolor: `${dotColor}18`,
-                          border: `1px solid ${dotColor}33`,
-                          color: dotColor,
-                          '& .MuiChip-icon': { ml: 0.5 },
-                        })}
-                      />
-                    );
-                  })}
-                </Box>
-              )}
-
-              {/* Centered copy */}
+              {/* Centered copy — the only thing the operator reads in the empty state. */}
               <Stack
                 alignItems="center"
                 spacing={2}
-                sx={{
-                  position: 'absolute',
-                  bottom: gates.length > 0 ? 140 : 100,
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  textAlign: 'center',
-                  px: 3,
-                  width: '100%',
-                  maxWidth: 480,
-                }}
+                sx={{ position: 'relative', textAlign: 'center', px: 3, maxWidth: 420 }}
               >
-                <Typography variant="h3">No preview yet</Typography>
-                <Typography variant="body2" sx={{ color: 'text.secondary', maxWidth: 400, lineHeight: 1.55 }}>
+                <Typography variant="h4">No preview yet</Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary', maxWidth: 360, lineHeight: 1.55 }}>
                   Ask the agent to build something in the chat. As it streams files, your app
                   renders here live — and the source appears in <b>Code</b>.
                 </Typography>
@@ -405,7 +326,7 @@ export function PreviewPane({ gates = [] }: { gates?: Gate[] }) {
                   </Button>
                 </Lightbox>
               </Stack>
-            </Stack>
+            </Box>
           )}
         </Box>
       </Box>

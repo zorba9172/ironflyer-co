@@ -59,7 +59,7 @@ export function StudioTableShell({
         border: `1px solid ${theme.palette.cardBorder}`,
         borderRadius: `${theme.studio.radius.sm}px`,
         bgcolor: 'background.paper',
-        boxShadow: '0 1px 2px rgba(24,22,20,0.04)',
+        boxShadow: theme.shadows[1],
         overflow: 'hidden',
       })}
     >
@@ -148,7 +148,7 @@ export function StudioTableShell({
                       borderRadius: `${theme.studio.radius.sm}px`,
                       color: active ? 'text.primary' : 'text.secondary',
                       bgcolor: active ? 'background.paper' : 'transparent',
-                      boxShadow: active ? `inset 0 0 0 1px ${theme.palette.primary.main}33, 0 1px 2px rgba(24,22,20,0.05)` : 'none',
+                      boxShadow: active ? `inset 0 0 0 1px ${theme.palette.primary.main}33, ${theme.shadows[1]}` : 'none',
                       fontWeight: active ? 800 : 700,
                       '&:hover': { bgcolor: active ? 'background.paper' : `${theme.palette.primary.main}0d` },
                     })}

@@ -1,5 +1,5 @@
 import { Box, Button, IconButton, Stack, Tooltip, Typography } from '@mui/material';
-import { LuMoon, LuSun } from 'react-icons/lu';
+import { Icon } from '../../icons';
 import { neon } from '../../theme';
 
 // IRONFLYER STUDIO — top navigation bar.
@@ -104,7 +104,7 @@ export function TopNav(props: { onThemeToggle: () => void; mode: 'light' | 'dark
               '&:hover': { color: theme.palette.text.primary, bgcolor: theme.palette.surfaceHover, borderColor: theme.palette.divider },
             })}
           >
-            {isDark ? <LuSun size={18} /> : <LuMoon size={18} />}
+            {isDark ? <Icon name="sun" size={18} /> : <Icon name="moon" size={18} />}
           </IconButton>
         </Tooltip>
 

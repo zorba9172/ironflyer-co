@@ -204,7 +204,7 @@ export function AgentsPage() {
             <Typography sx={{ color: 'text.secondary', fontSize: text.s85, mb: 1.5 }}>
               The orchestrator routes to every specialist; each tethers to the gate it owns, and delegation shows as hand-off arcs. Click any agent to open it.
             </Typography>
-            <Suspense fallback={<Box sx={(t) => ({ height: { xs: 460, md: 600 }, borderRadius: `${t.studio.effect.card.radius}px`, border: `1px solid ${t.palette.cardBorder}`, backgroundColor: t.palette.cardBg, display: 'grid', placeItems: 'center' })}><CircularProgress size={26} thickness={5} /></Box>}>
+            <Suspense fallback={<Box sx={(t) => ({ height: { xs: 420, md: 480 }, borderRadius: `${t.studio.effect.card.radius}px`, border: `1px solid ${t.palette.cardBorder}`, backgroundColor: t.palette.cardBg, display: 'grid', placeItems: 'center' })}><CircularProgress size={26} thickness={5} /></Box>}>
               <AgentTeamMap agents={allAgents} gates={gates} onEdit={setEditing} />
             </Suspense>
           </Box>
@@ -319,19 +319,19 @@ function EmptyState({ icon, accent, text: body, action }: { icon: ReactNode; acc
   return (
     <Card
       sx={(t) => ({
-        p: 4,
-        mb: 5,
+        p: 3,
+        mb: 3,
         textAlign: 'center',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: 1.5,
+        gap: 1.25,
         border: `1.5px dashed ${t.palette.divider}`,
         borderRadius: `${t.studio.effect.card.radius}px`,
         backgroundColor: t.palette.cardBg,
       })}
     >
-      <Box sx={{ width: 48, height: 48, borderRadius: 2, display: 'grid', placeItems: 'center', color: accent, backgroundColor: `${accent}1f`, border: `1px solid ${accent}33` }}>
+      <Box sx={{ width: 40, height: 40, borderRadius: 2, display: 'grid', placeItems: 'center', color: accent, backgroundColor: `${accent}1f`, border: `1px solid ${accent}33` }}>
         {icon}
       </Box>
       <Typography sx={{ color: 'text.secondary', maxWidth: 420 }}>{body}</Typography>

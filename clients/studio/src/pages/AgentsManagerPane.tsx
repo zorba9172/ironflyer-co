@@ -42,9 +42,9 @@ export function AgentsManagerPane({ project }: { project: StudioProject }) {
 
         <Label>Your agents ({customAgents.length})</Label>
         {customAgents.length === 0 ? (
-          <Card sx={{ p: 4, textAlign: 'center', border: '1.5px dashed', borderColor: 'divider', mb: 4 }}>
-            <Typography sx={{ color: 'text.secondary', mb: 1.5 }}>No custom agents yet. Create one — e.g. an "Einstein" research agent that runs daily and grounds the build.</Typography>
-            <Button variant="outlined" color="inherit" onClick={() => setEditing(newAgent())}>Create your first agent</Button>
+          <Card sx={{ p: 2.5, mb: 4, display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 2, border: '1.5px dashed', borderColor: 'divider' }}>
+            <Typography sx={{ color: 'text.secondary', minWidth: 0, flex: 1 }}>No custom agents yet. Create one — e.g. an "Einstein" research agent that runs daily and grounds the build.</Typography>
+            <Button variant="outlined" color="inherit" sx={{ flexShrink: 0 }} onClick={() => setEditing(newAgent())}>Create your first agent</Button>
           </Card>
         ) : (
           <Grid sx={{ mb: 4 }}>

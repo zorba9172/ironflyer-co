@@ -1,6 +1,7 @@
 import { Box, Stack, Tooltip, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { motion } from '@ironflyer/ui-web/fx';
+import { Icon } from '../icons';
 import { AGENTS, agentStatus, type Gate } from '../studioData';
 import { agentColor } from './statusColor';
 import { GlassPanel } from './studio';
@@ -8,28 +9,42 @@ import { text } from '@ironflyer/design-tokens/brand';
 
 const MotionBox = motion.create(Box);
 
-// Individual agent tile — glanceable status card with live pulse.
+// Individual agent tile — mirrors the reference "Active Agents" row: a small
+// status-tinted icon tile, the agent name, and a one-line role. Working agents
+// carry a live pulse ring around the icon so the row reads at a glance.
 function AgentTile({ agent, status, color }: { agent: (typeof AGENTS)[number]; status: string; color: string }) {
   const isWorking = status === 'working';
-  const isDone = status === 'done';
-  const isBlocked = status === 'blocked';
+  const live = isWorking || status === 'blocked';
 
   return (
     <Tooltip title={`${agent.role} · ${status}`} arrow>
       <GlassPanel
-        accent={isWorking || isBlocked ? color : undefined}
-        pad={1.5}
+        accent={live ? color : undefined}
+        pad={1.25}
         interactive={false}
         sx={{ minWidth: 0, flex: 1 }}
       >
-        <Stack direction="row" alignItems="center" spacing={1}>
-          {/* Status dot with pulse for working agents */}
-          <Box sx={{ position: 'relative', width: 8, height: 8, flexShrink: 0 }}>
-            <Box sx={{ position: 'absolute', inset: 0, borderRadius: 99, bgcolor: color }} />
+        <Stack direction="row" alignItems="center" spacing={1.25}>
+          {/* Status-tinted icon tile with a live pulse for working agents */}
+          <Box sx={{ position: 'relative', width: 30, height: 30, flexShrink: 0 }}>
+            <Box
+              sx={(t) => ({
+                position: 'absolute',
+                inset: 0,
+                borderRadius: `${t.studio.radius.sm}px`,
+                display: 'grid',
+                placeItems: 'center',
+                color,
+                backgroundColor: `${color}1f`,
+                border: `1px solid ${color}33`,
+              })}
+            >
+              <Icon name="bot" size={15} />
+            </Box>
             {isWorking && (
               <MotionBox
-                sx={{ position: 'absolute', inset: 0, borderRadius: 99, bgcolor: color }}
-                animate={{ scale: [1, 2.4], opacity: [0.6, 0] }}
+                sx={(t) => ({ position: 'absolute', inset: 0, borderRadius: `${t.studio.radius.sm}px`, border: `1.5px solid ${color}` })}
+                animate={{ scale: [1, 1.35], opacity: [0.55, 0] }}
                 transition={{ duration: 1.6, repeat: Infinity, ease: 'easeOut' }}
               />
             )}
@@ -48,21 +63,15 @@ function AgentTile({ agent, status, color }: { agent: (typeof AGENTS)[number]; s
               {agent.name}
             </Typography>
             <Typography
-              sx={(t) => ({
-                fontFamily: t.brand.font.mono,
+              sx={{
                 fontSize: text.s66,
-                color: isDone
-                  ? 'success.main'
-                  : isBlocked
-                  ? 'error.main'
-                  : isWorking
-                  ? 'text.secondary'
-                  : 'text.disabled',
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
-              })}
+                color: 'text.secondary',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
             >
-              {status}
+              {agent.role}
             </Typography>
           </Box>
         </Stack>

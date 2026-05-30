@@ -9,8 +9,8 @@ import { neon } from '../../theme';
 // calls startFromPrompt(`Start from the ${name} template`). This module only
 // carries presentational metadata so each card reads as a proof surface:
 //   • `icon`  — a semantic name resolved through the studio Icon barrel
-//               (Iconography Law: never a vendor glyph import in a component).
-//   • `art`   — an illustrated 3D asset id for the card thumbnail (AssetImage).
+//               (Iconography Law: never a vendor glyph import in a component);
+//               it is the centered mark on the card's flat 2D thumbnail.
 //   • `accent`— a studio `neon` token value (the sanctioned non-sx token bag),
 //               used only to tint card chrome through the theme.
 // No new app structure, routes, or data flow.
@@ -23,8 +23,6 @@ export type Template = {
   stack: string;
   /** semantic glyph name from the studio Icon barrel */
   icon: IconName;
-  /** illustrated 3D asset id (pack/name) for the card thumbnail */
-  art: string;
   /** studio neon accent token used to tint the card chrome */
   accent: string;
   /** Glanceable proof stat shown on the card footer. */
@@ -51,7 +49,6 @@ export const TEMPLATES: readonly Template[] = [
     desc: 'Auth, billing, team roles, and an admin panel.',
     stack: 'React · Go · Postgres',
     icon: 'dashboard',
-    art: 'strategy-3d/8-monitor',
     accent: neon.violet,
     gates: 6,
     readiness: 92,
@@ -63,7 +60,6 @@ export const TEMPLATES: readonly Template[] = [
     desc: 'Listings, Stripe payments, and seller payouts.',
     stack: 'React · Stripe · Postgres',
     icon: 'store',
-    art: 'strategy-3d/3-wallet',
     accent: neon.blue,
     gates: 7,
     readiness: 88,
@@ -75,7 +71,6 @@ export const TEMPLATES: readonly Template[] = [
     desc: 'Streaming chat, memory, and usage metering.',
     stack: 'React · streaming · ledger',
     icon: 'bot',
-    art: 'chatbot/17143-script-builder',
     accent: neon.pink,
     gates: 5,
     readiness: 95,
@@ -87,7 +82,6 @@ export const TEMPLATES: readonly Template[] = [
     desc: 'Calendar, reminders, and Stripe checkout.',
     stack: 'React · Stripe · email',
     icon: 'schedule',
-    art: 'strategy-3d/1-calendar',
     accent: neon.purple,
     gates: 6,
     readiness: 86,
@@ -99,7 +93,6 @@ export const TEMPLATES: readonly Template[] = [
     desc: 'Tables, roles, and an audit log.',
     stack: 'React · RBAC · audit log',
     icon: 'wrench',
-    art: 'strategy-3d/4-gear',
     accent: neon.success,
     gates: 5,
     readiness: 90,
@@ -111,7 +104,6 @@ export const TEMPLATES: readonly Template[] = [
     desc: 'SEO pages, email capture, and analytics.',
     stack: 'React · SEO · analytics',
     icon: 'build',
-    art: 'strategy-3d/2-rocket',
     accent: neon.warning,
     gates: 4,
     readiness: 97,

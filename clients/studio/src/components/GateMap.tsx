@@ -24,15 +24,37 @@ import { text } from '@ironflyer/design-tokens/brand';
 const VISION_ID = '__vision__';
 const SHIP_ID = '__ship__';
 const COL = 252; // horizontal spacing between pipeline columns
-const ZIG = 78; // vertical offset for alternating gates so edges stay legible
-const FACET_Y = 392; // the cross-cutting instruments lane sits below the pipeline
+const PER_ROW = 6; // gates per serpentine row — wraps so fitView stays readable
+const ROW_H = 176; // vertical spacing between serpentine rows
+
+// Serpentine (boustrophedon) grid position for the i-th gate: rows alternate
+// direction so consecutive gates are always adjacent, and the whole pipeline
+// stays roughly square instead of one ultra-wide row that fitView shrinks to
+// nothing. Column 0 is reserved for the vision card, so gates start at x=COL.
+type GridPos = { x: number; y: number; row: number; col: number; ltr: boolean; rowEnd: boolean };
+function gridPos(i: number, total: number): GridPos {
+  const row = Math.floor(i / PER_ROW);
+  const within = i % PER_ROW;
+  const ltr = row % 2 === 0;
+  const col = ltr ? within : PER_ROW - 1 - within;
+  const lastInRow = within === PER_ROW - 1;
+  return { x: (col + 1) * COL, y: row * ROW_H, row, col, ltr, rowEnd: lastInRow && i < total - 1 };
+}
 
 // Connection-point declarations. The card node renders these as invisible
-// handles, so edges anchor precisely (pipeline flows L→R; agents tether down
-// into a gate's top; instruments rise into ship's underside).
-const H_FLOW: HandleSpec[] = [{ id: 'l', type: 'target', side: 'left' }, { id: 'r', type: 'source', side: 'right' }, { id: 't', type: 'target', side: 'top' }];
+// handles, so edges anchor precisely. Pipeline gates expose source+target on
+// both horizontal sides (serpentine rows flow L→R then R→L) plus a top target
+// (agents tether down) and a bottom source (the turn down to the next row).
+const H_FLOW: HandleSpec[] = [
+  { id: 'l-in', type: 'target', side: 'left' },
+  { id: 'l-out', type: 'source', side: 'left' },
+  { id: 'r-in', type: 'target', side: 'right' },
+  { id: 'r-out', type: 'source', side: 'right' },
+  { id: 't', type: 'target', side: 'top' },
+  { id: 'b', type: 'source', side: 'bottom' },
+];
 const H_VISION: HandleSpec[] = [{ id: 'r', type: 'source', side: 'right' }, { id: 't', type: 'target', side: 'top' }];
-const H_SHIP: HandleSpec[] = [{ id: 'l', type: 'target', side: 'left' }, { id: 'b', type: 'target', side: 'bottom' }];
+const H_SHIP: HandleSpec[] = [{ id: 'l', type: 'target', side: 'left' }, { id: 't', type: 'target', side: 'top' }, { id: 'b', type: 'target', side: 'bottom' }];
 const H_FACET: HandleSpec[] = [{ id: 't', type: 'source', side: 'top' }];
 const H_AGENT: HandleSpec[] = [{ id: 'b', type: 'source', side: 'bottom' }];
 
@@ -73,16 +95,16 @@ function deployColor(t: Theme, status: StudioProject['deploy']['status']): strin
 
 // Viz-first project map: the whole build on one canvas — the product vision, the
 // finisher pipeline, the operator's agents, and the cross-cutting instruments
-// (security, performance, economics, logs) — flowing live toward ship.
-// A constellation view alternate (NeonConstellation3D) maps every gate as a
-// glanceable 3D node colored by live status — useful for large gate sets.
+// (security, performance, economics, logs) — flowing live toward ship. The flow
+// pipeline is the default, clearest read. A calm 2D network alternate maps every
+// gate as a glanceable node colored by live status — handy for large gate sets.
 export function GateMap({ project, onOpenTab }: { project: StudioProject; onOpenTab?: (t: EditorTab) => void }) {
   const theme = useTheme();
   const c = useMemo(() => nodePalette(theme), [theme]);
   const selectGate = useStudio((s) => s.selectGate);
   const setInnerTab = useStudio((s) => s.setInnerTab);
   const selectedGateId = useStudio((s) => s.selectedGateId);
-  const [viewMode, setViewMode] = useState<'flow' | 'constellation'>('flow');
+  const [viewMode, setViewMode] = useState<'flow' | 'network'>('flow');
   // Open a facet's destination tab, optionally deep-linking an inner sub-tab.
   const openFacet = useCallback((tab: EditorTab, inner?: string) => {
     if (inner) setInnerTab(inner);
@@ -175,21 +197,42 @@ export function GateMap({ project, onOpenTab }: { project: StudioProject; onOpen
   ].join('~');
 
   const nodes = useMemo<FlowNode[]>(() => {
-    const mid = ((gates.length - 1) * ZIG) / 2;
+    const total = gates.length;
+    const lastRow = total > 0 ? Math.floor((total - 1) / PER_ROW) : 0;
+    const cols = Math.min(Math.max(total, 1), PER_ROW);
+    // Vertical center of a row's card, so vision/ship align with the gate band.
+    const rowMidY = (row: number) => row * ROW_H + 28;
+    const shipX = ((cols + 1) / 2) * COL;
+    const shipY = (lastRow + 1) * ROW_H + 4;
+    const facetY = shipY + 150; // instruments lane sits below the ship card
 
     // Background swimlanes orient the three reading bands: who's working
     // (agents), the build itself (pipeline), and what gates shipping
     // (instruments). They sit behind everything and never capture pointer.
-    const laneW = (gates.length + 2.4) * COL + 60;
-    const laneX = -64;
+    // The agents band hugs its content — when no operator agents exist it
+    // stays a slim header strip instead of reserving a tall empty void.
+    const laneW = (cols + 1) * COL + 140;
+    const laneX = -90;
+    // Tallest agent stack on any column → how much vertical room the band needs.
+    const maxAgentStack = customAgents.length === 0 ? 0
+      : Math.max(...Array.from(
+          customAgents.reduce((m, a) => {
+            const k = a.gateId ?? '__vision__';
+            m.set(k, (m.get(k) ?? 0) + 1);
+            return m;
+          }, new Map<string, number>()).values(),
+        ));
+    const agentsLaneH = maxAgentStack === 0 ? 44 : 96 + maxAgentStack * 96;
+    const agentsLaneY = -56 - agentsLaneH;
+    const pipelineH = (lastRow + 1) * ROW_H + 150;
     const laneNodes: FlowNode[] = [
-      { id: 'lane_agents', type: 'lane', position: { x: laneX, y: -312 }, draggable: false, selectable: false, zIndex: -1, data: { label: 'Agents' }, style: { width: laneW, height: 196, borderRadius: 18, border: `1px dashed ${c.muted}`, opacity: 0.22, pointerEvents: 'none' } },
-      { id: 'lane_pipeline', type: 'lane', position: { x: laneX, y: -56 }, draggable: false, selectable: false, zIndex: -1, data: { label: 'Finisher pipeline' }, style: { width: laneW, height: Math.max(300, mid + 150), borderRadius: 18, border: `1px dashed ${c.accent}`, opacity: 0.2, pointerEvents: 'none' } },
-      { id: 'lane_facets', type: 'lane', position: { x: laneX, y: FACET_Y - 44 }, draggable: false, selectable: false, zIndex: -1, data: { label: 'Cross-cutting instruments' }, style: { width: laneW, height: 178, borderRadius: 18, border: `1px dashed ${c.muted}`, opacity: 0.22, pointerEvents: 'none' } },
+      { id: 'lane_agents', type: 'lane', position: { x: laneX, y: agentsLaneY }, draggable: false, selectable: false, zIndex: -1, data: { label: 'Agents' }, style: { width: laneW, height: agentsLaneH, borderRadius: 18, border: `1px dashed ${c.muted}`, opacity: 0.22, pointerEvents: 'none' } },
+      { id: 'lane_pipeline', type: 'lane', position: { x: laneX, y: -44 }, draggable: false, selectable: false, zIndex: -1, data: { label: 'Finisher pipeline' }, style: { width: laneW, height: pipelineH, borderRadius: 18, border: `1px dashed ${c.accent}`, opacity: 0.2, pointerEvents: 'none' } },
+      { id: 'lane_facets', type: 'lane', position: { x: laneX, y: facetY - 44 }, draggable: false, selectable: false, zIndex: -1, data: { label: 'Cross-cutting instruments' }, style: { width: laneW, height: 172, borderRadius: 18, border: `1px dashed ${c.muted}`, opacity: 0.22, pointerEvents: 'none' } },
     ];
 
     const visionNode: FlowNode = {
-      id: VISION_ID, type: 'card', position: { x: 0, y: mid - 8 },
+      id: VISION_ID, type: 'card', position: { x: 0, y: rowMidY(0) },
       data: { label: <VisionBody text={visionText} c={c} />, handles: H_VISION, tone: c.accent },
       style: { width: 196, padding: 14, borderRadius: 14, border: `1.5px solid ${c.accent}`, background: c.paper, boxShadow: `0 0 0 4px ${c.accent}1f` },
     };
@@ -199,8 +242,9 @@ export function GateMap({ project, onOpenTab }: { project: StudioProject; onOpen
       const live = g.status === 'running';
       const selected = selectedGateId === g.id;
       const displayGate = quietGate(g, selected);
+      const p = gridPos(i, total);
       return {
-        id: g.id, type: 'card', position: { x: (i + 1) * COL, y: i % 2 === 0 ? 0 : ZIG * 2 },
+        id: g.id, type: 'card', position: { x: p.x, y: p.y },
         data: {
           tone: color, handles: H_FLOW,
           label: (
@@ -231,11 +275,12 @@ export function GateMap({ project, onOpenTab }: { project: StudioProject; onOpen
       const status = agentStatus(a, gates);
       const color = agentColor(theme, status);
       const gi = a.gateId ? gateIndex.get(a.gateId) : undefined;
-      const x = gi != null ? (gi + 1) * COL : 0;
+      // Agents share the top band; column-align to their gate (vision at x=0).
+      const x = gi != null ? gridPos(gi, total).x : 0;
       const stack = colStack.get(x) ?? 0;
       colStack.set(x, stack + 1);
       return {
-        id: a.id, type: 'card', position: { x, y: -188 - stack * 96 },
+        id: a.id, type: 'card', position: { x, y: -130 - stack * 96 },
         data: { label: <AgentBody a={a} color={color} c={c} onRun={() => void dispatch(a.name || 'the agent task')} />, handles: H_AGENT, tone: color },
         style: { width: 178, padding: 11, borderRadius: 12, border: `1.5px dashed ${color}`, background: c.paper, boxShadow: `0 0 0 3px ${color}1f` },
       };
@@ -244,7 +289,7 @@ export function GateMap({ project, onOpenTab }: { project: StudioProject; onOpen
     const shipColor = deployColor(theme, project.deploy.status);
     const shippable = open === 0 && gates.length > 0;
     const shipNode: FlowNode = {
-      id: SHIP_ID, type: 'card', position: { x: (gates.length + 1) * COL, y: mid - 8 },
+      id: SHIP_ID, type: 'card', position: { x: shipX, y: shipY },
       data: { label: <ShipBody url={project.deploy.url ?? 'Deploy target'} color={shipColor} shippable={shippable} open={open} c={c} />, handles: H_SHIP, tone: shipColor },
       style: { width: 200, padding: 14, borderRadius: 14, border: `1.5px solid ${shipColor}`, background: c.paper, boxShadow: `0 0 0 4px ${shipColor}1f` },
     };
@@ -304,7 +349,7 @@ export function GateMap({ project, onOpenTab }: { project: StudioProject; onOpen
       },
     ];
     const facetNodes: FlowNode[] = facetDefs.map((f, i) => ({
-      id: f.id, type: 'card', position: { x: COL * (0.4 + i * 1.7), y: FACET_Y },
+      id: f.id, type: 'card', position: { x: COL * (0.4 + i * 1.7), y: facetY },
       data: { label: <FacetNodeLabel d={{ kind: 'facet', onOpen: () => openFacet(f.tab, f.inner), ...f.data }} />, handles: H_FACET, tone: f.accent },
       style: { width: 184, padding: 13, borderRadius: 12, border: `1.5px solid ${f.accent}`, background: c.paper, boxShadow: `0 0 0 4px ${f.accent}14` },
     }));
@@ -317,22 +362,34 @@ export function GateMap({ project, onOpenTab }: { project: StudioProject; onOpen
   const edges = useMemo<FlowEdge[]>(() => {
     const out: FlowEdge[] = [];
     if (gates.length > 0) {
-      const link = (source: string, target: string, srcGate?: Gate, tgtGate?: Gate) => {
+      const total = gates.length;
+      const link = (
+        source: string, target: string, sourceHandle: string, targetHandle: string,
+        srcGate?: Gate, tgtGate?: Gate,
+      ) => {
         const blocked = srcGate?.status === 'blocked';
         const live = tgtGate?.status === 'running';
         const stroke = blocked ? theme.palette.error.main : live ? theme.brand.accent.secondary : theme.palette.divider;
         const label = blocked ? 'blocked' : live ? 'running' : undefined;
         out.push({
-          id: `${source}->${target}`, source, target, sourceHandle: 'r', targetHandle: 'l', animated: live, label,
+          id: `${source}->${target}`, source, target, sourceHandle, targetHandle, animated: live, label,
           labelStyle: { fill: stroke, fontFamily: theme.brand.font.mono, fontSize: 9, fontWeight: 700 },
           labelBgStyle: { fill: theme.palette.background.paper },
           labelBgPadding: [4, 2], labelBgBorderRadius: 4,
           style: { stroke, strokeWidth: blocked || live ? 2 : 1.5 },
         });
       };
-      link(VISION_ID, gates[0]!.id, undefined, gates[0]);
-      for (let i = 0; i < gates.length - 1; i++) link(gates[i]!.id, gates[i + 1]!.id, gates[i], gates[i + 1]);
-      link(gates[gates.length - 1]!.id, SHIP_ID, gates[gates.length - 1], undefined);
+      // Vision feeds the first gate from the left of row 0.
+      link(VISION_ID, gates[0]!.id, 'r', 'l-in', undefined, gates[0]);
+      for (let i = 0; i < total - 1; i++) {
+        const a = gridPos(i, total);
+        const b = gridPos(i + 1, total);
+        // Same row → flow along the row's direction; row turn → drop bottom→top.
+        const [sh, th] = a.row !== b.row ? ['b', 't'] : a.ltr ? ['r-out', 'l-in'] : ['l-out', 'r-in'];
+        link(gates[i]!.id, gates[i + 1]!.id, sh, th, gates[i], gates[i + 1]);
+      }
+      // Last gate drops into the centered ship card below the grid.
+      link(gates[total - 1]!.id, SHIP_ID, 'b', 't', gates[total - 1], undefined);
     }
     // Operator agents tether down into the gate they own (vision when unassigned).
     const gateIds = new Set(gates.map((g) => g.id));
@@ -358,11 +415,11 @@ export function GateMap({ project, onOpenTab }: { project: StudioProject; onOpen
     selectGate(node.id);
   };
 
-  // ── Constellation data: gates as 3D nodes, pipeline links as edges ────
+  // ── Network data: gates as 2D nodes, pipeline links as edges ──────────
   // Each gate is a node sized by readiness level (0–1) and colored by live
-  // status via the neon chart series. Vision + Ship anchor the ring center.
+  // status via the indigo-led chart series. Vision + Ship anchor the center.
   const series = theme.studio.chart.series as unknown as string[];
-  const constData = useMemo<{ nodes: Constellation3DNode[]; links: Constellation3DLink[] }>(() => {
+  const networkData = useMemo<{ nodes: Constellation3DNode[]; links: Constellation3DLink[] }>(() => {
     const cNodes: Constellation3DNode[] = [];
     const cLinks: Constellation3DLink[] = [];
 
@@ -410,7 +467,7 @@ export function GateMap({ project, onOpenTab }: { project: StudioProject; onOpen
         etaCompletionAt={forecastLive ? forecast.etaCompletionAt ?? null : null}
         onRunAll={() => void dispatch('all open gates')}
         viewMode={viewMode}
-        onToggleView={() => setViewMode((v) => v === 'flow' ? 'constellation' : 'flow')}
+        onToggleView={() => setViewMode((v) => v === 'flow' ? 'network' : 'flow')}
       />
       {viewMode === 'flow' ? (
         <Box sx={{ flex: 1, display: 'flex', minHeight: 0 }}>
@@ -424,7 +481,7 @@ export function GateMap({ project, onOpenTab }: { project: StudioProject; onOpen
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', p: 2, gap: 2, minHeight: 0, overflow: 'auto' }}>
           <GlassPanel
             accent={theme.studio.neon.blue}
-            sx={{ flex: 1, minHeight: 340, display: 'flex', flexDirection: 'column' }}
+            sx={{ flex: 1, minHeight: 280, display: 'flex', flexDirection: 'column' }}
           >
             <Typography
               sx={(t) => ({
@@ -436,14 +493,13 @@ export function GateMap({ project, onOpenTab }: { project: StudioProject; onOpen
                 mb: 0.75,
               })}
             >
-              Gate constellation — {open} open · {closed} closed
+              Gate network — {open} open · {closed} closed
             </Typography>
-            <Box sx={{ flex: 1, minHeight: 300 }}>
+            <Box sx={{ flex: 1, minHeight: 240 }}>
               <NeonConstellation3D
-                nodes={constData.nodes}
-                links={constData.links}
-                height={400}
-                rotate
+                nodes={networkData.nodes}
+                links={networkData.links}
+                height={300}
               />
             </Box>
           </GlassPanel>
@@ -515,7 +571,7 @@ function MapHeader(props: {
   spentUSD: number; budgetUSD: number; marginPct: number;
   pgVerdict: StudioProject['profitGuard']['verdict'];
   burnUSDPerHr: number | null; etaCompletionAt: string | null; onRunAll: () => void;
-  viewMode: 'flow' | 'constellation'; onToggleView: () => void;
+  viewMode: 'flow' | 'network'; onToggleView: () => void;
 }) {
   const { isLive, completion, open, total, spentUSD, budgetUSD, marginPct, pgVerdict, burnUSDPerHr, etaCompletionAt, onRunAll, viewMode, onToggleView } = props;
   return (
@@ -526,15 +582,16 @@ function MapHeader(props: {
         <Chip size="small" label={`ProfitGuard: ${pgVerdict}`} sx={(t) => ({ height: 20, fontSize: text.s62, fontFamily: t.brand.font.mono, bgcolor: `${pgColor(t, pgVerdict)}22`, color: pgColor(t, pgVerdict) })} />
         <Box sx={{ flex: 1 }} />
         <Typography sx={{ color: 'text.secondary', fontSize: text.s85 }}>{open} of {total} gates open · {Math.round(completion * 100)}% to shippable</Typography>
-        <Tooltip title={viewMode === 'flow' ? 'Switch to constellation view' : 'Switch to pipeline flow'} arrow>
+        <Tooltip title={viewMode === 'flow' ? 'Switch to the gate network view' : 'Switch back to the pipeline flow'} arrow>
           <Button
             size="small"
             variant="outlined"
             color="inherit"
+            startIcon={<Icon name={viewMode === 'flow' ? 'network' : 'workflow'} size={14} />}
             onClick={onToggleView}
             sx={(t) => ({ fontSize: text.s70, borderColor: t.palette.divider, '&:hover': { borderColor: t.studio.neon.blue } })}
           >
-            {viewMode === 'flow' ? 'Constellation' : 'Flow'}
+            {viewMode === 'flow' ? 'Network' : 'Flow'}
           </Button>
         </Tooltip>
         {open > 0 && <Button size="small" variant="contained" onClick={onRunAll}>Run all open</Button>}
@@ -569,7 +626,7 @@ function GapsRail({ projectId, gaps, seed, onPick, onDispatch, inline }: {
     );
   }
   if (inline) {
-    // Inline horizontal layout for use in the constellation view
+    // Inline horizontal layout for use in the network view
     return (
       <Box sx={{ borderRadius: 2, border: 1, borderColor: 'divider', bgcolor: 'background.paper', p: 2 }}>
         <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>

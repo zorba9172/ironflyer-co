@@ -36,5165 +36,5165 @@ export const ASSET_MANIFEST: AssetEntry[] = [
     "name": "24",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/24.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/24.mp4"
   },
   {
     "id": "animated-3d/247-reflections-1",
     "name": "247_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/247_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/247_reflections_1.mp4"
   },
   {
     "id": "animated-3d/247-shadows-2",
     "name": "247_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/247_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/247_shadows_2.mp4"
   },
   {
     "id": "animated-3d/a-247",
     "name": "A_247",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_247.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_247.mp4"
   },
   {
     "id": "animated-3d/a-airplane-render-i1",
     "name": "A_Airplane_Render_i1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Airplane_Render_i1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Airplane_Render_i1.mp4"
   },
   {
     "id": "animated-3d/a-alarm",
     "name": "A_Alarm",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Alarm.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Alarm.mp4"
   },
   {
     "id": "animated-3d/a-apple-watch",
     "name": "A_Apple_Watch",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Apple_Watch.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Apple_Watch.mp4"
   },
   {
     "id": "animated-3d/a-arrows",
     "name": "A_Arrows",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Arrows.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Arrows.mp4"
   },
   {
     "id": "animated-3d/a-ball-render",
     "name": "A_Ball_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Ball_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Ball_Render.mp4"
   },
   {
     "id": "animated-3d/a-behance-render",
     "name": "A_Behance_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Behance_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Behance_Render.mp4"
   },
   {
     "id": "animated-3d/a-books-render",
     "name": "A_Books_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Books_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Books_Render.mp4"
   },
   {
     "id": "animated-3d/a-bubble",
     "name": "A_Bubble",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Bubble.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Bubble.mp4"
   },
   {
     "id": "animated-3d/a-bulb-render",
     "name": "A_Bulb_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Bulb_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Bulb_Render.mp4"
   },
   {
     "id": "animated-3d/a-bundle-coin",
     "name": "A_Bundle_Coin",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Bundle_Coin.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Bundle_Coin.mp4"
   },
   {
     "id": "animated-3d/a-business-bag",
     "name": "A_Business_Bag",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Business_Bag.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Business_Bag.mp4"
   },
   {
     "id": "animated-3d/a-calculator",
     "name": "A_Calculator",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Calculator.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Calculator.mp4"
   },
   {
     "id": "animated-3d/a-calendar-render",
     "name": "A_Calendar_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Calendar_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Calendar_Render.mp4"
   },
   {
     "id": "animated-3d/a-chart",
     "name": "A_Chart",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Chart.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Chart.mp4"
   },
   {
     "id": "animated-3d/a-clock-render",
     "name": "A_Clock_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Clock_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Clock_Render.mp4"
   },
   {
     "id": "animated-3d/a-cloud-2",
     "name": "A_Cloud_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Cloud_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Cloud_2.mp4"
   },
   {
     "id": "animated-3d/a-cloud-2-1",
     "name": "A_Cloud_2_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Cloud_2_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Cloud_2_1.mp4"
   },
   {
     "id": "animated-3d/a-cogswheel-render",
     "name": "A_Cogswheel_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Cogswheel_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Cogswheel_Render.mp4"
   },
   {
     "id": "animated-3d/a-coin-single-bitcoin-1",
     "name": "A_Coin_Single_Bitcoin_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Coin_Single_Bitcoin_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Coin_Single_Bitcoin_1.mp4"
   },
   {
     "id": "animated-3d/a-coin-single-dollar-1",
     "name": "A_Coin_Single_Dollar_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Coin_Single_Dollar_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Coin_Single_Dollar_1.mp4"
   },
   {
     "id": "animated-3d/a-credit-card",
     "name": "A_Credit_Card",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Credit_Card.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Credit_Card.mp4"
   },
   {
     "id": "animated-3d/a-cross-render",
     "name": "A_Cross_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Cross_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Cross_Render.mp4"
   },
   {
     "id": "animated-3d/a-cup",
     "name": "A_Cup",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Cup.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Cup.mp4"
   },
   {
     "id": "animated-3d/a-dollar-2-render",
     "name": "A_Dollar_2_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Dollar_2_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Dollar_2_Render.mp4"
   },
   {
     "id": "animated-3d/a-dropbox-render",
     "name": "A_Dropbox_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Dropbox_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Dropbox_Render.mp4"
   },
   {
     "id": "animated-3d/a-drumbbell-render",
     "name": "A_Drumbbell_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Drumbbell_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Drumbbell_Render.mp4"
   },
   {
     "id": "animated-3d/a-earth-render",
     "name": "A_Earth_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Earth_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Earth_Render.mp4"
   },
   {
     "id": "animated-3d/a-envelope-render",
     "name": "A_Envelope_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Envelope_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Envelope_Render.mp4"
   },
   {
     "id": "animated-3d/a-exclamation-mark-1",
     "name": "A_Exclamation_Mark_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Exclamation_Mark_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Exclamation_Mark_1.mp4"
   },
   {
     "id": "animated-3d/a-facebook-render",
     "name": "A_Facebook_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Facebook_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Facebook_Render.mp4"
   },
   {
     "id": "animated-3d/a-flash-drive-render",
     "name": "A_Flash_Drive_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Flash_Drive_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Flash_Drive_Render.mp4"
   },
   {
     "id": "animated-3d/a-flipchart-render",
     "name": "A_Flipchart_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Flipchart_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Flipchart_Render.mp4"
   },
   {
     "id": "animated-3d/a-folder-render",
     "name": "A_Folder_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Folder_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Folder_Render.mp4"
   },
   {
     "id": "animated-3d/a-gift-render",
     "name": "A_Gift_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Gift_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Gift_Render.mp4"
   },
   {
     "id": "animated-3d/a-gold-bar",
     "name": "A_Gold_Bar",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Gold_Bar.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Gold_Bar.mp4"
   },
   {
     "id": "animated-3d/a-gold-bar-single",
     "name": "A_Gold_Bar_Single",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Gold_Bar_Single.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Gold_Bar_Single.mp4"
   },
   {
     "id": "animated-3d/a-graduation-cup-render",
     "name": "A_Graduation_Cup_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Graduation_Cup_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Graduation_Cup_Render.mp4"
   },
   {
     "id": "animated-3d/a-heart",
     "name": "A_Heart",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Heart.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Heart.mp4"
   },
   {
     "id": "animated-3d/a-helmet-construction-render",
     "name": "A_Helmet_Construction_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Helmet_Construction_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Helmet_Construction_Render.mp4"
   },
   {
     "id": "animated-3d/a-house-no-chimney",
     "name": "A_House_No_Chimney",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_House_No_Chimney.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_House_No_Chimney.mp4"
   },
   {
     "id": "animated-3d/a-in-render",
     "name": "A_IN_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_IN_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_IN_Render.mp4"
   },
   {
     "id": "animated-3d/a-key",
     "name": "A_Key",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Key.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Key.mp4"
   },
   {
     "id": "animated-3d/a-laptop",
     "name": "A_Laptop",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Laptop.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Laptop.mp4"
   },
   {
     "id": "animated-3d/a-lifebuoy-render",
     "name": "A_Lifebuoy_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Lifebuoy_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Lifebuoy_Render.mp4"
   },
   {
     "id": "animated-3d/a-lighting",
     "name": "A_Lighting",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Lighting.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Lighting.mp4"
   },
   {
     "id": "animated-3d/a-lock-render",
     "name": "A_Lock_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Lock_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Lock_Render.mp4"
   },
   {
     "id": "animated-3d/a-magnifier-a33",
     "name": "A_Magnifier_A33",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Magnifier_A33.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Magnifier_A33.mp4"
   },
   {
     "id": "animated-3d/a-magnifier-render",
     "name": "A_Magnifier_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Magnifier_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Magnifier_Render.mp4"
   },
   {
     "id": "animated-3d/a-medical-bag-render",
     "name": "A_Medical_Bag_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Medical_Bag_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Medical_Bag_Render.mp4"
   },
   {
     "id": "animated-3d/a-megaphone-render",
     "name": "A_Megaphone_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Megaphone_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Megaphone_Render.mp4"
   },
   {
     "id": "animated-3d/a-microscope-render",
     "name": "A_Microscope_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Microscope_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Microscope_Render.mp4"
   },
   {
     "id": "animated-3d/a-money-bag",
     "name": "A_Money_Bag",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Money_Bag.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Money_Bag.mp4"
   },
   {
     "id": "animated-3d/a-monitor",
     "name": "A_Monitor",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Monitor.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Monitor.mp4"
   },
   {
     "id": "animated-3d/a-movie-clapper",
     "name": "A_Movie_Clapper",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Movie_Clapper.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Movie_Clapper.mp4"
   },
   {
     "id": "animated-3d/a-numplate-render",
     "name": "A_Numplate_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Numplate_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Numplate_Render.mp4"
   },
   {
     "id": "animated-3d/a-oil-barrel",
     "name": "A_Oil_Barrel",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Oil_Barrel.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Oil_Barrel.mp4"
   },
   {
     "id": "animated-3d/a-phone",
     "name": "A_Phone",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Phone.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Phone.mp4"
   },
   {
     "id": "animated-3d/a-pie-chart",
     "name": "A_Pie_Chart",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Pie_Chart.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Pie_Chart.mp4"
   },
   {
     "id": "animated-3d/a-piggy-bank-render",
     "name": "A_Piggy_Bank_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Piggy_Bank_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Piggy_Bank_Render.mp4"
   },
   {
     "id": "animated-3d/a-question-mark",
     "name": "A_Question_Mark",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Question_Mark.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Question_Mark.mp4"
   },
   {
     "id": "animated-3d/a-road-cone",
     "name": "A_Road_Cone",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Road_Cone.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Road_Cone.mp4"
   },
   {
     "id": "animated-3d/a-roller",
     "name": "A_Roller",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Roller.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Roller.mp4"
   },
   {
     "id": "animated-3d/a-safe-closed",
     "name": "A_Safe_Closed",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Safe_Closed.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Safe_Closed.mp4"
   },
   {
     "id": "animated-3d/a-safe-full",
     "name": "A_Safe_Full",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Safe_Full.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Safe_Full.mp4"
   },
   {
     "id": "animated-3d/a-safe-hollow",
     "name": "A_Safe_Hollow",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Safe_Hollow.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Safe_Hollow.mp4"
   },
   {
     "id": "animated-3d/a-sale-bag-render",
     "name": "A_Sale_Bag_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Sale_Bag_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Sale_Bag_Render.mp4"
   },
   {
     "id": "animated-3d/a-server",
     "name": "A_Server",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Server.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Server.mp4"
   },
   {
     "id": "animated-3d/a-shield-render",
     "name": "A_Shield_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Shield_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Shield_Render.mp4"
   },
   {
     "id": "animated-3d/a-shop-render",
     "name": "A_Shop_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Shop_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Shop_Render.mp4"
   },
   {
     "id": "animated-3d/a-shopping-basket-render",
     "name": "A_Shopping_Basket_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Shopping_Basket_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Shopping_Basket_Render.mp4"
   },
   {
     "id": "animated-3d/a-skype-render",
     "name": "A_Skype_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Skype_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Skype_Render.mp4"
   },
   {
     "id": "animated-3d/a-star-render",
     "name": "A_Star_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Star_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Star_Render.mp4"
   },
   {
     "id": "animated-3d/a-tablet-1",
     "name": "A_Tablet_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Tablet_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Tablet_1.mp4"
   },
   {
     "id": "animated-3d/a-tablet-2",
     "name": "A_Tablet_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Tablet_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Tablet_2.mp4"
   },
   {
     "id": "animated-3d/a-tablet-render",
     "name": "A_Tablet_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Tablet_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Tablet_Render.mp4"
   },
   {
     "id": "animated-3d/a-target",
     "name": "A_Target",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Target.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Target.mp4"
   },
   {
     "id": "animated-3d/a-target-1",
     "name": "A_Target_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Target_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Target_1.mp4"
   },
   {
     "id": "animated-3d/a-telegram-render",
     "name": "A_Telegram_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Telegram_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Telegram_Render.mp4"
   },
   {
     "id": "animated-3d/a-timer-render",
     "name": "A_Timer_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Timer_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Timer_Render.mp4"
   },
   {
     "id": "animated-3d/a-twitter-render",
     "name": "A_Twitter_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Twitter_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Twitter_Render.mp4"
   },
   {
     "id": "animated-3d/a-user",
     "name": "A_User",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_User.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_User.mp4"
   },
   {
     "id": "animated-3d/a-user-2",
     "name": "A_User_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_User_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_User_2.mp4"
   },
   {
     "id": "animated-3d/a-vimeo-render",
     "name": "A_Vimeo_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Vimeo_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Vimeo_Render.mp4"
   },
   {
     "id": "animated-3d/a-vk-render",
     "name": "A_VK_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_VK_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_VK_Render.mp4"
   },
   {
     "id": "animated-3d/a-whats-up-render",
     "name": "A_Whats_Up_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Whats_Up_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Whats_Up_Render.mp4"
   },
   {
     "id": "animated-3d/a-wi-fi",
     "name": "A_Wi-Fi",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Wi-Fi.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Wi-Fi.mp4"
   },
   {
     "id": "animated-3d/a-wind-2",
     "name": "A_Wind_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Wind_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Wind_2.mp4"
   },
   {
     "id": "animated-3d/a-winner-cup-render",
     "name": "A_Winner_Cup_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Winner_Cup_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Winner_Cup_Render.mp4"
   },
   {
     "id": "animated-3d/a-youtube-render",
     "name": "A_Youtube_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Youtube_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/A_Youtube_Render.mp4"
   },
   {
     "id": "animated-3d/airplane",
     "name": "__Airplane",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Airplane.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Airplane.gif"
   },
   {
     "id": "animated-3d/airplane-pass-i1-reflections-1",
     "name": "Airplane_Pass_i1_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Airplane_Pass_i1_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Airplane_Pass_i1_reflections_1.mp4"
   },
   {
     "id": "animated-3d/airplane-pass-i1-shadows-2",
     "name": "Airplane_Pass_i1_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Airplane_Pass_i1_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Airplane_Pass_i1_shadows_2.mp4"
   },
   {
     "id": "animated-3d/alarm",
     "name": "Alarm",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Alarm.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Alarm.mp4"
   },
   {
     "id": "animated-3d/alarm-2",
     "name": "__Alarm",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Alarm.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Alarm.gif"
   },
   {
     "id": "animated-3d/alarm-bufer-object-2",
     "name": "Alarm_Bufer_object_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Alarm_Bufer_object_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Alarm_Bufer_object_2.mp4"
   },
   {
     "id": "animated-3d/alarm-pass-reflections-1",
     "name": "Alarm_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Alarm_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Alarm_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/alarm-pass-shadows-2",
     "name": "Alarm_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Alarm_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Alarm_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/apple-watch",
     "name": "Apple_Watch",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Apple_Watch.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Apple_Watch.mp4"
   },
   {
     "id": "animated-3d/apple-watch-bufer-object-6",
     "name": "Apple_Watch_Bufer_object_6",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Apple_Watch_Bufer_object_6.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Apple_Watch_Bufer_object_6.mp4"
   },
   {
     "id": "animated-3d/apple-watch-pass-reflections-1",
     "name": "Apple_Watch_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Apple_Watch_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Apple_Watch_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/apple-watch-pass-shadows-1",
     "name": "Apple_Watch_Pass_shadows_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Apple_Watch_Pass_shadows_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Apple_Watch_Pass_shadows_1.mp4"
   },
   {
     "id": "animated-3d/arrows",
     "name": "Arrows",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Arrows.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Arrows.mp4"
   },
   {
     "id": "animated-3d/arrows-2",
     "name": "__Arrows",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Arrows.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Arrows.gif"
   },
   {
     "id": "animated-3d/at-circle",
     "name": "__At_Circle",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__At_Circle.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__At_Circle.gif"
   },
   {
     "id": "animated-3d/ball",
     "name": "Ball",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Ball.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Ball.mp4"
   },
   {
     "id": "animated-3d/ball-2",
     "name": "__Ball",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Ball.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Ball.gif"
   },
   {
     "id": "animated-3d/ball-pass-reflections-1",
     "name": "Ball_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Ball_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Ball_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/ball-pass-shadows-2",
     "name": "Ball_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Ball_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Ball_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/behance",
     "name": "Behance",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Behance.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Behance.mp4"
   },
   {
     "id": "animated-3d/behance-2",
     "name": "__Behance",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Social/__Behance.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Social/__Behance.gif"
   },
   {
     "id": "animated-3d/behance-reflection-reflections-1",
     "name": "Behance_Reflection_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Behance_Reflection_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Behance_Reflection_reflections_1.mp4"
   },
   {
     "id": "animated-3d/behance-shadow-shadows-1",
     "name": "Behance_Shadow_shadows_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Behance_Shadow_shadows_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Behance_Shadow_shadows_1.mp4"
   },
   {
     "id": "animated-3d/bell",
     "name": "__Bell",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Bell.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Bell.gif"
   },
   {
     "id": "animated-3d/bell-pass-alpha",
     "name": "Bell_Pass_alpha",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bell_Pass_alpha.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bell_Pass_alpha.mp4"
   },
   {
     "id": "animated-3d/bell-pass-reflections-1",
     "name": "Bell_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bell_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bell_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/bell-pass-shadows-2",
     "name": "Bell_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bell_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bell_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/bell-render",
     "name": "Bell_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bell_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bell_Render.mp4"
   },
   {
     "id": "animated-3d/books",
     "name": "__Books",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Books.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Books.gif"
   },
   {
     "id": "animated-3d/books-pass-reflections-1",
     "name": "Books_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Books_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Books_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/books-pass-shadows-2",
     "name": "Books_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Books_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Books_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/books-render-three",
     "name": "Books_Render_Three",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Books_Render_Three.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Books_Render_Three.mp4"
   },
   {
     "id": "animated-3d/box",
     "name": "Box",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Box.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Box.mp4"
   },
   {
     "id": "animated-3d/box-2",
     "name": "__Box",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Box.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Box.gif"
   },
   {
     "id": "animated-3d/box-pass-alpha",
     "name": "Box_Pass_alpha",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Box_Pass_alpha.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Box_Pass_alpha.mp4"
   },
   {
     "id": "animated-3d/box-pass-reflections-1",
     "name": "Box_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Box_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Box_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/box-pass-shadows-2",
     "name": "Box_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Box_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Box_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/bubble",
     "name": "Bubble",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bubble.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bubble.mp4"
   },
   {
     "id": "animated-3d/bubble-01",
     "name": "__Bubble_01",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Bubble_01.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Bubble_01.gif"
   },
   {
     "id": "animated-3d/bubble-02",
     "name": "__Bubble_02",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Bubble_02.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Bubble_02.gif"
   },
   {
     "id": "animated-3d/bubble-pass-reflections-1",
     "name": "Bubble_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bubble_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bubble_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/bubble-pass-shadows-2",
     "name": "Bubble_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bubble_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bubble_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/bubbles",
     "name": "Bubbles",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bubbles.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bubbles.mp4"
   },
   {
     "id": "animated-3d/bubbles-object-2",
     "name": "Bubbles_object_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bubbles_object_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bubbles_object_2.mp4"
   },
   {
     "id": "animated-3d/bulb",
     "name": "__Bulb",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Bulb.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Bulb.gif"
   },
   {
     "id": "animated-3d/bulb-bufer-object-1",
     "name": "Bulb_Bufer_object_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bulb_Bufer_object_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bulb_Bufer_object_1.mp4"
   },
   {
     "id": "animated-3d/bulb-bufer-object-2",
     "name": "Bulb_Bufer_object_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bulb_Bufer_object_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bulb_Bufer_object_2.mp4"
   },
   {
     "id": "animated-3d/bulb-bufer-object-3",
     "name": "Bulb_Bufer_object_3",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bulb_Bufer_object_3.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bulb_Bufer_object_3.mp4"
   },
   {
     "id": "animated-3d/bulb-bufer-object-4",
     "name": "Bulb_Bufer_object_4",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bulb_Bufer_object_4.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bulb_Bufer_object_4.mp4"
   },
   {
     "id": "animated-3d/bulb-pass-reflections-1",
     "name": "Bulb_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bulb_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bulb_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/bulb-pass-shadows-2",
     "name": "Bulb_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bulb_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bulb_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/bundle-coin",
     "name": "__Bundle_Coin",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Bundle_Coin.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Bundle_Coin.gif"
   },
   {
     "id": "animated-3d/bundle-coin-bufer-1-object-2",
     "name": "Bundle_Coin_Bufer_1_object_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bundle_Coin_Bufer_1_object_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bundle_Coin_Bufer_1_object_2.mp4"
   },
   {
     "id": "animated-3d/bundle-money",
     "name": "Bundle_Money",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bundle_Money.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bundle_Money.mp4"
   },
   {
     "id": "animated-3d/bundle-money-2",
     "name": "__Bundle_Money",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Bundle_Money.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Bundle_Money.gif"
   },
   {
     "id": "animated-3d/bundle-money-pass-alpha-1",
     "name": "Bundle_Money_Pass_alpha_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bundle_Money_Pass_alpha_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bundle_Money_Pass_alpha_1.mp4"
   },
   {
     "id": "animated-3d/bundle-money-pass-reflections-1-1",
     "name": "Bundle_Money_Pass_reflections_1_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bundle_Money_Pass_reflections_1_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bundle_Money_Pass_reflections_1_1.mp4"
   },
   {
     "id": "animated-3d/bundle-money-pass-shadows-2-1",
     "name": "Bundle_Money_Pass_shadows_2_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bundle_Money_Pass_shadows_2_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Bundle_Money_Pass_shadows_2_1.mp4"
   },
   {
     "id": "animated-3d/business-bag",
     "name": "__Business_Bag",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Business_Bag.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Business_Bag.gif"
   },
   {
     "id": "animated-3d/business-bag-pass-reflections-1",
     "name": "Business_Bag_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Business_Bag_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Business_Bag_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/business-bag-pass-shadows-2",
     "name": "Business_Bag_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Business_Bag_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Business_Bag_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/busnes-bag-bw-i1",
     "name": "Busnes_Bag_BW_i1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Busnes_Bag_BW_i1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Busnes_Bag_BW_i1.mp4"
   },
   {
     "id": "animated-3d/calculator",
     "name": "__Calculator",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Calculator.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Calculator.gif"
   },
   {
     "id": "animated-3d/calculator-bufer-object-5",
     "name": "Calculator_Bufer_object_5",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Calculator_Bufer_object_5.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Calculator_Bufer_object_5.mp4"
   },
   {
     "id": "animated-3d/calculator-bw",
     "name": "Calculator_BW",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Calculator_BW.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Calculator_BW.mp4"
   },
   {
     "id": "animated-3d/calculator-pass-reflections-1",
     "name": "Calculator_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Calculator_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Calculator_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/calculator-pass-shadows-2",
     "name": "Calculator_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Calculator_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Calculator_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/calendar",
     "name": "__Calendar",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Calendar.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Calendar.gif"
   },
   {
     "id": "animated-3d/calendar-bw",
     "name": "Calendar BW",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Calendar%20BW.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Calendar%20BW.mp4"
   },
   {
     "id": "animated-3d/calendar-pass-reflections-1",
     "name": "Calendar_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Calendar_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Calendar_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/calendar-pass-shadows-2",
     "name": "Calendar_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Calendar_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Calendar_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/call-circle",
     "name": "__Call_Circle",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Call_Circle.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Call_Circle.gif"
   },
   {
     "id": "animated-3d/card-bw",
     "name": "Card BW",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Card%20BW.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Card%20BW.mp4"
   },
   {
     "id": "animated-3d/card-reflections-1",
     "name": "Card_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Card_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Card_reflections_1.mp4"
   },
   {
     "id": "animated-3d/card-shadows-2",
     "name": "Card_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Card_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Card_shadows_2.mp4"
   },
   {
     "id": "animated-3d/chart",
     "name": "Chart",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Chart.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Chart.mp4"
   },
   {
     "id": "animated-3d/chart-down",
     "name": "__Chart_Down",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Chart_Down.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Chart_Down.gif"
   },
   {
     "id": "animated-3d/chart-pass-reflections-1",
     "name": "Chart_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Chart_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Chart_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/chart-pass-shadows-2",
     "name": "Chart_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Chart_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Chart_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/chart-up",
     "name": "__Chart_Up",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Chart_Up.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Chart_Up.gif"
   },
   {
     "id": "animated-3d/check",
     "name": "Check",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Check.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Check.mp4"
   },
   {
     "id": "animated-3d/check-2",
     "name": "__Check",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Check.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Check.gif"
   },
   {
     "id": "animated-3d/check-bufer-i2-alpha",
     "name": "Check_Bufer_i2_alpha",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Check_Bufer_i2_alpha.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Check_Bufer_i2_alpha.mp4"
   },
   {
     "id": "animated-3d/checkmark",
     "name": "Checkmark",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Checkmark.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Checkmark.mp4"
   },
   {
     "id": "animated-3d/checkmark-2",
     "name": "__Checkmark",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Checkmark.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Checkmark.gif"
   },
   {
     "id": "animated-3d/checkmark-bufer-alpha",
     "name": "Checkmark_Bufer_alpha",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Checkmark_Bufer_alpha.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Checkmark_Bufer_alpha.mp4"
   },
   {
     "id": "animated-3d/checkmark-pass-reflections-1",
     "name": "Checkmark_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Checkmark_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Checkmark_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/checkmark-pass-shadows-2",
     "name": "Checkmark_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Checkmark_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Checkmark_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/ckeck-pass-reflections-1",
     "name": "Ckeck_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Ckeck_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Ckeck_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/ckeck-pass-shadows-2",
     "name": "Ckeck_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Ckeck_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Ckeck_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/clock",
     "name": "Clock",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Clock.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Clock.mp4"
   },
   {
     "id": "animated-3d/clock-2",
     "name": "__Clock",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Clock.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Clock.gif"
   },
   {
     "id": "animated-3d/clock-pass-reflections-1",
     "name": "Clock_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Clock_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Clock_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/clock-pass-shadows-2",
     "name": "Clock_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Clock_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Clock_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/cloud-1",
     "name": "__Cloud_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Cloud_1.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Cloud_1.gif"
   },
   {
     "id": "animated-3d/cloud-1-bufer-object-2",
     "name": "Cloud_1_Bufer_object_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cloud_1_Bufer_object_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cloud_1_Bufer_object_2.mp4"
   },
   {
     "id": "animated-3d/cloud-1-pass-reflections-1",
     "name": "Cloud_1_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cloud_1_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cloud_1_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/cloud-1-pass-shadows-2",
     "name": "Cloud_1_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cloud_1_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cloud_1_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/cloud-2",
     "name": "__Cloud_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Cloud_2.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Cloud_2.gif"
   },
   {
     "id": "animated-3d/cloud-2-bufer-object-2",
     "name": "Cloud_2_Bufer_object_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cloud_2_Bufer_object_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cloud_2_Bufer_object_2.mp4"
   },
   {
     "id": "animated-3d/cloud-2-pass-reflections-1",
     "name": "Cloud_2_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cloud_2_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cloud_2_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/cloud-2-pass-shadows-2",
     "name": "Cloud_2_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cloud_2_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cloud_2_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/cloud-no-arrow-pass-alpha",
     "name": "Cloud_No_Arrow_Pass_alpha",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cloud_No_Arrow_Pass_alpha.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cloud_No_Arrow_Pass_alpha.mp4"
   },
   {
     "id": "animated-3d/cloud-no-arrow-pass-alpha-1",
     "name": "Cloud_No_Arrow_Pass_alpha_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cloud_No_Arrow_Pass_alpha_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cloud_No_Arrow_Pass_alpha_1.mp4"
   },
   {
     "id": "animated-3d/cloud-no-arrow-pass-reflections-1",
     "name": "Cloud_No_Arrow_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cloud_No_Arrow_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cloud_No_Arrow_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/cloud-no-arrow-pass-reflections-1-1",
     "name": "Cloud_No_Arrow_Pass_reflections_1_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cloud_No_Arrow_Pass_reflections_1_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cloud_No_Arrow_Pass_reflections_1_1.mp4"
   },
   {
     "id": "animated-3d/cloud-no-arrow-pass-shadows-2",
     "name": "Cloud_No_Arrow_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cloud_No_Arrow_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cloud_No_Arrow_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/cloud-no-arrow-pass-shadows-2-1",
     "name": "Cloud_No_Arrow_Pass_shadows_2_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cloud_No_Arrow_Pass_shadows_2_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cloud_No_Arrow_Pass_shadows_2_1.mp4"
   },
   {
     "id": "animated-3d/cogs",
     "name": "Cogs",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cogs.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cogs.mp4"
   },
   {
     "id": "animated-3d/cogswheel",
     "name": "__Cogswheel",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Cogswheel.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Cogswheel.gif"
   },
   {
     "id": "animated-3d/cogswheel-pass-reflections-1",
     "name": "Cogswheel_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cogswheel_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cogswheel_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/cogswheel-pass-shadows-2",
     "name": "Cogswheel_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cogswheel_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cogswheel_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/coin-single",
     "name": "Coin Single",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Coin%20Single.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Coin%20Single.mp4"
   },
   {
     "id": "animated-3d/coin-single-bitcoin",
     "name": "Coin Single Bitcoin",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Coin%20Single%20Bitcoin.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Coin%20Single%20Bitcoin.mp4"
   },
   {
     "id": "animated-3d/coin-single-bitcoin-2",
     "name": "__Coin_Single_Bitcoin",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Coin_Single_Bitcoin.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Coin_Single_Bitcoin.gif"
   },
   {
     "id": "animated-3d/coin-single-bitcoin-pass-reflections-1-1",
     "name": "Coin_Single_Bitcoin_Pass_reflections_1_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Coin_Single_Bitcoin_Pass_reflections_1_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Coin_Single_Bitcoin_Pass_reflections_1_1.mp4"
   },
   {
     "id": "animated-3d/coin-single-bitcoin-pass-shadows-2-1",
     "name": "Coin_Single_Bitcoin_Pass_shadows_2_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Coin_Single_Bitcoin_Pass_shadows_2_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Coin_Single_Bitcoin_Pass_shadows_2_1.mp4"
   },
   {
     "id": "animated-3d/coin-single-dollar",
     "name": "__Coin_Single_Dollar",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Coin_Single_Dollar.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Coin_Single_Dollar.gif"
   },
   {
     "id": "animated-3d/coin-single-dollar-pass-reflections-1-1",
     "name": "Coin_Single_Dollar_Pass_reflections_1_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Coin_Single_Dollar_Pass_reflections_1_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Coin_Single_Dollar_Pass_reflections_1_1.mp4"
   },
   {
     "id": "animated-3d/coin-single-dollar-pass-shadows-2-1",
     "name": "Coin_Single_Dollar_Pass_shadows_2_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Coin_Single_Dollar_Pass_shadows_2_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Coin_Single_Dollar_Pass_shadows_2_1.mp4"
   },
   {
     "id": "animated-3d/coin-single-euro",
     "name": "Coin Single Euro",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Coin%20Single%20Euro.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Coin%20Single%20Euro.mp4"
   },
   {
     "id": "animated-3d/coin-single-euro-2",
     "name": "__Coin_Single_Euro",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Coin_Single_Euro.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Coin_Single_Euro.gif"
   },
   {
     "id": "animated-3d/coin-single-euro-pass-alpha-1",
     "name": "Coin_Single_Euro_Pass_alpha_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Coin_Single_Euro_Pass_alpha_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Coin_Single_Euro_Pass_alpha_1.mp4"
   },
   {
     "id": "animated-3d/coin-single-euro-pass-reflections-1-1",
     "name": "Coin_Single_Euro_Pass_reflections_1_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Coin_Single_Euro_Pass_reflections_1_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Coin_Single_Euro_Pass_reflections_1_1.mp4"
   },
   {
     "id": "animated-3d/coin-single-euro-pass-shadows-2-1",
     "name": "Coin_Single_Euro_Pass_shadows_2_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Coin_Single_Euro_Pass_shadows_2_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Coin_Single_Euro_Pass_shadows_2_1.mp4"
   },
   {
     "id": "animated-3d/coins-reflection",
     "name": "Coins Reflection",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Coins%20Reflection.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Coins%20Reflection.mp4"
   },
   {
     "id": "animated-3d/cone",
     "name": "Cone",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cone.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cone.mp4"
   },
   {
     "id": "animated-3d/credit-card",
     "name": "__Credit_Card",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Credit_Card.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Credit_Card.gif"
   },
   {
     "id": "animated-3d/cross",
     "name": "__Cross",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Cross.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Cross.gif"
   },
   {
     "id": "animated-3d/cross-pass-reflections-1",
     "name": "Cross_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cross_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cross_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/cross-pass-shadows-2",
     "name": "Cross_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cross_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cross_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/cross-render",
     "name": "Cross_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cross_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cross_Render.mp4"
   },
   {
     "id": "animated-3d/cup",
     "name": "Cup",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cup.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cup.mp4"
   },
   {
     "id": "animated-3d/cup-2",
     "name": "__Cup",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Cup.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Cup.gif"
   },
   {
     "id": "animated-3d/cup-water-pass-reflections-1",
     "name": "Cup_Water_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cup_Water_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cup_Water_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/cup-water-pass-shadows-2",
     "name": "Cup_Water_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cup_Water_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Cup_Water_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/dollar",
     "name": "Dollar",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Dollar.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Dollar.mp4"
   },
   {
     "id": "animated-3d/dollar-2",
     "name": "__Dollar",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Dollar.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Dollar.gif"
   },
   {
     "id": "animated-3d/dollar-2-pass-reflections-1",
     "name": "Dollar_2_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Dollar_2_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Dollar_2_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/dollar-2-pass-shadows-2",
     "name": "Dollar_2_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Dollar_2_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Dollar_2_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/dropbox",
     "name": "Dropbox",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Dropbox.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Dropbox.mp4"
   },
   {
     "id": "animated-3d/dropbox-2",
     "name": "__Dropbox",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Social/__Dropbox.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Social/__Dropbox.gif"
   },
   {
     "id": "animated-3d/dropbox-reflection-reflections-1",
     "name": "Dropbox_Reflection_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Dropbox_Reflection_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Dropbox_Reflection_reflections_1.mp4"
   },
   {
     "id": "animated-3d/dropbox-shadow-shadows-1",
     "name": "Dropbox_Shadow_shadows_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Dropbox_Shadow_shadows_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Dropbox_Shadow_shadows_1.mp4"
   },
   {
     "id": "animated-3d/drumbbell",
     "name": "Drumbbell",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Drumbbell.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Drumbbell.mp4"
   },
   {
     "id": "animated-3d/drumbbell-2",
     "name": "__Drumbbell",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Drumbbell.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Drumbbell.gif"
   },
   {
     "id": "animated-3d/drumbbell-pass-reflections-1",
     "name": "Drumbbell_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Drumbbell_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Drumbbell_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/drumbbell-pass-shadows-2",
     "name": "Drumbbell_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Drumbbell_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Drumbbell_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/earth",
     "name": "Earth",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Earth.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Earth.mp4"
   },
   {
     "id": "animated-3d/earth-2",
     "name": "__Earth",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Earth.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Earth.gif"
   },
   {
     "id": "animated-3d/earth-pass-reflections-1",
     "name": "Earth_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Earth_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Earth_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/earth-pass-shadows-2",
     "name": "Earth_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Earth_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Earth_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/envelope",
     "name": "Envelope",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Envelope.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Envelope.mp4"
   },
   {
     "id": "animated-3d/envelope-1",
     "name": "__Envelope_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Envelope_1.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Envelope_1.gif"
   },
   {
     "id": "animated-3d/envelope-2",
     "name": "__Envelope_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Envelope_2.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Envelope_2.gif"
   },
   {
     "id": "animated-3d/envelope-2-bufer-object-1",
     "name": "Envelope_2_Bufer_object_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Envelope_2_Bufer_object_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Envelope_2_Bufer_object_1.mp4"
   },
   {
     "id": "animated-3d/envelope-2-bufer-object-2",
     "name": "Envelope_2_Bufer_object_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Envelope_2_Bufer_object_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Envelope_2_Bufer_object_2.mp4"
   },
   {
     "id": "animated-3d/envelope-2-bufer-object-3",
     "name": "Envelope_2_Bufer_object_3",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Envelope_2_Bufer_object_3.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Envelope_2_Bufer_object_3.mp4"
   },
   {
     "id": "animated-3d/envelope-2-pass-alpha",
     "name": "Envelope_2_Pass_alpha",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Envelope_2_Pass_alpha.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Envelope_2_Pass_alpha.mp4"
   },
   {
     "id": "animated-3d/envelope-2-pass-reflections-1",
     "name": "Envelope_2_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Envelope_2_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Envelope_2_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/envelope-2-pass-shadows-2",
     "name": "Envelope_2_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Envelope_2_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Envelope_2_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/envelope-bufer-object-4",
     "name": "Envelope_Bufer_object_4",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Envelope_Bufer_object_4.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Envelope_Bufer_object_4.mp4"
   },
   {
     "id": "animated-3d/envelope-pass-reflections-1",
     "name": "Envelope_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Envelope_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Envelope_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/envelope-pass-shadows-2",
     "name": "Envelope_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Envelope_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Envelope_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/exclamation-mark",
     "name": "__Exclamation_Mark",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Exclamation_Mark.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Exclamation_Mark.gif"
   },
   {
     "id": "animated-3d/exclamation-mark-1",
     "name": "Exclamation_Mark_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Exclamation_Mark_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Exclamation_Mark_1.mp4"
   },
   {
     "id": "animated-3d/exclamation-mark-pass-reflections-1-1",
     "name": "Exclamation_Mark_Pass_reflections_1_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Exclamation_Mark_Pass_reflections_1_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Exclamation_Mark_Pass_reflections_1_1.mp4"
   },
   {
     "id": "animated-3d/exclamation-mark-pass-shadows-2-1",
     "name": "Exclamation_Mark_Pass_shadows_2_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Exclamation_Mark_Pass_shadows_2_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Exclamation_Mark_Pass_shadows_2_1.mp4"
   },
   {
     "id": "animated-3d/facebook",
     "name": "Facebook",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Facebook.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Facebook.mp4"
   },
   {
     "id": "animated-3d/facebook-2",
     "name": "__Facebook",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Social/__Facebook.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Social/__Facebook.gif"
   },
   {
     "id": "animated-3d/facebook-reflection-reflections-1",
     "name": "Facebook_Reflection_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Facebook_Reflection_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Facebook_Reflection_reflections_1.mp4"
   },
   {
     "id": "animated-3d/facebook-shadow-shadows-1",
     "name": "Facebook_Shadow_shadows_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Facebook_Shadow_shadows_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Facebook_Shadow_shadows_1.mp4"
   },
   {
     "id": "animated-3d/flash-drive",
     "name": "Flash Drive",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Flash%20Drive.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Flash%20Drive.mp4"
   },
   {
     "id": "animated-3d/flash-drive-2",
     "name": "__Flash_Drive",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Flash_Drive.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Flash_Drive.gif"
   },
   {
     "id": "animated-3d/flash-drive-pass-reflections-1",
     "name": "Flash_Drive_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Flash_Drive_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Flash_Drive_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/flash-drive-pass-shadows-2",
     "name": "Flash_Drive_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Flash_Drive_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Flash_Drive_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/flipchart",
     "name": "__Flipchart",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Flipchart.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Flipchart.gif"
   },
   {
     "id": "animated-3d/flipchart-bw",
     "name": "Flipchart_BW",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Flipchart_BW.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Flipchart_BW.mp4"
   },
   {
     "id": "animated-3d/flipchart-pass-reflections-1",
     "name": "Flipchart_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Flipchart_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Flipchart_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/flipchart-pass-shadows-2",
     "name": "Flipchart_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Flipchart_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Flipchart_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/folder",
     "name": "Folder",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Folder.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Folder.mp4"
   },
   {
     "id": "animated-3d/folder-2",
     "name": "__Folder",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Folder.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Folder.gif"
   },
   {
     "id": "animated-3d/folder-bufer-object-2",
     "name": "Folder_Bufer_object_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Folder_Bufer_object_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Folder_Bufer_object_2.mp4"
   },
   {
     "id": "animated-3d/folder-i1",
     "name": "Folder_i1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Folder_i1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Folder_i1.mp4"
   },
   {
     "id": "animated-3d/folder-pass-reflections-1",
     "name": "Folder_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Folder_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Folder_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/folder-pass-shadows-2",
     "name": "Folder_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Folder_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Folder_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/gift",
     "name": "Gift",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Gift.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Gift.mp4"
   },
   {
     "id": "animated-3d/gift-2",
     "name": "__Gift",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Gift.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Gift.gif"
   },
   {
     "id": "animated-3d/gift-pass-reflections-1",
     "name": "Gift_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Gift_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Gift_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/gift-pass-shadows-2",
     "name": "Gift_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Gift_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Gift_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/gold-bar",
     "name": "Gold_Bar",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Gold_Bar.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Gold_Bar.mp4"
   },
   {
     "id": "animated-3d/gold-bar-2",
     "name": "__Gold_Bar",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Gold_Bar.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Gold_Bar.gif"
   },
   {
     "id": "animated-3d/gold-bar-pass-reflections-1",
     "name": "Gold_Bar_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Gold_Bar_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Gold_Bar_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/gold-bar-pass-shadows-2",
     "name": "Gold_Bar_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Gold_Bar_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Gold_Bar_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/gold-bar-single",
     "name": "Gold_Bar_Single",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Gold_Bar_Single.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Gold_Bar_Single.mp4"
   },
   {
     "id": "animated-3d/gold-bar-single-2",
     "name": "__Gold_Bar_Single",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Gold_Bar_Single.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Gold_Bar_Single.gif"
   },
   {
     "id": "animated-3d/gold-bar-single-pass-reflections-1",
     "name": "Gold_Bar_Single_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Gold_Bar_Single_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Gold_Bar_Single_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/gold-bar-single-pass-shadows-2",
     "name": "Gold_Bar_Single_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Gold_Bar_Single_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Gold_Bar_Single_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/graduation-cup",
     "name": "Graduation_Cup",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Graduation_Cup.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Graduation_Cup.mp4"
   },
   {
     "id": "animated-3d/graduation-cup-2",
     "name": "__Graduation_Cup",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Graduation_Cup.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Graduation_Cup.gif"
   },
   {
     "id": "animated-3d/graduation-cup-pass-reflections-1",
     "name": "Graduation_Cup_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Graduation_Cup_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Graduation_Cup_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/graduation-cup-pass-shadows-2",
     "name": "Graduation_Cup_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Graduation_Cup_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Graduation_Cup_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/heart",
     "name": "Heart",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Heart.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Heart.mp4"
   },
   {
     "id": "animated-3d/heart-2",
     "name": "__Heart",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Heart.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Heart.gif"
   },
   {
     "id": "animated-3d/heart-pass-reflections-1",
     "name": "Heart_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Heart_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Heart_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/heart-pass-shadows-2",
     "name": "Heart_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Heart_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Heart_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/helmet-construcion",
     "name": "Helmet_Construcion",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Helmet_Construcion.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Helmet_Construcion.mp4"
   },
   {
     "id": "animated-3d/helmet-construction",
     "name": "__Helmet_Construction",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Helmet_Construction.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Helmet_Construction.gif"
   },
   {
     "id": "animated-3d/helmet-construction-pass-reflections-1",
     "name": "Helmet_Construction_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Helmet_Construction_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Helmet_Construction_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/helmet-construction-pass-shadows-2",
     "name": "Helmet_Construction_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Helmet_Construction_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Helmet_Construction_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/house",
     "name": "House",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/House.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/House.mp4"
   },
   {
     "id": "animated-3d/house-2",
     "name": "__House",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__House.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__House.gif"
   },
   {
     "id": "animated-3d/house-no-chimney-pass-reflections-1",
     "name": "House_No_Chimney_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/House_No_Chimney_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/House_No_Chimney_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/house-no-chimney-pass-shadows-2",
     "name": "House_No_Chimney_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/House_No_Chimney_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/House_No_Chimney_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/in-bufer-object-1",
     "name": "IN_Bufer_object_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/IN_Bufer_object_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/IN_Bufer_object_1.mp4"
   },
   {
     "id": "animated-3d/in-bufer-object-2",
     "name": "IN_Bufer_object_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/IN_Bufer_object_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/IN_Bufer_object_2.mp4"
   },
   {
     "id": "animated-3d/in-reflection-reflections-1",
     "name": "IN_Reflection_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/IN_Reflection_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/IN_Reflection_reflections_1.mp4"
   },
   {
     "id": "animated-3d/in-shadow-shadows-1",
     "name": "IN_Shadow_shadows_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/IN_Shadow_shadows_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/IN_Shadow_shadows_1.mp4"
   },
   {
     "id": "animated-3d/information-icon",
     "name": "__Information_Icon",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Information_Icon.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Information_Icon.gif"
   },
   {
     "id": "animated-3d/instagram",
     "name": "__Instagram",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Social/__Instagram.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Social/__Instagram.gif"
   },
   {
     "id": "animated-3d/instagram-2",
     "name": "Instagram_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Instagram_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Instagram_2.mp4"
   },
   {
     "id": "animated-3d/instagram-reflection-reflections-1",
     "name": "Instagram_Reflection_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Instagram_Reflection_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Instagram_Reflection_reflections_1.mp4"
   },
   {
     "id": "animated-3d/instagram-shadow-shadows-1",
     "name": "Instagram_Shadow_shadows_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Instagram_Shadow_shadows_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Instagram_Shadow_shadows_1.mp4"
   },
   {
     "id": "animated-3d/instagramm-puzzlematte-1",
     "name": "Instagramm_puzzlematte_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Instagramm_puzzlematte_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Instagramm_puzzlematte_1.mp4"
   },
   {
     "id": "animated-3d/key",
     "name": "Key",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Key.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Key.mp4"
   },
   {
     "id": "animated-3d/key-2",
     "name": "__Key",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Key.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Key.gif"
   },
   {
     "id": "animated-3d/key-pass-reflections-1",
     "name": "Key_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Key_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Key_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/key-pass-shadows-2",
     "name": "Key_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Key_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Key_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/laptop",
     "name": "Laptop",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Laptop.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Laptop.mp4"
   },
   {
     "id": "animated-3d/laptop-2",
     "name": "__Laptop",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Devices/__Laptop.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Devices/__Laptop.gif"
   },
   {
     "id": "animated-3d/laptop-bufer-object-2",
     "name": "Laptop_Bufer_object_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Laptop_Bufer_object_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Laptop_Bufer_object_2.mp4"
   },
   {
     "id": "animated-3d/laptop-reflection-reflections-1",
     "name": "Laptop_Reflection_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Laptop_Reflection_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Laptop_Reflection_reflections_1.mp4"
   },
   {
     "id": "animated-3d/laptop-shadow-shadows-1",
     "name": "Laptop_Shadow_shadows_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Laptop_Shadow_shadows_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Laptop_Shadow_shadows_1.mp4"
   },
   {
     "id": "animated-3d/lifebuoy",
     "name": "Lifebuoy",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Lifebuoy.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Lifebuoy.mp4"
   },
   {
     "id": "animated-3d/lifebuoy-2",
     "name": "__Lifebuoy",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Lifebuoy.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Lifebuoy.gif"
   },
   {
     "id": "animated-3d/lifebuoy-pass-reflections-1",
     "name": "Lifebuoy_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Lifebuoy_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Lifebuoy_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/lifebuoy-pass-shadows-2",
     "name": "Lifebuoy_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Lifebuoy_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Lifebuoy_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/lighting",
     "name": "Lighting",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Lighting.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Lighting.mp4"
   },
   {
     "id": "animated-3d/lighting-2",
     "name": "__Lighting",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Lighting.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Lighting.gif"
   },
   {
     "id": "animated-3d/lighting-pass-reflections-1",
     "name": "Lighting_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Lighting_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Lighting_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/lighting-pass-shadows-2",
     "name": "Lighting_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Lighting_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Lighting_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/linkedin",
     "name": "__LinkedIn",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Social/__LinkedIn.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Social/__LinkedIn.gif"
   },
   {
     "id": "animated-3d/lock",
     "name": "Lock",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Lock.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Lock.mp4"
   },
   {
     "id": "animated-3d/lock-2",
     "name": "__Lock",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Lock.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Lock.gif"
   },
   {
     "id": "animated-3d/lock-pass-reflections-1",
     "name": "Lock_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Lock_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Lock_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/lock-pass-shadows-2",
     "name": "Lock_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Lock_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Lock_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/magnifier",
     "name": "__Magnifier",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Magnifier.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Magnifier.gif"
   },
   {
     "id": "animated-3d/magnifier-bufer-object-3",
     "name": "Magnifier_Bufer_object_3",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Magnifier_Bufer_object_3.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Magnifier_Bufer_object_3.mp4"
   },
   {
     "id": "animated-3d/magnifier-bw",
     "name": "Magnifier_BW",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Magnifier_BW.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Magnifier_BW.mp4"
   },
   {
     "id": "animated-3d/magnifier-pass-reflections-1",
     "name": "Magnifier_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Magnifier_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Magnifier_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/magnifier-pass-shadows-2",
     "name": "Magnifier_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Magnifier_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Magnifier_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/medical-bag",
     "name": "Medical_Bag",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Medical_Bag.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Medical_Bag.mp4"
   },
   {
     "id": "animated-3d/medical-bag-2",
     "name": "__Medical_Bag",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Medical_Bag.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Medical_Bag.gif"
   },
   {
     "id": "animated-3d/medical-bag-pass-reflections-1",
     "name": "Medical_Bag_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Medical_Bag_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Medical_Bag_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/medical-bag-pass-shadows-2",
     "name": "Medical_Bag_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Medical_Bag_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Medical_Bag_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/megaphone",
     "name": "Megaphone",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Megaphone.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Megaphone.mp4"
   },
   {
     "id": "animated-3d/megaphone-2",
     "name": "__Megaphone",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Megaphone.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Megaphone.gif"
   },
   {
     "id": "animated-3d/megaphone-pass-reflections-1",
     "name": "Megaphone_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Megaphone_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Megaphone_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/megaphone-shadow-shadows-1",
     "name": "Megaphone_Shadow_shadows_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Megaphone_Shadow_shadows_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Megaphone_Shadow_shadows_1.mp4"
   },
   {
     "id": "animated-3d/microscope",
     "name": "__Microscope",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Microscope.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Microscope.gif"
   },
   {
     "id": "animated-3d/microscope-bw-1",
     "name": "Microscope_BW_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Microscope_BW_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Microscope_BW_1.mp4"
   },
   {
     "id": "animated-3d/microscope-pass-reflections-1",
     "name": "Microscope_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Microscope_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Microscope_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/microscope-pass-shadows-2",
     "name": "Microscope_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Microscope_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Microscope_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/money-bag",
     "name": "Money Bag",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Money%20Bag.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Money%20Bag.mp4"
   },
   {
     "id": "animated-3d/money-bag-2",
     "name": "__Money_Bag",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Money_Bag.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Money_Bag.gif"
   },
   {
     "id": "animated-3d/money-bag-pass-reflections-1",
     "name": "Money_Bag_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Money_Bag_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Money_Bag_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/money-bag-pass-shadows-2",
     "name": "Money_Bag_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Money_Bag_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Money_Bag_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/monitor",
     "name": "Monitor",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Monitor.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Monitor.mp4"
   },
   {
     "id": "animated-3d/monitor-2",
     "name": "__Monitor",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Devices/__Monitor.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Devices/__Monitor.gif"
   },
   {
     "id": "animated-3d/monitor-bufer-object-2",
     "name": "Monitor_Bufer_object_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Monitor_Bufer_object_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Monitor_Bufer_object_2.mp4"
   },
   {
     "id": "animated-3d/monitor-reflection2-reflections-1",
     "name": "Monitor_Reflection2_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Monitor_Reflection2_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Monitor_Reflection2_reflections_1.mp4"
   },
   {
     "id": "animated-3d/monitor-shadow-shadows-1",
     "name": "Monitor_Shadow_shadows_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Monitor_Shadow_shadows_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Monitor_Shadow_shadows_1.mp4"
   },
   {
     "id": "animated-3d/movie-clapper",
     "name": "Movie_Clapper",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Movie_Clapper.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Movie_Clapper.mp4"
   },
   {
     "id": "animated-3d/movie-clapper-2",
     "name": "__Movie_Clapper",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Movie_Clapper.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Movie_Clapper.gif"
   },
   {
     "id": "animated-3d/movie-clapper-bufer-object-4",
     "name": "Movie_Clapper_Bufer_object_4",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Movie_Clapper_Bufer_object_4.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Movie_Clapper_Bufer_object_4.mp4"
   },
   {
     "id": "animated-3d/movie-clapper-pass-reflections-1",
     "name": "Movie_Clapper_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Movie_Clapper_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Movie_Clapper_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/movie-clapper-pass-shadows-2",
     "name": "Movie_Clapper_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Movie_Clapper_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Movie_Clapper_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/music-icon",
     "name": "__Music_Icon",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Music_Icon.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Music_Icon.gif"
   },
   {
     "id": "animated-3d/nameplate",
     "name": "Nameplate",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Nameplate.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Nameplate.mp4"
   },
   {
     "id": "animated-3d/numplate-1",
     "name": "__Numplate_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Numplate_1.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Numplate_1.gif"
   },
   {
     "id": "animated-3d/numplate-2",
     "name": "__Numplate_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Numplate_2.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Numplate_2.gif"
   },
   {
     "id": "animated-3d/numplate-bufer-object-1",
     "name": "Numplate_Bufer_object_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Numplate_Bufer_object_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Numplate_Bufer_object_1.mp4"
   },
   {
     "id": "animated-3d/numplate-pass-reflections-1",
     "name": "Numplate_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Numplate_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Numplate_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/numplate-pass-shadows-2",
     "name": "Numplate_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Numplate_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Numplate_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/oil-barrel",
     "name": "Oil_Barrel",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Oil_Barrel.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Oil_Barrel.mp4"
   },
   {
     "id": "animated-3d/oil-barrel-2",
     "name": "__Oil_Barrel",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Oil_Barrel.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Oil_Barrel.gif"
   },
   {
     "id": "animated-3d/oil-barrel-pass-reflections-1",
     "name": "Oil_Barrel_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Oil_Barrel_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Oil_Barrel_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/oil-barrel-pass-shadows-2",
     "name": "Oil_Barrel_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Oil_Barrel_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Oil_Barrel_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/paper-plane",
     "name": "Paper_Plane",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Paper_Plane.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Paper_Plane.mp4"
   },
   {
     "id": "animated-3d/phone",
     "name": "Phone",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Phone.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Phone.mp4"
   },
   {
     "id": "animated-3d/phone-2",
     "name": "__Phone",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Devices/__Phone.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Devices/__Phone.gif"
   },
   {
     "id": "animated-3d/phone-bufer-object-2",
     "name": "Phone_Bufer_object_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Phone_Bufer_object_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Phone_Bufer_object_2.mp4"
   },
   {
     "id": "animated-3d/phone-bufer-object-3",
     "name": "Phone_Bufer_object_3",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Phone_Bufer_object_3.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Phone_Bufer_object_3.mp4"
   },
   {
     "id": "animated-3d/phone-bufer-object-4",
     "name": "Phone_Bufer_object_4",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Phone_Bufer_object_4.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Phone_Bufer_object_4.mp4"
   },
   {
     "id": "animated-3d/phone-refrlection-reflections-1",
     "name": "Phone_Refrlection_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Phone_Refrlection_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Phone_Refrlection_reflections_1.mp4"
   },
   {
     "id": "animated-3d/phone-shadow-shadows-1",
     "name": "Phone_Shadow_shadows_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Phone_Shadow_shadows_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Phone_Shadow_shadows_1.mp4"
   },
   {
     "id": "animated-3d/pie-chart",
     "name": "Pie_Chart",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Pie_Chart.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Pie_Chart.mp4"
   },
   {
     "id": "animated-3d/pie-chart-2",
     "name": "__Pie_Chart",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Pie_Chart.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Pie_Chart.gif"
   },
   {
     "id": "animated-3d/pie-chart-pass-reflections-1",
     "name": "Pie_Chart_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Pie_Chart_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Pie_Chart_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/pie-chart-pass-shadows-2",
     "name": "Pie_Chart_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Pie_Chart_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Pie_Chart_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/piggy-bank",
     "name": "Piggy Bank",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Piggy%20Bank.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Piggy%20Bank.mp4"
   },
   {
     "id": "animated-3d/piggy-bank-2",
     "name": "__Piggy_Bank",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Piggy_Bank.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Piggy_Bank.gif"
   },
   {
     "id": "animated-3d/piggy-bank-pass-reflections-1-1",
     "name": "Piggy_Bank_Pass_reflections_1_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Piggy_Bank_Pass_reflections_1_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Piggy_Bank_Pass_reflections_1_1.mp4"
   },
   {
     "id": "animated-3d/piggy-bank-pass-shadows-2-1",
     "name": "Piggy_Bank_Pass_shadows_2_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Piggy_Bank_Pass_shadows_2_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Piggy_Bank_Pass_shadows_2_1.mp4"
   },
   {
     "id": "animated-3d/question",
     "name": "Question",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Question.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Question.mp4"
   },
   {
     "id": "animated-3d/question-mark",
     "name": "__Question_Mark",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Question_Mark.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Question_Mark.gif"
   },
   {
     "id": "animated-3d/question-mark-pass-reflections-1",
     "name": "Question_Mark_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Question_Mark_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Question_Mark_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/question-mark-pass-shadows-2",
     "name": "Question_Mark_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Question_Mark_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Question_Mark_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/rectangle-icon-2",
     "name": "__Rectangle_Icon_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Rectangle_Icon_2.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Rectangle_Icon_2.gif"
   },
   {
     "id": "animated-3d/road-cone",
     "name": "__Road_Cone",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Road_Cone.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Road_Cone.gif"
   },
   {
     "id": "animated-3d/road-cone-pass-reflections-1",
     "name": "Road_Cone_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Road_Cone_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Road_Cone_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/road-cone-pass-shadows-2",
     "name": "Road_Cone_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Road_Cone_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Road_Cone_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/roller",
     "name": "__Roller",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Roller.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Roller.gif"
   },
   {
     "id": "animated-3d/roller-animation-bw",
     "name": "Roller_Animation_BW",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Roller_Animation_BW.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Roller_Animation_BW.mp4"
   },
   {
     "id": "animated-3d/roller-pass-reflections-1",
     "name": "Roller_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Roller_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Roller_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/roller-pass-shadows-2",
     "name": "Roller_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Roller_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Roller_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/safe-closed",
     "name": "__Safe_Closed",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Safe_Closed.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Safe_Closed.gif"
   },
   {
     "id": "animated-3d/safe-closed-bufer-object-1",
     "name": "Safe_Closed_Bufer_object_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Safe_Closed_Bufer_object_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Safe_Closed_Bufer_object_1.mp4"
   },
   {
     "id": "animated-3d/safe-closed-bufer-object-2",
     "name": "Safe_Closed_Bufer_object_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Safe_Closed_Bufer_object_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Safe_Closed_Bufer_object_2.mp4"
   },
   {
     "id": "animated-3d/safe-closed-pass-reflections-1",
     "name": "Safe_Closed_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Safe_Closed_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Safe_Closed_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/safe-closed-pass-shadows-2",
     "name": "Safe_Closed_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Safe_Closed_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Safe_Closed_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/safe-full",
     "name": "Safe_Full",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Safe_Full.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Safe_Full.mp4"
   },
   {
     "id": "animated-3d/safe-full-2",
     "name": "__Safe_Full",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Safe_Full.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Safe_Full.gif"
   },
   {
     "id": "animated-3d/safe-full-bufer-object-1",
     "name": "Safe_Full_Bufer_object_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Safe_Full_Bufer_object_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Safe_Full_Bufer_object_1.mp4"
   },
   {
     "id": "animated-3d/safe-full-bufer-object-2",
     "name": "Safe_Full_Bufer_object_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Safe_Full_Bufer_object_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Safe_Full_Bufer_object_2.mp4"
   },
   {
     "id": "animated-3d/safe-full-bufer-object-3",
     "name": "Safe_Full_Bufer_object_3",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Safe_Full_Bufer_object_3.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Safe_Full_Bufer_object_3.mp4"
   },
   {
     "id": "animated-3d/safe-full-bufer-object-4",
     "name": "Safe_Full_Bufer_object_4",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Safe_Full_Bufer_object_4.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Safe_Full_Bufer_object_4.mp4"
   },
   {
     "id": "animated-3d/safe-full-bufer-object-5",
     "name": "Safe_Full_Bufer_object_5",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Safe_Full_Bufer_object_5.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Safe_Full_Bufer_object_5.mp4"
   },
   {
     "id": "animated-3d/safe-full-bufer-object-6",
     "name": "Safe_Full_Bufer_object_6",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Safe_Full_Bufer_object_6.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Safe_Full_Bufer_object_6.mp4"
   },
   {
     "id": "animated-3d/safe-full-pass-reflections-1",
     "name": "Safe_Full_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Safe_Full_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Safe_Full_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/safe-full-pass-shadows-2",
     "name": "Safe_Full_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Safe_Full_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Safe_Full_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/safe-hollow",
     "name": "__Safe_Hollow",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Safe_Hollow.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Finance/__Safe_Hollow.gif"
   },
   {
     "id": "animated-3d/safe-hollow-pass-reflections-1",
     "name": "Safe_Hollow_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Safe_Hollow_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Safe_Hollow_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/safe-hollow-pass-shadows-2",
     "name": "Safe_Hollow_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Safe_Hollow_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Safe_Hollow_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/sale-bag",
     "name": "Sale Bag",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Sale%20Bag.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Sale%20Bag.mp4"
   },
   {
     "id": "animated-3d/sale-bag-2",
     "name": "__Sale_Bag",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Sale_Bag.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Sale_Bag.gif"
   },
   {
     "id": "animated-3d/sale-bag-pass-reflections-1",
     "name": "Sale_Bag_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Sale_Bag_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Sale_Bag_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/sale-bag-pass-shadows-2",
     "name": "Sale_Bag_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Sale_Bag_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Sale_Bag_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/server",
     "name": "Server",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Server.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Server.mp4"
   },
   {
     "id": "animated-3d/server-2",
     "name": "__Server",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Server.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Server.gif"
   },
   {
     "id": "animated-3d/server-reflections-1",
     "name": "Server_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Server_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Server_reflections_1.mp4"
   },
   {
     "id": "animated-3d/server-shadows-2",
     "name": "Server_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Server_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Server_shadows_2.mp4"
   },
   {
     "id": "animated-3d/shadows-coins",
     "name": "Shadows Coins",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shadows%20Coins.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shadows%20Coins.mp4"
   },
   {
     "id": "animated-3d/shield",
     "name": "Shield",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shield.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shield.mp4"
   },
   {
     "id": "animated-3d/shield-2",
     "name": "__Shield",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Shield.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Shield.gif"
   },
   {
     "id": "animated-3d/shield-pass",
     "name": "Shield_Pass",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shield_Pass.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shield_Pass.mp4"
   },
   {
     "id": "animated-3d/shield-pass-reflections-1",
     "name": "Shield_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shield_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shield_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/shield-pass-shadows-2",
     "name": "Shield_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shield_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shield_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/shop",
     "name": "__Shop",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Shop.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Shop.gif"
   },
   {
     "id": "animated-3d/shop-bufer-i4-object-1",
     "name": "Shop_Bufer_i4_object_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shop_Bufer_i4_object_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shop_Bufer_i4_object_1.mp4"
   },
   {
     "id": "animated-3d/shop-bufer-i4-object-2",
     "name": "Shop_Bufer_i4_object_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shop_Bufer_i4_object_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shop_Bufer_i4_object_2.mp4"
   },
   {
     "id": "animated-3d/shop-bufer-i4-object-3",
     "name": "Shop_Bufer_i4_object_3",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shop_Bufer_i4_object_3.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shop_Bufer_i4_object_3.mp4"
   },
   {
     "id": "animated-3d/shop-bufer-i4-object-4",
     "name": "Shop_Bufer_i4_object_4",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shop_Bufer_i4_object_4.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shop_Bufer_i4_object_4.mp4"
   },
   {
     "id": "animated-3d/shop-bufer-i4-object-5",
     "name": "Shop_Bufer_i4_object_5",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shop_Bufer_i4_object_5.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shop_Bufer_i4_object_5.mp4"
   },
   {
     "id": "animated-3d/shop-bufer-i4-object-6",
     "name": "Shop_Bufer_i4_object_6",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shop_Bufer_i4_object_6.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shop_Bufer_i4_object_6.mp4"
   },
   {
     "id": "animated-3d/shop-bufer-i4-object-7",
     "name": "Shop_Bufer_i4_object_7",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shop_Bufer_i4_object_7.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shop_Bufer_i4_object_7.mp4"
   },
   {
     "id": "animated-3d/shop-bufer-i4-object-8",
     "name": "Shop_Bufer_i4_object_8",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shop_Bufer_i4_object_8.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shop_Bufer_i4_object_8.mp4"
   },
   {
     "id": "animated-3d/shop-bufer-i4-object-9",
     "name": "Shop_Bufer_i4_object_9",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shop_Bufer_i4_object_9.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shop_Bufer_i4_object_9.mp4"
   },
   {
     "id": "animated-3d/shop-pass-reflections-1",
     "name": "Shop_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shop_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shop_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/shop-pass-shadows-2",
     "name": "Shop_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shop_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shop_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/shopping-basket",
     "name": "__Shopping_Basket",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Shopping_Basket.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Shopping_Basket.gif"
   },
   {
     "id": "animated-3d/shopping-basket-pass-reflections-1",
     "name": "Shopping_Basket_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shopping_Basket_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shopping_Basket_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/shopping-basket-pass-shadows-2",
     "name": "Shopping_Basket_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shopping_Basket_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Shopping_Basket_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/skype",
     "name": "Skype",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Skype.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Skype.mp4"
   },
   {
     "id": "animated-3d/skype-2",
     "name": "__Skype",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Social/__Skype.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Social/__Skype.gif"
   },
   {
     "id": "animated-3d/skype-bufer-object-2",
     "name": "Skype_Bufer_object_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Skype_Bufer_object_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Skype_Bufer_object_2.mp4"
   },
   {
     "id": "animated-3d/skype-reflection-reflections-1",
     "name": "Skype_Reflection_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Skype_Reflection_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Skype_Reflection_reflections_1.mp4"
   },
   {
     "id": "animated-3d/skype-shadow-shadows-1",
     "name": "Skype_Shadow_shadows_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Skype_Shadow_shadows_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Skype_Shadow_shadows_1.mp4"
   },
   {
     "id": "animated-3d/star",
     "name": "__Star",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Star.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Star.gif"
   },
   {
     "id": "animated-3d/star-pass-reflections-1",
     "name": "Star_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Star_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Star_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/star-pass-shadows-2",
     "name": "Star_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Star_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Star_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/star-render",
     "name": "Star_Render",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Star_Render.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Star_Render.mp4"
   },
   {
     "id": "animated-3d/tablet",
     "name": "__Tablet",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Tablet.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Tablet.gif"
   },
   {
     "id": "animated-3d/tablet-1",
     "name": "Tablet_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Tablet_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Tablet_1.mp4"
   },
   {
     "id": "animated-3d/tablet-1-2",
     "name": "__Tablet_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Devices/__Tablet_1.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Devices/__Tablet_1.gif"
   },
   {
     "id": "animated-3d/tablet-1-bufer-object-1",
     "name": "Tablet_1_Bufer_object_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Tablet_1_Bufer_object_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Tablet_1_Bufer_object_1.mp4"
   },
   {
     "id": "animated-3d/tablet-1-bufer-object-2",
     "name": "Tablet_1_Bufer_object_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Tablet_1_Bufer_object_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Tablet_1_Bufer_object_2.mp4"
   },
   {
     "id": "animated-3d/tablet-1-reflection-reflections-1",
     "name": "Tablet_1_Reflection_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Tablet_1_Reflection_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Tablet_1_Reflection_reflections_1.mp4"
   },
   {
     "id": "animated-3d/tablet-1-shadow-shadows-1",
     "name": "Tablet_1_Shadow_shadows_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Tablet_1_Shadow_shadows_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Tablet_1_Shadow_shadows_1.mp4"
   },
   {
     "id": "animated-3d/tablet-2",
     "name": "Tablet_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Tablet_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Tablet_2.mp4"
   },
   {
     "id": "animated-3d/tablet-2-2",
     "name": "__Tablet_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Devices/__Tablet_2.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Devices/__Tablet_2.gif"
   },
   {
     "id": "animated-3d/tablet-2-bufer-object-1",
     "name": "Tablet_2_Bufer_object_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Tablet_2_Bufer_object_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Tablet_2_Bufer_object_1.mp4"
   },
   {
     "id": "animated-3d/tablet-2-bufer-object-2",
     "name": "Tablet_2_Bufer_object_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Tablet_2_Bufer_object_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Tablet_2_Bufer_object_2.mp4"
   },
   {
     "id": "animated-3d/tablet-2-reflection-reflections-1",
     "name": "Tablet_2_Reflection_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Tablet_2_Reflection_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Tablet_2_Reflection_reflections_1.mp4"
   },
   {
     "id": "animated-3d/tablet-2-shadow-shadows-1",
     "name": "Tablet_2_Shadow_shadows_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Tablet_2_Shadow_shadows_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Tablet_2_Shadow_shadows_1.mp4"
   },
   {
     "id": "animated-3d/tablet-bw",
     "name": "Tablet_BW",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Tablet_BW.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Tablet_BW.mp4"
   },
   {
     "id": "animated-3d/tablet-pass-reflections-1",
     "name": "Tablet_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Tablet_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Tablet_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/tablet-shadow-shadows-1",
     "name": "Tablet_Shadow_shadows_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Tablet_Shadow_shadows_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Tablet_Shadow_shadows_1.mp4"
   },
   {
     "id": "animated-3d/target",
     "name": "Target",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Target.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Target.mp4"
   },
   {
     "id": "animated-3d/target-2",
     "name": "__Target",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Target.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Target.gif"
   },
   {
     "id": "animated-3d/target-pass-reflections-1",
     "name": "Target_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Target_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Target_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/target-pass-shadows-2",
     "name": "Target_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Target_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Target_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/telegram",
     "name": "Telegram",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Telegram.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Telegram.mp4"
   },
   {
     "id": "animated-3d/telegram-2",
     "name": "__Telegram",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Social/__Telegram.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Social/__Telegram.gif"
   },
   {
     "id": "animated-3d/telegram-reflection-reflections-1",
     "name": "Telegram_Reflection_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Telegram_Reflection_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Telegram_Reflection_reflections_1.mp4"
   },
   {
     "id": "animated-3d/telegram-shadow-shadows-1",
     "name": "Telegram_Shadow_shadows_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Telegram_Shadow_shadows_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Telegram_Shadow_shadows_1.mp4"
   },
   {
     "id": "animated-3d/timer",
     "name": "__Timer",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Timer.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Timer.gif"
   },
   {
     "id": "animated-3d/timer-bw",
     "name": "Timer_BW",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Timer_BW.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Timer_BW.mp4"
   },
   {
     "id": "animated-3d/timer-pass-reflections-1",
     "name": "Timer_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Timer_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Timer_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/timer-pass-shadows-2",
     "name": "Timer_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Timer_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Timer_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/twitter",
     "name": "Twitter",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Twitter.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Twitter.mp4"
   },
   {
     "id": "animated-3d/twitter-2",
     "name": "__Twitter",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Social/__Twitter.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Social/__Twitter.gif"
   },
   {
     "id": "animated-3d/twitter-reflection-reflections-1",
     "name": "Twitter_Reflection_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Twitter_Reflection_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Twitter_Reflection_reflections_1.mp4"
   },
   {
     "id": "animated-3d/twitter-shadow-shadows-1",
     "name": "Twitter_Shadow_shadows_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Twitter_Shadow_shadows_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Twitter_Shadow_shadows_1.mp4"
   },
   {
     "id": "animated-3d/user",
     "name": "User",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/User.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/User.mp4"
   },
   {
     "id": "animated-3d/user-2",
     "name": "User_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/User_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/User_2.mp4"
   },
   {
     "id": "animated-3d/user-2-bufer-object-1",
     "name": "User_2_Bufer_object_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/User_2_Bufer_object_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/User_2_Bufer_object_1.mp4"
   },
   {
     "id": "animated-3d/user-2-pass-reflections-1",
     "name": "User_2_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/User_2_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/User_2_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/user-2-pass-shadows-2",
     "name": "User_2_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/User_2_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/User_2_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/user-bufer-object-1",
     "name": "User_Bufer_object_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/User_Bufer_object_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/User_Bufer_object_1.mp4"
   },
   {
     "id": "animated-3d/user-circle",
     "name": "__User_Circle",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__User_Circle.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__User_Circle.gif"
   },
   {
     "id": "animated-3d/user-pass-reflections-1",
     "name": "User_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/User_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/User_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/user-pass-shadows-2",
     "name": "User_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/User_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/User_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/vimeo",
     "name": "Vimeo",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Vimeo.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Vimeo.mp4"
   },
   {
     "id": "animated-3d/vimeo-2",
     "name": "__Vimeo",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Social/__Vimeo.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Social/__Vimeo.gif"
   },
   {
     "id": "animated-3d/vimeo-reflection-reflections-1",
     "name": "Vimeo_Reflection_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Vimeo_Reflection_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Vimeo_Reflection_reflections_1.mp4"
   },
   {
     "id": "animated-3d/vimeo-shadow-shadows-1",
     "name": "Vimeo_Shadow_shadows_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Vimeo_Shadow_shadows_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Vimeo_Shadow_shadows_1.mp4"
   },
   {
     "id": "animated-3d/vk",
     "name": "VK",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/VK.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/VK.mp4"
   },
   {
     "id": "animated-3d/vk-2",
     "name": "__VK",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Social/__VK.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Social/__VK.gif"
   },
   {
     "id": "animated-3d/vk-reflection-reflections-1",
     "name": "VK_Reflection_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/VK_Reflection_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/VK_Reflection_reflections_1.mp4"
   },
   {
     "id": "animated-3d/vk-shadow-shadows-1",
     "name": "VK_Shadow_shadows_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/VK_Shadow_shadows_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/VK_Shadow_shadows_1.mp4"
   },
   {
     "id": "animated-3d/watch",
     "name": "__Watch",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Devices/__Watch.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Devices/__Watch.gif"
   },
   {
     "id": "animated-3d/whats-up",
     "name": "Whats Up",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Whats%20Up.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Whats%20Up.mp4"
   },
   {
     "id": "animated-3d/whats-up-2",
     "name": "__Whats_Up",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Social/__Whats_Up.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Social/__Whats_Up.gif"
   },
   {
     "id": "animated-3d/whats-up-reflection-reflections-1",
     "name": "Whats_Up_Reflection_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Whats_Up_Reflection_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Whats_Up_Reflection_reflections_1.mp4"
   },
   {
     "id": "animated-3d/whats-up-shadow-shadows-1",
     "name": "Whats_Up_Shadow_shadows_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Whats_Up_Shadow_shadows_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Whats_Up_Shadow_shadows_1.mp4"
   },
   {
     "id": "animated-3d/wi-fi",
     "name": "__Wi-Fi",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Wi-Fi.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Wi-Fi.gif"
   },
   {
     "id": "animated-3d/wi-fi-bw",
     "name": "Wi_Fi_BW",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Wi_Fi_BW.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Wi_Fi_BW.mp4"
   },
   {
     "id": "animated-3d/wi-fi-pass-reflections-1",
     "name": "Wi-Fi_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Wi-Fi_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Wi-Fi_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/wi-fi-pass-shadows-2",
     "name": "Wi-Fi_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Wi-Fi_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Wi-Fi_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/wind",
     "name": "Wind",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Wind.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Wind.mp4"
   },
   {
     "id": "animated-3d/wind-2",
     "name": "__Wind",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Wind.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Wind.gif"
   },
   {
     "id": "animated-3d/wind-2-pass-reflections-1",
     "name": "Wind_2_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Wind_2_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Wind_2_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/wind-2-pass-shadows-2",
     "name": "Wind_2_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Wind_2_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Wind_2_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/winner-cup",
     "name": "Winner Cup",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Winner%20Cup.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Winner%20Cup.mp4"
   },
   {
     "id": "animated-3d/winner-cup-2",
     "name": "__Winner_Cup",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Winner_Cup.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Miscellaneous/__Winner_Cup.gif"
   },
   {
     "id": "animated-3d/winner-cup-pass-reflections-1",
     "name": "Winner_Cup_Pass_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Winner_Cup_Pass_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Winner_Cup_Pass_reflections_1.mp4"
   },
   {
     "id": "animated-3d/winner-cup-pass-shadows-2",
     "name": "Winner_Cup_Pass_shadows_2",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Winner_Cup_Pass_shadows_2.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Winner_Cup_Pass_shadows_2.mp4"
   },
   {
     "id": "animated-3d/youtube",
     "name": "Youtube",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Youtube.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Youtube.mp4"
   },
   {
     "id": "animated-3d/youtube-2",
     "name": "__Youtube",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/Catalogue/All_Social/__Youtube.gif"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/Catalogue/All_Social/__Youtube.gif"
   },
   {
     "id": "animated-3d/youtube-reflection-reflections-1",
     "name": "Youtube_Reflection_reflections_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Youtube_Reflection_reflections_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Youtube_Reflection_reflections_1.mp4"
   },
   {
     "id": "animated-3d/youtube-shadow-shadows-1",
     "name": "Youtube_Shadow_shadows_1",
     "pack": "animated-3d",
     "kind": "animated",
-    "path": "/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Youtube_Shadow_shadows_1.mp4"
+    "path": "/icons/all-icons/3D%20Animated%20Icons/3D%20Icons/(Footage)/--%20Assets/Youtube_Shadow_shadows_1.mp4"
   },
   {
     "id": "banking-3d/11-shopping",
     "name": "11_Shopping",
     "pack": "banking-3d",
     "kind": "png",
-    "path": "/all-icons/smooth-banking-3d-icon-2026-03-27-01-15-02-utc/11_Shopping.png"
+    "path": "/icons/all-icons/smooth-banking-3d-icon-2026-03-27-01-15-02-utc/11_Shopping.png"
   },
   {
     "id": "banking-3d/12-wallet",
     "name": "12_Wallet",
     "pack": "banking-3d",
     "kind": "png",
-    "path": "/all-icons/smooth-banking-3d-icon-2026-03-27-01-15-02-utc/12_Wallet.png"
+    "path": "/icons/all-icons/smooth-banking-3d-icon-2026-03-27-01-15-02-utc/12_Wallet.png"
   },
   {
     "id": "banking-3d/13-credit-card",
     "name": "13_Credit Card",
     "pack": "banking-3d",
     "kind": "png",
-    "path": "/all-icons/smooth-banking-3d-icon-2026-03-27-01-15-02-utc/13_Credit%20Card.png"
+    "path": "/icons/all-icons/smooth-banking-3d-icon-2026-03-27-01-15-02-utc/13_Credit%20Card.png"
   },
   {
     "id": "banking-3d/14-briefcase",
     "name": "14_Briefcase",
     "pack": "banking-3d",
     "kind": "png",
-    "path": "/all-icons/smooth-banking-3d-icon-2026-03-27-01-15-02-utc/14_Briefcase.png"
+    "path": "/icons/all-icons/smooth-banking-3d-icon-2026-03-27-01-15-02-utc/14_Briefcase.png"
   },
   {
     "id": "banking-3d/15-fintech",
     "name": "15_Fintech",
     "pack": "banking-3d",
     "kind": "png",
-    "path": "/all-icons/smooth-banking-3d-icon-2026-03-27-01-15-02-utc/15_Fintech.png"
+    "path": "/icons/all-icons/smooth-banking-3d-icon-2026-03-27-01-15-02-utc/15_Fintech.png"
   },
   {
     "id": "banking-3d/16-presentation",
     "name": "16_Presentation",
     "pack": "banking-3d",
     "kind": "png",
-    "path": "/all-icons/smooth-banking-3d-icon-2026-03-27-01-15-02-utc/16_Presentation.png"
+    "path": "/icons/all-icons/smooth-banking-3d-icon-2026-03-27-01-15-02-utc/16_Presentation.png"
   },
   {
     "id": "banking-3d/17-banking",
     "name": "17_Banking",
     "pack": "banking-3d",
     "kind": "png",
-    "path": "/all-icons/smooth-banking-3d-icon-2026-03-27-01-15-02-utc/17_Banking.png"
+    "path": "/icons/all-icons/smooth-banking-3d-icon-2026-03-27-01-15-02-utc/17_Banking.png"
   },
   {
     "id": "banking-3d/18-worldwide",
     "name": "18_Worldwide",
     "pack": "banking-3d",
     "kind": "png",
-    "path": "/all-icons/smooth-banking-3d-icon-2026-03-27-01-15-02-utc/18_Worldwide.png"
+    "path": "/icons/all-icons/smooth-banking-3d-icon-2026-03-27-01-15-02-utc/18_Worldwide.png"
   },
   {
     "id": "banking-3d/19-withdraw",
     "name": "19_Withdraw",
     "pack": "banking-3d",
     "kind": "png",
-    "path": "/all-icons/smooth-banking-3d-icon-2026-03-27-01-15-02-utc/19_Withdraw.png"
+    "path": "/icons/all-icons/smooth-banking-3d-icon-2026-03-27-01-15-02-utc/19_Withdraw.png"
   },
   {
     "id": "banking-3d/20-legal-document",
     "name": "20_Legal Document",
     "pack": "banking-3d",
     "kind": "png",
-    "path": "/all-icons/smooth-banking-3d-icon-2026-03-27-01-15-02-utc/20_Legal%20Document.png"
+    "path": "/icons/all-icons/smooth-banking-3d-icon-2026-03-27-01-15-02-utc/20_Legal%20Document.png"
   },
   {
     "id": "chat/ask-question",
     "name": "ask-question",
     "pack": "chat",
     "kind": "svg",
-    "path": "/SVG/ask-question.svg"
+    "path": "/icons/SVG/ask-question.svg"
   },
   {
     "id": "chat/chat",
     "name": "chat",
     "pack": "chat",
     "kind": "svg",
-    "path": "/SVG/chat.svg"
+    "path": "/icons/SVG/chat.svg"
   },
   {
     "id": "chat/chat-message",
     "name": "chat-message",
     "pack": "chat",
     "kind": "svg",
-    "path": "/SVG/chat-message.svg"
+    "path": "/icons/SVG/chat-message.svg"
   },
   {
     "id": "chat/comments",
     "name": "comments",
     "pack": "chat",
     "kind": "svg",
-    "path": "/SVG/comments.svg"
+    "path": "/icons/SVG/comments.svg"
   },
   {
     "id": "chat/message-bot",
     "name": "message-bot",
     "pack": "chat",
     "kind": "svg",
-    "path": "/SVG/message-bot.svg"
+    "path": "/icons/SVG/message-bot.svg"
   },
   {
     "id": "chat/messaging",
     "name": "messaging-",
     "pack": "chat",
     "kind": "svg",
-    "path": "/SVG/messaging-.svg"
+    "path": "/icons/SVG/messaging-.svg"
   },
   {
     "id": "chat/popular-topic",
     "name": "popular-topic",
     "pack": "chat",
     "kind": "svg",
-    "path": "/SVG/popular-topic.svg"
+    "path": "/icons/SVG/popular-topic.svg"
   },
   {
     "id": "chat/speech-bubble",
     "name": "speech-bubble",
     "pack": "chat",
     "kind": "svg",
-    "path": "/SVG/speech-bubble.svg"
+    "path": "/icons/SVG/speech-bubble.svg"
   },
   {
     "id": "chat/speech-bubble-with-dots",
     "name": "speech-bubble-with-dots",
     "pack": "chat",
     "kind": "svg",
-    "path": "/SVG/speech-bubble-with-dots.svg"
+    "path": "/icons/SVG/speech-bubble-with-dots.svg"
   },
   {
     "id": "chat/topic",
     "name": "topic",
     "pack": "chat",
     "kind": "svg",
-    "path": "/SVG/topic.svg"
+    "path": "/icons/SVG/topic.svg"
   },
   {
     "id": "chat/topic-push-notification",
     "name": "topic-push-notification",
     "pack": "chat",
     "kind": "svg",
-    "path": "/SVG/topic-push-notification.svg"
+    "path": "/icons/SVG/topic-push-notification.svg"
   },
   {
     "id": "chat/video-message",
     "name": "video-message",
     "pack": "chat",
     "kind": "svg",
-    "path": "/SVG/video-message.svg"
+    "path": "/icons/SVG/video-message.svg"
   },
   {
     "id": "chatbot/17134-conversational-api",
     "name": "17134 - Conversational API",
     "pack": "chatbot",
     "kind": "svg",
-    "path": "/11/SVG/17134%20-%20Conversational%20API.svg"
+    "path": "/icons/11/SVG/17134%20-%20Conversational%20API.svg"
   },
   {
     "id": "chatbot/17135-omnichannel-bot",
     "name": "17135 - Omnichannel Bot",
     "pack": "chatbot",
     "kind": "svg",
-    "path": "/11/SVG/17135%20-%20Omnichannel%20Bot.svg"
+    "path": "/icons/11/SVG/17135%20-%20Omnichannel%20Bot.svg"
   },
   {
     "id": "chatbot/17136-chat-automation",
     "name": "17136 - Chat Automation",
     "pack": "chatbot",
     "kind": "svg",
-    "path": "/11/SVG/17136%20-%20Chat%20Automation.svg"
+    "path": "/icons/11/SVG/17136%20-%20Chat%20Automation.svg"
   },
   {
     "id": "chatbot/17137-context-awareness",
     "name": "17137 - Context Awareness",
     "pack": "chatbot",
     "kind": "svg",
-    "path": "/11/SVG/17137%20-%20Context%20Awareness.svg"
+    "path": "/icons/11/SVG/17137%20-%20Context%20Awareness.svg"
   },
   {
     "id": "chatbot/17138-ai-form-fill",
     "name": "17138 - AI Form Fill",
     "pack": "chatbot",
     "kind": "svg",
-    "path": "/11/SVG/17138%20-%20AI%20Form%20Fill.svg"
+    "path": "/icons/11/SVG/17138%20-%20AI%20Form%20Fill.svg"
   },
   {
     "id": "chatbot/17139-chat-widget",
     "name": "17139 - Chat Widget",
     "pack": "chatbot",
     "kind": "svg",
-    "path": "/11/SVG/17139%20-%20Chat%20Widget.svg"
+    "path": "/icons/11/SVG/17139%20-%20Chat%20Widget.svg"
   },
   {
     "id": "chatbot/17140-push-notification-bot",
     "name": "17140 - Push Notification Bot",
     "pack": "chatbot",
     "kind": "svg",
-    "path": "/11/SVG/17140%20-%20Push%20Notification%20Bot.svg"
+    "path": "/icons/11/SVG/17140%20-%20Push%20Notification%20Bot.svg"
   },
   {
     "id": "chatbot/17141-secure-chat",
     "name": "17141 - Secure Chat",
     "pack": "chatbot",
     "kind": "svg",
-    "path": "/11/SVG/17141%20-%20Secure%20Chat.svg"
+    "path": "/icons/11/SVG/17141%20-%20Secure%20Chat.svg"
   },
   {
     "id": "chatbot/17142-bot-learning",
     "name": "17142 - Bot Learning",
     "pack": "chatbot",
     "kind": "svg",
-    "path": "/11/SVG/17142%20-%20Bot%20Learning.svg"
+    "path": "/icons/11/SVG/17142%20-%20Bot%20Learning.svg"
   },
   {
     "id": "chatbot/17143-script-builder",
     "name": "17143 - Script Builder",
     "pack": "chatbot",
     "kind": "svg",
-    "path": "/11/SVG/17143%20-%20Script%20Builder.svg"
+    "path": "/icons/11/SVG/17143%20-%20Script%20Builder.svg"
   },
   {
     "id": "chatbot/17144-chatbot-analytics",
     "name": "17144 - Chatbot Analytics",
     "pack": "chatbot",
     "kind": "svg",
-    "path": "/11/SVG/17144%20-%20Chatbot%20Analytics.svg"
+    "path": "/icons/11/SVG/17144%20-%20Chatbot%20Analytics.svg"
   },
   {
     "id": "chatbot/17145-live-chat-hybrid",
     "name": "17145 - Live Chat Hybrid",
     "pack": "chatbot",
     "kind": "svg",
-    "path": "/11/SVG/17145%20-%20Live%20Chat%20Hybrid.svg"
+    "path": "/icons/11/SVG/17145%20-%20Live%20Chat%20Hybrid.svg"
   },
   {
     "id": "chatbot/17146-ai-escalation",
     "name": "17146 - AI Escalation",
     "pack": "chatbot",
     "kind": "svg",
-    "path": "/11/SVG/17146%20-%20AI%20Escalation.svg"
+    "path": "/icons/11/SVG/17146%20-%20AI%20Escalation.svg"
   },
   {
     "id": "chatbot/17147-knowledge-base",
     "name": "17147 - Knowledge Base",
     "pack": "chatbot",
     "kind": "svg",
-    "path": "/11/SVG/17147%20-%20Knowledge%20Base.svg"
+    "path": "/icons/11/SVG/17147%20-%20Knowledge%20Base.svg"
   },
   {
     "id": "chatbot/17148-bot-settings",
     "name": "17148 - Bot Settings",
     "pack": "chatbot",
     "kind": "svg",
-    "path": "/11/SVG/17148%20-%20Bot%20Settings.svg"
+    "path": "/icons/11/SVG/17148%20-%20Bot%20Settings.svg"
   },
   {
     "id": "chatbot/17149-multilingual-bot",
     "name": "17149 - Multilingual Bot",
     "pack": "chatbot",
     "kind": "svg",
-    "path": "/11/SVG/17149%20-%20Multilingual%20Bot.svg"
+    "path": "/icons/11/SVG/17149%20-%20Multilingual%20Bot.svg"
   },
   {
     "id": "chatbot/17150-emotion-detection",
     "name": "17150 - Emotion Detection",
     "pack": "chatbot",
     "kind": "svg",
-    "path": "/11/SVG/17150%20-%20Emotion%20Detection.svg"
+    "path": "/icons/11/SVG/17150%20-%20Emotion%20Detection.svg"
   },
   {
     "id": "chatbot/17151-nlp-engine",
     "name": "17151 - NLP Engine",
     "pack": "chatbot",
     "kind": "svg",
-    "path": "/11/SVG/17151%20-%20NLP%20Engine.svg"
+    "path": "/icons/11/SVG/17151%20-%20NLP%20Engine.svg"
   },
   {
     "id": "chatbot/17152-chat-history",
     "name": "17152 - Chat History",
     "pack": "chatbot",
     "kind": "svg",
-    "path": "/11/SVG/17152%20-%20Chat%20History.svg"
+    "path": "/icons/11/SVG/17152%20-%20Chat%20History.svg"
   },
   {
     "id": "chatbot/17153-ai-support-agent",
     "name": "17153 - AI Support Agent",
     "pack": "chatbot",
     "kind": "svg",
-    "path": "/11/SVG/17153%20-%20AI%20Support%20Agent.svg"
+    "path": "/icons/11/SVG/17153%20-%20AI%20Support%20Agent.svg"
   },
   {
     "id": "chatbot/17154-typing-indicator",
     "name": "17154 - Typing Indicator",
     "pack": "chatbot",
     "kind": "svg",
-    "path": "/11/SVG/17154%20-%20Typing%20Indicator.svg"
+    "path": "/icons/11/SVG/17154%20-%20Typing%20Indicator.svg"
   },
   {
     "id": "chatbot/17155-voice-assistant",
     "name": "17155 - Voice Assistant",
     "pack": "chatbot",
     "kind": "svg",
-    "path": "/11/SVG/17155%20-%20Voice%20Assistant.svg"
+    "path": "/icons/11/SVG/17155%20-%20Voice%20Assistant.svg"
   },
   {
     "id": "chatbot/17156-smart-reply",
     "name": "17156 - Smart Reply",
     "pack": "chatbot",
     "kind": "svg",
-    "path": "/11/SVG/17156%20-%20Smart%20Reply.svg"
+    "path": "/icons/11/SVG/17156%20-%20Smart%20Reply.svg"
   },
   {
     "id": "chatbot/17157-chat-bubble-flow",
     "name": "17157 - Chat Bubble Flow",
     "pack": "chatbot",
     "kind": "svg",
-    "path": "/11/SVG/17157%20-%20Chat%20Bubble%20Flow.svg"
+    "path": "/icons/11/SVG/17157%20-%20Chat%20Bubble%20Flow.svg"
   },
   {
     "id": "chatbot/17158-chatbot-avatar",
     "name": "17158 - Chatbot Avatar",
     "pack": "chatbot",
     "kind": "svg",
-    "path": "/11/SVG/17158%20-%20Chatbot%20Avatar.svg"
+    "path": "/icons/11/SVG/17158%20-%20Chatbot%20Avatar.svg"
   },
   {
     "id": "infographic/01-donut-infographic",
     "name": "01 Donut Infographic",
     "pack": "infographic",
     "kind": "png",
-    "path": "/all-icons/PNG%20Files/01%20Donut%20Infographic.png"
+    "path": "/icons/all-icons/PNG%20Files/01%20Donut%20Infographic.png"
   },
   {
     "id": "infographic/02-fan-infographic",
     "name": "02 Fan Infographic",
     "pack": "infographic",
     "kind": "png",
-    "path": "/all-icons/PNG%20Files/02%20Fan%20Infographic.png"
+    "path": "/icons/all-icons/PNG%20Files/02%20Fan%20Infographic.png"
   },
   {
     "id": "infographic/03-line-infographic",
     "name": "03 Line Infographic",
     "pack": "infographic",
     "kind": "png",
-    "path": "/all-icons/PNG%20Files/03%20Line%20Infographic.png"
+    "path": "/icons/all-icons/PNG%20Files/03%20Line%20Infographic.png"
   },
   {
     "id": "infographic/04-puzzle-infographic",
     "name": "04 Puzzle Infographic",
     "pack": "infographic",
     "kind": "png",
-    "path": "/all-icons/PNG%20Files/04%20Puzzle%20Infographic.png"
+    "path": "/icons/all-icons/PNG%20Files/04%20Puzzle%20Infographic.png"
   },
   {
     "id": "infographic/05-pie-infographic",
     "name": "05 Pie Infographic",
     "pack": "infographic",
     "kind": "png",
-    "path": "/all-icons/PNG%20Files/05%20Pie%20Infographic.png"
+    "path": "/icons/all-icons/PNG%20Files/05%20Pie%20Infographic.png"
   },
   {
     "id": "infographic/06-gear-infographic",
     "name": "06 Gear Infographic",
     "pack": "infographic",
     "kind": "png",
-    "path": "/all-icons/PNG%20Files/06%20Gear%20Infographic.png"
+    "path": "/icons/all-icons/PNG%20Files/06%20Gear%20Infographic.png"
   },
   {
     "id": "infographic/07-circle-arrow-infographic",
     "name": "07 Circle Arrow Infographic",
     "pack": "infographic",
     "kind": "png",
-    "path": "/all-icons/PNG%20Files/07%20Circle%20Arrow%20Infographic.png"
+    "path": "/icons/all-icons/PNG%20Files/07%20Circle%20Arrow%20Infographic.png"
   },
   {
     "id": "infographic/08-pyramid-infographic",
     "name": "08 Pyramid Infographic",
     "pack": "infographic",
     "kind": "png",
-    "path": "/all-icons/PNG%20Files/08%20Pyramid%20Infographic.png"
+    "path": "/icons/all-icons/PNG%20Files/08%20Pyramid%20Infographic.png"
   },
   {
     "id": "infographic/09-arrow-infographic",
     "name": "09 Arrow Infographic",
     "pack": "infographic",
     "kind": "png",
-    "path": "/all-icons/PNG%20Files/09%20Arrow%20Infographic.png"
+    "path": "/icons/all-icons/PNG%20Files/09%20Arrow%20Infographic.png"
   },
   {
     "id": "infographic/10-cylinder-pyramid-infographic",
     "name": "10 Cylinder Pyramid Infographic",
     "pack": "infographic",
     "kind": "png",
-    "path": "/all-icons/PNG%20Files/10%20Cylinder%20Pyramid%20Infographic.png"
+    "path": "/icons/all-icons/PNG%20Files/10%20Cylinder%20Pyramid%20Infographic.png"
   },
   {
     "id": "infographic/11-pie-chart",
     "name": "11 Pie Chart",
     "pack": "infographic",
     "kind": "png",
-    "path": "/all-icons/PNG%20Files/11%20Pie%20Chart.png"
+    "path": "/icons/all-icons/PNG%20Files/11%20Pie%20Chart.png"
   },
   {
     "id": "infographic/12-bar-chart",
     "name": "12 Bar Chart",
     "pack": "infographic",
     "kind": "png",
-    "path": "/all-icons/PNG%20Files/12%20Bar%20Chart.png"
+    "path": "/icons/all-icons/PNG%20Files/12%20Bar%20Chart.png"
   },
   {
     "id": "infographic/13-circular-infographic",
     "name": "13 Circular Infographic",
     "pack": "infographic",
     "kind": "png",
-    "path": "/all-icons/PNG%20Files/13%20Circular%20Infographic.png"
+    "path": "/icons/all-icons/PNG%20Files/13%20Circular%20Infographic.png"
   },
   {
     "id": "infographic/14-chart-infographic",
     "name": "14 Chart Infographic",
     "pack": "infographic",
     "kind": "png",
-    "path": "/all-icons/PNG%20Files/14%20Chart%20Infographic.png"
+    "path": "/icons/all-icons/PNG%20Files/14%20Chart%20Infographic.png"
   },
   {
     "id": "infographic/15-timeline-infographic",
     "name": "15 Timeline Infographic",
     "pack": "infographic",
     "kind": "png",
-    "path": "/all-icons/PNG%20Files/15%20Timeline%20Infographic.png"
+    "path": "/icons/all-icons/PNG%20Files/15%20Timeline%20Infographic.png"
   },
   {
     "id": "infographic/16-leaf-infographic",
     "name": "16 Leaf Infographic",
     "pack": "infographic",
     "kind": "png",
-    "path": "/all-icons/PNG%20Files/16%20Leaf%20Infographic.png"
+    "path": "/icons/all-icons/PNG%20Files/16%20Leaf%20Infographic.png"
   },
   {
     "id": "infographic/17-hexagonal-infographic",
     "name": "17 Hexagonal Infographic",
     "pack": "infographic",
     "kind": "png",
-    "path": "/all-icons/PNG%20Files/17%20Hexagonal%20Infographic.png"
+    "path": "/icons/all-icons/PNG%20Files/17%20Hexagonal%20Infographic.png"
   },
   {
     "id": "infographic/18-timeline-infographic",
     "name": "18 Timeline Infographic",
     "pack": "infographic",
     "kind": "png",
-    "path": "/all-icons/PNG%20Files/18%20Timeline%20Infographic.png"
+    "path": "/icons/all-icons/PNG%20Files/18%20Timeline%20Infographic.png"
   },
   {
     "id": "infographic/19-globe-infographic",
     "name": "19 Globe Infographic",
     "pack": "infographic",
     "kind": "png",
-    "path": "/all-icons/PNG%20Files/19%20Globe%20Infographic.png"
+    "path": "/icons/all-icons/PNG%20Files/19%20Globe%20Infographic.png"
   },
   {
     "id": "infographic/20-funnel-infographic",
     "name": "20 Funnel Infographic",
     "pack": "infographic",
     "kind": "png",
-    "path": "/all-icons/PNG%20Files/20%20Funnel%20Infographic.png"
+    "path": "/icons/all-icons/PNG%20Files/20%20Funnel%20Infographic.png"
   },
   {
     "id": "insurance-3d/calculator",
     "name": "calculator",
     "pack": "insurance-3d",
     "kind": "png",
-    "path": "/all-icons/Insurance%203D%20Icons/PNG/calculator.png"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/PNG/calculator.png"
   },
   {
     "id": "insurance-3d/calculator-2",
     "name": "calculator",
     "pack": "insurance-3d",
     "kind": "svg",
-    "path": "/all-icons/Insurance%203D%20Icons/SVG/calculator.svg"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/SVG/calculator.svg"
   },
   {
     "id": "insurance-3d/calendar",
     "name": "calendar",
     "pack": "insurance-3d",
     "kind": "png",
-    "path": "/all-icons/Insurance%203D%20Icons/PNG/calendar.png"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/PNG/calendar.png"
   },
   {
     "id": "insurance-3d/calendar-2",
     "name": "calendar",
     "pack": "insurance-3d",
     "kind": "svg",
-    "path": "/all-icons/Insurance%203D%20Icons/SVG/calendar.svg"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/SVG/calendar.svg"
   },
   {
     "id": "insurance-3d/card",
     "name": "card",
     "pack": "insurance-3d",
     "kind": "png",
-    "path": "/all-icons/Insurance%203D%20Icons/PNG/card.png"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/PNG/card.png"
   },
   {
     "id": "insurance-3d/card-2",
     "name": "card",
     "pack": "insurance-3d",
     "kind": "svg",
-    "path": "/all-icons/Insurance%203D%20Icons/SVG/card.svg"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/SVG/card.svg"
   },
   {
     "id": "insurance-3d/chart-report",
     "name": "chart report",
     "pack": "insurance-3d",
     "kind": "png",
-    "path": "/all-icons/Insurance%203D%20Icons/PNG/chart%20report.png"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/PNG/chart%20report.png"
   },
   {
     "id": "insurance-3d/chart-report-2",
     "name": "chart report",
     "pack": "insurance-3d",
     "kind": "svg",
-    "path": "/all-icons/Insurance%203D%20Icons/SVG/chart%20report.svg"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/SVG/chart%20report.svg"
   },
   {
     "id": "insurance-3d/forcast",
     "name": "Forcast",
     "pack": "insurance-3d",
     "kind": "png",
-    "path": "/all-icons/Insurance%203D%20Icons/PNG/Forcast.png"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/PNG/Forcast.png"
   },
   {
     "id": "insurance-3d/forcast-2",
     "name": "Forcast",
     "pack": "insurance-3d",
     "kind": "svg",
-    "path": "/all-icons/Insurance%203D%20Icons/SVG/Forcast.svg"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/SVG/Forcast.svg"
   },
   {
     "id": "insurance-3d/graduation",
     "name": "graduation",
     "pack": "insurance-3d",
     "kind": "png",
-    "path": "/all-icons/Insurance%203D%20Icons/PNG/graduation.png"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/PNG/graduation.png"
   },
   {
     "id": "insurance-3d/graduation-2",
     "name": "graduation",
     "pack": "insurance-3d",
     "kind": "svg",
-    "path": "/all-icons/Insurance%203D%20Icons/SVG/graduation.svg"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/SVG/graduation.svg"
   },
   {
     "id": "insurance-3d/house",
     "name": "house",
     "pack": "insurance-3d",
     "kind": "png",
-    "path": "/all-icons/Insurance%203D%20Icons/PNG/house.png"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/PNG/house.png"
   },
   {
     "id": "insurance-3d/house-2",
     "name": "house",
     "pack": "insurance-3d",
     "kind": "svg",
-    "path": "/all-icons/Insurance%203D%20Icons/SVG/house.svg"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/SVG/house.svg"
   },
   {
     "id": "insurance-3d/law",
     "name": "law",
     "pack": "insurance-3d",
     "kind": "png",
-    "path": "/all-icons/Insurance%203D%20Icons/PNG/law.png"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/PNG/law.png"
   },
   {
     "id": "insurance-3d/law-2",
     "name": "law",
     "pack": "insurance-3d",
     "kind": "svg",
-    "path": "/all-icons/Insurance%203D%20Icons/SVG/law.svg"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/SVG/law.svg"
   },
   {
     "id": "insurance-3d/life-guard",
     "name": "Life guard",
     "pack": "insurance-3d",
     "kind": "png",
-    "path": "/all-icons/Insurance%203D%20Icons/PNG/Life%20guard.png"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/PNG/Life%20guard.png"
   },
   {
     "id": "insurance-3d/life-guard-2",
     "name": "Life guard",
     "pack": "insurance-3d",
     "kind": "svg",
-    "path": "/all-icons/Insurance%203D%20Icons/SVG/Life%20guard.svg"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/SVG/Life%20guard.svg"
   },
   {
     "id": "insurance-3d/megaphone",
     "name": "megaphone",
     "pack": "insurance-3d",
     "kind": "png",
-    "path": "/all-icons/Insurance%203D%20Icons/PNG/megaphone.png"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/PNG/megaphone.png"
   },
   {
     "id": "insurance-3d/megaphone-2",
     "name": "megaphone",
     "pack": "insurance-3d",
     "kind": "svg",
-    "path": "/all-icons/Insurance%203D%20Icons/SVG/megaphone.svg"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/SVG/megaphone.svg"
   },
   {
     "id": "insurance-3d/money",
     "name": "money",
     "pack": "insurance-3d",
     "kind": "png",
-    "path": "/all-icons/Insurance%203D%20Icons/PNG/money.png"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/PNG/money.png"
   },
   {
     "id": "insurance-3d/money-2",
     "name": "money",
     "pack": "insurance-3d",
     "kind": "svg",
-    "path": "/all-icons/Insurance%203D%20Icons/SVG/money.svg"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/SVG/money.svg"
   },
   {
     "id": "insurance-3d/money-growth",
     "name": "money growth",
     "pack": "insurance-3d",
     "kind": "png",
-    "path": "/all-icons/Insurance%203D%20Icons/PNG/money%20growth.png"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/PNG/money%20growth.png"
   },
   {
     "id": "insurance-3d/money-growth-2",
     "name": "money growth",
     "pack": "insurance-3d",
     "kind": "svg",
-    "path": "/all-icons/Insurance%203D%20Icons/SVG/money%20growth.svg"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/SVG/money%20growth.svg"
   },
   {
     "id": "insurance-3d/money-value",
     "name": "money value",
     "pack": "insurance-3d",
     "kind": "png",
-    "path": "/all-icons/Insurance%203D%20Icons/PNG/money%20value.png"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/PNG/money%20value.png"
   },
   {
     "id": "insurance-3d/money-value-2",
     "name": "money value",
     "pack": "insurance-3d",
     "kind": "svg",
-    "path": "/all-icons/Insurance%203D%20Icons/SVG/money%20value.svg"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/SVG/money%20value.svg"
   },
   {
     "id": "insurance-3d/package",
     "name": "Package",
     "pack": "insurance-3d",
     "kind": "png",
-    "path": "/all-icons/Insurance%203D%20Icons/PNG/Package.png"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/PNG/Package.png"
   },
   {
     "id": "insurance-3d/package-2",
     "name": "Package",
     "pack": "insurance-3d",
     "kind": "svg",
-    "path": "/all-icons/Insurance%203D%20Icons/SVG/Package.svg"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/SVG/Package.svg"
   },
   {
     "id": "insurance-3d/report",
     "name": "report",
     "pack": "insurance-3d",
     "kind": "png",
-    "path": "/all-icons/Insurance%203D%20Icons/PNG/report.png"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/PNG/report.png"
   },
   {
     "id": "insurance-3d/report-2",
     "name": "report",
     "pack": "insurance-3d",
     "kind": "svg",
-    "path": "/all-icons/Insurance%203D%20Icons/SVG/report.svg"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/SVG/report.svg"
   },
   {
     "id": "insurance-3d/safety",
     "name": "safety",
     "pack": "insurance-3d",
     "kind": "png",
-    "path": "/all-icons/Insurance%203D%20Icons/PNG/safety.png"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/PNG/safety.png"
   },
   {
     "id": "insurance-3d/safety-2",
     "name": "safety",
     "pack": "insurance-3d",
     "kind": "svg",
-    "path": "/all-icons/Insurance%203D%20Icons/SVG/safety.svg"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/SVG/safety.svg"
   },
   {
     "id": "insurance-3d/security",
     "name": "security",
     "pack": "insurance-3d",
     "kind": "png",
-    "path": "/all-icons/Insurance%203D%20Icons/PNG/security.png"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/PNG/security.png"
   },
   {
     "id": "insurance-3d/security-2",
     "name": "security",
     "pack": "insurance-3d",
     "kind": "svg",
-    "path": "/all-icons/Insurance%203D%20Icons/SVG/security.svg"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/SVG/security.svg"
   },
   {
     "id": "insurance-3d/sheild",
     "name": "sheild",
     "pack": "insurance-3d",
     "kind": "png",
-    "path": "/all-icons/Insurance%203D%20Icons/PNG/sheild.png"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/PNG/sheild.png"
   },
   {
     "id": "insurance-3d/sheild-2",
     "name": "sheild",
     "pack": "insurance-3d",
     "kind": "svg",
-    "path": "/all-icons/Insurance%203D%20Icons/SVG/sheild.svg"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/SVG/sheild.svg"
   },
   {
     "id": "insurance-3d/target",
     "name": "Target",
     "pack": "insurance-3d",
     "kind": "png",
-    "path": "/all-icons/Insurance%203D%20Icons/PNG/Target.png"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/PNG/Target.png"
   },
   {
     "id": "insurance-3d/target-2",
     "name": "Target",
     "pack": "insurance-3d",
     "kind": "svg",
-    "path": "/all-icons/Insurance%203D%20Icons/SVG/Target.svg"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/SVG/Target.svg"
   },
   {
     "id": "insurance-3d/time",
     "name": "time",
     "pack": "insurance-3d",
     "kind": "png",
-    "path": "/all-icons/Insurance%203D%20Icons/PNG/time.png"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/PNG/time.png"
   },
   {
     "id": "insurance-3d/time-2",
     "name": "time",
     "pack": "insurance-3d",
     "kind": "svg",
-    "path": "/all-icons/Insurance%203D%20Icons/SVG/time.svg"
+    "path": "/icons/all-icons/Insurance%203D%20Icons/SVG/time.svg"
   },
   {
     "id": "marketing-3d/advertising-analytics",
     "name": "Advertising Analytics",
     "pack": "marketing-3d",
     "kind": "png",
-    "path": "/all-icons/digital-marketing-3d-icon-2026-02-24-01-50-02-utc/Advertising%20Analytics.png"
+    "path": "/icons/all-icons/digital-marketing-3d-icon-2026-02-24-01-50-02-utc/Advertising%20Analytics.png"
   },
   {
     "id": "marketing-3d/billboard",
     "name": "Billboard",
     "pack": "marketing-3d",
     "kind": "png",
-    "path": "/all-icons/digital-marketing-3d-icon-2026-02-24-01-50-02-utc/Billboard.png"
+    "path": "/icons/all-icons/digital-marketing-3d-icon-2026-02-24-01-50-02-utc/Billboard.png"
   },
   {
     "id": "marketing-3d/boost-ads",
     "name": "Boost Ads",
     "pack": "marketing-3d",
     "kind": "png",
-    "path": "/all-icons/digital-marketing-3d-icon-2026-02-24-01-50-02-utc/Boost%20Ads.png"
+    "path": "/icons/all-icons/digital-marketing-3d-icon-2026-02-24-01-50-02-utc/Boost%20Ads.png"
   },
   {
     "id": "marketing-3d/content-marketing",
     "name": "Content Marketing",
     "pack": "marketing-3d",
     "kind": "png",
-    "path": "/all-icons/digital-marketing-3d-icon-2026-02-24-01-50-02-utc/Content%20Marketing.png"
+    "path": "/icons/all-icons/digital-marketing-3d-icon-2026-02-24-01-50-02-utc/Content%20Marketing.png"
   },
   {
     "id": "marketing-3d/marketing-schedule",
     "name": "Marketing Schedule",
     "pack": "marketing-3d",
     "kind": "png",
-    "path": "/all-icons/digital-marketing-3d-icon-2026-02-24-01-50-02-utc/Marketing%20Schedule.png"
+    "path": "/icons/all-icons/digital-marketing-3d-icon-2026-02-24-01-50-02-utc/Marketing%20Schedule.png"
   },
   {
     "id": "marketing-3d/marketing-startegies",
     "name": "Marketing Startegies",
     "pack": "marketing-3d",
     "kind": "png",
-    "path": "/all-icons/digital-marketing-3d-icon-2026-02-24-01-50-02-utc/Marketing%20Startegies.png"
+    "path": "/icons/all-icons/digital-marketing-3d-icon-2026-02-24-01-50-02-utc/Marketing%20Startegies.png"
   },
   {
     "id": "marketing-3d/social-media-marketing",
     "name": "Social Media Marketing",
     "pack": "marketing-3d",
     "kind": "png",
-    "path": "/all-icons/digital-marketing-3d-icon-2026-02-24-01-50-02-utc/Social%20Media%20Marketing.png"
+    "path": "/icons/all-icons/digital-marketing-3d-icon-2026-02-24-01-50-02-utc/Social%20Media%20Marketing.png"
   },
   {
     "id": "marketing-3d/television-advertising",
     "name": "Television Advertising",
     "pack": "marketing-3d",
     "kind": "png",
-    "path": "/all-icons/digital-marketing-3d-icon-2026-02-24-01-50-02-utc/Television%20Advertising.png"
+    "path": "/icons/all-icons/digital-marketing-3d-icon-2026-02-24-01-50-02-utc/Television%20Advertising.png"
   },
   {
     "id": "marketing-3d/user-engagement",
     "name": "User Engagement",
     "pack": "marketing-3d",
     "kind": "png",
-    "path": "/all-icons/digital-marketing-3d-icon-2026-02-24-01-50-02-utc/User%20Engagement.png"
+    "path": "/icons/all-icons/digital-marketing-3d-icon-2026-02-24-01-50-02-utc/User%20Engagement.png"
   },
   {
     "id": "marketing-3d/web-ads",
     "name": "Web ads",
     "pack": "marketing-3d",
     "kind": "png",
-    "path": "/all-icons/digital-marketing-3d-icon-2026-02-24-01-50-02-utc/Web%20ads.png"
+    "path": "/icons/all-icons/digital-marketing-3d-icon-2026-02-24-01-50-02-utc/Web%20ads.png"
   },
   {
     "id": "security/access-control",
     "name": "access_control",
     "pack": "security",
     "kind": "png",
-    "path": "/all-icons/PNG/access_control.png"
+    "path": "/icons/all-icons/PNG/access_control.png"
   },
   {
     "id": "security/backup-recovery",
     "name": "backup_recovery",
     "pack": "security",
     "kind": "png",
-    "path": "/all-icons/PNG/backup_recovery.png"
+    "path": "/icons/all-icons/PNG/backup_recovery.png"
   },
   {
     "id": "security/biometric-authentification",
     "name": "biometric_authentification",
     "pack": "security",
     "kind": "png",
-    "path": "/all-icons/PNG/biometric_authentification.png"
+    "path": "/icons/all-icons/PNG/biometric_authentification.png"
   },
   {
     "id": "security/cyber-security-training",
     "name": "cyber_security_training",
     "pack": "security",
     "kind": "png",
-    "path": "/all-icons/PNG/cyber_security_training.png"
+    "path": "/icons/all-icons/PNG/cyber_security_training.png"
   },
   {
     "id": "security/cyber-threat-intelligence",
     "name": "cyber_threat_intelligence",
     "pack": "security",
     "kind": "png",
-    "path": "/all-icons/PNG/cyber_threat_intelligence.png"
+    "path": "/icons/all-icons/PNG/cyber_threat_intelligence.png"
   },
   {
     "id": "security/darkweb-monitoring",
     "name": "darkweb_monitoring",
     "pack": "security",
     "kind": "png",
-    "path": "/all-icons/PNG/darkweb_monitoring.png"
+    "path": "/icons/all-icons/PNG/darkweb_monitoring.png"
   },
   {
     "id": "security/data-encrypt",
     "name": "data_encrypt",
     "pack": "security",
     "kind": "png",
-    "path": "/all-icons/PNG/data_encrypt.png"
+    "path": "/icons/all-icons/PNG/data_encrypt.png"
   },
   {
     "id": "security/data-protection",
     "name": "data_protection",
     "pack": "security",
     "kind": "png",
-    "path": "/all-icons/PNG/data_protection.png"
+    "path": "/icons/all-icons/PNG/data_protection.png"
   },
   {
     "id": "security/ddos-attack-prevention",
     "name": "ddos_attack_prevention",
     "pack": "security",
     "kind": "png",
-    "path": "/all-icons/PNG/ddos_attack_prevention.png"
+    "path": "/icons/all-icons/PNG/ddos_attack_prevention.png"
   },
   {
     "id": "security/digital-forensic",
     "name": "digital_forensic",
     "pack": "security",
     "kind": "png",
-    "path": "/all-icons/PNG/digital_forensic.png"
+    "path": "/icons/all-icons/PNG/digital_forensic.png"
   },
   {
     "id": "security/firewall",
     "name": "firewall",
     "pack": "security",
     "kind": "png",
-    "path": "/all-icons/PNG/firewall.png"
+    "path": "/icons/all-icons/PNG/firewall.png"
   },
   {
     "id": "security/identity-theft-protection",
     "name": "identity_theft_protection",
     "pack": "security",
     "kind": "png",
-    "path": "/all-icons/PNG/identity_theft_protection.png"
+    "path": "/icons/all-icons/PNG/identity_theft_protection.png"
   },
   {
     "id": "security/incident-response",
     "name": "incident_response",
     "pack": "security",
     "kind": "png",
-    "path": "/all-icons/PNG/incident_response.png"
+    "path": "/icons/all-icons/PNG/incident_response.png"
   },
   {
     "id": "security/insider-threat-prevention",
     "name": "insider_threat_prevention",
     "pack": "security",
     "kind": "png",
-    "path": "/all-icons/PNG/insider_threat_prevention.png"
+    "path": "/icons/all-icons/PNG/insider_threat_prevention.png"
   },
   {
     "id": "security/malware-detection",
     "name": "malware_detection",
     "pack": "security",
     "kind": "png",
-    "path": "/all-icons/PNG/malware_detection.png"
+    "path": "/icons/all-icons/PNG/malware_detection.png"
   },
   {
     "id": "security/multifactor-authentication",
     "name": "Multifactor_authentication",
     "pack": "security",
     "kind": "png",
-    "path": "/all-icons/PNG/Multifactor_authentication.png"
+    "path": "/icons/all-icons/PNG/Multifactor_authentication.png"
   },
   {
     "id": "security/network-monitoring",
     "name": "network_monitoring",
     "pack": "security",
     "kind": "png",
-    "path": "/all-icons/PNG/network_monitoring.png"
+    "path": "/icons/all-icons/PNG/network_monitoring.png"
   },
   {
     "id": "security/password-management",
     "name": "password_management",
     "pack": "security",
     "kind": "png",
-    "path": "/all-icons/PNG/password_management.png"
+    "path": "/icons/all-icons/PNG/password_management.png"
   },
   {
     "id": "security/penetration-test",
     "name": "penetration_test",
     "pack": "security",
     "kind": "png",
-    "path": "/all-icons/PNG/penetration_test.png"
+    "path": "/icons/all-icons/PNG/penetration_test.png"
   },
   {
     "id": "security/phising-alert",
     "name": "phising_alert",
     "pack": "security",
     "kind": "png",
-    "path": "/all-icons/PNG/phising_alert.png"
+    "path": "/icons/all-icons/PNG/phising_alert.png"
   },
   {
     "id": "security/ransomware-protection",
     "name": "ransomware_protection",
     "pack": "security",
     "kind": "png",
-    "path": "/all-icons/PNG/ransomware_protection.png"
+    "path": "/icons/all-icons/PNG/ransomware_protection.png"
   },
   {
     "id": "security/secure-cloud-storage",
     "name": "secure_cloud_storage",
     "pack": "security",
     "kind": "png",
-    "path": "/all-icons/PNG/secure_cloud_storage.png"
+    "path": "/icons/all-icons/PNG/secure_cloud_storage.png"
   },
   {
     "id": "security/secure-payment",
     "name": "secure_payment",
     "pack": "security",
     "kind": "png",
-    "path": "/all-icons/PNG/secure_payment.png"
+    "path": "/icons/all-icons/PNG/secure_payment.png"
   },
   {
     "id": "security/secure-vpn",
     "name": "secure_vpn",
     "pack": "security",
     "kind": "png",
-    "path": "/all-icons/PNG/secure_vpn.png"
+    "path": "/icons/all-icons/PNG/secure_vpn.png"
   },
   {
     "id": "security/security-patch-update",
     "name": "security_patch_update",
     "pack": "security",
     "kind": "png",
-    "path": "/all-icons/PNG/security_patch_update.png"
+    "path": "/icons/all-icons/PNG/security_patch_update.png"
   },
   {
     "id": "security/zero-trust",
     "name": "zero_trust",
     "pack": "security",
     "kind": "png",
-    "path": "/all-icons/PNG/zero_trust.png"
+    "path": "/icons/all-icons/PNG/zero_trust.png"
   },
   {
     "id": "seo/analysis",
     "name": "Analysis",
     "pack": "seo",
     "kind": "model3d",
-    "path": "/all-icons/SEO%202/FBX/Analysis.fbx"
+    "path": "/icons/all-icons/SEO%202/FBX/Analysis.fbx"
   },
   {
     "id": "seo/analysis-2",
     "name": "Analysis 2",
     "pack": "seo",
     "kind": "model3d",
-    "path": "/all-icons/SEO%202/FBX/Analysis%202.fbx"
+    "path": "/icons/all-icons/SEO%202/FBX/Analysis%202.fbx"
   },
   {
     "id": "seo/analysis-2-2",
     "name": "Analysis 2",
     "pack": "seo",
     "kind": "model3d",
-    "path": "/all-icons/SEO%202/GLB/Analysis%202.glb"
+    "path": "/icons/all-icons/SEO%202/GLB/Analysis%202.glb"
   },
   {
     "id": "seo/analysis-2-3",
     "name": "Analysis 2",
     "pack": "seo",
     "kind": "model3d",
-    "path": "/all-icons/SEO%202/OBJ/Analysis%202.obj"
+    "path": "/icons/all-icons/SEO%202/OBJ/Analysis%202.obj"
   },
   {
     "id": "seo/analysis-2-4",
     "name": "Analysis 2",
     "pack": "seo",
     "kind": "png",
-    "path": "/all-icons/SEO%202/PNG/V1/Analysis%202.png"
+    "path": "/icons/all-icons/SEO%202/PNG/V1/Analysis%202.png"
   },
   {
     "id": "seo/analysis-2-5",
     "name": "Analysis 2",
     "pack": "seo",
     "kind": "png",
-    "path": "/all-icons/SEO%202/PNG/V2/Analysis%202.png"
+    "path": "/icons/all-icons/SEO%202/PNG/V2/Analysis%202.png"
   },
   {
     "id": "seo/analysis-3",
     "name": "Analysis",
     "pack": "seo",
     "kind": "model3d",
-    "path": "/all-icons/SEO%202/GLB/Analysis.glb"
+    "path": "/icons/all-icons/SEO%202/GLB/Analysis.glb"
   },
   {
     "id": "seo/analysis-4",
     "name": "Analysis",
     "pack": "seo",
     "kind": "model3d",
-    "path": "/all-icons/SEO%202/OBJ/Analysis.obj"
+    "path": "/icons/all-icons/SEO%202/OBJ/Analysis.obj"
   },
   {
     "id": "seo/analysis-5",
     "name": "Analysis",
     "pack": "seo",
     "kind": "png",
-    "path": "/all-icons/SEO%202/PNG/V1/Analysis.png"
+    "path": "/icons/all-icons/SEO%202/PNG/V1/Analysis.png"
   },
   {
     "id": "seo/analysis-6",
     "name": "Analysis",
     "pack": "seo",
     "kind": "png",
-    "path": "/all-icons/SEO%202/PNG/V2/Analysis.png"
+    "path": "/icons/all-icons/SEO%202/PNG/V2/Analysis.png"
   },
   {
     "id": "seo/bell-alarm",
     "name": "Bell Alarm",
     "pack": "seo",
     "kind": "model3d",
-    "path": "/all-icons/SEO%202/FBX/Bell%20Alarm.fbx"
+    "path": "/icons/all-icons/SEO%202/FBX/Bell%20Alarm.fbx"
   },
   {
     "id": "seo/bell-alarm-2",
     "name": "Bell Alarm",
     "pack": "seo",
     "kind": "model3d",
-    "path": "/all-icons/SEO%202/GLB/Bell%20Alarm.glb"
+    "path": "/icons/all-icons/SEO%202/GLB/Bell%20Alarm.glb"
   },
   {
     "id": "seo/bell-alarm-3",
     "name": "Bell Alarm",
     "pack": "seo",
     "kind": "model3d",
-    "path": "/all-icons/SEO%202/OBJ/Bell%20Alarm.obj"
+    "path": "/icons/all-icons/SEO%202/OBJ/Bell%20Alarm.obj"
   },
   {
     "id": "seo/bell-alarm-4",
     "name": "Bell Alarm",
     "pack": "seo",
     "kind": "png",
-    "path": "/all-icons/SEO%202/PNG/V1/Bell%20Alarm.png"
+    "path": "/icons/all-icons/SEO%202/PNG/V1/Bell%20Alarm.png"
   },
   {
     "id": "seo/bell-alarm-5",
     "name": "Bell Alarm",
     "pack": "seo",
     "kind": "png",
-    "path": "/all-icons/SEO%202/PNG/V2/Bell%20Alarm.png"
+    "path": "/icons/all-icons/SEO%202/PNG/V2/Bell%20Alarm.png"
   },
   {
     "id": "seo/case-study",
     "name": "Case Study",
     "pack": "seo",
     "kind": "model3d",
-    "path": "/all-icons/SEO%202/FBX/Case%20Study.fbx"
+    "path": "/icons/all-icons/SEO%202/FBX/Case%20Study.fbx"
   },
   {
     "id": "seo/case-study-2",
     "name": "Case Study",
     "pack": "seo",
     "kind": "model3d",
-    "path": "/all-icons/SEO%202/GLB/Case%20Study.glb"
+    "path": "/icons/all-icons/SEO%202/GLB/Case%20Study.glb"
   },
   {
     "id": "seo/case-study-3",
     "name": "Case Study",
     "pack": "seo",
     "kind": "model3d",
-    "path": "/all-icons/SEO%202/OBJ/Case%20Study.obj"
+    "path": "/icons/all-icons/SEO%202/OBJ/Case%20Study.obj"
   },
   {
     "id": "seo/case-study-4",
     "name": "Case Study",
     "pack": "seo",
     "kind": "png",
-    "path": "/all-icons/SEO%202/PNG/V1/Case%20Study.png"
+    "path": "/icons/all-icons/SEO%202/PNG/V1/Case%20Study.png"
   },
   {
     "id": "seo/case-study-5",
     "name": "Case Study",
     "pack": "seo",
     "kind": "png",
-    "path": "/all-icons/SEO%202/PNG/V2/Case%20Study.png"
+    "path": "/icons/all-icons/SEO%202/PNG/V2/Case%20Study.png"
   },
   {
     "id": "seo/content-management",
     "name": "Content Management",
     "pack": "seo",
     "kind": "model3d",
-    "path": "/all-icons/SEO%202/FBX/Content%20Management.fbx"
+    "path": "/icons/all-icons/SEO%202/FBX/Content%20Management.fbx"
   },
   {
     "id": "seo/content-management-2",
     "name": "Content Management",
     "pack": "seo",
     "kind": "model3d",
-    "path": "/all-icons/SEO%202/GLB/Content%20Management.glb"
+    "path": "/icons/all-icons/SEO%202/GLB/Content%20Management.glb"
   },
   {
     "id": "seo/content-management-3",
     "name": "Content Management",
     "pack": "seo",
     "kind": "model3d",
-    "path": "/all-icons/SEO%202/OBJ/Content%20Management.obj"
+    "path": "/icons/all-icons/SEO%202/OBJ/Content%20Management.obj"
   },
   {
     "id": "seo/content-management-4",
     "name": "Content Management",
     "pack": "seo",
     "kind": "png",
-    "path": "/all-icons/SEO%202/PNG/V1/Content%20Management.png"
+    "path": "/icons/all-icons/SEO%202/PNG/V1/Content%20Management.png"
   },
   {
     "id": "seo/content-management-5",
     "name": "Content Management",
     "pack": "seo",
     "kind": "png",
-    "path": "/all-icons/SEO%202/PNG/V2/Content%20Management.png"
+    "path": "/icons/all-icons/SEO%202/PNG/V2/Content%20Management.png"
   },
   {
     "id": "seo/contest",
     "name": "Contest",
     "pack": "seo",
     "kind": "model3d",
-    "path": "/all-icons/SEO%202/FBX/Contest.fbx"
+    "path": "/icons/all-icons/SEO%202/FBX/Contest.fbx"
   },
   {
     "id": "seo/contest-2",
     "name": "Contest",
     "pack": "seo",
     "kind": "model3d",
-    "path": "/all-icons/SEO%202/GLB/Contest.glb"
+    "path": "/icons/all-icons/SEO%202/GLB/Contest.glb"
   },
   {
     "id": "seo/contest-3",
     "name": "Contest",
     "pack": "seo",
     "kind": "model3d",
-    "path": "/all-icons/SEO%202/OBJ/Contest.obj"
+    "path": "/icons/all-icons/SEO%202/OBJ/Contest.obj"
   },
   {
     "id": "seo/contest-4",
     "name": "Contest",
     "pack": "seo",
     "kind": "png",
-    "path": "/all-icons/SEO%202/PNG/V1/Contest.png"
+    "path": "/icons/all-icons/SEO%202/PNG/V1/Contest.png"
   },
   {
     "id": "seo/contest-5",
     "name": "Contest",
     "pack": "seo",
     "kind": "png",
-    "path": "/all-icons/SEO%202/PNG/V2/Contest.png"
+    "path": "/icons/all-icons/SEO%202/PNG/V2/Contest.png"
   },
   {
     "id": "seo/copywriting",
     "name": "Copywriting",
     "pack": "seo",
     "kind": "model3d",
-    "path": "/all-icons/SEO%202/FBX/Copywriting.fbx"
+    "path": "/icons/all-icons/SEO%202/FBX/Copywriting.fbx"
   },
   {
     "id": "seo/copywriting-2",
     "name": "Copywriting",
     "pack": "seo",
     "kind": "model3d",
-    "path": "/all-icons/SEO%202/GLB/Copywriting.glb"
+    "path": "/icons/all-icons/SEO%202/GLB/Copywriting.glb"
   },
   {
     "id": "seo/copywriting-3",
     "name": "Copywriting",
     "pack": "seo",
     "kind": "model3d",
-    "path": "/all-icons/SEO%202/OBJ/Copywriting.obj"
+    "path": "/icons/all-icons/SEO%202/OBJ/Copywriting.obj"
   },
   {
     "id": "seo/copywriting-4",
     "name": "Copywriting",
     "pack": "seo",
     "kind": "png",
-    "path": "/all-icons/SEO%202/PNG/V1/Copywriting.png"
+    "path": "/icons/all-icons/SEO%202/PNG/V1/Copywriting.png"
   },
   {
     "id": "seo/copywriting-5",
     "name": "Copywriting",
     "pack": "seo",
     "kind": "png",
-    "path": "/all-icons/SEO%202/PNG/V2/Copywriting.png"
+    "path": "/icons/all-icons/SEO%202/PNG/V2/Copywriting.png"
   },
   {
     "id": "seo/creative",
     "name": "Creative",
     "pack": "seo",
     "kind": "model3d",
-    "path": "/all-icons/SEO%202/FBX/Creative.fbx"
+    "path": "/icons/all-icons/SEO%202/FBX/Creative.fbx"
   },
   {
     "id": "seo/creative-2",
     "name": "Creative",
     "pack": "seo",
     "kind": "model3d",
-    "path": "/all-icons/SEO%202/GLB/Creative.glb"
+    "path": "/icons/all-icons/SEO%202/GLB/Creative.glb"
   },
   {
     "id": "seo/creative-3",
     "name": "Creative",
     "pack": "seo",
     "kind": "model3d",
-    "path": "/all-icons/SEO%202/OBJ/Creative.obj"
+    "path": "/icons/all-icons/SEO%202/OBJ/Creative.obj"
   },
   {
     "id": "seo/creative-4",
     "name": "Creative",
     "pack": "seo",
     "kind": "png",
-    "path": "/all-icons/SEO%202/PNG/V1/Creative.png"
+    "path": "/icons/all-icons/SEO%202/PNG/V1/Creative.png"
   },
   {
     "id": "seo/creative-5",
     "name": "Creative",
     "pack": "seo",
     "kind": "png",
-    "path": "/all-icons/SEO%202/PNG/V2/Creative.png"
+    "path": "/icons/all-icons/SEO%202/PNG/V2/Creative.png"
   },
   {
     "id": "seo/likes",
     "name": "Likes",
     "pack": "seo",
     "kind": "model3d",
-    "path": "/all-icons/SEO%202/FBX/Likes.fbx"
+    "path": "/icons/all-icons/SEO%202/FBX/Likes.fbx"
   },
   {
     "id": "seo/likes-2",
     "name": "Likes",
     "pack": "seo",
     "kind": "model3d",
-    "path": "/all-icons/SEO%202/GLB/Likes.glb"
+    "path": "/icons/all-icons/SEO%202/GLB/Likes.glb"
   },
   {
     "id": "seo/likes-3",
     "name": "Likes",
     "pack": "seo",
     "kind": "model3d",
-    "path": "/all-icons/SEO%202/OBJ/Likes.obj"
+    "path": "/icons/all-icons/SEO%202/OBJ/Likes.obj"
   },
   {
     "id": "seo/likes-4",
     "name": "Likes",
     "pack": "seo",
     "kind": "png",
-    "path": "/all-icons/SEO%202/PNG/V1/Likes.png"
+    "path": "/icons/all-icons/SEO%202/PNG/V1/Likes.png"
   },
   {
     "id": "seo/likes-5",
     "name": "Likes",
     "pack": "seo",
     "kind": "png",
-    "path": "/all-icons/SEO%202/PNG/V2/Likes.png"
+    "path": "/icons/all-icons/SEO%202/PNG/V2/Likes.png"
   },
   {
     "id": "seo/message",
     "name": "Message",
     "pack": "seo",
     "kind": "model3d",
-    "path": "/all-icons/SEO%202/FBX/Message.fbx"
+    "path": "/icons/all-icons/SEO%202/FBX/Message.fbx"
   },
   {
     "id": "seo/message-2",
     "name": "Message",
     "pack": "seo",
     "kind": "model3d",
-    "path": "/all-icons/SEO%202/GLB/Message.glb"
+    "path": "/icons/all-icons/SEO%202/GLB/Message.glb"
   },
   {
     "id": "seo/message-3",
     "name": "Message",
     "pack": "seo",
     "kind": "model3d",
-    "path": "/all-icons/SEO%202/OBJ/Message.obj"
+    "path": "/icons/all-icons/SEO%202/OBJ/Message.obj"
   },
   {
     "id": "seo/message-4",
     "name": "Message",
     "pack": "seo",
     "kind": "png",
-    "path": "/all-icons/SEO%202/PNG/V1/Message.png"
+    "path": "/icons/all-icons/SEO%202/PNG/V1/Message.png"
   },
   {
     "id": "seo/message-5",
     "name": "Message",
     "pack": "seo",
     "kind": "png",
-    "path": "/all-icons/SEO%202/PNG/V2/Message.png"
+    "path": "/icons/all-icons/SEO%202/PNG/V2/Message.png"
   },
   {
     "id": "strategy-3d/1-calendar",
     "name": "1_Calendar",
     "pack": "strategy-3d",
     "kind": "png",
-    "path": "/all-icons/marketing-strategy-3d-icons-2026-02-24-04-17-01-utc/1_Calendar.png"
+    "path": "/icons/all-icons/marketing-strategy-3d-icons-2026-02-24-04-17-01-utc/1_Calendar.png"
   },
   {
     "id": "strategy-3d/10-computer",
     "name": "10_Computer",
     "pack": "strategy-3d",
     "kind": "png",
-    "path": "/all-icons/marketing-strategy-3d-icons-2026-02-24-04-17-01-utc/10_Computer.png"
+    "path": "/icons/all-icons/marketing-strategy-3d-icons-2026-02-24-04-17-01-utc/10_Computer.png"
   },
   {
     "id": "strategy-3d/2-rocket",
     "name": "2_Rocket",
     "pack": "strategy-3d",
     "kind": "png",
-    "path": "/all-icons/marketing-strategy-3d-icons-2026-02-24-04-17-01-utc/2_Rocket.png"
+    "path": "/icons/all-icons/marketing-strategy-3d-icons-2026-02-24-04-17-01-utc/2_Rocket.png"
   },
   {
     "id": "strategy-3d/3-wallet",
     "name": "3_Wallet",
     "pack": "strategy-3d",
     "kind": "png",
-    "path": "/all-icons/marketing-strategy-3d-icons-2026-02-24-04-17-01-utc/3_Wallet.png"
+    "path": "/icons/all-icons/marketing-strategy-3d-icons-2026-02-24-04-17-01-utc/3_Wallet.png"
   },
   {
     "id": "strategy-3d/4-gear",
     "name": "4_Gear",
     "pack": "strategy-3d",
     "kind": "png",
-    "path": "/all-icons/marketing-strategy-3d-icons-2026-02-24-04-17-01-utc/4_Gear.png"
+    "path": "/icons/all-icons/marketing-strategy-3d-icons-2026-02-24-04-17-01-utc/4_Gear.png"
   },
   {
     "id": "strategy-3d/5-search",
     "name": "5_Search",
     "pack": "strategy-3d",
     "kind": "png",
-    "path": "/all-icons/marketing-strategy-3d-icons-2026-02-24-04-17-01-utc/5_Search.png"
+    "path": "/icons/all-icons/marketing-strategy-3d-icons-2026-02-24-04-17-01-utc/5_Search.png"
   },
   {
     "id": "strategy-3d/6-poster",
     "name": "6_Poster",
     "pack": "strategy-3d",
     "kind": "png",
-    "path": "/all-icons/marketing-strategy-3d-icons-2026-02-24-04-17-01-utc/6_Poster.png"
+    "path": "/icons/all-icons/marketing-strategy-3d-icons-2026-02-24-04-17-01-utc/6_Poster.png"
   },
   {
     "id": "strategy-3d/7-dollar-coin",
     "name": "7_Dollar Coin",
     "pack": "strategy-3d",
     "kind": "png",
-    "path": "/all-icons/marketing-strategy-3d-icons-2026-02-24-04-17-01-utc/7_Dollar%20Coin.png"
+    "path": "/icons/all-icons/marketing-strategy-3d-icons-2026-02-24-04-17-01-utc/7_Dollar%20Coin.png"
   },
   {
     "id": "strategy-3d/8-monitor",
     "name": "8_Monitor",
     "pack": "strategy-3d",
     "kind": "png",
-    "path": "/all-icons/marketing-strategy-3d-icons-2026-02-24-04-17-01-utc/8_Monitor.png"
+    "path": "/icons/all-icons/marketing-strategy-3d-icons-2026-02-24-04-17-01-utc/8_Monitor.png"
   },
   {
     "id": "strategy-3d/9-paper",
     "name": "9_Paper",
     "pack": "strategy-3d",
     "kind": "png",
-    "path": "/all-icons/marketing-strategy-3d-icons-2026-02-24-04-17-01-utc/9_Paper.png"
+    "path": "/icons/all-icons/marketing-strategy-3d-icons-2026-02-24-04-17-01-utc/9_Paper.png"
   }
 ];

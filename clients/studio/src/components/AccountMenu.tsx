@@ -38,20 +38,20 @@ export function AccountMenu({ size = 28 }: { size?: number }) {
         <Divider />
 
         <MenuItem onClick={toggle}>
-          <ListItemIcon sx={{ color: 'text.secondary' }}>{mode === 'dark' ? icon('M12 2v2M12 20v2M4.9 4.9l1.4 1.4M2 12h2M20 12h2M5 19l1.4-1.4M12 8a4 4 0 100 8 4 4 0 000-8z') : icon('M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z')}</ListItemIcon>
+          <ListItemIcon sx={{ color: 'text.secondary' }}><Icon name={mode === 'dark' ? 'sun' : 'moon'} size={17} /></ListItemIcon>
           <Typography sx={{ flex: 1, fontSize: text.s90 }}>{mode === 'dark' ? 'Light theme' : 'Dark theme'}</Typography>
           <Switch size="small" checked={mode === 'light'} />
         </MenuItem>
 
         <MenuItem onClick={() => { setAnchor(null); navigate('/plans'); }}>
-          <ListItemIcon sx={{ color: 'text.secondary' }}>{icon('M3 10h18M3 6h18v12H3zM7 15h2')}</ListItemIcon>
+          <ListItemIcon sx={{ color: 'text.secondary' }}><Icon name="wallet" size={17} /></ListItemIcon>
           <Typography sx={{ fontSize: text.s90 }}>Billing & wallet</Typography>
         </MenuItem>
 
         <Divider />
         {user && (
           <MenuItem onClick={() => { setAnchor(null); void signOut(); }}>
-            <ListItemIcon sx={{ color: 'error.main' }}>{icon('M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9')}</ListItemIcon>
+            <ListItemIcon sx={{ color: 'error.main' }}><Icon name="external" size={17} /></ListItemIcon>
             <Typography sx={{ fontSize: text.s90, color: 'error.main' }}>Sign out</Typography>
           </MenuItem>
         )}

@@ -40,24 +40,28 @@ function DocGlyph({ kind, size = 32 }: { kind: Attachment['kind']; size?: number
   return <Icon name={name} size={size} strokeWidth={1.5} />;
 }
 
-// An empty-state drop zone — large, calm, action-ready.
+// An empty-state drop zone — tight, calm, action-ready (sized to content).
 function EmptyDropZone({ onClick }: { onClick: () => void }) {
   return (
     <GlassPanel
       interactive
-      pad={6}
-      sx={{ textAlign: 'center', border: '1.5px dashed', borderColor: 'divider', cursor: 'pointer' }}
+      pad={3}
+      sx={{ border: '1.5px dashed', borderColor: 'divider', cursor: 'pointer' }}
       onClick={onClick}
     >
-      <Box sx={{ color: 'text.disabled', mb: 2, display: 'flex', justifyContent: 'center' }}>
-        <Icon name="download" size={28} />
-      </Box>
-      <Typography sx={{ fontWeight: 700, fontSize: text.s95, mb: 0.75 }}>
-        Drop files here, or click to upload
-      </Typography>
-      <Typography sx={{ fontSize: text.s84, color: 'text.disabled' }}>
-        md, txt, json, csv, yaml, html, png, jpg — text files ground the chat.
-      </Typography>
+      <Stack direction="row" alignItems="center" spacing={1.75}>
+        <Box sx={{ color: 'text.disabled', display: 'flex' }}>
+          <Icon name="download" size={22} />
+        </Box>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography sx={{ fontWeight: 700, fontSize: text.s88 }}>
+            Drop files here, or click to upload
+          </Typography>
+          <Typography sx={{ fontSize: text.s80, color: 'text.disabled' }}>
+            md, txt, json, csv, yaml, html, png, jpg — text files ground the chat.
+          </Typography>
+        </Box>
+      </Stack>
     </GlassPanel>
   );
 }

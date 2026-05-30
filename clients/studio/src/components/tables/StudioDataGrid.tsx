@@ -37,16 +37,24 @@ function studioGridSx<TData extends object>(sx: DataGridProps<TData>['sx'], wrap
     '& .ag-root-wrapper': {
       border: wrapped ? 0 : `1px solid ${theme.palette.cardBorder}`,
       borderRadius: wrapped ? 0 : `${theme.studio.radius.sm}px`,
-      boxShadow: wrapped ? 'none' : '0 1px 2px rgba(17,24,39,0.04)',
+      boxShadow: wrapped ? 'none' : theme.shadows[1],
       overflow: 'hidden',
     },
     '& .ag-header': {
       borderBottomColor: theme.palette.divider,
+      backgroundColor: theme.palette.surfaceHover,
     },
     '& .ag-header-cell-label': {
       fontFamily: theme.brand.font.mono,
+      fontSize: 11,
+      letterSpacing: '0.04em',
+      textTransform: 'uppercase',
+      color: theme.palette.text.secondary,
     },
     '& .ag-cell': {
+      borderColor: theme.palette.borderSubtle,
+    },
+    '& .ag-row': {
       borderColor: theme.palette.borderSubtle,
     },
   });

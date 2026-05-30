@@ -18,13 +18,37 @@ export type StatCardProps = {
   sx?: GlassPanelProps['sx'];
 };
 
-// A calm KPI tile for dense product pages.
+// A calm, compact KPI tile for dense product pages. A colored top accent bar
+// (reference: the four economics stat-cards) names the metric's tone; the label
+// is mono/uppercase, the value large, and a delta or hint sits underneath.
 export function StatCard({ label, value, delta, hint, accent, icon, visual, onClick, sx }: StatCardProps) {
   return (
-    <GlassPanel accent={accent} interactive={!!onClick} pad={2.5} onClick={onClick} sx={sx}>
+    <GlassPanel
+      interactive={!!onClick}
+      pad={2}
+      onClick={onClick}
+      sx={[
+        (theme) => {
+          const tone = accent ?? theme.studio.neon.blue;
+          return {
+            overflow: 'hidden',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 3,
+              backgroundColor: tone,
+            },
+          };
+        },
+        ...(Array.isArray(sx) ? sx : sx ? [sx] : []),
+      ]}
+    >
       <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={1.5}>
         <Box sx={{ minWidth: 0 }}>
-          <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+          <Stack direction="row" alignItems="center" spacing={0.85} sx={{ mb: 0.85 }}>
             {icon && (
               <Box
                 aria-hidden
@@ -34,13 +58,12 @@ export function StatCard({ label, value, delta, hint, accent, icon, visual, onCl
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    width: 30,
-                    height: 30,
+                    width: 26,
+                    height: 26,
                     borderRadius: `${theme.studio.radius.sm}px`,
                     color: tone,
-                    fontSize: 16,
-                    backgroundColor: theme.palette.surfaceHover,
-                    border: `1px solid ${theme.palette.divider}`,
+                    fontSize: 15,
+                    backgroundColor: `${tone}14`,
                   };
                 }}
               >
@@ -50,8 +73,8 @@ export function StatCard({ label, value, delta, hint, accent, icon, visual, onCl
             <Typography
               sx={(theme) => ({
                 fontFamily: theme.brand.font.mono,
-                fontSize: '0.64rem',
-                letterSpacing: '0.12em',
+                fontSize: '0.62rem',
+                letterSpacing: '0.11em',
                 textTransform: 'uppercase',
                 color: 'text.disabled',
               })}
@@ -59,7 +82,7 @@ export function StatCard({ label, value, delta, hint, accent, icon, visual, onCl
               {label}
             </Typography>
           </Stack>
-          <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: 0, lineHeight: 1.1 }}>
+          <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: '-0.01em', lineHeight: 1.05 }}>
             {value}
           </Typography>
           {delta != null ? (

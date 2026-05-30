@@ -45,27 +45,28 @@ export function studioChartScaffold(theme: Theme): EChartsOption {
       borderWidth: 1,
       padding: [10, 12],
       textStyle: { color: theme.palette.text.primary, fontSize: 12 },
-      extraCssText: 'border-radius: 8px; box-shadow: 0 8px 24px rgba(17,24,39,0.08);',
+      extraCssText: `border-radius: ${theme.studio.radius.sm}px; box-shadow: ${theme.shadows[6]};`,
     },
     legend: {
       bottom: 0,
-      itemWidth: 9,
-      itemHeight: 9,
+      itemWidth: 8,
+      itemHeight: 8,
+      itemGap: 14,
       icon: 'circle',
       textStyle: { color: theme.palette.text.secondary, fontSize: 11, fontFamily: theme.typography.fontFamily },
     },
-    grid: { left: 36, right: 18, top: 30, bottom: 32, containLabel: true },
+    grid: { left: 28, right: 16, top: 24, bottom: 28, containLabel: true },
     xAxis: {
-      axisLabel: { color: theme.palette.text.disabled, fontSize: 10 },
+      axisLabel: { color: theme.palette.text.disabled, fontSize: 11, margin: 10 },
       axisLine: { lineStyle: { color: theme.palette.divider } },
       axisTick: { show: false },
-      splitLine: { lineStyle: { color: gridColor } },
+      splitLine: { show: false, lineStyle: { color: gridColor } },
     },
     yAxis: {
-      axisLabel: { color: theme.palette.text.disabled, fontSize: 10 },
+      axisLabel: { color: theme.palette.text.disabled, fontSize: 11 },
       axisLine: { show: false },
       axisTick: { show: false },
-      splitLine: { lineStyle: { color: gridColor } },
+      splitLine: { lineStyle: { color: gridColor, type: 'dashed' } },
     },
   };
 }
@@ -91,7 +92,7 @@ export function donutOption(
     centerLabel,
     centerColor,
     emptyLabel = 'No data',
-    radius = ['58%', '80%'],
+    radius = ['62%', '84%'],
   }: {
     data: StudioChartDatum[];
     centerLabel?: string;
@@ -102,28 +103,31 @@ export function donutOption(
 ): EChartsOption {
   const series = [...theme.studio.chart.series];
   const cleaned = data.filter((d) => d.value > 0);
+  const isEmpty = cleaned.length === 0;
   return {
     tooltip: { trigger: 'item' },
-    legend: { bottom: 0, type: cleaned.length > 5 ? 'scroll' : undefined },
+    legend: { bottom: 0, itemGap: 14, type: cleaned.length > 5 ? 'scroll' : undefined },
     series: [{
       type: 'pie',
       radius,
+      center: ['50%', '46%'],
       avoidLabelOverlap: true,
-      itemStyle: { borderColor: theme.palette.background.paper, borderWidth: 2 },
+      padAngle: isEmpty ? 0 : 2,
+      itemStyle: { borderColor: theme.palette.background.paper, borderWidth: 2, borderRadius: 3 },
       label: centerLabel
         ? {
             show: true,
             position: 'center',
             formatter: centerLabel,
-            color: centerColor ?? theme.palette.text.primary,
-            fontSize: 22,
-            lineHeight: 22,
+            color: isEmpty ? theme.palette.text.disabled : (centerColor ?? theme.palette.text.primary),
+            fontSize: 24,
+            lineHeight: 24,
             fontWeight: 800,
           }
         : { show: false },
-      data: cleaned.length
-        ? cleaned.map((d, index) => ({ value: d.value, name: d.name, itemStyle: { color: d.color ?? series[index % series.length] } }))
-        : [{ value: 1, name: emptyLabel, itemStyle: { color: theme.palette.action.hover } }],
+      data: isEmpty
+        ? [{ value: 1, name: emptyLabel, itemStyle: { color: theme.palette.action.hover } }]
+        : cleaned.map((d, index) => ({ value: d.value, name: d.name, itemStyle: { color: d.color ?? series[index % series.length] } })),
     }],
   };
 }
@@ -134,7 +138,7 @@ export function gaugeOption(
     value,
     color,
     formatter,
-    radius = '94%',
+    radius = '92%',
   }: {
     value: number;
     color?: string;
@@ -152,8 +156,9 @@ export function gaugeOption(
       min: 0,
       max: 100,
       radius,
-      progress: { show: true, width: 14, itemStyle: { color: tone } },
-      axisLine: { lineStyle: { width: 14, color: [[1, track]] } },
+      center: ['50%', '54%'],
+      progress: { show: true, width: 11, roundCap: true, itemStyle: { color: tone } },
+      axisLine: { roundCap: true, lineStyle: { width: 11, color: [[1, track]] } },
       axisTick: { show: false },
       splitLine: { show: false },
       axisLabel: { show: false },
@@ -163,7 +168,7 @@ export function gaugeOption(
         valueAnimation: true,
         formatter: formatter ?? '{value}%',
         color: tone,
-        fontSize: 30,
+        fontSize: 26,
         fontWeight: 800,
         offsetCenter: [0, 0],
       },
@@ -183,9 +188,11 @@ export function lineTrendOption(
   },
 ): EChartsOption {
   const tones = [...theme.studio.chart.series];
+  const single = series.length <= 1;
   return {
     tooltip: { trigger: 'axis' },
-    legend: { top: 0, right: 0, bottom: undefined },
+    legend: single ? { show: false } : { top: 0, right: 0, itemGap: 14, bottom: undefined },
+    grid: { top: single ? 12 : 28, bottom: 4 },
     xAxis: { type: 'category', boundaryGap: false, data: categories },
     yAxis: { type: 'value' },
     series: series.map((item, index) => {
@@ -193,11 +200,12 @@ export function lineTrendOption(
       return {
         name: item.name,
         type: 'line',
-        smooth: true,
+        smooth: 0.4,
         showSymbol: false,
-        lineStyle: { width: 2.5, color: tone },
+        symbolSize: 6,
+        lineStyle: { width: 2.25, color: tone },
         itemStyle: { color: tone },
-      areaStyle: item.area ? { opacity: 0.08, color: tone } : undefined,
+        areaStyle: item.area ? { opacity: 0.1, color: tone } : undefined,
         data: item.data,
       };
     }),
@@ -208,7 +216,7 @@ export function pieOption(
   theme: Theme,
   {
     data,
-    radius = '72%',
+    radius = '70%',
     roseType = false,
   }: {
     data: StudioChartDatum[];
@@ -220,7 +228,7 @@ export function pieOption(
   const cleaned = data.filter((d) => d.value > 0);
   return {
     tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
-    legend: { bottom: 0, type: cleaned.length > 6 ? 'scroll' : undefined },
+    legend: { bottom: 0, itemGap: 14, type: cleaned.length > 6 ? 'scroll' : undefined },
     series: [{
       type: 'pie',
       radius,
@@ -249,13 +257,14 @@ export function barOption(
   const tones = [...theme.studio.chart.series];
   return {
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-    legend: series.length > 1 ? { top: 0, right: 0 } : { show: false },
+    legend: series.length > 1 ? { top: 0, right: 0, itemGap: 14 } : { show: false },
+    grid: { top: series.length > 1 ? 28 : 12, bottom: 4 },
     xAxis: { type: 'category', data: categories },
     yAxis: { type: 'value' },
     series: series.map((s, si) => ({
       name: s.name,
       type: 'bar',
-      barMaxWidth: 28,
+      barMaxWidth: 26,
       itemStyle: { borderRadius: [4, 4, 0, 0], color: s.color ?? tones[si % tones.length] },
       data: multicolor && series.length === 1
         ? s.data.map((value, i) => ({ value, itemStyle: { color: tones[i % tones.length], borderRadius: [4, 4, 0, 0] } }))
@@ -277,14 +286,15 @@ export function stackedBarOption(
   const tones = [...theme.studio.chart.series];
   return {
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-    legend: { top: 0, right: 0 },
+    legend: { top: 0, right: 0, itemGap: 14 },
+    grid: { top: 28, bottom: 4 },
     xAxis: { type: 'category', data: categories },
     yAxis: { type: 'value' },
     series: series.map((s, si) => ({
       name: s.name,
       type: 'bar',
       stack: 'total',
-      barMaxWidth: 32,
+      barMaxWidth: 30,
       itemStyle: { color: s.color ?? tones[si % tones.length] },
       emphasis: { focus: 'series' },
       data: s.data,

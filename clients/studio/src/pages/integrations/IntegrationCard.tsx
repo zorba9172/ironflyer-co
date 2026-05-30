@@ -30,7 +30,7 @@ export function IntegrationCard(props: {
         position: 'relative',
         display: 'flex',
         flexDirection: 'column',
-        p: 3,
+        p: 2.5,
         backgroundColor: theme.palette.cardBg,
         border: `1px solid ${isOn ? theme.studio.neon.success : theme.palette.cardBorder}`,
         borderRadius: `${theme.studio.effect.card.radius}px`,
@@ -67,7 +67,7 @@ export function IntegrationCard(props: {
         </Box>
 
         <Box sx={{ minWidth: 0, flex: 1 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.15 }}>
+          <Typography variant="subtitle1" sx={(theme) => ({ fontWeight: theme.typography.fontWeightBold, lineHeight: 1.15 })}>
             {c.name}
           </Typography>
           <Typography
@@ -89,7 +89,7 @@ export function IntegrationCard(props: {
             label={status}
             sx={(theme) => ({
               height: 22,
-              fontWeight: 600,
+              fontWeight: theme.typography.fontWeightBold,
               textTransform: 'capitalize',
               color: passed ? theme.studio.neon.success : theme.studio.neon.warning,
               backgroundColor: 'transparent',
@@ -131,7 +131,7 @@ export function IntegrationCard(props: {
         startIcon={isOn ? <Icon name="check" size={16} strokeWidth={2.5} /> : <Icon name="add" size={16} strokeWidth={2.5} />}
         sx={(theme) => ({
           mt: 'auto',
-          fontWeight: 600,
+          fontWeight: theme.typography.fontWeightMedium,
           ...(isOn && {
             color: theme.studio.neon.success,
             borderColor: `${theme.studio.neon.success}55`,

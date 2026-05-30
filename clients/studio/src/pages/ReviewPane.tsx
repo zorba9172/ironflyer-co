@@ -7,7 +7,7 @@ import { PatchDiff } from '../components/PatchDiff';
 import { useLiveGates } from '../hooks/useLiveGates';
 import { agentForGate } from '../studioData';
 import type { Finding, Patch } from '../studioData';
-import { Icon, AssetImage } from '../icons';
+import { Icon } from '../icons';
 import { StudioChart, donutOption, barOption, type EChartsOption } from '../components/charts';
 import { GlassPanel, SectionHeader, StatCard } from '../components/studio';
 import { text } from '@ironflyer/design-tokens/brand';
@@ -99,6 +99,7 @@ export function ReviewPane() {
       centerLabel: proposed.length > 0 ? `${proposed.length}\nto review` : 'all\nreviewed',
       centerColor: proposed.length > 0 ? t.palette.warning.main : t.palette.success.main,
       emptyLabel: 'No patches',
+      radius: ['60%', '82%'],
     });
   }, [proposed.length, applied.length, t]);
 
@@ -158,38 +159,42 @@ export function ReviewPane() {
           }
         />
 
-        {/* Visual-first lead: patch-state donut + per-gate review bar + KPI rail */}
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '240px 1fr' }, gap: 1.5, mb: 1.5, alignItems: 'stretch' }}>
-          <GlassPanel pad={2.5}>
-            <Typography
-              sx={(th) => ({
-                fontFamily: th.brand.font.mono,
-                fontSize: text.s66,
-                textTransform: 'uppercase',
-                color: 'text.disabled',
-                mb: 0.5,
-              })}
-            >
-              Patch states
-            </Typography>
-            <StudioChart option={donut} height={200} />
-          </GlassPanel>
+        {/* Visual-first lead: only mount the donut + per-gate bar when there are
+            actually patches — an empty project would otherwise render two giant
+            faint boxes. When empty, the KPI rail below carries the state. */}
+        {patches.length > 0 && (
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '220px 1fr' }, gap: 1.5, mb: 1.5, alignItems: 'stretch' }}>
+            <GlassPanel pad={2} accent={proposed.length > 0 ? t.studio.neon.warning : t.studio.neon.success}>
+              <Typography
+                sx={(th) => ({
+                  fontFamily: th.brand.font.mono,
+                  fontSize: text.s66,
+                  textTransform: 'uppercase',
+                  color: 'text.disabled',
+                  mb: 0.5,
+                })}
+              >
+                Patch states
+              </Typography>
+              <StudioChart option={donut} height={200} />
+            </GlassPanel>
 
-          <GlassPanel pad={2.5}>
-            <Typography
-              sx={(th) => ({
-                fontFamily: th.brand.font.mono,
-                fontSize: text.s66,
-                textTransform: 'uppercase',
-                color: 'text.disabled',
-                mb: 0.5,
-              })}
-            >
-              Review queue by gate
-            </Typography>
-            <StudioChart option={byGate} height={200} />
-          </GlassPanel>
-        </Box>
+            <GlassPanel pad={2} accent={t.studio.neon.violet}>
+              <Typography
+                sx={(th) => ({
+                  fontFamily: th.brand.font.mono,
+                  fontSize: text.s66,
+                  textTransform: 'uppercase',
+                  color: 'text.disabled',
+                  mb: 0.5,
+                })}
+              >
+                Review queue by gate
+              </Typography>
+              <StudioChart option={byGate} height={200} />
+            </GlassPanel>
+          </Box>
+        )}
 
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(4, 1fr)' }, gap: 1.5, mb: 3 }}>
           <StatCard
@@ -236,10 +241,29 @@ export function ReviewPane() {
         </Typography>
 
         {ordered.length === 0 ? (
-          <GlassPanel pad={3} sx={{ textAlign: 'center' }}>
-            <Typography sx={{ color: 'text.disabled', fontSize: text.s90 }}>
-              No patches yet — run the finisher to generate reviewable changes.
-            </Typography>
+          <GlassPanel pad={2.5}>
+            <Stack direction="row" alignItems="center" spacing={1.5}>
+              <Box
+                sx={(th) => ({
+                  width: 34,
+                  height: 34,
+                  borderRadius: `${th.studio.radius.sm}px`,
+                  display: 'grid',
+                  placeItems: 'center',
+                  color: 'text.disabled',
+                  bgcolor: 'action.hover',
+                  flexShrink: 0,
+                })}
+              >
+                <Icon name="pullRequest" size={17} />
+              </Box>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography sx={{ fontWeight: 700, fontSize: text.s88 }}>No patches to review yet</Typography>
+                <Typography sx={{ color: 'text.secondary', fontSize: text.s80 }}>
+                  Run the finisher — reviewable changes from every gate land here, ready to inspect and apply.
+                </Typography>
+              </Box>
+            </Stack>
           </GlassPanel>
         ) : (
           <Stack spacing={1.25}>

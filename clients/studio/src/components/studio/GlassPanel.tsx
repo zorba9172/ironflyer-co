@@ -42,7 +42,7 @@ export const GlassPanel = forwardRef<HTMLDivElement, GlassPanelProps>(function G
               '&:hover': {
                 transform: 'translateY(-1px)',
                 borderColor: tone,
-                boxShadow: `0 8px 20px rgba(17,24,39,0.08)`,
+                boxShadow: theme.shadows[6],
               },
             }),
           };

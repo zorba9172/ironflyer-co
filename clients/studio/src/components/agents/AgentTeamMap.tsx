@@ -148,7 +148,7 @@ export function AgentTeamMap({ agents, gates, onEdit }: { agents: Agent[]; gates
   return (
     <Box
       sx={(t) => ({
-        height: { xs: 460, md: 600 },
+        height: { xs: 420, md: 480 },
         borderRadius: `${t.studio.radius.lg}px`,
         border: `1px solid ${t.palette.cardBorder}`,
         overflow: 'hidden',

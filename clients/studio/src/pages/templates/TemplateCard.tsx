@@ -1,15 +1,15 @@
 import { Box, Button, Chip, Stack, Typography } from '@mui/material';
-import { Icon, AssetImage } from '../../icons';
+import { Icon } from '../../icons';
 import { studioTokens } from '../../theme';
 import type { Template } from './data';
 
 // ─────────────────────────────────────────────────────────────────────────
-// TemplateCard — a single starter blueprint, rendered as one uniform glass
+// TemplateCard — a single starter blueprint, rendered as one uniform clean
 // proof surface (Component Law: soft border, 12–14px radius, hover lift). It
-// mirrors the home TemplateRail energy at full-page scale: a neon-washed
-// thumbnail carrying an illustrated 3D mark (AssetImage) with a blueprint glyph
-// (Icon), a readiness meter (viz-first), a gate proof chip, the stack line, and
-// a clear "Use template" CTA.
+// mirrors the home TemplateRail energy at full-page scale: a compact, flat 2D
+// blueprint thumbnail carrying the category glyph (Icon) on a calm accent wash
+// (no illustrated/3D art), a readiness meter (viz-first), a gate proof chip,
+// the stack line, and a clear "Use template" CTA.
 //
 // Interaction follows the Vercel guideline that hover/active raise contrast and
 // only touch GPU-cheap transform/opacity. The whole card is clickable; the CTA
@@ -58,28 +58,29 @@ export function TemplateCard(props: { template: Template; onUse: () => void }) {
         '&:hover .tpl-cta, &:focus-visible .tpl-cta': { opacity: 1 },
       })}
     >
-      {/* Thumbnail — neon-washed atmosphere + illustrated 3D mark + blueprint
-          glyph corner. No raw circles; the wash derives from the accent token. */}
+      {/* Thumbnail — a clean, flat 2D blueprint band: a calm accent wash + a
+          faint blueprint grid, with the category glyph as the centered mark.
+          No illustrated/3D art; the wash derives from the accent token. */}
       <Box
         aria-hidden
         sx={(theme) => ({
           position: 'relative',
-          height: 144,
+          height: 108,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           borderBottom: `1px solid ${theme.palette.divider}`,
-          background: `radial-gradient(120% 140% at 16% 0%, ${t.accent}26, transparent 62%), radial-gradient(120% 140% at 100% 100%, ${theme.studio.neon.pink}1F, transparent 60%)`,
+          background: `radial-gradient(120% 140% at 16% 0%, ${t.accent}22, transparent 62%), radial-gradient(120% 140% at 100% 100%, ${theme.studio.neon.pink}17, transparent 60%)`,
           overflow: 'hidden',
           '&::after': {
             content: '""',
             position: 'absolute',
             inset: 0,
             backgroundImage: `linear-gradient(to right, ${theme.studio.effect.gridLine} 1px, transparent 1px), linear-gradient(to bottom, ${theme.studio.effect.gridLine} 1px, transparent 1px)`,
-            backgroundSize: '34px 34px',
+            backgroundSize: '30px 30px',
             maskImage: `radial-gradient(80% 80% at 50% 40%, ${theme.palette.common.black}, transparent 78%)`,
             WebkitMaskImage: `radial-gradient(80% 80% at 50% 40%, ${theme.palette.common.black}, transparent 78%)`,
-            opacity: 0.7,
+            opacity: 0.6,
           },
         })}
       >
@@ -89,32 +90,18 @@ export function TemplateCard(props: { template: Template; onUse: () => void }) {
             position: 'relative',
             zIndex: 1,
             display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 52,
+            height: 52,
+            borderRadius: `${theme.studio.radius.md}px`,
+            color: t.accent,
+            backgroundColor: theme.palette.surfaceRaised,
+            border: `1px solid ${t.accent}3D`,
             transition: `transform ${theme.studio.motion.base}`,
           })}
         >
-          <AssetImage id={t.art} size={76} alt={`${t.name} template`} />
-        </Box>
-
-        {/* Blueprint glyph chip, top-left — the semantic mark for the category. */}
-        <Box
-          aria-hidden
-          sx={(theme) => ({
-            position: 'absolute',
-            top: 12,
-            left: 12,
-            zIndex: 1,
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 32,
-            height: 32,
-            borderRadius: `${theme.studio.radius.sm}px`,
-            color: t.accent,
-            backgroundColor: theme.palette.surfaceRaised,
-            border: `1px solid ${t.accent}40`,
-          })}
-        >
-          <Icon name={t.icon} size={17} strokeWidth={1.6} />
+          <Icon name={t.icon} size={24} strokeWidth={1.6} />
         </Box>
 
         {/* Ship-horizon tag, top-right. */}
@@ -124,10 +111,10 @@ export function TemplateCard(props: { template: Template; onUse: () => void }) {
           icon={<Icon name="zap" size={12} />}
           sx={(theme) => ({
             position: 'absolute',
-            top: 12,
-            right: 12,
+            top: 10,
+            right: 10,
             zIndex: 1,
-            height: 24,
+            height: 22,
             borderRadius: theme.studio.radius.pill,
             backgroundColor: theme.palette.surfaceRaised,
             border: `1px solid ${theme.palette.borderSubtle}`,
@@ -140,7 +127,7 @@ export function TemplateCard(props: { template: Template; onUse: () => void }) {
       </Box>
 
       {/* Body. */}
-      <Box sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 1.25, flex: 1 }}>
+      <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1.25, flex: 1 }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
           <Typography variant="h6">{t.name}</Typography>
           <Chip

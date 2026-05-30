@@ -160,6 +160,16 @@ export function PreviewWorkspace({ project }: { project: StudioProject }) {
   const { wallet } = useWallet();
   const { forecast, isLive: economicsLive } = useSentinelForecast(liveProjectId);
   const pg = deriveProfitGuard(forecast, wallet.availableUSD);
+  const selectGate = useStudio((s) => s.selectGate);
+
+  // "View all gates" drills into the most urgent gate's inspector: the first
+  // blocking gate, else the first gate — a real reviewable path, not a no-op.
+  const viewAllGates = () => {
+    const target = gates.find((g) => g.status === 'blocked')
+      ?? gates.find((g) => g.blocking)
+      ?? gates[0];
+    if (target) selectGate(target.id);
+  };
 
   // Readiness arc color: full green when everything closed, orange when open, red when blocked.
   const readinessColor = useMemo(() => {
@@ -217,15 +227,16 @@ export function PreviewWorkspace({ project }: { project: StudioProject }) {
           }
         />
 
-        {/* Readiness gauge */}
+        {/* Readiness gauge — the % lives inside the ring; the copy beside it
+            names what's still open rather than repeating the number. */}
         <GlassPanel pad={2} sx={{ mb: 2 }}>
-          <Stack direction="row" alignItems="center" spacing={2}>
+          <Stack direction="row" alignItems="center" spacing={1.5}>
             <Box sx={{ flexShrink: 0 }}>
               <GaugeRing
                 value={readiness}
                 color={readinessColor}
                 formatter="{value}%"
-                height={110}
+                height={104}
               />
             </Box>
             <Stack spacing={0.5} sx={{ flex: 1, minWidth: 0 }}>
@@ -240,16 +251,8 @@ export function PreviewWorkspace({ project }: { project: StudioProject }) {
               >
                 Readiness
               </Typography>
-              <Typography
-                sx={(t) => ({
-                  fontFamily: t.brand.font.mono,
-                  fontSize: text.s95,
-                  fontWeight: 700,
-                  color: readinessColor,
-                  lineHeight: 1,
-                })}
-              >
-                {readiness}%
+              <Typography variant="subtitle2" sx={{ color: readinessColor, lineHeight: 1.2 }}>
+                {open > 0 ? 'Blocking ship' : 'Ready to ship'}
               </Typography>
               <Typography sx={{ fontSize: text.s74, color: 'text.secondary' }}>
                 {open > 0
@@ -273,6 +276,7 @@ export function PreviewWorkspace({ project }: { project: StudioProject }) {
         {/* Definition of Done */}
         <DefinitionOfDone
           gates={gates}
+          onViewAll={viewAllGates}
           profitGuard={
             economicsLive
               ? {

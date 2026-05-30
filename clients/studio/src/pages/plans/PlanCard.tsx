@@ -43,7 +43,7 @@ export function PlanCard({ tier, onSelect }: { tier: PlanTier; onSelect: (name: 
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
-          p: 3,
+          p: 2.5,
           borderRadius: popular ? `${theme.studio.effect.card.radius - 2}px` : `${theme.studio.effect.card.radius}px`,
           backgroundColor: popular ? theme.palette.background.paper : theme.palette.cardBg,
           border: popular ? 'none' : `1px solid ${theme.palette.cardBorder}`,
@@ -112,7 +112,7 @@ export function PlanCard({ tier, onSelect }: { tier: PlanTier; onSelect: (name: 
           {credits}
         </Typography>
 
-        <Box sx={{ mt: 2.5, position: 'relative' }}>
+        <Box sx={{ mt: 2, position: 'relative' }}>
           <Button
             fullWidth
             variant={popular ? 'contained' : 'outlined'}
@@ -132,7 +132,7 @@ export function PlanCard({ tier, onSelect }: { tier: PlanTier; onSelect: (name: 
           </Button>
         </Box>
 
-        <Stack spacing={1.5} sx={{ mt: 3, position: 'relative' }}>
+        <Stack spacing={1.25} sx={{ mt: 2.5, position: 'relative' }}>
           {features.map((f) => (
             <Stack key={f} direction="row" spacing={1.25} alignItems="flex-start">
               <Box

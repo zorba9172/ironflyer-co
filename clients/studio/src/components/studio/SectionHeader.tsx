@@ -21,7 +21,7 @@ export function SectionHeader({ eyebrow, title, subtitle, actions, lead }: Secti
       justifyContent="space-between"
       flexWrap="wrap"
       useFlexGap
-      sx={{ gap: 2, mb: 2.5 }}
+      sx={{ gap: 2, mb: 2 }}
     >
       <Stack direction="row" alignItems="flex-start" spacing={1.5} sx={{ minWidth: 0 }}>
         {lead}

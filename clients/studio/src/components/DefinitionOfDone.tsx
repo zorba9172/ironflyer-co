@@ -1,4 +1,4 @@
-import { Box, LinearProgress, Stack, Typography } from '@mui/material';
+import { Box, Button, LinearProgress, Stack, Typography } from '@mui/material';
 import type { Gate, GateStatus } from '../studioData';
 import { statusColor } from './statusColor';
 import { GlassPanel } from './studio';
@@ -44,7 +44,7 @@ function pgStatus(v: ProfitGuardItem['verdict']): GateStatus {
   return v === 'allow' ? 'closed' : v === 'hold' ? 'open' : 'blocked';
 }
 
-export function DefinitionOfDone({ gates, profitGuard }: { gates: Gate[]; profitGuard?: ProfitGuardItem }) {
+export function DefinitionOfDone({ gates, profitGuard, onViewAll }: { gates: Gate[]; profitGuard?: ProfitGuardItem; onViewAll?: () => void }) {
   const gateItems = DOD_ITEMS.map((it) => ({ ...it, ...resolve(gates, it.gateIds) }));
   const items = profitGuard
     ? [
@@ -173,6 +173,20 @@ export function DefinitionOfDone({ gates, profitGuard }: { gates: Gate[]; profit
           );
         })}
       </Stack>
+
+      {onViewAll && (
+        <Box sx={{ mt: 2, pt: 1.5, borderTop: 1, borderColor: 'divider', textAlign: 'center' }}>
+          <Button
+            size="small"
+            color="primary"
+            onClick={onViewAll}
+            endIcon={<Icon name="arrowRight" size={14} />}
+            sx={{ textTransform: 'none', fontSize: text.s80, fontWeight: 600 }}
+          >
+            View all gates
+          </Button>
+        </Box>
+      )}
     </GlassPanel>
   );
 }

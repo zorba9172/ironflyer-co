@@ -49,9 +49,9 @@ export function PlansPage() {
     <Box sx={{ position: 'relative', overflow: 'hidden' }}>
       <AmbientBackdrop />
 
-      <Box sx={{ position: 'relative', zIndex: 1, px: { xs: 3, md: 6 }, py: { xs: 5, md: 8 }, maxWidth: 1240, mx: 'auto' }}>
+      <Box sx={{ position: 'relative', zIndex: 1, px: { xs: 3, md: 5 }, py: { xs: 4, md: 6 }, maxWidth: 1240, mx: 'auto' }}>
         {/* Headline — final phrase gradient-filled, per the locked formula. */}
-        <Stack alignItems="center" textAlign="center" spacing={2.5}>
+        <Stack alignItems="center" textAlign="center" spacing={2}>
           <Chip
             icon={<Icon name="sparkles" size={15} />}
             label="Prepaid wallet credits — no seats, no surprises"
@@ -97,10 +97,10 @@ export function PlansPage() {
         {/* Pricing grid — recommended tier highlighted with the gradient ring. */}
         <Box
           sx={{
-            mt: { xs: 4, md: 6 },
+            mt: { xs: 3.5, md: 5 },
             display: 'grid',
             gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', lg: 'repeat(4, 1fr)' },
-            gap: 2.5,
+            gap: 2,
             alignItems: 'stretch',
           }}
         >
@@ -114,7 +114,7 @@ export function PlansPage() {
         </Box>
 
         {/* Live wallet top-up — viz-first balance mirror + quick amounts. */}
-        <Box sx={{ mt: { xs: 4, md: 6 } }}>
+        <Box sx={{ mt: { xs: 3.5, md: 5 } }}>
           <WalletPanel
             wallet={wallet}
             isLive={isLive}

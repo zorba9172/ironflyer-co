@@ -19,14 +19,18 @@ function studioTableSx<TRow extends GridValidRowModel>(sx: DataTableProps<TRow>[
     borderRadius: wrapped ? 0 : `${theme.studio.radius.sm}px`,
     border: wrapped ? 0 : `1px solid ${theme.palette.cardBorder}`,
     bgcolor: 'cardBg',
-    boxShadow: wrapped ? 'none' : '0 1px 2px rgba(17,24,39,0.04)',
+    boxShadow: wrapped ? 'none' : theme.shadows[1],
     overflow: 'hidden',
     '& .MuiDataGrid-root': {
       bgcolor: 'transparent',
+      '--unstable_DataGrid-headWeight': 700,
     },
     '& .MuiDataGrid-columnHeaders': {
       bgcolor: 'surfaceHover',
       borderColor: 'divider',
+    },
+    '& .MuiDataGrid-columnSeparator': {
+      display: 'none',
     },
     '& .MuiDataGrid-row:hover': {
       bgcolor: 'surfaceHover',

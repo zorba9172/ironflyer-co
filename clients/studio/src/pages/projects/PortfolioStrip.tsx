@@ -53,11 +53,11 @@ export function PortfolioStrip(props: { counts: Record<StatusBucket, number>; to
       <Stack spacing={0.5} sx={{ flexShrink: 0 }}>
         <Typography
           variant="overline"
-          sx={(t) => ({ color: t.palette.text.disabled, letterSpacing: '0.12em', lineHeight: 1.4 })}
+          sx={(t) => ({ color: t.palette.text.disabled, lineHeight: 1.4 })}
         >
           Portfolio
         </Typography>
-        <Typography variant="h3" sx={{ fontWeight: 800, lineHeight: 1 }}>
+        <Typography variant="h3" sx={{ lineHeight: 1 }}>
           {total}
         </Typography>
         <Typography variant="body2" color="text.secondary">

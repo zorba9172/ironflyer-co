@@ -102,8 +102,9 @@ const entries = files
     let n = 2;
     while (seen.has(id)) id = `${pack}/${slug(name)}-${n++}`;
     seen.add(id);
-    // Served from the web root (vite serves public/ at "/").
-    const path = '/' + rel.split('/').map(encodeURIComponent).join('/');
+    // Served from the web root: vite serves public/ at "/", and these assets
+    // live under public/icons/, so the URL is "/icons/<rel>".
+    const path = '/icons/' + rel.split('/').map(encodeURIComponent).join('/');
     return { id, name, pack, kind, path };
   })
   .sort((a, b) => a.id.localeCompare(b.id));
