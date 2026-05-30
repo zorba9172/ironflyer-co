@@ -122,7 +122,7 @@ func (r *Redactor) ScrubBytes(input []byte) []byte {
 	})
 	values := make(map[string][]byte, len(names))
 	for _, n := range names {
-		values[n] = r.values[n]
+		values[n] = append([]byte(nil), r.values[n]...)
 	}
 	patterns := append([]*regexp.Regexp(nil), r.patterns...)
 	r.mu.RUnlock()

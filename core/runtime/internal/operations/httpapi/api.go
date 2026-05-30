@@ -20,14 +20,14 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/rs/zerolog"
 
-	"ironflyer/core/runtime/internal/operations/allocator"
 	"ironflyer/core/runtime/internal/customer/auth"
-	"ironflyer/core/runtime/internal/suppliers/mobile"
+	"ironflyer/core/runtime/internal/operations/allocator"
 	"ironflyer/core/runtime/internal/operations/patcher"
-	"ironflyer/core/runtime/internal/pkg/httputil"
 	"ironflyer/core/runtime/internal/operations/preview"
 	"ironflyer/core/runtime/internal/operations/quota"
 	"ironflyer/core/runtime/internal/operations/sandbox"
+	"ironflyer/core/runtime/internal/pkg/httputil"
+	"ironflyer/core/runtime/internal/suppliers/mobile"
 )
 
 // Options bundles the non-trivial knobs httpapi.New needs. Keeping them in
@@ -343,7 +343,7 @@ func (a *API) create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Persist the workspace row + claim ownership on this pod.
-	a.recordWorkspace(ctx, ws, ws.Root)
+	a.recordWorkspace(ctx, ws, ws.HostPath)
 	a.logger.Info().
 		Str("workspace", ws.ID).
 		Str("tenant", tenantID).
@@ -908,12 +908,12 @@ func (a *API) shareLink(w http.ResponseWriter, r *http.Request) {
 // Strategy: pick the first allowed forwarded port that responds to a
 // liveness probe, build the preview URL, and ask chromium-headless to
 // capture it. We support three execution paths in priority order:
-//   1. `chromium-headless` / `google-chrome --headless` inside the
-//      workspace — best fidelity, real font + JS render.
-//   2. `playwright-cli screenshot` when the workspace has it installed.
-//   3. Stub: an 8×8 placeholder PNG so the gate degrades to "size
-//      mismatch" rather than hard-failing. Surfaces the wiring problem
-//      via the standard gate flow.
+//  1. `chromium-headless` / `google-chrome --headless` inside the
+//     workspace — best fidelity, real font + JS render.
+//  2. `playwright-cli screenshot` when the workspace has it installed.
+//  3. Stub: an 8×8 placeholder PNG so the gate degrades to "size
+//     mismatch" rather than hard-failing. Surfaces the wiring problem
+//     via the standard gate flow.
 func (a *API) screenshot(w http.ResponseWriter, r *http.Request) {
 	ws, ok := a.requireWorkspace(w, r, chi.URLParam(r, "id"))
 	if !ok {

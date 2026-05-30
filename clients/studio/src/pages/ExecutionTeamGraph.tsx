@@ -1,10 +1,10 @@
-import { useCallback, useMemo } from 'react';
-import { Box, Chip, LinearProgress, Stack, Tooltip, Typography } from '@mui/material';
+import { useCallback, useMemo, useState } from 'react';
+import { Box, Button, Chip, LinearProgress, Stack, Tooltip, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { FlowCanvas, type FlowNode, type FlowEdge, type NodeMouseHandler, type HandleSpec } from '@ironflyer/ui-web/fx';
 import { useGraphQLQuery, operations } from '@ironflyer/data';
 import { formatUSD } from '@ironflyer/core';
-import { VscRobot, VscPlay, VscWand } from 'react-icons/vsc';
+import { Icon } from '../icons';
 import { statusColor, agentColor } from '../components/statusColor';
 import { nodePalette, type MapColors } from '../components/map/nodes';
 import { TechIcon } from '../lib/techIcons';
@@ -17,6 +17,11 @@ import { useStudio } from '../store';
 import { useLiveProjectId } from '../hooks/useLiveProjectId';
 import { useProjectExecutions } from '../hooks/useLatestExecution';
 import { useDispatchAgent } from '../hooks/useDispatchAgent';
+import { NeonConstellation3D } from '../components/studio';
+import { GlassPanel, StatCard } from '../components/studio';
+import { studioTokens } from '../theme';
+import { text } from '@ironflyer/design-tokens/brand';
+import type { Constellation3DNode, Constellation3DLink } from '@ironflyer/ui-web/fx';
 
 // Geometry — agents sit in a top lane, the gates they own sit beneath them in
 // the pipeline lane, and unowned cross-cutting agents anchor to the run itself.
@@ -33,17 +38,30 @@ const STATUS_TONE: Record<AgentStatus, string> = {
   idle: 'Idle', working: 'Working', blocked: 'Blocked', done: 'Done',
 };
 
+// Map agent status to a neon series color index from the studio chart palette
+// so the constellation always uses the locked neon arc, never raw values.
+const STATUS_IDX: Record<AgentStatus, number> = { working: 1, blocked: 6, done: 4, idle: 3 };
+
 // Live execution-team graph: the orchestrator's specialist roster rendered as
-// nodes colored by derived status, each tethered down into the finisher gate it
-// owns. The reading is "who is working, who is blocked, and what is not closed
-// end-to-end" — a visual mirror of the AI team, not a table.
-export function ExecutionTeamGraph({ project, onOpenGate }: { project: StudioProject; onOpenGate?: (gateId: string) => void }) {
+// either a living NeonConstellation3D (default glanceable mode) or the classic
+// FlowCanvas tether view. Both are mirrors of real gate state — who is working,
+// who is blocked, what is not closed end-to-end.
+export function ExecutionTeamGraph({
+  project,
+  onOpenGate,
+  constellationMode = false,
+}: {
+  project: StudioProject;
+  onOpenGate?: (gateId: string) => void;
+  constellationMode?: boolean;
+}) {
   const theme = useTheme();
   const c = useMemo(() => nodePalette(theme), [theme]);
   const selectGate = useStudio((s) => s.selectGate);
   const selectedGateId = useStudio((s) => s.selectedGateId);
   const customAgents = useStudio((s) => s.customAgents);
   const { dispatch } = useDispatchAgent();
+  const [viewMode, setViewMode] = useState<'constellation' | 'flow'>(constellationMode ? 'constellation' : 'flow');
 
   const firstProjectId = useLiveProjectId();
   const storeProjectId = useStudio((s) => s.liveProjectId);
@@ -58,8 +76,7 @@ export function ExecutionTeamGraph({ project, onOpenGate }: { project: StudioPro
   const { economics } = useProjectExecutions(liveProjectId);
 
   // Anchor `gates` to a content signature so identical polls keep the same
-  // reference and the graph stops rebuilding/re-fitting. Live data wins once
-  // seen; otherwise fall back to the project's mock gates.
+  // reference and the graph stops rebuilding/re-fitting.
   const liveSig = useMemo(() => liveGates.map((g) => `${g.id}|${g.status}|${g.blocking ? 1 : 0}`).join(';'), [liveGates]);
   const gates = useMemo(
     () => (liveGates.length > 0 ? liveGates : project.gates),
@@ -67,8 +84,7 @@ export function ExecutionTeamGraph({ project, onOpenGate }: { project: StudioPro
     [liveSig, project.gates],
   );
 
-  // The whole team = the built-in orchestrator roster + the operator's own
-  // agents. Status is derived from the gate each one owns.
+  // The whole team = the built-in orchestrator roster + the operator's own agents.
   const team = useMemo<Agent[]>(() => [...AGENTS, ...customAgents], [customAgents]);
   const gateIds = useMemo(() => new Set(gates.map((g) => g.id)), [gates]);
 
@@ -79,17 +95,80 @@ export function ExecutionTeamGraph({ project, onOpenGate }: { project: StudioPro
   }, [team, gates]);
   const blockedGates = gates.filter((g) => g.blocking);
 
-  // One content signature for everything the graph renders — the node builder
-  // runs only when this changes, so background polls don't churn React Flow.
+  // ── Constellation data ───────────────────────────────────────────────────
+  // Each agent is a node sized by activity level; gate nodes are smaller and
+  // positioned below. Links = ownership (agent→gate) and handoffs (agent→agent).
+  // Colors from the locked neon chart series so the 3D world matches the rest.
+  const series = theme.studio.chart.series as unknown as string[];
+
+  const constellationData = useMemo<{ nodes: Constellation3DNode[]; links: Constellation3DLink[] }>(() => {
+    const nodes: Constellation3DNode[] = [];
+    const links: Constellation3DLink[] = [];
+    const cols = team.length;
+    const spread = 3;
+
+    // Agent nodes — sized by status-derived activity
+    for (let i = 0; i < team.length; i++) {
+      const a = team[i]!;
+      const status = agentStatus(a, gates);
+      const colorIdx = STATUS_IDX[status];
+      const color = series[colorIdx % series.length];
+      const activity = status === 'working' ? 0.9 : status === 'done' ? 0.6 : status === 'blocked' ? 0.7 : 0.3;
+      const angle = (i / cols) * Math.PI * 2;
+      const r = 2.5;
+      nodes.push({
+        id: a.id,
+        value: activity,
+        color,
+        x: r * Math.cos(angle),
+        y: 1 + (status === 'working' ? 0.5 : 0),
+        z: r * Math.sin(angle),
+      });
+    }
+
+    // Gate nodes — smaller, layered below the agents
+    for (let i = 0; i < gates.length; i++) {
+      const g = gates[i]!;
+      const gColor = g.blocking ? series[6 % series.length] : series[4 % series.length];
+      const angle = (i / Math.max(gates.length, 1)) * Math.PI * 2;
+      const r = 1.5;
+      nodes.push({
+        id: `gate_${g.id}`,
+        value: g.level,
+        color: gColor,
+        x: r * Math.cos(angle) * spread * 0.4,
+        y: -1.2,
+        z: r * Math.sin(angle) * spread * 0.4,
+      });
+    }
+
+    // Agent → gate ownership links
+    for (const a of team) {
+      if (a.gateId && gateIds.has(a.gateId)) {
+        links.push({ source: a.id, target: `gate_${a.gateId}` });
+      }
+    }
+
+    // Handoff links (agent → agent)
+    for (const a of team) {
+      for (const to of a.handoffTo ?? []) {
+        if (team.some((x) => x.id === to)) {
+          links.push({ source: a.id, target: to });
+        }
+      }
+    }
+
+    return { nodes, links };
+  }, [team, gates, gateIds, series]);
+
+  // One content signature for everything the graph renders.
   const teamSig = team.map((a) => `${a.id}:${a.gateId ?? ''}:${agentStatus(a, gates)}`).join('|');
   const nodeSig = [liveSig || gates.map((g) => `${g.id}|${g.status}|${g.blocking ? 1 : 0}`).join(';'), teamSig].join('~');
 
   const onRun = useCallback((scope: string) => void dispatch(scope), [dispatch]);
 
+  // ── FlowCanvas nodes/edges (unchanged) ──────────────────────────────────
   const nodes = useMemo<FlowNode[]>(() => {
-    // Gates carry their owning agent's column so the tether reads as a vertical
-    // pair. Unowned agents (Orchestrator, Coder, custom-unassigned) anchor to
-    // the run node, columned after the gate-owners.
     const ownedGates = gates.filter((g) => team.some((a) => a.gateId === g.id));
     const gateCol = new Map<string, number>();
     ownedGates.forEach((g, i) => gateCol.set(g.id, i));
@@ -139,7 +218,6 @@ export function ExecutionTeamGraph({ project, onOpenGate }: { project: StudioPro
     };
 
     return [...laneNodes, ...agentNodes, ...gateNodes, runNode];
-    // Gated on the content signature so identical polls don't rebuild the graph.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodeSig, theme, c, onRun, economics.spentUSD, economics.budgetUSD]);
 
@@ -168,31 +246,116 @@ export function ExecutionTeamGraph({ project, onOpenGate }: { project: StudioPro
   };
 
   const total = team.length;
+  const open = blockedGates.length;
+
   return (
     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100%', bgcolor: 'background.default' }}>
+      {/* ── Header ─────────────────────────────────────────────────────── */}
       <Box sx={{ px: 3, py: 1.75, borderBottom: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
         <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1.25, flexWrap: 'wrap' }}>
-          <Typography variant="h5" sx={{ fontSize: '1.15rem' }}>Execution team graph</Typography>
-          <Chip size="small" label={isLive ? 'live' : 'sample data'} sx={(t) => ({ height: 20, fontSize: '0.62rem', fontFamily: t.brand.font.mono, bgcolor: isLive ? `${t.palette.success.main}22` : 'action.hover', color: isLive ? 'success.main' : 'text.disabled' })} />
-          <Box sx={{ flex: 1 }} />
-          <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>
-            {counts.working} working · {counts.blocked} blocked · {blockedGates.length} of {gates.length} gates open
+          <Typography variant="h5" sx={{ fontSize: text.s115 }}>
+            {viewMode === 'constellation' ? 'Execution team constellation' : 'Execution team flow'}
           </Typography>
+          <Chip
+            size="small"
+            label={isLive ? 'live' : 'sample data'}
+            sx={(t) => ({ height: 20, fontSize: text.s62, fontFamily: t.brand.font.mono, bgcolor: isLive ? `${t.palette.success.main}22` : 'action.hover', color: isLive ? 'success.main' : 'text.disabled' })}
+          />
+          <Box sx={{ flex: 1 }} />
+          <Typography sx={{ color: 'text.secondary', fontSize: text.s85 }}>
+            {counts.working} working · {counts.blocked} blocked · {open} of {gates.length} gates open
+          </Typography>
+          <Tooltip title={viewMode === 'constellation' ? 'Switch to flow canvas' : 'Switch to constellation view'} arrow>
+            <Button
+              size="small"
+              variant="outlined"
+              color="inherit"
+              onClick={() => setViewMode((v) => v === 'constellation' ? 'flow' : 'constellation')}
+              sx={(t) => ({
+                fontSize: text.s70,
+                borderColor: t.palette.divider,
+                '&:hover': { borderColor: t.studio.neon.blue },
+              })}
+            >
+              {viewMode === 'constellation' ? 'Flow view' : 'Constellation'}
+            </Button>
+          </Tooltip>
         </Stack>
         <LinearProgress
           variant="determinate"
           value={total ? Math.round((counts.done / total) * 100) : 0}
-          sx={{ height: 5, borderRadius: 99, bgcolor: 'action.hover', mb: 1.5, '& .MuiLinearProgress-bar': { borderRadius: 99, backgroundImage: (t) => t.brand.gradient.signature } }}
+          sx={{ height: 5, borderRadius: 99, bgcolor: 'action.hover', mb: 1.5, '& .MuiLinearProgress-bar': { borderRadius: 99, backgroundImage: (t) => t.studio.gradient.signature } }}
         />
         <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
           {(['working', 'blocked', 'idle', 'done'] as AgentStatus[]).map((s) => (
-            <Chip key={s} size="small" label={`${STATUS_TONE[s]} ${counts[s]}`} sx={(t) => ({ height: 22, fontSize: '0.66rem', fontFamily: t.brand.font.mono, bgcolor: `${agentColor(t, s)}22`, color: agentColor(t, s) })} />
+            <Chip key={s} size="small" label={`${STATUS_TONE[s]} ${counts[s]}`} sx={(t) => ({ height: 22, fontSize: text.s66, fontFamily: t.brand.font.mono, bgcolor: `${agentColor(t, s)}22`, color: agentColor(t, s) })} />
           ))}
         </Stack>
       </Box>
-      <Box sx={{ flex: 1, position: 'relative', minHeight: 0 }}>
-        <FlowCanvas nodes={nodes} edges={edges} onNodeClick={onNodeClick} minimap focusable focusId={selectedGateId ? `gate_${selectedGateId}` : undefined} />
-      </Box>
+
+      {/* ── Main content ────────────────────────────────────────────────── */}
+      {viewMode === 'constellation' ? (
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, p: 2, gap: 2 }}>
+          {/* 3D constellation — the living mirror of the AI team */}
+          <GlassPanel
+            accent={theme.studio.neon.violet}
+            sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+          >
+            <Typography
+              sx={(t) => ({
+                fontFamily: t.brand.font.mono,
+                fontSize: text.s62,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                color: 'text.disabled',
+                mb: 1,
+              })}
+            >
+              Agents · gates · handoffs — live
+            </Typography>
+            <Box sx={{ flex: 1, minHeight: 280 }}>
+              <NeonConstellation3D
+                nodes={constellationData.nodes}
+                links={constellationData.links}
+                height={420}
+                rotate
+              />
+            </Box>
+          </GlassPanel>
+
+          {/* Status cards rail */}
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(4, 1fr)' }, gap: 1.5 }}>
+            <StatCard
+              label="Working"
+              value={counts.working}
+              accent={studioTokens.neon.blue}
+              hint={`of ${total} agents`}
+            />
+            <StatCard
+              label="Blocked"
+              value={counts.blocked}
+              accent={counts.blocked > 0 ? studioTokens.neon.danger : studioTokens.neon.success}
+              hint={counts.blocked > 0 ? 'need action' : 'none blocked'}
+            />
+            <StatCard
+              label="Gates open"
+              value={open}
+              accent={open > 0 ? studioTokens.neon.warning : studioTokens.neon.success}
+              hint={`of ${gates.length} total`}
+            />
+            <StatCard
+              label="Spent"
+              value={formatUSD(economics.spentUSD)}
+              hint={`of ${formatUSD(economics.budgetUSD)}`}
+              accent={studioTokens.neon.violet}
+            />
+          </Box>
+        </Box>
+      ) : (
+        <Box sx={{ flex: 1, position: 'relative', minHeight: 0 }}>
+          <FlowCanvas nodes={nodes} edges={edges} onNodeClick={onNodeClick} minimap focusable focusId={selectedGateId ? `gate_${selectedGateId}` : undefined} />
+        </Box>
+      )}
     </Box>
   );
 }
@@ -201,7 +364,7 @@ function AgentNode({ a, status, color, c, onRun }: { a: Agent; status: AgentStat
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, textAlign: 'left', width: '100%' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <VscRobot size={13} color={color} />
+        <span style={{ display: 'inline-flex', color }}><Icon name="bot" size={13} /></span>
         <span style={{ fontFamily: c.mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', color }}>{STATUS_TONE[status].toUpperCase()}</span>
         <span style={{ flex: 1 }} />
         {a.custom && <span style={{ fontFamily: c.mono, fontSize: 8, color: c.muted }}>CUSTOM</span>}
@@ -211,8 +374,8 @@ function AgentNode({ a, status, color, c, onRun }: { a: Agent; status: AgentStat
       <Stack className="nodrag nopan" direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.25 }}>
         <Tooltip title={`Dispatch ${a.name || 'agent'}`} arrow>
           <Box component="span" role="button" onClick={(e) => { e.stopPropagation(); onRun(); }} sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, cursor: 'pointer', color: status === 'blocked' ? 'primary.main' : 'success.main' }}>
-            {status === 'blocked' ? <VscWand size={13} /> : <VscPlay size={13} />}
-            <Typography sx={{ fontSize: '0.66rem' }}>{status === 'blocked' ? 'Unblock' : 'Run'}</Typography>
+            <Icon name={status === 'blocked' ? 'wrench' : 'play'} size={13} />
+            <Typography sx={{ fontSize: text.s66 }}>{status === 'blocked' ? 'Unblock' : 'Run'}</Typography>
           </Box>
         </Tooltip>
       </Stack>

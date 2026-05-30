@@ -106,16 +106,20 @@ export interface ModelOption {
   note: string;
 }
 
+// Capability tiers, NOT vendor/model names. The orchestrator owns which
+// provider+model backs each tier; the studio never exposes a vendor to the
+// operator. `id` is an internal routing hint the router maps to a capability.
 export const MODEL_OPTIONS: ModelOption[] = [
-  { id: 'opus', label: 'Claude Opus 4.7', tier: 'Quality', note: 'Deep reasoning, planning, hard reviews. Priciest per token.' },
-  { id: 'sonnet', label: 'Claude Sonnet 4.6', tier: 'Balanced', note: 'The default for general build work.' },
-  { id: 'haiku', label: 'Claude Haiku 4.5', tier: 'Fast', note: 'Cheap, fast passes — inline checks, summaries.' },
+  { id: 'opus', label: 'Quality', tier: 'Max', note: 'Deepest reasoning, planning, and hard reviews. Highest cost per run.' },
+  { id: 'sonnet', label: 'Balanced', tier: 'Default', note: 'The default tier for general build work.' },
+  { id: 'haiku', label: 'Fast', tier: 'Lite', note: 'Cheap, fast passes — inline checks and summaries.' },
 ];
 
 export const MODEL_BY_ID: Record<string, ModelOption> = Object.fromEntries(MODEL_OPTIONS.map((m) => [m.id, m]));
 
 export function modelLabel(id?: string): string {
-  return id ? MODEL_BY_ID[id]?.label ?? id : 'Inherit from orchestrator';
+  if (!id) return 'Auto (orchestrator picks)';
+  return MODEL_BY_ID[id]?.label ?? 'Auto (orchestrator picks)';
 }
 
 // --- Guardrails (deny-by-default posture) ------------------------------

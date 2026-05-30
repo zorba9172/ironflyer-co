@@ -7,6 +7,7 @@ import { toast } from '@ironflyer/ui-web/fx';
 import { CREW_PROCESSES, type Agent, type AgentSchedule, type Crew } from '../../studioData';
 import { ScheduleEditor } from './ScheduleEditor';
 import { ProcessDiagram } from './ProcessDiagram';
+import { text } from '@ironflyer/design-tokens/brand';
 
 interface CrewBuilderProps {
   crew: Crew;
@@ -41,21 +42,21 @@ export function CrewBuilder({ crew, agents, exists, onClose, onSave }: CrewBuild
 
   return (
     <Dialog open onClose={onClose} maxWidth="sm" fullWidth slotProps={{ paper: { sx: { border: 1, borderColor: 'divider', backgroundImage: 'none' } } }}>
-      <DialogTitle sx={{ fontWeight: 700, fontSize: '1.05rem' }}>{exists ? 'Edit crew' : 'New crew'}</DialogTitle>
+      <DialogTitle sx={{ fontWeight: 700, fontSize: text.s105 }}>{exists ? 'Edit crew' : 'New crew'}</DialogTitle>
       <DialogContent dividers>
         <Stack spacing={2.5}>
           <TextField label="Name" value={draft.name} onChange={(e) => set('name', e.target.value)} fullWidth size="small" placeholder="Launch squad" autoFocus />
           <TextField label="Goal" value={draft.goal} onChange={(e) => set('goal', e.target.value)} fullWidth size="small" placeholder="The outcome this crew owns, in one line" />
 
           <Box>
-            <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary', mb: 0.75 }}>Process</Typography>
+            <Typography sx={{ fontSize: text.s80, color: 'text.secondary', mb: 0.75 }}>Process</Typography>
             <FormControl fullWidth size="small">
               <Select value={draft.process} onChange={(e) => set('process', e.target.value as Crew['process'])}>
                 {CREW_PROCESSES.map((p) => (
                   <MenuItem key={p.value} value={p.value}>
                     <Box>
-                      <Typography sx={{ fontSize: '0.86rem' }}>{p.label}</Typography>
-                      <Typography sx={{ fontSize: '0.72rem', color: 'text.disabled' }}>{p.desc}</Typography>
+                      <Typography sx={{ fontSize: text.s86 }}>{p.label}</Typography>
+                      <Typography sx={{ fontSize: text.s72, color: 'text.disabled' }}>{p.desc}</Typography>
                     </Box>
                   </MenuItem>
                 ))}
@@ -64,7 +65,7 @@ export function CrewBuilder({ crew, agents, exists, onClose, onSave }: CrewBuild
           </Box>
 
           <Box>
-            <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary', mb: 0.75 }}>Members ({draft.memberIds.length})</Typography>
+            <Typography sx={{ fontSize: text.s80, color: 'text.secondary', mb: 0.75 }}>Members ({draft.memberIds.length})</Typography>
             <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75 }}>
               {agents.map((a) => {
                 const on = draft.memberIds.includes(a.id);
@@ -101,14 +102,14 @@ export function CrewBuilder({ crew, agents, exists, onClose, onSave }: CrewBuild
 
           {draft.memberIds.length > 0 && (
             <Box sx={{ p: 2, borderRadius: 2, border: 1, borderColor: 'divider', bgcolor: 'background.default', overflowX: 'auto' }}>
-              <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.62rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 1.25 })}>Topology</Typography>
+              <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s62, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 1.25 })}>Topology</Typography>
               <ProcessDiagram process={draft.process} members={draft.memberIds.map(nameOf)} manager={draft.managerId ? nameOf(draft.managerId) : undefined} />
             </Box>
           )}
 
           <Divider />
           <Box>
-            <Typography sx={{ fontWeight: 600, fontSize: '0.95rem', mb: 1.5 }}>Schedule</Typography>
+            <Typography sx={{ fontWeight: 600, fontSize: text.s95, mb: 1.5 }}>Schedule</Typography>
             <ScheduleEditor schedule={draft.schedule ?? { mode: 'manual', enabled: true }} onChange={(s: AgentSchedule) => set('schedule', s)} />
           </Box>
         </Stack>

@@ -341,6 +341,36 @@ var (
 		Buckets: prometheus.ExponentialBuckets(60, 4, 12), // 1m → ~4w
 	})
 
+	// Cost cascade — the layered AI-cost-optimization front door. Every
+	// model call routes through progressively more expensive layers
+	// (rules → cache → knowledge → reflex → planning → reasoning); the
+	// cheapest layer that can answer wins. `layer` is the layer that
+	// resolved the request so the dashboard can plot the resolution
+	// distribution against the target mix (rules 60% / cache 20% /
+	// reflex 10% / planning 8% / reasoning 2%). The savings counter
+	// accumulates the estimated provider cost AVOIDED by a rules / cache
+	// hit (a call that never reached a model). The ratio gauge is live
+	// AI-cost-as-fraction-of-revenue; the aggression gauge is the
+	// self-tuning controller level [0,1] that climbs when the ratio
+	// breaches its target so caching / reuse / routing get more
+	// aggressive automatically.
+	cascadeLayerTotal = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "ironflyer_cost_cascade_layer_total",
+		Help: "Model-call requests resolved by the cost cascade, partitioned by the layer that answered (rules|cache|knowledge|reflex|planning|reasoning).",
+	}, []string{"layer"})
+	cascadeSavingsUSD = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "ironflyer_cost_cascade_savings_usd_total",
+		Help: "Estimated provider cost (USD) avoided by cost-cascade rules/cache hits that never reached a model.",
+	})
+	cascadeCostRatio = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "ironflyer_cost_cascade_cost_ratio",
+		Help: "Live AI cost as a fraction of revenue over the cascade's rolling window (target ceiling default 0.20).",
+	})
+	cascadeAggression = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "ironflyer_cost_cascade_aggression",
+		Help: "Self-tuning aggression level [0,1]; climbs toward 1 as the cost ratio breaches its target so the system caches/reuses/routes more aggressively.",
+	})
+
 	registry = prometheus.NewRegistry()
 )
 
@@ -363,6 +393,7 @@ func init() {
 		executionsStarted, executionsCompleted, walletHoldsActive, providerCostDollars,
 		walletReconcileRecovered, walletReconcileError,
 		authEvents, authMfaEnrolledUsers, authSessionAgeSeconds,
+		cascadeLayerTotal, cascadeSavingsUSD, cascadeCostRatio, cascadeAggression,
 		// Stock collectors — Go runtime + process stats.
 		prometheus.NewGoCollector(),
 		prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}),
@@ -838,4 +869,48 @@ func ObserveProviderCost(provider string, usd float64) {
 		provider = "unknown"
 	}
 	providerCostDollars.WithLabelValues(provider).Add(usd)
+}
+
+// ObserveCascadeLayer records that the cost cascade resolved one request
+// at `layer` (rules|cache|knowledge|reflex|planning|reasoning). Unknown
+// labels collapse to "reasoning" so a mislabelled call counts as the most
+// expensive tier rather than vanishing — the dashboard should over-state
+// cost, never under-state it.
+func ObserveCascadeLayer(layer string) {
+	switch layer {
+	case "rules", "cache", "knowledge", "reflex", "planning", "reasoning":
+	default:
+		layer = "reasoning"
+	}
+	cascadeLayerTotal.WithLabelValues(layer).Inc()
+}
+
+// AddCascadeSavings accumulates the estimated provider cost avoided by a
+// cascade rules/cache hit. Zero or negative amounts are ignored.
+func AddCascadeSavings(usd float64) {
+	if usd <= 0 {
+		return
+	}
+	cascadeSavingsUSD.Add(usd)
+}
+
+// SetCascadeCostRatio publishes the live AI-cost/revenue ratio. Negative
+// values are clamped to zero.
+func SetCascadeCostRatio(ratio float64) {
+	if ratio < 0 {
+		ratio = 0
+	}
+	cascadeCostRatio.Set(ratio)
+}
+
+// SetCascadeAggression publishes the self-tuning aggression level. Clamped
+// to [0,1].
+func SetCascadeAggression(level float64) {
+	if level < 0 {
+		level = 0
+	}
+	if level > 1 {
+		level = 1
+	}
+	cascadeAggression.Set(level)
 }

@@ -1,0 +1,39 @@
+# Test-coverage capability for USER projects. A project owner toggles coverage
+# on; the finisher's CoverageGate runs the project's own suite with coverage in
+# the sandbox and stores a normalized report. This surface exposes the toggle
+# and the latest report to the studio Coverage tab. (Unrelated to Ironflyer's
+# own "no tests" rule, which governs this repository only.)
+
+type FileCoverage {
+  path: String!
+  # 0..100 — line/statement coverage for this file.
+  linePct: Float!
+  # Count of uncovered lines/statements ("what is not closed" in this file).
+  uncovered: Int!
+}
+
+type CoverageReport {
+  projectID: ID!
+  # Whether the coverage capability is toggled on for this project.
+  enabled: Boolean!
+  # 0..100 overall line coverage from the latest run (0 when never run).
+  overallPct: Float!
+  # The project's coverage floor (0..100); 0 means report-only, never warn.
+  minPct: Float!
+  # Human label of the toolchain that produced the report (e.g. "go test -cover").
+  tool: String!
+  # Per-file breakdown, least-covered first.
+  files: [FileCoverage!]!
+  # When the latest report was produced; null when never run.
+  generatedAt: DateTime
+}
+
+extend type Query {
+  coverageReport(projectID: ID!): CoverageReport!
+}
+
+extend type Mutation {
+  # Toggle the coverage capability. minPct is optional; when provided it pins
+  # the project's overall-coverage floor.
+  setCoverageEnabled(projectID: ID!, enabled: Boolean!, minPct: Float): CoverageReport!
+}

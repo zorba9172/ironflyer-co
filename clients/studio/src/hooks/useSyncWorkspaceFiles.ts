@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { writeWorkspaceFile } from '@ironflyer/data';
+import { writeWorkspaceFile, useDataConfig } from '@ironflyer/data';
 import { useStudio } from '../store';
 
 // Streams the chat-generated files into the runtime workspace so generated code
@@ -10,6 +10,8 @@ import { useStudio } from '../store';
 // next rev bump and never blocks the others.
 export function useSyncWorkspaceFiles(projectId: string | undefined, ready: boolean) {
   const files = useStudio((s) => s.generatedFiles);
+  // Same JWT the IDE lookup uses — the runtime's file API is auth-gated too.
+  const { getToken } = useDataConfig();
   // path -> last rev successfully sent, scoped to the active projectId.
   const sent = useRef<{ projectId?: string; revs: Map<string, number> }>({
     projectId: undefined,
@@ -38,7 +40,7 @@ export function useSyncWorkspaceFiles(projectId: string | undefined, ready: bool
           break;
         }
         try {
-          await writeWorkspaceFile(projectId, f.path, f.content);
+          await writeWorkspaceFile(projectId, f.path, f.content, getToken?.());
           sent.current.revs.set(f.path, f.rev);
         } catch {
           // leave this path unmarked so it retries on the next rev bump
@@ -50,5 +52,5 @@ export function useSyncWorkspaceFiles(projectId: string | undefined, ready: bool
       cancelled = true;
       inFlight.current = false;
     };
-  }, [ready, projectId, files]);
+  }, [ready, projectId, files, getToken]);
 }

@@ -7,8 +7,8 @@ export type ChatStreamEvent =
   | { type: 'text'; text: string }
   | { type: 'thinking'; text: string }
   | { type: 'tool'; id: string; name: string; args: unknown }
-  | { type: 'finish'; costUSD?: number; model?: string }
-  | { type: 'error'; message: string };
+  | { type: 'finish'; costUSD?: number }
+  | { type: 'error'; code?: string; message: string };
 
 // Real chat against the orchestrator:
 //   1. createPaidExecution(projectID, budgetUSD) → execution id (reused per project)
@@ -44,7 +44,9 @@ export function useChatStream() {
     const res = await fetch(`${base}/executions/${encodeURIComponent(execId)}/chat/stream`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', accept: 'text/event-stream', ...(token ? { authorization: `Bearer ${token}` } : {}) },
-      body: JSON.stringify({ message, model: 'claude-opus-4-7' }),
+      // No model/provider hint — the orchestrator owns routing and speaks for
+      // every upstream vendor. The client never names or selects a provider.
+      body: JSON.stringify({ message }),
       signal,
     });
     if (!res.ok || !res.body) throw new Error(`chat stream failed: ${res.status}`);
@@ -81,12 +83,14 @@ export function useChatStream() {
             onEvent({ type: 'tool', id: String(json.id ?? ''), name: String(json.name ?? 'tool'), args: json.args });
             break;
           case 'finish':
-            onEvent({ type: 'finish', costUSD: json.costUSD as number | undefined, model: json.model as string | undefined });
+            onEvent({ type: 'finish', costUSD: json.costUSD as number | undefined });
             return { budgetHit: false, textEmitted };
           case 'error': {
-            const msg = String(json.message ?? 'stream error');
-            if (/budget|profitguard/i.test(msg)) return { budgetHit: true, textEmitted };
-            onEvent({ type: 'error', message: msg });
+            // Branch on the orchestrator's safe code, not message text.
+            const code = String(json.code ?? '');
+            const msg = String(json.message ?? '');
+            if (code === 'BUDGET' || code === 'PROFITGUARD') return { budgetHit: true, textEmitted };
+            onEvent({ type: 'error', code, message: msg });
             return { budgetHit: false, textEmitted };
           }
           default:
@@ -105,9 +109,9 @@ export function useChatStream() {
     if (first.budgetHit && !first.textEmitted) {
       delete execByProject.current[projectId];
       const second = await runStream(await createExecution(projectId), message, onEvent, signal);
-      if (second.budgetHit) onEvent({ type: 'error', message: 'Budget reached — top up your wallet to continue.' });
+      if (second.budgetHit) onEvent({ type: 'error', code: 'BUDGET', message: 'Budget reached — top up your wallet to continue.' });
     } else if (first.budgetHit) {
-      onEvent({ type: 'error', message: 'Budget reached mid-reply — top up to continue.' });
+      onEvent({ type: 'error', code: 'BUDGET', message: 'Budget reached mid-reply — top up to continue.' });
       delete execByProject.current[projectId];
     }
   }

@@ -54,6 +54,10 @@ type DockerDriver struct {
 	// FallbackRoot is the per-pod local directory used when EFSRoot is
 	// configured but not actually mounted/writable (dev mode).
 	FallbackRoot string
+	// Runtime is an optional Docker runtime name (for example "runsc").
+	Runtime string
+	// Network is an optional Docker network used for workspace containers.
+	Network string
 
 	// snapshotShim is the transport injected by WithSnapshotShim and
 	// used by RestoreFromSnapshot / Checkpoint. Nil means "no remote
@@ -142,6 +146,13 @@ func (d *DockerDriver) WithEFS(efsRoot, fallbackRoot string) *DockerDriver {
 	return d
 }
 
+// WithIsolation configures optional Docker runtime/network isolation.
+func (d *DockerDriver) WithIsolation(runtimeName, network string) *DockerDriver {
+	d.Runtime = strings.TrimSpace(runtimeName)
+	d.Network = strings.TrimSpace(network)
+	return d
+}
+
 func (d *DockerDriver) Name() string { return "docker" }
 
 func (d *DockerDriver) Create(ctx context.Context, opts CreateOpts) (Workspace, error) {
@@ -153,11 +164,13 @@ func (d *DockerDriver) Create(ctx context.Context, opts CreateOpts) (Workspace, 
 	// EFS layout whenever EFSRoot is configured because the runtime
 	// pod's filesystem itself is read-only in prod.
 	var mountSpec string
+	var hostPath string
 	if d.EFSRoot != "" {
 		path, _, err := resolveEFSMount(d.EFSRoot, d.FallbackRoot, id)
 		if err != nil {
 			return Workspace{}, fmt.Errorf("efs mount: %w", err)
 		}
+		hostPath = path
 		mountSpec = path + ":/home/coder"
 	} else {
 		volume := "ironflyer-vol-" + id
@@ -191,6 +204,12 @@ func (d *DockerDriver) Create(ctx context.Context, opts CreateOpts) (Workspace, 
 		"--tmpfs", "/run:rw,size=64m,mode=755",
 		"--restart=no",
 	}
+	if d.Runtime != "" {
+		args = append(args, "--runtime", d.Runtime)
+	}
+	if d.Network != "" {
+		args = append(args, "--network", d.Network)
+	}
 	// imageArgs appends the image plus any image-specific entrypoint args
 	// (code-server takes `--auth none --disable-telemetry`; Theia does not).
 	args = append(args, imageArgs(d.Image)...)
@@ -206,6 +225,7 @@ func (d *DockerDriver) Create(ctx context.Context, opts CreateOpts) (Workspace, 
 		Status:      StatusRunning,
 		Driver:      "docker",
 		Root:        name, // container name
+		HostPath:    hostPath,
 		IDEURL:      fmt.Sprintf("http://127.0.0.1:%d", hostPort),
 		IDEPassword: password,
 		CreatedAt:   now, UpdatedAt: now,
@@ -256,7 +276,11 @@ func (d *DockerDriver) WriteFile(ctx context.Context, ws Workspace, p string, da
 	// We refuse to overwrite an existing symlink — that's how a hostile
 	// blueprint would aim a writer at /etc/passwd. New files are fine
 	// because cat > redirect creates a regular file.
-	if existing, _ := d.resolveInContainer(ctx, ws, target); existing != "" && !strings.HasPrefix(existing, "/home/coder/") && existing != "/home/coder" {
+	existing, err := d.resolveInContainer(ctx, ws, target)
+	if err != nil {
+		return err
+	}
+	if existing != "" && !strings.HasPrefix(existing, "/home/coder/") && existing != "/home/coder" {
 		return errors.New("path escape via symlink")
 	}
 	cmd := exec.CommandContext(ctx, "docker", "exec", "-i", ws.Root,
@@ -302,12 +326,13 @@ func (d *DockerDriver) resolveInsideHome(ctx context.Context, ws Workspace, p st
 
 // resolveInContainer runs `readlink -m` in the container to canonicalise a
 // path. `-m` does not require the leaf to exist, which is what we want for
-// pre-write checks. Returns "" with no error when the resolver isn't
-// available (e.g. minimal base images without coreutils).
+// pre-write checks. Canonicalisation is security-critical: if the container
+// image lacks the resolver, fail closed instead of falling back to lexical
+// checks that miss symlink escapes.
 func (d *DockerDriver) resolveInContainer(ctx context.Context, ws Workspace, target string) (string, error) {
 	out, err := d.runRaw(ctx, "exec", ws.Root, "readlink", "-m", "--", target)
 	if err != nil {
-		return "", nil
+		return "", fmt.Errorf("canonicalize %s: %w", target, err)
 	}
 	return strings.TrimSpace(string(out)), nil
 }
@@ -757,7 +782,7 @@ func pickPreviewExternalPort(seed string) (int, error) {
 		}
 		start = lo + h
 	}
-	for i := 0; i < (hi-lo+1); i++ {
+	for i := 0; i < (hi - lo + 1); i++ {
 		p := lo + ((start - lo + i) % (hi - lo + 1))
 		if _, taken := previewUsedPorts[p]; !taken {
 			return p, nil

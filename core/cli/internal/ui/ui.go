@@ -209,6 +209,7 @@ type Spinner struct {
 	msg     atomic.Value // string
 	stop    chan struct{}
 	wg      sync.WaitGroup
+	once    sync.Once
 	enabled bool
 }
 
@@ -240,9 +241,11 @@ func (s *Spinner) Stop() {
 	if !s.enabled {
 		return
 	}
-	close(s.stop)
-	s.wg.Wait()
-	fmt.Fprint(os.Stderr, "\r\x1b[2K") // clear the line
+	s.once.Do(func() {
+		close(s.stop)
+		s.wg.Wait()
+		fmt.Fprint(os.Stderr, "\r\x1b[2K") // clear the line
+	})
 }
 
 func (s *Spinner) loop() {
@@ -287,4 +290,3 @@ func AgentColor(role string) func(string) string {
 		return Dim
 	}
 }
-

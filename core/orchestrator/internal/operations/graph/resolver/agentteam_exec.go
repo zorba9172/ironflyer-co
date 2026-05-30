@@ -370,15 +370,16 @@ func (r *Resolver) runMember(ctx context.Context, goal, sharedContext string, pr
 		Context: sharedContext,
 	})
 	if err != nil {
-		msg := err.Error()
+		// Provider-blind: a raw agent/provider error can name a vendor — surface
+		// a fixed generic message; the real error is captured server-side.
+		msg := "this agent could not complete its run"
 		res.Error = &msg
 		return res
 	}
 	res.Output = out.Output
 	res.CostUsd = out.CostUSD
-	if out.Provider != "" {
-		res.Provider = &out.Provider
-	}
+	// Provider is intentionally NOT set — the user never learns which vendor ran
+	// a crew member.
 	if out.Tokens > 0 {
 		t := out.Tokens
 		res.Tokens = &t

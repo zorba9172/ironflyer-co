@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { Box, CircularProgress } from '@mui/material';
 import { AppShell } from './AppShell';
 
@@ -12,6 +12,7 @@ const IntegrationsPage = lazy(() => import('./pages/IntegrationsPage').then((m) 
 const AgentsPage = lazy(() => import('./pages/AgentsPage').then((m) => ({ default: m.AgentsPage })));
 const PlansPage = lazy(() => import('./pages/PlansPage').then((m) => ({ default: m.PlansPage })));
 const Editor = lazy(() => import('./pages/Editor').then((m) => ({ default: m.Editor })));
+const Landing = lazy(() => import('./pages/Landing').then((m) => ({ default: m.Landing })));
 
 function RouteFallback() {
   return (
@@ -25,8 +26,9 @@ export function App() {
   return (
     <Suspense fallback={<RouteFallback />}>
       <Routes>
+        <Route path="/" element={<StudioHome />} />
         <Route element={<AppShell />}>
-          <Route path="/" element={<StudioHome />} />
+          <Route path="/studio" element={<ProjectsPage />} />
           <Route path="/projects" element={<ProjectsPage />} />
           <Route path="/templates" element={<TemplatesPage />} />
           <Route path="/integrations" element={<IntegrationsPage />} />
@@ -34,6 +36,11 @@ export function App() {
           <Route path="/plans" element={<PlansPage />} />
         </Route>
         <Route path="/build" element={<Editor />} />
+        {/* The Neon Intelligence landing — the logged-out marketing entry,
+            reachable for preview in any auth mode. */}
+        <Route path="/welcome" element={<Landing onEnter={() => undefined} />} />
+        {/* Unknown paths fall back to the studio home rather than a blank screen. */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
   );

@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Box, Button, Chip, IconButton, LinearProgress, Stack, Tooltip, Typography } from '@mui/material';
 import { useTheme, type Theme } from '@mui/material/styles';
-import { FlowCanvas, type FlowNode, type FlowEdge, type NodeMouseHandler, type HandleSpec } from '@ironflyer/ui-web/fx';
+import { FlowCanvas, type FlowNode, type FlowEdge, type NodeMouseHandler, type HandleSpec, toast } from '@ironflyer/ui-web/fx';
+import type { Constellation3DNode, Constellation3DLink } from '@ironflyer/ui-web/fx';
 import { useGraphQLQuery, operations } from '@ironflyer/data';
 import { formatUSD, formatRelativeTime } from '@ironflyer/core';
-import { VscRobot } from 'react-icons/vsc';
+import { Icon } from '../icons';
 import { statusColor, agentColor } from './statusColor';
 import { ActivityFeed } from './ActivityFeed';
 import { GateNodeLabel, FacetNodeLabel, VisionBody, ShipBody, nodePalette, type FacetNodeData } from './map/nodes';
@@ -16,6 +17,9 @@ import { useLiveProjectId } from '../hooks/useLiveProjectId';
 import { useProjectExecutions } from '../hooks/useLatestExecution';
 import { useSentinelForecast } from '../hooks/useEconomics';
 import { useDispatchAgent } from '../hooks/useDispatchAgent';
+import { useAgentTeam } from '../hooks/useAgentTeam';
+import { NeonConstellation3D, GlassPanel } from './studio';
+import { text } from '@ironflyer/design-tokens/brand';
 
 const VISION_ID = '__vision__';
 const SHIP_ID = '__ship__';
@@ -35,15 +39,28 @@ const H_AGENT: HandleSpec[] = [{ id: 'b', type: 'source', side: 'bottom' }];
 // Finisher gates that are performance audits — used to summarize the Perf facet.
 const PERF_IDS = new Set(['lighthouse', 'bundle_size', 'perf_budget', 'mobile_size', 'mobile_bundle_analyzer', 'mem_leak', 'complexity', 'dep_graph', 'arch_boundary']);
 
-const FACET_TAB: Record<string, EditorTab> = {
-  facet_security: 'security',
-  facet_performance: 'performance',
-  facet_economics: 'dashboard',
-  facet_logs: 'logs',
+// Performance now lives as an inner tab of the consolidated Quality workspace,
+// so its facet opens 'quality' and asks it to land on the Performance sub-tab.
+const FACET_TAB: Record<string, { tab: EditorTab; inner?: string }> = {
+  facet_security: { tab: 'security' },
+  facet_performance: { tab: 'quality', inner: 'performance' },
+  facet_economics: { tab: 'dashboard' },
+  facet_logs: { tab: 'logs' },
 };
 
 interface SecReport { overallScore: number; secretsFound: number; outdatedDeps: number; blockedDeploy: boolean; findings: { id: string }[] }
 const EMPTY_SEC: SecReport = { overallScore: 1, secretsFound: 0, outdatedDeps: 0, blockedDeploy: false, findings: [] };
+
+function quietGate(g: Gate, selected: boolean): Gate {
+  if (selected || !g.blocking) return g;
+  const openItems = g.findings.length + g.patches.filter((p) => p.state === 'proposed').length;
+  return {
+    ...g,
+    blocking: openItems > 0
+      ? `${openItems} review item${openItems === 1 ? '' : 's'} open`
+      : statusLabel[g.status],
+  };
+}
 
 function deployColor(t: Theme, status: StudioProject['deploy']['status']): string {
   switch (status) {
@@ -57,14 +74,34 @@ function deployColor(t: Theme, status: StudioProject['deploy']['status']): strin
 // Viz-first project map: the whole build on one canvas — the product vision, the
 // finisher pipeline, the operator's agents, and the cross-cutting instruments
 // (security, performance, economics, logs) — flowing live toward ship.
+// A constellation view alternate (NeonConstellation3D) maps every gate as a
+// glanceable 3D node colored by live status — useful for large gate sets.
 export function GateMap({ project, onOpenTab }: { project: StudioProject; onOpenTab?: (t: EditorTab) => void }) {
   const theme = useTheme();
   const c = useMemo(() => nodePalette(theme), [theme]);
   const selectGate = useStudio((s) => s.selectGate);
+  const setInnerTab = useStudio((s) => s.setInnerTab);
   const selectedGateId = useStudio((s) => s.selectedGateId);
+  const [viewMode, setViewMode] = useState<'flow' | 'constellation'>('flow');
+  // Open a facet's destination tab, optionally deep-linking an inner sub-tab.
+  const openFacet = useCallback((tab: EditorTab, inner?: string) => {
+    if (inner) setInnerTab(inner);
+    onOpenTab?.(tab);
+  }, [onOpenTab, setInnerTab]);
   const constitution = useStudio((s) => s.constitution);
   const customAgents = useStudio((s) => s.customAgents);
   const { online, dispatch } = useDispatchAgent();
+  const { saveAgent } = useAgentTeam();
+
+  // Persist a gate→agent assignment: set the chosen custom agent's gateId so the
+  // map's tether and the orchestrator's routing both reflect the ownership.
+  // Built-in roster agents already own their gate, so they can't be reassigned.
+  const assignAgent = useCallback((gateId: string, agentId: string) => {
+    const a = customAgents.find((x) => x.id === agentId);
+    if (!a) { toast('Built-in agents already own their gate — pick one of your agents to reassign.', 'info'); return; }
+    void saveAgent({ ...a, gateId });
+    toast(`${a.name || 'Agent'} now owns the ${gateId} gate.`, 'success');
+  }, [customAgents, saveAgent]);
 
   const firstProjectId = useLiveProjectId();
   const storeProjectId = useStudio((s) => s.liveProjectId);
@@ -134,6 +171,7 @@ export function GateMap({ project, onOpenTab }: { project: StudioProject; onOpen
     `log:${lastEvent?.id ?? ''}`,
     `vis:${visionText}`,
     `ag:${customAgentsSig}`,
+    `sel:${selectedGateId ?? ''}`,
   ].join('~');
 
   const nodes = useMemo<FlowNode[]>(() => {
@@ -145,9 +183,9 @@ export function GateMap({ project, onOpenTab }: { project: StudioProject; onOpen
     const laneW = (gates.length + 2.4) * COL + 60;
     const laneX = -64;
     const laneNodes: FlowNode[] = [
-      { id: 'lane_agents', type: 'lane', position: { x: laneX, y: -312 }, draggable: false, selectable: false, zIndex: -1, data: { label: 'Agents' }, style: { width: laneW, height: 196, borderRadius: 18, border: `1.5px dashed ${c.muted}`, opacity: 0.45, pointerEvents: 'none' } },
-      { id: 'lane_pipeline', type: 'lane', position: { x: laneX, y: -56 }, draggable: false, selectable: false, zIndex: -1, data: { label: 'Finisher pipeline' }, style: { width: laneW, height: Math.max(300, mid + 150), borderRadius: 18, border: `1.5px dashed ${c.accent}`, opacity: 0.4, pointerEvents: 'none' } },
-      { id: 'lane_facets', type: 'lane', position: { x: laneX, y: FACET_Y - 44 }, draggable: false, selectable: false, zIndex: -1, data: { label: 'Cross-cutting instruments' }, style: { width: laneW, height: 178, borderRadius: 18, border: `1.5px dashed ${c.muted}`, opacity: 0.45, pointerEvents: 'none' } },
+      { id: 'lane_agents', type: 'lane', position: { x: laneX, y: -312 }, draggable: false, selectable: false, zIndex: -1, data: { label: 'Agents' }, style: { width: laneW, height: 196, borderRadius: 18, border: `1px dashed ${c.muted}`, opacity: 0.22, pointerEvents: 'none' } },
+      { id: 'lane_pipeline', type: 'lane', position: { x: laneX, y: -56 }, draggable: false, selectable: false, zIndex: -1, data: { label: 'Finisher pipeline' }, style: { width: laneW, height: Math.max(300, mid + 150), borderRadius: 18, border: `1px dashed ${c.accent}`, opacity: 0.2, pointerEvents: 'none' } },
+      { id: 'lane_facets', type: 'lane', position: { x: laneX, y: FACET_Y - 44 }, draggable: false, selectable: false, zIndex: -1, data: { label: 'Cross-cutting instruments' }, style: { width: laneW, height: 178, borderRadius: 18, border: `1px dashed ${c.muted}`, opacity: 0.22, pointerEvents: 'none' } },
     ];
 
     const visionNode: FlowNode = {
@@ -159,19 +197,29 @@ export function GateMap({ project, onOpenTab }: { project: StudioProject; onOpen
     const gateNodes: FlowNode[] = gates.map((g, i) => {
       const color = statusColor(theme, g.status);
       const live = g.status === 'running';
+      const selected = selectedGateId === g.id;
+      const displayGate = quietGate(g, selected);
       return {
         id: g.id, type: 'card', position: { x: (i + 1) * COL, y: i % 2 === 0 ? 0 : ZIG * 2 },
         data: {
           tone: color, handles: H_FLOW,
           label: (
             <GateNodeLabel d={{
-              kind: 'gate', gate: g, ownerName: agentForGate(g.id)?.name,
+              kind: 'gate', gate: displayGate, ownerName: selected ? agentForGate(g.id)?.name : undefined,
               agentOptions: agentOptionsFor(g.id), online,
               onSelectGate: selectGate, onDispatch: (scope) => void dispatch(scope),
+              onAssign: assignAgent,
             }} />
           ),
         },
-        style: { width: 206, padding: 12, borderRadius: 12, border: `1.5px solid ${color}`, background: c.paper, boxShadow: `0 0 0 ${live ? 5 : 4}px ${color}${live ? '38' : '1f'}` },
+        style: {
+          width: selected ? 218 : 196,
+          padding: selected ? 13 : 11,
+          borderRadius: 12,
+          border: `${selected ? 2 : 1.25}px solid ${color}`,
+          background: c.paper,
+          boxShadow: selected ? `0 0 0 5px ${color}2b` : live ? `0 0 0 4px ${color}2b` : `0 0 0 1px ${color}12`,
+        },
       };
     });
 
@@ -204,7 +252,7 @@ export function GateMap({ project, onOpenTab }: { project: StudioProject; onOpen
     // Cross-cutting instruments lane — security, performance, economics, logs.
     const perfColor = perfGates.length === 0 ? c.muted : perfPass === perfGates.length ? c.success : c.warn;
     const secColor = secBlocked ? c.error : riskScore >= 30 ? c.warn : c.success;
-    const facetDefs: { id: string; tab: EditorTab; accent: string; data: Omit<FacetNodeData, 'kind' | 'onOpen'> }[] = [
+    const facetDefs: { id: string; tab: EditorTab; inner?: string; accent: string; data: Omit<FacetNodeData, 'kind' | 'onOpen'> }[] = [
       {
         id: 'facet_security', tab: 'security', accent: secColor,
         data: {
@@ -219,7 +267,7 @@ export function GateMap({ project, onOpenTab }: { project: StudioProject; onOpen
         },
       },
       {
-        id: 'facet_performance', tab: 'performance', accent: perfColor,
+        id: 'facet_performance', tab: 'quality', inner: 'performance', accent: perfColor,
         data: {
           iconKey: 'lighthouse', title: 'Performance', accent: perfColor,
           metric: perfGates.length ? `${perfPass}/${perfGates.length}` : (forecast.level || 'ok'),
@@ -257,14 +305,14 @@ export function GateMap({ project, onOpenTab }: { project: StudioProject; onOpen
     ];
     const facetNodes: FlowNode[] = facetDefs.map((f, i) => ({
       id: f.id, type: 'card', position: { x: COL * (0.4 + i * 1.7), y: FACET_Y },
-      data: { label: <FacetNodeLabel d={{ kind: 'facet', onOpen: () => onOpenTab?.(f.tab), ...f.data }} />, handles: H_FACET, tone: f.accent },
+      data: { label: <FacetNodeLabel d={{ kind: 'facet', onOpen: () => openFacet(f.tab, f.inner), ...f.data }} />, handles: H_FACET, tone: f.accent },
       style: { width: 184, padding: 13, borderRadius: 12, border: `1.5px solid ${f.accent}`, background: c.paper, boxShadow: `0 0 0 4px ${f.accent}14` },
     }));
 
     return [...laneNodes, visionNode, ...gateNodes, shipNode, ...agentNodes, ...facetNodes];
     // Gated on the content signature so identical polls don't rebuild the graph.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nodeSig, theme, c, online, dispatch, selectGate, agentOptionsFor, onOpenTab]);
+  }, [nodeSig, theme, c, online, dispatch, selectGate, agentOptionsFor, assignAgent, openFacet]);
 
   const edges = useMemo<FlowEdge[]>(() => {
     const out: FlowEdge[] = [];
@@ -305,10 +353,52 @@ export function GateMap({ project, onOpenTab }: { project: StudioProject; onOpen
 
   const onNodeClick: NodeMouseHandler = (_e, node) => {
     if (node.id === VISION_ID || node.id === SHIP_ID || node.id.startsWith('agent_') || node.id.startsWith('lane_')) return;
-    const tab = FACET_TAB[node.id];
-    if (tab) { onOpenTab?.(tab); return; }
+    const facet = FACET_TAB[node.id];
+    if (facet) { openFacet(facet.tab, facet.inner); return; }
     selectGate(node.id);
   };
+
+  // ── Constellation data: gates as 3D nodes, pipeline links as edges ────
+  // Each gate is a node sized by readiness level (0–1) and colored by live
+  // status via the neon chart series. Vision + Ship anchor the ring center.
+  const series = theme.studio.chart.series as unknown as string[];
+  const constData = useMemo<{ nodes: Constellation3DNode[]; links: Constellation3DLink[] }>(() => {
+    const cNodes: Constellation3DNode[] = [];
+    const cLinks: Constellation3DLink[] = [];
+
+    // Vision node at the center
+    cNodes.push({ id: VISION_ID, value: 1, color: c.accent, x: 0, y: 0.5, z: 0 });
+
+    // Gate nodes arranged on a flat ring around the center
+    const n = gates.length;
+    for (let i = 0; i < n; i++) {
+      const g = gates[i]!;
+      const angle = (i / Math.max(n, 1)) * Math.PI * 2;
+      const r = 2.8;
+      const colorIdx = g.blocking ? 6 : g.status === 'running' ? 1 : g.status === 'closed' ? 4 : 3;
+      cNodes.push({
+        id: g.id,
+        value: g.level,
+        color: series[colorIdx % series.length],
+        x: r * Math.cos(angle),
+        y: g.blocking ? -0.3 : 0,
+        z: r * Math.sin(angle),
+      });
+    }
+
+    // Ship node at the far end
+    cNodes.push({ id: SHIP_ID, value: completion, color: open === 0 ? series[4 % series.length] : series[3 % series.length], x: 0, y: -0.4, z: 0 });
+
+    // Pipeline links: vision → gates → ship
+    if (n > 0) {
+      cLinks.push({ source: VISION_ID, target: gates[0]!.id });
+      for (let i = 0; i < n - 1; i++) cLinks.push({ source: gates[i]!.id, target: gates[i + 1]!.id });
+      cLinks.push({ source: gates[n - 1]!.id, target: SHIP_ID });
+    }
+
+    return { nodes: cNodes, links: cLinks };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nodeSig, c.accent, series, completion, open]);
 
   return (
     <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100%', bgcolor: 'background.default' }}>
@@ -319,14 +409,47 @@ export function GateMap({ project, onOpenTab }: { project: StudioProject; onOpen
         burnUSDPerHr={forecastLive ? forecast.burnRatePerHourUSD : null}
         etaCompletionAt={forecastLive ? forecast.etaCompletionAt ?? null : null}
         onRunAll={() => void dispatch('all open gates')}
+        viewMode={viewMode}
+        onToggleView={() => setViewMode((v) => v === 'flow' ? 'constellation' : 'flow')}
       />
-      <Box sx={{ flex: 1, display: 'flex', minHeight: 0 }}>
-        <Box sx={{ flex: 1, minWidth: 0, position: 'relative' }}>
-          <FlowCanvas nodes={nodes} edges={edges} onNodeClick={onNodeClick} minimap horizontal focusable focusId={selectedGateId} />
-          <MapLegend />
+      {viewMode === 'flow' ? (
+        <Box sx={{ flex: 1, display: 'flex', minHeight: 0 }}>
+          <Box sx={{ flex: 1, minWidth: 0, position: 'relative' }}>
+            <FlowCanvas nodes={nodes} edges={edges} onNodeClick={onNodeClick} minimap horizontal focusable focusId={selectedGateId} />
+            <MapLegend />
+          </Box>
+          <GapsRail projectId={project.id} gaps={gaps} seed={project.activity} onPick={selectGate} onDispatch={(scope) => void dispatch(scope)} />
         </Box>
-        <GapsRail projectId={project.id} gaps={gaps} seed={project.activity} onPick={selectGate} onDispatch={(scope) => void dispatch(scope)} />
-      </Box>
+      ) : (
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', p: 2, gap: 2, minHeight: 0, overflow: 'auto' }}>
+          <GlassPanel
+            accent={theme.studio.neon.blue}
+            sx={{ flex: 1, minHeight: 340, display: 'flex', flexDirection: 'column' }}
+          >
+            <Typography
+              sx={(t) => ({
+                fontFamily: t.brand.font.mono,
+                fontSize: text.s62,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                color: 'text.disabled',
+                mb: 0.75,
+              })}
+            >
+              Gate constellation — {open} open · {closed} closed
+            </Typography>
+            <Box sx={{ flex: 1, minHeight: 300 }}>
+              <NeonConstellation3D
+                nodes={constData.nodes}
+                links={constData.links}
+                height={400}
+                rotate
+              />
+            </Box>
+          </GlassPanel>
+          <GapsRail projectId={project.id} gaps={gaps} seed={project.activity} onPick={selectGate} onDispatch={(scope) => void dispatch(scope)} inline />
+        </Box>
+      )}
     </Box>
   );
 }
@@ -334,8 +457,8 @@ export function GateMap({ project, onOpenTab }: { project: StudioProject; onOpen
 function AgentBody({ a, color, c, onRun }: { a: Agent; color: string; c: ReturnType<typeof nodePalette>; onRun: () => void }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 5, textAlign: 'left', width: '100%' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <VscRobot size={12} color={color} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, color }}>
+        <Icon name="bot" size={12} />
         <span style={{ fontFamily: c.mono, fontSize: 8.5, fontWeight: 700, letterSpacing: '0.1em', color }}>AGENT</span>
       </div>
       <div style={{ fontSize: 12.5, fontWeight: 600, color: c.primary, lineHeight: 1.15 }}>{a.name || 'Untitled agent'}</div>
@@ -343,7 +466,7 @@ function AgentBody({ a, color, c, onRun }: { a: Agent; color: string; c: ReturnT
       <div style={{ fontFamily: c.mono, fontSize: 8.5, color: c.muted }}>⏱ {scheduleLabel(a.schedule)}</div>
       <Box className="nodrag nopan" sx={{ mt: 0.25 }}>
         <Tooltip title="Run this agent now" arrow>
-          <IconButton size="small" onClick={(e) => { e.stopPropagation(); onRun(); }} sx={{ color: 'success.main', p: 0.4 }}><VscRobot size={13} /></IconButton>
+          <IconButton size="small" onClick={(e) => { e.stopPropagation(); onRun(); }} sx={{ color: 'success.main', p: 0.4 }}><Icon name="play" size={13} /></IconButton>
         </Tooltip>
       </Box>
     </div>
@@ -356,8 +479,8 @@ const pgColor = (t: Theme, v: StudioProject['profitGuard']['verdict']) =>
 function HeaderStat({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
     <Box sx={{ minWidth: 0 }}>
-      <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.6rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'text.disabled' })}>{label}</Typography>
-      <Typography sx={{ fontSize: '0.92rem', fontWeight: 600, color: color ?? 'text.primary' }} noWrap>{value}</Typography>
+      <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s60, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'text.disabled' })}>{label}</Typography>
+      <Typography sx={{ fontSize: text.s92, fontWeight: 600, color: color ?? 'text.primary' }} noWrap>{value}</Typography>
     </Box>
   );
 }
@@ -374,12 +497,12 @@ const LEGEND: { label: string; status: Gate['status'] }[] = [
 function MapLegend() {
   return (
     <Box sx={{ position: 'absolute', top: 12, left: 12, zIndex: 4, px: 1.25, py: 1, borderRadius: 2, border: 1, borderColor: 'divider', bgcolor: (t) => `${t.palette.background.paper}e6`, backdropFilter: 'blur(6px)' }}>
-      <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.58rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 0.75 })}>Status</Typography>
+      <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s58, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 0.75 })}>Status</Typography>
       <Stack spacing={0.5}>
         {LEGEND.map((l) => (
           <Stack key={l.status} direction="row" alignItems="center" spacing={0.85}>
             <Box sx={{ width: 8, height: 8, borderRadius: 99, bgcolor: (t) => statusColor(t, l.status) }} />
-            <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary' }}>{l.label}</Typography>
+            <Typography sx={{ fontSize: text.s70, color: 'text.secondary' }}>{l.label}</Typography>
           </Stack>
         ))}
       </Stack>
@@ -392,16 +515,28 @@ function MapHeader(props: {
   spentUSD: number; budgetUSD: number; marginPct: number;
   pgVerdict: StudioProject['profitGuard']['verdict'];
   burnUSDPerHr: number | null; etaCompletionAt: string | null; onRunAll: () => void;
+  viewMode: 'flow' | 'constellation'; onToggleView: () => void;
 }) {
-  const { isLive, completion, open, total, spentUSD, budgetUSD, marginPct, pgVerdict, burnUSDPerHr, etaCompletionAt, onRunAll } = props;
+  const { isLive, completion, open, total, spentUSD, budgetUSD, marginPct, pgVerdict, burnUSDPerHr, etaCompletionAt, onRunAll, viewMode, onToggleView } = props;
   return (
     <Box sx={{ px: 3, py: 1.75, borderBottom: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
       <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1.25, flexWrap: 'wrap' }}>
-        <Typography variant="h5" sx={{ fontSize: '1.15rem' }}>Project map</Typography>
-        <Chip size="small" label={isLive ? 'live' : 'sample data'} sx={(t) => ({ height: 20, fontSize: '0.62rem', fontFamily: t.brand.font.mono, bgcolor: isLive ? `${t.palette.success.main}22` : 'action.hover', color: isLive ? 'success.main' : 'text.disabled' })} />
-        <Chip size="small" label={`ProfitGuard: ${pgVerdict}`} sx={(t) => ({ height: 20, fontSize: '0.62rem', fontFamily: t.brand.font.mono, bgcolor: `${pgColor(t, pgVerdict)}22`, color: pgColor(t, pgVerdict) })} />
+        <Typography variant="h5" sx={{ fontSize: text.s115 }}>Project map</Typography>
+        <Chip size="small" label={isLive ? 'live' : 'sample data'} sx={(t) => ({ height: 20, fontSize: text.s62, fontFamily: t.brand.font.mono, bgcolor: isLive ? `${t.palette.success.main}22` : 'action.hover', color: isLive ? 'success.main' : 'text.disabled' })} />
+        <Chip size="small" label={`ProfitGuard: ${pgVerdict}`} sx={(t) => ({ height: 20, fontSize: text.s62, fontFamily: t.brand.font.mono, bgcolor: `${pgColor(t, pgVerdict)}22`, color: pgColor(t, pgVerdict) })} />
         <Box sx={{ flex: 1 }} />
-        <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>{open} of {total} gates open · {Math.round(completion * 100)}% to shippable</Typography>
+        <Typography sx={{ color: 'text.secondary', fontSize: text.s85 }}>{open} of {total} gates open · {Math.round(completion * 100)}% to shippable</Typography>
+        <Tooltip title={viewMode === 'flow' ? 'Switch to constellation view' : 'Switch to pipeline flow'} arrow>
+          <Button
+            size="small"
+            variant="outlined"
+            color="inherit"
+            onClick={onToggleView}
+            sx={(t) => ({ fontSize: text.s70, borderColor: t.palette.divider, '&:hover': { borderColor: t.studio.neon.blue } })}
+          >
+            {viewMode === 'flow' ? 'Constellation' : 'Flow'}
+          </Button>
+        </Tooltip>
         {open > 0 && <Button size="small" variant="contained" onClick={onRunAll}>Run all open</Button>}
       </Stack>
       <LinearProgress variant="determinate" value={Math.round(completion * 100)} sx={{ height: 5, borderRadius: 99, bgcolor: 'action.hover', mb: 1.5, '& .MuiLinearProgress-bar': { borderRadius: 99, backgroundImage: (t) => t.brand.gradient.signature } }} />
@@ -415,18 +550,50 @@ function MapHeader(props: {
   );
 }
 
-function GapsRail({ projectId, gaps, seed, onPick, onDispatch }: {
+function GapsRail({ projectId, gaps, seed, onPick, onDispatch, inline }: {
   projectId: string; gaps: Gate[]; seed: StudioProject['activity']; onPick: (id: string) => void; onDispatch: (scope: string) => void;
+  /** When true, renders as a horizontal inline section instead of a collapsible side rail */
+  inline?: boolean;
 }) {
-  const [open, setOpen] = useState(true);
-  if (!open) {
+  const [open, setOpen] = useState(inline ?? false);
+  if (!open && !inline) {
     return (
       <Box sx={{ width: 44, borderLeft: 1, borderColor: 'divider', bgcolor: 'background.paper', display: 'flex', flexDirection: 'column', alignItems: 'center', pt: 1.5 }}>
         <Tooltip title="Show what's not closed" arrow placement="left">
-          <IconButton size="small" onClick={() => setOpen(true)} sx={{ color: 'text.secondary' }}>‹</IconButton>
+          <IconButton size="small" aria-label="Show what's not closed" onClick={() => setOpen(true)} sx={{ color: 'text.secondary', transform: 'rotate(180deg)' }}><Icon name="chevronRight" size={16} /></IconButton>
         </Tooltip>
         {gaps.length > 0 && (
-          <Box sx={{ mt: 1, width: 22, height: 22, borderRadius: 99, display: 'grid', placeItems: 'center', bgcolor: (t) => `${t.palette.error.main}22`, color: 'error.main', fontSize: '0.7rem', fontWeight: 700 }}>{gaps.length}</Box>
+          <Box sx={{ mt: 1, width: 22, height: 22, borderRadius: 99, display: 'grid', placeItems: 'center', bgcolor: (t) => `${t.palette.error.main}22`, color: 'error.main', fontSize: text.s70, fontWeight: 700 }}>{gaps.length}</Box>
+        )}
+      </Box>
+    );
+  }
+  if (inline) {
+    // Inline horizontal layout for use in the constellation view
+    return (
+      <Box sx={{ borderRadius: 2, border: 1, borderColor: 'divider', bgcolor: 'background.paper', p: 2 }}>
+        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+          <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s70, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'text.disabled' })}>Not closed end-to-end</Typography>
+          <Chip size="small" label={gaps.length} sx={(t) => ({ height: 18, fontSize: text.s62, fontWeight: 700, bgcolor: gaps.length ? `${t.palette.error.main}22` : `${t.palette.success.main}22`, color: gaps.length ? 'error.main' : 'success.main' })} />
+        </Stack>
+        {gaps.length === 0 ? (
+          <Stack direction="row" alignItems="center" spacing={0.85}>
+            <Icon name="check" size={15} color="success" />
+            <Typography sx={{ fontSize: text.s85, color: 'success.main' }}>Every gate is closed — nothing blocks shipping.</Typography>
+          </Stack>
+        ) : (
+          <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', mb: 1.5 }}>
+            {gaps.slice(0, 4).map((g) => (
+              <Box key={g.id} sx={{ p: 1.25, borderRadius: 2, border: 1, borderColor: 'divider', minWidth: 200, flex: '1 1 200px', transition: (t) => `border-color ${t.brand.motion.fast}`, '&:hover': { borderColor: 'text.disabled' } }}>
+                <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.5, cursor: 'pointer' }} onClick={() => onPick(g.id)}>
+                  <Box sx={{ width: 7, height: 7, borderRadius: 99, flexShrink: 0, bgcolor: (t) => statusColor(t, g.status) }} />
+                  <Typography sx={{ fontSize: text.s82, fontWeight: 600, flex: 1 }} noWrap>{g.name}</Typography>
+                </Stack>
+                <Typography sx={{ fontSize: text.s76, color: 'text.secondary', lineHeight: 1.3, mb: 0.5 }} noWrap>{g.blocking}</Typography>
+                <Chip size="small" clickable label="Fix" onClick={() => onDispatch(`the ${g.name} gate`)} sx={(t) => ({ height: 20, fontSize: text.s62, bgcolor: `${t.palette.primary.main}22`, color: 'primary.main' })} />
+              </Box>
+            ))}
+          </Stack>
         )}
       </Box>
     );
@@ -434,28 +601,31 @@ function GapsRail({ projectId, gaps, seed, onPick, onDispatch }: {
   return (
     <Box sx={{ width: { xs: 260, lg: 320 }, flexShrink: 0, borderLeft: 1, borderColor: 'divider', bgcolor: 'background.paper', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
       <Stack direction="row" alignItems="center" spacing={1} sx={{ px: 2, py: 1.5, borderBottom: 1, borderColor: 'divider' }}>
-        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.7rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'text.disabled' })}>Not closed end-to-end</Typography>
-        <Chip size="small" label={gaps.length} sx={(t) => ({ height: 18, fontSize: '0.62rem', fontWeight: 700, bgcolor: gaps.length ? `${t.palette.error.main}22` : `${t.palette.success.main}22`, color: gaps.length ? 'error.main' : 'success.main' })} />
+        <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s70, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'text.disabled' })}>Not closed end-to-end</Typography>
+        <Chip size="small" label={gaps.length} sx={(t) => ({ height: 18, fontSize: text.s62, fontWeight: 700, bgcolor: gaps.length ? `${t.palette.error.main}22` : `${t.palette.success.main}22`, color: gaps.length ? 'error.main' : 'success.main' })} />
         <Box sx={{ flex: 1 }} />
-        <IconButton size="small" onClick={() => setOpen(false)} sx={{ color: 'text.secondary' }}>›</IconButton>
+        <IconButton size="small" aria-label="Collapse" onClick={() => setOpen(false)} sx={{ color: 'text.secondary' }}><Icon name="chevronRight" size={16} /></IconButton>
       </Stack>
 
       <Box sx={{ overflowY: 'auto', p: 2, flexShrink: 0, maxHeight: '52%' }}>
         {gaps.length === 0 ? (
-          <Typography sx={{ fontSize: '0.85rem', color: 'success.main' }}>● Every gate is closed — nothing blocks shipping.</Typography>
+          <Stack direction="row" alignItems="center" spacing={0.85}>
+            <Icon name="check" size={15} color="success" />
+            <Typography sx={{ fontSize: text.s85, color: 'success.main' }}>Every gate is closed — nothing blocks shipping.</Typography>
+          </Stack>
         ) : (
           <Stack spacing={1}>
             {gaps.map((g) => (
               <Box key={g.id} sx={{ p: 1.25, borderRadius: 2, border: 1, borderColor: 'divider', transition: (t) => `border-color ${t.brand.motion.fast}`, '&:hover': { borderColor: 'text.disabled' } }}>
                 <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5, cursor: 'pointer' }} onClick={() => onPick(g.id)}>
                   <Box sx={{ width: 7, height: 7, borderRadius: 99, flexShrink: 0, bgcolor: (t) => statusColor(t, g.status) }} />
-                  <Typography sx={{ fontSize: '0.86rem', fontWeight: 600, flex: 1 }} noWrap>{g.name}</Typography>
-                  <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.62rem', color: statusColor(t, g.status) })}>{statusLabel[g.status]}</Typography>
+                  <Typography sx={{ fontSize: text.s86, fontWeight: 600, flex: 1 }} noWrap>{g.name}</Typography>
+                  <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s62, color: statusColor(t, g.status) })}>{statusLabel[g.status]}</Typography>
                 </Stack>
-                <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary', lineHeight: 1.35, mb: 0.75 }}>{g.blocking}</Typography>
+                <Typography sx={{ fontSize: text.s78, color: 'text.secondary', lineHeight: 1.35, mb: 0.75 }}>{g.blocking}</Typography>
                 <Stack direction="row" spacing={0.75}>
-                  <Chip size="small" clickable label="Inspect" onClick={() => onPick(g.id)} sx={{ height: 20, fontSize: '0.62rem', bgcolor: 'action.hover' }} />
-                  <Chip size="small" clickable label="Fix" onClick={() => onDispatch(`the ${g.name} gate`)} sx={(t) => ({ height: 20, fontSize: '0.62rem', bgcolor: `${t.palette.primary.main}22`, color: 'primary.main' })} />
+                  <Chip size="small" clickable label="Inspect" onClick={() => onPick(g.id)} sx={{ height: 20, fontSize: text.s62, bgcolor: 'action.hover' }} />
+                  <Chip size="small" clickable label="Fix" onClick={() => onDispatch(`the ${g.name} gate`)} sx={(t) => ({ height: 20, fontSize: text.s62, bgcolor: `${t.palette.primary.main}22`, color: 'primary.main' })} />
                 </Stack>
               </Box>
             ))}

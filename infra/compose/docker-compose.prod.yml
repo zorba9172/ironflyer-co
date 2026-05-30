@@ -697,6 +697,8 @@ services:
     <<: *default-restart
     logging: *default-logging
     privileged: false
+    group_add:
+      - ${DOCKER_GID:-0}
     environment:
       IRONFLYER_RUNTIME_ADDR: ":8090"
       IRONFLYER_RUNTIME_DRIVER: docker

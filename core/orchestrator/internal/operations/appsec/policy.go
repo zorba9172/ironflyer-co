@@ -1,20 +1,22 @@
 package appsec
 
 type Policy struct {
-	BlockOnHigh       bool
-	BlockOnMedium     bool
-	MaxFindingsPerRun int
+	BlockOnHigh             bool
+	BlockOnMedium           bool
+	FailOpenOnScannerErrors bool
+	MaxFindingsPerRun       int
 }
 
 func DefaultPolicy() Policy {
 	return Policy{
-		BlockOnHigh:       true,
-		BlockOnMedium:     false,
-		MaxFindingsPerRun: 200,
+		BlockOnHigh:             true,
+		BlockOnMedium:           false,
+		FailOpenOnScannerErrors: false,
+		MaxFindingsPerRun:       200,
 	}
 }
 
-func (p Policy) Evaluate(findings []Finding) Verdict {
+func (p Policy) Evaluate(findings []Finding, scannerErrors ...ScannerError) Verdict {
 	if p.MaxFindingsPerRun <= 0 {
 		p.MaxFindingsPerRun = DefaultPolicy().MaxFindingsPerRun
 	}
@@ -58,7 +60,20 @@ func (p Policy) Evaluate(findings []Finding) Verdict {
 	if score > 1 {
 		score = 1
 	}
-	return Verdict{Status: status, BlockedDeploy: blocked, OverallScore: score}
+	if len(scannerErrors) > 0 {
+		if status == "pass" {
+			status = "warning"
+		}
+		score -= 0.20
+		if score < 0 {
+			score = 0
+		}
+		if !p.FailOpenOnScannerErrors {
+			status = "fail"
+			blocked = true
+		}
+	}
+	return Verdict{Status: status, BlockedDeploy: blocked, OverallScore: score, ScannerErrors: len(scannerErrors)}
 }
 
 func maxSeverity(a, b Severity) Severity {

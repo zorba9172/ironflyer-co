@@ -4,6 +4,7 @@ import {
   MenuItem, Select, Stack, Switch, TextField, Tooltip, Typography,
 } from '@mui/material';
 import { toast } from '@ironflyer/ui-web/fx';
+import { Icon } from '../../icons';
 import { newAgent, type Agent, type Gate } from '../../studioData';
 import {
   AUTONOMY_LEVELS, GUARDRAILS, MODEL_OPTIONS, SKILL_CATEGORIES, SKILL_LIBRARY, TOOL_LIBRARY,
@@ -11,6 +12,7 @@ import {
 } from '../../agentLibrary';
 import { AgentCard } from './AgentCard';
 import { ScheduleEditor } from './ScheduleEditor';
+import { text as fontScale } from '@ironflyer/design-tokens/brand';
 
 interface AgentBuilderProps {
   agent: Agent;
@@ -53,11 +55,11 @@ export function AgentBuilder({ agent, gates, allAgents, exists, onClose, onSave 
       {/* Header */}
       <Stack direction="row" alignItems="center" spacing={2} sx={{ px: { xs: 2, md: 4 }, py: 1.75, borderBottom: 1, borderColor: 'divider', flexShrink: 0 }}>
         <IconButton onClick={onClose} size="small" aria-label="close" sx={{ color: 'text.secondary' }}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+          <Icon name="close" size={20} />
         </IconButton>
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography variant="h5" sx={{ fontSize: '1.2rem' }} noWrap>{exists ? 'Edit agent' : 'New agent'}</Typography>
-          <Typography sx={{ color: 'text.secondary', fontSize: '0.8rem' }} noWrap>Define what it does, the skills and tools it may use, and when it runs.</Typography>
+          <Typography variant="h5" sx={{ fontSize: fontScale.s120 }} noWrap>{exists ? 'Edit agent' : 'New agent'}</Typography>
+          <Typography sx={{ color: 'text.secondary', fontSize: fontScale.s80 }} noWrap>Define what it does, the skills and tools it may use, and when it runs.</Typography>
         </Box>
         <Button color="inherit" onClick={onClose}>Cancel</Button>
         <Button variant="contained" disabled={!valid} onClick={save}>{exists ? 'Save changes' : 'Create agent'}</Button>
@@ -126,8 +128,8 @@ export function AgentBuilder({ agent, gates, allAgents, exists, onClose, onSave 
                     {MODEL_OPTIONS.map((m) => (
                       <MenuItem key={m.id} value={m.id}>
                         <Box>
-                          <Typography sx={{ fontSize: '0.86rem' }}>{m.label} · {m.tier}</Typography>
-                          <Typography sx={{ fontSize: '0.72rem', color: 'text.disabled' }}>{m.note}</Typography>
+                          <Typography sx={{ fontSize: fontScale.s86 }}>{m.label} · {m.tier}</Typography>
+                          <Typography sx={{ fontSize: fontScale.s72, color: 'text.disabled' }}>{m.note}</Typography>
                         </Box>
                       </MenuItem>
                     ))}
@@ -139,8 +141,8 @@ export function AgentBuilder({ agent, gates, allAgents, exists, onClose, onSave 
                     {AUTONOMY_LEVELS.map((a) => (
                       <MenuItem key={a.value} value={a.value}>
                         <Box>
-                          <Typography sx={{ fontSize: '0.86rem' }}>{a.label}</Typography>
-                          <Typography sx={{ fontSize: '0.72rem', color: 'text.disabled' }}>{a.desc}</Typography>
+                          <Typography sx={{ fontSize: fontScale.s86 }}>{a.label}</Typography>
+                          <Typography sx={{ fontSize: fontScale.s72, color: 'text.disabled' }}>{a.desc}</Typography>
                         </Box>
                       </MenuItem>
                     ))}
@@ -161,8 +163,8 @@ export function AgentBuilder({ agent, gates, allAgents, exists, onClose, onSave 
                     >
                       <Switch size="small" checked={on} onChange={() => set('guardrails', toggle(draft.guardrails ?? [], g.id))} onClick={(e) => e.stopPropagation()} />
                       <Box sx={{ minWidth: 0 }}>
-                        <Typography sx={{ fontSize: '0.86rem', fontWeight: 500 }}>{g.label}</Typography>
-                        <Typography sx={{ fontSize: '0.76rem', color: 'text.secondary' }}>{g.desc}</Typography>
+                        <Typography sx={{ fontSize: fontScale.s86, fontWeight: 500 }}>{g.label}</Typography>
+                        <Typography sx={{ fontSize: fontScale.s76, color: 'text.secondary' }}>{g.desc}</Typography>
                       </Box>
                     </Box>
                   );
@@ -188,7 +190,7 @@ export function AgentBuilder({ agent, gates, allAgents, exists, onClose, onSave 
               </FormControl>
               <FormControlLabel
                 control={<Switch size="small" checked={!!draft.canDelegate} onChange={(e) => set('canDelegate', e.target.checked)} />}
-                label={<Typography sx={{ fontSize: '0.86rem' }}>Allow delegation — may hand work to other agents</Typography>}
+                label={<Typography sx={{ fontSize: fontScale.s86 }}>Allow delegation — may hand work to other agents</Typography>}
               />
               {draft.canDelegate && (
                 <FormControl fullWidth size="small">
@@ -228,8 +230,8 @@ function toggle(list: string[], id: string): string[] {
 function Section({ title, hint, children }: { title: string; hint: string; children: ReactNode }) {
   return (
     <Box sx={{ mb: 3.5 }}>
-      <Typography variant="h6" sx={{ fontSize: '0.98rem', mb: 0.25 }}>{title}</Typography>
-      <Typography sx={{ color: 'text.secondary', fontSize: '0.8rem', mb: 1.5 }}>{hint}</Typography>
+      <Typography variant="h6" sx={{ fontSize: fontScale.s98, mb: 0.25 }}>{title}</Typography>
+      <Typography sx={{ color: 'text.secondary', fontSize: fontScale.s80, mb: 1.5 }}>{hint}</Typography>
       <Stack spacing={1.5}>{children}</Stack>
     </Box>
   );
@@ -239,9 +241,9 @@ function Section({ title, hint, children }: { title: string; hint: string; child
 function ScaffoldBanner({ onScaffold }: { onScaffold: (prompt: string) => void }) {
   const [text, setText] = useState('');
   return (
-    <Box sx={(t) => ({ p: 2, mb: 3.5, borderRadius: 3, border: 1, borderColor: 'divider', backgroundImage: t.brand.gradient.signatureSoft })}>
-      <Typography sx={{ fontWeight: 600, fontSize: '0.92rem', mb: 0.25 }}>Draft from a sentence</Typography>
-      <Typography sx={{ color: 'text.secondary', fontSize: '0.8rem', mb: 1.5 }}>Describe the agent and we'll pre-fill its skills, tools, guardrails, and gate. Tune from there.</Typography>
+    <Box sx={(t) => ({ p: 2, mb: 3.5, borderRadius: 3, border: 1, borderColor: 'divider', backgroundImage: t.studio.gradient.soft })}>
+      <Typography sx={{ fontWeight: 600, fontSize: fontScale.s92, mb: 0.25 }}>Draft from a sentence</Typography>
+      <Typography sx={{ color: 'text.secondary', fontSize: fontScale.s80, mb: 1.5 }}>Describe the agent and we'll pre-fill its skills, tools, guardrails, and gate. Tune from there.</Typography>
       <Stack direction="row" spacing={1}>
         <TextField
           value={text}
@@ -267,7 +269,7 @@ function CatalogPicker<T extends { id: string; label: string; category: string; 
         if (group.length === 0) return null;
         return (
           <Box key={cat}>
-            <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.64rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 0.75 })}>{cat}</Typography>
+            <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: fontScale.s64, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 0.75 })}>{cat}</Typography>
             <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75 }}>
               {group.map((i) => {
                 const on = selected.includes(i.id);
@@ -324,7 +326,7 @@ function SelectedRow({ ids, label, mono, onRemove }: { ids: string[]; label?: (i
           label={label ? label(id) : id}
           size="small"
           onDelete={() => onRemove(id)}
-          sx={(t) => ({ bgcolor: 'action.hover', fontFamily: mono ? t.brand.font.mono : undefined, fontSize: mono ? '0.72rem' : undefined })}
+          sx={(t) => ({ bgcolor: 'action.hover', fontFamily: mono ? t.brand.font.mono : undefined, fontSize: mono ? fontScale.s72 : undefined })}
         />
       ))}
     </Stack>
@@ -340,13 +342,13 @@ function PreviewPane({ agent, gates }: { agent: Agent; gates: Gate[] }) {
 
   return (
     <Box sx={{ p: 2.5 }}>
-      <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.66rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 1.25 })}>Live preview</Typography>
+      <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: fontScale.s66, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 1.25 })}>Live preview</Typography>
       <AgentCard agent={agent} gates={gates} builtIn />
 
       <Divider sx={{ my: 2.5 }} />
 
-      <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.66rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 0.75 })}>Dry run</Typography>
-      <Typography sx={{ color: 'text.secondary', fontSize: '0.8rem', mb: 1.5 }}>Hand the agent a task and see how the orchestrator would route it — model, tools, gate, and guardrails applied.</Typography>
+      <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: fontScale.s66, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 0.75 })}>Dry run</Typography>
+      <Typography sx={{ color: 'text.secondary', fontSize: fontScale.s80, mb: 1.5 }}>Hand the agent a task and see how the orchestrator would route it — model, tools, gate, and guardrails applied.</Typography>
       <TextField
         value={probe}
         onChange={(e) => setProbe(e.target.value)}
@@ -364,10 +366,10 @@ function PreviewPane({ agent, gates }: { agent: Agent; gates: Gate[] }) {
           <ResultLine k="Skills engaged" v={result.skills.length ? result.skills.map(skillLabel).join(', ') : 'general reasoning'} />
           {result.tools.length > 0 && <ResultLine k="Tools used" v={result.tools.map(toolLabel).join(', ')} />}
           {result.guardrails.length > 0 && <ResultLine k="Guardrails applied" v={result.guardrails} />}
-          <Box sx={(t) => ({ p: 1.5, mt: 0.5, borderRadius: 2, bgcolor: 'background.default', border: 1, borderColor: 'divider' })}>
-            <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary' }}>{result.plan}</Typography>
+          <Box sx={{ p: 1.5, mt: 0.5, borderRadius: 2, bgcolor: 'background.default', border: 1, borderColor: 'divider' }}>
+            <Typography sx={{ fontSize: fontScale.s82, color: 'text.secondary' }}>{result.plan}</Typography>
           </Box>
-          <Typography sx={{ fontSize: '0.72rem', color: 'text.disabled' }}>Offline simulation. Connect the orchestrator to dispatch a real run.</Typography>
+          <Typography sx={{ fontSize: fontScale.s72, color: 'text.disabled' }}>Offline simulation. Connect the orchestrator to dispatch a real run.</Typography>
         </Stack>
       )}
     </Box>
@@ -377,8 +379,8 @@ function PreviewPane({ agent, gates }: { agent: Agent; gates: Gate[] }) {
 function ResultLine({ k, v }: { k: string; v: string }) {
   return (
     <Stack direction="row" spacing={1.5} alignItems="baseline">
-      <Typography sx={{ fontSize: '0.76rem', color: 'text.disabled', minWidth: 116, flexShrink: 0 }}>{k}</Typography>
-      <Typography sx={{ fontSize: '0.82rem', color: 'text.primary' }}>{v}</Typography>
+      <Typography sx={{ fontSize: fontScale.s76, color: 'text.disabled', minWidth: 116, flexShrink: 0 }}>{k}</Typography>
+      <Typography sx={{ fontSize: fontScale.s82, color: 'text.primary' }}>{v}</Typography>
     </Stack>
   );
 }

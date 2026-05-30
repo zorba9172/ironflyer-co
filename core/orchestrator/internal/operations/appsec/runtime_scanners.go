@@ -16,15 +16,18 @@ func (TrufflehogScanner) ID() string { return "trufflehog" }
 func (TrufflehogScanner) Supports(inv Inventory) bool { return inv.RuntimeEnabled }
 
 func (s TrufflehogScanner) Scan(ctx context.Context, target Target, _ Inventory) ([]Finding, error) {
-	cmd := "command -v trufflehog >/dev/null 2>&1 && " +
+	cmd := "if command -v trufflehog >/dev/null 2>&1; then " +
 		"tmp=${TMPDIR:-/tmp}/ironflyer-trufflehog-exclude.txt; " +
 		"printf 'node_modules\\n.git\\n' > \"$tmp\"; " +
-		"trufflehog filesystem --json --no-update --exclude-paths \"$tmp\" . 2>/dev/null || true"
+		"trufflehog filesystem --json --no-update --exclude-paths \"$tmp\" .; fi"
 	res, err := target.Runtime.Exec(ctx, target.UserBearer, target.WorkspaceID, runtime.ExecOpts{
 		Shell: cmd, TimeoutSeconds: 180,
 	})
-	if err != nil || strings.TrimSpace(res.Stdout) == "" {
-		return nil, nil
+	if err := scannerTransportError(s.ID(), res, err); err != nil {
+		return nil, err
+	}
+	if strings.TrimSpace(res.Stdout) == "" {
+		return nil, scannerExitError(s.ID(), res)
 	}
 	var out []Finding
 	for _, line := range strings.Split(res.Stdout, "\n") {
@@ -45,7 +48,7 @@ func (s TrufflehogScanner) Scan(ctx context.Context, target Target, _ Inventory)
 			} `json:"SourceMetadata"`
 		}
 		if err := json.Unmarshal([]byte(line), &doc); err != nil {
-			continue
+			return nil, scannerParseError(s.ID(), err)
 		}
 		sev := SeverityHigh
 		if doc.Verified {
@@ -67,6 +70,9 @@ func (s TrufflehogScanner) Scan(ctx context.Context, target Target, _ Inventory)
 			Verified:    doc.Verified,
 		})
 	}
+	if len(out) == 0 {
+		return nil, scannerExitError(s.ID(), res)
+	}
 	return out, nil
 }
 
@@ -77,14 +83,17 @@ func (GitleaksScanner) ID() string { return "gitleaks" }
 func (GitleaksScanner) Supports(inv Inventory) bool { return inv.RuntimeEnabled }
 
 func (s GitleaksScanner) Scan(ctx context.Context, target Target, _ Inventory) ([]Finding, error) {
-	cmd := "command -v gitleaks >/dev/null 2>&1 && " +
+	cmd := "if command -v gitleaks >/dev/null 2>&1; then " +
 		"gitleaks detect --no-git --no-banner --redact " +
-		"--report-format json --report-path /dev/stdout . 2>/dev/null || true"
+		"--report-format json --report-path /dev/stdout .; fi"
 	res, err := target.Runtime.Exec(ctx, target.UserBearer, target.WorkspaceID, runtime.ExecOpts{
 		Shell: cmd, TimeoutSeconds: 120,
 	})
-	if err != nil || strings.TrimSpace(res.Stdout) == "" {
-		return nil, nil
+	if err := scannerTransportError(s.ID(), res, err); err != nil {
+		return nil, err
+	}
+	if strings.TrimSpace(res.Stdout) == "" {
+		return nil, scannerExitError(s.ID(), res)
 	}
 	var findings []struct {
 		Description string `json:"Description"`
@@ -93,7 +102,10 @@ func (s GitleaksScanner) Scan(ctx context.Context, target Target, _ Inventory) (
 		RuleID      string `json:"RuleID"`
 	}
 	if err := json.Unmarshal([]byte(res.Stdout), &findings); err != nil {
-		return nil, nil
+		return nil, scannerParseError(s.ID(), err)
+	}
+	if len(findings) == 0 {
+		return nil, scannerExitError(s.ID(), res)
 	}
 	out := make([]Finding, 0, len(findings))
 	for _, f := range findings {
@@ -118,12 +130,15 @@ func (SemgrepScanner) ID() string { return "semgrep" }
 func (SemgrepScanner) Supports(inv Inventory) bool { return inv.RuntimeEnabled }
 
 func (s SemgrepScanner) Scan(ctx context.Context, target Target, _ Inventory) ([]Finding, error) {
-	cmd := "command -v semgrep >/dev/null 2>&1 && semgrep --config=auto --json --quiet --error --exclude=node_modules --exclude=.git --timeout=60 . 2>/dev/null"
+	cmd := "if command -v semgrep >/dev/null 2>&1; then semgrep --config=auto --json --quiet --error --exclude=node_modules --exclude=.git --timeout=60 .; fi"
 	res, err := target.Runtime.Exec(ctx, target.UserBearer, target.WorkspaceID, runtime.ExecOpts{
 		Shell: cmd, TimeoutSeconds: 120,
 	})
-	if err != nil || res.TimedOut || strings.TrimSpace(res.Stdout) == "" {
-		return nil, nil
+	if err := scannerTransportError(s.ID(), res, err); err != nil {
+		return nil, err
+	}
+	if strings.TrimSpace(res.Stdout) == "" {
+		return nil, scannerExitError(s.ID(), res)
 	}
 	type semgrepOut struct {
 		Results []struct {
@@ -143,7 +158,10 @@ func (s SemgrepScanner) Scan(ctx context.Context, target Target, _ Inventory) ([
 	}
 	var doc semgrepOut
 	if err := json.Unmarshal([]byte(res.Stdout), &doc); err != nil {
-		return nil, nil
+		return nil, scannerParseError(s.ID(), err)
+	}
+	if len(doc.Results) == 0 {
+		return nil, scannerExitError(s.ID(), res)
 	}
 	out := make([]Finding, 0, len(doc.Results))
 	for _, r := range doc.Results {
@@ -174,15 +192,25 @@ func (OSVScannerCLI) Supports(inv Inventory) bool {
 }
 
 func (s OSVScannerCLI) Scan(ctx context.Context, target Target, _ Inventory) ([]Finding, error) {
-	cmd := "command -v osv-scanner >/dev/null 2>&1 && " +
-		"osv-scanner --format json --recursive --skip-git . 2>/dev/null || true"
+	cmd := "if command -v osv-scanner >/dev/null 2>&1; then " +
+		"osv-scanner --format json --recursive --skip-git .; fi"
 	res, err := target.Runtime.Exec(ctx, target.UserBearer, target.WorkspaceID, runtime.ExecOpts{
 		Shell: cmd, TimeoutSeconds: 180,
 	})
-	if err != nil || res.TimedOut || strings.TrimSpace(res.Stdout) == "" {
-		return nil, nil
+	if err := scannerTransportError(s.ID(), res, err); err != nil {
+		return nil, err
 	}
-	return parseOSVScannerOutput(s.ID(), res.Stdout), nil
+	if strings.TrimSpace(res.Stdout) == "" {
+		return nil, scannerExitError(s.ID(), res)
+	}
+	if !json.Valid([]byte(res.Stdout)) {
+		return nil, scannerParseError(s.ID(), json.Unmarshal([]byte(res.Stdout), &struct{}{}))
+	}
+	out := parseOSVScannerOutput(s.ID(), res.Stdout)
+	if len(out) == 0 {
+		return nil, scannerExitError(s.ID(), res)
+	}
+	return out, nil
 }
 
 func parseOSVScannerOutput(toolID, stdout string) []Finding {
@@ -250,16 +278,26 @@ func (TrivyScanner) ID() string { return "trivy" }
 func (TrivyScanner) Supports(inv Inventory) bool { return inv.RuntimeEnabled }
 
 func (s TrivyScanner) Scan(ctx context.Context, target Target, _ Inventory) ([]Finding, error) {
-	cmd := "command -v trivy >/dev/null 2>&1 && " +
+	cmd := "if command -v trivy >/dev/null 2>&1; then " +
 		"trivy fs --format json --quiet --scanners vuln,secret,misconfig " +
-		"--skip-dirs node_modules --skip-dirs .git . 2>/dev/null || true"
+		"--skip-dirs node_modules --skip-dirs .git .; fi"
 	res, err := target.Runtime.Exec(ctx, target.UserBearer, target.WorkspaceID, runtime.ExecOpts{
 		Shell: cmd, TimeoutSeconds: 240,
 	})
-	if err != nil || res.TimedOut || strings.TrimSpace(res.Stdout) == "" {
-		return nil, nil
+	if err := scannerTransportError(s.ID(), res, err); err != nil {
+		return nil, err
 	}
-	return parseTrivyOutput(s.ID(), res.Stdout), nil
+	if strings.TrimSpace(res.Stdout) == "" {
+		return nil, scannerExitError(s.ID(), res)
+	}
+	if !json.Valid([]byte(res.Stdout)) {
+		return nil, scannerParseError(s.ID(), json.Unmarshal([]byte(res.Stdout), &struct{}{}))
+	}
+	out := parseTrivyOutput(s.ID(), res.Stdout)
+	if len(out) == 0 {
+		return nil, scannerExitError(s.ID(), res)
+	}
+	return out, nil
 }
 
 func parseTrivyOutput(toolID, stdout string) []Finding {
@@ -351,18 +389,21 @@ func (SyftSBOMScanner) ID() string { return "syft" }
 func (SyftSBOMScanner) Supports(inv Inventory) bool { return inv.RuntimeEnabled }
 
 func (s SyftSBOMScanner) Scan(ctx context.Context, target Target, _ Inventory) ([]Finding, error) {
-	cmd := "command -v syft >/dev/null 2>&1 && syft dir:. -o cyclonedx-json --quiet 2>/dev/null || true"
+	cmd := "if command -v syft >/dev/null 2>&1; then syft dir:. -o cyclonedx-json --quiet; fi"
 	res, err := target.Runtime.Exec(ctx, target.UserBearer, target.WorkspaceID, runtime.ExecOpts{
 		Shell: cmd, TimeoutSeconds: 180,
 	})
-	if err != nil || res.TimedOut || strings.TrimSpace(res.Stdout) == "" {
-		return nil, nil
+	if err := scannerTransportError(s.ID(), res, err); err != nil {
+		return nil, err
+	}
+	if strings.TrimSpace(res.Stdout) == "" {
+		return nil, scannerExitError(s.ID(), res)
 	}
 	var doc struct {
 		Components []json.RawMessage `json:"components"`
 	}
 	if err := json.Unmarshal([]byte(res.Stdout), &doc); err != nil {
-		return nil, nil
+		return nil, scannerParseError(s.ID(), err)
 	}
 	return []Finding{{
 		Tool:     s.ID(),
@@ -382,15 +423,25 @@ func (ScanCodeLicenseScanner) ID() string { return "scancode" }
 func (ScanCodeLicenseScanner) Supports(inv Inventory) bool { return inv.RuntimeEnabled }
 
 func (s ScanCodeLicenseScanner) Scan(ctx context.Context, target Target, _ Inventory) ([]Finding, error) {
-	cmd := "command -v scancode >/dev/null 2>&1 && " +
-		"scancode --license --json-pp - --ignore node_modules --ignore .git . 2>/dev/null || true"
+	cmd := "if command -v scancode >/dev/null 2>&1; then " +
+		"scancode --license --json-pp - --ignore node_modules --ignore .git .; fi"
 	res, err := target.Runtime.Exec(ctx, target.UserBearer, target.WorkspaceID, runtime.ExecOpts{
 		Shell: cmd, TimeoutSeconds: 300,
 	})
-	if err != nil || res.TimedOut || strings.TrimSpace(res.Stdout) == "" {
-		return nil, nil
+	if err := scannerTransportError(s.ID(), res, err); err != nil {
+		return nil, err
 	}
-	return parseScanCodeOutput(s.ID(), res.Stdout), nil
+	if strings.TrimSpace(res.Stdout) == "" {
+		return nil, scannerExitError(s.ID(), res)
+	}
+	if !json.Valid([]byte(res.Stdout)) {
+		return nil, scannerParseError(s.ID(), json.Unmarshal([]byte(res.Stdout), &struct{}{}))
+	}
+	out := parseScanCodeOutput(s.ID(), res.Stdout)
+	if len(out) == 0 {
+		return nil, scannerExitError(s.ID(), res)
+	}
+	return out, nil
 }
 
 func parseScanCodeOutput(toolID, stdout string) []Finding {
@@ -499,18 +550,34 @@ func (s GovulncheckScanner) Scan(ctx context.Context, target Target, inv Invento
 	}
 	var out []Finding
 	for _, modPath := range paths {
-		if !workspaceHasFile(ctx, target, modPath) {
+		exists, err := workspaceFileExists(ctx, target, modPath)
+		if err != nil {
+			return nil, err
+		}
+		if !exists {
 			continue
 		}
 		cwd := serviceRoot(modPath)
-		cmd := "command -v govulncheck >/dev/null 2>&1 && govulncheck -json ./... 2>/dev/null"
+		cmd := "if command -v govulncheck >/dev/null 2>&1; then govulncheck -json ./...; fi"
 		res, err := target.Runtime.Exec(ctx, target.UserBearer, target.WorkspaceID, runtime.ExecOpts{
 			Shell: cmd, Cwd: cwd, TimeoutSeconds: 180,
 		})
-		if err != nil || res.TimedOut || strings.TrimSpace(res.Stdout) == "" {
+		if err := scannerTransportError(s.ID(), res, err); err != nil {
+			return nil, err
+		}
+		if strings.TrimSpace(res.Stdout) == "" {
+			if err := scannerExitError(s.ID(), res); err != nil {
+				return nil, err
+			}
 			continue
 		}
-		out = append(out, parseGovulncheckOutput(s.ID(), cwd, res.Stdout)...)
+		got := parseGovulncheckOutput(s.ID(), cwd, res.Stdout)
+		if len(got) == 0 {
+			if err := scannerExitError(s.ID(), res); err != nil {
+				return nil, err
+			}
+		}
+		out = append(out, got...)
 	}
 	return out, nil
 }
@@ -586,18 +653,34 @@ func (s GoModuleDeprecationScanner) Scan(ctx context.Context, target Target, inv
 	}
 	var out []Finding
 	for _, modPath := range paths {
-		if !workspaceHasFile(ctx, target, modPath) {
+		exists, err := workspaceFileExists(ctx, target, modPath)
+		if err != nil {
+			return nil, err
+		}
+		if !exists {
 			continue
 		}
 		cwd := serviceRoot(modPath)
-		cmd := "command -v go >/dev/null 2>&1 && go list -m -u -json all 2>/dev/null"
+		cmd := "if command -v go >/dev/null 2>&1; then go list -m -u -json all; fi"
 		res, err := target.Runtime.Exec(ctx, target.UserBearer, target.WorkspaceID, runtime.ExecOpts{
 			Shell: cmd, Cwd: cwd, TimeoutSeconds: 120,
 		})
-		if err != nil || res.TimedOut || strings.TrimSpace(res.Stdout) == "" {
+		if err := scannerTransportError(s.ID(), res, err); err != nil {
+			return nil, err
+		}
+		if strings.TrimSpace(res.Stdout) == "" {
+			if err := scannerExitError(s.ID(), res); err != nil {
+				return nil, err
+			}
 			continue
 		}
-		out = append(out, parseGoListDeprecations(s.ID(), modPath, res.Stdout)...)
+		got := parseGoListDeprecations(s.ID(), modPath, res.Stdout)
+		if len(got) == 0 {
+			if err := scannerExitError(s.ID(), res); err != nil {
+				return nil, err
+			}
+		}
+		out = append(out, got...)
 	}
 	return out, nil
 }
@@ -657,18 +740,37 @@ func (s NpmAuditScanner) Scan(ctx context.Context, target Target, inv Inventory)
 	}
 	var out []Finding
 	for _, lockPath := range paths {
-		if !workspaceHasFile(ctx, target, lockPath) {
+		exists, err := workspaceFileExists(ctx, target, lockPath)
+		if err != nil {
+			return nil, err
+		}
+		if !exists {
 			continue
 		}
 		cwd := serviceRoot(lockPath)
-		cmd := "command -v npm >/dev/null 2>&1 && npm audit --json --omit=dev 2>/dev/null || true"
+		cmd := "if command -v npm >/dev/null 2>&1; then npm audit --json --omit=dev; fi"
 		res, err := target.Runtime.Exec(ctx, target.UserBearer, target.WorkspaceID, runtime.ExecOpts{
 			Shell: cmd, Cwd: cwd, TimeoutSeconds: 120,
 		})
-		if err != nil || strings.TrimSpace(res.Stdout) == "" {
+		if err := scannerTransportError(s.ID(), res, err); err != nil {
+			return nil, err
+		}
+		if strings.TrimSpace(res.Stdout) == "" {
+			if err := scannerExitError(s.ID(), res); err != nil {
+				return nil, err
+			}
 			continue
 		}
-		out = append(out, parseNpmAuditOutput(s.ID(), lockPath, res.Stdout)...)
+		if !json.Valid([]byte(res.Stdout)) {
+			return nil, scannerParseError(s.ID(), json.Unmarshal([]byte(res.Stdout), &struct{}{}))
+		}
+		got := parseNpmAuditOutput(s.ID(), lockPath, res.Stdout)
+		if len(got) == 0 {
+			if err := scannerExitError(s.ID(), res); err != nil {
+				return nil, err
+			}
+		}
+		out = append(out, got...)
 	}
 	return out, nil
 }
@@ -717,11 +819,25 @@ func parseNpmAuditOutput(toolID, lockPath, stdout string) []Finding {
 }
 
 func workspaceHasFile(ctx context.Context, target Target, path string) bool {
+	ok, _ := workspaceFileExists(ctx, target, path)
+	return ok
+}
+
+func workspaceFileExists(ctx context.Context, target Target, path string) (bool, error) {
 	if !target.HasRuntime() {
-		return false
+		return false, nil
 	}
 	res, err := target.Runtime.Exec(ctx, target.UserBearer, target.WorkspaceID, runtime.ExecOpts{
 		Shell: "test -f " + shellQuote(path), TimeoutSeconds: 10,
 	})
-	return err == nil && res.ExitCode == 0
+	if err := scannerTransportError("workspace-file-probe", res, err); err != nil {
+		return false, err
+	}
+	if res.ExitCode == 0 {
+		return true, nil
+	}
+	if res.ExitCode == 1 {
+		return false, nil
+	}
+	return false, scannerExitError("workspace-file-probe", res)
 }

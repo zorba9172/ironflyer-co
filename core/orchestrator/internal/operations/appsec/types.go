@@ -91,17 +91,25 @@ type Scanner interface {
 }
 
 type Result struct {
-	Inventory Inventory
-	Config    Config
-	Findings  []Finding
-	Graph     RiskGraph
-	Verdict   Verdict
-	StartedAt time.Time
-	EndedAt   time.Time
+	Inventory     Inventory
+	Config        Config
+	Findings      []Finding
+	ScannerErrors []ScannerError
+	Graph         RiskGraph
+	Verdict       Verdict
+	StartedAt     time.Time
+	EndedAt       time.Time
+}
+
+type ScannerError struct {
+	Tool       string
+	Message    string
+	DetectedAt time.Time
 }
 
 type Verdict struct {
 	Status        string // pass | warning | fail
 	BlockedDeploy bool
 	OverallScore  float64
+	ScannerErrors int
 }

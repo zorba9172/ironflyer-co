@@ -1,56 +1,89 @@
 import { useState } from 'react';
-import { Box, Button, CircularProgress, IconButton, Menu, MenuItem, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
+import { Box, Button, CircularProgress, IconButton, Menu, MenuItem, Stack, Tooltip, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@ironflyer/ui-web/fx';
+import { Icon } from '../icons';
 import { LogoMark } from './LogoMark';
 import { AccountMenu } from './AccountMenu';
 import { CostHUD } from './CostHUD';
 import { PrivateModeChip } from './PrivateModeChip';
 import { useStudio } from '../store';
 import { useSaveProject } from '../hooks/useSaveProject';
+import { useThemeMode } from '../theme';
+import { text } from '@ironflyer/design-tokens/brand';
 
 export type EditorTab =
-  | 'theater' | 'preview' | 'map' | 'security' | 'code'
-  | 'dashboard' | 'documents' | 'logs' | 'performance' | 'quality' | 'agents' | 'team'
-  | 'data' | 'users' | 'analytics' | 'domains' | 'automations' | 'api' | 'marketing' | 'settings';
+  | 'preview' | 'map' | 'security' | 'code'
+  | 'dashboard' | 'documents' | 'logs' | 'quality' | 'team'
+  | 'data' | 'users' | 'grow' | 'settings';
 
-const DASH_GROUP: EditorTab[] = ['dashboard', 'agents', 'team', 'quality', 'performance', 'logs', 'documents'];
-const dashItems: { value: EditorTab; label: string }[] = [
-  { value: 'dashboard', label: 'Dashboard' },
-  { value: 'agents', label: 'Execution team' },
-  { value: 'team', label: 'Execution team graph' },
-  { value: 'quality', label: 'Code quality' },
-  { value: 'performance', label: 'Performance' },
-  { value: 'logs', label: 'Logs' },
-  { value: 'documents', label: 'Documents' },
+type EditorTabGroupId = 'build' | 'preview' | 'review' | 'operate' | 'business';
+type EditorTabTone = 'success' | 'warning' | 'error' | 'info';
+
+export interface EditorDeployReadiness {
+  tone: EditorTabTone;
+  label: string;
+  detail: string;
+}
+
+interface EditorTabItem { value: EditorTab; label: string }
+
+const TAB_GROUPS: { id: EditorTabGroupId; label: string; items: EditorTabItem[] }[] = [
+  {
+    id: 'build',
+    label: 'Build',
+    items: [
+      { value: 'code', label: 'Code' },
+      { value: 'team', label: 'Execution team' },
+      { value: 'documents', label: 'Documents' },
+    ],
+  },
+  {
+    id: 'preview',
+    label: 'Preview',
+    items: [
+      { value: 'preview', label: 'Live build' },
+    ],
+  },
+  {
+    id: 'review',
+    label: 'Review',
+    items: [
+      { value: 'dashboard', label: 'Dashboard' },
+      { value: 'map', label: 'Gate map' },
+      { value: 'quality', label: 'Quality' },
+      { value: 'security', label: 'Security' },
+      { value: 'logs', label: 'Logs' },
+    ],
+  },
+  {
+    id: 'operate',
+    label: 'Operate',
+    items: [
+      { value: 'data', label: 'Data' },
+      { value: 'users', label: 'Users' },
+      { value: 'settings', label: 'Settings' },
+    ],
+  },
+  {
+    id: 'business',
+    label: 'Business',
+    items: [
+      { value: 'grow', label: 'Grow' },
+    ],
+  },
 ];
 
-// Operate group — the post-deploy "run the app" surfaces (Base44-parity, but
-// viz-first and gate-aware). Grouped behind one dropdown so the top bar stays
-// lean even as the surface count grows.
-const OPERATE_GROUP: EditorTab[] = ['data', 'users', 'analytics', 'domains', 'automations', 'api', 'marketing', 'settings'];
-const operateItems: { value: EditorTab; label: string }[] = [
-  { value: 'data', label: 'Data' },
-  { value: 'users', label: 'Users' },
-  { value: 'analytics', label: 'Analytics' },
-  { value: 'domains', label: 'Domains' },
-  { value: 'automations', label: 'Automations' },
-  { value: 'api', label: 'API' },
-  { value: 'marketing', label: 'Marketing' },
-  { value: 'settings', label: 'Settings' },
-];
-
-export function EditorTopBar({ projectName, tab, onTab, onDeploy }: { projectName: string; tab: EditorTab; onTab: (t: EditorTab) => void; onDeploy: () => void }) {
+export function EditorTopBar({ projectName, tab, onTab, onDeploy, deployReadiness }: { projectName: string; tab: EditorTab; onTab: (t: EditorTab) => void; onDeploy: () => void; deployReadiness?: EditorDeployReadiness }) {
   const navigate = useNavigate();
-  const [dashAnchor, setDashAnchor] = useState<null | HTMLElement>(null);
-  const [operateAnchor, setOperateAnchor] = useState<null | HTMLElement>(null);
-  const inDash = DASH_GROUP.includes(tab);
-  const inOperate = OPERATE_GROUP.includes(tab);
-  const dashLabel = dashItems.find((d) => d.value === tab)?.label ?? 'Dashboard';
-  const operateLabel = operateItems.find((d) => d.value === tab)?.label ?? 'Operate';
+  const [groupAnchor, setGroupAnchor] = useState<null | { id: EditorTabGroupId; el: HTMLElement }>(null);
+  const activeGroup = TAB_GROUPS.find((g) => g.items.some((d) => d.value === tab)) ?? TAB_GROUPS[0]!;
+  const openGroup = TAB_GROUPS.find((g) => g.id === groupAnchor?.id);
   const fileCount = useStudio((s) => s.generatedFiles.length);
   const saved = useStudio((s) => s.saved);
   const { save, saving } = useSaveProject();
+  const { mode, toggle } = useThemeMode();
+  const readinessColor = deployReadiness ? `${deployReadiness.tone}.main` : 'text.disabled';
 
   const onSave = async () => {
     const r = await save();
@@ -59,69 +92,110 @@ export function EditorTopBar({ projectName, tab, onTab, onDeploy }: { projectNam
   };
 
   return (
-    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', px: 2, height: 56, borderBottom: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: { xs: 'auto minmax(0, 1fr) auto', md: '1fr auto 1fr' },
+        gap: { xs: 0.5, md: 1 },
+        alignItems: 'center',
+        px: { xs: 0.75, md: 2 },
+        height: 56,
+        borderBottom: 1,
+        borderColor: 'divider',
+        bgcolor: 'background.paper',
+      }}
+    >
       <Stack direction="row" alignItems="center" spacing={1.5} sx={{ minWidth: 0 }}>
         <IconButton size="small" onClick={() => navigate('/')} aria-label="Home"><LogoMark size={22} /></IconButton>
-        <Box sx={{ minWidth: 0 }}>
-          <Typography sx={{ fontWeight: 600, fontSize: '0.9rem' }} noWrap>{projectName}</Typography>
-          <Stack direction="row" alignItems="center" spacing={0.75}>
+        <Box sx={{ minWidth: 0, display: { xs: 'none', md: 'block' } }}>
+          <Typography sx={{ fontWeight: 600, fontSize: text.s90 }} noWrap>{projectName}</Typography>
+          <Stack direction="row" alignItems="center" spacing={0.75} sx={{ minWidth: 0 }}>
             {fileCount > 0 && <Box sx={{ width: 6, height: 6, borderRadius: 99, bgcolor: saved ? 'success.main' : 'warning.main' }} />}
-            <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.66rem', color: 'text.disabled' })} noWrap>
+            <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s66, color: 'text.disabled' })} noWrap>
               {fileCount === 0 ? 'My Workspace' : saved ? 'All changes saved' : 'Unsaved changes'}
             </Typography>
+            {deployReadiness && (
+              <>
+                <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s66, color: 'text.disabled' })}>/</Typography>
+                <Tooltip title={deployReadiness.detail} arrow disableInteractive>
+                  <Stack direction="row" alignItems="center" spacing={0.55} sx={{ minWidth: 0 }}>
+                    <Box sx={{ width: 6, height: 6, borderRadius: 99, bgcolor: readinessColor, flexShrink: 0 }} />
+                    <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s66, color: 'text.secondary' })} noWrap>
+                      {deployReadiness.label}
+                    </Typography>
+                  </Stack>
+                </Tooltip>
+              </>
+            )}
           </Stack>
         </Box>
       </Stack>
 
-      <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: 'action.hover', borderRadius: 99, p: 0.5 }}>
-        <ToggleButtonGroup
-          exclusive
-          size="small"
-          value={inDash ? null : tab}
-          onChange={(_, v) => v && onTab(v)}
-          sx={{ '& .MuiToggleButton-root': { border: 0, borderRadius: '99px !important', px: 2, py: 0.5, textTransform: 'none', color: 'text.secondary', '&.Mui-selected': { bgcolor: 'background.paper', color: 'text.primary', boxShadow: 1 } } }}
-        >
-          <ToggleButton value="theater">Theater</ToggleButton>
-          <ToggleButton value="preview">Preview</ToggleButton>
-          <ToggleButton value="map">Map</ToggleButton>
-          <ToggleButton value="security">Security</ToggleButton>
-          <ToggleButton value="code">Code</ToggleButton>
-        </ToggleButtonGroup>
-        <Button
-          size="small"
-          onClick={(e) => setDashAnchor(e.currentTarget)}
-          endIcon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6" /></svg>}
-          sx={{ borderRadius: 99, px: 2, py: 0.5, textTransform: 'none', color: inDash ? 'text.primary' : 'text.secondary', bgcolor: inDash ? 'background.paper' : 'transparent', boxShadow: inDash ? 1 : 0 }}
-        >
-          {dashLabel}
-        </Button>
-        <Menu anchorEl={dashAnchor} open={!!dashAnchor} onClose={() => setDashAnchor(null)} slotProps={{ paper: { sx: { mt: 1, minWidth: 180, border: 1, borderColor: 'divider', backgroundImage: 'none' } } }}>
-          {dashItems.map((d) => (
-            <MenuItem key={d.value} selected={tab === d.value} onClick={() => { onTab(d.value); setDashAnchor(null); }}>{d.label}</MenuItem>
-          ))}
-        </Menu>
-        <Button
-          size="small"
-          onClick={(e) => setOperateAnchor(e.currentTarget)}
-          endIcon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6" /></svg>}
-          sx={{ borderRadius: 99, px: 2, py: 0.5, textTransform: 'none', color: inOperate ? 'text.primary' : 'text.secondary', bgcolor: inOperate ? 'background.paper' : 'transparent', boxShadow: inOperate ? 1 : 0 }}
-        >
-          {operateLabel}
-        </Button>
-        <Menu anchorEl={operateAnchor} open={!!operateAnchor} onClose={() => setOperateAnchor(null)} slotProps={{ paper: { sx: { mt: 1, minWidth: 180, border: 1, borderColor: 'divider', backgroundImage: 'none' } } }}>
-          {operateItems.map((d) => (
-            <MenuItem key={d.value} selected={tab === d.value} onClick={() => { onTab(d.value); setOperateAnchor(null); }}>{d.label}</MenuItem>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.25,
+          bgcolor: 'action.hover',
+          borderRadius: 99,
+          p: 0.5,
+          minWidth: 0,
+          overflowX: 'auto',
+          scrollbarWidth: 'none',
+          '&::-webkit-scrollbar': { display: 'none' },
+        }}
+      >
+        {TAB_GROUPS.map((group) => {
+          const selected = activeGroup.id === group.id;
+          const activeLabel = group.items.length > 1 ? group.items.find((d) => d.value === tab)?.label : null;
+          return (
+            <Button
+              key={group.id}
+              size="small"
+              onClick={(e) => {
+                if (group.items.length === 1) {
+                  onTab(group.items[0]!.value);
+                  return;
+                }
+                setGroupAnchor({ id: group.id, el: e.currentTarget });
+              }}
+              endIcon={group.items.length > 1 ? <Icon name="chevronDown" size={12} /> : undefined}
+              sx={{
+                borderRadius: 99,
+                px: { xs: 0.9, md: 1.4 },
+                py: 0.5,
+                minWidth: 0,
+                flexShrink: 0,
+                order: { xs: selected ? -1 : 0, md: 0 },
+                textTransform: 'none',
+                fontSize: { xs: text.s74, md: text.s82 },
+                whiteSpace: 'nowrap',
+                color: selected ? 'text.primary' : 'text.secondary',
+                bgcolor: selected ? 'background.paper' : 'transparent',
+                boxShadow: selected ? 1 : 0,
+              }}
+            >
+              <Box component="span" sx={{ minWidth: 0, whiteSpace: 'nowrap' }}>{group.label}</Box>
+              {selected && activeLabel && (
+                <Box component="span" sx={{ display: { xs: 'none', lg: 'inline' }, ml: 0.75, color: 'text.secondary', maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {activeLabel}
+                </Box>
+              )}
+            </Button>
+          );
+        })}
+        <Menu anchorEl={groupAnchor?.el ?? null} open={!!groupAnchor} onClose={() => setGroupAnchor(null)} slotProps={{ paper: { sx: { mt: 1, minWidth: 190, border: 1, borderColor: 'divider', backgroundImage: 'none' } } }}>
+          {(openGroup?.items ?? []).map((d) => (
+            <MenuItem key={d.value} selected={tab === d.value} onClick={() => { onTab(d.value); setGroupAnchor(null); }}>{d.label}</MenuItem>
           ))}
         </Menu>
       </Box>
 
-      <Stack direction="row" alignItems="center" justifyContent="flex-end" spacing={1}>
-        <PrivateModeChip />
-        <CostHUD />
-        <IconButton size="small" aria-label="Open repo" sx={{ color: 'text.secondary' }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.53 2.36 1.09 2.94.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.5 9.5 0 015 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.69-4.57 4.94.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0012 2z" /></svg>
-        </IconButton>
+      <Stack direction="row" alignItems="center" justifyContent="flex-end" spacing={{ xs: 0.5, md: 1 }} sx={{ minWidth: 0 }}>
+        <Box sx={{ display: { xs: 'none', lg: 'block' } }}><PrivateModeChip /></Box>
+        <Box sx={{ display: { xs: 'none', sm: 'block' } }}><CostHUD /></Box>
         <Button
+          sx={{ display: { xs: 'none', md: 'inline-flex' } }}
           variant="outlined"
           color="inherit"
           size="small"
@@ -132,6 +206,25 @@ export function EditorTopBar({ projectName, tab, onTab, onDeploy }: { projectNam
           {saving ? 'Saving' : saved && fileCount > 0 ? 'Saved' : 'Save'}
         </Button>
         <Button variant="contained" size="small" onClick={onDeploy}>Deploy</Button>
+        <Tooltip title={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
+          <IconButton
+            size="small"
+            onClick={toggle}
+            aria-label={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            sx={{
+              display: { xs: 'none', sm: 'inline-flex' },
+              width: 30,
+              height: 30,
+              border: 1,
+              borderColor: 'divider',
+              color: 'text.secondary',
+              bgcolor: 'action.hover',
+              '&:hover': { color: 'text.primary', bgcolor: 'background.paper' },
+            }}
+          >
+            {mode === 'dark' ? <Icon name="sun" size={15} /> : <Icon name="moon" size={15} />}
+          </IconButton>
+        </Tooltip>
         <AccountMenu size={28} />
       </Stack>
     </Box>

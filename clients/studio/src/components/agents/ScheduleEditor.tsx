@@ -1,5 +1,6 @@
 import { FormControl, FormControlLabel, InputLabel, MenuItem, Select, Stack, Switch, TextField, Typography } from '@mui/material';
 import { scheduleLabel, SCHEDULE_TRIGGERS, WEEKDAY_OPTIONS, type AgentSchedule, type AgentScheduleMode } from '../../studioData';
+import { text } from '@ironflyer/design-tokens/brand';
 
 const MODE_OPTIONS: { value: AgentScheduleMode; label: string }[] = [
   { value: 'manual', label: 'Manual — only when dispatched' },
@@ -15,10 +16,10 @@ export function ScheduleEditor({ schedule, onChange }: { schedule: AgentSchedule
   return (
     <Stack spacing={1.5}>
       <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Typography sx={{ fontSize: '0.86rem', color: 'text.secondary' }}>{scheduleLabel(schedule)}</Typography>
+        <Typography sx={{ fontSize: text.s86, color: 'text.secondary' }}>{scheduleLabel(schedule)}</Typography>
         <FormControlLabel
           control={<Switch size="small" checked={schedule.enabled} onChange={(e) => patch({ enabled: e.target.checked })} />}
-          label={<Typography sx={{ fontSize: '0.82rem', color: 'text.secondary' }}>{schedule.enabled ? 'Enabled' : 'Paused'}</Typography>}
+          label={<Typography sx={{ fontSize: text.s82, color: 'text.secondary' }}>{schedule.enabled ? 'Enabled' : 'Paused'}</Typography>}
           sx={{ mr: 0 }}
         />
       </Stack>

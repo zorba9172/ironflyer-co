@@ -1,46 +1,129 @@
-import { Box, Button, Card, Chip, Stack, Typography } from '@mui/material';
+import { useMemo, useState } from 'react';
+import { Box, Chip, Stack, Typography } from '@mui/material';
+import { Icon } from '../icons';
 import { toast } from '@ironflyer/ui-web/fx';
+import { formatUSD } from '@ironflyer/core';
+import { useWallet } from '../hooks/useEconomics';
+import { AmbientBackdrop } from './home/AmbientBackdrop';
+import { BillingToggle, type BillingCadence } from './plans/BillingToggle';
+import { PlanCard, type PlanTier } from './plans/PlanCard';
+import { WalletPanel } from './plans/WalletPanel';
 
 // In-app plans. Our model is prepaid wallet credits (not seats): a plan tops
-// the wallet monthly; ProfitGuard meters every run against it.
+// the wallet monthly; ProfitGuard meters every run against it. `priceUSD` is
+// the monthly list price; the annual cadence applies the shared discount and
+// the cards display the resulting effective monthly figure.
 const tiers = [
-  { name: 'Starter', price: '$0', credits: '100 credits / mo', popular: false, features: ['1 project', 'All finisher gates', 'Preview deploys', 'Community support'] },
-  { name: 'Builder', price: '$19', credits: '500 credits / mo', popular: true, features: ['Unlimited projects', 'Production deploys', 'Mobile target', 'Spend & error board'] },
-  { name: 'Pro', price: '$49', credits: '1,500 credits / mo', popular: false, features: ['Everything in Builder', 'Priority agent throughput', 'Custom domain', 'Remove branding'] },
-  { name: 'Elite', price: '$149', credits: '5,000 credits / mo', popular: false, features: ['Everything in Pro', 'Shared workspaces & roles', 'SSO & audit log', 'Per-project spend controls'] },
+  { name: 'Starter', priceUSD: 0, credits: '100 credits / mo', popular: false, features: ['1 project', 'All finisher gates', 'Preview deploys', 'Community support'] },
+  { name: 'Builder', priceUSD: 19, credits: '500 credits / mo', popular: true, features: ['Unlimited projects', 'Production deploys', 'Mobile target', 'Spend & error board'] },
+  { name: 'Pro', priceUSD: 49, credits: '1,500 credits / mo', popular: false, features: ['Everything in Builder', 'Priority agent throughput', 'Custom domain', 'Remove branding'] },
+  { name: 'Elite', priceUSD: 149, credits: '5,000 credits / mo', popular: false, features: ['Everything in Pro', 'Shared workspaces & roles', 'SSO & audit log', 'Per-project spend controls'] },
 ];
 
-export function PlansPage() {
-  return (
-    <Box sx={{ p: { xs: 3, md: 6 }, maxWidth: 1180, mx: 'auto' }}>
-      <Typography variant="h2" sx={{ fontSize: { xs: '2.25rem', md: '3rem' }, textAlign: 'center' }}>Choose the plan that's right for you</Typography>
-      <Typography sx={{ color: 'text.secondary', textAlign: 'center', mt: 1.5, mb: 5 }}>
-        Plans top your wallet in credits. You only ever spend on runs that pass ProfitGuard.
-      </Typography>
+const topUps = [25, 75, 150];
 
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', lg: 'repeat(4, 1fr)' }, gap: 2, alignItems: 'start' }}>
-        {tiers.map((t) => (
-          <Card key={t.name} sx={(th) => ({ position: 'relative', p: 3, ...(t.popular ? { boxShadow: `0 0 0 1.5px ${th.palette.primary.main}`, border: 'none' } : {}) })}>
-            {t.popular && (
-              <Box sx={(th) => ({ position: 'absolute', top: -11, left: '50%', transform: 'translateX(-50%)', fontFamily: th.brand.font.mono, fontSize: '0.64rem', letterSpacing: '0.08em', textTransform: 'uppercase', px: 1.5, py: 0.5, borderRadius: 99, color: th.palette.primary.contrastText, backgroundImage: th.brand.gradient.signature })}>Most popular</Box>
-            )}
-            <Typography variant="h6" sx={{ fontSize: '1.2rem' }}>{t.name}</Typography>
-            <Stack direction="row" alignItems="baseline" spacing={0.75} sx={{ mt: 1.5 }}>
-              <Typography sx={(th) => ({ fontFamily: th.brand.font.display, fontSize: '2.4rem', fontWeight: 700 })}>{t.price}</Typography>
-              <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, color: 'text.disabled', fontSize: '0.8rem' })}>/mo</Typography>
-            </Stack>
-            <Chip size="small" label={t.credits} sx={{ mt: 1, mb: 2, bgcolor: 'action.hover', fontFamily: 'var(--if-font-mono)', fontSize: '0.7rem' }} />
-            <Button fullWidth variant={t.popular ? 'contained' : 'outlined'} color={t.popular ? 'primary' : 'inherit'} onClick={() => toast(`${t.name} selected — opening secure checkout…`, 'success')}>Get {t.name}</Button>
-            <Stack spacing={1.25} sx={{ mt: 2.5 }}>
-              {t.features.map((f) => (
-                <Stack key={f} direction="row" spacing={1.25} alignItems="flex-start">
-                  <Box sx={{ mt: '6px', width: 13, height: 7, borderLeft: 2, borderBottom: 2, borderColor: 'secondary.main', transform: 'rotate(-45deg)', flexShrink: 0 }} />
-                  <Typography sx={{ color: 'text.secondary', fontSize: '0.9rem' }}>{f}</Typography>
-                </Stack>
-              ))}
-            </Stack>
-          </Card>
-        ))}
+// Annual cadence trades a discount for commitment — the highest-ROI lever on a
+// pricing page. The effective monthly price is shown so the cards stay scannable.
+const ANNUAL_SAVINGS_PCT = 17;
+
+export function PlansPage() {
+  const { wallet, isLive } = useWallet();
+  const [cadence, setCadence] = useState<BillingCadence>('annual');
+
+  const cards: PlanTier[] = useMemo(() => {
+    const annual = cadence === 'annual';
+    return tiers.map((t) => {
+      const effective = annual ? Math.round(t.priceUSD * (1 - ANNUAL_SAVINGS_PCT / 100)) : t.priceUSD;
+      return {
+        name: t.name,
+        price: formatUSD(effective, { cents: false }),
+        cadenceLabel: t.priceUSD === 0 ? 'forever' : annual ? '/mo billed annually' : '/mo',
+        credits: t.credits,
+        popular: t.popular,
+        features: t.features,
+      };
+    });
+  }, [cadence]);
+
+  return (
+    <Box sx={{ position: 'relative', overflow: 'hidden' }}>
+      <AmbientBackdrop />
+
+      <Box sx={{ position: 'relative', zIndex: 1, px: { xs: 3, md: 6 }, py: { xs: 5, md: 8 }, maxWidth: 1240, mx: 'auto' }}>
+        {/* Headline — final phrase gradient-filled, per the locked formula. */}
+        <Stack alignItems="center" textAlign="center" spacing={2.5}>
+          <Chip
+            icon={<Icon name="sparkles" size={15} />}
+            label="Prepaid wallet credits — no seats, no surprises"
+            sx={(theme) => ({
+              height: 34,
+              px: 1.25,
+              borderRadius: theme.studio.radius.pill,
+              border: `1px solid ${theme.palette.divider}`,
+              backgroundColor: theme.palette.cardBg,
+              backdropFilter: `blur(${theme.studio.effect.card.blur}px)`,
+              color: theme.palette.text.secondary,
+              fontWeight: theme.typography.fontWeightMedium,
+              '& .MuiChip-icon': { color: theme.studio.neon.blue, ml: 0.25 },
+              '& .MuiChip-label': { px: 1 },
+            })}
+          />
+
+          <Typography variant="h2" sx={{ fontSize: { xs: '2.2rem', md: '3rem' }, maxWidth: 760, lineHeight: 1.08 }}>
+            Fund your build wallet{' '}
+            <Box
+              component="span"
+              sx={(theme) => ({
+                backgroundImage: theme.studio.gradient.signature,
+                WebkitBackgroundClip: 'text',
+                backgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                color: 'transparent',
+              })}
+            >
+              and ship without surprises.
+            </Box>
+          </Typography>
+
+          <Typography color="text.secondary" sx={{ maxWidth: 600, fontSize: { xs: '1rem', md: '1.075rem' }, lineHeight: 1.5 }}>
+            Plans top up prepaid credits each month. Paid runs reserve first, then debit exactly what they use — so you never pay for a half-finished build.
+          </Typography>
+
+          <Box sx={{ mt: 1 }}>
+            <BillingToggle value={cadence} onChange={setCadence} savingsPct={ANNUAL_SAVINGS_PCT} />
+          </Box>
+        </Stack>
+
+        {/* Pricing grid — recommended tier highlighted with the gradient ring. */}
+        <Box
+          sx={{
+            mt: { xs: 4, md: 6 },
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', lg: 'repeat(4, 1fr)' },
+            gap: 2.5,
+            alignItems: 'stretch',
+          }}
+        >
+          {cards.map((tier) => (
+            <PlanCard
+              key={tier.name}
+              tier={tier}
+              onSelect={(name) => toast(`${name} selected — opening secure checkout…`, 'success')}
+            />
+          ))}
+        </Box>
+
+        {/* Live wallet top-up — viz-first balance mirror + quick amounts. */}
+        <Box sx={{ mt: { xs: 4, md: 6 } }}>
+          <WalletPanel
+            wallet={wallet}
+            isLive={isLive}
+            topUps={topUps}
+            recommended={75}
+            formatUSD={formatUSD}
+            onTopUp={(amount) => toast(`${formatUSD(amount, { cents: false })} wallet top-up selected - opening secure checkout...`, 'success')}
+          />
+        </Box>
       </Box>
     </Box>
   );

@@ -47,12 +47,12 @@ type Archiver struct {
 
 // ArchiverConfig bundles the knobs the runtime needs to wire S3.
 type ArchiverConfig struct {
-	Bucket       string
-	Region       string
-	Prefix       string // defaults to "archives"
-	EFSRoot      string
-	Concurrency  int    // per-direction cap; default 4
-	Store        Store  // optional — used by Archive/Restore to update rows
+	Bucket      string
+	Region      string
+	Prefix      string // defaults to "archives"
+	EFSRoot     string
+	Concurrency int   // per-direction cap; default 4
+	Store       Store // optional — used by Archive/Restore to update rows
 }
 
 // NewArchiver constructs an Archiver. If cfg.Bucket is empty the
@@ -233,6 +233,7 @@ func (a *Archiver) restoreOne(ctx context.Context, ws Record) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	defer func() { _ = tmp.Close() }()
 	defer func() { _ = os.Remove(tmp.Name()) }()
 	if _, err := a.dl.Download(ctx, tmp, &s3.GetObjectInput{
 		Bucket: aws.String(a.bucket),
@@ -260,8 +261,9 @@ func (a *Archiver) restoreOne(ctx context.Context, ws Record) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		target := filepath.Join(dir, hdr.Name)
-		if !strings.HasPrefix(target, dir) {
+		target := filepath.Join(dir, filepath.Clean(hdr.Name))
+		rel, err := filepath.Rel(dir, target)
+		if err != nil || rel == "." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) || rel == ".." || filepath.IsAbs(rel) {
 			return "", fmt.Errorf("archive escape: %s", hdr.Name)
 		}
 		switch hdr.Typeflag {

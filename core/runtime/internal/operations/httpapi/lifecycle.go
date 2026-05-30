@@ -59,11 +59,6 @@ func (a *API) archiveWorkspace(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusNotFound, errJSON("not found"))
 		return
 	}
-	// Best-effort: stop the container if currently running on this pod.
-	if ws, err := a.mgr.Get(id); err == nil {
-		_ = a.mgr.Driver().Destroy(r.Context(), ws)
-		_ = a.mgr.Destroy(r.Context(), id)
-	}
 	// Archived workspaces are not coming back on this pod — drop the
 	// warm-pool lease + quota hold so the tenant isn't billed against
 	// quota for an offline workspace. Restore will run through the
@@ -78,6 +73,12 @@ func (a *API) archiveWorkspace(w http.ResponseWriter, r *http.Request) {
 	if err := a.lc.Archiver.Archive(r.Context(), rec); err != nil {
 		writeJSON(w, http.StatusBadGateway, errJSON(err.Error()))
 		return
+	}
+	// Best-effort: only destroy the live container after the archive is
+	// uploaded. Docker cleanup removes bind-mount directories, so doing this
+	// before Archive would delete the data we are trying to preserve.
+	if _, err := a.mgr.Get(id); err == nil {
+		_ = a.mgr.Destroy(r.Context(), id)
 	}
 	writeJSON(w, http.StatusOK, map[string]string{
 		"status":       "archived",

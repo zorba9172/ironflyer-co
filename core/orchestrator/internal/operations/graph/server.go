@@ -37,9 +37,9 @@ import (
 	"github.com/vektah/gqlparser/v2/gqlerror"
 
 	"ironflyer/core/orchestrator/internal/customer/auth"
+	"ironflyer/core/orchestrator/internal/operations/gqlhardening"
 	"ironflyer/core/orchestrator/internal/operations/graph/generated"
 	"ironflyer/core/orchestrator/internal/operations/graph/resolver"
-	"ironflyer/core/orchestrator/internal/operations/gqlhardening"
 	"ironflyer/core/orchestrator/internal/operations/policy"
 	"ironflyer/core/orchestrator/internal/operations/sentryext"
 )
@@ -76,26 +76,29 @@ type Config struct {
 func Handler(cfg Config) http.Handler {
 	es := generated.NewExecutableSchema(generated.Config{Resolvers: cfg.Resolver})
 	srv := handler.New(es)
+	hardening := gqlhardening.Defaults()
+	if cfg.Hardening != nil {
+		hardening = *cfg.Hardening
+	}
 
-	// Order matters: GET first for APQ + introspection, then JSON POST,
-	// then the modern WebSocket subscriber. The multipart / forms /
-	// SSE transports are mounted so file uploads + EventSource fallback
-	// work even though we standardize on POST + WS.
+	// Order matters: dev GET first for APQ + introspection, then JSON POST,
+	// then the modern WebSocket subscriber. Production omits GET so raw
+	// query strings cannot bypass the POST persisted-query middleware.
+	// The multipart / forms / SSE transports are mounted so file uploads +
+	// EventSource fallback work even though we standardize on POST + WS.
 	srv.AddTransport(transport.Websocket{
 		KeepAlivePingInterval: 10 * time.Second,
 		Upgrader: websocket.Upgrader{
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,
-			// CORS is enforced by the chi `corsMiddleware` already; the
-			// HTTP Origin is allowed through here so the upgrade
-			// handshake succeeds. The actual scope check happens in the
-			// authMiddleware around the route.
-			CheckOrigin: func(r *http.Request) bool { return true },
+			CheckOrigin:     gqlhardening.OriginAllow(hardening.WSOrigins),
 		},
 		InitFunc: makeWebsocketInitFunc(cfg.Auth, cfg.Logger),
 	})
 	srv.AddTransport(transport.Options{})
-	srv.AddTransport(transport.GET{})
+	if !hardening.ProdMode {
+		srv.AddTransport(transport.GET{})
+	}
 	srv.AddTransport(transport.POST{})
 	srv.AddTransport(transport.MultipartForm{})
 
@@ -120,10 +123,6 @@ func Handler(cfg Config) http.Handler {
 	// that would later trip the production gate. When the caller does
 	// not supply a Hardening config we fall back to the package
 	// defaults so the caps still mount.
-	hardening := gqlhardening.Defaults()
-	if cfg.Hardening != nil {
-		hardening = *cfg.Hardening
-	}
 	if hardening.MaxDepth <= 0 {
 		hardening.MaxDepth = gqlhardening.Defaults().MaxDepth
 	}

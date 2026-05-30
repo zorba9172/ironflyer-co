@@ -1,5 +1,7 @@
 import { Box, Stack, Typography } from '@mui/material';
+import { Icon } from '../../icons';
 import type { CrewProcess } from '../../studioData';
+import { text } from '@ironflyer/design-tokens/brand';
 
 // A compact, dependency-free diagram of how a crew's members collaborate.
 // Parallel = fan-out workers, Sequential = a chain, Hierarchical = a manager
@@ -11,40 +13,55 @@ export function ProcessDiagram({ process, members, manager, dense }: {
   dense?: boolean;
 }) {
   if (members.length === 0) {
-    return <Typography sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>Add members to see the topology.</Typography>;
+    return <Typography sx={{ fontSize: text.s80, color: 'text.disabled' }}>Add members to see the topology.</Typography>;
   }
   if (process === 'sequential') return <Sequential members={members} dense={dense} />;
   if (process === 'hierarchical') return <Hierarchical members={members} manager={manager} dense={dense} />;
   return <Parallel members={members} dense={dense} />;
 }
 
+// Premium glass pill — the team member labels styled as neon-glass chips
 const pillSx = (dense?: boolean) => (t: import('@mui/material/styles').Theme) => ({
   px: dense ? 1 : 1.25,
   py: dense ? 0.4 : 0.6,
-  borderRadius: 99,
-  border: 1,
-  borderColor: 'divider',
-  bgcolor: 'background.default',
-  fontSize: dense ? '0.68rem' : '0.76rem',
-  fontWeight: 500,
+  borderRadius: `${t.studio?.radius?.pill ?? 999}px`,
+  border: `1px solid ${t.palette.cardBorder ?? t.palette.divider}`,
+  bgcolor: t.palette.cardBg ?? 'background.default',
+  backdropFilter: 'blur(8px)',
+  fontSize: dense ? text.s68 : text.s76,
+  fontWeight: 600,
   whiteSpace: 'nowrap',
   color: t.palette.text.primary,
+  transition: `border-color ${t.studio?.motion?.fast ?? '200ms'}`,
+  '&:hover': {
+    borderColor: t.studio?.neon?.blue ?? t.palette.primary.main,
+  },
 });
 
 function HubNode({ label }: { label: string }) {
   return (
-    <Box sx={(t) => ({ px: 1.5, py: 0.7, borderRadius: 2, color: t.palette.primary.contrastText, backgroundImage: t.brand.gradient.signature, fontSize: '0.74rem', fontWeight: 700, whiteSpace: 'nowrap' })}>{label}</Box>
+    <Box
+      sx={(t) => ({
+        px: 1.5,
+        py: 0.7,
+        borderRadius: `${t.studio?.radius?.sm ?? 14}px`,
+        color: t.palette.primary.contrastText,
+        backgroundImage: t.studio.gradient.signature,
+        fontSize: text.s74,
+        fontWeight: t.typography.fontWeightBold,
+        whiteSpace: 'nowrap',
+        boxShadow: `0 4px 18px ${t.studio?.neon?.violet ?? t.palette.primary.main}44`,
+      })}
+    >
+      {label}
+    </Box>
   );
 }
 
 function Arrow({ vertical }: { vertical?: boolean }) {
   return (
     <Box sx={{ display: 'flex', color: 'text.disabled' }}>
-      {vertical ? (
-        <svg width="14" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 4v14M6 13l6 6 6-6" /></svg>
-      ) : (
-        <svg width="16" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 12h14M13 6l6 6-6 6" /></svg>
-      )}
+      <Icon name={vertical ? 'chevronDown' : 'chevronRight'} size={15} />
     </Box>
   );
 }

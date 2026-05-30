@@ -1,7 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
-import { ThemeModeProvider } from '@ironflyer/ui-web';
+import { StudioThemeProvider } from './theme';
 import '@ironflyer/ui-web/fonts.css';
 import { IronflyerDataProvider, AuthProvider } from '@ironflyer/data';
 import { App } from './App';
@@ -15,7 +15,7 @@ const endpoint = import.meta.env.VITE_GRAPHQL_ENDPOINT as string | undefined;
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <IronflyerDataProvider endpoint={endpoint} getToken={getStoredAuthToken}>
-      <ThemeModeProvider>
+      <StudioThemeProvider>
         <AuthProvider>
           <BrowserRouter>
             <LoginGate>
@@ -23,7 +23,7 @@ createRoot(document.getElementById('root')!).render(
             </LoginGate>
           </BrowserRouter>
         </AuthProvider>
-      </ThemeModeProvider>
+      </StudioThemeProvider>
     </IronflyerDataProvider>
   </StrictMode>,
 );

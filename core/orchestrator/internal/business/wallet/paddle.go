@@ -33,6 +33,12 @@ type PaddleTopperOpts struct {
 	// headers on inbound transaction.completed events.
 	WebhookSecret string
 
+	// CreditMultiplier is the platform markup, mirroring the Stripe topper:
+	// the buyer is CHARGED amountUSD×CreditMultiplier but CREDITED amountUSD
+	// (custom_data.amount_usd unchanged), so margin = 1 − 1/CreditMultiplier
+	// on every prepaid dollar. Zero or ≤ 1 means no markup.
+	CreditMultiplier decimal.Decimal
+
 	// Environment switches the API base. "sandbox" routes to the
 	// Paddle sandbox; anything else (including "" and "live") uses
 	// production.
@@ -109,14 +115,21 @@ func (p *PaddleTopper) CreateCheckoutSession(ctx context.Context, tenant string,
 	if !IsSupportedAmount(amountUSD) {
 		return CheckoutSession{}, ErrInvalidAmount
 	}
-	cents := amountUSD.Mul(decimal.NewFromInt(100)).IntPart()
+	// Charge amountUSD×CreditMultiplier (the platform markup); credit
+	// amountUSD (custom_data.amount_usd below is unchanged, so the webhook
+	// and reconcile still grant amountUSD).
+	chargeUSD := amountUSD
+	if p.opts.CreditMultiplier.GreaterThan(decimal.NewFromInt(1)) {
+		chargeUSD = amountUSD.Mul(p.opts.CreditMultiplier)
+	}
+	cents := chargeUSD.Mul(decimal.NewFromInt(100)).IntPart()
 
 	body := map[string]any{
 		"items": []map[string]any{
 			{
 				"quantity": 1,
 				"price": map[string]any{
-					"description": fmt.Sprintf("Ironflyer wallet top-up — $%s", amountUSD.StringFixed(2)),
+					"description": fmt.Sprintf("Ironflyer wallet credit — $%s", amountUSD.StringFixed(2)),
 					"tax_mode":    "account_setting",
 					"unit_price": map[string]any{
 						"amount":        strconv.FormatInt(cents, 10),

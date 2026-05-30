@@ -4,6 +4,7 @@ package config
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/caarlos0/env/v10"
@@ -450,6 +451,65 @@ type Config struct {
 	PromptGuardBlock         bool `env:"IRONFLYER_PROMPTGUARD_BLOCK"           envDefault:"true"`
 	PromptGuardMaxUserChars  int  `env:"IRONFLYER_PROMPTGUARD_MAX_USER_CHARS"  envDefault:"100000"`
 	PromptGuardMaxTotalChars int  `env:"IRONFLYER_PROMPTGUARD_MAX_TOTAL_CHARS" envDefault:"400000"`
+
+	// Cost cascade — the layered AI-cost-optimization front door
+	// (rules → cache → knowledge → reflex → planning → reasoning) that
+	// wraps the BillingGuard. Enabled by default in OBSERVE-ONLY mode:
+	// it attributes every model call to a layer and runs the safe
+	// deterministic rules, but does NOT cache completions or degrade
+	// tiers unless explicitly opted in — so generated code is never
+	// served from a near-match and quality is never traded for cost
+	// without an operator decision. Response caching is exact-hash and
+	// zero-temperature-only; downgrade follows ProfitGuard's existing
+	// Degrade semantics. The cost-ratio target is the share of revenue
+	// above which the self-tuning controller tightens automatically.
+	CostCascadeEnabled         bool    `env:"IRONFLYER_COST_CASCADE"               envDefault:"true"`
+	CostCascadeResponseCache   bool    `env:"IRONFLYER_COST_CASCADE_RESPONSE_CACHE" envDefault:"false"`
+	CostCascadeCacheEntries    int     `env:"IRONFLYER_COST_CASCADE_CACHE_ENTRIES"  envDefault:"512"`
+	CostCascadeCacheTTLMin     int     `env:"IRONFLYER_COST_CASCADE_CACHE_TTL_MIN"  envDefault:"30"`
+	CostCascadeAllowDowngrade  bool    `env:"IRONFLYER_COST_CASCADE_ALLOW_DOWNGRADE" envDefault:"false"`
+	CostCascadeCostRatioTarget float64 `env:"IRONFLYER_COST_CASCADE_COST_RATIO_TARGET" envDefault:"0.20"`
+
+	// Per-algorithm levers for the cost cascade. They are opt-in by default:
+	// the cascade observes and attributes calls, while any layer that can
+	// change the returned answer stays behind an explicit operator decision.
+	//   - response cache: deterministic (temp 0, no tools/attachments) exact
+	//     replay; semantic adds embedding-similarity with strict gates
+	//     (cosine ≥0.95 + same tier + same schema + TTL).
+	//   - compression: LOSSLESS stages only (dedup / whitespace / separator);
+	//     the lossy Aggressive salience stage stays OFF.
+	//   - knowledge reuse: answers only when grounded with high confidence,
+	//     biased hard toward a miss (never fabricates).
+	//   - budget windows: advisory attribution + ceilings; with 0 caps it is
+	//     pure per-feature/per-task accounting and never blocks a funded call.
+	// Behavioural levers remain OFF until per-workload hit/accept rates are
+	// measured: difficulty routing, verification cascade, speculative racing,
+	// lossy compression, response replay, semantic replay, and tier downgrade.
+	CostCascadeSemanticCache      bool `env:"IRONFLYER_COST_CASCADE_SEMANTIC_CACHE"      envDefault:"false"`
+	CostCascadeCompression        bool `env:"IRONFLYER_COST_CASCADE_COMPRESSION"         envDefault:"false"`
+	CostCascadeCompressAggressive bool `env:"IRONFLYER_COST_CASCADE_COMPRESS_AGGRESSIVE" envDefault:"false"`
+	CostCascadeDifficultyRouting  bool `env:"IRONFLYER_COST_CASCADE_DIFFICULTY_ROUTING"  envDefault:"false"`
+	CostCascadeKnowledgeReuse     bool `env:"IRONFLYER_COST_CASCADE_KNOWLEDGE_REUSE"     envDefault:"false"`
+	CostCascadeVerifyCascade      bool `env:"IRONFLYER_COST_CASCADE_VERIFY_CASCADE"      envDefault:"false"`
+	CostCascadeSpeculative        bool `env:"IRONFLYER_COST_CASCADE_SPECULATIVE"         envDefault:"false"`
+	CostCascadeBudgetWindows      bool `env:"IRONFLYER_COST_CASCADE_BUDGET_WINDOWS"      envDefault:"true"`
+
+	// Default per-window USD ceilings for the windowed budget manager
+	// (used only when CostCascadeBudgetWindows is on). 0 = no ceiling for
+	// that horizon (admit until an explicit cap is set).
+	CostCascadeDailyCapUSD   float64 `env:"IRONFLYER_COST_CASCADE_DAILY_CAP_USD"   envDefault:"0"`
+	CostCascadeSessionCapUSD float64 `env:"IRONFLYER_COST_CASCADE_SESSION_CAP_USD" envDefault:"0"`
+	CostCascadeTaskCapUSD    float64 `env:"IRONFLYER_COST_CASCADE_TASK_CAP_USD"    envDefault:"0"`
+
+	// BillingMarginMultiplier is the platform markup on prepaid wallet
+	// credit: the user is CHARGED amount×multiplier at checkout but is
+	// CREDITED amount of spendable balance, so they can only ever consume
+	// (amount) of true provider cost for (amount×multiplier) cash —
+	// guaranteeing a (1 − 1/multiplier) gross margin on every prepaid dollar
+	// from the first user. 2.0 ⇒ 50% margin (research: "platform fee ≈ 2×
+	// delivery cost"). 1.0 disables the markup (credit sold at cost). Applied
+	// ONLY to real wallet top-up checkouts; refunds and dev seeds are 1:1.
+	BillingMarginMultiplier float64 `env:"IRONFLYER_BILLING_MARGIN_MULTIPLIER" envDefault:"2.0" validate:"gte=1"`
 }
 
 func (c Config) IsProd() bool { return c.Env == "prod" }
@@ -469,6 +529,7 @@ func Load() (Config, error) {
 	if err := validator.New().Struct(c); err != nil {
 		return c, fmt.Errorf("config validate: %w", err)
 	}
+	c.CORSOrigins = normalizeCORSOrigins(c.CORSOrigins)
 	if c.IsProd() {
 		if c.JWTSecret == "" || c.JWTSecret == "dev-secret-change-me" || len(c.JWTSecret) < 32 {
 			return c, fmt.Errorf("IRONFLYER_JWT_SECRET must be set to a non-default value of at least 32 bytes when IRONFLYER_ENV=prod")
@@ -490,6 +551,23 @@ func Load() (Config, error) {
 		}
 	}
 	return c, nil
+}
+
+func normalizeCORSOrigins(origins []string) []string {
+	out := make([]string, 0, len(origins))
+	seen := map[string]struct{}{}
+	for _, origin := range origins {
+		origin = strings.TrimSpace(origin)
+		if origin == "" {
+			continue
+		}
+		if _, ok := seen[origin]; ok {
+			continue
+		}
+		seen[origin] = struct{}{}
+		out = append(out, origin)
+	}
+	return out
 }
 
 // HasOAuthProvider reports whether at least one social OAuth provider

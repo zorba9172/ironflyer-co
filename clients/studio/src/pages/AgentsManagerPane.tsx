@@ -2,17 +2,19 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { Box, Button, Card, Stack, Typography } from '@mui/material';
 import { confirmAction, toast } from '@ironflyer/ui-web/fx';
 import { AGENTS, newAgent, type Agent, type StudioProject } from '../studioData';
-import { useStudio } from '../store';
+import { useAgentTeam } from '../hooks/useAgentTeam';
+import { useDispatchAgent } from '../hooks/useDispatchAgent';
 import { AgentCard } from '../components/agents/AgentCard';
 import { AgentBuilder } from '../components/agents/AgentBuilder';
+import { text } from '@ironflyer/design-tokens/brand';
 
 // In-editor agent manager. Same deep builder as the catalog, scoped to the
-// project being built so gates and hand-off targets are the live ones.
+// project being built so gates and hand-off targets are the live ones. Custom
+// agents are server-persisted (owner-scoped) when signed in via useAgentTeam,
+// so the in-editor manager and the standalone catalog share one source of truth.
 export function AgentsManagerPane({ project }: { project: StudioProject }) {
-  const customAgents = useStudio((s) => s.customAgents);
-  const addAgent = useStudio((s) => s.addAgent);
-  const updateAgent = useStudio((s) => s.updateAgent);
-  const removeAgent = useStudio((s) => s.removeAgent);
+  const { customAgents, saveAgent, deleteAgent } = useAgentTeam();
+  const { dispatch } = useDispatchAgent();
   const [editing, setEditing] = useState<Agent | null>(null);
 
   const allAgents = useMemo(() => [...customAgents, ...AGENTS], [customAgents]);
@@ -20,17 +22,17 @@ export function AgentsManagerPane({ project }: { project: StudioProject }) {
 
   const remove = async (a: Agent) => {
     const ok = await confirmAction({ title: `Delete ${a.name}?`, text: 'This removes the agent and its schedule. The build keeps running.', confirmText: 'Delete', danger: true });
-    if (ok) { removeAgent(a.id); toast(`${a.name} deleted.`, 'success'); }
+    if (ok) { await deleteAgent(a.id); toast(`${a.name} deleted.`, 'success'); }
   };
 
-  const save = (a: Agent) => { if (editingExists) updateAgent(a); else addAgent(a); };
+  const save = (a: Agent) => { void saveAgent(a); };
 
   return (
     <Box sx={{ flex: 1, height: '100%', overflowY: 'auto', bgcolor: 'background.default', p: 3 }}>
       <Box sx={{ maxWidth: 1080, mx: 'auto' }}>
         <Stack direction="row" alignItems="flex-start" justifyContent="space-between" sx={{ mb: 2.5, gap: 2 }}>
           <Box>
-            <Typography variant="h4" sx={{ fontSize: '1.6rem', mb: 0.5 }}>Agents</Typography>
+            <Typography variant="h4" sx={{ fontSize: text.s160, mb: 0.5 }}>Agents</Typography>
             <Typography sx={{ color: 'text.secondary' }}>
               Define what each agent does, the skills and tools it may use, and when it runs. The orchestrator routes work to them and reports cost as they go.
             </Typography>
@@ -47,7 +49,7 @@ export function AgentsManagerPane({ project }: { project: StudioProject }) {
         ) : (
           <Grid sx={{ mb: 4 }}>
             {customAgents.map((a) => (
-              <AgentCard key={a.id} agent={a} gates={project.gates} onEdit={setEditing} onRun={(x) => toast(`${x.name} dispatched — watch the board.`, 'success')} onDelete={(x) => void remove(x)} />
+              <AgentCard key={a.id} agent={a} gates={project.gates} onEdit={setEditing} onRun={(x) => void dispatch(`${x.name}'s work`)} onDelete={(x) => void remove(x)} />
             ))}
           </Grid>
         )}
@@ -74,7 +76,7 @@ export function AgentsManagerPane({ project }: { project: StudioProject }) {
 
 function Label({ children }: { children: ReactNode }) {
   return (
-    <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 1.25 })}>{children}</Typography>
+    <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: text.s70, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 1.25 })}>{children}</Typography>
   );
 }
 

@@ -8,7 +8,6 @@ package resolver
 import (
 	"context"
 	"errors"
-
 	"ironflyer/core/orchestrator/internal/operations/agentteam"
 	"ironflyer/core/orchestrator/internal/operations/graph/model"
 )

@@ -9,6 +9,7 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 POLICY="${IRONFLYER_QUALITY_POLICY:-${REPO_ROOT}/.ironflyer/quality-policy.json}"
 REPORT_DIR="${IRONFLYER_REPORT_DIR:-${REPO_ROOT}/tmp/reports}"
+mkdir -p "${REPORT_DIR}"
 
 if ! command -v jq >/dev/null 2>&1; then
   echo "FATAL: jq is required for policy enforcement" >&2
@@ -28,7 +29,7 @@ fail() {
 
 latest_report() {
   local pattern="$1"
-  find "${REPORT_DIR}" -maxdepth 1 -type f -name "${pattern}" 2>/dev/null | sort | tail -1
+  (find "${REPORT_DIR}" -maxdepth 1 -type f -name "${pattern}" 2>/dev/null || true) | sort | tail -1
 }
 
 check_coverage() {
@@ -90,7 +91,7 @@ check_vulnerabilities() {
 check_duplication() {
   local report
   report="$(latest_report 'jscpd-*.json')"
-  [ -n "${report}" ] || return
+  [ -n "${report}" ] || return 0
   local actual max
   actual="$(jq -r '.summary.duplicationPct // 0' "${report}")"
   max="$(jq -r '.duplicationPct' "${POLICY}")"
@@ -102,7 +103,7 @@ check_duplication() {
 check_lint() {
   local report errors max
   report="$(latest_report 'eslint-*.json')"
-  [ -n "${report}" ] || return
+  [ -n "${report}" ] || return 0
   errors="$(jq '[.[]?.errorCount // 0] | add // 0' "${report}")"
   max="$(jq -r '.lintErrors' "${POLICY}")"
   if [ "${errors}" -gt "${max}" ]; then

@@ -1,15 +1,15 @@
 // Package verifier orchestrates the live-preview proof loop the
 // finisher's VerifierGate sits on top of. The flow is:
 //
-//   1. For each AcceptanceCriterion the project carries, ask the
-//      Verifier agent to plan the minimum Playwright actions that
-//      would prove the criterion (vision + DOM).
-//   2. Materialise that plan into a Playwright TypeScript script
-//      inside the workspace sandbox.
-//   3. Drive `npx playwright test --reporter=json` against the
-//      live preview URL.
-//   4. Capture the verdict: pass / fail / warn, attach the agent's
-//      `failure_reason` as the gate Issue hint.
+//  1. For each AcceptanceCriterion the project carries, ask the
+//     Verifier agent to plan the minimum Playwright actions that
+//     would prove the criterion (vision + DOM).
+//  2. Materialise that plan into a Playwright TypeScript script
+//     inside the workspace sandbox.
+//  3. Drive `npx playwright test --reporter=json` against the
+//     live preview URL.
+//  4. Capture the verdict: pass / fail / warn, attach the agent's
+//     `failure_reason` as the gate Issue hint.
 //
 // The package is deliberately thin — it owns orchestration, not
 // transport. All command execution lives in the workspace via
@@ -59,9 +59,9 @@ type CriterionResult struct {
 	RouteHit      string    `json:"routeHit,omitempty"`
 	StartedAt     time.Time `json:"startedAt"`
 	FinishedAt    time.Time `json:"finishedAt"`
-	// Skipped is true when the criterion was not exercised — typically
-	// because the verifier plan was empty or the criterion description
-	// was blank. Skipped results never produce a gate Issue.
+	// Skipped is true only for intentionally non-exercised criteria.
+	// Agent planning failures must stay warn/fail so an evasive or
+	// malformed verifier response cannot pass the gate.
 	Skipped bool `json:"skipped,omitempty"`
 }
 
@@ -157,7 +157,6 @@ func verifyOne(ctx context.Context, in RunInput, c domain.AcceptanceCriterion, l
 		return res
 	}
 	if plan == nil || len(plan.Actions) == 0 {
-		res.Skipped = true
 		res.Verdict = "warn"
 		res.FailureReason = "verifier agent returned no actions"
 		res.FinishedAt = time.Now().UTC()

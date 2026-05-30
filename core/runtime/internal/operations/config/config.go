@@ -22,6 +22,11 @@ type Config struct {
 	// generated projects build and SecurityGate has real binaries to run.
 	// Override to a custom image for tenants with their own hardened base.
 	DockerImage string `env:"IRONFLYER_RUNTIME_DOCKER_IMAGE" envDefault:"ghcr.io/zorba9172/ironflyer-workspace:latest"`
+	// Optional Docker isolation flags. In production these should be set
+	// to values such as runsc / ironflyer-sandboxes and are passed through
+	// to `docker run` instead of being merely documented in compose.
+	DockerRuntime string `env:"IRONFLYER_RUNTIME_DOCKER_RUNTIME"`
+	DockerNetwork string `env:"IRONFLYER_RUNTIME_NETWORK"`
 
 	// Web IDE: which image the per-workspace browser IDE container runs and
 	// the in-container port it listens on. The CANONICAL IDE is the branded

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -40,16 +41,19 @@ func (s OSVScanner) Scan(ctx context.Context, target Target, inv Inventory) ([]F
 	client := httpclient.Standard(8 * time.Second)
 	res, err := client.Do(req)
 	if err != nil {
-		return nil, nil
+		return nil, fmt.Errorf("%s scanner query failed: %w", s.ID(), err)
 	}
 	defer res.Body.Close()
 	if res.StatusCode < 200 || res.StatusCode >= 300 {
 		_, _ = io.Copy(io.Discard, res.Body)
-		return nil, nil
+		return nil, fmt.Errorf("%s scanner query returned HTTP %d", s.ID(), res.StatusCode)
 	}
 	raw, err := io.ReadAll(io.LimitReader(res.Body, 4<<20))
 	if err != nil {
-		return nil, nil
+		return nil, fmt.Errorf("%s scanner response read failed: %w", s.ID(), err)
+	}
+	if !json.Valid(raw) {
+		return nil, scannerParseError(s.ID(), json.Unmarshal(raw, &struct{}{}))
 	}
 	return parseOSVBatchResponse(s.ID(), refs, raw), nil
 }

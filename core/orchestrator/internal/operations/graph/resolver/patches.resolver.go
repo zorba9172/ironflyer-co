@@ -18,7 +18,7 @@ func (r *mutationResolver) ProposePatch(ctx context.Context, input model.Propose
 	if r.Patches == nil {
 		return nil, gqlNotConfigured("patches")
 	}
-	if _, err := currentUser(ctx); err != nil {
+	if err := r.requirePatchProjectOwner(ctx, input.ProjectID); err != nil {
 		return nil, err
 	}
 	p := patch.Patch{
@@ -65,7 +65,7 @@ func (r *mutationResolver) ApplyPatch(ctx context.Context, patchID string) (*mod
 	if r.Patches == nil {
 		return nil, gqlNotConfigured("patches")
 	}
-	if _, err := currentUser(ctx); err != nil {
+	if _, err := r.requirePatchOwner(ctx, patchID); err != nil {
 		return nil, err
 	}
 	applied, err := r.Patches.ApplyCtx(ctx, patchID)
@@ -80,10 +80,7 @@ func (r *mutationResolver) RollbackPatch(ctx context.Context, patchID string) (m
 	if r.Patches == nil {
 		return nil, gqlNotConfigured("patches")
 	}
-	if _, err := currentUser(ctx); err != nil {
-		return nil, err
-	}
-	p, err := r.Patches.Get(patchID)
+	p, err := r.requirePatchOwner(ctx, patchID)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +96,7 @@ func (r *mutationResolver) ProposeSymbolPatch(ctx context.Context, input model.S
 	if r.Patches == nil {
 		return nil, gqlNotConfigured("patches")
 	}
-	if _, err := currentUser(ctx); err != nil {
+	if err := r.requirePatchProjectOwner(ctx, input.ProjectID); err != nil {
 		return nil, err
 	}
 	return nil, gqlNotConfigured("symbol-patches: not wired in resolver; use ProposePatch with the symbol op")
@@ -110,7 +107,7 @@ func (r *mutationResolver) RenameSymbol(ctx context.Context, input model.RenameS
 	if r.Patches == nil {
 		return nil, gqlNotConfigured("patches")
 	}
-	if _, err := currentUser(ctx); err != nil {
+	if err := r.requirePatchProjectOwner(ctx, input.ProjectID); err != nil {
 		return nil, err
 	}
 	return nil, gqlNotConfigured("rename-symbol: not wired in resolver")
@@ -121,7 +118,7 @@ func (r *mutationResolver) CreateStage(ctx context.Context, input model.CreateSt
 	if r.Patches == nil {
 		return nil, gqlNotConfigured("patches")
 	}
-	if _, err := currentUser(ctx); err != nil {
+	if err := r.requirePatchProjectOwner(ctx, input.ProjectID); err != nil {
 		return nil, err
 	}
 	desc := ""
@@ -140,7 +137,7 @@ func (r *mutationResolver) ApplyStage(ctx context.Context, stageID string) (mode
 	if r.Patches == nil {
 		return nil, gqlNotConfigured("patches")
 	}
-	if _, err := currentUser(ctx); err != nil {
+	if _, _, err := r.requirePatchStageOwner(ctx, stageID); err != nil {
 		return nil, err
 	}
 	res, err := r.Patches.ApplyStage(stageID)
@@ -167,7 +164,7 @@ func (r *mutationResolver) RejectStage(ctx context.Context, stageID string, reas
 	if r.Patches == nil {
 		return nil, gqlNotConfigured("patches")
 	}
-	if _, err := currentUser(ctx); err != nil {
+	if _, _, err := r.requirePatchStageOwner(ctx, stageID); err != nil {
 		return nil, err
 	}
 	r2 := ""
@@ -186,7 +183,7 @@ func (r *queryResolver) Patches(ctx context.Context, projectID string) ([]model.
 	if r.Resolver.Patches == nil {
 		return nil, gqlNotConfigured("patches")
 	}
-	if _, err := currentUser(ctx); err != nil {
+	if err := r.Resolver.requirePatchProjectOwner(ctx, projectID); err != nil {
 		return nil, err
 	}
 	list := r.Resolver.Patches.List(projectID)
@@ -202,10 +199,7 @@ func (r *queryResolver) Patch(ctx context.Context, id string) (*model.Patch, err
 	if r.Resolver.Patches == nil {
 		return nil, gqlNotConfigured("patches")
 	}
-	if _, err := currentUser(ctx); err != nil {
-		return nil, err
-	}
-	p, err := r.Resolver.Patches.Get(id)
+	p, err := r.Resolver.requirePatchOwner(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -217,7 +211,7 @@ func (r *queryResolver) PatchSnapshots(ctx context.Context, projectID string) (m
 	if r.Resolver.Patches == nil {
 		return nil, gqlNotConfigured("patches")
 	}
-	if _, err := currentUser(ctx); err != nil {
+	if err := r.Resolver.requirePatchProjectOwner(ctx, projectID); err != nil {
 		return nil, err
 	}
 	snaps := r.Resolver.Patches.Snapshots(projectID)
@@ -238,7 +232,7 @@ func (r *queryResolver) Stages(ctx context.Context, projectID string) ([]model.P
 	if r.Resolver.Patches == nil {
 		return nil, gqlNotConfigured("patches")
 	}
-	if _, err := currentUser(ctx); err != nil {
+	if err := r.Resolver.requirePatchProjectOwner(ctx, projectID); err != nil {
 		return nil, err
 	}
 	stages, err := r.Resolver.Patches.ListStages(projectID)
@@ -257,10 +251,7 @@ func (r *queryResolver) Stage(ctx context.Context, id string) (*model.PatchStage
 	if r.Resolver.Patches == nil {
 		return nil, gqlNotConfigured("patches")
 	}
-	if _, err := currentUser(ctx); err != nil {
-		return nil, err
-	}
-	stage, ok, err := r.Resolver.Patches.GetStage(id)
+	stage, ok, err := r.Resolver.requirePatchStageOwner(ctx, id)
 	if err != nil {
 		return nil, err
 	}

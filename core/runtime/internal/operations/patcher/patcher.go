@@ -123,6 +123,8 @@ func parseUnifiedDiff(diff string) ([]filePatch, error) {
 			rhs := strings.TrimSpace(strings.TrimPrefix(line, "--- "))
 			if rhs == "/dev/null" {
 				cur.newFile = true
+			} else if cur.path == "" {
+				cur.path = stripABPrefix(rhs)
 			}
 			i++
 		case strings.HasPrefix(line, "+++ "):

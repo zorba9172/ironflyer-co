@@ -1,132 +1,202 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { Box, Button, Stack, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { Box, Button, Card, Chip, IconButton, InputBase, Stack, Switch, Typography } from '@mui/material';
-import { Carousel } from '@ironflyer/ui-web/fx';
+import { LuArrowRight, LuBot, LuExternalLink } from 'react-icons/lu';
+import { text } from '@ironflyer/design-tokens/brand';
 import { useStudio } from '../store';
-import { mockProject } from '../studioData';
 import { STARTERS, matchStarter } from '../lib/starters';
-
-const categories = ['Import a build', 'Finish auth', 'Wire payments', 'Harden security', 'Ship to prod', 'More'];
-const recents = [
-  { name: 'Northwind Checkout', meta: '2 gates open · imported from lovable', tone: 'warning.main' },
-  { name: 'MathQuest', meta: 'shipped · 0 gates open', tone: 'success.main' },
-];
+import { AppSidebar } from '../components/AppSidebar';
+import { LogoMark } from '../components/LogoMark';
+import { Hero } from './home/Hero';
+import { PromptComposer } from './home/PromptComposer';
+import { TemplateRail } from './home/TemplateRail';
+import { FeatureGrid } from './home/FeatureGrid';
 
 export function StudioHome() {
   const navigate = useNavigate();
-  const { startFromTemplate, openProject } = useStudio();
+  const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
+  const startFromTemplate = useStudio((s) => s.startFromTemplate);
   const [prompt, setPrompt] = useState('');
-  const [planMode, setPlanMode] = useState(false);
+  const [planFirst, setPlanFirst] = useState(true);
 
-  // composer / chips → instant-scaffold the closest runnable starter for the
-  // prompt so the app renders in seconds, then the agent enhances it. Falls
-  // back to a neutral app shell when no template clearly matches.
-  const start = () => {
-    const text = prompt.trim() || 'Finish my product';
-    startFromTemplate(text, matchStarter(text).files);
+  const startWith = (value: string) => {
+    const v = value.trim() || 'Build a production-ready app from this idea';
+    startFromTemplate(v, matchStarter(v).files, {
+      workMode: planFirst ? 'plan' : 'execute',
+      preflight: planFirst,
+    });
     navigate('/build');
   };
-  // template → instantly seed a runnable scaffold so the live preview renders
-  // in seconds, then drop into the editor where the agent enhances it.
-  const startTemplate = (s: (typeof STARTERS)[number]) => {
-    startFromTemplate(s.prompt, s.files);
-    navigate('/build');
-  };
-  // recents → open the existing project (mock for now)
-  const open = () => {
-    openProject(mockProject);
-    navigate('/build');
+
+  const startTemplate = (id: string) => {
+    if (id === 'more-templates') {
+      navigate('/templates');
+      return;
+    }
+    const starter = STARTERS.find((s) => s.id === id);
+    if (starter) {
+      startFromTemplate(starter.prompt, starter.files, {
+        workMode: planFirst ? 'plan' : 'execute',
+        preflight: planFirst,
+      });
+      navigate('/build');
+      return;
+    }
+    const promptById: Record<string, string> = {
+      'admin-panel': 'Build an admin panel with roles, audit logs, and secure workflows.',
+      'mobile-app': 'Build a mobile app with React Native screens, auth, and an API.',
+      'internal-tool': 'Build an internal tool with tables, roles, and workflow automations.',
+    };
+    startWith(promptById[id] ?? id);
   };
 
   return (
-    <Box sx={{ minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', px: 3, py: 8, maxWidth: 920, mx: 'auto', width: '100%' }}>
-        <Typography variant="h2" sx={{ fontSize: { xs: '2.25rem', md: '3.25rem' }, textAlign: 'center', mb: 4 }}>
-          What are we finishing today?
-        </Typography>
-
-        {/* Composer */}
-        <Box
-          sx={{
-            width: '100%',
-            border: 1,
-            borderColor: 'divider',
-            borderRadius: 4,
+    <Box
+      sx={(theme) => ({
+        minHeight: '100dvh',
+        display: 'flex',
+        bgcolor: 'background.default',
+        color: 'text.primary',
+        transition: `background-color ${theme.studio.motion.base}, color ${theme.studio.motion.base}`,
+      })}
+    >
+      <AppSidebar onNewProject={() => inputRef.current?.focus()} />
+      <Box component="main" sx={{ flex: 1, minWidth: 0, height: '100dvh', overflow: 'auto', p: { xs: 1.2, md: 2 } }}>
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+          sx={(theme) => ({
+            display: { xs: 'flex', md: 'none' },
+            mb: 1,
+            px: 1,
+            py: 0.8,
+            borderRadius: `${theme.studio.radius.lg}px`,
+            border: `1px solid ${theme.palette.cardBorder}`,
             bgcolor: 'background.paper',
-            p: 2,
-            transition: (t) => `border-color ${t.brand.motion.fast}`,
-            '&:focus-within': { borderColor: 'primary.main' },
-          }}
+          })}
         >
-          <InputBase
-            multiline
-            minRows={2}
-            fullWidth
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Paste a repo or Lovable/Bolt link to import — or describe the product you want to finish…"
-            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); start(); } }}
-            autoFocus
-            sx={{ fontSize: '1rem', px: 1 }}
-          />
-          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 1.5 }}>
-            <Stack direction="row" spacing={0.5}>
-              {['+', '⌥', '⚙'].map((g) => (
-                <IconButton key={g} size="small" sx={{ border: 1, borderColor: 'divider', borderRadius: 1.5, color: 'text.secondary', width: 34, height: 34 }}>{g}</IconButton>
-              ))}
-            </Stack>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary' }}>Plan first</Typography>
-              <Switch size="small" checked={planMode} onChange={(e) => setPlanMode(e.target.checked)} />
-              <IconButton
-                onClick={start}
-                aria-label="Start"
-                sx={(t) => ({ color: t.palette.primary.contrastText, backgroundImage: t.brand.gradient.signature, width: 36, height: 36, '&:hover': { boxShadow: t.brand.shadow.glow } })}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-              </IconButton>
-            </Stack>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <LogoMark size={24} />
+            <Typography sx={{ fontWeight: 900, fontSize: '1rem' }}>Ironflyer</Typography>
           </Stack>
-        </Box>
-
-        {/* Category chips */}
-        <Stack direction="row" spacing={1} sx={{ mt: 3, flexWrap: 'wrap', justifyContent: 'center', gap: 1 }}>
-          {categories.map((c) => (
-            <Chip key={c} label={c} onClick={start} variant="outlined" sx={{ borderColor: 'divider', '&:hover': { bgcolor: 'action.hover' } }} />
-          ))}
+          <Typography sx={{ color: 'text.secondary', fontSize: '0.78rem', fontWeight: 800 }}>Build studio</Typography>
         </Stack>
-      </Box>
-
-      {/* Recents */}
-      <Box sx={{ borderTop: 1, borderColor: 'divider', px: 3, py: 3 }}>
-        <Box sx={{ maxWidth: 920, mx: 'auto' }}>
-          <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled', mb: 1.5 })}>Recent projects</Typography>
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1.5 }}>
-            {recents.map((r) => (
-              <Button key={r.name} onClick={open} sx={{ justifyContent: 'flex-start', p: 2, border: 1, borderColor: 'divider', borderRadius: 3, textAlign: 'left', '&:hover': { borderColor: 'text.disabled', bgcolor: 'action.hover' } }}>
-                <Stack direction="row" alignItems="center" spacing={1.5}>
-                  <Box sx={{ width: 10, height: 10, borderRadius: 99, bgcolor: r.tone }} />
-                  <Box>
-                    <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>{r.name}</Typography>
-                    <Typography sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>{r.meta}</Typography>
-                  </Box>
-                </Stack>
+        <Box
+          sx={(theme) => ({
+            minHeight: { xs: 'calc(100dvh - 78px)', md: 'calc(100dvh - 32px)' },
+            borderRadius: { xs: `${theme.studio.radius.lg}px`, md: 4 },
+            border: `1px solid ${theme.palette.cardBorder}`,
+            overflow: 'hidden',
+            background: theme.studio.effect.ambient.light,
+            display: 'flex',
+            flexDirection: 'column',
+          })}
+        >
+          <Stack alignItems="center" spacing={{ xs: 2, md: 3 }} sx={{ flex: 1, px: { xs: 1.5, sm: 2.5, md: 4 }, pt: { xs: 3.5, sm: 4.5, md: 7 }, pb: { xs: 4, md: 7 } }}>
+            <Stack
+              direction="row"
+              alignItems="center"
+              justifyContent="center"
+              useFlexGap
+              spacing={{ xs: 0.7, sm: 1.5 }}
+              sx={(theme) => ({
+                width: 'fit-content',
+                maxWidth: '100%',
+                flexWrap: 'wrap',
+                px: { xs: 1.05, sm: 2.4 },
+                py: { xs: 0.75, sm: 1.15 },
+                borderRadius: theme.studio.radius.pill,
+                bgcolor: `${theme.palette.primary.main}cc`,
+                color: theme.palette.primary.contrastText,
+                boxShadow: '0 12px 34px rgba(242,103,46,0.18)',
+              })}
+            >
+              <Typography sx={{ display: { xs: 'none', md: 'block' }, fontWeight: 900, fontSize: { xs: text.s82, md: text.s98 } }}>
+                Limited time welcome offer
+              </Typography>
+              <Button
+                size="small"
+                color="inherit"
+                endIcon={<LuExternalLink size={15} />}
+                sx={(theme) => ({
+                  minHeight: { xs: 30, sm: 34 },
+                  px: { xs: 1.15, sm: 1.55 },
+                  borderRadius: theme.studio.radius.pill,
+                  bgcolor: 'rgba(255,255,255,0.56)',
+                  color: theme.palette.text.primary,
+                  fontWeight: 900,
+                  fontSize: { xs: text.s76, sm: text.s82 },
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.72)' },
+                })}
+              >
+                <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                  Get 40% off select yearly plans
+                </Box>
+                <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
+                  40% off yearly
+                </Box>
               </Button>
-            ))}
-          </Box>
+              <Typography sx={(theme) => ({ fontFamily: theme.brand.font.mono, fontSize: { xs: text.s86, md: text.s130 }, fontWeight: 900, color: theme.palette.common.black })}>
+                47:59:34
+              </Typography>
+            </Stack>
 
-          <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 3, mb: 1.5 }}>
-            <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'text.disabled' })}>Start from a template</Typography>
-            <Chip size="small" label="runs instantly" sx={(t) => ({ height: 18, fontSize: '0.6rem', fontFamily: t.brand.font.mono, bgcolor: `${t.palette.success.main}1f`, color: 'success.main' })} />
+            <Button
+              variant="outlined"
+              color="inherit"
+              startIcon={<LuBot size={18} />}
+              endIcon={<LuArrowRight size={17} />}
+              onClick={() => navigate('/agents')}
+              sx={(theme) => ({
+                mt: { xs: 0.25, md: 1.25 },
+                minHeight: 48,
+                px: 2.3,
+                borderRadius: theme.studio.radius.pill,
+                bgcolor: 'background.paper',
+                borderColor: `${theme.palette.secondary.main}33`,
+                boxShadow: '0 1px 2px rgba(24,22,20,0.04)',
+                fontWeight: 900,
+                '&:hover': { bgcolor: 'background.paper', borderColor: theme.palette.secondary.main },
+              })}
+            >
+              Go to your Superagent
+            </Button>
+
+            <Hero />
+            <PromptComposer
+              inputRef={inputRef}
+              value={prompt}
+              onChange={setPrompt}
+              planFirst={planFirst}
+              onPlanFirstChange={setPlanFirst}
+              onSubmit={() => startWith(prompt)}
+            />
+            <TemplateRail onSelect={startTemplate} />
           </Stack>
-          <Carousel slidesPerView="auto" gap={14} pagination={false}>
-            {STARTERS.map((tpl) => (
-              <Card key={tpl.id} onClick={() => startTemplate(tpl)} sx={{ width: 220, p: 2, cursor: 'pointer', transition: (t) => `border-color ${t.brand.motion.fast}`, '&:hover': { borderColor: 'primary.main' } }}>
-                <Typography sx={{ fontWeight: 600 }}>{tpl.name}</Typography>
-                <Typography sx={(t) => ({ fontFamily: t.brand.font.mono, fontSize: '0.72rem', color: 'text.disabled', mt: 0.5 })}>{tpl.meta}</Typography>
-              </Card>
-            ))}
-          </Carousel>
+
+          <Box
+            sx={(theme) => ({
+              mx: { xs: 1.5, sm: 3, md: 10 },
+              mt: 'auto',
+              bgcolor: 'background.paper',
+              border: `1px solid ${theme.palette.cardBorder}`,
+              borderBottom: 0,
+              borderRadius: { xs: `${theme.studio.radius.xl}px ${theme.studio.radius.xl}px 0 0`, md: '28px 28px 0 0' },
+              minHeight: { xs: 150, md: 178 },
+              p: { xs: 2, md: 3 },
+              boxShadow: '0 -10px 36px rgba(24,22,20,0.04)',
+            })}
+          >
+            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+              <Stack direction="row" spacing={1}>
+                <Typography sx={(theme) => ({ px: 1.4, py: 0.85, borderRadius: `${theme.studio.radius.sm}px`, border: `1px solid ${theme.palette.divider}`, bgcolor: theme.palette.surfaceHover, fontWeight: 800 })}>Recent apps</Typography>
+                <Typography sx={{ px: 1.4, py: 0.85, color: 'text.primary', fontWeight: 800 }}>Templates</Typography>
+              </Stack>
+              <Typography sx={{ color: 'text.primary', fontWeight: 700 }}>View all  ›</Typography>
+            </Stack>
+            <FeatureGrid />
+          </Box>
         </Box>
       </Box>
     </Box>

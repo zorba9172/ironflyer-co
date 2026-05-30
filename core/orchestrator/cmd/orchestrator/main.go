@@ -34,6 +34,7 @@ import (
 	"ironflyer/core/orchestrator/internal/ai/agents"
 	"ironflyer/core/orchestrator/internal/ai/atlas"
 	"ironflyer/core/orchestrator/internal/ai/completion"
+	"ironflyer/core/orchestrator/internal/ai/costcascade"
 	"ironflyer/core/orchestrator/internal/ai/embeddings"
 	"ironflyer/core/orchestrator/internal/ai/finisher"
 	"ironflyer/core/orchestrator/internal/ai/inference"
@@ -54,9 +55,9 @@ import (
 	"ironflyer/core/orchestrator/internal/customer/auth/oauth"
 	"ironflyer/core/orchestrator/internal/customer/notify"
 	"ironflyer/core/orchestrator/internal/operations/abuse"
+	"ironflyer/core/orchestrator/internal/operations/agentteam"
 	"ironflyer/core/orchestrator/internal/operations/appconsole"
 	"ironflyer/core/orchestrator/internal/operations/arch"
-	"ironflyer/core/orchestrator/internal/operations/agentteam"
 	"ironflyer/core/orchestrator/internal/operations/audit"
 	"ironflyer/core/orchestrator/internal/operations/auditexport"
 	"ironflyer/core/orchestrator/internal/operations/bus"
@@ -94,6 +95,7 @@ import (
 	"ironflyer/core/orchestrator/internal/operations/tracing"
 	"ironflyer/core/orchestrator/internal/operations/wireup"
 	"ironflyer/core/orchestrator/internal/suppliers/context7"
+	"ironflyer/core/orchestrator/internal/suppliers/figma"
 	"ironflyer/core/orchestrator/migrations"
 )
 
@@ -325,9 +327,12 @@ func main() {
 		logger.Info().Msg("schema migrations skipped (IRONFLYER_SKIP_MIGRATE=true)")
 	} else {
 		migStart := time.Now()
-		if err := migrate.RunPool(ctx, pgPool, migrations.FS); err != nil {
+		migCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+		if err := migrate.RunPool(migCtx, pgPool, migrations.FS); err != nil {
+			cancel()
 			logger.Fatal().Err(err).Msg("apply schema migrations")
 		}
+		cancel()
 		if pgPool != nil {
 			logger.Info().Dur("took", time.Since(migStart)).Msg("schema migrations applied")
 		}
@@ -830,22 +835,35 @@ func main() {
 				repoRoot = findRepoRoot(cwd, 6)
 			}
 		}
+		// SECURITY: the Capability Atlas is a single, tenant-blind, process-wide
+		// index that feeds the Reuse-First preflight / Coder. It must NEVER index
+		// Ironflyer's OWN source in a tenant-serving deployment — that would surface
+		// internal code+symbols as "reusable capabilities" inside users' builds and
+		// across tenants. So self-indexing the repo (core/ + clients/) is gated
+		// behind an explicit dev flag; otherwise roots come only from an operator-set
+		// IRONFLYER_ATLAS_ROOTS, and absent that the atlas indexes nothing.
+		selfIndex := strings.TrimSpace(os.Getenv("IRONFLYER_ATLAS_SELF_INDEX")) == "1"
 		var atlasRoots []string
+		atlasRoot := ""
 		if v := strings.TrimSpace(os.Getenv("IRONFLYER_ATLAS_ROOTS")); v != "" {
 			for _, p := range strings.Split(v, ",") {
 				if p = strings.TrimSpace(p); p != "" {
 					atlasRoots = append(atlasRoots, p)
 				}
 			}
-		} else if repoRoot != "" {
+		} else if repoRoot != "" && selfIndex {
+			atlasRoot = repoRoot
 			atlasRoots = []string{
 				filepath.Join(repoRoot, "core"),
 				filepath.Join(repoRoot, "clients"),
 			}
+			logger.Warn().Msg("atlas self-indexing Ironflyer's own repo (IRONFLYER_ATLAS_SELF_INDEX=1) — DEV ONLY, never enable in a tenant-serving deployment")
+		} else {
+			logger.Info().Msg("atlas: no roots configured (set IRONFLYER_ATLAS_ROOTS, or IRONFLYER_ATLAS_SELF_INDEX=1 for local dev) — capability index empty")
 		}
 		atlasIndexer := &atlas.Indexer{
 			Store: atlasStore,
-			Root:  repoRoot,
+			Root:  atlasRoot,
 			Roots: atlasRoots,
 		}
 		superviseDaemon(ctx, logger, "atlas-indexer", func(runCtx context.Context) error {
@@ -881,7 +899,103 @@ func main() {
 	}
 
 	// ---------------- Agents registry + patches + finisher ----------------
-	registry := agents.NewRegistry(guard)
+	// Cost cascade — the layered AI-cost-optimization front door. It wraps
+	// the BillingGuard and satisfies the same one-method completer the
+	// registry consumes, so on any miss it delegates verbatim (zero
+	// behavioural change). Default mode is observe + safe deterministic
+	// rules; response caching and tier downgrade are explicit opt-ins so a
+	// patch is never served from a stale near-match nor silently degraded.
+	var agentStreamer agents.Streamer = guard
+	if cfg.CostCascadeEnabled {
+		// Inner model-call chain: Completer decorators wrap the BillingGuard
+		// so they run BENEATH the cascade's rules/cache/knowledge short-
+		// circuits (those answer at zero cost first). Both are opt-in and
+		// pass through untouched when their eligibility misses.
+		var inner costcascade.Completer = guard
+		if cfg.CostCascadeSpeculative {
+			// Provider racing (CapSpeculative) + predicted-outputs edit
+			// acceleration for non-identity-sensitive calls.
+			inner = costcascade.NewSpeculative(inner, costcascade.SpecOptions{PredictedOutputs: true}).WithLogger(logger)
+		}
+		if cfg.CostCascadeVerifyCascade {
+			// FrugalGPT cascade: cheap tier first, verify, escalate only on
+			// failure (bounded). Trades first-token latency for cost.
+			inner = costcascade.NewVerifyCascade(inner, costcascade.VerifyOptions{Logger: logger})
+		}
+
+		cascade := costcascade.New(inner, costcascade.Config{
+			Enabled:         true,
+			ResponseCache:   cfg.CostCascadeResponseCache,
+			CacheMaxEntries: cfg.CostCascadeCacheEntries,
+			CacheTTL:        time.Duration(cfg.CostCascadeCacheTTLMin) * time.Minute,
+			AllowDowngrade:  cfg.CostCascadeAllowDowngrade,
+			CostRatioTarget: cfg.CostCascadeCostRatioTarget,
+		}, logger)
+
+		// Layer 2 upgrade — semantic (embedding-similarity) cache with strict
+		// safety gates (cosine ≥0.95 + same tier + same schema). Replaces the
+		// exact-hash store only when an embedder is available.
+		if cfg.CostCascadeResponseCache && cfg.CostCascadeSemanticCache {
+			if emb, _ := selectEmbedder(cfg, logger); emb != nil {
+				cascade.WithResponseStore(
+					costcascade.NewSemanticCache(embeddings.NewCachedEmbedder(emb), costcascade.SemanticCacheOptions{}).WithLogger(logger),
+				)
+			}
+		}
+		// Layer 3 — knowledge/code reuse: answer from existing context without
+		// a model call when (and only when) it can be grounded confidently.
+		if cfg.CostCascadeKnowledgeReuse {
+			cascade.WithKnowledge(costcascade.NewKnowledgeReuse(costcascade.KnowledgeOptions{Logger: logger}).AsKnowledgeFunc())
+		}
+		// Prompt/context compression (LLMLingua-class) before the model tier.
+		if cfg.CostCascadeCompression {
+			cascade.WithCompressor(costcascade.NewPromptCompressor(costcascade.CompressOptions{Aggressive: cfg.CostCascadeCompressAggressive}))
+		}
+		// Difficulty-aware routing (RouteLLM-class): score and route to the
+		// cheapest viable tier (explicit premium requests are a hard floor).
+		if cfg.CostCascadeDifficultyRouting {
+			cascade.WithDifficultyScorer(costcascade.NewDifficultyRouter(costcascade.DifficultyOptions{Logger: logger}))
+		}
+		// Multi-window budget manager (session/daily/task) + per-feature
+		// attribution, composed beside the wallet/ledger (advisory ceiling).
+		if cfg.CostCascadeBudgetWindows {
+			cascade.WithBudgetManager(costcascade.NewWindowedBudgetManager(costcascade.BudgetWindowOptions{
+				DefaultDailyCapUSD:   decimal.NewFromFloat(cfg.CostCascadeDailyCapUSD),
+				DefaultSessionCapUSD: decimal.NewFromFloat(cfg.CostCascadeSessionCapUSD),
+				DefaultTaskCapUSD:    decimal.NewFromFloat(cfg.CostCascadeTaskCapUSD),
+				Logger:               logger,
+			}))
+		}
+
+		// Self-tuning controller revenue source — the platform vault's
+		// lifetime revenue, TTL-cached so the per-completion read never hits
+		// the vault store more than once per 30s. This makes the live
+		// cost-ratio + aggression gauges reflect reality (without it the
+		// ratio reads a permanent 0 and the controller stays inert).
+		cascade.WithRevenueSource(costcascade.NewTTLRevenueSource(30*time.Second, func() (float64, error) {
+			snap, err := vault.Snapshot(context.Background())
+			if err != nil {
+				return 0, err
+			}
+			f, _ := snap.Revenue.Float64()
+			return f, nil
+		}))
+
+		agentStreamer = cascade
+		logger.Info().
+			Bool("response_cache", cfg.CostCascadeResponseCache).
+			Bool("semantic_cache", cfg.CostCascadeSemanticCache).
+			Bool("compression", cfg.CostCascadeCompression).
+			Bool("difficulty_routing", cfg.CostCascadeDifficultyRouting).
+			Bool("knowledge_reuse", cfg.CostCascadeKnowledgeReuse).
+			Bool("verify_cascade", cfg.CostCascadeVerifyCascade).
+			Bool("speculative", cfg.CostCascadeSpeculative).
+			Bool("budget_windows", cfg.CostCascadeBudgetWindows).
+			Bool("allow_downgrade", cfg.CostCascadeAllowDowngrade).
+			Float64("cost_ratio_target", cfg.CostCascadeCostRatioTarget).
+			Msg("cost cascade: enabled (layered AI-cost-optimization front door, 7 algorithms wired)")
+	}
+	registry := agents.NewRegistry(agentStreamer)
 	registry.RegisterDefaults()
 
 	// Context7 live-docs grounding: when enabled (IRONFLYER_CONTEXT7_ENABLED,
@@ -1158,20 +1272,22 @@ func main() {
 	)
 	if cfg.StripeSecretKey != "" {
 		stripeWalletTopper = wallet.NewStripeTopper(walletSvc, wallet.StripeTopperOpts{
-			SecretKey:     cfg.StripeSecretKey,
-			WebhookSecret: cfg.StripeWebhookSecret,
-			SuccessURL:    cfg.StripeSuccessURL,
-			CancelURL:     cfg.StripeCancelURL,
+			SecretKey:        cfg.StripeSecretKey,
+			WebhookSecret:    cfg.StripeWebhookSecret,
+			SuccessURL:       cfg.StripeSuccessURL,
+			CancelURL:        cfg.StripeCancelURL,
+			CreditMultiplier: decimal.NewFromFloat(cfg.BillingMarginMultiplier),
 		})
-		logger.Info().Msg("V22 wallet topper: Stripe enabled")
+		logger.Info().Float64("credit_multiplier", cfg.BillingMarginMultiplier).Msg("V22 wallet topper: Stripe enabled")
 	}
 	if cfg.PaddleAPIKey != "" {
 		paddleWalletTopper = wallet.NewPaddleTopper(walletSvc, wallet.PaddleTopperOpts{
-			APIKey:        cfg.PaddleAPIKey,
-			WebhookSecret: cfg.PaddleWebhookSecret,
-			Environment:   cfg.PaddleEnv,
-			SuccessURL:    cfg.PaddleWalletSuccessURL,
-			CancelURL:     cfg.PaddleWalletCancelURL,
+			APIKey:           cfg.PaddleAPIKey,
+			WebhookSecret:    cfg.PaddleWebhookSecret,
+			Environment:      cfg.PaddleEnv,
+			SuccessURL:       cfg.PaddleWalletSuccessURL,
+			CancelURL:        cfg.PaddleWalletCancelURL,
+			CreditMultiplier: decimal.NewFromFloat(cfg.BillingMarginMultiplier),
 		})
 		logger.Info().Str("paddle_env", cfg.PaddleEnv).Msg("V22 wallet topper: Paddle enabled")
 	}
@@ -1825,8 +1941,12 @@ func main() {
 	policyCfg := policy.LoadConfig()
 	policyPEP, err := wireup.BuildPolicyPEP(policyCfg, auditStore, logger)
 	if err != nil {
-		logger.Warn().Err(err).Msg("V22 policy plane disabled (boot error)")
-		policyPEP = nil
+		if policyCfg.Mode == policy.ModeDisabled && policyCfg.AllowDisabledMode {
+			logger.Warn().Err(err).Msg("V22 policy plane disabled by explicit operator override")
+			policyPEP = nil
+		} else {
+			logger.Fatal().Err(err).Msg("V22 policy plane failed to boot")
+		}
 	} else if policyPEP != nil {
 		logger.Info().Str("bundle_version", policyPEP.BundleVersion()).
 			Msg("V22 policy plane wired")
@@ -2024,6 +2144,9 @@ func main() {
 	if cfg.IsProd() {
 		hardeningCfg.ProdMode = true
 	}
+	if len(hardeningCfg.WSOrigins) == 0 {
+		hardeningCfg.WSOrigins = append([]string(nil), cfg.CORSOrigins...)
+	}
 	baseLimiter := ratelimit.New(hardeningCfg.BaseRatePerSecond, hardeningCfg.BaseBurst)
 	gqlLimiter := gqlhardening.NewLimiter(baseLimiter, abuseEngine)
 	var persistedStore gqlhardening.Store
@@ -2050,7 +2173,7 @@ func main() {
 		Int("depth", hardeningCfg.MaxDepth).
 		Int("complexity", hardeningCfg.ComplexityLimit).
 		Bool("apq", true).
-		Bool("apq_locked", hardeningCfg.ProdMode).
+		Bool("apq_locked", hardeningCfg.APQLocked).
 		Bool("csrf", hardeningCfg.ProdMode).
 		Bool("introspection", introspectionOn).
 		Bool("error_masking", hardeningCfg.ProdMode).
@@ -2209,7 +2332,8 @@ func main() {
 	api := httpapi.New(httpapi.Deps{
 		Projects: projects, Engine: engine, Agents: registry, Patches: patches,
 		AgentTeam: agentteam.NewMemoryStore(nil),
-		Billing: billing, Stripe: stripeSvc, Paddle: paddleSvc, Guard: guard,
+		Figma:     figma.New(cfg.FigmaToken),
+		Billing:   billing, Stripe: stripeSvc, Paddle: paddleSvc, Guard: guard,
 		Auth: authSvc, AuthOptional: cfg.AuthOptional,
 		OAuth:          oauthHandler,
 		AllowedOrigins: cfg.CORSOrigins,

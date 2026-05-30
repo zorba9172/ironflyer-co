@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // File is the on-disk schema. Keep this struct small and additive — older
@@ -114,6 +115,9 @@ func Clear() error {
 
 // HostOrDefault returns the configured host or the dev fallback.
 func (f File) HostOrDefault() string {
+	if v := strings.TrimSpace(os.Getenv("IRONFLYER_HOST")); v != "" {
+		return v
+	}
 	if f.Host == "" {
 		return DefaultHost
 	}

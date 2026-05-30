@@ -1,10 +1,11 @@
 import { useState, type ReactNode } from 'react';
 import { Box, Button, Chip, IconButton, MenuItem, Popover, Select, Stack, Tooltip, Typography } from '@mui/material';
 import { useTheme, type Theme } from '@mui/material/styles';
-import { VscPlay, VscDebugStop, VscInfo, VscWand, VscRobot, VscChevronRight } from 'react-icons/vsc';
+import { Icon } from '../../icons';
 import { statusColor } from '../statusColor';
 import { TechIcon } from '../../lib/techIcons';
 import { statusLabel, type Gate } from '../../studioData';
+import { text } from '@ironflyer/design-tokens/brand';
 
 // Theme-sourced color set for the dense node bodies (React Flow nodes render
 // outside MUI's sx pipeline, so values are read from the theme here).
@@ -40,12 +41,14 @@ export interface GateNodeData {
   online: boolean;
   onSelectGate: (id: string) => void;
   onDispatch: (scope: string) => void;
+  /** Persist an agent as the owner of this gate (one of the operator's agents). */
+  onAssign?: (gateId: string, agentId: string) => void;
 }
 
 export function GateNodeLabel({ d }: { d: GateNodeData }) {
   const t = useTheme();
   const c = nodePalette(t);
-  const { gate: g, ownerName, agentOptions, onSelectGate, onDispatch } = d;
+  const { gate: g, ownerName, agentOptions, onSelectGate, onDispatch, onAssign } = d;
   const color = statusColor(t, g.status);
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const [running, setRunning] = useState(g.status === 'running');
@@ -71,7 +74,7 @@ export function GateNodeLabel({ d }: { d: GateNodeData }) {
 
       {ownerName && (
         <Row>
-          <VscRobot size={11} color={c.muted} />
+          <span style={{ display: 'inline-flex', color: c.muted }}><Icon name="bot" size={11} /></span>
           <span style={{ fontFamily: c.mono, fontSize: 9.5, color: c.muted }}>{ownerName}</span>
         </Row>
       )}
@@ -88,7 +91,7 @@ export function GateNodeLabel({ d }: { d: GateNodeData }) {
       <Stack className="nodrag nopan" direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.25 }}>
         <Tooltip title={running ? 'Stop agent' : 'Run agent'} arrow>
           <IconButton size="small" onClick={toggleRun} sx={{ color: running ? 'error.main' : 'success.main', p: 0.4 }}>
-            {running ? <VscDebugStop size={15} /> : <VscPlay size={15} />}
+            <Icon name={running ? 'pause' : 'play'} size={15} />
           </IconButton>
         </Tooltip>
 
@@ -96,7 +99,7 @@ export function GateNodeLabel({ d }: { d: GateNodeData }) {
           size="small" variant="standard" disableUnderline displayEmpty
           value={agentId}
           onClick={stop}
-          onChange={(e) => { setAgentId(e.target.value); }}
+          onChange={(e) => { setAgentId(e.target.value); onAssign?.(g.id, e.target.value); }}
           renderValue={(v) => {
             const a = agentOptions.find((x) => x.id === v);
             return <span style={{ fontFamily: c.mono, fontSize: 9.5, color: a ? c.primary : c.muted }}>{a ? a.name : 'Assign agent'}</span>;
@@ -104,19 +107,19 @@ export function GateNodeLabel({ d }: { d: GateNodeData }) {
           sx={{ flex: 1, minWidth: 0, '& .MuiSelect-select': { py: 0.2, pl: 0.5 } }}
           MenuProps={{ slotProps: { paper: { sx: { maxHeight: 280 } } } }}
         >
-          {agentOptions.map((a) => <MenuItem key={a.id} value={a.id} sx={{ fontSize: '0.8rem' }}>{a.name}</MenuItem>)}
+          {agentOptions.map((a) => <MenuItem key={a.id} value={a.id} sx={{ fontSize: text.s80 }}>{a.name}</MenuItem>)}
         </Select>
 
         <Tooltip title="Findings & patches" arrow>
           <IconButton size="small" onClick={(e) => { stop(e); setAnchor(e.currentTarget); }} sx={{ color: 'text.secondary', p: 0.4 }}>
-            <VscInfo size={14} />
+            <Icon name="info" size={14} />
           </IconButton>
         </Tooltip>
 
         {g.blocking && (
           <Tooltip title="Dispatch a fix" arrow>
             <IconButton size="small" onClick={(e) => { stop(e); onDispatch(`the ${g.name} gate`); }} sx={{ color: 'primary.main', p: 0.4 }}>
-              <VscWand size={14} />
+              <Icon name="wrench" size={14} />
             </IconButton>
           </Tooltip>
         )}
@@ -129,17 +132,17 @@ export function GateNodeLabel({ d }: { d: GateNodeData }) {
       >
         <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
           <Box component="span" sx={{ color: 'text.secondary', display: 'inline-flex' }}><TechIcon name={g.id} size={16} title={g.name} /></Box>
-          <Typography sx={{ fontWeight: 600, fontSize: '0.95rem', flex: 1 }}>{g.name}</Typography>
-          <Chip size="small" label={statusLabel[g.status]} sx={{ height: 18, fontSize: '0.6rem', bgcolor: `${color}22`, color }} />
+          <Typography sx={{ fontWeight: 600, fontSize: text.s95, flex: 1 }}>{g.name}</Typography>
+          <Chip size="small" label={statusLabel[g.status]} sx={{ height: 18, fontSize: text.s60, bgcolor: `${color}22`, color }} />
         </Stack>
         {g.findings.length === 0 ? (
-          <Typography sx={{ fontSize: '0.82rem', color: 'success.main' }}>● No open findings.</Typography>
+          <Typography sx={{ fontSize: text.s82, color: 'success.main' }}>● No open findings.</Typography>
         ) : (
           <Stack spacing={0.75} sx={{ mb: 1.5 }}>
             {g.findings.map((f) => (
               <Stack key={f.id} direction="row" spacing={0.85} alignItems="flex-start">
                 <Box component="span" sx={{ mt: '3px', color: f.severity === 'danger' ? 'error.main' : f.severity === 'warning' ? 'warning.main' : 'text.disabled' }}>●</Box>
-                <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>{f.text}</Typography>
+                <Typography sx={{ fontSize: text.s80, color: 'text.secondary' }}>{f.text}</Typography>
               </Stack>
             ))}
           </Stack>
@@ -174,16 +177,16 @@ export function FacetNodeLabel({ d }: { d: FacetNodeData }) {
         <Box component="span" sx={{ color: d.accent, display: 'inline-flex' }}><TechIcon name={d.iconKey} size={15} title={d.title} /></Box>
         <span style={{ fontFamily: c.mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', color: d.accent }}>{d.title.toUpperCase()}</span>
         <span style={{ flex: 1 }} />
-        <VscChevronRight size={13} color={c.muted} />
+        <span style={{ display: 'inline-flex', color: c.muted }}><Icon name="chevronRight" size={13} /></span>
       </Row>
       <div style={{ fontSize: 18, fontWeight: 700, color: c.primary, lineHeight: 1.05 }}>{d.metric}</div>
       {d.sub && <div style={{ fontSize: 10, color: c.secondary, lineHeight: 1.25 }}>{d.sub}</div>}
       <Stack className="nodrag nopan" direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.25 }}>
-        <Button size="small" variant="text" onClick={(e) => { e.stopPropagation(); d.onOpen(); }} sx={{ minWidth: 0, px: 0.75, fontSize: '0.68rem', color: 'primary.main' }}>Open</Button>
+        <Button size="small" variant="text" onClick={(e) => { e.stopPropagation(); d.onOpen(); }} sx={{ minWidth: 0, px: 0.75, fontSize: text.s68, color: 'primary.main' }}>Open</Button>
         <span style={{ flex: 1 }} />
         <Tooltip title="Breakdown" arrow>
           <IconButton size="small" onClick={(e) => { e.stopPropagation(); setAnchor(e.currentTarget); }} sx={{ color: 'text.secondary', p: 0.4 }}>
-            <VscInfo size={14} />
+            <Icon name="info" size={14} />
           </IconButton>
         </Tooltip>
       </Stack>
@@ -192,12 +195,12 @@ export function FacetNodeLabel({ d }: { d: FacetNodeData }) {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
         slotProps={{ paper: { sx: { width: 240, p: 2, border: 1, borderColor: 'divider', backgroundImage: 'none' } } }}
       >
-        <Typography sx={{ fontWeight: 600, fontSize: '0.9rem', mb: 1 }}>{d.title}</Typography>
+        <Typography sx={{ fontWeight: 600, fontSize: text.s90, mb: 1 }}>{d.title}</Typography>
         <Stack spacing={0.85}>
           {d.details.map((row) => (
             <Stack key={row.label} direction="row" justifyContent="space-between" alignItems="baseline">
-              <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary' }}>{row.label}</Typography>
-              <Typography sx={{ fontFamily: 'var(--if-font-mono)', fontSize: '0.78rem', fontWeight: 600, color: row.color ?? 'text.primary' }}>{row.value}</Typography>
+              <Typography sx={{ fontSize: text.s78, color: 'text.secondary' }}>{row.label}</Typography>
+              <Typography sx={(th) => ({ fontFamily: th.brand.font.mono, fontSize: text.s78, fontWeight: 600, color: row.color ?? 'text.primary' })}>{row.value}</Typography>
             </Stack>
           ))}
         </Stack>
@@ -212,7 +215,7 @@ export function VisionBody({ text, c }: { text: string; c: MapColors }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, textAlign: 'left', width: '100%' }}>
       <Row>
-        <VscWand size={13} color={c.accent} />
+        <span style={{ display: 'inline-flex', color: c.accent }}><Icon name="sparkles" size={13} /></span>
         <span style={{ fontFamily: c.mono, fontSize: 9.5, fontWeight: 700, letterSpacing: '0.1em', color: c.accent }}>VISION</span>
       </Row>
       <div style={{ fontSize: 12.5, color: c.primary, lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 5, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{text}</div>

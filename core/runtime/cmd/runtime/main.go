@@ -143,6 +143,7 @@ func main() {
 	case "docker":
 		dd := sandbox.NewDockerDriver(cfg.DockerImage).
 			WithEFS(cfg.EFSMount, cfg.WorkspaceDir).
+			WithIsolation(cfg.DockerRuntime, cfg.DockerNetwork).
 			// Web IDE image + container port. The canonical IDE is the
 			// branded Eclipse Theia app — select it with IRONFLYER_IDE_IMAGE=
 			// ironflyer/theia-ide:latest + IRONFLYER_IDE_CONTAINER_PORT=3030.
@@ -158,6 +159,7 @@ func main() {
 		}
 		driver = dd
 		logger.Info().Str("image", dd.Image).Int("idePort", dd.ContainerPort).
+			Str("dockerRuntime", dd.Runtime).Str("dockerNetwork", dd.Network).
 			Str("efs", cfg.EFSMount).Msg("docker driver enabled")
 	default:
 		driver = sandbox.NewMockDriver(cfg.WorkspaceDir)
@@ -170,8 +172,8 @@ func main() {
 	defer bgCancel()
 
 	var (
-		store    workspaces.Store = workspaces.NewMemoryStore()
-		pool     *pgxpool.Pool
+		store workspaces.Store = workspaces.NewMemoryStore()
+		pool  *pgxpool.Pool
 	)
 	if pgURL := strings.TrimSpace(os.Getenv("POSTGRES_URL")); pgURL != "" {
 		ctx, cancel := context.WithTimeout(bgCtx, 10*time.Second)

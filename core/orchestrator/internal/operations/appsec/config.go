@@ -34,10 +34,22 @@ func ResolveConfig(target Target) Config {
 		}
 		var cfg Config
 		if err := json.Unmarshal([]byte(f.Content), &cfg); err == nil {
-			return normaliseConfig(cfg)
+			return normaliseProjectConfig(cfg)
 		}
 	}
 	return Config{}
+}
+
+func normaliseProjectConfig(cfg Config) Config {
+	cfg = normaliseConfig(cfg)
+	// Project-local files are generated and tenant-editable, so they may
+	// tune non-security metadata only. Do not let an app waive, exclude,
+	// disable, or downgrade its own scan findings.
+	cfg.ExcludePaths = nil
+	cfg.DisabledScanners = nil
+	cfg.SeverityOverrides = nil
+	cfg.Waivers = nil
+	return cfg
 }
 
 func normaliseConfig(cfg Config) Config {

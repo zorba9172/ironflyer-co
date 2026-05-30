@@ -102,10 +102,32 @@ export const typography = {
   },
   weight: { regular: 400, medium: 500, semibold: 600, bold: 700 },
   leading: { tight: 1.05, snug: 1.25, normal: 1.5 },
-  tracking: { tight: '-0.02em', normal: '0', wide: '0.04em' },
+  tracking: { tight: '0', normal: '0', wide: '0.04em' },
+} as const;
+
+// Exact font-size aliases (rem). MUI surfaces map every inline `fontSize`
+// through these so no raw literal lives in a component `sx`. Keys are the size
+// in hundredths of a rem (`s66` = `0.66rem`); values are 1:1 with the literals
+// they replaced — adding or changing a size is a tokens edit, never per-component.
+export const text = {
+  s56: '0.56rem', s58: '0.58rem', s60: '0.6rem', s62: '0.62rem', s64: '0.64rem',
+  s66: '0.66rem', s68: '0.68rem', s70: '0.7rem', s72: '0.72rem', s74: '0.74rem',
+  s76: '0.76rem', s78: '0.78rem', s80: '0.8rem', s82: '0.82rem', s84: '0.84rem',
+  s85: '0.85rem', s86: '0.86rem', s88: '0.88rem', s90: '0.9rem', s92: '0.92rem',
+  s95: '0.95rem', s98: '0.98rem', s100: '1rem', s102: '1.02rem', s105: '1.05rem',
+  s110: '1.1rem', s115: '1.15rem', s120: '1.2rem', s125: '1.25rem', s130: '1.3rem', s140: '1.4rem', s150: '1.5rem',
+  s160: '1.6rem', s170: '1.7rem', s180: '1.8rem', s225: '2.25rem', s240: '2.4rem',
+  s250: '2.5rem', s260: '2.6rem',
 } as const;
 
 export const radius = { xs: 6, sm: 8, md: 12, lg: 16, xl: 24, pill: 999 } as const;
+
+export const a11y = {
+  minTarget: 36,
+  minCompactTarget: 32,
+  focusRing: `0 0 0 2px ${accent.focus}`,
+  focusRingOffset: 2,
+} as const;
 
 export const space = {
   0: 0, 1: 4, 2: 8, 3: 12, 4: 16, 5: 24, 6: 32, 7: 48, 8: 64, 9: 96, 10: 128,
@@ -133,6 +155,7 @@ export const brand = {
   accent,
   typography,
   radius,
+  a11y,
   space,
   shadow,
   motion,
@@ -161,6 +184,7 @@ export function cssVars(mode: ThemeMode): Record<string, string> {
     '--if-accent-signal': accent.signal,
     '--if-accent-success': accent.success,
     '--if-accent-danger': accent.danger,
+    '--if-accent-focus': accent.focus,
     '--if-gradient-signature': gradient.signature,
     '--if-gradient-signature-soft': gradient.signatureSoft,
     '--if-font-display': typography.display,

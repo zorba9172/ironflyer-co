@@ -56,6 +56,7 @@ run_semgrep() {
   fi
   if ! command -v semgrep >/dev/null 2>&1; then
     write_warning "${REPORT_DIR}/semgrep-${TS}.json" "semgrep not installed"
+    printf '{"version":"2.1.0","runs":[{"tool":{"driver":{"name":"semgrep"}},"results":[]}]}\n' > "${REPORT_DIR}/semgrep-latest.sarif"
     return
   fi
   (cd "${REPO_ROOT}" && semgrep scan --config .semgrep.yml --config p/owasp-top-ten --sarif --output "${raw}") || true

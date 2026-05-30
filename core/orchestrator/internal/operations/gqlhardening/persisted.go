@@ -69,12 +69,12 @@ type MemoryStore struct {
 }
 
 type memoryEntry struct {
-	query     string
-	opName    string
-	tenant    string
-	created   time.Time
-	lastUsed  time.Time
-	useCount  int64
+	query    string
+	opName   string
+	tenant   string
+	created  time.Time
+	lastUsed time.Time
+	useCount int64
 }
 
 // NewMemoryStore builds an empty in-process persisted-query store.
@@ -222,16 +222,21 @@ func (p *PostgresStore) Touch(ctx context.Context, hash string) error {
 // The middleware rewrites the request body before forwarding so the
 // downstream gqlgen handler sees a fully-resolved `query` field.
 func PersistedQueriesMiddleware(store Store, prodMode bool, isOperator OperatorCheck) func(http.Handler) http.Handler {
+	const maxGraphQLJSONBody = 2 << 20
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.Method != http.MethodPost || store == nil {
 				next.ServeHTTP(w, r)
 				return
 			}
-			body, err := io.ReadAll(r.Body)
+			body, err := io.ReadAll(io.LimitReader(r.Body, maxGraphQLJSONBody+1))
 			_ = r.Body.Close()
 			if err != nil {
 				writePersistedError(w, http.StatusBadRequest, "INVALID_BODY", "failed to read request body")
+				return
+			}
+			if len(body) > maxGraphQLJSONBody {
+				writePersistedError(w, http.StatusRequestEntityTooLarge, "BODY_TOO_LARGE", "graphql request body is too large")
 				return
 			}
 			var raw map[string]any
@@ -264,7 +269,10 @@ func PersistedQueriesMiddleware(store Store, prodMode bool, isOperator OperatorC
 					writePersistedError(w, http.StatusForbidden, "PERSISTED_QUERY_REGISTER_FORBIDDEN", "registering persisted queries requires operator role in production")
 					return
 				}
-				_ = store.Register(r.Context(), hash, query, opName, tenantFromBody(raw))
+				if err := store.Register(r.Context(), hash, query, opName, tenantFromBody(raw)); err != nil {
+					writePersistedError(w, http.StatusServiceUnavailable, "PERSISTED_QUERY_REGISTER_FAILED", "persisted query registration failed")
+					return
+				}
 				persistedHits.WithLabelValues("register").Inc()
 				_ = store.Touch(r.Context(), hash)
 			case hasHash:

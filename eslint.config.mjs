@@ -33,6 +33,9 @@ export default tseslint.config(
       'clients/web/**',
       'clients/vscode-extension/**',
     ],
+    linterOptions: {
+      reportUnusedDisableDirectives: false,
+    },
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,

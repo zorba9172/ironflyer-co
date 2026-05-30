@@ -20,6 +20,10 @@ func (r *queryResolver) Audit(ctx context.Context, query *model.AuditQueryInput)
 	if r.AuditStore == nil {
 		return nil, gqlNotConfigured("audit")
 	}
+	u, err := currentUser(ctx)
+	if err != nil {
+		return nil, err
+	}
 	q := audit.Query{}
 	if query != nil {
 		if query.UserID != nil {
@@ -44,6 +48,9 @@ func (r *queryResolver) Audit(ctx context.Context, query *model.AuditQueryInput)
 			q.Limit = *query.Limit
 		}
 	}
+	if !callerIsPlatformOperator(ctx) {
+		q.UserID = u.ID
+	}
 	if q.Limit <= 0 {
 		q.Limit = 100
 	}
@@ -66,6 +73,12 @@ func (r *queryResolver) Audit(ctx context.Context, query *model.AuditQueryInput)
 func (r *queryResolver) VerifyAudit(ctx context.Context) (*model.AuditVerifyResult, error) {
 	if r.AuditStore == nil {
 		return nil, gqlNotConfigured("audit")
+	}
+	if _, err := currentUser(ctx); err != nil {
+		return nil, err
+	}
+	if !callerIsPlatformOperator(ctx) {
+		return nil, gqlForbiddenOperator()
 	}
 	idx, err := r.AuditStore.Verify(ctx)
 	if err != nil {

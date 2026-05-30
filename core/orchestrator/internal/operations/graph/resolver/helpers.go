@@ -76,6 +76,29 @@ func gqlInsufficientFunds(webBaseURL string) *gqlerror.Error {
 	}
 }
 
+// gqlProfitGuardRefused is the typed GraphQL error returned when the
+// ProfitGuard BeforeExecutionAdmit gate projects a margin below the
+// platform floor and refuses the execution UP FRONT — before any wallet
+// hold is taken, so no funds are locked on a doomed run (law 2).
+//
+// The user-facing surface is deliberately clean: a stable BUDGET_TOO_LOW
+// code + an upgradeURL, and NO raw verdict math (margin %, floor). The
+// raw decision is already recorded in the profitguard store + audit; the
+// client turns the code into a clear, localized "your budget is too low —
+// upgrade your plan" message.
+func gqlProfitGuardRefused(webBaseURL string) *gqlerror.Error {
+	if webBaseURL == "" {
+		webBaseURL = "http://localhost:3000"
+	}
+	return &gqlerror.Error{
+		Message: "budget too low for the requested build",
+		Extensions: map[string]any{
+			"code":       "BUDGET_TOO_LOW",
+			"upgradeURL": webBaseURL + "/plans",
+		},
+	}
+}
+
 // gqlNotConfigured is the typed GraphQL error returned when an
 // optional surface (Stripe, ProfitGuard, blueprints) is unwired. The
 // resolver is reachable but cannot serve the request.

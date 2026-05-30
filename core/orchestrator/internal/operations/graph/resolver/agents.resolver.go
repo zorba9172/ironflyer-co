@@ -9,6 +9,7 @@ import (
 	"context"
 	"ironflyer/core/orchestrator/internal/ai/providers"
 	"ironflyer/core/orchestrator/internal/operations/graph/model"
+	"ironflyer/core/orchestrator/internal/operations/operator"
 	"sort"
 	"strings"
 	"time"
@@ -36,6 +37,10 @@ func (r *queryResolver) Agents(ctx context.Context) ([]model.Agent, error) {
 // AgentTelemetry returns the most recent calls captured by the
 // telemetry sink, with optional role/provider/model filters.
 func (r *queryResolver) AgentTelemetry(ctx context.Context, limit *int, role *string, provider *string, modelName *string) ([]model.AgentCall, error) {
+	// Names the live vendor + model per call — operator-only.
+	if !operator.IsOperator(ctx) {
+		return nil, gqlForbiddenOperator()
+	}
 	if r.Telemetry == nil {
 		return nil, gqlNotConfigured("telemetry")
 	}
@@ -78,6 +83,10 @@ func (r *queryResolver) AgentTelemetry(ctx context.Context, limit *int, role *st
 // the package-global registered bandit so the operator can see what
 // the live router is using to pick.
 func (r *queryResolver) BanditRanking(ctx context.Context, lookback *int) (*model.BanditRanking, error) {
+	// A per-vendor/model leaderboard — operator-only.
+	if !operator.IsOperator(ctx) {
+		return nil, gqlForbiddenOperator()
+	}
 	if r.Telemetry == nil {
 		return nil, gqlNotConfigured("telemetry")
 	}

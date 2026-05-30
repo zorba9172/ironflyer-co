@@ -512,6 +512,16 @@ type CostReport struct {
 	GrossMarginPct    float64 `json:"grossMarginPct"`
 }
 
+type CoverageReport struct {
+	ProjectID   string         `json:"projectID"`
+	Enabled     bool           `json:"enabled"`
+	OverallPct  float64        `json:"overallPct"`
+	MinPct      float64        `json:"minPct"`
+	Tool        string         `json:"tool"`
+	Files       []FileCoverage `json:"files"`
+	GeneratedAt *time.Time     `json:"generatedAt,omitempty"`
+}
+
 type CreateAppAPIKeyInput struct {
 	ProjectID string   `json:"projectID"`
 	Name      string   `json:"name"`
@@ -804,6 +814,53 @@ type ExecutionEvent struct {
 	EventType   string    `json:"eventType"`
 	Payload     JSON      `json:"payload"`
 	CreatedAt   time.Time `json:"createdAt"`
+}
+
+type FigmaColorToken struct {
+	Hex   string  `json:"hex"`
+	Alpha float64 `json:"alpha"`
+}
+
+type FigmaComponent struct {
+	ID         string  `json:"id"`
+	Name       string  `json:"name"`
+	Type       string  `json:"type"`
+	LayoutMode *string `json:"layoutMode,omitempty"`
+	Width      float64 `json:"width"`
+	Height     float64 `json:"height"`
+	Children   int     `json:"children"`
+}
+
+type FigmaExtract struct {
+	FileKey    string                 `json:"fileKey"`
+	Name       string                 `json:"name"`
+	Colors     []FigmaColorToken      `json:"colors"`
+	Typography []FigmaTypographyToken `json:"typography"`
+	Spacing    []float64              `json:"spacing"`
+	Radii      []float64              `json:"radii"`
+	Components []FigmaComponent       `json:"components"`
+	Frames     []FigmaFrame           `json:"frames"`
+}
+
+type FigmaFrame struct {
+	ID       string  `json:"id"`
+	Name     string  `json:"name"`
+	Width    float64 `json:"width"`
+	Height   float64 `json:"height"`
+	ImageURL *string `json:"imageUrl,omitempty"`
+}
+
+type FigmaTypographyToken struct {
+	FontFamily string  `json:"fontFamily"`
+	FontSize   float64 `json:"fontSize"`
+	FontWeight float64 `json:"fontWeight"`
+	LineHeight float64 `json:"lineHeight"`
+}
+
+type FileCoverage struct {
+	Path      string  `json:"path"`
+	LinePct   float64 `json:"linePct"`
+	Uncovered int     `json:"uncovered"`
 }
 
 type FinisherProfile struct {

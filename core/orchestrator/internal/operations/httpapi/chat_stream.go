@@ -46,7 +46,8 @@ const ironflyerChatVision = "You are Ironflyer — a senior AI builder that ship
 	"Default to ACTION, not interrogation. When asked to build, do not stall with rounds of clarifying questions — make reasonable, briefly-stated assumptions and immediately produce the real implementation: a short plan, the file tree, then the full code for every file in fenced code blocks with the file path on the opening fence (e.g. ```tsx src/App.tsx), then the exact run steps. If the user says 'you choose' or 'don't ask', pick sensible defaults (Vite + React + TypeScript) and build. Ask at most ONE question, and only if truly blocked. " +
 	"Be efficient and human: lead with the work, keep prose tight, no hype, no filler caveats. Prefer concrete nouns — gate verdict, patch, wallet, ledger entry, deploy artifact, completion score. " +
 	"Think visually: when a diagram, mockup, icon, or sample image would help, include it — emit an image with markdown ![alt](url) when you have a real URL, and otherwise describe the visual precisely so it can be rendered. " +
-	"You are mid-conversation: the message may include prior turns as context — honor them and continue the thread rather than restarting."
+	"You are mid-conversation: the message may include prior turns as context — honor them and continue the thread rather than restarting. " +
+	"LANGUAGE: reply in the SAME language the user writes in. Detect the language of the user's latest message and respond entirely in it (Hebrew → Hebrew, Spanish → Spanish, Arabic → Arabic, etc.); if they switch languages, switch with them. Keep code, file paths, identifiers, commands, and technical keywords in their canonical form (normally English) — translate only the prose around them."
 
 // sseFrameBufPool reuses the per-frame scratch buffer used by writeSSE.
 // Every SSE frame (delta, thinking, tool_call) goes through this pool so
@@ -175,15 +176,17 @@ func (a *API) chatStream(w http.ResponseWriter, r *http.Request) {
 		Capabilities: []providers.Capability{providers.CapCode, providers.CapFast},
 		MaxTokens:    2048,
 	}
-	if m := strings.TrimSpace(body.Model); m != "" {
-		req.PreferredProvider = m
-	}
+	// The client does NOT choose the provider/model. The orchestrator owns
+	// routing by capability so vendor selection never leaks to (or is driven
+	// by) the user; body.Model is accepted for wire-compat but ignored.
+	_ = body.Model
 
 	in, err := a.d.Guard.CompleteStreamWithFailover(streamCtx, req)
 	if err != nil {
+		code := classifyErrorCode(err)
 		writeSSE(w, flusher, "error", map[string]any{
-			"code":    classifyErrorCode(err),
-			"message": err.Error(),
+			"code":    code,
+			"message": safeChatErrorMessage(code),
 		})
 		a.d.Logger.Warn().Err(err).
 			Str("execution_id", executionID).
@@ -250,23 +253,21 @@ func (a *API) chatStream(w http.ResponseWriter, r *http.Request) {
 					outTokens = d.Usage.OutputTokens
 					costUSD = d.Usage.CostUSD
 				}
+				// NOTE: provider + model are deliberately NOT emitted. The
+				// orchestrator speaks for every upstream vendor; the client
+				// only ever sees tokens + cost, never which provider ran.
 				writeSSE(w, flusher, "finish", map[string]any{
 					"reason":   "stop",
 					"tokenIn":  inTokens,
 					"tokenOut": outTokens,
 					"costUSD":  costUSD,
-					"provider": d.Provider,
-					"model":    d.Model,
 				})
 				return
 			case providers.DeltaError:
-				msg := "stream error"
-				if d.Err != nil {
-					msg = d.Err.Error()
-				}
+				code := classifyErrorCode(d.Err)
 				writeSSE(w, flusher, "error", map[string]any{
-					"code":    classifyErrorCode(d.Err),
-					"message": msg,
+					"code":    code,
+					"message": safeChatErrorMessage(code),
 				})
 				if d.Err != nil {
 					sentryext.CaptureError(streamCtx, d.Err, map[string]string{
@@ -333,7 +334,38 @@ func classifyErrorCode(err error) string {
 		return "NO_PROVIDER"
 	case strings.Contains(msg, "context canceled"), strings.Contains(msg, "deadline exceeded"):
 		return "CANCELLED"
+	// Upstream credential / auth / rate problems are mapped to a single
+	// provider-blind "temporarily unavailable" code. The raw error (which may
+	// name a vendor or model) is logged server-side only — never surfaced.
+	case strings.Contains(msg, "api key"), strings.Contains(msg, "api_key"),
+		strings.Contains(msg, "unauthorized"), strings.Contains(msg, "unauthenticated"),
+		strings.Contains(msg, "401"), strings.Contains(msg, "403"), strings.Contains(msg, "expired"),
+		strings.Contains(msg, "permission"), strings.Contains(msg, "quota"),
+		strings.Contains(msg, "rate limit"), strings.Contains(msg, "429"),
+		strings.Contains(msg, "overloaded"), strings.Contains(msg, "503"):
+		return "UNAVAILABLE"
 	default:
 		return "INTERNAL"
+	}
+}
+
+// safeChatErrorMessage returns a fixed, provider-blind message for a classified
+// error code. The orchestrator speaks for every upstream provider, so the chat
+// stream NEVER forwards a raw provider error (which can name a vendor, a model,
+// or leak internal detail) to the client — only one of these safe strings.
+func safeChatErrorMessage(code string) string {
+	switch code {
+	case "BUDGET":
+		return "This run is out of budget. Top up the wallet to continue."
+	case "PROFITGUARD":
+		return "ProfitGuard paused this step to protect the run's margin."
+	case "NO_PROVIDER":
+		return "The assistant is temporarily unavailable. Please try again shortly."
+	case "CANCELLED":
+		return "The request was cancelled."
+	case "UNAVAILABLE":
+		return "The assistant is temporarily unavailable. Please try again shortly."
+	default:
+		return "Something went wrong handling that message. Please try again."
 	}
 }
